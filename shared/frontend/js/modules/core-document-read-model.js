@@ -1,6 +1,7 @@
 import { timelineObjectKey } from './timeline-records.js';
 import { createGeometryVersionStore } from './geometry-version-store.js';
 import { projectTimelineIdentity } from './timeline-resolver.js';
+import { temporalContains, temporalMonthEnd } from './temporal.js';
 
 const fields = Object.freeze({ territorial: 'territorialEntities', label: 'labels', hydro: 'hydroEdits',
   generic: 'genericFeatures', distributionLayer: 'distributionLayers', distributionEntry: 'distributionEntries' });
@@ -74,7 +75,19 @@ export function createCoreDocumentReadModel(initialProject) {
         if (!Object.hasOwn(row, field)) invalid(`Required C++ world field is missing: ${field}`);
       if (!row.properties || typeof row.properties !== 'object') invalid('C++ temporal property projection is required.');
       const temporalIdentity=projectTimelineIdentity(identity,row.properties);
-      const effectiveIdentity=row.objectRef.domain==='hydro'?freeze({...temporalIdentity,properties:{...temporalIdentity.properties,...row.rendering}}):temporalIdentity;
+      // A complete builtin project no longer rewrites a source-version field
+      // when assembling each month. Derive it from the Core-selected geometry
+      // and the unmodified original interval on this read-only projection.
+      const bindings=temporalIdentity.properties?.metadata?.historicalTimeline?.geometryBindings;
+      const sourceBinding=Array.isArray(bindings)?bindings.find(binding=>
+        binding.geometryRef?.id===row.geometryRef.id
+        && binding.geometryRef?.version===row.geometryRef.version
+        && temporalContains(binding,temporalMonthEnd(world.month))):null;
+      const datedIdentity=Array.isArray(bindings)&&sourceBinding
+        ?freeze({...temporalIdentity,properties:{...temporalIdentity.properties,
+          sourceGeometryVersion:sourceBinding.sourceVersionId||''}}):temporalIdentity;
+      const effectiveIdentity=row.objectRef.domain==='hydro'
+        ?freeze({...datedIdentity,properties:{...datedIdentity.properties,...row.rendering}}):datedIdentity;
       const projected = freeze({ ...structuredClone(row), id:row.objectRef.id, identity:effectiveIdentity, geometry });
       byId.set(timelineObjectKey(row.objectRef), projected);
       return projected;
