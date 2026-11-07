@@ -362,7 +362,7 @@ jobs:
       - name: Core-owned generic and distribution service contracts
         run: >-
           node --test --test-concurrency=1 --test-timeout=15000
-          tests/unit/generic-feature-service.test.mjs tests/unit/territorial-entity-store.test.mjs
+          tests/unit/generic-feature-service.test.mjs tests/unit/territorial-entity-repository.test.mjs
           tests/unit/core-service-writer-clock-wasm.test.mjs
       - name: Accepted selection and input presentation boundaries
         run: >-
