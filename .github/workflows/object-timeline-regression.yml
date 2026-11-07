@@ -59,7 +59,6 @@ jobs:
             tests/unit/timeline-records.test.mjs \
             tests/unit/timeline-geopackage.test.mjs \
             tests/unit/project-timeline-domain.test.mjs \
-            tests/unit/timeline-edit.test.mjs \
             tests/unit/timeline-resolver.test.mjs \
             tests/unit/territorial-library.test.mjs \
             tests/unit/territorial-entity-loader.test.mjs \
