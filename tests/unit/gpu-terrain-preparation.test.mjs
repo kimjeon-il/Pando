@@ -114,6 +114,24 @@ test('visible DEM uploads take precedence over optional strokes without exceedin
   assert.equal(owner.stats().terrainPendingDecodedBytes,0);
 });
 
+test('late DEM decode shares one upload owner and rearms after settlement',async t=>{
+  const {owner,requests,jobs}=fixture(t);
+  t.after(()=>owner.dispose());
+  globalThis.createImageBitmap=async()=>({width:1024,height:1024,close(){}});
+  t.after(()=>{delete globalThis.createImageBitmap;});
+  owner.setManifest(mobileManifest);
+  owner.prepare(mobileFrame(),mobileView());
+  assert.ok(requests.length>=2);
+  requests[0].resolve({ok:true,blob:async()=>({})});
+  await settle();
+  requests[1].resolve({ok:true,blob:async()=>({})});
+  await settle();
+  assert.equal(jobs.length,1,'concurrent decodes must share a single scheduler owner');
+  while(!jobs[0].step().done){}
+  await settle();
+  assert.equal(owner.stats().terrainPendingDecodedBytes,0);
+});
+
 test('country preview cannot cap terrain detail requested by a high-DPR camera', async t => {
   const setup = fixture(t, () => {}, { mobile: true });
   const { owner, requests } = setup;
