@@ -1,11 +1,26 @@
-import assert from 'node:assert/strict';
-import { existsSync, readFileSync } from 'node:fs';
-import test from 'node:test';
-import { fileURLToPath } from 'node:url';
-import { parseJavaScript } from '../../scripts/lib/source-analysis.mjs';
-import { buildFrontendIndex, frontendAsset } from '../../scripts/lib/frontend-layout.mjs';
-import { spawnSync } from 'node:child_process';
-import { loadRepository, planApplicationChecks } from '../../scripts/plan-application-checks.mjs';
+import { describe as contractSuite } from 'node:test';
+import * as __contract_dep0 from "node:assert/strict";
+import * as __contract_dep1 from "node:fs";
+import * as __contract_dep2 from "node:test";
+import * as __contract_dep3 from "node:url";
+import * as __contract_dep4 from "../../scripts/lib/source-analysis.mjs";
+import * as __contract_dep5 from "../../scripts/lib/frontend-layout.mjs";
+import * as __contract_dep6 from "node:child_process";
+import * as __contract_dep7 from "../../scripts/plan-application-checks.mjs";
+import * as __contract_dep8 from "../../scripts/lib/product-html.mjs";
+import * as __contract_dep9 from "../../scripts/lib/reviewer-ui-contracts.mjs";
+import * as __contract_dep10 from "../../scripts/build-ui-bundle.mjs";
+
+// Original feature contract: ui-source-catalog.test.mjs
+contractSuite("ui-source-catalog", () => {
+const assert = __contract_dep0.default;
+const { existsSync, readFileSync } = __contract_dep1;
+const test = __contract_dep2.default;
+const { fileURLToPath } = __contract_dep3;
+const { parseJavaScript } = __contract_dep4;
+const { buildFrontendIndex, frontendAsset } = __contract_dep5;
+const { spawnSync } = __contract_dep6;
+const { loadRepository, planApplicationChecks } = __contract_dep7;
 
 const catalogUrl = new URL('../../scripts/lib/ui-source-catalog.mjs', import.meta.url);
 const read = relativePath => readFileSync(new URL(`../../${relativePath}`, import.meta.url), 'utf8');
@@ -72,4 +87,69 @@ test('changes to the shared UI audit implementation select all four audits', () 
     for (const id of ['ui-architecture','ui-components','ui-layering','ui-ia'])
       assert.ok(plan.commands.includes(id), `${file} must select ${id}`);
   }
+});
+});
+
+// Original feature contract: ui-architecture-surface-boundary.test.mjs
+contractSuite("ui-architecture-surface-boundary", () => {
+const assert = __contract_dep0.default;
+const test = __contract_dep2.default;
+const { readFileSync } = __contract_dep1;
+const { renderProductHtml } = __contract_dep8;
+const { auditReviewCss, validateReviewUi } = __contract_dep9;
+
+const read=path=>readFileSync(new URL('../../'+path,import.meta.url),'utf8');
+const html=renderProductHtml(read).web;
+
+test('review panel handles long nested descriptions without losing source ownership',()=>{
+  const altered=html.replace('id="reviewPanelTitle"',
+    'id="reviewPanelTitle" data-sample="'+('review detail '.repeat(1500))+'"');
+  assert.deepEqual(validateReviewUi('architecture',{html:altered}),[]);
+});
+test('Viewer placement controls may not redefine shared input skin',()=>{
+  const errors=auditReviewCss('viewer.css',
+    '.viewer-root .timeline-popover input { background: var(--panel); padding: var(--ui-space-2); }');
+  assert.ok(errors.some(x=>x.includes('product CSS may position/size but not reskin UI')));
+});
+test('layout layer may not redefine component padding or surface skin',()=>{
+  const errors=auditReviewCss('layout/surfaces.css',
+    '[data-layout="mobile"] .surface-header { padding-block: 0; background: var(--panel); }');
+  assert.ok(errors.some(x=>x.includes('layout CSS may position/size but not reskin UI')));
+});
+test('scoped positioning and shared component styles remain valid',()=>{
+  assert.deepEqual(auditReviewCss('viewer.css',
+    '.viewer-root .timeline-popover { position: absolute; bottom: var(--ui-space-2); }'),[]);
+  assert.deepEqual(auditReviewCss('components/dialogs.css',
+    '.viewer-review-panel { padding: var(--ui-space-4); background: var(--panel); }'),[]);
+});
+test('review panel comparison sections may not be replaced by unrelated surfaces',()=>{
+  const altered=html.replace('id="reviewCompareSection"','id="retiredComparisonSection"');
+  assert.ok(validateReviewUi('information',{html:altered})
+    .some(message=>message.includes('reviewCompareSection')));
+});
+});
+
+// Original feature contract: viewer-ui-bundle.test.mjs
+contractSuite("viewer-ui-bundle", () => {
+const assert = __contract_dep0.default;
+const test = __contract_dep2.default;
+const { fileURLToPath } = __contract_dep3;
+const { buildUiBundles } = __contract_dep10;
+const { buildFrontendIndex, frontendAsset } = __contract_dep5;
+
+test('viewer bundle reuses current shared UI sources and excludes unused edit forms', () => {
+  const root = fileURLToPath(new URL('../../', import.meta.url));
+  const index = buildFrontendIndex(root);
+  const { viewer } = buildUiBundles(root, {
+    readSource: publicPath => frontendAsset(root, publicPath, { index }).bytes.toString('utf8'),
+  });
+  assert.equal(typeof viewer, 'string');
+  for (const path of ['tokens/application-tokens.css', 'primitives/controls.css', 'components/topbar.css',
+    'components/panels.css', 'components/map-search.css', 'components/dialogs.css']) {
+    assert.ok(viewer.includes(`source: assets/css/${path}`), path);
+  }
+  for (const path of ['primitives/color-picker.css', 'components/workflows.css']) {
+    assert.equal(viewer.includes(`source: assets/css/${path}`), false, path);
+  }
+});
 });
