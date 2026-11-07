@@ -121,6 +121,8 @@ test('actual viewer graph contains render and read Workers without editor execut
   for (const name of ['app.js', 'bootstrap.js', 'workers/core-session-worker.js', 'workers/gis-gpkg-worker.js'])
     assert.equal(paths.has(`assets/js/${name}`), false, name);
   assert.ok(paths.has('assets/js/vendor/sql/sql-wasm.wasm'));
+  assert.ok(paths.has('assets/data/places/urban-lifetimes-v1.json'),
+    'the pinned external urban-life catalog must ship with the Viewer');
   assert.ok(paths.has('assets/js/workers/gpkg-read-core.js'));
   assert.equal(paths.has('assets/js/modules/timeline-comparison.js'),false);
   assert.equal(paths.has('assets/data/prepared-polygons/generated/v1/manifest.json'),false);
