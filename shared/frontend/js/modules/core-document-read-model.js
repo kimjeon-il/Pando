@@ -67,6 +67,7 @@ export function createCoreDocumentReadModel(initialProject) {
     if (!detached && world.sourceEpoch !== expectedEpoch) throw Object.assign(new Error('The C++ world belongs to another document operation epoch.'),
       { code: 'PL-CORE-STALE', name: 'AbortError', cancelled: true });
     const identities = new Map([...sourceProject.territorialEntities.map(identity=>[timelineObjectKey({domain:'territorial',id:identity.id}),identity]),...sourceProject.hydroEdits.map(identity=>[timelineObjectKey({domain:'hydro',id:identity.id}),identity])]), byId = new Map();
+    const referenceDate=temporalMonthEnd(world.month);
     const rows = world.entities.map(row => {
       const identity = identities.get(timelineObjectKey(row.objectRef)), geometry = sourceGeometries.get(row.geometryRef);
       if (!identity || !geometry || byId.has(timelineObjectKey(row.objectRef)) || !Array.isArray(row.ancestors))
@@ -82,7 +83,7 @@ export function createCoreDocumentReadModel(initialProject) {
       const sourceBinding=Array.isArray(bindings)?bindings.find(binding=>
         binding.geometryRef?.id===row.geometryRef.id
         && binding.geometryRef?.version===row.geometryRef.version
-        && temporalContains(binding,temporalMonthEnd(world.month))):null;
+        && temporalContains(binding,referenceDate)):null;
       const datedIdentity=Array.isArray(bindings)&&sourceBinding
         ?freeze({...temporalIdentity,properties:{...temporalIdentity.properties,
           sourceGeometryVersion:sourceBinding.sourceVersionId||''}}):temporalIdentity;
