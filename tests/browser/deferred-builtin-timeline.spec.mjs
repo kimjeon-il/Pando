@@ -7,11 +7,11 @@ test.use({ trace: 'off', hasTouch: true, actionTimeout: 15000 });
 async function observeBuiltinCamera(page) {
   await page.route('**/modules/viewer-composition.js*', async route => {
     const source = await (await route.fetch()).text();
-    const debug = 'productMode,documentState:', reader = '()=>map.prepareBuiltinProject(month,{isCurrent,transition})';
+    const debug = 'productMode,documentState:', reader = 'await owners.physicalResources.preparePhysicalContext(month,{isCurrent});';
     if (!source.includes(debug) || !source.includes(reader)) throw new Error('Viewer observation boundary is missing.');
     await route.fulfill({ contentType: 'text/javascript', body: source
       .replace(debug, 'cameraSnapshot:()=>structuredClone({projection:map.viewState.projection,view:map.viewState.view}),cameraMoving:()=>map.viewState.mapMoving,' + debug)
-      .replace(reader, 'async()=>{if(window.__testBuiltinRead)await window.__testBuiltinRead(month);return map.prepareBuiltinProject(month,{isCurrent,transition});}') });
+      .replace(reader, 'if(window.__testBuiltinRead)await window.__testBuiltinRead(month);\n      ' + reader) });
   });
   await page.clock.setFixedTime(new Date(2026, 9, 24, 12));
   await page.goto('/?debug=1');
@@ -44,7 +44,7 @@ test('builtin date changes retain the camera across controls and automatic month
     for (const [id, month] of [['timelinePreviousYear', '2025-12'], ['timelinePreviousDecade', '2015-12'], ['timelineNextDecade', '2025-12'], ['timelineNextYear', '2026-10']]) {
       await page.locator('#' + id).click(); await builtinMonthReady(page, month);
       expect(await page.evaluate(() => window.__PANDOLAB_VIEWER__.cameraSnapshot())).toEqual(camera);
-      expect(await page.evaluate(() => window.__PANDOLAB_VIEWER__.documentSnapshot().projectSetup.initialMonth)).toBe(month);
+      expect(await page.evaluate(() => window.__PANDOLAB_VIEWER__.documentSnapshot().projectSetup.initialMonth)).toBe('2026-10');
     }
     await page.locator('#timelineDateButton').click(); await page.locator('#timelineViewUnit').selectOption('month'); await page.locator('#timelineYearInput').fill('1953');
     await page.locator('#timelineMonthInput').selectOption('7'); await page.locator('#timelineYearInput').press('Enter');
