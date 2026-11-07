@@ -28,6 +28,8 @@ test('historical urban identity follows verified start and merger cutoffs withou
   assert.equal(placeUrbanLabelActiveAtMonth(geo(993800),'1886-01',index),true);
   assert.equal(placeUrbanLabelActiveAtMonth(geo(2161314),'1820-01',index),true,
     'unverified multi-episode history does not invent a disappearance');
+  assert.equal(placeUrbanLabelActiveAtMonth(geo(2352778),'1801-01',index),true,
+    'provisional Dakar founding rule cannot prove absence of the older settlement');
   assert.equal(placeUrbanLabelActiveAtMonth(geo(999999999),'1820-01',index),true);
 });
 test('malformed and overlapping external lifetime intervals are rejected',()=>{
@@ -37,4 +39,7 @@ test('malformed and overlapping external lifetime intervals are rejected',()=>{
   const duplicate=structuredClone(catalog);
   duplicate.entries.push(structuredClone(duplicate.entries[0]));
   assert.throws(()=>validatePlaceUrbanLifetimes(duplicate),/duplicate/i);
+  const overlap=structuredClone(catalog);
+  overlap.entries[0].intervals=[{fromYear:1900},{fromYear:2000}];
+  assert.throws(()=>validatePlaceUrbanLifetimes(overlap),/overlap/i);
 });
