@@ -122,37 +122,23 @@ export function adjustHistoricalTerritories(input, policy, clipper = historicalW
   // Contact along a zero-area bbox edge cannot change a land difference.
   // Exact strict comparison avoids pointless Boolean sweeps on touching borders.
   const touches=(a,b)=>a[0]<b[2]&&a[2]>b[0]&&a[1]<b[3]&&a[3]>b[1];
-  const componentDifference=(left,right)=>{
-    // A ∖ (B1 ∪ B2) = (A ∖ B1) ∖ B2. Partition independent cutters by
-    // overlapping bounds before entering the Boolean sweep. This avoids
-    // mixing remote Swiss/European enclaves in a single 11-piece sweep;
-    // connected cutters still enter as one coherent operation.
-    // No coordinates are rounded and all geometry remains source-owned.
+  const componentDifference=(left,right,operation)=>{
+    // Difference is associative by cutter: A ∖ (B ∪ C) = (A ∖ B) ∖ C.
+    // Process each cutter exactly once, normalizing the validated result
+    // before it can enter another sweep. This prevents near-zero loops
+    // introduced by one overlay from corrupting the next sweep-line tree.
+    // The precision budget still covers every certified removed artifact.
     const cutters=right.map(polygon=>({polygon,bounds:envelope(polygon)}));
-    const parents=cutters.map((_,index)=>index);
-    const root=index=>{
-      while(parents[index]!==index){parents[index]=parents[parents[index]];index=parents[index];}
-      return index;
-    };
-    for(let i=0;i<cutters.length;i++)for(let j=i+1;j<cutters.length;j++){
-      if(touches(cutters[i].bounds,cutters[j].bounds))parents[root(j)]=root(i);
-    }
-    const groups=new Map();
-    for(let i=0;i<cutters.length;i++){
-      const key=root(i),entry=cutters[i];
-      if(!groups.has(key))groups.set(key,[]);
-      groups.get(key).push(entry);
-    }
     const pieces=[];
     for(const polygon of left){
       let remaining=[polygon];
-      for(const group of groups.values()){
+      for(const cutter of cutters){
         if(!remaining.length)break;
         const next=[];
         for(const part of remaining){
-          const bounds=envelope(part),near=group.filter(cutter=>touches(bounds,cutter.bounds));
-          if(!near.length)next.push(part);
-          else next.push(...clipper.difference([part],near.map(cutter=>cutter.polygon)));
+          if(!touches(envelope(part),cutter.bounds)){next.push(part);continue;}
+          const clipped=shape(clipper.difference([part],[cutter.polygon]),operation);
+          if(clipped)next.push(...(clipped.type==='Polygon'?[clipped.coordinates]:clipped.coordinates));
         }
         remaining=next;
       }
@@ -169,7 +155,7 @@ export function adjustHistoricalTerritories(input, policy, clipper = historicalW
     try {
       const complexDifference=name==='difference' && geometries.length===2
         && inputs[0].length+inputs[1].length>16;
-      raw=complexDifference?componentDifference(inputs[0],inputs[1]):clipper[name](...inputs);
+      raw=complexDifference?componentDifference(inputs[0],inputs[1],operation):clipper[name](...inputs);
     }catch(error){
       // Input dimensions identify the minimal failing source pair without
       // logging private geometry or converting a Boolean failure to an empty map.
