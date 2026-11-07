@@ -320,3 +320,20 @@ test('Hydro metadata workflow verifies the generated snapshot without committing
  assert.ok(steps.some(step=>step.uses==='actions/upload-artifact@v4'));
  for(const step of steps)assert.doesNotMatch(step.run||'',/git (?:add|commit|push)\b/);
 });
+
+test('browser-only helpers are referenced by an active feature spec', () => {
+  const browserRoot = new URL('../browser/', import.meta.url);
+  const helpersRoot = new URL('../browser/helpers/', import.meta.url);
+  const helpers = readdirSync(helpersRoot).filter(name => name.endsWith('.mjs')).sort();
+  const specs = readdirSync(browserRoot).filter(name => name.endsWith('.spec.mjs'));
+  const queue = specs.map(name => readFileSync(new URL(name, browserRoot), 'utf8'));
+  const reachable = new Set();
+  // Traverse imports from retained specs through their helper dependencies.
+  for (let at = 0; at < queue.length; at++) for (const helper of helpers) {
+    if (reachable.has(helper) || !queue[at].includes(helper)) continue;
+    reachable.add(helper);
+    queue.push(readFileSync(new URL(helper, helpersRoot), 'utf8'));
+  }
+  assert.deepEqual(helpers.filter(name => !reachable.has(name)), [],
+    'Remove orphaned browser diagnostic helpers instead of expanding the default test suite');
+});

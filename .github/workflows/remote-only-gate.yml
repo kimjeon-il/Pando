@@ -177,7 +177,7 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
-  # Actual browser-only Viewer acceptance; no Windows shell is built.
+  # Browser-only Viewer acceptance; native source checks use their own gate.
   # GIS and shared C++/WASM compilation remain separate and source-pinned.
   viewer-web-regression:
     needs: scope
@@ -204,15 +204,6 @@ jobs:
           tests/unit/viewer-inspector-controller.test.mjs
           tests/unit/viewer-inspector.test.mjs
           tests/unit/reviewer-ui-contracts.test.mjs
-      - name: Ensure the retired editor source tree cannot re-enter CI
-        run: |
-          node --input-type=module <<'NODE'
-          import assert from 'node:assert/strict';
-          import {existsSync,readFileSync} from 'node:fs';
-          assert.equal(existsSync('apps/editor'),false,'Viewer-only branch must not ship a native editor/shell');
-          const pkg=JSON.parse(readFileSync('package.json','utf8'));
-          assert.equal('dev:editor' in pkg.scripts,false);
-          NODE
       - name: Install Chromium only for real Web browser acceptance
         run: pnpm exec playwright install --with-deps chromium
       - name: Verify hidden inspector, change review, desktop/mobile Viewer and controls
