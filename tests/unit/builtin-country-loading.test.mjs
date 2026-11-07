@@ -41,19 +41,19 @@ function reader(pub,{cacheStorage=null,dataRevision='first',beforeFetch=async()=
 }
 const countryCalls=f=>f.calls.filter(row=>row.file.startsWith('countries/')).map(row=>row.file);
 
-test('direct country requests are selected by month, deduplicated and globally limited to six',async()=>{
+test('a complete logical timeline downloads every country once and limits concurrent reads to six',async()=>{
  const pub=publication([...Array.from({length:9},(_,i)=>({id:'state:'+i})),
   {id:'future',coverage:[{validFrom:'2030',validTo:null}]}]);
  const f=reader(pub,{beforeFetch:()=>new Promise(resolve=>setTimeout(resolve,3))});
  const [one,two]=await Promise.all([f.loader.loadProject('2026-10'),f.loader.loadProject('2026-11')]);
- assert.equal(one.project.territorialEntities.length,9);assert.equal(two.project.territorialEntities.length,9);
- assert.equal(countryCalls(f).length,9);assert.equal(new Set(countryCalls(f)).size,9);
+ assert.equal(one.project.territorialEntities.length,10);assert.equal(two.project.territorialEntities.length,10);
+ assert.equal(countryCalls(f).length,10);assert.equal(new Set(countryCalls(f)).size,10);
  assert.ok(f.peak()<=6);assert.ok(f.peak()>1);
  assert.equal(f.calls.filter(row=>row.file==='index.json').length,1);
  assert.equal(f.calls.some(row=>/transport|world-project/.test(row.file)),false);
  const prior=f.calls.length;await f.loader.loadProject('2026-12');assert.equal(f.calls.length,prior);
  const later=await f.loader.loadProject('2030-01');assert.equal(later.project.territorialEntities.length,10);
- assert.equal(f.calls.length,prior+1);
+ assert.equal(f.calls.length,prior,'a month change never fetches another country');
 });
 
 test('a changed revision reuses unchanged country cache entries and fetches only the changed country',async()=>{
