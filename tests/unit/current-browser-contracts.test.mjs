@@ -5,8 +5,8 @@ import { parse as parseYaml } from 'yaml';
 import { loadRepository, planApplicationChecks } from '../../scripts/plan-application-checks.mjs';
 
 const workflow = parseYaml(readFileSync(new URL('../../.github/workflows/application-architecture.yml', import.meta.url), 'utf8'));
-const workflows = ['application-architecture', 'ui-architecture', 'place-runtime']
-  .map(name => ({ name, document: parseYaml(readFileSync(new URL(`../../.github/workflows/${name}.yml`, import.meta.url), 'utf8')) }));
+// The canonical workflow now handles manual UI/place groups and PR selection.
+const workflows = [{ name: 'application-architecture', document: workflow }];
 const catalog = JSON.parse(readFileSync(new URL('../../scripts/contracts/application-checks.json', import.meta.url), 'utf8'));
 const MANUAL_SCOPES = workflow.on.workflow_dispatch.inputs.browser_scope.options;
 
@@ -55,6 +55,10 @@ test('application CI calls the shared selector and runner; automatic test lists 
   assert.equal(workflow.jobs.checks.steps.some(step => step.run?.includes('run-application-checks.mjs')), false);
   assert.equal(workflow.on.push.paths, undefined); assert.equal(workflow.on.pull_request.paths, undefined);
   assert.deepEqual(workflow.permissions, { contents: 'read' });
+  assert.ok(workflow.on.workflow_dispatch.inputs.check_groups,
+    'manual groups replace the removed UI/place workflow wrappers');
+  assert.equal(workflow.jobs.changes.steps.find(step => step.id === 'plan').env.CHECK_GROUPS,
+    "${{ inputs.check_groups || '' }}");
   assert.ok(workflow.jobs.changes.steps.find(step => step.id === 'plan').env.HEAD_SHA.includes('pull_request.head.sha'));
   for (const name of MANUAL_SCOPES.filter(scope => scope.startsWith('boundary-'))) assert.ok(workflow.jobs[name]);
   for (const name of MANUAL_SCOPES.filter(scope => scope !== 'default' && !scope.startsWith('boundary-'))) assert.ok(catalog.manualScopes[name]);

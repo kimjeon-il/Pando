@@ -20,6 +20,12 @@ export function createCheckImpactIndex({ roots, dependencies }) {
       const affected = new Map();
       for (const change of [...new Set(changes)]) {
         const pending = [change], visited = new Set();
+        // Explicit directory input expands descendants; file changes do not
+        // accidentally select every sibling's importer.
+        if (!posix.extname(change)) for (const dependency of reverse.keys()) {
+          const prefix = change.endsWith('/') ? change : change + '/';
+          if (dependency.startsWith(prefix)) pending.push(dependency);
+        }
         for (let dir = posix.dirname(change); dir !== '.'; dir = posix.dirname(dir))
           pending.push(dir);
         for (let i = 0; i < pending.length; i++) {

@@ -180,66 +180,6 @@ test('transitive source changes choose related units and declared HTTP browser c
   assert.equal(plan.manualTests.includes('tests/browser/measure.spec.mjs'), true);
 });
 
-test('archived shell imports retain source ownership but do not create public product consumers', () => {
-  const f = fixture();
-  f.put('apps/editor/native.js');
-  f.put('shared/frontend/js/workers/place-worker.js');
-  f.put('apps/shared/frontend/js/modules/leaf.js', 'throw Error("wrong source owner");');
-  f.put('apps/editor/reference-analysis-probe.js', `
-    import './native.js';
-    import { value } from '../../shared/frontend/js/modules/leaf.js';
-    export { value as terrain } from '../../shared/frontend/js/modules/terrain.js';
-    export * from './native.js';
-    const load = () => import('../../shared/frontend/js/modules/other.js?revision=1');
-    const worker = new URL('../../shared/frontend/js/workers/place-worker.js?cache=../../misleading#revision', import.meta.url);
-  `);
-  f.put('tests/unit/probe.test.mjs', "import '../../apps/editor/reference-analysis-probe.js';");
-  const repo = f.repository();
-  assert.deepEqual(repo.dependencies('apps/editor/reference-analysis-probe.js').sort(), [
-    'apps/editor/native.js', 'shared/frontend/js/modules/leaf.js', 'shared/frontend/js/modules/other.js',
-    'shared/frontend/js/modules/terrain.js', 'shared/frontend/js/workers/place-worker.js',
-  ]);
-  assert.throws(() => planApplicationChecks({
-    changedFiles: ['shared/frontend/js/workers/place-worker.js'], repository: repo
-  }), /Unclassified product change/);
-});
-
-test('shell Node tools and nested tests keep source-relative paths', () => {
-  const f = fixture();
-  f.catalog.relocatedSources = [{ source: 'apps/editor/', output: 'shell/', files: ['apps/editor/*.js'] }];
-  f.put('apps/editor/fixture.mjs', "import '../../shared/frontend/js/modules/leaf.js';");
-  f.put('apps/editor/stage.mjs', "import './fixture.mjs'; const input = new URL('../../shared/frontend/js/modules/other.js', import.meta.url);");
-  f.put('apps/editor/tests/probe.test.mjs', "import '../fixture.mjs';");
-  const repo = f.repository();
-  assert.deepEqual(repo.dependencies('apps/editor/stage.mjs').sort(), ['apps/editor/fixture.mjs', 'shared/frontend/js/modules/other.js']);
-  assert.deepEqual(repo.dependencies('apps/editor/tests/probe.test.mjs'), ['apps/editor/fixture.mjs']);
-});
-
-test('active Windows shell follows the network guard dependency', () => {
-  const f = fixture();
-  f.put('apps/editor/stage.mjs', "import './network-guard.js';");
-  f.put('apps/editor/network-guard.js', 'export const commands = {};');
-  f.put('tests/unit/shell-probe.test.mjs', "import '../../apps/editor/stage.mjs';");
-  const plan = planApplicationChecks({
-    changedFiles: ['apps/editor/network-guard.js'], repository: f.repository(),
-  });
-  assert.ok(plan.unitTests.includes('tests/unit/shell-probe.test.mjs'));
-});
-
-test('verification startup resolves versioned fixture modules at the declared runtime base', () => {
-  const f = fixture();
-  const catalog = JSON.parse(readFileSync(new URL('../../scripts/contracts/application-checks.json', import.meta.url)));
-  f.catalog.runtimeBases = { 'apps/editor/verification.js': 'assets/js' };
-  f.catalog.relocatedSources = catalog.relocatedSources;
-  f.put('apps/editor/verification.js', "export function startFixture({ versionedAsset }) { return import(versionedAsset('./modules/leaf.js').href); }");
-  f.put('tests/unit/verification.test.mjs', "import '../../apps/editor/verification.js';");
-  const repo = f.repository();
-  assert.deepEqual(repo.dependencies('apps/editor/verification.js'), ['shared/frontend/js/modules/leaf.js']);
-  const plan = planApplicationChecks({ changedFiles: ['shared/frontend/js/modules/leaf.js'], repository: repo });
-  assert.equal(plan.unitTests.includes('tests/unit/verification.test.mjs'),false,
-    'archived shell should no longer be an active product consumer');
-});
-
 test('current Viewer startup imports share the canonical frontend owner', t => {
   const f=fixture();t.after(()=>rmSync(f.root,{recursive:true,force:true}));
   f.put('apps/viewer/js/viewer.js',"import '../../../shared/frontend/js/modules/runtime-context.js';");

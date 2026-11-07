@@ -269,7 +269,7 @@ export function planApplicationChecks({ changedFiles = [], repository, groups: r
     const groupReasons = [...new Set([
       ...(command ? inputs.flatMap(file => affected(file)) : []),
       ...changed.filter(file => matches(file, group.inputs) &&
-        (command || !/\\.[cm]?js$/.test(file) || !directConsumers.get(file)?.has(group.id))),
+        (command || !/\.[cm]?js$/.test(file) || !directConsumers.get(file)?.has(group.id))),
     ])];
     if (requestedGroups.length && !requestedGroups.includes(group.id)) continue;
     if (group.mode === 'manual' && !requestedGroups.includes(group.id)) continue;

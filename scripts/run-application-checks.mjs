@@ -181,24 +181,28 @@ export function executePlan(plan, { repository, phase = 'all', shard = null, env
 }
 
 export function selectionRequest(catalog, env, groups = []) {
-  if(env.CHECK_SELECTION)return {exact:JSON.parse(env.CHECK_SELECTION),groups:[],diff:false};
-  if (groups.length) return { groups, diff: true };
+  if (env.CHECK_SELECTION) return { exact: JSON.parse(env.CHECK_SELECTION), groups: [], diff: false };
+  // Explicit groups are validated and come from environment, not shell syntax.
+  const selected = [...groups, ...String(env.CHECK_GROUPS || '').split(',').map(s => s.trim()).filter(Boolean)];
+  if (selected.length) {
+    const known = new Set(catalog.groups.map(group => group.id));
+    for (const group of selected) if (!known.has(group)) throw Error('Unknown check group: ' + group);
+    return { groups: [...new Set(selected)], diff: false };
+  }
   const automatic = () => catalog.groups.filter(group => group.mode !== 'manual' && group.mode !== 'retired').map(group => group.id);
-  // An explicit CI scope can require the complete active catalog on a push,
-  // without changing ordinary dependency-selected push and PR checks.
   if (env.CHECK_SCOPE === 'all') return { groups: automatic(), diff: false };
-  if (env.GITHUB_EVENT_NAME !== 'workflow_dispatch') return { groups: [], diff: true };
-  if (env.BROWSER_SCOPE === 'default') return { groups: automatic(), diff: false };
-  if (env.BROWSER_SCOPE) {
+  if (env.GITHUB_EVENT_NAME === 'workflow_dispatch' && env.BROWSER_SCOPE && env.BROWSER_SCOPE !== 'default') {
     const specs = catalog.manualScopes?.[env.BROWSER_SCOPE];
     if (!specs) throw Error('Unsupported browser scope: ' + env.BROWSER_SCOPE);
     return { specs, groups: [], diff: false };
   }
   if (env.CHECK_SCOPE && env.CHECK_SCOPE !== 'auto') {
-    const selected = catalog.remoteScopes?.[env.CHECK_PROFILE]?.[env.CHECK_SCOPE];
-    if (!selected) throw Error('Unsupported remote check scope: ' + env.CHECK_SCOPE);
-    return { groups: selected, diff: false };
+    const groups = catalog.remoteScopes?.[env.CHECK_PROFILE]?.[env.CHECK_SCOPE];
+    if (!groups) throw Error('Unsupported remote check scope: ' + env.CHECK_SCOPE);
+    return { groups, diff: false };
   }
+  // Default manual dispatch and PRs are affected-only. Full catalog requires
+  // check_scope=all, preventing redundant global test runs on small changes.
   return { groups: [], diff: true };
 }
 

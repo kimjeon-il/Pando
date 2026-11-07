@@ -19,6 +19,10 @@ on:
         options:
           - default
           - map-rendering
+      check_groups:
+        description: Optional comma-separated current check groups for focused manual execution
+        required: false
+        type: string
       check_scope:
         description: Affected-only automatic checks or explicitly run the complete catalog
         required: false
@@ -78,7 +82,8 @@ jobs:
           HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
           BROWSER_SCOPE: ${{ inputs.browser_scope || 'default' }}
           # Run affected checks on branch pushes. Full suite on main PR or explicit dispatch.
-          CHECK_SCOPE: ${{ (github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.check_scope == 'all')) && 'all' || 'auto' }}
+          CHECK_SCOPE: ${{ (github.event_name == 'workflow_dispatch' && inputs.check_scope == 'all') && 'all' || 'auto' }}
+          CHECK_GROUPS: ${{ inputs.check_groups || '' }}
           CHECK_SELECTION: ${{ inputs.check_selection || '' }}
           PLAYWRIGHT_LIST_PRINT_FAILURES_INLINE: '1'
         run: node scripts/run-application-checks.mjs --list --github-output

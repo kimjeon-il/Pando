@@ -26,7 +26,7 @@ on:
       - 'tools/build-world-mesh.mjs'
       - 'tools/build-country-shared-boundaries.mjs'
       - 'tools/run-country-validator.mjs'
-      - 'tests/browser/viewer-main-stall-trace.spec.mjs'
+      - 'tests/browser/viewer-startup-and-terrain.spec.mjs'
       - 'tests/unit/world-bundle*.test.mjs'
       - 'tests/unit/stored-asset-content-cache.test.mjs'
       - 'package.json'
@@ -123,7 +123,7 @@ jobs:
           pnpm check:version
       - name: Exercise real map startup and cache recovery
         run: |
-          pnpm exec playwright test tests/browser/viewer-main-stall-trace.spec.mjs             --grep='.'             --workers=1
+          pnpm exec playwright test tests/browser/viewer-startup-and-terrain.spec.mjs             --grep='.'             --workers=1
       - name: Upload failure evidence
         if: failure()
         uses: actions/upload-artifact@v4

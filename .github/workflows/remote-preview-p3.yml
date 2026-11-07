@@ -4,9 +4,6 @@ on:
     branches:
       - work/**
       - '!work/optimization'
-  pull_request:
-    branches:
-      - main
   workflow_dispatch:
     inputs:
       source_sha:

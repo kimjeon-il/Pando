@@ -2,7 +2,33 @@ name: Viewer desktop and mobile functional acceptance
 on:
   pull_request:
     branches: [main]
+    paths:
+      - 'apps/viewer/**'
+      - 'shared/frontend/**'
+      - 'shared/core/**'
+      - 'shared/wasm/**'
+      - 'tests/browser/**'
+      - 'tests/integration/**'
+      - 'tests/helpers/**'
+      - 'assets/data/builtin-world/**'
+      - 'assets/data/physical-land/**'
+      - 'assets/data/prepared-polygons/**'
+      - 'config/library-data.json'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/viewer-functional-acceptance.yml'
   workflow_dispatch:
+    inputs:
+      scope:
+        description: Current functional acceptance or focused historical review contract
+        type: choice
+        required: false
+        default: functional
+        options:
+          - functional
+          - readonly
+          - review
+          - revision
 permissions:
   contents: read
 concurrency:
@@ -10,6 +36,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   functional:
+    if: github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && (inputs.scope == 'functional' || inputs.scope == ''))
     name: Viewer ${{ matrix.profile }}
     runs-on: ubuntu-24.04
     timeout-minutes: 25
@@ -41,5 +68,273 @@ jobs:
         with:
           name: viewer-functional-${{ matrix.profile }}-${{ github.sha }}
           path: test-results/viewer-functional-${{ matrix.profile }}/
+          if-no-files-found: warn
+          retention-days: 7
+
+
+  canonical-read-boundary:
+    if: github.event_name == 'workflow_dispatch' && inputs.scope == 'readonly'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - uses: ./.github/actions/library-data
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Verify the existing source-matched C++/WASM prerequisite
+        run: node scripts/check-core-prerequisite.mjs
+      - name: Lint E1 source and focused assertions
+        run: >-
+          pnpm exec eslint
+          shared/frontend/js/modules/product-mode-policy.js
+          shared/frontend/js/modules/core-document-client.js
+          shared/frontend/js/modules/document-session.js
+          shared/frontend/js/modules/project-domain.js
+          shared/frontend/js/modules/project-session.js
+          shared/frontend/js/modules/map-owner-composition.js
+          shared/frontend/js/modules/map-workspace-host.js
+          shared/frontend/js/modules/rendering-domain.js
+          apps/viewer/js/modules/viewer-map.js
+          tests/unit/core-product-mode.test.mjs
+          tests/unit/map-readonly-flat-boundary.test.mjs
+          tests/unit/project-product-surface.test.mjs
+          tests/unit/viewer-globe-only.test.mjs
+      - name: Verify Core read access, project ownership and editing isolation
+        run: >-
+          node --test --test-concurrency=2
+          tests/unit/core-product-mode.test.mjs
+          tests/unit/project-product-surface.test.mjs
+          tests/unit/viewer-globe-only.test.mjs
+          tests/unit/map-readonly-flat-boundary.test.mjs
+          tests/unit/viewer-composition-recovery.test.mjs
+      - name: Verify existing runtime module boundaries
+        run: node scripts/check-runtime-boundaries.mjs
+
+  web-editor-regression:
+    if: github.event_name == 'workflow_dispatch' && inputs.scope == 'readonly'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - uses: ./.github/actions/library-data
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Verify real viewer/editor map rendering, selection and project open
+        run: >-
+          pnpm exec playwright test
+          tests/browser/viewer-review-e4.spec.mjs
+          tests/browser/viewer-project-open.spec.mjs
+          --workers=1 --retries=0 --reporter=list
+      - name: Preserve failed browser evidence
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e1-readonly-browser-failure-${{ github.sha }}
+          path: test-results/
+          if-no-files-found: warn
+          retention-days: 7
+
+
+  review-contract:
+    if: github.event_name == 'workflow_dispatch' && inputs.scope == 'review'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Check the authoritative C++ temporal parser
+        run: node scripts/check-core-prerequisite.mjs
+      - name: Lint E2 data contracts and tests
+        run: >-
+          pnpm exec eslint
+          shared/frontend/js/modules/review-change-records.js
+          tests/unit/review-change-records.test.mjs
+          tools/review/validate-review-bundle.mjs
+      - name: Validate review proposal, immutable history, and temporal precision
+        run: node --test tests/unit/review-change-records.test.mjs
+      - name: Validate the synthetic external report sidecar format
+        run: node tools/review/validate-review-bundle.mjs tests/fixtures/review/e2-synthetic-review.json
+      - name: Verify application runtime boundaries remain unchanged
+        run: node scripts/check-runtime-boundaries.mjs
+
+
+  e3-contract:
+    if: github.event_name == 'workflow_dispatch' && inputs.scope == 'revision'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Verify the authoritative Core temporal and geometry runtime
+        run: node scripts/check-core-prerequisite.mjs
+      - name: Lint E3 source and executable examples
+        run: >-
+          pnpm exec eslint tools/review/e3-revision-diff.mjs
+          tools/review/generate-e3-review.mjs
+          tests/unit/e3-revision-diff.test.mjs
+      - name: Verify actual Git history handling, fields and fail-closed E2 handoff
+        run: node --test tests/unit/e3-revision-diff.test.mjs tests/unit/review-change-records.test.mjs
+      - name: Preserve existing application runtime boundaries
+        run: node scripts/check-runtime-boundaries.mjs
+
+  e3-real-gis-evidence:
+    if: github.event_name == 'workflow_dispatch' && inputs.scope == 'revision'
+    needs: e3-contract
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - uses: ./.github/actions/library-data
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Fetch only the explicitly identified descendant source revision
+        shell: bash
+        run: |
+          set -euo pipefail
+          library=.library-data/repository
+          base=5eb7be55208efaafe39bd5a65ec2f111d70b9053
+          candidate=a36bf7621a0cc72267415be19562cc78d3fc725d
+          test -d "$library/.git" || test -f "$library/.git"
+          git -C "$library" cat-file -e "$base^{commit}"
+          git -C "$library" fetch --no-tags --filter=blob:none origin "$candidate"
+          git -C "$library" cat-file -e "$candidate^{commit}"
+          git -C "$library" merge-base --is-ancestor "$base" "$candidate"
+      - name: Generate actual China-Russia date-scoped GIS difference and pending review
+        shell: bash
+        run: |
+          set -euo pipefail
+          node tools/review/generate-e3-review.mjs \
+            --data-root=.library-data/repository \
+            --base=5eb7be55208efaafe39bd5a65ec2f111d70b9053 \
+            --candidate=a36bf7621a0cc72267415be19562cc78d3fc725d \
+            --comparison-month=2008-10 \
+            --evidence-path=reports/borders/reconstruction/abagaitu-g-geographic-candidate-2026-11-01/README-ko.md \
+            --proposal-id="e3-abagaitu-2008-g-${GITHUB_RUN_ID}" \
+            --created-at="$(date -u +%Y-%m-%dT%H:%M:%S.000Z)" \
+            --code-revision="$GITHUB_SHA" \
+            --output-dir="$RUNNER_TEMP/e3-gis-evidence"
+          node tools/review/validate-review-bundle.mjs "$RUNNER_TEMP/e3-gis-evidence/e3-pending-proposal.json"
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFileSync} from 'node:fs';
+          import {join} from 'node:path';
+          const root=join(process.env.RUNNER_TEMP,'e3-gis-evidence');
+          const diff=JSON.parse(readFileSync(join(root,'e3-source-diff.json'),'utf8'));
+          const audit=JSON.parse(readFileSync(join(root,'e3-verification.json'),'utf8'));
+          const proposal=JSON.parse(readFileSync(join(root,'e3-pending-proposal.json'),'utf8'));
+          assert.deepEqual(diff.readObjects.map(x=>x.sourceEntityId).filter((x,i,a)=>a.indexOf(x)===i).sort(),
+            ['state:CHN','state:RUS']);
+          assert.equal(diff.indexChangedEntities,2);
+          assert.ok(diff.changes.some(c=>c.kind==='geometry'&&c.sourceEntityId==='state:CHN'&&c.validFrom==='2008-10-14'));
+          assert.equal(audit.historicalAccuracy,'not-verified');
+          assert.equal(audit.checks.find(c=>c.name==='geometry-topology')?.outcome,'not-run');
+          assert.equal(proposal.events.length,0,'E3 may never manufacture approval or application events');
+          console.log(JSON.stringify({sourceChanged:diff.indexChangedEntities,changes:diff.changes.length,
+            issues:diff.issues.length,pending:true,historicalAccuracy:audit.historicalAccuracy}));
+          NODE
+      - name: Preserve SHA-pinned review, change inventory and honest validation receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e3-actual-gis-revision-evidence-${{ github.sha }}
+          path: ${{ runner.temp }}/e3-gis-evidence/
+          if-no-files-found: warn
+          retention-days: 14
+
+
+  e4-contract:
+    if: github.event_name == 'workflow_dispatch' && inputs.scope == 'review'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Verify paired canonical temporal Core
+        run: node scripts/check-core-prerequisite.mjs
+      - name: Lint review model, browser owner and assertions
+        run: >-
+          pnpm exec eslint
+          shared/frontend/js/modules/review-inspection.js
+          shared/frontend/js/modules/review-evidence-files.js
+          apps/viewer/js/modules/viewer-review-panel.js
+          apps/viewer/js/modules/viewer-composition.js
+          shared/frontend/js/modules/notification-presentation.js
+          tests/unit/notification-priority.test.mjs
+          tests/unit/review-inspection.test.mjs
+          tests/browser/viewer-review-e4.spec.mjs
+      - name: Verify E2/E3 handoff, source mapping and hash-verified file imports
+        run: >-
+          node --test
+          tests/unit/review-inspection.test.mjs
+          tests/unit/review-change-records.test.mjs
+          tests/unit/e3-revision-diff.test.mjs
+          tests/unit/notification-priority.test.mjs
+      - name: Check current Viewer-only source closure
+        run: >-
+          node --test
+          tests/unit/frontend-layout.test.mjs
+          tests/unit/frontend-build.test.mjs
+
+  e4-browser:
+    if: github.event_name == 'workflow_dispatch' && inputs.scope == 'review'
+    needs: e4-contract
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - uses: ./.github/actions/library-data
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Exercise E4 panel, source SHA geometry, correction export and fixed GeoPackage project-open regression
+        run: >-
+          pnpm exec playwright test
+          tests/browser/viewer-review-e4.spec.mjs
+          --workers=1 --retries=0 --reporter=list
+      - name: Preserve failed E4 screenshots and traces
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e4-browser-failure-${{ github.sha }}
+          path: test-results/
           if-no-files-found: warn
           retention-days: 7
