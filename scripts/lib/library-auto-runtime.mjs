@@ -33,7 +33,7 @@ function runCommand(command,cwd,env){
  assert.ok(Array.isArray(command)&&command.length>=2,'AUTO_RUNTIME_INVALID_OWNER_COMMAND');
  execFileSync(command[0]==='node'?process.execPath:command[0],command.slice(1),{cwd,env:{...process.env,...env,GIT_NO_LAZY_FETCH:'1'},stdio:'inherit'});
 }
-function runBaseline(root){execFileSync(process.execPath,['--test','tests/unit/builtin-world-baseline.test.mjs'],{cwd:root,env:{...process.env,GIT_NO_LAZY_FETCH:'1'},stdio:'inherit'});}
+function runBaseline(root){execFileSync(process.execPath,['--test','--test-name-pattern=builtin-world-baseline','tests/unit/builtin-world-catalog.test.mjs'],{cwd:root,env:{...process.env,GIT_NO_LAZY_FETCH:'1'},stdio:'inherit'});}
 function write(root,p,bytes,lease){const target=safePath(root,p);mkdirSync(dirname(target),{recursive:true});return lease({root,paths:[target]},()=>writeFileSync(target,bytes));}
 function replaceFixture(root,bytes,{rename=renameSync}={}){
  const target=safePath(root,FIXTURE),temporary=safePath(root,FIXTURE+'.auto-fixture-'+randomUUID());
