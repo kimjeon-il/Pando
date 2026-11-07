@@ -5,6 +5,7 @@ import {fileURLToPath} from 'node:url';
 import {readFileSync,existsSync} from 'node:fs';
 import {frontendGeneratedOwners} from '../../scripts/lib/frontend-layout.mjs';
 import {loadRepository,planApplicationChecks} from '../../scripts/plan-application-checks.mjs';
+import {auditUnitContractIdentities} from '../../scripts/lib/unit-contract-inventory.mjs';
 
 test('E7 validates all active test registrations without obsolete exception rules',()=>{
   const repository=loadRepository();
@@ -75,4 +76,13 @@ test('current CLI entrypoints and test inventory never reference removed regress
       assert.ok(existsSync(new URL('../../'+match[0],import.meta.url)),name+': '+match[0]);
   for(const binding of catalog.bindings||[])for(const file of binding.tests||[])
     if(!file.includes('*'))assert.ok(existsSync(new URL('../../'+file,import.meta.url)),'missing catalog binding: '+file);
+});
+
+
+test('unit consolidation preserves independently addressable original contracts and CI entrypoints', () => {
+  const inventory = auditUnitContractIdentities(loadRepository());
+  assert.deepEqual(inventory.missing, []);
+  assert.deepEqual(inventory.duplicates, []);
+  assert.deepEqual(inventory.staleReferences, []);
+  assert.ok(inventory.registeredContractCount >= inventory.originalContractCount);
 });
