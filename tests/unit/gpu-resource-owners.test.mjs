@@ -1,9 +1,24 @@
-import test from 'node:test';
-import assert from 'node:assert/strict';
-import * as lifecycleModule from "../../shared/frontend/js/modules/gpu-resource-lifecycle.js";
-import { createGpuUploadScheduler } from "../../shared/frontend/js/modules/gpu-upload-scheduler.js";
-import { createGpuWorkerChannels } from "../../shared/frontend/js/modules/gpu-worker-channels.js";
+import { describe as featureDescribe } from 'node:test';
+import * as __suiteDependency0 from "node:test";
+import * as __suiteDependency1 from "node:assert/strict";
+import * as __suiteDependency2 from "../../shared/frontend/js/modules/gpu-resource-lifecycle.js";
+import * as __suiteDependency3 from "../../shared/frontend/js/modules/gpu-upload-scheduler.js";
+import * as __suiteDependency4 from "../../shared/frontend/js/modules/gpu-worker-channels.js";
+import * as __suiteDependency5 from "node:assert/strict";
+import * as __suiteDependency6 from "node:test";
+import * as __suiteDependency7 from "../../shared/frontend/js/modules/gpu-resource-budget.js";
+import * as __suiteDependency8 from "node:test";
+import * as __suiteDependency9 from "node:assert/strict";
+import * as __suiteDependency10 from "../../shared/frontend/js/modules/gpu-map-renderer.js";
+import * as __suiteDependency11 from "../../shared/frontend/js/modules/gpu-resource-lifecycle.js";
 
+// Original feature contract: gpu-resource-owners.test.mjs
+featureDescribe("gpu-resource-owners", () => {
+  const test = __suiteDependency0.default;
+  const assert = __suiteDependency1.default;
+  const lifecycleModule = __suiteDependency2;
+  const {  createGpuUploadScheduler  } = __suiteDependency3;
+  const {  createGpuWorkerChannels  } = __suiteDependency4;
 test('renderer upload cancellation leaves another scheduler consumer live', async () => {
   assert.equal(typeof lifecycleModule.createGpuUploadScope, 'function');
   const frames = [];
@@ -92,4 +107,116 @@ test('P3-4 late GL handles after lifecycle disposal are released by their alloca
   const lateBuffer = {};
   assert.equal(lifecycle.retain(gl, 'Buffer', lateBuffer), null);
   assert.deepEqual(freed, [lateBuffer]);
+});
+});
+// Original feature contract: gpu-resource-budget.test.mjs
+featureDescribe("gpu-resource-budget", () => {
+  const assert = __suiteDependency5.default;
+  const test = __suiteDependency6.default;
+  const {  createGpuResourceBudget  } = __suiteDependency7;
+test('GPU byte budget evicts inactive low-priority LRU resources first', () => {
+  const budget = createGpuResourceBudget({ byteBudget: 100 });
+  budget.track('old-background', 60, 0);
+  budget.track('recent-background', 60, 0);
+  budget.touch('recent-background');
+  assert.deepEqual(budget.reconcile({ active: ['recent-background'] }), ['old-background']);
+  assert.equal(budget.stats().activeBytes, 60);
+});
+
+test('active and protected resources are never evicted even under pressure', () => {
+  const budget = createGpuResourceBudget({ byteBudget: 50 });
+  budget.track('visible', 60, 0);
+  budget.track('editing', 70, 100);
+  assert.deepEqual(budget.reconcile({ active: ['visible'], protected: ['editing'] }), []);
+  assert.equal(budget.stats().overBudgetBytes, 80);
+  assert.equal(budget.stats().blockedEvictionCount, 1);
+});
+
+test('lowering the budget returns only safe eviction keys', () => {
+  const budget = createGpuResourceBudget({ byteBudget: 500 });
+  budget.track('visible', 100, 10);
+  budget.track('cached-a', 120, 0);
+  budget.track('cached-b', 120, 1);
+  budget.reconcile({ active: ['visible'] });
+  assert.deepEqual(budget.setByteBudget(210), ['cached-a', 'cached-b']);
+  assert.equal(budget.stats().activeBytes, 100);
+});
+});
+// Original feature contract: gpu-renderer-lifecycle.test.mjs
+featureDescribe("gpu-renderer-lifecycle", () => {
+  const test = __suiteDependency8.default;
+  const assert = __suiteDependency9.default;
+  const {  createGpuMapRenderer,physicalSceneMatchesContext  } = __suiteDependency10;
+  const {  createGpuResourceLifecycle  } = __suiteDependency11;
+test('physical presentation requires the selected land and water revisions, including no water',()=>{
+  const polygon=(role,geometryRevision)=>({role,geometryRevision});
+  const target={ready:true,landRevision:'historical-land',waterRevision:'historical-water'};
+  assert.equal(physicalSceneMatchesContext({polygons:[polygon('physical-land','modern-land')]},target),false);
+  assert.equal(physicalSceneMatchesContext({polygons:[polygon('physical-land','historical-land')]},target),false);
+  const scene={polygons:[polygon('physical-land','historical-land'),polygon('physical-water','historical-water')]};
+  assert.equal(physicalSceneMatchesContext(scene,target),true);
+  assert.equal(physicalSceneMatchesContext(scene,{...target,ready:false}),false);
+  assert.equal(physicalSceneMatchesContext(scene,{...target,waterRevision:null}),false);
+  assert.equal(physicalSceneMatchesContext({polygons:[scene.polygons[0]]},{...target,waterRevision:null}),true);
+});
+
+test('disposing an awaited frame settles AbortError and a late callback is inert', async t => {
+  let callback;
+  globalThis.requestAnimationFrame = fn => { callback = fn; return 1; };
+  globalThis.cancelAnimationFrame = () => {};
+  t.after(() => { delete globalThis.requestAnimationFrame; delete globalThis.cancelAnimationFrame; });
+  const lifecycle = createGpuResourceLifecycle();
+  const pending = lifecycle.nextFrame();
+  lifecycle.dispose();
+  await assert.rejects(pending, { name: 'AbortError' });
+  callback(10);
+  await assert.rejects(lifecycle.nextFrame(), { name: 'AbortError' });
+});
+
+test('renderer disposal is idempotent and prevents deferred initialization', async t => {
+  t.mock.method(globalThis, 'setTimeout', () => { throw new Error('disposed renderer scheduled work'); });
+  globalThis.Worker = class {};
+  t.after(() => { delete globalThis.Worker; });
+  let requestedFrames = 0;
+  const renderer = createGpuMapRenderer({
+    state: {}, runtimeAssetUrl: path => path,
+    renderCountryBoundaryFeatures: () => [], countryBoundaryStyleById: () => null,
+    scheduleGpuFrame: () => requestedFrames++,
+  });
+  assert.equal(typeof renderer.dispose, 'function');
+  renderer.dispose();
+  renderer.dispose();
+  assert.equal(await renderer.initialize(), false);
+  assert.equal(renderer.getRenderDevice(), null);
+  assert.equal(requestedFrames, 0);
+});
+test('timeline changes release modern preview ownership', t => {
+  const previous = globalThis.window; globalThis.window = { devicePixelRatio: 1 };
+  t.after(() => { globalThis.window = previous; });
+  const state = { projection: 'globe', view: { globeZoom: 1 }, countryVisualPhase: 'preview' };
+  state.physicalSettings = {};
+  const renderer = createGpuMapRenderer({ state, runtimeAssetUrl: path => path,
+    renderCountryBoundaryFeatures: () => [], countryBoundaryStyleById: () => null, scheduleGpuFrame: () => {} });
+  assert.equal(typeof renderer.invalidateCountryPreview, 'function');
+  renderer.invalidateCountryPreview();
+  assert.equal(renderer.getRuntimeState().previewAllowed, false);
+  assert.equal(state.countryVisualPhase, 'canonical'); renderer.dispose();
+});
+
+test('temporal presentation wait is cancelled by a newer generation and rejects stale requests',async t=>{
+  const previous=globalThis.window;globalThis.window={devicePixelRatio:1};
+  t.after(()=>{globalThis.window=previous;});
+  const renderer=createGpuMapRenderer({state:{physicalSettings:{},pendingCountryRenderIds:new Set()},rendererUi:{},isMobile:()=>false,mapWorkScheduler:{cancel(){}},runtimeAssetUrl:path=>path,
+    renderCountryBoundaryFeatures:()=>[],countryBoundaryStyleById:()=>null,scheduleGpuFrame:()=>{}});
+  renderer.resetProjectRenderState({generation:1,presentation:'temporal'});
+  assert.equal(renderer.canPresentVisualFrame({frameId:1,projectGeneration:1}),false);
+  assert.equal(renderer.canPresentVisualFrame({frameId:1,projectGeneration:0},{succeeded:true}),false);
+  const pending=renderer.waitForTemporalPresentation();
+  renderer.resetProjectRenderState({generation:2});
+  await assert.rejects(pending,{name:'AbortError'});
+  assert.equal(await renderer.waitForTemporalPresentation(),true);
+  renderer.resetProjectRenderState({generation:3,presentation:'temporal',isCurrent:()=>false});
+  await assert.rejects(renderer.waitForTemporalPresentation(),{name:'AbortError',cancelled:true});
+  renderer.dispose();
+});
 });

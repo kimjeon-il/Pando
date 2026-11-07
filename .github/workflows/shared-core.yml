@@ -242,9 +242,8 @@ jobs:
           tests/unit/core-document-client.test.mjs tests/unit/core-document-runtime.test.mjs
           tests/unit/core-document-read-model.test.mjs tests/unit/core-document-wasm.test.mjs
           tests/unit/core-document-selection-wasm.test.mjs
-          tests/unit/core-document-field-wasm.test.mjs tests/unit/core-document-view-selection-wasm.test.mjs
           tests/unit/core-document-world-wasm.test.mjs tests/unit/core-document-draft-wasm.test.mjs
-          tests/unit/core-document-batch-wasm.test.mjs tests/unit/core-codec-unicode-wasm.test.mjs
+           tests/unit/core-codec-unicode-wasm.test.mjs
           tests/unit/core-codec-unicode-ids-wasm.test.mjs
           tests/unit/core-document-content-wasm.test.mjs tests/unit/core-project-command-wasm.test.mjs
           tests/unit/core-map-presentation-wasm.test.mjs tests/unit/core-object-catalog-wasm.test.mjs
@@ -252,13 +251,12 @@ jobs:
           tests/unit/core-distribution-array-metadata-wasm.test.mjs
           tests/unit/core-direct-object-writers-wasm.test.mjs
           tests/unit/core-hydro-create-wasm.test.mjs tests/unit/core-web-history-limit-wasm.test.mjs
-          tests/unit/core-hydro-hidden-source-wasm.test.mjs tests/unit/core-label-gesture-wasm.test.mjs
-          tests/unit/core-hydro-copy-history-wasm.test.mjs
+           tests/unit/core-label-gesture-wasm.test.mjs
           tests/unit/core-gpkg-file-boundary.test.mjs
           tests/unit/core-project-admission-wasm.test.mjs
           tests/unit/core-project-replacement-wasm.test.mjs tests/unit/core-project-file-save-wasm.test.mjs
           tests/unit/core-territorial-service-wasm.test.mjs
-          tests/unit/core-territorial-store-wasm.test.mjs tests/unit/core-empty-document-wasm.test.mjs
+          tests/unit/core-territorial-store-wasm.test.mjs 
           tests/unit/core-save-state-projection.test.mjs
           tests/unit/core-draft-primitives.test.mjs
           tests/unit/timeline-controls.test.mjs tests/unit/shared-core-assets.test.mjs

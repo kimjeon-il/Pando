@@ -1,9 +1,20 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
-import { createCameraNavigation } from "../../shared/frontend/js/modules/camera-navigation.js";
-import { normalizeMapSurfaceDragDelta } from "../../shared/frontend/js/modules/map-host.js";
-import { equirectangularCenterForAnchor } from "../../shared/frontend/js/modules/map-layout-metrics.js";
+import { describe as featureDescribe } from 'node:test';
+import * as __suiteDependency0 from "node:assert/strict";
+import * as __suiteDependency1 from "node:test";
+import * as __suiteDependency2 from "../../shared/frontend/js/modules/camera-navigation.js";
+import * as __suiteDependency3 from "../../shared/frontend/js/modules/map-host.js";
+import * as __suiteDependency4 from "../../shared/frontend/js/modules/map-layout-metrics.js";
+import * as __suiteDependency5 from "node:test";
+import * as __suiteDependency6 from "node:assert/strict";
+import * as __suiteDependency7 from "../../shared/frontend/js/modules/camera-pan.js";
 
+// Original feature contract: camera-navigation.test.mjs
+featureDescribe("camera-navigation", () => {
+  const assert = __suiteDependency0.default;
+  const test = __suiteDependency1.default;
+  const {  createCameraNavigation  } = __suiteDependency2;
+  const {  normalizeMapSurfaceDragDelta  } = __suiteDependency3;
+  const {  equirectangularCenterForAnchor  } = __suiteDependency4;
 test('continuous zoom can defer Worker settle until the gesture ends', () => {
   const events = [];
   const owner = createCameraNavigation();
@@ -125,4 +136,20 @@ test('clamped latitude-only pans preserve focus in flat and globe views', () => 
     assert.equal(owner.dragMapBy(0, 5), false);
     assert.deepEqual(events, ['focus']);
   }
+});
+});
+// Original feature contract: camera-pan.test.mjs
+featureDescribe("camera-pan", () => {
+  const { test } = __suiteDependency5;
+  const assert = __suiteDependency6.default;
+  const { panCameraView } = __suiteDependency7;
+test('both hosts share globe sensitivity, flat longitude wrapping and latitude clamps',()=>{
+ const view={globeRotation:[0,0,0],globeZoom:4,flatCenter:[179,0]};
+ assert.equal(panCameraView(view,'globe',100,100),true);
+ assert.deepEqual(view.globeRotation,[11,-11,0]);
+ panCameraView(view,'globe',0,10000);assert.equal(view.globeRotation[1],-89);
+ panCameraView(view,'flat',-10,1000,{scale:180/Math.PI});
+ assert.deepEqual(view.flatCenter,[-171,85]);
+ assert.equal(panCameraView(view,'flat',0,0,{scale:1}),false);
+});
 });

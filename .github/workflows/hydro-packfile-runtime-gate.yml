@@ -30,7 +30,7 @@ jobs:
             /assets/data/hydro/v0.13.2/
             /tools/build-hydro-packfile.mjs
             /tests/unit/hydro-packfile.test.mjs
-            /tests/unit/hydro-packfile-builder.test.mjs
+            /tests/unit/hydro-packfile.test.mjs
             /tools/library-*.mjs
             /scripts/lib/frontend-layout.mjs
             /tools/library-report-layout.mjs
@@ -57,7 +57,7 @@ jobs:
         run: |
           node tools/build-hydro-packfile.mjs --source historical-hydro/assets/data/hydro/v0.13.1 --output "$RUNNER_TEMP/hydro-pinned" 
           node tools/build-hydro-packfile.mjs --source historical-hydro/assets/data/hydro/v0.13.1 --output "$RUNNER_TEMP/hydro-pinned" --check
-          node --test tests/unit/hydro-packfile-builder.test.mjs
+          node --test tests/unit/hydro-packfile.test.mjs
           node --check shared/frontend/js/workers/hydro-tile-worker.js
           node --check shared/frontend/js/workers/hydro-shard-store.js
           node --test tests/unit/hydro-packfile.test.mjs
