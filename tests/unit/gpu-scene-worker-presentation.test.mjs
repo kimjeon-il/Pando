@@ -8,6 +8,13 @@ test('after polygon preparation, Canvas Worker schedules a base redraw rather th
   assert.match(source,/else\s+dependencies\.domains\.renderingDomain\.invalidateGpuInteraction\('overlay-mesh-ready'\)/);
 });
 
+test('Canvas first canonical country frame schedules optional terrain only after physical bitmap acceptance',()=>{
+  const renderer=readFileSync(new URL('../../shared/frontend/js/modules/gpu-map-renderer.js',import.meta.url),'utf8');
+  assert.match(renderer,/presentBeforeTerrain:\s*!temporalPending\(\)\s*&&\s*countriesPublishedGeneration\s*!==\s*projectGeneration/);
+  assert.match(renderer,/message\.presentBeforeTerrain\s*&&\s*fullSceneReady/);
+  assert.match(renderer,/invalidateGpuFrame\('canvas-country-before-terrain'\)/);
+});
+
 test('Canvas Worker scene redraw is a base invalidation retaining document and geometry state owners',()=>{
   const source=readFileSync(new URL('../../shared/frontend/js/modules/gpu-scene.js',import.meta.url),'utf8');
   const prep=source.slice(source.indexOf('builder.preparePolygons('),source.indexOf('if (pendingPreparation) { pendingPreparation = null;'));

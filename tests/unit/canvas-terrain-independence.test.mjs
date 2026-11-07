@@ -173,6 +173,28 @@ test('DEM manifest completion schedules visible detail immediately without anoth
     'resource scheduling cannot certify an unpainted bitmap');
 });
 
+test('actual country frame paints before optional Canvas DEM, then accepts full detail',async()=>{
+  const h=canvasTerrainRuntime();await settle();
+  const view={terrainDpr:1,renderProjection:{scale:100,translate:[500,300]},
+    physicalSettings:{terrainVisible:true,terrainStyle:'physical'}};
+  h.render(view);
+  for(const request of [...h.requests])if(!request.completed && /\/0\//.test(request.url))await h.deliver(request);
+  const before=h.drawn.length;
+  h.render({...view,presentBeforeTerrain:true});
+  const first=h.messages.filter(message=>message.type==='frame').at(-1);
+  assert.equal(first.physicalLandCount,1);
+  assert.equal(first.surfaceQuality,'canonical');
+  assert.equal(first.presentBeforeTerrain,true);
+  assert.equal(first.terrainComplete,false);
+  assert.equal(first.terrainStats.terrainReady,false);
+  assert.equal(h.drawn.length,before,'no optional DEM tessellation on first complete country bitmap');
+  h.render({...view,presentBeforeTerrain:false});
+  const detailed=h.messages.filter(message=>message.type==='frame').at(-1);
+  assert.equal(detailed.presentBeforeTerrain,false);
+  assert.equal(detailed.terrainComplete,true);
+  assert.ok(h.drawn.length>before,'DEM completes on a later genuine frame');
+});
+
 test('ready DEM tiles reuse a camera-stable raster substrate without repainting globe triangles', async () => {
   const h=canvasTerrainRuntime(); await settle();
   const view={terrainDpr:1,physicalSettings:{terrainVisible:true,terrainStyle:'physical'},

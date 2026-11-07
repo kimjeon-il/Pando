@@ -1226,6 +1226,13 @@ function canvasFallbackWorkerMain() {
           // A provisional bitmap has no terrain yet. Reuse its substrate,
           // but never mistake that incomplete terrain for a finished paint.
           if (reuseSubstrate && (role === 'substrate' || (role === 'terrain' && substrateState?.terrainPainted))) continue;
+          // This first real physical/country frame is not the DEM frame. A
+          // slow software globe must never withhold a source-certified border
+          // bitmap while optional tiles are being tessellated.
+          if (role === 'terrain' && message.presentBeforeTerrain) {
+            terrainComplete = false;
+            continue;
+          }
           if (role === 'terrain') yield* paint.terrain();
           else if (Object.hasOwn(paint, role)) paint[role]();
           else if (message.visualOrder.hydro.includes(role)) renderHydroPass(message, projection, dpr, role);
@@ -1248,6 +1255,7 @@ function canvasFallbackWorkerMain() {
         self.PandoLabCanvasSceneComposition.drawEmphasis(context, geoPath, emphasisEntries, dpr, protection);
         context.globalAlpha = 1;
         updateTerrainFrameStats(terrainPlan);
+        if (message.presentBeforeTerrain) terrainFrameStats.terrainReady = false;
       }
       // A pending, physical-only draw is certifiably distinct from a
       // document/country frame. An authoritative geometry revision cannot be
@@ -1278,6 +1286,7 @@ function canvasFallbackWorkerMain() {
         physicalWaterRevision: waterPainted.length === 1 ? waterPainted[0].geometryRevision : null,
         surfaceQuality: message.surfacePresentation?.quality || 'pending',
         backgroundOnly,
+        presentBeforeTerrain: message.presentBeforeTerrain === true,
         presentationKey: message.presentationKey,
         backgroundPresentationKey: message.backgroundPresentationKey,
         physicalStyleRevision,

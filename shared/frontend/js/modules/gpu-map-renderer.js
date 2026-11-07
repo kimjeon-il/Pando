@@ -4688,6 +4688,9 @@ export function createGpuMapRenderer(deps) {
         // A dated transition retains its previous complete physical frame.
         // Startup and camera moves can present prepared fallback terrain.
         deferIncompleteTerrain: temporalPending() && countriesPublishedGeneration >= 0,
+        // Publish actual vector land/countries before optional Canvas terrain
+        // tessellation. Later resource/visual frames fill in the DEM.
+        presentBeforeTerrain: !temporalPending() && countriesPublishedGeneration !== projectGeneration,
         terrainDpr: Math.min(isMobile() ? 2 : 3, Math.max(1, Number(window.devicePixelRatio || 1))),
         presentationKey: currentCanvasPresentationKey(frame),
         backgroundPresentationKey: currentCanvasBackgroundKey(frame),
@@ -4994,6 +4997,12 @@ export function createGpuMapRenderer(deps) {
         // another visual commit when a GPU-only update finishes the picture.
         if (fullSceneReady && message.surfaceQuality !== 'pending')
           settleMapPresentationWaiters();
+        // An exact canonical country bitmap was committed without optional
+        // DEM work. Immediately schedule one normal-detail frame; the next
+        // view no longer carries presentBeforeTerrain after its real commit.
+        if (message.presentBeforeTerrain && fullSceneReady && message.surfaceQuality !== 'pending'
+          && countriesPublishedGeneration === projectGeneration)
+          invalidateGpuFrame('canvas-country-before-terrain');
         canvasWorkerResubmitAttempts = 0;
         canvasWorkerResubmitKey = '';
         if (fullSceneReady && message.surfaceQuality !== 'pending') {
