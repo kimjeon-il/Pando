@@ -10,6 +10,7 @@ import * as __contract_dep7 from "../fixtures/timeline-storage-cases.mjs";
 import * as __contract_dep8 from "../helpers/timeline-project.mjs";
 import * as __contract_dep9 from "../helpers/core-command-services/save-state-controller.mjs";
 import * as __contract_dep10 from "../helpers/web-oracle.mjs";
+const {fingerprintProjectBaseline}=await __contract_dep10.loadWebOracle('assets/js/modules/project-serializer.js');
 
 // Original feature contract: project-timeline-domain.test.mjs
 contractSuite("project-timeline-domain", () => {
@@ -112,8 +113,8 @@ const { createProjectTemplateCompiler } = __contract_dep6;
 const { createSaveStateController } = __contract_dep9;
 const { projectForStorage, staticAutosaveProject } = __contract_dep8;
 const { createNodeCoreProject } = __contract_dep4;
-const { loadWebOracle } = __contract_dep10;
-const {fingerprintProjectBaseline}=await loadWebOracle('assets/js/modules/project-serializer.js');
+
+
 
 function project(staticOnly=false) {
   const source=projectForStorage();
