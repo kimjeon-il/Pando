@@ -49,6 +49,8 @@ test('the current and preceding months resolve from one complete historical worl
       assert.ok(binding, row.id + ': no geometry edition for selected month');
       assert.deepEqual(row.geometryRef,binding.geometryRef,
         row.id + ': resolved source geometry differs from the historic interval');
+      assert.equal(row.identity.properties.sourceGeometryVersion,binding.sourceVersionId,
+        row.id + ': visible source version must follow the native cursor');
       assert.ok(row.geometry && ['Polygon', 'MultiPolygon'].includes(row.geometry.type),
         row.id + ': expected an actual displayed country geometry');
     }
