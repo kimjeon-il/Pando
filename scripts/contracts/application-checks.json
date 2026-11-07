@@ -1135,13 +1135,13 @@
       "tests": [
         "tests/unit/check-*.test.mjs",
         "tests/unit/current-browser-contracts.test.mjs",
-        "tests/unit/p1-remote-scopes.test.mjs",
-        "tests/unit/p3-remote-plan.test.mjs"
+        "tests/unit/native-build-scope.test.mjs",
+        "tests/unit/viewer-preview-plan.test.mjs"
       ],
       "inputs": [
         ".github/workflows/application-architecture.yml",
-        ".github/workflows/remote-development-p1.yml",
-        ".github/workflows/remote-preview-p3.yml",
+        ".github/workflows/shared-core.yml",
+        ".github/workflows/viewer-preview.yml",
         "scripts/lib/check-changes.mjs"
       ]
     },
@@ -1150,8 +1150,8 @@
         "tests/unit/*version*.test.mjs",
         "tests/unit/check-*.test.mjs",
         "tests/unit/current-browser-contracts.test.mjs",
-        "tests/unit/p1-remote-scopes.test.mjs",
-        "tests/unit/p3-remote-plan.test.mjs"
+        "tests/unit/native-build-scope.test.mjs",
+        "tests/unit/viewer-preview-plan.test.mjs"
       ],
       "inputs": [
         "package.json",
@@ -1366,43 +1366,7 @@
     }
   ],
   "remoteScopes": {
-    "p1": {
-      "ui": [
-        "ui",
-        "viewer",
-        "ui-architecture",
-        "ui-spacing",
-        "ui-components",
-        "ui-layering",
-        "ui-ia",
-        "object-registry"
-      ],
-      "objects": [
-        "objects",
-        "projects",
-        "object-contracts",
-        "commands",
-        "provenance",
-        "version-contract"
-      ],
-      "gis": [
-        "gis-contracts",
-        "hydro-gis",
-        "terrain",
-        "boundaries",
-        "country-selftest",
-        "country-validity-canonical",
-        "country-preview",
-        "country-validity",
-        "territorial-library-contract"
-      ],
-      "places": [
-        "places",
-        "place-contracts",
-        "places-runtime"
-      ]
-    },
-    "p3": {
+    "viewer-preview": {
       "acceptance": [
         "place-contracts",
         "project-file-contracts",

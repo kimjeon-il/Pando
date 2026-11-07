@@ -67,9 +67,7 @@ active until their development container is rebuilt.
 ## Windows native reviewer retirement (work/remote-only)
 
 The integrated Web Viewer inspection panel replaces the standalone
-Windows Tauri/WebView2 reviewer in this branch. The P1 workflow no longer
-accepts `native` or `native-tests` dispatch requests and the remote-only
-acceptance has no Windows build or GUI job. Root `dev:windows` and
+Windows Tauri/WebView2 reviewer in this branch. The current source-owned CI no longer provides a Windows build or GUI job. Root `dev:windows` and
 `build:windows` package scripts and `@tauri-apps/cli` dependency are
 retired. The source-bound C++ Core, WASM, GIS and browser acceptance
 still run in GitHub Actions, not on the Windows PC.
@@ -78,28 +76,15 @@ Archived Windows source and storage cleanup code must not be mistaken
 for a supported executable. Preserve existing user's binaries and
 references; this migration does not delete PC files.
 
-## Builds and verification are owned by CI
+## Builds and verification are owned by feature workflows
 
-- P1 `.github/workflows/remote-development-p1.yml`: source-aware UI,
-  C++, GIS and WASM runner jobs only. This branch is a push target.
-- P2 `.github/workflows/generated-artifacts-p2.yml`: regenerate only
-  changed source-bound WASM/data families and publish with a guarded
-  work-branch fast-forward, not to main. Do not use `all` casually.
-- P3 `.github/workflows/remote-preview-p3.yml`: browser evidence and
-  downloadable branch snapshots; this is not a permanent public preview URL.
-- `.github/workflows/remote-only-gate.yml`: branch configuration contracts,
-  actual shared WASM compilation and GIS/Viewer browser acceptance. It does not
-  install or validate AI models, OCR or model training.
-- The published Viewer remains owned by main's `web-pages.yml`.
-  Source writes, artifact publication to this branch and main deployment
-  are distinct operations.
+- `.github/workflows/application-architecture.yml`: one source-aware Node, Native prerequisite, and Playwright verification path, reused for Viewer checks.
+- `.github/workflows/shared-core.yml`: Core and GIS C++ source builds on affected development branches; its existing Core/WASM contracts remain available for the main branch and explicit scopes.
+- `.github/workflows/generated-artifacts-p2.yml`: immutable source-matched WASM/data generation and guarded publication. Only this owner publishes validated generated outputs; unchanged outputs are not rebuilt.
+- `.github/workflows/viewer-preview.yml`: optional downloadable branch snapshot and source-matched Viewer browser acceptance, dispatched after generated artifacts publish. This never deploys production Pages.
+- `.github/workflows/web-pages.yml`: main-branch production deployment only.
 
-Git and data originals remain in their existing authoritative repositories.
-Do not copy the entire library, training corpus, historical evidence or
-Windows application artifacts into the Codespace. CI artifacts are short-lived
-and are not the sole long-term storage for unique outputs. Preserve branch
-data pins and SHA-256 source identity. Keep current and actively referenced
-Windows binaries; retire only verified unused reproducible cache outputs.
+Codespaces is a read-only/on-demand local Viewer environment. No independent P1, P3 or remote-only CI pipelines remain. The map-analysis/training plugin remains separately owned, and native SDK installation is forbidden within a remote-only Codespace.
 
 ## Independent Map Toolkit plugin boundary
 
@@ -107,8 +92,7 @@ History-map image analysis, OCR, ONNX/LibTorch inference and model training
 belong to the independent [Map Toolkit repository](https://github.com/kimjeon-il/map-toolkit).
 The public
 Viewer and Windows reviewer do not require its model-training environment.
-The `work/remote-only` application's mandatory acceptance workflow must
-not run these plugin-only tests or download LibTorch/CUDA/AI model assets.
+The shared Viewer, Core, and GIS validation workflows must not run plugin-only tests or download LibTorch/CUDA/AI model assets.
 Plugin acceptance belongs to a separate, explicitly selected plugin release
 or training workflow and is not a blocker for remote-only application
 development. This boundary does not alter the plugin's artifacts,
@@ -125,31 +109,15 @@ runs an inexpensive real-server HTTP smoke. The heavy original
 deliberate `--browser` invocation. It tests actual canonical map frame
 readiness, year navigation, two source-watch reloads and file isolation.
 
-The existing P3 GitHub Actions tests provide the normal Web/Canvas and
-mobile/desktop browser verification without requiring any Codespace.
+The source-aware application workflow and optional Viewer preview provide Web/Canvas and mobile/desktop verification without requiring a Codespace.
 A passing CI contract test is not proof that a personal Codespace
 session was opened. `main` deployment is still separately controlled.
 
 ## Source-matched C++ / WASM / GIS integration
 
-The `remote-only-gate.yml` acceptance now builds native GIS polygon tests and
-the shared C++/WASM core on the same Linux runner from the exact branch commit.
-It runs the established GIS numerical contract tests against **the freshly
-compiled WASM**, using `PANDOEDITOR_WASM_MODULE` (not a prebuilt binary or JS
-replacement). The job uploads a CTest XML and Node TAP receipt with the same
-commit-linked evidence.
+The shared-core workflow compiles and tests affected native Core or GIS source changes on GitHub Actions. The generated-artifacts workflow builds validated source-matched WASM only when input hashes require it and records the immutable runtime identity. A successful publication dispatches Viewer preview against the exact published commit, which mounts its pinned library revision and can exercise actual browser rendering.
 
-The dependent `viewer-map-integration` job downloads the exact WASM from the
-preceding job and packages it into an **ephemeral CI checkout**, mounts the
-library-data revision pinned to the source commit and runs the existing
-desktop WebGL and mobile Canvas Playwright map-readiness checks. Only after
-successful actual rendering and runtime assertions is that acceptance marked
-passed. The checkout changes are never pushed or deployed.
-
-The standalone C++ and WASM jobs are insufficient alone: this integrated gate
-is required to prove native geometry, compiled runtime and map consumption
-agree. This does not claim physical GPU equivalence or cover all historic
-countries and time periods.
+Focused `workflow_dispatch` in `viewer-preview.yml` retains real Chromium startup/Canvas evidence, while `shared-core.yml` retains independent C++ contracts. These paths are intentionally distinct: building C++ alone is not proof that the delivered web map presents correctly. No local Codespaces compiler is required or installed.
 
 ## Local build prohibition and immutable output retirement
 
@@ -188,34 +156,9 @@ branch migration or on the developer PC.
 
 ## Remote output reuse and retention (bounded)
 
-The CI gate now plans changes before heavy work. Documentation-only pushes
-run contract checks without C++, Emscripten, SDK or Windows compilation.
-Explicit `workflow_dispatch` selects full acceptance even when source input
-files are unchanged. Unknown baselines are treated as needing full validation.
+The artifact planner selects generated data and WASM work by source fingerprints; only modified families are rebuilt. Source change classification of native C++ and GIS inputs is performed once by the shared Core workflow. The remote-only-specific WASM cache and its dedicated workflow have been retired: existing source-matched artifact validation and GitHub Actions artifact reuse remain authoritative.
 
-WASM cache key = SHA-256 of the canonical shared C++ source manifest,
-root CMake inputs, pinned Emscripten and source-bound workflow/packaging
-inputs. A cache hit is accepted only after digest, compiler version,
-C++ core ABI/source identity and WebAssembly byte checks. The same cached
-pair is then tested through the GIS adapters and sent to the browser test.
-Cache misses compile on GitHub Actions, run geometry checks, **then** publish
-the cache. No compiler SDK or build tree is stored in the reusable cache.
-
-Windows verification cache key = the exact source-pinned native input SHA,
-including the Git commit embedded in its executable. It is hash checked
-against the manifest, source commit and binary `--build-info`. A cache
-hit skips Rust compilation, but **never** skips the actual Windows WebView2
-GUI acceptance; a miss saves its binary only after GUI acceptance succeeds.
-A different Git SHA is not silently treated as a matching Windows build.
-
-Per-run browser/GIS/Windows evidence uses GitHub Actions artifacts with
-7-day WASM or 14-day diagnostic retention; disposable CI runner directories
-are ephemeral. GitHub's managed cache eviction handles unreferenced cache
-entries, so the system never requires developers to download/stage large
-artifacts on their PCs. These are bounded reuse caches, not permanent
-backups: original GIS/AI evidence and release-critical binaries must remain
-with their canonical source owner. No historic cache, report or local
-SDK was deleted during this migration.
+A Docs/Codespaces-only edit does not trigger a native compiler. Browser snapshot and native build evidence remain tied to the producing commit; any immutable artifact must be validated before being exposed to the Viewer. Production deployment remains a separate, main-only operation.
 
 ## Acceptance boundaries
 

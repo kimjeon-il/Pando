@@ -378,24 +378,20 @@ test('browser-only helpers are referenced by an active feature spec', () => {
     'Remove orphaned browser diagnostic helpers instead of expanding the default test suite');
 });
 
-test('Native GIS and Viewer jobs avoid repeated automatic application test commands',()=>{
+test('current C++/GIS and Viewer workflows have one application runner and source-owned release jobs',()=>{
   const read=name=>parse(readFileSync(new URL('../../.github/workflows/'+name+'.yml',import.meta.url),'utf8'));
-  const app=read('application-architecture');
+  const app=read('application-architecture'),preview=read('viewer-preview'),native=read('shared-core');
   assert.ok(app.on.workflow_call?.inputs?.check_profile);
-  const p3=read('remote-preview-p3');
-  assert.equal(p3.jobs['application-contracts'].uses,'./.github/workflows/application-architecture.yml');
-  assert.equal(p3.jobs['web-contracts'],undefined);
-  assert.equal(p3.jobs['web-contracts-browser'],undefined);
-  assert.ok(read('remote-only-gate').jobs['viewer-web-regression'].if.includes('workflow_dispatch'));
-  const pack=read('hydro-packfile-runtime-gate').jobs.parity;
-  const occurrences=pack.steps.flatMap(step=>String(step.run||'').match(/node --test tests\/unit\/hydro-packfile\.test\.mjs/g)||[]);
-  assert.equal(occurrences.length,1);
-  const native=read('shared-core').jobs.contracts.steps.find(step=>step.name==='Accepted selection and input presentation boundaries');
-  assert.ok(native);
-  for(const file of ['tests/unit/selection-domain-core.test.mjs','tests/unit/selection-domain-wasm.test.mjs'])
-    assert.equal(native.run.split(file).length-1,1);
-  const gis=read('gis-post-2000-browser-check');
-  assert.ok(gis.on.workflow_dispatch);
-  assert.equal(gis.on.push,undefined,'the same pinned date checks must not run on two automatic workflows');
-  assert.ok(gis.jobs['browser-year-snapshots'].steps.some(step=>step.run?.includes('playwright test')));
+  assert.equal(preview.jobs['application-contracts'].uses,'./.github/workflows/application-architecture.yml');
+  assert.ok(preview.jobs.snapshot.steps.some(step=>step.run?.includes('stage-viewer-preview.mjs')));
+  assert.ok(native.jobs['native-branch-core']&&native.jobs['native-branch-gis']);
+  assert.ok(native.jobs['native-branch-impact']);
+  const producer=read('generated-artifacts-p2');
+  const handoff=producer.jobs.generate.steps.find(step=>step.run?.includes('gh workflow run'));
+  assert.match(handoff.run,/viewer-preview\.yml/);
+  const hydro=read('hydro-packfile-runtime-gate').jobs.parity;
+  const count=hydro.steps.flatMap(step=>String(step.run||'').match(/node --test tests\/unit\/hydro-packfile\.test\.mjs/g)||[]).length;
+  assert.equal(count,1);
+  for(const old of ['remote-development-p1','remote-preview-p3','remote-only-gate'])
+    assert.equal(existsSync(new URL('../../.github/workflows/'+old+'.yml',import.meta.url)),false);
 });

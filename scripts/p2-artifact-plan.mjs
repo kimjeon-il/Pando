@@ -7,7 +7,7 @@ import { execFileSync } from 'node:child_process';
 import { appendFileSync, readFileSync } from 'node:fs';
 import { isAbsolute, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { changedPaths } from './p1-plan-remote-checks.mjs';
+import { collectChanges } from './lib/check-changes.mjs';
 import { sharedSourceManifest } from '../tools/package-shared-core-assets.mjs';
 import { graphStatus, artifactGraph, ownsPath, RECEIPT_PATH, stageArtifacts, publishArtifacts, artifactEvidence } from './lib/p2-artifact-graph.mjs';
 
@@ -105,7 +105,7 @@ function validationOrPresentationOnly(changes,graph) {
     'scripts/p2-publish-artifacts.mjs',
     '.github/workflows/ui-architecture.yml',
     '.github/workflows/place-runtime.yml',
-    '.github/workflows/remote-development-p1.yml',
+    '.github/workflows/shared-core.yml',
     '.github/workflows/viewer-functional-p6-1.yml',
     '.github/workflows/viewer-functional-p6-2.yml',
     '.github/workflows/integration-read-model-p6.yml',
@@ -113,7 +113,7 @@ function validationOrPresentationOnly(changes,graph) {
     '.github/workflows/web-pages.yml',
     '.github/workflows/shared-core.yml',
     'eslint.config.js',
-    '.github/workflows/remote-preview-p3.yml',
+    '.github/workflows/viewer-preview.yml',
     'scripts/run-boundary-revision-comparison.mjs',
     'scripts/check-territorial-library.mjs',
     'scripts/lib/late-soviet-check.mjs',
@@ -134,7 +134,7 @@ function validationOrPresentationOnly(changes,graph) {
     'shared/frontend/js/modules/physical-resources.js',
     'shared/frontend/js/modules/gpu-map-renderer.js',
     'scripts/r4d-check-retired-tests.mjs',
-    'scripts/remote-only-doctor.mjs','scripts/remote-only-ci-scope.mjs',
+    'scripts/remote-only-doctor.mjs','scripts/lib/check-changes.mjs',
     'playwright.codespaces.config.js'
   ]);
   const inputMatches=(selector,path)=>typeof selector==='string'
@@ -182,7 +182,10 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)) {
     resultSha:value('--result-sha'),expectedSourceSha:options.expectedSourceSha,evidenceFile:value('--evidence-file')}),null,2));
   else {
     const manual=process.env.PANDO_P2_SCOPE||'auto';
-    const difference=manual==='verify'?{paths:[],fallback:false}:changedPaths({base:process.env.PANDO_P2_BASE_SHA||''});
+    const difference=manual==='verify'?{paths:[],fallback:false}:(()=>{
+      const result=collectChanges({root,base:process.env.PANDO_P2_BASE_SHA||'origin/main',event:process.env.GITHUB_EVENT_NAME||'push'});
+      return {paths:result.files,fallback:false};
+    })();
     const result=plan(root,{changes:difference.paths,manual,families});
     if(args.includes('--check')) {
       const scope=process.env.PANDO_P2_SCOPE||'all';

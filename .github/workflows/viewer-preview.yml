@@ -1,0 +1,223 @@
+name: Viewer branch preview and source-matched acceptance
+# Source-matched artifacts are generated and validated by the publisher. This
+# workflow is dispatched with their exact commit, never while generation runs.
+on:
+  push:
+    branches:
+      - work/**
+      - '!work/optimization'
+    paths:
+      - 'apps/viewer/**'
+      - 'shared/**'
+      - 'assets/**'
+      - 'config/library-data.json'
+      - 'tests/browser/**'
+      - 'scripts/viewer-preview-plan.mjs'
+      - 'scripts/stage-viewer-preview.mjs'
+      - '.github/workflows/viewer-preview.yml'
+  workflow_dispatch:
+    inputs:
+      source_sha:
+        description: Exact verified Viewer commit; empty uses the branch head
+        type: string
+        required: false
+      original_source_sha:
+        description: Original commit before source-matched publication
+        type: string
+        required: false
+      base_sha:
+        description: Comparison commit before source or artifact publication
+        type: string
+        required: false
+      scope:
+        description: Automatic affected checks, snapshot only, or focused acceptance
+        type: choice
+        options: [auto, preview, browser, acceptance, all, off]
+        default: auto
+      retry_failed:
+        description: Run bounded calculation cases after a failed acceptance
+        type: boolean
+        default: false
+      browser_tests:
+        description: Optional grep expression for specialized acceptance
+        type: string
+        required: false
+permissions:
+  contents: read
+concurrency:
+  group: viewer-preview-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  plan:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    outputs:
+      preview: ${{ steps.plan.outputs.preview }}
+      browser: ${{ steps.plan.outputs.browser }}
+      contracts: ${{ steps.plan.outputs.contracts }}
+      slug: ${{ steps.plan.outputs.slug }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.source_sha || github.sha }}
+          persist-credentials: false
+      - uses: ./.github/actions/library-data
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Check exact publication provenance
+        shell: bash
+        env:
+          SOURCE_SHA: ${{ inputs.source_sha }}
+          ORIGINAL_SOURCE_SHA: ${{ inputs.original_source_sha }}
+        run: |
+          set -euo pipefail
+          if [ -n "$SOURCE_SHA" ]; then
+            [[ "$SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]]
+            test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          fi
+          if [ -n "$ORIGINAL_SOURCE_SHA" ]; then
+            [[ "$ORIGINAL_SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]]
+            git merge-base --is-ancestor "$ORIGINAL_SOURCE_SHA" HEAD
+          fi
+      - name: Plan current Viewer preview and application checks
+        id: plan
+        env:
+          PANDO_PREVIEW_BASE_SHA: ${{ inputs.base_sha || github.event.before || 'origin/main' }}
+          PANDO_PREVIEW_SCOPE: ${{ inputs.scope || 'auto' }}
+          PANDO_PREVIEW_BRANCH: ${{ github.ref_name }}
+        run: node scripts/viewer-preview-plan.mjs --github-output
+  application-contracts:
+    needs: plan
+    if: needs.plan.outputs.contracts == 'true'
+    uses: ./.github/workflows/application-architecture.yml
+    with:
+      check_profile: viewer-preview
+      check_scope: ${{ inputs.scope || 'auto' }}
+      base_sha: ${{ inputs.base_sha || github.event.before || 'origin/main' }}
+      head_sha: ${{ inputs.source_sha || github.sha }}
+  snapshot:
+    needs: plan
+    if: needs.plan.outputs.preview == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_sha || github.sha }}
+          persist-credentials: false
+      - uses: ./.github/actions/library-data
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Stage immutable Viewer URL closure without deploying production
+        env:
+          PREVIEW_PATH: ${{ runner.temp }}/viewer-preview/${{ needs.plan.outputs.slug }}
+          PREVIEW_BRANCH: ${{ github.ref_name }}
+        run: node scripts/stage-viewer-preview.mjs --root . --output "$PREVIEW_PATH" --branch "$PREVIEW_BRANCH"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: viewer-preview-${{ needs.plan.outputs.slug }}-${{ inputs.source_sha || github.sha }}
+          path: ${{ runner.temp }}/viewer-preview/${{ needs.plan.outputs.slug }}
+          retention-days: 5
+          compression-level: 0
+          include-hidden-files: true
+          if-no-files-found: error
+  browser-acceptance:
+    needs: plan
+    # P2 dispatch runs the unique startup/screenshot contract, while source
+    # pushes use only the canonical application tests.
+    if: needs.plan.outputs.browser == 'true' && github.event_name == 'workflow_dispatch' && inputs.scope != 'preview' && inputs.scope != 'off'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_sha || github.sha }}
+          persist-credentials: false
+      - uses: ./.github/actions/library-data
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Capture Chromium Viewer startup and frame evidence
+        env:
+          PANDO_P3_BRANCH: ${{ github.ref_name }}
+          PANDO_BROWSER_TESTS: ${{ inputs.browser_tests || '' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p test-results/viewer-preview
+          if [ -n "$PANDO_BROWSER_TESTS" ]; then
+            pnpm exec playwright test tests/browser/p3-remote-preview.spec.mjs --grep "$PANDO_BROWSER_TESTS" --workers=1 --retries=0 --output=test-results/viewer-preview
+          else
+            pnpm exec playwright test tests/browser/p3-remote-preview.spec.mjs --workers=1 --retries=0 --output=test-results/viewer-preview
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: viewer-acceptance-${{ inputs.source_sha || github.sha }}
+          path: |
+            test-results/viewer-preview/
+            playwright-report/
+          if-no-files-found: warn
+          retention-days: 10
+
+  calculation-performance:
+    if: inputs.scope == 'acceptance' || inputs.scope == 'all'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_sha || github.sha }}
+          persist-credentials: false
+      - name: Prepare pinned external library data
+        uses: ./.github/actions/library-data
+      - uses: actions/checkout@v4
+        with:
+          ref: d57e235cc4b8c7f94a603d4352556f11b28bc735
+          path: build-native/p9/baseline
+          persist-credentials: false
+      - name: Mount selected baseline inputs from library storage
+        id: library_baseline_2
+        uses: kimjeon-il/Pando/.github/actions/library-data@main
+        with:
+          inputs-revision: 4bed5bac671c5bfe28e1e54cbcc237f6c10a95aa
+          inputs-target: build-native/p9/baseline
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Compare changed calculations on the same runner with alternating samples
+        env:
+          RETRY_FAILED: ${{ inputs.retry_failed }}
+        run: |
+          if [ "$RETRY_FAILED" = true ]; then
+            node tools/p6-calculation-performance.mjs --baseline build-native/p9/baseline --candidate . --operations river,reference --output build-native/p9/calculation-performance.json
+          else
+            node tools/p6-calculation-performance.mjs --baseline build-native/p9/baseline --candidate . --output build-native/p9/calculation-performance.json
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: viewer-calculation-performance-${{ inputs.source_sha || github.sha }}
+          path: build-native/p9/calculation-performance.json
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Verify selected library input bytes remain unchanged
+        if: always() && steps.library_baseline_2.outcome == 'success'
+        shell: bash
+        env:
+          INPUT_CHECKOUT: .pando-inputs/build-native/p9/baseline
+        run: >
+          dirty="$(git -C "$GITHUB_WORKSPACE/$INPUT_CHECKOUT" status --porcelain
+          --untracked-files=all -- assets/data)"
+
+          test -z "$dirty" || { printf '%s\n' "$dirty"; exit 1; }

@@ -169,7 +169,7 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)) {
     wasmBuilt:process.env.PANDO_P2_WASM==='true',baseSha:process.env.PANDO_P2_BASE_SHA||''});
   if(process.env.GITHUB_OUTPUT)appendFileSync(process.env.GITHUB_OUTPUT,'result_sha='+result.resultSha+'\nbase_sha='+result.baseSha+'\npushed='+result.pushed+'\nsuperseded='+result.superseded+'\n');
   if(process.env.GITHUB_STEP_SUMMARY)appendFileSync(process.env.GITHUB_STEP_SUMMARY,
-    result.superseded ? 'P2 superseded: '+result.sourceSha+' -> '+result.supersededBy+' (no publish / P3 dispatch).\n' :
+    result.superseded ? 'P2 superseded: '+result.sourceSha+' -> '+result.supersededBy+' (no publish / Viewer preview dispatch).\n' :
     `P2 source: \`${result.sourceSha}\`\n\nVerified result: \`${result.resultSha}\`\n\n`+
     `Scope: ${result.verifiedScope.join(', ')}. Remote push: ${result.pushed}.\n`);
   console.log(JSON.stringify(result,null,2));

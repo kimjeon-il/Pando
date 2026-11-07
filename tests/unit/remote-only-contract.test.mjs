@@ -5,7 +5,7 @@ import {fileURLToPath} from 'node:url';
 import test from 'node:test';
 import {assertRemoteOnlyNativePreparation} from '../../scripts/prepare-native-test-tools.mjs';
 import {remoteOnlyStatus} from '../../scripts/remote-only-doctor.mjs';
-import {remoteOnlyAcceptanceScope} from '../../scripts/remote-only-ci-scope.mjs';
+import {selectNativeBuilds} from '../../scripts/lib/check-changes.mjs';
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const read=path=>readFileSync(resolve(root,path),'utf8');
@@ -42,19 +42,25 @@ test('Codespaces never auto-installs packages or opens the on-demand private Vie
   assert.doesNotMatch(preview,/playwright install|install --with-deps chromium/);
 });
 
-test('the remote-only branch runs P1, P2, P3 and a dedicated Node contract in CI',()=>{
-  assert.match(read('.github/workflows/remote-development-p1.yml'),/\s- work\/remote-only\s/);
-  assert.match(read('.github/workflows/generated-artifacts-p2.yml'),/branches:\s*\['work\/\*\*'\]/);
-  assert.match(read('.github/workflows/remote-preview-p3.yml'),/- work\/\*\*/);
-  assert.match(read('.github/workflows/remote-only-gate.yml'),/branches:\s*\[work\/remote-only\]/);
+test('remote-only development uses source-matched P2 and the shared Viewer/Core workflows',()=>{
+  const generated=read('.github/workflows/generated-artifacts-p2.yml');
+  assert.match(generated,/branches: \['work\/\*\*'\]/);
+  assert.match(generated,/gh workflow run viewer-preview\.yml/);
+  const native=read('.github/workflows/shared-core.yml');
+  assert.match(native,/work\/remote-only/);
+  assert.match(native,/native-branch-core:/);
+  assert.match(native,/native-branch-gis:/);
+  const preview=read('.github/workflows/viewer-preview.yml');
+  assert.match(preview,/work\/\*\*/);
+  assert.match(preview,/application-architecture\.yml/);
   const deploy=read('.github/workflows/web-pages.yml');
   assert.match(deploy,/branches:\s*\[main\]/);
   assert.match(deploy,/github\.ref == 'refs\/heads\/main'/);
 });
 
 test('remote-only branch has no Windows GUI build job or Tauri CLI dependency',()=>{
-  const gate=read('.github/workflows/remote-only-gate.yml');
-  const p1=read('.github/workflows/remote-development-p1.yml');
+  const gate=read('.github/workflows/viewer-preview.yml');
+  const p1=read('.github/workflows/shared-core.yml');
   const scripts=JSON.parse(read('package.json')).scripts;
   // Match executable workflow fields only. The post-retirement verifier
   // deliberately *mentions* rejected job names in its own assertions.
@@ -95,7 +101,7 @@ test('preflight is read-only and distinguishes local from cloud readiness',()=>{
 });
 
 test('AI map-analysis and training remain plugin-owned, outside required app acceptance',()=>{
-  const workflow=read('.github/workflows/remote-only-gate.yml');
+  const workflow=read('.github/workflows/viewer-preview.yml');
   assert.doesNotMatch(workflow, /ai-node-analysis-smoke|reference-training-|reference-onnx-|map-analysis-core\.test\.mjs|libtorch|cuda/i);
   const plugin=read('docs/reference-map-plugin.md');
   assert.match(plugin,/github\.com\/kimjeon-il\/map-toolkit/);
@@ -104,15 +110,11 @@ test('AI map-analysis and training remain plugin-owned, outside required app acc
   assert.match(remoteDocs,/Independent Map Toolkit plugin boundary/);
 });
 
-test('on-demand Codespaces changes do not schedule costly WASM/GIS CI rebuilds',()=>{
+test('Codespaces-only changes do not schedule native C++ rebuilds',()=>{
   const changes=['.devcontainer/devcontainer.json','.devcontainer/start-preview.sh',
     '.devcontainer/setup-remote.sh','.devcontainer/acceptance.sh',
-    'tests/unit/codespaces-acceptance-contract.test.mjs',
-    'scripts/remote-only-ci-scope.mjs'];
-  const result=remoteOnlyAcceptanceScope(changes,{event:'push'});
-  assert.equal(result.runHeavy,false);
-  assert.equal(remoteOnlyAcceptanceScope([...changes,'shared/core/src/geometry.cpp']).runHeavy,true);
-  assert.equal(remoteOnlyAcceptanceScope([...changes,'scripts/p2-artifact-plan.mjs',
-    'tests/unit/p2-artifact-plan.test.mjs']).runHeavy,false);
-  assert.equal(remoteOnlyAcceptanceScope([],{event:'workflow_dispatch'}).runHeavy,true);
+    'tests/unit/codespaces-acceptance-contract.test.mjs'];
+  assert.deepEqual(selectNativeBuilds(changes),{core:false,gis:false,wasm:false});
+  assert.equal(selectNativeBuilds([...changes,'shared/core/src/geometry.cpp']).core,true);
+  assert.equal(selectNativeBuilds([...changes,'tools/cpp/hydro/connectivity.cpp']).gis,true);
 });

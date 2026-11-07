@@ -220,15 +220,15 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           node scripts/p2-publish-artifacts.mjs
-      - name: Hand the exact verified result to P3
-        # Verified unchanged artifacts still need their deferred P3 checks.
+      - name: Hand the exact verified result to Viewer preview and acceptance
+        # Verified unchanged artifacts still need source-matched Viewer checks.
         if: steps.publish.outcome == 'success' && steps.publish.outputs.superseded != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           RESULT_SHA: ${{ steps.publish.outputs.result_sha }}
           BASE_SHA: ${{ steps.publish.outputs.base_sha }}
         run: >-
-          gh workflow run remote-preview-p3.yml --ref "$GITHUB_REF_NAME"
+          gh workflow run viewer-preview.yml --ref "$GITHUB_REF_NAME"
           -f source_sha="$RESULT_SHA" -f base_sha="$BASE_SHA"
           -f original_source_sha="$GITHUB_SHA" -f scope=auto
       - uses: actions/upload-artifact@v4

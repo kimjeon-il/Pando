@@ -3,7 +3,7 @@ import {writeFileSync,renameSync} from 'node:fs';
 import {join,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {stageWebPages} from '../tools/stage-monorepo-pages.mjs';
-import {previewSlug} from './p3-plan-remote.mjs';
+import {previewSlug} from './viewer-preview-plan.mjs';
 export async function stagePreview({root,output,branch}){
  const slug=previewSlug(branch),evidenceFile=resolve(output)+'.evidence.json';
  const evidence=await stageWebPages(root,output,evidenceFile);

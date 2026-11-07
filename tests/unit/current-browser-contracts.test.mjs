@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 import test from 'node:test';
 import { parse as parseYaml } from 'yaml';
 import { loadRepository, planApplicationChecks } from '../../scripts/plan-application-checks.mjs';
@@ -64,32 +64,23 @@ test('application CI calls the shared selector and runner; automatic test lists 
   for (const name of MANUAL_SCOPES.filter(scope => scope !== 'default' && !scope.startsWith('boundary-'))) assert.ok(catalog.manualScopes[name]);
 });
 
-test('P1/P3 reuse one canonical Native GIS and Viewer validation workflow', () => {
+test('feature-owned Viewer preview and shared Core replace stage-owned validation',()=>{
   assert.ok(workflow.on.workflow_call?.inputs?.head_sha);
   assert.ok(workflow.on.workflow_call?.inputs?.check_profile);
   assert.ok(workflow.on.workflow_call?.inputs?.base_sha);
-  const checkout=workflow.jobs.changes.steps.find(step=>step.uses==='actions/checkout@v4');
-  assert.ok(checkout.with.ref.includes('inputs.head_sha'));
-  for(const [name,jobName,profile] of [
-    ['remote-development-p1','web-smoke','p1'],
-    ['remote-preview-p3','application-contracts','p3']
-  ]) {
-    const document=parseYaml(readFileSync(new URL('../../.github/workflows/'+name+'.yml',import.meta.url),'utf8'));
-    assert.equal(document.on.push.paths,undefined);
-    assert.equal(document.jobs.plan.steps.find(step=>step.uses?.startsWith('actions/checkout@')).with['fetch-depth'],0);
-    const job=document.jobs[jobName];
-    assert.equal(job.uses,'./.github/workflows/application-architecture.yml');
-    assert.equal(job.with.check_profile,profile);
-    assert.ok(job.with.head_sha.includes('github.sha'));
-    assert.equal(job.steps,undefined);
-    if(name==='remote-preview-p3'){
-      assert.equal(document.jobs['web-contracts'],undefined);
-      assert.equal(document.jobs['web-contracts-browser'],undefined);
-      assert.ok(document.jobs['browser-regression'].if.includes("github.event_name == 'workflow_dispatch'"));
-    }
-  }
+  const preview=parseYaml(readFileSync(new URL('../../.github/workflows/viewer-preview.yml',import.meta.url),'utf8'));
+  assert.equal(preview.jobs['application-contracts'].uses,'./.github/workflows/application-architecture.yml');
+  assert.equal(preview.jobs['application-contracts'].with.check_profile,'viewer-preview');
+  assert.ok(preview.jobs['application-contracts'].with.head_sha.includes('inputs.source_sha'));
+  assert.ok(preview.jobs.snapshot.steps.some(step=>step.run?.includes('stage-viewer-preview.mjs')));
+  const core=parseYaml(readFileSync(new URL('../../.github/workflows/shared-core.yml',import.meta.url),'utf8'));
+  assert.ok(core.on.push.branches.includes('work/remote-only'));
+  assert.ok(core.jobs['native-branch-impact']);
+  assert.ok(core.jobs['native-branch-core']);
+  assert.ok(core.jobs['native-branch-gis']);
+  for(const retired of ['remote-development-p1.yml','remote-preview-p3.yml','remote-only-gate.yml'])
+    assert.equal(existsSync(new URL('../../.github/workflows/'+retired,import.meta.url)),false,retired);
 });
-
 test('CSS selects relevant UI checks without C++/GIS build or data generation commands', () => {
   const repository = loadRepository(new URL('../../', import.meta.url));
   const plan = planApplicationChecks({ repository, changedFiles: ['shared/frontend/css/features/map-rendering.css'] });
