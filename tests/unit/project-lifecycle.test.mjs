@@ -1,12 +1,26 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
-import { readFileSync } from 'node:fs';
-import { gzipSync } from 'node:zlib';
-import { createHash } from 'node:crypto';
-import { createProjectDomain } from "../../shared/frontend/js/modules/project-domain.js";
-import { createSaveStateController } from "../helpers/core-command-services/save-state-controller.mjs";
-import { createNodeCoreProject } from '../helpers/core-project.mjs';
-import { createCommandFixture } from '../helpers/current-command-fixture.mjs';
+import { describe as contractSuite } from 'node:test';
+import * as __dep0 from "node:assert/strict";
+import * as __dep1 from "node:test";
+import * as __dep2 from "node:fs";
+import * as __dep3 from "node:zlib";
+import * as __dep4 from "node:crypto";
+import * as __dep5 from "../../shared/frontend/js/modules/project-domain.js";
+import * as __dep6 from "../helpers/core-command-services/save-state-controller.mjs";
+import * as __dep7 from "../helpers/core-project.mjs";
+import * as __dep8 from "../helpers/current-command-fixture.mjs";
+import * as __dep9 from "../../shared/frontend/js/modules/initial-document.js";
+
+// Original feature contract: project-lifecycle.test.mjs
+contractSuite("project-lifecycle", () => {
+const assert = __dep0.default;
+const test = __dep1.default;
+const { readFileSync } = __dep2;
+const { gzipSync } = __dep3;
+const { createHash } = __dep4;
+const { createProjectDomain } = __dep5;
+const { createSaveStateController } = __dep6;
+const { createNodeCoreProject } = __dep7;
+const { createCommandFixture } = __dep8;
 
 const seed=() => JSON.parse(readFileSync(new URL('../fixtures/portability/web-document-seed.json',import.meta.url),'utf8'));
 async function fixture(t,{ replaceSnapshot,recovery=null }={}) {
@@ -148,4 +162,52 @@ test('creation period rejects out-of-range navigation and keeps project records 
  await assert.rejects(client.setTimelineCursor('2026-10'),/PROJECT_RANGE/);
  assert.equal(client.state().timelineCursor,'1914-07');assert.deepEqual(domain.snapshot().timelineRecords,initial.timelineRecords);
  assert.equal('configureProject' in domain,false);
+});
+});
+
+// Original feature contract: project-opening.test.mjs
+contractSuite("project-opening", () => {
+const test = __dep1.default;
+const assert = __dep0.default;
+const { createInitialDocument } = __dep9;
+const { createNodeCoreProject } = __dep7;
+const seed=()=>createInitialDocument({appVersion:'0.36.0',baseDataset:'initial'});
+const project=name=>({...seed(),baseDataset:name});
+
+test('common project opening keeps the last request and validates through the readonly Core boundary',async()=>{
+ const owner=await createNodeCoreProject(seed(),{productMode:'viewer',replaceSnapshot:async()=>true});
+ try{
+  await owner.project.open(async()=>project('first'));
+  let release;
+  const earlier=owner.project.open(()=>new Promise(resolve=>{release=resolve;}));
+  assert.equal(await owner.project.open(async()=>project('latest')),true);
+  release(project('stale'));assert.equal(await earlier,false);
+  const before=owner.project.snapshot();
+  await assert.rejects(owner.project.open(async()=>({format:'broken'})));
+  assert.deepEqual(owner.project.snapshot(),before);
+  assert.equal(await owner.project.open(async()=>null),false);
+  assert.equal(owner.project.snapshot().baseDataset,'latest');
+  assert.equal(owner.client.state().canUndo,false);
+ }finally{owner.dispose();}
+});
+
+test('common opening rolls back failed or superseded presentation before accepting another project',async()=>{
+ let release,started=false;const restored=[];
+ const owner=await createNodeCoreProject(seed(),{productMode:'viewer',replaceSnapshot:async value=>{
+  if(value.baseDataset==='broken')throw new Error('render failed');
+  if(value.baseDataset==='slow'){started=true;await new Promise(resolve=>{release=resolve;});}
+  return true;
+ },restoreReplacement:async value=>restored.push(value.baseDataset)});
+ try{
+  await owner.project.open(async()=>project('first'));
+  await assert.rejects(owner.project.open(async()=>project('broken')),/render failed/);
+  assert.equal(owner.project.snapshot().baseDataset,'first');
+  const earlier=owner.project.open(async()=>project('slow'));
+  while(!started)await new Promise(resolve=>setImmediate(resolve));
+  const latest=owner.project.open(async()=>project('latest'));release();
+  assert.equal(await earlier,false);assert.equal(await latest,true);
+  assert.equal(owner.project.snapshot().baseDataset,'latest');
+  assert.deepEqual(restored,['first','first']);
+ }finally{owner.dispose();}
+});
 });
