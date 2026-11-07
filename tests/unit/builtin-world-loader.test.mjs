@@ -18,14 +18,15 @@ function fixture({cacheStorage=null,assets=files}={}){
    await new Promise(resolve=>setTimeout(resolve,2));busy--;const value=assets.get(file);return new Response(corrupt&&file!=='index.json'?'corrupt':value,{status:value?200:404});}});
  return {loader,calls,peak:()=>peak,corrupt:(value=true)=>{corrupt=value;}};
 }
-test('concurrent month queries share direct country downloads and reuse previously selected countries',async()=>{
+test('complete project history reuses all verified country files across cursor dates',async()=>{
  const f=fixture();const [historical]=await Promise.all([f.loader.loadProject('2014-02'),f.loader.loadProject('2014-01')]);
  assert.ok(historical.project.territorialEntities.some(row=>row.id==='state:test-ukraine'));
+ assert.ok(historical.project.timelineRecords.geometryBindings.some(row=>row.validTo!==null),'historical intervals must not be flattened');
  const index=JSON.parse(files.get('index.json'));
- const expected=new Set(['index.json',...['2014-02','2014-01'].flatMap(month=>selectBuiltinCountries(index,month).map(row=>row.file))]);
+ const expected=new Set(['index.json',...index.entities.flatMap(row=>row.parts?.map(part=>part.file)||[row.file])]);
  assert.deepEqual(new Set(f.calls),expected);assert.equal(f.calls.length,expected.size);assert.ok(f.peak()<=6);
  const count=f.calls.length;await f.loader.loadProject('2014-02');assert.equal(f.calls.length,count);
- await f.loader.loadProject('2027-01');for(const row of selectBuiltinCountries(index,'2027-01'))expected.add(row.file);
+ await f.loader.loadProject('2027-01');
  assert.deepEqual(new Set(f.calls),expected);assert.equal(f.calls.length,expected.size);
  assert.equal(f.calls.some(file=>file.startsWith('transport/')),false);
  assert.equal(f.calls.some(file=>file.includes('world-project')),false);
