@@ -96,3 +96,31 @@ test('out of order viewport completion and async failure cannot replace current 
   jobs[1].reject(new Error('offline')); await second; assert.equal(errors.length, 1); assert.equal(runtime.snapshot().signature, 'empty');
   runtime.dispose();
 });
+
+test('place source name history follows the project month without copying or editing the library record',async()=>{
+ const record=normalizePlace({source:'synthetic',sourceId:'dated',name:'기준 지명',
+  kind:'city',coordinates:[1,2],nameTimeline:[{fromYear:1900,ko:'옛 이름'}]});
+ const before=structuredClone(record),admissions=[];
+ let month='2026-10';
+ const runtime=createPlaceRuntime({
+  getPresentation:()=>({month,languages:{ko:true}}),
+  admitReferences:async refs=>{const rows=typeof refs==='function'?refs():refs;admissions.push(rows.map(row=>row.id));},
+  rpc:{stop(){},request:async()=>({result:{records:[structuredClone(record)],signature:'same-source-bytes'}})}
+ });
+ try{
+  await runtime.prepare({presentation:{month}});
+  assert.deepEqual(admissions,[[record.id]]);
+  assert.equal(runtime.resolve(record.id)?.id,record.id);
+  const original=runtime.snapshot();
+  month='-0001-12';
+  await runtime.prepare({presentation:{month}});
+  assert.deepEqual(admissions.at(-1),[],'unsupported BCE references must not masquerade as current places');
+  assert.equal(runtime.resolve(record.id),null);
+  assert.strictEqual(runtime.snapshot(),original,'date-only selection may not reconstruct source objects');
+  month='1920-01';
+  await runtime.prepare({presentation:{month}});
+  assert.deepEqual(admissions.at(-1),[record.id]);
+  assert.equal(runtime.resolve(record.id),original.records[0]);
+  assert.deepEqual(record,before,'source place and its name editions remain immutable');
+ }finally{runtime.dispose();}
+});

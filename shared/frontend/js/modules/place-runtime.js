@@ -2,6 +2,7 @@ import { createWorkerRpcClient } from './worker-rpc.js';
 import { createLatestWorkerJobScheduler, createWorkerCancellationError } from './worker-job-scheduler.js';
 import { isBuiltinPlaceId, normalizePlace, PLACE_LIMITS } from './place-contract.js';
 import { resourceKey, resourceUpdate } from './resource-update-policy.js';
+import { placeLabelRowsAtMonth } from './place-name-display.js';
 const EMPTY = Object.freeze({ revision: 0, signature: 'empty', records: Object.freeze([]) });
 
 /** Canonical owner of the builtin label snapshot and Worker lifecycle. */
@@ -9,6 +10,7 @@ export function createPlaceRuntime({ manifestUrl = new URL('../../data/places/ma
   if (typeof manifestUrl !== 'string' || !manifestUrl) throw new TypeError('Place manifest URL must be a nonempty string');
   if(typeof admitReferences!=='function')throw new TypeError('Place publication requires its accepted identity admission boundary.');
   let snapshot=EMPTY, revision=0, moving=false, closed=false, desired=null, requestedDependencies=null, snapshotDependencies=null, referenceSequence=0;
+  let admittedReferenceKey=null;
   const retained=new Map();
   let publication=Promise.resolve();
   // A Worker can finish the next request while the previous C++ admission is
@@ -36,8 +38,16 @@ export function createPlaceRuntime({ manifestUrl = new URL('../../data/places/ma
     }
   }
   const remember=record=>rememberInto(retained,record);
-  function references(records=snapshot.records,cache=retained) {
-    return [...new Map([...cache.values(),...records].map(record=>[record.id,
+  // External place names are resolved at the accepted project cursor.
+  // Without certified ancient place evidence the source remains in the
+  // library, but is not published as a selectable active project reference.
+  const sourceActive=(record,presentation=getPresentation())=>{
+    if(!record)return false;
+    const month=presentation?.month;
+    return !month||placeLabelRowsAtMonth(record,month,{ko:true,en:true,native:true}).length>0;
+  };
+  function references(records=snapshot.records,cache=retained,presentation=getPresentation()) {
+    return [...new Map([...cache.values(),...records].filter(record=>sourceActive(record,presentation)).map(record=>[record.id,
       Object.freeze({domain:'placeBuiltin',type:record.kind,id:record.id})])).values()];
   }
   async function prepare(view) {
@@ -57,15 +67,22 @@ export function createPlaceRuntime({ manifestUrl = new URL('../../data/places/ma
       return await publishAccepted(async()=>{
         if(closed || moving || current!==revision)return false;
         const change=resourceUpdate(snapshotDependencies,next);
-        if(!change.present)return false;
-        if(change.input)await admitReferences(()=>references(records));
+        const activeKey=JSON.stringify(references(records,retained,view.presentation));
+        const referenceChanged=activeKey!==admittedReferenceKey;
+        if(!change.present&&!referenceChanged)return false;
+        if(change.input||referenceChanged)
+          await admitReferences(()=>references(records,retained,view.presentation));
         if(closed || moving || current!==revision) {
           if(!closed)await admitReferences(()=>references());
           return false;
         }
-        snapshot=Object.freeze({ ...result, revision: current, records:change.input?records:snapshot.records });
-        snapshotDependencies=next;
-        onSnapshot(snapshot); return true;
+        if(change.present){
+          snapshot=Object.freeze({ ...result, revision: current, records:change.input?records:snapshot.records });
+          snapshotDependencies=next;
+          onSnapshot(snapshot);
+        }
+        admittedReferenceKey=activeKey;
+        return true;
       });
     } catch (error) {
       if(current===revision)requestedDependencies=null;
@@ -81,7 +98,11 @@ export function createPlaceRuntime({ manifestUrl = new URL('../../data/places/ma
     settle(view=desired) { const wasMoving=moving; moving=false; const task=view ? prepare(view) : Promise.resolve(false); if (wasMoving) onSettled(); return task; },
     snapshot: () => snapshot,
     selectionReferences: () => references(),
-    resolve: id => retained.get(String(id)) || snapshot.records.find(record => record.id === String(id)) || null,
+    isActive: sourceActive,
+    resolve: id => {
+      const record=retained.get(String(id)) || snapshot.records.find(row=>row.id===String(id));
+      return sourceActive(record)?record:null;
+    },
     retain: remember,
     async search(query, { scope = 'display', mapDate = null, signal = null } = {}) {
       if (!['display', 'reference'].includes(scope)) throw new TypeError('Unknown place search scope.');
@@ -114,6 +135,6 @@ export function createPlaceRuntime({ manifestUrl = new URL('../../data/places/ma
     cancelSearch: () => scheduler.cancelKey('search'),
     isSearchOpen: () => !closed && !moving,
     stats: () => ({ ...scheduler.stats(), snapshotRecords: snapshot.records.length, retainedRecords: retained.size, moving }),
-    dispose() { if (closed) return; closed=true; revision++; scheduler.close(); client.stop(); retained.clear(); snapshot=EMPTY; },
+    dispose() { if (closed) return; closed=true; revision++; scheduler.close(); client.stop(); retained.clear(); snapshot=EMPTY; admittedReferenceKey=null; },
   });
 }
