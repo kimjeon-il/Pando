@@ -1,14 +1,10 @@
+// Original feature contract: edit-preparation.test.mjs
+// Viewer-only geometry preparation; manual border cutting and draft previews are retired.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import vm from 'node:vm';
 import '../helpers/spherical-core.mjs';
-vm.runInThisContext(readFileSync(new URL("../../shared/frontend/js/vendor/d3.min.js", import.meta.url), 'utf8'));
 import "../../shared/frontend/js/vendor/polygon-clipping.min.js";
 import "../../shared/frontend/js/modules/polygon-geometry.js";
-import { prepareCutInWorker } from "../../tools/gis/cut-worker-preparation.js";
-import { createTerritoryComponentPlan } from "../../tools/gis/territory-component-plan.js";
-import { normalizePolygonGeometry } from "../../shared/frontend/js/modules/map-edit-geometry.js";
 import { createMapDisplayPreparation } from "../../shared/frontend/js/modules/map-display-preparation.js";
 import { touchGeometry } from "../../shared/frontend/js/modules/geometry-versions.js";
 import { createGeometrySnapshotPool } from "../helpers/legacy-project-autosave.mjs";
@@ -76,7 +72,7 @@ test('display preparation retains independent regional boundaries across general
   assert.ok(result.segments.some(segment => segment.a[0] > 5 || segment.b[0] > 5));
   assert.ok(result.segments.every(segment => segment.styleType === 'region' && segment.unitOwners[0].id === 'REGION'));
 });
-test('history shares immutable versions but never live editing arrays', () => {
+test('history shares immutable geometry versions without mutable coordinate aliases', () => {
   const pool = createGeometrySnapshotPool();
   const feature = { id: 'RUS', geometry: structuredClone(square), properties: { name: 'RUS' } };
   const first = pool.clone(feature), second = pool.clone(feature);
@@ -95,34 +91,4 @@ test('history shares immutable versions but never live editing arrays', () => {
   assert.notEqual(restored.geometry, first.geometry);
   restored.geometry.coordinates[0][0][0] = 7;
   assert.equal(first.geometry.coordinates[0][0][0], 0);
-});
-
-test('worker cut assessment and split share the exact validated cut and preserve source coordinates', () => {
-  const source = structuredClone(square);
-  const result = prepareCutInWorker({ source, coords: [[-1, 5], [11, 5]], buildPreview: true,
-    view: { kind: 'flat', scale: 200, translate: [200, 200], rotate: [0, 0, 0], center: [0, 0],
-      size: { width: 800, height: 600 }, coarsePointer: false, snapDistance: { mouse: 10, touch: 20 } } },
-  globalThis.PandoLabPolygonGeometry, globalThis.d3, globalThis.polygonClipping);
-  assert.equal(result.valid, true, result.message);
-  assert.ok(result.split, result.splitError);
-  assert.equal(result.split.candidates.length, 2);
-  assert.equal(result.split.candidates.reduce((sum, candidate) => sum + candidate.area, 0), 100);
-  assert.deepEqual(source, square);
-});
-
-test('Turkey cut candidates remain usable by territory selection preparation', async () => {
-  const countries = JSON.parse(readFileSync(new URL('../../assets/data/countries-ne-5.1.1.geojson', import.meta.url), 'utf8'));
-  const source = countries.features.find(feature => feature.id === 'TUR')?.geometry;
-  assert.ok(source);
-  const cut = prepareCutInWorker({ source, coords: [[26, 41.8], [29, 41.8]], buildPreview: true,
-    view: { kind: 'flat', scale: 200, translate: [200, 200], rotate: [0, 0, 0], center: [0, 0],
-      size: { width: 800, height: 600 }, coarsePointer: false, snapDistance: { mouse: 10, touch: 20 } } },
-  globalThis.PandoLabPolygonGeometry, globalThis.d3, globalThis.polygonClipping);
-  assert.equal(cut.valid, true, cut.message);
-  assert.equal(cut.split.candidates.length, 2);
-  const candidate = cut.split.candidates.reduce((smaller, next) => next.area < smaller.area ? next : smaller);
-  const plan = createTerritoryComponentPlan({ clipper: globalThis.polygonClipping, normalize: normalizePolygonGeometry });
-  const result = await plan.selection({ currentGeometry: candidate.geometry, workingSourceGeometry: source });
-  assert.ok(result.combinedGeometry);
-  assert.ok(result.remainingGeometry);
 });

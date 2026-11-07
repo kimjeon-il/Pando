@@ -1,3 +1,5 @@
+// Original feature contract: map-editing-foundation.test.mjs
+// Retained geometry validity, label layout and atomic display-state contracts.
 import '../helpers/spherical-core.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';

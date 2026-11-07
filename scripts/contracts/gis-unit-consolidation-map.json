@@ -64,7 +64,9 @@
     "gis-baikonur-planetary-landsat.test.mjs": "gis-baikonur-1994-landsat.test.mjs",
     "gis-baikonur-landsat-water-mask.test.mjs": "gis-baikonur-1994-landsat.test.mjs",
     "gis-source-isolation.test.mjs": "gis-source-launcher.test.mjs",
-    "gis-caspian-pinned-native-oracle.test.mjs": "gis-caspian-pinned-native-baseline.test.mjs"
+    "gis-caspian-pinned-native-oracle.test.mjs": "gis-caspian-pinned-native-baseline.test.mjs",
+    "edit-preparation.test.mjs": "territorial-display-preparation.test.mjs",
+    "map-editing-foundation.test.mjs": "map-geometry-validation.test.mjs"
   },
   "notes": "Basename-only ownership links; old physical suites are removed, original feature contracts remain in their current owners. This map is consumed only during P7 ref migration."
 }
