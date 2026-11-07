@@ -10,7 +10,7 @@ import { normalizeTemporalInterval, compareTemporal, sharedCalculationCore } fro
 export const historicalWorldClipper = Object.freeze(Object.fromEntries(
   ['union','intersection','difference','xor'].map(method=>
     [method,(...operands)=>sharedCalculationCore.polygonOperation(method,operands,false)]
-));
+)));
 // Geometry versions are immutable; one compilation owns and releases this
 // in-memory cache. Dates, policy decisions and precision budgets remain local
 // to each adjustment call.
