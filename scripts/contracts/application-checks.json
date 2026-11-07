@@ -1035,7 +1035,7 @@
       "inputs": [
         "tools/gis/generalize-approved-caspian-display.mjs",
         "tools/gis/verify-approved-caspian-network.mjs",
-        "tests/fixtures/gis-caspian-1922-python-native-oracle.json",
+        "tests/fixtures/gis-caspian-1922-native-baseline.json",
         "config/library-data.json",
         ".github/actions/native-test-prerequisites/action.yml"
       ]
@@ -1069,8 +1069,7 @@
       "tests": [
         "tests/unit/prepared-polygon-mesh.test.mjs",
         "tests/browser/viewer-startup-and-terrain.spec.mjs",
-        "tests/unit/prepared-country-scope.test.mjs",
-        "tests/unit/prepared-physical-scope.test.mjs"
+        "tests/unit/prepared-country-scope.test.mjs"
       ],
       "inputs": [
         "assets/data/physical-land/**",
@@ -1166,7 +1165,7 @@
     },
     {
       "tests": [
-        "tests/unit/country-lineage-preservation.test.mjs",
+        "tests/unit/country-lineage.test.mjs",
         "tests/unit/territorial-source-parity.test.mjs"
       ],
       "inputs": [
@@ -1179,7 +1178,7 @@
     },
     {
       "tests": [
-        "tests/unit/builtin-world-baseline.test.mjs"
+        "tests/unit/builtin-world-catalog.test.mjs"
       ],
       "inputs": [
         "config/library-data.json",
@@ -1397,7 +1396,6 @@
     },
     {
       "tests": [
-        "tests/unit/hydro-calibration-metrics.test.mjs",
         "tests/unit/hydro-calibration-native.test.mjs"
       ],
       "requires": [
@@ -1463,7 +1461,7 @@
     },
     {
       "tests": [
-        "tests/unit/gis-caspian-pinned-native-oracle.test.mjs"
+        "tests/unit/gis-caspian-pinned-native-baseline.test.mjs"
       ],
       "requires": [
         "native-caspian-oracle"
