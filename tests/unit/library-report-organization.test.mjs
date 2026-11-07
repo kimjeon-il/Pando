@@ -1,6 +1,6 @@
+import {reportFixtureGit as git, writeReportFixtureFile as put} from '../helpers/report-git-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -24,8 +24,6 @@ test('directory links follow subject moves and current landing pages while pinne
   assert.equal(organizedReportPath('reports/reference-analysis/centralization-result.json'), 'reports/development/storage/centralization-result.json');
 });
 
-const git = (cwd, ...args) => execFileSync('git', ['-c', 'maintenance.auto=false', '-c', 'gc.auto=0', '-c', 'core.autocrlf=false', ...args], { cwd, encoding: 'utf8', stdio: 'pipe' }).trim();
-const put = (root, path, bytes) => { mkdirSync(dirname(join(root, path)), { recursive: true }); writeFileSync(join(root, path), bytes); };
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
 function fixture(t) {
   const base = mkdtempSync(join(tmpdir(), 'pando-report-layout-'));
