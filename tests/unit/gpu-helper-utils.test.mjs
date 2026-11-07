@@ -1,3 +1,4 @@
+import {createTrackedGlBufferPort} from '../helpers/gpu-buffer-test-port.mjs';
 import { describe as contractSuite } from 'node:test';
 import * as __dep0 from "node:assert/strict";
 import * as __dep1 from "node:test";
@@ -407,9 +408,9 @@ test('equal immutable pack delivery and a transport retry retain prepared pack a
 
 test('document generation changes retain uploaded hydro buffers in the same context', async t => {
   const { owner, workers, manifest } = fixture(t);
-  const jobs = [], deleted = [];
-  const gl = { createBuffer: () => ({}), bindBuffer() {}, bufferData() {}, bufferSubData() {},
-    isBuffer: value => typeof value === 'object', deleteBuffer: value => deleted.push(value) };
+  const jobs = [];
+  const {gl,deleted}=createTrackedGlBufferPort({withUploads:true});
+  
   const scheduler = { enqueueUpload: job => { jobs.push(job); return Promise.resolve(); }, cancelKey() {} };
   owner.setContext({ gl, version: 2, projectGeneration: 1, contextGeneration: 1, scheduler });
   const ready = owner.setManifest(manifest, 'https://example.test/hydro/index.json');
@@ -488,7 +489,8 @@ test('pack reuse, pruning, source replacement and disposal pair each registratio
 
 test('retiring a replaced pack unregisters it before cancelling upload and releasing its buffers', async t => {
   const { owner, workers, manifest, registrations } = fixture(t);
-  const jobs = new Map(), deleted = [];
+  const jobs = new Map();
+  const {gl,deleted}=createTrackedGlBufferPort({withUploads:true});
   const scheduler = {
     enqueueUpload: job => { jobs.set(job.key, job); return new Promise(() => {}); },
     cancelKey: key => {
@@ -496,8 +498,7 @@ test('retiring a replaced pack unregisters it before cancelling upload and relea
       const job = jobs.get(key); jobs.delete(key); job?.dispose();
     },
   };
-  const gl = { createBuffer: () => ({}), bindBuffer() {}, bufferData() {}, bufferSubData() {},
-    isBuffer: value => typeof value === 'object', deleteBuffer: value => deleted.push(value) };
+  
   owner.setContext({ gl, version: 2, projectGeneration: 1, contextGeneration: 1, scheduler });
   const ready = owner.setManifest(manifest, 'https://example.test/hydro/index.json');
   workers[0].onmessage({ data: { type: 'ready' } }); await ready;
@@ -582,9 +583,10 @@ test('hydro owner owns readiness, restart RPC settlement, stale delivery and req
 
 test('hydro owner rejects older packs and owns chunked uploads and context cancellation', async t => {
   const { owner, workers, manifest } = fixture(t);
-  const jobs = new Map(), deleted = [];
+  const jobs = new Map();
+  const {gl,deleted}=createTrackedGlBufferPort({withUploads:true});
   const scheduler = { enqueueUpload: job => { jobs.set(job.key, job); return new Promise(() => {}); }, cancelKey: key => { const job = jobs.get(key); jobs.delete(key); job?.dispose(); } };
-  const gl = { createBuffer: () => ({}), bindBuffer() {}, bufferData() {}, bufferSubData() {}, isBuffer: value => typeof value === 'object', deleteBuffer: value => deleted.push(value) };
+  
   owner.setContext({ gl, version: 2, projectGeneration: 1, contextGeneration: 1, scheduler });
   const ready = owner.setManifest(manifest, 'https://example.test/hydro/index.json');
   workers[0].onmessage({ data: { type: 'ready' } }); await ready;

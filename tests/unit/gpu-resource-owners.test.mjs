@@ -1,3 +1,4 @@
+import {createTrackedGlBufferPort} from '../helpers/gpu-buffer-test-port.mjs';
 import { describe as contractSuite } from 'node:test';
 import * as __contract_dep0 from "node:test";
 import * as __contract_dep1 from "node:assert/strict";
@@ -49,8 +50,7 @@ test('renderer upload cancellation leaves another scheduler consumer live', asyn
 });
 
 test('lifecycle releases each GL resource once using the context that allocated it', () => {
-  const released = [];
-  const gl = { createBuffer: () => ({}), deleteBuffer: buffer => released.push(buffer) };
+  const {gl,deleted:released}=createTrackedGlBufferPort();
   const owner = lifecycleModule.createGpuResourceLifecycle();
   const first = owner.create(gl, 'Buffer');
   const second = owner.create(gl, 'Buffer');
@@ -73,8 +73,7 @@ test('terminated Worker channels close late bitmaps and never dispatch late erro
 });
 
 test('P3-4 lease frees a staged base when a later override stage aborts', async () => {
-  const deleted = [];
-  const gl = { createBuffer: () => ({}), deleteBuffer: buffer => deleted.push(buffer) };
+  const {gl,deleted}=createTrackedGlBufferPort();
   const lifecycle = lifecycleModule.createGpuResourceLifecycle();
   const lease = lifecycleModule.createGpuResourceLease(resources => {
     lifecycle.release(resources.positionBuffer);
@@ -94,8 +93,7 @@ test('P3-4 lease frees a staged base when a later override stage aborts', async 
 });
 
 test('P3-4 lease transfers only adopted resources and releases rejected buffers once', () => {
-  const deleted = [];
-  const gl = { createBuffer: () => ({}), deleteBuffer: buffer => deleted.push(buffer) };
+  const {gl,deleted}=createTrackedGlBufferPort();
   const lifecycle = lifecycleModule.createGpuResourceLifecycle();
   const lease = lifecycleModule.createGpuResourceLease(resources => lifecycle.release(resources.positionBuffer));
   const base = { positionBuffer: lifecycle.create(gl, 'Buffer') };
@@ -112,8 +110,8 @@ test('P3-4 lease transfers only adopted resources and releases rejected buffers 
 });
 
 test('P3-4 late GL handles after lifecycle disposal are released by their allocating context', () => {
-  const freed = [];
-  const gl = { isContextLost: () => false, deleteBuffer: value => freed.push(value) };
+  const {gl,deleted:freed}=createTrackedGlBufferPort();
+  gl.isContextLost=()=>false;
   const lifecycle = lifecycleModule.createGpuResourceLifecycle();
   lifecycle.dispose();
   const lateBuffer = {};
