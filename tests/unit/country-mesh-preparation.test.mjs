@@ -1,8 +1,27 @@
-import '../helpers/spherical-core.mjs';
-import test from 'node:test';
-import assert from 'node:assert/strict';
+import "../helpers/spherical-core.mjs";
 import "../../shared/frontend/js/workers/gpu-mesh-core.js";
-import { createCountryMeshPreparation } from "../../shared/frontend/js/modules/country-mesh-preparation.js";
+import { describe as contractSuite } from 'node:test';
+import * as __dep0 from "node:test";
+import * as __dep1 from "node:assert/strict";
+import * as __dep2 from "../../shared/frontend/js/modules/country-mesh-preparation.js";
+import * as __dep3 from "../../shared/frontend/js/modules/mesh-spatial-blocks.js";
+import * as __dep4 from "node:fs";
+import * as __dep5 from "node:zlib";
+import * as __dep6 from "../../shared/frontend/js/modules/country-mesh-codec.js";
+import * as __dep7 from "../../shared/frontend/js/modules/country-mesh-content-key.js";
+import * as __dep8 from "../../shared/frontend/js/modules/resource-update-policy.js";
+import * as __dep9 from "../../shared/frontend/js/modules/geometry-version-store.js";
+import * as __dep10 from "../../shared/frontend/js/modules/country-mesh-quality-gate.js";
+import * as __dep11 from "../../shared/frontend/js/modules/country-mesh-transfer.js";
+import * as __dep12 from "../../shared/frontend/js/modules/country-mesh-zoom-policy.js";
+import * as __dep13 from "../../shared/frontend/js/modules/gpu-map-renderer.js";
+
+// Original feature contract: country-mesh-preparation.test.mjs
+contractSuite("country-mesh-preparation", () => {
+const test = __dep0.default;
+const assert = __dep1.default;
+const { createCountryMeshPreparation } = __dep2;
+const { prepareMeshSpatialBlocks, visibleSpatialBlockRanges, coalesceSpatialBlockRanges } = __dep3;
 const engine = globalThis.PandoLabGpuMeshCore;
 const shape = (id, size = 2) => ({ id, geometry: { type: 'Polygon', coordinates: [[[0,0],[size,0],[size,2],[0,2],[0,0]]] } });
 const context = { throwIfCancelled() {} };
@@ -42,7 +61,6 @@ test('empty country slots retain their ranges and full-world bounds', async () =
   for (const key of ['countryTriangleRanges', 'countryBoundaryRanges', 'countryBounds', 'countryBoundsFlags']) assert.deepEqual(mesh[key], expected[key]);
 });
 
-import { prepareMeshSpatialBlocks, visibleSpatialBlockRanges, coalesceSpatialBlockRanges } from '../../shared/frontend/js/modules/mesh-spatial-blocks.js';
 
 test('spatial BVH packs large country meshes without boxed intermediate arrays or lost primitives', () => {
   const positions = Int32Array.from([0,0, 1000000,0, 0,1000000, 12000000,0, 13000000,0, 12000000,1000000]);
@@ -90,4 +108,347 @@ test('spatial range coalescing retains the exact minimum-gap and earliest-tie se
     const actual=coalesceSpatialBlockRanges(input.map(row=>({...row})),limit);
     assert.deepEqual(actual,baseline(input,limit),`merge mismatch for limit ${limit}`);
   }
+});
+});
+
+// Original feature contract: country-mesh-codec-runtime.test.mjs
+contractSuite("country-mesh-codec-runtime", () => {
+const assert = __dep1.default;
+const { readFileSync } = __dep4;
+const { gunzipSync } = __dep5;
+const test = __dep0.default;
+const { decodeCountryMesh } = __dep6;
+
+const countryCount=258;
+function emptyMeshWithRevision(revision) {
+  const words=12+countryCount*2+countryCount*2+countryCount*4+countryCount;
+  const buffer=new ArrayBuffer(words*4);
+  new Uint32Array(buffer,0,12).set([
+    0x434d4731,2,countryCount,0,0,0,1,revision,
+    countryCount*2,countryCount*2,countryCount*4,countryCount
+  ]);
+  return buffer;
+}
+test('the same v2 mesh decoder accepts the current shared fill revision 5',()=>{
+  for(const revision of [5]) {
+    const mesh=decodeCountryMesh(emptyMeshWithRevision(revision));
+    assert.equal(mesh.mesh.countryBoundsFlags.length,countryCount);
+    assert.equal(mesh.sourceCoordinateCount,1);
+  }
+});
+test('unknown future algorithm revisions fail closed before buffer interpretation',()=>{
+  for(const revision of [0,2,3,4,6,255])
+    assert.throws(()=>decodeCountryMesh(emptyMeshWithRevision(revision)),/알고리즘 리비전/);
+});
+test('the currently published revision-5 preview mesh decodes exactly',()=>{
+  const root=new URL('../../',import.meta.url);
+  const bundle=JSON.parse(readFileSync(new URL('assets/data/world/current.json',root),'utf8'));
+  const meshSpec=bundle.assets.previewMesh;
+  const gz=readFileSync(new URL('assets/data/'+meshSpec.url,root));
+  const binary=gunzipSync(gz);
+  const uint8=new Uint8Array(binary.buffer,binary.byteOffset,binary.byteLength);
+  const copy=Uint8Array.from(uint8).buffer;
+  const decoded=decodeCountryMesh(copy);
+  assert.equal(bundle.derivation.meshAlgorithmRevision,5);
+  assert.equal(new Uint32Array(copy,0,8)[7],5);
+  assert.equal(decoded.mesh.countryBoundsFlags.length,countryCount);
+  assert.equal(decoded.sourceCoordinateCount,bundle.derivation.coordinateCount);
+  assert.ok(decoded.mesh.triangleIndices.length>1000);
+  assert.ok(decoded.mesh.lineIndices.length>1000);
+});
+});
+
+// Original feature contract: country-mesh-content-key.test.mjs
+contractSuite("country-mesh-content-key", () => {
+const test = __dep0.default;
+const assert = __dep1.default;
+const { countryMeshContentKey } = __dep7;
+const { resourceUpdate } = __dep8;
+const { createGeometryVersionStore } = __dep9;
+
+const square=(x=0)=>({type:'Polygon',coordinates:[[[x,0],[x+2,0],[x+2,2],[x,2],[x,0]]]});
+const country=(id,geometry)=>({id,geometry,properties:{color:'#123456',name:id}});
+const key=features=>countryMeshContentKey(features);
+
+test('P3-2 a structurally identical new country geometry object reuses one content identity',async()=>{
+ const a=[country('A',square()),country('B',square(4))];
+ const b=structuredClone(a);
+ b[0].properties.color='#ffffff';
+ const ka=await key(a),kb=await key(b);
+ assert.equal(ka,kb);
+ assert.ok(Object.keys(a[0].geometry).length===2);
+ assert.notStrictEqual(a[0].geometry,b[0].geometry);
+});
+test('P3-2 different coordinates, topology, country ID or ordering never share a canonical key',async()=>{
+ const original=[country('A',square()),country('B',square(4))],k=await key(original);
+ const moved=structuredClone(original);moved[0].geometry.coordinates[0][1][0]+=0.00000001;
+ const hole=structuredClone(original);hole[0].geometry.coordinates.push([[0.2,0.2],[1,0.2],[1,1],[0.2,1],[0.2,0.2]]);
+ const renamed=structuredClone(original);renamed[0].id='X';
+ const swapped=structuredClone(original).reverse();
+ for(const changed of [moved,hole,renamed,swapped])assert.notEqual(await key(changed),k);
+});
+test('P3-2 live mutable geometry changes never reuse an earlier digest',async()=>{
+ const rows=[country('A',square())],previous=await key(rows);
+ rows[0].geometry.coordinates[0][2][0]+=0.125;
+ assert.notEqual(await key(rows),previous);
+});
+test('P3-2 superseded canonical fingerprint can never be admitted',async()=>{
+ const features=[country('A',square()),country('B',square(4))];
+ let checks=0;
+ const result=await countryMeshContentKey(features,{isCurrent:()=>++checks<2});
+ assert.equal(result,null);
+});
+test('P3-2 GPU context changes still require upload even if prepared geometry matches',async()=>{
+ const a=await key([country('A',square())]),ctxA={},ctxB={};
+ const previous={source:'country-mesh',content:a,preparation:'mesh-v7',context:[ctxA,1],presentation:'countries'};
+ const same={...previous},otherGpu={...previous,context:[ctxB,2]},newPrep={...previous,preparation:'mesh-v8'};
+ assert.equal(resourceUpdate(previous,same).prepare,false);
+ assert.equal(resourceUpdate(previous,otherGpu).prepare,false);
+ assert.equal(resourceUpdate(previous,otherGpu).upload,true);
+ assert.equal(resourceUpdate(previous,newPrep).prepare,true);
+});
+
+test('verified immutable country geometries reuse their digest while mutable inputs are rechecked',async t=>{
+ const store=createGeometryVersionStore([{id:'geom',version:1,geojson:square()}]);
+ const immutable=store.get({id:'geom',version:1}),mutable=square(4);
+ const subtle=globalThis.crypto.subtle,previous=Object.getOwnPropertyDescriptor(subtle,'digest'),digest=subtle.digest.bind(subtle);let calls=0;
+ Object.defineProperty(subtle,'digest',{configurable:true,value:(...args)=>{calls++;return digest(...args);}});
+ t.after(()=>{if(previous)Object.defineProperty(subtle,'digest',previous);else delete subtle.digest;});
+ const first=await key([country('A',immutable),country('B',mutable)]);
+ assert.equal(await key([country('A',immutable),country('B',mutable)]),first);
+ assert.equal(calls,3,'only the structurally validated immutable geometry can skip a second hash');
+ mutable.coordinates[0][1][0]+=0.125;
+ assert.notEqual(await key([country('A',immutable),country('B',mutable)]),first);
+ assert.equal(calls,4);
+});
+
+test('immutable digest failures are retried and stale requests cannot admit a key',async t=>{
+ const store=createGeometryVersionStore([{id:'retry-geometry',version:1,geojson:square(9)}]);
+ const immutable=store.get({id:'retry-geometry',version:1}),rows=[country('A',immutable)];
+ const subtle=globalThis.crypto.subtle,previous=Object.getOwnPropertyDescriptor(subtle,'digest'),digest=subtle.digest.bind(subtle);let calls=0;
+ Object.defineProperty(subtle,'digest',{configurable:true,value:(...args)=>{calls++;return calls===1?Promise.reject(Error('digest failed')):digest(...args);}});
+ t.after(()=>{if(previous)Object.defineProperty(subtle,'digest',previous);else delete subtle.digest;});
+ await assert.rejects(key(rows),/digest failed/);
+ let checks=0;assert.equal(await countryMeshContentKey(rows,{isCurrent:()=>++checks<2}),null);
+ assert.equal(typeof await key(rows),'string');assert.equal(calls,2);
+});
+});
+
+// Original feature contract: country-mesh-quality-gate.test.mjs
+contractSuite("country-mesh-quality-gate", () => {
+const test = __dep0.default;
+const assert = __dep1.default;
+const { decideCountryPatchPresentation } = __dep10;
+
+test('preview base queues country patches instead of mixing a canonical override into the frame', () => {
+  assert.deepEqual(decideCountryPatchPresentation({ renderer: 'webgl2', canonicalMeshReady: false, ids: ['GRC'] }), {
+    mode: 'defer',
+    ids: ['GRC'],
+  });
+});
+
+test('canonical and non-WebGL renderers install country patches immediately', () => {
+  assert.deepEqual(decideCountryPatchPresentation({ renderer: 'webgl2', canonicalMeshReady: true, ids: ['GRC'] }), {
+    mode: 'install',
+    ids: ['GRC'],
+  });
+  assert.deepEqual(decideCountryPatchPresentation({ renderer: 'canvas', canonicalMeshReady: false, ids: ['GRC'] }), {
+    mode: 'install',
+    ids: ['GRC'],
+  });
+});
+});
+
+// Original feature contract: country-mesh-transfer.test.mjs
+contractSuite("country-mesh-transfer", () => {
+const test = __dep0.default;
+const assert = __dep1.default;
+const { packCountryMeshFeatures, unpackCountryMeshFeatures } = __dep11;
+
+test('presentation transfer preserves doubles, holes, polygon order and IDs without detaching source geometry', async () => {
+  const ring = [[0.1234567890123, -5], [2, 1], [4, 2], [0.1234567890123, -5]];
+  const features = [{ id: 'A', geometry: { type: 'Polygon', coordinates: [ring, ring.toReversed()] } },
+    { id: 'B', geometry: { type: 'MultiPolygon', coordinates: [[ring], [ring.toReversed()]] } }];
+  const before = structuredClone(features);
+  const packed = await packCountryMeshFeatures(features);
+  const received = structuredClone(packed, { transfer: [packed.coordinates.buffer] });
+  assert.deepEqual(unpackCountryMeshFeatures(received), before);
+  assert.deepEqual(features, before);
+});
+
+test('packing yields within a large ring and stops an obsolete request before dispatch', async () => {
+  let current = true, yields = 0;
+  const features = [{ id: 'A', geometry: { type: 'Polygon', coordinates: [Array.from({ length: 50000 }, (_, n) => [n, n])] } }];
+  await assert.rejects(packCountryMeshFeatures(features, { isCurrent: () => current,
+    yieldTask: async () => { yields++; current = false; } }), { name: 'AbortError' });
+  assert.equal(yields, 1);
+});
+});
+
+// Original feature contract: country-mesh-zoom-policy.test.mjs
+contractSuite("country-mesh-zoom-policy", () => {
+const assert = __dep1.default;
+const test = __dep0.default;
+const { resolveCountryMeshQuality } = __dep12;
+const surfacePolicy = __dep12;
+
+test('prepared country geometry stays hidden until its background frame is presented', () => {
+  const prepared = { cssScale: 700, canonicalReady: true, backgroundPresented: false };
+  assert.equal(surfacePolicy.resolveMapSurfacePresentation(prepared).quality, 'pending');
+  assert.equal(surfacePolicy.resolveMapSurfacePresentation(prepared).geometryQuality, 'canonical');
+  assert.equal(surfacePolicy.resolveMapSurfacePresentation({ ...prepared, backgroundPresented: true }).quality, 'canonical');
+});
+
+test('CSS scale uses inclusive thresholds, keeps history in the band and starts precise', () => {
+  for (const previous of ['preview', 'canonical']) {
+    assert.equal(resolveCountryMeshQuality({ cssScale: 504, previous }), 'preview');
+    assert.equal(resolveCountryMeshQuality({ cssScale: 642, previous }), 'canonical');
+    assert.equal(resolveCountryMeshQuality({ cssScale: 570, previous }), previous);
+  }
+  assert.equal(resolveCountryMeshQuality({ cssScale: 570 }), 'canonical');
+});
+
+test('projection, DPR, device and dragging cannot change the same CSS scale decision', () => {
+  for (const projection of ['flat', 'globe']) for (const dpr of [1, 2, 3]) {
+    assert.equal(resolveCountryMeshQuality({ cssScale: 500, projection, dpr, mobile: true, dragging: true }), 'preview');
+    assert.equal(resolveCountryMeshQuality({ cssScale: 650, projection, dpr }), 'canonical');
+  }
+});
+
+test('focus and selection protect precise geometry at low scale', () => {
+  for (const forced of [{ focus: true }, { selected: true }]) {
+    assert.equal(resolveCountryMeshQuality({ cssScale: 100, ...forced }), 'canonical');
+  }
+});
+
+test('invalid scale cannot silently choose simplified geometry', () => {
+  for (const cssScale of [undefined, NaN, 0, -1]) assert.equal(resolveCountryMeshQuality({ cssScale }), 'canonical');
+});
+
+test('one surface decision withholds both country and land preview at high scale while precise data is pending', () => {
+  assert.deepEqual(surfacePolicy.resolveMapSurfacePresentation?.({ cssScale: 700,
+    canonicalReady: false, previewReady: true, previewVerified: true }),
+  { targetQuality: 'canonical', geometryQuality: 'pending', quality: 'pending' });
+});
+
+test('a verified low-scale surface can return to simplified display after precise preparation', () => {
+  assert.deepEqual(surfacePolicy.resolveMapSurfacePresentation?.({ cssScale: 400,
+    canonicalReady: true, previewReady: true, previewVerified: true }),
+  { targetQuality: 'preview', geometryQuality: 'preview', quality: 'preview' });
+  assert.deepEqual(surfacePolicy.resolveMapSurfacePresentation?.({ cssScale: 400,
+    canonicalReady: true, previewReady: true, previewVerified: false }),
+  { targetQuality: 'preview', geometryQuality: 'canonical', quality: 'canonical' });
+});
+
+test('selection and missing or invalid derivatives cannot silently admit a simplified surface', () => {
+  for (const flags of [{ selected: true }, { focus: true }]) {
+    assert.deepEqual(surfacePolicy.resolveMapSurfacePresentation?.({ cssScale: 100,
+      canonicalReady: false, previewReady: true, previewVerified: true, ...flags }),
+    { targetQuality: 'canonical', geometryQuality: 'pending', quality: 'pending' });
+  }
+  assert.deepEqual(surfacePolicy.resolveMapSurfacePresentation?.({ cssScale: 100,
+    canonicalReady: false, previewReady: true, previewVerified: false }),
+  { targetQuality: 'preview', geometryQuality: 'pending', quality: 'pending' });
+});
+});
+
+// Original feature contract: country-mesh-zoom-runtime.test.mjs
+contractSuite("country-mesh-zoom-runtime", () => {
+const assert = __dep1.default;
+const test = __dep0.default;
+const { createGpuMapRenderer } = __dep13;
+
+function fixture(t) {
+  const oldWindow = globalThis.window;
+  const oldWorker = globalThis.Worker;
+  const oldFrame = globalThis.requestAnimationFrame;
+  const oldCancel = globalThis.cancelAnimationFrame;
+  globalThis.window = { devicePixelRatio: 1 };
+  const workers=[];
+  globalThis.Worker = class { constructor(){this.sent=[];workers.push(this);} postMessage(message) {this.sent.push(message);} terminate() {} };
+  globalThis.requestAnimationFrame = () => 1;
+  globalThis.cancelAnimationFrame = () => {};
+  const state = { projection: 'globe', view: { globeZoom: 1, flatZoom: 1 }, physicalSettings: {}, pendingCountryRenderIds: new Set() };
+  const retries = [];
+  const renderer = createGpuMapRenderer({ state, runtimeAssetUrl: path => path, scheduleGpuFrame: () => {}, scheduleGpuMeshRebuild: (...args) => retries.push(args),
+    renderCountryBoundaryFeatures: () => [], countryBoundaryStyleById: () => null,
+    mapWorkScheduler: { cancel: () => {} }, isMobile: () => false, rendererUi: { setMapPreparationStatus() {} }, renderViewFrame: () => {} });
+  t.after(() => { renderer.dispose(); globalThis.window = oldWindow; globalThis.Worker = oldWorker;
+    globalThis.requestAnimationFrame = oldFrame; globalThis.cancelAnimationFrame = oldCancel; });
+  return { state, renderer, retries, workers };
+}
+
+test('failed boundary preparation exposes a retry through the real rebuild contract', t => {
+  const { renderer, retries } = fixture(t);
+  renderer.failMapPreparation(new Error('upload failed'));
+  assert.equal(renderer.mapReadiness().status, 'error');
+  renderer.retryMapPreparation();
+  assert.deepEqual(retries, [[0, renderer.getProjectGeneration()]]);
+  assert.equal(renderer.mapReadiness().status, 'boundaries');
+});
+
+test('pending precise resources cannot change the requested CSS scale band', t => {
+  const { renderer } = fixture(t);
+  renderer.syncCountryMeshQuality({ cssScale: 700 });
+  assert.equal(renderer.getRuntimeState().desiredCountryMeshQuality, 'canonical');
+  assert.equal(renderer.getRuntimeState().canonicalMeshReady, false);
+  renderer.syncCountryMeshQuality({ cssScale: 504 });
+  assert.equal(renderer.getRuntimeState().desiredCountryMeshQuality, 'preview');
+});
+
+test('unchanged country geometry skips complete preparation across a project generation', async t => {
+  const { renderer } = fixture(t);
+  await renderer.rebuildFromCountries([]);
+  const before = renderer.getStats().countryMeshReuseCount || 0;
+  renderer.resetProjectRenderState();
+  await renderer.rebuildFromCountries([]);
+  assert.equal(renderer.getStats().countryMeshReuseCount, before + 1);
+});
+
+test('an unchanged boundary request shares the current in-flight preparation', async t => {
+  const {renderer,workers}=fixture(t);
+  await renderer.rebuildFromCountries([]);
+  workers[0].sent.length=0;
+  await renderer.rebuildFromCountries([]);
+  await renderer.rebuildFromCountries([]);
+  assert.equal(workers.length,1);
+  assert.equal(workers[0].sent.length,1);
+});
+
+test('reusing a completed mesh invalidates an older rebuild delivery token', async t => {
+  const {renderer}=fixture(t);
+  await renderer.rebuildFromCountries([]);
+  const older=renderer.getStats().geometryRenderTaskToken;
+  await renderer.rebuildFromCountries([]);
+  assert.ok(renderer.getStats().geometryRenderTaskToken>older);
+});
+
+test('focus retains precise geometry until explicitly released', async t => {
+  const { renderer } = fixture(t);
+  renderer.requestCountryFocus();
+  await renderer.rebuildFromCountries([]);
+  renderer.syncCountryMeshQuality({ cssScale: 300 });
+  renderer.commitVisualFrame({ frameId: 1 });
+  assert.equal(renderer.getRuntimeState().countryFocusPending, true);
+  assert.equal(renderer.getRuntimeState().surfacePresentation.geometryQuality, 'canonical');
+  renderer.cancelCountryFocus();
+  renderer.syncCountryMeshQuality({ cssScale: 300 });
+  assert.equal(renderer.getRuntimeState().desiredCountryMeshQuality, 'preview');
+  assert.equal(renderer.getRuntimeState().surfacePresentation.geometryQuality, 'canonical', 'uncertified startup mesh is never readmitted');
+});
+
+test('project replacement and projection changes reset the transition band to precise', async t => {
+  const { state, renderer } = fixture(t);
+  renderer.syncCountryMeshQuality({ cssScale: 300 });
+  renderer.syncCountryMeshQuality({ cssScale: 570 });
+  assert.equal(renderer.getRuntimeState().desiredCountryMeshQuality, 'canonical', 'an unpresented preview cannot establish transition-band history');
+  state.projection = 'flat';
+  renderer.syncCountryMeshQuality({ cssScale: 570, projection: 'flat' });
+  assert.equal(renderer.getRuntimeState().desiredCountryMeshQuality, 'canonical');
+  renderer.requestCountryFocus();
+  renderer.resetProjectRenderState();
+  renderer.syncCountryMeshQuality({ cssScale: 570 });
+  assert.equal(renderer.getRuntimeState().countryFocusPending, false);
+  assert.equal(renderer.getRuntimeState().desiredCountryMeshQuality, 'canonical');
+});
 });
