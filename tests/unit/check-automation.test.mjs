@@ -377,3 +377,25 @@ test('browser-only helpers are referenced by an active feature spec', () => {
   assert.deepEqual(helpers.filter(name => !reachable.has(name)), [],
     'Remove orphaned browser diagnostic helpers instead of expanding the default test suite');
 });
+
+test('Native GIS and Viewer jobs avoid repeated automatic application test commands',()=>{
+  const read=name=>parse(readFileSync(new URL('../../.github/workflows/'+name+'.yml',import.meta.url),'utf8'));
+  const app=read('application-architecture');
+  assert.ok(app.on.workflow_call?.inputs?.check_profile);
+  const p3=read('remote-preview-p3');
+  assert.equal(p3.jobs['application-contracts'].uses,'./.github/workflows/application-architecture.yml');
+  assert.equal(p3.jobs['web-contracts'],undefined);
+  assert.equal(p3.jobs['web-contracts-browser'],undefined);
+  assert.ok(read('remote-only-gate').jobs['viewer-web-regression'].if.includes('workflow_dispatch'));
+  const pack=read('hydro-packfile-runtime-gate').jobs.parity;
+  const occurrences=pack.steps.flatMap(step=>String(step.run||'').match(/node --test tests\/unit\/hydro-packfile\.test\.mjs/g)||[]);
+  assert.equal(occurrences.length,1);
+  const native=read('shared-core').jobs.contracts.steps.find(step=>step.name==='Accepted selection and input presentation boundaries');
+  assert.ok(native);
+  for(const file of ['tests/unit/selection-domain-core.test.mjs','tests/unit/selection-domain-wasm.test.mjs'])
+    assert.equal(native.run.split(file).length-1,1);
+  const gis=read('gis-post-2000-browser-check');
+  assert.ok(gis.on.workflow_dispatch);
+  assert.equal(gis.on.push,undefined,'the same pinned date checks must not run on two automatic workflows');
+  assert.ok(gis.jobs['browser-year-snapshots'].steps.some(step=>step.run?.includes('playwright test')));
+});

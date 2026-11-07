@@ -80,7 +80,7 @@ test('P3 startup telemetry preserves late interactive, editable and ready milest
 
 
 test('app documentation changes do not rebuild the app',()=>{
-  const result=classifyP3(['apps/editor/README.md','shared/README.md'],full);
+  const result=classifyP3(['apps/viewer/README.md','shared/README.md'],full);
   for(const key of ['preview','browser'])assert.equal(result[key],false,key);
 });
 
@@ -95,12 +95,13 @@ test('source push waits for artifacts; result SHA dispatch verifies once',()=>{
   artifactState.statuses.wasm.needed=false;artifactState.selectedFamilies=[];
 });
 
-test('P3 contracts preserve source-selected browser cases across four shards',()=>{
+test('P3 delegates contract validation and browser shards to the reusable application workflow',()=>{
   const workflow=readFileSync(new URL('../../.github/workflows/remote-preview-p3.yml',import.meta.url),'utf8');
-  assert.match(workflow,/web-contracts-browser:/);
-  assert.match(workflow,/--phase non-browser --output/);
-  for(const shard of ['1/4','2/4','3/4','4/4'])
-    assert.ok(workflow.includes("shard: '"+shard+"'"),shard);
-  assert.match(workflow,/--phase browser --shard/);
-  assert.match(workflow,/steps\.plan\.outputs\.browser == 'true'/);
+  assert.match(workflow,/application-contracts:/);
+  assert.match(workflow,/uses: \.\/\.github\/workflows\/application-architecture\.yml/);
+  assert.match(workflow,/head_sha: \$\{\{ inputs\.source_sha \|\| github\.sha \}\}/);
+  assert.doesNotMatch(workflow,/^  web-contracts-browser:/m);
+  assert.doesNotMatch(workflow,/^  web-contracts:/m);
+  assert.match(workflow,/browser-regression:/);
+  assert.match(workflow,/github\.event_name == 'workflow_dispatch'/);
 });

@@ -60,3 +60,10 @@ test('app and shared documentation do not start compilation', () => {
   const result=classifyPaths(['apps/viewer/README.md','shared/README.md'],all);
   for(const key of ['web','core','wasm','gisTools'])assert.equal(result[key],false,key);
 });
+
+test('a library data pin update selects GIS without unrelated native tools',()=>{
+  const plan=classifyPaths(['config/library-data.json'],{core:true,gisTools:true,web:true});
+  assert.equal(plan.gis,true);
+  assert.equal(plan.gisTools,false);
+  assert.equal(plan.web,true);
+});

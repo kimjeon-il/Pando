@@ -1,6 +1,37 @@
 name: Application Architecture
 run-name: Application checks ${{ inputs.request_id || github.sha }}
 on:
+  # Shared runner for native/GIS/Viewer contracts and P1/P3 callers.
+  workflow_call:
+    inputs:
+      base_sha:
+        type: string
+        required: false
+        default: ''
+      head_sha:
+        type: string
+        required: false
+        default: ''
+      check_profile:
+        type: string
+        required: false
+        default: ''
+      check_scope:
+        type: string
+        required: false
+        default: auto
+      check_groups:
+        type: string
+        required: false
+        default: ''
+      check_selection:
+        type: string
+        required: false
+        default: ''
+      browser_scope:
+        type: string
+        required: false
+        default: default
   workflow_dispatch:
     inputs:
       check_selection:
@@ -61,7 +92,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ inputs.head_sha || github.event.pull_request.head.sha || github.sha }}
       - &a2
         uses: pnpm/action-setup@v4
       - &a3
@@ -77,12 +108,13 @@ jobs:
       - name: Select current application checks
         id: plan
         env: &a5
-          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before ||
+          BASE_SHA: ${{ inputs.base_sha || github.event.pull_request.base.sha || github.event.before ||
             'origin/main' }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          HEAD_SHA: ${{ inputs.head_sha || github.event.pull_request.head.sha || github.sha }}
+          CHECK_PROFILE: ${{ inputs.check_profile || '' }}
           BROWSER_SCOPE: ${{ inputs.browser_scope || 'default' }}
           # Run affected checks on branch pushes. Full suite on main PR or explicit dispatch.
-          CHECK_SCOPE: ${{ (github.event_name == 'workflow_dispatch' && inputs.check_scope == 'all') && 'all' || 'auto' }}
+          CHECK_SCOPE: ${{ inputs.check_scope || 'auto' }}
           CHECK_GROUPS: ${{ inputs.check_groups || '' }}
           CHECK_SELECTION: ${{ inputs.check_selection || '' }}
           PLAYWRIGHT_LIST_PRINT_FAILURES_INLINE: '1'

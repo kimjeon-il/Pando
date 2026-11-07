@@ -181,7 +181,9 @@ jobs:
   # GIS and shared C++/WASM compilation remain separate and source-pinned.
   viewer-web-regression:
     needs: scope
-    if: needs.scope.outputs.run_heavy == 'true'
+    # Automatic Viewer/Node checks are delegated through P3 to the reusable
+    # application gate. Preserve this focused acceptance as a manual diagnostic.
+    if: github.event_name == 'workflow_dispatch' && needs.scope.outputs.run_heavy == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 50
     steps:

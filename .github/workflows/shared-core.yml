@@ -283,8 +283,7 @@ jobs:
         run: >-
           node --test --test-concurrency=1 --test-timeout=15000
           tests/unit/selection-domain-core.test.mjs tests/unit/selection-domain-wasm.test.mjs
-          tests/unit/selection-ui-ack.test.mjs tests/unit/selection-domain-core.test.mjs
-          tests/unit/selection-domain-wasm.test.mjs
+          tests/unit/selection-ui-ack.test.mjs
           tests/unit/map-settings-core-ack.test.mjs
           tests/unit/builtin-resource-admission.test.mjs tests/unit/builtin-resource-core-wasm.test.mjs tests/unit/place-runtime.test.mjs
           tests/unit/map-hover-async-boundary.test.mjs tests/unit/map-hover-topology.test.mjs

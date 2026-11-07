@@ -1,12 +1,8 @@
 name: Verify published 2000–2026 GIS historical year display
 
+# Normal GIS date and Viewer checks are selected by the shared P3 application
+# gate. Reserve this complete source-pinned reproduction for manual evidence.
 on:
-  push:
-    branches: [work/gis]
-    paths:
-      - '.github/workflows/gis-post-2000-browser-check.yml'
-      - 'tests/browser/viewer-calendar.spec.mjs'
-      - 'config/library-data.json'
   workflow_dispatch:
 
 permissions:
@@ -42,9 +38,9 @@ jobs:
             tests/unit/indonesia-territory-timeline.test.mjs \
             tests/unit/sudan-ukraine-transition.test.mjs \
             tests/unit/builtin-world-baseline.test.mjs
-      - name: Install Chromium
+      - name: Install Chromium for dated GIS visual evidence
         run: pnpm exec playwright install --with-deps chromium
-      - name: Verify year-specific new world in the actual editor
+      - name: Verify historical country dates in the Viewer
         run: pnpm exec playwright test tests/browser/viewer-calendar.spec.mjs --workers=1 --retries=0 --trace off
       - name: Preserve actual rendered evidence
         if: always()

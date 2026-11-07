@@ -30,7 +30,6 @@ jobs:
             /assets/data/hydro/v0.13.2/
             /tools/build-hydro-packfile.mjs
             /tests/unit/hydro-packfile.test.mjs
-            /tests/unit/hydro-packfile.test.mjs
             /tools/library-*.mjs
             /scripts/lib/frontend-layout.mjs
             /tools/library-report-layout.mjs
@@ -60,4 +59,3 @@ jobs:
           node --test tests/unit/hydro-packfile.test.mjs
           node --check shared/frontend/js/workers/hydro-tile-worker.js
           node --check shared/frontend/js/workers/hydro-shard-store.js
-          node --test tests/unit/hydro-packfile.test.mjs
