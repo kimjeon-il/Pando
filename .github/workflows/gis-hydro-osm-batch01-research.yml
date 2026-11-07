@@ -12,7 +12,7 @@ on:
       - 'tools/cpp/CMakeLists.txt'
       - 'tools/gis/probe-finnish-hydro.mjs'
       - 'tools/gis/bounded-source-json.mjs'
-      - 'tests/unit/finnish-hydro-probe.test.mjs'
+      - 'tests/unit/hydro-independent-evidence.test.mjs'
       - '.github/workflows/gis-hydro-osm-batch01-research.yml'
   workflow_dispatch:
 
@@ -71,7 +71,7 @@ jobs:
         shell: bash
         run: |
           node tools/gis/probe-finnish-hydro.mjs --output /tmp/batch01-finnish-api-probe.json
-          node --test tests/unit/finnish-hydro-probe.test.mjs
+          node --test tests/unit/hydro-independent-evidence.test.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:

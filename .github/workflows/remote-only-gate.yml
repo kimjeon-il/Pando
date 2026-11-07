@@ -221,10 +221,8 @@ jobs:
         run: >-
           pnpm exec playwright test
           tests/browser/viewer-review-e4.spec.mjs
-          tests/browser/viewer-review-e4.spec.mjs
           tests/browser/web-viewer.spec.mjs
-          tests/browser/web-viewer.spec.mjs
-          tests/browser/button-consistency.spec.mjs
+          tests/browser/viewer-project-open.spec.mjs
           --workers=1 --retries=0 --reporter=list
       - name: Archive post-retirement Web test evidence
         if: always()
