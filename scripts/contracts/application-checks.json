@@ -1293,6 +1293,15 @@
         "apps/viewer/js/modules/project-*.js",
         "shared/frontend/js/modules/gpkg-*.js"
       ]
+    },
+    {
+      "tests": [
+        "tests/unit/check-automation.test.mjs"
+      ],
+      "inputs": [
+        ".github/workflows/**",
+        ".github/actions/**"
+      ]
     }
   ],
   "runtimeBases": {},

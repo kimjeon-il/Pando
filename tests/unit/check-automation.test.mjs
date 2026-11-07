@@ -7,6 +7,7 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { runInNewContext } from 'node:vm';
 import { loadRepository, planApplicationChecks, matchesPattern } from '../../scripts/plan-application-checks.mjs';
+import { auditWorkflowReferences } from '../../scripts/lib/workflow-reference-integrity.mjs';
 
 test('every current browser workflow can be assigned before CI dependency planning', () => {
   const catalog = JSON.parse(readFileSync(new URL('../../scripts/contracts/application-checks.json', import.meta.url)));
@@ -16,18 +17,57 @@ test('every current browser workflow can be assigned before CI dependency planni
   assert.deepEqual(unregistered, []);
 });
 
-test('Viewer and shared checks reference existing named test files', () => {
+test('every workflow and local action resolves executable sources, not just test filenames', () => {
   const root = fileURLToPath(new URL('../..', import.meta.url));
-  const workflows = readdirSync(new URL('../../.github/workflows/',import.meta.url))
-    .filter(name=>name.endsWith('.yml')).map(name=>name.slice(0,-4));
-  const missing = [];
-  for (const name of workflows) {
-    const file = `.github/workflows/${name}.yml`;
-    const source = readFileSync(new URL(`../../${file}`, import.meta.url), 'utf8');
-    for (const match of source.matchAll(/tests\/(?:browser|unit|integration)\/[\w./-]+\.(?:spec|test)\.mjs/g))
-      if (!existsSync(resolve(root, match[0]))) missing.push(`${file}: ${match[0]}`);
-  }
-  assert.deepEqual([...new Set(missing)], []);
+  assert.deepEqual(auditWorkflowReferences(root), []);
+});
+
+test('workflow reference validator catches missing scripts, retired products and local actions', t => {
+  const root = mkdtempSync(join(tmpdir(), 'pando-workflow-reference-'));
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  const put = (path, source = '') => {
+    mkdirSync(dirname(join(root, path)), { recursive: true });
+    writeFileSync(join(root, path), source);
+  };
+  put('scripts/publish.mjs');
+  put('tools/hydro-audit.py');
+  put('tests/browser/viewer.spec.mjs');
+  put('tests/integration/run-desktop.mjs');
+  put('tests/integration/run-mobile.mjs');
+  put('scripts/local-check.mjs');
+  put('.github/actions/release/action.yml', [
+    'name: Release', 'runs:', '  using: composite', '  steps:',
+    '    - shell: bash', '      run: node scripts/local-check.mjs',
+  ].join('\n'));
+  const matrix = '$' + '{{ matrix.profile }}';
+  const workflow = [
+    'name: Valid source-owned automation',
+    'on: { workflow_dispatch: {} }',
+    'jobs:',
+    '  validate:',
+    '    runs-on: ubuntu-24.04',
+    '    strategy:',
+    '      matrix: { profile: [desktop, mobile] }',
+    '    steps:',
+    '      - uses: ./.github/actions/release',
+    '      - shell: bash',
+    '        run: |',
+    '          node scripts/publish.mjs',
+    '          python3 tools/hydro-audit.py',
+    '          pnpm exec playwright test tests/browser/viewer.spec.mjs',
+    '          node tests/integration/run-' + matrix + '.mjs',
+  ].join('\n') + '\n';
+  put('.github/workflows/check.yml', workflow);
+  assert.deepEqual(auditWorkflowReferences(root), []);
+
+  put('.github/workflows/check.yml', workflow.replace('scripts/publish.mjs', 'scripts/missing.mjs'));
+  assert.ok(auditWorkflowReferences(root).some(error => error.reference === 'scripts/missing.mjs'));
+
+  put('.github/workflows/check.yml', workflow.replace('./.github/actions/release', './.github/actions/removed'));
+  assert.ok(auditWorkflowReferences(root).some(error => error.reference === '.github/actions/removed'));
+
+  put('.github/workflows/check.yml', workflow + '  # banned path: apps/editor/editor.html\n');
+  assert.ok(auditWorkflowReferences(root).some(error => /Retired product path/.test(error.reason)));
 });
 
 test('desktop and mobile release acceptance run on main PR using the current library revision',()=>{

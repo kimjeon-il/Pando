@@ -65,7 +65,8 @@
     "test:gis-node": "node --test tests/unit/hydro-packfile.test.mjs tests/unit/download-terrain-source.test.mjs tests/unit/place-batch-pipeline.test.mjs tests/unit/place-candidates.test.mjs tests/unit/gis-source-launcher.test.mjs tests/unit/report-paths.test.mjs tests/unit/boundary-capture-evidence.test.mjs tests/unit/font-assets.test.mjs",
     "dev:web": "node scripts/frontend-dev-server.mjs --product=viewer",
     "build:web": "node scripts/generate-build-metadata.mjs --product=viewer",
-    "deps:prepare": "node tools/worktree-storage.mjs --prepare-dependencies"
+    "deps:prepare": "node tools/worktree-storage.mjs --prepare-dependencies",
+    "check:workflow-references": "node scripts/lib/workflow-reference-integrity.mjs"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
