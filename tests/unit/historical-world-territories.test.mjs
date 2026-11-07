@@ -100,8 +100,8 @@ test('large component differences use disjoint-subject sweeps and preserve repea
   const asMulti=geometry=>geometry.type==='Polygon'?[geometry.coordinates]:geometry.coordinates;
   assert.deepEqual(globalThis.polygonClipping.xor(asMulti(actual),baseline),[]);
   assert.ok(calls.length>=2,'each intersecting subject polygon is independently clipped');
-  assert.ok(calls.every(args=>args.length===2&&args[0]===1&&args[1]>=1),
-    'no Boolean sweep combines multiple subject polygons');
+  assert.ok(calls.every(args=>args[0]===1&&args.slice(1).every(count=>count===1)),
+    'no Boolean sweep combines multiple subject polygons or intermediate cutters');
 });
 
 test('large historical multi-polygon differences partition independent components without changing topology',()=>{
@@ -136,4 +136,21 @@ test('reused Boolean results replay precision evidence and retain each interval 
  const many=Array.from({length:6},(_,index)=>candidate(`source${index}`,index*10,index*10+2));
  const budget=module.createHistoricalTerritoryCache(clipper);
  for(let run=0;run<2;run++)assert.throws(()=>module.adjustHistoricalTerritories(many,policy,clipper,budget),/HISTORICAL_CLIP_PRECISION_BUDGET_EXCEEDED/);
+});
+
+// Source geometry and immutable snapshots are necessary: subtracting the
+// intersection fragments first can introduce near-coincident shared edges.
+test('unknown peers are subtracted directly from the source without unioned intermediate rings',()=>{
+  const rows=[candidate('a',0,12),candidate('b',3,7),candidate('c',6,11)];
+  const calls=[];
+  const clipper={...globalThis.polygonClipping,
+    union:()=>{throw Error('Unknown peer subtraction must not union intermediate intersections');},
+    difference:(...operands)=>{calls.push(operands.map(value=>value.length));return globalThis.polygonClipping.difference(...operands);}};
+  const result=module.adjustHistoricalTerritories(rows,policy,clipper);
+  const baseline=globalThis.polygonClipping.difference(rows[0].geometry.coordinates,rows[1].geometry.coordinates,rows[2].geometry.coordinates);
+  const shape=result.candidates.find(row=>row.entityId==='a')?.geometry;
+  const multi=shape?.type==='Polygon'?[shape.coordinates]:shape?.coordinates||[];
+  assert.deepEqual(globalThis.polygonClipping.xor(multi,baseline),[]);
+  assert.ok(calls.some(operands=>operands.length===3),'one Boolean must subtract both original peers');
+  assert.deepEqual(module.adjustHistoricalTerritories([...rows].reverse(),policy,clipper),result);
 });

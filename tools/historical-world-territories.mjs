@@ -75,16 +75,18 @@ export function adjustHistoricalTerritories(input, policy, clipper = historicalW
     return [west,south,east,north];
   };
   const touches=(a,b)=>a[0]<=b[2]&&a[2]>=b[0]&&a[1]<=b[3]&&a[3]>=b[1];
-  const componentDifference=(left,right)=>{
-    const rightEnvelopes=right.map(envelope),pieces=[];
+  const componentDifference=(left,cutters)=>{
+    // Preserve original boundary coordinates and clip *each independent
+    // subject* against all intersecting source cutters in a single sweep.
+    // Sequential difference or subtracting already-intersected/unioned
+    // intermediate rings creates near-coincident edges and can destabilize
+    // the sweep-line ordering on real historical borders.
+    const right=cutters.flat(),rightEnvelopes=right.map(envelope),pieces=[];
     for(const polygon of left){
       const bounds=envelope(polygon);
-      // Only one subject is swept at a time. Group every cutter that can
-      // intersect that subject, rather than creating intermediary split
-      // rings whose next sweep can break the exact shared-border ordering.
       const near=right.filter((candidate,index)=>touches(bounds,rightEnvelopes[index]));
       if(!near.length)pieces.push(polygon);
-      else pieces.push(...clipper.difference([polygon],near));
+      else pieces.push(...clipper.difference([polygon],...near.map(candidate=>[candidate])));
     }
     return pieces;
   };
@@ -95,9 +97,9 @@ export function adjustHistoricalTerritories(input, policy, clipper = historicalW
     const offset=adjustments.length,inputs=geometries.map(coordinates);
     let raw;
     try {
-      const complexDifference=name==='difference' && geometries.length===2
-        && (inputs[0].length+inputs[1].length>16);
-      raw=complexDifference?componentDifference(inputs[0],inputs[1]):clipper[name](...inputs);
+      const complexDifference=name==='difference' && geometries.length>=2
+        && inputs.reduce((sum,input)=>sum+input.length,0)>16;
+      raw=complexDifference?componentDifference(inputs[0],inputs.slice(1)):clipper[name](...inputs);
     }catch(error){
       throw new Error('HISTORICAL_CLIP_BOOLEAN_FAILED: '+operation+': '+error.message,{cause:error});
     }
@@ -155,13 +157,17 @@ export function adjustHistoricalTerritories(input, policy, clipper = historicalW
     if (!significant(overlap, a.geometry) || !significant(overlap, b.geometry)) continue;
     for (const [row, peer] of [[a, b], [b, a]]) {
       if (!overlaps.has(row.entityId)) overlaps.set(row.entityId, []);
-      overlaps.get(row.entityId).push({ geometry: overlap, entityId: peer.entityId });
+      // (A ∖ (A ∩ B)) == (A ∖ B). Retain B's source geometry: the
+      // intermediate intersection adds topology without changing the set.
+      // Snapshot before any row is replaced to preserve peer-order invariance.
+      overlaps.get(row.entityId).push({ geometry: peer.geometry, entityId: peer.entityId });
     }
   }
   for (const row of candidates) if (overlaps.has(row.entityId)) {
     const parts = overlaps.get(row.entityId);
-    const union = evaluate('union',parts.map(part=>part.geometry),`overlap-union ${row.entityId}`);
-    replace(row, difference(row.geometry, union), 'unknown-peer-overlap', parts.map(part => part.entityId).sort());
+    const cutters=[...new Set(parts.map(part=>part.geometry))];
+    const remaining=evaluate('difference',[row.geometry,...cutters],`unknown-peer-difference ${row.entityId}`);
+    replace(row,remaining,'unknown-peer-overlap',parts.map(part=>part.entityId).sort());
   }
   clipChildren();
   return { candidates: candidates.filter(row => row.geometry), adjustments };
