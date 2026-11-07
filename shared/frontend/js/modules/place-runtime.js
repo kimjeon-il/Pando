@@ -88,7 +88,10 @@ export function createPlaceRuntime({ manifestUrl = new URL('../../data/places/ma
       const result=await job.promise;
       if (closed || moving || current !== revision) return false;
       if (!Array.isArray(result.records) || result.records.length > PLACE_LIMITS.candidates) throw new RangeError('Place snapshot candidate budget exceeded');
-      const records=Object.freeze(result.records.map(normalizePlace));
+      // The worker returns spatial candidates; the accepted source snapshot
+      // contains only identities eligible at the project's selected month.
+      const records=Object.freeze(result.records.map(normalizePlace)
+        .filter(record=>sourceActive(record,view.presentation)));
       const next={source:manifestUrl,content:resourceKey(records),preparation:'place-normalization-v1',context:null,
         presentation:resourceKey(result.signature || 'records')};
       return await publishAccepted(async()=>{
@@ -143,6 +146,7 @@ export function createPlaceRuntime({ manifestUrl = new URL('../../data/places/ma
       const result=await job.promise;
       if (result.records.length > PLACE_LIMITS.searchResults) throw new RangeError('Place search result budget exceeded');
       const records=result.records.map(normalizePlace);
+      const displayed=reference?records:records.filter(record=>sourceActive(record));
       if (reference) {
         signal?.throwIfAborted();
         if (closed) throw createWorkerCancellationError();
@@ -151,14 +155,14 @@ export function createPlaceRuntime({ manifestUrl = new URL('../../data/places/ma
       return publishAccepted(async()=>{
         if(closed || moving)throw createWorkerCancellationError('지도 이동 중에는 지명 조회를 보류합니다.','interaction');
         const candidate=new Map(retained);
-        records.forEach(record=>rememberInto(candidate,record));
+        displayed.forEach(record=>rememberInto(candidate,record));
         await admitReferences(()=>references(snapshot.records,candidate));
         if(closed || moving) {
           if(!closed)await admitReferences(()=>references());
           throw createWorkerCancellationError('지도 이동 중에는 지명 조회를 보류합니다.','interaction');
         }
         retained.clear();for(const [id,record]of candidate)retained.set(id,record);
-        return { ...result, records };
+        return { ...result, records:displayed };
       });
     },
     cancelSearch: () => scheduler.cancelKey('search'),
