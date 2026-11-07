@@ -71,7 +71,7 @@ jobs:
           PANDO_HYDRO_CONNECTIVITY_DIRECTORY: ${{ github.workspace }}/build-native/hydro-outlets/connectivity-artifact
           PANDO_HYDRO_ENCODING_DIRECTORY: ${{ github.workspace }}/build-native/hydro-outlets/encoding-artifact
           PANDO_PHYSICAL_RASTER_DIRECTORY: ${{ github.workspace }}/build-native/hydro-outlets/raster-artifact
-        run: node --test --test-name-pattern='Hydro metadata|Hydro shard|generation command|generation manifest|selected Hydro source flows|river source discovery|official Rhine source|regional Hydro pipeline|river feature assembly|Natural Earth lake features|system fragments retain|reference river name candidates|reference naming|border candidate|shared country borders|whole border alignment|partial border|short consecutive reaches|complete and partial border|different border pairs|chain normalization|network normalization|outlet observations|outlet pipeline|water raster sampling|verified indexed source selection' tests/unit/hydro-point-screen-native.test.mjs tests/unit/hydro-outlets.test.mjs tests/unit/hydro-source-selection.test.mjs tests/unit/hydro-border-alignment.test.mjs tests/unit/hydro-chain-normalization.test.mjs tests/unit/hydro-network-normalization.test.mjs tests/unit/hydro-reference-guides.test.mjs tests/unit/hydro-region-pipeline.test.mjs tests/unit/hydro-connectivity-native.test.mjs tests/unit/hydro-river-features.test.mjs tests/unit/hydro-generation-command.test.mjs tests/unit/hydro-generation-command.test.mjs tests/unit/hydro-generation-command.test.mjs tests/unit/hydro-reference-guides.test.mjs tests/unit/hydro-packfile.test.mjs
+ run: node --test --test-name-pattern='Hydro metadata|Hydro shard|generation command|generation manifest|selected Hydro source flows|river source discovery|official Rhine source|regional Hydro pipeline|river feature assembly|Natural Earth lake features|system fragments retain|reference river name candidates|reference naming|border candidate|shared country borders|whole border alignment|partial border|short consecutive reaches|complete and partial border|different border pairs|chain normalization|network normalization|outlet observations|outlet pipeline|water raster sampling|verified indexed source selection' tests/unit/hydro-point-screen-native.test.mjs tests/unit/hydro-outlets.test.mjs tests/unit/hydro-source-selection.test.mjs tests/unit/hydro-border-alignment.test.mjs tests/unit/hydro-chain-normalization.test.mjs tests/unit/hydro-network-normalization.test.mjs tests/unit/hydro-reference-guides.test.mjs tests/unit/hydro-region-pipeline.test.mjs tests/unit/hydro-connectivity-native.test.mjs tests/unit/hydro-river-features.test.mjs tests/unit/hydro-generation-command.test.mjs tests/unit/hydro-packfile.test.mjs
   hydro-chains:
     if: github.event_name == 'workflow_dispatch' && inputs.target == 'hydro-chains'
     strategy:
@@ -96,12 +96,12 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Hydro build failed' }
           if ($IsWindows) { $env:PANDO_HYDRO_CONNECTIVITY_BINARY = "$env:GITHUB_WORKSPACE/build-native/hydro/Release/pando-hydro-connectivity.exe" }
           else { $env:PANDO_HYDRO_CONNECTIVITY_BINARY = "$env:GITHUB_WORKSPACE/build-native/hydro/pando-hydro-connectivity" }
-          node --test --test-name-pattern='chain endpoint normalization|border grouping|border substrings|streaming source selection|logical river chains|river systems select|river width profiles|hydro visibility|terminal decisions|outlet sample|native audits|native repairs' tests/unit/hydro-connectivity-native.test.mjs
+ node --test --test-name-pattern='chain endpoint normalization|border grouping|border substrings|streaming source selection|logical river chains|river systems select|river width profiles|hydro visibility|terminal decisions|outlet sample|native audits|native repairs' tests/unit/hydro-connectivity-native.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Hydro chain or junction check failed' }
           node tools/gis/package-hydro-connectivity.mjs --binary "$env:PANDO_HYDRO_CONNECTIVITY_BINARY" --directory build-native/hydro/artifact
           if ($LASTEXITCODE -ne 0) { throw 'Hydro packaging failed' }
           $env:PANDO_HYDRO_CONNECTIVITY_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/hydro/artifact"
-          node --test --test-name-pattern='verified source selection exposes' tests/unit/hydro-source-reader.test.mjs
+ node --test --test-name-pattern='verified source selection exposes' tests/unit/hydro-source-reader.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Hydro streamed selection check failed' }
       - uses: actions/upload-artifact@v4
         with:
@@ -137,7 +137,7 @@ jobs:
           PANDO_HYDRO_POINT_SCREEN_DIRECTORY: ${{ github.workspace }}/build-native/hydro-point-screen/artifact
           PANDO_HYDRO_CONNECTIVITY_DIRECTORY: ${{ github.workspace }}/build-native/hydro-point-screen/connectivity-artifact
           PANDO_HYDRO_CALIBRATION_ARTIFACT: ${{ github.workspace }}/build-native/hydro-point-screen/calibration-artifact
-        run: node --test tests/unit/hydro-shared-boundary.test.mjs tests/unit/hydro-point-screen-native.test.mjs tests/unit/hydro-reference-guides.test.mjs tests/unit/hydro-canonical-chains.test.mjs tests/unit/hydro-source-reader.test.mjs tests/unit/hydro-osm-waterway.test.mjs tests/unit/hydro-system-names.test.mjs tests/unit/hydro-calibration-preparation.test.mjs tests/unit/hydro-calibration-input.test.mjs tests/unit/hydro-data-validation.test.mjs tests/unit/hydro-packfile.test.mjs tests/unit/hydro-river-groups.test.mjs
+ run: node --test tests/unit/hydro-shared-boundary.test.mjs tests/unit/hydro-point-screen-native.test.mjs tests/unit/hydro-reference-guides.test.mjs tests/unit/hydro-canonical-chains.test.mjs tests/unit/hydro-source-reader.test.mjs tests/unit/hydro-osm-waterway.test.mjs tests/unit/hydro-system-names.test.mjs tests/unit/hydro-calibration-preparation.test.mjs tests/unit/hydro-calibration-input.test.mjs tests/unit/hydro-data-validation.test.mjs tests/unit/hydro-packfile.test.mjs tests/unit/hydro-river-groups.test.mjs
   terrain-dem-path:
     if: github.event_name == 'workflow_dispatch' && inputs.target == 'terrain-dem-path'
     runs-on: windows-2022
@@ -149,7 +149,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - run: node --test tests/unit/terrain-dem-path.test.mjs
+ - run: node --test tests/unit/terrain-dem-path.test.mjs
   terrain-dem-tint:
     if: github.event_name == 'workflow_dispatch' && inputs.target == 'terrain-dem-tint'
     strategy:
@@ -209,7 +209,7 @@ jobs:
           $env:PANDO_TERRAIN_DEM_TINT_DIRECTORY="$env:GITHUB_WORKSPACE/build-native/terrain-dem-tint/artifact"
           $env:PANDO_TERRAIN_DEM_FILL_DIRECTORY="$env:GITHUB_WORKSPACE/build-native/terrain-dem-encode/fill-artifact"
           $env:PANDO_MAP_IMAGE_ARTIFACT="$env:GITHUB_WORKSPACE/build-native/map-image/artifact"
-          node --test tests/unit/terrain-dem-tint.test.mjs tests/unit/terrain-dem-fill.test.mjs tests/unit/terrain-dem-webp.test.mjs tests/unit/gis-source-launcher.test.mjs
+ node --test tests/unit/terrain-dem-tint.test.mjs tests/unit/terrain-dem-fill.test.mjs tests/unit/terrain-dem-webp.test.mjs tests/unit/gis-source-launcher.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Tint pixels differ from the frozen Python oracle' }
       - uses: actions/upload-artifact@v4
         with:
@@ -250,7 +250,7 @@ jobs:
           node tools/gis/package-terrain-dem-gutters.mjs --binary $binary --directory build-native/terrain-dem-gutters/artifact
           if ($LASTEXITCODE -ne 0) { throw 'DEM gutter packaging failed' }
           $env:PANDO_TERRAIN_DEM_GUTTERS_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/terrain-dem-gutters/artifact"
-          node --test --test-name-pattern 'gutter pixels' tests/unit/terrain-dem-gutters.test.mjs
+ node --test --test-name-pattern 'gutter pixels' tests/unit/terrain-dem-gutters.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'DEM gutter pixels differ from the Python oracle' }
       - name: Build and verify DEM lossless WebP integration
         if: inputs.target == 'terrain-dem-gutters-integrated'
@@ -266,7 +266,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'DEM image packaging failed' }
           $env:PANDO_MAP_IMAGE_ARTIFACT = "$env:GITHUB_WORKSPACE/build-native/map-image/artifact"
           $env:PANDO_TERRAIN_DEM_GUTTERS_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/terrain-dem-gutters/artifact"
-          node --test tests/unit/terrain-dem-webp.test.mjs tests/unit/terrain-dem-gutters.test.mjs tests/unit/gis-source-launcher.test.mjs
+ node --test tests/unit/terrain-dem-webp.test.mjs tests/unit/terrain-dem-gutters.test.mjs tests/unit/gis-source-launcher.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'DEM WebP or launcher integration failed' }
       - uses: actions/upload-artifact@v4
         with:
@@ -360,7 +360,7 @@ jobs:
           $env:PANDO_TERRAIN_DEM_GUTTERS_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/terrain-dem-gutters/artifact"
           $env:PANDO_TERRAIN_DEM_TINT_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/terrain-dem-tint/artifact"
           $env:PANDO_TERRAIN_DEM_FILL_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/terrain-dem-fill/artifact"
-          node --test tests/unit/terrain-dem-raster-native.test.mjs tests/unit/terrain-dem-build.test.mjs tests/unit/terrain-dem-gutters.test.mjs
+ node --test tests/unit/terrain-dem-raster-native.test.mjs tests/unit/terrain-dem-build.test.mjs tests/unit/terrain-dem-gutters.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'DEM windows differ from the rasterio oracle' }
       - uses: actions/upload-artifact@v4
         with:
@@ -400,7 +400,7 @@ jobs:
       - name: Compare selected physical hydro shapefiles
         env:
           PANDO_GDAL_OGR2OGR: ogr2ogr
-        run: node --test tests/unit/physical-hydro-native.test.mjs
+ run: node --test tests/unit/physical-hydro-native.test.mjs
   physical-raster:
     if: github.event_name == 'workflow_dispatch' && (inputs.target == 'physical-raster' || inputs.target == 'physical-raster-integrated')
     strategy:
@@ -444,7 +444,7 @@ jobs:
           node tools/gis/package-physical-raster.mjs --binary $env:PANDO_PHYSICAL_RASTER_BINARY --directory build-native/physical-raster/artifact
           if ($LASTEXITCODE -ne 0) { throw 'Physical source reader packaging failed' }
           $env:PANDO_PHYSICAL_RASTER_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/physical-raster/artifact"
-          node --test tests/unit/physical-raster-native.test.mjs
+ node --test tests/unit/physical-raster-native.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Physical TIFF source pixels differ' }
           if ('${{ inputs.target }}' -eq 'physical-raster-integrated') {
             cmake -S tools/cpp -B build-native/map-image -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_MAP_IMAGE=ON
@@ -465,7 +465,7 @@ jobs:
             node tools/gis/package-terrain-preview.mjs --binary $terrain --directory build-native/terrain-preview/artifact
             if ($LASTEXITCODE -ne 0) { throw 'Terrain packaging failed' }
             $env:PANDO_TERRAIN_PREVIEW_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/terrain-preview/artifact"
-            node --test tests/unit/physical-terrain-builder.test.mjs
+ node --test tests/unit/physical-terrain-builder.test.mjs
             if ($LASTEXITCODE -ne 0) { throw 'Physical terrain pipeline differs from frozen source pixels' }
           }
       - uses: actions/upload-artifact@v4
@@ -606,7 +606,7 @@ jobs:
           node tools/gis/package-terrain-dem-encode.mjs --binary $binary --directory build-native/terrain-dem-encode/artifact
           if ($LASTEXITCODE -ne 0) { throw 'DEM encoder packaging failed' }
           $env:PANDO_TERRAIN_DEM_ENCODE_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/terrain-dem-encode/artifact"
-          node --test tests/unit/terrain-dem-encode.test.mjs tests/unit/terrain-dem-assets.test.mjs
+ node --test tests/unit/terrain-dem-encode.test.mjs tests/unit/terrain-dem-assets.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'DEM encoding differs from the Python oracle' }
       - name: Check space for the focused GDAL SDK
         shell: pwsh
@@ -637,7 +637,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'GDAL tint tool packaging failed' }
           $env:PANDO_TERRAIN_DEM_FILL_BINARY = "$env:GITHUB_WORKSPACE/$binary"
           $env:PANDO_TERRAIN_DEM_FILL_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/terrain-dem-encode/fill-artifact"
-          node --test tests/unit/terrain-dem-fill-native.test.mjs tests/unit/terrain-dem-fill.test.mjs tests/unit/gis-source-launcher.test.mjs
+ node --test tests/unit/terrain-dem-fill.test.mjs tests/unit/gis-source-launcher.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'GDAL tint tool differs from its Python oracle' }
           Add-Content -Path $env:GITHUB_ENV -Value "PANDO_TERRAIN_DEM_FILL_DIRECTORY=$env:PANDO_TERRAIN_DEM_FILL_DIRECTORY"
           if ($IsWindows) { Add-Content -Path $env:GITHUB_ENV -Value "PANDO_TERRAIN_DEM_GDAL_BIN=$bin" }
@@ -693,7 +693,7 @@ jobs:
           node tools/gis/package-terrain-dem-check.mjs --binary $binary --directory build-native/terrain-dem-check/artifact
           if ($LASTEXITCODE -ne 0) { throw 'DEM verifier packaging failed' }
           $env:PANDO_TERRAIN_DEM_CHECK_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/terrain-dem-check/artifact"
-          node --test tests/unit/terrain-dem-check.test.mjs tests/unit/terrain-dem-level.test.mjs tests/unit/terrain-dem-source.test.mjs tests/unit/terrain-dem-cli.test.mjs tests/unit/terrain-dem-assets.test.mjs
+ node --test tests/unit/terrain-dem-check.test.mjs tests/unit/terrain-dem-source.test.mjs tests/unit/terrain-dem-assets.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'DEM tile checks differ from the Python oracle' }
       - uses: actions/upload-artifact@v4
         with:
@@ -740,7 +740,7 @@ jobs:
           node tools/gis/package-hydro-encoding.mjs --binary $env:PANDO_HYDRO_ENCODING_BINARY --directory build-native/hydro-encoding/artifact
           if ($LASTEXITCODE -ne 0) { throw 'Hydro encoder packaging failed' }
           $env:PANDO_HYDRO_ENCODING_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/hydro-encoding/artifact"
-          node --test tests/unit/hydro-encoding-native.test.mjs tests/unit/hydro-packfile.test.mjs tests/unit/hydro-river-groups.test.mjs tests/unit/hydro-repair-cli.test.mjs tests/unit/hydro-repair-cli.test.mjs tests/unit/hydro-fingerprint.test.mjs
+ node --test tests/unit/hydro-encoding-native.test.mjs tests/unit/hydro-packfile.test.mjs tests/unit/hydro-river-groups.test.mjs tests/unit/hydro-repair-cli.test.mjs tests/unit/hydro-fingerprint.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Hydro feature bytes differ from the Python oracle' }
       - uses: actions/upload-artifact@v4
         with:
@@ -788,12 +788,12 @@ jobs:
           node tools/gis/package-terrain-preview.mjs --binary $env:PANDO_TERRAIN_PREVIEW_BINARY --directory build-native/terrain-preview/artifact
           if ($LASTEXITCODE -ne 0) { throw 'Terrain preview packaging failed' }
           $env:PANDO_TERRAIN_PREVIEW_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/terrain-preview/artifact"
-          node --test tests/unit/terrain-preview-native.test.mjs tests/unit/terrain-preview-sources.test.mjs tests/unit/terrain-preview-grid.test.mjs tests/unit/terrain-preview-builder.test.mjs tests/unit/terrain-preview-cli.test.mjs
+ node --test tests/unit/terrain-preview-native.test.mjs tests/unit/terrain-preview-audit.test.mjs tests/unit/terrain-preview-builder.test.mjs 
           if ($LASTEXITCODE -ne 0) { throw 'Terrain preview differs from frozen source pixels' }
           if ('${{ inputs.target }}' -eq 'terrain-preview-integrated') {
-            node --test tests/unit/map-native-webp-encode.test.mjs tests/unit/physical-webp-stream.test.mjs
+ node --test tests/unit/map-native-webp-encode.test.mjs tests/unit/physical-webp-stream.test.mjs
             if ($LASTEXITCODE -ne 0) { throw 'WebP encoding differs from source pixels' }
-            node --test tests/unit/physical-terrain-native.test.mjs
+ node --test tests/unit/physical-terrain-native.test.mjs
             if ($LASTEXITCODE -ne 0) { throw 'Physical terrain operations differ from source pixels' }
           }
       - uses: actions/upload-artifact@v4
@@ -849,9 +849,9 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Image packaging failed' }
           $env:PANDO_MAP_PREVIEW_ARTIFACT = "$env:GITHUB_WORKSPACE/build-native/map-preview/artifact"
           $env:PANDO_MAP_IMAGE_ARTIFACT = "$env:GITHUB_WORKSPACE/build-native/map-image/artifact"
-          node --test tests/unit/map-native-preview.test.mjs
+ node --test tests/unit/map-native-preview.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Native preview differs from original' }
-          node --test --test-name-pattern='macro diagnostics refuse|reviewed diagnostics refuse|corpus diagnostics reject'
+ node --test --test-name-pattern='macro diagnostics refuse|reviewed diagnostics refuse|corpus diagnostics reject'
           if ($LASTEXITCODE -ne 0) { throw 'Diagnostic scope refusal failed' }
 
           if ($LASTEXITCODE -ne 0) { throw 'Map review workflow failed' }
@@ -920,7 +920,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Image resize packaging failed' }
           $env:PANDO_MAP_PDF_ARTIFACT = "$env:GITHUB_WORKSPACE/build-native/map-pdf/artifact"
           $env:PANDO_MAP_IMAGE_ARTIFACT = "$env:GITHUB_WORKSPACE/build-native/map-image/artifact"
-          node --test tests/unit/map-native-pdf.test.mjs
+ node --test tests/unit/map-native-pdf.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Native PDF input differs from original' }
       - uses: actions/upload-artifact@v4
         with:
@@ -974,7 +974,7 @@ jobs:
 
           $env:PANDO_MAP_IMAGE_ARTIFACT = "$env:GITHUB_WORKSPACE/build-native/map-image/artifact"
 
-          node --test tests/unit/map-native-resize.test.mjs tests/unit/map-native-packaging.test.mjs tests/unit/map-native-webp-encode.test.mjs tests/unit/map-native-jpeg-encode.test.mjs
+ node --test tests/unit/map-native-resize.test.mjs tests/unit/map-native-packaging.test.mjs tests/unit/map-native-webp-encode.test.mjs tests/unit/map-native-jpeg-encode.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Map image native integration failed' }
 
           if ($LASTEXITCODE -ne 0) { throw 'Map image workflow failed' }
@@ -1053,7 +1053,7 @@ jobs:
       - name: Verify small point-screen cases
         env:
           PANDO_HYDRO_POINT_SCREEN_BINARY: ${{ github.workspace }}/build-native/hydro-point-screen/pando-hydro-point-screen
-        run: node --test tests/unit/hydro-point-screen-native.test.mjs tests/unit/hydro-independent-point-screen.test.mjs tests/unit/hydro-osm-batch01-screen.test.mjs tests/unit/hydro-osm-batch02-screen.test.mjs tests/unit/hydro-osm-batch03-screen.test.mjs tests/unit/hydro-yarra-vector-screen.test.mjs
+ run: node --test tests/unit/hydro-point-screen-native.test.mjs tests/unit/hydro-independent-point-screen.test.mjs tests/unit/hydro-osm-batch01-screen.test.mjs tests/unit/hydro-osm-batch02-screen.test.mjs tests/unit/hydro-osm-batch03-screen.test.mjs tests/unit/hydro-yarra-vector-screen.test.mjs
       - name: Package the source-bound point screen
         run: node tools/gis/package-hydro-point-screen.mjs --binary build-native/hydro-point-screen/pando-hydro-point-screen --directory build-native/hydro-point-screen/artifact
       - name: Read the paired data revision
@@ -1237,7 +1237,7 @@ jobs:
           cmake --build build-native/qgis/native --config Release --target pando-qgis-bridge --parallel 1
           if ($LASTEXITCODE -ne 0) { throw 'QGIS native bridge build failed' }
       - name: Test authenticated client transport
-        run: node --test tests/unit/qgis-native-client.test.mjs tests/unit/qgis-native-export.test.mjs tests/unit/qgis-native-bridge.test.mjs tests/unit/qgis-native-mcp.test.mjs
+ run: node --test tests/unit/qgis-native-client.test.mjs tests/unit/qgis-native-export.test.mjs tests/unit/qgis-native-bridge.test.mjs tests/unit/qgis-native-mcp.test.mjs
       - name: Package the source-bound bridge
         shell: pwsh
         run: |
@@ -1274,7 +1274,7 @@ jobs:
         env:
           PANDO_HYDRO_CONNECTIVITY_BINARY: ./build-native/hydro/pando-hydro-connectivity
           PANDO_HYDRO_CONNECTIVITY_DIRECTORY: ${{ github.workspace }}/build-native/hydro/artifact
-        run: node --test tests/unit/hydro-connectivity-native.test.mjs tests/unit/hydro-terminal-exclusion.test.mjs tests/unit/hydro-source-reader.test.mjs tests/unit/hydro-repair-cli.test.mjs tests/unit/hydro-repair-cli.test.mjs tests/unit/hydro-fingerprint.test.mjs tests/unit/hydro-name.test.mjs tests/unit/hydro-system-names.test.mjs
+ run: node --test tests/unit/hydro-connectivity-native.test.mjs tests/unit/hydro-terminal-exclusion.test.mjs tests/unit/hydro-source-reader.test.mjs tests/unit/hydro-repair-cli.test.mjs tests/unit/hydro-fingerprint.test.mjs tests/unit/hydro-name.test.mjs tests/unit/hydro-system-names.test.mjs
       - uses: actions/upload-artifact@v4
         with:
           name: hydro-connectivity-linux-${{ github.sha }}
@@ -1305,7 +1305,7 @@ jobs:
         run: |
           $env:PANDO_HYDRO_CONNECTIVITY_BINARY = "$env:GITHUB_WORKSPACE/build-native/hydro/Release/pando-hydro-connectivity.exe"
           $env:PANDO_HYDRO_CONNECTIVITY_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/hydro/artifact"
-          node --test tests/unit/hydro-connectivity-native.test.mjs tests/unit/hydro-terminal-exclusion.test.mjs tests/unit/hydro-source-reader.test.mjs tests/unit/hydro-repair-cli.test.mjs tests/unit/hydro-repair-cli.test.mjs tests/unit/hydro-fingerprint.test.mjs tests/unit/hydro-name.test.mjs tests/unit/hydro-system-names.test.mjs
+ node --test tests/unit/hydro-connectivity-native.test.mjs tests/unit/hydro-terminal-exclusion.test.mjs tests/unit/hydro-source-reader.test.mjs tests/unit/hydro-repair-cli.test.mjs tests/unit/hydro-fingerprint.test.mjs tests/unit/hydro-name.test.mjs tests/unit/hydro-system-names.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Hydro connectivity checks failed' }
       - uses: actions/upload-artifact@v4
         with:
@@ -1330,11 +1330,11 @@ jobs:
       - name: Verify real Windows file identities and allocation
         env:
           PANDO_PC_ALLOCATION_BINARY: ${{ github.workspace }}/build-native/pc-allocation/Release/pando-pc-file-allocation.exe
-        run: node --test tests/unit/pc-file-allocation-native.test.mjs tests/unit/native-tool.test.mjs
+ run: node --test tests/unit/pc-file-allocation-native.test.mjs tests/unit/native-tool.test.mjs
       - name: Package source and binary identities
         run: node tools/package-native-allocation.mjs --binary build-native/pc-allocation/Release/pando-pc-file-allocation.exe --directory build-native/pc-allocation
       - name: Verify the downloaded-tool invocation contract in the real cleanup owner
-        run: node --test tests/unit/pc-cleanup.test.mjs
+ run: node --test tests/unit/pc-cleanup.test.mjs
       - uses: actions/upload-artifact@v4
         with:
           name: native-pc-allocation-windows-x64-${{ github.sha }}

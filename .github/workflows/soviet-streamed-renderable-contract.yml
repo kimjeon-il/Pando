@@ -7,7 +7,7 @@ on:
       - 'assets/js/modules/geographic-boundary.js'
       - 'assets/js/modules/boundary-topology.js'
       - 'assets/js/modules/country-shared-boundary-packet.js'
-      - 'tests/unit/renderable-boundary-stream.test.mjs'
+      - 'tests/unit/gpu-mesh-country-strokes.test.mjs'
   workflow_dispatch:
 permissions:
   contents: read
@@ -32,11 +32,11 @@ jobs:
       - name: Verify compiled WASM source match and stream parity
         run: |
           node tools/package-shared-core-assets.mjs --build-dir shared/frontend/static/wasm --check
-          pnpm exec eslint assets/js/modules/geographic-boundary.js assets/js/modules/boundary-topology.js assets/js/modules/country-shared-boundary-packet.js tests/unit/renderable-boundary-stream.test.mjs
-          node --test tests/unit/renderable-boundary-stream.test.mjs
+ pnpm exec eslint assets/js/modules/geographic-boundary.js assets/js/modules/boundary-topology.js assets/js/modules/country-shared-boundary-packet.js tests/unit/gpu-mesh-country-strokes.test.mjs
+ node --test tests/unit/gpu-mesh-country-strokes.test.mjs
       - name: Verify stateful country contacts and boundary refinement
         run: |
-          node --test tests/unit/country-shared-boundary-state.test.mjs tests/unit/country-shared-boundary.test.mjs tests/unit/boundary-display-refinement.test.mjs tests/unit/country-contact-core.test.mjs
+ node --test tests/unit/country-shared-boundary-state.test.mjs tests/unit/country-shared-boundary.test.mjs tests/unit/boundary-display-refinement.test.mjs tests/unit/country-contact-core.test.mjs
   known-baseline-gis-contract:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
@@ -62,7 +62,7 @@ jobs:
         shell: bash
         run: |
           set +e
-          node --test tests/unit/gis-math-contract.test.mjs > /tmp/baseline-gis-contract.log 2>&1
+ node --test tests/unit/gis-math-contract.test.mjs > /tmp/baseline-gis-contract.log 2>&1
           code=$?
           set -e
           if [ "$code" -eq 0 ]; then
