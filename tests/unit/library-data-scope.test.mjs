@@ -1,6 +1,13 @@
-import test from 'node:test';
-import assert from 'node:assert/strict';
-import {assertTerritorialStorageScope,runtimeStoreIndex} from '../../tools/library-data.mjs';
+import { describe as contractSuite } from 'node:test';
+import * as __library_dep0 from "node:test";
+import * as __library_dep1 from "node:assert/strict";
+import * as __library_dep2 from "../../tools/library-data.mjs";
+
+// Original feature contract: library-data-scope.test.mjs
+contractSuite("library-data-scope", () => {
+const test = __library_dep0.default;
+const assert = __library_dep1.default;
+const { assertTerritorialStorageScope, runtimeStoreIndex } = __library_dep2;
 const base='assets/data/territorial-entities';
 const index=()=>({entities:[{entityId:'state:RUS',file:'state-RUS.json.gz',sha256:'same'}],views:[{id:'world:catalog',selections:[]}]});
 test('world view source is paired with generated index, not a nonexistent country chunk',()=>{const i=index();assert.doesNotThrow(()=>assertTerritorialStorageScope([base+'/generated/v2/index.json',base+'/source/views/world.json'],i,i));});
@@ -14,4 +21,52 @@ test('runtime storage preserves current report additions, edits and removals wit
  const before=JSON.stringify({pinned,current});
  assert.deepEqual(runtimeStoreIndex(pinned,current).files,{'assets/data/old':{sha256:'pinned'},'reports/edited':{sha256:'new'},'reports/added':{sha256:'added'}});
  assert.equal(JSON.stringify({pinned,current}),before);
+});
+});
+
+// Original feature contract: library-data-expected-revision.test.mjs
+contractSuite("library-data-expected-revision", () => {
+const test = __library_dep0.default;
+const assert = __library_dep1.default;
+const libraryData = __library_dep2;
+
+const expectedRevision = 'a'.repeat(40);
+const otherRevision = 'b'.repeat(40);
+
+test('expected revision guard rejects malformed revisions', () => {
+  assert.equal(typeof libraryData.assertExpectedLibraryRevision, 'function');
+  for (const invalid of ['', 'a'.repeat(39), 'a'.repeat(41), 'g'.repeat(40), null, 123]) {
+    assert.throws(() => libraryData.assertExpectedLibraryRevision({ expectedRevision: invalid, head: invalid, remote: invalid }), /40.*hex/i);
+  }
+});
+
+test('expected revision guard rejects a changed checkout HEAD', () => {
+  assert.equal(typeof libraryData.assertExpectedLibraryRevision, 'function');
+  assert.throws(() => libraryData.assertExpectedLibraryRevision({ expectedRevision, head: otherRevision, remote: expectedRevision }), /checkout HEAD.*expected revision/i);
+});
+
+test('expected revision guard rejects a changed remote publication branch', () => {
+  assert.equal(typeof libraryData.assertExpectedLibraryRevision, 'function');
+  assert.throws(() => libraryData.assertExpectedLibraryRevision({ expectedRevision, head: expectedRevision, remote: otherRevision }), /remote work\/gis.*expected revision/i);
+});
+
+test('expected revision guard permits identical checkout and remote revisions', () => {
+  assert.equal(typeof libraryData.assertExpectedLibraryRevision, 'function');
+  assert.doesNotThrow(() => libraryData.assertExpectedLibraryRevision({ expectedRevision, head: expectedRevision, remote: expectedRevision }));
+});
+
+test('omitted expected revision preserves unguarded storage behavior', () => {
+  assert.equal(typeof libraryData.assertExpectedLibraryRevision, 'function');
+  assert.doesNotThrow(() => libraryData.assertExpectedLibraryRevision({ head: otherRevision, remote: expectedRevision }));
+});
+
+test('storeLibraryData rejects malformed expected revision before preparing storage', () => {
+  assert.throws(() => libraryData.storeLibraryData({ root: new URL('./missing-library-root/', import.meta.url).pathname, prefixes: ['assets/data'], expectedRevision: 'invalid' }), /40.*hex/i);
+});
+
+test('expected branch permits explicit main and rejects arbitrary or mismatched branch',()=>{
+ assert.doesNotThrow(()=>libraryData.assertExpectedLibraryRevision({expectedRevision,expectedBranch:'main',branch:'main',head:expectedRevision,remote:expectedRevision}));
+ assert.throws(()=>libraryData.assertExpectedLibraryRevision({expectedRevision,expectedBranch:'evil',head:expectedRevision,remote:expectedRevision}),/branch/i);
+ assert.throws(()=>libraryData.assertExpectedLibraryRevision({expectedRevision,expectedBranch:'main',branch:'work/gis',head:expectedRevision,remote:expectedRevision}),/branch/i);
+});
 });
