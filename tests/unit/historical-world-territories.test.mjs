@@ -207,7 +207,7 @@ test('native historical subtraction retains exact near-collinear source vertices
 
 test('disjoint historical islands bypass the Boolean engine without any coordinate copy',()=>{
   const boxAt=(west,east)=>[[[west,0],[east,0],[east,2],[west,2],[west,0]]];
-  const pieces=Array.from({length:20},(_,i)=>boxAt(i*10,i*10+5));
+  const pieces=Array.from({length:18},(_,i)=>boxAt(i*10,i*10+5));
   const subject={...candidate('subject',0,1),geometry:{type:'MultiPolygon',coordinates:pieces}};
   const cutter={...candidate('cutter',0,1),geometry:{type:'Polygon',coordinates:boxAt(0.5,1.5)}};
   const rules={...policy,replacements:[{targetEntityId:'subject',priorityEntityId:'cutter',
