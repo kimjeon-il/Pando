@@ -1,13 +1,30 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
-import { readFileSync } from 'node:fs';
-import { prepareGpuBaseScene } from "../../shared/frontend/js/modules/gpu-scene-preparation.js";
-import { drawGpuBaseScene } from "../../shared/frontend/js/modules/gpu-base-scene-pass.js";
+import { describe as contractSuite } from 'node:test';
+import * as __render_dep0 from "node:assert/strict";
+import * as __render_dep1 from "node:test";
+import * as __render_dep2 from "node:fs";
+import * as __render_dep3 from "../../shared/frontend/js/modules/gpu-scene-preparation.js";
+import * as __render_dep4 from "../../shared/frontend/js/modules/gpu-base-scene-pass.js";
+import * as __render_dep5 from "../../shared/frontend/js/modules/gpu-scene.js";
+import * as __render_dep6 from "../../shared/frontend/js/modules/object-picking.js";
+import * as __render_dep7 from "../../shared/frontend/js/modules/object-selection-controller.js";
+import * as __render_dep8 from "../../shared/frontend/js/modules/layer-presentation.js";
+import * as __render_dep9 from "../../shared/frontend/js/modules/gpu-polygon-overlay-pass.js";
+import * as __render_dep10 from "../../shared/frontend/js/modules/gpu-stroke-renderer.js";
+import * as __render_dep11 from "../../shared/frontend/js/modules/selection-pass.js";
+import * as __render_dep12 from "../../shared/frontend/js/modules/gpu-interaction-pass.js";
 import "../../shared/frontend/js/workers/canvas-scene-composition-core.js";
-import { createGpuScene } from "../../shared/frontend/js/modules/gpu-scene.js";
-import { createObjectPicking } from "../../shared/frontend/js/modules/object-picking.js";
-import { normalizeObjectRef } from "../../shared/frontend/js/modules/object-selection-controller.js";
-import { layerObjectRank, OVERLAY_GROUPS } from "../../shared/frontend/js/modules/layer-presentation.js";
+
+// Original feature contract: gpu-base-scene-order.test.mjs
+contractSuite("gpu-base-scene-order", () => {
+const assert = __render_dep0.default;
+const test = __render_dep1.default;
+const { readFileSync } = __render_dep2;
+const { prepareGpuBaseScene } = __render_dep3;
+const { drawGpuBaseScene } = __render_dep4;
+const { createGpuScene } = __render_dep5;
+const { createObjectPicking } = __render_dep6;
+const { normalizeObjectRef } = __render_dep7;
+const { layerObjectRank, OVERLAY_GROUPS } = __render_dep8;
 
 test('culled or empty indexed country passes issue no redundant GL state changes', () => {
   const source=readFileSync(new URL('../../shared/frontend/js/modules/gpu-map-renderer.js',import.meta.url),'utf8');
@@ -211,4 +228,234 @@ test('Canvas consumes line and fill packets in the same overlay order', () => {
   const stroke = { key: 'lower-line', order: 100, startsEnds: new Float32Array([0, 0, 1, 1]), style: { color: '#000000', width: 1, alpha: 1 } };
   globalThis.PandoLabCanvasSceneComposition.drawOverlays(context, () => {}, [polygon], [stroke], 1);
   assert.deepEqual(events, ['line', 'fill']);
+});
+});
+
+// Original feature contract: gpu-prepared-draw.test.mjs
+contractSuite("gpu-prepared-draw", () => {
+const test = __render_dep1.default;
+const assert = __render_dep0.default;
+const { createGpuPolygonOverlayPass } = __render_dep9;
+const { createGpuStrokeRenderer } = __render_dep10;
+const { createSelectionPass } = __render_dep11;
+const { drawGpuBaseScene } = __render_dep4;
+const { drawGpuInteractionPass } = __render_dep12;
+const { prepareGpuBaseScene, prepareGpuInteractionPlan } = __render_dep3;
+
+function glFixture() {
+  const gl = { createShader: () => ({}), createProgram: () => ({}), createBuffer: () => ({}),
+    getShaderParameter: () => true, getProgramParameter: () => true, getAttribLocation: () => 0,
+    getUniformLocation: (_program, name) => name, isContextLost: () => false };
+  for (const name of ['shaderSource', 'compileShader', 'deleteShader', 'attachShader', 'linkProgram', 'deleteProgram',
+    'bindBuffer', 'bufferData', 'deleteBuffer', 'useProgram', 'disable', 'enable', 'blendFuncSeparate', 'uniform4f',
+    'enableVertexAttribArray', 'vertexAttribPointer', 'uniform2f', 'uniform1f', 'uniform3fv', 'uniform1i',
+    'drawElements', 'disableVertexAttribArray']) gl[name] = () => {};
+  return gl;
+}
+
+const frame = { viewport: [100, 100], translate: [50, 50], flatCenter: [0, 0], rowX: [1, 0, 0], rowY: [0, 1, 0], rowZ: [0, 0, 1], scale: 1, mode: 1 };
+test('prepared-only polygon submission reports a missing resource without allocating or enqueueing', () => {
+  const gl = glFixture();
+  const pass = createGpuPolygonOverlayPass();
+  pass.initialize({ gl, version: 2, capabilities: { uintIndices: true } });
+  let allocations = 0;
+  gl.createBuffer = () => { allocations++; return {}; };
+  const packet = { key: 'pending', positions: new Float32Array([0, 0, 1, 0, 0, 1]), indices: new Uint32Array([0, 1, 2]) };
+  const result = pass.drawPackets([packet], { viewport: [100, 100], mode: 1 }, { preparedOnly: true });
+  assert.equal(allocations, 0);
+  assert.deepEqual(result.missingKeys, ['pending']);
+  assert.deepEqual(result.renderedKeys, []);
+  pass.dispose();
+});
+
+test('selection prepares each shared country packet once and forwards prepared-only drawing', () => {
+  const pass = createSelectionPass();
+  const prepared = [], optionsSeen = [];
+  pass.initialize({ gl: {}, version: 2, capabilities: {} }, { strokeRenderer: {
+    isAvailable: () => true, stats: () => ({ gpuHealth: 'healthy', selfTestPassed: true }),
+    ensureResource: packet => prepared.push(packet.key),
+    drawBatches: (batches, _frame, options) => { optionsSeen.push(options); return { succeeded: true, renderedKeys: batches.map(batch => batch.key) }; },
+  } });
+  pass.setCountryBoundaryResources({ revision: '1', visibleIds: ['A', 'B'], pendingIds: [],
+    strokeResources: { selectionBase: { ownerIds: ['A', 'B'], packet: { key: 'shared' } } } });
+  pass.updateData({ channels: { primary: [{ key: 'territorial:entity:A', boundaryOwnerId: 'A' }], secondary: [{ key: 'territorial:entity:B', boundaryOwnerId: 'B' }] }, countryBoundaryRevision: '1' });
+  assert.equal(typeof pass.prepare, 'function');
+  pass.prepare();
+  assert.deepEqual(prepared, ['shared']);
+  pass.draw({}, {}, { frameContext: { frameId: 1 }, preparedOnly: true });
+  assert.ok(optionsSeen.length > 0);
+  assert.ok(optionsSeen.every(options => options?.preparedOnly === true));
+  assert.deepEqual(prepared, ['shared']);
+});
+
+test('base pass draws map substrate before terrain and preserves territory, country, water and stroke order', () => {
+  const calls = [];
+  const gl = glFixture();
+  for (const name of ['viewport', 'colorMask', 'clearColor', 'clearStencil', 'clear', 'stencilMask', 'stencilFunc', 'stencilOp']) gl[name] = () => {};
+  const polygonOverlayPass = {
+    hasResource: () => true,
+    ensureResource: () => assert.fail('draw initiated polygon preparation'),
+    drawPackets: (packets, _frame, options) => {
+      assert.equal(options.preparedOnly, true);
+      const keys = packets.map(packet => packet.key); calls.push(...packets.map(packet => packet.style?.color === '#cccccc' ? `${packet.key}-substrate` : packet.key));
+      return { renderedKeys: keys, missingKeys: [] };
+    },
+  };
+  const strokeRenderer = { hasResource: () => true, ensureResource: () => assert.fail('draw initiated stroke preparation'),
+    drawBatches: (packets, _frame, options) => {
+      assert.equal(options.preparedOnly, true); calls.push('stroke');
+      return { renderedKeys: packets.map(packet => packet.key), missingKeys: [] };
+    } };
+  const range = { ranges: [{ first: 0, count: 3 }] };
+  const result = drawGpuBaseScene({ gl, frame: {}, width: 10, height: 10,
+    surfacePresentation: { quality: 'canonical' },
+    terrainVisible: true, terrainStyle: 'neutral', countriesVisible: true, mapSubstrate: { color: '#cccccc', fillAlpha: 1 },mapOcean:{color:'#006b8b',fillAlpha:1},
+    countries: { mesh: { triangleIndices: { length: 3 } }, fillProgram: 'country' },
+    prepared: { baseTriangleDraw: range, baseBoundaryDraw: range, overrideTriangleDraw: range, overrideBoundaryDraw: range,
+      physicalLandItems:[{kind:'polygon',packet:{key:'physical-land',role:'physical-land'}}],physicalWaterItems:[{kind:'polygon',packet:{key:'historical-water',role:'physical-water'}}],
+      deferredOverlayKeys: new Set(), failedOverlayKeys: new Set(), territoryItems: [
+        { kind: 'polygon', packet: { key: 'parent', role: 'territorial-fill', territoryDepth: 1, order: 1 } },
+        { kind: 'polygon', packet: { key: 'child', role: 'territorial-fill', territoryDepth: 2, order: 2 } },
+      ].reverse(), independentItems: [{ kind: 'polygon', packet: { key: 'generic' } }, { kind: 'stroke', packet: { key: 'line' } }] },
+  }, { drawOceanSubstrate() {}, polygonOverlayPass, strokeRenderer, drawProgram: (...args) => calls.push(args[10] ? 'country-substrate' : args[0]),
+    renderTerrain: () => calls.push('terrain'), drawHydro: category => calls.push(category),
+    drawCountryBoundaryStrokes: () => { calls.push('boundary'); return { succeeded: true }; } });
+  assert.deepEqual(calls, ['physical-land-substrate','physical-land','terrain', 'child', 'parent', 'country', 'lake', 'lake-boundary', 'river', 'border-river', 'boundary','historical-water', 'lake', 'lake-boundary', 'river', 'border-river','historical-water', 'boundary', 'generic', 'stroke']);
+  assert.deepEqual(result.overlayMissingKeys, []);
+});
+
+test('overlay preparation defers excess work and keeps protected uploads within the existing budget policy', () => {
+  const uploaded = [];
+  const pass = { hasResource: () => false, ensureResource: packet => { uploaded.push(packet.key); return { resource: { byteLength: packet.byteLength } }; } };
+  const result = prepareGpuBaseScene({ mesh: null, frame: {}, budgetBytes: 65536, presentedStrokeDomains: new Map(),
+    scene: { polygons: [{ key: 'protected', protected: true, byteLength: 40000 },
+      { key: 'deferred', byteLength: 40000 }, { key: 'small', byteLength: 10000 }], strokes: [] } },
+  { polygonOverlayPass: pass, strokeRenderer: pass });
+  assert.deepEqual(uploaded, ['protected', 'small']);
+  assert.deepEqual([...result.deferredOverlayKeys], ['deferred']);
+  assert.equal(result.overlayUploadBytes, 50000);
+});
+
+test('same-key polygon revision and LOD replacements are prepared before draw', () => {
+  const pass = createGpuPolygonOverlayPass();
+  pass.initialize({ gl: glFixture(), version: 2, capabilities: { uintIndices: true } });
+  const original = { key: 'edited', geometryRevision: 1, lod: 'low', positions: new Float32Array([0, 0, 1, 0, 0, 1]), indices: new Uint32Array([0, 1, 2]) };
+  for (const packet of [original, { ...original, geometryRevision: 2 }, { ...original, geometryRevision: 2, lod: 'high' }]) {
+    prepareGpuBaseScene({ frame: {}, scene: { polygons: [packet] }, presentedStrokeDomains: new Map() }, { polygonOverlayPass: pass });
+    const result = pass.drawPackets([packet], frame, { preparedOnly: true });
+    assert.deepEqual(result.renderedKeys, ['edited']);
+    assert.deepEqual(result.missingKeys, []);
+  }
+  pass.dispose();
+});
+
+test('same-key stroke revision and LOD replacements are prepared before draw', () => {
+  const gl = new Proxy(glFixture(), { get(target, name) {
+    if (name in target) return target[name];
+    if (/^[A-Z0-9_]+$/.test(name)) return name;
+    if (name.startsWith('create')) return () => ({});
+    if (name === 'getParameter') return () => [0, 0, 16, 16];
+    if (name === 'checkFramebufferStatus') return () => 'FRAMEBUFFER_COMPLETE';
+    if (name === 'readPixels') return (...args) => args.at(-1).fill(255);
+    if (name === 'isEnabled') return () => false;
+    return () => {};
+  } });
+  const pass = createGpuStrokeRenderer();
+  assert.equal(pass.initialize({ gl, version: 2, capabilities: { instancing: true } }), true);
+  const original = { key: 'edited-stroke', geometryRevision: 1, lod: 'low', style: { width: 2 }, startsEnds: new Float32Array([0, 0, 1, 1]) };
+  for (const packet of [original, { ...original, geometryRevision: 2 }, { ...original, geometryRevision: 2, lod: 'high' }]) {
+    const sourceKey = `${packet.key}:${packet.geometryRevision}:${packet.lod}`;
+    const prepared = prepareGpuBaseScene({ frame, scene: { strokes: [{ ...packet, sourceKey }] }, presentedStrokeDomains: new Map() }, { strokeRenderer: pass });
+    const resourcePacket = prepared.overlayItems[0].resourcePacket;
+    const result = pass.drawBatches([resourcePacket], frame, { preparedOnly: true });
+    assert.deepEqual(result.renderedKeys, [resourcePacket.key]);
+    assert.deepEqual(result.missingKeys, []);
+  }
+  pass.dispose();
+});
+
+test('same-key polygon replacements obey the frame budget and resume next frame', () => {
+  const pass = createGpuPolygonOverlayPass();
+  pass.initialize({ gl: glFixture(), version: 2, capabilities: { uintIndices: true } });
+  const packets = ['one', 'two'].map(key => ({ key, geometryRevision: 1, positions: new Float32Array(12000), indices: new Uint32Array(6000) }));
+  for (const packet of packets) pass.ensureResource(packet);
+  const updated = packets.map(packet => ({ ...packet, geometryRevision: 2 }));
+  const input = { frame, scene: { polygons: updated }, budgetBytes: 65536, presentedStrokeDomains: new Map() };
+  const first = prepareGpuBaseScene(input, { polygonOverlayPass: pass });
+  assert.deepEqual([...first.deferredOverlayKeys], ['two']);
+  assert.equal(pass.hasPreparedResource(updated[0]), true);
+  assert.equal(pass.hasPreparedResource(updated[1]), false);
+  prepareGpuBaseScene(input, { polygonOverlayPass: pass });
+  assert.equal(pass.hasPreparedResource(updated[1]), true);
+  pass.dispose();
+});
+
+test('selection preparation attributes resource build and upload metrics without double counting draw', () => {
+  const pass = createSelectionPass();
+  let built = false;
+  pass.initialize({ gl: {}, version: 2, capabilities: {} }, { strokeRenderer: {
+    isAvailable: () => true,
+    stats: () => ({ buildCount: Number(built), buildMs: built ? 7 : 0, uploadBytes: built ? 128 : 0 }),
+    ensureResource: () => { built = true; },
+    drawBatches: batches => ({ succeeded: true, renderedKeys: batches.map(batch => batch.key) }),
+  } });
+  pass.setCountryBoundaryResources({ revision: '1', visibleIds: ['A'], pendingIds: [], strokeResources: { selectionBase: { ownerIds: ['A'], packet: { key: 'shared' } } } });
+  pass.updateData({ channels: { primary: [{ key: 'territorial:entity:A', boundaryOwnerId: 'A' }] }, countryBoundaryRevision: '1' });
+  pass.prepare();
+  pass.prepare();
+  pass.draw({}, {}, { frameContext: {}, preparedOnly: true });
+  assert.equal(pass.stats().bufferBuildCount, 1);
+  assert.equal(pass.stats().bufferBuildMs, 7);
+  assert.equal(pass.stats().bufferUploadBytes, 128);
+});
+
+test('interaction pass submits prepared priorities and ranges then composites before selection strokes', () => {
+  const calls = [];
+  const gl = new Proxy(glFixture(), { get: (target, key) => key in target ? target[key] : () => {} });
+  const polygonOverlayPass = { hasResource: () => true,
+    ensureResource: () => assert.fail('draw started preparation'),
+    drawResourceItems: items => { calls.push(...items.map(item => item.key)); return { succeeded: true, renderedKeys: items.map(item => item.key) }; } };
+  const plan = prepareGpuInteractionPlan({
+    interaction: { genericFillItems: [{ key: 'hover', priority: 2 }, { key: 'primary', priority: 4 }] },
+    emphasis: { selectedIds: new Set(['A']), primaryId: 'A', primaryIds: new Set(['A']), hoverId: '', priorities: {} },
+    mesh: { triangleRangesByCountryId: new Map([['A', [{ first: 2, count: 3 }]]]) }, overrideIds: new Set(), countriesVisible: true, isPending: () => false, isVisible: () => true,
+  }, polygonOverlayPass);
+  const dependencies = { polygonOverlayPass,
+    selectionPass: { draw: () => { calls.push('selection'); return {}; } },
+    drawHydro: category => calls.push(category), drawPhysicalWaterMask:()=>calls.push('physical-water-mask'), drawCountryRanges: ranges => { if (ranges.base.length) { assert.deepEqual(ranges.base, [{ first: 2, count: 3 }]); calls.push('country'); } },
+    fillCache: { finishScene: () => calls.push('finish'), composite: () => { calls.push('composite'); return true; } } };
+  const result = drawGpuInteractionPass({ gl, frame, viewport: {}, fillTargetReady: true, prepared: plan }, dependencies);
+  assert.equal(result.fillOwner, 'gpu');
+  assert.deepEqual(calls, ['lake', 'lake-boundary', 'river', 'border-river', 'physical-water-mask', 'country', 'primary', 'hover', 'finish', 'composite', 'selection']);
+  calls.length = 0;
+  const fallback = drawGpuInteractionPass({ gl, frame, viewport: {}, fillTargetReady: true, prepared: { ...plan, fillReady: false } }, dependencies);
+  assert.equal(fallback.fillOwner, 'svg');
+  assert.deepEqual(fallback.genericFillResult.renderedKeys, []);
+  assert.deepEqual(fallback.genericFillResult.missingKeys, ['hover', 'primary']);
+  assert.deepEqual(calls, ['lake', 'lake-boundary', 'river', 'border-river', 'physical-water-mask', 'finish', 'selection']);
+});
+
+test('interaction pass skips unneeded water/border masks when no GPU fill is requested', () => {
+  const calls = [];
+  const gl = new Proxy(glFixture(), { get: (target, key) => key in target ? target[key] : () => {} });
+  const polygonOverlayPass = { hasResource: () => true, hasPreparedResource: () => true };
+  const plan = prepareGpuInteractionPlan({
+    interaction: { genericFillItems: [] },
+    emphasis: { selectedIds: new Set(), primaryId: '', primaryIds: new Set(), hoverId: '', priorities: {} },
+    mesh: { triangleRangesByCountryId: new Map() }, overrideIds: new Set(),
+    countriesVisible: true, isPending: () => false, isVisible: () => true,
+  }, polygonOverlayPass);
+  assert.equal(plan.hasFillItems, false);
+  const skip = () => assert.fail('empty interaction fills must not draw a mask or prepare a framebuffer');
+  const result = drawGpuInteractionPass({ gl, frame, viewport: {}, fillTarget: null, fillTargetReady: false, prepared: plan }, {
+    polygonOverlayPass: { ...polygonOverlayPass, drawPackets: skip, drawResourceItems: skip },
+    strokeRenderer: { drawBatches: skip },
+    selectionPass: { draw: () => { calls.push('selection'); return { succeeded: true }; } },
+    drawHydro: skip, drawCountryBoundaryMask: skip, drawPhysicalWaterMask:skip, drawCountryRanges: skip,
+    fillCache: { finishScene: skip, composite: skip },
+  });
+  assert.deepEqual(calls, ['selection']);
+  assert.equal(result.fillOwner, 'gpu');
+  assert.equal(result.genericFillResult.succeeded, true);
+});
 });
