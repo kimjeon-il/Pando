@@ -27,7 +27,6 @@ import { createInitialDocument } from "../../../../shared/frontend/js/modules/in
 import { createViewerMap } from './viewer-map.js';
 import {createViewerInitialPresentation} from './viewer-initial-presentation.js';
 import {createViewerPostPresentation} from './viewer-post-presentation.js';
-import {createViewerAdjacentPrefetch} from './viewer-adjacent-prefetch.js';
 import {createViewerInspectorController} from './viewer-inspector-controller.js';
 import { createFileController } from "../../../../shared/frontend/js/modules/file-controller.js";
 import { readProjectFile } from "../../../../shared/frontend/js/modules/project-file-reader.js";
@@ -126,23 +125,7 @@ export async function composeViewer({ productMode, meta }) {
     onError:report,
   });
   disposables.push(inspectorController);
-  const adjacentPrefetch=createViewerAdjacentPrefetch({
-    prepareSource:(month,options)=>owners.builtinSession.prepareProjectSource(month,options),
-    requestIdle:callback=>typeof window.requestIdleCallback==='function'
-      ?window.requestIdleCallback(callback):window.setTimeout(callback,250),
-    cancelIdle:id=>typeof window.cancelIdleCallback==='function'
-      ?window.cancelIdleCallback(id):window.clearTimeout(id),
-    isEligible:()=>builtinActive&&initialPresentation.hasPresented()
-      &&status.dataset.ready==='true'&&!projectDomain.isOpening()
-      &&document.visibilityState!=='hidden',
-    onError:(error,month)=>diagnostics.push({category:'viewer-adjacent-prefetch',
-      errorCode:'PL-VIEWER-PREFETCH-001',stage:month,
-      technicalMessage:error?.message||String(error)}),
-  });
-  disposables.push(adjacentPrefetch);
-  const onPrefetchVisibility=()=>{if(document.visibilityState==='hidden')adjacentPrefetch.interrupt();};
-  document.addEventListener('visibilitychange',onPrefetchVisibility);
-  disposables.push({dispose:()=>document.removeEventListener('visibilitychange',onPrefetchVisibility)});
+  // One complete historical project needs no neighbouring-month prefetch.
   const searchController=createAppObjectSearchController({window,document,getElement:get,state:map.viewState,
     objectSearchGroupKeys:map.objectPresentation.LAYER_SEARCH_GROUP_KEYS,listObjectSearchItems:map.objectCatalog.listObjectSearchItems,
     layerItemObjectRef:map.objectQuery.layerItemObjectRef,selectionDomain,
@@ -174,22 +157,25 @@ export async function composeViewer({ productMode, meta }) {
     },
   });
   disposables.push(postPresentation);
+  // Both imported files and the builtin map use the same C++ time cursor.
+  const applyDocumentMonth=async(month,{isCurrent=()=>true,waitForFrame=false}={})=>{
+    const before=map.features(),generation=projectDomain.getGeneration();
+    await activeSession.commandOwner.setTimelineCursor(month,{isCurrent});
+    if(!isCurrent()||projectDomain.getGeneration()!==generation)return false;
+    if(territorialMembershipDelta(before,map.features()).changed)
+      await map.objectCatalog.pruneLayerItemVisibility();
+    await map.update();
+    if(!isCurrent()||projectDomain.getGeneration()!==generation)return false;
+    if(waitForFrame)await map.renderer.waitForMapPresentation(generation);
+    if(!isCurrent()||projectDomain.getGeneration()!==generation)return false;
+    search();syncStatus();
+    return true;
+  };
   const disposeTimeline=installTimelineControls({document,window,getMonth:()=>builtinActive&&builtinClock?.month() ? builtinClock.month() : activeSession?.commandOwner.state().timelineCursor,
     setMonth:async month=>{
-      adjacentPrefetch.interrupt();
       if(builtinActive)return builtinClock.selectMonth(month);
-      const current=activeSession;if(projectDomain.isOpening()||!current)throw new Error('지도를 여는 중입니다.');
-      try {
-        const previous=map.features();
-        await current.commandOwner.setTimelineCursor(month);
-        if(territorialMembershipDelta(previous,map.features()).changed){
-          // C++ owns the selected refs; prune before publishing a changed
-          // membership so extinct IDs cannot remain selected or in view prefs.
-          await map.objectCatalog.pruneLayerItemVisibility();
-        }
-        await map.update();search();syncStatus();
-      }
-      catch(error){if(current===activeSession&&!projectDomain.isOpening())throw error;}
+      if(projectDomain.isOpening())throw new Error('지도를 여는 중입니다.');
+      await applyDocumentMonth(month);
     },
   });
   disposables.push({dispose:disposeTimeline});
@@ -199,7 +185,6 @@ export async function composeViewer({ productMode, meta }) {
       get('viewer').dataset.initialReveal = 'complete';
       map.cancelInitialReveal();
     }
-    adjacentPrefetch.interrupt();
     postPresentation.invalidate();
     const searchTicket=searchController.beginProjectTransition?.();
     const preserved=options?.preserveView?map.capturePresentation():null;
@@ -258,20 +243,41 @@ export async function composeViewer({ productMode, meta }) {
     }
   };
   const action=(element,event,task)=>element.addEventListener(event,e=>{Promise.resolve().then(()=>task(e)).catch(report);});
+  const changeBuiltinCursor=async(month,{isCurrent,commit})=>{
+    const previous=activeSession.commandOwner.state().timelineCursor;
+    const previouslyReady=status.dataset.ready==='true';
+    status.dataset.loadingKind='temporal';status.dataset.ready='false';
+    presentViewerLoadStatus(status,'다음 시점 준비 중…');
+    try{
+      // Date-dependent physical reference data stays outside the project.
+      await owners.physicalResources.preparePhysicalContext(month,{isCurrent});
+      if(!isCurrent())return false;
+      if(!await applyDocumentMonth(month,{isCurrent,waitForFrame:true}))return false;
+      if(!isCurrent()||!commit())return false;
+      status.dataset.ready='true';presentViewerLoadStatus(status,'지도 준비 완료.');
+      postPresentation.schedule(isCurrent);
+      return true;
+    }catch(error){
+      if(isCurrent()){
+        // Restore the previous view of the *same* document after a render error.
+        if(previous&&previous!==month&&activeSession.commandOwner.state().timelineCursor===month)
+          try{await applyDocumentMonth(previous);}catch(restoreError){error.restoreError=restoreError;}
+        status.dataset.ready=String(previouslyReady&&!error.restoreError);
+      }
+      throw error;
+    }
+  };
   builtinClock=createBuiltinMonthClock({coalesceRequests:true,window,document,applyMonth:async(month,{isCurrent,commit})=>{
-    adjacentPrefetch.interrupt();
-    const transition=builtinActive&&builtinClock.month()!==null;
-    const accepted=await open(()=>map.prepareBuiltinProject(month,{isCurrent,transition}),{source:'builtin',isCurrent,
-      onPresented:()=>{commit();},
-      presentation:transition?'temporal':'default',
-      preserveView:builtinClock.month()!==null});
-    if(accepted&&isCurrent()&&initialPresentation.hasPresented())
-      adjacentPrefetch.afterPresented(month,{mode:get('timelineViewUnit')?.value==='month'?'month':'year'});
-    return accepted;
+    if(builtinActive&&builtinClock.month()!==null
+      &&activeSession.documentModel.snapshot().projectSetup?.sourceMode==='builtin')
+      return changeBuiltinCursor(month,{isCurrent,commit});
+    // Startup/return-from-file admits the full project once. Subsequent
+    // months do not create C++ candidates or replace the active document.
+    return open(()=>map.prepareBuiltinProject(month,{isCurrent,transition:false}),{
+      source:'builtin',isCurrent,presentation:'default'});
   },onCommitted:month=>{owners.builtinSession.setPresentedSourceMonth(month);builtinActive=true;syncStatus();window.dispatchEvent(new CustomEvent('pandolab:project-changed'));},onError:report});
   disposables.push(builtinClock);
   const openUserProject=async(reader,options)=>{
-    adjacentPrefetch.interrupt();
     const previous=builtinActive,resume=builtinClock.suspend();builtinActive=false;
     try {const result=await open(reader,options);
       if(result){
@@ -285,7 +291,7 @@ export async function composeViewer({ productMode, meta }) {
   const files=createFileController({productMode,elements:fileElements,fileAccess:createBrowserFileAccess({productMode,elements:fileElements,window,document}),projectDomain,openProject:openUserProject,reportOperationError:report,window,document});
   disposables.push(files);
   files.bind();action(get('openProjectBtn'),'click',()=>files.openProjectPicker());
-  action(get('builtinMapBtn'),'click',()=>{adjacentPrefetch.interrupt();return builtinClock.followNow();});
+  action(get('builtinMapBtn'),'click',()=>builtinClock.followNow());
   display=createMapSettings({capabilities:owners.capabilities,viewPresentation:map});
   display.connect({
     layerResources:{loadHydroData:owners.physicalResources.loadHydroData,preparePlaces:owners.territorialLabels.preparePlaces},
