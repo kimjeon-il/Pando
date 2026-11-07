@@ -11,6 +11,11 @@ export function createCheckImpactIndex({ roots, dependencies }) {
     for (const dependency of dependencies(owner)) {
       if (!reverse.has(dependency)) reverse.set(dependency, new Set());
       reverse.get(dependency).add(owner);
+      // Directory-level changes also affect consumers of declared child assets.
+      for (let dir = posix.dirname(dependency); dir !== '.'; dir = posix.dirname(dir)) {
+        if (!reverse.has(dir)) reverse.set(dir, new Set());
+        reverse.get(dir).add(owner);
+      }
       if (!visited.has(dependency)) pending.push(dependency);
     }
   }
