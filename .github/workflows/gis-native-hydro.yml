@@ -10,7 +10,7 @@ on:
       - 'tests/unit/hydro-connectivity-native.test.mjs'
       - 'tools/gis/build-hydro.mjs'
       - 'tools/repair-hydro-connectivity.mjs'
-      - 'tests/unit/hydro-network-normalization.test.mjs'
+      - 'tests/unit/hydro-canonical-chains.test.mjs'
       - '.github/workflows/gis-native-hydro.yml'
   workflow_dispatch:
     inputs:
@@ -71,7 +71,7 @@ jobs:
           PANDO_HYDRO_CONNECTIVITY_DIRECTORY: ${{ github.workspace }}/build-native/hydro-outlets/connectivity-artifact
           PANDO_HYDRO_ENCODING_DIRECTORY: ${{ github.workspace }}/build-native/hydro-outlets/encoding-artifact
           PANDO_PHYSICAL_RASTER_DIRECTORY: ${{ github.workspace }}/build-native/hydro-outlets/raster-artifact
-        run: node --test --test-name-pattern='Hydro metadata|Hydro shard|generation command|generation manifest|selected Hydro source flows|river source discovery|official Rhine source|regional Hydro pipeline|river feature assembly|Natural Earth lake features|system fragments retain|reference river name candidates|reference naming|border candidate|shared country borders|whole border alignment|partial border|short consecutive reaches|complete and partial border|different border pairs|chain normalization|network normalization|outlet observations|outlet pipeline|water raster sampling|verified indexed source selection' tests/unit/hydro-point-screen-native.test.mjs tests/unit/hydro-outlets.test.mjs tests/unit/hydro-source-selection.test.mjs tests/unit/hydro-border-alignment.test.mjs tests/unit/hydro-chain-normalization.test.mjs tests/unit/hydro-network-normalization.test.mjs tests/unit/hydro-reference-guides.test.mjs tests/unit/hydro-region-pipeline.test.mjs tests/unit/hydro-connectivity-native.test.mjs tests/unit/hydro-river-features.test.mjs tests/unit/hydro-generation-command.test.mjs tests/unit/hydro-packfile.test.mjs
+        run: node --test --test-name-pattern='Hydro metadata|Hydro shard|generation command|generation manifest|selected Hydro source flows|river source discovery|official Rhine source|regional Hydro pipeline|river feature assembly|Natural Earth lake features|system fragments retain|reference river name candidates|reference naming|border candidate|shared country borders|whole border alignment|partial border|short consecutive reaches|complete and partial border|different border pairs|chain normalization|network normalization|outlet observations|outlet pipeline|water raster sampling|verified indexed source selection' tests/unit/hydro-point-screen-native.test.mjs tests/unit/hydro-outlets.test.mjs tests/unit/hydro-data-validation.test.mjs tests/unit/hydro-border-alignment.test.mjs tests/unit/hydro-canonical-chains.test.mjs tests/unit/hydro-reference-guides.test.mjs tests/unit/hydro-river-features.test.mjs tests/unit/hydro-connectivity-native.test.mjs tests/unit/hydro-generation-command.test.mjs tests/unit/hydro-packfile.test.mjs
   hydro-chains:
     if: github.event_name == 'workflow_dispatch' && inputs.target == 'hydro-chains'
     strategy:
@@ -1053,7 +1053,7 @@ jobs:
       - name: Verify small point-screen cases
         env:
           PANDO_HYDRO_POINT_SCREEN_BINARY: ${{ github.workspace }}/build-native/hydro-point-screen/pando-hydro-point-screen
-        run: node --test tests/unit/hydro-point-screen-native.test.mjs tests/unit/hydro-independent-point-screen.test.mjs tests/unit/hydro-osm-batch01-screen.test.mjs tests/unit/hydro-osm-batch02-screen.test.mjs tests/unit/hydro-osm-batch03-screen.test.mjs tests/unit/hydro-yarra-vector-screen.test.mjs
+        run: node --test tests/unit/hydro-point-screen-native.test.mjs tests/unit/hydro-independent-evidence.test.mjs tests/unit/hydro-osm-batch01-screen.test.mjs tests/unit/hydro-yarra-vector-screen.test.mjs
       - name: Package the source-bound point screen
         run: node tools/gis/package-hydro-point-screen.mjs --binary build-native/hydro-point-screen/pando-hydro-point-screen --directory build-native/hydro-point-screen/artifact
       - name: Read the paired data revision
@@ -1274,7 +1274,7 @@ jobs:
         env:
           PANDO_HYDRO_CONNECTIVITY_BINARY: ./build-native/hydro/pando-hydro-connectivity
           PANDO_HYDRO_CONNECTIVITY_DIRECTORY: ${{ github.workspace }}/build-native/hydro/artifact
-        run: node --test tests/unit/hydro-connectivity-native.test.mjs tests/unit/hydro-terminal-exclusion.test.mjs tests/unit/hydro-source-reader.test.mjs tests/unit/hydro-repair-cli.test.mjs tests/unit/hydro-fingerprint.test.mjs tests/unit/hydro-name.test.mjs tests/unit/hydro-system-names.test.mjs
+        run: node --test tests/unit/hydro-connectivity-native.test.mjs tests/unit/hydro-outlets.test.mjs tests/unit/hydro-source-reader.test.mjs tests/unit/hydro-repair-cli.test.mjs tests/unit/hydro-fingerprint.test.mjs tests/unit/hydro-name.test.mjs tests/unit/hydro-system-names.test.mjs
       - uses: actions/upload-artifact@v4
         with:
           name: hydro-connectivity-linux-${{ github.sha }}
@@ -1305,7 +1305,7 @@ jobs:
         run: |
           $env:PANDO_HYDRO_CONNECTIVITY_BINARY = "$env:GITHUB_WORKSPACE/build-native/hydro/Release/pando-hydro-connectivity.exe"
           $env:PANDO_HYDRO_CONNECTIVITY_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/hydro/artifact"
-          node --test tests/unit/hydro-connectivity-native.test.mjs tests/unit/hydro-terminal-exclusion.test.mjs tests/unit/hydro-source-reader.test.mjs tests/unit/hydro-repair-cli.test.mjs tests/unit/hydro-fingerprint.test.mjs tests/unit/hydro-name.test.mjs tests/unit/hydro-system-names.test.mjs
+          node --test tests/unit/hydro-connectivity-native.test.mjs tests/unit/hydro-outlets.test.mjs tests/unit/hydro-source-reader.test.mjs tests/unit/hydro-repair-cli.test.mjs tests/unit/hydro-fingerprint.test.mjs tests/unit/hydro-name.test.mjs tests/unit/hydro-system-names.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Hydro connectivity checks failed' }
       - uses: actions/upload-artifact@v4
         with:
