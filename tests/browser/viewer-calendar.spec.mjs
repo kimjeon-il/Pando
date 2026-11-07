@@ -49,7 +49,11 @@ test('builtin country loading follows calendar rollover, retains manual dates an
  await expect(page.locator('#timelineDateBasis')).toHaveText('현재 월 기준');
  await page.locator('#timelineDateButton').click();await page.locator('#timelineViewUnit').selectOption('month');await page.locator('#timelineYearInput').fill('1953');await page.locator('#timelineMonthInput').selectOption('6');await page.locator('#timelineGoBtn').click();
  await expect(page.locator('#timelineDateButtonText')).toHaveText('1953년 6월',{timeout:45000});
- const source=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot().territorialEntities.find(row=>row.id==='KOR').properties.sourceGeometryVersion);
+ const source=await page.evaluate(()=>{
+  const row=window.__PANDOLAB_VIEWER__.resolvedWorld().byId.get('KOR');
+  return row.identity.properties.metadata.historicalTimeline.geometryBindings
+    .find(binding=>JSON.stringify(binding.geometryRef)===JSON.stringify(row.geometryRef))?.sourceVersionId;
+ });
  expect(source).toBe('state:KOR:38th-parallel-1948');
  expect(requests.some(url=>url.includes('/builtin-world/generated/v1/country-parts/'))).toBe(true);
  await page.clock.setSystemTime(new Date(2027,0,1));await page.evaluate(()=>window.dispatchEvent(new window.Event('focus')));
@@ -280,7 +284,7 @@ test('P4-4 actual country birth and extinction refresh map selection and open se
       {timeout:85000}).toBe(year+'-12');
     await expect(ready).toHaveAttribute('data-ready','true',{timeout:20000});
   }
-  const ids=()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot().territorialEntities.map(row=>row.id));
+  const ids=()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__.resolvedWorld().entities.filter(row=>row.objectRef.domain==='territorial').map(row=>row.id));
   await go(2005);
   expect(await ids()).toContain('state:yugoslavia');
   expect(await ids()).not.toContain('MNE');
@@ -337,18 +341,18 @@ async function start(page,renderer){
   await page.clock.setFixedTime(new Date(2026,9,24,12));
   await page.route('**/modules/viewer-composition.js*',async route=>{
     const source=await(await route.fetch()).text();
-    const boot='  const disposables=[',debug='productMode,documentState:',reader='()=>map.prepareBuiltinProject(month,{isCurrent,transition})';
+    const boot='  const disposables=[',debug='productMode,documentState:',reader='await owners.physicalResources.preparePhysicalContext(month,{isCurrent});';
     for(const anchor of [boot,debug,reader])expect(source.includes(anchor),`Missing observation boundary: ${anchor}`).toBe(true);
     await route.fulfill({contentType:'text/javascript',body:source
       .replace(boot,`  window.__temporalPackets=[];
   documentSession.commandOwner.subscribeTransitions((packet,operation)=>{
-    if(['core.document-load','core.document-load-baseline','core.document-temporal-candidate-adopt'].includes(operation))
+    if(['core.document-load','core.document-load-baseline','core.document-temporal-candidate-adopt','core.document-timeline-cursor'].includes(operation))
       window.__temporalPackets.push({operation,fullProject:Object.hasOwn(packet,'project'),
         geometryCount:packet.delta?.geometries?.length??null,month:packet.state?.timelineCursor});
   });
   const disposables=[`)
       .replace(debug,'cameraSnapshot:()=>structuredClone({projection:map.viewState.projection,view:map.viewState.view}),'+debug)
-      .replace(reader,'async()=>{if(window.__temporalRead)await window.__temporalRead(month);return map.prepareBuiltinProject(month,{isCurrent,transition});}')});
+      .replace(reader,'if(window.__temporalRead)await window.__temporalRead(month);\n      '+reader)});
   });
   // This suite verifies document and frame admission. Full DEM streaming is
   // covered by the dedicated terrain scenarios.
@@ -396,10 +400,11 @@ for(const renderer of ['webgl','canvas-worker','canvas2d'])for(const width of [1
     expect(packets.filter(row=>row.operation==='core.document-load-baseline')).toHaveLength(0);
     const adoptions=packets.filter(row=>row.operation==='core.document-temporal-candidate-adopt');
     expect(adoptions.filter(row=>row.fullProject)).toHaveLength(1);
-    const transitions=adoptions.filter(row=>!row.fullProject);
+    const transitions=packets.filter(row=>row.operation==='core.document-timeline-cursor');
     expect(await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot().documentId)).toBe(identity);
     expect(transitions.map(row=>row.month)).toEqual(['2025-12','2026-10']);
-    expect(transitions.every(row=>row.fullProject===false&&Number.isInteger(row.geometryCount))).toBe(true);
+    expect(transitions.every(row=>row.fullProject===false&&row.geometryCount===null)).toBe(true);
+    expect(adoptions).toHaveLength(1,'date navigation must never admit another project');
     expect(errors).toEqual([]);
     await testInfo.attach('temporal-packets',{body:JSON.stringify({renderer,backend,width,packets,renderedVerified:true}),contentType:'application/json'});
   });
@@ -420,7 +425,7 @@ test('temporal failures and superseded source reads preserve the last displayed 
   finally{await page.evaluate(()=>window.__releaseTemporal());}
   await waitForCommittedMonth(page,'2024-12');
   expect(await page.evaluate(()=>window.__PANDOLAB_VIEWER__.cameraSnapshot())).toEqual(camera);
-  const transitions=await page.evaluate(()=>window.__temporalPackets.filter(row=>row.operation==='core.document-temporal-candidate-adopt'&&!row.fullProject));
+  const transitions=await page.evaluate(()=>window.__temporalPackets.filter(row=>row.operation==='core.document-timeline-cursor'));
   expect(transitions.map(row=>row.month)).toEqual(['2024-12']);
 });
 
@@ -496,7 +501,7 @@ test('P2-4 one accepted year switch loads physical resources once and preserves 
   await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:100000});
   await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__?.visibleTerritorialCount())).toBeGreaterThan(0);
   const initial=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot());
-  const expected={land:1,physical:1,updates:2};
+  const expected={land:0,physical:0,updates:1};
   for(const month of ['2025-12','2026-10']){
     await page.evaluate(()=>{window.__P24_COUNTS__={land:0,physical:0,updates:0};});
     const button=month==='2025-12'?'#timelinePreviousYear':'#timelineNextYear';
@@ -509,7 +514,7 @@ test('P2-4 one accepted year switch loads physical resources once and preserves 
     await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
     const counts=await page.evaluate(()=>({...window.__P24_COUNTS__}));
     console.log('P2_4_TRANSITION_COUNTS '+JSON.stringify({month,...counts}));
-    expect(counts,{message:'A completed map already fetched physical land and resources in setSession'}).toEqual(expected);
+    expect(counts,{message:'Cursor updates must not replace or reinitialize map resources'}).toEqual(expected);
     const cursor=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentState().timelineCursor);
     expect(cursor).toBe(month);
   }
