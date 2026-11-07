@@ -124,3 +124,43 @@ test('place source name history follows the project month without copying or edi
   assert.deepEqual(record,before,'source place and its name editions remain immutable');
  }finally{runtime.dispose();}
 });
+
+test('externally reviewed urban lifetimes suppress anachronistic labels and preserve reference searches',async()=>{
+ const policy={schema:'pando-place-urban-lifetimes-v1',schemaVersion:1,
+  sourceReviewRevision:'0123456789abcdef0123456789abcdef01234567',entries:[
+   {source:'geonames',sourceId:'3046446',sourceReviewFile:'reports/places/tier1-major-cities-batch07-europe-capitals.json',
+    status:'verified',scope:'urban-city-label-not-settlement-existence',intervals:[{untilDateExclusive:'1873-11-17'}]},
+   {source:'geonames',sourceId:'3054643',sourceReviewFile:'reports/places/tier1-major-cities-batch07-europe-capitals.json',
+    status:'reviewed',scope:'urban-city-label-not-settlement-existence',intervals:[{fromDate:'1873-11-17'}]},
+  ]};
+ const pest=normalizePlace({source:'geonames',sourceId:'3046446',name:'페슈트',kind:'city',coordinates:[1,2]});
+ const budapest=normalizePlace({source:'geonames',sourceId:'3054643',name:'부다페스트',kind:'city',coordinates:[2,3]});
+ let month='1873-10',admissions=[];
+ const runtime=createPlaceRuntime({urbanLifetimes:policy,getPresentation:()=>({month}),
+  admitReferences:async fn=>admissions.push(fn().map(x=>x.id)),
+  rpc:{stop(){},request:async()=>({result:{records:[pest,budapest],signature:'unchanged'}})}});
+ try{
+  await runtime.prepare({presentation:{month}});
+  assert.deepEqual(admissions.at(-1),[pest.id]);
+  assert.equal(runtime.resolve(budapest.id),null);
+  month='1873-11';
+  await runtime.prepare({presentation:{month}});
+  assert.deepEqual(admissions.at(-1),[budapest.id]);
+  assert.equal(runtime.resolve(pest.id),null);
+  const reference=await runtime.search('Pest',{scope:'reference'});
+  assert.ok(reference.records.some(x=>x.id===pest.id),
+   'a former city remains researchable without publishing an obsolete label');
+ }finally{runtime.dispose();}
+});
+test('external lifetime loading failure does not admit undated GeoNames references',async()=>{
+ const record=normalizePlace({source:'geonames',sourceId:'3054643',name:'부다페스트',kind:'city',coordinates:[1,2]});
+ let admissions=0;const errors=[];
+ const runtime=createPlaceRuntime({loadUrbanLifetimes:async()=>{throw new Error('Library unavailable')},
+  admitReferences:async()=>{admissions++},onError:e=>errors.push(e),
+  rpc:{stop(){},request:async()=>({result:{records:[record]}})}});
+ try{
+  assert.equal(await runtime.prepare({presentation:{month:'1801-01'}}),false);
+  assert.equal(admissions,0);
+  assert.match(errors[0].message,/Library unavailable/);
+ }finally{runtime.dispose();}
+});
