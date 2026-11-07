@@ -2,7 +2,7 @@ import test from 'node:test';
 import {createCoreDocumentReadModel} from '../../shared/frontend/js/modules/core-document-read-model.js';
 import {sharedCalculationCore} from '../../shared/frontend/js/modules/temporal.js';
 import assert from 'node:assert/strict';
-import {resolvePhysicalWaterObjects,createPhysicalResources} from "../../shared/frontend/js/modules/physical-resources.js";
+import {resolvePhysicalWaterObjects,physicalWaterReferenceView,createPhysicalResources} from "../../shared/frontend/js/modules/physical-resources.js";
 import {createHash} from 'node:crypto';
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
@@ -89,6 +89,22 @@ test('a rejected history load retains the background, avoids a fetch loop and re
  state.timelineCursor='2026-10';assert.equal(resource.physicalLand,initial);
  reject=false;state.timelineCursor='1922-12';void resource.physicalLand;await loaded;
  assert.equal(resource.physicalLand.water.type,'Polygon');assert.ok(requests>count);
+});
+
+test('source water dates are selected once, unknown tiles remain independent and replacement requires readiness',()=>{
+  const ref={domain:'hydroBuiltin',id:'lake:dated'},legacy={domain:'hydroBuiltin',id:'lake:legacy'};
+  const catalog={identities:[{objectRef:ref}]};
+  const active=[{objectRef:ref,assets:{replaces:[legacy]}}];
+  const loading=physicalWaterReferenceView(catalog,active,false);
+  const ready=physicalWaterReferenceView(catalog,active,true);
+  const extinct=physicalWaterReferenceView(catalog,[],true);
+  assert.equal(loading.isActive(ref.id),true);
+  assert.equal(loading.isActive(legacy.id),true);
+  assert.equal(ready.isActive(ref.id),true);
+  assert.equal(ready.isActive(legacy.id),false);
+  assert.equal(extinct.isActive(ref.id),false,'no nearest-year fallback for extinct water');
+  assert.equal(extinct.isActive(legacy.id),true,'undated tile sources remain independent');
+  assert.throws(()=>physicalWaterReferenceView(catalog,[{...active[0],assets:{replaces:[{domain:'territorial',id:'X'}]}}],true),/replacement/);
 });
 
 test('two independently resolved lakes share one physical land derivative without a parallel date selector',async t=>{

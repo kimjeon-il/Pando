@@ -38,6 +38,26 @@ export function resolvePhysicalWaterObjects(catalog,date) {
     geometryExists:ref=>assets.has(JSON.stringify(ref)),
   },date).entities.map(row=>({...row,identity:identities.get(timelineObjectKey(row.objectRef)),assets:assets.get(JSON.stringify(row.geometryRef))}));
 }
+
+/** Native-selected source water is the only dated water catalog. The separate
+ * hydro tile library has no lifetime records, so unknown tile IDs remain
+ * untimed; never manufacture perpetual C++ records for them. */
+export function physicalWaterReferenceView(catalog, selected, ready=false){
+  const known=new Set(catalog.identities.map(row=>timelineObjectKey(row.objectRef)));
+  const active=new Set(selected.map(row=>timelineObjectKey(row.objectRef)));
+  const replaced=new Set();
+  if(ready)for(const row of selected)for(const ref of row.assets.replaces||[]){
+    if(ref?.domain!=='hydroBuiltin'||!ref.id)
+      throw new TypeError('Invalid physical water source replacement reference');
+    replaced.add(timelineObjectKey(ref));
+  }
+  return Object.freeze({
+    isActive:id=>{
+      const key=timelineObjectKey({domain:'hydroBuiltin',id:String(id)});
+      return (!known.has(key)||active.has(key))&&!replaced.has(key);
+    }
+  });
+}
 // Runtime and prepared-mesh generation must concatenate the same selected
 // waters in the canonical selection order, including islands and holes.
 export function composePhysicalWaterGeometry(waters) {
@@ -198,36 +218,18 @@ export function createPhysicalResources({ buildMeta,capabilities = {terrain:true
   }
   let builtinTimelineView=null;
   function isHydroObjectActive(feature) {
-    if(feature.properties?.pandolab_domain==='hydro')return true; // Already projected by the authoritative document world.
-    const state=dependencies.projectState.state,revision=state.hydroFeatureCatalogRevision||0,date=state.timelineCursor;
+    if(feature.properties?.pandolab_domain==='hydro')return true;
+    const state=dependencies.projectState.state,date=state.timelineCursor;
     if(!date)return false;
-    const {rows:selected,key:selectionKey}=selectedPhysicalWater();
-    const entry=waterContexts.get(selectionKey);
-    const readyKey=entry?.status==='ready'?selectionKey:null;
-    if(!builtinTimelineView || builtinTimelineView.revision!==revision || builtinTimelineView.date!==date || builtinTimelineView.readyKey!==readyKey) {
-      const catalog=buildMeta.physicalWaterObjects;
-      const identities=[...catalog.identities],records=structuredClone(catalog.timelineRecords);
-      const ids=new Set(identities.map(row=>row.objectRef.id)),refs=new Set(catalog.geometries.map(row=>JSON.stringify(row.geometryRef)));
-      for(const value of state.hydroFeatureCache.values()) {
-        const id=String(value.properties?.pandolab_id||value.id);if(ids.has(id))continue;ids.add(id);
-        const objectRef={domain:'hydroBuiltin',id},key='builtin:'+id;
-        identities.push({objectRef,entityKind:value.properties.category});
-        records.lifetimes.push({id:key+':life',objectRef,validFrom:null,validTo:null});
-        const geometryRef={id:'hydro:'+String(state.hydroManifest?.index?.sha256||'source')+':'+id,version:1};refs.add(JSON.stringify(geometryRef));
-        records.geometryBindings.push({id:key+':geometry',objectRef,validFrom:null,validTo:null,geometryRef});
-      }
-      const resolved=sharedCalculationCore.timelineResolveWorld(records,{entities:identities,geometryExists:ref=>refs.has(JSON.stringify(ref))},date);
-      const active=new Set(resolved.entities.map(row=>timelineObjectKey(row.objectRef)));
-      // Source substitution is a presentation relation of the selected version,
-      // not a rewritten lifetime or a second temporal selector. Keep originals
-      // visible while a replacement is loading or has failed.
-      if(readyKey)for(const row of selected)for(const ref of row.assets.replaces||[]) {
-        if(ref.domain!=='hydroBuiltin'||!ref.id)throw new Error('Invalid physical-water source replacement reference.');
-        active.delete(timelineObjectKey(ref));
-      }
-      builtinTimelineView={revision,date,readyKey,active};
+    const selection=selectedPhysicalWater(),entry=waterContexts.get(selection.key);
+    const ready=entry?.status==='ready';
+    if(!builtinTimelineView||builtinTimelineView.catalog!==selection.catalog
+      ||builtinTimelineView.date!==date||builtinTimelineView.key!==selection.key
+      ||builtinTimelineView.ready!==ready) {
+      builtinTimelineView={catalog:selection.catalog,date,key:selection.key,ready,
+        reference:physicalWaterReferenceView(selection.catalog,selection.rows,ready)};
     }
-    return builtinTimelineView.active.has(timelineObjectKey({domain:'hydroBuiltin',id:String(feature.properties?.pandolab_id||feature.id)}));
+    return builtinTimelineView.reference.isActive(feature.properties?.pandolab_id||feature.id);
   }
   function loadInitialLandPreview(){
     if(!initialPreviewLoading){
