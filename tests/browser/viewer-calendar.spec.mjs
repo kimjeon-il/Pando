@@ -41,11 +41,22 @@ test('builtin country loading follows calendar rollover, retains manual dates an
  await openReadyViewer(page,{url:'/?debug=1&demTerrain=raster'});
  expect(await page.evaluate(()=>window.PANDOLAB_BUILD_META.builtinWorld?.url)).toContain('builtin-world/generated/v1/index.json');
  await expect(page.locator('#timelineDateButtonText')).toHaveText('2026년');
+ const initialProject=await page.evaluate(()=>{
+  const project=window.__PANDOLAB_VIEWER__.documentSnapshot();
+  return {id:project.documentId,initialMonth:project.projectSetup.initialMonth,
+   countries:project.territorialEntities.length,records:JSON.stringify(project.timelineRecords)};
+ });
+ expect(initialProject.countries).toBeGreaterThan(0);
  expect(requests.some(url=>/\/builtin-world\/generated\/v1\/countries\/.*\.json\.gz/.test(url))).toBe(true);
  expect(requests.some(url=>url.includes('/builtin-world/generated/v1/transport/'))).toBe(false);
  expect(requests.some(url=>url.includes('world-project.json.gz'))).toBe(false);
  await page.clock.setSystemTime(new Date(2026,10,1));await page.evaluate(()=>window.dispatchEvent(new window.Event('focus')));
  await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__.builtinMonth().month),{timeout:45000}).toBe('2026-11');
+ expect(await page.evaluate(()=>{
+  const project=window.__PANDOLAB_VIEWER__.documentSnapshot();
+  return {id:project.documentId,initialMonth:project.projectSetup.initialMonth,
+   countries:project.territorialEntities.length,records:JSON.stringify(project.timelineRecords)};
+ })).toEqual(initialProject,'calendar rollover must not replace the full-history project');
  await expect(page.locator('#timelineDateBasis')).toHaveText('현재 월 기준');
  await page.locator('#timelineDateButton').click();await page.locator('#timelineViewUnit').selectOption('month');await page.locator('#timelineYearInput').fill('1953');await page.locator('#timelineMonthInput').selectOption('6');await page.locator('#timelineGoBtn').click();
  await expect(page.locator('#timelineDateButtonText')).toHaveText('1953년 6월',{timeout:45000});
