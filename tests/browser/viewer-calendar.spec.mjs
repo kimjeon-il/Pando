@@ -1,4 +1,7 @@
 import { test as featureTest } from '@playwright/test';
+featureTest.use({launchOptions:{args:[
+  '--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader','--disable-gpu-sandbox',
+]}});
 import * as __suiteDependency0 from "@playwright/test";
 import * as __suiteDependency1 from "../fixtures/viewer-project-package.mjs";
 import * as __suiteDependency2 from "../../shared/frontend/js/modules/timeline-controls.js";
@@ -19,7 +22,7 @@ featureTest.describe("viewer-calendar", () => {
 
 
 test.describe("Automatic current month", () => {
-test.use({viewport:{width:1440,height:900},trace:'off'});
+test.use({viewport:{width:1440,height:900}});
 
 test('the first builtin map follows the actual device month without a pinned year', async ({page}) => {
   await openReadyViewer(page,{url:'/?debug=1&demTerrain=raster'});
@@ -101,7 +104,7 @@ test('file reading suspends automatic changes and an opened document survives ro
 
 
 test.describe("Last-date-wins source queries", () => {
-test.use({viewport:{width:1280,height:800},trace:'off'});
+test.use({viewport:{width:1280,height:800}});
 
 test('P3-1 rapid year inputs merge to the latest visible month and stale reads never publish',async({page})=>{
  test.setTimeout(175000);
@@ -176,7 +179,7 @@ test('P3-1 rapid year inputs merge to the latest visible month and stale reads n
 
 
 test.describe("Manual calendar controls", () => {
-test.use({ trace: 'off', hasTouch: true, actionTimeout: 15000 });
+test.use({ hasTouch: true, actionTimeout: 15000 });
 
 test('floating date controls preserve navigation and document state across desktop and narrow mobile', async ({ page }, testInfo) => {
   test.setTimeout(180000);
@@ -277,7 +280,7 @@ test('floating date controls preserve navigation and document state across deskt
 
 // Historical identity changes belong to the same dated-map feature suite.
 test.describe('Historical country membership', () => {
-  test.use({viewport:{width:1280,height:800},trace:'retain-on-failure'});
+  test.use({viewport:{width:1280,height:800}});
 // The published historical world has one Serbia-Montenegro predecessor in
 // 2005 and independent Serbia/Montenegro objects from 2006 onwards.
 test('P4-4 actual country birth and extinction refresh map selection and open search',async({page})=>{
@@ -340,9 +343,7 @@ featureTest.describe("viewer-temporal-regressions", () => {
 test.describe("Canonical dated document/frame admission", () => {
 // Worker-scoped launch settings belong at file scope. The Canvas cases still
 // select the supported Canvas renderer explicitly through the page query.
-test.use({trace:'off',actionTimeout:15000,launchOptions:{args:[
-  '--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader','--disable-gpu-sandbox',
-]}});
+test.use({actionTimeout:15000});
 
 async function start(page,renderer){
   if(renderer==='canvas2d'){
@@ -488,7 +489,7 @@ test('Canvas user-file opening retains full document admission after a builtin d
 
 
 test.describe("Unchanged resource reuse on date switch", () => {
-test.use({viewport:{width:1280,height:800},trace:'off'});
+test.use({viewport:{width:1280,height:800}});
 
 test('P2-4 one accepted year switch loads physical resources once and preserves map/search state',async({page})=>{
   test.setTimeout(145000);
@@ -541,7 +542,7 @@ test('P2-4 one accepted year switch loads physical resources once and preserves 
 // Preserved Viewer feature contract: temporal-map-presentation.spec.mjs
 featureTest.describe("temporal-map-presentation", () => {
   const { test,expect } = __suiteDependency7;
-test.use({viewport:{width:960,height:640},trace:'off'});
+test.use({viewport:{width:960,height:640}});
 
 for (const mode of ['webgl','canvas','canvas-worker']) test(`temporal map holds its last complete ${mode} frame until its successor is presented`,async({page})=>{
   test.setTimeout(180000);
