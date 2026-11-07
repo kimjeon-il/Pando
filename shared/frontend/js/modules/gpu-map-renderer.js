@@ -455,8 +455,14 @@ export function createGpuMapRenderer(deps) {
       if (!frame) return '';
       // A physical/country frame is still published when an optional DEM
       // target changes. Terrain readiness is tracked independently.
+      // A new rAF/frameId does not change the picture. Certify the actual
+      // camera and country inputs so independent DEM tile repaints cannot
+      // transiently revoke an already accepted map or a file-open waiter.
       return JSON.stringify([projectGeneration, renderDeviceContextRevision, geometryRevisionTracker.committedRevision(),
-        frame.frameId, frame.viewRevision, frame.projectionRevision, frame.cssScale, frame.cssTranslate,
+        frame.cssViewport, frame.cssScale, frame.cssTranslate, frame.dpr,
+        frame.viewState?.projection || frame.projection,
+        frame.viewState?.rotation || null, frame.viewState?.projectionCenter || null,
+        frame.viewState?.safeInset || frame.safeInset || null,
         countryPaletteRevision, physicalStyleStateRevision, !!state.physicalSettings.terrainVisible,
         surfacePresentation.quality, surfacePresentation.geometryQuality]);
     }

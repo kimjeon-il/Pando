@@ -100,6 +100,14 @@ test('accepted map and physical background keys are independent of optional DEM 
   const secondTerrain={terrainTargetKey:'next-lod'};
   assert.equal(mapKey(frame,secondTerrain),first);
   assert.equal(backgroundKey(frame,secondTerrain),background);
+  assert.equal(mapKey({...frame,frameId:99,viewRevision:90,projectionRevision:8}),first,
+    'unrelated rAF and DEM repaints must not revoke a certified map');
+  assert.notEqual(mapKey({...frame,cssScale:frame.cssScale+5}),first,
+    'a real zoom requires a newly painted map certificate');
+  assert.notEqual(mapKey({...frame,viewState:{...frame.viewState,rotation:[-25,0,0]}}),first,
+    'a globe rotation requires a newly painted map certificate');
+  assert.notEqual(mapKey({...frame,cssViewport:[1000,600]}),first,
+    'viewport changes cannot reuse a stale bitmap');
   context.renderScene.polygons[0].sourceKey='land:5';
   assert.notEqual(backgroundKey(frame),background,'a new physical source still requires a new background');
   context.physicalStyleStateRevision=2;
