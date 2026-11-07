@@ -107,10 +107,45 @@
   function certifiedClipArtifact(polygon) {
     if (!Array.isArray(polygon) || polygon.length !== 1) return null;
     const ring = polygon[0];
-    if (!Array.isArray(ring) || ring.length !== 4 || ring.some(point =>
+    if (!Array.isArray(ring) || ring.length < 4 || ring.length > 64 || ring.some(point =>
       !Array.isArray(point) || point.length !== 2 || point.some(n => typeof n !== 'number' || !Number.isFinite(n))
         || Math.abs(point[0]) > 180 || Math.abs(point[1]) > 90)) return null;
-    if (ring[0][0] !== ring[3][0] || ring[0][1] !== ring[3][1]) return null;
+    if (ring[0][0] !== ring.at(-1)[0] || ring[0][1] !== ring.at(-1)[1]) return null;
+    if (ring.length !== 4) {
+      // Boolean intersections at shared boundaries can return a closed walk
+      // that follows each zero-area edge out and back. Certify cancellation
+      // before discarding; a tiny but real polygon (or a bow-tie whose net
+      // signed area is zero) must never pass this check. This is used only
+      // after strict Core rejection and requires an explicit precision audit.
+      const vertices=ring.slice(0,-1),unique=[],ids=[];
+      for(const point of vertices){
+        let id=unique.findIndex(other=>Math.abs(point[0]-other[0])<=1e-10
+          &&Math.abs(point[1]-other[1])<=1e-10);
+        if(id===-1){id=unique.length;unique.push(point);}
+        ids.push(id);
+      }
+      const balanced=new Map();
+      for(let i=0;i<ids.length;i++){
+        const a=ids[i],b=ids[(i+1)%ids.length];
+        if(a===b)continue;
+        const key=a<b?`${a}:${b}`:`${b}:${a}`;
+        balanced.set(key,(balanced.get(key)||0)+(a<b?1:-1));
+      }
+      if(!balanced.size||[...balanced.values()].some(count=>count!==0))return null;
+      const bounds=[Infinity,Infinity,-Infinity,-Infinity],origin=ring[0];
+      let twiceArea=0;
+      for(let i=0;i+1<ring.length;i++){
+        const a=ring[i],b=ring[i+1];
+        bounds[0]=Math.min(bounds[0],a[0]);bounds[1]=Math.min(bounds[1],a[1]);
+        bounds[2]=Math.max(bounds[2],a[0]);bounds[3]=Math.max(bounds[3],a[1]);
+        twiceArea+=(a[0]-origin[0])*(b[1]-origin[1])-(b[0]-origin[0])*(a[1]-origin[1]);
+      }
+      if(bounds[2]-bounds[0]>1||bounds[3]-bounds[1]>1
+        ||Math.max(Math.abs(bounds[1]),Math.abs(bounds[3]))>=85)return null;
+      const areaM2=Math.abs(twiceArea)/2*(111195**2)
+        *Math.cos((bounds[1]+bounds[3])/2*Math.PI/180);
+      return Number.isFinite(areaM2)&&areaM2<=0.1?areaM2:null;
+    }
     const [a, b, c] = ring;
     const xs = [a[0], b[0], c[0]], ys = [a[1], b[1], c[1]];
     if (Math.max(...xs) - Math.min(...xs) > 1 || Math.max(...ys) - Math.min(...ys) > 1

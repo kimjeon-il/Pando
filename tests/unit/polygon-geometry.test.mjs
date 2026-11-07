@@ -227,3 +227,24 @@ test('audited shared-border clipping omits only submicroscopic-width triangular 
   const finiteWidth=[[14,50],[14.001,50.001],[14.0005,50.00050001],[14,50]];
   assert.ok(normalizeClippedPolygonGeometry([[finiteWidth]],{onPrecisionDiscard(){assert.fail('non-roundoff geometry must not be discarded');}}));
 });
+
+test('audited shared-boundary zero-area retrace is not promoted to a historical island',()=>{
+  const {normalizePolygonGeometry,normalizeClippedPolygonGeometry}=globalThis.PandoLabPolygonGeometry;
+  const original=[[18.62310395972329,52.865064843259695],[18.62310395972331,52.86506484325972],
+    [18.65694287507342,52.88613406982571],[18.69982606372881,52.89817847593115],
+    [18.718115696644393,52.896766975148424],[18.69982606372883,52.89817847593119],
+    [18.65694287507341,52.88613406982573],[18.6231039597233,52.86506484325975],
+    [18.62310395972329,52.865064843259695]];
+  const valid=[[0,0],[0,1],[1,1],[1,0],[0,0]];
+  const input=[[valid],[original]],unchanged=structuredClone(input);
+  assert.throws(()=>normalizePolygonGeometry([[original]]),/INVALID_POLYGON_RING/);
+  assert.throws(()=>normalizeClippedPolygonGeometry([[original]]),/INVALID_POLYGON_RING/);
+  const audit=[],result=normalizeClippedPolygonGeometry(input,{onPrecisionDiscard:entry=>audit.push(entry)});
+  assert.deepEqual(result.coordinates,[valid]);assert.deepEqual(input,unchanged);
+  assert.equal(audit.length,1);assert.equal(audit[0].polygonIndex,1);
+  assert.ok(audit[0].areaM2>=0&&audit[0].areaM2<=0.1);
+  const wrong=[[0,0],[0.01,0.01],[0.02,0],[0,0.01],[0,0]];
+  assert.throws(()=>normalizeClippedPolygonGeometry([[wrong]],{
+    onPrecisionDiscard(){assert.fail('a non-retraced self-crossing boundary cannot be deleted');}
+  }),/INVALID_POLYGON_RING|INVALID_SPHERICAL_WINDING|AMBIGUOUS_SPHERICAL_RING/);
+});
