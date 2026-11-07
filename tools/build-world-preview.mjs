@@ -12,6 +12,7 @@ import { inspectCanonicalCountryPacket } from "../shared/frontend/js/modules/can
 import { encodeCanonicalCountryPacket } from './canonical-country-packet-encoder.mjs';
 import { buildTopologyPreview } from './preview-topology.mjs';
 import { classifyBuiltinCountries } from "../shared/frontend/js/modules/builtin-subunits.js";
+import { loadBuiltinDisplayPolicy } from './gis/builtin-display-policy.mjs';
 import { geometryFingerprint } from "../shared/frontend/js/modules/project-preview-policy.js";
 import { verifyGzipAssetBytes } from '../scripts/lib/gzip-asset-verification.mjs';
 import './load-spherical-core.mjs';
@@ -201,7 +202,7 @@ if (canonicalSource?.type !== 'FeatureCollection' || !canonicalSource.features?.
 
 const startedAt = performance.now();
 const preview = buildPreview(canonicalSource);
-const classified = classifyBuiltinCountries({ ...canonicalSource, features: canonicalSource.features.map(minimalFeature) });
+const classified = classifyBuiltinCountries({ ...canonicalSource, features: canonicalSource.features.map(minimalFeature) }, { displayPolicy: loadBuiltinDisplayPolicy() });
 const canonicalById = new Map(canonicalSource.features.map((feature, index) => [countryId(feature, String(index)), feature]));
 const classifiedById = new Map(classified.countries.features.map(feature => [String(feature.id), feature]));
 const defaultClassification = {
@@ -212,6 +213,7 @@ const defaultClassification = {
   removedIds: [...canonicalById.keys()].filter(id => !classifiedById.has(id)),
   units: Object.fromEntries(classified.subunits.map(unit => [String(unit.id), {
     parentId: String(unit.properties.parentId), geometry: geometryFingerprint(unit.geometry),
+    revision: unit.properties.metadata.builtinSubunit.revision,
   }])),
 };
 const previewJson = Buffer.from(JSON.stringify(preview.collection));

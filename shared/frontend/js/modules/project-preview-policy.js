@@ -1,6 +1,4 @@
-import { BUILTIN_SUBUNIT_REVISION } from './builtin-subunits.js';
 import { MAP_SURFACE_HIGH_SCALE, MAP_SURFACE_MAX_ERROR_PX } from './country-mesh-zoom-policy.js';
-export { BUILTIN_SUBUNIT_REVISION } from './builtin-subunits.js';
 
 export const PROJECT_PREVIEW_ALGORITHM_REVISION = 'project-topology-4';
 export const PROJECT_PREVIEW_MAX_BYTES = 16 * 1024 * 1024;
@@ -184,7 +182,8 @@ function unitsMatchDefault(units, expected) {
     const row = expected[id];
     if (!row || seen.has(id) || !(unit?.properties?.entityKind === 'general' && !!unit?.properties?.parentId)
       || String(unit?.properties?.parentId || '') !== row.parentId
-      || unit?.properties?.metadata?.builtinSubunit?.revision !== BUILTIN_SUBUNIT_REVISION
+      || !unit?.properties?.metadata?.builtinSubunit?.revision
+      || (row.revision != null && unit.properties.metadata.builtinSubunit.revision !== row.revision)
       || geometryFingerprint(unit.geometry) !== row.geometry) return false;
     seen.add(id);
   }

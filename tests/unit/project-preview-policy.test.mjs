@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { gzipSync } from 'node:zlib';
 import test from 'node:test';
-import { BUILTIN_SUBUNITS, BUILTIN_SUBUNIT_REVISION } from "../../shared/frontend/js/modules/builtin-subunits.js";
+import { builtinSubunitId } from "../../shared/frontend/js/modules/builtin-subunits.js";
 import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
 import { createTerritorialEntityStore } from "../../shared/frontend/js/modules/territorial-entity-store.js";
 import { createTerritorialEntityRepository } from "../../shared/frontend/js/modules/territorial-entity-repository.js";
@@ -12,8 +12,7 @@ import { geometryFingerprint, matchesDefaultPreview, previewSourceForProject,
 import { createNodeCoreProject } from '../helpers/core-project.mjs';
 import { staticAutosaveProject } from '../helpers/timeline-project.mjs';
 
-const subunit = BUILTIN_SUBUNITS.find(row => row.sourceCountryId === 'HKG');
-assert.ok(subunit);
+const subunit = { id: builtinSubunitId('HKG'), sourceCountryId: 'HKG', parentId: 'CHN', revision: 'synthetic-preview-v1' };
 const dataset = 'tiny-preview-source';
 const rectangle = (left, right) => ({ coordinates: [[[left,0],[right,0],[right,4],[left,4],[left,0]]], type: 'Polygon' });
 const china = rectangle(0,4), britain = rectangle(10,14), hongKong = rectangle(3,4);
@@ -24,7 +23,7 @@ const feature = (id, geometry, properties = {}) => createTerritorialFeature({
 });
 const classified = () => [feature('CHN',china), feature(subunit.id,hongKong,{
   parentId: subunit.parentId, metadata: { builtinSubunit: {
-    revision: BUILTIN_SUBUNIT_REVISION, sourceCountryId: subunit.sourceCountryId,
+    revision: subunit.revision, sourceCountryId: subunit.sourceCountryId,
   } },
 })];
 
@@ -58,7 +57,7 @@ async function fixture(t) {
   await command(owner,'territorial.patch',{ features: classified(), removedIds: ['HKG'] },['CHN',subunit.id,'HKG']);
   const baseline = { sourceSha256, defaultClassification: {
     countries: { CHN: fingerprints.CHN, GBR: fingerprints.GBR }, changed: { CHN: fingerprints.CHN },
-    removedIds: ['HKG'], units: { [subunit.id]: { parentId: subunit.parentId, geometry: fingerprints.HKG } },
+    removedIds: ['HKG'], units: { [subunit.id]: { parentId: subunit.parentId, geometry: fingerprints.HKG, revision: subunit.revision } },
   } };
   return { ...owner, baseline, storageBaselineId };
 }
@@ -90,6 +89,9 @@ test('tiny default classification uses exact Core geometry hashes and changed ID
     countries: [['CHN',china]], removed: ['HKG'], units: [[subunit.id,'general',subunit.parentId,hongKong]],
   });
   assert.equal(matchesDefaultPreview(source,owner.baseline),true);
+  const wrongRevision = structuredClone(owner.baseline);
+  wrongRevision.defaultClassification.units[subunit.id].revision = 'another-policy';
+  assert.equal(matchesDefaultPreview(source,wrongRevision),false);
 });
 
 test('Core-approved display-only changes keep the shipped preview, including another dirty root',async t => {
