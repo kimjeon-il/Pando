@@ -183,3 +183,24 @@ test('invalid historical Boolean shells fail with bounded ring evidence instead 
     return true;
   });
 });
+
+// Regression for the sub-millidegree shared-border segment that previously
+// made a large historical Germany sweep lose its active tree entry.
+test('native historical subtraction retains exact near-collinear source vertices',()=>{
+  const p=[12.09703138349695,50.25690418331658],q=[12.102393,50.259156];
+  const subject={...candidate('DEU',0,1),geometry:{type:'Polygon',coordinates:[[
+    [12.08,50.24],[12.16,50.24],[12.16,50.31],[12.08,50.31],[12.08,50.24],
+  ]]}};
+  const peer={...candidate('border-peer',0,1),geometry:{type:'Polygon',coordinates:[[
+    p,q,[12.11,50.263],[12.095,50.266],p,
+  ]]}};
+  const input=[subject,peer],snapshot=structuredClone(input);
+  const result=module.adjustHistoricalTerritories(input,policy);
+  const wrap=geometry=>geometry?.type==='Polygon'?[geometry.coordinates]:geometry?.coordinates||[];
+  const expected=globalThis.polygonClipping.difference(wrap(subject.geometry),wrap(peer.geometry));
+  const rebuilt=result.candidates.find(row=>row.entityId==='DEU');
+  assert.ok(rebuilt,'the surrounding country geometry must survive');
+  assert.deepEqual(globalThis.polygonClipping.xor(wrap(rebuilt.geometry),expected),[]);
+  assert.deepEqual(input,snapshot,'compilation must not perturb the exact source vertices');
+  assert.deepEqual(result,module.adjustHistoricalTerritories([...input].reverse(),policy));
+});
