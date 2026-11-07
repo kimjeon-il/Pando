@@ -5,7 +5,7 @@ on:
     branches: [work/gis]
     paths:
       - '.github/workflows/builtin-country-deployment.yml'
-      - 'tests/unit/builtin-country-deployment.test.mjs'
+      - 'tests/unit/builtin-country-publication.test.mjs'
       - 'tests/unit/builtin-country-parts.test.mjs'
       - 'tests/integration/builtin-country-deployment.mjs'
       - 'tests/browser/viewer-calendar.spec.mjs'
@@ -111,7 +111,7 @@ jobs:
       - name: Verify affected generation, loader, deployment and Viewer publication contracts
         if: steps.reuse.outputs.verified != 'true'
         run: |
-          node --test --test-timeout=15000 tests/unit/builtin-country-publication.test.mjs tests/unit/historical-world-publication.test.mjs tests/unit/builtin-world-catalog.test.mjs tests/unit/builtin-world-loader.test.mjs tests/unit/builtin-country-loading.test.mjs tests/unit/builtin-country-retry.test.mjs tests/unit/builtin-country-deployment.test.mjs tests/unit/builtin-country-parts.test.mjs tests/unit/frontend-product-output.test.mjs tests/unit/monorepo-pages-staging.test.mjs
+          node --test --test-timeout=15000 tests/unit/builtin-country-publication.test.mjs tests/unit/historical-world-publication.test.mjs tests/unit/builtin-world-catalog.test.mjs tests/unit/builtin-world-loader.test.mjs tests/unit/builtin-country-loading.test.mjs tests/unit/builtin-country-parts.test.mjs tests/unit/frontend-product-output.test.mjs tests/unit/monorepo-pages-staging.test.mjs
       - name: Prepare independent files and a locally verified paired pin; preserve every country hash
         run: |
           node --input-type=module <<'JS'

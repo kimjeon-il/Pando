@@ -6,7 +6,7 @@ on:
       - '.github/workflows/boundary-spatial-packed-gate.yml'
       - 'shared/frontend/js/modules/boundary-spatial-index.js'
       - 'shared/frontend/js/modules/boundary-topology.js'
-      - 'tests/unit/boundary-spatial-index-packed.test.mjs'
+      - 'tests/unit/boundary-source-row-compact.test.mjs'
       - 'shared/frontend/static/wasm/pandoeditor-core.manifest.json'
   workflow_dispatch:
 permissions:
@@ -32,8 +32,8 @@ jobs:
       - name: Verify packed spatial index, source identities, and code style
         run: |
           node --check shared/frontend/js/modules/boundary-spatial-index.js
-          pnpm exec eslint shared/frontend/js/modules/boundary-spatial-index.js shared/frontend/js/modules/boundary-topology.js tests/unit/boundary-spatial-index-packed.test.mjs
-          node --test tests/unit/boundary-spatial-index-packed.test.mjs
+          pnpm exec eslint shared/frontend/js/modules/boundary-spatial-index.js shared/frontend/js/modules/boundary-topology.js tests/unit/boundary-source-row-compact.test.mjs
+          node --test tests/unit/boundary-source-row-compact.test.mjs
       - name: Verify unchanged country contact identities and incremental patches
         run: |
-          node --test tests/unit/country-contact-core.test.mjs tests/unit/country-shared-boundary-state.test.mjs tests/unit/boundary-display-refinement.test.mjs
+          node --test tests/unit/country-shared-boundary.test.mjs tests/unit/country-shared-boundary-state.test.mjs tests/unit/boundary-display-refinement.test.mjs
