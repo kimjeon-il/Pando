@@ -31,7 +31,7 @@ function fixture(t,{missingPart=false,badHash=false,legacy=false}={}){
  if(badHash)files[base+country.parts[0].file].sha256='0'.repeat(64);
  const retired=[base+'transport/countries-sha256-'+hash(Buffer.from('retired'))+'.bin',base+country.file,base+'countries/orphan.json.gz'];
  for(const path of retired)archive(path,path===base+country.file?bytes:Buffer.from('retired'),{absent:!legacy});
- const index={schema:'pandolab-builtin-world',schemaVersion:2,storageLayout:'country-files-v1',entities:[country]};
+ const index={schema:'pandolab-builtin-world',schemaVersion:2,storageLayout:'country-files-v1',inputHashes:{sourceRevisions:{}},entities:[country]};
  if(legacy){delete index.storageLayout;index.transport={url:retired[0].slice(base.length)};}
  archive(base+'index.json',JSON.stringify(index));
  // Runtime publication now verifies paired source indexes even for a
