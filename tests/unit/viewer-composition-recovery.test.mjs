@@ -45,7 +45,6 @@ async function fixture({engineFailure=false,mapFailure=false,suppressReadyCertif
   const bindings={presentViewerLoadStatus,window,document,CustomEvent,URL,URLSearchParams,structuredClone,console:{warn:noop,error:noop},
     createViewerPostPresentation,
     createViewerInspectorController:()=>({syncMapSelection:noop,openAfterStartup:async()=>false,dispose:noop}),
-    createViewerAdjacentPrefetch: () => ({afterPresented: noop,interrupt: noop,dispose: noop}),
     createPlatformPorts:()=>({}),createRuntimeContext:({meta})=>({meta,platform:{}}),createBrowserFileAccess:()=>({}),connectMapOwner:noop,
     createBrowserProjectStorage:()=>({}),initialBoundsView:noop,
     createNotificationPresentation:()=>({...controller(),reportOperationError:noop}),createApplicationLifecycle,createViewerInitialPresentation,
