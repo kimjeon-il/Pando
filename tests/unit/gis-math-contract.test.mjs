@@ -1,16 +1,44 @@
-import assert from 'node:assert/strict';
-import fs from 'node:fs';
-import path from 'node:path';
-import test from 'node:test';
-import vm from 'node:vm';
-import { fileURLToPath } from 'node:url';
+import { describe as contractSuite } from 'node:test';
+import * as __gis_dep0 from "node:assert/strict";
+import * as __gis_dep1 from "node:fs";
+import * as __gis_dep2 from "node:path";
+import * as __gis_dep3 from "node:test";
+import * as __gis_dep4 from "node:vm";
+import * as __gis_dep5 from "node:url";
+import * as __gis_dep6 from "../../shared/frontend/js/modules/geographic-boundary.js";
+import * as __gis_dep7 from "../../tools/gis/geometry-metrics.js";
+import * as __gis_dep8 from "../../tools/gis/river-territory-partition.js";
+import * as __gis_dep9 from "../../tools/gis/geometry-validation.js";
+import * as __gis_dep10 from "./helpers/gis-worker-harness.mjs";
+import * as __gis_dep11 from "../helpers/spherical-core.mjs";
 
-import * as boundary from "../../shared/frontend/js/modules/geographic-boundary.js";
-import { distanceKm, geometryAreaKm2, lineDistanceKm } from "../../tools/gis/geometry-metrics.js";
-import * as partitions from "../../tools/gis/river-territory-partition.js";
-import { validateCollection } from "../../tools/gis/geometry-validation.js";
-import { createGisWorkerHarness } from './helpers/gis-worker-harness.mjs';
-import { sphericalCore } from '../helpers/spherical-core.mjs';
+// Original feature contract: gis-math-contract.test.mjs
+contractSuite("gis-math-contract", () => {
+const assert = __gis_dep0.default;
+const fs = __gis_dep1.default;
+const path = __gis_dep2.default;
+const test = __gis_dep3.default;
+const vm = __gis_dep4.default;
+const { fileURLToPath } = __gis_dep5;
+const boundary = __gis_dep6;
+const { distanceKm, geometryAreaKm2, lineDistanceKm } = __gis_dep7;
+const partitions = __gis_dep8;
+const { validateCollection } = __gis_dep9;
+const { createGisWorkerHarness } = __gis_dep10;
+const { sphericalCore } = __gis_dep11;
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const read = relativePath => fs.readFileSync(path.join(root, relativePath), 'utf8');
@@ -238,4 +266,72 @@ test('GIS contract test sources stay worker-safe and do not revive removed paths
   assert.doesNotMatch(productionSources, /gpu-state-scope|selection-coverage|annex-source-v1|frontier-pocket/);
   assert.match(read('shared/frontend/js/workers/geographic-boundary-core.js'), /180/);
   assert.match(read('shared/frontend/js/modules/geographic-boundary.js'), /atPole|atDateLine/);
+});
+});
+
+// Original feature contract: p5-spherical-area-delegation.test.mjs
+contractSuite("p5-spherical-area-delegation", () => {
+const assert = __gis_dep0.default;
+const { readFileSync } = __gis_dep1;
+const vm = __gis_dep4.default;
+const test = __gis_dep3.default;
+
+
+
+
+
+const source=readFileSync(new URL("../../shared/frontend/js/modules/polygon-geometry.js",import.meta.url),'utf8');
+const ring=[[179,-2],[179,2],[-179,2],[-179,-2],[179,-2]];
+
+function loadedCore() {
+  const calls={scalar:0,batch:0};
+  const nativeCpp={
+    sphericalRingSignedArea(value) {
+      calls.scalar++;
+      assert.deepEqual(Array.from(value),ring);
+      return 12.5;
+    },
+    sphericalRingSignedAreas(values) {
+      calls.batch++;
+      assert.equal(values.length,2);
+      return [12.5,-12.5];
+    },
+  };
+  const context=vm.createContext({PandoLabSphericalCore:{
+    ...nativeCpp, normalizePolygonGeometry(){},normalizePolygonRing(){},hasCanonicalPolygonWinding(){}
+  }});
+  vm.runInContext(source,context);
+  return {context,calls,nativeCpp,api:context.PandoLabPolygonGeometry};
+}
+test('live Web delegates scalar and multi-ring spherical areas to compiled Core',()=>{
+  const {calls,api}=loadedCore();
+  const original=structuredClone(ring);
+  assert.equal(api.sphericalSignedArea(ring),12.5);
+  assert.equal(JSON.stringify(api.sphericalSignedAreas([ring,ring])),JSON.stringify([12.5,-12.5]));
+  assert.deepEqual(ring,original);
+  assert.deepEqual(calls,{scalar:1,batch:1});
+  assert.doesNotMatch(source,/Math\.atan2\s*\(/,
+    'the legacy spherical geodesic integral must not survive in runtime JS');
+});
+test('Qt uses the explicit native C++ bridge rather than an unrelated JS fallback',()=>{
+  const {context,api,calls}=loadedCore();
+  const qtCalls=[];
+  context.PandoLabSphericalAreaCore={
+    sphericalRingSignedArea:()=>{qtCalls.push('scalar');return 5.5;},
+    sphericalRingSignedAreas:()=>{qtCalls.push('batch');return [5.5];}
+  };
+  assert.equal(api.sphericalSignedArea(ring),5.5);
+  assert.equal(api.sphericalSignedAreas([ring])[0],5.5);
+  assert.deepEqual(qtCalls,['scalar','batch']);
+  assert.equal(calls.scalar,0);
+  assert.equal(calls.batch,0);
+});
+test('missing C++ capability is a visible error; never a silent JS approximation',()=>{
+  const {context,api}=loadedCore();
+  delete context.PandoLabSphericalCore;
+  assert.throws(()=>api.sphericalSignedArea(ring),
+    error=>error.code==='PL-GEOMETRY-WASM-001');
+  assert.throws(()=>api.sphericalSignedAreas([ring]),
+    error=>error.code==='PL-GEOMETRY-WASM-001');
+});
 });
