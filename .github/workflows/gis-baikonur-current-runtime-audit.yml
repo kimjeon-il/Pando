@@ -7,7 +7,7 @@ on:
       - 'tools/gis/audit-baikonur-runtime-geometry.mjs'
       - 'tools/gis/verify-baikonur-lease-exclusions.mjs'
       - 'tools/gis/validate-baikonur-independent-banks.mjs'
-      - 'tests/unit/gis-baikonur-independent-bank-validator.test.mjs'
+      - 'tests/unit/gis-baikonur-reference.test.mjs'
       - '.github/workflows/gis-baikonur-current-runtime-audit.yml'
   workflow_dispatch:
 permissions:
