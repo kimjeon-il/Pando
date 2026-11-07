@@ -1349,9 +1349,9 @@
         "CMakeLists.txt",
         "CMakePresets.json"
       ],
-      "workflow": ".github/workflows/remote-development-p1.yml",
-      "job": "native-core",
-      "reason": "Standalone C++ compilation remains owned by P1; local application checks do not certify native execution."
+      "workflow": ".github/workflows/shared-core.yml",
+      "job": "native-branch-core",
+      "reason": "Source-selected C++ core build is owned by the Shared C++ core workflow, replacing the retired P1 stage workflow."
     },
     {
       "id": "hydro-native-generation",
