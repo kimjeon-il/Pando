@@ -28,7 +28,7 @@ let cached;
 export function loadBuiltinDisplayPolicy(){
   if(!cached){
     const value=validateBuiltinDisplayPolicy(JSON.parse(readFileSync(
-      new URL('../../config/builtin-display-policy.json',import.meta.url),'utf8')));
+      new URL('../../assets/data/builtin-world/display-policy-v1.json',import.meta.url),'utf8')));
     cached=Object.freeze({...value,
       subunits:Object.freeze(value.subunits.map(row=>Object.freeze(row))),
       territoryMerges:Object.freeze(value.territoryMerges.map(row=>Object.freeze(row)))});
