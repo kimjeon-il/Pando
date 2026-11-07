@@ -1,8 +1,21 @@
-import assert from 'node:assert/strict';
-import {spawnSync} from 'node:child_process';
-import test from 'node:test';
-import {auditLSIBGeometry,readOriginalLineages,verifyLSIBCountryContracts}
-  from '../../tools/gis/verify-lsib-country-sources.mjs';
+import { describe as contractSuite } from 'node:test';
+import * as __source_dep0 from "node:assert/strict";
+import * as __source_dep1 from "node:child_process";
+import * as __source_dep2 from "node:test";
+import * as __source_dep3 from "../../tools/gis/verify-lsib-country-sources.mjs";
+import * as __source_dep4 from "node:fs/promises";
+import * as __source_dep5 from "../../tools/gis/lsib-screen-native.mjs";
+
+// Original feature contract: gis-lsib-source-native.test.mjs
+contractSuite("gis-lsib-source-native", () => {
+const assert = __source_dep0.default;
+const { spawnSync } = __source_dep1;
+const test = __source_dep2.default;
+const { auditLSIBGeometry, readOriginalLineages, verifyLSIBCountryContracts } = __source_dep3;
+
+
+
+
 
 const square=(w,s,e,n)=>({type:'Polygon',coordinates:[[
   [w,s],[e,s],[e,n],[w,n],[w,s]]]});
@@ -105,3 +118,39 @@ test('native GEOS rejects a self-crossing modern polygon',
     assert.equal(result.modernChangedPolygonsValid,false);
     assert.equal(result.passed,false);
   });
+});
+
+// Original feature contract: gis-lsib-reviewed-native.test.mjs
+contractSuite("gis-lsib-reviewed-native", () => {
+const assert = __source_dep0.default;
+const { readFile } = __source_dep4;
+const test = __source_dep2.default;
+const { prepareLSIBReviewed } = __source_dep5;
+
+
+
+
+
+const binary=process.env.PANDO_TERRITORIAL_RECIPE_BINARY;
+test('GEOS validates reviewed open coastlines and rejects closed or crossing lines',{skip:!binary},async()=>{
+  const line={type:'LineString',coordinates:[[7,43],[7.1,43.1],[7.2,43.1]]};
+  assert.deepEqual(await prepareLSIBReviewed('coast',line,{binary}),{coordinates:line.coordinates});
+  await assert.rejects(prepareLSIBReviewed('coast',{type:'LineString',coordinates:[[0,0],[1,0],[0,0]]},{binary}),/simple open/i);
+  await assert.rejects(prepareLSIBReviewed('coast',{type:'LineString',coordinates:[[0,0],[1,1],[0,1],[1,0]]},{binary}),/simple open/i);
+});
+test('GEOS transforms a reviewed polygon exterior and refuses holes',{skip:!binary},async()=>{
+  const ring=[[12.4,43.9],[12.5,43.9],[12.5,44],[12.4,43.9]],geometry={type:'Polygon',coordinates:[ring]};
+  const actual=await prepareLSIBReviewed('igm',geometry,{binary});assert.equal(actual.coordinates.length,ring.length);
+  assert.equal(typeof actual.transformation?.description,'string');assert.ok(Number.isFinite(actual.transformation?.accuracyMetres));
+  for(let i=0;i<ring.length;i++)for(let j=0;j<2;j++)assert.ok(Math.abs(actual.coordinates[i][j]-ring[i][j])<1e-8);
+  await assert.rejects(prepareLSIBReviewed('igm',{...geometry,coordinates:[ring,ring]},{binary}),/polygon without holes/i);
+});
+test('reviewed source lines match the retained Python/PROJ result',{skip:!binary||!process.env.PANDO_LSIB_REVIEWED_ORACLE},async()=>{
+  const {items}=JSON.parse(await readFile(process.env.PANDO_LSIB_REVIEWED_ORACLE,'utf8'));
+  for(const row of items){const {coordinates:actual}=await prepareLSIBReviewed(row.mode,row.geometry,{binary});
+    assert.equal(actual.length,row.expected.length,row.name);
+    for(let i=0;i<actual.length;i++)for(let c=0;c<2;c++)
+      assert.ok(Math.abs(actual[i][c]-row.expected[i][c])<1e-12,`${row.name} coordinate ${i}/${c}`);
+  }
+});
+});

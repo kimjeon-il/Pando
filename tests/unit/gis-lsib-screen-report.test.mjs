@@ -1,11 +1,33 @@
-import assert from 'node:assert/strict';
-import {spawnSync} from 'node:child_process';
-import {mkdir,mkdtemp,readFile,rmdir,unlink,writeFile} from 'node:fs/promises';
-import {tmpdir} from 'node:os';
-import {join} from 'node:path';
-import test from 'node:test';
-import {evaluateLSIBScreens,runLSIBScreen,selectedLSIBSourceIds} from '../../tools/gis/verify-lsib-screen-delta.mjs';
-import {readLSIBLines} from '../../tools/gis/lsib-source-native.mjs';
+import { describe as contractSuite } from 'node:test';
+import * as __source_dep0 from "node:assert/strict";
+import * as __source_dep1 from "node:child_process";
+import * as __source_dep2 from "node:fs/promises";
+import * as __source_dep3 from "node:os";
+import * as __source_dep4 from "node:path";
+import * as __source_dep5 from "node:test";
+import * as __source_dep6 from "../../tools/gis/verify-lsib-screen-delta.mjs";
+import * as __source_dep7 from "../../tools/gis/lsib-source-native.mjs";
+import * as __source_dep8 from "node:crypto";
+import * as __source_dep9 from "../../tools/gis/lsib-reviewed-source.mjs";
+
+// Original feature contract: gis-lsib-screen-report.test.mjs
+contractSuite("gis-lsib-screen-report", () => {
+const assert = __source_dep0.default;
+const { spawnSync } = __source_dep1;
+const { mkdir, mkdtemp, readFile, rmdir, unlink, writeFile } = __source_dep2;
+const { tmpdir } = __source_dep3;
+const { join } = __source_dep4;
+const test = __source_dep5.default;
+const { evaluateLSIBScreens, runLSIBScreen, selectedLSIBSourceIds } = __source_dep6;
+const { readLSIBLines } = __source_dep7;
+
+
+
+
+
+
+
+
 
 const binary=process.env.PANDO_TERRITORIAL_RECIPE_BINARY;
 const id='c133c4d6-bf4f-489d-b51e-abf2be55d369';
@@ -89,4 +111,59 @@ test('LSIB report workflow reads selected original and protects its output',{
   assert.equal(report.samples,2464+423);assert.deepEqual(JSON.parse(bytes),report);
   assert.ok(Math.abs(report.sampledMaximumCssPx-.18131739355200677)<1e-10);
   await assert.rejects(runLSIBScreen(args,options),/already exists/i);assert.equal(await readFile(output,'utf8'),bytes);
+});
+});
+
+// Original feature contract: gis-lsib-reviewed-source.test.mjs
+contractSuite("gis-lsib-reviewed-source", () => {
+const assert = __source_dep0.default;
+const { createHash } = __source_dep8;
+const { mkdir, mkdtemp, readFile, rmdir, unlink, writeFile } = __source_dep2;
+const { tmpdir } = __source_dep3;
+const { join } = __source_dep4;
+const test = __source_dep5.default;
+const { loadLSIBReviewedSource } = __source_dep9;
+
+
+
+
+
+
+
+
+const binary=process.env.PANDO_TERRITORIAL_RECIPE_BINARY;
+test('reviewed LSIB source refuses paths outside the library source scope',async()=>{
+  await assert.rejects(loadLSIBReviewedSource({root:process.cwd(),manifestPath:'../outside.json'}),/scope|path|escape/i);
+});
+test('reviewed LSIB source rejects changed bytes and unreviewed coast features',async t=>{
+  const root=await mkdtemp(join(tmpdir(),'pando-lsib-reviewed-'));
+  const folder=join(root,'tools','historical-library','sources','fixture');await mkdir(folder,{recursive:true});
+  const manifestFile=join(folder,'manifest.json'),sourceFile=join(folder,'source.json');
+  t.after(async()=>{await unlink(manifestFile);await unlink(sourceFile);for(const p of [folder,join(root,'tools','historical-library','sources'),join(root,'tools','historical-library'),join(root,'tools'),root])await rmdir(p);});
+  const source=JSON.stringify({features:[{type:'Feature',properties:{cleabs:'one',niveau:'wrong'},geometry:{type:'LineString',coordinates:[[0,0],[1,0]]}}]});
+  await writeFile(sourceFile,source);
+  const manifest={schemaVersion:1,countries:['FRA','MCO'],sourceId:'ign-bdtopo-v3-monaco-coast',sourceCrs:'EPSG:4326',
+    sourceFile:'tools/historical-library/sources/fixture/source.json',sourceFileSha256:'0'.repeat(64),features:{monaco:'one',west:'two',east:'three'}};
+  await writeFile(manifestFile,JSON.stringify(manifest));
+  const request={root,manifestPath:'tools/historical-library/sources/fixture/manifest.json'};
+  await assert.rejects(loadLSIBReviewedSource(request),/pinned evidence/i);
+  manifest.sourceFileSha256=createHash('sha256').update(source).digest('hex');await writeFile(manifestFile,JSON.stringify(manifest));
+  await assert.rejects(loadLSIBReviewedSource(request),/high.water/i);
+});
+test('reviewed IGM and Monaco lines match existing Python and PROJ',{skip:!binary||!process.env.PANDO_LSIB_REVIEWED_ORACLE},async()=>{
+  const {items}=JSON.parse(await readFile(process.env.PANDO_LSIB_REVIEWED_ORACLE,'utf8'));
+  const igm=await loadLSIBReviewedSource({root:process.cwd(),manifestPath:'tools/historical-library/sources/reviewed-boundaries-2026-10-22/smr-igm-reference.json',binary});
+  const coast=await loadLSIBReviewedSource({root:process.cwd(),manifestPath:'tools/historical-library/sources/monaco-reviewed-2026-10-22/coast-reference.json',binary});
+  assert.equal(igm.sourceId,'igm-dbsn-2025-06-27');assert.equal(coast.sourceId,'ign-bdtopo-v3-monaco-coast');
+  const {lines,referenceManifest,...metadata}=coast;
+  assert.deepEqual(metadata,JSON.parse(await readFile(referenceManifest,'utf8')));
+  const {lines:igmLines,referenceManifest:igmManifest,transformation,...igmMetadata}=igm;
+  assert.deepEqual(igmMetadata,JSON.parse(await readFile(igmManifest,'utf8')));
+  assert.deepEqual(transformation,{description:'axis order change (2D) + ETRS89 to WGS 84 (1) + axis order change (2D)',accuracyMetres:1});
+  assert.equal(igmLines.igm.length,items.find(row=>row.name==='igm').expected.length);
+  for(const row of items){const actual=row.name==='igm'?igm.lines.igm:coast.lines[row.name];
+    assert.equal(actual.length,row.expected.length,row.name);
+    for(let i=0;i<actual.length;i++)for(let c=0;c<2;c++)assert.ok(Math.abs(actual[i][c]-row.expected[i][c])<1e-12,`${row.name} ${i}/${c}`);
+  }
+});
 });
