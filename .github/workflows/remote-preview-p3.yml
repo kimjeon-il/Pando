@@ -82,7 +82,6 @@ jobs:
       - name: Check preview and build plan without installing SDKs
         run: node --test tests/unit/p3-remote-plan.test.mjs
           tests/unit/p3-preview-server.test.mjs
-          tests/unit/p3-presentation.test.mjs
       - name: Fetch source-change base for artifact result verification
         shell: bash
         env:

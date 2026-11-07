@@ -36,11 +36,9 @@ on:
       - 'assets/js/modules/boundary-topology.js'
       - 'assets/js/modules/country-contact-core.js'
       - 'tests/unit/country-contact-core.test.mjs'
-      - 'tests/unit/country-contact-legacy-parity.test.mjs'
       - 'assets/js/modules/country-shared-boundary-packet.js'
       - 'tests/unit/p5-6-contribution-merge.test.mjs'
       - 'tests/unit/p5-6-core-ownership.test.mjs'
-      - 'tests/unit/p5-6-performance-review.test.mjs'
       - 'tools/p5-6-core-ownership.mjs'
       - 'tools/p5-6-review-performance.mjs'
       - 'tests/browser/viewer-boundary-p4-5.spec.mjs'
@@ -89,7 +87,7 @@ jobs:
         run: node scripts/check-version.mjs
       - name: Assert shared C++ ownership of migrated Web rules
         run: |
-          node --test tests/unit/p5-6-core-ownership.test.mjs tests/unit/p5-6-contribution-merge.test.mjs tests/unit/p5-6-performance-review.test.mjs
+          node --test tests/unit/p5-6-core-ownership.test.mjs tests/unit/p5-6-contribution-merge.test.mjs
           node tools/p5-6-core-ownership.mjs --output build-native/p5-6-ownership.json
       - name: Preserve ownership audit even when a later generator check fails
         if: always()

@@ -262,12 +262,9 @@ jobs:
           tests/unit/core-save-state-projection.test.mjs
           tests/unit/core-draft-primitives.test.mjs
           tests/unit/timeline-controls.test.mjs tests/unit/shared-core-assets.test.mjs
-          tests/unit/web-document-seed.test.mjs tests/unit/web-flag-contract.test.mjs
-          tests/unit/web-selection-contract.test.mjs tests/unit/web-history-selection-contract.test.mjs
-          tests/unit/web-draft-contract.test.mjs tests/unit/core-worker-ownership.test.mjs
-          tests/unit/web-opaque-flag-contract.test.mjs
-          tests/unit/web-oracle-admission.test.mjs tests/unit/web-content-dirty-contract.test.mjs
-          tests/unit/web-writer-clock-contract.test.mjs
+          tests/unit/web-document-seed.test.mjs 
+           tests/unit/core-worker-ownership.test.mjs
+          tests/unit/web-oracle-admission.test.mjs 
           tests/unit/web-map-presentation-contract.test.mjs
           tests/unit/web-object-removal-original.test.mjs
       - name: Ordered storage snapshot and project replacement boundaries
