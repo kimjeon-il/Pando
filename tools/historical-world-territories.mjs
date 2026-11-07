@@ -60,7 +60,18 @@ export function adjustHistoricalTerritories(input, policy, clipper = historicalW
       const failing = value.flatMap((polygon, pi) => polygon.map((ring, ri) => ({
         polygon: pi, ring: ri, vertices: ring.length,
       }))).filter(part => part.vertices < 4);
-      const diagnostic=value.slice(0,3).flatMap((polygon,pi)=>polygon.slice(0,2).map((ring,ri)=>{
+      let invalidComponentIndex=-1;
+      // The Core retry reports "component 0" for an individual component,
+      // not necessarily component 0 of the full Boolean output.
+      for(let index=0;index<value.length;index++){
+        try{globalThis.PandoLabPolygonGeometry.normalizeClippedPolygonGeometry([value[index]],{
+          onPrecisionDiscard(){},
+        });}catch{invalidComponentIndex=index;break;}
+      }
+      const reported=invalidComponentIndex<0?[0,1,2]:
+        [invalidComponentIndex-1,invalidComponentIndex,invalidComponentIndex+1]
+          .filter(index=>index>=0&&index<value.length);
+      const diagnostic=reported.flatMap(pi=>value[pi].slice(0,2).map((ring,ri)=>{
         const first=ring[0]||[0,0],bounds=[Infinity,Infinity,-Infinity,-Infinity];
         let twiceArea=0,minimumEdge=Infinity,zeroEdges=0,nearAdjacent=0,repeatedVertices=0;
         const seenVertices=new Set();
@@ -79,9 +90,10 @@ export function adjustHistoricalTerritories(input, policy, clipper = historicalW
         }
         return {polygon:pi,ring:ri,vertices:ring.length,bounds,
           areaDegreesSquared:Math.abs(twiceArea)/2,minimumEdge,zeroEdges,nearAdjacent,repeatedVertices,
-          first:ring.slice(0,3),last:ring.slice(-3)};
+          first:ring.slice(0,3),last:ring.slice(-3),
+          completeRing:ring.length<=16?ring:null};
       }));
-      throw new Error(`HISTORICAL_CLIP_INVALID: ${operation}, components=${value.length}, shortRings=${JSON.stringify(failing.slice(0,8))}, ringDiagnostic=${JSON.stringify(diagnostic)}: ${error.message}`,{cause:error});
+      throw new Error(`HISTORICAL_CLIP_INVALID: ${operation}, components=${value.length}, invalidComponentIndex=${invalidComponentIndex}, shortRings=${JSON.stringify(failing.slice(0,8))}, ringDiagnostic=${JSON.stringify(diagnostic)}: ${error.message}`,{cause:error});
     }
   };
   // A large MultiPolygon Boolean must not combine unrelated distant pieces

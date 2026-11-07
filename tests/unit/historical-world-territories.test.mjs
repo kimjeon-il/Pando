@@ -162,6 +162,7 @@ test('invalid historical Boolean shells fail with bounded ring evidence instead 
   assert.throws(()=>module.adjustHistoricalTerritories(two,policy,clipper),error=>{
     assert.match(error.message,/HISTORICAL_CLIP_INVALID/);
     assert.match(error.message,/ringDiagnostic=/);
+    assert.match(error.message,/invalidComponentIndex=0/);
     assert.match(error.message,/areaDegreesSquared/);
     assert.match(error.message,/repeatedVertices/);
     assert.match(error.message,/degenerate shell or hole/);
