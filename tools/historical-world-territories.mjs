@@ -153,8 +153,11 @@ export function adjustHistoricalTerritories(input, policy, clipper = historicalW
     const offset=adjustments.length,inputs=geometries.map(coordinates);
     let raw;
     try {
+      // Multiple cutters are independent set subtractions. Never combine
+      // their unrelated edges into one fragile sweep, even for a single
+      // mainland subject (e.g. CHE against eleven historical peers).
       const complexDifference=name==='difference' && geometries.length===2
-        && inputs[0].length+inputs[1].length>16;
+        && (inputs[1].length>1 || inputs[0].length>1);
       raw=complexDifference?componentDifference(inputs[0],inputs[1],operation):clipper[name](...inputs);
     }catch(error){
       // Input dimensions identify the minimal failing source pair without
