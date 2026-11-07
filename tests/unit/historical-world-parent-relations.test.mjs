@@ -1,8 +1,25 @@
-import test from 'node:test';
-import assert from 'node:assert/strict';
-import {compileBuiltinWorldCatalog} from '../../tools/builtin-world-compiler.mjs';
-import {buildCurrentWorld} from '../../tools/territorial-current-world.mjs';
-import {temporalContains} from '../../shared/frontend/js/modules/temporal.js';
+import { describe as contractSuite } from 'node:test';
+import * as __country_dep0 from "node:test";
+import * as __country_dep1 from "node:assert/strict";
+import * as __country_dep2 from "../../tools/builtin-world-compiler.mjs";
+import * as __country_dep3 from "../../tools/territorial-current-world.mjs";
+import * as __country_dep4 from "../../shared/frontend/js/modules/temporal.js";
+import * as __country_dep5 from "node:crypto";
+import * as __country_dep6 from "../../tools/territorial-entity-sources.mjs";
+import * as __country_dep7 from "../../tools/gis/apply-post-2000-territorial-links.mjs";
+
+// Original feature contract: historical-world-parent-relations.test.mjs
+contractSuite("historical-world-parent-relations", () => {
+const test = __country_dep0.default;
+const assert = __country_dep1.default;
+const { compileBuiltinWorldCatalog } = __country_dep2;
+const { buildCurrentWorld } = __country_dep3;
+const { temporalContains } = __country_dep4;
+
+
+
+
+
 
 const box=(a,b)=>({type:'Polygon',coordinates:[[[a,50],[b,50],[b,51],[a,51],[a,50]]]});
 function fixture(){
@@ -84,4 +101,47 @@ test('partial publication follows dated parent dependencies and leaves unrelated
  const partial=buildBuiltinWorldPartialPublication({...common,sourceIndex,entityIds:['current:KOR']});
  const full=buildBuiltinWorldPublication({input:{...input,sourceIndex}});
  assert.deepEqual(JSON.parse(partial.get('index.json')).entities,JSON.parse(full.get('index.json')).entities);
+});
+});
+
+// Original feature contract: post-2000-territorial-links.test.mjs
+contractSuite("post-2000-territorial-links", () => {
+const test = __country_dep0.default;
+const assert = __country_dep1.default;
+const { createHash } = __country_dep5;
+const { readTerritorialSources, readTerritorialLineages } = __country_dep6;
+const { planPost2000CountryLinks } = __country_dep7;
+
+
+
+
+
+
+const hash=o=>createHash('sha256').update(JSON.stringify(o)).digest('hex');
+test('transition plan reuses existing geometry and does not predate independence',()=>{
+ const sources=readTerritorialSources();
+ const policy={schemaVersion:1,replacements:[]};
+ const plan=planPost2000CountryLinks(sources,readTerritorialLineages(),policy);
+ const byId=new Map(sources.map(x=>[x.entityId,x]));
+ if(plan.already){
+  assert.ok(byId.has('state:untaet-east-timor'));
+  assert.ok(byId.has('state:unmik-kosovo'));
+  return;
+ }
+ const yugoslavia=byId.get('state:yugoslavia');
+ const newYugo=plan.updated[0];
+ assert.equal(hash(newYugo.geometryVersions.at(-1).geometry),hash(yugoslavia.geometryVersions.at(-1).geometry));
+ assert.equal(newYugo.geometryVersions.at(-1).validFrom,'2003-02-04');
+ assert.equal(newYugo.lifetime.validTo,'2006-06-02');
+ const timor=plan.created.find(x=>x.entityId==='state:untaet-east-timor');
+ const kosovo=plan.created.find(x=>x.entityId==='state:unmik-kosovo');
+ assert.equal(hash(timor.geometryVersions[0].geometry),hash(byId.get('state:TLS').geometryVersions[0].geometry));
+ assert.equal(hash(kosovo.geometryVersions[0].geometry),hash(byId.get('state:KOS').geometryVersions[0].geometry));
+ assert.deepEqual(timor.lifetime,{validFrom:'1999-10-25',validTo:'2002-05-19'});
+ assert.deepEqual(kosovo.lifetime,{validFrom:'1999-06-10',validTo:'2008-02-16'});
+ assert.equal(byId.get('state:TLS').lifetime.validFrom,'2002-05-20');
+ assert.equal(byId.get('state:KOS').lifetime.validFrom,'2008-02-17');
+ assert.equal(byId.get('state:SDN').geometryVersions[0].validTo,'2011-07-08');
+ assert.equal(byId.get('state:SDS').geometryVersions[0].validFrom,'2011-07-09');
+});
 });
