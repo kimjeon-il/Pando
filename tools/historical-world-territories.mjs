@@ -9,7 +9,7 @@ import { normalizeTemporalInterval, compareTemporal, sharedCalculationCore } fro
 // border coordinates and the explicit sub-metre precision budget are binding.
 export const historicalWorldClipper = Object.freeze(Object.fromEntries(
   ['union','intersection','difference','xor'].map(method=>
-    [method,(...operands)=>sharedCalculationCore.polygonOperation(method,operands,false])
+    [method,(...operands)=>sharedCalculationCore.polygonOperation(method,operands,false)]
 ));
 // Geometry versions are immutable; one compilation owns and releases this
 // in-memory cache. Dates, policy decisions and precision budgets remain local
