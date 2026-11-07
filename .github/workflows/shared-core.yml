@@ -41,7 +41,7 @@ on:
       - 'pnpm-workspace.yaml'
       - '.github/workflows/shared-core.yml'
   push:
-    branches: [main, work/ui, work/objects, work/gis, work/places, work/remote-only]
+    branches: [main, work/optimization, work/ui, work/objects, work/gis, work/places, work/remote-only]
     paths:
       - 'shared/**'
       - 'shared/frontend/static/wasm/**'
