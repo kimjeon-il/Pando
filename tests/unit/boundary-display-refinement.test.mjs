@@ -1,13 +1,35 @@
-import { rectanglePolygon } from '../helpers/gis-polygon-fixture.mjs';
-import '../helpers/spherical-core.mjs';
-import assert from 'node:assert/strict';
-import test from 'node:test';
+import { describe as contractSuite } from 'node:test';
+import * as __boundary_dep0 from "../helpers/gis-polygon-fixture.mjs";
+import "../helpers/spherical-core.mjs";
+import * as __boundary_dep1 from "node:assert/strict";
+import * as __boundary_dep2 from "node:test";
 import "../../shared/frontend/js/vendor/earcut.min.js";
 import "../../shared/frontend/js/workers/gpu-mesh-core.js";
-import { buildRefinedBoundarySegments, MAX_BOUNDARY_EDGE_DEGREES } from "../../shared/frontend/js/modules/geographic-boundary.js";
-import { buildTerritorialInternalBoundarySegments, buildCountrySharedBoundarySegments } from "../../shared/frontend/js/modules/boundary-topology.js";
-import { prepareCountrySharedBoundaryPacket } from "../../shared/frontend/js/modules/country-shared-boundary-packet.js";
-import { excludeAncestorHighlightBoundary } from "../../shared/frontend/js/modules/territorial-highlight-boundary.js";
+import * as __boundary_dep3 from "../../shared/frontend/js/modules/geographic-boundary.js";
+import * as __boundary_dep4 from "../../shared/frontend/js/modules/boundary-topology.js";
+import * as __boundary_dep5 from "../../shared/frontend/js/modules/country-shared-boundary-packet.js";
+import * as __boundary_dep6 from "../../shared/frontend/js/modules/territorial-highlight-boundary.js";
+import * as __boundary_dep7 from "../../tools/gis/measure-border-detail.mjs";
+
+// Original feature contract: boundary-display-refinement.test.mjs
+contractSuite("boundary-display-refinement", () => {
+const { rectanglePolygon } = __boundary_dep0;
+const assert = __boundary_dep1.default;
+const test = __boundary_dep2.default;
+const { buildRefinedBoundarySegments, MAX_BOUNDARY_EDGE_DEGREES } = __boundary_dep3;
+const { buildTerritorialInternalBoundarySegments, buildCountrySharedBoundarySegments } = __boundary_dep4;
+const { prepareCountrySharedBoundaryPacket } = __boundary_dep5;
+const { excludeAncestorHighlightBoundary } = __boundary_dep6;
+
+
+
+
+
+
+
+
+
+
 
 const rectangle = (id, west, south, east, north, rootId = id) => ({
   type: 'Feature', id, boundaryRootId: rootId,
@@ -103,4 +125,40 @@ test('child selection hides inherited coast and refines only the remaining edge'
   assert.ok(lines[0].length > 2);
   assert.ok(lines[0].every(point => point[0] === 2));
   assert.deepEqual([parent, child], before);
+});
+});
+
+// Original feature contract: border-detail-measurement.test.mjs
+contractSuite("border-detail-measurement", () => {
+const test = __boundary_dep2.default;
+const assert = __boundary_dep1.default;
+const { compareChains, detailMetrics, sampleChain, measureSamples } = __boundary_dep7;
+
+
+
+test('uniform arc-length distances do not depend on native vertex density',()=>{
+ const sparse=[[0,0],[1000,0]],dense=Array.from({length:101},(_,n)=>[n*10,10]);
+ const result=compareChains(sparse,dense,{spacingMeters:25});
+ assert.equal(result.leftToRight.samples,41);assert.equal(result.rightToLeft.samples,41);
+ assert.equal(result.pooled.median,10);assert.equal(result.sampledMaximumMeters,10);assert.equal(result.lengthRatio,1);
+ assert.equal(detailMetrics(dense).vertices,101);assert.equal(detailMetrics(dense).lengthKm,1);
+});
+test('metric length, common-window turns and fixed endpoints remain separate measurements',()=>{
+ const line=[[0,0],[1000,0],[1000,1000]];const m=detailMetrics(line);
+ assert.equal(m.lengthKm,2);assert.equal(m.verticesPerKm,1.5);assert.equal(m.turnDegrees.median,90);
+ assert.deepEqual(sampleChain(line,1000),line);assert.deepEqual(line,[[0,0],[1000,0],[1000,1000]]);
+ const q=compareChains(line,[[10,0],[1010,0],[1010,1000]]);assert.deepEqual(q.endpointOffsetsMeters,[10,10]);
+});
+test('explicit finite metric chains and positive sample spacing are required',()=>{
+ assert.throws(()=>detailMetrics([[0,0],[NaN,1]]));assert.throws(()=>sampleChain([[0,0],[1,1]],0));assert.throws(()=>detailMetrics([[0,0],[0,0]]));
+});
+
+test('the file workflow requires metre CRS metadata and keeps input chains immutable',()=>{
+ const input={schema:'pando-border-detail-samples-v1',samples:[{id:'synthetic',metricCrs:'+proj=aeqd +lat_0=0 +lon_0=0 +units=m',public:[[0,0],[1000,0]],work:[[0,0],[1000,0]],reference:[[0,10],[1000,10]]}]};
+ const before=structuredClone(input),result=measureSamples(input);
+ assert.equal(result.schema,'pando-border-detail-metrics-v1');assert.equal(result.samples[0].comparison50m.pooled.median,10);assert.deepEqual(input,before);
+ input.samples[0].metricCrs='EPSG:4326';assert.throws(()=>measureSamples(input),/metre projection/);
+});
+
+test('closed outlines have no chord ratio and short lines have no 1km turn statistic',()=>{const closed=detailMetrics([[0,0],[1000,0],[1000,1000],[0,0]]);assert.equal(closed.lengthToChordRatio,null);assert.equal(closed.lengthToChordApplicability,'not-applicable-closed-chain');assert.equal(detailMetrics([[0,0],[10,0]]).turnDegrees,null);});
 });
