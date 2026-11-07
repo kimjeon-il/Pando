@@ -55,6 +55,15 @@ int main() {
             {180,87*pole},{180,90*pole},{-180,90*pole},{-180,87*pole}};
         const auto polar=buildPolygonFillMesh({ring});assert(polar.space.pole==int(pole));check(polar);
     }
+    // Large conforming subdivision preserves all triangles and vertex order
+    // across independent builds, including source holes and boundary chains.
+    const Polygon broad{rectangle(-12,10,12,22),rectangle(-8,13,-4,17)};
+    const auto first=buildPolygonFillMesh(broad);
+    const auto repeated=buildPolygonFillMesh(broad);
+    check(first,272);
+    assert(first.geographic==repeated.geographic);
+    assert(first.parameter==repeated.parameter);
+    assert(first.triangles==repeated.triangles);
     for(const Polygon invalid:{Polygon{{{0,0},{1,0},{2,0},{0,0}}},
             Polygon{rectangle(0,0,2,2),rectangle(3,3,4,4)},Polygon{rectangle(0,0,2,2),{{1,1},{1,1},{1,1}}}}) {
         bool rejected=false;try{buildPolygonFillMesh(invalid);}catch(const std::invalid_argument&){rejected=true;}
