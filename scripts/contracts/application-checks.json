@@ -71,14 +71,7 @@
         "tests/browser/canvas-globe-performance.spec.mjs",
         "tests/browser/p3-remote-preview.spec.mjs",
         "tests/browser/codespaces-live.spec.mjs",
-        "tests/browser/m2-gpu-worker-frame-probe.spec.mjs",
-        "tests/browser/map-transition-p5-6.spec.mjs",
-        "tests/browser/p6-5-resource-check.spec.mjs",
-        "tests/browser/p6-6-desktop-performance.spec.mjs",
-        "tests/browser/p6-7-narrow-performance.spec.mjs",
-        "tests/browser/viewer-main-stall-trace.spec.mjs",
-        "tests/browser/viewer-transition-dedup-diagnostic.spec.mjs",
-        "tests/browser/gpu-worker-background-diagnostic.spec.mjs"
+        "tests/browser/viewer-main-stall-trace.spec.mjs"
       ],
       "inputs": []
     },
@@ -277,13 +270,10 @@
       "id": "viewer",
       "kind": "browser",
       "testPatterns": [
-        "tests/browser/builtin-country-loading.spec.mjs",
-        "tests/browser/builtin-temporal-transition.spec.mjs",
         "tests/browser/viewer-*.spec.mjs",
         "tests/browser/web-viewer.spec.mjs",
         "tests/browser/shared-map-*.spec.mjs",
         "tests/browser/shared-view*.spec.mjs",
-        "tests/browser/map-startup-publication.spec.mjs",
         "tests/browser/resource-dependency-reuse.spec.mjs"
       ],
       "inputs": [

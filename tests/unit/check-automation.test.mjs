@@ -18,9 +18,9 @@ test('every current browser workflow can be assigned before CI dependency planni
 
 test('Viewer and shared checks reference existing named test files', () => {
   const root = fileURLToPath(new URL('../..', import.meta.url));
-  const workflows = ['e1-map-readonly-acceptance',
-    'remote-preview-p3', 'shared-core', 'viewer-initial-p1',
-    'viewer-temporal-cross-acceptance', 'viewer-temporal-performance'];
+  const workflows = ['application-architecture', 'e1-map-readonly-acceptance',
+    'remote-preview-p3', 'shared-core', 'terrain-preview-gate',
+    'viewer-functional-p6-2'];
   const missing = [];
   for (const name of workflows) {
     const file = `.github/workflows/${name}.yml`;
@@ -40,13 +40,18 @@ test('generated adapter gate invokes node once with every retained test argument
   for(const name of ['p6-polygon-core','r4c-spatial-boundaries','river-territory-partition'])assert(gate.run.includes('tests/unit/'+name+'.test.mjs'));
 });
 
-test('controlled Viewer diagnostics stay manual while the P2-4 behavior check remains automatic', () => {
+test('historical diagnostics are retired while functional Viewer regressions remain automatic', () => {
   const repository = loadRepository(fileURLToPath(new URL('../..', import.meta.url)));
-  for (const file of ['tests/browser/viewer-main-stall-trace.spec.mjs',
-    'tests/browser/viewer-transition-dedup-diagnostic.spec.mjs',
-    'tests/browser/gpu-worker-background-diagnostic.spec.mjs'])
-    assert.equal(repository.owners.get(file)?.mode, 'manual', file);
-  assert.notEqual(repository.owners.get('tests/browser/viewer-transition-dedup-p2-4.spec.mjs')?.mode, 'manual');
+  assert.equal(repository.owners.get('tests/browser/viewer-main-stall-trace.spec.mjs')?.mode, 'manual');
+  for (const file of ['tests/browser/viewer-transition-dedup-diagnostic.spec.mjs',
+    'tests/browser/gpu-worker-background-diagnostic.spec.mjs',
+    'tests/browser/gpu-recovery-foreground.spec.mjs'])
+    assert.equal(repository.owners.has(file), false, file);
+  for (const file of ['tests/browser/viewer-calendar.spec.mjs',
+    'tests/browser/viewer-startup-and-terrain.spec.mjs',
+    'tests/browser/viewer-temporal-regressions.spec.mjs',
+    'tests/browser/viewer-renderer-recovery.spec.mjs'])
+    assert.notEqual(repository.owners.get(file)?.mode, 'manual', file);
 });
 
 function fixture() {
@@ -142,7 +147,7 @@ test('Architecture aggregate rejects missing failed or cancelled work and accept
     NON_BROWSER_RESULT: 'needs.non-browser.result', BROWSER_RESULT: 'needs.browser.result',
   };
   for (const [key, reference] of Object.entries(references)) assert.equal(aggregate.env[key], '${{ ' + reference + ' }}');
-  const matrix = count => JSON.stringify({ include: Array.from({ length: Math.min(8, count) }, (_, i) => ({ current: i + 1, total: Math.min(8, count) })) });
+  const matrix = count => JSON.stringify({ include: Array.from({ length: Math.min(8, Math.ceil(count / 4)) }, (_, i) => ({ current: i + 1, total: Math.min(8, Math.ceil(count / 4)) })) });
   const valid = { SELECTION_RESULT: 'success', CHECKS_SELECTED: 'true', NON_BROWSER_SELECTED: 'true', BROWSER_SELECTED: 'true',
     BROWSER_COUNT: '9', BROWSER_MATRIX: matrix(9), NON_BROWSER_RESULT: 'success', BROWSER_RESULT: 'success' };
   const run = overrides => runInNewContext(source, { process: { env: { ...valid, ...overrides } }, console: { log() {} } });

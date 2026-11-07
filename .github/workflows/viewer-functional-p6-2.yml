@@ -1,14 +1,5 @@
 name: Viewer P6-2 narrow functional verification
 on:
-  push:
-    branches: [work/ui]
-    paths:
-      - shared/frontend/js/modules/map-input-presentation.js
-      - shared/frontend/js/modules/map-input-controller.js
-      - tests/unit/map-input-controller.test.mjs
-      - tests/integration/viewer-functional-p6-2.spec.mjs
-      - tests/integration/viewer-functional-p6-2.config.mjs
-      - .github/workflows/viewer-functional-p6-2.yml
   workflow_dispatch:
 permissions:
   contents: read
@@ -81,7 +72,7 @@ jobs:
           const plan = JSON.parse(readFileSync('test-results/p6-integration/plan.json', 'utf8')).plan;
           const deferred = 'tests/browser/deferred-builtin-timeline.spec.mjs';
           assert.ok(!plan.browserSpecs.includes(deferred), 'User-deferred cases must stay out of automatic integration checks');
-          assert.ok(plan.browserSpecs.includes('tests/browser/timeline-controls.spec.mjs'), 'Ordinary timeline acceptance remains automatic');
+          assert.ok(plan.browserSpecs.includes('tests/browser/viewer-calendar.spec.mjs'), 'Ordinary timeline acceptance remains automatic');
           const manual = planApplicationChecks({ changedFiles: [], repository: loadRepository(), groups: ['deferred-builtin-timeline'] });
           assert.deepEqual(manual.browserSpecs, [deferred], 'Deferred cases remain explicitly callable');
           console.log('P6_INTEGRATION_PLAN ' + JSON.stringify({ unitTests: plan.unitTests.length,

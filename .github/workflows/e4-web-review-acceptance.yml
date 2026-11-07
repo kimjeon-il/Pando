@@ -55,12 +55,11 @@ jobs:
           tests/unit/review-change-records.test.mjs
           tests/unit/e3-revision-diff.test.mjs
           tests/unit/notification-priority.test.mjs
-      - name: Check Viewer-only source closure and Windows read-only contract
+      - name: Check current Viewer-only source closure
         run: >-
           node --test
           tests/unit/frontend-layout.test.mjs
           tests/unit/frontend-build.test.mjs
-          tests/unit/e5-windows-review.test.mjs
 
   e4-browser:
     needs: e4-contract

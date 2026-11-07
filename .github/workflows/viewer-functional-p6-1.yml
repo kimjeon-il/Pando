@@ -1,11 +1,5 @@
 name: Viewer P6-1 desktop functional verification
 on:
-  push:
-    branches: [work/ui]
-    paths:
-      - tests/integration/viewer-functional-p6-1.spec.mjs
-      - tests/integration/viewer-functional-p6-1.config.mjs
-      - .github/workflows/viewer-functional-p6-1.yml
   workflow_dispatch:
 permissions:
   contents: read
