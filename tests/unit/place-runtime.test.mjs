@@ -166,3 +166,27 @@ test('external lifetime loading failure does not admit undated GeoNames referenc
   assert.match(errors[0].message,/Library unavailable/);
  }finally{runtime.dispose();}
 });
+
+test('recovered external lifetime catalog can be fetched after an initial failed request',async()=>{
+ const record=normalizePlace({source:'geonames',sourceId:'3054643',name:'부다페스트',kind:'city',coordinates:[1,2]});
+ const policy={schema:'pando-place-urban-lifetimes-v1',schemaVersion:1,
+   sourceReviewRevision:'0123456789abcdef0123456789abcdef01234567',
+   entries:[{source:'geonames',sourceId:'3054643',
+     sourceReviewFile:'reports/places/tier1-major-cities-batch07-europe-capitals.json',
+     status:'reviewed',scope:'urban-city-label-not-settlement-existence',
+     intervals:[{fromDate:'1873-11-17'}]}]};
+ let attempts=0,admitted=0;
+ const runtime=createPlaceRuntime({loadUrbanLifetimes:async()=>{
+   if(++attempts===1)throw Error('temporary offline');
+   return policy;
+ },admitReferences:async()=>{admitted++},
+ rpc:{stop(){},request:async()=>({result:{records:[record],signature:'immutable'}})}});
+ try{
+   assert.equal(await runtime.prepare({presentation:{month:'1873-10'}}),false);
+   assert.equal(admitted,0);
+   assert.equal(await runtime.prepare({presentation:{month:'1873-10'}}),true);
+   assert.equal(admitted,1);
+   assert.equal(runtime.snapshot().records.length,0);
+   assert.equal(attempts,2,'a recoverable data request must be retried');
+ }finally{runtime.dispose();}
+});
