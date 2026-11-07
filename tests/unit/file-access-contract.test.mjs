@@ -1,10 +1,21 @@
 import { describe as contractSuite } from 'node:test';
-import * as __dep0 from "node:assert/strict";
-import * as __dep1 from "node:test";
-import * as __dep2 from "../../shared/frontend/js/modules/file-access-contract.js";
-import * as __dep3 from "../../shared/frontend/js/modules/file-controller.js";
-import * as __dep4 from "../helpers/file-transport-fixtures.mjs";
-import * as __dep5 from "node:fs";
+import * as __project_dep0 from "node:test";
+import * as __project_dep1 from "node:assert/strict";
+import * as __project_dep2 from "../../shared/frontend/js/modules/file-access-contract.js";
+import * as __project_dep3 from "../../shared/frontend/js/modules/file-controller.js";
+import * as __project_dep4 from "../helpers/file-transport-fixtures.mjs";
+import * as __project_dep5 from "node:fs";
+import * as __project_dep6 from "../../shared/frontend/js/modules/project-domain.js";
+
+// Original feature contract: file-access-contract.test.mjs
+contractSuite("file-access-contract", () => {
+const { describe : contractSuite } = __project_dep0;
+const __dep0 = __project_dep1;
+const __dep1 = __project_dep0;
+const __dep2 = __project_dep2;
+const __dep3 = __project_dep3;
+const __dep4 = __project_dep4;
+const __dep5 = __project_dep5;
 
 // Original feature contract: file-access-contract.test.mjs
 contractSuite("file-access-contract", () => {
@@ -97,5 +108,34 @@ test('shared fixture exercises the browser file access boundary',async()=>{
   assert.equal(selected.file.name,'project.gpkg');
   browser.access.dispose();
 
+});
+});
+});
+
+// Original feature contract: project-product-surface.test.mjs
+contractSuite("project-product-surface", () => {
+const test = __project_dep0.default;
+const assert = __project_dep1.default;
+const { createProjectDomain } = __project_dep6;
+
+test('project domains require explicit product mode and only editors register mutation/persistence APIs',()=>{
+ assert.throws(()=>createProjectDomain({}),/product mode/i);
+ const options={commandOwner:{state:()=>({epoch:1})},documentModel:{snapshot:()=>({}),projectWorld:value=>value}};
+ for(const productMode of ['viewer','editor']){
+  const domain=createProjectDomain({productMode,...options});
+  for(const key of ['snapshot','state','resolveWorld','open','load','getGeneration','admitSelectionCatalog','admitPresentationCatalog','dispose'])assert.equal(typeof domain[key],'function',key);
+  for(const key of ['createProject','executeCommand','prepareCommand','confirmCandidate','cancelCandidate','labelGestureApply','save','undo','redo','buildFileSnapshot','buildAutosave'])assert.equal(key in domain,productMode==='editor',key);
+  for(const key of ['configureProject','comparisonMonth','comparisonHighlight','comparisonResult','setComparisonMonth','resolveComparison','highlightComparison'])assert.equal(key in domain,false,key);
+ }
+});
+
+
+test('read-only project domain exposes queries without mutation commands',()=>{
+ const options={productMode:'editor',readOnly:true,commandOwner:{state:()=>({epoch:1})},documentModel:{snapshot:()=>({}),projectWorld:x=>x}};
+ const domain=createProjectDomain(options);
+ for(const key of ['snapshot','resolveWorld','open','inspectImport','prepareTemporalBuiltin'])assert.equal(typeof domain[key],'function',key);
+ for(const key of ['createProject','executeCommand','save','undo','redo','buildFileSnapshot','buildAutosave','prepareImport'])assert.equal(key in domain,false,key);
+ assert.throws(()=>createProjectDomain({...options,productMode:'viewer',readOnly:false}),/read-only/i);
+ domain.dispose();
 });
 });
