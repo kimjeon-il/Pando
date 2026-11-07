@@ -1,14 +1,28 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
-import { mkdtempSync, readFileSync, writeFileSync, rmSync, existsSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
-import { parseRow, candidate, POLICY, summarize, validateCandidates,
-  auditKept, scanPrimary, sourceRows } from '../../tools/lib/geonames-policy.mjs';
-import { applyReviewOverrides, refineCandidates, review } from '../../tools/lib/geonames-review.mjs';
-import { fetchSources, build, writeJson } from '../../tools/build-place-candidates.mjs';
-import { zipMembers, zipTextLines, verifyZip } from '../../tools/lib/geonames-zip.mjs';
-import { sourceLine, snapshot, ledger } from '../helpers/geonames-fixtures.mjs';
+import { describe as contractSuite } from 'node:test';
+import * as __dep0 from "node:assert/strict";
+import * as __dep1 from "node:test";
+import * as __dep2 from "node:fs";
+import * as __dep3 from "node:os";
+import * as __dep4 from "node:path";
+import * as __dep5 from "../../tools/lib/geonames-policy.mjs";
+import * as __dep6 from "../../tools/lib/geonames-review.mjs";
+import * as __dep7 from "../../tools/build-place-candidates.mjs";
+import * as __dep8 from "../../tools/lib/geonames-zip.mjs";
+import * as __dep9 from "../helpers/geonames-fixtures.mjs";
+import * as __dep10 from "../../shared/frontend/js/modules/place-lifetime-policy.js";
+
+// Original feature contract: place-candidates.test.mjs
+contractSuite("place-candidates", () => {
+const assert=__dep0.default;
+const test=__dep1.default;
+const { mkdtempSync, readFileSync, writeFileSync, rmSync, existsSync }=__dep2;
+const { tmpdir }=__dep3;
+const { join }=__dep4;
+const { parseRow, candidate, POLICY, summarize, validateCandidates, auditKept, scanPrimary, sourceRows }=__dep5;
+const { applyReviewOverrides, refineCandidates, review }=__dep6;
+const { fetchSources, build, writeJson }=__dep7;
+const { zipMembers, zipTextLines, verifyZip }=__dep8;
+const { sourceLine, snapshot, ledger }=__dep9;
 const rec=values=>parseRow(sourceLine(values))[0];
 const temp=t=>{const dir=mkdtempSync(join(tmpdir(),'geonames-node-'));t.after(()=>rmSync(dir,{recursive:true,force:true}));return dir;};
 const report=(folder,name='report.md')=>{
@@ -244,4 +258,53 @@ test('offline reviewed output is deterministic; original candidates and unsource
  source.source.sha256='new-snapshot';writeJson(join(cache,'reviews.json'),source);
  await rejectsAsync(()=>review(cache,join(cache,'reviews.json'),summary,path),/snapshot changed/);
  assert.deepEqual([join(cache,'refined-candidates.ndjson'),summary,path].map(p=>readFileSync(p)),outputs);
+});
+});
+
+// Original feature contract: place-urban-lifetimes.test.mjs
+contractSuite("place-urban-lifetimes", () => {
+const test=__dep1.default;
+const assert=__dep0.default;
+const { readFileSync, existsSync }=__dep2;
+const { validatePlaceUrbanLifetimes, indexPlaceUrbanLifetimes, placeUrbanLabelActiveAtMonth }=__dep10;
+
+const library=new URL('../../assets/data/places/urban-lifetimes-v1.json',import.meta.url);
+const catalog=validatePlaceUrbanLifetimes(JSON.parse(readFileSync(library,'utf8')));
+const index=indexPlaceUrbanLifetimes(catalog);
+const geo=id=>({source:'geonames',sourceId:String(id)});
+
+test('reviewed city-label lifetimes are externally sourced, immutable evidence with original precision',()=>{
+  assert.equal(existsSync(new URL('../../config/builtin-display-policy.json',import.meta.url)),false);
+  assert.ok(existsSync(new URL('../../assets/data/builtin-world/display-policy-v1.json',import.meta.url)));
+  assert.equal(catalog.entries.length,58);
+  assert.equal(catalog.entries.filter(row=>row.intervals.length).length,55);
+  assert.equal(index.get('geonames:993800').intervals[0].fromYear,1886);
+  assert.equal(index.get('geonames:3046446').intervals[0].untilDateExclusive,'1873-11-17');
+  assert.equal(index.get('geonames:2352778').status,'provisional');
+  assert.deepEqual(index.get('geonames:2161314').intervals,[]);
+});
+test('historical urban identity follows verified start and merger cutoffs without editing raw names',()=>{
+  assert.equal(placeUrbanLabelActiveAtMonth(geo(3054643),'1873-10',index),false);
+  assert.equal(placeUrbanLabelActiveAtMonth(geo(3054643),'1873-11',index),true);
+  assert.equal(placeUrbanLabelActiveAtMonth(geo(3046446),'1873-10',index),true);
+  assert.equal(placeUrbanLabelActiveAtMonth(geo(3046446),'1873-11',index),false);
+  assert.equal(placeUrbanLabelActiveAtMonth(geo(993800),'1885-12',index),false);
+  assert.equal(placeUrbanLabelActiveAtMonth(geo(993800),'1886-01',index),true);
+  assert.equal(placeUrbanLabelActiveAtMonth(geo(2161314),'1820-01',index),true,
+    'unverified multi-episode history does not invent a disappearance');
+  assert.equal(placeUrbanLabelActiveAtMonth(geo(2352778),'1801-01',index),true,
+    'provisional Dakar founding rule cannot prove absence of the older settlement');
+  assert.equal(placeUrbanLabelActiveAtMonth(geo(999999999),'1820-01',index),true);
+});
+test('malformed and overlapping external lifetime intervals are rejected',()=>{
+  const clone=structuredClone(catalog);
+  clone.entries[0].intervals=[{fromDate:'2026-02-30'}];
+  assert.throws(()=>validatePlaceUrbanLifetimes(clone),/interval/i);
+  const duplicate=structuredClone(catalog);
+  duplicate.entries.push(structuredClone(duplicate.entries[0]));
+  assert.throws(()=>validatePlaceUrbanLifetimes(duplicate),/duplicate/i);
+  const overlap=structuredClone(catalog);
+  overlap.entries[0].intervals=[{fromYear:1900},{fromYear:2000}];
+  assert.throws(()=>validatePlaceUrbanLifetimes(overlap),/overlap/i);
+});
 });

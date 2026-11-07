@@ -1,5 +1,30 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
+import { describe as contractSuite } from 'node:test';
+import * as __dep0 from "node:assert/strict";
+import * as __dep1 from "node:test";
+import * as __dep2 from "node:timers";
+import * as __dep3 from "../../shared/frontend/js/modules/place-runtime.js";
+import * as __dep4 from "../../shared/frontend/js/modules/place-contract.js";
+import * as __dep5 from "../../shared/frontend/js/modules/rendering-domain.js";
+import * as __dep6 from "../../shared/frontend/js/modules/label-layout.js";
+import * as __dep7 from "../../shared/frontend/js/modules/map-render-coordinator.js";
+import * as __dep8 from "node:fs/promises";
+import * as __dep9 from "node:os";
+import * as __dep10 from "node:path";
+import * as __dep11 from "node:http";
+import * as __dep12 from "node:worker_threads";
+import * as __dep13 from "node:events";
+import * as __dep14 from "../helpers/place-synthetic.mjs";
+import * as __dep15 from "../../shared/frontend/js/modules/worker-rpc.js";
+import * as __dep16 from "../helpers/place-view.mjs";
+import * as __dep17 from "../../shared/frontend/js/modules/map-visual-frame.js";
+
+// Original feature contract: place-runtime.test.mjs
+contractSuite("place-runtime", () => {
+const assert=__dep0.default;
+const test=__dep1.default;
+const { setImmediate }=__dep2;
+const { createPlaceRuntime }=__dep3;
+const { normalizePlace, PLACE_LIMITS }=__dep4;
 
 test('date reevaluation with equal place records retains the admitted snapshot and its allocations', async () => {
   let admissions=0, publications=0;
@@ -44,9 +69,6 @@ test('reference search uses the scheduler abort signal and rejects after disposa
   assert.equal(workerSignal.aborted, true);runtime.dispose();
   await assert.rejects(runtime.search('Old', { scope: 'reference' }), error => error.name === 'AbortError');
 });
-import { setImmediate } from 'node:timers';
-import { createPlaceRuntime } from "../../shared/frontend/js/modules/place-runtime.js";
-import { normalizePlace, PLACE_LIMITS } from "../../shared/frontend/js/modules/place-contract.js";
 const deferred = () => { let resolve, reject; const promise = new Promise((a,b) => { resolve=a; reject=b; }); return { promise, resolve, reject }; };
 const tick = () => new Promise(resolve => setImmediate(resolve));
 
@@ -189,4 +211,109 @@ test('recovered external lifetime catalog can be fetched after an initial failed
    assert.equal(runtime.snapshot().records.length,0);
    assert.equal(attempts,2,'a recoverable data request must be retried');
  }finally{runtime.dispose();}
+});
+});
+
+// Original feature contract: place-interaction-runtime.test.mjs
+contractSuite("place-interaction-runtime", () => {
+const assert=__dep0.default;
+const test=__dep1.default;
+const { createRenderingDomain }=__dep5;
+
+test('render interaction allows view invalidation without preparing builtin places until settle', () => {
+  let prepared = 0;
+  let began = 0;
+  const frames = [];
+  const domain = createRenderingDomain({
+    requestFrame: callback => { frames.push(callback); return frames.length; },
+    labelResources: {
+      preparePlaces: () => { prepared += 1; },
+      beginPlaceInteraction: () => { began += 1; },
+    },
+  });
+
+  domain.beginInteraction('hold-zoom');
+  assert.equal(began, 1);
+  domain.invalidateView('hold-zoom-frame');
+  assert.equal(prepared, 0);
+
+  domain.endInteraction('hold-zoom-settle');
+  assert.equal(prepared, 1);
+});
+});
+
+// Original feature contract: place-layout.test.mjs
+contractSuite("place-layout", () => {
+const assert=__dep0.default;
+const test=__dep1.default;
+const { layoutLabels }=__dep6;
+const { PLACE_LIMITS }=__dep4;
+const { createMapRenderCoordinator, MAP_RENDER_DIRTY }=__dep7;
+test('High layout has an absolute cap including selected and pinned candidates', () => {
+  const records=Array.from({length:10000},(_,i)=>({ key: String(i), point: [i*5,10], width:1,height:1, priority:i, pinned:true, selected:i===9999 }));
+  const metrics={}; const placed=layoutLabels(records,{ metrics });
+  assert.equal(placed.length,PLACE_LIMITS.layoutCandidates); assert.equal(placed[0].key,'9999'); assert.equal(metrics.hardCulledCount,10000-PLACE_LIMITS.layoutCandidates);
+});
+test('builtin and user labels collide in the same label policy', () => {
+  const records=[{key:'builtin:place:synthetic:1',point:[20,20],width:50,height:20,priority:90,collisionGroup:'place'},{key:'user1',point:[20,20],width:50,height:20,priority:40,collisionGroup:'place'}];
+  assert.deepEqual(layoutLabels(records).map(item=>item.key),[records[0].key]);
+});
+test('quality and project invalidations do not execute label layout during interaction', () => {
+  const frames=[], layouts=[];
+  const coordinator=createMapRenderCoordinator({ requestFrame: fn=>frames.push(fn), prepareView: ()=>({}), renderers:{labelLayout:()=>layouts.push('layout')} });
+  coordinator.beginInteraction(); coordinator.invalidate(MAP_RENDER_DIRTY.LABEL_LAYOUT,'quality'); frames.shift()(); assert.equal(layouts.length,0);
+  coordinator.endInteraction(); frames.shift()(); assert.equal(layouts.length,1);
+});
+});
+
+// Original feature contract: place-million.test.mjs
+contractSuite("place-million", () => {
+const assert=__dep0.default;
+const test=__dep1.default;
+const { mkdtemp, readFile, rm }=__dep8;
+const { tmpdir }=__dep9;
+const { join }=__dep10;
+const { createServer }=__dep11;
+const { Worker }=__dep12;
+const { once }=__dep13;
+const { buildSyntheticPlaces }=__dep14;
+const { createWorkerRpcClient }=__dep15;
+const { PLACE_LIMITS }=__dep4;
+const { placeView }=__dep16;
+const { createFrameProjectors }=__dep17;
+const { placeLabelDimensions, automaticLabelSettings }=__dep6;
+const { layoutLabels }=__dep6;
+
+test('one million synthetic places use bounded actual Worker viewport queries and main layout', {timeout:120000}, async t=>{
+  const directory=await mkdtemp(join(tmpdir(),'pandolab-place-million-')); const started=performance.now();
+  let server,worker,rpc;
+  t.after(async()=>{rpc?.stop();if(worker)await worker.terminate();server?.close();server?.closeAllConnections();await rm(directory,{recursive:true,force:true});});
+  const manifest=await buildSyntheticPlaces(1_000_000,directory);
+  assert.equal(manifest.revision,'synthetic-1000000');
+  const buildMs=performance.now()-started;
+  server=createServer(async(req,res)=>{
+    try { const bytes=await readFile(join(directory,new URL(req.url,'http://localhost').pathname.slice(1)));const range=/bytes=(\d+)-(\d+)/u.exec(req.headers.range||'');
+      if(range){const start=Number(range[1]),end=Number(range[2]);res.writeHead(206,{'Content-Range':`bytes ${start}-${end}/${bytes.length}`,'Content-Length':end-start+1});res.end(bytes.subarray(start,end+1));}
+      else{res.writeHead(200,{'Content-Length':bytes.length});res.end(bytes);}
+    }catch{res.writeHead(404);res.end();}
+  });
+  server.listen(0,'127.0.0.1');await once(server,'listening');
+  worker=new Worker(new URL('../helpers/place-worker-thread.mjs',import.meta.url),{type:'module',workerData:{assetRevision:'place-million-fixture'}});await once(worker,'message');
+  const adapter={postMessage:message=>worker.postMessage(message),terminate:()=>worker.terminate()};
+  worker.on('message',data=>adapter.onmessage?.({data}));worker.on('error',error=>adapter.onerror?.(error));
+  rpc=createWorkerRpcClient({createWorker:()=>adapter,defaultTimeoutMs:15000});
+  const manifestUrl=`http://127.0.0.1:${server.address().port}/manifest.json`,queryTimes=[],layoutTimes=[];
+  for(let i=0;i<24;i++){
+    const view=placeView({projection:i%3===0?'globe':'flat',threshold:i%6===0?0:12,width:1440,height:900,scale:i%6===0?250:16000,flatCenter:[-170+i*14,35],rotation:[170-i*14,-35,i%4*15]});
+    const begin=performance.now();const {result}=await rpc.request('place.viewport',{manifestUrl,view});queryTimes.push(performance.now()-begin);
+    assert.ok(result.records.length<=PLACE_LIMITS.candidates);assert.ok(result.tileCount<=PLACE_LIMITS.queryTiles);assert.ok(result.cacheBytes<=PLACE_LIMITS.cacheBytes);assert.ok(result.peakWorkingRecords<=PLACE_LIMITS.candidates+4*PLACE_LIMITS.tileRecords);
+    const projector=createFrameProjectors(view.projectionFrame);
+    const candidates=result.records.map(record=>({key:record.id,point:projector.projectVisibleCoordinate(record.coordinates),...placeLabelDimensions(record.name),...automaticLabelSettings(record.kind)}));
+    const layoutStart=performance.now();const placed=layoutLabels(candidates);layoutTimes.push(performance.now()-layoutStart);assert.ok(placed.length<=PLACE_LIMITS.layoutCandidates);
+  }
+  const search=await rpc.request('place.search',{manifestUrl,query:'Synthetic 0999999'});assert.equal(search.result.records[0].sourceId,'999999');
+  const p95=values=>[...values].sort((a,b)=>a-b)[Math.ceil(values.length*.95)-1];
+  assert.ok(p95(layoutTimes)<50,`main layout p95 ${p95(layoutTimes)}ms`);assert.ok(p95(queryTimes)<1500,`Worker query p95 ${p95(queryTimes)}ms`);
+  t.diagnostic(JSON.stringify({count:1_000_000,buildMs,workerQueryP95Ms:p95(queryTimes),layoutP95Ms:p95(layoutTimes),tileCount:Object.keys(manifest.tiles).length}));
+});
 });
