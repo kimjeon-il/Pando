@@ -248,6 +248,24 @@ test('independent cutter islands stay separated through large historical differe
   assert.deepEqual(module.adjustHistoricalTerritories([peer,subject],rules,clipper),result);
 });
 
+test('eleven independent cutters never share a sweep with one historical mainland',()=>{
+  const ring=(w,e,s,n)=>[[[w,s],[e,s],[e,n],[w,n],[w,s]]];
+  const subject={...candidate('CHE',0,1),geometry:{type:'Polygon',coordinates:ring(0,70,0,10)}};
+  const peer={...candidate('peer',0,1),geometry:{type:'MultiPolygon',
+    coordinates:Array.from({length:11},(_,i)=>ring(i*6+1,i*6+3,2,8))}};
+  const rules={...policy,replacements:[{targetEntityId:'CHE',priorityEntityId:'peer',
+    validFrom:'1991-01-01',validTo:'1992-01-01'}]};
+  const calls=[],clipper={...globalThis.polygonClipping,
+    difference:(...operands)=>{calls.push(operands.map(x=>x.length));return globalThis.polygonClipping.difference(...operands);}};
+  const result=module.adjustHistoricalTerritories([subject,peer],rules,clipper);
+  const geometry=result.candidates.find(row=>row.entityId==='CHE').geometry;
+  const multi=value=>value.type==='Polygon'?[value.coordinates]:value.coordinates;
+  assert.deepEqual(globalThis.polygonClipping.xor(multi(geometry),
+    globalThis.polygonClipping.difference(multi(subject.geometry),multi(peer.geometry))),[]);
+  assert.equal(calls.length,11);
+  assert.ok(calls.every(([left,right])=>left===1&&right===1));
+});
+
 test('connected cutters are normalized between exact historical differences',()=>{
   const boxAt=(w,e,s,n)=>[[[w,s],[e,s],[e,n],[w,n],[w,s]]];
   const subject={...candidate('main',0,1),geometry:{type:'Polygon',coordinates:boxAt(0,70,0,10)}};
