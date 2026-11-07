@@ -8,9 +8,6 @@ on:
       - work/gis
       - work/places
       - work/remote-only
-  pull_request:
-    branches:
-      - main
   workflow_dispatch:
     inputs:
       scope:

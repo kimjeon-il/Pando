@@ -2,6 +2,21 @@ name: Viewer desktop and mobile functional acceptance
 on:
   pull_request:
     branches: [main]
+    paths:
+      - 'apps/viewer/**'
+      - 'shared/frontend/**'
+      - 'shared/core/**'
+      - 'shared/wasm/**'
+      - 'tests/browser/**'
+      - 'tests/integration/**'
+      - 'tests/helpers/**'
+      - 'assets/data/builtin-world/**'
+      - 'assets/data/physical-land/**'
+      - 'assets/data/prepared-polygons/**'
+      - 'config/library-data.json'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/viewer-functional-acceptance.yml'
   workflow_dispatch:
     inputs:
       scope:
@@ -120,7 +135,6 @@ jobs:
           pnpm exec playwright test
           tests/browser/viewer-review-e4.spec.mjs
           tests/browser/viewer-project-open.spec.mjs
-          tests/browser/viewer-review-e4.spec.mjs
           --workers=1 --retries=0 --reporter=list
       - name: Preserve failed browser evidence
         if: failure()
