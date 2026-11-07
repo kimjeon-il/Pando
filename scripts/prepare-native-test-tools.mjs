@@ -105,7 +105,7 @@ export async function prepareNativeTestTool(id,{root=process.cwd(),run=(argv)=>{
   if(recipe.data==='caspian-oracle') {
     const {ARCHIVE_SHA,MEMBER_SHA}=await import('../tools/gis/verify-approved-caspian-network.mjs');
     const {generateApprovedCaspianDisplay}=await import('../tools/gis/generalize-approved-caspian-display.mjs');
-    const oracle=JSON.parse(readFileSync(resolve(root,'tests/fixtures/gis-caspian-1922-python-native-oracle.json'),'utf8'));
+    const oracle=JSON.parse(readFileSync(resolve(root,'tests/fixtures/gis-caspian-1922-native-baseline.json'),'utf8'));
     if(oracle.sourceArchiveSha256!==ARCHIVE_SHA||oracle.sourceNetworkSha256!==MEMBER_SHA)throw Error('Caspian oracle source identity differs');
     const zip=resolve(root,'build-native/historical/approved-caspian-1922.zip');
     const source=await preservePinnedNativeInput(root,'tools/historical-library/sources/ussr-1922-approved/caspian-shoreline-completed-candidate-20261024.zip',ARCHIVE_SHA,zip);
