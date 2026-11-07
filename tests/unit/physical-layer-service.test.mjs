@@ -1,15 +1,32 @@
 import { describe as contractSuite } from 'node:test';
-import * as __dep0 from "../../shared/frontend/js/modules/physical-resources.js";
-import * as __dep1 from "node:assert/strict";
-import * as __dep2 from "node:test";
-import * as __dep3 from "node:timers";
-import * as __dep4 from "node:fs";
-import * as __dep5 from "../../shared/frontend/js/modules/physical-layer-service.js";
-import * as __dep6 from "../../tools/physical-water-catalog.mjs";
-import * as __dep7 from "node:crypto";
-import * as __dep8 from "node:zlib";
-import * as __dep9 from "node:module";
-import * as __dep10 from "../../tools/build-physical-land-mask.mjs";
+import { deferredResult } from '../helpers/async-test-ports.mjs';
+import * as __terrain_dep0 from "node:test";
+import * as __terrain_dep1 from "../../shared/frontend/js/modules/physical-resources.js";
+import * as __terrain_dep2 from "node:assert/strict";
+import * as __terrain_dep3 from "node:timers";
+import * as __terrain_dep4 from "node:fs";
+import * as __terrain_dep5 from "../../shared/frontend/js/modules/physical-layer-service.js";
+import * as __terrain_dep6 from "../../tools/physical-water-catalog.mjs";
+import * as __terrain_dep7 from "node:crypto";
+import * as __terrain_dep8 from "node:zlib";
+import * as __terrain_dep9 from "node:module";
+import * as __terrain_dep10 from "../../tools/build-physical-land-mask.mjs";
+import * as __terrain_dep11 from "../../shared/frontend/js/modules/terrain-manifest.js";
+
+// Original feature contract: physical-layer-service.test.mjs
+contractSuite("physical-layer-service", () => {
+const { describe : contractSuite } = __terrain_dep0;
+const __dep0 = __terrain_dep1;
+const __dep1 = __terrain_dep2;
+const __dep2 = __terrain_dep0;
+const __dep3 = __terrain_dep3;
+const __dep4 = __terrain_dep4;
+const __dep5 = __terrain_dep5;
+const __dep6 = __terrain_dep6;
+const __dep7 = __terrain_dep7;
+const __dep8 = __terrain_dep8;
+const __dep9 = __terrain_dep9;
+const __dep10 = __terrain_dep10;
 
 // Original feature contract: physical-layer-service.test.mjs
 contractSuite("physical-layer-service", () => {
@@ -312,7 +329,7 @@ const assert = __dep1.default;
 const { createHash } = __dep7;
 const { createPhysicalResources } = __dep0;
 
-const deferred=()=>{let resolve;const promise=new Promise(done=>{resolve=done;});return {promise,resolve};};
+const deferred = deferredResult;
 
 for(const requestModern of [true,false])test(requestModern
   ? 'leaving the historical window during first lake admission cannot overwrite the modern second lake'
@@ -414,5 +431,98 @@ test('physical mask bytes and manifest are identical across gzip host OS headers
     assert.equal(result.bytes[9], 10, 'retain the committed physical-land gzip header on every host');
     assert.deepEqual(result, results[0]);
   }
+});
+});
+});
+
+// Original feature contract: terrain-manifest.test.mjs
+contractSuite("terrain-manifest", () => {
+const test = __terrain_dep0.default;
+const assert = __terrain_dep2.default;
+const { readFileSync } = __terrain_dep4;
+const { terrainAssetUrl, terrainRasterManifestUrl, validateTerrainManifest } = __terrain_dep11;
+const terrainSources = __terrain_dep11;
+
+const raster = {
+  version: '0.12.6', crs: 'EPSG:4326', extent: [-180, -90, 180, 90], gutter: 1,
+  urlTemplate: 'terrain/v0.12.6/{level}/{column}-{row}.webp',
+  representation: 'raster-rgba-v1',
+  levels: [{ id: 0, width: 1350, height: 675, columns: 2, rows: 1, tileSize: 1024 }],
+};
+const dem = {
+  version: '0.13.0', representation: 'dem-relief-v1', crs: 'EPSG:4326',
+  extent: [-180, -90, 180, 90], registration: 'cell-center', gutter: 1,
+  sourceGridOrigin: [-180, 90], sourceResolutionDegrees: [1/120, 1/120],
+  tileFormat: 'lossless WebP RGBA', elevation: { decode: 'R*256+G-12000', biasMeters: 12000,
+    spacingMeters: 1, validEncodedRange: [0, 65535] },
+  shade: { azimuthDegrees: 315, altitudeDegrees: 45, ambient: 0.42, diffuse: 0.58, polarFallbackDegrees: 89.5 },
+  channels: { r: 'encoded elevation high byte', g: 'encoded elevation low byte',
+    b: 'precomputed hillshade', a: '255' },
+  tint: { url: 'terrain/v0.13.3/tint.webp', width: 4096, height: 2048 },
+  assetsSha256: 'abc', sources: [], urlTemplate: 'terrain/v0.13.0/{level}/{column}-{row}.webp',
+  levels: Array.from({ length: 6 }, (_, id) => ({ id, width: 1350*2**id, height: 675*2**id,
+    columns: Math.ceil(1350*2**id/1024), rows: Math.ceil(675*2**id/1024), tileSize: 1024 })),
+};
+
+test('legacy raster and strict DEM manifests select known representations', () => {
+  assert.equal(validateTerrainManifest(raster).representation, 'raster-rgba-v1');
+  assert.equal(validateTerrainManifest(dem).representation, 'dem-relief-v1');
+  assert.throws(() => validateTerrainManifest({ ...dem, representation: 'unknown' }), /지원하지 않는/);
+  assert.throws(() => validateTerrainManifest({ ...dem, elevation: { decode: 'G*256+R-12000' } }), /DEM/);
+  assert.throws(() => validateTerrainManifest({ ...dem, levels: dem.levels.slice(0, 5) }), /DEM/);
+  assert.throws(() => validateTerrainManifest({ ...dem, shade: { ...dem.shade, quantizationStep: 8 } }), /DEM/);
+});
+
+test('current DEM preview fixes two LODs, eight tiles, provenance and the size limit', () => {
+  const preview = JSON.parse(readFileSync(new URL('../../assets/data/terrain-preview/v0.13.3-p2/manifest.json', import.meta.url)));
+  assert.equal(validateTerrainManifest(preview).version, '0.13.3-p2');
+  assert.throws(() => validateTerrainManifest({ ...preview, levels: preview.levels.slice(0, 1) }), /미리보기/);
+  assert.throws(() => validateTerrainManifest({ ...preview, sourceDem: { ...preview.sourceDem, tintSha256: 'changed' } }), /미리보기/);
+});
+
+test('a tint-only data release uses the same strict DEM representation contract', () => {
+  assert.equal(validateTerrainManifest({ ...dem, version: '0.13.1' }).version, '0.13.1');
+  assert.equal(validateTerrainManifest({ ...dem, version: '0.13.2' }).version, '0.13.2');
+  assert.throws(() => validateTerrainManifest({ ...dem, version: 'local' }), /DEM/);
+  assert.throws(() => validateTerrainManifest({ ...dem, version: '0.13.1',
+    channels: { ...dem.channels, g: 'colour' } }), /DEM/);
+  assert.equal(terrainSources.TERRAIN_DEM_VERSION, '0.13.3');
+  assert.throws(() => validateTerrainManifest({ ...dem, tint: { ...dem.tint, width: 4095 } }), /DEM/);
+});
+
+test('relative and absolute data URLs resolve from the manifest without coupling DEM to app revision', () => {
+  const appBase = new URL('https://app.example/assets/data/');
+  const rasterUrl = terrainRasterManifestUrl(appBase, 'build-1');
+  assert.equal(rasterUrl.href, 'https://app.example/assets/data/terrain-preview/v0.13.3-p2/manifest.json?v=build-1');
+  assert.equal(terrainAssetUrl('terrain/v0.13.0/5/0-0.webp', {
+    manifestUrl: 'https://cdn.example/terrain/v0.13.0/manifest.json', dataBaseUrl: appBase,
+  }).href, 'https://cdn.example/terrain/v0.13.0/5/0-0.webp');
+  assert.equal(terrainAssetUrl('https://tiles.example/0-0.webp', {
+    manifestUrl: rasterUrl, dataBaseUrl: appBase,
+  }).href, 'https://tiles.example/0-0.webp');
+});
+
+test('terrain source selection keeps raster fallback and diagnostic overrides', () => {
+  assert.equal(typeof terrainSources.selectTerrainManifestUrls, 'function');
+  const official = new URL('https://example.test/terrain/v0.13.0/manifest.json');
+  const rasterUrl = new URL('https://example.test/terrain/v0.12.6/manifest.json');
+  const dev = new URL('http://127.0.0.1:4174/terrain/v0.13.0/manifest.json');
+  const select = options => terrainSources.selectTerrainManifestUrls({ official, raster: rasterUrl, ...options });
+  assert.deepEqual(select({}), { primary: rasterUrl, fallback: null, source: 'raster' });
+  assert.deepEqual(select({ preview: true }), { primary: official, fallback: rasterUrl, source: 'preview' });
+  assert.deepEqual(select({ defaultDem: true }), { primary: official, fallback: rasterUrl, source: 'official' });
+  assert.deepEqual(select({ defaultDem: true, rasterOnly: true }), { primary: rasterUrl, fallback: null, source: 'raster' });
+  assert.deepEqual(select({ defaultDem: true, dev }), { primary: dev, fallback: rasterUrl, source: 'development' });
+});
+
+test('DEM CDN assets use the manifest hash without applying it to unrelated origins', () => {
+  const manifestUrl = 'https://terrain.example/terrain/v0.13.0/manifest.json';
+  const dataBaseUrl = new URL('https://app.example/assets/data/');
+  assert.equal(terrainAssetUrl('terrain/v0.13.0/5/0-0.webp', {
+    manifestUrl, dataBaseUrl, revision: 'asset-hash',
+  }).href, 'https://terrain.example/terrain/v0.13.0/5/0-0.webp?v=asset-hash');
+  assert.equal(terrainAssetUrl('https://other.example/5/0-0.webp', {
+    manifestUrl, dataBaseUrl, revision: 'asset-hash',
+  }).href, 'https://other.example/5/0-0.webp');
 });
 });

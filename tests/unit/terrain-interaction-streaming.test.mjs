@@ -1,8 +1,19 @@
-import test from 'node:test';
-import assert from 'node:assert/strict';
-import {readFileSync} from 'node:fs';
-import {createGpuUploadScheduler} from "../../shared/frontend/js/modules/gpu-upload-scheduler.js";
-import {createGpuTerrainPreparation} from "../../shared/frontend/js/modules/gpu-terrain-preparation.js";
+import { describe as contractSuite } from 'node:test';
+import * as __terrain_dep0 from "node:test";
+import * as __terrain_dep1 from "node:assert/strict";
+import * as __terrain_dep2 from "node:fs";
+import * as __terrain_dep3 from "../../shared/frontend/js/modules/gpu-upload-scheduler.js";
+import * as __terrain_dep4 from "../../shared/frontend/js/modules/gpu-terrain-preparation.js";
+import * as __terrain_dep5 from "../../shared/frontend/js/modules/map-visual-frame.js";
+import * as __terrain_dep6 from "../../shared/frontend/js/modules/scene-color-cache.js";
+
+// Original feature contract: terrain-interaction-streaming.test.mjs
+contractSuite("terrain-interaction-streaming", () => {
+const test = __terrain_dep0.default;
+const assert = __terrain_dep1.default;
+const { readFileSync } = __terrain_dep2;
+const { createGpuUploadScheduler } = __terrain_dep3;
+const { createGpuTerrainPreparation } = __terrain_dep4;
 
 test('a reusable scene image cannot bypass the canonical current-view terrain preparation',()=>{
   const source=readFileSync(new URL("../../shared/frontend/js/modules/gpu-map-renderer.js",import.meta.url),'utf8');
@@ -158,4 +169,67 @@ test('prefetch uses spare capacity and releases both fetch slots when the curren
   f.owner.prepare({...f.frame,viewState:{...f.frame.viewState,projectionCenter:[140,0]}},{...f.view,flatCenter:[140,0]});
   await settle();assert.ok(prefetch.every(request=>request.signal.aborted));assert.equal(f.requests.length,2);
   assert.equal(f.owner.stats().terrainFailureCount,0);
+});
+});
+
+// Original feature contract: renderer-responsiveness-source.test.mjs
+contractSuite("renderer-responsiveness-source", () => {
+const test = __terrain_dep0.default;
+const assert = __terrain_dep1.default;
+const { createMapVisualFrame, isMapVisualFrame } = __terrain_dep5;
+const { createSceneColorCache } = __terrain_dep6;
+const { createGpuUploadScheduler } = __terrain_dep3;
+
+test('changing the camera changes the immutable Viewer frame, not the caller-owned view input', () => {
+  const viewState = {projection: 'flat', size: {width: 640, height: 480}, dpr: 2,
+    translate: [320, 240], scale: 150, projectionCenter: [0, 0]};
+  const original = structuredClone(viewState);
+  const frame = createMapVisualFrame({frameId: 1, viewRevision: 1, projectGeneration: 1, viewState});
+  assert.ok(isMapVisualFrame(frame));
+  assert.ok(Object.isFrozen(frame) && Object.isFrozen(frame.cssViewport));
+  assert.deepEqual(frame.cssViewport, [viewState.size.width, viewState.size.height]);
+  assert.deepEqual(frame.gpuViewport, frame.cssViewport.map(value => value * viewState.dpr));
+  assert.deepEqual(frame.projectVisibleCoordinate([0, 0]), viewState.translate);
+  const previousSignature = frame.signature;
+  viewState.projectionCenter = [20, 0];
+  const moved = createMapVisualFrame({frameId: 2, viewRevision: 2, projectGeneration: 1, viewState});
+  assert.notEqual(moved.signature, previousSignature);
+  assert.deepEqual(frame.projectVisibleCoordinate([0, 0]), original.translate,
+    'a previous frame must retain its original camera');
+  assert.notDeepEqual(moved.projectCoordinate([0, 0]), frame.projectCoordinate([0, 0]));
+});
+
+test('invalidated scene-cache state cannot be mistaken for an accepted visual frame', () => {
+  const cache = createSceneColorCache();
+  assert.equal(cache.isValid(), false);
+  assert.equal(cache.canComposite('current-view', 1), false);
+  cache.invalidate('territorial-input-updated');
+  assert.equal(cache.stats().lastInvalidationReason, 'territorial-input-updated');
+  assert.equal(cache.canComposite('current-view', 1), false);
+  cache.reset({dropActive: true});
+  assert.equal(cache.isValid(), false);
+  cache.dispose();
+  assert.equal(cache.isAvailable(), false);
+});
+
+test('a failed GPU upload releases its resource and lets the next current-frame upload proceed', async () => {
+  const frames = [], disposed = [];
+  const scheduler = createGpuUploadScheduler({
+    requestFrame: callback => { frames.push(callback); return frames.length; },
+    cancelFrame() {}, now: () => 0, isHidden: () => false, isInputPending: () => false,
+  });
+  const old = scheduler.enqueueUpload({key: 'current-background', priority: 10,
+    step: () => { throw new Error('current upload failed'); },
+    dispose: () => disposed.push('failed')});
+  frames.shift()();
+  await assert.rejects(old, /current upload failed/);
+  assert.deepEqual(disposed, ['failed']);
+  assert.equal(scheduler.getStats().pending, 0);
+  const accepted = scheduler.enqueueUpload({key: 'current-background',
+    step: ({byteBudget}) => ({done: true, bytes: Math.min(byteBudget, 1024), value: 'presentable'})});
+  frames.shift()();
+  assert.equal(await accepted, 'presentable');
+  assert.equal(scheduler.getStats().completed, 1);
+  scheduler.dispose();
+});
 });
