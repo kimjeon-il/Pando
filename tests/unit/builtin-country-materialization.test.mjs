@@ -34,6 +34,10 @@ function fixture(t,{missingPart=false,badHash=false,legacy=false}={}){
  const index={schema:'pandolab-builtin-world',schemaVersion:2,storageLayout:'country-files-v1',entities:[country]};
  if(legacy){delete index.storageLayout;index.transport={url:retired[0].slice(base.length)};}
  archive(base+'index.json',JSON.stringify(index));
+ // Runtime publication now verifies paired source indexes even for a
+ // built-in-country-only storage scope. Model the immutable empty source
+ // corpus, rather than relying on a missing archive file in this fixture.
+ archive('assets/data/territorial-entities/generated/v2/index.json',JSON.stringify({entities:[]}));
  archive(base+'coverage-report.json','{}');archive('assets/data/other/value.bin','unchanged');
  put(data,'archive/index.json',JSON.stringify({schemaVersion:1,branch:'main',files}));put(data,'library.json','{}');
  git(data,'add','.');git(data,'commit','-qm','archived fixture');const pin=git(data,'rev-parse','HEAD');
