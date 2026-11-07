@@ -1,11 +1,25 @@
-import {test} from 'node:test';
-import assert from 'node:assert/strict';
-import {readFileSync} from 'node:fs';
-import {join} from 'node:path';
-import {fileURLToPath} from 'node:url';
-import {createHash} from 'node:crypto';
-import {renderProductHtml} from '../../scripts/lib/product-html.mjs';
-import {buildFrontendIndex} from '../../scripts/lib/frontend-layout.mjs';
+import { describe as contractSuite } from 'node:test';
+import * as __unit_dep0 from "node:test";
+import * as __unit_dep1 from "node:assert/strict";
+import * as __unit_dep2 from "node:fs";
+import * as __unit_dep3 from "node:path";
+import * as __unit_dep4 from "node:url";
+import * as __unit_dep5 from "node:crypto";
+import * as __unit_dep6 from "../../scripts/lib/product-html.mjs";
+import * as __unit_dep7 from "../../scripts/lib/frontend-layout.mjs";
+import * as __unit_dep8 from "../../scripts/lib/css-analysis.mjs";
+import * as __unit_dep9 from "../../scripts/build-ui-bundle.mjs";
+
+// Original feature contract: brand-icons.test.mjs
+contractSuite("brand-icons", () => {
+const { test } = __unit_dep0;
+const assert = __unit_dep1.default;
+const { readFileSync } = __unit_dep2;
+const { join } = __unit_dep3;
+const { fileURLToPath } = __unit_dep4;
+const { createHash } = __unit_dep5;
+const { renderProductHtml } = __unit_dep6;
+const { buildFrontendIndex } = __unit_dep7;
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const bytes=path=>readFileSync(join(root,path));
@@ -75,4 +89,56 @@ test('favicon preserves the reviewed small form instead of auto-scaling the stan
  assert.equal((favicon.match(/<path\b[^>]*fill="#315EDB"/g)||[]).length,2);
  assert.match(favicon,/M9 6 H18 V27 H24 V42/);assert.match(favicon,/M39 42 H30 V21 H24 V6/);
  assert.doesNotMatch(favicon,/<(?:script|image|filter)\b|href=/);
+});
+});
+
+// Original feature contract: font-assets.test.mjs
+contractSuite("font-assets", () => {
+const assert = __unit_dep1.default;
+const { createHash } = __unit_dep5;
+const { readFileSync } = __unit_dep2;
+const test = __unit_dep0.default;
+
+test('bundled Pretendard font bytes and OFL license remain immutable',()=>{
+ const font=readFileSync(new URL('../../shared/frontend/static/fonts/pretendard-v1.3.9/PretendardVariable.woff2',import.meta.url));
+ const digest=createHash('sha256').update(font).digest('hex');
+ assert.equal(digest,'9599f12fd42fc0bce1cd50b47a0c022e108d7aa64dd0d1bb0ed44f3282d900b4');
+ const license=readFileSync(new URL('../../shared/frontend/static/fonts/pretendard-v1.3.9/LICENSE.txt',import.meta.url),'utf8');
+ assert.match(license.toUpperCase(),/SIL OPEN FONT LICENSE/);
+});
+});
+
+// Original feature contract: css-analysis.test.mjs
+contractSuite("css-analysis", () => {
+const assert = __unit_dep1.default;
+const test = __unit_dep0.default;
+const { collectCssRules } = __unit_dep8;
+const { renderUiBundle } = __unit_dep9;
+
+test('CSS analysis preserves quoted delimiters, nested contexts and important flags', () => {
+  const rules = collectCssRules('/* .fake { color: red } */ @media (width > 10px) { .a:is(.b, .c), [data-name="x,y"] { content: "};:"; color: var(--ink) ! /* reason */ important; } }');
+  assert.equal(rules.length, 1);
+  assert.deepEqual(rules[0].selectors, ['.a:is(.b, .c)', '[data-name="x,y"]']);
+  assert.equal(rules[0].context, '@media (width > 10px)');
+  assert.deepEqual(rules[0].declarations.map(({ property, value, important }) => ({ property, value, important })), [
+    { property: 'content', value: '"};:"', important: false },
+    { property: 'color', value: 'var(--ink)', important: true },
+  ]);
+});
+
+test('CSS analysis handles nesting and excludes animation steps from selector policies', () => {
+  const rules = collectCssRules('.card { color: var(--ink); &:hover { opacity: .5 } } @keyframes spin { from { opacity: 0 } to { opacity: 1 } }');
+  assert.deepEqual(rules.map(rule => rule.prelude), ['.card', '&:hover']);
+  assert.equal(rules[1].context, '.card');
+  assert.throws(() => collectCssRules('.broken { color: red', { filePath: 'broken.css' }), /broken\.css/);
+});
+
+test('bundle generation preserves source order and content without a copied source inventory', () => {
+  const contents = new Map([['first.css', '  .a { content: "x;y"; }\r\n'], ['next.css', '.b { color: blue; }']]);
+  const output = renderUiBundle(['next.css', 'first.css'], file => contents.get(file));
+  assert.ok(output.indexOf('.b { color: blue; }') < output.indexOf('.a { content: "x;y"; }'));
+  assert.match(output, /source-count: 2/);
+  assert.ok(output.endsWith('\n\n'));
+  assert.equal(output.includes('\r'), false);
+});
 });
