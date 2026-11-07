@@ -40,3 +40,21 @@ SPI는 73.588036–73.057424W / 49.759959–49.272754S이다.
 원본 객체/좌표는 변경하지 않고 새 MultiPolygon을 생성한다. source ID는 새 목록에서
 제거하며 dirty-country 집합에 원본과 목적지를 모두 등록해 GPU patch 및 delta 저장에 반영한다.
 기존 국가 mesh 자산, 수계, project schema와 앱 버전은 바꾸지 않는다.
+
+## 구현 구조 변경 (2026-11-07, `work/optimization`)
+
+국가·속령 관계 47건과 영토 합성 예외 4건의 데이터 소유자는
+`config/builtin-display-policy.json`이다. 생성기는
+`tools/gis/builtin-display-policy.mjs`의 검증을 거쳐 이 파일을 읽는다.
+`builtin-subunits.js`와 `builtin-territory-policy.js`는 국가 식별자·
+관할국 목록을 내장하지 않는 순수 처리기로 전환됐다.
+
+새로 생성되는 내장지도 프로젝트는 속령 관계를
+`properties.metadata.builtinSubunit`에, 실제 적용된 영토 합성 예외와
+그 주권 주장·출처 데이터를 `properties.metadata.builtinTerritoryDisplay`에
+보존한다. 이 정보는 새로운 지리 경계 판정이 아니라 표시 정책의 기록이다.
+기존 외부 라이브러리 국가 좌표·원본 지명·원본 하천은 수정하지 않는다.
+
+회귀 검사: `tests/unit/builtin-subunits.test.mjs`와
+`tests/unit/builtin-territory-policy.test.mjs`.
+내장지도 생성 자산은 별도 원본 검증 및 짝지어진 데이터 게시 후 갱신해야 한다.

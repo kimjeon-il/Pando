@@ -81,3 +81,28 @@ P4 관련 회귀검사: `tests/unit/project-resource-overlay.test.mjs`,
 - 퇴역 Windows 검수기 호환 테스트용 `nativeReview` 진입은 추후 레거시 제거 단계 전까지 기존 회귀검사 용도로만 유지한다. 별도 제품으로 확장하거나 웹에 네이티브 쓰기 권한을 제공하지 않는다.
 
 회귀검사: `tests/unit/viewer-inspector-controller.test.mjs`, `tests/unit/viewer-inspector.test.mjs`, `tests/browser/viewer-inspector.spec.mjs`, `tests/browser/viewer-review-e4.spec.mjs`, `tests/browser/viewer-project-open.spec.mjs`. 기존 브라우저 초기 국가 메시 게시 지연은 별도 미해결 문제로 추적한다.
+
+## P1 후속: 참조 데이터의 프로젝트 시점 통합 (2026-11-07, `work/optimization`)
+
+- 지명은 외부 타일 `nameTimeline`을 그대로 유지하고 프로젝트의
+  `timelineCursor`를 공통 날짜 입력으로 사용한다. C++ `placeNameRows`가
+  실제 표시 이름을 선택하며 해당 월에 표시 근거가 없는 원본은
+  `placeRuntime`의 선택 참조 카탈로그에 넣지 않는다. 원본 지명은
+  프로젝트 문서에 복제하지 않고, 날짜 이동 시 같은 리소스 인스턴스를 재사용한다.
+- 수계는 외부 `physicalWaterObjects.timelineRecords`의 C++ 조회 결과를
+  유일한 날짜별 원본 선택으로 사용한다. 이전처럼 로딩된 타일마다
+  무기한 `lifetime`과 형상 바인딩을 합성하여 두 번째 타임라인을 만들지 않는다.
+  작성된 강·호수는 기존 프로젝트 C++ 유효 시점의 `hydroEdits`에서 조회한다.
+  실제 물리 자료 준비가 완료된 경우에만 출처 대체를 적용한다.
+- `projectResourceOverlay`는 원본의 날짜별 활성 여부를 데이터 소유자의
+  판정 함수로 전달받고, 프로젝트/라이브러리 정체성과 변경 불가능한 원본을 유지한다.
+
+**자료 한계:** 현행 지명 타일 v3의 `nameTimeline`은 명칭 변화 자료이며
+도시의 모든 역사적 존속 구간을 뜻하지 않는다. 명시적으로 검증되지 않은
+도시 생성·소멸 날짜는 임의로 만들지 않는다. 완전한 존속기간 조회는 별도
+역사 자료와 타일 포맷에 유효 구간이 수용된 뒤 적용할 수 있다.
+
+회귀검사: `tests/unit/project-resource-overlay.test.mjs`,
+`tests/unit/place-runtime.test.mjs`,
+`tests/unit/historical-physical-water.test.mjs`,
+`tests/unit/physical-water-catalog.test.mjs`.

@@ -1,4 +1,4 @@
-import {loadBuiltinDisplayPolicy} from '../../tools/gis/builtin-display-policy.mjs';
+import {loadBuiltinDisplayPolicy,validateBuiltinDisplayPolicy} from '../../tools/gis/builtin-display-policy.mjs';
 import { normalizeCountryCollection } from "../../shared/frontend/js/modules/country-feature.js";
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -62,3 +62,15 @@ test('Guantanamo and Baikonur separate parent from controller or lessee', () => 
 
 
 
+
+test('declarative display policy rejects duplicate source IDs and invalid parent mappings',()=>{
+ const duplicate=structuredClone(displayPolicy);
+ duplicate.subunits.push({...duplicate.subunits[0]});
+ assert.throws(()=>validateBuiltinDisplayPolicy(duplicate),/duplicate/);
+ const self=structuredClone(displayPolicy);
+ self.subunits[0].parentId=self.subunits[0].sourceCountryId;
+ assert.throws(()=>validateBuiltinDisplayPolicy(self),/relation/);
+ const merge=structuredClone(displayPolicy);
+ merge.territoryMerges.push({...merge.territoryMerges[0]});
+ assert.throws(()=>validateBuiltinDisplayPolicy(merge),/duplicate/);
+});
