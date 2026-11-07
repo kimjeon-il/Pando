@@ -1,16 +1,49 @@
-import test from 'node:test';
-import assert from 'node:assert/strict';
-import {historicalWorldCases} from '../fixtures/historical-world-cases.mjs';
-import {compileBuiltinWorldCatalog,coalesceCoverageAdjustments} from '../../tools/builtin-world-compiler.mjs';
-import {assembleBuiltinWorld,selectBuiltinCountries} from "../../shared/frontend/js/modules/builtin-world-loader.js";
-import {createBuiltinProjectSetup} from '../../shared/frontend/js/modules/project-setup.js';
-import {PROJECT_SCHEMA_VERSION} from '../../shared/frontend/js/modules/version-contract.js';
-import {buildBuiltinWorldNamePublication} from '../../tools/build-builtin-world.mjs';
-import {gzipSync,gunzipSync} from 'node:zlib';
-import {createHash} from 'node:crypto';
-import {temporalContains,temporalMonthEnd} from '../../shared/frontend/js/modules/temporal.js';
-import {resolveWorld} from '../../shared/frontend/js/modules/timeline-resolver.js';
-import {createGeometryVersionStore} from '../../shared/frontend/js/modules/geometry-version-store.js';
+import { describe as contractSuite } from 'node:test';
+import * as __country_dep0 from "node:test";
+import * as __country_dep1 from "node:assert/strict";
+import * as __country_dep2 from "../fixtures/historical-world-cases.mjs";
+import * as __country_dep3 from "../../tools/builtin-world-compiler.mjs";
+import * as __country_dep4 from "../../shared/frontend/js/modules/builtin-world-loader.js";
+import * as __country_dep5 from "../../shared/frontend/js/modules/project-setup.js";
+import * as __country_dep6 from "../../shared/frontend/js/modules/version-contract.js";
+import * as __country_dep7 from "../../tools/build-builtin-world.mjs";
+import * as __country_dep8 from "node:zlib";
+import * as __country_dep9 from "node:crypto";
+import * as __country_dep10 from "../../shared/frontend/js/modules/temporal.js";
+import * as __country_dep11 from "../../shared/frontend/js/modules/timeline-resolver.js";
+import * as __country_dep12 from "../../shared/frontend/js/modules/geometry-version-store.js";
+import * as __country_dep13 from "node:fs";
+import * as __country_dep14 from "../helpers/builtin-world.mjs";
+import * as __country_dep15 from "../../shared/frontend/js/modules/builtin-month-clock.js";
+
+// Original feature contract: builtin-world-catalog.test.mjs
+contractSuite("builtin-world-catalog", () => {
+const test = __country_dep0.default;
+const assert = __country_dep1.default;
+const { historicalWorldCases } = __country_dep2;
+const { compileBuiltinWorldCatalog, coalesceCoverageAdjustments } = __country_dep3;
+const { assembleBuiltinWorld, selectBuiltinCountries } = __country_dep4;
+const { createBuiltinProjectSetup } = __country_dep5;
+const { PROJECT_SCHEMA_VERSION } = __country_dep6;
+const { buildBuiltinWorldNamePublication } = __country_dep7;
+const { gzipSync, gunzipSync } = __country_dep8;
+const { createHash } = __country_dep9;
+const { temporalContains, temporalMonthEnd } = __country_dep10;
+const { resolveWorld } = __country_dep11;
+const { createGeometryVersionStore } = __country_dep12;
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 let built;
 function fixture(){
@@ -157,4 +190,149 @@ test('one immutable project resolves every historical month through the native t
  }
  assert.deepEqual(index,source,'source catalog must not be mutated');
  assert.throws(()=>selectBuiltinCountries(index,'1914-07-01'),/query month/i);
+});
+});
+
+// Original feature contract: builtin-world-coverage-adjustments.test.mjs
+contractSuite("builtin-world-coverage-adjustments", () => {
+const test = __country_dep0.default;
+const assert = __country_dep1.default;
+const { coalesceCoverageAdjustments } = __country_dep3;
+
+
+
+
+const row=(validFrom,validTo,change={})=>({entityId:'state:target',kind:'explicit-replacement',relatedIds:['state:priority'],...change,validFrom,validTo});
+
+test('coverage evidence without objectRef merges adjacent intervals',()=>{
+ const input=[row('1900-01-01','1900-01-31'),row('1900-02-01','1900-02-28')];
+ assert.deepEqual(coalesceCoverageAdjustments(input),[row('1900-01-01','1900-02-28')]);
+ assert.equal(Object.hasOwn(input[0],'objectRef'),false);
+});
+
+test('coverage sorting and maximal coalescing do not mutate the input evidence',()=>{
+ const input=[row('1900-03-01','1900-03-31'),row('1900-01-01','1900-01-31'),row('1900-02-01','1900-02-28')];
+ const original=structuredClone(input);
+ for(const value of input){Object.freeze(value.relatedIds);Object.freeze(value);}Object.freeze(input);
+ const output=coalesceCoverageAdjustments(input);
+ assert.deepEqual(output,[row('1900-01-01','1900-03-31')]);assert.deepEqual(input,original);
+ assert.deepEqual(coalesceCoverageAdjustments(output),output);
+});
+
+test('different coverage entity, kind, related owners and precision evidence stay separate',()=>{
+ const variants=[{}, {entityId:'state:other'}, {kind:'parent-clipping'}, {relatedIds:['state:other-priority']},
+  {kind:'certified-clipping-precision-artifact',polygonIndex:0,areaM2:0.1,operation:'difference state:target / state:priority'},
+  {kind:'certified-clipping-precision-artifact',polygonIndex:0,areaM2:0.2,operation:'difference state:target / state:priority'}];
+ const input=variants.flatMap(change=>[row('1900-01-01','1900-01-31',change),row('1900-02-01','1900-02-28',change)]);
+ const output=coalesceCoverageAdjustments(input);
+ assert.equal(output.length,variants.length);
+ for(const change of variants)assert.ok(output.some(value=>JSON.stringify(value)===JSON.stringify(row('1900-01-01','1900-02-28',change))));
+});
+
+test('coverage gaps and overlapping intervals are not silently filled or unioned',()=>{
+ const gap=[row('1900-01-01','1900-01-10'),row('1900-01-12','1900-01-31')];
+ const overlap=[row('1900-01-01','1900-01-10'),row('1900-01-09','1900-01-20')];
+ assert.deepEqual(coalesceCoverageAdjustments(gap),gap);
+ assert.deepEqual(coalesceCoverageAdjustments(overlap),overlap);
+});
+
+test('open coverage bounds coalesce only across the finite adjacent boundary',()=>{
+ assert.deepEqual(coalesceCoverageAdjustments([row('1900-01-01',null),row(null,'1899-12-31')]),[row(null,null)]);
+ const input=[row(null,null),row('1900-01-01','1900-01-31')];
+ assert.deepEqual(coalesceCoverageAdjustments(input),input);
+});
+
+test('coverage coalescing preserves leap-day adjacency',()=>{
+ const input=[row('2024-02-28','2024-02-28'),row('2024-02-29','2024-02-29'),row('2024-03-01','2024-03-01')];
+ assert.deepEqual(coalesceCoverageAdjustments(input),[row('2024-02-28','2024-03-01')]);
+});
+
+test('coverage coalescing crosses BCE to CE without inventing year zero',()=>{
+ assert.deepEqual(coalesceCoverageAdjustments([row('-0001-12-31','-0001-12-31'),row('0001-01-01','0001-01-01')]),
+  [row('-0001-12-31','0001-01-01')]);
+});
+
+test('empty and single coverage records keep their original shape',()=>{
+ assert.deepEqual(coalesceCoverageAdjustments([]),[]);
+ assert.deepEqual(coalesceCoverageAdjustments([row(null,null)]),[row(null,null)]);
+});
+});
+
+// Original feature contract: builtin-world-baseline.test.mjs
+contractSuite("builtin-world-baseline", () => {
+const test = __country_dep0.default;
+const assert = __country_dep1.default;
+const fs = __country_dep13.default;
+const { builtinProject } = __country_dep14;
+const { deviceCurrentMonth } = __country_dep15;
+const { assembleBuiltinWorld, selectBuiltinCountries } = __country_dep4;
+const { createGeometryVersionStore } = __country_dep12;
+const { resolveWorld } = __country_dep11;
+const { temporalContains, temporalMonthEnd } = __country_dep10;
+
+
+
+
+
+
+
+
+
+
+const catalogPath = new URL('../../assets/data/builtin-world/generated/v1/index.json', import.meta.url);
+const catalog = () => JSON.parse(fs.readFileSync(catalogPath, 'utf8'));
+const monthsToCheck = () => {
+  const now = new Date();
+  return [...new Set([deviceCurrentMonth(now),
+    deviceCurrentMonth(new Date(now.getFullYear(), now.getMonth() - 1, 1))])];
+};
+
+test('the current and preceding months resolve from one complete historical world', () => {
+  const index = catalog(), untouched = structuredClone(index);
+  assert.ok(Array.isArray(index.entities) && index.entities.length > 0, 'missing country catalog');
+  for (const month of monthsToCheck()) {
+    const selected = selectBuiltinCountries(index, month);
+    assert.ok(selected.length > 0, month + ': missing current country coverage');
+    const project = builtinProject(month);
+    assert.equal(project.projectSetup.initialMonth, month);
+    assert.deepEqual(project.territorialEntities.map(row => row.id), index.entities.map(row => row.entityId),
+      month + ': a historical identity was lost from the project');
+    const ids = new Set(project.territorialEntities.map(row => row.id));
+    assert.equal(ids.size, index.entities.length, month + ': duplicate country identity');
+    const geometries = new Map(project.geometries.map(row => [JSON.stringify([row.id, row.version]), row]));
+    for (const binding of project.timelineRecords.geometryBindings) {
+      assert.ok(ids.has(binding.objectRef.id), 'binding to a country absent from this query');
+      assert.ok(geometries.has(JSON.stringify([binding.geometryRef.id, binding.geometryRef.version])),
+        'binding to missing loaded geometry: ' + binding.objectRef.id);
+    }
+    const visible = resolveWorld(project.territorialEntities, project.timelineRecords,
+      createGeometryVersionStore(project.geometries), month);
+    assert.ok(visible.entities.length > 0, month + ': empty physical map');
+    assert.equal(new Set(visible.entities.map(row => row.id)).size, visible.entities.length);
+    assert.deepEqual(visible.entities.map(row => row.id).sort(),selected.map(row => row.entityId).sort(),
+      month + ': C++ selected world differs from source coverage');
+    for (const row of visible.entities) {
+      assert.ok(ids.has(row.id), 'unloaded country appears in the displayed scene');
+      const timeline = row.identity.properties.metadata.historicalTimeline;
+      assert.ok(timeline?.geometryBindings, row.id + ': missing source timeline');
+      const binding = timeline.geometryBindings.find(value =>
+        temporalContains(value, temporalMonthEnd(month)));
+      assert.ok(binding, row.id + ': no geometry edition for selected month');
+      assert.deepEqual(row.geometryRef,binding.geometryRef,
+        row.id + ': resolved source geometry differs from the historic interval');
+      assert.equal(row.identity.properties.sourceGeometryVersion,binding.sourceVersionId,
+        row.id + ': visible source version must follow the native cursor');
+      assert.ok(row.geometry && ['Polygon', 'MultiPolygon'].includes(row.geometry.type),
+        row.id + ': expected an actual displayed country geometry');
+    }
+  }
+  assert.deepEqual(catalog(), untouched, 'date queries must never rewrite the source catalog');
+});
+
+test('a missing selected country fails instead of substituting an unrelated past snapshot', () => {
+  const index = catalog(), month = monthsToCheck()[0];
+  assert.ok(selectBuiltinCountries(index, month).length > 0);
+  assert.throws(() => assembleBuiltinWorld(index, [], month), /Incomplete builtin country selection/);
+  assert.deepEqual(catalog(), index, 'negative selection cannot mutate the index');
+});
 });

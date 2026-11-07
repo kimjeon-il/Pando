@@ -1,14 +1,41 @@
-import test from 'node:test';
-import assert from 'node:assert/strict';
-import fs from 'node:fs';
-import os from 'node:os';
-import path from 'node:path';
-import {createHash} from 'node:crypto';
-import {gunzipSync} from 'node:zlib';
-import * as publication from '../../tools/build-builtin-world.mjs';
-import {territorialIndexEntry} from '../../tools/gis/territorial-index-entry.js';
-import {historicalWorldCases} from '../fixtures/historical-world-cases.mjs';
-import {withExplicitView} from '../helpers/builtin-world.mjs';
+import { describe as contractSuite } from 'node:test';
+import * as __country_dep0 from "node:test";
+import * as __country_dep1 from "node:assert/strict";
+import * as __country_dep2 from "node:fs";
+import * as __country_dep3 from "node:os";
+import * as __country_dep4 from "node:path";
+import * as __country_dep5 from "node:crypto";
+import * as __country_dep6 from "node:zlib";
+import * as __country_dep7 from "../../tools/build-builtin-world.mjs";
+import * as __country_dep8 from "../../tools/gis/territorial-index-entry.js";
+import * as __country_dep9 from "../fixtures/historical-world-cases.mjs";
+import * as __country_dep10 from "../helpers/builtin-world.mjs";
+import * as __country_dep11 from "../../scripts/lib/product-assets.mjs";
+
+// Original feature contract: builtin-country-publication.test.mjs
+contractSuite("builtin-country-publication", () => {
+const test = __country_dep0.default;
+const assert = __country_dep1.default;
+const fs = __country_dep2.default;
+const os = __country_dep3.default;
+const path = __country_dep4.default;
+const { createHash } = __country_dep5;
+const { gunzipSync } = __country_dep6;
+const publication = __country_dep7;
+const { territorialIndexEntry } = __country_dep8;
+const { historicalWorldCases } = __country_dep9;
+const { withExplicitView } = __country_dep10;
+
+
+
+
+
+
+
+
+
+
+
 
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 const catalog=input=>({entities:input.entities.map(entity=>territorialIndexEntry(entity,{sha256:sha(JSON.stringify(entity))}))});
@@ -136,4 +163,73 @@ test('finalizing a selected publication drops old transport metadata without mut
  assert.equal(payloads(files).length,0);
  assert.ok(previousIndex.transport);
  assert.ok(previousIndex.entities.every(entry=>Object.hasOwn(entry,'offset')));
+});
+});
+
+// Original feature contract: builtin-country-deployment.test.mjs
+contractSuite("builtin-country-deployment", () => {
+const test = __country_dep0.default;
+const assert = __country_dep1.default;
+const { tmpdir } = __country_dep3;
+const { collectViewerAssets } = __country_dep11;
+
+
+
+
+
+const ROOT='assets/data/builtin-world/generated/v1/';
+const SHA='a'.repeat(64);
+const country=id=>({entityId:id,file:`countries/${id}-sha256-${SHA}.json.gz`,encoding:'gzip',sha256:SHA,compressedBytes:3,decodedBytes:8,coverage:[{validFrom:null,validTo:null}]});
+const catalog=()=>({schema:'pandolab-builtin-world',schemaVersion:2,storageLayout:'country-files-v1',template:{},entities:[country('AAA'),country('BBB')]});
+function viewerInput(index=catalog()){
+ const files=new Map([['index.html',''],['.nojekyll',''],['assets/js/viewer.js','export const viewer=true;'],[ROOT+'index.json',JSON.stringify(index)],
+  [ROOT+'transport/old.bin','old aggregate'],[ROOT+'countries/orphan.json.gz','orphan']]);
+ const preview='assets/data/physical-land/preview/v1/fixture.json.gz';
+ files.set(preview,'preview');
+ files.set('assets/js/build-meta.js','globalThis.PANDOLAB_BUILD_META=Object.freeze('+JSON.stringify({initialLandPreview:{url:preview}})+');');
+ for(const row of index.entities)files.set(ROOT+row.file,'country');
+ return {files,collect:()=>collectViewerAssets({root:tmpdir(),availablePaths:[...files.keys()],readSource:path=>files.get(path),workerAssets:{}})};
+}
+test('Viewer closure selects exactly the referenced independent country files and no transport',async()=>{
+ const index=catalog(),viewer=viewerInput(index),web=await viewer.collect();
+ const expected=[ROOT+'index.json',...index.entities.map(row=>ROOT+row.file)].sort();
+ assert.deepEqual([...web].filter(path=>path.startsWith(ROOT)).sort(),expected);
+});
+test('missing referenced country blocks Web publication rather than falling back to a packed file',async()=>{
+ const f=viewerInput();f.files.delete(ROOT+catalog().entities[0].file);
+ await assert.rejects(f.collect(),/Missing viewer dependency/);
+});
+test('Viewer closure rejects retired transport, offsets and unsafe country descriptors',async()=>{
+ for(const change of [
+  x=>{delete x.storageLayout;},x=>{x.transport={url:'transport/old.bin'};},x=>{x.entities[0].offset=0;},
+  x=>{x.entities[0].file='../outside.gz';},x=>{x.entities[0].sha256='b'.repeat(64);},
+  x=>{x.entities[0].decodedBytes=0;},x=>{x.entities[0].encoding='identity';},x=>{x.entities.push({...x.entities[0]});},
+ ]){
+  const index=catalog();change(index);
+  await assert.rejects(viewerInput(index).collect(),/builtin|country/i);
+ }
+});
+});
+
+// Original feature contract: builtin-country-residuals.test.mjs
+contractSuite("builtin-country-residuals", () => {
+const test = __country_dep0.default;
+const assert = __country_dep1.default;
+const { readFileSync } = __country_dep2;
+
+
+
+const source=path=>readFileSync(new URL('../../'+path,import.meta.url),'utf8');
+
+test('water preparation cannot migrate or regenerate all builtin countries as a side effect',()=>{
+ const text=source('tools/gis/prepare-water-object-history.mjs');
+ assert.doesNotMatch(text,/prepareCommonCountryTargets|build-builtin-world\.mjs|finalizeBuiltinWorldFiles|writeBuiltinWorldPublication/,
+  'The completed country wire migration is not a dependency of water preparation');
+});
+
+test('active builtin generation, loading and packaging have no aggregate transport execution path',()=>{
+ for(const path of ['tools/build-builtin-world.mjs','shared/frontend/js/modules/builtin-world-loader.js','scripts/lib/product-assets.mjs','apps/viewer/js/modules/viewer-map.js','tools/stage-monorepo-pages.mjs']){
+  assert.doesNotMatch(source(path),/\bloadTransport\s*\(|\btransportPromise\b|\.transport\s*\.\s*url|transport\/countries-sha256-/,path);
+ }
+});
 });
