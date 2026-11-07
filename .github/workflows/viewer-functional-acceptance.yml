@@ -102,13 +102,13 @@ jobs:
           apps/viewer/js/modules/viewer-map.js
           tests/unit/core-product-mode.test.mjs
           tests/unit/map-readonly-flat-boundary.test.mjs
-          tests/unit/project-product-surface.test.mjs
+          tests/unit/file-access-contract.test.mjs
           tests/unit/viewer-initial-presentation.test.mjs
       - name: Verify Core read access, project ownership and editing isolation
         run: >-
           node --test --test-concurrency=2
           tests/unit/core-product-mode.test.mjs
-          tests/unit/project-product-surface.test.mjs
+          tests/unit/file-access-contract.test.mjs
           tests/unit/viewer-initial-presentation.test.mjs
           tests/unit/map-readonly-flat-boundary.test.mjs
           tests/unit/viewer-bootstrap-recovery.test.mjs

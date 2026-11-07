@@ -29,7 +29,7 @@ on:
       - 'tests/unit/*core*.test.mjs'
       - 'tests/unit/native-*.test.mjs'
       - 'tests/unit/web-*-contract.test.mjs'
-      - 'tests/unit/project-serializer.test.mjs'
+      - 'tests/unit/project-creation-contract.test.mjs'
       - 'tests/unit/r4b-data-module-boundaries.test.mjs'
       - 'tests/unit/project-preview-policy.test.mjs'
       - 'tools/package-shared-core-assets.mjs'
@@ -69,7 +69,7 @@ on:
       - 'tests/unit/*core*.test.mjs'
       - 'tests/unit/native-*.test.mjs'
       - 'tests/unit/web-*-contract.test.mjs'
-      - 'tests/unit/project-serializer.test.mjs'
+      - 'tests/unit/project-creation-contract.test.mjs'
       - 'tests/unit/r4b-data-module-boundaries.test.mjs'
       - 'tests/unit/project-preview-policy.test.mjs'
       - 'tools/package-shared-core-assets.mjs'
@@ -326,33 +326,34 @@ jobs:
           tests/unit/core-document-client.test.mjs tests/unit/core-document-runtime.test.mjs
           tests/unit/core-document-read-model.test.mjs tests/unit/core-document-wasm.test.mjs
           tests/unit/core-document-selection-wasm.test.mjs
-          tests/unit/core-document-world-wasm.test.mjs tests/unit/core-document-draft-wasm.test.mjs
+          tests/unit/core-document-world-wasm.test.mjs
            tests/unit/core-codec-unicode-wasm.test.mjs
           tests/unit/core-codec-unicode-ids-wasm.test.mjs
-          tests/unit/core-document-content-wasm.test.mjs tests/unit/core-project-command-wasm.test.mjs
+           tests/unit/core-project-command-wasm.test.mjs
           tests/unit/core-map-presentation-wasm.test.mjs tests/unit/core-object-catalog-wasm.test.mjs
           tests/unit/core-delete-selection-wasm.test.mjs
           tests/unit/core-distribution-array-metadata-wasm.test.mjs
           tests/unit/core-direct-object-writers-wasm.test.mjs
           tests/unit/core-hydro-create-wasm.test.mjs tests/unit/core-web-history-limit-wasm.test.mjs
            tests/unit/core-label-gesture-wasm.test.mjs
-          tests/unit/core-gpkg-file-boundary.test.mjs
-          tests/unit/core-project-admission-wasm.test.mjs
-          tests/unit/core-project-replacement-wasm.test.mjs tests/unit/core-project-file-save-wasm.test.mjs
+          tests/unit/timeline-geopackage.test.mjs
+           tests/unit/core-project-file-save-wasm.test.mjs
           tests/unit/core-territorial-service-wasm.test.mjs
-          tests/unit/core-territorial-store-wasm.test.mjs 
+          tests/unit/core-territorial-store-wasm.test.mjs
           tests/unit/core-save-state-projection.test.mjs
           tests/unit/core-draft-primitives.test.mjs
           tests/unit/timeline-controls.test.mjs tests/unit/shared-core-assets.test.mjs
-          tests/unit/web-document-seed.test.mjs 
+          tests/unit/web-document-seed.test.mjs
            tests/unit/core-worker-ownership.test.mjs
-          tests/unit/web-oracle-admission.test.mjs 
+          tests/unit/web-oracle-admission.test.mjs
           tests/unit/web-map-presentation-contract.test.mjs
           tests/unit/web-object-removal-original.test.mjs
       - name: Ordered storage snapshot and project replacement boundaries
+        env:
+          PANDOEDITOR_WASM_MODULE: build-native/p1/pando-wasm/shared/wasm/pandoeditor-core.js
         run: >-
           node --test --test-concurrency=1 --test-timeout=15000
-          tests/unit/project-serializer.test.mjs tests/unit/r4b-data-module-boundaries.test.mjs
+          tests/unit/project-creation-contract.test.mjs tests/unit/r4b-data-module-boundaries.test.mjs
           tests/unit/project-preview-policy.test.mjs
       - name: Retired attachment contracts
         run: >-
