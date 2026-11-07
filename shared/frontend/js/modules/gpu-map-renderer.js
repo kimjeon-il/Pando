@@ -4883,6 +4883,7 @@ export function createGpuMapRenderer(deps) {
     function failCanvasWorker(message) {
       if (disposed || rendererMode !== 'canvas-worker') return;
       const ticket = gpuRecovery.fallbackTicket();
+      performanceMetrics.canvasWorkerLastError = String(message || 'unknown Canvas Worker failure').slice(0, 500);
       try {
       const preserveCanvas = temporalPending();
       failTemporalPresentation(new Error(`Canvas temporal presentation failed: ${message}`));

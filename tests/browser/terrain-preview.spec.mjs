@@ -42,7 +42,10 @@ test('WebGL DEM failure uses the new preview through color, gray and view change
 
 test('Canvas Worker keeps preview while DEM is delayed and replaces it with detailed DEM', async ({ page, context }, testInfo) => {
   test.skip(!existsSync(resolve(sourceCache, 'terrain/v0.13.3/tint.webp')), 'Run the pinned preview generator with --rebuild-check to prepare DEM test inputs');
-  const errors = [];
+  const errors = [], workerWarnings = [];
+  page.on('console', message => {
+    if (['error','warning'].includes(message.type())) workerWarnings.push(message.text().slice(0,1000));
+  });
   await page.addInitScript(() => {
     window.__terrainFrames = [];
     window.__terrainWorkerEvents = [];
@@ -170,7 +173,7 @@ test('Canvas Worker keeps preview while DEM is delayed and replaces it with deta
     if (!page.isClosed()) {
       const diagnostics = await page.evaluate(() => ({ metrics: window.__PANDOLAB_GPU_METRICS__,
         frames: window.__terrainFrames.slice(-5), events: window.__terrainWorkerEvents.slice(-40) })).catch(() => null);
-      console.log('CANVAS_DEM_DIAGNOSTIC '+JSON.stringify({ ...diagnostics, requests: requests.slice(-60) }));
+      console.log('CANVAS_DEM_DIAGNOSTIC '+JSON.stringify({ ...diagnostics, workerWarnings:workerWarnings.slice(-15), requests: requests.slice(-60) }));
     }
     throw error;
   } finally { releaseDem(); }
