@@ -1,64 +1,38 @@
 import assert from 'node:assert/strict';
-import { readFileSync,existsSync } from 'node:fs';
+import {readFileSync,existsSync} from 'node:fs';
 import test from 'node:test';
-import { classifyPaths } from '../../scripts/p1-plan-remote-checks.mjs';
+import {selectNativeBuilds} from '../../scripts/lib/check-changes.mjs';
 
-const read=p=>readFileSync(new URL('../../'+p,import.meta.url),'utf8');
-test('the historical P6 inventory is retired while current product gates remain active',()=>{
-  assert.equal(existsSync(new URL('../../.github/workflows/p6-preflight.yml',import.meta.url)),false);
-  assert.match(read('.github/workflows/shared-core.yml'),/core-gpkg-file-boundary\.test\.mjs/);
-  assert.equal(existsSync(new URL('../../.github/workflows/e7-final-readonly-regression.yml',import.meta.url)),false);
-  assert.match(read('.github/workflows/remote-only-gate.yml'),/wasm-compile-and-smoke:/);
-});
-test('general Web tests and versioning use only Node',()=>{
-  const scripts=JSON.parse(read('package.json')).scripts;
-  assert.equal(Object.hasOwn(scripts,'test:gis-python'),false);
-  assert.equal(Object.hasOwn(scripts,'test:python'),false);
-  for(const name of ['test','check:versioning','check:architecture'])
-    assert.doesNotMatch(scripts[name],/\bpython(?:3)?\b|test:python|test:gis-python/,
-      'Normal '+name+' must not invoke Python');
-  assert.match(scripts['check:versioning'],/versioning-source-schema\.test\.mjs/);
-});
-test('normal Web/core CI jobs cannot install Python or execute GIS Python tests',()=>{
-  for(const wf of ['remote-development-p1.yml','remote-preview-p3.yml','application-architecture.yml']){
-    const source=read('.github/workflows/'+wf);
-    assert.doesNotMatch(source,/setup-python|python -m pip|python -m unittest|python -m compileall/,
-      wf+' must have no Python install/calls');
-    assert.doesNotMatch(source,/^\s+python-contracts:|^\s+python-source:|^\s+historical-geometry:/m,
-      wf+' must not contain an isolated GIS job');
-  }
-});
-test('GIS source work uses the dedicated workflow and opt-in CLI',()=>{
-  const wf=read('.github/workflows/gis-source-p4.yml');
-  assert.match(wf,/workflow_dispatch:/);
-  assert.match(wf,/gis-source:/);
-  assert.match(wf,/historical-geometry:/);
-  const events=wf.split('  workflow_dispatch:')[0];
-  for(const extension of ['py','pyw','pyi','ipynb'])
-    assert.equal(events.split(`'**/*.${extension}'`).length-1,2,`push and pull request must guard ${extension}`);
-  assert.doesNotMatch(wf,/setup-python|python -m/);
-  assert.doesNotMatch(wf,/^\s+schedule:/m);
-  assert.ok(wf.includes("github.event_name == 'workflow_dispatch'"));
-  const cli=read('scripts/gis/run-source.mjs');
-  assert.match(cli,/--execute/);
-  assert.match(cli,/if\(!execute\)return 0/);
-  assert.match(cli,/spawn\(command\[0\]/);
-});
-test('GIS generator edits do not select core or WASM compilation',()=>{
-  const caps={core:true,gisTools:true,web:true};
-  for(const path of ['tools/gis/build-hydro.mjs']){
-    const plan=classifyPaths([path],caps);
-    assert.equal(plan.gis,true,path);
-    for(const flag of ['core','wasm','gisTools','ui'])
-      assert.equal(plan[flag],false,path+' unexpectedly triggered '+flag);
-  }
+const read=path=>readFileSync(new URL('../../'+path,import.meta.url),'utf8');
+const exists=path=>existsSync(new URL('../../'+path,import.meta.url));
+
+test('retired P1 and P3 workflows cannot be selected instead of the shared Core owner',()=>{
+ for(const path of ['remote-development-p1.yml','remote-preview-p3.yml','p6-preflight.yml'])
+  assert.equal(exists('.github/workflows/'+path),false,path);
+ const shared=read('.github/workflows/shared-core.yml');
+ assert.match(shared,/native-branch-core:/);
+ assert.match(shared,/native-branch-gis:/);
+ assert.match(shared,/ctest --preset pando-core/);
+ const checks=JSON.parse(read('scripts/contracts/application-checks.json'));
+ const native=checks.externalChecks.find(x=>x.id==='native-core');
+ assert.equal(native.workflow,'.github/workflows/shared-core.yml');
+ assert.equal(native.job,'native-branch-core');
 });
 
-test('legacy GIS/world validation no longer installs Python on Web code changes',()=>{
-  const world=read('.github/workflows/world-dataset-stage3-gate.yml');
-  assert.doesNotMatch(world,/setup-python/);
-  const archived=read('.github/workflows/pando-pretransfer-cleanup-gate.yml');
-  assert.match(archived,/workflow_dispatch:/);
-  assert.doesNotMatch(archived,/^ {2}push:/m,
-    'obsolete exact-file-count report audit must not block work/gis product pushes');
+test('unrelated GIS JavaScript edits do not trigger a native or WASM build',()=>{
+ for(const path of ['tools/gis/build-hydro.mjs','tools/gis/hydro-generation-manifest.mjs']){
+  assert.deepEqual(selectNativeBuilds([path]),{core:false,gis:false,wasm:false});
+ }
+ assert.deepEqual(selectNativeBuilds(['tools/cpp/hydro/point-screen.cpp']),{core:false,gis:true,wasm:false});
+ assert.deepEqual(selectNativeBuilds(['shared/core/src/project.cpp']),{core:true,gis:false,wasm:false});
+});
+
+test('application and native Core contracts do not install GIS Python test suites',()=>{
+ const scripts=JSON.parse(read('package.json')).scripts;
+ for(const name of ['test','check:versioning','check:architecture'])
+  assert.doesNotMatch(scripts[name],/\bpython(?:3)?\b|test:python|test:gis-python/);
+ for(const workflow of ['shared-core.yml','application-architecture.yml']){
+  const body=read('.github/workflows/'+workflow);
+  assert.doesNotMatch(body,/setup-python|python -m pip|python -m unittest|python -m compileall/);
+ }
 });
