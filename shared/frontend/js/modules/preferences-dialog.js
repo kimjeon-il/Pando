@@ -6,7 +6,12 @@ export function createPreferencesDialog({ document, productMode, getPreferences,
   if (productMode !== 'viewer') throw new TypeError('Preference dialog requires viewer product mode.');
   const get = id => document.getElementById(id);
   const modal = get('preferencesModal');
-  let origin = null, trigger = null;
+  let origin = null, trigger = null, disposed = false;
+  const subscriptions = [];
+  const listen = (node, type, handler) => {
+    node.addEventListener(type, handler);
+    subscriptions.push(() => node.removeEventListener(type, handler));
+  };
   const sync = () => {
     const { appearance } = getPreferences();
     get('preferencesThemeInput').value = appearance.theme;
@@ -24,25 +29,32 @@ export function createPreferencesDialog({ document, productMode, getPreferences,
     origin = null;
     modal.classList.add('hidden');
   };
-  get('preferencesBtn').addEventListener('click', event => {
+  listen(get('preferencesBtn'), 'click', event => {
     beforeOpen(); trigger = event.currentTarget;
     setDialogReturnFocus(modal, () => returnFocus?.() || trigger);
     origin = { ...getPreferences().appearance }; sync();
     modal.classList.remove('hidden');
     modal.querySelector(`[data-preference-theme="${origin.theme}"]`).focus({ preventScroll: true });
   });
-  get('preferencesCancelBtn').addEventListener('click', () => close({ revert: true }));
-  modal.querySelector('.ui-dialog-backdrop').addEventListener('click', () => close({ revert: true }));
-  get('preferencesApplyBtn').addEventListener('click', () => close());
-  get('preferencesResetBtn').addEventListener('click', () => preview(defaultUserPreferences().appearance));
+  listen(get('preferencesCancelBtn'), 'click', () => close({ revert: true }));
+  listen(modal.querySelector('.ui-dialog-backdrop'), 'click', () => close({ revert: true }));
+  listen(get('preferencesApplyBtn'), 'click', () => close());
+  listen(get('preferencesResetBtn'), 'click', () => preview(defaultUserPreferences().appearance));
   for (const button of modal.querySelectorAll('[data-preference-theme]'))
-    button.addEventListener('click', () => preview({ ...getPreferences().appearance, theme: button.dataset.preferenceTheme }));
+    listen(button, 'click', () => preview({ ...getPreferences().appearance, theme: button.dataset.preferenceTheme }));
   for (const button of modal.querySelectorAll('[data-preference-accent]'))
-    button.addEventListener('click', () => preview({ ...getPreferences().appearance, accentPreset: button.dataset.preferenceAccent }));
+    listen(button, 'click', () => preview({ ...getPreferences().appearance, accentPreset: button.dataset.preferenceAccent }));
   for (const [id, key] of [['preferencesSmoothLinesInput','smoothLines']])
-    get(id).addEventListener('change', () => preview({ ...getPreferences().appearance, [key]: get(id).checked }));
-  modal.addEventListener('keydown', event => {
+    listen(get(id), 'change', () => preview({ ...getPreferences().appearance, [key]: get(id).checked }));
+  listen(modal, 'keydown', event => {
     if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); close({ revert: true }); }
   });
-  return Object.freeze({ close });
+  return Object.freeze({ close, dispose() {
+    if (disposed) return;
+    disposed = true;
+    for (const unsubscribe of subscriptions.splice(0)) unsubscribe();
+    origin = null;
+    trigger = null;
+    modal.classList.add('hidden');
+  } });
 }

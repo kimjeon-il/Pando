@@ -11,6 +11,12 @@ export function createTooltipController({
   // dismissal hides it, while a fresh pointer hover can present the same ref.
   let mapHoverView = null;
   let mapInteractionActive = false;
+  let disposed = false, bound = false;
+  const subscriptions = [];
+  const listen = (node, event, handler, options) => {
+    node.addEventListener(event, handler, options);
+    subscriptions.push(() => node.removeEventListener(event, handler, options));
+  };
 
   function hide() {
     window.clearTimeout(showTimer);
@@ -31,7 +37,7 @@ export function createTooltipController({
   }
 
   function show(target, source = 'pointer') {
-    if (!target) return;
+    if (disposed || !target) return;
     if (source !== 'keyboard' && !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
     const value = String(target.dataset.tooltip || '').trim();
     if (!value || !tooltip) return;
@@ -65,11 +71,13 @@ export function createTooltipController({
   }
 
   function setMapHover(view) {
+    if (disposed) return;
     mapHoverView = view;
     presentMapHover();
   }
 
   function presentMapHover() {
+    if (disposed) return;
     const view = mapHoverView;
     if (!view || !mapPointer || mapInteractionActive || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
       if (tooltip.dataset.kind === 'country') hide();
@@ -93,7 +101,9 @@ export function createTooltipController({
   }
 
   function bind() {
-    document.addEventListener('pointermove', event => {
+    if (bound || disposed) return;
+    bound = true;
+    listen(document, 'pointermove', event => {
       const map = event.target.closest?.('#map');
       if (event.pointerType !== 'mouse' || event.buttons > 0 || mapInteractionActive || !map || event.target.closest?.('.map-overlay-layer, button, input, select, textarea')) {
         mapPointer = null;
@@ -105,10 +115,10 @@ export function createTooltipController({
       if (tooltip.dataset.kind === 'country') positionMapHover();
       else if (moved) presentMapHover();
     }, true);
-    document.addEventListener('pointerdown', hide, true);
-    window.addEventListener('pandolab:project-changed', () => { mapHoverView = null; hide(); });
-    window.addEventListener('pandolab:interaction-state', event => { mapInteractionActive = event.detail?.active === true; hide(); });
-    document.addEventListener('pointerover', event => {
+    listen(document, 'pointerdown', hide, true);
+    listen(window, 'pandolab:project-changed', () => { mapHoverView = null; hide(); });
+    listen(window, 'pandolab:interaction-state', event => { mapInteractionActive = event.detail?.active === true; hide(); });
+    listen(document, 'pointerover', event => {
       if (event.pointerType && event.pointerType !== 'mouse') return;
       const target = event.target.closest?.('[data-tooltip]');
       if (!target || target.contains(event.relatedTarget)) return;
@@ -118,24 +128,33 @@ export function createTooltipController({
       hide();
       showTimer = window.setTimeout(() => {
         showTimer = 0;
-        if (target.matches(':hover')) show(target);
+        if (!disposed && target.matches(':hover')) show(target);
       }, 420);
     });
-    document.addEventListener('pointerout', event => {
+    listen(document, 'pointerout', event => {
       const target = event.target.closest?.('[data-tooltip]');
       if (target && !target.contains(event.relatedTarget)) hide();
     });
-    document.addEventListener('focusin', event => {
+    listen(document, 'focusin', event => {
       const target = event.target.closest?.('[data-tooltip]');
       if (target && document.documentElement.classList.contains('keyboard-navigation')) show(target, 'keyboard');
     });
-    document.addEventListener('focusout', event => {
+    listen(document, 'focusout', event => {
       if (event.target.closest?.('[data-tooltip]')) hide();
     });
-    document.addEventListener('scroll', hide, true);
-    document.addEventListener('keydown', event => { if (event.key === 'Escape') hide(); });
-    window.addEventListener('resize', hide);
+    listen(document, 'scroll', hide, true);
+    listen(document, 'keydown', event => { if (event.key === 'Escape') hide(); });
+    listen(window, 'resize', hide);
   }
 
-  return Object.freeze({ bind, hide, show, setMapHover });
+  function dispose() {
+    if (disposed) return;
+    disposed = true;
+    bound = false;
+    for (const unsubscribe of subscriptions.splice(0)) unsubscribe();
+    hide();
+    mapPointer = null;
+    mapHoverView = null;
+  }
+  return Object.freeze({ bind, hide, show, setMapHover, dispose });
 }
