@@ -10,8 +10,6 @@ import * as __dep7 from "../../shared/frontend/js/modules/selection-pass.js";
 import * as __dep8 from "../../shared/frontend/js/modules/gpu-polygon-overlay-pass.js";
 import * as __dep9 from "../../shared/frontend/js/modules/selection-ui-controller.js";
 import * as __dep10 from "../../shared/frontend/js/modules/object-selection-controller.js";
-
-// Original feature contract: selection-emphasis.test.mjs
 contractSuite("selection-emphasis", () => {
 const { readFrontendSources } = __dep0;
 const assert = __dep1.default;
@@ -187,8 +185,6 @@ test('map hover delegates ownership and invalidation to the selection domain', a
   assert.doesNotMatch(source, /renderHoverOverlay\(\)/);
 });
 });
-
-// Original feature contract: selection-overlay-plan.test.mjs
 contractSuite("selection-overlay-plan", () => {
 const test = __dep3.default;
 const assert = __dep1.default;
@@ -374,8 +370,6 @@ test('recovery and stable GPU frames keep their current fill owner without inven
   }
 });
 });
-
-// Original feature contract: selection-ui-ack.test.mjs
 contractSuite("selection-ui-ack", () => {
 const assert = __dep1.default;
 const test = __dep3.default;

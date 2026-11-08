@@ -11,8 +11,6 @@ import * as __dep8 from "../../scripts/lib/css-analysis.mjs";
 import * as __dep9 from "../../scripts/lib/source-analysis.mjs";
 import * as __dep10 from "../../shared/frontend/js/modules/render-device.js";
 import * as __dep11 from "../../shared/frontend/js/modules/selection-packet.js";
-
-// Original feature contract: selection-domain-core.test.mjs
 contractSuite("selection-domain-core", () => {
 const assert = __dep0.default;
 const test = __dep1.default;
@@ -139,8 +137,6 @@ test('disposing selection unsubscribes and suppresses a late acknowledgement', a
   assert.deepEqual(events, []);assert.equal(domain.size(), 0);
 });
 });
-
-// Original feature contract: selection-domain-wasm.test.mjs
 contractSuite("selection-domain-wasm", () => {
 const assert = __dep0.default;
 const { readFileSync } = __dep4;
@@ -188,8 +184,6 @@ test('invalid non-null public hover cannot clear an accepted hover', async () =>
   } finally { owner.dispose(); }
 });
 });
-
-// Original feature contract: selection-architecture.test.mjs
 contractSuite("selection-architecture", () => {
 const { repositoryFrontendUrl } = __dep6;
 const assert = __dep0.default;

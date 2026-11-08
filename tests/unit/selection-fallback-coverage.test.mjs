@@ -9,8 +9,6 @@ import * as __contract_dep6 from "node:assert/strict";
 import * as __contract_dep7 from "../../shared/frontend/js/modules/selection-packet.js";
 import * as __contract_dep8 from "../../shared/frontend/js/modules/selection-pass.js";
 import * as __contract_dep9 from "../../shared/frontend/js/modules/map-interaction-style.js";
-
-// Original feature contract: selection-fallback-coverage.test.mjs
 contractSuite("selection-fallback-coverage", () => {
 const test = __contract_dep0.default;
 const assert = __contract_dep1.default;
@@ -108,9 +106,6 @@ test('prepared library-country GPU resource transitions from upload pending to c
   assert.equal(nodes.length, 2);
 });
 });
-
-
-// Original feature contract: selection-entity-channels.test.mjs
 contractSuite("selection-entity-channels", () => {
 const test = __contract_dep5.default;
 const assert = __contract_dep6.default;

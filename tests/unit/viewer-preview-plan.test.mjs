@@ -17,8 +17,6 @@ import * as __dep14 from "../../shared/frontend/js/modules/project-file-reader.j
 import * as __dep15 from "../../shared/frontend/js/modules/initial-document.js";
 import * as __dep16 from "../helpers/core-project.mjs";
 import * as __dep17 from "../fixtures/viewer-project-package.mjs";
-
-// Original feature contract: viewer-preview-plan.test.mjs
 contractSuite("viewer-preview-plan", () => {
 const { pagesRepositoryFixture } = __dep0;
 const assert = __dep1.default;
@@ -121,8 +119,6 @@ test('verified artifact handoff and current Viewer acceptance are source-pinned'
   assert.match(workflow,/calculation-performance:/);
 });
 });
-
-// Original feature contract: viewer-project-reader.test.mjs
 contractSuite("viewer-project-reader", async () => {
 const { repositoryFrontendSnapshot, nodeWorkerScript } = __dep8;
 const assert = __dep1.default;

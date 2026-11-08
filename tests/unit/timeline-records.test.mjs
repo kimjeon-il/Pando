@@ -10,8 +10,6 @@ import * as __merge_dep7 from "../helpers/timeline-project.mjs";
 import * as __merge_dep8 from "../../tools/gis/timeline-edit.js";
 import * as __merge_dep9 from "node:fs";
 import * as __merge_dep10 from "../../shared/frontend/js/modules/territorial-entity-store.js";
-
-// Original feature contract: timeline-records.test.mjs
 contractSuite("timeline-records", () => {
 const { describe : contractSuite } = __merge_dep0;
 const __contract_dep0 = __merge_dep1;
@@ -22,8 +20,6 @@ const __contract_dep4 = __merge_dep4;
 const __contract_dep5 = __merge_dep5;
 const __contract_dep6 = __merge_dep6;
 const __contract_dep7 = __merge_dep7;
-
-// Original feature contract: timeline-records.test.mjs
 contractSuite("timeline-records", () => {
 const assert = __contract_dep0.default;
 const test = __contract_dep1.default;
@@ -100,8 +96,6 @@ test('paired geometry and parent gaps preserve the independent lifetime', () => 
   assert.throws(() => normalizeTimelineRecords(missingGeometry, timelineContext(context)), { code: 'TIMELINE_GAP' });
 });
 });
-
-// Original feature contract: timeline-entity-store.test.mjs
 contractSuite("timeline-entity-store", () => {
 const test = __contract_dep1.default;
 const assert = __contract_dep0.default;
@@ -180,8 +174,6 @@ test('static insertion retains arbitrary restored IDs and allocates records with
 });
 });
 });
-
-// Original feature contract: timeline-edit.test.mjs
 contractSuite("timeline-edit", () => {
 const { describe : contractSuite } = __merge_dep0;
 const __contract_dep0 = __merge_dep1;
@@ -192,8 +184,6 @@ const __contract_dep4 = __merge_dep7;
 const __contract_dep5 = __merge_dep9;
 const __contract_dep6 = __merge_dep10;
 const __contract_dep7 = __merge_dep5;
-
-// Original feature contract: timeline-edit.test.mjs
 contractSuite("timeline-edit", () => {
 const assert = __contract_dep0.default;
 const test = __contract_dep1.default;
@@ -272,8 +262,6 @@ test('ending an entity removes future records but preserves earlier month covera
   assert.equal(source.lifetimes[0].validTo, null);
 });
 });
-
-// Original feature contract: timeline-live-view.test.mjs
 contractSuite("timeline-live-view", () => {
 const { initializeTestTerritorialState, testCoreProject, staticAutosaveProject, executeTerritorialTestCommand } = __contract_dep4;
 const assert = __contract_dep0.default;

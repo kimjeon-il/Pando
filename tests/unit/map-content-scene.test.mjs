@@ -28,8 +28,6 @@ import * as __dep25 from "../../shared/frontend/js/modules/geometry-version-stor
 import * as __dep26 from "node:vm";
 import * as __dep27 from "node:fs";
 import * as __dep28 from "../helpers/map-transition-baseline.mjs";
-
-// Original feature contract: map-content-scene.test.mjs
 contractSuite("map-content-scene", () => {
 const assert = __dep0.default;
 const test = __dep1.default;
@@ -134,8 +132,6 @@ test('distributions honor month-end validity, current territorial geometry, acti
   assert.deepEqual(scene.polygons.filter(item => item.key.startsWith('distribution-entry:')).map(item => item.key), [`distribution-entry:${ids.other}:fill`]);
 });
 });
-
-// Original feature contract: map-display-client.test.mjs
 contractSuite("map-display-client", () => {
 const { describe : featureDescribe } = __dep1;
 const __suiteDependency0 = __dep1;
@@ -153,8 +149,6 @@ const __suiteDependency11 = __dep18;
 const __suiteDependency12 = __dep1;
 const __suiteDependency13 = __dep19;
 const __suiteDependency14 = __dep20;
-
-// Original feature contract: map-display-client.test.mjs
 featureDescribe("map-display-client", () => {
   const test = __suiteDependency0.default;
   const assert = __suiteDependency1.default;
@@ -180,7 +174,6 @@ test('the actual presentation Worker has no editing request handler',async t=>{
  await assert.rejects(rpc.request('territorial-edit',{operation:'delete'}),error=>error.code==='PL-WORKER-RPC-UNKNOWN-OPERATION');
 });
 });
-// Original feature contract: map-display-menu-state.test.mjs
 featureDescribe("map-display-menu-state", () => {
   const test = __suiteDependency6.default;
   const assert = __suiteDependency7.default;
@@ -211,7 +204,6 @@ test('a new pointer gesture cancels pending menu open and close',async()=>{
   assert.equal(opened,0);assert.equal(closed,0);
 });
 });
-// Original feature contract: map-host.test.mjs
 featureDescribe("map-host", () => {
   const { readFrontendSources } = __suiteDependency9;
   const assert = __suiteDependency10.default;
@@ -251,8 +243,6 @@ test('MapInteractionGate keeps labels in Pando and Space pan in the host', () =>
 });
 });
 });
-
-// Original feature contract: map-loading-continuity.test.mjs
 contractSuite("map-loading-continuity", () => {
 const test = __dep1.default;
 const assert = __dep0.default;
@@ -319,8 +309,6 @@ test('accepting immutable geometry keeps the validated allocation and isolates m
   assert.equal(Object.isFrozen(model.geometry(ref).coordinates[0][1]),true);
 });
 });
-
-// Original feature contract: map-transition-baseline.test.mjs
 contractSuite("map-transition-baseline", () => {
 const test = __dep1.default;
 const assert = __dep0.default;

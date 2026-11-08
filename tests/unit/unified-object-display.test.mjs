@@ -14,8 +14,6 @@ import * as __merge_dep11 from "../../shared/frontend/js/modules/territorial-ent
 import * as __merge_dep12 from "../../shared/frontend/js/modules/country-flags.js";
 import * as __merge_dep13 from "../../shared/frontend/js/modules/object-search-controller.js";
 import * as __merge_dep14 from "../../shared/frontend/js/modules/territorial-entity-store.js";
-
-// Original feature contract: unified-object-display.test.mjs
 contractSuite("unified-object-display", () => {
 const { createTestViewingSession } = __merge_dep0;
 const { createObjectPicking } = __merge_dep1;
@@ -87,8 +85,6 @@ test('readonly picking selects through common rules without an editor service',a
  assert.deepEqual(errors,[]);assert.equal(intents.length,1,'hidden objects must be rejected by the same shared query');
 });
 });
-
-// Original feature contract: shared-object-view.test.mjs
 contractSuite("shared-object-view", () => {
 const test = __merge_dep4.default;
 const assert = __merge_dep5.default;
@@ -124,8 +120,6 @@ test('the common visibility query honors hidden object items for selection and h
  visible=false;assert.equal(query.objectRefVisible(ref),false);
 });
 });
-
-// Original feature contract: viewer-country-membership-p4-4.test.mjs
 contractSuite("viewer-country-membership-p4-4", () => {
 const test = __merge_dep4.default;
 const assert = __merge_dep5.default;

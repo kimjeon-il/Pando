@@ -10,8 +10,6 @@ import * as __dep7 from "../../shared/frontend/js/modules/camera-pan.js";
 import * as __dep8 from "../helpers/source-functions.mjs";
 import * as __dep9 from "../helpers/read-frontend-source.mjs";
 import * as __dep10 from "../../shared/frontend/js/modules/map-interaction-style.js";
-
-// Original feature contract: map-input-controller.test.mjs
 contractSuite("map-input-controller", () => {
 const assert = __dep0.default;
 const test = __dep1.default;
@@ -296,8 +294,6 @@ test('viewer pinch navigates through the real presentation', t => {
   assert.ok(fixture.transforms[0].zoom > 1);
 });
 });
-
-// Original feature contract: camera-navigation.test.mjs
 contractSuite("camera-navigation", () => {
 const { describe : featureDescribe } = __dep1;
 const __suiteDependency0 = __dep0;
@@ -308,8 +304,6 @@ const __suiteDependency4 = __dep6;
 const __suiteDependency5 = __dep1;
 const __suiteDependency6 = __dep0;
 const __suiteDependency7 = __dep7;
-
-// Original feature contract: camera-navigation.test.mjs
 featureDescribe("camera-navigation", () => {
   const assert = __suiteDependency0.default;
   const test = __suiteDependency1.default;
@@ -439,7 +433,6 @@ test('clamped latitude-only pans preserve focus in flat and globe views', () => 
   }
 });
 });
-// Original feature contract: camera-pan.test.mjs
 featureDescribe("camera-pan", () => {
   const { test } = __suiteDependency5;
   const assert = __suiteDependency6.default;
@@ -455,8 +448,6 @@ test('both hosts share globe sensitivity, flat longitude wrapping and latitude c
 });
 });
 });
-
-// Original feature contract: map-layout-metrics.test.mjs
 contractSuite("map-layout-metrics", () => {
 const { applicationFunctionSource } = __dep8;
 const assert = __dep0.default;
@@ -542,8 +533,6 @@ test('render and anchor paths consume cached layout while event paths refresh it
   assert.equal((appSource.match(/(?<!get )refreshMapLayoutMetrics\(/g) || []).length, 3);
 });
 });
-
-// Original feature contract: map-interaction-style.test.mjs
 contractSuite("map-interaction-style", () => {
 const test = __dep1.default;
 const assert = __dep0.default;

@@ -8,8 +8,6 @@ import * as __dep5 from "node:crypto";
 import * as __dep6 from "../../shared/frontend/js/modules/stored-asset-loader.js";
 import * as __dep7 from "../../shared/frontend/js/modules/reliability-core.js";
 import * as __dep8 from "../../shared/frontend/js/modules/core-wasm-loader.js";
-
-// Original feature contract: background-startup-recovery.test.mjs
 contractSuite("background-startup-recovery", () => {
 const test = __dep0.default;
 const assert = __dep1.default;
@@ -145,8 +143,6 @@ test('non-recovering editor lifecycle retains its existing readiness contract fo
   assert.equal(await lifecycle.start(),true);assert.equal(ready,1);lifecycle.dispose();
 });
 });
-
-// Original feature contract: background-asset-recovery.test.mjs
 contractSuite("background-asset-recovery", () => {
 const test = __dep0.default;
 const assert = __dep1.default;
@@ -191,8 +187,6 @@ test('verified stored bytes still serve later loads without another network requ
   assert.equal((await load(loader)).cacheHit,false);assert.equal((await load(loader)).cacheHit,true);assert.equal(calls,1);
 });
 });
-
-// Original feature contract: background-network-recovery.test.mjs
 contractSuite("background-network-recovery", () => {
 const test = __dep0.default;
 const assert = __dep1.default;
@@ -262,8 +256,6 @@ test('rollback failures, cancellation and document-worker timeouts are not treat
   assert.equal(isRecoverableLoadError(new TypeError('programming error')),false);
 });
 });
-
-// Original feature contract: background-wasm-recovery.test.mjs
 contractSuite("background-wasm-recovery", () => {
 const test = __dep0.default;
 const assert = __dep1.default;

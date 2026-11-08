@@ -16,8 +16,6 @@ import * as __dep12 from "../../shared/frontend/js/modules/object-search-control
 import * as __dep13 from "../../shared/frontend/js/modules/selection-ui-controller.js";
 import * as __dep14 from "../../shared/frontend/js/modules/place-contract.js";
 import * as __dep15 from "../helpers/core-selection.mjs";
-
-// Original feature contract: object-search-availability.test.mjs
 contractSuite("object-search-availability", () => {
 const { describe : contractSuite } = __dep0;
 const __contract_dep0 = __dep0;
@@ -29,8 +27,6 @@ const __contract_dep5 = __dep5;
 const __contract_dep6 = __dep0;
 const __contract_dep7 = __dep1;
 const __contract_dep8 = __dep6;
-
-// Original feature contract: object-search-availability.test.mjs
 contractSuite("object-search-availability", () => {
 const test = __contract_dep0.default;
 const assert = __contract_dep1.default;
@@ -71,9 +67,6 @@ test('built-in selection and hover descriptions use the same active period name 
  state.timelineCursor='2026-10';assert.equal(query.objectDisplayInfo(ref).name,'키이우');
 });
 });
-
-
-// Original feature contract: flat-object-search.test.mjs
 contractSuite("flat-object-search", () => {
 const test = __contract_dep6.default;
 const assert = __contract_dep7.default;
@@ -100,8 +93,6 @@ test('parent links do not create folders or hide cyclic entries in the flat resu
 });
 });
 });
-
-// Original feature contract: object-search-controller.test.mjs
 contractSuite("object-search-controller", () => {
 const assert = __dep1.default;
 const test = __dep0.default;

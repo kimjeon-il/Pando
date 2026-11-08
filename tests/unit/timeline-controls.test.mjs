@@ -8,8 +8,6 @@ import * as __merge_dep4 from "../../shared/frontend/js/modules/builtin-month-cl
 import * as __merge_dep5 from "node:fs";
 import * as __merge_dep6 from "node:vm";
 import * as __merge_dep7 from "../../shared/frontend/js/modules/application-lifecycle.js";
-
-// Original feature contract: timeline-controls.test.mjs
 contractSuite("timeline-controls", () => {
 const { createVirtualClock } = __merge_dep0;
 const assert = __merge_dep1.default;
@@ -243,8 +241,6 @@ test('Enter retains native activation on month arrows and view selectors', () =>
   } finally { ui.dispose(); }
 });
 });
-
-// Original feature contract: builtin-month-clock.test.mjs
 contractSuite("builtin-month-clock", () => {
 const { createVirtualClock } = __merge_dep0;
 const { describe : featureDescribe } = __merge_dep2;
@@ -259,8 +255,6 @@ const __suiteDependency7 = __merge_dep7;
 const __suiteDependency8 = __merge_dep2;
 const __suiteDependency9 = __merge_dep1;
 const __suiteDependency10 = __merge_dep4;
-
-// Original feature contract: builtin-month-clock.test.mjs
 featureDescribe("builtin-month-clock", () => {
   const test = __suiteDependency0.default;
   const assert = __suiteDependency1.default;
@@ -375,7 +369,6 @@ test('P3-1 automatic same-month refresh shares the pending request without extra
  assert.equal(clock.month(),'2026-10');clock.dispose();
 });
 });
-// Original feature contract: builtin-clock-recovery.test.mjs
 featureDescribe("builtin-clock-recovery", () => {
   const test = __suiteDependency3.default;
   const assert = __suiteDependency4.default;
@@ -414,7 +407,6 @@ test('manual selection and file suspension supersede pending recovery without pu
   const pending=clock.followNow(),resume=clock.suspend();finish(true);assert.equal(await pending,false);assert.equal(await clock.refresh(),false);assert.equal(resume(),true);clock.dispose();
 });
 });
-// Original feature contract: map-transition-clock-contract.test.mjs
 featureDescribe("map-transition-clock-contract", () => {
   const test = __suiteDependency8.default;
   const assert = __suiteDependency9.default;
