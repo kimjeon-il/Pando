@@ -68,6 +68,15 @@ test('workflow reference validator catches missing scripts, retired products and
 
   put('.github/workflows/check.yml', workflow + '  # banned path: apps/editor/editor.html\n');
   assert.ok(auditWorkflowReferences(root).some(error => /Retired product path/.test(error.reason)));
+
+  const triggered = workflow.replace('on: { workflow_dispatch: {} }',
+    'on: { push: { paths: [tests/browser/viewer.spec.mjs] } }');
+  put('.github/workflows/check.yml', triggered);
+  assert.deepEqual(auditWorkflowReferences(root), []);
+  put('.github/workflows/check.yml', triggered.replace(
+    'tests/browser/viewer.spec.mjs] }', 'tests/unit/retired-gis.test.mjs] }'));
+  assert.ok(auditWorkflowReferences(root).some(error => error.reference === 'tests/unit/retired-gis.test.mjs'
+    && error.reason === 'Missing focused test path in workflow trigger'));
 });
 
 test('desktop and mobile release acceptance run on main PR using the current library revision',()=>{

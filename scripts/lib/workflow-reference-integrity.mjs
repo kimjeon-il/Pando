@@ -125,8 +125,23 @@ function checkLocalUses({ root, file, location, uses, errors }) {
   }
 }
 
+// Focused test paths in triggers must follow a consolidated suite owner too.
+// Glob patterns and negative path filters are selection expressions, not files.
+function checkTestTriggerPaths({ root, file, parsed, errors }) {
+  for (const [event, options] of Object.entries(parsed?.on || {})) {
+    if (!Array.isArray(options?.paths)) continue;
+    for (const entry of options.paths) {
+      if (typeof entry !== 'string' || /[*!?]/.test(entry)
+          || !/^tests\/(?:unit|browser|native|integration|cpp)\/[\w./-]+\.(?:test|spec)\.mjs$/.test(entry)) continue;
+      if (!pathInRoot(root, entry) || !existsSync(resolve(root, entry)))
+        errors.push(issue(file, 'trigger:' + event, entry, 'Missing focused test path in workflow trigger'));
+    }
+  }
+}
+
 function inspectDocument({ root, file, parsed, errors, workflow = false }) {
   if (workflow) {
+    checkTestTriggerPaths({ root, file, parsed, errors });
     for (const [jobName, job] of Object.entries(parsed?.jobs || {})) {
       checkLocalUses({ root, file, location: 'job:' + jobName, uses: job?.uses, errors });
       const baseDir = job?.defaults?.run?.['working-directory'] || '.';
