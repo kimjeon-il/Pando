@@ -1,28 +1,18 @@
-import { describe as contractSuite } from 'node:test';
-import * as __hydro_dep0 from "node:assert/strict";
-import * as __hydro_dep1 from "../../tools/gis/hydro-osm-batch01-anchors.mjs";
-import * as __hydro_dep2 from "../../tools/gis/verify-osm-hydro-batch01-anchors.mjs";
-import * as __hydro_dep3 from "node:test";
-import * as __hydro_dep4 from "../../tools/gis/hydro-osm-batch02-anchors.mjs";
-import * as __hydro_dep5 from "../../tools/gis/verify-osm-hydro-batch02-points.mjs";
-import * as __hydro_dep6 from "../../tools/gis/hydro-osm-batch03-anchors.mjs";
-import * as __hydro_dep7 from "../../tools/gis/hydro-independent-name-policy.mjs";
-import * as __hydro_dep8 from "../../tools/gis/verify-osm-hydro-batch03-points.mjs";
-contractSuite("hydro-osm-batch01-screen", () => {
-const assert = __hydro_dep0.default;
-const { batch01Anchors } = __hydro_dep1;
-const { buildBatch01Screen } = __hydro_dep2;
-const test = __hydro_dep3.default;
+import assert from 'node:assert/strict';
+import {batch01Anchors} from '../../tools/gis/hydro-osm-batch01-anchors.mjs';
+import {buildBatch01Screen} from '../../tools/gis/verify-osm-hydro-batch01-anchors.mjs';
+import test from 'node:test';
+import {batch02Anchors} from '../../tools/gis/hydro-osm-batch02-anchors.mjs';
+import {buildBatch02Screen} from '../../tools/gis/verify-osm-hydro-batch02-points.mjs';
+import {batch03Anchors} from '../../tools/gis/hydro-osm-batch03-anchors.mjs';
+import {formatBatch03Receipts} from '../../tools/gis/hydro-independent-name-policy.mjs';
+import {buildBatch03Screen} from '../../tools/gis/verify-osm-hydro-batch03-points.mjs';
 
-
-
-
-
-function fixture(){return {manifest:{version:'0.13.2',metadata:{featureCount:16548},container:{sha256:'fixture-sha'}},
+function batch01Fixture(){return {manifest:{version:'0.13.2',metadata:{featureCount:16548},container:{sha256:'fixture-sha'}},
   features:batch01Anchors.batch.map(id=>({metadata:{systemId:id,role:'mainstem',name:'이름 '+id},
     geometry:{type:'LineString',coordinates:[[25,64],[25.1,64.1]]}}))};}
 test('first-ten audit keeps independent station sources, groups and limits',async()=>{
-  const input=fixture(),before=structuredClone(input),calls=[];
+  const input=batch01Fixture(),before=structuredClone(input),calls=[];
   const result=await buildBatch01Screen(input,async request=>{
     calls.push(request);return {lineLengthsMeters:[2000],points:request.points.map((point,index)=>({distanceMeters:(index+1)*1000,nearestLonLat:point}))};
   });
@@ -36,28 +26,18 @@ test('first-ten audit keeps independent station sources, groups and limits',asyn
   assert.match(result.limits.at(-1),/Bahr Sara/);assert.equal(result.items[0].minDistanceKmByRiver.Chari,1);
 });
 test('first-ten audit rejects a changed baseline, missing systems and invalid native receipts',async()=>{
-  const data=fixture();
+  const data=batch01Fixture();
   await assert.rejects(buildBatch01Screen({...data,manifest:{version:'0.13.2',metadata:{featureCount:1}}},()=>{}),/published feature set/i);
   await assert.rejects(buildBatch01Screen({...data,features:data.features.slice(1)},()=>{}),/mainstems missing/i);
   await assert.rejects(buildBatch01Screen(data,async()=>({lineLengthsMeters:[],points:[]})),/native.*result/i);
 });
-});
-contractSuite("hydro-osm-batch02-screen", () => {
-const assert = __hydro_dep0.default;
-const test = __hydro_dep3.default;
-const { batch02Anchors } = __hydro_dep4;
-const { buildBatch02Screen } = __hydro_dep5;
 
-
-
-
-
-function fixture(){return {manifest:{version:'0.13.2',metadata:{featureCount:16548},container:{sha256:'fixture-sha'}},
+function batch02Fixture(){return {manifest:{version:'0.13.2',metadata:{featureCount:16548},container:{sha256:'fixture-sha'}},
   features:batch02Anchors.ids.map(id=>({metadata:{systemId:id,role:'mainstem',name:'이름 '+id},
     geometry:{type:'LineString',coordinates:[[127,37],[127.1,37.1]]}}))};}
 const screen=async request=>({lineLengthsMeters:[2000],points:request.points.map(point=>({distanceMeters:1062.5,nearestLonLat:point}))});
 test('second-ten screen preserves source distinctions and handles systems without anchors',async()=>{
-  const input=fixture(),before=structuredClone(input),result=await buildBatch02Screen(input,{screen});
+  const input=batch02Fixture(),before=structuredClone(input),result=await buildBatch02Screen(input,{screen});
   assert.deepEqual(input,before);assert.equal(result.studyCount,10);assert.equal(result.originalBundleSha256,'fixture-sha');
   assert.equal(result.publishedRiverNameMetadataChanged,false);assert.equal(result.publishedHydroGeometryChanged,false);
   assert.equal(result.osmRelationUsedAsReference,false);assert.equal(result.externalGaugesAvailable,false);assert.equal(result.ngaResultsAvailable,false);
@@ -73,7 +53,7 @@ test('live named points replace duplicate static NGA points and external gauges 
   ]};
   const nga={features:[{candidateSystem:'40364680',ufi:'a',name:'Live',longitude:125,latitude:39},
     {candidateSystem:'40364680',ufi:'a',name:'duplicate',longitude:125,latitude:39}]};
-  const result=await buildBatch02Screen(fixture(),{screen,gauges,nga});
+  const result=await buildBatch02Screen(batch02Fixture(),{screen,gauges,nga});
   const external=result.items.find(item=>item.systemId==='40188382').independentPoints;
   assert.equal(external.length,1);assert.equal(external[0].id,'cad_g1');assert.match(external[0].independentSource,/zenodo/);
   const points=result.items.find(item=>item.systemId==='40364680').independentPoints;
@@ -81,23 +61,11 @@ test('live named points replace duplicate static NGA points and external gauges 
   assert.deepEqual(result.externalGaugeCounts,{'40188382':2});assert.deepEqual(result.ngaCounts,{'40364680':1});
 });
 test('second-ten screen rejects missing systems, mismatched source provenance and bad native receipts',async()=>{
-  const data=fixture();
+  const data=batch02Fixture();
   await assert.rejects(buildBatch02Screen({...data,features:data.features.slice(1)},{screen}),/missing original mainstem/i);
   await assert.rejects(buildBatch02Screen(data,{screen,gauges:{provenance:'other',gauges:[]}}),/provenance/i);
   await assert.rejects(buildBatch02Screen(data,{screen:async()=>({lineLengthsMeters:[],points:[]})}),/native.*result/i);
 });
-});
-contractSuite("hydro-osm-batch03-screen", () => {
-const assert = __hydro_dep0.default;
-const test = __hydro_dep3.default;
-const { batch03Anchors } = __hydro_dep6;
-const { formatBatch03Receipts } = __hydro_dep7;
-const { buildBatch03Screen } = __hydro_dep8;
-
-
-
-
-
 
 function decoded(){return {manifest:{version:'0.13.2',metadata:{featureCount:16548},container:{sha256:'fixture-sha'}},
   features:batch03Anchors.ids.map(id=>({metadata:{systemId:id,role:'mainstem',name:'이름 '+id},
@@ -128,5 +96,4 @@ test('last-eleven screen rejects missing inputs and malformed native receipts',a
   await assert.rejects(buildBatch03Screen({...data,features:data.features.slice(1)},{receipts:queries,screen:()=>{}}),/missing.*mainstem/i);
   await assert.rejects(buildBatch03Screen(data,{receipts:queries.slice(1),screen:()=>{}}),/query receipts/i);
   await assert.rejects(buildBatch03Screen(data,{receipts:queries,screen:async()=>({lineLengthsMeters:[],points:[]})}),/native.*result/i);
-});
 });

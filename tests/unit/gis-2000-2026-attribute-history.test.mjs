@@ -1,24 +1,13 @@
-import { describe as contractSuite } from 'node:test';
-import * as __source_dep0 from "node:test";
-import * as __source_dep1 from "node:assert/strict";
-import * as __source_dep2 from "node:crypto";
-import * as __source_dep3 from "../../tools/territorial-entity-sources.mjs";
-import * as __source_dep4 from "../../tools/gis/apply-2000-2026-name-flag-history.mjs";
-import * as __source_dep5 from "../../tools/gis/apply-2000-2026-additional-attributes.mjs";
-import * as __source_dep6 from "../../tools/builtin-country-bytes.mjs";
-import * as __source_dep7 from "node:fs";
-import * as __source_dep8 from "node:zlib";
-import * as __source_dep9 from "../../shared/frontend/js/modules/builtin-world-loader.js";
-contractSuite("gis-2000-2026-attribute-history", () => {
-const test = __source_dep0.default;
-const assert = __source_dep1.default;
-const { createHash } = __source_dep2;
-const { readTerritorialSources } = __source_dep3;
-const { ATTRIBUTE_HISTORY_IDS, planAttributes } = __source_dep4;
-
-
-
-
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
+import {readTerritorialSources} from '../../tools/territorial-entity-sources.mjs';
+import {ATTRIBUTE_HISTORY_IDS, planAttributes} from '../../tools/gis/apply-2000-2026-name-flag-history.mjs';
+import {ADDITIONAL_IDS, ADDITIONAL_FLAG_IDS, ADDITIONAL_NAME_IDS, prepareAdditionalAttributePlan} from '../../tools/gis/apply-2000-2026-additional-attributes.mjs';
+import {readBuiltinCountryStoredBytes} from '../../tools/builtin-country-bytes.mjs';
+import fs from 'node:fs';
+import {gunzipSync} from 'node:zlib';
+import {selectBuiltinCountries, assembleBuiltinWorld} from '../../shared/frontend/js/modules/builtin-world-loader.js';
 
 const hash=value=>createHash('sha256').update(JSON.stringify(value)).digest('hex');
 
@@ -62,19 +51,7 @@ test('only dated name and flag attributes change; existing geometry and parent r
  const n=plan.updates.find(e=>e.entityId==='state:NRU');
  assert.equal(n.nameVersions.at(-1).validFrom,'2026-05-12');
 });
-});
-contractSuite("gis-2000-2026-additional-attributes", () => {
-const test = __source_dep0.default;
-const assert = __source_dep1.default;
-const { createHash } = __source_dep2;
-const { readTerritorialSources } = __source_dep3;
-const { ADDITIONAL_IDS, ADDITIONAL_FLAG_IDS, ADDITIONAL_NAME_IDS, prepareAdditionalAttributePlan } = __source_dep5;
 
-
-
-
-
-const hash=x=>createHash('sha256').update(JSON.stringify(x)).digest('hex');
 test('additional historic flags and formal names preserve all unrelated identities, geometry and hierarchy',()=>{
  const sources=readTerritorialSources(),byId=new Map(sources.map(x=>[x.entityId,x]));
  const applied=ADDITIONAL_IDS.some(x=>!!byId.get(x)?.sourceInfo?.attributeHistoryEvidence
@@ -124,22 +101,6 @@ test('additional historic flags and formal names preserve all unrelated identiti
  assert.deepEqual(malawi.metadata.flagHistory.map(x=>x.validFrom),['2000-01-01','2010-07-29','2012-05-28']);
  assert.equal(hash(cpv.geometryVersions),hash(byId.get('state:CPV').geometryVersions));
 });
-});
-contractSuite("gis-2000-2026-generated-attributes", () => {
-const test = __source_dep0.default;
-const { readBuiltinCountryStoredBytes } = __source_dep6;
-const assert = __source_dep1.default;
-const fs = __source_dep7.default;
-const { gunzipSync } = __source_dep8;
-const { createHash } = __source_dep2;
-const { selectBuiltinCountries, assembleBuiltinWorld } = __source_dep9;
-
-
-
-
-
-
-
 
 const root=new URL('../../assets/data/builtin-world/generated/v1/',import.meta.url);
 const index=JSON.parse(fs.readFileSync(new URL('index.json',root),'utf8'));
@@ -195,5 +156,4 @@ test('generated world preserves dated historical flag media on actual saved snap
    assert.ok(!entity.properties.metadata.flagDataUrl?.startsWith('data:image/svg+xml;base64,'));
   }
  }
-});
 });

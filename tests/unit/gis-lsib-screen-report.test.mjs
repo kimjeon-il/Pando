@@ -1,31 +1,13 @@
-import { describe as contractSuite } from 'node:test';
-import * as __source_dep0 from "node:assert/strict";
-import * as __source_dep1 from "node:child_process";
-import * as __source_dep2 from "node:fs/promises";
-import * as __source_dep3 from "node:os";
-import * as __source_dep4 from "node:path";
-import * as __source_dep5 from "node:test";
-import * as __source_dep6 from "../../tools/gis/verify-lsib-screen-delta.mjs";
-import * as __source_dep7 from "../../tools/gis/lsib-source-native.mjs";
-import * as __source_dep8 from "node:crypto";
-import * as __source_dep9 from "../../tools/gis/lsib-reviewed-source.mjs";
-contractSuite("gis-lsib-screen-report", () => {
-const assert = __source_dep0.default;
-const { spawnSync } = __source_dep1;
-const { mkdir, mkdtemp, readFile, rmdir, unlink, writeFile } = __source_dep2;
-const { tmpdir } = __source_dep3;
-const { join } = __source_dep4;
-const test = __source_dep5.default;
-const { evaluateLSIBScreens, runLSIBScreen, selectedLSIBSourceIds } = __source_dep6;
-const { readLSIBLines } = __source_dep7;
-
-
-
-
-
-
-
-
+import assert from 'node:assert/strict';
+import {spawnSync} from 'node:child_process';
+import {mkdir, mkdtemp, readFile, rmdir, unlink, writeFile} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import test from 'node:test';
+import {evaluateLSIBScreens, runLSIBScreen, selectedLSIBSourceIds} from '../../tools/gis/verify-lsib-screen-delta.mjs';
+import {readLSIBLines} from '../../tools/gis/lsib-source-native.mjs';
+import {createHash} from 'node:crypto';
+import {loadLSIBReviewedSource} from '../../tools/gis/lsib-reviewed-source.mjs';
 
 const binary=process.env.PANDO_TERRITORIAL_RECIPE_BINARY;
 const id='c133c4d6-bf4f-489d-b51e-abf2be55d369';
@@ -110,24 +92,7 @@ test('LSIB report workflow reads selected original and protects its output',{
   assert.ok(Math.abs(report.sampledMaximumCssPx-.18131739355200677)<1e-10);
   await assert.rejects(runLSIBScreen(args,options),/already exists/i);assert.equal(await readFile(output,'utf8'),bytes);
 });
-});
-contractSuite("gis-lsib-reviewed-source", () => {
-const assert = __source_dep0.default;
-const { createHash } = __source_dep8;
-const { mkdir, mkdtemp, readFile, rmdir, unlink, writeFile } = __source_dep2;
-const { tmpdir } = __source_dep3;
-const { join } = __source_dep4;
-const test = __source_dep5.default;
-const { loadLSIBReviewedSource } = __source_dep9;
 
-
-
-
-
-
-
-
-const binary=process.env.PANDO_TERRITORIAL_RECIPE_BINARY;
 test('reviewed LSIB source refuses paths outside the library source scope',async()=>{
   await assert.rejects(loadLSIBReviewedSource({root:process.cwd(),manifestPath:'../outside.json'}),/scope|path|escape/i);
 });
@@ -161,5 +126,4 @@ test('reviewed IGM and Monaco lines match existing Python and PROJ',{skip:!binar
     assert.equal(actual.length,row.expected.length,row.name);
     for(let i=0;i<actual.length;i++)for(let c=0;c<2;c++)assert.ok(Math.abs(actual[i][c]-row.expected[i][c])<1e-12,`${row.name} ${i}/${c}`);
   }
-});
 });
