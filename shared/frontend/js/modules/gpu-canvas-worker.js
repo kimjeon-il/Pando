@@ -26,7 +26,7 @@ export function createGpuCanvasWorker({ worker, generation, acceptFrame, allowOl
     inFlightRenderRequestId = ++renderRequestId;
     if (!postMessage({ ...message, renderRequestId: inFlightRenderRequestId })) {
       inFlightRenderRequestId = null;
-      if (!pendingFrame) pendingFrame = latestFrame || message;
+      if (live && !pendingFrame) pendingFrame = latestFrame || message;
     }
   }
   function settlePick(id, value, error = null) {

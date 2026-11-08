@@ -32,6 +32,17 @@ test('bitmapless Canvas acknowledgment does not enter picture-admission callback
   channel.terminate();
 });
 
+test('Canvas send error may retire its worker synchronously without restoring a closed pending frame', () => {
+  const worker={postMessage(){throw Error('worker closed');},terminate(){}};
+  const channel=createGpuCanvasWorker({worker,generation:1,acceptFrame:()=>true});
+  channel.onerror=()=>channel.terminate();
+  worker.onmessage({data:{type:'ready'}});
+  channel.queueFrame({type:'view',projectGeneration:1,revision:1});
+  assert.equal(channel.ready,false);
+  assert.equal(channel.busy,false);
+  assert.equal(channel.hasPendingFrame,false);
+});
+
 test('project replacement retains a ready worker and rejects old completion without releasing the new frame', () => {
   const { channel, sent, receive, complete, presented } = transport();
   receive({ type: 'ready' });

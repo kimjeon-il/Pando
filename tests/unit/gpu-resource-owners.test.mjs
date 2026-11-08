@@ -113,6 +113,22 @@ test('P3-4 late GL handles after lifecycle disposal are released by their alloca
   assert.equal(lifecycle.retain(gl, 'Buffer', lateBuffer), null);
   assert.deepEqual(freed, [lateBuffer]);
 });
+test('a GPU job cancelled from its own step cannot resolve or requeue itself', async () => {
+  const frames=[];
+  const scheduler=createGpuUploadScheduler({
+    requestFrame:fn=>(frames.push(fn),frames.length),cancelFrame(){},now:()=>0,
+    isHidden:()=>false,isInputPending:()=>false,
+  });
+  const pending=scheduler.enqueueUpload({key:'retired',
+    step:()=>{scheduler.cancelKey('retired');return {done:true,bytes:1};}});
+  const rejected=assert.rejects(pending,{name:'AbortError'});
+  frames.shift()();
+  await rejected;
+  assert.equal(scheduler.getStats().pending,0);
+  assert.equal(scheduler.getStats().completed,0);
+  scheduler.dispose();
+});
+
 test('upload priority is sorted on admission and not resorted during repeated drain frames', async () => {
   const frames=[],order=[];
   const scheduler=createGpuUploadScheduler({

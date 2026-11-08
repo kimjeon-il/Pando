@@ -36,13 +36,19 @@ export function createGpuUploadScheduler({ requestFrame = callback => globalThis
       if (interaction && !job.allowDuringInteraction) continue;
       try {
         const result = job.step({ byteBudget: Math.min(bytes, 256 * 1024), deadline: start + 2 }) || {};
+        // A step may synchronously cancel or replace itself (including a
+        // complete renderer shutdown). Such work cannot be re-admitted.
+        if (jobs.get(job.key) !== job) continue;
         const used = Math.max(0, Number(result.bytes) || 0);
         bytes -= used; stats.uploadedBytes += used;
         jobs.delete(job.key);
         removeOrdered(job);
         if (result.done) { stats.completed++; job.resolve(result.value); }
         else { jobs.set(job.key, job); insertOrdered(job); } // Round-robin within each priority.
-      } catch (error) { jobs.delete(job.key); removeOrdered(job); job.dispose?.(); job.reject(error); }
+      } catch (error) {
+        if (jobs.get(job.key) !== job) continue;
+        jobs.delete(job.key); removeOrdered(job); job.dispose?.(); job.reject(error);
+      }
     }
     const elapsed = now() - start;
     stats.frames++; stats.maxFrameMs = Math.max(stats.maxFrameMs, elapsed);
