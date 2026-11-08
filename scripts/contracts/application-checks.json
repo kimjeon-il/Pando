@@ -114,6 +114,28 @@
       "inputs": []
     },
     {
+      "id": "shared-toolkit",
+      "kind": "unit",
+      "testPatterns": [
+        "tests/unit/shared-toolkit.test.mjs"
+      ],
+      "inputs": [
+        "tools/shared-toolkit.mjs",
+        "tools/package-shared-toolkit.mjs"
+      ]
+    },
+    {
+      "id": "shared-image-tools",
+      "kind": "unit",
+      "testPatterns": [
+        "tests/unit/map-native-pdf.test.mjs",
+        "tests/unit/map-native-preview.test.mjs"
+      ],
+      "inputs": [
+        "tools/map-image/**"
+      ]
+    },
+    {
       "id": "units",
       "kind": "unit",
       "testPatterns": [
@@ -788,28 +810,6 @@
       "requires": [
         "generated",
         "core"
-      ]
-    },
-    {
-      "id": "shared-toolkit",
-      "kind": "unit",
-      "testPatterns": [
-        "tests/unit/shared-toolkit.test.mjs"
-      ],
-      "inputs": [
-        "tools/shared-toolkit.mjs",
-        "tools/package-shared-toolkit.mjs"
-      ]
-    },
-    {
-      "id": "shared-image-tools",
-      "kind": "unit",
-      "testPatterns": [
-        "tests/unit/map-native-pdf.test.mjs",
-        "tests/unit/map-native-preview.test.mjs"
-      ],
-      "inputs": [
-        "tools/map-image/**"
       ]
     }
   ],

@@ -105,3 +105,13 @@ test('consolidated unit contracts resolve to one runnable suite and retain prere
   assert.equal(new Set(all).size, all.length, 'all contract identities must be unique');
   assert.ok(repository.unitRequirements.get('tests/unit/core-document-wasm.test.mjs').has('core'));
 });
+
+// Explicit suite owners must precede the generic units catch-all.
+test('P7 specialized unit groups retain their owners and native prerequisites', () => {
+  const repo = loadRepository();
+  assert.equal(repo.owners.get('tests/unit/shared-toolkit.test.mjs')?.id, 'shared-toolkit');
+  for (const name of ['map-native-pdf', 'map-native-preview'])
+    assert.equal(repo.owners.get('tests/unit/' + name + '.test.mjs')?.id, 'shared-image-tools');
+  assert.ok(repo.unitRequirements.get('tests/unit/map-native-pdf.test.mjs').has('native-map-pdf'));
+  assert.ok(repo.unitRequirements.get('tests/unit/map-native-preview.test.mjs').has('native-map-preview'));
+});
