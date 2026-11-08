@@ -136,3 +136,13 @@ Removed a staging-era GIS candidate-count check, an obsolete legacy autosave
 serializer comparison, and a retired editor API absence assertion. Core/WASM,
 source provenance, worktree deletion safety, and active Viewer tests remain.
 The Shared Core workflow no longer invokes the removed Web-oracle suite.
+
+
+## Removed editor-only Core draft cases
+
+The web Viewer does not ship manual geometry vertex editing or the legacy
+Windows review session. Removed the separate `core-draft-primitives` suite,
+the `core-document-draft-wasm` nested contract (three historical draft tests)
+and the legacy Windows read-only session test in `core-product-mode`.
+Current Viewer read-only authorization and actual document storage/undo
+contracts remain. Updated the Shared Core native workflow's file list.

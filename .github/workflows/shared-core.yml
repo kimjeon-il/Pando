@@ -339,7 +339,6 @@ jobs:
           tests/unit/core-territorial-service-wasm.test.mjs
           tests/unit/core-territorial-store-wasm.test.mjs
           tests/unit/core-save-state-projection.test.mjs
-          tests/unit/core-draft-primitives.test.mjs
           tests/unit/timeline-controls.test.mjs tests/unit/shared-core-assets.test.mjs
            tests/unit/core-worker-ownership.test.mjs
       - name: Ordered storage snapshot and project replacement boundaries
