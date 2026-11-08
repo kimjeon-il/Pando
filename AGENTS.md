@@ -110,6 +110,7 @@ all maintained sources use the same commit and branch:
 
 ### Report task completion (mandatory)
 
+- Ordinary code changes, bug fixes, refactors, routine checks, and cleanup do not require a separate report or evidence archive. Summarize the change and verification in the final response or commit/PR description. Create a report only when the user explicitly requests one or when the work produces unique research, source data, or evaluation evidence that must be retained.
 - Writing or editing a report/evidence file is not task completion. After finishing the task's selected report scopes, run `node tools/library-data.mjs --publish-reports --include-prefix=reports/<scope>`. This single operation archives originals, commits only those reports to the shared library main, pushes, and verifies the remote bytes. Run it again after any later report edit, including final evidence updates.
 - Use `node tools/library-data.mjs --check-reports --include-prefix=reports/<scope>` for a fresh completion check. Record the verified library commit and scope in the final response. A local file, local commit, or successful application deployment alone does not establish remote report archival.
 - Publishing completed task-owned report scopes has standing user authorization. This does not authorize publishing unfinished drafts, other tasks' scopes, runtime data changes, private application commits, application main integration, or deployment. Keep branch-specific runtime pins and other work intact.
