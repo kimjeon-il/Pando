@@ -20,6 +20,8 @@ jobs:
       - uses: pnpm/action-setup@v4
       - uses: ./.github/actions/library-data
       - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Prepare the one policy file used by small synthetic compiler fixtures
+        run: node --input-type=module -e "import {readLibraryDataFile} from './tools/data/library-context.mjs'; readLibraryDataFile('assets/data/builtin-world/display-policy-v1.json',{fetch:true});"
       - name: Execute precise read-index and upload-budget behavior regressions
         env:
           CHECK_SELECTION: '{"unitTests":["tests/unit/data/builtin-read-index.test.mjs","tests/unit/rendering/gpu-upload-budget.test.mjs"],"browserSpecs":[],"commands":[],"prerequisites":[]}'
