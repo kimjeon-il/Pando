@@ -12,8 +12,6 @@ import * as __merge_dep9 from "../../shared/frontend/js/modules/render-quality.j
 import * as __merge_dep10 from "../../shared/frontend/js/modules/territorial-entity-store.js";
 import * as __merge_dep11 from "../../shared/frontend/js/modules/geometry-version-store.js";
 import * as __merge_dep12 from "../../shared/frontend/js/modules/physical-settings.js";
-
-// Original feature contract: user-preferences.test.mjs
 contractSuite("user-preferences", () => {
 const { describe : contractSuite } = __merge_dep0;
 const __unit_dep0 = __merge_dep0;
@@ -22,8 +20,6 @@ const __unit_dep2 = __merge_dep2;
 const __unit_dep3 = __merge_dep3;
 const __unit_dep4 = __merge_dep4;
 const __unit_dep5 = __merge_dep5;
-
-// Original feature contract: user-preferences.test.mjs
 contractSuite("user-preferences", () => {
 const test = __unit_dep0.default;
 const assert = __unit_dep1.default;
@@ -78,8 +74,6 @@ test('place language preferences persist choices and do not allow an empty selec
   assert.deepEqual(defaultUserPreferences().labels.place.languages, { ko: true, en: false, native: false });
 });
 });
-
-// Original feature contract: app-accent.test.mjs
 contractSuite("app-accent", () => {
 const test = __unit_dep0.default;
 const assert = __unit_dep1.default;
@@ -122,8 +116,6 @@ test('accent tokens retain chosen hue and always use white button text', () => {
 });
 });
 });
-
-// Original feature contract: shared-view-policy.test.mjs
 contractSuite("shared-view-policy", () => {
 const test = __merge_dep0.default;
 const { readFileSync } = __merge_dep6;

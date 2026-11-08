@@ -9,8 +9,6 @@ import * as __unit_dep6 from "../../shared/frontend/js/modules/object-query.js";
 import * as __unit_dep7 from "../../shared/frontend/js/modules/object-selection-controller.js";
 import * as __unit_dep8 from "../../shared/frontend/js/modules/place-contract.js";
 import * as __unit_dep9 from "../../shared/frontend/js/modules/workspace-layout.js";
-
-// Original feature contract: surface-controller.test.mjs
 contractSuite("surface-controller", () => {
 const assert = __unit_dep0.default;
 const test = __unit_dep1.default;
@@ -87,8 +85,6 @@ test('the active search panel survives desktop, portrait and landscape transitio
   }
 });
 });
-
-// Original feature contract: viewing-ui-contract.test.mjs
 contractSuite("viewing-ui-contract", () => {
 const { test } = __unit_dep1;
 const assert = __unit_dep0.default;
@@ -109,8 +105,6 @@ test('read-only Web Viewer owns current viewing controls and platform capabiliti
  assert.equal(resourceCapabilities('viewer',null,{projection:'globe'}).terrain,true);
 });
 });
-
-// Original feature contract: viewing-visibility.test.mjs
 contractSuite("viewing-visibility", () => {
 const test = __unit_dep1.default;
 const assert = __unit_dep0.default;
@@ -140,8 +134,6 @@ test('one category visibility controls searchable objects regardless of their so
  assert.equal(query.objectRefVisible({domain:'label',type:'label',id:'authored-place'}),true);
 });
 });
-
-// Original feature contract: workspace-layout.test.mjs
 contractSuite("workspace-layout", () => {
 const assert = __unit_dep0.default;
 const test = __unit_dep1.default;

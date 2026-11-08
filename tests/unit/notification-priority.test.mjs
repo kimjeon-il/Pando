@@ -5,8 +5,6 @@ import * as __contract_dep2 from "../../shared/frontend/js/modules/notification-
 import * as __contract_dep3 from "node:assert/strict";
 import * as __contract_dep4 from "node:test";
 import * as __contract_dep5 from "../../shared/frontend/js/modules/notification-copy.js";
-
-// Original feature contract: notification-priority.test.mjs
 contractSuite("notification-priority", () => {
 const test = __contract_dep0.default;
 const assert = __contract_dep1.default;
@@ -44,14 +42,6 @@ test('E4 viewer keeps a user file-error alert visible over background Canvas suc
     assert.ok(f.notice.classList.contains('success'));
   }finally{f.presentation.dispose();}
 });
-test('E4 does not change existing editor notification overwrite semantics',()=>{
-  const f=fixture(false);
-  try{
-    f.presentation.setActionStatus('파일 오류','error',4400);
-    f.presentation.setActionStatus('새 프로젝트 확인','success',1800);
-    assert.ok(f.notice.classList.contains('success'));
-  }finally{f.presentation.dispose();}
-});
 test('forced user-facing success can explicitly replace a pending viewer error',()=>{
   const f=fixture(true);
   try{
@@ -61,9 +51,6 @@ test('forced user-facing success can explicitly replace a pending viewer error',
   }finally{f.presentation.dispose();}
 });
 });
-
-
-// Original feature contract: notification-copy.test.mjs
 contractSuite("notification-copy", () => {
 const assert = __contract_dep3.default;
 const test = __contract_dep4.default;

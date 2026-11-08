@@ -7,8 +7,6 @@ import * as __contract_dep4 from "node:assert/strict";
 import * as __contract_dep5 from "node:test";
 import * as __contract_dep6 from "../../apps/viewer/js/modules/viewer-inspector-state.js";
 import * as __contract_dep7 from "node:fs";
-
-// Original feature contract: viewer-inspector-controller.test.mjs
 contractSuite("viewer-inspector-controller", () => {
 const assert = __contract_dep0.default;
 const test = __contract_dep1.default;
@@ -184,9 +182,6 @@ test('P5 inspector and review panel both reject a mutable document owner',()=>{
  }),/read-only map and document session/);
 });
 });
-
-
-// Original feature contract: viewer-inspector.test.mjs
 contractSuite("viewer-inspector", () => {
 const assert = __contract_dep4.default;
 const test = __contract_dep5.default;

@@ -16,8 +16,6 @@ import * as __merge_dep9 from "../../shared/frontend/js/modules/physical-resourc
 import * as __merge_dep10 from "../../shared/frontend/js/modules/territorial-labels.js";
 import * as __merge_dep11 from "../../shared/frontend/js/modules/platform-ports.js";
 import * as __merge_dep12 from "node:crypto";
-
-// Original feature contract: viewer-bootstrap-recovery.test.mjs
 contractSuite("viewer-bootstrap-recovery", () => {
 const { describe : contractSuite } = __merge_dep0;
 const __dep0 = __merge_dep1;
@@ -29,8 +27,6 @@ const __dep5 = __merge_dep5;
 const __dep6 = __merge_dep6;
 const __dep7 = __merge_dep7;
 const __dep8 = __merge_dep8;
-
-// Original feature contract: viewer-bootstrap-recovery.test.mjs
 contractSuite("viewer-bootstrap-recovery", () => {
 const { presentViewerLoadStatus } = __dep0;
 const test = __dep1.default;
@@ -113,8 +109,6 @@ test('preflight error and retry never leave a visible loading panel behind',asyn
   } finally { f.release();await tick(); }
 });
 });
-
-// Original feature contract: viewer-composition-recovery.test.mjs
 contractSuite("viewer-composition-recovery", () => {
 const { presentViewerLoadStatus } = __dep0;
 const test = __dep1.default;
@@ -237,8 +231,6 @@ test('rejected project read restores previously accepted map readiness even with
 });
 });
 });
-
-// Original feature contract: app-startup-platform-ports.test.mjs
 contractSuite("app-startup-platform-ports", () => {
 const test = __merge_dep0.default;
 const assert = __merge_dep2.default;
@@ -300,8 +292,6 @@ test('an asset-free platform suppresses automatic place preparation', async () =
   assert.equal(await labels.preparePlaces({ force: true }), false);
 });
 });
-
-// Original feature contract: viewer-adjacent-prefetch.test.mjs
 contractSuite('retired adjacent-month prefetch', () => {
   test('the single-project Viewer has no obsolete neighbouring-month prefetch owner', () => {
     const retired = new URL('../../apps/viewer/js/modules/viewer-adjacent-prefetch.js', import.meta.url);

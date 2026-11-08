@@ -13,8 +13,6 @@ import * as __merge_dep10 from "../../scripts/build-ui-bundle.mjs";
 import * as __merge_dep11 from "node:path";
 import * as __merge_dep12 from "node:crypto";
 import * as __merge_dep13 from "../../scripts/lib/css-analysis.mjs";
-
-// Original feature contract: ui-source-catalog.test.mjs
 contractSuite("ui-source-catalog", () => {
 const { describe : contractSuite } = __merge_dep0;
 const __contract_dep0 = __merge_dep1;
@@ -28,8 +26,6 @@ const __contract_dep7 = __merge_dep7;
 const __contract_dep8 = __merge_dep8;
 const __contract_dep9 = __merge_dep9;
 const __contract_dep10 = __merge_dep10;
-
-// Original feature contract: ui-source-catalog.test.mjs
 contractSuite("ui-source-catalog", () => {
 const assert = __contract_dep0.default;
 const { existsSync, readFileSync } = __contract_dep1;
@@ -107,8 +103,6 @@ test('changes to the shared UI audit implementation select all four audits', () 
   }
 });
 });
-
-// Original feature contract: ui-architecture-surface-boundary.test.mjs
 contractSuite("ui-architecture-surface-boundary", () => {
 const assert = __contract_dep0.default;
 const test = __contract_dep2.default;
@@ -146,8 +140,6 @@ test('review panel comparison sections may not be replaced by unrelated surfaces
     .some(message=>message.includes('reviewCompareSection')));
 });
 });
-
-// Original feature contract: viewer-ui-bundle.test.mjs
 contractSuite("viewer-ui-bundle", () => {
 const assert = __contract_dep0.default;
 const test = __contract_dep2.default;
@@ -172,8 +164,6 @@ test('viewer bundle reuses current shared UI sources and excludes unused edit fo
 });
 });
 });
-
-// Original feature contract: brand-icons.test.mjs
 contractSuite("brand-icons", () => {
 const { describe : contractSuite } = __merge_dep0;
 const __unit_dep0 = __merge_dep0;
@@ -186,8 +176,6 @@ const __unit_dep6 = __merge_dep8;
 const __unit_dep7 = __merge_dep5;
 const __unit_dep8 = __merge_dep13;
 const __unit_dep9 = __merge_dep10;
-
-// Original feature contract: brand-icons.test.mjs
 contractSuite("brand-icons", () => {
 const { test } = __unit_dep0;
 const assert = __unit_dep1.default;
@@ -268,8 +256,6 @@ test('favicon preserves the reviewed small form instead of auto-scaling the stan
  assert.doesNotMatch(favicon,/<(?:script|image|filter)\b|href=/);
 });
 });
-
-// Original feature contract: font-assets.test.mjs
 contractSuite("font-assets", () => {
 const assert = __unit_dep1.default;
 const { createHash } = __unit_dep5;
@@ -284,8 +270,6 @@ test('bundled Pretendard font bytes and OFL license remain immutable',()=>{
  assert.match(license.toUpperCase(),/SIL OPEN FONT LICENSE/);
 });
 });
-
-// Original feature contract: css-analysis.test.mjs
 contractSuite("css-analysis", () => {
 const assert = __unit_dep1.default;
 const test = __unit_dep0.default;

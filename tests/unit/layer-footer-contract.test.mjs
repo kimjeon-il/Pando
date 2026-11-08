@@ -9,8 +9,6 @@ import * as __dep6 from "../../shared/frontend/js/modules/resource-capabilities.
 import * as __dep7 from "../../shared/frontend/js/modules/platform-ports.js";
 import * as __dep8 from "../../shared/frontend/js/modules/initial-document.js";
 import * as __dep9 from "../../shared/frontend/js/modules/distribution-model.js";
-
-// Original feature contract: layer-footer-contract.test.mjs
 contractSuite("layer-footer-contract", () => {
 const { readFileSync } = __dep0;
 const { strict : assert } = __dep1;
@@ -45,8 +43,6 @@ test('desktop shell retains the shared design tokens without retired layer geome
   assert.doesNotMatch(tokens+shell,/(?:--design-left-panel-width|--ui-shell-left-panel-width|\.left-panel)/);
 });
 });
-
-// Original feature contract: map-settings-core-ack.test.mjs
 contractSuite("map-settings-core-ack", () => {
 const assert = __dep4.default;
 const test = __dep2.default;
