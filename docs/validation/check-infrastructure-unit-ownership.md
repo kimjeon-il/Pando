@@ -80,3 +80,7 @@ The complete catalog is requested again; runtime results remain pending.
 
 A further full-catalog check now includes the restored automation regression
 suite and validates its matrix/SDK path handling before other check phases.
+
+The full-catalog selection also exposed duplicate ESM import declarations in
+newly migrated P7 suites; all former imports now share one module-level owner.
+Request a fresh full-catalog run on this corrected commit.
