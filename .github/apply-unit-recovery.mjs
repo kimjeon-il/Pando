@@ -72,8 +72,8 @@ function rewriteExact(path,original,replacement) {
   execFileSync('git',['add','--',path],{stdio:'inherit'});
 }
 rewriteExact('tests/unit/app/viewer-bootstrap-recovery.test.mjs',
-  "import('./modules/viewer-composition.js')",
-  'import("./viewer-composition.js")');
+  `.replace("import('./modules/viewer-composition.js')",'importViewer()');`,
+  `.replace('import("./viewer-composition.js")','importViewer()');`);
 const runnerPath='tests/unit/runtime/check-runner.test.mjs';
 rewriteExact(runnerPath,
   "for (const file of ['place-publication.test.mjs','place-sync-contract.test.mjs'])",
@@ -89,7 +89,12 @@ const start=originalBuild.indexOf("test('frontend metadata and HTML are derived 
 if(start<0)throw Error('Missing retired full-data ownership assertion');
 const end=originalBuild.indexOf("\n\ntest(",start);
 if(end<0)throw Error('Retired block boundary missing');
-writeFileSync(buildTest,originalBuild.slice(0,start)+originalBuild.slice(end+2));
+let focusedBuild=originalBuild.slice(0,start)+originalBuild.slice(end+2);
+if(focusedBuild.includes('fileURLToPath('))throw Error('Unexpected remaining fileURLToPath use');
+const orphanImport="import {fileURLToPath} from 'node:url';\n";
+if(!focusedBuild.includes(orphanImport))throw Error('Missing stale full-data-test import');
+focusedBuild=focusedBuild.replace(orphanImport,'');
+writeFileSync(buildTest,focusedBuild);
 execFileSync('git',['add','--',buildTest],{stdio:'inherit'});
 const names=execFileSync('git',['diff','--cached','--name-only','-z'],{encoding:'utf8'}).split('\0').filter(Boolean);
 if(!names.length)throw Error('No newly applied changes; do not issue an empty commit');
