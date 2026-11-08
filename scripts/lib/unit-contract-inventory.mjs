@@ -2,6 +2,7 @@
 // File counts are deliberately not used as a proxy for coverage.
 import {basename} from 'node:path';
 import {readFileSync} from 'node:fs';
+import {indexUnitContractOwners} from './unit-contract-owners.mjs';
 
 const baselineURL = new URL('../contracts/unit-contract-identities.json', import.meta.url);
 
@@ -9,19 +10,10 @@ export function auditUnitContractIdentities(repository, baseline = JSON.parse(re
   if (baseline.schema !== 'pando-unit-contract-identities-v1' || !Array.isArray(baseline.unitFiles))
     throw Error('Invalid unit contract baseline');
   const unitFiles = repository.tests.filter(file => file.startsWith('tests/unit/')).sort();
-  const owners = new Map(), duplicates = [];
-  for (const file of unitFiles) {
-    const source = repository.read(file);
-    const identities = [basename(file), ...[...source.matchAll(
-      /^\s*\/\/ Original feature contract: ([\w.-]+\.test\.mjs)\s*$/gm,
-    )].map(match => match[1])];
-    for (const identity of new Set(identities)) {
-      const previous = owners.get(identity);
-      if (previous && previous !== file) duplicates.push({identity, files: [previous, file]});
-      else owners.set(identity, file);
-    }
-  }
-  const missing = baseline.unitFiles.filter(file => !owners.has(file));
+  const {contractOwners, duplicates: duplicatePaths} =
+    indexUnitContractOwners(unitFiles, repository.read);
+  const duplicates = duplicatePaths.map(row => ({...row, identity: basename(row.identity)}));
+  const missing = baseline.unitFiles.filter(file => !contractOwners.has('tests/unit/' + file));
   const retired = baseline.unitFiles.filter(file => !repository.exists('tests/unit/' + file));
   // Check only references made stale by this migration, not historical paths
   // in unrelated archived research workflows.
@@ -36,7 +28,7 @@ export function auditUnitContractIdentities(repository, baseline = JSON.parse(re
     }
   }
   return {unitFileCount: unitFiles.length, originalContractCount: baseline.unitFiles.length,
-    registeredContractCount: owners.size, missing, duplicates, staleReferences};
+    registeredContractCount: contractOwners.size, missing, duplicates, staleReferences};
 }
 
 const gisConsolidationMapURL = new URL('../contracts/gis-unit-consolidation-map.json', import.meta.url);

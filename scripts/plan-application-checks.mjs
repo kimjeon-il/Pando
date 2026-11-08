@@ -2,6 +2,7 @@ import {buildFrontendIndex,emitFrontendModule,frontendGeneratedOwners} from './l
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { posix, resolve } from 'node:path';
 import { createCheckImpactIndex } from './lib/check-impact.mjs';
+import { indexUnitContractOwners } from './lib/unit-contract-owners.mjs';
 import { fileURLToPath } from 'node:url';
 import { parseJavaScript, walkJavaScript } from './lib/source-analysis.mjs';
 import { runtimeDependencies, dynamicExpressions } from './lib/product-assets.mjs';
@@ -80,19 +81,10 @@ export function loadRepository(root = process.cwd(), { catalog } = {}) {
   }
   // A consolidated file may own several historical feature contracts. Resolve
   // every identity to one runnable suite without retaining removed entrypoints.
-  const contractOwners = new Map(), suiteContracts = new Map();
-  for (const file of tests.filter(file => file.startsWith('tests/unit/'))) {
-    const source = read(file);
-    const contracts = new Set([file, ...[...source.matchAll(
-      /^\s*\/\/ Original feature contract: ([\w.-]+\.test\.mjs)\s*$/gm,
-    )].map(match => 'tests/unit/' + match[1])]);
-    suiteContracts.set(file, contracts);
-    for (const identity of contracts) {
-      if (contractOwners.has(identity) && contractOwners.get(identity) !== file)
-        throw Error('Ambiguous unit contract: ' + identity);
-      contractOwners.set(identity, file);
-    }
-  }
+  const { contractOwners, suiteContracts, duplicates: ambiguousContracts } =
+    indexUnitContractOwners(tests.filter(file => file.startsWith('tests/unit/')), read);
+  if (ambiguousContracts.length)
+    throw Error('Ambiguous unit contract: ' + ambiguousContracts[0].identity);
   for (const group of catalog.groups) for (const pattern of group.testPatterns || []) {
     if (!pattern.includes('*') && !owners.has(pattern) && !contractOwners.has(pattern))
       throw Error('Missing registered test: ' + pattern);
