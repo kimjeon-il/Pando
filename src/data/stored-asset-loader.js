@@ -1,6 +1,6 @@
 import { fetchWithRetry, isRetryableHttpStatus } from "../runtime/reliability-core.js";
 // Shared stored-byte cache, integrity and decoding owner for packed world and catalog assets.
-export function createStoredAssetLoader({dataRevision, resolveUrl, report = () => {}, fetchFn = globalThis.fetch, cacheStorage = globalThis.caches, cachePolicy = 'revision'}) {
+export function createStoredAssetLoader({dataRevision, resolveUrl, report = () => {}, fetchFn = globalThis.fetch, cacheStorage = globalThis.caches, cachePolicy = 'revision',subtle=globalThis.crypto?.subtle}) {
  const DATA_CACHE_PREFIX = 'pandolab-data-';
  const DATA_CACHE_NAME = DATA_CACHE_PREFIX + dataRevision;
  const IMMUTABLE_WORLD_CACHE_NAME = 'pandolab-world-content-v1';
@@ -20,7 +20,7 @@ async function cleanupOldCoreCaches() {
   if (!oldCacheCleanupPromise) {
     oldCacheCleanupPromise = cacheStorage.keys()
       .then(names => Promise.all(names
-      .filter(name => (name.startsWith(DATA_CACHE_PREFIX) && name !== DATA_CACHE_NAME)
+      .filter(name => (typeof dataRevision==='string' && name.startsWith(DATA_CACHE_PREFIX) && name !== DATA_CACHE_NAME)
         || name.startsWith(LEGACY_CORE_CACHE_PREFIX))
         .map(name => cacheStorage.delete(name))))
       .catch(() => []);
@@ -117,8 +117,8 @@ async function validateStoredAsset(storedBuffer, spec, label) {
   if (expectedBytes > 0 && storedBuffer.byteLength !== expectedBytes) throw new Error(`${label} 저장 크기가 올바르지 않습니다.`);
   const expectedHash = String(spec.sha256 || '').toLowerCase();
   if (!expectedHash) return;
-  if (!globalThis.crypto?.subtle) throw new Error(`${label} 무결성을 확인할 수 없습니다.`);
-  const digest = await globalThis.crypto.subtle.digest('SHA-256', storedBuffer);
+  if (!subtle) throw new Error(`${label} 무결성을 확인할 수 없습니다.`);
+  const digest = await subtle.digest('SHA-256', storedBuffer);
   const actualHash = [...new Uint8Array(digest)].map(value => value.toString(16).padStart(2, '0')).join('');
   if (actualHash !== expectedHash) throw new Error(`${label} 무결성 검증에 실패했습니다.`);
 }

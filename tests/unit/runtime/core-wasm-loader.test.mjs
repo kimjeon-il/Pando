@@ -44,6 +44,22 @@ test('loader executes only verified JS bytes and passes verified WASM to the fac
   assert.deepEqual(new Uint8Array(f.factories[0].wasmBinary), f.wasm);
 });
 
+test('immutable Core bytes are reverified and reused across loads, and damaged cache bytes are repaired',async()=>{
+  const f=await fixture(),values=new Map();
+  f.options.cacheStorage={open:async()=>({match:async key=>values.get(key)?.clone(),put:async(key,response)=>values.set(key,response.clone()),delete:async key=>values.delete(key)})};
+  await loadVerifiedCore(f.options);assert.equal(f.fetched.length,3);
+  await loadVerifiedCore(f.options);assert.equal(f.fetched.length,4,'each load refreshes the manifest but reuses its exact compiled bytes');
+  const wasm=f.fetched.find(row=>row.url.includes('.wasm?')).url;
+  values.set(wasm,new Response(bytes('damaged cache')));
+  await loadVerifiedCore(f.options);assert.equal(f.fetched.length,6,'only the invalid cached payload is downloaded again');
+  assert.deepEqual(new Uint8Array(f.factories.at(-1).wasmBinary),f.wasm);
+  const quota=await fixture(),deleted=[];
+  quota.options.cacheStorage={open:async()=>({match:async()=>null,put:async()=>{throw Error('quota');}}),
+    keys:async()=>['pandolab-data-active','pandolab-core-retired'],delete:async key=>{deleted.push(key);return true;}};
+  await loadVerifiedCore(quota.options);
+  assert.deepEqual(deleted,['pandolab-core-retired'],'a cache owner without a data revision cannot retire active revision caches');
+});
+
 test('a changed second JS network body cannot be admitted for execution', async () => {
   const f = await fixture();
   let jsReads = 0;
