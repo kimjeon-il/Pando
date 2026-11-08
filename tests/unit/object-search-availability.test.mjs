@@ -211,6 +211,65 @@ test('a search click waits for Core selection approval and releases its listener
   assert.equal(results.listeners.has('click'),false,'disposed controller must release listeners');
 });
 
+test('search catalog is reused between queries and rebuilt on a real catalog revision', () => {
+  let revision=1, builds=0, query='Alpha';
+  const results=element();
+  const controller=createObjectSearchController({
+    window:{setTimeout,clearTimeout},
+    document:{createElement:element},
+    elements:{searchResults:results},
+    groups:{search:['objects']},
+    createEmptyState:element,
+    model:{
+      snapshot:()=>({search:query,searchActive:true}),
+      catalogRevision:()=>revision,
+      items:()=>{builds++;return [{id:'A',name:'Alpha'}];},
+      itemRef:(_,id)=>normalizeObjectRef({domain:'territorial',type:'entity',id}),
+      compare:(a,b)=>a.name.localeCompare(b.name),
+      selectionSnapshot:()=>({selection:{primaryKey:null,items:[]}}),
+    },
+  });
+  controller.render();
+  assert.equal(builds,1);
+  query='Al';
+  controller.render();
+  assert.equal(builds,1,'typing must not regenerate the object catalog');
+  revision++;
+  controller.render();
+  assert.equal(builds,2,'an actual catalog change rebuilds the search index');
+  controller.dispose();
+});
+
+test('rejected search selection keeps the surface open', async () => {
+  const results=element();
+  const ref=normalizeObjectRef({domain:'territorial',type:'entity',id:'A'});
+  let closed=0;
+  const controller=createObjectSearchController({
+    window:{setTimeout,clearTimeout},
+    document:{createElement:element},
+    elements:{searchResults:results},
+    groups:{search:['objects']},
+    createEmptyState:element,
+    model:{
+      snapshot:()=>({search:'A',searchActive:true}),
+      items:()=>[{id:'A',name:'A'}],
+      itemRef:()=>ref,
+      compare:(a,b)=>a.name.localeCompare(b.name),
+      selectionSnapshot:()=>({selection:{primaryKey:null,items:[]}}),
+    },
+    commands:{selectItem:async()=>false,closeAfterSingleSelection:()=>{closed++;}},
+  });
+  controller.bind();
+  controller.render();
+  results.listeners.get('click')({
+    target:results.children[0].children[0],shiftKey:false,ctrlKey:false,metaKey:false,
+    preventDefault(){},
+  });
+  await tick();
+  assert.equal(closed,0);
+  controller.dispose();
+});
+
 test('search Shift range follows displayed sorting across object groups and sets clicked primary', async t => {
   const { results, click, selectionDomain } = await setup(t);
   assert.deepEqual(results.children.map(row => row.children[0].dataset.itemId), ['A', 'B', 'C', 'D']);
