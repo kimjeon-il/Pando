@@ -4,68 +4,20 @@ on:
     branches: [work/ui]
     paths: ['.github/workflows/ui-prebuilt-mesh-focused.yml']
   workflow_dispatch:
-permissions: {contents: write}
-concurrency: {group: ui-readonly-integration, cancel-in-progress: false}
+permissions: {contents: read}
 jobs:
-  integrate:
+  unit:
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-        with: {ref: work/ui, persist-credentials: true, fetch-depth: 0}
+        with: {persist-credentials: false}
       - uses: actions/setup-node@v4
         with: {node-version-file: .nvmrc}
       - uses: pnpm/action-setup@v4
       - uses: ./.github/actions/library-data
       - run: pnpm install --frozen-lockfile --ignore-scripts
-      - name: Apply reviewed owner changes and current-contract fixtures
-        run: |
-          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
-          git diff --exit-code
-          mkdir -p "$RUNNER_TEMP/ui-read-index"
-          git rev-parse HEAD > "$RUNNER_TEMP/ui-read-index/start"
-          node tools/ui-read-index-integration.mjs
-          node tools/ui-read-index-contracts.mjs
-          node tools/ui-read-index-corrections.mjs
-          node --input-type=module -e "import {readLibraryDataFile} from './tools/data/library-context.mjs';readLibraryDataFile('assets/data/builtin-world/display-policy-v1.json',{fetch:true});"
-          git diff --check
-      - name: Verify affected temporal and transport behavior
+      - name: Verify compiled-code sharing, instance isolation and bounded uploads
         env:
-          CHECK_SELECTION: '{"unitTests":["tests/unit/data/builtin-read-index.test.mjs","tests/unit/data/builtin-world-loader.test.mjs","tests/unit/data/builtin-country-loading.test.mjs","tests/unit/data/builtin-country-parts.test.mjs"],"browserSpecs":[],"commands":[],"prerequisites":[]}'
+          CHECK_SELECTION: '{"unitTests":["tests/unit/runtime/core-module-sharing.test.mjs","tests/unit/rendering/gpu-upload-budget.test.mjs"],"browserSpecs":[],"commands":[],"prerequisites":[]}'
         run: node scripts/run-application-checks.mjs --phase non-browser
-      - name: Publish only the temporal catalog and commit its paired implementation
-        env:
-          PANDOLAB_LIBRARY_WRITE_TOKEN: ${{ secrets.PANDOLAB_LIBRARY_WRITE_TOKEN }}
-        run: |
-          node tools/build/build-builtin-read-index.mjs | tee "$RUNNER_TEMP/ui-read-index/build.json"
-          test -n "$PANDOLAB_LIBRARY_WRITE_TOKEN"
-          node tools/data/library-data.mjs --store --push --include-prefix=assets/data/builtin-world/generated/v1/index.json
-          cat config/library-data.json > "$RUNNER_TEMP/ui-read-index/data-pin.json"
-          test "$(git ls-remote origin refs/heads/work/ui | cut -f1)" = "$(cat "$RUNNER_TEMP/ui-read-index/start")"
-          git add src/data/builtin-country-files.js src/data/builtin-world-loader.js tools/data/builtin-country-bytes.mjs tools/build/build-builtin-read-index.mjs tests/unit/data/builtin-world-loader.test.mjs tests/unit/data/builtin-country-parts.test.mjs tests/unit/data/builtin-country-loading.test.mjs config/library-data.json
-          git diff --cached --check
-          git -c user.name='Pando Viewer implementation' -c user.email='viewer@users.noreply.github.com' commit -m 'perf(data): replace country descriptor reconstruction with compiled temporal read index'
-          git push origin HEAD:refs/heads/work/ui
-          test "$(git ls-remote origin refs/heads/work/ui | cut -f1)" = "$(git rev-parse HEAD)"
-          git rev-parse HEAD > "$RUNNER_TEMP/ui-read-index/commit"
-      - run: pnpm exec playwright install --with-deps chromium
-      - name: Verify prepared initial map, cached reload and date return
-        env:
-          CHECK_SELECTION: '{"unitTests":[],"browserSpecs":["tests/browser/runtime/viewer-readonly-startup.spec.mjs","tests/browser/rendering/country-prepared-scene.spec.mjs"],"commands":[],"prerequisites":[]}'
-        run: node scripts/run-application-checks.mjs --phase browser
-      - name: Preserve task-owned evidence and exact pending changes
-        if: always()
-        run: |
-          mkdir -p "$RUNNER_TEMP/ui-read-index"
-          git diff HEAD --binary > "$RUNNER_TEMP/ui-read-index/pending.patch"
-          git diff --no-index -- /dev/null tools/build/build-builtin-read-index.mjs > "$RUNNER_TEMP/ui-read-index/generator.patch" || test "$?" = 1
-          git bundle create "$RUNNER_TEMP/ui-read-index/increment.bundle" HEAD ^c55de747c224eeddea48d1bd6db7eb6f1a37f2df
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: ui-read-index-${{ github.sha }}
-          path: |
-            ${{ runner.temp }}/ui-read-index/
-            test-results/
-          if-no-files-found: warn
-          retention-days: 7
