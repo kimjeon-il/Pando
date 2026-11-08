@@ -113,12 +113,12 @@ jobs:
           node-version-file: '.nvmrc'
       - name: Install pinned package manager only for selected data-family owners
         uses: pnpm/action-setup@v4
-        if: needs.plan.outputs.selected_families != '[]' || inputs.scope == 'verify' || inputs.verification == 'full'
+        if: needs.plan.outputs.wasm == 'true' || needs.plan.outputs.selected_families != '[]' || inputs.scope == 'verify' || inputs.verification == 'full'
         with:
           version: ${{ needs.plan.outputs.pnpm_version }}
           run_install: false
       - name: Install frozen dependencies for current data generators
-        if: needs.plan.outputs.selected_families != '[]' || inputs.scope == 'verify' || inputs.verification == 'full'
+        if: needs.plan.outputs.wasm == 'true' || needs.plan.outputs.selected_families != '[]' || inputs.scope == 'verify' || inputs.verification == 'full'
         run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Read the declared place-report generation inputs
         run: node tools/data/report-paths.mjs reports/places read
