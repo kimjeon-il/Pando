@@ -8,15 +8,26 @@ export function createGpuCanvasWorker({ worker, generation, acceptFrame, allowOl
   const picks = new Map();
   function postMessage(...args) {
     if (!live) return false;
-    // MessageChannel hand-off was never included in scene message counters.
-    if (args[0]?.type !== 'hydro-port') onSend(args[0]);
-    worker.postMessage(...args); return true;
+    try {
+      // MessageChannel hand-off was never included in scene message counters.
+      if (args[0]?.type !== 'hydro-port') onSend(args[0]);
+      worker.postMessage(...args);
+      return true;
+    } catch (error) {
+      // A failed synchronous send is a transport failure, not a completed
+      // Canvas submission. Route it to the existing renderer fallback owner.
+      onerror?.({error,message:error?.message||String(error),preventDefault(){}});
+      return false;
+    }
   }
   function flush() {
     if (!live || !ready || inFlightRenderRequestId !== null || !pendingFrame) return;
     const message = pendingFrame; pendingFrame = null;
     inFlightRenderRequestId = ++renderRequestId;
-    postMessage({ ...message, renderRequestId: inFlightRenderRequestId });
+    if (!postMessage({ ...message, renderRequestId: inFlightRenderRequestId })) {
+      inFlightRenderRequestId = null;
+      if (!pendingFrame) pendingFrame = latestFrame || message;
+    }
   }
   function settlePick(id, value, error = null) {
     const pending = picks.get(id);
@@ -52,7 +63,8 @@ export function createGpuCanvasWorker({ worker, generation, acceptFrame, allowOl
     // The latest *picture*, not the latest unrelated coordinator revision,
     // controls initial physical-only previews. The opt-in must independently
     // validate camera, style, pin and source before accepting older revisions.
-    const current = Number(message.projectGeneration ?? generation) === generation
+    const current = !!message.bitmap
+      && Number(message.projectGeneration ?? generation) === generation
       && revision >= displayedRevision
       && (revision >= requestedRevision || allowOlderBackgroundFrame(message))
       && acceptFrame(message);
@@ -93,7 +105,8 @@ export function createGpuCanvasWorker({ worker, generation, acceptFrame, allowOl
       return new Promise((resolve, reject) => {
         const timer = setTimeout(() => settlePick(id, null), 900);
         picks.set(id, { resolve, reject, timer });
-        postMessage({ type: 'hydro-pick', requestId: id, point });
+        if (!postMessage({ type: 'hydro-pick', requestId: id, point }))
+          settlePick(id, null, {message:'Canvas Worker request was not delivered',code:'PL-CANVAS-WORKER-SEND'});
       });
     },
     terminate() {
