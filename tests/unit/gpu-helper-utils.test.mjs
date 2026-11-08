@@ -11,7 +11,6 @@ import * as __dep7 from "node:fs";
 import * as __dep8 from "../helpers/gpu-recovery-source-harness.mjs";
 import * as __dep9 from "../../scripts/lib/renderer-v2-architecture.mjs";
 import * as __dep10 from "../../shared/frontend/js/modules/gpu-hydro-preparation.js";
-contractSuite("gpu-helper-utils", () => {
 const assert = __dep0.default;
 const test = __dep1.default;
 const { applyGpuBlendMode, parseGpuColor, resetGpuNormalBlend } = __dep2;
@@ -184,7 +183,6 @@ test('GPU view helper writes the shared uniforms in stable order', () => {
     ['uniform1f', 'uWorldOffset', 2],
     ['uniform1i', 'uMode', 1],
   ]);
-});
 });
 contractSuite("gpu-canvas-scene-packets", () => {
 const test = __dep1.default;

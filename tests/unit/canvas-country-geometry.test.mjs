@@ -10,8 +10,7 @@ import * as __canvas_dep7 from "../../shared/frontend/js/modules/resource-update
 import * as __canvas_dep8 from "../../shared/frontend/js/modules/country-mesh-zoom-policy.js";
 import * as __canvas_dep9 from "../../shared/frontend/js/modules/gpu-canvas-worker.js";
 import "../../shared/frontend/js/workers/canvas-scene-composition-core.js";
-contractSuite("canvas-country-geometry", () => {
-const { describe : contractSuite } = __canvas_dep0;
+// Shared imports and fixtures used by the independent Canvas feature groups.
 const __dep0 = __canvas_dep0;
 const __dep1 = __canvas_dep1;
 const __dep2 = __canvas_dep2;
@@ -22,7 +21,6 @@ const __dep6 = __canvas_dep6;
 const __dep7 = __canvas_dep7;
 const __dep8 = __canvas_dep8;
 const __dep9 = __canvas_dep9;
-contractSuite("canvas-country-geometry", () => {
 const { describe : featureDescribe }=__dep0;
 const __suiteDependency0=__dep0;
 const __suiteDependency1=__dep1;
@@ -125,8 +123,6 @@ test('Canvas invalidates prepared strokes on changed revision, buffer identity o
   assert.notStrictEqual(paints[1], paints[2]);
   paint({ ...packet, geometryRevision: 'shape:2', ownerIds: ['LEFT'], ownerRanges: { LEFT: { first: 1, count: 1 } } });
   assert.deepEqual(paints[3].coordinates, [[[1, 0], [3, 0]]]);
-});
-});
 });
 contractSuite("canvas-globe-viewport", () => {
 const test=__dep0.default;

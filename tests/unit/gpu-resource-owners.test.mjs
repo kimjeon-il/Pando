@@ -8,7 +8,6 @@ import * as __contract_dep4 from "../../shared/frontend/js/modules/gpu-worker-ch
 import * as __contract_dep5 from "../../shared/frontend/js/modules/gpu-resource-budget.js";
 import * as __contract_dep6 from "../../shared/frontend/js/modules/gpu-map-renderer.js";
 import * as __contract_dep7 from "../../shared/frontend/js/modules/mesh-spatial-blocks.js";
-contractSuite("gpu-resource-owners", () => {
 const { describe : featureDescribe } = __contract_dep0;
 const __suiteDependency0 = __contract_dep0;
 const __suiteDependency1 = __contract_dep1;
@@ -337,5 +336,4 @@ test('large spatial partitions preserve every oriented primitive and use bounded
   assert.ok(m.spatialPreparation?.partitionComparisons>0);
   assert.ok(m.spatialPreparation.partitionComparisons<count*30,'median selection must not fully sort every recursive partition');
   const repeat=structuredClone(original);prepareMeshSpatialBlocks(repeat);assert.deepEqual(repeat.triangleIndices,m.triangleIndices);
-});
 });

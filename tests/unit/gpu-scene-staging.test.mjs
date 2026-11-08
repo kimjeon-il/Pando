@@ -5,7 +5,6 @@ import * as __contract_dep2 from "../../shared/frontend/js/modules/gpu-scene-pre
 import * as __contract_dep3 from "../../shared/frontend/js/modules/gpu-base-scene-pass.js";
 import * as __contract_dep4 from "node:fs";
 import * as __contract_dep5 from "../../shared/frontend/js/modules/map-content-presentation.js";
-contractSuite("gpu-scene-staging", () => {
 const assert = __contract_dep0.default;
 const test = __contract_dep1.default;
 const { prepareGpuBaseScene, commitGpuStrokeDomains } = __contract_dep2;
@@ -146,7 +145,6 @@ test('failure of both B and eligible A is a failed presentation with no promotio
   });
   assert.equal(result.strokePresentationFailed, true);
   assert.deepEqual(result.strokeDomainReplacements, []);
-});
 });
 contractSuite("gpu-scene-worker-presentation", () => {
 const test = __contract_dep1.default;
