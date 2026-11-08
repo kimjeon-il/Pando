@@ -271,6 +271,11 @@ ProjectSnapshot Project::snapshotForView() const {
     return snapshot();
 }
 ResolvedWorld Project::resolveWorld(const std::string& month) const {
+    // Viewer/session time queries admit only canonical months. Source records
+    // retain their original year/date precision within their validity fields.
+    const auto requested=parseTemporal(month);
+    if(requested.precision!="month"||requested.canonical!=month)
+        throw TimelineError("PL-TEMPORAL-001","World queries require a canonical month.");
     const auto& d=document();
     if(preparedTimelineSource_.lock()!=state_||!preparedTimeline_) {
         auto prepared=std::make_shared<const PreparedTimelineWorld>(d.timelineRecords,
