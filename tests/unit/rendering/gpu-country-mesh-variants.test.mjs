@@ -94,7 +94,7 @@ featureDescribe("gpu-country-culling", () => {
   const test = __suiteDependency9.default;
   const {  fileURLToPath  } = __suiteDependency10;
   const {  countryDrawRangesForFrame, createCountryTriangleRangeMap, mergeCountryDrawRanges,  } = __suiteDependency11;
-const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
+const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 
 function mesh(bounds, flags = bounds.map(() => 0)) {
   const countryCount = bounds.length;
