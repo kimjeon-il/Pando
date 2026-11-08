@@ -72,3 +72,8 @@ take precedence. Static audit and source commits do not prove tests pass.
 Full-catalog CI verification was requested after P7 at this branch revision.
 Conclusions and any corrective commits must be reported separately; this line
 is not a passing check result.
+
+The first full-catalog CI attempt identified false positives in executable
+path detection (matrix shard arguments and SDK-managed zlib port). The
+reference scanner now scopes both cases to repository-owned executable paths.
+The complete catalog is requested again; runtime results remain pending.
