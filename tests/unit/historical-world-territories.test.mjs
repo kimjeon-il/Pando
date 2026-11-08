@@ -17,6 +17,15 @@ test('native difference terminates for a shared near-collinear historical triang
   assert.deepEqual([a, b], original, 'source coordinates must remain unchanged');
   assert.deepEqual(globalThis.polygonClipping.xor(actual, expected), []);
 });
+test('native difference closes the ring at near-collinear historical intersections', () => {
+  const a = [[[[11.682573,47.58335],[11.638958,47.589241],[11.620458,47.589654],[11.682573,47.58335]]]];
+  const b = [[[[11.6353339,47.5940318],[11.660654577711517,47.58631048207501],[11.634505346399656,47.58934040248308],[11.6353339,47.5940318]]]];
+  const original = structuredClone([a, b]);
+  const expected = globalThis.polygonClipping.difference(a, b);
+  const actual = module.historicalWorldClipper.difference(a, b);
+  assert.deepEqual([a, b], original, 'source coordinates must remain unchanged');
+  assert.deepEqual(globalThis.polygonClipping.xor(actual, expected), []);
+});
 function adjust(rows, rules = policy, clipper = globalThis.polygonClipping) {
   assert.equal(typeof module.adjustHistoricalTerritories, 'function');
   return module.adjustHistoricalTerritories(rows, rules, clipper);

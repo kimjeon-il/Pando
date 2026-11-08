@@ -187,7 +187,7 @@ jobs:
       - name: Verify near-coincident historical polygon difference
         if: needs.plan.outputs.wasm == 'true'
         run: >-
-          node --test --test-name-pattern='native difference terminates for a shared near-collinear historical triangle'
+          node --test --test-name-pattern='native difference (terminates|closes)'
           tests/unit/historical-world-territories.test.mjs
       - name: Verify changed temporal editing and place naming
         if: inputs.verification == 'temporal'
