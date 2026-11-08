@@ -193,7 +193,7 @@ export function createGpuMapRenderer(deps) {
     // input state. Once admitted, reuse the existing complete-frame gate.
     function beginTemporalViewTransition(isCurrent = () => true) {
       const token = ++temporalViewSequence;
-      temporalPresentation = { token, generation: projectGeneration,
+      temporalPresentation = { kind:'view',countryContent:null,token, generation: projectGeneration,
         context: renderDeviceContextRevision, isCurrent: () => !disposed
           && token === temporalViewSequence && isCurrent(),
         onPresented: () => {}, presented: false, sourceAdmitted: false,
@@ -205,6 +205,16 @@ export function createGpuMapRenderer(deps) {
         || !temporalPresentation.isCurrent()) return false;
       temporalPresentation.sourceAdmitted = true;
       invalidateGpuFrame('temporal-source-admitted');
+      return true;
+    }
+    async function prepareTemporalCountrySource(features) {
+      const ticket=temporalPresentation;
+      if(!temporalPending()||ticket.kind!=='view'||ticket.countryContent!==null)return true;
+      const isCurrent=()=>ticket===temporalPresentation&&ticket.isCurrent();
+      const content=isWebGlRenderer()?await countryMeshContentKey(features,{isCurrent})
+        :resourceKey(features.map(feature=>[String(feature.id),geometryRevisionKey(feature.geometry)]));
+      if(content===null||!isCurrent())return false;
+      ticket.countryContent=content;
       return true;
     }
     function finishTemporalViewTransition(token) {
@@ -242,6 +252,8 @@ export function createGpuMapRenderer(deps) {
     function temporalFrameReady(resourcesDrawn, terrain = currentTerrainReadiness()) {
       if (!temporalPending()) return true;
       if (temporalPresentation.error || temporalPresentation.sourceAdmitted === false) return false;
+      if(temporalPresentation.kind==='view'&&(!temporalPresentation.countryContent
+        ||countryMeshDependencies?.content!==temporalPresentation.countryContent))return false;
       if (!temporalPresentation.isCurrent() || temporalPresentation.generation !== projectGeneration
         || temporalPresentation.context !== renderDeviceContextRevision) {
         failTemporalPresentation(Object.assign(new Error('Temporal presentation superseded'), {name:'AbortError',cancelled:true}));
@@ -253,7 +265,8 @@ export function createGpuMapRenderer(deps) {
         return false;
       }
       const terrainNeeded = state.physicalSettings.terrainVisible && (isWebGlRenderer() ? !!terrainPreparation : true);
-      const boundariesReady = !state.layerVisibility.objects || (countrySharedBoundary?.sourceQuality === surfacePresentation.quality
+      const boundariesReady = !state.layerVisibility.objects || (!countryBoundaryTask&&!pendingCountrySharedBoundary
+        &&countrySharedBoundary?.sourceQuality === surfacePresentation.quality
         && countrySharedBoundary.sourceProjectGeneration === projectGeneration);
       return !!resourcesDrawn && canonicalMeshReady && boundariesReady && surfacePresentation.quality !== 'pending'
         && physicalSceneMatchesContext(renderScene,physicalContext) && (!terrainNeeded || terrain.terrainReady);
@@ -2752,7 +2765,7 @@ export function createGpuMapRenderer(deps) {
         : projectGeneration + 1;
       temporalCanvas = null;
       temporalPresentation = presentation === 'temporal'
-        ? {generation:projectGeneration,context:renderDeviceContextRevision,isCurrent,onPresented,presented:false,error:null,frameId:null}
+        ? {kind:'replacement',generation:projectGeneration,context:renderDeviceContextRevision,isCurrent,onPresented,presented:false,error:null,frameId:null}
         : null;
       projectRenderBlocked = true;
       if (canvasWorker) {
@@ -6075,7 +6088,7 @@ export function createGpuMapRenderer(deps) {
       setHydroInteractionActive, setRenderQuality,
       requestCountryFocus, cancelCountryFocus, syncCountryMeshQuality,
       invalidateHydroVisibility, invalidatePhysicalStyle, resetCountryGeometryVisualState,
-      resetProjectRenderState, beginTemporalViewTransition, admitTemporalViewTransition,
+      resetProjectRenderState, beginTemporalViewTransition, admitTemporalViewTransition,prepareTemporalCountrySource,
       finishTemporalViewTransition, ensureBuiltinMeshBaseline, activateBuiltinMeshBaseline, invalidateCountryPreview,
       hasBuiltinMeshBaseline: () => !!builtinMeshBaseline?.mesh,
       getProjectGeneration: () => projectGeneration,

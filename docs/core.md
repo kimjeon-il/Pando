@@ -1,28 +1,32 @@
 # Shared C++ core
 
-`core/` owns the Qt-independent C++ document, commands, timeline, selection and
-detached geometry draft. Native builds and Emscripten compile the same sources
+`src/document/native/` owns the Qt-independent C++ document, commands, timeline,
+selection and detached geometry draft. Geometry, data codecs and runtime bindings
+live in their respective `src/<domain>/native/` directories. Native builds and Emscripten compile the same sources
 and link `Pandoeditor::Core`. Platform codecs keep their current external formats,
 media validation, source catalogs and geometry engines at explicit boundaries.
 
 ## Build and bounded checks
 
-Use Emscripten **6.0.3** in an ignored local SDK/build directory. With that SDK
-active only in the current process:
+Local development consumes CI-built artifacts; do not install a local SDK or
+compiler to satisfy a check. The build definitions live in `tools/build/native/`
+and use Emscripten **6.0.3** in CI. Source inputs are owned by
+`config/core-source-roots.json`.
+
+For a source-matched build with the bounded geometry-resource regression, dispatch
+the existing artifact workflow on the work branch:
 
 ```sh
-emcmake cmake -S shared -B build-native/wasm -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF
-cmake --build build-native/wasm --target pandoeditor_wasm --parallel 1
-PANDOEDITOR_WASM_MODULE=/absolute/coherent/pandoeditor-core.js node --test tests/native/document/wasm-document-session.test.mjs
+gh workflow run generated-artifacts-p2.yml --ref work/optimization -f scope=wasm -f verification=geometry-resources
 ```
 
-The generated module and binary are `build-native/wasm/wasm/pandoeditor-core.js`
-and `pandoeditor-core.wasm`. Package that pair with its source/compiler/ABI
-manifest using `tools/build/package-shared-core-assets.mjs`. Tests may use an immutable
-copy selected by `PANDOEDITOR_WASM_MODULE` while another build is running.
+The workflow retains the generated `pandoeditor-core.js`, `pandoeditor-core.wasm`
+and source/compiler/ABI manifest. Install only a matching pair with
+`tools/build/package-shared-core-assets.mjs`; do not bypass source identity checks.
+Tests may select an existing coherent module through `PANDOEDITOR_WASM_MODULE`.
 
-A native C++17/Zlib standalone build uses `shared/` with `BUILD_TESTING=ON`.
-Build only the relevant targets with `--parallel 1`, then run their exact CTest
+A native C++17/Zlib standalone CI build uses `tools/build/native/` with `BUILD_TESTING=ON`.
+Select only the relevant registered targets, then run their exact CTest
 names with `--timeout 10`. Current small targets include `document_session_tests`,
 `project_codec_tests`, `web_content_codec_tests`, `source_admission_tests`, `web_storage_tests`,
 `web_object_command_tests`, `web_content_command_tests`,

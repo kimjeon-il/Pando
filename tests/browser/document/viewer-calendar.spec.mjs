@@ -556,9 +556,19 @@ for (const mode of ['webgl','canvas','canvas-worker']) test(`temporal map holds 
     expect(source).toContain(marker);
     const proofMarker='const temporalPending =';
     expect(source).toContain(proofMarker);
+    const sourceMarker='async function prepareTemporalCountrySource(features) {';
+    expect(source).toContain(sourceMarker);
     const instrumented=source.replace(proofMarker,`window.__physicalFrameProof=()=>({expected:getPhysicalContextState(),
       actual:(renderScene?.polygons||[]).filter(packet=>['physical-land','physical-water'].includes(packet.role)).map(packet=>({role:packet.role,revision:packet.geometryRevision})),
-      matches:physicalSceneMatchesContext(renderScene,getPhysicalContextState()),at:performance.now()});\n`+proofMarker);
+      matches:physicalSceneMatchesContext(renderScene,getPhysicalContextState()),at:performance.now()});\n`+proofMarker)
+      .replace(sourceMarker,sourceMarker+`\nif(temporalPending()&&temporalPresentation.sourceAdmitted){
+        const sourceTicket=temporalPresentation;
+        if(window.__temporalFailureOnce){window.__temporalFailureOnce=false;throw new Error('controlled temporal preparation failure');}
+        if(window.__temporalSourceGate){
+          sourceTicket.testGatePromise ||= window.__temporalSourceGate();await sourceTicket.testGatePromise;
+          if(sourceTicket!==temporalPresentation||!sourceTicket.isCurrent())return false;
+        }
+      }`);
     await route.fulfill({response,body:instrumented.replace(marker,`
       window.__temporalWaterPresented=()=>preparedBaseScene?.physicalWaterItems.length>0
         && preparedBaseScene.physicalWaterItems.every(({packet})=>polygonOverlayPass.hasPreparedResource(packet))
@@ -687,14 +697,19 @@ for (const mode of ['webgl','canvas','canvas-worker']) test(`temporal map holds 
     await page.mouse.move(20,20);
     await waitForCompleteScene();
     const committed=await image();
-    await page.evaluate(()=>{window.__temporalGate=()=>{window.__temporalGate=null;return Promise.reject(new Error('controlled temporal preparation failure'));};});
+    // Unchanged effective geometry reuses its mesh and does not enter the
+    // rebuild hook. Fail the always-required admitted-source preparation so
+    // this still verifies rollback after Core cursor admission.
+    await page.evaluate(()=>{window.__temporalFailureOnce=true;});
     await page.locator('#timelineNextMonth').click();
     await expect(page.locator('#timelineDateError')).toContainText('controlled temporal preparation failure',{timeout:45000});
     expect(await page.locator('#timelineDateButtonText').textContent()).toBe('1922년 12월');
     expect((await image()).hash).toBe(committed.hash);
     await page.locator('#timelineYearInput').fill('1922');
     await page.locator('#timelineMonthInput').selectOption('12');
-    await page.evaluate(()=>{window.__temporalHeld=[];window.__temporalGate=()=>new Promise(resolve=>window.__temporalHeld.push({resolve}));});
+    // Every date prepares its admitted source, including dates that reuse
+    // unchanged geometry. Coalescing must not require a redundant mesh build.
+    await page.evaluate(()=>{window.__temporalHeld=[];window.__temporalSourceGate=()=>new Promise(resolve=>window.__temporalHeld.push({resolve}));});
     await page.locator('#timelineNextMonth').click();
     await expect.poll(()=>page.evaluate(()=>window.__temporalHeld.length)).toBe(1);
     await page.locator('#timelineNextMonth').click();
@@ -702,7 +717,7 @@ for (const mode of ['webgl','canvas','canvas-worker']) test(`temporal map holds 
     await expect.poll(()=>page.evaluate(()=>window.__temporalHeld.length),{timeout:45000}).toBe(1);
     expect(await page.locator('#timelineDateButtonText').textContent()).toBe('1922년 12월');
     expect((await image()).hash).toBe(committed.hash);
-    await page.evaluate(()=>{window.__temporalGate=null;window.__temporalHeld.shift().resolve();});
+    await page.evaluate(()=>{window.__temporalSourceGate=null;window.__temporalHeld.shift().resolve();});
     await expect(page.locator('#timelineDateButtonText')).toHaveText('1923년 2월',{timeout:45000});
     expect(await page.evaluate(()=>window.__PANDOLAB_VIEWER__.builtinMonth().month)).toBe('1923-02');
     await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true');
@@ -712,7 +727,9 @@ for (const mode of ['webgl','canvas','canvas-worker']) test(`temporal map holds 
     await expect(page.locator('#timelinePopover')).toBeHidden({timeout:45000});
     const reused=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.rendererStats());
     expect(reused.countryMeshRebuildCount||0).toBe(preparation.countryMeshRebuildCount||0);
-    expect(reused.countryMeshReuseCount||0).toBeGreaterThan(preparation.countryMeshReuseCount||0);
+    expect(reused.committedGeometryRevision).toBe(preparation.committedGeometryRevision);
+    expect(reused.meshVariantBytes.canonical).toBe(preparation.meshVariantBytes.canonical);
+    expect(reused.polygonOverlay.uploadBytes).toBe(preparation.polygonOverlay.uploadBytes);
   }
   const beforeDrag=await image(),positionsBeforeDrag=await labelPositions();
   await page.mouse.move(mapBox.x+mapBox.width/2,mapBox.y+mapBox.height/2);

@@ -266,6 +266,7 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
     state.countryIndex=new Map(entityStore.snapshot().map(feature=>[String(feature.id),feature]));
     const rootFeatures=builtinSession.builtinTerritorialScene().collection.features;
     await initialized;if(generation!==updateGeneration)return;
+    if(!await renderer.prepareTemporalCountrySource(rootFeatures)||generation!==updateGeneration)return;
     buildScene(); // PROJECT includes label layout: renamed labels reflow around neighbors.
     if(pendingPropertyPaint){
       // A recolor with no geometry update has no mesh rebuild to dirty the

@@ -27,27 +27,35 @@ export function createGpuUploadScheduler({ requestFrame = callback => globalThis
     const interaction = active || pendingInput || now() - lastInput < 500;
     const start = now();
     let bytes = Math.min(interaction ? 256 * 1024 : 2 * 1024 * 1024, Math.max(4, getByteBudget()));
-    // Snapshot admission order to avoid processing a rotated entry twice.
-    for (const job of [...orderedJobs]) {
-      if (now() - start >= 2 || bytes <= 0) break;
-      if (!jobs.has(job.key)) continue;
-      // Visible resources must progress during navigation. Background work
-      // keeps its quiet period; both paths share the same frame/time budget.
-      if (interaction && !job.allowDuringInteraction) continue;
-      try {
-        const result = job.step({ byteBudget: Math.min(bytes, 256 * 1024), deadline: start + 2 }) || {};
-        // A step may synchronously cancel or replace itself (including a
-        // complete renderer shutdown). Such work cannot be re-admitted.
-        if (jobs.get(job.key) !== job) continue;
-        const used = Math.max(0, Number(result.bytes) || 0);
-        bytes -= used; stats.uploadedBytes += used;
-        jobs.delete(job.key);
-        removeOrdered(job);
-        if (result.done) { stats.completed++; job.resolve(result.value); }
-        else { jobs.set(job.key, job); insertOrdered(job); } // Round-robin within each priority.
-      } catch (error) {
-        if (jobs.get(job.key) !== job) continue;
-        jobs.delete(job.key); removeOrdered(job); job.dispose?.(); job.reject(error);
+    // Use the quiet-frame byte budget across bounded rounds. New/replaced
+    // jobs wait for the next frame; zero-progress steps cannot spin here.
+    const admitted = new Set(orderedJobs);
+    let progressed = true;
+    while (progressed && bytes > 0 && now() - start < 2) {
+      progressed = false;
+      for (const job of [...orderedJobs]) {
+        if (now() - start >= 2 || bytes <= 0) break;
+        if (!admitted.has(job) || jobs.get(job.key) !== job) continue;
+        // Visible resources must progress during navigation. Background work
+        // keeps its quiet period; both paths share the same frame/time budget.
+        if (interaction && !job.allowDuringInteraction) continue;
+        try {
+          const result = job.step({ byteBudget: Math.min(bytes, 256 * 1024), deadline: start + 2 }) || {};
+          // A step may synchronously cancel or replace itself (including a
+          // complete renderer shutdown). Such work cannot be re-admitted.
+          if (jobs.get(job.key) !== job) continue;
+          const used = Math.max(0, Number(result.bytes) || 0);
+          const remaining = bytes - used;
+          progressed = progressed || remaining < bytes;
+          bytes = remaining; stats.uploadedBytes += used;
+          jobs.delete(job.key);
+          removeOrdered(job);
+          if (result.done) { progressed = true; stats.completed++; job.resolve(result.value); }
+          else { jobs.set(job.key, job); insertOrdered(job); } // Round-robin within each priority.
+        } catch (error) {
+          if (jobs.get(job.key) !== job) continue;
+          jobs.delete(job.key); removeOrdered(job); job.dispose?.(); job.reject(error); progressed = true;
+        }
       }
     }
     const elapsed = now() - start;

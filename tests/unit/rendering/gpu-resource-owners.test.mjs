@@ -129,6 +129,20 @@ test('a GPU job cancelled from its own step cannot resolve or requeue itself', a
   scheduler.dispose();
 });
 
+test('quiet uploads use the available frame byte budget without starving a queued peer',async()=>{
+  const frames=[],order=[];let chunks=0;
+  const scheduler=createGpuUploadScheduler({requestFrame:callback=>(frames.push(callback),frames.length),cancelFrame(){},now:()=>0,isHidden:()=>false,isInputPending:()=>false});
+  try{
+    const upload=scheduler.enqueueUpload({key:'large',step:({byteBudget})=>{chunks++;order.push('large');return{bytes:Math.min(byteBudget,256*1024),done:chunks===9};}});
+    const peer=scheduler.enqueueUpload({key:'peer',step:()=>{order.push('peer');return{done:true};}});
+    frames.shift()();
+    assert.equal(chunks,8,'a quiet frame can upload its 2 MiB budget in bounded chunks');
+    assert.deepEqual(order.slice(0,2),['large','peer']);
+    assert.equal(scheduler.getStats().uploadedBytes,2*1024*1024);
+    frames.shift()();await Promise.all([upload,peer]);assert.equal(chunks,9);
+  }finally{scheduler.dispose();}
+});
+
 test('upload priority is sorted on admission and not resorted during repeated drain frames', async () => {
   const frames=[],order=[];
   const scheduler=createGpuUploadScheduler({

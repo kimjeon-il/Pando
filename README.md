@@ -2,7 +2,7 @@
 
 1801년 이후의 세계 역사 지도와 국가·영토 속성을 탐색하는 PC·모바일 웹 열람기입니다. 검수 기능은 웹 Viewer에 통합되어 있습니다. Natural Earth 5.1.1의 1:10m 국가 데이터와 지형 음영, HydroRIVERS 강·Natural Earth 호수를 사용합니다.
 
-이 저장소는 PC·모바일 웹 Viewer(`apps/viewer`), [공통 C++ 코어](shared/README.md)와 배포·검수 도구를 관리합니다. 원본 GIS 자료 및 [조사·검증 보고서](https://github.com/kimjeon-il/PandoLab-library-data/blob/f4ae4d70579b8c799fba2e507e1a948b7e1e42c2/reports/README.md)는 외부 라이브러리에 보관합니다. 독립 Windows 검수기와 Android 네이티브 앱은 폐기됐습니다.
+이 저장소는 PC·모바일 웹 Viewer(`src/app`), [공통 C++ 코어](docs/core.md)와 배포·검수 도구를 관리합니다. 원본 GIS 자료 및 [조사·검증 보고서](https://github.com/kimjeon-il/PandoLab-library-data/blob/f4ae4d70579b8c799fba2e507e1a948b7e1e42c2/reports/README.md)는 외부 라이브러리에 보관합니다. 독립 Windows 검수기와 Android 네이티브 앱은 폐기됐습니다.
 
 v0.34.0부터 분포는 고정된 언어·민족·종교 분류 대신 이름·단위·숫자값으로 관리합니다. 소수·0·음수를 저장할 수 있고, 분포별 자동 또는 직접 지정한 값 범위로 색 농도를 정합니다. 보기 메뉴에서는 모든 분포를 겹쳐 보거나 한 분포만 표시할 수 있습니다.
 
@@ -243,4 +243,4 @@ GIS 원본 자료의 조사와 생성은 저장소의 GIS 도구가 담당합니
 
 Natural Earth 자료는 [이용 조건](https://www.naturalearthdata.com/about/terms-of-use/)에 따라 퍼블릭 도메인으로 제공됩니다.
 
-각 라이선스 원문은 `shared/frontend/js/vendor`의 해당 폴더에 포함되어 있습니다. 프로젝트 파일을 읽는 데 필요한 SQL 런타임은 파일을 열 때 지연 로딩됩니다.
+각 라이선스 원문은 `assets/js-vendor`·`assets/vendor`·`assets/fonts`의 해당 폴더에 포함되어 있습니다. 프로젝트 파일을 읽는 데 필요한 SQL 런타임은 파일을 열 때 지연 로딩됩니다.

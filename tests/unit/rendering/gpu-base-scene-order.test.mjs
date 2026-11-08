@@ -1,7 +1,7 @@
 import { describe as contractSuite } from 'node:test';
+import {createGpuUploadScheduler} from '../../../src/rendering/gpu-upload-scheduler.js';
 import * as __render_dep0 from "node:assert/strict";
 import * as __render_dep1 from "node:test";
-import * as __render_dep2 from "node:fs";
 import * as __render_dep3 from "../../../src/rendering/gpu-scene-preparation.js";
 import * as __render_dep4 from "../../../src/rendering/gpu-base-scene-pass.js";
 import * as __render_dep5 from "../../../src/rendering/gpu-scene.js";
@@ -17,7 +17,6 @@ import { canDrawTerrainTiles } from "../../../src/rendering/map-render-publicati
 import { canSubmitCountryIndices } from "../../../src/rendering/gpu-country-ranges.js";
 const assert = __render_dep0.default;
 const test = __render_dep1.default;
-const { readFileSync } = __render_dep2;
 const { prepareGpuBaseScene } = __render_dep3;
 const { drawGpuBaseScene } = __render_dep4;
 const { createGpuScene } = __render_dep5;
@@ -240,6 +239,20 @@ function glFixture() {
 }
 
 const frame = { viewport: [100, 100], translate: [50, 50], flatCenter: [0, 0], rowX: [1, 0, 0], rowY: [0, 1, 0], rowZ: [0, 0, 1], scale: 1, mode: 1 };
+
+test('required physical polygon uploads progress during pending input while optional overlays wait',()=>{
+  const gl=glFixture(),frames=[];gl.getParameter=()=>null;gl.bufferSubData=()=>{};
+  const scheduler=createGpuUploadScheduler({requestFrame:callback=>(frames.push(callback),frames.length),cancelFrame(){},now:()=>0,isHidden:()=>false,isInputPending:()=>true});
+  const pass=createGpuPolygonOverlayPass();pass.initialize({gl,version:2,capabilities:{uintIndices:true}});pass.setUploadScheduler(scheduler);
+  const packets=['physical-land','physical-water','optional-overlay'].map(role=>({key:role,role,positions:new Float32Array([0,0,1,0,0,1]),indices:new Uint32Array([0,1,2])}));
+  try{
+    for(const packet of packets)pass.ensureResource(packet);
+    for(let i=0;i<8;i++)frames.shift()?.();
+    for(const packet of packets.slice(0,2))assert.equal(pass.hasPreparedResource(packet),true,packet.role);
+    assert.equal(pass.hasPreparedResource(packets[2]),false);
+    assert.equal(scheduler.getStats().uploadedBytes,72);
+  }finally{scheduler.dispose();pass.dispose();}
+});
 test('prepared-only polygon submission reports a missing resource without allocating or enqueueing', () => {
   const gl = glFixture();
   const pass = createGpuPolygonOverlayPass();
