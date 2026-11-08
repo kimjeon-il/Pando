@@ -68,3 +68,7 @@ Only a pushed `work/optimization` commit containing `[full-check]` opts the
 Application Architecture workflow into the complete catalog. Normal pushes
 and PRs retain affected-only selection. Explicit workflow input scopes still
 take precedence. Static audit and source commits do not prove tests pass.
+
+Full-catalog CI verification was requested after P7 at this branch revision.
+Conclusions and any corrective commits must be reported separately; this line
+is not a passing check result.
