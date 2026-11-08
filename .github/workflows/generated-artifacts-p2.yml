@@ -213,6 +213,17 @@ jobs:
           node --test tests/unit/geometry/p6-polygon-core.test.mjs
           tests/unit/geometry/r4c-spatial-boundaries.test.mjs
           tests/unit/document/river-territory-partition.test.mjs
+      - name: Retain verified source-matched WASM before guarded publication
+        if: needs.plan.outputs.wasm == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: source-matched-core-${{ github.sha }}
+          path: |
+            assets/wasm/pandoeditor-core.js
+            assets/wasm/pandoeditor-core.wasm
+            assets/wasm/pandoeditor-core.manifest.json
+          if-no-files-found: error
+          retention-days: 7
       - name: Commit verified phases locally, then publish one guarded result
         id: publish
         shell: bash
