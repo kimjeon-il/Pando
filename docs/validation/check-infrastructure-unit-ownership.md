@@ -54,3 +54,17 @@ current suite files. No assertions or test scenarios were intentionally removed.
 
 The source consolidation changes the physical suite count from 397 to 395.
 This count is not a substitute for the pending full runtime verification.
+
+## P7 final ownership and full-check execution gate
+
+The original reverse-impact and native scope cases moved into the canonical
+`e7-application-check-planner` and `native-check-prerequisites` suites,
+reducing physical unit suites to 395 while preserving their contract markers.
+`scripts/check-test-consolidation.mjs` statically audits all 616 original
+contract identities, GIS remaps, concrete script/workflow test references
+and runnable workflow entrypoints.
+
+Only a pushed `work/optimization` commit containing `[full-check]` opts the
+Application Architecture workflow into the complete catalog. Normal pushes
+and PRs retain affected-only selection. Explicit workflow input scopes still
+take precedence. Static audit and source commits do not prove tests pass.

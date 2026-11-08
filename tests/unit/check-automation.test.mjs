@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { runInNewContext } from 'node:vm';
 import { loadRepository, planApplicationChecks, matchesPattern } from '../../scripts/plan-application-checks.mjs';
 import { auditWorkflowReferences } from '../../scripts/lib/workflow-reference-integrity.mjs';
+import {auditConsolidatedTestRegistry} from '../../scripts/check-test-consolidation.mjs';
 
 test('every current browser workflow can be assigned before CI dependency planning', () => {
   const catalog = JSON.parse(readFileSync(new URL('../../scripts/contracts/application-checks.json', import.meta.url)));
@@ -423,4 +424,16 @@ test('P6 new infrastructure owners participate in impacted check selection', () 
   const architecture=parse(readFileSync(new URL('../../.github/workflows/application-architecture.yml', import.meta.url)));
   assert.ok(architecture.jobs.changes.steps.some(step =>
     step.run === 'node scripts/lib/workflow-reference-integrity.mjs'));
+});
+
+test('P7 consolidated registry retains original contracts and all current CI test targets', () => {
+  const report = auditConsolidatedTestRegistry(loadRepository());
+  assert.equal(report.originalContracts, 616);
+  assert.ok(report.units > 0);
+  assert.ok(report.registeredContracts >= report.originalContracts);
+  assert.deepEqual(report.issues, {
+    missingOriginalContracts: [], duplicateOriginalContracts: [], retiredDirectReferences: [],
+    invalidGisOwners: [], invalidWorkflowReferences: [], missingDirectTestReferences: [],
+  });
+  assert.equal(report.ok, true);
 });

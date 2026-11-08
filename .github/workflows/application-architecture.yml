@@ -106,7 +106,7 @@ jobs:
         name: Prepare pinned external library data
         uses: ./.github/actions/library-data
       - name: Reject retired workflow executables before selecting checks
-        run: node scripts/lib/workflow-reference-integrity.mjs
+        run: node scripts/check-test-consolidation.mjs
       - name: Select current application checks
         id: plan
         env: &a5
@@ -116,7 +116,7 @@ jobs:
           CHECK_PROFILE: ${{ inputs.check_profile || '' }}
           BROWSER_SCOPE: ${{ inputs.browser_scope || 'default' }}
           # Run affected checks on branch pushes. Full suite on main PR or explicit dispatch.
-          CHECK_SCOPE: ${{ inputs.check_scope || 'auto' }}
+          CHECK_SCOPE: ${{ inputs.check_scope || (github.ref == 'refs/heads/work/optimization' && contains(github.event.head_commit.message, '[full-check]') && 'all') || 'auto' }}
           CHECK_GROUPS: ${{ inputs.check_groups || '' }}
           CHECK_SELECTION: ${{ inputs.check_selection || '' }}
           PLAYWRIGHT_LIST_PRINT_FAILURES_INLINE: '1'
