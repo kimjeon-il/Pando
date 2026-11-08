@@ -68,6 +68,34 @@ test('unknownPeerOverlapBecomesGap', () => {
   assert.equal(owns(result, 'east', 2), true); assert.equal(owns(result, 'west', 8), true);
   assert.deepEqual(adjust([...rows].reverse()), result);
 });
+
+test('peer overlap must be significant to both the small and large country',()=>{
+ const rows=[candidate('large',-80,80),candidate('small',0,1e-8)],before=structuredClone(rows);
+ const clipper={...module.historicalWorldClipper,
+  union:()=>assert.fail('an overlap below either peer threshold must not become a cutter'),
+  difference:()=>assert.fail('asymmetric significance must not remove either country'),
+ };
+ const result=module.adjustHistoricalTerritories(rows,policy,clipper);
+ assert.deepEqual(result.candidates,rows);
+ assert.deepEqual(result.adjustments,[]);
+ assert.deepEqual(rows,before);
+});
+
+test('a failed original-peer union stops before subtraction without an alternate path',()=>{
+ const rows=[candidate('a',0,6),candidate('b',4,10)],before=structuredClone(rows);
+ let unions=0,differences=0;
+ const clipper={...module.historicalWorldClipper,
+  union:()=>{unions++;throw new Error('Unable to complete output ring');},
+  difference:()=>{differences++;assert.fail('failed union cannot become a subtraction operand');},
+ };
+ assert.throws(()=>module.adjustHistoricalTerritories(rows,policy,clipper),error=>{
+  assert.match(error.message,/HISTORICAL_CLIP_BOOLEAN_FAILED: original-peer-union a/);
+  assert.equal(error.cause.message,'Unable to complete output ring');
+  return true;
+ });
+ assert.equal(unions,1);assert.equal(differences,0);
+ assert.deepEqual(rows,before);
+});
 test('sharedBoundaryDoesNotRemoveLand', () => {
   const rows = [candidate('left', 0, 5), candidate('right', 5, 10)];
   const result = adjust(rows);
@@ -174,10 +202,13 @@ test('reused Boolean results replay precision evidence and retain each interval 
 
 // Source geometry and immutable snapshots are necessary: subtracting the
 // intersection fragments first can introduce near-coincident shared edges.
-test('unknown peers union only pairwise intersection fragments before bounded subtraction',()=>{
-  const rows=[candidate('a',0,12),candidate('b',3,7),candidate('c',6,11)];
+test('unknown peers subtract their original union instead of generated intersection fragments',()=>{
+  const rows=[candidate('a',0,12),candidate('b',3,15),candidate('c',6,18)];
   const calls=[],clipper={...globalThis.polygonClipping,
-    union:(...operands)=>{calls.push(['union',...operands.map(x=>x.length)]);return globalThis.polygonClipping.union(...operands);},
+    union:(...operands)=>{calls.push(['union',...operands.map(x=>x.length)]);if(calls.length===1){
+      assert.equal(Math.max(...operands.flat(3).map(point=>point[0])),18,
+        'the first cutter union uses original peers, not intersections truncated at the subject boundary');
+    }return globalThis.polygonClipping.union(...operands);},
     difference:(...operands)=>{calls.push(['difference',...operands.map(x=>x.length)]);return globalThis.polygonClipping.difference(...operands);}};
   const before=structuredClone(rows);
   const result=module.adjustHistoricalTerritories(rows,policy,clipper);
@@ -186,7 +217,7 @@ test('unknown peers union only pairwise intersection fragments before bounded su
   const multi=shape?.type==='Polygon'?[shape.coordinates]:shape?.coordinates||[];
   assert.deepEqual(globalThis.polygonClipping.xor(multi,baseline),[]);
   assert.ok(calls.some(args=>args[0]==='union'&&args.length===3),
-    'only the two pairwise overlap fragments need merging for A');
+    'the two significant original peers form the cutter union for A');
   assert.ok(calls.filter(args=>args[0]==='difference').every(args=>args.length===3),
     'a single bounded difference must use one clipping MultiPolygon');
   assert.deepEqual(rows,before,'clipping must preserve source geometry');
@@ -305,13 +336,14 @@ test('connected cutters are normalized between exact historical differences',()=
 
 const wrap=geometry=>geometry?.type==='Polygon'?[geometry.coordinates]:geometry?.coordinates||[];
 
-test('equivalent peer operands recover a ring failure without changing triple-overlap gaps or source coordinates',()=>{
+test('original peer operands avoid generated-edge ring failures without changing triple-overlap gaps or source coordinates',()=>{
  const rows=[candidate('a',0,12),candidate('b',3,15),candidate('c',6,18)],before=structuredClone(rows);
+ let generatedEdgeFailures=0;
  const clipper={...module.historicalWorldClipper,difference:(left,right)=>{
   const xs=value=>value.flat(2).map(point=>point[0]);
   if((Math.min(...xs(left))===0&&Math.max(...xs(left))===12&&Math.max(...xs(right))===12)
     || (Math.min(...xs(left))===6&&Math.max(...xs(left))===18&&Math.min(...xs(right))===6))
-   throw new Error('Unable to complete output ring');
+   {generatedEdgeFailures++;throw new Error('Unable to complete output ring');}
   return module.historicalWorldClipper.difference(left,right);
  }};
  const result=module.adjustHistoricalTerritories(rows,policy,clipper);
@@ -320,9 +352,10 @@ test('equivalent peer operands recover a ring failure without changing triple-ov
  assert.deepEqual(globalThis.polygonClipping.xor(wrap(result.candidates[1].geometry),[box(15,18).coordinates]),[]);
  assert.deepEqual(rows,before,'the original peer snapshots remain immutable');
  assert.deepEqual(module.adjustHistoricalTerritories([...rows].reverse(),policy,clipper),result);
+ assert.equal(generatedEdgeFailures,0,'generated intersection boundaries must never enter subtraction');
 });
 
-test('ring recovery cannot erase precision evidence emitted before the failed difference',()=>{
+test('a failed peer subtraction cannot erase precision evidence or retry another path',()=>{
  const artifact=[[46.798053,39.097382],[46.803617228283514,39.10088708625098],
   [46.80361722811995,39.10088708614795],[46.798053,39.097382]];
  const rows=[candidate('a',0,20),{...candidate('b',0,1),geometry:{type:'MultiPolygon',coordinates:[box(3,5).coordinates,box(10,12).coordinates]}}];
@@ -336,7 +369,7 @@ test('ring recovery cannot erase precision evidence emitted before the failed di
  assert.equal(calls,2,'a partially audited failed subtraction cannot use another path');
 });
 
-test('equivalent peer recovery does not mask unrelated Boolean failures',()=>{
+test('original peer subtraction does not mask unrelated Boolean failures',()=>{
  const rows=[candidate('a',0,6),candidate('b',4,10)];
  let calls=0;
  const clipper={...module.historicalWorldClipper,difference:()=>{calls++;throw new Error('unrelated clipping failure');}};
@@ -345,21 +378,22 @@ test('equivalent peer recovery does not mask unrelated Boolean failures',()=>{
 });
 
 
-test('a failed equivalent recovery retains the original native error and never retries again',()=>{
+test('a failed original peer subtraction retains the native error without an alternate attempt',()=>{
  const rows=[candidate('a',0,6),candidate('b',4,10)];
  let calls=0;
  const clipper={...module.historicalWorldClipper,difference:()=>{
   calls++;throw new Error(calls===1?'Unable to complete output ring':'recovery rejected');
  }};
  assert.throws(()=>module.adjustHistoricalTerritories(rows,policy,clipper),error=>{
-  assert.match(error.message,/recovery rejected/);
-  assert.equal(error.originalFailure.cause.message,'Unable to complete output ring');
+  assert.match(error.message,/HISTORICAL_CLIP_BOOLEAN_FAILED/);
+  assert.equal(error.cause.message,'Unable to complete output ring');
+  assert.equal(error.originalFailure,undefined);
   return true;
  });
- assert.equal(calls,2);
+ assert.equal(calls,1);
 });
 
-test('explicit replacements do not opt into unknown-peer ring recovery',()=>{
+test('explicit replacements never retry a failed Boolean operation',()=>{
  const rows=[candidate('a',0,6),candidate('b',4,10)];
  let calls=0;
  const clipper={...module.historicalWorldClipper,difference:()=>{calls++;throw new Error('Unable to complete output ring');}};
@@ -368,7 +402,7 @@ test('explicit replacements do not opt into unknown-peer ring recovery',()=>{
  assert.equal(calls,1);
 });
 
-test('cached equivalent recovery replays precision evidence across later intervals',()=>{
+test('cached original peer subtraction replays precision evidence across later intervals',()=>{
  const artifact=[[46.798053,39.097382],[46.803617228283514,39.10088708625098],
   [46.80361722811995,39.10088708614795],[46.798053,39.097382]];
  const rows=[candidate('a',0,12),candidate('b',3,15),candidate('c',6,18)];
@@ -389,9 +423,9 @@ test('cached equivalent recovery replays precision evidence across later interva
  const first=module.adjustHistoricalTerritories(rows,policy,clipper,cache),initialCalls=nativeCalls;
  const later=rows.map(row=>({...row,validFrom:'2000-01-01',validTo:'2001-12-31'}));
  const reused=module.adjustHistoricalTerritories(later,policy,clipper,cache);
- assert.equal(failures,2,'each interval can reach the same original native failure');
- assert.equal(nativeCalls,initialCalls,'the equivalent result is reused without new native work');
- assert.deepEqual(reused.adjustments,first.adjustments,'cached recovery must replay its precision audit');
+ assert.equal(failures,0,'neither interval subtracts generated intersection boundaries');
+ assert.equal(nativeCalls,initialCalls,'the original-peer result is reused without new native work');
+ assert.deepEqual(reused.adjustments,first.adjustments,'cached subtraction must replay its precision audit');
  assert.equal(reused.adjustments.filter(row=>row.kind==='certified-clipping-precision-artifact').length,1);
  assert.deepEqual(reused.candidates.map(row=>[row.entityId,row.validFrom,row.validTo]),[
   ['a','2000-01-01','2001-12-31'],['c','2000-01-01','2001-12-31'],

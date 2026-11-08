@@ -219,35 +219,21 @@ export function adjustHistoricalTerritories(input, policy, clipper = historicalW
     if (!significant(overlap, a.geometry) || !significant(overlap, b.geometry)) continue;
     for (const [row, peer] of [[a, b], [b, a]]) {
       if (!overlaps.has(row.entityId)) overlaps.set(row.entityId, []);
-      // The intersection is the only geometry this peer can subtract.
-      // Do not combine unrelated source boundaries in the same difference
-      // sweep: real shared borders can create numerical backtracking slivers.
-      overlaps.get(row.entityId).push({ geometry: overlap, sourceGeometry: peer.geometry, entityId: peer.entityId });
+      // Capture immutable original peers before any candidate is changed.
+      // The intersection decides significance, not the subtraction boundary:
+      // sweeping its calculated border again can fail even for valid inputs.
+      overlaps.get(row.entityId).push({ sourceGeometry: peer.geometry, entityId: peer.entityId });
     }
   }
   for (const row of candidates) if (overlaps.has(row.entityId)) {
     const parts = overlaps.get(row.entityId);
-    const union=evaluate('union',parts.map(part=>part.geometry),`overlap-union ${row.entityId}`);
-    const precisionOffset=adjustments.length;
-    let geometry;
-    try{geometry=difference(row.geometry,union);}
-    catch(error){
-      // Some valid native intersection outputs cannot be swept again. Keep
-      // the bounded intersection path by default, and recover only this exact
-      // ring failure when the abandoned attempt has no precision evidence.
-      // A \\ union(A intersect B_i) = A \\ union(B_i), using only the same
-      // significant peers captured before any row was changed. This preserves
-      // three-way gaps and never switches engines, coordinates or budgets.
-      if(error.cause?.message!=='Unable to complete output ring'
-          || adjustments.length!==precisionOffset)throw error;
-      try{
-        const peers=evaluate('union',parts.map(part=>part.sourceGeometry),`original-peer-union ${row.entityId}`);
-        geometry=difference(row.geometry,peers);
-      }catch(recoveryError){
-        recoveryError.originalFailure=error;
-        throw recoveryError;
-      }
-    }
+    // A \\ union(A intersect B_i) = A \\ union(B_i). Use the same significant
+    // original peers from the start instead of re-sweeping intersection
+    // fragments and abandoning a failed subtraction. Three-way overlaps stay
+    // gaps; component splitting, native arithmetic and every precision record
+    // keep their existing owner and budget. A failed operation is not retried.
+    const union=evaluate('union',parts.map(part=>part.sourceGeometry),`original-peer-union ${row.entityId}`);
+    const geometry=difference(row.geometry,union);
     replace(row,geometry,'unknown-peer-overlap',parts.map(part=>part.entityId).sort());
   }
   clipChildren();
