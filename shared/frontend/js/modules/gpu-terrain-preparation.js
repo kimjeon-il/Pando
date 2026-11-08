@@ -43,18 +43,29 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, onTi
     }
 
     const tileSelection=globalThis.PandoLabTerrainTileSelection;
+    let visibleCamera=null,visibleTileCache=new Map();
     const terrainTileSpec=tileSelection.tileSpec;
     const terrainNeighbourSpecs=tileSelection.neighbours;
     function visibleTerrainTileSpecs(level,includeAll=false,frameContext=activeFrameContext) {
       const rotation=frameContext?.viewState?.rotation||view.rotation;
-      return tileSelection.visible(level,{
-        includeAll,viewport:frameContext?.viewport||[view.width,view.height],
-        scale:Number(frameContext?.scale)||1,
-        projection:frameContext?.viewState?.projection||view.projection,
-        flatCenter:frameContext?.viewState?.projectionCenter||view.flatCenter,
-        globeCenter:[-Number(rotation?.[0]||0),-Number(rotation?.[1]||0)],
-        distance:geoDistance,
+      const viewport=frameContext?.viewport||[view.width,view.height];
+      const flatCenter=frameContext?.viewState?.projectionCenter||view.flatCenter;
+      const scale=Number(frameContext?.scale)||1;
+      const projection=frameContext?.viewState?.projection||view.projection;
+      const camera=[viewport[0],viewport[1],scale,projection,flatCenter?.[0],flatCenter?.[1],
+        Number(rotation?.[0]||0),Number(rotation?.[1]||0)];
+      if(!visibleCamera||camera.some((value,index)=>!Object.is(value,visibleCamera[index]))) {
+        visibleCamera=camera;visibleTileCache.clear();
+      }
+      let cached=visibleTileCache.get(level);
+      if(!cached){cached={};visibleTileCache.set(level,cached);}
+      const type=includeAll?'all':'visible';
+      if(cached[type])return cached[type];
+      cached[type]=tileSelection.visible(level,{
+        includeAll,viewport,scale,projection,flatCenter,
+        globeCenter:[-camera[6],-camera[7]],distance:geoDistance,
       });
+      return cached[type];
     }
 
     function requestTerrainTile(spec, priority = 0, pump = true) {
@@ -531,6 +542,7 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, onTi
       projectGeneration = next.projectGeneration; contextRevision = next.contextGeneration;
     },
     setManifest(manifest) {
+      visibleCamera=null;visibleTileCache.clear();
       const next = { ...dependencies, content: resourceKey(manifest) };
       if (resourceUpdate(dependencies, next).input) reset();
       dependencies = next; terrainManifest = manifest;
