@@ -20,31 +20,23 @@ jobs:
       - uses: pnpm/action-setup@v4
       - uses: ./.github/actions/library-data
       - run: pnpm install --frozen-lockfile --ignore-scripts
-      - name: Update precise test ports without changing production expectations
+      - name: Apply exact regression fixes to current source and test ports
         run: |
-          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
-          git diff --exit-code
-          mkdir -p "$RUNNER_TEMP/ui-final"
           node --input-type=module <<'JS'
-          import {readFileSync,writeFileSync} from 'node:fs';
-          const replace=(file,before,after)=>{const s=readFileSync(file,'utf8');if(!s.includes(before))throw Error('Changed fixture: '+file);writeFileSync(file,s.replace(before,after));};
-          const boot='tests/unit/app/viewer-bootstrap-recovery.test.mjs';
-          replace(boot,"import assert from 'node:assert/strict';","import {installRuntimePerformanceMetrics} from '../../../src/runtime/runtime-performance-metrics.js';\nimport assert from 'node:assert/strict';");
-          replace(boot,'window.navigator={onLine:true};window.document=document;','window.navigator={onLine:true};window.document=document;window.performance=performance;');
-          replace(boot,'PANDOLAB_BUILD_META:{appVersion:\'fixture\'},isRecoverableLoadError,',"PANDOLAB_BUILD_META:{appVersion:'fixture'},isRecoverableLoadError,\n    installRuntimePerformanceMetrics:()=>installRuntimePerformanceMetrics({globalObject:window,documentRef:document}),");
-          replace(boot,'loadVerifiedCore:async options=>{reads++;signal=options.signal;',"loadVerifiedCore:async options=>{assert.equal(typeof window.__PANDOLAB_PERFORMANCE_REPORT__,'function','metrics must be installed before engine preparation');reads++;signal=options.signal;");
-          const workers='tests/unit/rendering/gpu-resource-owners.test.mjs';
-          replace(workers,'class NativeWorker { constructor() { workers.push(this); } postMessage() {} terminate() {} }','class NativeWorker extends EventTarget { constructor() { super();workers.push(this); } postMessage() {} terminate() {} }');
-          replace(workers,"const first = owner.create('url');","const first = owner.create('https://test.local/worker.js');");
-          const recovery='tests/unit/runtime/background-startup-recovery.test.mjs';
-          replace(recovery,'let calls=0,factories=0,imports=0,revoked=0,failures=0,corrupt=false,missing=false;','let calls=0,factories=0,imports=0,revoked=0,failures=0,corrupt=false,missing=false;const requests=[];');
-          replace(recovery,'fetchAsset:async url=>{calls++;if(failures-->0)', 'fetchAsset:async url=>{requests.push(url);calls++;if(failures-->0)');
-          replace(recovery,'return {options,manifest,fail:()=>failures=1,','return {options,manifest,requests,fail:()=>failures=1,');
-          replace(recovery,'assert.deepEqual(f.stats(),{calls:3,factories:0,imports:0,revoked:0});',"// Existing immutable-byte owner makes three bounded attempts per damaged asset.\n  assert.deepEqual(f.stats(),{calls:7,factories:0,imports:0,revoked:0});\n  assert.equal(f.requests.filter(url=>url.includes('manifest.json')).length,1);\n  assert.equal(f.requests.filter(url=>url.includes('pandoeditor-core.js?')).length,3);\n  assert.equal(f.requests.filter(url=>url.includes('pandoeditor-core.wasm?')).length,3);");
+          import {parse} from 'yaml';
+          import {execFileSync} from 'node:child_process';
+          import {readFileSync,writeFileSync,appendFileSync} from 'node:fs';
+          const workflow=parse(execFileSync('git',['show','8dcddd9d4af01e588e565401ee014feb86b77651:.github/workflows/ui-prebuilt-mesh-focused.yml'],{encoding:'utf8'}));
+          execFileSync('bash',['-euo','pipefail','-c',workflow.jobs.acceptance.steps.find(step=>step.name==='Update precise test ports without changing production expectations').run],{stdio:'inherit'});
+          const replace=(file,before,after)=>{const s=readFileSync(file,'utf8');if(!s.includes(before))throw Error('Changed source: '+file);writeFileSync(file,s.replace(before,after));};
+          replace('src/runtime/core-wasm-loader.js',"const enabled=typeof worker.document==='undefined'&&typeof worker.postMessage==='function'\n    &&new URL(worker.location.href)","const enabled=typeof worker.document==='undefined'&&typeof worker.postMessage==='function'\n    &&typeof worker.location?.href==='string'&&new URL(worker.location.href)");
+          replace('tests/unit/app/viewer-bootstrap-recovery.test.mjs',`.replace("import('./modules/viewer-composition.js')",'importViewer()')`,`.replace('import("./viewer-composition.js")','importViewer()')`);
+          replace('tests/unit/rendering/country-mesh-preparation.test.mjs','globalThis.Worker = class { constructor(){this.sent=[];workers.push(this);}','globalThis.Worker = class extends EventTarget { constructor(){super();this.sent=[];workers.push(this);}');
+          replace('tests/unit/rendering/country-mesh-preparation.test.mjs','state, runtimeAssetUrl: path => path, scheduleGpuFrame:','state, runtimeAssetUrl: path => new URL(path,\'https://test.local/assets/js/\'), scheduleGpuFrame:');
+          appendFileSync('tests/unit/runtime/core-module-sharing.test.mjs',`\ntest('Node transport postMessage without a browser worker URL never requests a shared module',async t=>{\n  const prior=Object.getOwnPropertyDescriptor(globalThis,'postMessage');\n  Object.defineProperty(globalThis,'postMessage',{configurable:true,value(){assert.fail('standalone Node worker requested a browser package');}});\n  t.after(()=>{if(prior)Object.defineProperty(globalThis,'postMessage',prior);else delete globalThis.postMessage;});\n  const f=await fixture();await loader.loadVerifiedCore(f.options);\n  assert.equal(f.instances.length,1);assert.equal(f.fetched.length,3);\n});\n`);
           JS
-          node --input-type=module -e "import {readLibraryDataFile} from './tools/data/library-context.mjs';readLibraryDataFile('assets/data/builtin-world/display-policy-v1.json',{fetch:true});"
           git diff --check
-      - name: Verify all and only affected mesh, read-index, worker and upload contracts
+      - name: Verify all affected mesh, read-index, worker and upload contracts
         env:
           CHECK_SELECTION: '{"unitTests":["tests/unit/rendering/prepared-country-scene.test.mjs","tests/unit/data/builtin-mesh-resource.test.mjs","tests/unit/rendering/country-mesh-preparation.test.mjs","tests/unit/rendering/gpu-country-mesh-variants.test.mjs","tests/unit/data/builtin-read-index.test.mjs","tests/unit/data/builtin-world-loader.test.mjs","tests/unit/data/builtin-country-loading.test.mjs","tests/unit/data/builtin-country-parts.test.mjs","tests/unit/runtime/core-module-sharing.test.mjs","tests/unit/runtime/core-wasm-loader.test.mjs","tests/unit/runtime/background-startup-recovery.test.mjs","tests/unit/rendering/gpu-upload-budget.test.mjs","tests/unit/rendering/gpu-resource-owners.test.mjs","tests/unit/document/core-document-client.test.mjs","tests/unit/app/viewer-bootstrap-recovery.test.mjs"],"browserSpecs":[],"commands":[],"prerequisites":[]}'
         run: |
@@ -57,7 +49,7 @@ jobs:
         run: |
           set -o pipefail
           node scripts/run-application-checks.mjs --phase browser | tee "$RUNNER_TEMP/ui-final/browser.log"
-      - name: Commit verified fixtures and restore a fail-fast read-only acceptance workflow
+      - name: Commit verified fixes and retain only the fail-fast read-only acceptance workflow
         run: |
           test "$(git ls-remote origin refs/heads/work/ui | cut -f1)" = "$GITHUB_SHA"
           node --input-type=module <<'JS'
@@ -68,14 +60,14 @@ jobs:
           source=source.replace('permissions: {contents: read}','permissions: {contents: read}\ndefaults:\n  run:\n    shell: bash');
           writeFileSync(file,source);
           JS
-          git add tests/unit/app/viewer-bootstrap-recovery.test.mjs tests/unit/rendering/gpu-resource-owners.test.mjs tests/unit/runtime/background-startup-recovery.test.mjs .github/workflows/ui-prebuilt-mesh-focused.yml
+          git add src/runtime/core-wasm-loader.js tests/unit/runtime/core-module-sharing.test.mjs tests/unit/rendering/country-mesh-preparation.test.mjs tests/unit/app/viewer-bootstrap-recovery.test.mjs tests/unit/rendering/gpu-resource-owners.test.mjs tests/unit/runtime/background-startup-recovery.test.mjs .github/workflows/ui-prebuilt-mesh-focused.yml
           git diff --cached --check
-          git -c user.name='Pando Viewer implementation' -c user.email='viewer@users.noreply.github.com' commit -m 'test(viewer): wire real metrics and worker event ports; preserve fail-fast acceptance [skip ci]'
+          git -c user.name='Pando Viewer implementation' -c user.email='viewer@users.noreply.github.com' commit -m 'fix(runtime): preserve standalone Node loading and verify all current Viewer test ports [skip ci]'
           git push origin HEAD:refs/heads/work/ui
           test "$(git ls-remote origin refs/heads/work/ui | cut -f1)" = "$(git rev-parse HEAD)"
           git rev-parse HEAD > "$RUNNER_TEMP/ui-final/commit"
           cat config/library-data.json > "$RUNNER_TEMP/ui-final/data-pin.json"
-      - name: Preserve actual committed source and measurement evidence
+      - name: Preserve actual source and measurement evidence
         if: always()
         run: |
           mkdir -p "$RUNNER_TEMP/ui-final"
