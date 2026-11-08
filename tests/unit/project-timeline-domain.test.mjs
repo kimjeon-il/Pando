@@ -11,8 +11,6 @@ import * as __contract_dep8 from "../helpers/timeline-project.mjs";
 import * as __contract_dep9 from "../helpers/core-command-services/save-state-controller.mjs";
 import * as __contract_dep10 from "../helpers/web-oracle.mjs";
 const {fingerprintProjectBaseline}=await __contract_dep10.loadWebOracle('assets/js/modules/project-serializer.js');
-
-// Original feature contract: project-timeline-domain.test.mjs
 contractSuite("project-timeline-domain", () => {
 const assert = __contract_dep0.default;
 const test = __contract_dep1.default;
@@ -55,8 +53,6 @@ test('P3 activation reuses the validated timeline storage without changing schem
  assert.throws(()=>prepareProjectForActivation(invalid),{code:'PL-SCHEMA-OLD'});
 });
 });
-
-// Original feature contract: timeline-project.test.mjs
 contractSuite("timeline-project", () => {
 const test = __contract_dep1.default;
 const assert = __contract_dep0.default;
@@ -104,8 +100,6 @@ for (const row of timelineStorageCases()) test(`production project codec: ${row.
   }
 });
 });
-
-// Original feature contract: timeline-project-activation.test.mjs
 contractSuite("timeline-project-activation", () => {
 const test = __contract_dep1.default;
 const assert = __contract_dep0.default;

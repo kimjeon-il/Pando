@@ -6,8 +6,6 @@ import * as __project_dep3 from "../../shared/frontend/js/modules/file-controlle
 import * as __project_dep4 from "../helpers/file-transport-fixtures.mjs";
 import * as __project_dep5 from "node:fs";
 import * as __project_dep6 from "../../shared/frontend/js/modules/project-domain.js";
-
-// Original feature contract: file-access-contract.test.mjs
 contractSuite("file-access-contract", () => {
 const { describe : contractSuite } = __project_dep0;
 const __dep0 = __project_dep1;
@@ -16,8 +14,6 @@ const __dep2 = __project_dep2;
 const __dep3 = __project_dep3;
 const __dep4 = __project_dep4;
 const __dep5 = __project_dep5;
-
-// Original feature contract: file-access-contract.test.mjs
 contractSuite("file-access-contract", () => {
 const assert = __dep0.default;
 const test = __dep1.default;
@@ -38,8 +34,6 @@ test('project selections require a named file unless cancelled',()=>{
   assert.equal(assertProjectFileSelection({cancelled:false,file:new File(['x'],'project.gpkg')}).file.name,'project.gpkg');
 });
 });
-
-// Original feature contract: file-controller-mode.test.mjs
 contractSuite("file-controller-mode", () => {
 const test = __dep1.default;
 const assert = __dep0.default;
@@ -72,8 +66,6 @@ test('Viewer opens a selected project through the current transaction and closes
   controller.dispose();assert.equal(await abandoned,false);assert.deepEqual(elements.projectInput.listeners,{});
 });
 });
-
-// Original feature contract: file-transport-fixtures.test.mjs
 contractSuite("file-transport-fixtures", () => {
 const assert = __dep0.default;
 const { readFileSync } = __dep5;
@@ -111,8 +103,6 @@ test('shared fixture exercises the browser file access boundary',async()=>{
 });
 });
 });
-
-// Original feature contract: project-product-surface.test.mjs
 contractSuite("project-product-surface", () => {
 const test = __project_dep0.default;
 const assert = __project_dep1.default;

@@ -307,8 +307,6 @@ test('P5 territorial recipe receives GIS native setup through canonical CI outpu
   assert.equal(executionOutputs(plan,{repository,phase:'non-browser'}).gis_native,true);
 });
 
-// Original feature contract: native-build-scope.test.mjs
-
 test('toolchain pins agree with Node and frozen package manager',()=>{
   const pinned=pinnedToolchain();
   assert.ok(pinned.cmake);

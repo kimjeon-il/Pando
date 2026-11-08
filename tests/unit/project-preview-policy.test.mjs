@@ -14,8 +14,6 @@ import * as __project_dep11 from "../helpers/timeline-project.mjs";
 import * as __project_dep12 from "../helpers/node-core-wasm-loader.mjs";
 import * as __project_dep13 from "../../shared/frontend/js/modules/geometry-validation.js";
 import * as __project_dep14 from "../../shared/frontend/js/modules/project-preview-topology.js";
-
-// Original feature contract: project-preview-policy.test.mjs
 contractSuite("project-preview-policy", () => {
 const assert = __project_dep0.default;
 const { createHash } = __project_dep1;
@@ -219,8 +217,6 @@ test('missing explicit preview source fields fail visibly without a document res
   }
 });
 });
-
-// Original feature contract: project-preview-topology.test.mjs
 contractSuite("project-preview-topology", () => {
 const assert = __project_dep0.default;
 const test = __project_dep3.default;
