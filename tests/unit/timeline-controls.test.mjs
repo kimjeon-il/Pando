@@ -239,7 +239,6 @@ test('Enter retains native activation on month arrows and view selectors', () =>
     assert.deepEqual(requests,[]);
   } finally { ui.dispose(); }
 });
-});
 contractSuite("builtin-month-clock", () => {
 const { createVirtualClock } = __merge_dep0;
 const { describe : featureDescribe } = __merge_dep2;
@@ -449,5 +448,6 @@ test('P0 suspending builtin mode invalidates late presentation after a file open
   const pending = clock.selectMonth('1950-12'); clock.suspend();
   assert.equal(requests[0].commit(), false); requests[0].resolve(true);
   assert.equal(await pending, false); assert.deepEqual(commits, []);
+});
 });
 });

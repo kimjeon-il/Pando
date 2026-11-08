@@ -152,7 +152,6 @@ function canvasFallbackWorkerMain() {
     }
 
     const tileSelection=self.PandoLabTerrainTileSelection;
-    const terrainTileSpec=(level,column,row)=>tileSelection.tileSpec(level,column,row,true);
     const terrainNeighbourSpecs=(level,specs)=>tileSelection.neighbours(level,specs,true);
 
     function terrainTileUrl(spec, manifest = terrainManifest, manifestUrl = terrainManifestUrl) {
