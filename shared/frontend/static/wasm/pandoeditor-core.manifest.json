@@ -1,7 +1,7 @@
 {
   "schema": "pandoeditor-core-wasm",
   "abiVersion": 1,
-  "sourceSha256": "474b64ae2bc4771d1c8134030363a019ce467ce2bae169b2bf8b28337a08610a",
+  "sourceSha256": "616322e1bc2f1fc16887a621257b2dac545c69bbb464b5004a1167b05f3af028",
   "compiler": {
     "name": "emscripten",
     "version": "6.0.3"
@@ -153,7 +153,7 @@
     },
     {
       "path": "shared/core/include/pandoeditor/project.h",
-      "sha256": "c322a80c7d0fd4ab9c07fad01f9d961ec7a45884a963602c8e198e0245f292da"
+      "sha256": "183173ef5e0a52ad63c30c58a1d1053ec88c6997513879de374a1dc998623763"
     },
     {
       "path": "shared/core/include/pandoeditor/projectcodec.h",
@@ -205,7 +205,7 @@
     },
     {
       "path": "shared/core/include/pandoeditor/timeline-resolver.h",
-      "sha256": "6aa9b28aaa7ea91c22c5c76adf10e2b5bce5ae31c230896dde05199e7a057352"
+      "sha256": "7f2ba931ec65564a034dd344de87a4791bed31c848fede350c85d07e979d34cc"
     },
     {
       "path": "shared/core/include/pandoeditor/timeline-storage.h",
@@ -385,7 +385,7 @@
     },
     {
       "path": "shared/core/src/project.cpp",
-      "sha256": "67f45eab7151685ae1ba1fa0458b6ad07caaaa41a0e5014fb2535e639332a119"
+      "sha256": "77cfcbea86cbb4bf4bd9be05bf53250b88f2265a34ff054b558fb61eb7134800"
     },
     {
       "path": "shared/core/src/projectcodec.cpp",
@@ -433,7 +433,7 @@
     },
     {
       "path": "shared/core/src/timeline-resolver.cpp",
-      "sha256": "1d41ff05b2b4191727a59ab3e523fd848ca0548cab5b45e6d12b5f18985e05c2"
+      "sha256": "99b0ffa63d7802e9593978ad01db6a7d3572ae29fa3176f1e42bbda7740e1787"
     },
     {
       "path": "shared/core/src/timeline-storage.cpp",
@@ -441,7 +441,7 @@
     },
     {
       "path": "shared/core/src/timeline-view.cpp",
-      "sha256": "247502340a46e4aa393a95a5dab2c0ffe7542ed597380ef6069ce9df0834f914"
+      "sha256": "95cf7df3bfd90fdc9928a447fcbc8e42525039c2958eef4176c1e6bee18be7b5"
     },
     {
       "path": "shared/core/src/version.cpp.in",
@@ -639,7 +639,7 @@
     },
     "wasm": {
       "file": "pandoeditor-core.wasm",
-      "sha256": "9cd17f7c060c24137ec18f6b405936cb09fbf16a14abd1741bc0f750693b6315"
+      "sha256": "315238374542fae145768b558f9a8a5395f0057b9b65e49dea7d5e79697aaede"
     }
   }
 }
