@@ -5,7 +5,13 @@ import { isMobileWorkspaceLayout } from './workspace-layout.js';
  * Mutable bindings stay local; exported accessors retain live identity.
  */
 export function createNavigationBindings() {
-  let dependencies;
+  let dependencies, bound = false, disposed = false;
+  const subscriptions = [];
+  const listen = (node, event, handler, options) => {
+    if (!node) return;
+    node.addEventListener(event, handler, options);
+    subscriptions.push(() => node.removeEventListener(event, handler, options));
+  };
 
   function connect(ports) {
     if (dependencies) throw new Error('navigation-bindings already connected');
@@ -20,6 +26,8 @@ export function createNavigationBindings() {
   }
 
   function bindNavigationUI() {
+    if (bound || disposed) return;
+    bound = true;
     (0, dependencies.mapSettingsUi.bindMapDisplayUI)();
     let mobileMenuOpen=false;
     const mobileMenu = () => (0, dependencies.platform.$)('mobileGlobalMenu');
@@ -37,7 +45,7 @@ export function createNavigationBindings() {
       (0, dependencies.workspaceUiA.closeSurface)('create');
       mobileMenuOpen=true;menu.hidden = false;
       (0, dependencies.platform.$)('mobileMenuBtn')?.setAttribute('aria-expanded', 'true');
-      requestAnimationFrame(() => menu.querySelector('[role="menuitem"]:not(:disabled)')?.focus({ preventScroll: true }));
+      requestAnimationFrame(() => { if (!disposed) menu.querySelector('[role="menuitem"]:not(:disabled)')?.focus({ preventScroll: true }); });
     };
     let displayPointerStartedInside = false;
     let searchToolbarPointer = false;
@@ -47,18 +55,18 @@ export function createNavigationBindings() {
       (0, dependencies.mapSettingsUi.closeDesktopViewMenuGroup)();
       (0, dependencies.workspaceUiA.closeSurface)('display', { restoreFocus: false });
     };
-    document.addEventListener('keydown',event=>{
+    listen(document, 'keydown',event=>{
       if(event.key!=='Escape'||event.defaultPrevented||document.querySelector('.ui-modal:not(.hidden),[aria-modal="true"]:not(.hidden):not([hidden])'))return;
       if(mobileMenuOpen){closeMobileMenu({restoreFocus:true});event.preventDefault();event.stopImmediatePropagation();return;}
       if(dependencies.workspaceUiB.isFileMenuOpen){dependencies.workspaceUiA.closeFileMenu({restoreFocus:true});event.preventDefault();event.stopImmediatePropagation();return;}
       for(const surface of ['search','display'])if(dependencies.workspaceUiB.surfaceController.isOpen(surface)){dependencies.workspaceUiA.closeSurface(surface,{restoreFocus:true});event.preventDefault();event.stopImmediatePropagation();return;}
     });
-    document.addEventListener('pointerdown', event => {
+    listen(document, 'pointerdown', event => {
       displayPointerStartedInside = !!event.target.closest('#mapDisplaySurface');
       searchToolbarPointer = !!event.target.closest('#resetViewBtn');
       if (!event.target.closest('#notificationCloseBtn')) (0, dependencies.readinessUi.clearErrorNotification)();
     }, true);
-    document.addEventListener('click', e => {
+    listen(document, 'click', e => {
       if (!e.target.closest('.top-actions') && !e.target.closest('#mobileFileBtn')) {
         (0, dependencies.workspaceUiA.closeFileMenu)();
       }
@@ -68,89 +76,89 @@ export function createNavigationBindings() {
       }
     });
 
-    (0, dependencies.platform.$)('mobileFileBtn')?.addEventListener('click', event => {
+    listen((0, dependencies.platform.$)('mobileFileBtn'), 'click', event => {
       event.stopPropagation();
       closeDesktopDisplayMenu();
       (0, dependencies.workspaceUiB.toggleFileMenu)();
     });
-    (0, dependencies.platform.$)('mobileMenuBtn')?.addEventListener('click', event => {
+    listen((0, dependencies.platform.$)('mobileMenuBtn'), 'click', event => {
       event.stopPropagation();
       if (!mobileMenuOpen) openMobileMenu(); else closeMobileMenu({ restoreFocus: true });
     });
     for (const id of ['mobileUndoBtn', 'mobileRedoBtn']) {
-      (0, dependencies.platform.$)(id)?.addEventListener('click', () => closeMobileMenu());
+      listen((0, dependencies.platform.$)(id), 'click', () => closeMobileMenu());
     }
-    (0, dependencies.platform.$)('mobileMenuFileBtn')?.addEventListener('click', event => {
+    listen((0, dependencies.platform.$)('mobileMenuFileBtn'), 'click', event => {
       event.stopPropagation();
       closeMobileMenu();
       (0, dependencies.workspaceUiB.toggleFileMenu)();
     });
-    (0, dependencies.platform.$)('mobileFileBackBtn')?.addEventListener('click', event => {
+    listen((0, dependencies.platform.$)('mobileFileBackBtn'), 'click', event => {
       event.stopPropagation();
       (0, dependencies.workspaceUiA.closeFileMenu)();
       openMobileMenu();
     });
-    (0, dependencies.platform.$)('mobilePreferencesBtn')?.addEventListener('click', () => {
+    listen((0, dependencies.platform.$)('mobilePreferencesBtn'), 'click', () => {
       closeMobileMenu();
       (0, dependencies.platform.$)('preferencesBtn')?.click();
     });
-    (0, dependencies.platform.$)('mobileHelpBtn')?.addEventListener('click', () => {
+    listen((0, dependencies.platform.$)('mobileHelpBtn'), 'click', () => {
       closeMobileMenu();
       (0, dependencies.platform.$)('helpBtn')?.click();
     });
-    (0, dependencies.platform.$)('mobileGlobalMenu')?.addEventListener('keydown', event => {
+    listen((0, dependencies.platform.$)('mobileGlobalMenu'), 'keydown', event => {
       if (event.key !== 'Escape') return;
       event.preventDefault();
       event.stopPropagation();
       closeMobileMenu({ restoreFocus: true });
     });
-    (0, dependencies.platform.$)('notificationCloseBtn')?.addEventListener('click', dependencies.readinessUi.clearNotification);
-    (0, dependencies.platform.$)('objectSearchBtn')?.addEventListener('click', event => toggleWorkspaceSurface('search', event.currentTarget));
-    (0, dependencies.platform.$)('resetViewBtn')?.addEventListener('click', () => {
+    listen((0, dependencies.platform.$)('notificationCloseBtn'), 'click', dependencies.readinessUi.clearNotification);
+    listen((0, dependencies.platform.$)('objectSearchBtn'), 'click', event => toggleWorkspaceSurface('search', event.currentTarget));
+    listen((0, dependencies.platform.$)('resetViewBtn'), 'click', () => {
       if (!isMobileWorkspaceLayout(dependencies.surfaces.layoutMode)) (0, dependencies.workspaceUiA.closeSurface)('search');
       (0, dependencies.navigation.resetView)();
     });
     const searchPanel = (0, dependencies.platform.$)('objectSearchSurface');
-    searchPanel?.addEventListener('keydown', event => {
+    listen(searchPanel, 'keydown', event => {
       if (dependencies.projectState.state.projectReplacing) { event.preventDefault(); event.stopPropagation(); return; }
       if (event.isComposing || event.key !== 'Escape') event.stopPropagation();
       // Escape is handled after dialogs, but before map-edit commands, globally.
     });
-    searchPanel?.addEventListener('focusout', event => {
+    listen(searchPanel, 'focusout', event => {
       if (isMobileWorkspaceLayout(dependencies.surfaces.layoutMode) || searchToolbarPointer) return;
       const next = event.relatedTarget;
       if (!next || next.closest('#objectSearchSurface, #objectSearchBtn, .ui-modal, [role="dialog"], .ui-overlay-scrollbar[aria-controls="objectSearchResults"]')) return;
       queueMicrotask(() => {
-        if (!isMobileWorkspaceLayout(dependencies.surfaces.layoutMode) && !searchPanel.contains(document.activeElement)) {
+        if (!disposed && !isMobileWorkspaceLayout(dependencies.surfaces.layoutMode) && !searchPanel.contains(document.activeElement)) {
           (0, dependencies.workspaceUiA.closeSurface)('search');
         }
       });
     });
-    document.addEventListener('pointerup', () => { searchToolbarPointer = false; });
-    document.addEventListener('pointercancel', () => { searchToolbarPointer = false; });
-    (0, dependencies.platform.$)('mapDisplayBtn')?.addEventListener('click', event => toggleWorkspaceSurface('display', event.currentTarget));
-    (0, dependencies.platform.$)('objectLockBtn')?.addEventListener('click', async () => {
+    listen(document, 'pointerup', () => { searchToolbarPointer = false; });
+    listen(document, 'pointercancel', () => { searchToolbarPointer = false; });
+    listen((0, dependencies.platform.$)('mapDisplayBtn'), 'click', event => toggleWorkspaceSurface('display', event.currentTarget));
+    listen((0, dependencies.platform.$)('objectLockBtn'), 'click', async () => {
       try { await dependencies.objectOperationsA.batchToggleLocked(); }
       catch (error) { dependencies.feedback.reportOperationError(error, '객체 잠금을 변경하지 못했습니다.', 'PL-OBJECT-LOCK-001', 4200); }
     });
-    (0, dependencies.platform.$)('objectVisibilityBtn')?.addEventListener('click', async () => {
+    listen((0, dependencies.platform.$)('objectVisibilityBtn'), 'click', async () => {
       try { await dependencies.objectOperationsA.batchSetVisibility(); }
       catch(error) { dependencies.feedback.reportOperationError(error,'객체 표시를 변경하지 못했습니다.','PL-VIEW-COMMAND-001',4200); }
     });
-    (0, dependencies.platform.$)('objectDeleteBtn')?.addEventListener('click', () => dependencies.objectOperationsA.deleteSelectedFromObjectMenu());
-    (0, dependencies.platform.$)('mobileBackdrop')?.addEventListener('click', () => {
+    listen((0, dependencies.platform.$)('objectDeleteBtn'), 'click', () => dependencies.objectOperationsA.deleteSelectedFromObjectMenu());
+    listen((0, dependencies.platform.$)('mobileBackdrop'), 'click', () => {
       (0, dependencies.workspaceUiA.closeFileMenu)({ restoreFocus: true });
       closeMobileMenu({ restoreFocus: true });
     });
     Object.values(dependencies.workspaceUiA.MOBILE_SHEET_IDS).forEach(id => (0, dependencies.workspaceUiA.bindMobileSheetSurface)((0, dependencies.platform.$)(id)));
-    (0, dependencies.platform.$)('mobileSearchBtn')?.addEventListener('click', event => toggleWorkspaceSurface('search', event.currentTarget));
-    (0, dependencies.platform.$)('mobileDisplayBtn')?.addEventListener('click', event => {
+    listen((0, dependencies.platform.$)('mobileSearchBtn'), 'click', event => toggleWorkspaceSurface('search', event.currentTarget));
+    listen((0, dependencies.platform.$)('mobileDisplayBtn'), 'click', event => {
       closeMobileMenu();
       toggleWorkspaceSurface('display', event.currentTarget);
     });
-    (0, dependencies.platform.$)('objectSearchCloseBtn')?.addEventListener('click', () => (0, dependencies.workspaceUiA.closeSurface)('search', { restoreFocus: true }));
-    (0, dependencies.platform.$)('mapDisplayCloseBtn')?.addEventListener('click', () => (0, dependencies.workspaceUiA.closeSurface)('display', { restoreFocus: true }));
-    document.addEventListener('pointerdown', event => {
+    listen((0, dependencies.platform.$)('objectSearchCloseBtn'), 'click', () => (0, dependencies.workspaceUiA.closeSurface)('search', { restoreFocus: true }));
+    listen((0, dependencies.platform.$)('mapDisplayCloseBtn'), 'click', () => (0, dependencies.workspaceUiA.closeSurface)('display', { restoreFocus: true }));
+    listen(document, 'pointerdown', event => {
       const scrollbarOwner = event.target.closest('.ui-overlay-scrollbar')?.getAttribute('aria-controls');
       if (dependencies.workspaceUiB.surfaceController.isOpen('search')
         && scrollbarOwner !== 'objectSearchResults'
@@ -162,6 +170,7 @@ export function createNavigationBindings() {
   }
 
   function bindLayerUI() {
+    if (disposed) return;
     dependencies.uiRegistryCommands.installObjectSearchController((0, dependencies.uiFactoriesA.createAppObjectSearchController)({
       window, document, getElement: dependencies.platform.$, state: dependencies.projectState.state, objectSearchGroupKeys: dependencies.objectModelA.LAYER_SEARCH_GROUP_KEYS,
       layerGroupNames: dependencies.layerPresentation.layerGroupNames, createIcon: (name, className) => (0, dependencies.applicationFactories.createSemanticIcon)(document, name, className),
@@ -182,8 +191,15 @@ export function createNavigationBindings() {
 
 
 
+  function dispose() {
+    if (disposed) return;
+    disposed = true;
+    for (const unsubscribe of subscriptions.splice(0)) unsubscribe();
+    bound = false;
+  }
+
   return Object.freeze({
-    connect,
+    connect, dispose,
 
     get bindLayerUI() { return bindLayerUI; },
     get bindNavigationUI() { return bindNavigationUI; },

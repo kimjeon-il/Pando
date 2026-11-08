@@ -306,6 +306,7 @@ export async function composeViewer({ productMode, meta }) {
     mapSettingsUi:display,navigation:map.navigation,projectState:{state:map.viewState},objectPicking:map.objectPicking,
     readinessUi:notifications});
   navigationBindings.bindNavigationUI();
+  disposables.push(navigationBindings);
   for(const id of ['openProjectBtn','builtinMapBtn'])get(id).addEventListener('click',()=>surfaces.closeFileMenu());
   const preferencesDialog=createPreferencesDialog({document,productMode,returnFocus:()=>get(surfaces.isMobile()?'mobileMenuBtn':'preferencesBtn'),getPreferences:()=>preferencePresentation.current,
     applyPreferences:value=>preferencePresentation.apply(value,{persist:false}),beforeOpen:()=>surfaces.closeFileMenu()});
