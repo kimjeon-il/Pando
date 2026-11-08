@@ -93,6 +93,8 @@ export function createBuiltinWorldLoader({manifestUrl,manifestSpec,dataRevision,
    ||!Array.isArray(value.sourceBindings)||Object.hasOwn(value,'geometries')||!Array.isArray(value.geometryRefs)
    ||JSON.stringify(value.geometryRefs)!==JSON.stringify(entry.geometryRefs)||value.timelineRecords?.schemaVersion!==3
    ||!['lifetimes','geometryBindings','parentRelations','propertyBindings'].every(key=>Array.isArray(value.timelineRecords[key])))throw new Error('Invalid builtin country payload or identity: '+entry.entityId);
+  const refs=new Set(value.geometryRefs.map(ref=>JSON.stringify([ref.id,ref.version])));
+  if(value.timelineRecords.geometryBindings.some(row=>!refs.has(JSON.stringify([row.geometryRef.id,row.geometryRef.version]))))throw Error('Builtin country binding is missing its geometry descriptor');
   return value;
  }
  async function loadIndex(){
@@ -181,7 +183,7 @@ export function createBuiltinWorldLoader({manifestUrl,manifestSpec,dataRevision,
   }
   // Descriptors retain every era independently of immutable coordinate files.
   const descriptors=await loadAll(index.entities,loadCountry);
-  const project=assembleWorld(index,descriptors,month,true),catalog=new Map(project.geometryResources.map(asset=>[JSON.stringify([asset.id,asset.version]),asset]));
+  const project=assembleWorld(index,descriptors,month,true),catalog=new Map(index.geometryAssets.map(asset=>[JSON.stringify([asset.id,asset.version]),asset]));
   const world=sharedCalculationCore.timelineResolveWorld(project.timelineRecords,{
    entities:project.territorialEntities.map(row=>({objectRef:{domain:'territorial',id:row.id},entityKind:row.properties.entityKind})),
    geometryExists:ref=>catalog.has(JSON.stringify([ref.id,ref.version])),

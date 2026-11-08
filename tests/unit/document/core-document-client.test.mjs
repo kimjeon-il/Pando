@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createCoreDocumentClient } from "../../../src/document/core-document-client.js";
 
-function fixture({ onTransition } = {}) {
+function fixture({ onTransition,geometryRequirements=[] } = {}) {
   const sent = [], effects = [];
   let hold = false, heldReply = null;
   let signalHeldCommand;
@@ -32,7 +32,7 @@ function fixture({ onTransition } = {}) {
       }
       else if (message.operation === 'core.storage-snapshot') result = '{"complete":"all-domains"}';
       else if (message.operation === 'core.document-resolve-world') result = { month: message.payload.month, entities: [] };
-      else if (message.operation === 'core.document-geometry-requirements') result = {resources:[],sourceEpoch:epoch};
+      else if (message.operation === 'core.document-geometry-requirements') result = {resources:geometryRequirements,sourceEpoch:epoch};
       else if (message.operation === 'core.document-state') result = state();
       else if (message.operation === 'core.document-export') result = { storageJson: '{"complete":"all-domains"}', state: state() };
       else if (message.operation === 'core.storage-baseline-load') {
@@ -231,6 +231,19 @@ test('source initialization and replacement capsules pin epochs at actual dispat
   assert.equal(restored.state.epoch,4);assert.equal(await f.client.releaseReplacement(7),true);
   assert.deepEqual(f.sent.filter(row => row.type==='request').map(row => row.payload.expectedEpoch),[0,1,1,2,3,4]);
   assert.equal(f.client.state().epoch,4);f.client.dispose();
+});
+
+test('geometry downloaded for a replaced document is never admitted or used to change its cursor',async()=>{
+  const f=fixture({geometryRequirements:[{id:'shape',version:1}]});
+  try {
+    await f.client.load('{}');let release,entered;
+    const started=new Promise(resolve=>{entered=resolve;});
+    f.client.setGeometryLoader(()=>{entered();return new Promise(resolve=>{release=resolve;});});
+    const stale=assert.rejects(f.client.setTimelineCursor('2020-03'),{code:'PL-CORE-STALE'});
+    await started;await f.client.load('{}');release([{id:'shape',version:1,source:'{}'}]);await stale;
+    assert.equal(f.client.state().timelineCursor,'2026-10');
+    assert.equal(f.sent.some(row=>row.operation==='core.document-geometry-admit'),false);
+  }finally{f.client.dispose();}
 });
 
 test('cursor and saved-checkpoint acknowledgements share the command epoch and queries retain the same session', async () => {
