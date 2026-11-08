@@ -163,6 +163,8 @@ export function createViewerReviewPanel({document,window,map,documentSession,isB
   const feedback=(id,message,tone)=>{const node=get(id);text(node,message);if(node)node.dataset.tone=tone||'';};
   let current=null,chosenEntity=null,chosenChange=null,activeFetch=null,requestSerial=0;
   let trigger=null,disposed=false,rawObjectBytes=new Map(),loadSerial=0;
+  // Verified change rows are indexed once; presenters only consume the index.
+  let changesByEntity=new Map();
   const tabKeys=['changes','map','performance','errors'];
   const tabs=new Map(tabKeys.map((key,i)=>[key,{
     button:get(['reviewTabChanges','reviewTabMap','reviewTabPerformance','reviewTabErrors'][i]),
@@ -264,8 +266,7 @@ export function createViewerReviewPanel({document,window,map,documentSession,isB
   function abortFetch(){activeFetch?.abort();activeFetch=null;requestSerial++;get('reviewFetchGeometry').disabled=false;}
   function selectedChange(){
     if(!current||!chosenEntity)return null;
-    return current.diff.changes.find(c=>c.sourceEntityId===chosenEntity
-      &&reviewChangeKey(c)===chosenChange)||null;
+    return (changesByEntity.get(chosenEntity)||[]).find(c=>reviewChangeKey(c)===chosenChange)||null;
   }
   function sourceMatch(){
     return current&&reviewObjectMapRef(documentSession.documentModel.snapshot(),chosenEntity);
@@ -294,7 +295,7 @@ export function createViewerReviewPanel({document,window,map,documentSession,isB
     text(get('reviewSelectedObject'),chosenEntity);
     updateFocus();
     const container=get('reviewChangeList');container.replaceChildren();
-    const changes=current.diff.changes.filter(x=>x.sourceEntityId===chosenEntity);
+    const changes=changesByEntity.get(chosenEntity)||[];
     if(!changes.some(x=>reviewChangeKey(x)===chosenChange))
       chosenChange=changes[0]?reviewChangeKey(changes[0]):null;
     for(const change of changes){
@@ -317,7 +318,7 @@ export function createViewerReviewPanel({document,window,map,documentSession,isB
     renderReportLinks();
   }
   function selectEntity(id){
-    if(!current||!current.entities.some(x=>x.sourceEntityId===id))return;
+    if(!current||!changesByEntity.has(id))return;
     abortFetch();rawObjectBytes=new Map();chosenEntity=id;chosenChange=null;
     renderBrowse();renderDetail();
   }
@@ -377,6 +378,8 @@ export function createViewerReviewPanel({document,window,map,documentSession,isB
       const result=await readReviewEvidenceFiles(inputFiles,{subtle:window.crypto?.subtle});
       if(ticket!==loadSerial||disposed)return;
       abortFetch();current=result.inspection;
+      changesByEntity=new Map(current.entities.map(row=>[row.sourceEntityId,[]]));
+      for(const change of current.diff.changes) changesByEntity.get(change.sourceEntityId)?.push(change);
       chosenEntity=null;chosenChange=null;rawObjectBytes=new Map();
       get('reviewSearch').value='';get('reviewKindFilter').value='';
       renderSummary(result.checksumVerified);
@@ -443,15 +446,6 @@ export function createViewerReviewPanel({document,window,map,documentSession,isB
       const request=correctionRequest({inspection:current,sourceEntityId:chosenEntity,change,
         kind:get('reviewIssueKind').value,reason:get('reviewIssueReason').value,
         createdAt:new Date().toISOString()});
-      if(window.PANDOLAB_NATIVE_REVIEW===true){
-        const invoke=window.__TAURI_INTERNALS__?.invoke;
-        if(typeof invoke!=='function')no('Windows 수정 요청서 저장 기능을 사용할 수 없습니다.');
-        const result=await invoke.call(window.__TAURI_INTERNALS__,'save_review_correction',{draft:request});
-        feedback('reviewCorrectionStatus',result?.cancelled
-          ?'수정 요청서 저장을 취소했습니다.'
-          :'Windows에 수정 요청서를 저장했습니다. 실제 GIS나 GitHub에는 반영되지 않았습니다.');
-        return;
-      }
       const body=JSON.stringify(request,null,2)+'\n';
       const blob=new Blob([body],{type:'application/json'});
       const url=window.URL.createObjectURL(blob);
@@ -469,7 +463,7 @@ export function createViewerReviewPanel({document,window,map,documentSession,isB
     if(ref?.domain!=='territorial')return;
     const feature=documentSession.documentModel.snapshot()?.territorialEntities?.find(x=>x.id===ref.id);
     const source=feature?.properties?.sourceEntityId||feature?.id;
-    if(source&&source!==chosenEntity&&current.entities.some(x=>x.sourceEntityId===source))selectEntity(source);
+    if(source&&source!==chosenEntity&&changesByEntity.has(source))selectEntity(source);
   }
   for(const [key,entry] of tabs){
     listen(entry.button,'click',()=>selectTab(key,{focus:true}));
@@ -499,7 +493,7 @@ export function createViewerReviewPanel({document,window,map,documentSession,isB
   return Object.freeze({
     open,close,syncMapSelection,
     get snapshot(){return current;},
-    dispose(){if(disposed)return;close();disposed=true;abortFetch();rawObjectBytes.clear();
+    dispose(){if(disposed)return;close();disposed=true;abortFetch();rawObjectBytes.clear();changesByEntity.clear();
       for(const unsubscribe of subscriptions.splice(0))unsubscribe();},
   });
 }

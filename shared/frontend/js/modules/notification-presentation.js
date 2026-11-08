@@ -2,9 +2,11 @@ import {compactNotificationMessage} from './notification-copy.js';
 export function createNotificationPresentation(ports){
   const getElement=(...args)=>ports.getElement(...args),isMobile=()=>ports.isMobile();
   let errorHoldUntil=0;
+  let notificationTimer=null;
   function clearNotification() {
     errorHoldUntil=0;
-    clearTimeout(setActionStatus._timer);
+    clearTimeout(notificationTimer);
+    notificationTimer=null;
     const notice = getElement('actionStatus');
     if (!notice) return;
     notice.classList.add('hidden');
@@ -28,7 +30,8 @@ export function createNotificationPresentation(ports){
     const fullMessage = String(message ?? '').replace(/\s+/g, ' ').trim();
     const isTopLevelNotice = ['working', 'success', 'error', 'info', 'warning'].includes(tone)
       || forceVisible;
-    clearTimeout(setActionStatus._timer);
+    clearTimeout(notificationTimer);
+    notificationTimer=null;
     if (!fullMessage || !isTopLevelNotice) {
       clearNotification();
       return;
@@ -53,7 +56,7 @@ export function createNotificationPresentation(ports){
     if (strong) strong.textContent = visibleMessage;
     ports.document.body.classList.add('notification-visible');
     if (tone === 'error' || timeout <= 0) return;
-    setActionStatus._timer = setTimeout(clearNotification, timeout);
+    notificationTimer=setTimeout(clearNotification, timeout);
   }
 
   function isSafeKoreanErrorMessage(error) {
@@ -73,5 +76,5 @@ export function createNotificationPresentation(ports){
     return message;
   }
 
-  return Object.freeze({clearNotification,clearErrorNotification,setActionStatus,isSafeKoreanErrorMessage,reportOperationError,dispose:()=>clearTimeout(setActionStatus._timer)});
+  return Object.freeze({clearNotification,clearErrorNotification,setActionStatus,isSafeKoreanErrorMessage,reportOperationError,dispose:()=>{clearTimeout(notificationTimer);notificationTimer=null;}});
 }

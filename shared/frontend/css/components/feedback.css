@@ -251,9 +251,6 @@ body.is-loading .app-root {
   margin-top: var(--ui-space-2);
 }
 
-@media (max-width: 799px) {
-}
-
 .app-root[data-layout="mobile"] .action-status {
   width: 100%;
   min-width: 0;
@@ -296,11 +293,6 @@ body.is-loading .app-root {
 @keyframes uiSkeletonPulse {
 0%, 100% { opacity: .55; }
   50% { opacity: .92; }
-}
-
-.ui-empty-state {
-  padding: var(--ui-space-10) var(--ui-space-5);
-  text-align: center;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -390,6 +382,8 @@ body.is-loading .app-root {
 
 .ui-empty-state {
   display: grid;
+  padding: var(--ui-space-10) var(--ui-space-5);
+  text-align: center;
   gap: var(--ui-space-1);
   align-content: center;
   justify-items: start;
@@ -437,9 +431,6 @@ body.is-loading .app-root {
     overflow: hidden;
     text-overflow: ellipsis;
   }
-}
-
-@media (max-width: 799px) {
 }
 
 @media (prefers-reduced-motion: reduce) {
