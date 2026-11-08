@@ -16,7 +16,7 @@ import * as __dep13 from "node:url";
 import * as __dep14 from "../../tools/gis/prepare-hydro-name-replacement-bundle.mjs";
 
 // Original feature contract: hydro-name.test.mjs
-contractSuite("hydro-name", () => {
+contractSuite("hydro-name", async () => {
 const { test } = __dep0;
 const assert = __dep1.default;
 const { readFile } = __dep2;
