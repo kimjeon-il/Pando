@@ -4,12 +4,15 @@
 // All mutable state is per operation; native threads and WASM share this owner.
 #include <pandoeditor/polygonclipping.h>
 #include <algorithm>
+#include <array>
 #include <cmath>
+#include <iomanip>
 #include <limits>
 #include <map>
 #include <memory>
 #include <optional>
 #include <set>
+#include <sstream>
 #include <stdexcept>
 #include <utility>
 
@@ -461,8 +464,15 @@ struct Operation {
             if(type==PolygonOperation::Difference&&m&&!overlap(boxes[0],boxes[m]))continue;
             for(auto* s:byMulti[m]){queue.add(s->left);queue.add(s->right);if(queue.size>maxQueue)throw std::runtime_error("Polygon endpoint queue size too big");}
         }
+        struct Trace { std::size_t id=0; bool left=false; Point p{}, a{}, b{}; };
+        std::array<Trace,8> trace{};std::size_t traceCount=0;
         while(auto* e=queue.pop()){
-            checkpoint();if(queue.size>maxQueue||processed.size()>maxQueue)throw std::runtime_error("Polygon sweep segment limit exceeded");
+            trace[traceCount++%trace.size()]={e->segment->id,e->left,e->point->p,e->segment->left->point->p,e->segment->right->point->p};
+            checkpoint();if(queue.size>maxQueue||processed.size()>maxQueue){
+                std::ostringstream out;out<<std::setprecision(17)<<"Polygon sweep segment limit exceeded: processed="<<processed.size()<<" queue="<<queue.size;
+                for(const auto& v:trace)out<<" | "<<v.id<<":"<<v.left<<" p="<<v.p.x<<","<<v.p.y<<" a="<<v.a.x<<","<<v.a.y<<" b="<<v.b.x<<","<<v.b.y;
+                throw std::runtime_error(out.str());
+            }
             const auto added=process(e);for(auto* item:added)if(!item->consumed)queue.add(item);
         }
         checkpoint();return output();
