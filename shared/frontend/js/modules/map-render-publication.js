@@ -33,3 +33,8 @@ export function mapBackgroundTargetKey(frame,{
     frame.cssViewport,frame.cssScale,frame.cssTranslate,frame.viewState?.rotation,frame.viewState?.projection,
     physicalStyleRevision,!!terrainVisible]);
 }
+
+/** Ready, non-empty terrain resources are the only drawable GPU terrain. */
+export function canDrawTerrainTiles(tiles,representation,style,tintReady,demFormat) {
+  return tiles.length>0&&(representation!==demFormat||style!=='physical'||tintReady===true);
+}
