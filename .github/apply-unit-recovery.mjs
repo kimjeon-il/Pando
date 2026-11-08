@@ -37,6 +37,17 @@ for(const part of parts){
     if((removed.length||added.length)&&removed.every(line=>!lines.includes(line))&&added.every(line=>lines.includes(line))){
       already.push(path);continue;
     }
+    // GIS review workflows are often already modernized by a later commit.
+    // If every removed test reference is already absent, preserve its newer
+    // semantics and presentation rather than replaying an obsolete layout.
+    if(path.startsWith('.github/workflows/')){
+      const obsolete=removed.flatMap(line=>Array.from(line.matchAll(/tests\/(?:unit|native)\/[a-zA-Z0-9._\/-]+\.test\.mjs/g),m=>m[0]));
+      const now=readFileSync(path,'utf8');
+      if(obsolete.length&&obsolete.every(name=>!now.includes(name))){
+        console.log('Already retired references in newer workflow: '+path);
+        already.push(path);continue;
+      }
+    }
   }
   const result=spawnSync('git',['apply','--3way','--index','-'],{input:part,encoding:'utf8',maxBuffer:8*1024*1024});
   if(result.status!==0)throw Error('Cannot apply reviewed edit without overriding newer changes: '+path+'\n'+(result.stderr||result.stdout));
