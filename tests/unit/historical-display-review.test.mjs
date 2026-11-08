@@ -1,23 +1,15 @@
-import { describe as contractSuite } from 'node:test';
-import * as __country_dep0 from "../../shared/frontend/js/modules/prepared-polygon-mesh.js";
-import * as __country_dep1 from "node:test";
-import * as __country_dep2 from "node:assert/strict";
-import * as __country_dep3 from "node:crypto";
-import * as __country_dep4 from "../../tools/gis/historical-display-review.mjs";
-import * as __country_dep5 from "node:fs";
-import * as __country_dep6 from "node:os";
-import * as __country_dep7 from "node:path";
 import "../../tools/load-spherical-core.mjs";
-import * as __country_dep8 from "../../tools/territorial-entity-sources.mjs";
-import * as __country_dep9 from "../../tools/gis/historical-display-storage.mjs";
-import * as __country_dep10 from "../../tools/gis/historical-detail-inventory.mjs";
-contractSuite("historical-display-review", () => {
-const { polygonGeometryDigest } = __country_dep0;
-const test = __country_dep1.default;
-const assert = __country_dep2.default;
-const { createHash } = __country_dep3;
-const { assertHistoricalDisplayChanges, assertHistoricalCompiledChanges } = __country_dep4;
-
+import {polygonGeometryDigest} from '../../shared/frontend/js/modules/prepared-polygon-mesh.js';
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
+import {assertHistoricalDisplayChanges, assertHistoricalCompiledChanges} from '../../tools/gis/historical-display-review.mjs';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import {updateTerritorialSource} from '../../tools/territorial-entity-sources.mjs';
+import {assertHistoricalStorageChanges} from '../../tools/gis/historical-display-storage.mjs';
+import {buildHistoricalDetailInventory} from '../../tools/gis/historical-detail-inventory.mjs';
 
 const hash=x=>createHash('sha256').update(JSON.stringify(x)).digest('hex'),proof={reference:'reports/borders/validation/fixture/proof.json',sha256:'a'.repeat(64)},geometry=x=>({type:'Polygon',coordinates:[[[0,0],[x,0],[x,1],[0,0]]]}),version=(id='v')=>({versionId:id,validFrom:'1900-01-01',validTo:'1901-01-01',geometry:geometry(1)}),entity=versions=>({entityId:'state:A',geometryVersions:versions}),receipt=(v,id='state:A')=>({schemaVersion:1,status:'passed',entityId:id,versionId:v.versionId,validFrom:v.validFrom,validTo:v.validTo,geometrySha256:hash([v.geometry.type,v.geometry.coordinates]),master:proof,source:proof,comparison:{reference:proof,arcSha256:'b'.repeat(64),extent:[0,0,1,1],scaleDenominator:10000000,projection:{definition:'EPSG:32631',units:'metre',evidence:proof}},method:'straight-partition',reason:'Fixed straight partition compared at NE scale',parameters:{fixedEndpoints:true},visual:proof,topology:{status:'passed',evidence:proof,checks:['validity','shared-boundary','union','gaps-overlaps','connectivity','holes-islands','dates']},counterpartVersions:[{entityId:'state:B',versionId:'peer',geometrySha256:'c'.repeat(64)}],fixedAnchors:[[0,0],[1,0]]});
 function reviewed(v){return{...v,historicalProvenance:{displayDetailReview:receipt(v)}};}
@@ -33,23 +25,10 @@ test('the receipt digest matches the canonical prepared-polygon owner and ignore
 test('compiled key order, geometry array order and regenerated IDs do not create a new border',()=>{const v=version(),old={entityId:'state:A',identity:{properties:{metadata:{historicalTimeline:{geometryVersions:[v]}}}},sourceBindings:[{sourceVersionId:'v',validFrom:v.validFrom,validTo:v.validTo,geometryRef:{id:'old',version:1}}],geometries:[{id:'old',version:1,geojson:v.geometry}]},next=structuredClone(old);next.geometries=[{id:'reidentified',version:1,geojson:{coordinates:v.geometry.coordinates,type:v.geometry.type}}];next.sourceBindings[0].geometryRef.id='reidentified';assert.equal(assertHistoricalCompiledChanges(next,old),0);});
 
 test('explicit compiled derivative coverage crosses source/project identity without a parallel publication path',()=>{const v=reviewed(version()),country={entityId:'A',identity:{properties:{metadata:{historicalTimeline:{geometryVersions:[v]}}}},sourceBindings:[{sourceVersionId:'v',validFrom:v.validFrom,validTo:v.validTo,geometryRef:{id:'g',version:1}}],geometries:[{id:'g',version:1,geojson:v.geometry}]};assert.throws(()=>assertHistoricalCompiledChanges(country,null),/review required/);v.historicalProvenance.displayDetailReview.compiledDerivatives=[receipt(v,'A')];assert.equal(assertHistoricalCompiledChanges(country,null),1);assert.equal(assertHistoricalDisplayChanges(entity([v]),entity([])),1);});
-});
-contractSuite("historical-display-authoring", () => {
-const test = __country_dep1.default;
-const assert = __country_dep2.default;
-const fs = __country_dep5.default;
-const os = __country_dep6.default;
-const path = __country_dep7.default;
-const { updateTerritorialSource } = __country_dep8;
 
 test('source write owner rejects an unreviewed historical geometry before changing any bytes',t=>{const root=fs.mkdtempSync(path.join(os.tmpdir(),'pando-detail-source-'));t.after(()=>fs.rmSync(root,{recursive:true,force:true}));for(const d of ['countries','lineages'])fs.mkdirSync(path.join(root,d));const source={schemaVersion:2,entityId:'state:Fixture',entityKind:'general',lineageId:'fixture',names:{ko:'Fixture'},alternateNames:[],lifetime:{validFrom:null,validTo:null},parentEntityId:'',metadata:{},sourceInfo:{},instantiation:{mode:'independent',countryUpdates:{}},geometryVersions:[{versionId:'v',validFrom:'1900',validTo:'1901',geometry:{type:'Polygon',coordinates:[[[0,0],[1,0],[1,1],[0,0]]]}}]},file=path.join(root,'countries/state-Fixture.json');fs.writeFileSync(file,JSON.stringify(source));fs.writeFileSync(path.join(root,'lineages/fixture.json'),JSON.stringify({schemaVersion:2,lineageId:'fixture',names:{ko:'Fixture'},entityRefs:['state:Fixture'],relations:[]}));const bytes=fs.readFileSync(file);assert.throws(()=>updateTerritorialSource(source.entityId,current=>{current.geometryVersions[0].geometry.coordinates[0][1][0]=2;return current;},root),/Historical display review required/);assert(fs.readFileSync(file).equals(bytes));});
-});
-contractSuite("historical-display-storage", () => {
-const test = __country_dep1.default;
-const assert = __country_dep2.default;
-const { assertHistoricalStorageChanges } = __country_dep9;
 
-const geometry=x=>({type:'Polygon',coordinates:[[[0,0],[x,0],[x,1],[0,0]]]}),old={entityId:'state:A',geometryVersions:[{versionId:'v',validFrom:'1900',validTo:'1901',geometry:geometry(1)}]},next={...old,geometryVersions:[{...old.geometryVersions[0],geometry:geometry(2)}]},entry=sha256=>({entityId:'state:A',sha256}),fixture=()=>({prefixes:['assets/data/territorial-entities'],sourceIndex:{entities:[entry('new')]},previousSourceIndex:{entities:[entry('old')]},builtinIndex:{entities:[],inputHashes:{sourceRevisions:{}}},previousBuiltinIndex:{entities:[],inputHashes:{sourceRevisions:{}}},readSource:()=>next,readPreviousSource:()=>old,readCountry:()=>{throw Error('unrelated compiled read')},readPreviousCountry:()=>{throw Error('unrelated compiled read')},sourceFileChanged:()=>false,readRawSource:()=>next,countryFileChanged:()=>false});
+const storageGeometry=x=>({type:'Polygon',coordinates:[[[0,0],[x,0],[x,1],[0,0]]]}),old={entityId:'state:A',geometryVersions:[{versionId:'v',validFrom:'1900',validTo:'1901',geometry:storageGeometry(1)}]},next={...old,geometryVersions:[{...old.geometryVersions[0],geometry:storageGeometry(2)}]},entry=sha256=>({entityId:'state:A',sha256}),fixture=()=>({prefixes:['assets/data/territorial-entities'],sourceIndex:{entities:[entry('new')]},previousSourceIndex:{entities:[entry('old')]},builtinIndex:{entities:[],inputHashes:{sourceRevisions:{}}},previousBuiltinIndex:{entities:[],inputHashes:{sourceRevisions:{}}},readSource:()=>next,readPreviousSource:()=>old,readCountry:()=>{throw Error('unrelated compiled read')},readPreviousCountry:()=>{throw Error('unrelated compiled read')},sourceFileChanged:()=>false,readRawSource:()=>next,countryFileChanged:()=>false});
 test('whole territorial scope cannot bypass missing review while unchanged geometry metadata passes',()=>{const f=fixture();assert.throws(()=>assertHistoricalStorageChanges(f),/review required/);f.readSource=()=>({...old,names:{en:'changed'}});assert.deepEqual(assertHistoricalStorageChanges(f),{sources:1,countries:0});});
 test('builtin-only changed source input receives the same gate and mismatched input hashes fail',()=>{const f=fixture();f.prefixes=['assets/data/builtin-world'];f.builtinIndex.inputHashes.sourceRevisions['state:A']='new';f.previousBuiltinIndex.inputHashes.sourceRevisions['state:A']='old';assert.throws(()=>assertHistoricalStorageChanges(f),/review required/);f.builtinIndex.inputHashes.sourceRevisions['state:A']='other';assert.throws(()=>assertHistoricalStorageChanges(f),/input identity differs/);});
 test('whole scope cannot archive a changed raw source behind an unchanged chunk receipt',()=>{const f=fixture();f.sourceIndex=f.previousSourceIndex;f.sourceFileChanged=()=>true;f.readRawSource=()=>next;f.readSource=()=>old;assert.throws(()=>assertHistoricalStorageChanges(f),/source\/chunk input mismatch/);});
@@ -58,13 +37,7 @@ test('a selected overwritten country cannot hide behind an unchanged index recei
 
 test('raw source and paired chunk permit identical object content in different key order',()=>{const f=fixture();f.sourceIndex=f.previousSourceIndex;f.sourceFileChanged=()=>true;f.readRawSource=()=>({geometryVersions:old.geometryVersions.map(v=>({...v,geometry:{coordinates:v.geometry.coordinates,type:v.geometry.type}})),entityId:old.entityId});f.readSource=()=>old;assert.deepEqual(assertHistoricalStorageChanges(f),{sources:0,countries:0});});
 test('builtin input identity is checked even when the paired source chunk is unchanged',()=>{const f=fixture();f.prefixes=['assets/data/builtin-world'];f.sourceIndex=f.previousSourceIndex;f.previousBuiltinIndex.inputHashes.sourceRevisions['state:A']='old';f.builtinIndex.inputHashes.sourceRevisions['state:A']='wrong';assert.throws(()=>assertHistoricalStorageChanges(f),/input identity differs/);});
-});
-contractSuite("historical-detail-inventory", () => {
-const test = __country_dep1.default;
-const assert = __country_dep2.default;
-const { buildHistoricalDetailInventory } = __country_dep10;
 
-const version=id=>({versionId:id,sourceId:'natural-earth-5.1.1',validFrom:null,validTo:null}),entity=(id,versions)=>({entityId:id,entityKind:'general',metadata:{},geometryVersions:versions.map(version)}),binding=(id,from)=>({sourceVersionId:id,validFrom:from,validTo:null,geometryRef:{id:'same',version:1}});
-test('past bindings remain covered, shared geometry deduplicates without dropping versions, merged inputs remain applied',()=>{const r=buildHistoricalDetailInventory({sourceEntities:[entity('state:A',['old','new']),entity('state:B',['mask']),entity('state:C',['candidate'])],sourceIdentities:[{projectEntityId:'A',sourceEntityIds:['state:A','state:B']}],currentSelections:[{entityId:'state:A',geometryVersionId:'new'}],countries:[{entityId:'A',sourceBindings:[binding('old','1900'),binding('new','2000')]}]});assert.equal(r.compiledSourceBindings,2);assert.equal(r.uniqueCompiledGeometryRefs,1);assert.equal(r.geometryGroups[0].coverage.length,2);assert.equal(r.rows.find(x=>x.versionId==='old').bindings.length,1);assert.equal(r.rows.find(x=>x.versionId==='mask').kind,'merged-contributor');assert.equal(r.rows.find(x=>x.versionId==='candidate').kind,'unapplied-source');assert.deepEqual(r.unmapped,[]);});
-test('unknown compiled versions are explicit unresolved coverage',()=>{const r=buildHistoricalDetailInventory({sourceEntities:[entity('state:A',['known'])],sourceIdentities:[{projectEntityId:'A',sourceEntityIds:['state:A']}],countries:[{entityId:'A',sourceBindings:[binding('unknown','1900')]}]});assert.equal(r.unmapped.length,1);});
-});
+const sourceVersion=id=>({versionId:id,sourceId:'natural-earth-5.1.1',validFrom:null,validTo:null}) ,sourceEntity=(id,versions)=>({entityId:id,entityKind:'general',metadata:{},geometryVersions:versions.map(version)}),binding=(id,from)=>({sourceVersionId:id,validFrom:from,validTo:null,geometryRef:{id:'same',version:1}});
+test('past bindings remain covered, shared geometry deduplicates without dropping versions, merged inputs remain applied',()=>{const r=buildHistoricalDetailInventory({sourceEntities:[sourceEntity('state:A',['old','new']),sourceEntity('state:B',['mask']),sourceEntity('state:C',['candidate'])],sourceIdentities:[{projectEntityId:'A',sourceEntityIds:['state:A','state:B']}],currentSelections:[{entityId:'state:A',geometryVersionId:'new'}],countries:[{entityId:'A',sourceBindings:[binding('old','1900'),binding('new','2000')]}]});assert.equal(r.compiledSourceBindings,2);assert.equal(r.uniqueCompiledGeometryRefs,1);assert.equal(r.geometryGroups[0].coverage.length,2);assert.equal(r.rows.find(x=>x.versionId==='old').bindings.length,1);assert.equal(r.rows.find(x=>x.versionId==='mask').kind,'merged-contributor');assert.equal(r.rows.find(x=>x.versionId==='candidate').kind,'unapplied-source');assert.deepEqual(r.unmapped,[]);});
+test('unknown compiled versions are explicit unresolved coverage',()=>{const r=buildHistoricalDetailInventory({sourceEntities:[sourceEntity('state:A',['known'])],sourceIdentities:[{projectEntityId:'A',sourceEntityIds:['state:A']}],countries:[{entityId:'A',sourceBindings:[binding('unknown','1900')]}]});assert.equal(r.unmapped.length,1);});
