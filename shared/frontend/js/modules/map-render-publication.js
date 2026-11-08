@@ -38,3 +38,32 @@ export function mapBackgroundTargetKey(frame,{
 export function canDrawTerrainTiles(tiles,representation,style,tintReady,demFormat) {
   return tiles.length>0&&(representation!==demFormat||style!=='physical'||tintReady===true);
 }
+
+export function classifyGpuResourceReady(key, scene, strokeResourceKey = packet => packet.key) {
+  const value=String(key);
+  if(value.startsWith('country-boundary:')
+    ||value.startsWith('country-shared-boundary:')
+    ||value.startsWith('country-outline-overrides:'))return 'country-boundary';
+  if((scene?.polygons||[]).some(packet=>packet.key===key)
+    ||(scene?.strokes||[]).some(packet=>strokeResourceKey(packet)===key))return 'scene';
+  return 'interaction';
+}
+
+// Only effective picture inputs influence presentation; frameId is a
+// scheduling identity and never rejects otherwise identical pixels.
+export function classifyCanvasWorkerFrame(message,{
+  backgroundEligible=false,expectedBackgroundKey='',physicalStyleRevision=0,
+  expectedPresentationKey='',geometryRevision=0,styleRevision=0,
+  surfaceQuality='',physicalMatches=false,
+}={}) {
+  if(backgroundEligible) {
+    if(message.backgroundPresentationKey!==expectedBackgroundKey)return 'background-presentation';
+    if(Number(message.physicalStyleRevision||0)!==physicalStyleRevision)return 'physical-style';
+  } else {
+    if(message.presentationKey!==expectedPresentationKey)return 'presentation';
+    if(Number(message.geometryRevision)!==geometryRevision)return 'geometry';
+    if(Number(message.styleRevision||0)!==styleRevision)return 'style';
+    if(message.surfaceQuality!==surfaceQuality)return 'quality';
+  }
+  return physicalMatches?'':'physical';
+}

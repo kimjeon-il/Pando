@@ -1,3 +1,9 @@
+// Empty country index submissions must not touch WebGL state.
+export function canSubmitCountryIndices(indexCount, drawRanges = null) {
+  return Number(indexCount) > 0
+    && (!Array.isArray(drawRanges) || drawRanges.some(range => Number(range?.count) > 0));
+}
+
 import { visibleSpatialBlockRanges } from './mesh-spatial-blocks.js';
 
 const COUNTRY_BOUNDS_FLAG_DATELINE = 1;

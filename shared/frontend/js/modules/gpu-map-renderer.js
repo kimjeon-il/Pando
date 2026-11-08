@@ -13,7 +13,7 @@ import { createCountryBoundaryGeometryTransport } from './country-boundary-geome
 import { terrainDemFragmentSource } from './terrain-dem-shaders.js';
 import { resolveMapInteractionStyle } from './map-interaction-style.js';
 import { decodeCountryMesh } from './country-mesh-codec.js';
-import { createCountryTriangleRangeMap } from './gpu-country-ranges.js';
+import { createCountryTriangleRangeMap, canSubmitCountryIndices } from './gpu-country-ranges.js';
 export { countryDrawRangesForFrame, createCountryTriangleRangeMap, mergeCountryDrawRanges } from './gpu-country-ranges.js';
 import { createRenderDevice } from './render-device.js';
 import { createSceneColorCache } from './scene-color-cache.js';
@@ -39,7 +39,7 @@ import { shouldShowSharedCountryBorders } from './country-shared-boundary-packet
 import { geometryRevisionKey } from './geometry-versions.js';
 import { countryMeshContentKey } from './country-mesh-content-key.js';
 import { resourceKey, resourceUpdate } from './resource-update-policy.js';
-import { physicalSceneMatchesContext, mapPresentationTargetKey, mapBackgroundTargetKey, canDrawTerrainTiles } from './map-render-publication.js';
+import { physicalSceneMatchesContext, mapPresentationTargetKey, mapBackgroundTargetKey, canDrawTerrainTiles, classifyGpuResourceReady, classifyCanvasWorkerFrame } from './map-render-publication.js';
 export { physicalSceneMatchesContext };
 
 
@@ -3230,7 +3230,7 @@ export function createGpuMapRenderer(deps) {
     function drawProgram(program, vao, indexBuffer, indexCount, primitive, resources = null, palette = paletteTexture, lineColor = null, lineWidth = null, drawRanges = null, baseLand = false) {
       // A culled or empty country pass owns no GPU state. Do not bind
       // programs, textures or attributes when there are zero index submissions.
-      if (!(Number(indexCount) > 0) || (Array.isArray(drawRanges) && !drawRanges.some(range => Number(range?.count) > 0))) return null;
+      if (!canSubmitCountryIndices(indexCount, drawRanges)) return null;
       gl.useProgram(program);
       if (program === fillProgram) {
         const theme = mapTheme();
@@ -3852,21 +3852,15 @@ export function createGpuMapRenderer(deps) {
     }
 
     function overlayResourceReady(key) {
-      // The canonical and override country stroke packets are base-scene
-      // resources, not interaction overlays. After context restoration their
-      // last upload must request a real base frame, or recovery remains stuck
-      // awaiting a frame until its idle deadline.
-      if (String(key).startsWith('country-boundary:')
-        || String(key).startsWith('country-shared-boundary:')
-        || String(key).startsWith('country-outline-overrides:')) {
+      const source = classifyGpuResourceReady(key, renderScene,
+        packet => sceneStrokeResourcePacket(packet, projectGeneration).key);
+      if (source === 'country-boundary') {
         promotePreparedCountryBoundary();
         sceneColorCache.invalidate('country-boundary-resource-ready');
         invalidateGpuFrame('country-boundary-resource-ready');
-        return;
-      }
-      if ((renderScene?.polygons || []).some(packet => packet.key === key)
-        || (renderScene?.strokes || []).some(packet => sceneStrokeResourcePacket(packet, projectGeneration).key === key)) {
-        sceneColorCache.invalidate('overlay-resource-ready'); invalidateGpuFrame('overlay-resource-ready');
+      } else if (source === 'scene') {
+        sceneColorCache.invalidate('overlay-resource-ready');
+        invalidateGpuFrame('overlay-resource-ready');
       } else scheduleGpuInteractionFrame?.('interaction-resource-ready');
     }
     function buildCountryStrokeResource(sourceMesh, countryIds, sourceName, revision) {
@@ -5030,21 +5024,16 @@ export function createGpuMapRenderer(deps) {
           canvasRuntimeUrl.searchParams.set('physical', '1');
           // One acceptance predicate also supplies bounded rejection diagnostics.
           // Neither the renderer nor tests may call an old bitmap "presented".
-          const canvasFrameRejectionReason = message => {
-            if (canvasBackgroundEligible(message)) {
-              if (message.backgroundPresentationKey !== currentCanvasBackgroundKey(lastVisualFrame))
-                return 'background-presentation';
-              if (Number(message.physicalStyleRevision || 0) !== canvasPhysicalStyleRevision)
-                return 'physical-style';
-            } else {
-              if (message.presentationKey !== currentCanvasPresentationKey(lastVisualFrame)) return 'presentation';
-              if (Number(message.geometryRevision) !== geometryRevisionTracker.committedRevision()) return 'geometry';
-              if (Number(message.styleRevision || 0) !== canvasStyleRevision) return 'style';
-              if (message.surfaceQuality !== surfacePresentation.quality) return 'quality';
-            }
-            if (!canvasWorkerFrameMatchesPhysical(message, currentCanvasPhysical().context)) return 'physical';
-            return '';
-          };
+          const canvasFrameRejectionReason = message => classifyCanvasWorkerFrame(message, {
+            backgroundEligible: canvasBackgroundEligible(message),
+            expectedBackgroundKey: currentCanvasBackgroundKey(lastVisualFrame),
+            physicalStyleRevision: canvasPhysicalStyleRevision,
+            expectedPresentationKey: currentCanvasPresentationKey(lastVisualFrame),
+            geometryRevision: geometryRevisionTracker.committedRevision(),
+            styleRevision: canvasStyleRevision,
+            surfaceQuality: surfacePresentation.quality,
+            physicalMatches: canvasWorkerFrameMatchesPhysical(message, currentCanvasPhysical().context),
+          });
           canvasWorker = createGpuCanvasWorker({
             worker: workerChannels.create(canvasRuntimeUrl, { name: 'pandolab-canvas-renderer' }),
             generation: projectGeneration, onSend: recordCanvasWorkerMessage,
