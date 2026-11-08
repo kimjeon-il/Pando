@@ -184,7 +184,7 @@ jobs:
           shared/tests/p5-boundary-split-wasm.test.mjs shared/tests/p5-polygon-mesh-wasm.test.mjs
           tests/unit/country-shared-boundary.test.mjs
           tests/unit/boundary-lines.test.mjs
-      - name: Diagnose historical polygon regression
+      - name: Verify near-coincident historical polygon difference
         if: needs.plan.outputs.wasm == 'true'
         run: >-
           node --test --test-name-pattern='native difference terminates for a shared near-collinear historical triangle'

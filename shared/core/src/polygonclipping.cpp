@@ -4,15 +4,12 @@
 // All mutable state is per operation; native threads and WASM share this owner.
 #include <pandoeditor/polygonclipping.h>
 #include <algorithm>
-#include <array>
 #include <cmath>
-#include <iomanip>
 #include <limits>
 #include <map>
 #include <memory>
 #include <optional>
 #include <set>
-#include <sstream>
 #include <stdexcept>
 #include <utility>
 
@@ -295,7 +292,25 @@ struct Operation {
             const double y1=al->p.y+d2*av.y,y2=bl->p.y+d1*bv.y;
             p={(x1+x2)/2,(y1+y2)/2};
         }
-        return both->contains(p)?vertex(p):nullptr;
+        if(!both->contains(p))return nullptr;
+        // The intersection calculation combines several rounded operations.
+        // When its result is within four representable-coordinate error units
+        // of an existing endpoint, reuse that endpoint rather than repeatedly
+        // splitting out progressively displaced floating-point fragments.
+        // Input vertices are never moved or rounded by this decision.
+        const auto close=[](double x,double y){
+            return std::abs(x-y)<=4*epsilon*std::max({1.0,std::abs(x),std::abs(y)});
+        };
+        Vertex* nearest=nullptr;double distance=INFINITY;
+        for(auto* candidate:{al,ar,bl,br}){
+            const Point q=candidate->p;
+            if(!both->contains(q)||!close(p.x,q.x)||!close(p.y,q.y))continue;
+            const double d=std::hypot(p.x-q.x,p.y-q.y);
+            if(d<distance||(d==distance&&nearest&&comparePoints(q,nearest->p)<0)){
+                nearest=candidate;distance=d;
+            }
+        }
+        return nearest?nearest:vertex(p);
     }
     std::vector<Event*> splitSafely(Segment* s,Vertex* p){
         tree.remove(s);auto* right=s->right;queue.remove(right);auto added=split(s,p);added.push_back(right);
@@ -464,15 +479,8 @@ struct Operation {
             if(type==PolygonOperation::Difference&&m&&!overlap(boxes[0],boxes[m]))continue;
             for(auto* s:byMulti[m]){queue.add(s->left);queue.add(s->right);if(queue.size>maxQueue)throw std::runtime_error("Polygon endpoint queue size too big");}
         }
-        struct Trace { std::size_t id=0; bool left=false; Point p{}, a{}, b{}; };
-        std::array<Trace,8> trace{};std::size_t traceCount=0;
         while(auto* e=queue.pop()){
-            trace[traceCount++%trace.size()]={e->segment->id,e->left,e->point->p,e->segment->left->point->p,e->segment->right->point->p};
-            checkpoint();if(queue.size>maxQueue||processed.size()>maxQueue){
-                std::ostringstream out;out<<std::setprecision(17)<<"Polygon sweep segment limit exceeded: processed="<<processed.size()<<" queue="<<queue.size;
-                for(const auto& v:trace)out<<" | "<<v.id<<":"<<v.left<<" p="<<v.p.x<<","<<v.p.y<<" a="<<v.a.x<<","<<v.a.y<<" b="<<v.b.x<<","<<v.b.y;
-                throw std::runtime_error(out.str());
-            }
+            checkpoint();if(queue.size>maxQueue||processed.size()>maxQueue)throw std::runtime_error("Polygon sweep segment limit exceeded");
             const auto added=process(e);for(auto* item:added)if(!item->consumed)queue.add(item);
         }
         checkpoint();return output();
