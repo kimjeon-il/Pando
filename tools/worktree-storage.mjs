@@ -726,7 +726,6 @@ async function main(){
   if(args.includes('--prepare-dependencies')){console.log(JSON.stringify(prepareDependencies(root)));return;}
   if(args.includes('--retire-native')){console.log(JSON.stringify(retireNativeSnapshots({root,apply:args.includes('--apply'),refreshProcesses:runningStorageConsumers})));return;}
   if(args.includes('--retire-frontend')){console.log(JSON.stringify(retireFrontendSnapshots({root,apply:args.includes('--apply')})));return;}
-  if(args.includes('--retire-native')){console.log(JSON.stringify(retireUnusedNativeViews({root,apply:args.includes('--apply')})));return;}
   if(args.includes('--activate-compiler-cache'))return activateCompilerCache(root);
   if(args.includes('--disable-local-compiler')){console.log(JSON.stringify(deactivateCompilerCache({root})));return;}
   const compilerValues=()=>remoteOnlyBranch({root})||storageSettings(root)?.compilerEnabled===false?{}:Object.fromEntries(Object.entries(compilerCacheEnvironment({root})).filter(([key])=>/^(RUSTC_WRAPPER|CMAKE_C_COMPILER_LAUNCHER|CMAKE_CXX_COMPILER_LAUNCHER|EM_COMPILER_WRAPPER|SCCACHE_\w+)$/.test(key)));
