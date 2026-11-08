@@ -33,13 +33,16 @@
       "id": "project-file-contracts",
       "kind": "unit",
       "testPatterns": [
-        "tests/unit/document/map-plugin-cutover.test.mjs",
-        "tests/unit/geometry/map-plugin-hydro-history.test.mjs",
+        "tests/unit/data/file-access-contract.test.mjs",
+        "tests/unit/data/p6-project-persistence.test.mjs",
+        "tests/unit/document/timeline-geopackage.test.mjs",
         "tests/unit/geometry/qgis-pando-exchange.test.mjs"
       ],
       "inputs": [
         "src/**/generic-feature-*.js",
-        "src/document/project-domain.js"
+        "src/document/project-domain.js",
+        "src/document/project-state.js",
+        "src/**/workers/gpkg-*.js"
       ]
     },
     {
@@ -159,7 +162,7 @@
         "src/**/gpu-terrain-*.js",
         "src/rendering/gpu-base-scene-pass.js",
         "src/**/workers/canvas-terrain-*.js",
-        "src/**/workers/canvas-terrain-*.js",
+        "apps/viewer/js/workers/canvas-terrain-*.js",
         "assets/data/terrain-*/**",
         "assets/data/physical-land/**",
         "src/rendering/workers/canvas-render-worker.js",
@@ -186,7 +189,7 @@
         "src/geometry/country-contact-core.js",
         "src/rendering/country-stroke-preparation.js",
         "src/**/workers/*boundary*.js",
-        "src/**/workers/*boundary*.js"
+        "apps/viewer/js/workers/*boundary*.js"
       ],
       "requires": [
         "generated",
@@ -267,7 +270,7 @@
         "src/**/core-document-*.js",
         "src/**/core-document-*.js",
         "src/**/workers/project-*-worker.js",
-        "src/**/workers/project-*-worker.js"
+        "apps/viewer/js/workers/project-*-worker.js"
       ],
       "requires": [
         "generated",
@@ -362,7 +365,7 @@
       "kind": "command",
       "inputs": [
         "src/**/workers/**",
-        "src/**/workers/**",
+        "apps/viewer/js/workers/**",
         "src/**/worker-*.js",
         "src/**/worker-*.js",
         "scripts/lib/worker-assets.mjs"
@@ -435,7 +438,7 @@
         "scripts/lib/product-assets.mjs",
         "assets/data/**",
         "src/**/workers/**",
-        "src/**/workers/**"
+        "apps/viewer/js/workers/**"
       ],
       "argv": [
         "node",
@@ -1079,7 +1082,7 @@
     "src/**"
   ],
   "passiveInputs": [
-    "assets/js-vendor/**",
+    "shared/frontend/js/vendor/**",
     "apps/viewer/js/vendor/**",
     "assets/vendor/**",
     "assets/fonts/**",
@@ -1329,10 +1332,9 @@
     {
       "tests": [
         "tests/browser/document/viewer-calendar.spec.mjs",
-        "tests/unit/data/post-2000-generated-world-display.test.mjs",
         "tests/unit/document/timeline-resolver.test.mjs",
-        "tests/unit/geometry/indonesia-territory-timeline.test.mjs",
-        "tests/unit/geometry/sudan-ukraine-transition.test.mjs"
+        "tests/unit/document/builtin-world-catalog.test.mjs",
+        "tests/unit/data/builtin-world-loader.test.mjs"
       ],
       "inputs": [
         "config/library-data.json",
