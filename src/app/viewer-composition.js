@@ -160,10 +160,13 @@ export async function composeViewer({ productMode, meta }) {
   });
   disposables.push(postPresentation);
   // Both imported files and the builtin map use the same C++ time cursor.
-  const applyDocumentMonth=async(month,{isCurrent=()=>true,waitForFrame=false}={})=>{
+  const applyDocumentMonth=async(month,{isCurrent=()=>true,waitForFrame=false,onCursorAccepted=null}={})=>{
     const before=map.features(),generation=projectDomain.getGeneration();
     await activeSession.commandOwner.setTimelineCursor(month,{isCurrent});
     if(!isCurrent()||projectDomain.getGeneration()!==generation)return false;
+    // The new dated source is authoritative now. Its next frame may stage;
+    // never expose that frame while the C++ cursor is still unaccepted.
+    if(onCursorAccepted && onCursorAccepted()===false)return false;
     if(territorialMembershipDelta(before,map.features()).changed)
       await map.objectCatalog.pruneLayerItemVisibility();
     await map.update();
@@ -259,18 +262,21 @@ export async function composeViewer({ productMode, meta }) {
   const changeBuiltinCursor=async(month,{isCurrent,commit})=>{
     const previous=activeSession.commandOwner.state().timelineCursor;
     const previouslyReady=status.dataset.ready==='true';
+    const temporalTicket=map.renderer.beginTemporalViewTransition(isCurrent);
     status.dataset.loadingKind='temporal';status.dataset.ready='false';
     presentViewerLoadStatus(status,'다음 시점 준비 중…');
     try{
       // Date-dependent physical reference data stays outside the project.
       await owners.physicalResources.preparePhysicalContext(month,{isCurrent});
       if(!isCurrent())return false;
-      if(!await applyDocumentMonth(month,{isCurrent,waitForFrame:true}))return false;
+      if(!await applyDocumentMonth(month,{isCurrent,waitForFrame:true,
+        onCursorAccepted:()=>map.renderer.admitTemporalViewTransition(temporalTicket)}))return false;
       if(!isCurrent()||!commit())return false;
       status.dataset.ready='true';presentViewerLoadStatus(status,'지도 준비 완료.');
       postPresentation.schedule(isCurrent);
       return true;
     }catch(error){
+      map.renderer.finishTemporalViewTransition(temporalTicket);
       if(isCurrent()){
         // Restore the previous view of the *same* document after a render error.
         if(previous&&previous!==month&&activeSession.commandOwner.state().timelineCursor===month)
@@ -278,6 +284,8 @@ export async function composeViewer({ productMode, meta }) {
         status.dataset.ready=String(previouslyReady&&!error.restoreError);
       }
       throw error;
+    }finally{
+      map.renderer.finishTemporalViewTransition(temporalTicket);
     }
   };
   builtinClock=createBuiltinMonthClock({coalesceRequests:true,window,document,applyMonth:async(month,{isCurrent,commit})=>{
