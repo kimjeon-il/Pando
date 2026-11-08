@@ -123,6 +123,9 @@ test('P2 checkout provides comparison history for manual and push runs',()=>{
     const checkout=workflow.jobs[name].steps.find(step=>step.uses?.startsWith('actions/checkout@'));
     assert.equal(checkout?.with?.['fetch-depth'],0,`${name} must fetch origin/main and comparison history`);
   }
+  assert.equal(workflow.on.workflow_dispatch.inputs.skip_preview.default,false);
+  const preview=workflow.jobs.generate.steps.find(step=>step.name==='Hand the exact verified result to Viewer preview and acceptance');
+  assert.match(preview.if,/!inputs\.skip_preview/);
 });
 
 

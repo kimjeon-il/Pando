@@ -38,6 +38,10 @@ on:
         options: [minimal, full, temporal]
         required: false
         default: minimal
+      skip_preview:
+        description: Skip automatic broad preview dispatch when a focused verification follows
+        type: boolean
+        default: false
 permissions:
   contents: read
 concurrency:
@@ -222,7 +226,7 @@ jobs:
           node scripts/p2-publish-artifacts.mjs
       - name: Hand the exact verified result to Viewer preview and acceptance
         # Verified unchanged artifacts still need source-matched Viewer checks.
-        if: steps.publish.outcome == 'success' && steps.publish.outputs.superseded != 'true'
+        if: steps.publish.outcome == 'success' && steps.publish.outputs.superseded != 'true' && !inputs.skip_preview
         env:
           GH_TOKEN: ${{ github.token }}
           RESULT_SHA: ${{ steps.publish.outputs.result_sha }}
