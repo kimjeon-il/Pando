@@ -2,7 +2,7 @@ name: Unit scope reviewed delivery
 on:
   push:
     branches: [work/optimization]
-    paths: [.github/workflows/unit-scope-delivery.yml, .github/test-scope-delivery.json]
+    paths: [.github/workflows/unit-scope-delivery.yml, .github/test-scope-delivery.json, .github/apply-unit-recovery.mjs]
 permissions:
   contents: write
 concurrency:
