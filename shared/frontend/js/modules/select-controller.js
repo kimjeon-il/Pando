@@ -507,10 +507,19 @@ export function createSelectController({
     if (!documentObserver) {
       documentObserver = new windowRef.MutationObserver(records => {
         if (disposed) return;
-        for (const [select, component] of components) {
-          if (!component.shell.isConnected || !component.shell.contains(select)) releaseComponent(select);
-        }
+        // Only removals can orphan a select. A global component scan on
+        // every unrelated DOM insertion previously multiplied UI work.
         for (const record of records) {
+          for (const node of record.removedNodes) {
+            if (!(node instanceof windowRef.Element)) continue;
+            const removed = node.matches('select') ? [node] : [];
+            node.querySelectorAll?.('select').forEach(select => removed.push(select));
+            for (const select of removed) {
+              const component=components.get(select);
+              if(component && (!component.shell.isConnected || !component.shell.contains(select)))
+                releaseComponent(select);
+            }
+          }
           for (const node of record.addedNodes) {
             if (!(node instanceof windowRef.Element)) continue;
             if (node.matches('select')) enhance(node);

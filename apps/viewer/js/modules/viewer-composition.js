@@ -142,7 +142,9 @@ export async function composeViewer({ productMode, meta }) {
   // replacement below. The resource owner handles errors and shared requests.
   map.loadPhysicalResources({includeHydro:false});
   syncStatus=()=>{if(map&&!projectDomain.isOpening())selectionUiController.syncNow(null,{force:true});};
-  const search=()=>{map.objectCatalog.invalidateObjectPresentation();searchController.render();};
+  // Scene updates own catalog revisions. Search rendering only filters
+  // the current prepared catalog; it does not manufacture data changes.
+  const search=()=>searchController.render();
   // Accepted map frames are published independently of optional search/overlay
   // hydration. Each post task is generation-scoped and may never roll a map back.
   const postPresentation=createViewerPostPresentation({

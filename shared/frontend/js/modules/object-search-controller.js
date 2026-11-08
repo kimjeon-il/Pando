@@ -197,10 +197,6 @@ export function createObjectSearchController({
     });
   }
 
-  function syncLocks() {
-    // Lock state is shown and managed in the editor surface, not in search.
-  }
-
   function beginHydration() {
     commands.beginHydration?.();
   }
@@ -355,7 +351,7 @@ export function createObjectSearchController({
     window.clearTimeout(searchTimer);
   }
 
-  return Object.freeze({ bind, render, syncSelection, syncLocks, beginHydration, completeHydration,
+  return Object.freeze({ bind, render, syncSelection, beginHydration, completeHydration,
     cancelSearch, beginProjectTransition, endProjectTransition, dispose });
 }
 

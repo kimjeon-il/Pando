@@ -258,13 +258,12 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
   });
   renderQuality.applyAdaptiveRenderQuality();
   initialPreview.start().catch(error=>onError(error,'지도 미리보기 진단을 기록하지 못했습니다.','PL-MAP-INITIAL-PREVIEW'));
-  function buildScene(){if(!session)return;state.objectPresentationRevision++;objectCatalog.invalidateObjectPresentation();renderingDomain.invalidateProject('document-presentation');}
+  function buildScene(){if(!session)return;objectCatalog.invalidateObjectPresentation();renderingDomain.invalidateProject('document-presentation');}
   async function update() {
     if(!session)return;
     const generation=++updateGeneration;
     state.countryIndex=new Map(entityStore.snapshot().map(feature=>[String(feature.id),feature]));
     const rootFeatures=builtinSession.builtinTerritorialScene().collection.features;
-    state.objectPresentationRevision++;
     await initialized;if(generation!==updateGeneration)return;
     buildScene(); // PROJECT includes label layout: renamed labels reflow around neighbors.
     if(pendingPropertyPaint){
