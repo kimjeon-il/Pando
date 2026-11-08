@@ -31,8 +31,8 @@ jobs:
           writeFileSync('/tmp/pando-registry-before.json',JSON.stringify(baseline));
           console.log(JSON.stringify(baseline,null,2));
           JS
-      - name: Apply only source-hash-checked reviewed edits
-        run: node .github/test-scope-delivery.mjs
+      - name: Apply reviewed recovery patch with intact current-source checks
+        run: node .github/apply-unit-recovery.mjs
       - name: Reject new registry issues without modifying unrelated unfinished work
         run: |
           node --input-type=module <<'JS'
@@ -60,29 +60,29 @@ jobs:
       - name: Exercise consolidated behavior without native builds or real datasets
         run: >-
           node --test
-          tests/unit/document/builtin-session.test.mjs
-          tests/unit/document/distribution-model.test.mjs
-          tests/unit/ui/map-settings.test.mjs
+          tests/unit/document/app-builtin-session.test.mjs
+          tests/unit/document/builtin-subunits.test.mjs
+          tests/unit/ui/app-hydro-settings.test.mjs
           tests/unit/document/core-document-runtime.test.mjs
           tests/unit/app/viewer-bootstrap-recovery.test.mjs
           tests/unit/runtime/check-automation.test.mjs
           tests/unit/runtime/check-runner.test.mjs
           tests/unit/runtime/remote-only-native-policy.test.mjs
           tests/unit/build/p2-artifact-plan.test.mjs
-          tests/unit/rendering/prepared-country-scope.test.mjs
+          tests/unit/rendering/prepared-polygon-mesh.test.mjs
           tests/unit/rendering/country-geometry-revision.test.mjs
       - name: Preserve exact recovery patch before publication
         if: always()
         run: |
-          git diff --binary > "$RUNNER_TEMP/unit-scope-reviewed.patch"
-          cp .github/test-scope-patch-v2.b64 "$RUNNER_TEMP/reviewed-recipe.b64"
+          git diff --cached --binary > "$RUNNER_TEMP/unit-scope-reviewed.patch"
+          cp .github/test-scope-recovery.patch "$RUNNER_TEMP/reviewed-recipe.patch"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: unit-scope-reviewed-patch
           path: |
             ${{ runner.temp }}/unit-scope-reviewed.patch
-            ${{ runner.temp }}/reviewed-recipe.b64
+            ${{ runner.temp }}/reviewed-recipe.patch
           retention-days: 30
           if-no-files-found: error
       - name: Commit only reviewed paths and fast-forward the work branch
