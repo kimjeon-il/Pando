@@ -1,33 +1,6 @@
 {
-  "base": "82df0287258bf4d6607c938078415954071e64ad",
-  "remove": [
-    "tests/unit/document/borneo-country-geometry.test.mjs",
-    "tests/unit/document/caribbean-reef-identity.test.mjs",
-    "tests/unit/document/east-germany-source-capture.test.mjs",
-    "tests/unit/document/ussr-1922-approved-followups.test.mjs",
-    "tests/unit/document/ussr-1922-aral-names.test.mjs",
-    "tests/unit/document/ussr-1922-country-replay.test.mjs",
-    "tests/unit/document/ussr-1922-physical-replay.test.mjs",
-    "tests/unit/geometry/boundary-capture-evidence.test.mjs",
-    "tests/unit/geometry/gis-baikonur-1994-landsat.test.mjs",
-    "tests/unit/geometry/gis-baikonur-reference.test.mjs",
-    "tests/unit/geometry/gis-german-1914-originals.test.mjs",
-    "tests/unit/geometry/gis-hgis-source.test.mjs",
-    "tests/unit/geometry/gis-hydro-bulk-all29.test.mjs",
-    "tests/unit/geometry/gis-hydro-followup-independent.test.mjs",
-    "tests/unit/geometry/gis-osm-source-inventory.test.mjs",
-    "tests/unit/geometry/hydro-osm-batch01-screen.test.mjs",
-    "tests/unit/geometry/hydro-usgs-official-gauges.test.mjs",
-    "tests/unit/geometry/hydro-yarra-vector-screen.test.mjs",
-    "tests/unit/geometry/p1-hydro-source-receipts.test.mjs",
-    "tests/unit/data/ussr-1922-report-native.test.mjs",
-    "tests/unit/data/gis-lsib-archive-evidence.test.mjs",
-    "tests/unit/data/gis-lsib-screen-report.test.mjs",
-    "tests/unit/geometry/gis-caspian-pinned-native-baseline.test.mjs",
-    "tests/unit/geometry/gis-lsib-targeted.test.mjs",
-    "tests/unit/geometry/gis-lsib-untargeted.test.mjs",
-    "tests/unit/geometry/gis-lsib-disputed-source.test.mjs",
-    "tests/unit/geometry/river-territory-partition-serbia.test.mjs"
-  ],
-  "outputsSha256": "80e914408c86d4457274a56205740370016d989bfc7cdb32bd2fd966fe57668f"
+  "batch": 2,
+  "base": "9b48257416b1683d605c97cfac0d0e5792d13642",
+  "reviewedFiles": 106,
+  "recipeSha256": "f7f61f7d5ce1b578104cd8f01a6cf1f39627a0e54b407dcb2e4e1585f2dac3a1"
 }
