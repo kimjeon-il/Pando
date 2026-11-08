@@ -44,6 +44,26 @@ export function libraryMaterializedRoot(root = defaultRoot,{scopeId}={}) {
   return base;
 }
 
+/** Read one explicit input without broadening the mounted preparation scope.
+ * An owned missing working file is an error; unprepared archive bytes are not
+ * a second mutable source and never overwrite the working edition. */
+export function readLibraryDataFile(path,{root=defaultRoot,fetch=false}={}){
+  const config=libraryConfig(root);
+  if(typeof path!=='string'||!/^[\w.-]+(?:\/[\w.-]+)*$/.test(path)||path.split('/').some(part=>part==='.'||part==='..')
+    ||!config.mounts.some(mount=>mount!=='reports'&&(path===mount||path.startsWith(mount+'/'))))throw Error('Invalid explicit library input path');
+  const view=libraryMaterializedRoot(root),file=safeChild(view,path);
+  if(existsSync(file)){
+    const stamp=lstatSync(file);if(!stamp.isFile()||stamp.isSymbolicLink())throw Error('Invalid library input: '+path);
+    return readFileSync(file);
+  }
+  const manifest=resolve(view,'.cache-owner.json');
+  if(existsSync(manifest)&&Object.hasOwn(JSON.parse(readFileSync(manifest,'utf8')).files,path))throw Error('Owned library input is missing: '+path);
+  const checkout=libraryCheckout(root);
+  const archive=JSON.parse(git(checkout,['show',config.revision+':archive/index.json'],{allowFetch:fetch}));
+  const entry=archive.files[path];if(!entry)throw Error('Pinned library input is missing: '+path);
+  return decodeArchiveEntry(checkout,entry,config.revision,{fetch});
+}
+
 export function libraryRuntimeLeasePath(root,product,pid=process.pid){
   if(!['viewer','editor','verification'].includes(product)||!Number.isInteger(pid)||pid<1)throw Error('Invalid frontend runtime lease');
   return resolve(root,'.library-data/runtime-leases',product+'-'+pid+'.json');

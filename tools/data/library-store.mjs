@@ -6,7 +6,7 @@ import {gunzipSync,gzipSync} from "node:zlib";
 import {contentFiles,contentHash,removeContentLink,replaceLibraryFile,shareContentFile} from "./library-content.mjs";
 import {assertHistoricalStorageChanges} from "../gis/historical-display-storage.mjs";
 import {assertHistoricalDisplayChanges} from "../gis/historical-display-review.mjs";
-import {readBuiltinCountryStoredBytes} from "./builtin-country-bytes.mjs";
+import {readBuiltinCountry} from "./builtin-country-bytes.mjs";
 import {defaultRoot,gitOptions,git,libraryConfig,libraryCheckout,libraryMaterializedRoot,libraryReportRoot,librarySharedCheckout,libraryOwnerId,safeChild,decodeArchiveEntry,withLibraryLock,organizationTree} from "./library-context.mjs";
 import {reportRegistry,writeReportRegistry,checkedReportPath,assertReportSubject} from "./library-reports.mjs";
 import {compactOwnedCheckout,libraryWriteLeases,scopesOverlap,prepareOwnedLibraryData} from "./library-runtime.mjs";
@@ -38,12 +38,12 @@ export function assertExpectedLibraryRevision({ expectedRevision, expectedBranch
   if (remote !== expectedRevision) throw Error(`Library remote ${expectedBranch || 'work/gis'} differs from the expected revision; regenerate against the latest data before storing.`);
 }
 
-export function storeLibraryData({ root = defaultRoot, push = false, prefixes = null, removePaths = [], expectedRevision, expectedBranch } = {}) {
+export function storeLibraryData({ root = defaultRoot, push = false, prefixes = null, removePaths = [], expectedRevision, expectedBranch, readPreviousCountry } = {}) {
   validateExpectedLibraryRevision(expectedRevision);
   validateExpectedBranch(expectedBranch);
   if (!prefixes?.length) throw Error("Storage requires explicit library prefixes.");
   for (const path of prefixes) if (path === 'reports' || path.startsWith('reports/')) assertReportSubject(root, path);
-  return withLibraryLock(root, () => storeOwnedLibraryData({ root, push, prefixes, removePaths, expectedRevision, expectedBranch }));
+  return withLibraryLock(root, () => storeOwnedLibraryData({ root, push, prefixes, removePaths, expectedRevision, expectedBranch, readPreviousCountry }));
 }
 
 function recordReportOwner(root, source, paths) {
@@ -136,7 +136,7 @@ export function runtimeStoreIndex(pinned, current) {
   } };
 }
 
-export function storeOwnedLibraryData({ root, push, prefixes, removePaths, reportData, expectedRevision, expectedBranch }) {
+export function storeOwnedLibraryData({ root, push, prefixes, removePaths, reportData, expectedRevision, expectedBranch, readPreviousCountry }) {
   // Store the owner's current write view. Preparing a different view here can
   // hide unpublished outputs, and absence from a view never means deletion.
   const materialized = libraryMaterializedRoot(root);
@@ -186,14 +186,15 @@ export function storeOwnedLibraryData({ root, push, prefixes, removePaths, repor
   }
   const reviewScopes=['assets/data/territorial-entities','assets/data/builtin-world'];
   if(prefixes.some(p=>reviewScopes.some(s=>p===s||p.startsWith(s+'/')||s.startsWith(p+'/')))){
-    const revision=libraryConfig(root).revision,archived=JSON.parse(git(data.checkout,['show',revision+':archive/index.json'],{allowFetch:true})),oldBytes=p=>decodeArchiveEntry(data.checkout,archived.files[p],revision,{fetch:true}),newBytes=p=>readFileSync(resolve(data.materialized,p));
     const sourceBase='assets/data/territorial-entities/generated/v2/',countryBase='assets/data/builtin-world/generated/v1/';
     const sourceIndex=JSON.parse(newBytes(sourceBase+'index.json')),previousSourceIndex=JSON.parse(oldBytes(sourceBase+'index.json'));
     const builtinSelected=prefixes.some(p=>p==='assets/data/builtin-world'||p.startsWith('assets/data/builtin-world/')||'assets/data/builtin-world'.startsWith(p+'/'));
     const builtinIndex=builtinSelected?JSON.parse(newBytes(countryBase+'index.json')):{entities:[]},previousBuiltinIndex=builtinSelected?JSON.parse(oldBytes(countryBase+'index.json')):{entities:[]};
     const source=(entry,read)=>{const bytes=read(sourceBase+entry.file);if(contentHash(bytes)!==entry.sha256)throw Error('Historical source chunk hash mismatch: '+entry.entityId);const entity=JSON.parse(gunzipSync(bytes));if(entity.entityId!==entry.entityId)throw Error('Historical source identity mismatch');return entity;};
-    const country=(entry,read)=>{const value=JSON.parse(gunzipSync(readBuiltinCountryStoredBytes(entry,file=>read(countryBase+file))));if(value.entityId!==entry.entityId)throw Error('Historical country identity mismatch');return value;};
-    assertHistoricalStorageChanges({prefixes,sourceIndex,previousSourceIndex,builtinIndex,previousBuiltinIndex,readSource:e=>source(e,newBytes),readPreviousSource:e=>source(e,oldBytes),readCountry:e=>country(e,newBytes),readPreviousCountry:e=>country(e,oldBytes),sourceFileChanged:e=>{if(!generatedSelected)return false;const p='assets/data/territorial-entities/source/countries/'+e.entityId.replace(':','-')+'.json';return prefixes.some(prefix=>p===prefix||p.startsWith(prefix+'/'))&&contentHash(newBytes(p))!==archived.files[p]?.sha256;},readRawSource:e=>JSON.parse(newBytes('assets/data/territorial-entities/source/countries/'+e.entityId.replace(':','-')+'.json')),countryFileChanged:e=>(e.parts||[e]).some(spec=>{const p=countryBase+spec.file;return prefixes.some(prefix=>p===prefix||p.startsWith(prefix+'/'))&&contentHash(newBytes(p))!==archived.files[p]?.sha256;})});
+    const country=(entry,index,read)=>readBuiltinCountry(entry,index,file=>read(countryBase+file));
+    const previousCountry=readPreviousCountry?entry=>readPreviousCountry(entry,previousBuiltinIndex,file=>oldBytes(countryBase+file))
+      :entry=>country(entry,previousBuiltinIndex,oldBytes);
+    assertHistoricalStorageChanges({prefixes,sourceIndex,previousSourceIndex,builtinIndex,previousBuiltinIndex,readSource:e=>source(e,newBytes),readPreviousSource:e=>source(e,oldBytes),readCountry:e=>country(e,builtinIndex,newBytes),readPreviousCountry:previousCountry,sourceFileChanged:e=>{if(!generatedSelected)return false;const p='assets/data/territorial-entities/source/countries/'+e.entityId.replace(':','-')+'.json';return prefixes.some(prefix=>p===prefix||p.startsWith(prefix+'/'))&&contentHash(newBytes(p))!==archived.files[p]?.sha256;},readRawSource:e=>JSON.parse(newBytes('assets/data/territorial-entities/source/countries/'+e.entityId.replace(':','-')+'.json')),countryFileChanged:e=>[...(e.parts||[e]),...(builtinIndex.geometryAssets||[]).filter(asset=>(e.geometryRefs||[]).some(ref=>ref.id===asset.id&&ref.version===asset.version))].some(spec=>{const p=countryBase+spec.file;return prefixes.some(prefix=>p===prefix||p.startsWith(prefix+'/'))&&contentHash(newBytes(p))!==archived.files[p]?.sha256;})});
   }
   const indexPath = resolve(data.checkout, 'archive/index.json');
   // A runtime pin owns all unselected data inputs, independently of the

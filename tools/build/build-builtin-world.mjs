@@ -3,7 +3,7 @@ import {assertHistoricalCompiledChanges} from "../gis/historical-display-review.
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
-import {gzipSync,gunzipSync} from 'node:zlib';
+import {gunzipSync} from 'node:zlib';
 import {execFileSync} from 'node:child_process';
 import {withLibraryOutputs} from "../data/library-runtime.mjs";
 import {libraryConfig,libraryCheckout,decodeArchiveEntry} from "../data/library-context.mjs";
@@ -13,7 +13,7 @@ import {buildCurrentWorld} from "../data/territorial-current-world.mjs";
 import {compileBuiltinWorldCatalog,coalesceCoverageAdjustments,replaceBuiltinWorldCountryNames} from "./builtin-world-compiler.mjs";
 import {builtinSubunitId} from "../../src/document/builtin-subunits.js";
 import {loadBuiltinDisplayPolicy} from "../gis/builtin-display-policy.mjs";
-import {finalizeBuiltinWorldFiles,readBuiltinCountryStoredBytes} from "../data/builtin-country-bytes.mjs";
+import {encodeBuiltinCountries,finalizeBuiltinWorldFiles,readBuiltinCountryStoredBytes,readBuiltinCountry} from "../data/builtin-country-bytes.mjs";
 export {finalizeBuiltinWorldFiles};
 
 const output=fileURLToPath(new URL("../../assets/data/builtin-world/generated/v1/",import.meta.url));
@@ -29,25 +29,13 @@ export function buildBuiltinWorldPublication({input=null,policyFile=new URL("../
  const view=input?.view||JSON.parse(fs.readFileSync(path.join(territorialSourceRoot,'views/world.json')));
  const currentWorld=input?.currentWorld||buildCurrentWorld({entities,view});
  const {index,countries,coverageReport}=compileBuiltinWorldCatalog({entities,view,currentWorld,policy});
- const files=encodeCountries(index,countries);
+ const files=encodeBuiltinCountries(index,countries,new Map());
  recordBuiltinWorldInputs(index,input?.sourceIndex?Object.fromEntries(input.sourceIndex.entities.filter(row=>!['river','lake'].includes(row.entityType)).map(row=>[row.entityId,row.sha256])):
   Object.fromEntries(entities.map(row=>[row.entityId,sha(JSON.stringify(row))])),view,policy);
  finalizeBuiltinWorldFiles(index,files);
  files.set('coverage-report.json',Buffer.from(JSON.stringify(coverageReport)+'\n'));
  return files;
 }
-function encodeCountries(index,countries){
- const files=new Map();
- for(const country of countries){
-  const decoded=Buffer.from(JSON.stringify(country)+'\n'),stored=gzipSync(decoded,{level:9,mtime:0});stored[9]=3;
-  const digest=sha(stored),file=`countries/${country.entityId.replaceAll(':','-')}-sha256-${digest}.json.gz`;
-  files.set(file,stored);
-  Object.assign(index.entities.find(row=>row.entityId===country.entityId),{file,encoding:'gzip',sha256:digest,
-   compressedBytes:stored.length,decodedBytes:decoded.length});
- }
- return files;
-}
-
 export function buildBuiltinWorldNamePublication({entityIds,sourceIndex,previousIndex,readSource=readTerritorialSource,readPreviousSource,readCountry}) {
  if(!entityIds?.length||new Set(entityIds).size!==entityIds.length)throw Error('Explicit unique name scope required');
  const index=structuredClone(previousIndex),files=new Map();
@@ -63,7 +51,7 @@ export function buildBuiltinWorldNamePublication({entityIds,sourceIndex,previous
   const unnamed=({names,alternateNames,nameVersions,...rest})=>rest;
   if(JSON.stringify(unnamed(entity))!==JSON.stringify(unnamed(prior)))throw Error(`Name-only scope includes non-name changes: ${id}`);
   const next=replaceBuiltinWorldCountryNames(country,entity);
-  for(const [file,bytes] of encodeCountries(index,[next]))files.set(file,bytes);
+  for(const [file,bytes] of encodeBuiltinCountries(index,[next],new Map()))files.set(file,bytes);
   revisions[id]=source.sha256;
  }
  const ordered=Object.fromEntries(Object.entries(revisions).sort(([a],[b])=>a.localeCompare(b,'en')));
@@ -127,6 +115,7 @@ export function buildBuiltinWorldPartialPublication({entityIds,sourceIndex,previ
  onScope(scope);
  if(planOnly)return scope;
  const files=new Map(),replacements=new Map(),coverage=new Map(),adjustments=[];
+ const geometryAssets=new Map((previousIndex.geometryAssets||[]).map(asset=>[JSON.stringify([asset.id,asset.version]),asset]));
  const availableSourceIds=new Set(previousIndex.sourceIdentities.flatMap(row=>row.sourceFeatureIds));
  for(const component of components){
   const ids=new Set(nodes.filter(row=>component.has(row.projectEntityId)).flatMap(row=>row.sourceEntityIds));
@@ -136,13 +125,17 @@ export function buildBuiltinWorldPartialPublication({entityIds,sourceIndex,previ
    ...(policy.parentRelations ? {parentRelations:policy.parentRelations.filter(row=>ids.has(row.entityId)&&ids.has(row.parentEntityId))} : {})};
   const world=currentWorld?{...currentWorld,features:currentWorld.features.filter(row=>entities.some(e=>e.sourceInfo?.featureId===row.id))}:buildCurrentWorld({entities,view:scopedView});
   const compiled=compileBuiltinWorldCatalog({entities,view:scopedView,currentWorld:world,policy:scopedPolicy,availableSourceIds});
-  for(const [file,bytes] of encodeCountries(compiled.index,compiled.countries))files.set(file,bytes);
+  compiled.index.geometryAssets=previousIndex.geometryAssets;
+  for(const [file,bytes] of encodeBuiltinCountries(compiled.index,compiled.countries,new Map()))files.set(file,bytes);
+  for(const asset of compiled.index.geometryAssets)geometryAssets.set(JSON.stringify([asset.id,asset.version]),asset);
   for(const row of compiled.index.entities)replacements.set(row.entityId,row);
   for(const row of compiled.coverageReport.entities)coverage.set(row.entityId,row);
   adjustments.push(...compiled.coverageReport.adjustments);
  }
  const index=structuredClone(previousIndex);
  index.entities=[...index.entities.filter(row=>!affected.has(row.entityId)),...replacements.values()].sort((a,b)=>a.entityId.localeCompare(b.entityId,'en'));
+ const used=new Set(index.entities.flatMap(entry=>(entry.geometryRefs||[]).map(ref=>JSON.stringify([ref.id,ref.version]))));
+ index.geometryAssets=[...geometryAssets].filter(([key])=>used.has(key)).sort(([a],[b])=>a<b?-1:a>b?1:0).map(([,value])=>value);
  recordBuiltinWorldInputs(index,revisions,view,policy);
  finalizeBuiltinWorldFiles(index,files,{previousIndex});
  files.set('coverage-report.json',Buffer.from(JSON.stringify({schemaVersion:2,
@@ -150,7 +143,7 @@ export function buildBuiltinWorldPartialPublication({entityIds,sourceIndex,previ
   entities:[...previousCoverage.entities.filter(row=>!affected.has(row.entityId)),...coverage.values()].sort((a,b)=>a.entityId.localeCompare(b.entityId,'en'))})+'\n'));
  return files;
 }
-export function writeBuiltinWorldPublication(files,directory=output,{check=false}={}){
+export function writeBuiltinWorldPublication(files,directory=output,{check=false,readPreviousCountry}={}){
  // The index becomes visible only after the emitted payloads and diagnostics.
  // Deltas overlay an existing verified publication; old pinned assets are retained.
  const entries=[...files].filter(([file])=>file!=='index.json');
@@ -166,7 +159,7 @@ export function writeBuiltinWorldPublication(files,directory=output,{check=false
  if(!files.has('index.json')&&[...files.keys()].some(file=>file.startsWith('countries/')||file.startsWith('country-parts/')))throw Error('Historical country publication requires its paired index');
  if(files.has('index.json')){
   const next=JSON.parse(files.get('index.json')),priorPath=path.join(directory,'index.json'),prior=fs.existsSync(priorPath)?JSON.parse(fs.readFileSync(priorPath)):{entities:[]},old=new Map(prior.entities.map(e=>[e.entityId,e]));
-  for(const entry of next.entities){const before=old.get(entry.entityId);if(before?.sha256===entry.sha256)continue;const read=entry=>JSON.parse(gunzipSync(readBuiltinCountryStoredBytes(entry,file=>files.get(file)||fs.readFileSync(path.join(directory,file))))),readOld=entry=>JSON.parse(gunzipSync(readBuiltinCountryStoredBytes(entry,file=>fs.readFileSync(path.join(directory,file)))));assertHistoricalCompiledChanges(read(entry),before?readOld(before):null);}
+  for(const entry of next.entities){const before=old.get(entry.entityId);if(before?.sha256===entry.sha256)continue;const read=entry=>readBuiltinCountry(entry,next,file=>files.get(file)||fs.readFileSync(path.join(directory,file))),readOld=entry=>readPreviousCountry?readPreviousCountry(entry,prior,file=>fs.readFileSync(path.join(directory,file))):readBuiltinCountry(entry,prior,file=>fs.readFileSync(path.join(directory,file)));assertHistoricalCompiledChanges(read(entry),before?readOld(before):null);}
  }
  return withLibraryOutputs({paths:changed.map(({target})=>target)},()=>{
   for(const {target,bytes} of changed){fs.mkdirSync(path.dirname(target),{recursive:true});fs.writeFileSync(target,bytes);}

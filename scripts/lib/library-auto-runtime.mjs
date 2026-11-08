@@ -8,7 +8,7 @@ import {gunzipSync} from 'node:zlib';
 import {stageArtifacts,publishArtifacts,graphStatus,safePath,assertBranchState,RECEIPT_PATH} from './p2-artifact-graph.mjs';
 import {libraryConfig,libraryCheckout} from "../../tools/data/library-context.mjs";
 import {prepareLibraryData,withLibraryOutputs} from "../../tools/data/library-runtime.mjs";
-import {readBuiltinCountryStoredBytes} from "../../tools/data/builtin-country-bytes.mjs";
+import {readBuiltinCountryStoredBytes,readBuiltinCountry} from "../../tools/data/builtin-country-bytes.mjs";
 import {builtinCountryAssets} from "../../src/data/builtin-country-files.js";
 import {temporalContains,temporalMonthEnd} from "../../src/document/temporal.js";
 import {createAutoPublicationReceipt} from './library-auto-publication.mjs';
@@ -60,15 +60,12 @@ function countries(root,decodeIds=new Set()){
  if(!Array.isArray(index.entities))fail('COUNTRY_INDEX');
  for(const entry of index.entities){
   if(result.has(entry.entityId))fail('DUPLICATE_COUNTRY');
-  const stored=readBuiltinCountryStoredBytes(entry,p=>readFileSync(safePath(root,COUNTRY+p)));
   let payload;
   // Hash-check every stored country, but retain geometry only for the changed
   // current bindings. Never keep a second full 286-country catalog in memory.
   if(decodeIds.has(entry.entityId)){
-   const bytes=entry.encoding==='gzip'?gunzipSync(stored,{maxOutputLength:256*1024*1024}):stored;
-   if(bytes.length!==entry.decodedBytes)fail('COUNTRY_DECODED_SIZE');
-   payload=JSON.parse(bytes);assert.equal(payload.entityId,entry.entityId,'AUTO_RUNTIME_COUNTRY_ID');
-  }
+   payload=readBuiltinCountry(entry,index,p=>readFileSync(safePath(root,COUNTRY+p)));assert.equal(payload.entityId,entry.entityId,'AUTO_RUNTIME_COUNTRY_ID');
+  }else readBuiltinCountryStoredBytes(entry,p=>readFileSync(safePath(root,COUNTRY+p)));
   result.set(entry.entityId,{entry,...(payload?{payload}:{})});
  }
  return result;

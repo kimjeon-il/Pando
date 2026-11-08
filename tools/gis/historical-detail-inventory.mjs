@@ -19,7 +19,7 @@ export function buildHistoricalDetailInventory({sourceEntities,countries,sourceI
  return {schema:'pando-historical-detail-inventory-v1',sourceEntities:sourceEntities.length,sourceVersions:rows.length,compiledCountries:countries.length,compiledSourceBindings:countries.reduce((n,c)=>n+c.sourceBindings.length,0),uniqueCompiledGeometryRefs:groups.size,uncompiledSourceEntities:Object.keys(sourceRecords).filter(id=>!sourceEntities.some(e=>e.entityId===id)),counts,unmapped,rows,geometryGroups:[...groups].map(([geometryRef,coverage])=>({geometryRef,coverage})),countries};
 }
 export function readInventoryCountries(index,readFile){
- return index.entities.map(entry=>{const country=JSON.parse(gunzipSync(readBuiltinCountryStoredBytes(entry,readFile)));return {entityId:entry.entityId,storedSha256:entry.sha256,sourceBindings:country.sourceBindings,geometryBindings:country.timelineRecords.geometryBindings,lifetimes:country.timelineRecords.lifetimes,sourceVersionMetadata:country.identity.properties.metadata.historicalTimeline.geometryVersions,geometryRefs:country.geometries.map(g=>({id:g.id,version:g.version}))};});
+ return index.entities.map(entry=>{const country=JSON.parse(gunzipSync(readBuiltinCountryStoredBytes(entry,readFile)));return {entityId:entry.entityId,storedSha256:entry.sha256,sourceBindings:country.sourceBindings,geometryBindings:country.timelineRecords.geometryBindings,lifetimes:country.timelineRecords.lifetimes,sourceVersionMetadata:country.identity.properties.metadata.historicalTimeline.geometryVersions,geometryRefs:country.geometryRefs};});
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
  if(process.argv.length!==3)throw Error('Usage: node tools/gis/historical-detail-inventory.mjs OUTPUT.json');

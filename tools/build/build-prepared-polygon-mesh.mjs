@@ -6,7 +6,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gunzipSync, gzipSync } from 'node:zlib';
 import {builtinCountryAssets} from "../../src/data/builtin-country-files.js";
-import {readBuiltinCountryStoredBytes} from "../data/builtin-country-bytes.mjs";
+import {readBuiltinCountry} from "../data/builtin-country-bytes.mjs";
 import "../../src/rendering/workers/gpu-mesh-core.js";
 import { decodePolygonMesh, encodePolygonMesh, POLYGON_MESH_FORMAT_VERSION } from "../../src/rendering/polygon-mesh-codec.js";
 import "./load-spherical-core.mjs";
@@ -96,11 +96,11 @@ if(selectedIds){
  if(!effectiveIds.size)throw Error('No selected countries are active in the query months');
 }
 const countries=index.entities.filter(entry=>!effectiveIds||effectiveIds.has(entry.entityId)).map(entry=>{
- const stored=readBuiltinCountryStoredBytes(entry,relative=>{
+ const country=readBuiltinCountry(entry,index,relative=>{
   const file='assets/data/builtin-world/generated/v1/'+relative,bytes=readFileSync(resolve(root,file));
   inputHashes[file]=sha256(bytes);return bytes;
  });
- const country=JSON.parse(gunzipSync(stored));if(!selectedIds)collect(country);return country;
+ if(!selectedIds)collect(country);return country;
 });
 if(!selectedIds){
  source('assets/data/territorial-entities/generated/current-world.geojson');

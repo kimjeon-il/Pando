@@ -64,8 +64,8 @@ test('custom project flag URLs retain access to bundled 4:3 icons', async () => 
 
 test('viewer data closure follows current manifest references and excludes source, old versions and orphan assets',async()=>{
  const f=fixture(),sha256='a'.repeat(64),country='countries/A-sha256-'+sha256+'.json.gz';
- f.put('assets/data/builtin-world/generated/v1/index.json',JSON.stringify({schema:'pandolab-builtin-world',schemaVersion:2,storageLayout:'country-files-v1',
-  entities:[{entityId:'A',file:country,encoding:'gzip',sha256,compressedBytes:3,decodedBytes:8}]}));
+ f.put('assets/data/builtin-world/generated/v1/index.json',JSON.stringify({schema:'pandolab-builtin-world',schemaVersion:2,storageLayout:'descriptor-geometries-v1',geometryAssets:[],
+  entities:[{geometryRefs:[],entityId:'A',file:country,encoding:'gzip',sha256,compressedBytes:3,decodedBytes:8}]}));
  f.put('assets/data/builtin-world/generated/v1/transport/packed.bin');
  f.put('assets/data/builtin-world/generated/v1/'+country);
  f.put('assets/data/builtin-world/generated/v1/countries/orphan.json.gz');

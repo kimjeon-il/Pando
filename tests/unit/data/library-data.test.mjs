@@ -8,7 +8,7 @@ import { tmpdir } from 'node:os';
 import { createHash } from 'node:crypto';
 import { gzipSync } from 'node:zlib';
 import {compactLibraryCheckout,prepareLibraryData,withLibraryWrite} from "../../../tools/data/library-runtime.mjs";
-import {decodeArchiveEntry,libraryReportRoot,libraryReportEditRoot,libraryMaterializedRoot,safeChild} from "../../../tools/data/library-context.mjs";
+import {decodeArchiveEntry,libraryReportRoot,libraryReportEditRoot,libraryMaterializedRoot,safeChild,readLibraryDataFile} from "../../../tools/data/library-context.mjs";
 import {hydrateReports} from "../../../tools/data/library-reports.mjs";
 import {storeLibraryData,libraryPublicationRef} from "../../../tools/data/library-store.mjs";
 import { reportPath } from "../../../tools/data/report-paths.mjs";
@@ -93,6 +93,8 @@ test('partial preparation never archives missing inputs as deletions and reports
   assert.equal(reports.materialized,null);assert.equal(existsSync(join(root,'assets/data')),false);
   prepareLibraryData({root,fetch:false,purpose:'gis',prefixes:[selected]});
   assert.equal(existsSync(join(root,unprepared)),false);
+  assert.equal(readLibraryDataFile(unprepared,{root}).toString(),unprepared);
+  assert.equal(existsSync(join(root,unprepared)),false,'explicit archive reads do not hydrate the preparation view');
   withLibraryWrite({root,prefixes:[selected]},()=>put(root,selected,'edited'));
   storeLibraryData({root,prefixes:['assets/data/scoped']});
   let archived=JSON.parse(git(checkout,'show','HEAD:archive/index.json'));

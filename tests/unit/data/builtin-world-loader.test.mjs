@@ -5,6 +5,7 @@ import {buildBuiltinWorldPublication} from "../../../tools/build/build-builtin-w
 import {historicalWorldCases} from "../../fixtures/historical-world-cases.mjs";
 import {withExplicitView} from "../../helpers/builtin-world.mjs";
 import {createBuiltinWorldLoader} from "../../../src/data/builtin-world-loader.js";
+import {builtinCountryAssets} from '../../../src/data/builtin-country-files.js';
 import {createBuiltinSession} from "../../../src/document/builtin-session.js";
 import {createNodeCoreProject} from "../../helpers/core-project.mjs";
 import {startupDocument} from "../../helpers/core-startup.mjs";
@@ -23,7 +24,7 @@ test('complete project history reuses all verified country files across cursor d
  assert.ok(historical.project.territorialEntities.some(row=>row.id==='state:test-ukraine'));
  assert.ok(historical.project.timelineRecords.geometryBindings.some(row=>row.validTo!==null),'historical intervals must not be flattened');
  const index=JSON.parse(files.get('index.json'));
- const expected=new Set(['index.json',...index.entities.flatMap(row=>row.parts?.map(part=>part.file)||[row.file])]);
+ const expected=new Set(['index.json',...builtinCountryAssets(index).map(asset=>asset.file)]);
  assert.deepEqual(new Set(f.calls),expected);assert.equal(f.calls.length,expected.size);assert.ok(f.peak()<=6);
  const count=f.calls.length;await f.loader.loadProject('2014-02');assert.equal(f.calls.length,count);
  await f.loader.loadProject('2027-01');

@@ -46,7 +46,7 @@ function fixture(){
 }
 function assertIndependent(index,files){
  assert.equal(index.schemaVersion,2,'the country payload schema is unchanged');
- assert.equal(index.storageLayout,'country-files-v1');
+ assert.equal(index.storageLayout,'descriptor-geometries-v1');
  assert.equal(Object.hasOwn(index,'transport'),false);
  assert.equal([...files.keys()].some(file=>file.startsWith('transport/')),false);
  assert.equal(files.has('world-project.json.gz'),false);
@@ -122,7 +122,7 @@ test('name-only publication reads one country and preserves every other descript
  }
  const original=JSON.parse(gunzipSync(before.get(selected.file)));
  const changed=JSON.parse(gunzipSync(files.get(index.entities.find(entry=>entry.entityId==='RUS').file)));
- assert.deepEqual(changed.geometries,original.geometries);
+ assert.deepEqual(changed.geometryRefs,original.geometryRefs);assert.deepEqual(index.geometryAssets,previousIndex.geometryAssets);assert.equal([...files.keys()].some(p=>p.startsWith('geometries/')),false);
  assert.deepEqual(changed.timelineRecords.geometryBindings,original.timelineRecords.geometryBindings);
 });
 
@@ -175,8 +175,8 @@ const { collectViewerAssets } = __country_dep11;
 
 const ROOT='assets/data/builtin-world/generated/v1/';
 const SHA='a'.repeat(64);
-const country=id=>({entityId:id,file:`countries/${id}-sha256-${SHA}.json.gz`,encoding:'gzip',sha256:SHA,compressedBytes:3,decodedBytes:8,coverage:[{validFrom:null,validTo:null}]});
-const catalog=()=>({schema:'pandolab-builtin-world',schemaVersion:2,storageLayout:'country-files-v1',template:{},entities:[country('AAA'),country('BBB')]});
+const country=id=>({geometryRefs:[],entityId:id,file:`countries/${id}-sha256-${SHA}.json.gz`,encoding:'gzip',sha256:SHA,compressedBytes:3,decodedBytes:8,coverage:[{validFrom:null,validTo:null}]});
+const catalog=()=>({schema:'pandolab-builtin-world',schemaVersion:2,storageLayout:'descriptor-geometries-v1',geometryAssets:[],template:{},entities:[country('AAA'),country('BBB')]});
 function viewerInput(index=catalog()){
  const files=new Map([['index.html',''],['.nojekyll',''],['assets/js/viewer.js','export const viewer=true;'],[ROOT+'index.json',JSON.stringify(index)],
   [ROOT+'transport/old.bin','old aggregate'],[ROOT+'countries/orphan.json.gz','orphan']]);
@@ -193,7 +193,7 @@ test('Viewer closure selects exactly the referenced independent country files an
 });
 test('missing referenced country blocks Web publication rather than falling back to a packed file',async()=>{
  const f=viewerInput();f.files.delete(ROOT+catalog().entities[0].file);
- await assert.rejects(f.collect(),/Missing viewer dependency/);
+ await assert.rejects(f.collect(),/Missing runtime data dependency/);
 });
 test('Viewer closure rejects retired transport, offsets and unsafe country descriptors',async()=>{
  for(const change of [

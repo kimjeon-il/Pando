@@ -8,11 +8,11 @@ import {createBuiltinWorldLoader} from "../../../src/data/builtin-world-loader.j
 const LIMIT=512*1024;
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 function fixture(){
- const value={schemaVersion:2,entityId:'state:big',identity:{id:'state:big',properties:{name:'Big',padding:randomBytes(700000).toString('base64')}},
-  sourceBindings:[],geometries:[],timelineRecords:{schemaVersion:3,lifetimes:[],geometryBindings:[],parentRelations:[],propertyBindings:[]}};
+ const value={schemaVersion:3,entityId:'state:big',identity:{id:'state:big',properties:{name:'Big',padding:randomBytes(700000).toString('base64')}},
+  sourceBindings:[],geometryRefs:[],timelineRecords:{schemaVersion:3,lifetimes:[],geometryBindings:[],parentRelations:[],propertyBindings:[]}};
  const decoded=Buffer.from(JSON.stringify(value)),bytes=gzipSync(decoded),digest=hash(bytes);
- const entry={entityId:value.entityId,file:`countries/state-big-sha256-${digest}.json.gz`,encoding:'gzip',sha256:digest,compressedBytes:bytes.length,decodedBytes:decoded.length,coverage:[{validFrom:null,validTo:null}]};
- const index={schema:'pandolab-builtin-world',schemaVersion:2,storageLayout:'country-files-v1',template:{format:'pandolab-project-state',schemaVersion:14},entities:[entry]};
+ const entry={geometryRefs:[],entityId:value.entityId,file:`countries/state-big-sha256-${digest}.json.gz`,encoding:'gzip',sha256:digest,compressedBytes:bytes.length,decodedBytes:decoded.length,coverage:[{validFrom:null,validTo:null}]};
+ const index={schema:'pandolab-builtin-world',schemaVersion:2,storageLayout:'descriptor-geometries-v1',geometryAssets:[],template:{format:'pandolab-project-state',schemaVersion:14},entities:[entry]};
  return {index,entry,bytes,value};
 }
 function split(f){
@@ -34,7 +34,7 @@ test('the loader reads bounded parts, never requests the oversized original and 
  const loader=createBuiltinWorldLoader({manifestUrl:'https://test.local/data/index.json',manifestSpec:{encoding:'identity',sha256:hash(manifest),compressedBytes:manifest.length,decodedBytes:manifest.length},dataRevision:'parts',cacheStorage:null,
   fetchFn:async url=>{const file=new URL(url).pathname.slice('/data/'.length);calls.push(file);const bytes=files.get(file);return new Response(bytes,{status:bytes?200:404});}});
  const result=await loader.loadProject('2026-11');
- assert.deepEqual(result.project.territorialEntities[0],{...f.value.identity,properties:{...f.value.identity.properties,sourceGeometryVersion:''}});
+ assert.deepEqual(result.project.territorialEntities[0],f.value.identity);
  assert.deepEqual(calls,['index.json',...f.entry.parts.map(part=>part.file)]);
  await loader.loadProject('2026-11');assert.equal(calls.length,1+f.entry.parts.length);
 });

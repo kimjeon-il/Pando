@@ -165,7 +165,7 @@ test('historical timeline edits match the shared web/native golden corpus', () =
 });
 contractSuite("source-date-cut-normalization", () => {
 const test = __dep1.default;
-const { readBuiltinCountryStoredBytes } = __dep8;
+const { readBuiltinCountryStoredBytes, readBuiltinCountry } = __dep8;
 const assert = __dep0.default;
 const fs = __dep2.default;
 const { createHash } = __dep9;
@@ -217,7 +217,7 @@ test('published world retains uninterrupted source geometry through October 2026
   assert.ok(record);
   const compressed=readBuiltinCountryStoredBytes(record,file=>fs.readFileSync(new URL(file,world)));
   assert.equal(createHash('sha256').update(compressed).digest('hex'),record.sha256);
-  const compiled=JSON.parse(gunzipSync(compressed));
+  const compiled=readBuiltinCountry(record,index,file=>fs.readFileSync(new URL(file,world)));
   const selectedSource=month=>compiled.sourceBindings.find(row=>temporalContains(row,temporalMonthEnd(month)))?.sourceVersionId;
   assert.equal(selectedSource('2026-09'),rule.history,projectId+' prior source');
   assert.equal(selectedSource('2026-10'),rule.history,projectId+' current source');

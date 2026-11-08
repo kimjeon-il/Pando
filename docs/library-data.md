@@ -15,6 +15,7 @@
 - `assets/data/territorial-entities/source/countries/`: 객체 편집의 유일한 정본. 생성 청크와 국가 런타임은 이 입력에서 파생한다.
 - `library.json`, `objects/<sha256>.json`: 과거 pin의 이전·복구 입력이다. 현행 저장·자동 입력·E3 검수는 이를 정본으로 읽거나 다시 쓰지 않는다. 별도 `territorial-source-migration.mjs --checkpoint=<경로>`가 원본을 덮어쓰지 않고 source와 필드·형상 identity를 대조한다.
 - `assets/data/`: 현재 실행 의존 자료의 정확한 바이트. 기존 압축·해시·정밀도를 유지한다.
+- 국가 런타임의 `descriptor-geometries-v1` 목록은 전체 시대의 국가 descriptor와 `geometryAssets`를 구분한다. descriptor에는 신원·기간·관계와 논리 지오메트리 참조를 두고, 좌표는 내용별 독립 gzip payload로 공유한다. 전송 SHA-256과 해독한 좌표 내용 SHA-256은 별개다. 큰 descriptor의 전송 part는 좌표 지연 로딩 계약으로 사용하지 않는다. 메타데이터만 갱신할 때 좌표 payload와 메시를 다시 쓰지 않는다.
 - `archive/index.json`, `archive/blobs/`: 논리 경로와 보관 원문의 대응. 현재 보고서는 `reports/<경로>`의 전체 원문을 직접 보관하고, 기존 revision의 압축 원문은 Git 이력에서 복구한다. 런타임과 예전 국가 입력의 기존 보관 형식은 유지한다.
 - `reports/`: 전체 보고서 원문·기계 로그·첨부 원본. `.variants/<sha256>`는 다른 판본, `.edits/<브랜치>`는 독립 편집본, `.owners.json`은 브랜치별 보관 revision이다.
 - `terrain/v0.13.3/`: 최신 지형 한 벌. LOD0~5는 서로 다른 배율용이며 중복 버전이 아니다. 구버전 색상 이미지와 manifest는 현재 트리에서 제거하고 Git 이력에 남긴다.

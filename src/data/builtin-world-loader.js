@@ -1,6 +1,6 @@
 import {createStoredAssetLoader} from "./stored-asset-loader.js";
 import {parseTemporal,temporalContains,temporalMonthEnd,normalizeTemporalInterval} from "../document/temporal.js";
-import {builtinCountryAssets,builtinCountryFileSpecs} from "./builtin-country-files.js";
+import {builtinCountryAssets,builtinCountryFileSpecs,materializeBuiltinCountry} from "./builtin-country-files.js";
 import {createBuiltinProjectSetup} from "../document/project-setup.js";
 import {PROJECT_SCHEMA_VERSION} from "../runtime/version-contract.js";
 
@@ -64,7 +64,7 @@ export function createBuiltinWorldLoader({manifestUrl,manifestSpec,dataRevision,
  const catalogs=createStoredAssetLoader(assetOptions);
  const assets=createStoredAssetLoader({...assetOptions,cachePolicy:'immutable'});
  let indexPromise;
- const countries=new Map(),pending=new Map();
+ const countries=new Map(),geometries=new Map(),pending=new Map();
  let activeReads=0;
  const readQueue=[];
  async function limitedRead(operation){
@@ -85,9 +85,10 @@ export function createBuiltinWorldLoader({manifestUrl,manifestSpec,dataRevision,
  }
  function parseCountry(bytes,entry){
   const value=parse(bytes);
-  if(value?.schemaVersion!==2||value.entityId!==entry.entityId||value.identity?.id!==entry.entityId
+  if(value?.schemaVersion!==3||value.entityId!==entry.entityId||value.identity?.id!==entry.entityId
    ||!value.identity.properties||typeof value.identity.properties!=='object'||Array.isArray(value.identity.properties)
-   ||!Array.isArray(value.sourceBindings)||!Array.isArray(value.geometries)||value.timelineRecords?.schemaVersion!==3
+   ||!Array.isArray(value.sourceBindings)||Object.hasOwn(value,'geometries')||!Array.isArray(value.geometryRefs)
+   ||JSON.stringify(value.geometryRefs)!==JSON.stringify(entry.geometryRefs)||value.timelineRecords?.schemaVersion!==3
    ||!['lifetimes','geometryBindings','parentRelations','propertyBindings'].every(key=>Array.isArray(value.timelineRecords[key])))throw new Error('Invalid builtin country payload or identity: '+entry.entityId);
   return value;
  }
@@ -116,14 +117,25 @@ export function createBuiltinWorldLoader({manifestUrl,manifestSpec,dataRevision,
    .finally(()=>pending.delete(key)));
   return pending.get(key);
  }
+ async function loadGeometry(asset){
+  const key=asset.file;
+  if(geometries.has(key))return geometries.get(key);
+  if(!pending.has(key))pending.set(key,limitedRead(()=>assets.loadAsset({...asset,url:asset.file},
+   'builtin-world',asset.id,'국가 형상',async buffer=>{
+    const digest=await globalThis.crypto.subtle.digest('SHA-256',buffer);
+    const actual=[...new Uint8Array(digest)].map(n=>n.toString(16).padStart(2,'0')).join('');
+    if(actual!==asset.contentSha256)throw Error('Builtin geometry content hash mismatch: '+asset.id);
+    return parse(buffer);
+   })).then(({value})=>{geometries.set(key,value);return value;}).finally(()=>pending.delete(key)));
+  return pending.get(key);
+ }
  async function loadProject(month,{isCurrent=()=>true,concurrency=6,waitForIdle=null}={}){
   if(!Number.isInteger(concurrency)||concurrency<1||concurrency>6)throw new RangeError('Builtin country read concurrency must be 1-6.');
   const assertCurrent=()=>{if(!isCurrent())throw Object.assign(new Error('Builtin query superseded'),{name:'AbortError',cancelled:true});};
   assertCurrent();
   const index=await loadIndex();assertCurrent();
-  // Fetch each immutable country file once for the lifetime of this project;
-  // inactive and future identities must remain available to its timeline.
-  const selected=index.entities,loaded=new Array(selected.length);
+  async function loadAll(selected,read){
+  const loaded=new Array(selected.length);
   let next=0,failed=false;
   const workers=Array.from({length:Math.min(concurrency,selected.length)},async()=>{
    try{
@@ -131,7 +143,7 @@ export function createBuiltinWorldLoader({manifestUrl,manifestSpec,dataRevision,
      assertCurrent();
      if(waitForIdle){await waitForIdle();assertCurrent();}
      if(failed||next>=selected.length)break;
-     const i=next++;loaded[i]=await loadCountry(selected[i]);assertCurrent();
+     const i=next++;loaded[i]=await read(selected[i]);assertCurrent();
     }
    }catch(error){failed=true;throw error;}
   });
@@ -142,6 +154,13 @@ export function createBuiltinWorldLoader({manifestUrl,manifestSpec,dataRevision,
    if(error?.name!=='AbortError')await Promise.allSettled(workers);
    throw error;
   }
+  return loaded;
+  }
+  // Descriptors retain every era independently of immutable coordinate files.
+  const descriptors=await loadAll(index.entities,loadCountry);
+  const shapes=await loadAll(index.geometryAssets,loadGeometry);
+  const geometryByRef=new Map(index.geometryAssets.map((asset,i)=>[JSON.stringify([asset.id,asset.version]),shapes[i]]));
+  const loaded=descriptors.map(descriptor=>materializeBuiltinCountry(descriptor,geometryByRef));
   if(waitForIdle)await waitForIdle();
   assertCurrent();
   return {project:assembleBuiltinWorld(index,loaded,month),fingerprint:`${manifestSpec.sha256}:complete-timeline`};

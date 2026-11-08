@@ -72,7 +72,8 @@
         "wasm"
       ],
       "inputs": [
-        "assets/data/historical-world/policy.json"
+        "assets/data/historical-world/policy.json",
+        "assets/data/builtin-world/display-policy-v1.json"
       ],
       "outputs": [
         "assets/data/builtin-world/generated/v1/"

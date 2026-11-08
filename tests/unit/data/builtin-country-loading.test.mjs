@@ -34,7 +34,7 @@ const json=value=>Buffer.from(JSON.stringify(value));
 const base='https://test.local/data/';
 const deferred=()=>{let resolve;const promise=new Promise(done=>{resolve=done;});return {promise,resolve};};
 function country(id){
- return {schemaVersion:2,entityId:id,identity:{id,properties:{name:id,metadata:{}}},sourceBindings:[],geometries:[],
+ return {schemaVersion:3,entityId:id,identity:{id,properties:{name:id,metadata:{}}},sourceBindings:[],geometryRefs:[],
   timelineRecords:{schemaVersion:3,lifetimes:[],geometryBindings:[],parentRelations:[],propertyBindings:[]}};
 }
 function publication(rows){
@@ -42,9 +42,9 @@ function publication(rows){
  for(const {id,coverage=[{validFrom:null,validTo:null}],value=country(id)} of rows){
   const decoded=json(value),stored=gzipSync(decoded),hash=sha(stored);
   const file=`countries/${id.replaceAll(':','-')}-sha256-${hash}.json.gz`;
-  files.set(file,stored);entities.push({entityId:id,coverage,file,encoding:'gzip',sha256:hash,compressedBytes:stored.length,decodedBytes:decoded.length});
+  files.set(file,stored);entities.push({geometryRefs:[],entityId:id,coverage,file,encoding:'gzip',sha256:hash,compressedBytes:stored.length,decodedBytes:decoded.length});
  }
- const index={schema:'pandolab-builtin-world',schemaVersion:2,storageLayout:'country-files-v1',template:{format:'pandolab-project-state',schemaVersion:14},entities};
+ const index={schema:'pandolab-builtin-world',schemaVersion:2,storageLayout:'descriptor-geometries-v1',geometryAssets:[],template:{format:'pandolab-project-state',schemaVersion:14},entities};
  files.set('index.json',json(index));return {files,index};
 }
 function memoryCache(){
@@ -277,7 +277,7 @@ function fixture(t,{missingPart=false,badHash=false,legacy=false}={}){
   files[path]={stored:path,encoding:'identity',sha256:hash(bytes),bytes:bytes.length};
  };
  const decoded=Buffer.from('{"entityId":"state:test","schemaVersion":2}\n'),bytes=gzipSync(decoded);
- const country={entityId:'state:test',file:`countries/state-test-sha256-${hash(bytes)}.json.gz`,sha256:hash(bytes),encoding:'gzip',compressedBytes:bytes.length,decodedBytes:decoded.length};
+ const country={entityId:'state:test',geometryRefs:[],file:`countries/state-test-sha256-${hash(bytes)}.json.gz`,sha256:hash(bytes),encoding:'gzip',compressedBytes:bytes.length,decodedBytes:decoded.length};
  const pieces=[bytes.subarray(0,20),bytes.subarray(20)];
  country.parts=pieces.map((piece,i)=>{
   const file=`country-parts/sha256-${hash(piece)}.bin`;
@@ -287,7 +287,7 @@ function fixture(t,{missingPart=false,badHash=false,legacy=false}={}){
  if(badHash)files[base+country.parts[0].file].sha256='0'.repeat(64);
  const retired=[base+'transport/countries-sha256-'+hash(Buffer.from('retired'))+'.bin',base+country.file,base+'countries/orphan.json.gz'];
  for(const path of retired)archive(path,path===base+country.file?bytes:Buffer.from('retired'),{absent:!legacy});
- const index={schema:'pandolab-builtin-world',schemaVersion:2,storageLayout:'country-files-v1',inputHashes:{sourceRevisions:{}},entities:[country]};
+ const index={schema:'pandolab-builtin-world',schemaVersion:2,storageLayout:'descriptor-geometries-v1',geometryAssets:[],inputHashes:{sourceRevisions:{}},entities:[country]};
  if(legacy){delete index.storageLayout;index.transport={url:retired[0].slice(base.length)};}
  archive(base+'index.json',JSON.stringify(index));
  // Runtime publication now verifies paired source indexes even for a
@@ -307,7 +307,7 @@ test('runtime preparation needs only active builtin files and broad storage pres
  prepareLibraryData({root:f.root,fetch:false});
  for(const part of f.country.parts)assert.ok(existsSync(join(f.root,base+part.file)));
  for(const path of f.retired)assert.equal(existsSync(join(f.root,path)),false,path);
- assert.equal(readFileSync(join(f.root,'assets/data/other/value.bin'),'utf8'),'unchanged');
+ assert.equal(existsSync(join(f.root,'assets/data/other/value.bin')),false,'unreferenced archive inputs are not Viewer preparation');
  assert.equal(f.git(f.data,'rev-parse','HEAD'),f.pin);
  storeLibraryData({root:f.root,prefixes:['assets/data/builtin-world']});
  const stored=JSON.parse(f.git(f.data,'show','HEAD:archive/index.json'));
@@ -328,7 +328,7 @@ test('country catalog and archive must agree on the active file integrity pins',
 
 test('explicit preparation of a historical data pin remains available for one-time conversion',t=>{
  const f=fixture(t,{legacy:true});
- prepareLibraryData({root:f.root,fetch:false});
+ prepareLibraryData({root:f.root,fetch:false,purpose:'gis',prefixes:[base.replace(/\/$/,'')]});
  for(const path of f.retired)assert.ok(existsSync(join(f.root,path)),path);
 });
 });

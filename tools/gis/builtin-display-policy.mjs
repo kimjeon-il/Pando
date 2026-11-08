@@ -1,4 +1,4 @@
-import {readFileSync} from 'node:fs';
+import {readLibraryDataFile} from '../data/library-context.mjs';
 
 // Display interpretation belongs to a versioned data manifest, not JavaScript
 // tables. Original GIS geometry remains pinned in the external data library.
@@ -27,8 +27,7 @@ export function validateBuiltinDisplayPolicy(value){
 let cached;
 export function loadBuiltinDisplayPolicy(){
   if(!cached){
-    const value=validateBuiltinDisplayPolicy(JSON.parse(readFileSync(
-      new URL('../../assets/data/builtin-world/display-policy-v1.json',import.meta.url),'utf8')));
+    const value=validateBuiltinDisplayPolicy(JSON.parse(readLibraryDataFile('assets/data/builtin-world/display-policy-v1.json')));
     cached=Object.freeze({...value,
       subunits:Object.freeze(value.subunits.map(row=>Object.freeze(row))),
       territoryMerges:Object.freeze(value.territoryMerges.map(row=>Object.freeze(row)))});

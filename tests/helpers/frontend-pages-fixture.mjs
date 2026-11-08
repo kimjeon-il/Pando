@@ -73,7 +73,7 @@ export async function pagesRepositoryFixture(t) {
   put(root,'assets/data/physical-land/land.bin',landCompressed);
   put(root,'assets/data/places/manifest.json','{"shards":{}}');
   put(root,'assets/data/territorial-entities/generated/v2/index.json','{"entities":[]}');
-  put(root,'assets/data/builtin-world/generated/v1/index.json','{"schema":"pandolab-builtin-world","schemaVersion":2,"storageLayout":"country-files-v1","entities":[]}');
+  put(root,'assets/data/builtin-world/generated/v1/index.json','{"schema":"pandolab-builtin-world","schemaVersion":2,"storageLayout":"descriptor-geometries-v1","geometryAssets":[],"entities":[]}');
   put(root,'assets/data/prepared-polygons/generated/v2/manifest.json','{"meshes":{}}');
   const data = join(root, '.library-data/repository');
   mkdirSync(data, { recursive: true });
