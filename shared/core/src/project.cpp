@@ -216,8 +216,16 @@ void Project::admitTerritorialDirtyIds(const std::function<std::vector<std::stri
     };
     auto state=rebase(state_),saved=rebase(saved_);auto commands=*commands_;
     for(auto& command:commands){command.before_=rebase(command.before_);command.after_=rebase(command.after_);}
-    auto ledger=std::make_shared<const std::vector<ChangeSet>>(std::move(commands));auto view=projectedState(state->document,timelineCursor_);
+    auto ledger=std::make_shared<const std::vector<ChangeSet>>(std::move(commands));
+    // This path changes only the dirty-territory marker list. Both timeline
+    // records and entity catalog remain unchanged, even when state_ is copied.
+    const bool reuse=preparedTimeline_&&preparedTimelineSource_.lock()==state_;
+    std::optional<ResolvedWorld> resolved;
+    if(reuse&&!timelineCursor_.empty()&&!isStaticTimeline(state->document))
+        resolved.emplace(preparedTimeline_->resolve(timelineCursor_));
+    auto view=projectedState(state->document,timelineCursor_,resolved?&*resolved:nullptr);
     state_=std::move(state);saved_=std::move(saved);commands_=std::move(ledger);viewState_=std::move(view);
+    if(reuse)preparedTimelineSource_=state_;
 }
 Project::Project() : state_(std::make_shared<const detail::DocumentState>()),
                      saved_(state_), instanceId_(nextInstanceId()) {}
