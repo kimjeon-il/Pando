@@ -38,14 +38,9 @@ import { shouldShowSharedCountryBorders } from './country-shared-boundary-packet
 import { geometryRevisionKey } from './geometry-versions.js';
 import { countryMeshContentKey } from './country-mesh-content-key.js';
 import { resourceKey, resourceUpdate } from './resource-update-policy.js';
+import { physicalSceneMatchesContext, mapPresentationTargetKey, mapBackgroundTargetKey } from './map-render-publication.js';
+export { physicalSceneMatchesContext };
 
-export function physicalSceneMatchesContext(scene,context) {
-  if(!context.ready)return false;
-  const land=(scene?.polygons||[]).filter(packet=>packet.role==='physical-land');
-  const water=(scene?.polygons||[]).filter(packet=>packet.role==='physical-water');
-  return land.length===1&&land[0].geometryRevision===context.landRevision
-    && (context.waterRevision==null?water.length===0:water.length===1&&water[0].geometryRevision===context.waterRevision);
-}
 
 export function hydroEditResourceDependencies(features,baseFid,displayColor) {
   const rows=features.filter(feature=>feature.geometry).map(feature=>{
@@ -451,20 +446,15 @@ export function createGpuMapRenderer(deps) {
       });
     }
 
+    // The renderer owns the source revisions; the publication key itself is pure.
     function mapTargetKey(frame = lastVisualFrame) {
-      if (!frame) return '';
-      // A physical/country frame is still published when an optional DEM
-      // target changes. Terrain readiness is tracked independently.
-      // A new rAF/frameId does not change the picture. Certify the actual
-      // camera and country inputs so independent DEM tile repaints cannot
-      // transiently revoke an already accepted map or a file-open waiter.
-      return JSON.stringify([projectGeneration, renderDeviceContextRevision, geometryRevisionTracker.committedRevision(),
-        frame.cssViewport, frame.cssScale, frame.cssTranslate, frame.dpr,
-        frame.viewState?.projection || frame.projection,
-        frame.viewState?.rotation || null, frame.viewState?.projectionCenter || null,
-        frame.viewState?.safeInset || frame.safeInset || null,
-        countryPaletteRevision, physicalStyleStateRevision, !!state.physicalSettings.terrainVisible,
-        surfacePresentation.quality, surfacePresentation.geometryQuality]);
+      return mapPresentationTargetKey(frame,{
+        projectGeneration,contextRevision:renderDeviceContextRevision,
+        geometryRevision:geometryRevisionTracker.committedRevision(),
+        paletteRevision:countryPaletteRevision,physicalStyleRevision:physicalStyleStateRevision,
+        terrainVisible:state.physicalSettings.terrainVisible,
+        surfaceQuality:surfacePresentation.quality,surfaceGeometryQuality:surfacePresentation.geometryQuality,
+      });
     }
 
     function mapReadiness() {
@@ -526,13 +516,11 @@ export function createGpuMapRenderer(deps) {
     }
 
     function backgroundTargetKey(frame = lastVisualFrame) {
-      if (!frame || !renderScene) return '';
-      // A source-certified background remains current through independent DEM
-      // tile arrivals. Only its camera, physical source and style own the key.
-      return JSON.stringify([projectGeneration, renderDeviceContextRevision,
-        (renderScene.polygons || []).filter(packet => packet.role === 'physical-land').map(packet => packet.sourceKey),
-        frame.cssViewport, frame.cssScale, frame.cssTranslate, frame.viewState?.rotation, frame.viewState?.projection,
-        physicalStyleStateRevision, !!state.physicalSettings.terrainVisible]);
+      return mapBackgroundTargetKey(frame,{
+        scene:renderScene,projectGeneration,contextRevision:renderDeviceContextRevision,
+        physicalStyleRevision:physicalStyleStateRevision,
+        terrainVisible:state.physicalSettings.terrainVisible,
+      });
     }
 
     function retryMapPreparation() {
