@@ -35,3 +35,24 @@ export async function countryMeshContentKey(features,{isCurrent=()=>true}={}){
   if(!isCurrent())return null;
   return resourceKey(rows);
 }
+
+/**
+ * A baked world mesh may replace a live scene only when every packed slot has
+ * the same ID, order and *exact* Core-admitted polygon geometry. A matching
+ * country count (or an identity object constructed from caller IDs) alone is
+ * never proof of compatibility. Historical parent/child scope merges change
+ * the visible topology, so those scenes stay on their own mesh path.
+ */
+export function builtinMeshMatchesScene({slotIds,features,geometryEquals} = {}) {
+  if (!Array.isArray(slotIds) || !Array.isArray(features) || !slotIds.length
+    || slotIds.length !== features.length || typeof geometryEquals !== 'function') return false;
+  const seen = new Set();
+  for (let index = 0; index < slotIds.length; index++) {
+    const feature = features[index], id = String(feature?.id ?? '');
+    if (!id || seen.has(id) || String(slotIds[index]) !== id || !feature?.geometry
+      || !['Polygon', 'MultiPolygon'].includes(feature.geometry.type)
+      || !geometryEquals(id, feature.geometry)) return false;
+    seen.add(id);
+  }
+  return true;
+}
