@@ -148,6 +148,10 @@ test('failure of both B and eligible A is a failed presentation with no promotio
   assert.deepEqual(result.strokeDomainReplacements, []);
 });
 contractSuite("gpu-scene-worker-presentation", () => {
+const test = __contract_dep1.default;
+const assert = __contract_dep0.default;
+const { readFileSync } = __contract_dep4;
+
 test('failed polygon preparation clears pending identity and retries the current input',async()=>{
   let attempts=0, ready=false, scheduled=null, presented=0, errorReports=0;
   const builder={
@@ -189,11 +193,6 @@ test('failed polygon preparation clears pending identity and retries the current
     geometry:{type:'Polygon',coordinates:[]},style:{color:'#ffffff'}}]});
   assert.ok(presented>=1);
 });
-
-
-const test = __contract_dep1.default;
-const assert = __contract_dep0.default;
-const { readFileSync } = __contract_dep4;
 
 test('after polygon preparation, Canvas Worker schedules a base redraw rather than interaction-only invalidation',()=>{
   const source=readFileSync(new URL('../../shared/frontend/js/modules/gpu-scene.js',import.meta.url),'utf8');
