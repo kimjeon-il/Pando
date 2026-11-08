@@ -1,31 +1,21 @@
 import { describe as contractSuite } from 'node:test';
 import * as __merge_dep0 from "node:test";
 import * as __merge_dep1 from "node:assert/strict";
-import * as __merge_dep2 from "../../shared/frontend/js/modules/temporal.js";
+import * as __merge_dep8 from "../../shared/frontend/js/modules/temporal.js";
 import * as __merge_dep3 from "../../shared/frontend/js/modules/timeline-records.js";
-import * as __merge_dep4 from "../fixtures/timeline-records-cases.mjs";
-import * as __merge_dep5 from "../../shared/frontend/js/modules/territorial-units.js";
-import * as __merge_dep6 from "../../shared/frontend/js/modules/timeline-storage.js";
-import * as __merge_dep7 from "../helpers/timeline-project.mjs";
+import * as __merge_dep9 from "../fixtures/timeline-records-cases.mjs";
+import * as __merge_dep9 from "../../shared/frontend/js/modules/territorial-units.js";
+import * as __merge_dep10 from "../../shared/frontend/js/modules/timeline-storage.js";
+import * as __merge_dep9 from "../helpers/timeline-project.mjs";
 import * as __merge_dep8 from "../../tools/gis/timeline-edit.js";
 import * as __merge_dep9 from "node:fs";
 import * as __merge_dep10 from "../../shared/frontend/js/modules/territorial-entity-store.js";
 contractSuite("timeline-records", () => {
-const { describe : contractSuite } = __merge_dep0;
-const __contract_dep0 = __merge_dep1;
-const __contract_dep1 = __merge_dep0;
-const __contract_dep2 = __merge_dep2;
-const __contract_dep3 = __merge_dep3;
-const __contract_dep4 = __merge_dep4;
-const __contract_dep5 = __merge_dep5;
-const __contract_dep6 = __merge_dep6;
-const __contract_dep7 = __merge_dep7;
-contractSuite("timeline-records", () => {
-const assert = __contract_dep0.default;
-const test = __contract_dep1.default;
-const { normalizeTemporal } = __contract_dep2;
-const { normalizeTimelineRecords } = __contract_dep3;
-const { timelineCases, timelineContext } = __contract_dep4;
+const assert = __merge_dep1.default;
+const test = __merge_dep0.default;
+const { normalizeTemporal } = __merge_dep8;
+const { normalizeTimelineRecords } = __merge_dep3;
+const { timelineCases, timelineContext } = __merge_dep9;
 
 for (const row of timelineCases()) {
   test(row.name, () => {
@@ -97,11 +87,11 @@ test('paired geometry and parent gaps preserve the independent lifetime', () => 
 });
 });
 contractSuite("timeline-entity-store", () => {
-const test = __contract_dep1.default;
-const assert = __contract_dep0.default;
-const { createTerritorialFeature } = __contract_dep5;
-const { snapshotTimelineStorage } = __contract_dep6;
-const { initializeTestTerritorialState, testCoreProject, executeTerritorialTestCommand, staticAutosaveProject } = __contract_dep7;
+const test = __merge_dep0.default;
+const assert = __merge_dep1.default;
+const { createTerritorialFeature } = __merge_dep9;
+const { snapshotTimelineStorage } = __merge_dep10;
+const { initializeTestTerritorialState, testCoreProject, executeTerritorialTestCommand, staticAutosaveProject } = __merge_dep9;
 
 const geometry = { type: 'Polygon', coordinates: [[[0,0],[0,2],[2,2],[2,0],[0,0]]] };
 const feature = (id, options = {}) => createTerritorialFeature({ id, name: id, entityKind: 'general', geometry, ...options });
@@ -175,20 +165,11 @@ test('static insertion retains arbitrary restored IDs and allocates records with
 });
 });
 contractSuite("timeline-edit", () => {
-const { describe : contractSuite } = __merge_dep0;
-const __contract_dep0 = __merge_dep1;
-const __contract_dep1 = __merge_dep0;
-const __contract_dep2 = __merge_dep8;
-const __contract_dep3 = __merge_dep3;
-const __contract_dep4 = __merge_dep7;
-const __contract_dep5 = __merge_dep9;
-const __contract_dep6 = __merge_dep10;
-const __contract_dep7 = __merge_dep5;
 contractSuite("timeline-edit", () => {
-const assert = __contract_dep0.default;
-const test = __contract_dep1.default;
-const { replaceTimelineRecordAtMonth, truncateTimelineEntityAtMonth } = __contract_dep2;
-const { normalizeTimelineRecords } = __contract_dep3;
+const assert = __merge_dep1.default;
+const test = __merge_dep0.default;
+const { replaceTimelineRecordAtMonth, truncateTimelineEntityAtMonth } = __merge_dep8;
+const { normalizeTimelineRecords } = __merge_dep3;
 
 const records = { schemaVersion: 3, lifetimes: [], geometryBindings: [
   { id: 'A:original', objectRef:{domain:"territorial",id:'A'}, validFrom: '1914-06-15', validTo: '1915-12', geometryRef: { id: 'shape', version: 1 } },
@@ -263,12 +244,12 @@ test('ending an entity removes future records but preserves earlier month covera
 });
 });
 contractSuite("timeline-live-view", () => {
-const { initializeTestTerritorialState, testCoreProject, staticAutosaveProject, executeTerritorialTestCommand } = __contract_dep4;
-const assert = __contract_dep0.default;
-const test = __contract_dep1.default;
-const { readFileSync } = __contract_dep5;
-const { createEmptyTerritorialState } = __contract_dep6;
-const { createTerritorialFeature } = __contract_dep7;
+const { initializeTestTerritorialState, testCoreProject, staticAutosaveProject, executeTerritorialTestCommand } = __merge_dep9;
+const assert = __merge_dep1.default;
+const test = __merge_dep0.default;
+const { readFileSync } = __merge_dep9;
+const { createEmptyTerritorialState } = __merge_dep10;
+const { createTerritorialFeature } = __merge_dep9;
 
 test('dated store publishes selected month while retaining all historical identities', async () => {
   const project = JSON.parse(readFileSync(new URL('../fixtures/timeline-exchange/complex.json', import.meta.url), 'utf8'));
@@ -361,6 +342,5 @@ test('history-style restoration preserves the session month while regular projec
   assert.equal(state.timelineCursor, '1914-06');
   await testCoreProject(state).project.admit(project);
   assert.equal(state.timelineCursor, project.projectSetup.initialMonth);
-});
 });
 });

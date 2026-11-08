@@ -8,7 +8,6 @@ import * as __merge_dep4 from "../../shared/frontend/js/modules/builtin-month-cl
 import * as __merge_dep5 from "node:fs";
 import * as __merge_dep6 from "node:vm";
 import * as __merge_dep7 from "../../shared/frontend/js/modules/application-lifecycle.js";
-contractSuite("timeline-controls", () => {
 const { createVirtualClock } = __merge_dep0;
 const assert = __merge_dep1.default;
 const test = __merge_dep2.default;
@@ -244,21 +243,10 @@ test('Enter retains native activation on month arrows and view selectors', () =>
 contractSuite("builtin-month-clock", () => {
 const { createVirtualClock } = __merge_dep0;
 const { describe : featureDescribe } = __merge_dep2;
-const __suiteDependency0 = __merge_dep2;
-const __suiteDependency1 = __merge_dep1;
-const __suiteDependency2 = __merge_dep4;
-const __suiteDependency3 = __merge_dep2;
-const __suiteDependency4 = __merge_dep1;
-const __suiteDependency5 = __merge_dep5;
-const __suiteDependency6 = __merge_dep6;
-const __suiteDependency7 = __merge_dep7;
-const __suiteDependency8 = __merge_dep2;
-const __suiteDependency9 = __merge_dep1;
-const __suiteDependency10 = __merge_dep4;
 featureDescribe("builtin-month-clock", () => {
-  const test = __suiteDependency0.default;
-  const assert = __suiteDependency1.default;
-  const { createBuiltinMonthClock } = __suiteDependency2;
+  const test = __merge_dep2.default;
+  const assert = __merge_dep1.default;
+  const { createBuiltinMonthClock } = __merge_dep4;
 test('device month advances across years, manual mode stays put and builtin reset follows again',async()=>{
  const virtualClock=createVirtualClock(new Date(2026,9,31,23,59)),calls=[];
  const clock=createBuiltinMonthClock({now:virtualClock.now,applyMonth:async month=>{calls.push(month);return true;}});
@@ -370,11 +358,11 @@ test('P3-1 automatic same-month refresh shares the pending request without extra
 });
 });
 featureDescribe("builtin-clock-recovery", () => {
-  const test = __suiteDependency3.default;
-  const assert = __suiteDependency4.default;
-  const { readFileSync } = __suiteDependency5;
-  const vm = __suiteDependency6.default;
-  const { createApplicationLifecycle } = __suiteDependency7;
+  const test = __merge_dep2.default;
+  const assert = __merge_dep1.default;
+  const { readFileSync } = __merge_dep5;
+  const vm = __merge_dep6.default;
+  const { createApplicationLifecycle } = __merge_dep7;
 const tick = nextEventTurn;
 // Calendar correctness is covered by temporal tests. This fixture isolates the
 // clock's real async ownership from the unavailable compiled engine in Node.
@@ -408,9 +396,9 @@ test('manual selection and file suspension supersede pending recovery without pu
 });
 });
 featureDescribe("map-transition-clock-contract", () => {
-  const test = __suiteDependency8.default;
-  const assert = __suiteDependency9.default;
-  const { createBuiltinMonthClock } = __suiteDependency10;
+  const test = __merge_dep2.default;
+  const assert = __merge_dep1.default;
+  const { createBuiltinMonthClock } = __merge_dep4;
 const deferred = deferredResult;
 function fixture() {
   const requests = [], commits = [];
@@ -461,6 +449,5 @@ test('P0 suspending builtin mode invalidates late presentation after a file open
   const pending = clock.selectMonth('1950-12'); clock.suspend();
   assert.equal(requests[0].commit(), false); requests[0].resolve(true);
   assert.equal(await pending, false); assert.deepEqual(commits, []);
-});
 });
 });

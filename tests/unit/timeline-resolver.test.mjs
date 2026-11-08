@@ -15,7 +15,6 @@ import * as __dep12 from "../../tools/gis/territorial-library.js";
 import * as __dep13 from "../../tools/gis/normalize-2026-source-reference.mjs";
 import * as __dep14 from "../../shared/frontend/js/modules/builtin-world-loader.js";
 import * as __dep15 from "../../shared/frontend/js/modules/temporal.js";
-contractSuite("timeline-resolver", () => {
 const assert = __dep0.default;
 const test = __dep1.default;
 const { readFileSync } = __dep2;
@@ -226,5 +225,4 @@ test('published world retains uninterrupted source geometry through October 2026
   assert.equal(before.territorialEntities[0].properties.sourceGeometryVersion,rule.history);
   assert.equal(after.territorialEntities[0].properties.sourceGeometryVersion,rule.history);
  }
-});
 });

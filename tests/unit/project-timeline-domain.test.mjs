@@ -11,7 +11,6 @@ import * as __contract_dep8 from "../helpers/timeline-project.mjs";
 import * as __contract_dep9 from "../helpers/core-command-services/save-state-controller.mjs";
 import * as __contract_dep10 from "../helpers/web-oracle.mjs";
 const {fingerprintProjectBaseline}=await __contract_dep10.loadWebOracle('assets/js/modules/project-serializer.js');
-contractSuite("project-timeline-domain", () => {
 const assert = __contract_dep0.default;
 const test = __contract_dep1.default;
 const { readFileSync } = __contract_dep2;
@@ -176,5 +175,4 @@ test('malformed candidates preserve the real Core content, selection, history, d
     assert.equal(s.domain.getGeneration(),0);assert.equal(s.domain.isReplacing(),false);
   }
   assert.equal(await s.domain.undo(),true);assert.deepEqual(s.current(),original);
-});
 });

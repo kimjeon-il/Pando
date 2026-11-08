@@ -1,4 +1,4 @@
-// R1 canonical UI checks for the shipped Web Viewer and Windows read-only reviewer.
+// R1 canonical UI checks for the shipped read-only Web Viewer.
 // The former editor HTML/DOM is an archived source, not a product contract.
 import {readFileSync,statSync} from 'node:fs';
 import {resolve} from 'node:path';
@@ -28,7 +28,7 @@ const retiredIds=['editorSurface','editorObjectHeader','createMenuBtn','modeDraf
  'modeDraftDeleteBtn','undoBtn','redoBtn','objectDeleteBtn'];
 
 // Preserve the practical CSS ownership safeguards of the former architecture
-// audit, while scoping them to the released Viewer and Windows review product.
+// audit, while scoping them to the released Web Viewer.
 export function auditReviewCss(file,source) {
  const failures=[];
  const layout=/^(?:assets\/css\/)?layout\//.test(file);
@@ -81,7 +81,7 @@ export function validateReviewUi(kind,{html:providedHtml}={}) {
   for(const id of ['reviewPanelBtn','mobileReviewBtn'])
     if(!/\bhidden\b/.test(idTag(html,id)))fail('Inspector trigger must be hidden: #'+id);
  if(/assets\/js\/(?:app|bootstrap)\.js|__editor\/index\.html/.test(html))
-   fail('Retired editor entry must not enter the Web/Windows product');
+   fail('Retired editor entry must not enter the Web Viewer');
  if(!/assets\/js\/viewer\.js/.test(html) || !/assets\/css\/ui-viewer\.bundle\.css/.test(html))
    fail('Canonical Viewer scripts and stylesheet must be present');
  if(kind==='architecture') {
@@ -172,8 +172,8 @@ export function validateReviewUi(kind,{html:providedHtml}={}) {
    for(const resource of ['assets/js/app.js','assets/js/bootstrap.js',
      'assets/js/modules/editing-domain.js','assets/js/workers/map-edit-worker.js'])
      if(!isEditorOnlyAsset(resource))fail('Retired source guard was removed: '+resource);
-   // Keep the existing public viewer product graph and the optional Windows
-   // flat projection separate; these files must not become duplicate UI owners.
+   // Only the public read-only Viewer owns this UI; no secondary desktop
+   // reviewer or graphical editor may register duplicate owners.
  }
  return [...new Set(errors)];
 }

@@ -9,9 +9,6 @@ import * as __dep6 from "../../shared/frontend/js/modules/review-change-records.
 import * as __dep7 from "../../apps/viewer/js/modules/viewer-review-panel.js";
 import * as __dep8 from "../../scripts/lib/product-html.mjs";
 import * as __dep9 from "../../scripts/lib/reviewer-ui-contracts.mjs";
-
-// Original feature contract: review-inspection.test.mjs
-contractSuite("review-inspection", () => {
 const assert = __dep0.default;
 const test = __dep1.default;
 const { readFileSync } = __dep2;
@@ -197,8 +194,6 @@ test('E4 review owner uses only declared template controls, including correction
   assert.match(owner,/get\('reviewIssueKind'\)/);
 });
 });
-
-// Original feature contract: reviewer-ui-contracts.test.mjs
 contractSuite("reviewer-ui-contracts", () => {
 const assert = __dep0.default;
 const test = __dep1.default;
@@ -209,7 +204,7 @@ const { validateReviewUi } = __dep9;
 const read=path=>readFileSync(new URL('../../'+path,import.meta.url),'utf8');
 const source=renderProductHtml(read).web;
 for(const kind of ['architecture','components','information','layering']) {
- test('R1 '+kind+' targets the current Viewer/Windows reviewer',()=>{
+ test('R1 '+kind+' targets the current read-only Viewer reviewer',()=>{
    assert.deepEqual(validateReviewUi(kind),[]);
  });
 }
@@ -224,5 +219,4 @@ test('R1 explicitly rejects a returned graphical-editor entrypoint',()=>{
     '<button id="modeDraftInsertBtn">edit</button>';
   assert.ok(validateReviewUi('architecture',{html:mutated})
     .some(reason=>reason.includes('Retired editor control')));
-});
 });
