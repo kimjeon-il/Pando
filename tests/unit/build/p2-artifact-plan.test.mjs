@@ -91,7 +91,7 @@ test('shared reference calculation edits invalidate WASM',t=>{
   const f=fixture(t);f.put('src/data/native/src/referenceimage.cpp','int reference=1;\n');
   assert.equal(plan(f.root).wasm,true);
 });
-test('scope overrides are explicit and controller changes do not rebuild current WASM',()=>{
+test('scope overrides are explicit and controller changes do not rebuild current WASM',t=>{
   const fresh={wasm:{needed:false}};
   assert.deepEqual(['wasm'].map(k=>selectJobs(fresh,[], 'auto')[k]),[false]);
   assert.equal(selectJobs(fresh,['.github/workflows/generated-artifacts-p2.yml']).bootstrap,true);
@@ -101,6 +101,11 @@ test('scope overrides are explicit and controller changes do not rebuild current
   assert.equal(selectJobs(fresh,[],'all').wasm,true);
   assert.deepEqual(['wasm'].map(k=>selectJobs(fresh,[], 'verify')[k]),[false]);
   assert.throws(()=>selectJobs(fresh,[],'unsupported'),/P2_INVALID_SCOPE/);
+  const f=fixture(t);
+  f.put('config/generated-artifacts.json',JSON.stringify({schema:'pandolab-generated-artifact-graph',schemaVersion:1,
+    families:[{id:'unprepared-world',resolve:'world-mesh'}]}));
+  const bounded=plan(f.root,{manual:'wasm'});
+  assert.equal(bounded.wasm,true);assert.deepEqual(bounded.selectedFamilies,[]);assert.deepEqual(bounded.blockedFamilies,[]);
 });
 test('publishing is limited to declared generated artifacts, not source or test fixtures',()=>{
   assertSafeGeneratedPaths(['assets/wasm/pandoeditor-core.js'],{wasm:true});

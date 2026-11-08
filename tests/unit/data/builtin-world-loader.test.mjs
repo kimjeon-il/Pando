@@ -5,7 +5,7 @@ import {buildBuiltinWorldPublication} from "../../../tools/build/build-builtin-w
 import {historicalWorldCases} from "../../fixtures/historical-world-cases.mjs";
 import {withExplicitView} from "../../helpers/builtin-world.mjs";
 import {createBuiltinWorldLoader} from "../../../src/data/builtin-world-loader.js";
-import {builtinCountryAssets} from '../../../src/data/builtin-country-files.js';
+import {builtinCountryFileSpecs} from '../../../src/data/builtin-country-files.js';
 import {createBuiltinSession} from "../../../src/document/builtin-session.js";
 import {createNodeCoreProject} from "../../helpers/core-project.mjs";
 import {startupDocument} from "../../helpers/core-startup.mjs";
@@ -19,18 +19,30 @@ function fixture({cacheStorage=null,assets=files}={}){
    await new Promise(resolve=>setTimeout(resolve,2));busy--;const value=assets.get(file);return new Response(corrupt&&file!=='index.json'?'corrupt':value,{status:value?200:404});}});
  return {loader,calls,peak:()=>peak,corrupt:(value=true)=>{corrupt=value;}};
 }
-test('complete project history reuses all verified country files across cursor dates',async()=>{
+test('complete project history loads only the selected geometry and reuses verified bytes across dates',async()=>{
  const f=fixture();const [historical]=await Promise.all([f.loader.loadProject('2014-02'),f.loader.loadProject('2014-01')]);
  assert.ok(historical.project.territorialEntities.some(row=>row.id==='state:test-ukraine'));
  assert.ok(historical.project.timelineRecords.geometryBindings.some(row=>row.validTo!==null),'historical intervals must not be flattened');
  const index=JSON.parse(files.get('index.json'));
- const expected=new Set(['index.json',...builtinCountryAssets(index).map(asset=>asset.file)]);
+ const loaded=new Set(historical.project.geometries.map(row=>JSON.stringify([row.id,row.version])));
+ const expected=new Set(['index.json',...index.entities.flatMap(entry=>builtinCountryFileSpecs(entry).map(asset=>asset.file)),
+  ...index.geometryAssets.filter(asset=>loaded.has(JSON.stringify([asset.id,asset.version]))).map(asset=>asset.file)]);
+ assert.equal(historical.project.territorialEntities.length,index.entities.length);
+ assert.equal(historical.project.geometryResources.length,index.geometryAssets.length);
+ assert.ok(loaded.size<index.geometryAssets.length);
+ const changing=index.entities.find(entry=>entry.entityId==='state:changing');
+ for(const ref of changing.geometryRefs)assert.equal(await f.loader.geometryState(ref),'unloaded');
  assert.deepEqual(new Set(f.calls),expected);assert.equal(f.calls.length,expected.size);assert.ok(f.peak()<=6);
  const count=f.calls.length;await f.loader.loadProject('2014-02');assert.equal(f.calls.length,count);
  await f.loader.loadProject('2027-01');
  assert.deepEqual(new Set(f.calls),expected);assert.equal(f.calls.length,expected.size);
  assert.equal(f.calls.some(file=>file.startsWith('transport/')),false);
  assert.equal(f.calls.some(file=>file.includes('world-project')),false);
+ const november=await f.loader.loadProject('2020-11');
+ const selected=november.project.geometries.filter(row=>changing.geometryRefs.some(ref=>ref.id===row.id&&ref.version===row.version));
+ assert.equal(selected.length,1,'month end must load the effective replacement, not both versions');
+ assert.equal(await f.loader.geometryState(selected[0]),'ready');
+ assert.equal(f.calls.length,count+1);
 });
 test('a fresh loader reuses the verified catalog and individual country bytes from Cache Storage',async()=>{
  const stores=new Map();

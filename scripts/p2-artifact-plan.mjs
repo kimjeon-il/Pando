@@ -155,6 +155,10 @@ export function plan(rootDir=root,{changes=[],manual='auto',families=[],event=pr
     wasm:wasmStatus(rootDir)
   };
   const jobs=selectJobs(statuses,changes,manual);
+  // A compiled-core-only request has no GIS input dependency. Do not expand
+  // other families merely to discard their selections afterwards: scoped
+  // preparation intentionally leaves their payloads unhydrated.
+  if(manual==='wasm')return {statuses,...jobs,dataGenerationDeferred:false,selectedFamilies:[],blockedFamilies:[]};
   const graph=graphStatus(rootDir,{wasm:statuses.wasm,requested:families,force:manual==='all'});
   // An automatic validation/presentation push must not repair unrelated stale
   // data. Explicit generation, unknown comparisons and WASM rebuilds retain
