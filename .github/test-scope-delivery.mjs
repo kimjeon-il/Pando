@@ -1,76 +1,45 @@
-// Task-owned delivery tool. Removed together with its workflow after remote verification.
+// Temporary, reviewed delivery tool; removed after remote read-back.
 import {createHash} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
-import {readFileSync, writeFileSync, unlinkSync, readdirSync, existsSync} from 'node:fs';
-import {resolve, relative} from 'node:path';
-import {parseDocument, isMap, isSeq, isScalar} from 'yaml';
-const root=process.cwd();
-const plan=JSON.parse(readFileSync('.github/test-scope-delivery.json','utf8'));
-const removed=new Set(plan.remove);
-const digest=bytes=>createHash('sha256').update(bytes).digest('hex');
-const paths=directory=>readdirSync(directory,{withFileTypes:true}).flatMap(e=>e.isDirectory()?paths(directory+'/'+e.name):[directory+'/'+e.name]);
-const changed=new Set();
-const verified=new Set();
-function verifyInput(file){
-  if(!/^(?:tests\/unit\/|scripts\/contracts\/|\.github\/workflows\/|package\.json$)/.test(file)||relative(root,resolve(root,file)).startsWith('..'))throw Error('Invalid delivery scope: '+file);
-  const expected=execFileSync('git',['rev-parse',plan.base+':'+file],{encoding:'utf8'}).trim();
-  const bytes=readFileSync(file),actual=createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
-  if(actual!==expected)throw Error('Input changed; re-review before delivery: '+file);
-  verified.add(file);
+import {readFileSync,writeFileSync,unlinkSync,existsSync,mkdirSync} from 'node:fs';
+import {dirname,resolve,relative} from 'node:path';
+import {inflateSync} from 'node:zlib';
+const hash=b=>createHash('sha256').update(b).digest('hex');
+const blob=b=>createHash('sha1').update('blob '+b.length+'\0').update(b).digest('hex');
+let encoded=readFileSync('.github/test-scope-patch-v2.b64','utf8');
+// Exact corrections against the archived transport, not edits to application source.
+if(blob(Buffer.from(encoded))==='6ec91d00a408e9c2f689db56bccc1f5f5a1c5aa6'){
+  for(const [start,end,text] of [[4809,4810,''],[3053,3054,''],[2999,2999,'q1Xiw83'],[2951,2952,'5'],[2944,2945,''],[2746,2747,'']])encoded=encoded.slice(0,start)+text+encoded.slice(end);
 }
-for(const file of removed){verifyInput(file);unlinkSync(file);changed.add(file);}
-const containsRemoved=text=>[...removed].some(file=>text.includes(file));
-function cleanCommand(command){
-  // An empty node --test command must never discover the full suite.
-  return command.replace(/\\\r?\n\s*/g,' ').split('\n').flatMap(line=>{
-    if(!containsRemoved(line))return [line];
-    for(const file of removed)line=line.split(file).join('');
-    line=line.replace(/[ \t]+$/,'');
-    if(/^\s*(?:node\s+--test|pnpm\s+exec\s+eslint)\s*$/.test(line)||!line.trim())return [];
-    return [line];
-  }).join('\n').trimEnd();
-}
-function cleanJson(value){
-  if(Array.isArray(value))return value.filter(x=>typeof x!=='string'||!removed.has(x)).map(cleanJson).filter(x=>!(x&&typeof x==='object'&&Array.isArray(x.tests)&&x.tests.length===0));
-  if(value&&typeof value==='object')return Object.fromEntries(Object.entries(value).map(([k,v])=>[k,cleanJson(v)]));
-  return value;
-}
-const catalogPath='scripts/contracts/application-checks.json';
-const catalog=readFileSync(catalogPath,'utf8');
-if(containsRemoved(catalog)){verifyInput(catalogPath);writeFileSync(catalogPath,JSON.stringify(cleanJson(JSON.parse(catalog)),null,2)+'\n');changed.add(catalogPath);}
-const packagePath='package.json',packageText=readFileSync(packagePath,'utf8');
-if(containsRemoved(packageText)){verifyInput(packagePath);
-  const data=JSON.parse(packageText);
-  for(const [key,command]of Object.entries(data.scripts||{}))if(containsRemoved(command)){
-    const cleaned=cleanCommand(command);if(cleaned)data.scripts[key]=cleaned;else delete data.scripts[key];
+if(blob(Buffer.from(encoded))!=='da20814a8aa89ed3e9beb9b88caa9c328c388c6b')throw Error('Encoded review checksum mismatch');
+const raw=inflateSync(Buffer.from(encoded.trim(),'base64'),{maxOutputLength:4*1024*1024});
+if(hash(raw)!=='f7f61f7d5ce1b578104cd8f01a6cf1f39627a0e54b407dcb2e4e1585f2dac3a1')throw Error('Review payload checksum mismatch');
+const plan=JSON.parse(raw),sources=plan.blobs.map(sha=>{
+  if(!/^[0-9a-f]{40}$/.test(sha))throw Error('Invalid source blob');
+  const bytes=execFileSync('git',['cat-file','blob',sha],{maxBuffer:4*1024*1024});
+  if(blob(bytes)!==sha)throw Error('Source blob mismatch');return bytes;
+});
+const outputs=[],seen=new Set();
+for(const row of plan.files){
+  const path=row.p;
+  if(seen.has(path)||! /^(?:tests\/unit\/|scripts\/contracts\/|\.github\/workflows\/|package\.json$|scripts\/check-ussr-partition-native\.mjs$)/.test(path)||relative(process.cwd(),resolve(path)).startsWith('..'))throw Error('Unsafe or duplicate path: '+path);
+  seen.add(path);
+  const before=existsSync(path)?blob(readFileSync(path)):null;
+  if(before!==row.b)throw Error('Concurrent change requires review: '+path+' expected '+row.b+' actual '+before);
+  let bytes=null;
+  if(row.a!==null){
+    bytes=Buffer.concat(row.s.map(part=>{
+      if(typeof part==='string')return Buffer.from(part);
+      const [index,start,size]=part,source=sources[index];
+      if(!source||!Number.isInteger(start)||!Number.isInteger(size)||start<0||size<0||start+size>source.length)throw Error('Invalid copy range');
+      return source.subarray(start,start+size);
+    }));
+    if(blob(bytes)!==row.a)throw Error('Reviewed output mismatch: '+path);
   }
-  writeFileSync(packagePath,JSON.stringify(data,null,2)+'\n');changed.add(packagePath);
+  outputs.push({path,bytes});
 }
-for(const file of paths('.github/workflows').filter(p=>/\.ya?ml$/.test(p))){
-  const original=readFileSync(file,'utf8');if(!containsRemoved(original))continue;
-  verifyInput(file);
-  const doc=parseDocument(original);if(doc.errors.length)throw Error('Invalid YAML '+file);
-  function cleanNode(node){
-    if(isSeq(node)){
-      node.items=node.items.filter(item=>!(isScalar(item)&&typeof item.value==='string'&&removed.has(item.value)));
-      node.items=node.items.filter(item=>{
-        if(isMap(item)&&typeof item.get('run')==='string'&&containsRemoved(item.get('run'))){
-          const command=cleanCommand(item.get('run'));if(!command.trim())return false;item.set('run',command);
-        }
-        cleanNode(item);return true;
-      });
-    }else if(isMap(node))for(const pair of node.items)cleanNode(pair.value);
-    else if(isScalar(node)&&typeof node.value==='string'&&containsRemoved(node.value)){
-      node.value=node.value.split('\n').filter(line=>![...removed].some(file=>line.trim()===file||line.trim()==='/'+file)).join('\n');
-    }
-  }
-  cleanNode(doc.contents);
-  const result=doc.toString({lineWidth:0});
-  if(containsRemoved(result))throw Error('Unhandled retired workflow reference '+file);
-  writeFileSync(file,result);changed.add(file);
-}
-for(const file of changed)if(!verified.has(file))throw Error('Unexpected output '+file);
-const result=[...changed].sort().map(file=>({path:file,sha256:existsSync(file)?digest(readFileSync(file)):null}));
-if(digest(JSON.stringify(result))!==plan.outputsSha256)throw Error('Delivery output differs from reviewed local result');
+// No file is changed until all source, destination and output identities match.
+for(const {path,bytes} of outputs){if(bytes===null)unlinkSync(path);else{mkdirSync(dirname(path),{recursive:true});writeFileSync(path,bytes);}}
+const result=outputs.map(({path,bytes})=>({path,sha256:bytes===null?null:hash(bytes),blob:bytes===null?null:blob(bytes)}));
 writeFileSync('/tmp/pando-test-scope-output.json',JSON.stringify(result,null,2)+'\n');
-console.log(JSON.stringify({changed:result.length,removed:removed.size,files:result},null,2));
+console.log(JSON.stringify({files:result.length,removed:result.filter(x=>x.blob===null).length,outputs:result},null,2));
