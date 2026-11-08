@@ -18,8 +18,6 @@ import * as __suiteDependency15 from "../../shared/frontend/js/modules/layer-pre
 import * as __suiteDependency16 from "node:assert/strict";
 import * as __suiteDependency17 from "node:test";
 import * as __suiteDependency18 from "../../shared/frontend/js/modules/map-render-coordinator.js";
-
-// Original feature contract: map-presentation-readiness.test.mjs
 featureDescribe("map-presentation-readiness", () => {
   const assert = __suiteDependency0.default;
   const test = __suiteDependency1.default;
@@ -71,7 +69,6 @@ test('a resolution-limited frame is explicitly complete but never claims additio
   assert.match(mapPresentationReadiness(stage(frame)).label,/저배율/);
 });
 });
-// Original feature contract: map-visual-frame.test.mjs
 featureDescribe("map-visual-frame", () => {
   const assert = __suiteDependency4.default;
   const test = __suiteDependency5.default;
@@ -137,7 +134,6 @@ test('flat visual frame keeps visible wrapped worlds in the shared frame', () =>
   assert.equal(Object.isFrozen(datelinePoint), true);
 });
 });
-// Original feature contract: map-visual-order.test.mjs
 featureDescribe("map-visual-order", () => {
   const assert = __suiteDependency7.default;
   const test = __suiteDependency8.default;
@@ -177,7 +173,6 @@ test('selection submits the actual strokes in policy order regardless of input c
   assert.deepEqual(submitted, SELECTION_PAINT_ORDER.map(role => `selection-object:${role}`));
 });
 });
-// Original feature contract: map-content-presentation.test.mjs
 featureDescribe("map-content-presentation", () => {
   const test = __suiteDependency12.default;
   const assert = __suiteDependency13.default;
@@ -231,7 +226,6 @@ test('a normal GPU content frame still updates scene domains before drawing',()=
   assert.deepEqual(f.updates,['svg','replace-scene','sync-scene']);
 });
 });
-// Original feature contract: map-render-coordinator.test.mjs
 featureDescribe("map-render-coordinator", () => {
   const assert = __suiteDependency16.default;
   const test = __suiteDependency17.default;

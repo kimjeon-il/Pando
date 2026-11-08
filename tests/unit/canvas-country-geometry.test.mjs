@@ -10,8 +10,6 @@ import * as __canvas_dep7 from "../../shared/frontend/js/modules/resource-update
 import * as __canvas_dep8 from "../../shared/frontend/js/modules/country-mesh-zoom-policy.js";
 import * as __canvas_dep9 from "../../shared/frontend/js/modules/gpu-canvas-worker.js";
 import "../../shared/frontend/js/workers/canvas-scene-composition-core.js";
-
-// Original feature contract: canvas-country-geometry.test.mjs
 contractSuite("canvas-country-geometry", () => {
 const { describe : contractSuite } = __canvas_dep0;
 const __dep0 = __canvas_dep0;
@@ -24,8 +22,6 @@ const __dep6 = __canvas_dep6;
 const __dep7 = __canvas_dep7;
 const __dep8 = __canvas_dep8;
 const __dep9 = __canvas_dep9;
-
-// Original feature contract: canvas-country-geometry.test.mjs
 contractSuite("canvas-country-geometry", () => {
 const { describe : featureDescribe }=__dep0;
 const __suiteDependency0=__dep0;
@@ -38,8 +34,6 @@ const __suiteDependency6=__dep5;
 const __suiteDependency7=__dep0;
 const __suiteDependency8=__dep1;
 const __suiteDependency9=__dep0;
-
-// Original feature contract: canvas-country-geometry.test.mjs
 featureDescribe("canvas-country-geometry", () => {
   const test = __suiteDependency0.default;
   const assert = __suiteDependency1.default;
@@ -63,7 +57,6 @@ test('Canvas country data identity ignores presentation wrappers but follows geo
   assert.notEqual(canvasCountryGeometrySignature(rows),key);
 });
 });
-// Original feature contract: canvas-coupled-land.test.mjs
 featureDescribe("canvas-coupled-land", () => {
   const assert = __suiteDependency4.default;
   const {  readFileSync  } = __suiteDependency5;
@@ -88,7 +81,6 @@ test('Canvas pending surface suppresses regional fills as well as country fills'
     ()=>assert.fail('pending territorial fill drew a path'),[{role:'territorial-fill'}],null,1,{quality:'pending'});
 });
 });
-// Original feature contract: canvas-stroke-preparation.test.mjs
 featureDescribe("canvas-stroke-preparation", () => {
   const assert = __suiteDependency8.default;
   const test = __suiteDependency9.default;
@@ -136,8 +128,6 @@ test('Canvas invalidates prepared strokes on changed revision, buffer identity o
 });
 });
 });
-
-// Original feature contract: canvas-globe-viewport.test.mjs
 contractSuite("canvas-globe-viewport", () => {
 const test=__dep0.default;
 const assert=__dep1.default;
@@ -276,8 +266,6 @@ test('Canvas globe retains strokes whose centers sit outside the viewport but wh
   }
 });
 });
-
-// Original feature contract: canvas-worker-background-admission.test.mjs
 contractSuite("canvas-worker-background-admission", () => {
 const test=__dep0.default;
 const assert=__dep1.default;
@@ -484,8 +472,6 @@ test('pending Canvas background requires no country overlays or temporal shortcu
 });
 });
 });
-
-// Original feature contract: canvas-terrain-dem-core.test.mjs
 contractSuite("canvas-terrain-dem-core", () => {
 const test = __canvas_dep0.default;
 const assert = __canvas_dep1.default;

@@ -9,8 +9,6 @@ import * as __render_dep6 from "../../shared/frontend/js/modules/gpu-stroke-geom
 import * as __render_dep7 from "../../shared/frontend/js/modules/ring-hit-test.js";
 import * as __render_dep8 from "../../shared/frontend/js/modules/country-mesh-codec.js";
 import "../../shared/frontend/js/workers/gpu-mesh-core.js";
-
-// Original feature contract: render-scene.test.mjs
 contractSuite("render-scene", () => {
 const { describe : contractSuite } = __render_dep0;
 const __dep0 = __render_dep1;
@@ -22,8 +20,6 @@ const __dep5 = __render_dep5;
 const __dep6 = __render_dep6;
 const __dep7 = __render_dep7;
 const __dep8 = __render_dep8;
-
-// Original feature contract: render-scene.test.mjs
 contractSuite("render-scene", () => {
 const assert=__dep0.default;
 const test=__dep1.default;
@@ -193,8 +189,6 @@ test('polygon fill and outline share the refined boundary across styles and outl
   assert.deepEqual(onlyOutline.strokes[0].startsEnds, first.strokes[0].startsEnds);
 });
 });
-
-// Original feature contract: render-lod.test.mjs
 contractSuite("render-lod", () => {
 const assert=__dep0.default;
 const test=__dep1.default;
@@ -230,8 +224,6 @@ test('dateline chains stay unsimplified and globe LOD bounds long projected edge
   assert.ok(globe.coordinates.length >= 6);
 });
 });
-
-// Original feature contract: render-bottleneck-preparation.test.mjs
 contractSuite("render-bottleneck-preparation", () => {
 const assert=__dep0.default;
 const test=__dep1.default;
@@ -278,8 +270,6 @@ test('open ring normalization is cached, not repeated for hover', () => {
 });
 });
 });
-
-// Original feature contract: overlay-mesh-engine.test.mjs
 contractSuite("overlay-mesh-engine", () => {
 const assert = __render_dep1.default;
 const test = __render_dep0.default;

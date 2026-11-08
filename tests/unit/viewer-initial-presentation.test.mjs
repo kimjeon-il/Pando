@@ -12,8 +12,6 @@ import * as __merge_dep8 from "../../shared/frontend/js/modules/map-state-transi
 import * as __merge_dep9 from "../../shared/frontend/js/modules/camera-navigation.js";
 import * as __merge_dep10 from "../../shared/frontend/js/modules/map-layout-metrics.js";
 import * as __merge_dep11 from "../../shared/frontend/js/modules/project-setup.js";
-
-// Original feature contract: viewer-initial-presentation.test.mjs
 contractSuite("viewer-initial-presentation", () => {
 const { describe : contractSuite } = __merge_dep0;
 const __dep0 = __merge_dep0;
@@ -22,8 +20,6 @@ const __dep2 = __merge_dep2;
 const __dep3 = __merge_dep3;
 const __dep4 = __merge_dep4;
 const __dep5 = __merge_dep5;
-
-// Original feature contract: viewer-initial-presentation.test.mjs
 contractSuite("viewer-initial-presentation", () => {
 const test = __dep0.default;
 const assert = __dep1.default;
@@ -188,8 +184,6 @@ test('resolution-limited frame before acceptance is observed only for its own ge
   assert.equal(state.hasPresented(),true);
 });
 });
-
-// Original feature contract: viewer-post-presentation.test.mjs
 contractSuite("viewer-post-presentation", () => {
 const test = __dep0.default;
 const assert = __dep1.default;
@@ -278,8 +272,6 @@ test('stale caller predicate blocks pending work before any layer mutation',asyn
  current=true;owner.schedule(()=>current);await tick();assert.equal(calls,3);owner.dispose();
 });
 });
-
-// Original feature contract: viewer-load-status.test.mjs
 contractSuite("viewer-load-status", () => {
 const test = __dep0.default;
 const assert = __dep1.default;
@@ -336,8 +328,6 @@ test('quiet completion preserves accessibility without declaring the renderer re
 });
 });
 });
-
-// Original feature contract: viewer-globe-only.test.mjs
 contractSuite("viewer-globe-only", () => {
 const test = __merge_dep0.default;
 const assert = __merge_dep1.default;

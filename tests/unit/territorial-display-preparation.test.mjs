@@ -1,4 +1,3 @@
-// Original feature contract: edit-preparation.test.mjs
 // Viewer-only geometry preparation; manual border cutting and draft previews are retired.
 import test from 'node:test';
 import assert from 'node:assert/strict';

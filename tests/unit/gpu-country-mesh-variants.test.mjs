@@ -7,8 +7,6 @@ import * as __contract_dep4 from "node:fs";
 import * as __contract_dep5 from "node:path";
 import * as __contract_dep6 from "node:url";
 import * as __contract_dep7 from "../../shared/frontend/js/modules/gpu-map-renderer.js";
-
-// Original feature contract: gpu-country-mesh-variants.test.mjs
 contractSuite("gpu-country-mesh-variants", () => {
 const { describe : featureDescribe } = __contract_dep0;
 const __suiteDependency0 = __contract_dep0;
@@ -23,8 +21,6 @@ const __suiteDependency8 = __contract_dep5;
 const __suiteDependency9 = __contract_dep0;
 const __suiteDependency10 = __contract_dep6;
 const __suiteDependency11 = __contract_dep7;
-
-// Original feature contract: gpu-country-mesh-variants.test.mjs
 featureDescribe("gpu-country-mesh-variants", () => {
   const test = __suiteDependency0.default;
   const assert = __suiteDependency1.default;
@@ -47,7 +43,6 @@ test('country mesh variants retire replaced resources once and keep the other qu
   assert.deepEqual(retired, ['canonical-1', 'preview-1', 'canonical-2', 'canonical-3']);
 });
 });
-// Original feature contract: gpu-country-patch-presentation.test.mjs
 featureDescribe("gpu-country-patch-presentation", () => {
   const test = __suiteDependency3.default;
   const assert = __suiteDependency4.default;
@@ -92,7 +87,6 @@ test('country patch preservation rejects stale work and unrelated scene changes'
   assert.equal(owner.current(), null);
 });
 });
-// Original feature contract: gpu-country-culling.test.mjs
 featureDescribe("gpu-country-culling", () => {
   const assert = __suiteDependency6.default;
   const fs = __suiteDependency7.default;
@@ -221,8 +215,6 @@ test('selection interaction hot path performs only precomputed map lookups', () 
 });
 });
 });
-
-// Original feature contract: gpu-country-pick-slot-guard.test.mjs
 contractSuite("gpu-country-pick-slot-guard", () => {
 const assert = __contract_dep1.default;
 const { readFileSync } = __contract_dep4;

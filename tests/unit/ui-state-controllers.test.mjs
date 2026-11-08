@@ -18,8 +18,6 @@ import * as __unit_dep14 from "../../shared/frontend/js/modules/interaction-role
 import * as __unit_dep15 from "../../shared/frontend/js/modules/territorial-entity-repository.js";
 import * as __unit_dep16 from "../../shared/frontend/js/modules/map-display-preparation.js";
 import * as __unit_dep17 from "../../shared/frontend/js/modules/selection-pass.js";
-
-// Original feature contract: ui-state-controllers.test.mjs
 contractSuite("ui-state-controllers", () => {
 const test = __unit_dep0.default;
 const assert = __unit_dep1.default;
@@ -202,8 +200,6 @@ test('Core replacement and device I/O receipts restore import rollback tokens an
   await client.releaseReplacement(replacement);
 });
 });
-
-// Original feature contract: select-controller.test.mjs
 contractSuite("select-controller", () => {
 const test = __unit_dep0.default;
 const assert = __unit_dep1.default;
@@ -286,8 +282,6 @@ test('an invalid persisted value keeps a sole replacement choice visible', () =>
   assert.equal(state.single, false);
 });
 });
-
-// Original feature contract: tooltip-controller.test.mjs
 contractSuite("tooltip-controller", () => {
 const assert = __unit_dep1.default;
 const test = __unit_dep0.default;
@@ -472,8 +466,6 @@ for (const dismissal of ['pointerdown', 'keydown', 'pandolab:project-changed']) 
   assert.equal(f.button.getAttribute('aria-describedby'), 'existing-help');
 });
 });
-
-// Original feature contract: interaction-roles.test.mjs
 contractSuite("interaction-roles", () => {
 const test = __unit_dep0.default;
 const assert = __unit_dep1.default;

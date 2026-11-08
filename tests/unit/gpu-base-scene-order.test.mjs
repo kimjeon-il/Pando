@@ -13,8 +13,6 @@ import * as __render_dep10 from "../../shared/frontend/js/modules/gpu-stroke-ren
 import * as __render_dep11 from "../../shared/frontend/js/modules/selection-pass.js";
 import * as __render_dep12 from "../../shared/frontend/js/modules/gpu-interaction-pass.js";
 import "../../shared/frontend/js/workers/canvas-scene-composition-core.js";
-
-// Original feature contract: gpu-base-scene-order.test.mjs
 contractSuite("gpu-base-scene-order", () => {
 const assert = __render_dep0.default;
 const test = __render_dep1.default;
@@ -230,8 +228,6 @@ test('Canvas consumes line and fill packets in the same overlay order', () => {
   assert.deepEqual(events, ['line', 'fill']);
 });
 });
-
-// Original feature contract: gpu-prepared-draw.test.mjs
 contractSuite("gpu-prepared-draw", () => {
 const test = __render_dep1.default;
 const assert = __render_dep0.default;

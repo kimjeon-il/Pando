@@ -11,8 +11,6 @@ import * as __dep7 from "node:fs";
 import * as __dep8 from "../helpers/gpu-recovery-source-harness.mjs";
 import * as __dep9 from "../../scripts/lib/renderer-v2-architecture.mjs";
 import * as __dep10 from "../../shared/frontend/js/modules/gpu-hydro-preparation.js";
-
-// Original feature contract: gpu-helper-utils.test.mjs
 contractSuite("gpu-helper-utils", () => {
 const assert = __dep0.default;
 const test = __dep1.default;
@@ -188,8 +186,6 @@ test('GPU view helper writes the shared uniforms in stable order', () => {
   ]);
 });
 });
-
-// Original feature contract: gpu-canvas-scene-packets.test.mjs
 contractSuite("gpu-canvas-scene-packets", () => {
 const test = __dep1.default;
 const assert = __dep0.default;
@@ -252,8 +248,6 @@ test('malformed raw physical geometry cannot become an admitted Canvas packet',(
   assert.throws(()=>a.physicalPolygons({geometry:{type:'MultiPolygon',coordinates:[[[[NaN,0],[1,0],[1,1],[NaN,0]]]]},revision:'bad'}),/nonfinite/);
 });
 });
-
-// Original feature contract: gpu-shared-pass-initialization.test.mjs
 contractSuite("gpu-shared-pass-initialization", () => {
 const assert = __dep0.default;
 const test = __dep1.default;
@@ -348,8 +342,6 @@ for(const replace of ['replaceProject','replaceContext','dispose'])test(`cancell
   f.stop();
 });
 });
-
-// Original feature contract: gpu-hydro-preparation.test.mjs
 contractSuite("gpu-hydro-preparation", () => {
 const test = __dep1.default;
 const assert = __dep0.default;

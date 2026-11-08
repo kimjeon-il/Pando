@@ -17,8 +17,6 @@ import * as __merge_dep14 from "../../shared/frontend/js/modules/territorial-uni
 import * as __merge_dep15 from "../../shared/frontend/js/modules/territorial-entity-store.js";
 import * as __merge_dep16 from "../../shared/frontend/js/modules/territorial-entity-repository.js";
 import * as __merge_dep17 from "../../shared/frontend/js/modules/territorial-scope.js";
-
-// Original feature contract: map-hover-async-boundary.test.mjs
 contractSuite("map-hover-async-boundary", () => {
 const { describe : contractSuite } = __merge_dep0;
 const __dep0 = __merge_dep1;
@@ -32,8 +30,6 @@ const __dep7 = __merge_dep7;
 const __dep8 = __merge_dep8;
 const __dep9 = __merge_dep9;
 const __dep10 = __merge_dep10;
-
-// Original feature contract: map-hover-async-boundary.test.mjs
 contractSuite("map-hover-async-boundary", () => {
 const assert = __dep0.default;
 const { readFileSync } = __dep1;
@@ -221,8 +217,6 @@ test('renderer label hover catches obsolete failures and reports the original un
   await pending;assert.equal(f.diagnostics[0].error,failure);assert.equal(f.diagnostics[0].operation,'label-hover');
 });
 });
-
-// Original feature contract: map-hover-topology.test.mjs
 contractSuite("map-hover-topology", () => {
 const { readFileSync } = __dep1;
 const assert = __dep0.default;
@@ -418,8 +412,6 @@ for (const peerKind of ['city', 'label']) for (const moveWithinLabel of [false, 
 });
 });
 });
-
-// Original feature contract: app-spatial-canonical-picking.test.mjs
 contractSuite("app-spatial-canonical-picking", () => {
 const { testCoreProject, initializeTestTerritorialState } = __merge_dep11;
 const assert = __merge_dep1.default;

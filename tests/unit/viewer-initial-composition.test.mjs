@@ -8,8 +8,6 @@ import * as __dep4 from "node:vm";
 import * as __dep5 from "../../apps/viewer/js/modules/viewer-initial-presentation.js";
 import * as __dep6 from "../../apps/viewer/js/modules/viewer-post-presentation.js";
 import * as __dep7 from "../../apps/viewer/js/modules/viewer-initial-preview.js";
-
-// Original feature contract: viewer-initial-composition.test.mjs
 contractSuite("viewer-initial-composition", () => {
 const { presentViewerLoadStatus } = __dep0;
 const test = __dep1.default;
@@ -194,8 +192,6 @@ test('P2-3 failed search hydration cannot reject an accepted map or reset readin
   assert.match(run.errors[0].message, /post-search unavailable/);
 });
 });
-
-// Original feature contract: viewer-initial-preview.test.mjs
 contractSuite("viewer-initial-preview", () => {
 const test = __dep1.default;
 const assert = __dep2.default;

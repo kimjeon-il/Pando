@@ -8,8 +8,6 @@ import * as __contract_dep4 from "../../shared/frontend/js/modules/gpu-worker-ch
 import * as __contract_dep5 from "../../shared/frontend/js/modules/gpu-resource-budget.js";
 import * as __contract_dep6 from "../../shared/frontend/js/modules/gpu-map-renderer.js";
 import * as __contract_dep7 from "../../shared/frontend/js/modules/mesh-spatial-blocks.js";
-
-// Original feature contract: gpu-resource-owners.test.mjs
 contractSuite("gpu-resource-owners", () => {
 const { describe : featureDescribe } = __contract_dep0;
 const __suiteDependency0 = __contract_dep0;
@@ -24,8 +22,6 @@ const __suiteDependency8 = __contract_dep0;
 const __suiteDependency9 = __contract_dep1;
 const __suiteDependency10 = __contract_dep6;
 const __suiteDependency11 = __contract_dep2;
-
-// Original feature contract: gpu-resource-owners.test.mjs
 featureDescribe("gpu-resource-owners", () => {
   const test = __suiteDependency0.default;
   const assert = __suiteDependency1.default;
@@ -119,7 +115,6 @@ test('P3-4 late GL handles after lifecycle disposal are released by their alloca
   assert.deepEqual(freed, [lateBuffer]);
 });
 });
-// Original feature contract: gpu-resource-budget.test.mjs
 featureDescribe("gpu-resource-budget", () => {
   const assert = __suiteDependency5.default;
   const test = __suiteDependency6.default;
@@ -152,7 +147,6 @@ test('lowering the budget returns only safe eviction keys', () => {
   assert.equal(budget.stats().activeBytes, 100);
 });
 });
-// Original feature contract: gpu-renderer-lifecycle.test.mjs
 featureDescribe("gpu-renderer-lifecycle", () => {
   const test = __suiteDependency8.default;
   const assert = __suiteDependency9.default;
@@ -231,8 +225,6 @@ test('temporal presentation wait is cancelled by a newer generation and rejects 
 });
 });
 });
-
-// Original feature contract: gpu-upload-staging.test.mjs
 contractSuite("gpu-upload-staging", () => {
 const test = __contract_dep0.default;
 const assert = __contract_dep1.default;
