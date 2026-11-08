@@ -48,6 +48,7 @@ test('published Viewer boots its real runtime and completes a year change', asyn
       const viewer = window.__PANDOLAB_VIEWER__, state = viewer.documentState();
       const canvas = document.querySelector('#viewerCanvas'), stats = viewer.rendererStats();
       return { month: viewer.builtinMonth().month, cursor: state.timelineCursor,
+        epoch: state.epoch, document: { revision: state.revision, checkpoint: state.checkpoint },
         presented: viewer.initialMapPresented(), visible: viewer.visibleTerritorialCount(),
         dirty: state.dirty, documentDirty: state.documentDirty, presentationDirty: state.presentationDirty,
         canUndo: state.canUndo, canRedo: state.canRedo, canvas: { width: canvas.width, height: canvas.height },
@@ -120,7 +121,11 @@ test('published Viewer boots its real runtime and completes a year change', asyn
       ready: document.querySelector('#viewerStatus')?.dataset.ready,
     })), { timeout: 45_000 }).toEqual({ month: '2024-12', ready: 'true' });
     const final = await observe('year-2024');
-    expect(final.render.projectGeneration, 'The year change presents its own accepted project').toBeGreaterThan(initial.render.projectGeneration);
+    expect(final.cursor, 'The year change evaluates another date in the canonical document').not.toBe(initial.cursor);
+    expect(initial.epoch).toBeGreaterThan(0);
+    expect(final.epoch, 'The accepted cursor advances the operation epoch once').toBe(initial.epoch + 1);
+    expect(final.document, 'Date navigation preserves the document and its edit history').toEqual(initial.document);
+    expect(final.render.projectGeneration, 'Date navigation retains the accepted project').toBe(initial.render.projectGeneration);
     expect(final.render.baseSceneDrawCount, 'The year change draws a new country surface').toBeGreaterThan(initial.render.baseSceneDrawCount);
     expect(final.date).toBe('2024년'); expect(final.basis).toBe('연말 기준');
     await expect(page.locator('#timelinePopover')).toBeHidden();
