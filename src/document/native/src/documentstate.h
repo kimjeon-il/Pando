@@ -27,7 +27,7 @@ struct DocumentState {
     {
         if(!isStaticTimeline(document))return;
         properties=objectPropertyViews(document);
-        auto allCountries=countryViews(document);
+        auto allCountries=countryViews(document,inactiveIds);
         countries.reserve(allCountries.size());
         for(const auto& view:allCountries)if(!inactiveIds.count(territorialRef(view.id)))countries.push_back(view);
         for (std::size_t i = 0; i < countries.size(); ++i)

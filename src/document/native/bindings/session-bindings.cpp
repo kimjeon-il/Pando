@@ -61,7 +61,11 @@ val world(const ResolvedWorld& result) {
 }
 template<class Function> auto boundary(Function function)->decltype(function()) {
     try { return function(); }
-    catch(const TimelineError& error) {
+    catch(const GeometryUnavailable& error) {
+        auto value=val::global("Error").new_(std::string(error.what())),refs=val::array();unsigned i=0;
+        for(const auto& ref:error.refs){auto row=val::object();row.set("id",webString(ref.id));row.set("version",ref.version);refs.set(i++,row);}
+        value.set("code","GEOMETRY_UNLOADED");value.set("missingGeometryRefs",refs);value.throw_();
+    } catch(const TimelineError& error) {
         auto value=val::global("Error").new_(std::string(error.what()));value.set("code",error.code);value.throw_();
     } catch(const std::exception& error) {
         const std::string message=error.what();
@@ -836,6 +840,23 @@ public:
     val resolveWorld(const std::string& month,std::uint32_t epoch) const {
         return boundary([&]{session_.requireEpoch(epoch);auto value=world(session_.resolveWorld(month));value.set("sourceEpoch",epoch);return value;});
     }
+    val geometryRequirements(const std::string& month,std::uint32_t epoch) const {
+        return boundary([&]{auto rows=val::array();unsigned i=0;
+            for(const auto& ref:session_.geometryRequirements(month,epoch)){
+                const auto& resource=session_.project().document().geometries.resources().at(ref);auto row=val::object();
+                row.set("id",webString(ref.id));row.set("version",ref.version);row.set("type",resource.type);
+                row.set("contentSha256",resource.contentSha256);row.set("decodedBytes",double(resource.decodedBytes));rows.set(i++,row);
+            }
+            auto result=val::object();result.set("resources",rows);result.set("sourceEpoch",epoch);return result;});
+    }
+    val admitGeometryResources(val payloads,std::uint32_t epoch) {
+        return boundary([&]{array(payloads,"INVALID_GEOMETRY_RESOURCE");std::vector<std::pair<GeometryRef,std::string>> rows;
+            for(unsigned i=0;i<payloads["length"].as<unsigned>();++i){const auto row=payloads[i];shape(row,{"id","version","source"},"INVALID_GEOMETRY_RESOURCE");
+                rows.push_back({{text(row["id"],"INVALID_GEOMETRY_RESOURCE"),temporalHandle(row["version"],"INVALID_GEOMETRY_RESOURCE")},text(row["source"],"INVALID_GEOMETRY_RESOURCE")});}
+            const auto delta=session_.admitGeometryResources(rows,epoch);auto result=val::object();
+            result.set("state",documentState(session_.projectState()));result.set("delta",val::global("JSON").call<val>("parse",delta));return result;
+        });
+    }
     val setTimelineCursor(const std::string& month,std::uint32_t epoch) {
         return boundary([&]{
             ResolvedWorld resolved;
@@ -1061,6 +1082,7 @@ EMSCRIPTEN_BINDINGS(pandoeditor_document_session) {
         .function("redo",&WasmDocumentSession::redo).function("markSaved",&WasmDocumentSession::markSaved)
         .function("labelGestureApply",&WasmDocumentSession::labelGestureApply)
         .function("resolveWorld",&WasmDocumentSession::resolveWorld).function("setTimelineCursor",&WasmDocumentSession::setTimelineCursor)
+        .function("geometryRequirements",&WasmDocumentSession::geometryRequirements).function("admitGeometryResources",&WasmDocumentSession::admitGeometryResources)
         .function("selectionCatalogLoad",&WasmDocumentSession::selectionCatalogLoad)
         .function("selectionApply",&WasmDocumentSession::selectionApply)
         .function("presentationCatalogLoad",&WasmDocumentSession::presentationCatalogLoad)

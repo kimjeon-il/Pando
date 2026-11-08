@@ -84,6 +84,8 @@ export function createDocumentSessionRuntime({ loadModule, validateFlagDataUrl, 
     validateImport: (payload,context) => call('validateImport',[payload.storageJson,payload.baselineId],context),
     inspectImport: (payload,context) => call('inspectImport',() => [payload.storageJson,payload.baselineId,currentMonth()],context),
     resolveWorld: (payload, context) => call('resolveWorld', [payload.month, payload.expectedEpoch], context),
+    geometryRequirements:(payload,context)=>call('geometryRequirements',[payload.month,payload.expectedEpoch],context),
+    admitGeometryResources:(payload,context)=>call('admitGeometryResources',[payload.resources,payload.expectedEpoch],context),
     setTimelineCursor: (payload, context) => call('setTimelineCursor', [payload.month, payload.expectedEpoch], context,
       result => {
         if (!result?.state || !result?.world || result.world.sourceEpoch !== result.state.epoch

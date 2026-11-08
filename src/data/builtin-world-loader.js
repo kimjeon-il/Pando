@@ -1,6 +1,6 @@
 import {createStoredAssetLoader} from "./stored-asset-loader.js";
-import {parseTemporal,temporalContains,temporalMonthEnd,normalizeTemporalInterval} from "../document/temporal.js";
-import {builtinCountryAssets,builtinCountryFileSpecs,materializeBuiltinCountry} from "./builtin-country-files.js";
+import {parseTemporal,temporalContains,temporalMonthEnd,normalizeTemporalInterval,sharedCalculationCore} from "../document/temporal.js";
+import {builtinCountryAssets,builtinCountryFileSpecs} from "./builtin-country-files.js";
 import {createBuiltinProjectSetup} from "../document/project-setup.js";
 import {PROJECT_SCHEMA_VERSION} from "../runtime/version-contract.js";
 
@@ -20,7 +20,7 @@ export function selectBuiltinCountries(index,month){
  validateBuiltinCatalog(index);
  return countriesAt(index,queryMonthEnd(month));
 }
-export function assembleBuiltinWorld(index,countries,month){
+function assembleWorld(index,countries,month,descriptors){
  validateBuiltinCatalog(index);
  queryMonthEnd(month);
  const expected=index.entities;
@@ -35,7 +35,7 @@ export function assembleBuiltinWorld(index,countries,month){
  project.timelineRecords={schemaVersion:3,lifetimes:[],geometryBindings:[],parentRelations:[],propertyBindings:[]};
  for(const entry of expected){
   const country=byId.get(entry.entityId);
-  if(country?.schemaVersion!==2||country.identity?.id!==entry.entityId)throw new Error('Builtin country identity mismatch');
+  if(country?.schemaVersion!==(descriptors?3:2)||country.identity?.id!==entry.entityId)throw new Error('Builtin country identity mismatch');
   const identity=structuredClone(country.identity);
   if(identity.properties.metadata?.historicalTimeline)
    identity.properties.metadata.historicalTimeline.geometryBindings=structuredClone(country.sourceBindings);
@@ -44,7 +44,7 @@ export function assembleBuiltinWorld(index,countries,month){
   // Only the canonical C++ cursor selects an effective month.
   for(const name of ['lifetimes','geometryBindings','parentRelations','propertyBindings'])
    project.timelineRecords[name].push(...structuredClone(country.timelineRecords[name]));
-  for(const geometry of country.geometries){
+  for(const geometry of descriptors?[]:country.geometries){
    const key=JSON.stringify([geometry.id,geometry.version]),existing=geometries.get(key);
    if(existing&&JSON.stringify(existing)!==JSON.stringify(geometry))throw new Error('Conflicting builtin geometry');
    geometries.set(key,geometry);
@@ -52,9 +52,12 @@ export function assembleBuiltinWorld(index,countries,month){
  }
  const used=new Set(project.timelineRecords.geometryBindings.map(row=>JSON.stringify([row.geometryRef.id,row.geometryRef.version])));
  project.geometries=[...geometries].filter(([key])=>used.has(key)).map(([,value])=>value);
+ if(descriptors)project.geometryResources=index.geometryAssets.filter(asset=>used.has(JSON.stringify([asset.id,asset.version])))
+  .map(({id,version,type,contentSha256,decodedBytes})=>({id,version,type,contentSha256,decodedBytes}));
  project.projectSetup=createBuiltinProjectSetup(month);
  return project;
 }
+export function assembleBuiltinWorld(index,countries,month){return assembleWorld(index,countries,month,false);}
 export function createBuiltinWorldLoader({manifestUrl,manifestSpec,dataRevision,fetchFn=globalThis.fetch,cacheStorage=globalThis.caches}){
  if(!manifestUrl||!manifestSpec?.sha256||!dataRevision)throw new Error('Builtin country catalog integrity metadata is required');
  const base=new URL(manifestUrl,globalThis.location?.href),parse=bytes=>JSON.parse(new TextDecoder().decode(bytes));
@@ -64,7 +67,7 @@ export function createBuiltinWorldLoader({manifestUrl,manifestSpec,dataRevision,
  const catalogs=createStoredAssetLoader(assetOptions);
  const assets=createStoredAssetLoader({...assetOptions,cachePolicy:'immutable'});
  let indexPromise;
- const countries=new Map(),geometries=new Map(),pending=new Map();
+ const countries=new Map(),geometries=new Map(),pending=new Map(),geometryStates=new Map();
  let activeReads=0;
  const readQueue=[];
  async function limitedRead(operation){
@@ -120,14 +123,34 @@ export function createBuiltinWorldLoader({manifestUrl,manifestSpec,dataRevision,
  async function loadGeometry(asset){
   const key=asset.file;
   if(geometries.has(key))return geometries.get(key);
-  if(!pending.has(key))pending.set(key,limitedRead(()=>assets.loadAsset({...asset,url:asset.file},
+  if(!pending.has(key)){
+   geometryStates.set(key,'loading');
+   pending.set(key,limitedRead(()=>assets.loadAsset({...asset,url:asset.file},
    'builtin-world',asset.id,'국가 형상',async buffer=>{
     const digest=await globalThis.crypto.subtle.digest('SHA-256',buffer);
     const actual=[...new Uint8Array(digest)].map(n=>n.toString(16).padStart(2,'0')).join('');
     if(actual!==asset.contentSha256)throw Error('Builtin geometry content hash mismatch: '+asset.id);
-    return parse(buffer);
-   })).then(({value})=>{geometries.set(key,value);return value;}).finally(()=>pending.delete(key)));
+    return new TextDecoder('utf-8',{fatal:true}).decode(buffer);
+   })).then(({value})=>{geometries.set(key,value);geometryStates.set(key,'ready');return value;})
+   .catch(error=>{geometryStates.set(key,'error');throw error;}).finally(()=>pending.delete(key)));
+  }
   return pending.get(key);
+ }
+ async function loadGeometryResources(requirements,{isCurrent=()=>true}={}){
+  const index=await loadIndex(),byRef=new Map(index.geometryAssets.map(asset=>[JSON.stringify([asset.id,asset.version]),asset]));
+  const rows=await Promise.all(requirements.map(async requirement=>{
+   if(!isCurrent())throw Object.assign(Error('Builtin geometry request superseded'),{name:'AbortError',cancelled:true});
+   const asset=byRef.get(JSON.stringify([requirement.id,requirement.version]));
+   if(!asset||['type','contentSha256','decodedBytes'].some(key=>asset[key]!==requirement[key]))throw Error('Builtin geometry requirement does not match pinned catalog');
+   return {id:asset.id,version:asset.version,source:await loadGeometry(asset)};
+  }));
+  if(!isCurrent())throw Object.assign(Error('Builtin geometry request superseded'),{name:'AbortError',cancelled:true});
+  return rows;
+ }
+ async function geometryState(ref){
+  const index=await loadIndex(),asset=index.geometryAssets.find(asset=>asset.id===ref.id&&asset.version===ref.version);
+  if(!asset)throw Error('Unknown builtin geometry reference');
+  return geometryStates.get(asset.file)||'unloaded';
  }
  async function loadProject(month,{isCurrent=()=>true,concurrency=6,waitForIdle=null}={}){
   if(!Number.isInteger(concurrency)||concurrency<1||concurrency>6)throw new RangeError('Builtin country read concurrency must be 1-6.');
@@ -158,12 +181,16 @@ export function createBuiltinWorldLoader({manifestUrl,manifestSpec,dataRevision,
   }
   // Descriptors retain every era independently of immutable coordinate files.
   const descriptors=await loadAll(index.entities,loadCountry);
-  const shapes=await loadAll(index.geometryAssets,loadGeometry);
-  const geometryByRef=new Map(index.geometryAssets.map((asset,i)=>[JSON.stringify([asset.id,asset.version]),shapes[i]]));
-  const loaded=descriptors.map(descriptor=>materializeBuiltinCountry(descriptor,geometryByRef));
+  const project=assembleWorld(index,descriptors,month,true),catalog=new Map(project.geometryResources.map(asset=>[JSON.stringify([asset.id,asset.version]),asset]));
+  const world=sharedCalculationCore.timelineResolveWorld(project.timelineRecords,{
+   entities:project.territorialEntities.map(row=>({objectRef:{domain:'territorial',id:row.id},entityKind:row.properties.entityKind})),
+   geometryExists:ref=>catalog.has(JSON.stringify([ref.id,ref.version])),
+  },month);
+  const required=new Map(world.entities.map(row=>{const key=JSON.stringify([row.geometryRef.id,row.geometryRef.version]);return[key,catalog.get(key)];}));
+  project.geometries=await loadAll([...required.values()],async asset=>({id:asset.id,version:asset.version,source:await loadGeometry(asset)}));
   if(waitForIdle)await waitForIdle();
   assertCurrent();
-  return {project:assembleBuiltinWorld(index,loaded,month),fingerprint:`${manifestSpec.sha256}:complete-timeline`};
+  return {project,fingerprint:`${manifestSpec.sha256}:complete-timeline`};
  }
- return Object.freeze({loadIndex,loadProject});
+ return Object.freeze({loadIndex,loadProject,loadGeometryResources,geometryState});
 }

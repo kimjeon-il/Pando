@@ -56,6 +56,7 @@ export function builtinGeometryAssets(index){
   const key=JSON.stringify([asset.id,asset.version]);
   if(typeof asset.id!=='string'||!asset.id||!Number.isInteger(asset.version)||asset.version<1||asset.version>4294967295||ids.has(key)
     ||!hash.test(asset.sha256)||!hash.test(asset.contentSha256)||asset.file!==`geometries/sha256-${asset.sha256}.json.gz`
+    ||!['Polygon','MultiPolygon','LineString','MultiLineString'].includes(asset.type)
     ||asset.encoding!=='gzip'||!positive(asset.compressedBytes)||!positive(asset.decodedBytes))throw Error('Invalid builtin geometry descriptor');
   ids.add(key);
  }

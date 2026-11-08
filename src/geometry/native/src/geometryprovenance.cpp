@@ -151,7 +151,7 @@ void GeometryProvenanceCodecAccess::setProjectSetupMetadata(ProjectDocument& doc
 void validateGeometryProvenance(const ProjectDocument& document) {
     const auto& provenance=document.geometryProvenance;
     for(const auto& ref:provenance.originalArchive)
-        require(bool(document.geometries.get(ref)),"missing original geometry");
+        require(document.geometries.contains(ref),"missing original geometry");
     const auto users=geometryProvenanceUsers(document);
     bool unpromoted=false;
     for(const auto& [ref,allocation]:provenance.inlineAllocations) {

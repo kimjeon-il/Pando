@@ -28,7 +28,7 @@ export function encodeBuiltinCountries(index,countries,files){
     let resource=byContent.get(contentSha256);
     if(!resource){
      const stored=compress(decoded),sha256=hash(stored),file='geometries/sha256-'+sha256+'.json.gz';
-     resource={file,encoding:'gzip',sha256,contentSha256,compressedBytes:stored.length,decodedBytes:decoded.length};
+     resource={type:geometry.geojson.type,file,encoding:'gzip',sha256,contentSha256,compressedBytes:stored.length,decodedBytes:decoded.length};
      files.set(file,stored);byContent.set(contentSha256,resource);
     }
     geometries.set(key,{id:geometry.id,version:geometry.version,...Object.fromEntries(Object.entries(resource).filter(([name])=>!['id','version'].includes(name)))});

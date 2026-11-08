@@ -22,6 +22,7 @@
       message: text(error?.message || error) || 'Worker 작업에 실패했습니다.',
       stack: text(error?.stack),
       retryable: error?.retryable === true,
+      ...(Array.isArray(error?.missingGeometryRefs)?{missingGeometryRefs:error.missingGeometryRefs}:{}),
       operation: text(operation),
       requestId: Number(requestId || 0),
       projectRevision: revision(projectRevision),

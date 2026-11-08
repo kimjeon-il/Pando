@@ -71,8 +71,10 @@ TimelineDocumentView timelineDocumentView(const ProjectDocument& source,const st
         result.world=*resolved;
     } else {
         result.world=resolveWorld(source.timelineRecords,
-            {timelineEntityCatalog(source),[&](const ObjectRef& owner,const GeometryRef& ref){return source.geometries.get(ref)!=nullptr;}},month);
+            {timelineEntityCatalog(source),[&](const ObjectRef&,const GeometryRef& ref){return source.geometries.contains(ref);}},month);
     }
+    std::vector<GeometryRef> required;for(const auto& row:result.world.entities)required.push_back(row.geometryRef);
+    source.geometries.requireReady(required);
     result.document=source;
     result.document.timelineRecords={};
     std::map<ObjectRef,const TimelineGeometryBinding*> firstBindings;

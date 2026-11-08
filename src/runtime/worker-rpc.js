@@ -30,6 +30,7 @@ function createWorkerRpcError({
   projectRevision = 0,
   retryable = false,
   cause = null,
+  missingGeometryRefs = null,
 } = {}) {
   const error = new Error(text(message) || 'Worker 작업에 실패했습니다.', cause ? { cause } : undefined);
   error.code = text(code) || 'PL-WORKER-RPC-001';
@@ -38,6 +39,7 @@ function createWorkerRpcError({
   error.requestId = Number(requestId || 0);
   error.projectRevision = finiteRevision(projectRevision);
   error.retryable = retryable === true;
+  if(Array.isArray(missingGeometryRefs))error.missingGeometryRefs=missingGeometryRefs;
   if (error.category === WORKER_RPC_ERROR_CATEGORIES.CANCELLED || error.category === WORKER_RPC_ERROR_CATEGORIES.STALE_RESULT) {
     error.name = 'AbortError';
     error.cancelled = true;
@@ -130,6 +132,7 @@ export function createWorkerRpcClient({
       requestId: entry.requestId,
       projectRevision: entry.projectRevision,
       retryable: raw.retryable === true,
+      missingGeometryRefs:raw.missingGeometryRefs,
       cause: raw,
     });
   }

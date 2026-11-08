@@ -612,6 +612,21 @@ DocumentSessionOutcome DocumentSession::presentationCatalogLoad(PresentationCata
     DocumentSessionOutcome outcome;outcome.result.status=CommandStatus::Applied;outcome.result.impact=std::move(impact);outcome.delta=std::move(delta);return outcome;
 }
 ResolvedWorld DocumentSession::resolveWorld(const std::string& month) const { requireLoaded();return project_.resolveWorld(month); }
+std::vector<GeometryRef> DocumentSession::geometryRequirements(const std::string& month,std::uint32_t expectedEpoch) const {
+    requireEpoch(expectedEpoch);return project_.missingGeometries(month);
+}
+std::string DocumentSession::admitGeometryResources(const std::vector<std::pair<GeometryRef,std::string>>& payloads,std::uint32_t expectedEpoch) {
+    requireEpoch(expectedEpoch);GeometryStore admitted;ChangeImpact impact;auto candidate=project_.document();
+    for(const auto& [ref,bytes]:payloads) {
+        const auto found=candidate.geometries.resources().find(ref);
+        if(found==candidate.geometries.resources().end())throw std::invalid_argument("INVALID_GEOMETRY_RESOURCE: undeclared reference");
+        auto geometry=projectcodec::decodeGeometryResource(found->second,bytes);
+        admitted.insert(ref,std::move(geometry));
+        if(!candidate.geometries.get(ref)){candidate.geometries.retainFrom(admitted,ref,ref);impact.changedGeometries.push_back(ref);}
+    }
+    const auto delta=projectcodec::encodeWebDelta(project_.document(),candidate,impact);
+    project_.admitGeometryResources(admitted);return delta;
+}
 bool DocumentSession::setTimelineCursor(const std::string& month,std::uint32_t expectedEpoch,ResolvedWorld* resolvedForResponse) {
     requireLoaded();if(expectedEpoch!=epoch_)throw std::invalid_argument("STALE_REVISION: session epoch changed");
     if(epoch_==std::numeric_limits<std::uint32_t>::max())throw std::overflow_error("CORE_SESSION_EPOCH_OVERFLOW");

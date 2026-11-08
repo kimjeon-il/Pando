@@ -143,6 +143,7 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
     objectDefinitions:{builtinSubunitSourceId},applicationServicesB:{layerStyle},platformConfigurationA:{BASE_DATASET},domains:{projectDomain},
     rendering:{get gpuMapRenderer(){return renderer;}},layerPresentation:objectCatalog}));
   builtinSession.initializePristineCountriesFallback();
+  const releaseGeometryLoader=documentSession.commandOwner.setGeometryLoader(builtinSession.loadGeometryResources);
   connectMapOwner('hydroSettings',physicalSettings,mergeCapabilityPorts(commonPorts,{physicalResources,physicalConfig,preferences:{mapTheme:theme},platform:{$:id=>document.getElementById(id),clamp},
     hydroPresentation:readPorts.hydroPresentation,objectPresentation,layerPresentation:objectCatalog}));
   Object.assign(readPorts.hydroPresentation,{allBuiltInHydroFeatures:physicalSettings.allBuiltInHydroFeatures,
@@ -354,6 +355,6 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
     refreshAppearance(options){renderQuality.applyMapAppearanceChange(options);objectCatalog.invalidateObjectPresentation();onPlacesSettled('render');},
 
     navigation,mapProjection,projectSession,renderingDomain,
-    dispose(){disposed=true;builtinSession.dispose();initialPreview.dispose();entityStore.dispose();renderQuality.cancelGpuMeshRebuild();inputPresentation.dispose();pointerTargets.cancelCountryHoverPick();countryIndex.resetCountryLabelAnchorRuntime();mapHost.stopMapResizeObserver();renderingDomain.dispose();renderer.dispose();gpuScene.renderSceneBuilder.clear();},
+    dispose(){disposed=true;releaseGeometryLoader();builtinSession.dispose();initialPreview.dispose();entityStore.dispose();renderQuality.cancelGpuMeshRebuild();inputPresentation.dispose();pointerTargets.cancelCountryHoverPick();countryIndex.resetCountryLabelAnchorRuntime();mapHost.stopMapResizeObserver();renderingDomain.dispose();renderer.dispose();gpuScene.renderSceneBuilder.clear();},
   });
 }

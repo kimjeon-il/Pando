@@ -32,6 +32,7 @@ function fixture({ onTransition } = {}) {
       }
       else if (message.operation === 'core.storage-snapshot') result = '{"complete":"all-domains"}';
       else if (message.operation === 'core.document-resolve-world') result = { month: message.payload.month, entities: [] };
+      else if (message.operation === 'core.document-geometry-requirements') result = {resources:[],sourceEpoch:epoch};
       else if (message.operation === 'core.document-state') result = state();
       else if (message.operation === 'core.document-export') result = { storageJson: '{"complete":"all-domains"}', state: state() };
       else if (message.operation === 'core.storage-baseline-load') {
@@ -243,7 +244,7 @@ test('cursor and saved-checkpoint acknowledgements share the command epoch and q
   assert.deepEqual(await f.client.resolveWorld('2020-03'), { month: '2020-03', entities: [] });
   assert.equal((await f.client.projectState()).epoch, 3);
   assert.equal(f.client.state().epoch, 3);
-  assert.deepEqual(f.sent.filter(row => row.type === 'request').map(row => row.payload.expectedEpoch), [undefined,1,2,3,3]);
+  assert.deepEqual(f.sent.filter(row => row.type === 'request').map(row => row.payload.expectedEpoch), [undefined,1,1,2,3,3]);
   f.client.dispose();
 });
 

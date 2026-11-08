@@ -308,9 +308,23 @@ V timelineRecordsValue(const TimelineRecords& records) {
     for(const auto& record:records.propertyBindings){auto value=row(record);value.object["property"]=V::str(record.property);value.object["value"]=codecjson::parse(record.value);properties.array.push_back(std::move(value));}
     return object({{"schemaVersion",V::num(records.schemaVersion)},{"lifetimes",life},{"geometryBindings",bindings},{"parentRelations",parents},{"propertyBindings",properties}});
 }
-void restoreArchive(const V& root,ProjectDocument& d) {
+void restoreArchive(const V& root,ProjectDocument& d,bool builtinSource) {
     TimelineStorageSnapshot candidate;candidate.records=timelineRecords(field(root,"timelineRecords"),d);
-    for(const auto& row:array(field(root,"geometries"))){unknown(d,10,row,"/geometries",{"id","version","geojson"});candidate.geometries.push_back({{str(field(row,"id")),integer(field(row,"version"))},std::make_shared<const Geometry>(geometry(field(row,"geojson"),d,10,"/geometries/geojson"))});}
+    const bool resources=root.object.count("geometryResources");
+    require(!resources||builtinSource,"INVALID_GEOMETRY_RESOURCE: catalogs belong to builtin sources only");
+    if(resources)for(const auto& row:array(field(root,"geometryResources"))) {
+        require(row.object.size()==5,"INVALID_GEOMETRY_RESOURCE: descriptor fields");
+        GeometryRef ref{str(field(row,"id")),integer(field(row,"version"))};
+        GeometryResource resource{str(field(row,"type")),str(field(row,"contentSha256")),integer(field(row,"decodedBytes"))};
+        require(candidate.resources.emplace(std::move(ref),std::move(resource)).second,"DUPLICATE_ID: geometry resource");
+    }
+    for(const auto& row:array(field(root,"geometries"))){
+        const GeometryRef ref{str(field(row,"id")),integer(field(row,"version"))};
+        Geometry shape;
+        if(resources){require(row.object.size()==3&&candidate.resources.count(ref),"INVALID_GEOMETRY_RESOURCE: payload owner");shape=decodeGeometryResource(candidate.resources.at(ref),str(field(row,"source")));}
+        else {unknown(d,10,row,"/geometries",{"id","version","geojson"});shape=geometry(field(row,"geojson"),d,10,"/geometries/geojson");}
+        candidate.geometries.push_back({ref,std::make_shared<const Geometry>(std::move(shape))});
+    }
     auto restored=restoreTimelineStorage(candidate,timelineEntityCatalog(d));d.timelineRecords=std::move(restored.records);d.geometries=std::move(restored.geometries);
 }
 V jsonObject(const std::string& bytes) {
@@ -736,13 +750,13 @@ ContentEdit readWebContentEdit(const ProjectSnapshot& snapshot,const ObjectRef& 
 }
 
 namespace {
-ProjectDocument readWebDocumentValue(const V& root,const PlatformPorts& ports,bool wireIds) {
+ProjectDocument readWebDocumentValue(const V& root,const PlatformPorts& ports,bool wireIds,bool builtinSource=false) {
     require(bool(ports.validateFlagDataUrl),"CODEC_PLATFORM_REQUIRED: flag validator");
     ProjectDocument d;
     require(integer(field(root,"schemaVersion"))==ProjectVersion,"UNSUPPORTED_VERSION: expected web v14");
     const auto format=str(field(root,"format"));require(format!="pandolab-autosave-delta","BASE_DATA_REQUIRED: web delta requires its matching baseline");require(format=="pandolab-project-state"||format=="pandolab-autosave-full","UNSUPPORTED_FORMAT");
     for(const auto* key:{"defaultView","layerVisibility","itemVisibility"})require(!root.object.count(key),"PL-SCHEMA-FIELD: viewing state is device-only");
-    unknown(d,10,root,"",{"format","schemaVersion","version","savedAt","baseDataset","landObjectModel","territorialModel","distributionModel","sourceInfo","physicalSourceInfo","documentId","territorialEntities","timelineRecords","geometries","labels","hydroEdits","genericFeatures","distributionLayers","distributionEntries","labelSettings","distributionSettings","layerPresentation","projectSetup"});
+    unknown(d,10,root,"",{"format","schemaVersion","version","savedAt","baseDataset","landObjectModel","territorialModel","distributionModel","sourceInfo","physicalSourceInfo","documentId","territorialEntities","timelineRecords","geometries","geometryResources","labels","hydroEdits","genericFeatures","distributionLayers","distributionEntries","labelSettings","distributionSettings","layerPresentation","projectSetup"});
     auto header=V::obj();for(const auto& [key,value]:currentWebHeader().object)header.object[key]=field(root,key);validateHeader(header,d);d.exchangeMetadata=header.encode();
     d.documentId=str(field(root,"documentId"));require(!d.documentId.empty(),"INVALID_DOCUMENT_ID");
     for(const auto& row:array(field(root,"territorialEntities")))readWebTerritorialIdentity(row,d,ports);
@@ -750,12 +764,13 @@ ProjectDocument readWebDocumentValue(const V& root,const PlatformPorts& ports,bo
         auto value=readWebContentRow(d,{"hydro",str(field(row,"id"))},row,[&](const std::string&,const std::string&,const V& shape){require(shape.kind==V::Null,"INVALID_HYDRO_IDENTITY: geometry belongs to timeline");return GeometryRef{};});
         d.hydro.push_back(std::get<HydroFeature>(std::move(value)));
     }
-    restoreArchive(root,d);
+    restoreArchive(root,d,builtinSource);
     for(const auto& property:d.timelineRecords.propertyBindings)if(property.property=="flag") {
         const auto value=codecjson::parse(property.value);
         if(value.object.at("policy").string=="embedded")ports.validateFlagDataUrl(value.object.at("embeddedDataUrl").string);
     }
     for(const auto& [ref,shape]:d.geometries.versions())d.geometryProvenance.originalArchive.insert(ref);
+    for(const auto& [ref,resource]:d.geometries.resources())d.geometryProvenance.originalArchive.insert(ref);
     const WebGeometryReader readGeometry=[&](const std::string& domain,const std::string& id,const V& value){
         if(domain=="hydroEdits"){require(value.kind==V::Null,"INVALID_HYDRO_IDENTITY: stored geometry belongs to timeline");auto found=std::find_if(d.timelineRecords.geometryBindings.begin(),d.timelineRecords.geometryBindings.end(),[&](const auto& row){return row.objectRef==ObjectRef{"hydro",id};});require(found!=d.timelineRecords.geometryBindings.end(),"TIMELINE_GEOMETRY: missing water binding");return found->geometryRef;}
         return inlineGeometry(d,domain,id,value);};
@@ -806,6 +821,12 @@ codecjson::Value normalizeWebTerritorialStoredIdentity(const V& input) {
     return object({{"type",V::str("Feature")},{"id",field(input,"id")},{"geometry",V{}},{"properties",std::move(props)}});
 }
 ProjectDocument decodeWebValue(const V& root,const PlatformPorts& ports){return readWebDocumentValue(root,ports,true);}
+ProjectDocument decodeBuiltinSourceValue(const V& root,const PlatformPorts& ports){return readWebDocumentValue(root,ports,true,true);}
+Geometry decodeGeometryResource(const GeometryResource& resource,const std::string& source) {
+    require(source.size()==resource.decodedBytes&&sha256Bytes(source)==resource.contentSha256,"INVALID_GEOMETRY_RESOURCE: content integrity");
+    ProjectDocument owner;auto shape=geometry(codecjson::parse(source),owner,10,"/geometryResource");
+    require(shape.type==resource.type,"INVALID_GEOMETRY_RESOURCE: type mismatch");return shape;
+}
 ProjectDocument decodeWeb(const std::string& bytes,const PlatformPorts& ports){return readWebDocumentValue(codecjson::parse(bytes,ports.parsedTextPolicy),ports,true);}
 ProjectDocument readWebSnapshot(const std::string& bytes,const PlatformPorts& ports){return readWebDocumentValue(codecjson::parse(bytes,ports.parsedTextPolicy),ports,false);}
 namespace {
@@ -1000,6 +1021,8 @@ std::string webSnapshot(const ProjectSnapshot& snapshot) {validateDocument(snaps
 codecjson::Value encodeWebValue(const ProjectSnapshot& snapshot,const PlatformPorts& ports,const WebStorageContext& context) {
     require(bool(ports.validateFlagDataUrl),"CODEC_PLATFORM_REQUIRED: flag validator");
     const auto& d=snapshot.document();validateDocument(d);validateWebObjectIds(d);validateProvenanceDigests(d);
+    std::vector<GeometryRef> required;for(const auto& [ref,resource]:d.geometries.resources())required.push_back(ref);
+    d.geometries.requireReady(required);
     require(!d.geometryProvenance.opaqueUncertain||!hasUnpromotedInlineAllocations(d.geometryProvenance),
             "UNSUPPORTED_WEB_EXPORT: opaque geometry dependencies");
     for(const auto& [key,value]:d.presentation.webPresentation.visibility)if(!webLayerVisibilityKey(key))throw std::invalid_argument("UNSUPPORTED_WEB_EXPORT: layerVisibility/"+key);

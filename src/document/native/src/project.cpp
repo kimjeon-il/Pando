@@ -270,7 +270,7 @@ ProjectSnapshot Project::snapshotForView() const {
     }
     return snapshot();
 }
-ResolvedWorld Project::resolveWorld(const std::string& month) const {
+ResolvedWorld Project::resolveTimelineMetadata(const std::string& month) const {
     // Viewer/session time queries admit only canonical months. Source records
     // retain their original year/date precision within their validity fields.
     const auto requested=parseTemporal(month);
@@ -280,11 +280,43 @@ ResolvedWorld Project::resolveWorld(const std::string& month) const {
     if(preparedTimelineSource_.lock()!=state_||!preparedTimeline_) {
         auto prepared=std::make_shared<const PreparedTimelineWorld>(d.timelineRecords,
             TimelineValidationContext{timelineEntityCatalog(d),
-                [&](const ObjectRef& owner,const GeometryRef& ref){return d.geometries.get(ref)!=nullptr;}});
+                [&](const ObjectRef&,const GeometryRef& ref){return d.geometries.contains(ref);}});
         preparedTimeline_=std::move(prepared);
         preparedTimelineSource_=state_;
     }
     return preparedTimeline_->resolve(month);
+}
+ResolvedWorld Project::resolveWorld(const std::string& month) const {
+    auto world=resolveTimelineMetadata(month);std::vector<GeometryRef> required;
+    for(const auto& row:world.entities)required.push_back(row.geometryRef);
+    document().geometries.requireReady(required);return world;
+}
+std::vector<GeometryRef> Project::missingGeometries(const std::string& month) const {
+    std::set<GeometryRef> required;
+    if(month.empty())for(const auto& [ref,resource]:document().geometries.resources())required.insert(ref);
+    else for(const auto& row:resolveTimelineMetadata(month).entities)required.insert(row.geometryRef);
+    std::vector<GeometryRef> missing;for(const auto& ref:required)if(!document().geometries.get(ref))missing.push_back(ref);
+    return missing;
+}
+void Project::admitGeometryResources(const GeometryStore& resources) {
+    std::map<const detail::DocumentState*,std::shared_ptr<const detail::DocumentState>> rebuilt;
+    const auto rebase=[&](const std::shared_ptr<const detail::DocumentState>& old) {
+        if(const auto found=rebuilt.find(old.get());found!=rebuilt.end())return found->second;
+        auto document=old->document;bool changed=false;
+        for(const auto& [ref,shape]:resources.versions())if(document.geometries.resources().count(ref)&&!document.geometries.get(ref)) {
+            document.geometries.retainFrom(resources,ref,ref);changed=true;
+        }
+        auto next=changed?std::make_shared<const detail::DocumentState>(std::move(document)):old;
+        rebuilt.emplace(old.get(),next);return next;
+    };
+    auto state=rebase(state_),saved=rebase(saved_);auto commands=*commands_;
+    for(auto& command:commands){command.before_=rebase(command.before_);command.after_=rebase(command.after_);}
+    auto ledger=std::make_shared<const std::vector<ChangeSet>>(std::move(commands));
+    const bool reuse=preparedTimeline_&&preparedTimelineSource_.lock()==state_;
+    std::optional<ResolvedWorld> resolved;if(reuse&&!timelineCursor_.empty()&&!isStaticTimeline(state->document))resolved.emplace(preparedTimeline_->resolve(timelineCursor_));
+    auto view=projectedState(state->document,timelineCursor_,resolved?&*resolved:nullptr);
+    state_=std::move(state);saved_=std::move(saved);commands_=std::move(ledger);viewState_=std::move(view);
+    if(reuse)preparedTimelineSource_=state_;
 }
 const ProjectDocument& Project::document() const noexcept { return state_->document; }
 const ProjectDocument& Project::viewDocument() const noexcept {

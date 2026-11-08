@@ -85,6 +85,39 @@ function pinnedInputs(root){
  const read=path=>decodeArchiveEntry(checkout,archive.files[path],config.revision);
  return {config,checkout,archive,read,index:JSON.parse(read(BUILTIN_COUNTRY_ROOT+'index.json'))};
 }
+/** Explicit catalog upgrade. Payload bytes/URLs and country descriptors stay
+ * unchanged; type is read from each verified immutable content exactly once. */
+export function indexBuiltinGeometryTypes({previousIndex,read}){
+ if(previousIndex?.storageLayout!=='descriptor-geometries-v1')throw Error('Factored geometry catalog required');
+ const index=structuredClone(previousIndex),seen=new Map();
+ for(const asset of index.geometryAssets){
+  let type=seen.get(asset.file);
+  if(!type){
+   const stored=read(asset.file);
+   if(stored.length!==asset.compressedBytes||hash(stored)!==asset.sha256)throw Error('Invalid geometry transport: '+asset.file);
+   const bytes=gunzipSync(stored,{maxOutputLength:asset.decodedBytes+1});
+   if(bytes.length!==asset.decodedBytes||hash(bytes)!==asset.contentSha256)throw Error('Invalid geometry content: '+asset.file);
+   type=JSON.parse(bytes).type;
+   if(!['Polygon','MultiPolygon','LineString','MultiLineString'].includes(type))throw Error('Invalid builtin geometry type');
+   seen.set(asset.file,type);
+  }
+  if(asset.type&&asset.type!==type)throw Error('Geometry catalog type mismatch');
+  asset.type=type;
+ }
+ return {index,files:new Map([['index.json',Buffer.from(JSON.stringify(index)+'\n')]]),verifiedPayloads:seen.size};
+}
+export function indexBuiltinCountryGeometries({root=defaultRoot,apply=false,push=false}={}){
+ if(push&&!apply)throw Error('Publication requires applied geometry metadata');
+ const pinned=pinnedInputs(root),result=indexBuiltinGeometryTypes({previousIndex:pinned.index,read:file=>pinned.read(BUILTIN_COUNTRY_ROOT+file)});
+ const path=BUILTIN_COUNTRY_ROOT+'index.json',current=readFileSync(resolve(root,path)),next=result.files.get('index.json');
+ if(hash(current)!==pinned.archive.files[path].sha256&&!current.equals(next))throw Error('Preserve unrelated builtin catalog edits');
+ if(current.equals(next))return {unchanged:true,revision:pinned.config.revision,verifiedPayloads:result.verifiedPayloads};
+ if(apply)writeBuiltinWorldPublication(result.files,resolve(root,BUILTIN_COUNTRY_ROOT));
+ if(!push)return {applied:apply,verifiedPayloads:result.verifiedPayloads,payloadWrites:0};
+ const revision=storeLibraryData({root,push,prefixes:[path]}),stored=pinnedInputs(root);
+ if(stored.config.revision!==revision||!stored.read(path).equals(next))throw Error('Geometry catalog remote bytes differ');
+ return {revision,verifiedPayloads:result.verifiedPayloads,verifiedStoredFiles:1,payloadWrites:0};
+}
 export function factorBuiltinCountryFiles({root=defaultRoot,apply=false,push=false}={}){
  if(push&&!apply)throw Error('Data publication requires the verified conversion to be applied');
  const pinned=pinnedInputs(root),directory=resolve(root,BUILTIN_COUNTRY_ROOT);
@@ -121,11 +154,11 @@ export function storeBuiltinCountryDelta({root=defaultRoot,push=false}={}){
  return {...plan,revision,verifiedStoredFiles:expected.size};
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
- const args=process.argv.slice(2),allowed=new Set(['--prepare','--apply','--verify','--store','--push','--factor-geometries']);
- if(args.some(arg=>!allowed.has(arg))||['--prepare','--verify','--store','--factor-geometries'].filter(arg=>args.includes(arg)).length!==1
-  ||args.includes('--apply')&&!args.includes('--prepare')&&!args.includes('--factor-geometries')
-  ||args.includes('--push')&&!args.includes('--store')&&!args.includes('--factor-geometries'))throw Error('Usage: --prepare [--apply] | --verify | --store [--push] | --factor-geometries [--apply [--push]]');
+ const args=process.argv.slice(2),allowed=new Set(['--prepare','--apply','--verify','--store','--push','--factor-geometries','--index-geometries']);
+ if(args.some(arg=>!allowed.has(arg))||['--prepare','--verify','--store','--factor-geometries','--index-geometries'].filter(arg=>args.includes(arg)).length!==1
+  ||args.includes('--apply')&&!args.includes('--prepare')&&!args.includes('--factor-geometries')&&!args.includes('--index-geometries')
+  ||args.includes('--push')&&!args.includes('--store')&&!args.includes('--factor-geometries')&&!args.includes('--index-geometries'))throw Error('Usage: --prepare [--apply] | --verify | --store [--push] | --factor-geometries [--apply [--push]] | --index-geometries [--apply [--push]]');
  if(args.includes('--store')&&execFileSync('git',['branch','--show-current'],{cwd:defaultRoot,encoding:'utf8'}).trim()!=='work/gis')throw Error('Country data publication is restricted to work/gis');
- const result=args.includes('--factor-geometries')?factorBuiltinCountryFiles({apply:args.includes('--apply'),push:args.includes('--push')}):args.includes('--prepare')?prepareBuiltinCountryFiles({apply:args.includes('--apply')}):args.includes('--verify')?verifyBuiltinCountryFiles():storeBuiltinCountryDelta({push:args.includes('--push')});
+ const result=args.includes('--index-geometries')?indexBuiltinCountryGeometries({apply:args.includes('--apply'),push:args.includes('--push')}):args.includes('--factor-geometries')?factorBuiltinCountryFiles({apply:args.includes('--apply'),push:args.includes('--push')}):args.includes('--prepare')?prepareBuiltinCountryFiles({apply:args.includes('--apply')}):args.includes('--verify')?verifyBuiltinCountryFiles():storeBuiltinCountryDelta({push:args.includes('--push')});
  console.log(JSON.stringify(result));
 }

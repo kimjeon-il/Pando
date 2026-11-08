@@ -6,6 +6,7 @@ const viewerOperations = new Set([
   'core.storage-baseline-load', 'core.document-validate-import', 'core.document-inspect-import',
   'core.document-replacement-capture', 'core.document-replacement-rollback', 'core.document-replacement-release',
   'core.document-state', 'core.document-resolve-world', 'core.document-timeline-cursor',
+  'core.document-geometry-requirements','core.document-geometry-admit',
   'core.document-selection-catalog', 'core.document-presentation-catalog',
   'core.document-selection-apply', 'core.document-selection-snapshot',
   // Scoped, epoch-checked C++ source/candidate handles; adoption additionally

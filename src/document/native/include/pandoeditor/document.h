@@ -223,7 +223,7 @@ std::set<std::string> copiedPlaceSourceIds(const ProjectDocument&);
 std::optional<GeometryRef> objectGeometry(const ProjectDocument&,const DocumentIndex&,const ObjectRef&);
 bool objectLocked(const ProjectDocument&,const DocumentIndex&,const ObjectRef&);
 std::string contentGroup(const ProjectDocument&,const ObjectRef&);
-std::vector<CountryView> countryViews(const ProjectDocument& document);
+std::vector<CountryView> countryViews(const ProjectDocument& document,const std::set<ObjectRef>& inactive={});
 void addStaticObjectRecords(ProjectDocument&,const ObjectRef&,GeometryRef);
 void removeObjectTimelineRecords(ProjectDocument&,const ObjectRef&);
 std::vector<TimelineEntityIdentity> timelineEntityCatalog(const ProjectDocument&);

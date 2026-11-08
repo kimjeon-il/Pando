@@ -52,6 +52,7 @@ public:
     bool setTimelineCursor(const std::string& month,bool activateEdits=true,const ResolvedWorld* resolved=nullptr);
     bool timelineEditsEnabled() const noexcept { return timelineEditsEnabled_; }
     ResolvedWorld resolveWorld(const std::string& month) const;
+    std::vector<GeometryRef> missingGeometries(const std::string& month={}) const;
     std::uint64_t presentationRevision() const noexcept { return presentationRevision_; }
     std::uint64_t presentationCheckpoint() const noexcept { return presentationCheckpoint_; }
     Project();
@@ -98,6 +99,8 @@ private:
     friend class DocumentSession;
     void admitTerritorialSource(ProjectDocument,const std::function<ProjectDocument(const ProjectDocument&)>&,const std::string& month,bool activateEdits);
     void admitPresentation(ProjectDocument,bool advanceRevision=true);
+    void admitGeometryResources(const GeometryStore&);
+    ResolvedWorld resolveTimelineMetadata(const std::string&) const;
     void admitTerritorialDirtyIds(const std::function<std::vector<std::string>(const ProjectDocument&)>&);
     void apply(const ChangeSet& change);
     ProjectSnapshot commitSnapshot(const ChangeSet&) const;

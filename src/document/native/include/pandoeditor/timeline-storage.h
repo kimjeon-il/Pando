@@ -14,6 +14,7 @@ struct TimelineStorageSnapshot {
     std::uint32_t schemaVersion = TimelineStorageSchemaVersion;
     TimelineRecords records;
     std::vector<TimelineGeometrySnapshot> geometries;
+    std::map<GeometryRef,GeometryResource> resources;
 };
 struct TimelineStorage {
     TimelineRecords records;

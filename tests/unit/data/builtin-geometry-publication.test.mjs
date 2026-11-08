@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {gzipSync,gunzipSync} from 'node:zlib';
 import {createHash} from 'node:crypto';
-import {factorBuiltinCountryGeometryStorage} from '../../../tools/data/builtin-country-storage.mjs';
+import {factorBuiltinCountryGeometryStorage,indexBuiltinGeometryTypes} from '../../../tools/data/builtin-country-storage.mjs';
 import {encodeBuiltinCountries,finalizeBuiltinWorldFiles,readBuiltinCountry} from '../../../tools/data/builtin-country-bytes.mjs';
 const shape={type:'Polygon',coordinates:[[[0,0],[1.1234567890123457,0],[1,1],[0,0]]]};
 const country=id=>({schemaVersion:2,entityId:id,identity:{id,properties:{name:id}},timelineRecords:{schemaVersion:3,lifetimes:[],geometryBindings:[{geometryRef:{id:'shared-logical',version:1}}],parentRelations:[],propertyBindings:[]},geometries:[{id:'shared-logical',version:1,geojson:shape}],sourceBindings:[]});
@@ -13,11 +13,17 @@ function publication(values){
 test('runtime descriptors and immutable geometry payloads are independently addressable and exact',()=>{
  const values=[country('A'),country('B')],{index,files}=publication(values);
  assert.equal(index.storageLayout,'descriptor-geometries-v1');assert.equal(index.geometryAssets.length,1);
+ assert.equal(index.geometryAssets[0].type,shape.type);
  const descriptors=index.entities.map(e=>JSON.parse(gunzipSync(files.get(e.file))));
  assert.equal(descriptors[0].schemaVersion,3);assert.equal(Object.hasOwn(descriptors[0],'geometries'),false);
  assert.deepEqual(descriptors[0].geometryRefs,[{id:'shared-logical',version:1}]);
  assert.deepEqual(readBuiltinCountry(index.entities[0],index,path=>files.get(path)),values[0]);
  assert.equal([...files.keys()].filter(p=>p.startsWith('geometries/')).length,1);
+ const previousIndex=structuredClone(index);delete previousIndex.geometryAssets[0].type;
+ const upgraded=indexBuiltinGeometryTypes({previousIndex,read:file=>files.get(file)});
+ assert.deepEqual(upgraded.index,index);assert.deepEqual([...upgraded.files.keys()],['index.json']);
+ assert.equal(upgraded.verifiedPayloads,1);
+ assert.throws(()=>indexBuiltinGeometryTypes({previousIndex,read:()=>Buffer.from('corrupt')}),/transport/);
 });
 test('name-only publication writes no geometry bytes and preserves coordinate hashes and URLs',()=>{
  const before=publication([country('A')]),index=structuredClone(before.index),files=new Map();

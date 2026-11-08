@@ -17,6 +17,7 @@ export function createCoreDocumentClient({
   let currentState = null;
   let disposed = false;
   let queue = Promise.resolve();
+  let geometryLoader=null;
   const subscribers = new Set();
   const detachedOps = new Set([
     'core.document-temporal-source-prepare','core.document-temporal-source-stats',
@@ -93,6 +94,16 @@ export function createCoreDocumentClient({
     queue = result.catch(() => {});
     return result;
   }
+  async function ensureGeometryResources(month,options={}){
+    const query=await ordered('core.document-geometry-requirements',{month},options);
+    if(!Array.isArray(query?.resources)||!Number.isSafeInteger(query.sourceEpoch))fail('PL-CORE-RESPONSE','Core geometry requirements must be epoch-pinned.');
+    if(!query.resources.length)return;
+    if(typeof geometryLoader!=='function')fail('GEOMETRY_UNLOADED','Required immutable geometry loader is unavailable.');
+    const isCurrent=()=>!disposed&&currentState?.epoch===query.sourceEpoch&&options.isCurrent?.()!==false&&!options.signal?.aborted;
+    const resources=await geometryLoader(query.resources,{...options,isCurrent});
+    if(!isCurrent())throw cancelled('PL-CORE-STALE','Geometry admission crossed a document or date request.');
+    await ordered('core.document-geometry-admit',{resources,expectedEpoch:query.sourceEpoch},{...options,isCurrent},true,true);
+  }
   return Object.freeze({
     productMode: policy.productMode,
     readOnly: policy.readOnly,
@@ -115,7 +126,13 @@ export function createCoreDocumentClient({
     undo: options => ordered('core.document-undo', {}, options, true, true),
     redo: options => ordered('core.document-redo', {}, options, true, true),
     markSaved: (expectedEpoch, options) => ordered('core.document-mark-saved', { expectedEpoch }, options, true, true),
-    exportSnapshot: (context, options) => ordered('core.document-export', context, options),
+    exportSnapshot: async(context, options) => {await ensureGeometryResources('',options);return ordered('core.document-export', context, options);},
+    setGeometryLoader(loader){
+      if(typeof loader!=='function')throw new TypeError('An immutable geometry resource loader is required.');
+      geometryLoader=loader;return ()=>{if(geometryLoader===loader)geometryLoader=null;};
+    },
+    geometryRequirements:(month='',options)=>ordered('core.document-geometry-requirements',{month},options),
+    admitGeometryResources:(resources,options)=>ordered('core.document-geometry-admit',{resources},options,true,true),
     storageBaselineLoad: (baseline,options) => ordered('core.storage-baseline-load',{ baseline },options,true,true),
     temporalSourcePrepare:(source,{dataRevision,manifestSha256,...options}={})=>
       ordered('core.document-temporal-source-prepare',{source,dataRevision,manifestSha256},options),
@@ -133,7 +150,7 @@ export function createCoreDocumentClient({
       { storageJson,baselineId: options.baselineId ?? null },options),
     inspectImport: (storageJson,options = {}) => ordered('core.document-inspect-import',
       { storageJson,baselineId: options.baselineId ?? null },options),
-    setTimelineCursor: (month, options) => ordered('core.document-timeline-cursor', { month }, options, true, true),
+    setTimelineCursor: async(month, options) => {await ensureGeometryResources(month,options);return ordered('core.document-timeline-cursor', { month }, options, true, true);},
     resolveWorld: (month, options) => ordered('core.document-resolve-world', { month }, options),
     projectState: options => ordered('core.document-state', {}, options),
     selectionCatalogLoad: (domain,refs,expectedEpoch,options) => ordered('core.document-selection-catalog',
@@ -147,6 +164,6 @@ export function createCoreDocumentClient({
     labelGestureApply: (payload,options) => ordered('core.document-label-gesture',payload,options,true,true),
     storageSnapshot: options => ordered('core.storage-snapshot', {}, options),
     state: () => currentState,
-    dispose: () => { if(disposed)return;disposed=true;currentState = null; subscribers.clear(); rpc.stop(); },
+    dispose: () => { if(disposed)return;disposed=true;geometryLoader=null;currentState = null; subscribers.clear(); rpc.stop(); },
   });
 }

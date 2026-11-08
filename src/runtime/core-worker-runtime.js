@@ -9,6 +9,7 @@ const documentMethods = Object.freeze({
   'core.document-confirm': 'confirm', 'core.document-cancel': 'cancel', 'core.document-undo': 'undo',
   'core.document-redo': 'redo', 'core.storage-snapshot': 'storageSnapshot', 'core.document-state': 'state',
   'core.document-resolve-world': 'resolveWorld', 'core.document-timeline-cursor': 'setTimelineCursor',
+  'core.document-geometry-requirements':'geometryRequirements','core.document-geometry-admit':'admitGeometryResources',
   'core.document-mark-saved': 'markSaved',
   'core.document-selection-catalog': 'selectionCatalogLoad', 'core.document-selection-apply': 'selectionApply',
   'core.document-selection-snapshot': 'selectionSnapshot',

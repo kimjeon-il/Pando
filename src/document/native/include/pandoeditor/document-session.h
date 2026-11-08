@@ -118,6 +118,8 @@ public:
     DocumentSessionOutcome applyPresentation(const PresentationAction&,std::uint32_t expectedEpoch);
     DocumentSessionOutcome presentationCatalogLoad(PresentationCatalog,std::uint32_t expectedEpoch);
     ResolvedWorld resolveWorld(const std::string& month) const;
+    std::vector<GeometryRef> geometryRequirements(const std::string&,std::uint32_t expectedEpoch) const;
+    std::string admitGeometryResources(const std::vector<std::pair<GeometryRef,std::string>>&,std::uint32_t expectedEpoch);
     bool setTimelineCursor(const std::string& month,std::uint32_t expectedEpoch,ResolvedWorld* resolvedForResponse=nullptr);
     SelectionState& selection() { return selection_; }
     const SelectionState& selection() const { return selection_; }

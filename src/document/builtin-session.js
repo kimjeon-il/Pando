@@ -93,6 +93,11 @@ export function createBuiltinSession({ builtinWorldLoader = null,buildMeta } = {
     preparedSources.add(prepared);candidateIdentities.set(prepared,identity);
     return prepared;
   }
+  async function loadGeometryResources(requirements,options){
+    refreshSourceIdentity();
+    if(!builtinWorldLoader)throw new Error('The builtin geometry catalog has not been admitted.');
+    return builtinWorldLoader.loadGeometryResources(requirements,options);
+  }
 
   async function admitPreparedProjectSource(prepared,{isCurrent=()=>true}={}) {
     if(!preparedSources.has(prepared))throw new TypeError('A prepared builtin source candidate from this session is required.');
@@ -301,6 +306,7 @@ export function createBuiltinSession({ builtinWorldLoader = null,buildMeta } = {
     get materializePristineCountriesSync() { return materializePristineCountriesSync; },
     dispose,
     get prepareProjectSource() { return prepareProjectSource; },
+    loadGeometryResources,
     get prepareProjectCandidate() { return prepareProjectCandidate; },
     get admitPreparedProjectSource() { return admitPreparedProjectSource; },
     get prepareProjectBaseline() { return prepareProjectBaseline; },

@@ -31,9 +31,26 @@ void validateGeometry(const Geometry& g) {
     }
 }
 }
+void GeometryStore::declareResource(GeometryRef ref,GeometryResource resource) {
+    require(!ref.id.empty()&&ref.version>0&&resource.decodedBytes>0&&resource.decodedBytes<=64*1024*1024
+        &&resource.contentSha256.size()==64&&std::all_of(resource.contentSha256.begin(),resource.contentSha256.end(),[](char c){return(c>='0'&&c<='9')||(c>='a'&&c<='f');})
+        &&(resource.type=="Polygon"||resource.type=="MultiPolygon"||resource.type=="LineString"||resource.type=="MultiLineString"),"INVALID_GEOMETRY_RESOURCE");
+    const auto shape=get(ref);require(!shape||shape->type==resource.type,"INVALID_GEOMETRY_RESOURCE: type mismatch");
+    require(resources_.emplace(std::move(ref),std::move(resource)).second,"DUPLICATE_ID: geometry resource");
+}
+bool GeometryStore::contains(const GeometryRef& ref) const {return versions_.count(ref)||resources_.count(ref);}
+std::string GeometryStore::type(const GeometryRef& ref) const {
+    if(const auto shape=get(ref))return shape->type;
+    const auto found=resources_.find(ref);return found==resources_.end()?std::string{}:found->second.type;
+}
+void GeometryStore::requireReady(const std::vector<GeometryRef>& refs) const {
+    std::set<GeometryRef> missing;for(const auto& ref:refs)if(!get(ref))missing.insert(ref);
+    if(!missing.empty())throw GeometryUnavailable({missing.begin(),missing.end()});
+}
 void GeometryStore::insert(GeometryRef ref,Geometry geometry) {
     require(!ref.id.empty() && ref.version>0,"INVALID_GEOMETRY: version");
     validateGeometry(geometry);
+    require(!resources_.count(ref)||resources_.at(ref).type==geometry.type,"INVALID_GEOMETRY_RESOURCE: type mismatch");
     require(versions_.emplace(std::move(ref),std::make_shared<const Geometry>(std::move(geometry))).second,"DUPLICATE_ID: geometry version");
 }
 void GeometryStore::retain(GeometryRef ref,std::shared_ptr<const Geometry> geometry) {
@@ -132,7 +149,7 @@ DocumentIndex validateDocumentImpl(const ProjectDocument& d,void(*readContent)(c
     readContent(d,idx);
     for(const auto& [ref,s]:d.presentation.objectStyles) require(idx.objects.count(ref)&&s.color<=0xffffff&&opacity(s.opacity),"INVALID_STYLE");
     const auto records=normalizeTimelineRecords(d.timelineRecords,{timelineEntityCatalog(d),[&](const ObjectRef& owner,const GeometryRef& ref){
-        const auto geometry=d.geometries.get(ref);return geometry&&(owner.domain=="territorial"?(geometry->type=="Polygon"||geometry->type=="MultiPolygon"):(geometry->type=="Polygon"||geometry->type=="MultiPolygon"||geometry->type=="LineString"||geometry->type=="MultiLineString"));
+        const auto type=d.geometries.type(ref);return owner.domain=="territorial"?(type=="Polygon"||type=="MultiPolygon"):(type=="Polygon"||type=="MultiPolygon"||type=="LineString"||type=="MultiLineString");
     }});
     for(const auto& binding:records.geometryBindings)idx.geometryUsers[binding.geometryRef].push_back(binding.objectRef);
     for(std::size_t i=0;i<records.parentRelations.size();++i) {
@@ -156,11 +173,12 @@ DocumentIndex validateDocumentImpl(const ProjectDocument& d,void(*readContent)(c
 }
 DocumentIndex validateDocument(const ProjectDocument& d){return validateDocumentImpl(d,indexContent);}
 DocumentIndex detail::validateCommandBatchInterim(const ProjectDocument& d){return validateDocumentImpl(d,indexCommandBatchContent);}
-std::vector<CountryView> countryViews(const ProjectDocument& d) {
+std::vector<CountryView> countryViews(const ProjectDocument& d,const std::set<ObjectRef>& inactive) {
     static const std::uint32_t countryDefault=0xcccccc;
     std::vector<CountryView> result;
     requireStaticTimeline(d);
-    for(const auto& u:d.units) if(isRootGeneral(d,u)) {
+    for(const auto& u:d.units) if(!inactive.count(territorialRef(u.id))&&isRootGeneral(d,u)) {
+        d.geometries.requireReady({staticGeometryBinding(d,territorialRef(u.id)).geometryRef});
         auto ref=territorialRef(u.id); const auto& s=d.presentation.objectStyles.at(ref);
         const std::uint32_t resolvedColor=s.explicitColor?s.color:countryDefault;
         result.push_back({u.id,(u.nameExplicit&&!u.name.empty()?u.name:u.baseName),d.geometries.get(staticGeometryBinding(d,territorialRef(u.id)).geometryRef)->polygons,resolvedColor,u.notes,s.opacity,u.locked});

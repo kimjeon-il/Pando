@@ -20,6 +20,8 @@ void requireNavigationMonth(const codecjson::Value&,const std::string&);
 std::string restoredTimelineMonth(const ProjectDocument&);
 ProjectDocument decodeWeb(const std::string&,const PlatformPorts&);
 ProjectDocument decodeWebValue(const codecjson::Value&,const PlatformPorts&);
+ProjectDocument decodeBuiltinSourceValue(const codecjson::Value&,const PlatformPorts&);
+Geometry decodeGeometryResource(const GeometryResource&,const std::string&);
 ProjectDocument readWebSnapshot(const std::string&,const PlatformPorts&);
 std::string webSnapshot(const ProjectSnapshot&);
 ProjectDocument replaceWebTerritorialSource(const ProjectDocument&,const ProjectDocument&,const std::string& month);
