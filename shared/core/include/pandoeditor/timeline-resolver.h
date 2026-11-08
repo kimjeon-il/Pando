@@ -1,6 +1,8 @@
 #pragma once
 #include <pandoeditor/timeline-records.h>
 #include <pandoeditor/temporal.h>
+#include <map>
+#include <memory>
 
 namespace pandoeditor {
 struct ResolvedEntity {
@@ -15,6 +17,8 @@ struct ResolvedEntity {
 struct ResolvedWorld {
     std::string month;
     std::vector<ResolvedEntity> entities;
+    // Stable index positions survive copies of the resolved world.
+    std::map<ObjectRef,std::size_t> offsets;
     const ResolvedEntity* find(const ObjectRef&) const;
 };
 
@@ -25,6 +29,17 @@ std::optional<std::size_t> selectTimelineVersion(const Validity& lifetime,
 enum class HistoricalSourceAvailability { Available,GeometryGap,Absent,Unknown };
 HistoricalSourceAvailability classifyHistoricalSourceAvailability(const Validity& lifetime,
     const std::vector<Validity>& versions,const std::string& referenceDate);
+
+// Normalize and validate once per immutable document snapshot. Its interval
+// indexes own their source records and are safe across subsequent month queries.
+class PreparedTimelineWorld {
+public:
+    PreparedTimelineWorld(const TimelineRecords&,const TimelineValidationContext&);
+    ResolvedWorld resolve(const std::string& month) const;
+private:
+    struct Data;
+    std::shared_ptr<const Data> data_;
+};
 
 // The input catalog supplies stable identity order; records and geometry are
 // validated before the month-end view is assembled.

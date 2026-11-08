@@ -107,6 +107,10 @@ private:
     // Capture snapshots and mutate Project only on the owner/editor thread.
     // Workers may prepare against ProjectSnapshot, never against live Project.
     std::shared_ptr<const detail::DocumentState> state_, saved_, viewState_;
+    // Rebuilt only when the authoritative document snapshot changes, never
+    // for a cursor-only transition. The source pin prevents address reuse.
+    mutable std::shared_ptr<const detail::DocumentState> preparedTimelineSource_;
+    mutable std::shared_ptr<const PreparedTimelineWorld> preparedTimeline_;
     std::shared_ptr<const std::vector<ChangeSet>> commands_=std::make_shared<const std::vector<ChangeSet>>();
     std::string instanceId_;
     std::uint64_t revision_ = 0;

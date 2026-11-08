@@ -231,8 +231,14 @@ ProjectSnapshot Project::snapshotForView() const {
 }
 ResolvedWorld Project::resolveWorld(const std::string& month) const {
     const auto& d=document();
-    return pandoeditor::resolveWorld(d.timelineRecords,{timelineEntityCatalog(d),
-        [&](const ObjectRef& owner,const GeometryRef& ref){return d.geometries.get(ref)!=nullptr;}},month);
+    if(preparedTimelineSource_!=state_||!preparedTimeline_) {
+        auto prepared=std::make_shared<const PreparedTimelineWorld>(d.timelineRecords,
+            TimelineValidationContext{timelineEntityCatalog(d),
+                [&](const ObjectRef& owner,const GeometryRef& ref){return d.geometries.get(ref)!=nullptr;}});
+        preparedTimeline_=std::move(prepared);
+        preparedTimelineSource_=state_;
+    }
+    return preparedTimeline_->resolve(month);
 }
 const ProjectDocument& Project::document() const noexcept { return state_->document; }
 const ProjectDocument& Project::viewDocument() const noexcept {

@@ -27,27 +27,55 @@ std::optional<std::size_t> selectTimelineVersion(const Validity& lifetime,
     return selected;
 }
 namespace {
-bool active(const Validity& validity,const TemporalValue& point) {
-    return validityContainsAtEnd(validity,point);
-}
-template<class Row> using RowsByEntity=std::map<ObjectRef,std::vector<const Row*>>;
+template<class Row> struct IndexedRow {
+    const Row* value;
+    TemporalInterval validity;
+};
+template<class Row> using RowsByEntity=std::map<ObjectRef,std::vector<IndexedRow<Row>>>;
 template<class Row> RowsByEntity<Row> indexRows(const std::vector<Row>& rows) {
     RowsByEntity<Row> index;
-    for(const auto& row:rows)index[row.objectRef].push_back(&row);
+    for(const auto& row:rows)
+        index[row.objectRef].push_back({&row,normalizeTemporalInterval(row.validity.from,row.validity.to)});
     return index;
 }
+bool active(const TemporalInterval& interval,const TemporalKey& atEnd) {
+    return (!interval.start||!(atEnd<interval.start->startKey))
+        &&(!interval.end||!(interval.end->endKey<atEnd));
+}
 template<class Row> const Row* selected(const RowsByEntity<Row>& index,const ObjectRef& id,
-                                      const TemporalValue& point) {
+                                       const TemporalKey& atEnd) {
     const auto found=index.find(id);
     if(found==index.end())return nullptr;
     const auto& rows=found->second;
-    const auto it=std::find_if(rows.begin(),rows.end(),[&](const auto* row){
-        return active(row->validity,point);
+    const auto it=std::find_if(rows.begin(),rows.end(),[&](const auto& row){
+        return active(row.validity,atEnd);
     });
-    return it==rows.end()?nullptr:*it;
+    return it==rows.end()?nullptr:it->value;
 }
+}
+struct PreparedTimelineWorld::Data {
+    TimelineRecords records;
+    std::vector<TimelineEntityIdentity> entities;
+    RowsByEntity<TimelineLifetime> lifetimes;
+    RowsByEntity<TimelineGeometryBinding> geometries;
+    RowsByEntity<TimelineParentRelation> parents;
+    RowsByEntity<TimelinePropertyBinding> properties;
+};
+PreparedTimelineWorld::PreparedTimelineWorld(const TimelineRecords& records,const TimelineValidationContext& context) {
+    auto next=std::make_shared<Data>();
+    next->records=normalizeTimelineRecords(records,context);
+    next->entities=context.entities;
+    next->lifetimes=indexRows(next->records.lifetimes);
+    next->geometries=indexRows(next->records.geometryBindings);
+    next->parents=indexRows(next->records.parentRelations);
+    next->properties=indexRows(next->records.propertyBindings);
+    data_=std::move(next);
 }
 const ResolvedEntity* ResolvedWorld::find(const ObjectRef& id) const {
+    if(!offsets.empty()) {
+        const auto found=offsets.find(id);
+        return found==offsets.end()||found->second>=entities.size()?nullptr:&entities[found->second];
+    }
     const auto it=std::find_if(entities.begin(),entities.end(),[&](const auto& row){return row.objectRef==id;});
     return it==entities.end()?nullptr:&*it;
 }
@@ -97,40 +125,45 @@ Validity timelineMapCoverageAtMonth(const TimelineRecords& records,const ObjectR
     }
     throw TimelineError("TIMELINE_INACTIVE","No map coverage for "+id.domain+":"+id.id+" at "+month);
 }
-ResolvedWorld resolveWorld(const TimelineRecords& records,const TimelineValidationContext& context,
-                           const std::string& month) {
+ResolvedWorld PreparedTimelineWorld::resolve(const std::string& month) const {
     const auto cursor=parseTemporal(month);
     const auto point=cursor.precision=="month"?temporalMonthEnd(cursor.canonical):cursor;
-    const auto normalized=normalizeTimelineRecords(records,context);
-    // Read-only indexes live only as long as this normalized snapshot. Keep
-    // record order inside each entity and evaluate dates at the same point.
-    const auto lifetimes=indexRows(normalized.lifetimes);
-    const auto geometries=indexRows(normalized.geometryBindings);
-    const auto parents=indexRows(normalized.parentRelations);
-    const auto properties=indexRows(normalized.propertyBindings);
+    const TemporalKey atEnd=point.endKey;
+    const auto& index=*data_;
     ResolvedWorld result;result.month=cursor.canonical;
-    for(const auto& identity:context.entities) {
-        const auto* lifetime=selected(lifetimes,identity.objectRef,point);
+    result.entities.reserve(index.entities.size());
+    for(const auto& identity:index.entities) {
+        const auto* lifetime=selected(index.lifetimes,identity.objectRef,atEnd);
         if(!lifetime)continue;
-        const auto* geometry=selected(geometries,identity.objectRef,point);
-        const auto* parent=selected(parents,identity.objectRef,point);
+        const auto* geometry=selected(index.geometries,identity.objectRef,atEnd);
+        const auto* parent=selected(index.parents,identity.objectRef,atEnd);
         if(!geometry)continue; // Validated paired coverage may be absent during a lifetime.
         result.entities.push_back({identity.objectRef,geometry->geometryRef,geometry->rendering,parent?parent->parentId:"",parent?parent->coverageMode:"explicit"});
-        result.entities.back().validity=lifetime->validity;
-        const auto found=properties.find(identity.objectRef);
-        if(found!=properties.end())for(const auto* property:found->second)if(active(property->validity,point))
-            result.entities.back().properties[property->property]=property->value;
+        auto& entity=result.entities.back();
+        entity.validity=lifetime->validity;
+        result.offsets.emplace(identity.objectRef,result.entities.size()-1);
+        const auto found=index.properties.find(identity.objectRef);
+        if(found!=index.properties.end())for(const auto& property:found->second)
+            if(active(property.validity,atEnd))entity.properties[property.value->property]=property.value->value;
     }
-    std::map<std::string,const ResolvedEntity*> resolvedById;
-    for(const auto& entity:result.entities)if(entity.objectRef.domain=="territorial")resolvedById.emplace(entity.objectRef.id,&entity);
+    std::map<std::string,std::size_t> resolvedById;
+    for(std::size_t i=0;i<result.entities.size();++i)
+        if(result.entities[i].objectRef.domain=="territorial")
+            resolvedById.emplace(result.entities[i].objectRef.id,i);
     for(auto& entity:result.entities) {
         auto parent=entity.parentId;
         while(!parent.empty()) {
             entity.ancestors.push_back(parent);
-            parent=resolvedById.at(parent)->parentId;
+            parent=result.entities.at(resolvedById.at(parent)).parentId;
         }
         entity.rootId=entity.ancestors.empty()?entity.objectRef.id:entity.ancestors.back();
     }
     return result;
+}
+ResolvedWorld resolveWorld(const TimelineRecords& records,const TimelineValidationContext& context,
+                           const std::string& month) {
+    // Preserve date-input precedence before validating independent records.
+    const auto cursor=parseTemporal(month);
+    return PreparedTimelineWorld(records,context).resolve(cursor.canonical);
 }
 }
