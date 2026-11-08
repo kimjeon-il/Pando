@@ -180,8 +180,11 @@ export function createGpuScene({getPhysicalLand=()=>null}={}) {
     const missing = renderSceneBuilder.missingPolygons(requiredPolygons, sceneInput);
     if (missing.length) {
       const signature = missing.map(item => item.cacheKey).join('|');
+      if (preparationFailure?.signature !== signature) preparationFailure = null;
+      // Exhausted retry budgets are terminal for this input. A new scene
+      // signature or builder resets the budget, not an unrelated redraw.
+      if (preparationFailure?.attempts >= 3) return currentRenderScene;
       if (pendingPreparation?.signature !== signature) {
-        if (preparationFailure?.signature !== signature) preparationFailure = null;
         const builder = renderSceneBuilder;
         const pending = { signature };
         pendingPreparation = pending;
