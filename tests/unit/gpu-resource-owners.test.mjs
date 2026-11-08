@@ -239,7 +239,6 @@ test('temporal presentation wait is cancelled by a newer generation and rejects 
   renderer.dispose();
 });
 });
-});
 contractSuite("gpu-upload-staging", () => {
 const test = __contract_dep0.default;
 const assert = __contract_dep1.default;
@@ -336,4 +335,5 @@ test('large spatial partitions preserve every oriented primitive and use bounded
   assert.ok(m.spatialPreparation?.partitionComparisons>0);
   assert.ok(m.spatialPreparation.partitionComparisons<count*30,'median selection must not fully sort every recursive partition');
   const repeat=structuredClone(original);prepareMeshSpatialBlocks(repeat);assert.deepEqual(repeat.triangleIndices,m.triangleIndices);
+});
 });
