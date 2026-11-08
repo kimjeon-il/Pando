@@ -1,0 +1,50 @@
+name: UI prebuilt mesh scoped verification
+on:
+  push:
+    branches: [work/ui]
+    paths: ['.github/workflows/ui-prebuilt-mesh-focused.yml']
+permissions:
+  contents: read
+jobs:
+  unit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - uses: ./.github/actions/library-data
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Execute only the registered baked mesh identity unit test
+        env:
+          CHECK_SELECTION: '{"unitTests":["tests/unit/rendering/builtin-mesh-scene-selection.test.mjs"],"browserSpecs":[],"commands":[],"prerequisites":[]}'
+        run: node scripts/run-application-checks.mjs --phase non-browser
+  browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - uses: ./.github/actions/library-data
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Verify actual Viewer WebGL and Canvas presentation on the pinned data
+        env:
+          CHECK_SELECTION: '{"unitTests":[],"browserSpecs":["tests/browser/rendering/viewer-gpu-backend-cross.spec.mjs"],"commands":[],"prerequisites":[]}'
+        run: node scripts/run-application-checks.mjs --phase browser
+      - name: Preserve focused browser failure evidence
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-baked-mesh-focused-${{ github.sha }}
+          path: test-results/
+          if-no-files-found: warn
