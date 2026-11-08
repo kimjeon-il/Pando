@@ -6,6 +6,8 @@ import * as __suiteDependency6 from "node:url";
 import * as __suiteDependency7 from "node:fs";
 import * as __suiteDependency8 from "../../scripts/build-ui-bundle.mjs";
 import * as __suiteDependency9 from "../../scripts/lib/frontend-layout.mjs";
+// Restore the original feature boundary; merged descriptions must be balanced.
+featureTest.describe("web-viewer", () => {
   const {  openViewingDisplay, setViewingLayer, closeViewingDisplay  } = __suiteDependency0;
   const {  test, expect  } = __suiteDependency1;
 for (const viewport of [{ width: 1280, height: 800 }, { width: 640, height: 360 }]) {
@@ -357,4 +359,5 @@ test('web keeps its globe through bounded file open, search, reset and mobile na
   expect(await projection()).toBe('globe');
   expect(await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentState())).toEqual(before);
   expect(errors).toEqual([]);
+});
 });
