@@ -308,8 +308,6 @@ test('P5 territorial recipe receives GIS native setup through canonical CI outpu
 });
 
 // Original feature contract: native-build-scope.test.mjs
-import test from 'node:test';
-import {selectNativeBuilds,pinnedToolchain} from '../../scripts/lib/check-changes.mjs';
 
 test('toolchain pins agree with Node and frozen package manager',()=>{
   const pinned=pinnedToolchain();

@@ -171,9 +171,6 @@ test('P2 unit contract index identifies original feature markers and rejects dup
 });
 
 // Original feature contract: check-impact.test.mjs
-import test from 'node:test';
-import { createCheckImpactIndex } from '../../scripts/lib/check-impact.mjs';
-import { selectionRequest } from '../../scripts/run-application-checks.mjs';
 
 test('reverse dependency graph selects only consuming features', () => {
   const edges = {
