@@ -1,3 +1,4 @@
+import {gzipSync} from 'node:zlib';
 import { test as featureTest } from '@playwright/test';
 import * as __suiteDependency0 from "@playwright/test";
 import * as __suiteDependency1 from "node:crypto";
@@ -24,12 +25,13 @@ function dataFixture(baseRevision){
     geometryVersions:[{versionId:oldVersion,geometry:before}]});
   const rawAfter=JSON.stringify({schemaVersion:2,entityId:'state:EXAMPLE_A',
     geometryVersions:[{versionId:newVersion,geometry:after}]});
+  const sourceBefore=gzipSync(Buffer.from(rawBefore));
   const diff={
     schemaVersion:1,dataset:structuredClone(proposal.proposal.dataset),comparisonMonth:'2008-10',
     indexChangedEntities:1,totalChangedEntities:1,scope:{batchIndex:1,batchCount:1,complete:true},
     readObjects:[
-      {sourceEntityId:'state:EXAMPLE_A',revision:proposal.proposal.dataset.baseRevision,sha256:sha(Buffer.from(rawBefore))},
-      {sourceEntityId:'state:EXAMPLE_A',revision:proposal.proposal.dataset.candidateRevision,sha256:sha(Buffer.from(rawAfter))},
+      {sourceEntityId:'state:EXAMPLE_A',revision:proposal.proposal.dataset.baseRevision,sha256:sha(Buffer.from(rawBefore)),resource:{url:'archive/blobs/'+sha(sourceBefore)+'.gz',encoding:'gzip',sha256:sha(sourceBefore),compressedBytes:sourceBefore.length,decodedBytes:Buffer.byteLength(rawBefore)}},
+      {sourceEntityId:'state:EXAMPLE_A',revision:proposal.proposal.dataset.candidateRevision,sha256:sha(Buffer.from(rawAfter)),resource:{url:'archive/blobs/'+sha(Buffer.from(rawAfter))+'.json',encoding:'identity',sha256:sha(Buffer.from(rawAfter)),compressedBytes:Buffer.byteLength(rawAfter),decodedBytes:Buffer.byteLength(rawAfter)}},
     ],
     changes:proposal.proposal.changes.map(({evidenceIds,...row})=>row),
     issues:[],nonMapMetadata:[],selectedAtComparisonMonth:1,
@@ -49,7 +51,7 @@ function dataFixture(baseRevision){
     scope:structuredClone(diff.scope),files:files.map(x=>({name:x.name,sha256:sha(x.buffer),bytes:x.buffer.byteLength}))};
   files.push({name:'e3-output-manifest.json',mimeType:'application/json',
     buffer:Buffer.from(JSON.stringify(manifest,null,2)+'\n')});
-  return {files,rawBefore,rawAfter,diff};
+  return {files,rawBefore,rawAfter,sourceBefore,diff};
 }
 
 test('E4 map revision follows the actual builtin or opened project',async({page})=>{
@@ -85,7 +87,7 @@ test('E4 can compare again after cancelling an in-flight source request',async({
   let first=true;
   await page.route('https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/**',async route=>{
     if(first){first=false;requested();await firstRequest;}
-    const body=route.request().url().includes(model.diff.readObjects[0].sha256)?model.rawBefore:model.rawAfter;
+    const body=route.request().url().includes(model.diff.readObjects[0].resource.sha256)?model.sourceBefore:model.rawAfter;
     await route.fulfill({status:200,contentType:'application/json',body,headers:{'access-control-allow-origin':'*'}}).catch(()=>{});
   });
   await ready(page);
@@ -109,7 +111,7 @@ test('E4 review opens matching immutable revisions, draws verified source previe
   const model=dataFixture(),errors=[];
   page.on('pageerror',error=>errors.push(error.message));
   await page.route('https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/**',async route=>{
-    const url=route.request().url(),body=url.includes(model.diff.readObjects[0].sha256)?model.rawBefore:model.rawAfter;
+    const url=route.request().url(),body=url.includes(model.diff.readObjects[0].resource.sha256)?model.sourceBefore:model.rawAfter;
     await route.fulfill({status:200,contentType:'application/json',body,
       headers:{'access-control-allow-origin':'*'}});
   });

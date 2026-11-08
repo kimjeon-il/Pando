@@ -8,6 +8,17 @@ import { createStoredAssetLoader } from "../../../src/data/stored-asset-loader.j
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
 const CACHE = 'pandolab-world-content-v1';
 
+test('bounded source decoding rejects expansion before publishing a partial result',async()=>{
+ const input=asset('x'.repeat(1024)),loader=createStoredAssetLoader({dataRevision:'synthetic',resolveUrl:()=>'/source',cacheStorage:null});
+ let published=false;
+ await assert.rejects(()=>loader.decodeStoredAsset(input.bytes,{...input.spec,maxDecodedBytes:128},
+  'review','source','source',()=>{published=true;}),/한도/);
+ assert.equal(published,false);
+ const result=await loader.decodeStoredAsset(input.bytes,{...input.spec,maxDecodedBytes:1024},
+  'review','source','source',buffer=>new TextDecoder().decode(buffer));
+ assert.equal(result.value,'x'.repeat(1024));
+});
+
 function cacheStorage() {
   const databases = new Map();
   return {

@@ -7,6 +7,7 @@ import {
   collectRevisionDiff, createPendingRevisionReview, verificationSummary,
 } from './e3-revision-diff.mjs';
 import {normalizeReviewBundle, reviewState} from "../../src/document/review-change-records.js";
+import {territorialSourceIndex,readTerritorialArchiveEntity} from '../data/territorial-source-archive.mjs';
 
 const SHA=/^[a-f0-9]{40}$/;
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -55,12 +56,8 @@ function openDataRoot(folder){
   return root;
 }
 const readIndex=(root,rev)=>{
-  const bytes=atRevision(root,rev,'library.json'),value=JSON.parse(bytes.toString('utf8'));
-  if(value?.schemaVersion!==1||!value.entities||Array.isArray(value.entities))
-    error('Expected the canonical library.json v1 object index.');
-  return value;
+  return territorialSourceIndex(JSON.parse(atRevision(root,rev,'archive/index.json').toString('utf8')));
 };
-const readObject=(root,{revision,digest})=>({bytes:atRevision(root,revision,'objects/'+digest+'.json')});
 function gitIsAncestor(root,base,candidate){
   try{git(root,'merge-base','--is-ancestor',base,candidate);}
   catch {error('Data candidate must descend from the pinned base Git commit.');}
@@ -78,7 +75,8 @@ export function generateE3RevisionEvidence(options) {
   const baseIndex=readIndex(root,o.base),candidateIndex=readIndex(root,o.candidate);
   const diff=collectRevisionDiff({
     baseRevision:o.base,candidateRevision:o.candidate,baseIndex,candidateIndex,
-    readEntity:params=>readObject(root,params),comparisonMonth:o['comparison-month'],
+    readEntity:({revision,entityId})=>readTerritorialArchiveEntity(revision===o.base?baseIndex:candidateIndex,
+      entityId,path=>atRevision(root,revision,path)),comparisonMonth:o['comparison-month'],
     maxEntities:o['batch-size']?Number(o['batch-size']):50,
     batchIndex:o['batch-index']?Number(o['batch-index']):null,
   });

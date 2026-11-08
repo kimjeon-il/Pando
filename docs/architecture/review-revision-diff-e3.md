@@ -10,7 +10,7 @@ E3가 비교하는 것은 Web/App 코드가 아닌 외부 데이터 저장소 **
 
 - 변경 전: `baseRevision` (40자리 SHA). 현재 `work/ui`의 짝지어진 pin은 `5eb7be55208efaafe39bd5a65ec2f111d70b9053`.
 - 변경 후: `candidateRevision` (40자리 SHA). 반드시 base의 자손이어야 한다. 별도 브랜치의 단순한 `main` 최신 커밋으로 자동 변경하지 않는다.
-- `library.json`의 `entities[entityId]`에 들어있는 원본 JSON SHA-256을 비교하여 **바뀐 객체만 읽는다**. 변경 전후 원본은 각 리비전의 `objects/<sha256>.json`에서 읽고 실제 바이트 SHA-256을 재검증한다.
+- 각 리비전의 `archive/index.json`에서 source/countries의 논리 내용 SHA-256을 비교하여 **바뀐 객체만 읽는다**. 해당 archive entry가 지정한 정확한 payload를 읽어 압축·내용 해시를 검증한다. E3 원본 참조에는 저장 URL·encoding·전송 해시·전후 크기를 함께 기록하며 Viewer는 이 receipt로 원문을 해독한 뒤 객체·형상 해시를 다시 검증한다.
 - 같은 객체 내에서 `geometryVersions`, `nameVersions`, `metadata.flagHistory`, `parentEntityId`, `lifetime`을 독립 비교한다. `sourceInfo`·별칭 등 지도 비표현 메타데이터 차이는 `nonMapMetadata`에 구별해 기록한다.
 - 한 데이터 리비전에서 1914→1915년으로 이동하는 **역사적 시점 비교**와, 두 데이터 리비전의 같은 1914년을 비교하는 **제작 변경 추적**은 서로 다른 축이다. E3는 후자만 증거화하며 `comparisonMonth`에서 보여줄 변경 수만 선택적으로 계산한다.
 
@@ -24,7 +24,7 @@ E3가 비교하는 것은 Web/App 코드가 아닌 외부 데이터 저장소 **
 
 1회 비교는 기본 최대 **50개 변경 객체**로 제한한다. 50개 초과인 자료 리비전을 `--batch-index` 없이 실행하면 예상 배치 개수를 표시하고 실패한다. `--batch-index=1`부터 끝 배치까지 차례로 실행하여 **전체 변경 객체를 누락 없이** 처리한다. `--batch-size=50`을 조정할 수 있지만 상한은 200이다. 각 출력은 `totalChangedEntities`, `indexChangedEntities`, `scope:{batchIndex,batchCount,complete}`를 기록하고 부분 배치의 검증 상태는 `coverage:scoped`로 표시한다. 여러 배치의 결과를 전체 검증 성공으로 합치려면 E3/E4에서 모든 배치의 SHA 및 상태를 함께 확인해야 한다. 원본 국가 ID `state:...` 외 객체(하천·호수 등)는 현재 E2 국가 계약의 범위 밖이며, 그런 객체의 변경은 `unsupported-object-domain`으로 남겨 별도 정책을 요구한다.
 
-서로 다른 Git 리비전이지만 `library.json` 국가 원본에 차이가 없는 경우에도 성공적인 **`no-map-changes`** 산출물을 작성한다. 연구 보고서만 추가된 것을 국경 변경으로 취급하지 않는다.
+서로 다른 Git 리비전이지만 source/countries 국가 원본에 차이가 없는 경우에도 성공적인 **`no-map-changes`** 산출물을 작성한다. 연구 보고서만 추가된 것을 국경 변경으로 취급하지 않는다.
 
 ## 3. 자동 생성 파일과 완료 의미
 

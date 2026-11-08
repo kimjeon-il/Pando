@@ -91,7 +91,16 @@ async function decodeStoredBuffer(storedBuffer, spec, phase, key, label) {
   if (spec.encoding === 'gzip') {
     if (typeof DecompressionStream !== 'function') throw new Error(`이 브라우저는 ${label} 압축 해제를 지원하지 않습니다.`);
     report(phase, `${key}-decode`, `${label}: 압축을 해제하는 중입니다.`);
-    const decoded = new Blob([storedBuffer]).stream().pipeThrough(new DecompressionStream('gzip'));
+    let decoded = new Blob([storedBuffer]).stream().pipeThrough(new DecompressionStream('gzip'));
+    if(spec.maxDecodedBytes!==undefined){
+      if(!Number.isSafeInteger(spec.maxDecodedBytes)||spec.maxDecodedBytes<1)throw Error('Invalid decoded asset limit');
+      let bytes=0;
+      decoded=decoded.pipeThrough(new TransformStream({transform(chunk,controller){
+        bytes+=chunk.byteLength;
+        if(bytes>spec.maxDecodedBytes)throw Error(`${label} 압축 해제 크기가 허용된 한도를 초과합니다.`);
+        controller.enqueue(chunk);
+      }}));
+    }
     buffer = await new Response(decoded).arrayBuffer();
   }
   return {

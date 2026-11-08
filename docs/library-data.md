@@ -12,7 +12,8 @@
 
 외부 자료 구성:
 
-- `library.json`, `objects/<sha256>.json`: 앱의 기존 편집·동기화 형식. 편집의 정본이다.
+- `assets/data/territorial-entities/source/countries/`: 객체 편집의 유일한 정본. 생성 청크와 국가 런타임은 이 입력에서 파생한다.
+- `library.json`, `objects/<sha256>.json`: 과거 pin의 이전·복구 입력이다. 현행 저장·자동 입력·E3 검수는 이를 정본으로 읽거나 다시 쓰지 않는다. 별도 `territorial-source-migration.mjs --checkpoint=<경로>`가 원본을 덮어쓰지 않고 source와 필드·형상 identity를 대조한다.
 - `assets/data/`: 현재 실행 의존 자료의 정확한 바이트. 기존 압축·해시·정밀도를 유지한다.
 - `archive/index.json`, `archive/blobs/`: 논리 경로와 보관 원문의 대응. 현재 보고서는 `reports/<경로>`의 전체 원문을 직접 보관하고, 기존 revision의 압축 원문은 Git 이력에서 복구한다. 런타임과 예전 국가 입력의 기존 보관 형식은 유지한다.
 - `reports/`: 전체 보고서 원문·기계 로그·첨부 원본. `.variants/<sha256>`는 다른 판본, `.edits/<브랜치>`는 독립 편집본, `.owners.json`은 브랜치별 보관 revision이다.
@@ -91,6 +92,6 @@ Git 다운로드가 이미 있는 델타 기준 객체를 새 pack에 다시 포
 
 앱 `work/gis` push는 작은 계약 테스트만 실행한다. 명시적인 같은 브랜치 수신 호출만 `work/gis` 자료 생성·저장·핀 연결을 허용하며 Pages를 배포하지 않는다. `main` 수신·시간별 복구·Pages 완료 후 복구는 커밋된 `config/library-auto-sync.json`의 `productionEnabled: true`와 실행 환경의 production 허용이 모두 있어야 한다. 현재 production 설정은 **false**다. workflow를 기본 브랜치에 설치하고 기존 전용 notifier 토큰 및 자료 쓰기 권한을 활성화하는 일과 production 허용은 별도의 명시적 승인 대상이다.
 
-수신 작업은 현재의 고정 브랜치 전체 Git 조상과 정확한 자료 SHA를 읽고, 내용 주소가 검증된 정규 입력만 기존 countries·worldview 소유자로 재생성한다. 다른 family는 보존하거나 지원하지 않는 변경으로 거절한다. 오래된 알림은 최신 head와 의미 지문으로 재조정하며 생성 커밋의 재알림도 일괄 actor 제외로 숨기지 않는다. 저장된 완성 자료와 앱 핀을 독립적으로 확인하므로 중간 실패는 다음 복구에서 이어갈 수 있다. 실행 로그 artifact는 진단일 뿐 완료 증거가 아니며 pending/incomplete를 배포 완료로 해석하지 않는다. GitHub 대기·job·생성 시간 때문에 즉시 반영이나 무지연을 보장하지 않는다.
+수신 작업은 현재의 고정 브랜치 전체 Git 조상과 정확한 자료 SHA를 읽고, archive가 가리키는 source/countries와 source/views/world.json만 편집 정본으로 읽는다. 각 전송·해시를 검증한 뒤 기존 생성 소유자로 파생한다. 구 native 객체나 생성 청크의 변경은 source로 역동기화하지 않는다. 다른 family는 보존하거나 지원하지 않는 변경으로 거절한다. 오래된 알림은 최신 head와 의미 지문으로 재조정하며 생성 커밋의 재알림도 일괄 actor 제외로 숨기지 않는다. 저장된 완성 자료와 앱 핀을 독립적으로 확인하므로 중간 실패는 다음 복구에서 이어갈 수 있다. 실행 로그 artifact는 진단일 뿐 완료 증거가 아니며 pending/incomplete를 배포 완료로 해석하지 않는다. GitHub 대기·job·생성 시간 때문에 즉시 반영이나 무지연을 보장하지 않는다.
 
 앱 쓰기는 해당 sync job의 기존 ephemeral `GITHUB_TOKEN`, 자료 쓰기는 기존 `PANDOLAB_LIBRARY_WRITE_TOKEN`만 사용한다. checkout의 표준 자격 증명 정리 외에 새로운 영구 자격 증명 저장소는 만들지 않는다. 기존 P2 및 `web-pages.yml` 경로·권한·배포 정책은 변경하지 않는다.

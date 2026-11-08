@@ -4,6 +4,7 @@ import {
 } from "../../document/review-inspection.js";
 import {readReviewEvidenceFiles} from "../../data/review-evidence-files.js";
 import {collectViewerInspection} from "./viewer-inspector-state.js";
+import {createStoredAssetLoader} from '../../data/stored-asset-loader.js';
 
 const SHA=/^[0-9a-f]{64}$/;
 const safeName=id=>id.replace(/[^A-Za-z0-9_.-]/g,'-').slice(0,100);
@@ -33,8 +34,12 @@ export async function readReviewGeometry(inspection,sourceEntityId,change,{
     const row=inspection.diff.readObjects.find(x=>x.revision===revision
       &&x.sourceEntityId===sourceEntityId);
     if(!row||!SHA.test(row.sha256))no('해당 리비전의 원본 객체 해시가 없습니다.');
-    const url='https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/'
-      +revision+'/objects/'+row.sha256+'.json';
+    const resource=row.resource;
+    if(!resource||typeof resource.url!=='string'||!/^[-A-Za-z0-9_./]+$/.test(resource.url)
+      ||resource.url.startsWith('/')||resource.url.split('/').some(p=>!p||p==='.'||p==='..')
+      ||![resource.compressedBytes,resource.decodedBytes].every(n=>Number.isSafeInteger(n)&&n>0&&n<=16*1024*1024))
+      no('원본 자료의 전송 정보가 올바르지 않습니다.');
+    const url='https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/'+revision+'/'+resource.url;
     let raw=sourceBytes?.get(revision);
     if(!raw){
       if(sourceBytes)no('변경 전후 두 원본 JSON 파일이 모두 필요합니다.');
@@ -44,6 +49,11 @@ export async function readReviewGeometry(inspection,sourceEntityId,change,{
       const header=Number(response.headers?.get('content-length'));
       if(header>16*1024*1024)no('원본 파일이 허용된 용량을 초과합니다.');
       raw=new Uint8Array(await response.arrayBuffer());
+      if(raw.byteLength>16*1024*1024)no('원본 파일이 허용된 용량을 초과합니다.');
+      const loader=createStoredAssetLoader({dataRevision:revision,resolveUrl:()=>url,cacheStorage:null});
+      const decoded=await loader.decodeStoredAsset(raw.buffer,{...resource,maxDecodedBytes:16*1024*1024},
+        'review','source-'+side,'검수 원본',buffer=>new Uint8Array(buffer));
+      raw=decoded.value;
     }
     if(!ArrayBuffer.isView(raw)||raw.byteLength>16*1024*1024||raw.byteLength===0)
       no('원본 파일의 형식 또는 크기가 올바르지 않습니다.');

@@ -24,30 +24,15 @@ test('scoped native storage requires every changed source chunk and shared index
   assert.throws(()=>assertTerritorialStorageScope(paths,extra,old),/together/);
 });
 
-test('native library storage reuses unedited object references without reading their chunks',async()=>{
-  const {storeNativeLibraryObjects}=await import("../../../tools/data/library-store.mjs");
-  assert.equal(typeof storeNativeLibraryObjects,'function');
-  const old='a'.repeat(64),reads=[],writes=[];
-  const entities=storeNativeLibraryObjects({libraryIndex:{entities:[{entityId:'state:edited',sha256:'new'},{entityId:'state:untouched',sha256:'same'}]},
-    previousLibrary:{entities:{'state:edited':'b'.repeat(64),'state:untouched':old}},
-    previousIndex:{entities:[{entityId:'state:edited',sha256:'old'},{entityId:'state:untouched',sha256:'same'}]},
-    readChunk:entry=>{reads.push(entry.entityId);if(entry.entityId==='state:untouched')throw new Error('unrelated source read');return gzipSync(Buffer.from('{"entityId":"state:edited","lifetime":{"validFrom":"1841","validTo":null}}'));},
-    put:(path,bytes)=>writes.push({path,text:bytes.toString()})});
-  assert.deepEqual(reads,['state:edited']);
-  assert.equal(entities['state:untouched'],old);
-  assert.equal(writes.length,1);
-  assert.equal(writes[0].text,'{"entityId":"state:edited","lifetime":{"validFrom":"1841","validTo":null}}\n');
-  assert.equal(writes[0].path,`objects/${entities['state:edited']}.json`);
-});
-
-test('scoped native storage uses the pinned native index when checkout metadata belongs to another edition',t=>{
+test('source storage preserves retired native metadata and supports source-before-generation publication',t=>{
   const parent=mkdtempSync(join(tmpdir(),'pando-scoped-native-')),root=join(parent,'app'),data=join(root,'.library-data/repository');
   t.after(()=>rmSync(parent,{recursive:true,force:true}));
   const put=(base,path,bytes)=>{mkdirSync(dirname(join(base,path)),{recursive:true});writeFileSync(join(base,path),bytes);};
   const git=(base,...args)=>execFileSync('git',['-c','core.autocrlf=false',...args],{cwd:base,encoding:'utf8',stdio:'pipe'}).trim();
   for(const base of [root,data]){mkdirSync(base,{recursive:true});git(base,'init','-q');git(base,'config','user.name','Fixture');git(base,'config','user.email','fixture@example.invalid');}
   const base='assets/data/territorial-entities',source=base+'/source/countries/state-test.json',chunk=base+'/generated/v2/state-test.json.gz',indexPath=base+'/generated/v2/index.json';
-  const before='{"entityId":"state:test","names":{"ko":"Before"},"geometryVersions":[]}',after='{"entityId":"state:test","names":{"ko":"After"},"geometryVersions":[]}';
+  const entity={schemaVersion:2,entityId:'state:test',entityKind:'general',names:{ko:'Before'},lifetime:{validFrom:null,validTo:null},geometryVersions:[{versionId:'v1',validFrom:null,validTo:null,geometry:{type:'Polygon',coordinates:[[[0,0],[1,0],[1,1],[0,0]]]}}]};
+  const before=JSON.stringify(entity),after=JSON.stringify({...entity,names:{ko:'After'}});
   const bytes=gzipSync(before),hash=value=>createHash('sha256').update(value).digest('hex');
   const oldIndex=Buffer.from(JSON.stringify({entities:[{entityId:'state:test',file:'state-test.json.gz',sha256:hash(bytes)}]}));
   const files={[source]:Buffer.from(before),[chunk]:bytes,[indexPath]:oldIndex};
@@ -64,10 +49,16 @@ test('scoped native storage uses the pinned native index when checkout metadata 
     put(root,source,after);put(root,chunk,next);
     put(root,indexPath,JSON.stringify({entities:[{entityId:'state:test',file:'state-test.json.gz',sha256:hash(next)}]}));
   });
+  const retiredBefore=git(data,'show','HEAD:library.json'),objectsBefore=git(data,'ls-tree','-r','HEAD','--','objects');
+  storeLibraryData({root,prefixes:[source]});
+  const first=JSON.parse(git(data,'show','HEAD:archive/index.json'));
+  assert.equal(first.files[source].sha256,hash(after));
+  assert.deepEqual(first.files[chunk],archive[chunk],'source storage must not regenerate geometry/chunks');
   storeLibraryData({root,prefixes:[source,chunk,indexPath]});
-  const stored=JSON.parse(git(data,'show','HEAD:library.json'));
-  assert.notEqual(stored.indexHash,'missing-other-edition');
-  assert.equal(JSON.parse(git(data,'show',`HEAD:objects/${stored.entities['state:test']}.json`)).names.ko,'After');
+  const stored=JSON.parse(git(data,'show','HEAD:archive/index.json'));
+  assert.equal(stored.files[source].sha256,hash(after));assert.equal(stored.files[chunk].sha256,hash(next));
+  assert.equal(git(data,'show','HEAD:library.json'),retiredBefore);
+  assert.equal(git(data,'ls-tree','-r','HEAD','--','objects'),objectsBefore);
 });
 
 test('public release paths remain directly archivable from the storage Git tree', t => {

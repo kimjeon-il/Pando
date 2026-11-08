@@ -1,3 +1,4 @@
+import {gzipSync} from 'node:zlib';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {createHash} from 'node:crypto';
@@ -14,6 +15,7 @@ import {normalizeReviewBundle,reviewState} from "../../../src/document/review-ch
 
 const A='a'.repeat(40),B='b'.repeat(40),D='d'.repeat(40);
 const hash=value=>createHash('sha256').update(value).digest('hex');
+const sourceObject=bytes=>({bytes,resource:{url:'archive/blobs/'+hash(bytes)+'.json',encoding:'identity',compressedBytes:bytes.length,decodedBytes:bytes.length,sha256:hash(bytes)}});
 const geo=extent=>({type:'Polygon',coordinates:[[[0,0],[extent,0],[extent,1],[0,1],[0,0]]]});
 const entity=()=>({
   schemaVersion:2,entityId:'state:EXAMPLE_A',entityKind:'general',lineageId:'example-a',
@@ -30,7 +32,7 @@ const snapshots=(before,after)=>{
  const baseIndex={schemaVersion:1,entities:{[before.entityId]:beforeDigest}};
  const candidateIndex={schemaVersion:1,entities:{[after.entityId]:afterDigest}};
  const blobs=new Map([[A+':'+beforeDigest,old],[B+':'+afterDigest,next]]);
- const readEntity=({revision,digest})=>({bytes:blobs.get(revision+':'+digest)});
+ const readEntity=({revision,digest})=>sourceObject(blobs.get(revision+':'+digest));
  return {baseIndex,candidateIndex,readEntity};
 };
 const diff=(before,after,month='2008-10')=>collectRevisionDiff({baseRevision:A,candidateRevision:B,
@@ -154,8 +156,9 @@ function put(root,path,content){
 }
 function commitFixture(root,entityValue,report=false){
   const body=Buffer.from(JSON.stringify(entityValue)),digest=hash(body);
-  put(root,'objects/'+digest+'.json',body);
-  put(root,'library.json',JSON.stringify({schemaVersion:1,indexHash:digest,entities:{[entityValue.entityId]:digest}}));
+  const path='assets/data/territorial-entities/source/countries/'+entityValue.entityId.replace(':','-')+'.json';
+  const stored='archive/blobs/'+digest+'.gz';put(root,stored,gzipSync(body));put(root,'archive/index.json',JSON.stringify({schemaVersion:1,files:{[path]:{stored,encoding:'gzip',sha256:digest,bytes:body.length}}}));
+  put(root,'library.json','retired unreadable manifest');
   if(report)put(root,'reports/borders/reconstruction/synthetic-case/README.md','# Synthetic historical evidence\n');
   git(root,'add','.');git(root,'commit','-qm',report?'candidate':'base');
   return git(root,'rev-parse','HEAD');
@@ -223,7 +226,7 @@ test('E3 visits every changed source exactly once through explicit bounded batch
     bytes.set(A+':'+hash(b),b);bytes.set(B+':'+hash(a),a);
   }
   const input={baseRevision:A,candidateRevision:B,baseIndex,candidateIndex,
-    readEntity:({revision,digest})=>({bytes:bytes.get(revision+':'+digest)}),
+    readEntity:({revision,digest})=>sourceObject(bytes.get(revision+':'+digest)),
     comparisonMonth:'2008-10',maxEntities:1};
   assert.throws(()=>collectRevisionDiff(input),/batch-index=1\.\.3/);
   const batches=[1,2,3].map(batchIndex=>collectRevisionDiff({...input,batchIndex}));

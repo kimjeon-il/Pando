@@ -58,9 +58,14 @@ function validDiff(diff) {
   }
   const receiptKeys=new Set();
   for(const row of diff.readObjects){
+    const resource=row?.resource;
     if(!row||!/^state:[A-Za-z0-9_-]+$/.test(row.sourceEntityId||'')
       || !sha.test(row.revision||'') || !digest.test(row.sha256||'')
-      || ![diff.dataset.baseRevision,diff.dataset.candidateRevision].includes(row.revision))
+      || ![diff.dataset.baseRevision,diff.dataset.candidateRevision].includes(row.revision)
+      ||!resource||typeof resource.url!=='string'||!/^[-A-Za-z0-9_./]+$/.test(resource.url)
+      ||resource.url.startsWith('/')||resource.url.split('/').some(p=>!p||p==='.'||p==='..')
+      ||!['identity','gzip'].includes(resource.encoding)||!digest.test(resource.sha256||'')
+      ||![resource.compressedBytes,resource.decodedBytes].every(n=>Number.isSafeInteger(n)&&n>0&&n<=16*1024*1024))
       invalid('E3 원본 객체 참조가 올바르지 않습니다.');
     const key=row.sourceEntityId+':'+row.revision;
     if(receiptKeys.has(key))invalid('E3 원본 객체 참조가 중복됐습니다.');

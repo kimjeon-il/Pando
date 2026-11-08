@@ -158,7 +158,7 @@ export function diffTerritorialEntities(beforeInput,afterInput,{sourceEntityId}=
   return {sourceEntityId:id,changes:unique,issues,metadataChanges};
 }
 function validateIndex(value){
-  if(!plain(value)||value.schemaVersion!==1||!plain(value.entities))invalid('Data library.json schema 1 index is required.');
+  if(!plain(value)||value.schemaVersion!==1||!plain(value.entities))invalid('Source content index schema 1 is required.');
   for(const [id,digest] of Object.entries(value.entities))
     if(!ID.test(id)||!DIGEST.test(digest))invalid('Invalid library index entity digest: '+id);
   return value;
@@ -196,7 +196,13 @@ export function collectRevisionDiff({baseRevision,candidateRevision,baseIndex,ca
     for(const [value,expected,revision] of [[before,row.beforeDigest,baseRevision],[after,row.afterDigest,candidateRevision]]) {
       if(expected===null)continue;
       if(!value||!Buffer.isBuffer(value.bytes)||sha256(value.bytes)!==expected)invalid('Source content hash mismatch: '+row.sourceEntityId+'@'+revision);
-      readHashes.push({sourceEntityId:row.sourceEntityId,revision,sha256:expected});
+      const resource=value.resource;
+      if(!resource||typeof resource.url!=='string'||!/^[-A-Za-z0-9_./]+$/.test(resource.url)
+        ||resource.url.startsWith('/')||resource.url.split('/').some(p=>!p||p==='.'||p==='..')
+        ||!['identity','gzip'].includes(resource.encoding)||!DIGEST.test(resource.sha256||'')
+        ||!Number.isSafeInteger(resource.compressedBytes)||resource.compressedBytes<1
+        ||resource.decodedBytes!==value.bytes.length)invalid('Source transport receipt is required: '+row.sourceEntityId);
+      readHashes.push({sourceEntityId:row.sourceEntityId,revision,sha256:expected,resource});
     }
     const diff=diffTerritorialEntities(before?JSON.parse(before.bytes.toString('utf8')):null,
       after?JSON.parse(after.bytes.toString('utf8')):null,{sourceEntityId:row.sourceEntityId});

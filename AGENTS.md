@@ -6,8 +6,10 @@ or `AGENTS.override.md` provides more specific rules.
 ## Branch and permanent worktree policy (mandatory)
 
 Read [docs/branch-policy.md](docs/branch-policy.md) before choosing a branch or
-local worktree. Web Viewer source lives in `apps/viewer/`, shared frontend source in `shared/frontend/`,
-and common C++ in `shared/`. The retired `apps/editor/` application is absent;
+local worktree. Web Viewer starts in `src/app/`; UI, map, document, geometry,
+rendering, data and runtime sources live in their corresponding `src/` domains.
+C++ implementations live in each domain's `native/`, with build orchestration
+in `tools/build/native/`. The retired `apps/editor/` application is absent;
 all maintained sources use the same commit and branch:
 
 - Reuse the long-lived branches `work/ui`, `work/objects`, `work/gis`, and
