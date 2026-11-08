@@ -3,9 +3,9 @@ import assert from 'node:assert/strict';
 import {readFileSync,existsSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {resolve} from 'node:path';
-import {createTerritorialFeature} from '../../shared/frontend/js/modules/territorial-units.js';
-import {fingerprintProjectBaseline} from '../../shared/frontend/js/modules/project-baseline-fingerprint.js';
-import {normalizeGenericFeatureCollection,normalizeGenericFeatureSemantics,GENERIC_FEATURE_SCHEMA_VERSION} from '../../shared/frontend/js/modules/generic-feature-normalization.js';
+import {createTerritorialFeature} from "../../src/document/territorial-units.js";
+import {fingerprintProjectBaseline} from "../../src/document/project-baseline-fingerprint.js";
+import {normalizeGenericFeatureCollection,normalizeGenericFeatureSemantics,GENERIC_FEATURE_SCHEMA_VERSION} from "../../src/document/generic-feature-normalization.js";
 import {normalizeTerritorialLibraryEntity,selectGeometryVersion} from '../../tools/gis/territorial-library.js';
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
@@ -38,7 +38,7 @@ test('R4-B Generic Feature normalization is data-only and does not mutate clone 
  assert.throws(()=>normalizeGenericFeatureCollection([raw,raw]),/중복/);
  assert.throws(()=>normalizeGenericFeatureSemantics({...raw,properties:{schemaVersion:2,role:'territory'}}),
    {code:'PL-GENERIC-SCHEMA'});
- const source=read('shared/frontend/js/modules/generic-feature-normalization.js');
+ const source=read('src/document/generic-feature-normalization.js');
  assert.doesNotMatch(source,/executeCommand|commandOwner|generic\.create|generic\.remove|window\.|document\./);
 });
 
@@ -56,13 +56,13 @@ test('R4-B historical country source keeps day-precision revisions and canonical
 
 test('R4-B data sources never depend on legacy editor entrypoints or mutation adapters',()=>{
  for(const name of ['tools/gis/project-template-compiler.js',
-   'shared/frontend/js/modules/generic-feature-normalization.js',
-   'shared/frontend/js/modules/project-baseline-fingerprint.js']){
+   'src/document/generic-feature-normalization.js',
+   'src/document/project-baseline-fingerprint.js']){
    const body=read(name);
    assert.doesNotMatch(body,/apps\/editor\/frontend|legacy-project-autosave|generic-feature-command-service/);
  }
  for(const removed of ['tools/gis/project-serializer.js','tools/gis/generic-feature-service.js'])
    assert.equal(existsSync(resolve(root,removed)),false,removed);
  assert.ok(read('tools/builtin-world-compiler.mjs').includes("from \"./gis/project-template-compiler.js\""));
- assert.ok(read('tests/helpers/core-startup.mjs').includes("from \"../../shared/frontend/js/modules/project-baseline-fingerprint.js\""));
+ assert.ok(read('tests/helpers/core-startup.mjs').includes("from \"../../src/document/project-baseline-fingerprint.js\""));
 });

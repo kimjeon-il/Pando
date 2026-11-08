@@ -2,7 +2,7 @@ import { createHash, webcrypto } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { loadVerifiedCore } from "../shared/frontend/js/modules/core-wasm-loader.js";
+import { loadVerifiedCore } from "../src/runtime/core-wasm-loader.js";
 import { sharedSourceManifest } from './package-shared-core-assets.mjs';
 import {frontendWasmRoot} from '../scripts/lib/frontend-layout.mjs';
 

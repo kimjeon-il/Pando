@@ -7,7 +7,7 @@ import {ADDITIONAL_IDS, ADDITIONAL_FLAG_IDS, ADDITIONAL_NAME_IDS, prepareAdditio
 import {readBuiltinCountryStoredBytes} from '../../tools/builtin-country-bytes.mjs';
 import fs from 'node:fs';
 import {gunzipSync} from 'node:zlib';
-import {selectBuiltinCountries, assembleBuiltinWorld} from '../../shared/frontend/js/modules/builtin-world-loader.js';
+import {selectBuiltinCountries, assembleBuiltinWorld} from "../../src/data/builtin-world-loader.js";
 
 const hash=value=>createHash('sha256').update(JSON.stringify(value)).digest('hex');
 

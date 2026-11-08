@@ -31,7 +31,7 @@
 
 ### root별 내부 경계 계산 재사용
 
-`shared/frontend/js/modules/country-shared-boundary-packet.js`:
+`src/rendering/country-shared-boundary-packet.js`:
 
 - 현재 root와 자식 목록을 구성해 각 그룹마다 `root id + root geometryKey + (child id, child geometryKey)`의 **순서 포함** 키를 비교한다.
 - 이전 캐시의 일치하는 그룹은 계산 결과인 내부 경계 선분을 그대로 사용한다. 국경·부모 계층·해당 형상 변경 시 해당 root만 재계산한다.
@@ -40,7 +40,7 @@
 
 ### 검증된 패킷 2개를 보유하는 LRU
 
-`shared/frontend/js/workers/country-shared-boundary-worker.js`:
+`src/rendering/workers/country-shared-boundary-worker.js`:
 
 - 기존 단일 패킷 보유를 최대 2개 LRU로 바꾸고, 두 패킷 합계 추정 용량 96 MiB 상한을 유지한다.
 - 캐시 키에는 `quality`, `includeOutlines`, 국가 순서·ID, root/parent 관계, Worker가 검증한 SHA-256 geometry revision을 포함한다.

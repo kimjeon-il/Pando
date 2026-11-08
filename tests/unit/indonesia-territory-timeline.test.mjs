@@ -2,10 +2,10 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {readTerritorialSources} from '../../tools/territorial-entity-sources.mjs';
 import {selectGeometryVersion, territorialEntityExistsAt} from "../../tools/gis/territorial-library.js";
-import {createRingHitTester} from "../../shared/frontend/js/modules/ring-hit-test.js";
+import {createRingHitTester} from "../../src/geometry/ring-hit-test.js";
 import {builtinProject} from '../helpers/builtin-world.mjs';
-import {createGeometryVersionStore} from "../../shared/frontend/js/modules/geometry-version-store.js";
-import {resolvedTimelineViews} from "../../shared/frontend/js/modules/timeline-resolver.js";
+import {createGeometryVersionStore} from "../../src/geometry/geometry-version-store.js";
+import {resolvedTimelineViews} from "../../src/document/timeline-resolver.js";
 
 const pointTester=createRingHitTester(ring=>ring);
 const pointInside=(geo,p)=>{

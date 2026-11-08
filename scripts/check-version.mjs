@@ -61,7 +61,7 @@ const bundlePath = 'assets/data/world/current.json';
 expect(existsSync(resolve(projectRoot, bundlePath)), `${bundlePath} 데이터 매니페스트가 없습니다.`);
 if (existsSync(resolve(projectRoot, bundlePath))) {
   try {
-    const { validateWorldBundle } = await import("../shared/frontend/js/modules/world-bundle-manifest.js");
+    const { validateWorldBundle } = await import("../src/data/world-bundle-manifest.js");
     const bundle = validateWorldBundle(JSON.parse(read(bundlePath)));
     for (const [role, asset] of Object.entries(bundle.assets)) {
       expect(existsSync(resolve(projectRoot, 'assets/data', asset.url)),

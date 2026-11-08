@@ -1,12 +1,12 @@
 import { describe as contractSuite } from 'node:test';
 import * as __contract_dep0 from "node:test";
 import * as __contract_dep1 from "node:assert/strict";
-import * as __contract_dep2 from "../../shared/frontend/js/modules/gpu-country-mesh-variants.js";
-import * as __contract_dep3 from "../../shared/frontend/js/modules/gpu-country-patch-presentation.js";
+import * as __contract_dep2 from "../../src/rendering/gpu-country-mesh-variants.js";
+import * as __contract_dep3 from "../../src/rendering/gpu-country-patch-presentation.js";
 import * as __contract_dep4 from "node:fs";
 import * as __contract_dep5 from "node:path";
 import * as __contract_dep6 from "node:url";
-import * as __contract_dep7 from "../../shared/frontend/js/modules/gpu-map-renderer.js";
+import * as __contract_dep7 from "../../src/rendering/gpu-map-renderer.js";
 contractSuite("gpu-country-mesh-variants", () => {
 const { describe : featureDescribe } = __contract_dep0;
 const __suiteDependency0 = __contract_dep0;
@@ -206,7 +206,7 @@ test('selection range map is materialized from metadata without reading triangle
 });
 
 test('selection interaction hot path performs only precomputed map lookups', () => {
-  const source = fs.readFileSync(path.join(projectRoot, 'shared/frontend/js/modules/gpu-scene-preparation.js'), 'utf8');
+  const source = fs.readFileSync(path.join(projectRoot, 'src/rendering/gpu-scene-preparation.js'), 'utf8');
   const start = source.indexOf('function prepareGpuInteractionPlan(');
   assert.ok(start >= 0);
   const interactionSource = source.slice(start);
@@ -222,7 +222,7 @@ const test = __contract_dep0.default;
 
 // Exercise the renderer's private scene entrypoint without constructing a GL device.
 // The real function body is evaluated with only its GPU collaborators substituted.
-const source = readFileSync(new URL("../../shared/frontend/js/modules/gpu-map-renderer.js", import.meta.url), 'utf8');
+const source = readFileSync(new URL("../../src/rendering/gpu-map-renderer.js", import.meta.url), 'utf8');
 const start = source.indexOf('    function ensureCountryIdScene() {');
 const end = source.indexOf('    function pick(screenPoint)', start);
 assert.ok(start >= 0 && end > start);

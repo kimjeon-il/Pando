@@ -1,15 +1,15 @@
 import { describe as contractSuite } from 'node:test';
 import * as __boundary_dep0 from "../helpers/gis-polygon-fixture.mjs";
 import "../helpers/spherical-core.mjs";
-import * as __boundary_dep1 from "../../shared/frontend/js/modules/map-interaction-style.js";
+import * as __boundary_dep1 from "../../src/map/map-interaction-style.js";
 import * as __boundary_dep2 from "node:test";
 import * as __boundary_dep3 from "node:assert/strict";
-import * as __boundary_dep4 from "../../shared/frontend/js/modules/boundary-topology.js";
-import * as __boundary_dep5 from "../../shared/frontend/js/modules/country-shared-boundary-packet.js";
-import * as __boundary_dep6 from "../../shared/frontend/js/modules/country-shared-boundary-cache.js";
-import "../../shared/frontend/js/workers/canvas-scene-composition-core.js";
-import * as __boundary_dep7 from "../../shared/frontend/js/modules/boundary-lines.js";
-import * as __boundary_dep8 from "../../shared/frontend/js/modules/country-contact-core.js";
+import * as __boundary_dep4 from "../../src/geometry/boundary-topology.js";
+import * as __boundary_dep5 from "../../src/rendering/country-shared-boundary-packet.js";
+import * as __boundary_dep6 from "../../src/rendering/country-shared-boundary-cache.js";
+import "../../src/rendering/workers/canvas-scene-composition-core.js";
+import * as __boundary_dep7 from "../../src/geometry/boundary-lines.js";
+import * as __boundary_dep8 from "../../src/geometry/country-contact-core.js";
 contractSuite("country-shared-boundary", () => {
 const { rectanglePolygon } = __boundary_dep0;
 const { resolveMapStrokeStyle } = __boundary_dep1;

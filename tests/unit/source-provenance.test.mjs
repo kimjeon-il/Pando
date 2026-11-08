@@ -5,7 +5,7 @@ import {
   SOURCE_PROVENANCE_SCHEMA_VERSION,
   normalizeSourceProvenance,
   validateSourceProvenance,
-} from "../../shared/frontend/js/modules/source-provenance.js";
+} from "../../src/document/source-provenance.js";
 
 test('source provenance uses canonical fields and preserves external source metadata', () => {
   const source = normalizeSourceProvenance({

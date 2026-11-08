@@ -1,5 +1,5 @@
 import "../../tools/load-spherical-core.mjs";
-import {polygonGeometryDigest} from '../../shared/frontend/js/modules/prepared-polygon-mesh.js';
+import {polygonGeometryDigest} from "../../src/rendering/prepared-polygon-mesh.js";
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';

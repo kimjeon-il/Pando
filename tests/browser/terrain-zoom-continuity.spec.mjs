@@ -9,7 +9,7 @@ import * as __suiteDependency6 from "node:path";
 import * as __suiteDependency7 from "node:fs/promises";
 import * as __suiteDependency8 from "@playwright/test";
 import * as __suiteDependency9 from "@playwright/test";
-import * as __suiteDependency10 from "../../shared/frontend/js/modules/terrain-dem-shaders.js";
+import * as __suiteDependency10 from "../../src/rendering/terrain-dem-shaders.js";
 import * as __suiteDependency11 from "./helpers/synthetic-dem-terrain.mjs";
 
 // Playwright worker-scoped options belong to the file, not nested feature groups.

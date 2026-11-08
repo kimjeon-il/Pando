@@ -2,14 +2,15 @@ import { describe as contractSuite } from 'node:test';
 import * as __contract_dep0 from "node:assert/strict";
 import * as __contract_dep1 from "node:test";
 import * as __contract_dep2 from "node:fs";
-import * as __contract_dep3 from "../../shared/frontend/js/modules/project-domain.js";
+import * as __contract_dep3 from "../../src/document/project-domain.js";
 import * as __contract_dep4 from "../helpers/core-project.mjs";
-import * as __contract_dep5 from "../../shared/frontend/js/modules/project-state.js";
+import * as __contract_dep5 from "../../src/document/project-state.js";
 import * as __contract_dep6 from "../../tools/gis/project-template-compiler.js";
 import * as __contract_dep7 from "../fixtures/timeline-storage-cases.mjs";
 import * as __contract_dep8 from "../helpers/timeline-project.mjs";
 import * as __contract_dep9 from "../helpers/core-command-services/save-state-controller.mjs";
 import * as __contract_dep10 from "../helpers/web-oracle.mjs";
+contractSuite('project-timeline-domain',async()=>{
 const {fingerprintProjectBaseline}=await __contract_dep10.loadWebOracle('assets/js/modules/project-serializer.js');
 const assert = __contract_dep0.default;
 const test = __contract_dep1.default;
@@ -175,4 +176,5 @@ test('malformed candidates preserve the real Core content, selection, history, d
     assert.equal(s.domain.getGeneration(),0);assert.equal(s.domain.isReplacing(),false);
   }
   assert.equal(await s.domain.undo(),true);assert.deepEqual(s.current(),original);
+});
 });

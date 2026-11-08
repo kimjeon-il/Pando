@@ -4,14 +4,14 @@ import {readFileSync,existsSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import '../helpers/spherical-core.mjs';
-import '../../shared/frontend/js/vendor/polygon-clipping.min.js';
+import "../../assets/js-vendor/polygon-clipping.min.js";
 import {distanceKm,geometryAreaKm2,lineDistanceKm} from '../../tools/gis/geometry-metrics.js';
 import {validateCollection} from '../../tools/gis/geometry-validation.js';
 import {createCountryImportMergePlanner} from '../../tools/gis/country-import-merge.js';
 import {calculateLibraryBatch} from '../../tools/gis/territorial-batch-calculation.js';
 import {createCountryCommandCalculator} from '../../tools/gis/country-geometry-calculator.js';
 import {createTerritoryComponentPlan} from '../../tools/gis/territory-component-plan.js';
-import {normalizePolygonGeometry} from '../../shared/frontend/js/modules/map-edit-geometry.js';
+import {normalizePolygonGeometry} from "../../src/geometry/map-edit-geometry.js";
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const read=p=>readFileSync(resolve(root,p),'utf8');

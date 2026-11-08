@@ -1,4 +1,4 @@
-import "../../shared/frontend/js/workers/gpu-mesh-core.js";
+import "../../src/rendering/workers/gpu-mesh-core.js";
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';

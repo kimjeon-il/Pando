@@ -5,16 +5,16 @@ import {gunzipSync} from 'node:zlib';
 import test from 'node:test';
 import {buildCurrentWorld} from '../../tools/territorial-current-world.mjs';
 import {encodeCanonicalCountryPacket} from '../../tools/canonical-country-packet-encoder.mjs';
-import {buildCountrySharedBoundarySegments, serializeCountrySharedBoundarySegments} from '../../shared/frontend/js/modules/boundary-topology.js';
-import {countryGeometrySignature} from '../../shared/frontend/js/modules/country-shared-boundary-cache.js';
-import {classifyBuiltinCountries} from '../../shared/frontend/js/modules/builtin-subunits.js';
+import {buildCountrySharedBoundarySegments, serializeCountrySharedBoundarySegments} from "../../src/geometry/boundary-topology.js";
+import {countryGeometrySignature} from "../../src/rendering/country-shared-boundary-cache.js";
+import {classifyBuiltinCountries} from "../../src/document/builtin-subunits.js";
 import {readTerritorialSources, territorialDataRoot} from '../../tools/territorial-entity-sources.mjs';
 import {normalizeTerritorialLibraryIndex, selectGeometryVersion} from '../../tools/gis/territorial-library.js';
 import path from 'node:path';
 import {executeTerritorialTestCommand} from '../helpers/timeline-project.mjs';
 import {createGisCoreFixture} from '../helpers/gis-core-fixture.mjs';
 import vm from 'node:vm';
-import {createTerritorialFeature} from '../../shared/frontend/js/modules/territorial-units.js';
+import {createTerritorialFeature} from "../../src/document/territorial-units.js";
 
 const root=new URL('../../',import.meta.url);
 const worldBundle=JSON.parse(fs.readFileSync(new URL('assets/data/world/current.json',root),'utf8'));
@@ -55,7 +55,7 @@ test('snapshot input cannot mutate the normalized reference list',()=>{
 });
 
 const context = vm.createContext({});
-vm.runInContext(fs.readFileSync(new URL("../../shared/frontend/js/vendor/polygon-clipping.min.js", import.meta.url), 'utf8'), context);
+vm.runInContext(fs.readFileSync(new URL("../../assets/js-vendor/polygon-clipping.min.js", import.meta.url), 'utf8'), context);
 const clipper = context.polygonClipping;
 const geometry = { type: 'Polygon', coordinates: [[[0, 0], [0, 8], [8, 8], [8, 0], [0, 0]]] };
 

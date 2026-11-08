@@ -11,7 +11,7 @@ const workerSources = client => new Map([[rpc, 'export function createWorkerRpcC
   [host, 'self.transport = {};'], ['assets/js/modules/renamed-client.js', client]]);
 
 test('project lifecycle guard checks the current domain facade and rejects a missing command',()=>{
-  const source=readFileSync(new URL('../../shared/frontend/js/modules/project-domain.js',import.meta.url),'utf8');
+  const source=readFileSync(new URL("../../src/document/project-domain.js",import.meta.url),'utf8');
   assert.doesNotThrow(()=>assertProjectLifecycleFacade(source));
   assert.throws(()=>assertProjectLifecycleFacade('return Object.freeze({ load, save, undo, redo });'),/createProject/);
 });

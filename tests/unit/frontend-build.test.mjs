@@ -21,12 +21,12 @@ test('one source build emits only the Viewer runtime shared with Windows reviewe
  assert.ok(snapshot.viewerPaths.has('assets/js/viewer.js'));
  assert.equal(snapshot.viewerPaths.has('assets/js/bootstrap.js'),false);
  assert.equal(snapshot.assets.has('assets/js/bootstrap.js'),false);
- assert.equal(snapshot.assets.get('assets/js/viewer.js').sourcePath,'apps/viewer/js/viewer.js');
+ assert.equal(snapshot.assets.get('assets/js/viewer.js').sourcePath,'src/app/viewer.js');
  for(const path of ['index.html','assets/js/build-meta.js','apps/editor/editor.html','assets/worker-runtime'])assert.equal(existsSync(join(f.root,path)),false,path);
 });
 
 test('a stylesheet edit changes the frontend input identity without native compilation or data preparation',async t=>{
- const f=fixture(t),before=await buildFrontendSnapshot(f.options);f.put('shared/frontend/css/app.css','.x { color: blue; }');
+ const f=fixture(t),before=await buildFrontendSnapshot(f.options);f.put('src/ui/css/app.css','.x { color: blue; }');
  const after=await buildFrontendSnapshot(f.options);
  assert.notEqual(before.sourceSha256,after.sourceSha256);
  assert.equal(before.dataRevision,after.dataRevision);
@@ -34,11 +34,11 @@ test('a stylesheet edit changes the frontend input identity without native compi
 
 test('clean LF and CRLF checkouts share identical immutable frontend bytes while binary files stay exact',async t=>{
  const f=fixture(t);
- f.put('shared/frontend/css/app.css','.x { color: red; }\n');
- f.put('apps/viewer/js/viewer.js','export const viewer=true;\n');
- f.put('shared/frontend/static/vendor/NOTICE','Copyright fixture\nTerms remain unchanged.\n');
+ f.put('src/ui/css/app.css','.x { color: red; }\n');
+ f.put('src/app/viewer.js','export const viewer=true;\n');
+ f.put('assets/vendor/NOTICE','Copyright fixture\nTerms remain unchanged.\n');
  const binary=Buffer.from([137,80,78,71,13,10,26,10,255]);
- f.put('shared/frontend/static/img/proof.png',binary);
+ f.put('assets/img/proof.png',binary);
  const lf=await buildFrontendSnapshot(f.options);
  const crlf=await buildFrontendSnapshot({...f.options,readSourceBytes:path=>{
   const bytes=readFileSync(join(f.root,path));

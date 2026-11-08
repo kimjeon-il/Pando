@@ -2,11 +2,11 @@ import { describe as contractSuite } from 'node:test';
 import * as __dep0 from "node:assert/strict";
 import * as __dep1 from "node:test";
 import * as __dep2 from "node:timers";
-import * as __dep3 from "../../shared/frontend/js/modules/place-runtime.js";
-import * as __dep4 from "../../shared/frontend/js/modules/place-contract.js";
-import * as __dep5 from "../../shared/frontend/js/modules/rendering-domain.js";
-import * as __dep6 from "../../shared/frontend/js/modules/label-layout.js";
-import * as __dep7 from "../../shared/frontend/js/modules/map-render-coordinator.js";
+import * as __dep3 from "../../src/document/place-runtime.js";
+import * as __dep4 from "../../src/document/place-contract.js";
+import * as __dep5 from "../../src/rendering/rendering-domain.js";
+import * as __dep6 from "../../src/rendering/label-layout.js";
+import * as __dep7 from "../../src/rendering/map-render-coordinator.js";
 import * as __dep8 from "node:fs/promises";
 import * as __dep9 from "node:os";
 import * as __dep10 from "node:path";
@@ -14,9 +14,9 @@ import * as __dep11 from "node:http";
 import * as __dep12 from "node:worker_threads";
 import * as __dep13 from "node:events";
 import * as __dep14 from "../helpers/place-synthetic.mjs";
-import * as __dep15 from "../../shared/frontend/js/modules/worker-rpc.js";
+import * as __dep15 from "../../src/runtime/worker-rpc.js";
 import * as __dep16 from "../helpers/place-view.mjs";
-import * as __dep17 from "../../shared/frontend/js/modules/map-visual-frame.js";
+import * as __dep17 from "../../src/rendering/map-visual-frame.js";
 
 // Original feature contract: place-runtime.test.mjs
 contractSuite("place-runtime", () => {

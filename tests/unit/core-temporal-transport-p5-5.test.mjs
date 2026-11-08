@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createCoreDocumentClient} from '../../shared/frontend/js/modules/core-document-client.js';
-import {createCoreWorkerRuntime} from '../../shared/frontend/js/modules/core-worker-runtime.js';
+import {createCoreDocumentClient} from "../../src/document/core-document-client.js";
+import {createCoreWorkerRuntime} from "../../src/runtime/core-worker-runtime.js";
 
 const state=epoch=>({epoch,stateRevision:0,revision:0,checkpoint:0,canUndo:false,canRedo:false,
   dirty:false,timelineCursor:'2026-10',storageBaselineId:0});

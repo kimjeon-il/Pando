@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import { fileURLToPath } from 'node:url';
 import { buildFrontendIndex, emitFrontendModule, frontendAsset } from '../../scripts/lib/frontend-layout.mjs';
-import { mergeBuiltinTerritories } from "../../shared/frontend/js/modules/builtin-territory-policy.js";
+import { mergeBuiltinTerritories } from "../../src/document/builtin-territory-policy.js";
 const merges=loadBuiltinDisplayPolicy().territoryMerges;
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const frontendIndex = buildFrontendIndex(root);
@@ -16,7 +16,7 @@ const { effectiveTerritorialFlagUrl } = await import('data:text/javascript;base6
   emittedFlags.replaceAll('import.meta.url', JSON.stringify(publicModuleUrl))).toString('base64'));
 const source = JSON.parse(readFileSync(new URL('../../assets/data/countries-ne-5.1.1.geojson', import.meta.url)));
 const context = vm.createContext({});
-vm.runInContext(readFileSync(new URL("../../shared/frontend/js/vendor/polygon-clipping.min.js", import.meta.url), 'utf8'), context);
+vm.runInContext(readFileSync(new URL("../../assets/js-vendor/polygon-clipping.min.js", import.meta.url), 'utf8'), context);
 const polygons = g => g.type === 'Polygon' ? [g.coordinates] : g.coordinates;
 
 test('four island merges are disjoint, input-preserving, idempotent and preserve all other geometries', () => {
@@ -52,7 +52,7 @@ test('special flags are local SVGs; explicit removal and buffer-zone exception r
     assert.equal(resolved.origin, new URL(publicModuleUrl).origin);
     assert.equal(resolved.pathname, `/assets/vendor/political-flags/${id.toLowerCase()}.svg`);
     const asset = frontendAsset(root, resolved.pathname.slice(1), { index: frontendIndex });
-    assert.equal(asset.sourcePath, `shared/frontend/static/vendor/political-flags/${id.toLowerCase()}.svg`);
+    assert.equal(asset.sourcePath, `assets/vendor/political-flags/${id.toLowerCase()}.svg`);
     const svg = asset.bytes.toString('utf8');
     assert.match(svg, /<svg\b/);
     assert.doesNotMatch(svg, /<script\b|<foreignObject\b|(?:href|src)=["']https?:/i);

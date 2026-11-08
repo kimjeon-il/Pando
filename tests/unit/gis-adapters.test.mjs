@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { TERRITORIAL_SCHEMA_VERSION, normalizeTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
+import { TERRITORIAL_SCHEMA_VERSION, normalizeTerritorialFeature } from "../../src/document/territorial-units.js";
 
 // The classic production-compat encoder is a frozen, test-only source fixture.
 // Evaluate in this realm so deep-equality compares ordinary Node objects.

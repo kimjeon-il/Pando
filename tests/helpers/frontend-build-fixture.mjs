@@ -9,11 +9,11 @@ export function frontendFixture(t){
  const root=isolatedTestWorkspace(t,'pando-frontend-build-');
  const put=(path,text)=>{const file=join(root,path);mkdirSync(dirname(file),{recursive:true});writeFileSync(file,text);};
  put('package.json',JSON.stringify({version:'1.0.0'}));
- for(const path of new Set([...UI_VIEWER_SOURCES,'assets/css/app.css','assets/css/viewer.css']))put(path.replace('assets/css/','shared/frontend/css/'),'.x { color: red; }');
- put('shared/frontend/js/modules/resource-update-policy.js','export const value=1;');
- put('apps/viewer/js/viewer.js','export const viewer=true;');
+ for(const path of new Set([...UI_VIEWER_SOURCES,'assets/css/app.css','assets/css/viewer.css']))put(path.replace('assets/css/','src/ui/css/'),'.x { color: red; }');
+ put('src/rendering/resource-update-policy.js','export const value=1;');
+ put('src/app/viewer.js','export const viewer=true;');
  const html=entry=>'<html data-app-version="1.0.0"><link rel="stylesheet" href="assets/css/ui-viewer.bundle.css"><script src="assets/js/build-meta.js"></script><script type="module" src="assets/js/'+entry+'"></script></html>';
- put('apps/viewer/templates/index.html',html('viewer.js'));
+ put('src/app/index.html',html('viewer.js'));
  const physicalLand=Buffer.from(JSON.stringify({type:'MultiPolygon',coordinates:[[[[0,0],[0,1],[1,1],[1,0],[0,0]]]]}));
  const storedPhysicalLand=gzipSync(physicalLand,{level:9,mtime:0});
  const physicalAsset={url:'assets/data/physical-land/land.bin',encoding:'gzip',

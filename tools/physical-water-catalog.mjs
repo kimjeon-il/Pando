@@ -1,5 +1,5 @@
 import {normalizeTerritorialLibraryEntity} from './gis/territorial-library.js';
-import {normalizeTimelineRecords} from '../shared/frontend/js/modules/timeline-records.js';
+import {normalizeTimelineRecords} from "../src/document/timeline-records.js";
 
 /** Project library-owned geometryVersions to the common runtime contract.
  * Assignments contain immutable resources, never an independent date range.

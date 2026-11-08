@@ -1,13 +1,13 @@
 import { describe as contractSuite } from 'node:test';
 import * as __dep0 from "node:test";
 import * as __dep1 from "node:assert/strict";
-import * as __dep2 from "../../shared/frontend/js/modules/application-lifecycle.js";
-import * as __dep3 from "../../shared/frontend/js/modules/core-document-runtime.js";
-import * as __dep4 from "../../shared/frontend/js/modules/core-worker-runtime.js";
+import * as __dep2 from "../../src/app/application-lifecycle.js";
+import * as __dep3 from "../../src/document/core-document-runtime.js";
+import * as __dep4 from "../../src/runtime/core-worker-runtime.js";
 import * as __dep5 from "node:crypto";
-import * as __dep6 from "../../shared/frontend/js/modules/stored-asset-loader.js";
-import * as __dep7 from "../../shared/frontend/js/modules/reliability-core.js";
-import * as __dep8 from "../../shared/frontend/js/modules/core-wasm-loader.js";
+import * as __dep6 from "../../src/data/stored-asset-loader.js";
+import * as __dep7 from "../../src/runtime/reliability-core.js";
+import * as __dep8 from "../../src/runtime/core-wasm-loader.js";
 contractSuite("background-startup-recovery", () => {
 const test = __dep0.default;
 const assert = __dep1.default;
@@ -247,7 +247,7 @@ test('abort while waiting for foreground releases the request without fetching l
 });
 
 test('rollback failures, cancellation and document-worker timeouts are not treated as safe load retries',async()=>{
-  const {isRecoverableLoadError}=await import('../../shared/frontend/js/modules/reliability-core.js');
+  const {isRecoverableLoadError}=await import("../../src/runtime/reliability-core.js");
   const error=Object.assign(new Error('network'),{code:'PL-NETWORK-001',retryable:true});
   assert.equal(isRecoverableLoadError(error),true);
   for(const extra of [{restoreError:new Error('rollback')},{cleanupError:new Error('cleanup')},{cancelled:true},{name:'AbortError'}])

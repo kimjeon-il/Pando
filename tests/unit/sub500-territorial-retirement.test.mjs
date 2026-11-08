@@ -5,8 +5,8 @@ import * as __dep2 from "node:crypto";
 import * as __dep3 from "../../tools/territorial-entity-sources.mjs";
 import * as __dep4 from "../../tools/gis/territorial-library.js";
 import * as __dep5 from "../helpers/builtin-world.mjs";
-import * as __dep6 from "../../shared/frontend/js/modules/geometry-version-store.js";
-import * as __dep7 from "../../shared/frontend/js/modules/timeline-resolver.js";
+import * as __dep6 from "../../src/geometry/geometry-version-store.js";
+import * as __dep7 from "../../src/document/timeline-resolver.js";
 
 // Original feature contract: sub500-territorial-retirement.test.mjs
 contractSuite("sub500-territorial-retirement", () => {

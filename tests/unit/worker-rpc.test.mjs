@@ -5,8 +5,8 @@ import * as __canvas_dep1 from "node:fs";
 import * as __canvas_dep2 from "node:vm";
 import * as __canvas_dep3 from "node:timers";
 import * as __canvas_dep4 from "node:test";
-import * as __canvas_dep5 from "../../shared/frontend/js/modules/worker-rpc.js";
-import * as __canvas_dep6 from "../../shared/frontend/js/modules/worker-job-scheduler.js";
+import * as __canvas_dep5 from "../../src/runtime/worker-rpc.js";
+import * as __canvas_dep6 from "../../src/runtime/worker-job-scheduler.js";
 
 // Original feature contract: worker-rpc.test.mjs
 contractSuite("worker-rpc", () => {
@@ -21,7 +21,7 @@ const { WORKER_RPC_ERROR_CATEGORIES, WORKER_RPC_PROTOCOL, WORKER_RPC_PROTOCOL_VE
 function workerHost(handlers) {
   const replies=[];
   const scope={AbortController:globalThis.AbortController,performance,postMessage:message=>replies.push(message)};
-  vm.runInNewContext(readFileSync(new URL("../../shared/frontend/js/workers/worker-rpc-host.js",import.meta.url),'utf8'),{self:scope});
+  vm.runInNewContext(readFileSync(new URL("../../src/rendering/workers/worker-rpc-host.js",import.meta.url),'utf8'),{self:scope});
   scope.PandoLabWorkerRpc.install({handlers});
   const send=(type,requestId=1)=>scope.onmessage({data:{rpc:WORKER_RPC_PROTOCOL,protocolVersion:WORKER_RPC_PROTOCOL_VERSION,type,requestId,operation:'place.viewport'}});
   return {send,replies};

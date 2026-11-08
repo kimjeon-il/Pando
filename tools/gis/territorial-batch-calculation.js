@@ -1,6 +1,6 @@
 // R4-C: detached GIS territorial replacement calculation; no editor UI.
-import { territorialRootId } from "../../shared/frontend/js/modules/territorial-units.js";
-import { normalizePolygonGeometry, normalizeClippedPolygonGeometry, multiCoordinates, area, geometryBounds, boundsOverlap, featureId } from "../../shared/frontend/js/modules/map-edit-geometry.js";
+import { territorialRootId } from "../../src/document/territorial-units.js";
+import { normalizePolygonGeometry, normalizeClippedPolygonGeometry, multiCoordinates, area, geometryBounds, boundsOverlap, featureId } from "../../src/geometry/map-edit-geometry.js";
 import { createCountryImportMergePlanner } from './country-import-merge.js';
 import { validateCollection } from './geometry-validation.js';
 import { geometryAreaKm2 } from './geometry-metrics.js';

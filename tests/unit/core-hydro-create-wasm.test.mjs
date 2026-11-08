@@ -13,8 +13,8 @@ import * as __suiteDependency10 from "node:test";
 import * as __suiteDependency11 from "node:assert/strict";
 import * as __suiteDependency12 from "node:fs";
 import * as __suiteDependency13 from "../helpers/core-project.mjs";
-import * as __suiteDependency14 from "../../shared/frontend/js/modules/project-session.js";
-import * as __suiteDependency15 from "../../shared/frontend/js/modules/project-resource-overlay.js";
+import * as __suiteDependency14 from "../../src/document/project-session.js";
+import * as __suiteDependency15 from "../../src/document/project-resource-overlay.js";
 
 // Original feature contract: core-hydro-create-wasm.test.mjs
 featureDescribe("core-hydro-create-wasm", () => {

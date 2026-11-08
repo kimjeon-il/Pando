@@ -4,17 +4,17 @@ import {existsSync, readFileSync} from 'node:fs';
 import { nextEventTurn } from '../helpers/async-test-ports.mjs';
 import { describe as contractSuite } from 'node:test';
 import * as __merge_dep0 from "node:test";
-import * as __merge_dep1 from "../../apps/viewer/js/modules/viewer-load-status.js";
+import * as __merge_dep1 from "../../src/app/viewer-load-status.js";
 import * as __merge_dep2 from "node:assert/strict";
 import * as __merge_dep3 from "node:fs";
 import * as __merge_dep4 from "node:vm";
-import * as __merge_dep5 from "../../shared/frontend/js/modules/reliability-core.js";
-import * as __merge_dep6 from "../../apps/viewer/js/modules/viewer-initial-presentation.js";
-import * as __merge_dep7 from "../../apps/viewer/js/modules/viewer-post-presentation.js";
-import * as __merge_dep8 from "../../shared/frontend/js/modules/application-lifecycle.js";
-import * as __merge_dep9 from "../../shared/frontend/js/modules/physical-resources.js";
-import * as __merge_dep10 from "../../shared/frontend/js/modules/territorial-labels.js";
-import * as __merge_dep11 from "../../shared/frontend/js/modules/platform-ports.js";
+import * as __merge_dep5 from "../../src/runtime/reliability-core.js";
+import * as __merge_dep6 from "../../src/app/viewer-initial-presentation.js";
+import * as __merge_dep7 from "../../src/app/viewer-post-presentation.js";
+import * as __merge_dep8 from "../../src/app/application-lifecycle.js";
+import * as __merge_dep9 from "../../src/data/physical-resources.js";
+import * as __merge_dep10 from "../../src/rendering/territorial-labels.js";
+import * as __merge_dep11 from "../../src/runtime/platform-ports.js";
 import * as __merge_dep12 from "node:crypto";
 contractSuite("viewer-bootstrap-recovery", () => {
 const { describe : contractSuite } = __merge_dep0;
@@ -59,7 +59,7 @@ function fixture({failures=0,hold=false,fatal=false}={}){
     importViewer:async()=>{imports++;assert.equal(context.PandoLabSphericalCore,core,'engine must be ready before evaluating the application graph');return {composeViewer:async()=>{compositions++;}};},
   });
   // Replace only module loading boundaries; execute the actual entry behavior.
-  const source=readFileSync(new URL('../../apps/viewer/js/viewer.js',import.meta.url),'utf8')
+  const source=readFileSync(new URL("../../src/app/viewer.js",import.meta.url),'utf8')
     .replace(/^import .*;\r?$/gm,'')
     .replaceAll('import.meta.url',JSON.stringify('https://test.local/assets/js/viewer.js'))
     .replace("import('./modules/viewer-composition.js')",'importViewer()');
@@ -176,7 +176,7 @@ async function fixture({engineFailure=false,mapFailure=false,suppressReadyCertif
       refresh:()=>manual?false:options.applyMonth('1953-07',{isCurrent:()=>true,commit:noop}),
       followNow:()=>{nowSelections++;return options.applyMonth('1953-07',{isCurrent:()=>true,commit:noop});}}),
   };
-  const source=readFileSync(new URL('../../apps/viewer/js/modules/viewer-composition.js',import.meta.url),'utf8')
+  const source=readFileSync(new URL("../../src/app/viewer-composition.js",import.meta.url),'utf8')
     .replace(/^import .*;\r?$/gm,'').replace('export async function composeViewer','async function composeViewer')
     .replaceAll('import.meta.url',JSON.stringify('https://test.local/assets/js/modules/viewer-composition.js'));
   const context=vm.createContext(bindings);vm.runInContext(source+'\nglobalThis.run=composeViewer;',context);
@@ -251,7 +251,7 @@ test('physical resources use their injected pinned metadata instead of a later g
 });
 
 test('runtime configuration validates one metadata identity and explicit Viewer platform ports',async()=>{
-  const {createRuntimeContext}=await import('../../shared/frontend/js/modules/runtime-context.js');
+  const {createRuntimeContext}=await import("../../src/runtime/runtime-context.js");
   assert.equal(typeof createRuntimeContext,'function');
   const meta={appVersion:'0.36.0',buildId:'test-build',assetRevision:'asset-one',dataRevision:'data-one'};
   for(const productMode of ['viewer']){
@@ -270,7 +270,7 @@ test('runtime configuration validates one metadata identity and explicit Viewer 
 });
 
 test('runtime platform validation rejects retired editor installation',async()=>{
-  const {createRuntimeContext}=await import('../../shared/frontend/js/modules/runtime-context.js');
+  const {createRuntimeContext}=await import("../../src/runtime/runtime-context.js");
   const meta={appVersion:'0.36.0',buildId:'native-test',assetRevision:'asset-one',dataRevision:'data-one'};
   const platform=createPlatformPorts({kind:'native',storage:{namespace:'native-test'}});
   assert.throws(()=>createRuntimeContext({productMode:'editor',meta,assetBaseUrl:'https://fixture.test/',platform}),/viewer|product mode/i);
@@ -294,8 +294,8 @@ test('an asset-free platform suppresses automatic place preparation', async () =
 });
 contractSuite('retired adjacent-month prefetch', () => {
   test('the single-project Viewer has no obsolete neighbouring-month prefetch owner', () => {
-    const retired = new URL('../../apps/viewer/js/modules/viewer-adjacent-prefetch.js', import.meta.url);
-    const composition = new URL('../../apps/viewer/js/modules/viewer-composition.js', import.meta.url);
+    const retired = new URL('../../src/runtime/viewer-adjacent-prefetch.js', import.meta.url);
+    const composition = new URL("../../src/app/viewer-composition.js", import.meta.url);
     assert.equal(existsSync(retired), false);
     assert.doesNotMatch(readFileSync(composition, 'utf8'), /viewer-adjacent-prefetch|createViewerAdjacentPrefetch|adjacentViewerYears/);
   });

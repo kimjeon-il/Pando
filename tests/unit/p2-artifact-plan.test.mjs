@@ -58,14 +58,14 @@ function fixture(t) {
   put('shared/CMakeLists.txt','project(Shared)\n');
   put('shared/core/src/calc.cpp','int calc=1;\n');
   const identity=sharedSourceManifest(root);
-  put('shared/frontend/static/wasm/pandoeditor-core.js','export default()=>{};\n');
-  put('shared/frontend/static/wasm/pandoeditor-core.wasm',Buffer.from([0,97,115,109,1,0,0,0]));
-  put('shared/frontend/static/wasm/pandoeditor-core.manifest.json',JSON.stringify({
+  put('assets/wasm/pandoeditor-core.js','export default()=>{};\n');
+  put('assets/wasm/pandoeditor-core.wasm',Buffer.from([0,97,115,109,1,0,0,0]));
+  put('assets/wasm/pandoeditor-core.manifest.json',JSON.stringify({
     schema:'pandoeditor-core-wasm',abiVersion:1,sourceSha256:identity.sourceSha256,
     compiler:{name:'emscripten',version:'6.0.3'},inputs:identity.inputs,
     assets:{
-      js:{file:'pandoeditor-core.js',sha256:digest(get('shared/frontend/static/wasm/pandoeditor-core.js'))},
-      wasm:{file:'pandoeditor-core.wasm',sha256:digest(get('shared/frontend/static/wasm/pandoeditor-core.wasm'))}
+      js:{file:'pandoeditor-core.js',sha256:digest(get('assets/wasm/pandoeditor-core.js'))},
+      wasm:{file:'pandoeditor-core.wasm',sha256:digest(get('assets/wasm/pandoeditor-core.wasm'))}
     }
   }));
   return {root,put,get};
@@ -82,7 +82,7 @@ test('a changed C++ input only invalidates its compiled WASM pair',t=>{
   assert.match(p.statuses.wasm.reasons.join(';'),/source fingerprint/);
 });
 test('missing or corrupted WASM runtime cannot be called up to date',t=>{
-  const f=fixture(t);f.put('shared/frontend/static/wasm/pandoeditor-core.wasm','corrupt');
+  const f=fixture(t);f.put('assets/wasm/pandoeditor-core.wasm','corrupt');
   assert.equal(wasmStatus(f.root).needed,true);
   assert.match(wasmStatus(f.root).reasons.join(';'),/wasm bytes\/hash/);
 });
@@ -102,9 +102,9 @@ test('scope overrides are explicit and controller changes do not rebuild current
   assert.throws(()=>selectJobs(fresh,[],'unsupported'),/P2_INVALID_SCOPE/);
 });
 test('publishing is limited to declared generated artifacts, not source or test fixtures',()=>{
-  assertSafeGeneratedPaths(['shared/frontend/static/wasm/pandoeditor-core.js'],{wasm:true});
+  assertSafeGeneratedPaths(['assets/wasm/pandoeditor-core.js'],{wasm:true});
   assert.throws(()=>assertSafeGeneratedPaths(['shared/core/src/project.cpp'],{wasm:true}),/P2_UNEXPECTED_GENERATED_FILE/);
-  assert.throws(()=>assertSafeGeneratedPaths(['shared/frontend/static/wasm/pandoeditor-core.wasm'],{wasm:false}),/P2_UNEXPECTED_GENERATED_FILE/);
+  assert.throws(()=>assertSafeGeneratedPaths(['assets/wasm/pandoeditor-core.wasm'],{wasm:false}),/P2_UNEXPECTED_GENERATED_FILE/);
   assert.throws(()=>assertSafeGeneratedPaths(['tests/fixtures/geometry/cut-corpus.json'],{geometry:true}),/P2_UNEXPECTED_GENERATED_FILE/);
 });
 
@@ -140,14 +140,14 @@ async function publishFixture(f,stageDir='build-native/p2/initial') {
 }
 
 const integrationPresentationChanges=[
-  'shared/frontend/js/modules/gpu-canvas-scene-packets.js',
-  'shared/frontend/js/modules/gpu-canvas-worker.js',
-  'shared/frontend/js/modules/map-renderer-composition.js',
-  'shared/frontend/js/modules/physical-resources.js',
-  'shared/frontend/js/modules/country-mesh-zoom-policy.js',
-  'shared/frontend/js/workers/canvas-render-worker.js',
-  'shared/frontend/js/modules/map-input-presentation.js',
-  'shared/frontend/js/modules/gpu-map-renderer.js',
+  'src/rendering/gpu-canvas-scene-packets.js',
+  'src/rendering/gpu-canvas-worker.js',
+  'src/rendering/map-renderer-composition.js',
+  'src/data/physical-resources.js',
+  'src/rendering/country-mesh-zoom-policy.js',
+  'src/rendering/workers/canvas-render-worker.js',
+  'src/map/map-input-presentation.js',
+  'src/rendering/gpu-map-renderer.js',
   'scripts/r4d-check-retired-tests.mjs',
   'tests/unit/map-input-controller.test.mjs',
   '.github/workflows/viewer-functional-p6-2.yml',
@@ -172,8 +172,8 @@ const integrationPresentationChanges=[
 const staleDataFamilyIds=['territorial','current-world','builtin-world','world-mesh',
   'world-preview','world-bundle','shared-boundaries','prepared-mesh','places'];
 const nativeValidationChanges=[
-  'shared/frontend/js/modules/country-mesh-zoom-policy.js',
-  'shared/frontend/js/workers/canvas-render-worker.js',
+  'src/rendering/country-mesh-zoom-policy.js',
+  'src/rendering/workers/canvas-render-worker.js',
   'scripts/p2-publish-artifacts.mjs',
   '.github/workflows/generated-artifacts-p2.yml',
   'docs/architecture/p7-ci-nonbrowser-recovery.md',
@@ -288,7 +288,7 @@ test('auto presentation guard gives declared input, generator closure and output
   for(const kind of ['input','input-prefix','pattern-input','deleted-prefix-input',
     'generator','validator','output','output-prefix','external-source']) {
     const f=staleDataFixture(t);
-    const path=['generator','validator'].includes(kind)?'shared/frontend/js/modules/map-input-presentation.js'
+    const path=['generator','validator'].includes(kind)?'src/map/map-input-presentation.js'
       :kind.startsWith('output')?'.github/workflows/viewer-functional-p6-2.yml':'tests/fixtures/generator-input.json';
     f.put(path,'{}');
     if(kind==='input')f.families[0].inputs.push(path);
@@ -428,10 +428,10 @@ function remoteFixture(t,{failValidation=false}={}) {
 
 test('publication commits WASM then Web and writes the remote once at the final SHA',async t=>{
   const f=remoteFixture(t);
-  f.put('shared/frontend/static/wasm/pandoeditor-core.js','export default()=>({regenerated:true});\n');
-  const manifest=JSON.parse(f.get('shared/frontend/static/wasm/pandoeditor-core.manifest.json'));
-  manifest.assets.js.sha256=digest(f.get('shared/frontend/static/wasm/pandoeditor-core.js'));
-  f.put('shared/frontend/static/wasm/pandoeditor-core.manifest.json',JSON.stringify(manifest));
+  f.put('assets/wasm/pandoeditor-core.js','export default()=>({regenerated:true});\n');
+  const manifest=JSON.parse(f.get('assets/wasm/pandoeditor-core.manifest.json'));
+  manifest.assets.js.sha256=digest(f.get('assets/wasm/pandoeditor-core.js'));
+  f.put('assets/wasm/pandoeditor-core.manifest.json',JSON.stringify(manifest));
   const result=await publishGeneratedArtifacts(f.root,{expectedSourceSha:f.source,branch:'work/objects',wasmBuilt:true,
     beforeFinalGuard:()=>assert.equal(f.remoteHead(),f.source,'intermediate commits must remain local')});
   assert.deepEqual(result.commits.map(c=>c.phase),['wasm','web']);
@@ -445,10 +445,10 @@ test('publication commits WASM then Web and writes the remote once at the final 
 
 test('Web validation failure keeps a successful local WASM commit off the remote',async t=>{
   const f=remoteFixture(t,{failValidation:true});
-  f.put('shared/frontend/static/wasm/pandoeditor-core.js','export default()=>({regenerated:true});\n');
-  const manifest=JSON.parse(f.get('shared/frontend/static/wasm/pandoeditor-core.manifest.json'));
-  manifest.assets.js.sha256=digest(f.get('shared/frontend/static/wasm/pandoeditor-core.js'));
-  f.put('shared/frontend/static/wasm/pandoeditor-core.manifest.json',JSON.stringify(manifest));
+  f.put('assets/wasm/pandoeditor-core.js','export default()=>({regenerated:true});\n');
+  const manifest=JSON.parse(f.get('assets/wasm/pandoeditor-core.manifest.json'));
+  manifest.assets.js.sha256=digest(f.get('assets/wasm/pandoeditor-core.js'));
+  f.put('assets/wasm/pandoeditor-core.manifest.json',JSON.stringify(manifest));
   await assert.rejects(publishGeneratedArtifacts(f.root,{expectedSourceSha:f.source,branch:'work/objects',wasmBuilt:true}),/Command failed/);
   assert.notEqual(f.git('rev-parse','HEAD'),f.source,'WASM was committed locally before Web validation');
   assert.equal(f.remoteHead(),f.source,'failed Web outputs cannot publish the intermediate WASM commit');

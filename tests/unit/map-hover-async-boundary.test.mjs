@@ -3,20 +3,20 @@ import * as __merge_dep0 from "node:test";
 import * as __merge_dep1 from "node:assert/strict";
 import * as __merge_dep2 from "node:fs";
 import * as __merge_dep3 from "node:vm";
-import * as __merge_dep4 from "../../shared/frontend/js/modules/pointer-targets.js";
-import * as __merge_dep5 from "../../shared/frontend/js/modules/gpu-scene.js";
-import * as __merge_dep6 from "../../shared/frontend/js/modules/object-selection-controller.js";
-import * as __merge_dep7 from "../../shared/frontend/js/modules/map-input-presentation.js";
-import * as __merge_dep8 from "../../shared/frontend/js/modules/tooltip-controller.js";
+import * as __merge_dep4 from "../../src/map/pointer-targets.js";
+import * as __merge_dep5 from "../../src/rendering/gpu-scene.js";
+import * as __merge_dep6 from "../../src/ui/object-selection-controller.js";
+import * as __merge_dep7 from "../../src/map/map-input-presentation.js";
+import * as __merge_dep8 from "../../src/ui/tooltip-controller.js";
 import * as __merge_dep9 from "../helpers/core-selection.mjs";
 import * as __merge_dep10 from "./helpers/dom-node-fixture.mjs";
 import * as __merge_dep11 from "../helpers/timeline-project.mjs";
-import * as __merge_dep12 from "../../shared/frontend/js/modules/spatial-index.js";
-import * as __merge_dep13 from "../../shared/frontend/js/modules/map-object-spatial-index.js";
-import * as __merge_dep14 from "../../shared/frontend/js/modules/territorial-units.js";
-import * as __merge_dep15 from "../../shared/frontend/js/modules/territorial-entity-store.js";
-import * as __merge_dep16 from "../../shared/frontend/js/modules/territorial-entity-repository.js";
-import * as __merge_dep17 from "../../shared/frontend/js/modules/territorial-scope.js";
+import * as __merge_dep12 from "../../src/geometry/spatial-index.js";
+import * as __merge_dep13 from "../../src/map/map-object-spatial-index.js";
+import * as __merge_dep14 from "../../src/document/territorial-units.js";
+import * as __merge_dep15 from "../../src/document/territorial-entity-store.js";
+import * as __merge_dep16 from "../../src/document/territorial-entity-repository.js";
+import * as __merge_dep17 from "../../src/document/territorial-scope.js";
 contractSuite("map-hover-async-boundary", () => {
 const { describe : contractSuite } = __merge_dep0;
 const __dep0 = __merge_dep1;
@@ -194,7 +194,7 @@ test('missing Core hover dependencies fail through the responsible operation and
 });
 
 function labelHandlers() {
-  const source=readFileSync(new URL("../../shared/frontend/js/modules/label-presentation.js",import.meta.url),'utf8');
+  const source=readFileSync(new URL("../../src/rendering/label-presentation.js",import.meta.url),'utf8');
   const start=source.indexOf("    enter.on('mouseenter.hover'",source.indexOf('  const renderUserLabels ='));
   const end=source.indexOf("    enter.append('circle')",start),handlers={},queue=acknowledgements(),diagnostics=[];
   const enter={on(type,handler){handlers[type]=handler;return enter;}};
@@ -230,7 +230,7 @@ const { createNodeSelection } = __dep9;
 const { editorNode } = __dep10;
 
 const sandbox = {};
-vm.runInNewContext(readFileSync(new URL("../../shared/frontend/js/vendor/d3.min.js", import.meta.url), 'utf8'), sandbox);
+vm.runInNewContext(readFileSync(new URL("../../assets/js-vendor/d3.min.js", import.meta.url), 'utf8'), sandbox);
 const d3 = sandbox.d3;
 
 function node(name, parent = null) {
@@ -305,7 +305,7 @@ async function fixture(t,{ queuedPicks = false, peerKind = 'city' } = {}) {
   pointers.initializeHoverPickFrame();
   const peer = node('user-label', interaction), peerText = node('peer-text', peer);
   peer.__data__ = { id: 'PLACE', kind: peerKind };
-  const renderingSource = readFileSync(new URL("../../shared/frontend/js/modules/label-presentation.js", import.meta.url), 'utf8');
+  const renderingSource = readFileSync(new URL("../../src/rendering/label-presentation.js", import.meta.url), 'utf8');
   const start = renderingSource.indexOf("    enter.on('mouseenter.hover'", renderingSource.indexOf('  const renderUserLabels ='));
   const end = renderingSource.indexOf("    enter.append('circle')", start);
   // Register the existing peer-label hover owner with real D3, then allow its

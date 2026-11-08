@@ -26,7 +26,7 @@ Worker packet 결과의 cacheHit는 false. A/A2는 242개 full 좌표, B는 242�
 
 ## 2. 패킷 계산 구간의 실제 호출 트리와 무효화 계약
 
-`shared/frontend/js/workers/country-shared-boundary-worker.js`의 packet 타이머는 다음 전부를 감싼다.
+`src/rendering/workers/country-shared-boundary-worker.js`의 packet 타이머는 다음 전부를 감싼다.
 
 1. `boundaryState.features()` / `packetIdentity()` : 품질·outline 사용·ID·계층·SHA revision으로 전체 패킷 키 산출.
 2. `retainedPacket` cache 검사: 변경 ID가 있거나 외부 캐시를 새로 심으면 보관본 무효화. 실제 1992→1991 요청은 cacheHit=false.
@@ -72,4 +72,4 @@ const orderCompatible = expectedOrder.length === order.length
 
 순서 게이트만 완화하면 1991→1992의 약 0.2초 수준 postMessage 비용 개선 가능성이 있지만, 실제 변경 연도 packet miss의 약 3초 계산은 그대로 남을 수 있다. 반대로 packet을 무조건 재사용하면 변경 국경·국가 관계에 대한 정합성을 깨뜨린다. 검증 전 제품 통합/채택, `main` 병합 및 배포는 보류한다.
 
-참조 소스: `shared/frontend/js/modules/country-boundary-geometry-transport.js`, `shared/frontend/js/modules/country-shared-boundary-packet.js`, `shared/frontend/js/workers/country-shared-boundary-worker.js`, `shared/frontend/js/modules/builtin-session.js`, `shared/wasm/boundary-bindings.cpp` — P6-3 B 고정 SHA `0af8b63d2efbeb19e9b677ec23d5f3fb92abfb83`. 이 문서는 분석 전용이며 제품 파일을 수정하지 않는다.
+참조 소스: `src/rendering/country-boundary-geometry-transport.js`, `src/rendering/country-shared-boundary-packet.js`, `src/rendering/workers/country-shared-boundary-worker.js`, `src/document/builtin-session.js`, `shared/wasm/boundary-bindings.cpp` — P6-3 B 고정 SHA `0af8b63d2efbeb19e9b677ec23d5f3fb92abfb83`. 이 문서는 분석 전용이며 제품 파일을 수정하지 않는다.

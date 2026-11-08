@@ -5,8 +5,8 @@ import {readFileSync} from 'node:fs';
 import {runInThisContext} from 'node:vm';
 if(!globalThis.PandoLabGisAdapters)
   runInThisContext(readFileSync(new URL('../../fixtures/geopackage/compat/worker/gis-adapters.source.txt',import.meta.url),'utf8'));
-import { territorialRootId, normalizeTerritorialIdentities, TERRITORIAL_SCHEMA_VERSION } from "../../../shared/frontend/js/modules/territorial-units.js";
-import { normalizeSourceProvenance, validateSourceProvenance, SOURCE_KINDS } from "../../../shared/frontend/js/modules/source-provenance.js";
+import { territorialRootId, normalizeTerritorialIdentities, TERRITORIAL_SCHEMA_VERSION } from "../../../src/document/territorial-units.js";
+import { normalizeSourceProvenance, validateSourceProvenance, SOURCE_KINDS } from "../../../src/document/source-provenance.js";
 
 export function createGisImportTransactionCommitter(runtime = {}) {
   const {

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import { transformSync } from 'esbuild';
-import { createGpuCanvasWorker } from "../../shared/frontend/js/modules/gpu-canvas-worker.js";
+import { createGpuCanvasWorker } from "../../src/rendering/gpu-canvas-worker.js";
 
 test('failed synchronous Canvas submission does not strand a busy renderer or a pick promise', async () => {
   const errors=[],worker={
@@ -307,7 +307,7 @@ for (const nativeError of [false, true]) {
 // and timer delivery are the only browser facilities replaced for this protocol test.
 function canvasRuntime({ renderError = null, features = [], theme = {}, visualOrder = { base: [], hydro: [] } } = {}) {
   const replies = [], timers = [];
-  const script = new URL("../../shared/frontend/js/workers/canvas-render-worker.js", import.meta.url);
+  const script = new URL("../../src/rendering/workers/canvas-render-worker.js", import.meta.url);
   class Canvas {
     constructor(width, height) { this.width = width; this.height = height; }
     getContext() { return { canvas: this, setTransform() {}, clearRect() {}, drawImage() {},
@@ -322,7 +322,7 @@ function canvasRuntime({ renderError = null, features = [], theme = {}, visualOr
     setTimeout: callback => { timers.push(callback); return timers.length; },
     location: script, postMessage: (message, transfer) => replies.push({ message, transfer }) });
   scope.self = scope;
-  const policy=transformSync(readFileSync(new URL('../../shared/frontend/js/modules/resource-update-policy.js',import.meta.url),'utf8'),
+  const policy=transformSync(readFileSync(new URL("../../src/rendering/resource-update-policy.js",import.meta.url),'utf8'),
     {format:'iife',globalName:'PandoLabResourceUpdatePolicy',target:'es2022',legalComments:'none'}).code;
   scope.importScripts = (...urls) => urls.forEach(url => vm.runInContext(new URL(url).pathname.endsWith('/resource-update-policy-core.js')
     ? policy+'\nself.PandoLabResourceUpdatePolicy=PandoLabResourceUpdatePolicy;'

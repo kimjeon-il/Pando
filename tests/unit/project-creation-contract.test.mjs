@@ -1,13 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {createInitialDocument} from '../../shared/frontend/js/modules/initial-document.js';
+import {createInitialDocument} from "../../src/document/initial-document.js";
 import {createNodeCoreProject} from '../helpers/core-project.mjs';
-import {createTerritorialFeature} from '../../shared/frontend/js/modules/territorial-units.js';
+import {createTerritorialFeature} from "../../src/document/territorial-units.js";
 import {staticTerritorialInput, staticSerializerSnapshot} from '../helpers/timeline-project.mjs';
 import {createProjectSerializer} from '../helpers/legacy-project-autosave.mjs';
-import {restoreEntitiesFromDelta} from '../../shared/frontend/js/modules/project-state.js';
-import {PROJECT_SCHEMA_VERSION} from '../../shared/frontend/js/modules/version-contract.js';
+import {restoreEntitiesFromDelta} from "../../src/document/project-state.js";
+import {PROJECT_SCHEMA_VERSION} from "../../src/runtime/version-contract.js";
 
 const viewing=['defaultView','layerVisibility','itemVisibility'];
 test('new projects carry one initial setup and no authored viewing defaults',()=>{

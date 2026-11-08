@@ -1,9 +1,9 @@
 import {createGisCoreFixture} from '../helpers/gis-core-fixture.mjs';
-import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
-import { normalizeCountryCollection } from "../../shared/frontend/js/modules/country-feature.js";
+import { createTerritorialFeature } from "../../src/document/territorial-units.js";
+import { normalizeCountryCollection } from "../../src/document/country-feature.js";
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { sharedCalculationCore } from '../../shared/frontend/js/modules/temporal.js';
+import { sharedCalculationCore } from "../../src/document/temporal.js";
 
 import {
   appendImportedSourceInfo,

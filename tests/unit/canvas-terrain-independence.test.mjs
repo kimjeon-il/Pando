@@ -1,13 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import * as resourcePolicy from '../../shared/frontend/js/modules/resource-update-policy.js';
-import {canvasWorkerFrameMatchesPhysical} from '../../shared/frontend/js/modules/country-mesh-zoom-policy.js';
-import {createCanvasScenePackets} from '../../shared/frontend/js/modules/gpu-canvas-scene-packets.js';
+import * as resourcePolicy from "../../src/rendering/resource-update-policy.js";
+import {canvasWorkerFrameMatchesPhysical} from "../../src/rendering/country-mesh-zoom-policy.js";
+import {createCanvasScenePackets} from "../../src/rendering/gpu-canvas-scene-packets.js";
 
-const workerSource = readFileSync(new URL("../../shared/frontend/js/workers/canvas-render-worker.js", import.meta.url), 'utf8');
-const terrainCoreSource = readFileSync(new URL("../../shared/frontend/js/workers/canvas-terrain-dem-core.js", import.meta.url), 'utf8');
-const terrainTileSource = readFileSync(new URL("../../shared/frontend/js/workers/terrain-tile-selection-core.js", import.meta.url), 'utf8');
+const workerSource = readFileSync(new URL("../../src/rendering/workers/canvas-render-worker.js", import.meta.url), 'utf8');
+const terrainCoreSource = readFileSync(new URL("../../src/rendering/workers/canvas-terrain-dem-core.js", import.meta.url), 'utf8');
+const terrainTileSource = readFileSync(new URL("../../src/rendering/workers/terrain-tile-selection-core.js", import.meta.url), 'utf8');
 const manifest = { gutter: 1, urlTemplate: 'terrain/v0.12.6/{level}/{column}-{row}.webp', levels: [
   { id: 0, width: 1350, height: 675, columns: 2, rows: 1, tileSize: 1024 },
   { id: 1, width: 2700, height: 1350, columns: 3, rows: 2, tileSize: 1024 },

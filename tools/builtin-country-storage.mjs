@@ -7,7 +7,7 @@ import {gunzipSync} from 'node:zlib';
 import {defaultRoot,libraryConfig,libraryCheckout,decodeArchiveEntry,storeLibraryData} from './library-data.mjs';
 import {finalizeBuiltinWorldFiles,readBuiltinCountryStoredBytes} from './builtin-country-bytes.mjs';
 import {writeBuiltinWorldPublication} from './build-builtin-world.mjs';
-import {builtinCountryAssets,BUILTIN_COUNTRY_MAX_STORED_BYTES} from '../shared/frontend/js/modules/builtin-country-files.js';
+import {builtinCountryAssets,BUILTIN_COUNTRY_MAX_STORED_BYTES} from "../src/data/builtin-country-files.js";
 export const BUILTIN_COUNTRY_ROOT='assets/data/builtin-world/generated/v1/';
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 const same=(a,b)=>a&&b&&['encoding','sha256','compressedBytes','decodedBytes'].every(key=>a[key]===b[key]);

@@ -6,8 +6,8 @@ on:
     paths:
       - 'tools/build-builtin-world.mjs'
       - 'tools/gis/prepare-water-object-history.mjs'
-      - 'shared/frontend/js/modules/builtin-world-loader.js'
-      - 'shared/frontend/js/modules/stored-asset-loader.js'
+      - 'src/data/builtin-world-loader.js'
+      - 'src/data/stored-asset-loader.js'
       - 'tests/unit/builtin-country-publication.test.mjs'
       - 'tests/unit/historical-world-publication.test.mjs'
       - 'tests/unit/builtin-world-catalog.test.mjs'

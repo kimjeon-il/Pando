@@ -5,19 +5,19 @@ import * as __perf_dep2 from "node:path";
 import * as __perf_dep3 from "node:test";
 import * as __perf_dep4 from "node:zlib";
 import * as __perf_dep5 from "node:url";
-import * as __perf_dep6 from "../../shared/frontend/js/modules/gpu-map-renderer.js";
-import * as __perf_dep7 from "../../shared/frontend/js/modules/startup-readiness.js";
-import * as __perf_dep8 from "../../shared/frontend/js/modules/canonical-country-packet.js";
-import * as __perf_dep9 from "../../shared/frontend/js/modules/adaptive-render-quality.js";
+import * as __perf_dep6 from "../../src/rendering/gpu-map-renderer.js";
+import * as __perf_dep7 from "../../src/app/startup-readiness.js";
+import * as __perf_dep8 from "../../src/rendering/canonical-country-packet.js";
+import * as __perf_dep9 from "../../src/rendering/adaptive-render-quality.js";
 import * as __perf_dep10 from "../helpers/source-functions.mjs";
 import * as __perf_dep11 from "../helpers/read-frontend-source.mjs";
 import * as __perf_dep12 from "node:fs/promises";
 
 // Static source comparison must complete before registering synchronous suites.
 const [__labelRendering, __labelContent, __labelSource] = await Promise.all([
-  __perf_dep12.readFile(new URL('../../shared/frontend/js/modules/rendering-domain.js', import.meta.url), 'utf8'),
-  __perf_dep12.readFile(new URL('../../shared/frontend/js/modules/map-content-presentation.js', import.meta.url), 'utf8'),
-  __perf_dep12.readFile(new URL('../../shared/frontend/js/modules/label-presentation.js', import.meta.url), 'utf8'),
+  __perf_dep12.readFile(new URL("../../src/rendering/rendering-domain.js", import.meta.url), 'utf8'),
+  __perf_dep12.readFile(new URL("../../src/ui/map-content-presentation.js", import.meta.url), 'utf8'),
+  __perf_dep12.readFile(new URL("../../src/rendering/label-presentation.js", import.meta.url), 'utf8'),
 ]);
 
 // Original feature contract: startup-performance.test.mjs

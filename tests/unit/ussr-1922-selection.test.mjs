@@ -3,7 +3,7 @@ import {readBuiltinCountryStoredBytes} from '../../tools/builtin-country-bytes.m
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {normalizeTerritorialLibraryEntity,selectGeometryVersion,territorialEntityExistsAt} from "../../tools/gis/territorial-library.js";
-import {selectBuiltinCountries,assembleBuiltinWorld} from "../../shared/frontend/js/modules/builtin-world-loader.js";
+import {selectBuiltinCountries,assembleBuiltinWorld} from "../../src/data/builtin-world-loader.js";
 import {gunzipSync} from 'node:zlib';
 
 const root=new URL('../../assets/data/territorial-entities/source/countries/',import.meta.url);

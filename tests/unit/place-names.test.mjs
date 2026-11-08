@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { normalizePlace, normalizePlaceLanguages, togglePlaceLanguage } from "../../shared/frontend/js/modules/place-contract.js";
-import { resolvePlaceLabelRows, placeLabelRowsAtMonth } from "../../shared/frontend/js/modules/place-name-display.js";
-import { placeLabelDimensions, layoutLabels } from "../../shared/frontend/js/modules/label-layout.js";
+import { normalizePlace, normalizePlaceLanguages, togglePlaceLanguage } from "../../src/document/place-contract.js";
+import { resolvePlaceLabelRows, placeLabelRowsAtMonth } from "../../src/ui/place-name-display.js";
+import { placeLabelDimensions, layoutLabels } from "../../src/rendering/label-layout.js";
 
 const place = changes => normalizePlace({source:'geonames',sourceId:'703448',name:'키이우',nameEn:'Kyiv',nameNative:'Київ',
   kind:'capital',coordinates:[30.52,50.45],nameTimeline:[{fromYear:1801,ko:'키예프'},{fromDate:'1991-08-24',ko:'키이우'}],...changes});

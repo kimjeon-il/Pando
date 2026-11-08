@@ -6,7 +6,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { collectViewerAssets, isEditorOnlyAsset } from '../../scripts/lib/product-assets.mjs';
 import {buildFrontendSnapshot} from '../../scripts/lib/frontend-build.mjs';
-import {effectiveTerritorialFlagUrl} from '../../shared/frontend/js/modules/country-flags.js';
+import {effectiveTerritorialFlagUrl} from "../../src/ui/country-flags.js";
 
 test('version checks and staging share the distinction between common viewing and editor assets',()=>{
   for(const name of ['app-accent','app-map-settings'])assert.equal(isEditorOnlyAsset(`assets/js/modules/${name}.js`),false);

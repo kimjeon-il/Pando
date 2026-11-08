@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {normalizeTerritorialLibraryEntity, selectGeometryVersion, instantiateLibraryEntity, TERRITORIAL_LIBRARY_SCHEMA_VERSION, LIBRARY_ENTITY_TYPES} from '../../tools/gis/territorial-library.js';
-import {projectTimelineIdentity} from '../../shared/frontend/js/modules/timeline-resolver.js';
+import {projectTimelineIdentity} from "../../src/document/timeline-resolver.js";
 import {createHash} from 'node:crypto';
 import {readFileSync} from 'node:fs';
 import {readTerritorialSources} from '../../tools/territorial-entity-sources.mjs';

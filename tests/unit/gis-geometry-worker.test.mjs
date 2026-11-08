@@ -100,7 +100,7 @@ test('GIS validator rejects timed out work, disposes its worker and permits a fr
 
 test('current territorial import validates the complete batch and publishes only changed root IDs', async () => {
   const context = vm.createContext({});
-  vm.runInContext(fs.readFileSync(new URL("../../shared/frontend/js/vendor/polygon-clipping.min.js", import.meta.url), 'utf8'), context);
+  vm.runInContext(fs.readFileSync(new URL("../../assets/js-vendor/polygon-clipping.min.js", import.meta.url), 'utf8'), context);
   const {store,repository,events,rootPatches:patches,committer}=await createGisCoreFixture([],{runtime:{uid:()=> 'source',polygonClipping:context.polygonClipping}});
   let result = { targetType: 'general', collection: { type: 'FeatureCollection', features: [
     feature('A', square), { ...feature('child', square), properties: { parent_id: 'A' } },

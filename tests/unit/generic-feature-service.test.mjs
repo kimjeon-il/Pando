@@ -2,16 +2,16 @@ import { describe as contractSuite } from 'node:test';
 import * as __dep0 from "node:assert/strict";
 import * as __dep1 from "node:test";
 import * as __dep2 from "../helpers/generic-feature-command-service.mjs";
-import * as __dep3 from "../../shared/frontend/js/modules/generic-feature-normalization.js";
-import * as __dep4 from "../../shared/frontend/js/modules/gpu-scene.js";
-import * as __dep5 from "../../shared/frontend/js/modules/object-selection-controller.js";
+import * as __dep3 from "../../src/document/generic-feature-normalization.js";
+import * as __dep4 from "../../src/rendering/gpu-scene.js";
+import * as __dep5 from "../../src/ui/object-selection-controller.js";
 import * as __dep6 from "../helpers/timeline-project.mjs";
 import * as __dep7 from "../helpers/gis-core-fixture.mjs";
-import * as __dep8 from "../../shared/frontend/js/modules/project-state.js";
-import * as __dep9 from "../../shared/frontend/js/modules/project-invariants.js";
+import * as __dep8 from "../../src/document/project-state.js";
+import * as __dep9 from "../../src/document/project-invariants.js";
 import * as __dep10 from "../../tools/gis/project-template-compiler.js";
-import * as __dep11 from "../../shared/frontend/js/modules/source-provenance.js";
-import * as __dep12 from "../../shared/frontend/js/modules/version-contract.js";
+import * as __dep11 from "../../src/document/source-provenance.js";
+import * as __dep12 from "../../src/runtime/version-contract.js";
 import * as __dep13 from "../helpers/core-gis-compat/gis-import-transaction.mjs";
 
 // Original feature contract: generic-feature-service.test.mjs

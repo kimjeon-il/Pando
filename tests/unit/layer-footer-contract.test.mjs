@@ -4,11 +4,11 @@ import * as __dep1 from "node:assert";
 import * as __dep2 from "node:test";
 import * as __dep3 from "../../scripts/lib/product-html.mjs";
 import * as __dep4 from "node:assert/strict";
-import * as __dep5 from "../../shared/frontend/js/modules/app-map-settings.js";
-import * as __dep6 from "../../shared/frontend/js/modules/resource-capabilities.js";
-import * as __dep7 from "../../shared/frontend/js/modules/platform-ports.js";
-import * as __dep8 from "../../shared/frontend/js/modules/initial-document.js";
-import * as __dep9 from "../../shared/frontend/js/modules/distribution-model.js";
+import * as __dep5 from "../../src/ui/app-map-settings.js";
+import * as __dep6 from "../../src/runtime/resource-capabilities.js";
+import * as __dep7 from "../../src/runtime/platform-ports.js";
+import * as __dep8 from "../../src/document/initial-document.js";
+import * as __dep9 from "../../src/document/distribution-model.js";
 contractSuite("layer-footer-contract", () => {
 const { readFileSync } = __dep0;
 const { strict : assert } = __dep1;
@@ -36,8 +36,8 @@ test('file and mobile navigation remain outside the map canvas hierarchy',()=>{
   }
 });
 test('desktop shell retains the shared design tokens without retired layer geometry',()=>{
-  const shell=read('shared/frontend/css/components/topbar.css');
-  const tokens=read('shared/frontend/css/tokens/design-tokens.css');
+  const shell=read('src/ui/css/components/topbar.css');
+  const tokens=read('src/ui/css/tokens/design-tokens.css');
   assert.doesNotMatch(shell,/\[data-layout="wide"\] \.adaptive-nav/);
   assert.doesNotMatch(tokens+shell,/--ui-(?:v2|shell)-workspace-(?:rail|nav|active)-/);
   assert.doesNotMatch(tokens+shell,/(?:--design-left-panel-width|--ui-shell-left-panel-width|\.left-panel)/);

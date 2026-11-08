@@ -3,12 +3,13 @@ import * as __dep0 from "node:assert/strict";
 import * as __dep1 from "node:test";
 import * as __dep2 from "node:fs";
 import * as __dep3 from "node:crypto";
-import * as __dep4 from "../../shared/frontend/js/modules/review-inspection.js";
-import * as __dep5 from "../../shared/frontend/js/modules/review-evidence-files.js";
-import * as __dep6 from "../../shared/frontend/js/modules/review-change-records.js";
-import * as __dep7 from "../../apps/viewer/js/modules/viewer-review-panel.js";
+import * as __dep4 from "../../src/document/review-inspection.js";
+import * as __dep5 from "../../src/data/review-evidence-files.js";
+import * as __dep6 from "../../src/document/review-change-records.js";
+import * as __dep7 from "../../src/ui/inspector/viewer-review-panel.js";
 import * as __dep8 from "../../scripts/lib/product-html.mjs";
 import * as __dep9 from "../../scripts/lib/reviewer-ui-contracts.mjs";
+contractSuite('review-inspection',async()=>{
 const assert = __dep0.default;
 const test = __dep1.default;
 const { readFileSync } = __dep2;
@@ -185,8 +186,8 @@ test('E4 before-after previews have one frame even across the antimeridian and r
 });
 
 test('E4 review owner uses only declared template controls, including correction type',()=>{
-  const owner=readFileSync(new URL('../../apps/viewer/js/modules/viewer-review-panel.js',import.meta.url),'utf8');
-  const html=readFileSync(new URL('../../apps/viewer/templates/index.html',import.meta.url),'utf8');
+  const owner=readFileSync(new URL('../../src/ui/inspector/viewer-review-panel.js',import.meta.url),'utf8');
+  const html=readFileSync(new URL('../../src/app/index.html',import.meta.url),'utf8');
   const refs=[...owner.matchAll(/\bget\('([^']+)'\)/g)].map(x=>x[1])
     .filter(x=>x.startsWith('review')||x==='mobileReviewBtn');
   assert.ok(refs.length>20,'E4 DOM integration check must cover the real panel');
@@ -219,4 +220,5 @@ test('R1 explicitly rejects a returned graphical-editor entrypoint',()=>{
     '<button id="modeDraftInsertBtn">edit</button>';
   assert.ok(validateReviewUi('architecture',{html:mutated})
     .some(reason=>reason.includes('Retired editor control')));
+});
 });

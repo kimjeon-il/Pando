@@ -189,9 +189,9 @@ const { buildFrontendIndex } = __unit_dep7;
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const bytes=path=>readFileSync(join(root,path));
 const text=path=>bytes(path).toString('utf8');
-const brand='shared/frontend/static/brand/';
+const brand='assets/brand/';
 const templates={
- 'apps/viewer/templates/index.html':'<!doctype html><head><link rel="icon" href="data:,"></head><body>viewer</body>',
+ 'src/app/index.html':'<!doctype html><head><link rel="icon" href="data:,"></head><body>viewer</body>',
 };
 const pages=()=>renderProductHtml(path=>templates[path]??text(path));
 
@@ -224,8 +224,8 @@ test('brand URLs resolve under the published Viewer',()=>{
  const index=buildFrontendIndex(root),links=[...pages().web.matchAll(/href="(assets\/brand\/[^"?]+)[^"]*"/g)].map(m=>m[1]);
  assert.equal(links.length,3);
  for(const path of links){
-  assert.equal(index.get(path)?.product,'shared',path);
-  assert.equal(index.get(path)?.sourcePath,'shared/frontend/static/'+path.slice(7));
+  assert.equal(index.get(path)?.product,'viewer',path);
+  assert.equal(index.get(path)?.sourcePath,'assets/'+path.slice(7));
   assert.ok(bytes(index.get(path).sourcePath).length);
   // Browser Pages uses a subpath; there is no native shell origin.
   for(const [page,baseHref,prefix]of [['https://example.test/Pando/',null,'/Pando/']]){
@@ -233,7 +233,7 @@ test('brand URLs resolve under the published Viewer',()=>{
    assert.equal(new URL(path,base).pathname,prefix+path);
   }
  }
- assert.doesNotMatch(text('shared/frontend/ui/fragments/brand-icons.html'),/rel="manifest"|https?:/);
+ assert.doesNotMatch(text('src/ui/fragments/brand-icons.html'),/rel="manifest"|https?:/);
 });
 
 test('Viewer favicon containers retain their reviewed optical-size PNG frames',()=>{
@@ -242,7 +242,7 @@ test('Viewer favicon containers retain their reviewed optical-size PNG frames',(
  const apple=bytes(brand+'apple-touch-icon.png');assert.equal(apple.readUInt32BE(16),180);assert.equal(apple.readUInt32BE(20),180);
  const approved=JSON.parse(text('design/brand/asset-hashes.json'));
  for(const [path,sha]of Object.entries(approved)){
-  assert.ok(path.startsWith('shared/frontend/static/brand/'),'Only Viewer brand assets may be approved');
+  assert.ok(path.startsWith('assets/brand/'),'Only Viewer brand assets may be approved');
   const raw=bytes(path),content=/\.(?:svg|xml)$/.test(path)?Buffer.from(raw.toString('utf8').replaceAll('\r\n','\n')):raw;
   assert.equal(createHash('sha256').update(content).digest('hex'),sha,path);
  }
@@ -263,10 +263,10 @@ const { readFileSync } = __unit_dep2;
 const test = __unit_dep0.default;
 
 test('bundled Pretendard font bytes and OFL license remain immutable',()=>{
- const font=readFileSync(new URL('../../shared/frontend/static/fonts/pretendard-v1.3.9/PretendardVariable.woff2',import.meta.url));
+ const font=readFileSync(new URL("../../assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2",import.meta.url));
  const digest=createHash('sha256').update(font).digest('hex');
  assert.equal(digest,'9599f12fd42fc0bce1cd50b47a0c022e108d7aa64dd0d1bb0ed44f3282d900b4');
- const license=readFileSync(new URL('../../shared/frontend/static/fonts/pretendard-v1.3.9/LICENSE.txt',import.meta.url),'utf8');
+ const license=readFileSync(new URL("../../assets/fonts/pretendard-v1.3.9/LICENSE.txt",import.meta.url),'utf8');
  assert.match(license.toUpperCase(),/SIL OPEN FONT LICENSE/);
 });
 });

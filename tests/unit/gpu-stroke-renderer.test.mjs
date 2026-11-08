@@ -1,9 +1,9 @@
 import { describe as contractSuite } from 'node:test';
 import * as __gpu_dep0 from "node:assert/strict";
 import * as __gpu_dep1 from "node:test";
-import * as __gpu_dep2 from "../../shared/frontend/js/modules/gpu-stroke-renderer.js";
-import * as __gpu_dep3 from "../../shared/frontend/js/modules/map-render-coordinator.js";
-import * as __gpu_dep4 from "../../shared/frontend/js/modules/render-scene.js";
+import * as __gpu_dep2 from "../../src/rendering/gpu-stroke-renderer.js";
+import * as __gpu_dep3 from "../../src/rendering/map-render-coordinator.js";
+import * as __gpu_dep4 from "../../src/rendering/render-scene.js";
 contractSuite("gpu-stroke-renderer", () => {
 const assert = __gpu_dep0.default;
 const test = __gpu_dep1.default;

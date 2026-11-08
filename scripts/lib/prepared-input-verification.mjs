@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {readBuiltinCountryStoredBytes} from '../../tools/builtin-country-bytes.mjs';
-import {builtinCountryAssets} from '../../shared/frontend/js/modules/builtin-country-files.js';
+import {builtinCountryAssets} from "../../src/data/builtin-country-files.js";
 
 const builtinRoot='assets/data/builtin-world/generated/v1/';
 /** Verify existing input identities, reconstructing only one country at a time.

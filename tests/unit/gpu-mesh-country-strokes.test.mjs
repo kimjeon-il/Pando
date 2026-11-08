@@ -5,10 +5,10 @@ import * as __gpu_dep2 from "node:path";
 import * as __gpu_dep3 from "node:test";
 import * as __gpu_dep4 from "node:vm";
 import * as __gpu_dep5 from "node:url";
-import * as __gpu_dep6 from "../../shared/frontend/js/modules/geographic-boundary.js";
-import * as __gpu_dep7 from "../../shared/frontend/js/modules/boundary-topology.js";
-import * as __gpu_dep8 from "../../shared/frontend/js/modules/temporal.js";
-import * as __gpu_dep9 from "../../shared/frontend/js/modules/country-stroke-group-reuse.js";
+import * as __gpu_dep6 from "../../src/geometry/geographic-boundary.js";
+import * as __gpu_dep7 from "../../src/geometry/boundary-topology.js";
+import * as __gpu_dep8 from "../../src/document/temporal.js";
+import * as __gpu_dep9 from "../../src/rendering/country-stroke-group-reuse.js";
 import "../helpers/spherical-core.mjs";
 contractSuite("gpu-mesh-country-strokes", () => {
 const assert = __gpu_dep0.default;
@@ -28,7 +28,7 @@ function loadClassic(relativePath, globalName) {
   return value;
 }
 
-const meshCore = loadClassic('shared/frontend/js/workers/gpu-mesh-core.js', 'PandoLabGpuMeshCore');
+const meshCore = loadClassic('src/rendering/workers/gpu-mesh-core.js', 'PandoLabGpuMeshCore');
 
 const square = (id, x) => ({
   type: 'Feature',

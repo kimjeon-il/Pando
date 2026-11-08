@@ -2,19 +2,19 @@ import { nextEventTurn } from '../helpers/async-test-ports.mjs';
 import { describe as contractSuite } from 'node:test';
 import * as __dep0 from "node:test";
 import * as __dep1 from "node:assert/strict";
-import * as __dep2 from "../../shared/frontend/js/modules/object-catalog.js";
-import * as __dep3 from "../../shared/frontend/js/modules/object-query.js";
-import * as __dep4 from "../../shared/frontend/js/modules/object-selection-controller.js";
-import * as __dep5 from "../../shared/frontend/js/modules/territorial-entity-repository.js";
-import * as __dep6 from "../../shared/frontend/js/modules/object-search-model.js";
+import * as __dep2 from "../../src/document/object-catalog.js";
+import * as __dep3 from "../../src/document/object-query.js";
+import * as __dep4 from "../../src/ui/object-selection-controller.js";
+import * as __dep5 from "../../src/document/territorial-entity-repository.js";
+import * as __dep6 from "../../src/document/object-search-model.js";
 import * as __dep7 from "node:timers";
 import * as __dep8 from "node:vm";
-import * as __dep9 from "../../shared/frontend/js/modules/navigation-bindings.js";
-import * as __dep10 from "../../shared/frontend/js/modules/place-runtime.js";
-import * as __dep11 from "../../shared/frontend/js/modules/surface-controller.js";
-import * as __dep12 from "../../shared/frontend/js/modules/object-search-controller.js";
-import * as __dep13 from "../../shared/frontend/js/modules/selection-ui-controller.js";
-import * as __dep14 from "../../shared/frontend/js/modules/place-contract.js";
+import * as __dep9 from "../../src/ui/navigation-bindings.js";
+import * as __dep10 from "../../src/document/place-runtime.js";
+import * as __dep11 from "../../src/ui/surface-controller.js";
+import * as __dep12 from "../../src/ui/object-search-controller.js";
+import * as __dep13 from "../../src/ui/selection-ui-controller.js";
+import * as __dep14 from "../../src/document/place-contract.js";
 import * as __dep15 from "../helpers/core-selection.mjs";
 contractSuite("object-search-availability", () => {
 const test = __dep0.default;
@@ -47,7 +47,7 @@ test('search uses current existence and display visibility without truncating li
 });
 
 test('built-in selection and hover descriptions use the same active period name as search and map labels', async () => {
- const {normalizePlace}=await import("../../shared/frontend/js/modules/place-contract.js");
+ const {normalizePlace}=await import("../../src/document/place-contract.js");
  const place=normalizePlace({source:'geonames',sourceId:'703448',name:'키이우',nameEn:'Kyiv',nameNative:'Київ',kind:'capital',coordinates:[30.52,50.45],nameTimeline:[{fromYear:1801,ko:'키예프'},{fromDate:'1991-08-24',ko:'키이우'}]});
  const state={timelineCursor:'1990-01'};
  const query=createObjectQuery({projectState:{state},preferences:{userPreferences:{labels:{place:{languages:{ko:true}}}}},selectionServices:{normalizeObjectRef},labelPresentation:{labelById:()=>place}});

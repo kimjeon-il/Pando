@@ -1,15 +1,15 @@
 import { describe as contractSuite } from 'node:test';
 import * as __dep0 from "node:assert/strict";
 import * as __dep1 from "node:test";
-import * as __dep2 from "../../shared/frontend/js/modules/map-input-controller.js";
-import * as __dep3 from "../../shared/frontend/js/modules/map-input-presentation.js";
-import * as __dep4 from "../../shared/frontend/js/modules/camera-navigation.js";
-import * as __dep5 from "../../shared/frontend/js/modules/map-host.js";
-import * as __dep6 from "../../shared/frontend/js/modules/map-layout-metrics.js";
-import * as __dep7 from "../../shared/frontend/js/modules/camera-pan.js";
+import * as __dep2 from "../../src/map/map-input-controller.js";
+import * as __dep3 from "../../src/map/map-input-presentation.js";
+import * as __dep4 from "../../src/map/camera-navigation.js";
+import * as __dep5 from "../../src/ui/map-host.js";
+import * as __dep6 from "../../src/map/map-layout-metrics.js";
+import * as __dep7 from "../../src/map/camera-pan.js";
 import * as __dep8 from "../helpers/source-functions.mjs";
 import * as __dep9 from "../helpers/read-frontend-source.mjs";
-import * as __dep10 from "../../shared/frontend/js/modules/map-interaction-style.js";
+import * as __dep10 from "../../src/map/map-interaction-style.js";
 contractSuite("map-input-controller", () => {
 const assert = __dep0.default;
 const test = __dep1.default;

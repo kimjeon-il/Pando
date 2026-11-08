@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {createProjectDomain} from '../../shared/frontend/js/modules/project-domain.js';
-import {createBuiltinSession} from '../../shared/frontend/js/modules/builtin-session.js';
-import {createBuiltinMonthClock} from '../../shared/frontend/js/modules/builtin-month-clock.js';
-import {createCoreDocumentReadModel} from '../../shared/frontend/js/modules/core-document-read-model.js';
+import {createProjectDomain} from "../../src/document/project-domain.js";
+import {createBuiltinSession} from "../../src/document/builtin-session.js";
+import {createBuiltinMonthClock} from "../../src/document/builtin-month-clock.js";
+import {createCoreDocumentReadModel} from "../../src/document/core-document-read-model.js";
 
 const fixture=()=> {
   const events=[];

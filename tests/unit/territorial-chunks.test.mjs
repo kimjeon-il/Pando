@@ -10,7 +10,7 @@ import * as __country_dep7 from "node:path";
 import * as __country_dep8 from "../helpers/frontend-source.mjs";
 import * as __country_dep9 from "node:fs/promises";
 import * as __country_dep10 from "node:child_process";
-import * as __country_dep11 from "../../shared/frontend/js/modules/object-presentation.js";
+import * as __country_dep11 from "../../src/ui/object-presentation.js";
 import * as __country_dep12 from "../../scripts/lib/territorial-storage-audit.mjs";
 contractSuite("territorial-chunks", () => {
 const assert = __country_dep0.default;
@@ -86,8 +86,8 @@ const { createObjectPresentation } = __country_dep11;
 
 
 const read = name => readFile(repositoryFrontendUrl(`assets/js/modules/${name}`), 'utf8');
-const viewerMap = () => readFile(new URL('../../apps/viewer/js/modules/viewer-map.js', import.meta.url), 'utf8');
-const viewerComposition = () => readFile(new URL('../../apps/viewer/js/modules/viewer-composition.js', import.meta.url), 'utf8');
+const viewerMap = () => readFile(new URL("../../src/app/viewer-map.js", import.meta.url), 'utf8');
+const viewerComposition = () => readFile(new URL("../../src/app/viewer-composition.js", import.meta.url), 'utf8');
 
 test('presentation does not expose retired transaction or validation APIs', () => {
   const presentation = createObjectPresentation();
@@ -215,7 +215,7 @@ test('candidate write ownership requires a fresh detached initializer', () => {
   };
   assert.deepEqual(check(source('structuredClone(input)')), []);
   assert.deepEqual(check(source('createInitialDocument({appVersion:"test"})',
-    'import {createInitialDocument} from "../../../../../shared/frontend/js/modules/initial-document.js";')), []);
+    'import {createInitialDocument} from "../../../../../src/document/initial-document.js";')), []);
   for (const value of [
     source('input'),
     source('input.project'),
@@ -233,10 +233,10 @@ test('candidate write ownership requires a fresh detached initializer', () => {
 
 const currentPolicy = JSON.parse(fs.readFileSync(new URL('../../scripts/contracts/territorial-storage-access.json', import.meta.url), 'utf8'));
 const currentOwners = [
-  ['shared/frontend/js/modules/app-map-settings.js', 'mapDisplayAvailability', false],
-  ['shared/frontend/js/modules/project-session.js', 'pruneViewingItems', false],
-  ['shared/frontend/js/modules/timeline-records.js', 'timelineObjectCatalog', false],
-  ['shared/frontend/js/modules/builtin-world-loader.js', 'assembleBuiltinWorld', true],
+  ['src/ui/app-map-settings.js', 'mapDisplayAvailability', false],
+  ['src/document/project-session.js', 'pruneViewingItems', false],
+  ['src/document/timeline-records.js', 'timelineObjectCatalog', false],
+  ['src/data/builtin-world-loader.js', 'assembleBuiltinWorld', true],
 ];
 
 test('current projection readers and detached source builders have explicit storage owners', () => {

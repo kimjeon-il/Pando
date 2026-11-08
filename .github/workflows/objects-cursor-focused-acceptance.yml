@@ -6,8 +6,8 @@ on:
       - '.github/workflows/objects-cursor-focused-acceptance.yml'
       - 'shared/core/**'
       - 'shared/wasm/session-bindings.cpp'
-      - 'shared/frontend/static/wasm/pandoeditor-core.manifest.json'
-      - 'shared/frontend/js/modules/core-document-runtime.js'
+      - 'assets/wasm/pandoeditor-core.manifest.json'
+      - 'src/document/core-document-runtime.js'
       - 'tests/browser/viewer-calendar.spec.mjs'
       - 'tests/browser/viewer-review-e4.spec.mjs'
       - 'tests/unit/core-document-runtime.test.mjs'
@@ -37,10 +37,10 @@ jobs:
           cmake --build build-native/cursor-focused --target temporal_editing_tests project_codec_tests document_session_tests web_object_command_tests web_storage_tests web_territorial_command_tests --parallel 2
           ctest --test-dir build-native/cursor-focused -R '^(temporal_editing_tests|project_codec_tests|document_session_tests|web_object_command_tests|web_storage_tests|web_territorial_command_tests)$' --output-on-failure
       - name: Check published source-matched WASM
-        run: node tools/package-shared-core-assets.mjs --build-dir shared/frontend/static/wasm --check
+        run: node tools/package-shared-core-assets.mjs --build-dir assets/wasm --check
       - name: Verify cursor transition ABI against source-matched generated WASM
         env:
-          PANDOEDITOR_WASM_MODULE: ${{ github.workspace }}/shared/frontend/static/wasm/pandoeditor-core.js
+          PANDOEDITOR_WASM_MODULE: ${{ github.workspace }}/assets/wasm/pandoeditor-core.js
         run: |
           node --test tests/unit/core-document-runtime.test.mjs tests/unit/core-document-client.test.mjs
           node --test shared/tests/wasm-document-session.test.mjs shared/tests/p5-temporal-wasm.test.mjs shared/tests/p5-timeline-wasm.test.mjs
@@ -93,7 +93,7 @@ jobs:
       - name: Install pinned browser deps
         run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Assert source-matched WASM for actual browser validation
-        run: node tools/package-shared-core-assets.mjs --build-dir shared/frontend/static/wasm --check
+        run: node tools/package-shared-core-assets.mjs --build-dir assets/wasm --check
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
       - name: Run actual Soviet selection and historical world roundtrip contracts
@@ -126,7 +126,7 @@ jobs:
       - name: Install pinned browser dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Require rebuilt source-matched WASM before browser testing
-        run: node tools/package-shared-core-assets.mjs --build-dir shared/frontend/static/wasm --check
+        run: node tools/package-shared-core-assets.mjs --build-dir assets/wasm --check
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
       - name: Repeat new-project reset then verify real dated-view acceptance

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   createRuntimePerformanceMetrics, installRuntimePerformanceMetrics, PERFORMANCE_METRIC_NAMES,
-} from '../../shared/frontend/js/modules/runtime-performance-metrics.js';
+} from "../../src/runtime/runtime-performance-metrics.js";
 
 function fakePerformance() {
   let at = 100;

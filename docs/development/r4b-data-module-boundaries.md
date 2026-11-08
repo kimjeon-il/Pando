@@ -9,8 +9,8 @@ Status: extracted on `fix/r4-editor-source-retirement-20261102`, pending full Vi
 | Historical entity/index normalization and day-precision geometry | `tools/gis/territorial-library.js`, `territorial-index-entry.js` |
 | Source evidence/provenance downgrade on changed coordinates or periods | `tools/gis/territorial-library-provenance.js` |
 | Published historical project template (no autosave) | `tools/gis/project-template-compiler.js` |
-| Deterministic source baseline SHA-256 | `shared/frontend/js/modules/project-baseline-fingerprint.js` |
-| Generic Feature v2 schema, source provenance and normalization | `shared/frontend/js/modules/generic-feature-normalization.js` |
+| Deterministic source baseline SHA-256 | `src/document/project-baseline-fingerprint.js` |
+| Generic Feature v2 schema, source provenance and normalization | `src/document/generic-feature-normalization.js` |
 
 ## Retired application adapters isolated to tests
 

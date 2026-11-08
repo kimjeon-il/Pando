@@ -1,5 +1,5 @@
 import {createHash} from 'node:crypto';
-import {BUILTIN_COUNTRY_MAX_STORED_BYTES,builtinCountryFileSpecs,builtinCountryAssets} from '../shared/frontend/js/modules/builtin-country-files.js';
+import {BUILTIN_COUNTRY_MAX_STORED_BYTES,builtinCountryFileSpecs,builtinCountryAssets} from "../src/data/builtin-country-files.js";
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 const fields=['entityId','file','encoding','sha256','compressedBytes','decodedBytes'];
 const same=(a,b)=>a&&b&&['encoding','sha256','compressedBytes','decodedBytes'].every(key=>a[key]===b[key]);

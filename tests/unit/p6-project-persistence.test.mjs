@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { applyImportedPackageAssets, validateImportedProjectPackage } from '../../shared/frontend/js/modules/project-package-assets.js';
-import { createBrowserProjectStorage } from '../../shared/frontend/js/modules/browser-project-storage.js';
+import { applyImportedPackageAssets, validateImportedProjectPackage } from "../../src/data/project-package-assets.js";
+import { createBrowserProjectStorage } from "../../src/data/browser-project-storage.js";
 
 const flagBytes = Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"/>').toString('base64');
 const flag = `data:image/svg+xml;base64,${flagBytes}`;

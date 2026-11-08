@@ -1,8 +1,8 @@
 import fs from 'node:fs';
 import {gunzipSync} from 'node:zlib';
-import {assembleBuiltinWorld,selectBuiltinCountries} from "../../shared/frontend/js/modules/builtin-world-loader.js";
-import {createStoredAssetLoader} from '../../shared/frontend/js/modules/stored-asset-loader.js';
-import {temporalContains,temporalMonthEnd} from '../../shared/frontend/js/modules/temporal.js';
+import {assembleBuiltinWorld,selectBuiltinCountries} from "../../src/data/builtin-world-loader.js";
+import {createStoredAssetLoader} from "../../src/data/stored-asset-loader.js";
+import {temporalContains,temporalMonthEnd} from "../../src/document/temporal.js";
 import {readBuiltinCountryStoredBytes} from '../../tools/builtin-country-bytes.mjs';
 
 const root=new URL('../../assets/data/builtin-world/generated/v1/',import.meta.url);

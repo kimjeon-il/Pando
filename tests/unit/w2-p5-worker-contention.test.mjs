@@ -6,9 +6,9 @@ import { performance } from 'node:perf_hooks';
 
 // Controlled architecture experiment, NOT a hardware-speed benchmark.
 // Only the test-loaded Worker source is instrumented; shipping JS is unchanged.
-const originalUrl = new URL('../../shared/frontend/js/workers/country-shared-boundary-worker.js', import.meta.url);
+const originalUrl = new URL("../../src/rendering/workers/country-shared-boundary-worker.js", import.meta.url);
 const coreUrl = new URL('../../tools/load-spherical-core.mjs', import.meta.url).href;
-const moduleRoot = new URL('../../shared/frontend/js/modules/', import.meta.url).href;
+const moduleRoot = new URL('../../src/runtime/', import.meta.url).href;
 const original = readFileSync(originalUrl, 'utf8').replaceAll('\r\n', '\n');
 const checkpointAnchor = '    let packet;\n    if (packetCacheHit) {';
 const syntheticMs = 350;

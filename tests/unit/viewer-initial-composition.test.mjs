@@ -1,13 +1,13 @@
 import { nextEventTurn } from '../helpers/async-test-ports.mjs';
 import { describe as contractSuite } from 'node:test';
-import * as __dep0 from "../../apps/viewer/js/modules/viewer-load-status.js";
+import * as __dep0 from "../../src/app/viewer-load-status.js";
 import * as __dep1 from "node:test";
 import * as __dep2 from "node:assert/strict";
 import * as __dep3 from "node:fs";
 import * as __dep4 from "node:vm";
-import * as __dep5 from "../../apps/viewer/js/modules/viewer-initial-presentation.js";
-import * as __dep6 from "../../apps/viewer/js/modules/viewer-post-presentation.js";
-import * as __dep7 from "../../apps/viewer/js/modules/viewer-initial-preview.js";
+import * as __dep5 from "../../src/app/viewer-initial-presentation.js";
+import * as __dep6 from "../../src/app/viewer-post-presentation.js";
+import * as __dep7 from "../../src/app/viewer-initial-preview.js";
 contractSuite("viewer-initial-composition", () => {
 const { presentViewerLoadStatus } = __dep0;
 const test = __dep1.default;
@@ -17,7 +17,7 @@ const { runInNewContext } = __dep4;
 const { createViewerInitialPresentation } = __dep5;
 const { createViewerPostPresentation } = __dep6;
 
-const source = readFileSync(new URL('../../apps/viewer/js/modules/viewer-composition.js', import.meta.url), 'utf8')
+const source = readFileSync(new URL("../../src/app/viewer-composition.js", import.meta.url), 'utf8')
   .replace(/^import [^\n]*\r?\n/gm, '').replace('export async function ', 'async function ')
   .replaceAll('import.meta.url', JSON.stringify(import.meta.url));
 const tick = nextEventTurn;

@@ -3,11 +3,11 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {gunzipSync} from 'node:zlib';
 import '../helpers/spherical-core.mjs';
-import "../../shared/frontend/js/vendor/polygon-clipping.min.js";
+import "../../assets/js-vendor/polygon-clipping.min.js";
 import {calculateLibraryBatch} from "../../tools/gis/territorial-batch-calculation.js";
-import {createTerritorialFeature} from "../../shared/frontend/js/modules/territorial-units.js";
-import "../../shared/frontend/js/workers/gpu-mesh-core.js";
-import {encodePolygonMesh,decodePolygonMesh} from "../../shared/frontend/js/modules/polygon-mesh-codec.js";
+import {createTerritorialFeature} from "../../src/document/territorial-units.js";
+import "../../src/rendering/workers/gpu-mesh-core.js";
+import {encodePolygonMesh,decodePolygonMesh} from "../../src/rendering/polygon-mesh-codec.js";
 
 test('frozen adopted DDR shared-border import audits Boolean roundoff without taking Polish or Czech territory',async()=>{
   // This regression describes a previously accepted detailed edge, independently

@@ -3,8 +3,8 @@ import {readFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {
  MAP_OBJECT_CATEGORIES, MAP_OBJECT_CATEGORY_ORDER, MAP_OBJECT_TYPES,
-} from '../shared/frontend/js/modules/map-object-categories.js';
-import {createProductModePolicy} from '../shared/frontend/js/modules/product-mode-policy.js';
+} from "../src/document/map-object-categories.js";
+import {createProductModePolicy} from "../src/app/product-mode-policy.js";
 import {renderProductHtml} from './lib/product-html.mjs';
 
 // The old UI actions and editor command presenters are retired. This
@@ -36,7 +36,7 @@ for(const id of ['viewer','map','reviewPanel','reviewObjectList','reviewDetail']
 for(const id of ['editorSurface','drawCountryBtn','objectDeleteBtn','reconcileEntityCoastBtn']){
  if(html.includes('id="'+id+'"'))fail('Retired editing UI leaked into the Viewer: '+id);
 }
-const source=read('apps/viewer/js/modules/viewer-composition.js');
+const source=read('src/app/viewer-composition.js');
 if(!source.includes('createMapOwners({productMode,readOnly:true'))
  fail('Viewer object selection must use read-only map owners');
 if(errors.length){

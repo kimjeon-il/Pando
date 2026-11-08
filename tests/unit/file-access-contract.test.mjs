@@ -1,11 +1,11 @@
 import { describe as contractSuite } from 'node:test';
 import * as __project_dep0 from "node:test";
 import * as __project_dep1 from "node:assert/strict";
-import * as __project_dep2 from "../../shared/frontend/js/modules/file-access-contract.js";
-import * as __project_dep3 from "../../shared/frontend/js/modules/file-controller.js";
+import * as __project_dep2 from "../../src/data/file-access-contract.js";
+import * as __project_dep3 from "../../src/ui/file-controller.js";
 import * as __project_dep4 from "../helpers/file-transport-fixtures.mjs";
 import * as __project_dep5 from "node:fs";
-import * as __project_dep6 from "../../shared/frontend/js/modules/project-domain.js";
+import * as __project_dep6 from "../../src/document/project-domain.js";
 contractSuite("file-access-contract", () => {
 const { describe : contractSuite } = __project_dep0;
 const __dep0 = __project_dep1;

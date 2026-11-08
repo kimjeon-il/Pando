@@ -1,15 +1,15 @@
 import test from 'node:test';
-import {createCoreDocumentReadModel} from '../../shared/frontend/js/modules/core-document-read-model.js';
-import {sharedCalculationCore} from '../../shared/frontend/js/modules/temporal.js';
+import {createCoreDocumentReadModel} from "../../src/document/core-document-read-model.js";
+import {sharedCalculationCore} from "../../src/document/temporal.js";
 import assert from 'node:assert/strict';
-import {resolvePhysicalWaterObjects,physicalWaterReferenceView,createPhysicalResources} from "../../shared/frontend/js/modules/physical-resources.js";
+import {resolvePhysicalWaterObjects,physicalWaterReferenceView,createPhysicalResources} from "../../src/data/physical-resources.js";
 import {createHash} from 'node:crypto';
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
-import {createGeometryVersionStore} from '../../shared/frontend/js/modules/geometry-version-store.js';
+import {createGeometryVersionStore} from "../../src/geometry/geometry-version-store.js";
 import {modernCaspianWater} from '../../tools/gis/prepare-water-object-history.mjs';
-import {drawGpuBaseScene} from "../../shared/frontend/js/modules/gpu-base-scene-pass.js";
-import "../../shared/frontend/js/workers/canvas-scene-composition-core.js";
+import {drawGpuBaseScene} from "../../src/rendering/gpu-base-scene-pass.js";
+import "../../src/rendering/workers/canvas-scene-composition-core.js";
 
 const objectRef={domain:'hydroBuiltin',id:'waterbody:caspian'};
 test('derived modern water retains islands and uses the small spherical interior',()=>{
@@ -17,7 +17,7 @@ test('derived modern water retains islands and uses the small spherical interior
  const outer=square(40,30,60,55),water=square(45,36,55,47).reverse(),island=square(48,40,49,41);
  const land={type:'MultiPolygon',coordinates:[[outer,water],[island]]},before=structuredClone(land);
  const result=modernCaspianWater(land),scope={};
- vm.runInNewContext(readFileSync(new URL('../../shared/frontend/js/vendor/d3.min.js',import.meta.url),'utf8'),scope);
+ vm.runInNewContext(readFileSync(new URL("../../assets/js-vendor/d3.min.js",import.meta.url),'utf8'),scope);
  assert.equal(result.coordinates.length,2);
  assert.ok(scope.d3.geo.area(result)>0&&scope.d3.geo.area(result)<0.1,'water cannot fill the complementary world');
  assert.deepEqual(land,before,'source land and islands stay immutable');

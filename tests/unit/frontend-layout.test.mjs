@@ -22,71 +22,71 @@ function fixture(t){const root=mkdtempSync(join(tmpdir(),'pando-reviewer-layout-
 function put(root,path,text='export const value=1;'){const file=join(root,path);mkdirSync(dirname(file),{recursive:true});writeFileSync(file,text);return file;}
 test('E6 permits Viewer/shared code but retires native shell and editor product from frontend graph',t=>{
  const root=fixture(t);
- put(root,'shared/frontend/js/modules/common.js');put(root,'apps/viewer/js/viewer.js');
+ put(root,'src/document/common.js');put(root,'src/app/viewer.js');
  put(root,'apps/editor/frontend/js/app.js');put(root,'apps/editor/frontend/js/modules/private.js');
- put(root,'apps/editor/startup.js');put(root,'shared/frontend/static/fonts/font.woff','font');
+ put(root,'apps/editor/startup.js');put(root,'assets/fonts/font.woff','font');
  const index=buildFrontendIndex(root);
  assert.deepEqual(index.get('assets/js/modules/common.js'),{
-   sourcePath:'shared/frontend/js/modules/common.js',publicPath:'assets/js/modules/common.js',product:'shared'});
- assert.equal(frontendAsset(root,'assets/js/viewer.js',{index}).sourcePath,'apps/viewer/js/viewer.js');
+   sourcePath:'src/document/common.js',publicPath:'assets/js/modules/common.js',product:'viewer'});
+ assert.equal(frontendAsset(root,'assets/js/viewer.js',{index}).sourcePath,'src/app/viewer.js');
  for(const forbidden of ['assets/js/app.js','assets/js/modules/private.js','shell/startup.js'])
    assert.throws(()=>frontendAsset(root,forbidden,{index}),/missing/i);
  assert.equal(frontendAsset(root,'assets/fonts/font.woff',{index}).bytes.toString(),'font');
  assert.throws(()=>frontendAsset(root,'assets/js/viewer.js',{index,product:'editor'}),/Viewer/i);
 });
 test('duplicate public ownership, private paths and junctions fail visibly',t=>{
- const root=fixture(t);put(root,'shared/frontend/js/a.js');put(root,'apps/viewer/js/a.js');
+ const root=fixture(t);put(root,'src/document/a.js');put(root,'src/app/a.js');
  assert.throws(()=>buildFrontendIndex(root),/duplicate/i);
- const other=fixture(t);put(other,'shared/frontend/js/a.js');const index=buildFrontendIndex(other);
+ const other=fixture(t);put(other,'src/document/a.js');const index=buildFrontendIndex(other);
  for(const path of ['../AGENTS.md','assets/../../AGENTS.md','apps/editor/src-tauri/Cargo.toml','assets/js/missing.js'])
    assert.throws(()=>frontendAsset(other,path,{index}),/invalid|missing|private/i);
- const outside=fixture(t);put(outside,'private.js');symlinkSync(outside,join(other,'shared/frontend/js/linked'),'junction');
+ const outside=fixture(t);put(outside,'private.js');symlinkSync(outside,join(other,'src/document/linked'),'junction');
  assert.throws(()=>buildFrontendIndex(other),/link|junction/i);
 });
 test('browser emission resolves physical shared imports to public module URLs',t=>{
- const root=fixture(t);put(root,'shared/frontend/js/modules/common.js');put(root,'apps/viewer/js/viewer.js');
+ const root=fixture(t);put(root,'src/document/common.js');put(root,'src/app/viewer.js');
  const index=buildFrontendIndex(root);
- const source="import {value} from '../../../shared/frontend/js/modules/common.js';\n"
-  +"export * from '../../../shared/frontend/js/modules/common.js';\n"
-  +"const url=new URL('../../../shared/frontend/js/modules/common.js',import.meta.url);";
- const output=emitFrontendModule(source,'apps/viewer/js/viewer.js',index);
+ const source="import {value} from '../document/common.js';\n"
+  +"export * from '../document/common.js';\n"
+  +"const url=new URL('../document/common.js',import.meta.url);";
+ const output=emitFrontendModule(source,'src/app/viewer.js',index);
  assert.equal((output.match(/\.\/modules\/common\.js/g)||[]).length,3);
  assert.throws(()=>emitFrontendModule("import '../../../tools/private.mjs';",
-   'apps/viewer/js/viewer.js',index),/private|unmapped/i);
+   'src/app/viewer.js',index),/private|unmapped/i);
 });
 test('shared and Viewer sources cannot import retired editor implementations',t=>{
- const root=fixture(t);put(root,'shared/frontend/js/common.js');put(root,'apps/viewer/js/viewer.js');
+ const root=fixture(t);put(root,'src/document/common.js');put(root,'src/app/viewer.js');
  put(root,'apps/editor/frontend/js/private.js');const index=buildFrontendIndex(root);
  assert.throws(()=>emitFrontendModule("import '../../editor/frontend/js/private.js';",
-   'apps/viewer/js/viewer.js',index),/private|unmapped/i);
+   'src/app/viewer.js',index),/private|unmapped/i);
  assert.throws(()=>emitFrontendModule("import '../../../apps/editor/frontend/js/private.js';",
-   'shared/frontend/js/common.js',index),/private|unmapped/i);
+   'src/document/common.js',index),/private|unmapped/i);
 });
 test('generated metadata resolves without a source placeholder',t=>{
- const root=fixture(t);put(root,'apps/viewer/js/viewer.js');const index=buildFrontendIndex(root);
- assert.ok(emitFrontendModule("const meta=new URL('../../../assets/js/build-meta.js',import.meta.url);",
-   'apps/viewer/js/viewer.js',index).includes('./build-meta.js'));
+ const root=fixture(t);put(root,'src/app/viewer.js');const index=buildFrontendIndex(root);
+ assert.ok(emitFrontendModule("const meta=new URL('../../assets/js/build-meta.js',import.meta.url);",
+   'src/app/viewer.js',index).includes('./build-meta.js'));
 });
 test('Viewer Worker URLs resolve without the native editor bridge',t=>{
- const root=fixture(t);put(root,'apps/viewer/js/viewer.js');
- put(root,'shared/frontend/js/workers/map-display-worker.js');
+ const root=fixture(t);put(root,'src/app/viewer.js');
+ put(root,'src/rendering/workers/map-display-worker.js');
  const index=buildFrontendIndex(root);
- const output=emitFrontendModule("const worker=new URL('../../../shared/frontend/js/workers/map-display-worker.js',import.meta.url);",
-   'apps/viewer/js/viewer.js',index);
+ const output=emitFrontendModule("const worker=new URL('../rendering/workers/map-display-worker.js',import.meta.url);",
+   'src/app/viewer.js',index);
  assert.ok(output.includes('./workers/map-display-worker.js'));
 });
 test('frontend source closure follows static imports and catalogued runtime edges',t=>{
- const root=fixture(t);put(root,'shared/frontend/js/modules/entry.js',"import './static.js';\nexport const entry=1;");
- put(root,'shared/frontend/js/modules/static.js','export const stat=1;');
- put(root,'shared/frontend/js/modules/runtime.js','export const runtime=1;');
+ const root=fixture(t);put(root,'src/document/entry.js',"import './static.js';\nexport const entry=1;");
+ put(root,'src/document/static.js','export const stat=1;');
+ put(root,'src/document/runtime.js','export const runtime=1;');
  const closure=frontendSourceClosure(root,['assets/js/modules/entry.js'],{runtimeDependencies:{
-   'assets/js/modules/entry.js':['shared/frontend/js/modules/runtime.js'],
+   'assets/js/modules/entry.js':['src/document/runtime.js'],
  }});
  assert.deepEqual(closure.map(row=>row.publicPath),[
    'assets/js/modules/entry.js','assets/js/modules/runtime.js','assets/js/modules/static.js']);
 });
 test('runtime closure rejects private retired editor dependencies',t=>{
- const root=fixture(t);put(root,'shared/frontend/js/modules/common.js');
+ const root=fixture(t);put(root,'src/document/common.js');
  put(root,'apps/editor/frontend/js/private.js');
  assert.throws(()=>frontendSourceClosure(root,['assets/js/modules/common.js'],{
    runtimeDependencies:{'assets/js/modules/common.js':['apps/editor/frontend/js/private.js']},

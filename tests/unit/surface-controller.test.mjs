@@ -1,14 +1,14 @@
 import { describe as contractSuite } from 'node:test';
 import * as __unit_dep0 from "node:assert/strict";
 import * as __unit_dep1 from "node:test";
-import * as __unit_dep2 from "../../shared/frontend/js/modules/surface-controller.js";
+import * as __unit_dep2 from "../../src/ui/surface-controller.js";
 import * as __unit_dep3 from "node:fs";
 import * as __unit_dep4 from "../../scripts/lib/product-html.mjs";
-import * as __unit_dep5 from "../../shared/frontend/js/modules/resource-capabilities.js";
-import * as __unit_dep6 from "../../shared/frontend/js/modules/object-query.js";
-import * as __unit_dep7 from "../../shared/frontend/js/modules/object-selection-controller.js";
-import * as __unit_dep8 from "../../shared/frontend/js/modules/place-contract.js";
-import * as __unit_dep9 from "../../shared/frontend/js/modules/workspace-layout.js";
+import * as __unit_dep5 from "../../src/runtime/resource-capabilities.js";
+import * as __unit_dep6 from "../../src/document/object-query.js";
+import * as __unit_dep7 from "../../src/ui/object-selection-controller.js";
+import * as __unit_dep8 from "../../src/document/place-contract.js";
+import * as __unit_dep9 from "../../src/ui/workspace-layout.js";
 contractSuite("surface-controller", () => {
 const assert = __unit_dep0.default;
 const test = __unit_dep1.default;

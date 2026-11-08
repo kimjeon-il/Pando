@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import * as policy from "../../shared/frontend/js/modules/resource-update-policy.js";
+import * as policy from "../../src/rendering/resource-update-policy.js";
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import { buildFrontendSnapshot } from '../../scripts/lib/frontend-build.mjs';
@@ -34,7 +34,7 @@ test('structured dependency keys are deterministic without reference identity or
 
 test('classic Workers execute the generated copy of the same policy contract', async t => {
   const fixture = frontendFixture(t);
-  fixture.put('shared/frontend/js/modules/resource-update-policy.js', readFileSync(new URL('../../shared/frontend/js/modules/resource-update-policy.js', import.meta.url), 'utf8'));
+  fixture.put('src/rendering/resource-update-policy.js', readFileSync(new URL("../../src/rendering/resource-update-policy.js", import.meta.url), 'utf8'));
   const snapshot = await buildFrontendSnapshot(fixture.options);
   const scope={self:{}};
   vm.runInNewContext(snapshot.assets.get('assets/js/workers/resource-update-policy-core.js').bytes.toString('utf8'),scope);

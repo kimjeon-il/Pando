@@ -7,7 +7,7 @@ on:
       - work/**
       - '!work/optimization'
     paths:
-      - 'apps/viewer/**'
+      - 'src/**'
       - 'shared/**'
       - 'assets/**'
       - 'config/library-data.json'

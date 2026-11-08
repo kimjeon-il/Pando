@@ -2,9 +2,9 @@ import { describe as contractSuite } from 'node:test';
 import * as __contract_dep0 from "node:assert/strict";
 import * as __contract_dep1 from "node:test";
 import * as __contract_dep2 from "node:worker_threads";
-import * as __contract_dep3 from "../../shared/frontend/js/modules/worker-rpc.js";
-import * as __contract_dep4 from "../../shared/frontend/js/modules/country-mesh-transfer.js";
-import * as __contract_dep5 from "../../shared/frontend/js/modules/gpu-mesh-worker-jobs.js";
+import * as __contract_dep3 from "../../src/runtime/worker-rpc.js";
+import * as __contract_dep4 from "../../src/rendering/country-mesh-transfer.js";
+import * as __contract_dep5 from "../../src/rendering/gpu-mesh-worker-jobs.js";
 contractSuite("gpu-mesh-transfer", () => {
 const assert = __contract_dep0.default;
 const test = __contract_dep1.default;

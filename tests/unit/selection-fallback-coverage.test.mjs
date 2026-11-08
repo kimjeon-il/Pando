@@ -1,14 +1,14 @@
 import { describe as contractSuite } from 'node:test';
 import * as __contract_dep0 from "node:test";
 import * as __contract_dep1 from "node:assert/strict";
-import * as __contract_dep2 from "../../shared/frontend/js/modules/selection-fallback-coverage.js";
-import * as __contract_dep3 from "../../shared/frontend/js/modules/selection-pass.js";
-import * as __contract_dep4 from "../../shared/frontend/js/modules/map-render-coordinator.js";
+import * as __contract_dep2 from "../../src/ui/selection-fallback-coverage.js";
+import * as __contract_dep3 from "../../src/rendering/selection-pass.js";
+import * as __contract_dep4 from "../../src/rendering/map-render-coordinator.js";
 import * as __contract_dep5 from "node:test";
 import * as __contract_dep6 from "node:assert/strict";
-import * as __contract_dep7 from "../../shared/frontend/js/modules/selection-packet.js";
-import * as __contract_dep8 from "../../shared/frontend/js/modules/selection-pass.js";
-import * as __contract_dep9 from "../../shared/frontend/js/modules/map-interaction-style.js";
+import * as __contract_dep7 from "../../src/rendering/selection-packet.js";
+import * as __contract_dep8 from "../../src/rendering/selection-pass.js";
+import * as __contract_dep9 from "../../src/map/map-interaction-style.js";
 contractSuite("selection-fallback-coverage", () => {
 const test = __contract_dep0.default;
 const assert = __contract_dep1.default;

@@ -26,8 +26,8 @@ export async function packageSharedToolkit({root,revision,artifacts}={}){
   }
   const seeds=['tools/shared-toolkit.mjs','tools/load-node-core.mjs','tools/report-paths.mjs','tools/lib/geonames-policy.mjs','tools/lib/geonames-zip.mjs',
     'tools/map-image/native-resample.mjs','tools/map-image/native-pdf.mjs','tools/map-image/native-preview.mjs',
-    'shared/frontend/js/modules/source-provenance.js','shared/frontend/js/modules/version-contract.js',
-    'shared/frontend/js/modules/worker-rpc.js','shared/frontend/js/workers/worker-rpc-host.js',
+    'src/document/source-provenance.js','src/runtime/version-contract.js',
+    'src/runtime/worker-rpc.js','src/rendering/workers/worker-rpc-host.js',
     'tools/cpp/map-preview/aileron-subset.ttf','shared/third_party/proj-robinson-LICENSE',
     'docs/historical-border-reconstruction-policy.md',...mapImageSourceFiles,...mapPdfSourceFiles,...mapPreviewSourceFiles,
     ...sharedSourceManifest(root).inputs.map(row=>row.path),

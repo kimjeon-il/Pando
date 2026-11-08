@@ -126,7 +126,7 @@ for (const viewport of [{width: 640, height: 360}, {width: 844, height: 390}]) {
     const safeTop = viewport.width === 640 ? 24 : 0;
     const css=styles.replaceAll('env(safe-area-inset-top)',safeTop+'px').replaceAll('env(safe-area-inset-right)',safeTop?'12px':'0px');
     await page.setContent([
-      '<style>'+readFileSync(new URL('../../shared/frontend/css/app.css',import.meta.url),'utf8')+'</style>',
+      '<style>'+readFileSync(new URL("../../src/ui/css/app.css",import.meta.url),'utf8')+'</style>',
       '<style>'+css+'</style>',
       '<div class="app-root" data-layout="phone-landscape">',
       ' <div class="workspace search-drawer-open">',

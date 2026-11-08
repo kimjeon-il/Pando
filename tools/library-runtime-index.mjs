@@ -1,4 +1,4 @@
-import {builtinCountryAssets} from '../shared/frontend/js/modules/builtin-country-files.js';
+import {builtinCountryAssets} from "../src/data/builtin-country-files.js";
 
 const builtinRoot='assets/data/builtin-world/generated/v1/';
 /** Select runtime dependencies without mutating the complete historical archive.

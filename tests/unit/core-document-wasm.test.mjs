@@ -3,7 +3,7 @@ import * as __core_dep0 from "node:assert/strict";
 import * as __core_dep1 from "node:fs";
 import * as __core_dep2 from "node:test";
 import * as __core_dep3 from "../helpers/core-session.mjs";
-import * as __core_dep4 from "../../shared/frontend/js/modules/core-document-read-model.js";
+import * as __core_dep4 from "../../src/document/core-document-read-model.js";
 import * as __core_dep5 from "../helpers/web-oracle.mjs";
 
 // Initialize the original Web source oracle at module scope, before synchronous suites.

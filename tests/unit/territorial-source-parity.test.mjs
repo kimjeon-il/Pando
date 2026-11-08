@@ -7,7 +7,7 @@ import * as __source_dep4 from "../../tools/territorial-entity-sources.mjs";
 import * as __source_dep5 from "../../tools/gis/territorial-library.js";
 import * as __source_dep6 from "node:os";
 import * as __source_dep7 from "node:path";
-import * as __source_dep8 from "../../shared/frontend/js/modules/territorial-units.js";
+import * as __source_dep8 from "../../src/document/territorial-units.js";
 import * as __source_dep9 from "../helpers/core-project.mjs";
 import * as __source_dep10 from "../helpers/production-geopackage.mjs";
 contractSuite("territorial-source-parity", () => {

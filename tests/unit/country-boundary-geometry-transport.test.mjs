@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createGeometryVersionStore } from '../../shared/frontend/js/modules/geometry-version-store.js';
-import { createCountryBoundaryGeometryTransport } from '../../shared/frontend/js/modules/country-boundary-geometry-transport.js';
-import { touchGeometry } from '../../shared/frontend/js/modules/geometry-versions.js';
+import { createGeometryVersionStore } from "../../src/geometry/geometry-version-store.js";
+import { createCountryBoundaryGeometryTransport } from "../../src/rendering/country-boundary-geometry-transport.js";
+import { touchGeometry } from "../../src/geometry/geometry-versions.js";
 
 const polygon = (west, east) => ({ type: 'Polygon',
   coordinates: [[[west, 0], [east, 0], [east, 1], [west, 1], [west, 0]]] });

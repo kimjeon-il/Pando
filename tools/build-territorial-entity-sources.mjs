@@ -1,7 +1,7 @@
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
-import {currentCountryFlagUrl} from "../shared/frontend/js/modules/country-flags.js";
+import {currentCountryFlagUrl} from "../src/ui/country-flags.js";
 import {loadBuiltinDisplayPolicy} from './gis/builtin-display-policy.mjs';
 const root=fileURLToPath(new URL('../',import.meta.url));
 const parents=new Map(loadBuiltinDisplayPolicy().subunits.map(({sourceCountryId,parentId})=>[sourceCountryId,parentId]));

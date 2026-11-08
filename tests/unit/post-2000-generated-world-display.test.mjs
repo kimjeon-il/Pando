@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {createHash} from 'node:crypto';
 import {gunzipSync} from 'node:zlib';
-import {selectBuiltinCountries,assembleBuiltinWorld} from '../../shared/frontend/js/modules/builtin-world-loader.js';
+import {selectBuiltinCountries,assembleBuiltinWorld} from "../../src/data/builtin-world-loader.js";
 
 const root=new URL('../../assets/data/builtin-world/generated/v1/',import.meta.url);
 const index=JSON.parse(fs.readFileSync(new URL('index.json',root),'utf8'));

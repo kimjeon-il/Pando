@@ -41,13 +41,13 @@
 
 ## 코드상 중요한 의존관계
 
-shared/frontend/js/modules/gpu-map-renderer.js의 temporalFrameReady는 다음을 모두 요구한다.
+src/rendering/gpu-map-renderer.js의 temporalFrameReady는 다음을 모두 요구한다.
 
 - 현재 세대의 canonicalMeshReady
 - **현재 세대 및 품질과 일치하는 countrySharedBoundary**
 - 현재 세대 및 물리 컨텍스트에 맞는 실제 프레임·지형
 
-apps/viewer/js/modules/viewer-composition.js는 Map setSession 후 waitForTemporalPresentation을 기다린다. 이는 틀린 연도의 국경을 일시적으로 보이지 않게 하는 필수 정확성 게이트다.
+src/app/viewer-composition.js는 Map setSession 후 waitForTemporalPresentation을 기다린다. 이는 틀린 연도의 국경을 일시적으로 보이지 않게 하는 필수 정확성 게이트다.
 
 prepareCountrySharedBoundary는 요청번호·세대·형상 버전·품질을 확인한다. 별도 Worker는 SHA-256 형상 해시, 압축된 공유국경 캐시 로드, state.replace 또는 patch, shared boundary packet 계산, typed-array 전송을 처리한다. 이 Worker는 yieldToMessages에서 setTimeout(0)을 이용하므로 TimerFire 구간에는 계속된 Promise 작업이 포함될 가능성이 있다.
 

@@ -32,7 +32,7 @@
 - 원자료·표시 형상은 이미 일반화되어 있으므로 실제 국경선과 차이가 있을 수 있고, 확대해도 원자료에서 사라진 형상은 복원되지 않는다. 화면 크기·DPR·배율, 화면 중심에서 벗어난 투영 압축, 형상·폭·대비에 따라 보이는 정도가 달라진다. Natural Earth 1:10M을 일률적인 거리 오차로 환산하거나 면적 기준을 위치 정확도로 해석하지 않는다.
 - 이 기준으로 기존 원본·채택한 마스터를 일괄 삭제·단순화하거나 완료한 지역을 재조사하지 않는다. 화면·줌·DPR 변경이나 수치 기준 통과 여부만으로 복원 정밀도를 높이거나 추가 검증을 의무화하지 않는다. 원본 보존·불필요 조사자료 정리는 각각 §5·§8의 기존 범위를 유지한다.
 
-화면 조건의 코드 근거: [공개 웹 투영 선택](https://github.com/kimjeon-il/Pando/blob/7cabf3cde8a9f046002c60d51e9b0145798264dc/apps/viewer/js/modules/viewer-composition.js), [줌 상한](https://github.com/kimjeon-il/Pando/blob/7cabf3cde8a9f046002c60d51e9b0145798264dc/shared/frontend/js/modules/camera-navigation.js), [투영 크기](https://github.com/kimjeon-il/Pando/blob/7cabf3cde8a9f046002c60d51e9b0145798264dc/shared/frontend/js/modules/map-layout-metrics.js), [국경선 두께](https://github.com/kimjeon-il/Pando/blob/7cabf3cde8a9f046002c60d51e9b0145798264dc/shared/frontend/js/modules/map-interaction-style.js).
+화면 조건의 코드 근거: [공개 웹 투영 선택](https://github.com/kimjeon-il/Pando/blob/7cabf3cde8a9f046002c60d51e9b0145798264dc/src/app/viewer-composition.js), [줌 상한](https://github.com/kimjeon-il/Pando/blob/7cabf3cde8a9f046002c60d51e9b0145798264dc/src/map/camera-navigation.js), [투영 크기](https://github.com/kimjeon-il/Pando/blob/7cabf3cde8a9f046002c60d51e9b0145798264dc/src/map/map-layout-metrics.js), [국경선 두께](https://github.com/kimjeon-il/Pando/blob/7cabf3cde8a9f046002c60d51e9b0145798264dc/src/map/map-interaction-style.js).
 
 ## 0.2 기존 소규모 연구의 종료 — 2026-11-04 추가 지시
 

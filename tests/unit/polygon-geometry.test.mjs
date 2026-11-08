@@ -6,7 +6,7 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import '../helpers/spherical-core.mjs';
 
-await import("../../shared/frontend/js/modules/polygon-geometry.js");
+await import("../../src/geometry/polygon-geometry.js");
 
 const {
   ensureClosedRing,
@@ -129,7 +129,7 @@ test('geographic wrapping preserves ordinary and exact full-world seam coordinat
 });
 
 test('wrapping a dateline component does not normalize or drop an untouched tiny island', async () => {
-  await import("../../shared/frontend/js/vendor/polygon-clipping.min.js");
+  await import("../../assets/js-vendor/polygon-clipping.min.js");
   const crossing = [[[179,-2],[179,2],[-179,2],[-179,-2],[179,-2]]];
   const island = [[[20,0],[20,1e-9],[20+1e-9,1e-9],[20+1e-9,0],[20,0]]];
   const source = { type: 'MultiPolygon', coordinates: [crossing, island] };
@@ -141,7 +141,7 @@ test('wrapping a dateline component does not normalize or drop an untouched tiny
 });
 
 test('full-world seam wrapping retains both sides of a dateline-crossing hole', async () => {
-  await import("../../shared/frontend/js/vendor/polygon-clipping.min.js");
+  await import("../../assets/js-vendor/polygon-clipping.min.js");
   const pc = globalThis.polygonClipping;
   const world = [[[-180,-90],[180,-90],[180,90],[-180,90],[-180,-90]]];
   const hole = [[179,-2],[-179,-2],[-179,2],[179,2],[179,-2]];
@@ -155,7 +155,7 @@ test('full-world seam wrapping retains both sides of a dateline-crossing hole', 
 });
 
 test('wrapping is idempotent when strip clipping creates a long planar edge', async () => {
-  await import("../../shared/frontend/js/vendor/polygon-clipping.min.js");
+  await import("../../assets/js-vendor/polygon-clipping.min.js");
   const pc = globalThis.polygonClipping, wrap = globalThis.PandoLabPolygonGeometry.wrapPolygonGeometry;
   const source = { type: 'Polygon', coordinates: [[[170,0],[170,10],[-40,10],[110,10],[110,0],[-40,0],[170,0]]] };
   const first = wrap(source, pc), second = wrap(first, pc);

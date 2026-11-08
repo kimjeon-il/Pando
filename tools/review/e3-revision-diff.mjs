@@ -2,9 +2,9 @@ import {createHash} from 'node:crypto';
 import {
   parseTemporal, normalizeTemporalInterval, temporalIntervalsOverlap,
   temporalContains, temporalMonthEnd, compareTemporal, compareTemporalKeys, temporalFollowingDay,
-} from '../../shared/frontend/js/modules/temporal.js';
+} from "../../src/document/temporal.js";
 import {normalizeTerritorialLibraryEntity} from '../gis/territorial-library.js';
-import {createReviewBundle, REVIEW_DATA_REPOSITORY} from '../../shared/frontend/js/modules/review-change-records.js';
+import {createReviewBundle, REVIEW_DATA_REPOSITORY} from "../../src/document/review-change-records.js";
 
 export const E3_DIFF_SCHEMA_VERSION = 1;
 const SHA = /^[a-f0-9]{40}$/;

@@ -8,8 +8,8 @@ import { fileURLToPath } from 'node:url';
 import { topology } from 'topojson-server';
 import '../helpers/spherical-core.mjs';
 
-import { validateGeometry } from "../../shared/frontend/js/modules/geometry-validation.js";
-await import("../../shared/frontend/js/modules/polygon-geometry.js");
+import { validateGeometry } from "../../src/geometry/geometry-validation.js";
+await import("../../src/geometry/polygon-geometry.js");
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const manifest = JSON.parse(fs.readFileSync(path.join(root, 'assets/data/world/current.json'), 'utf8'));

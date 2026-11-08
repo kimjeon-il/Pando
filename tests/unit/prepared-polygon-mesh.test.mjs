@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import "../../shared/frontend/js/vendor/earcut.min.js";
-import "../../shared/frontend/js/workers/gpu-mesh-core.js";
-import { encodePolygonMesh, decodePolygonMesh } from "../../shared/frontend/js/modules/polygon-mesh-codec.js";
-import { createPreparedPolygonMeshStore, polygonGeometryDigest } from "../../shared/frontend/js/modules/prepared-polygon-mesh.js";
-import { createRenderSceneBuilder } from "../../shared/frontend/js/modules/render-scene.js";
+import "../../assets/js-vendor/earcut.min.js";
+import "../../src/rendering/workers/gpu-mesh-core.js";
+import { encodePolygonMesh, decodePolygonMesh } from "../../src/rendering/polygon-mesh-codec.js";
+import { createPreparedPolygonMeshStore, polygonGeometryDigest } from "../../src/rendering/prepared-polygon-mesh.js";
+import { createRenderSceneBuilder } from "../../src/rendering/render-scene.js";
 import { readFileSync } from 'node:fs';
 import { gunzipSync } from 'node:zlib';
 import { createHash } from 'node:crypto';

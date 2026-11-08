@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import {createHash} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
-import {sharedCalculationCore} from "../shared/frontend/js/modules/temporal.js";
+import {sharedCalculationCore} from "../src/document/temporal.js";
 import {clippingOperationWithPrecisionRetry} from "./gis/polygon-clipping-calculation.js";
 import {readTerritorialSource,entityFileName,territorialSourceRoot} from './territorial-entity-sources.mjs';
 import {withLibraryOutputs} from './library-data.mjs';

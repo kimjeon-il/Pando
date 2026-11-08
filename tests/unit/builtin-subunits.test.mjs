@@ -1,15 +1,15 @@
 import { describe as contractSuite } from 'node:test';
 import * as __country_dep0 from "../../tools/gis/builtin-display-policy.mjs";
-import * as __country_dep1 from "../../shared/frontend/js/modules/country-feature.js";
+import * as __country_dep1 from "../../src/document/country-feature.js";
 import * as __country_dep2 from "node:test";
 import * as __country_dep3 from "node:assert/strict";
 import * as __country_dep4 from "node:fs";
-import * as __country_dep5 from "../../shared/frontend/js/modules/builtin-subunits.js";
-import * as __country_dep6 from "../../shared/frontend/js/modules/territorial-units.js";
-import * as __country_dep7 from "../../shared/frontend/js/modules/builtin-territory-policy.js";
-import * as __country_dep8 from "../../shared/frontend/js/modules/builtin-session.js";
-import * as __country_dep9 from "../../shared/frontend/js/modules/geometry-versions.js";
-import * as __country_dep10 from "../../shared/frontend/js/modules/layer-presentation.js";
+import * as __country_dep5 from "../../src/document/builtin-subunits.js";
+import * as __country_dep6 from "../../src/document/territorial-units.js";
+import * as __country_dep7 from "../../src/document/builtin-territory-policy.js";
+import * as __country_dep8 from "../../src/document/builtin-session.js";
+import * as __country_dep9 from "../../src/geometry/geometry-versions.js";
+import * as __country_dep10 from "../../src/ui/layer-presentation.js";
 contractSuite("builtin-subunits", () => {
 const { loadBuiltinDisplayPolicy, validateBuiltinDisplayPolicy } = __country_dep0;
 const { normalizeCountryCollection } = __country_dep1;

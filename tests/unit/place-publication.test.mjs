@@ -4,10 +4,10 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { reportPath } from '../../tools/report-paths.mjs';
 import { canonicalPlaceTextBytes, generatePlaceRelease, validateRuntimeApproval } from '../../tools/build-place-runtime.mjs';
-import { decodePlaceTile } from "../../shared/frontend/js/modules/place-codec.js";
-import { normalizePlace } from "../../shared/frontend/js/modules/place-contract.js";
-import { resolvePlaceLabelRows } from "../../shared/frontend/js/modules/place-name-display.js";
-import { createPlaceWorkerStore } from "../../shared/frontend/js/modules/place-worker-store.js";
+import { decodePlaceTile } from "../../src/data/place-codec.js";
+import { normalizePlace } from "../../src/document/place-contract.js";
+import { resolvePlaceLabelRows } from "../../src/ui/place-name-display.js";
+import { createPlaceWorkerStore } from "../../src/data/place-worker-store.js";
 
 const assets = new URL('../../assets/data/places/', import.meta.url);
 const read = name => readFileSync(new URL(name, assets));

@@ -2,10 +2,10 @@ import { reportPath } from '../../tools/report-paths.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFileSync } from 'node:fs';
-import { PLACE_LANGUAGES, PLACE_LIMITS, PLACE_TILE_FORMAT, normalizePlace, DEFAULT_PLACE_LANGUAGES, togglePlaceLanguage } from "../../shared/frontend/js/modules/place-contract.js";
-import { resolvePlaceLabelRows } from "../../shared/frontend/js/modules/place-name-display.js";
-import { PLACE_LABEL_METRICS, placeLabelDimensions } from "../../shared/frontend/js/modules/label-layout.js";
-import { encodePlaceTile, decodePlaceTile } from "../../shared/frontend/js/modules/place-codec.js";
+import { PLACE_LANGUAGES, PLACE_LIMITS, PLACE_TILE_FORMAT, normalizePlace, DEFAULT_PLACE_LANGUAGES, togglePlaceLanguage } from "../../src/document/place-contract.js";
+import { resolvePlaceLabelRows } from "../../src/ui/place-name-display.js";
+import { PLACE_LABEL_METRICS, placeLabelDimensions } from "../../src/rendering/label-layout.js";
+import { encodePlaceTile, decodePlaceTile } from "../../src/data/place-codec.js";
 
 const contract = JSON.parse(readFileSync(new URL('../../contracts/places/v3.json', import.meta.url), 'utf8'));
 test('portable place contract exposes the exact binary and language policy', () => {

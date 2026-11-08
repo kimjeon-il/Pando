@@ -1,16 +1,17 @@
 import { describe as contractSuite } from 'node:test';
 import * as __dep0 from "node:assert/strict";
 import * as __dep1 from "node:test";
-import * as __dep2 from "../../shared/frontend/js/modules/selection-domain.js";
-import * as __dep3 from "../../shared/frontend/js/modules/core-object-ref.js";
+import * as __dep2 from "../../src/document/selection-domain.js";
+import * as __dep3 from "../../src/document/core-object-ref.js";
 import * as __dep4 from "node:fs";
 import * as __dep5 from "../helpers/core-selection.mjs";
 import * as __dep6 from "../helpers/frontend-source.mjs";
 import * as __dep7 from "node:fs/promises";
 import * as __dep8 from "../../scripts/lib/css-analysis.mjs";
 import * as __dep9 from "../../scripts/lib/source-analysis.mjs";
-import * as __dep10 from "../../shared/frontend/js/modules/render-device.js";
-import * as __dep11 from "../../shared/frontend/js/modules/selection-packet.js";
+import * as __dep10 from "../../src/rendering/render-device.js";
+import * as __dep11 from "../../src/rendering/selection-packet.js";
+contractSuite('selection-domain-core',async()=>{
 const assert = __dep0.default;
 const test = __dep1.default;
 const { createSelectionDomain } = __dep2;
@@ -243,7 +244,7 @@ test('SelectionPacket separates state, geometry, style, and boundary revisions',
 });
 
 test('map CSS keeps base, GPU, overlay and interaction layers in painting order', async () => {
-  const css = await readFile(new URL('../../shared/frontend/css/components/map-viewport.css', import.meta.url), 'utf8');
+  const css = await readFile(new URL('../../src/ui/css/components/map-viewport.css', import.meta.url), 'utf8');
   const rules = collectCssRules(css);
   const zIndex = selector => {
     const values = rules.filter(rule => !rule.context && rule.selectors.includes(selector))
@@ -275,4 +276,5 @@ test('main renderer creates the RenderDevice while selection consumes an injecte
     assert.equal(createsDevice, ownsDevice, file);
     if (!ownsDevice) assert.equal(createsContext, false, file);
   }
+});
 });

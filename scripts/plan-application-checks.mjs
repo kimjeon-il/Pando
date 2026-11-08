@@ -15,7 +15,7 @@ export function matchesPattern(file, pattern) {
 }
 const matches = (file, patterns = []) => patterns.some(pattern => matchesPattern(file, pattern));
 const executable = file => /\.[cm]?js$/.test(file) && !/\/(?:vendor|worker-runtime|fixtures|gen|target|dist)\//.test(file);
-const product = file => /^(?:shared\/frontend\/js\/|apps\/viewer\/)/.test(file);
+const product = file => /^src\//.test(file);
 
 export function loadRepository(root = process.cwd(), { catalog } = {}) {
   if (root instanceof URL) root = fileURLToPath(root);
@@ -32,7 +32,7 @@ export function loadRepository(root = process.cwd(), { catalog } = {}) {
       return [file];
     });
   }
-  const files = ['assets', 'apps/viewer', 'scripts', 'tools', 'tests', 'shared', 'contracts', 'config', '.github/workflows', '.github/actions']
+  const files = ['assets', 'src', 'scripts', 'tools', 'tests', 'shared', 'contracts', 'config', '.github/workflows', '.github/actions']
     .flatMap(filesIn).concat(['index.html', 'package.json', 'playwright.config.js', 'eslint.config.js'].filter(exists)).sort();
   const tests = files.filter(file => /\.(?:test|spec)\.mjs$/.test(file) && /^tests\/(?:unit|browser)\//.test(file));
   const ids = new Set();
@@ -152,7 +152,7 @@ export function loadRepository(root = process.cwd(), { catalog } = {}) {
       if (browserUrl && file.startsWith('tests/browser/') && /^(?:\.\/|\/)assets\//.test(value)) value = value.replace(/^(?:\.\/|\/)/, '');
       let target;
       if (value.startsWith('.')) target = relativeTarget(value);
-      else if (/^(?:assets|tests|scripts|tools|apps|shared|contracts|config)\//.test(value)) target = value;
+      else if (/^(?:assets|src|tests|scripts|tools|shared|contracts|config)\//.test(value)) target = value;
       else return;
       if (target.startsWith('../')) throw Error('Dependency outside repository: ' + file);
       target=sourcePath(target);
@@ -226,7 +226,7 @@ export function planApplicationChecks({ changedFiles = [], repository, groups: r
   // Unknown active Viewer file types must not be silently claimed by a broad
   // directory-level test group. Deleted/added known source extensions remain
   // eligible for their normal dependency and retirement checks.
-  for (const file of changed) if (/^apps\/viewer\//.test(file) && !repo.exists(file)
+  for (const file of changed) if (/^src\//.test(file) && !repo.exists(file)
       && !/\.(?:[cm]?js|mjs|json|css|html|svg|png|webp|ico|md|woff2?|ttf|map)$/.test(file))
     throw Error('Unclassified product change: ' + file);
   // A no-op diff has no affected consumers; the dynamic inventory is validated

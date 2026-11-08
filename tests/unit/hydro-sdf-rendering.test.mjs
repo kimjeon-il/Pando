@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
-import { hydroSdfShaderSources, hydroSegmentSignedDistance, hydroSegmentCoverage } from '../../shared/frontend/js/modules/gpu-hydro-sdf.js';
+import { hydroSdfShaderSources, hydroSegmentSignedDistance, hydroSegmentCoverage } from "../../src/rendering/gpu-hydro-sdf.js";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const source = path => readFileSync(resolve(root, path), 'utf8');
@@ -50,10 +50,10 @@ test('both WebGL shader editions apply SDF to color and ID picking with width pr
 });
 
 test('visible hydro union keeps mask and picking passes off the coverage framebuffer', () => {
-  const renderer = source('shared/frontend/js/modules/gpu-map-renderer.js');
-  const compositor = source('shared/frontend/js/modules/gpu-hydro-coverage.js');
-  const base = source('shared/frontend/js/modules/gpu-base-scene-pass.js');
-  const interaction = source('shared/frontend/js/modules/gpu-interaction-pass.js');
+  const renderer = source('src/rendering/gpu-map-renderer.js');
+  const compositor = source('src/rendering/gpu-hydro-coverage.js');
+  const base = source('src/rendering/gpu-base-scene-pass.js');
+  const interaction = source('src/rendering/gpu-interaction-pass.js');
   assert.match(renderer, /hydroCoverage\.render\(/);
   assert.match(renderer, /category === 'border-river' && !picking/);
   assert.match(renderer, /drawHydro\('border-river', true\)/);

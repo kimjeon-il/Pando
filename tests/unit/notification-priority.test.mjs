@@ -1,8 +1,9 @@
 import { describe as contractSuite } from 'node:test';
 import * as __contract_dep0 from "node:test";
 import * as __contract_dep1 from "node:assert/strict";
-import * as __contract_dep2 from "../../shared/frontend/js/modules/notification-presentation.js";
-import * as __contract_dep5 from "../../shared/frontend/js/modules/notification-copy.js";
+import * as __contract_dep2 from "../../src/ui/notification-presentation.js";
+import * as __contract_dep5 from "../../src/ui/notification-copy.js";
+contractSuite('notification-priority',()=>{
 const test = __contract_dep0.default;
 const assert = __contract_dep1.default;
 const { createNotificationPresentation } = __contract_dep2;
@@ -132,4 +133,5 @@ test('working copy reports progress rather than completion', () => {
   );
   assert.equal(result, '저장 중…');
   assert.doesNotMatch(result, /했습니다/u);
+});
 });

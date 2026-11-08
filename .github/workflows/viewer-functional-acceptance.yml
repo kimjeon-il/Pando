@@ -3,8 +3,8 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - 'apps/viewer/**'
-      - 'shared/frontend/**'
+      - 'src/**'
+      - 'src/**'
       - 'shared/core/**'
       - 'shared/wasm/**'
       - 'tests/browser/**'
@@ -57,7 +57,7 @@ jobs:
         uses: ./.github/actions/library-data
       - run: pnpm install --frozen-lockfile
       - name: Confirm actual compiled Core source identity
-        run: node tools/package-shared-core-assets.mjs --build-dir shared/frontend/static/wasm --check
+        run: node tools/package-shared-core-assets.mjs --build-dir assets/wasm --check
       - name: Install Chromium and system dependencies
         run: pnpm exec playwright install --with-deps chromium
       - name: Execute real desktop or mobile viewer acceptance
@@ -91,15 +91,15 @@ jobs:
       - name: Lint E1 source and focused assertions
         run: >-
           pnpm exec eslint
-          shared/frontend/js/modules/product-mode-policy.js
-          shared/frontend/js/modules/core-document-client.js
-          shared/frontend/js/modules/document-session.js
-          shared/frontend/js/modules/project-domain.js
-          shared/frontend/js/modules/project-session.js
-          shared/frontend/js/modules/map-owner-composition.js
-          shared/frontend/js/modules/map-workspace-host.js
-          shared/frontend/js/modules/rendering-domain.js
-          apps/viewer/js/modules/viewer-map.js
+          src/app/product-mode-policy.js
+          src/document/core-document-client.js
+          src/document/document-session.js
+          src/document/project-domain.js
+          src/document/project-session.js
+          src/app/map-owner-composition.js
+          src/ui/map-workspace-host.js
+          src/rendering/rendering-domain.js
+          src/app/viewer-map.js
           tests/unit/core-product-mode.test.mjs
           tests/unit/map-readonly-flat-boundary.test.mjs
           tests/unit/file-access-contract.test.mjs
@@ -164,7 +164,7 @@ jobs:
       - name: Lint E2 data contracts and tests
         run: >-
           pnpm exec eslint
-          shared/frontend/js/modules/review-change-records.js
+          src/document/review-change-records.js
           tests/unit/review-change-records.test.mjs
           tools/review/validate-review-bundle.mjs
       - name: Validate review proposal, immutable history, and temporal precision
@@ -288,11 +288,11 @@ jobs:
       - name: Lint review model, browser owner and assertions
         run: >-
           pnpm exec eslint
-          shared/frontend/js/modules/review-inspection.js
-          shared/frontend/js/modules/review-evidence-files.js
-          apps/viewer/js/modules/viewer-review-panel.js
-          apps/viewer/js/modules/viewer-composition.js
-          shared/frontend/js/modules/notification-presentation.js
+          src/document/review-inspection.js
+          src/data/review-evidence-files.js
+          src/ui/inspector/viewer-review-panel.js
+          src/app/viewer-composition.js
+          src/ui/notification-presentation.js
           tests/unit/notification-priority.test.mjs
           tests/unit/review-inspection.test.mjs
           tests/browser/viewer-review-e4.spec.mjs

@@ -82,12 +82,12 @@ test('feature-owned Viewer preview and shared Core replace stage-owned validatio
 });
 test('CSS selects relevant UI checks without C++/GIS build or data generation commands', () => {
   const repository = loadRepository(new URL('../../', import.meta.url));
-  const plan = planApplicationChecks({ repository, changedFiles: ['shared/frontend/css/features/map-rendering.css'] });
+  const plan = planApplicationChecks({ repository, changedFiles: ['src/ui/css/features/map-rendering.css'] });
   assert.ok(plan.browserSpecs.includes('tests/browser/web-viewer.spec.mjs'));
   assert.ok(plan.commands.includes('ui-spacing'));
   assert.deepEqual(plan.externalChecks, []);
   assert.equal(plan.commands.some(id => catalog.groups.find(group => group.id === id)?.gisNative), false);
-  const worker = planApplicationChecks({ repository, changedFiles: ['shared/frontend/js/workers/canvas-render-worker.js'] });
+  const worker = planApplicationChecks({ repository, changedFiles: ['src/rendering/workers/canvas-render-worker.js'] });
   assert.ok(worker.browserSpecs.includes('tests/browser/viewer-startup-and-terrain.spec.mjs'));
   for (const id of ['country-selftest', 'country-validity-canonical', 'country-validity', 'territorial-library-contract'])
     assert.ok(catalog.groups.some(group => group.id === id && group.argv?.length));
@@ -96,13 +96,13 @@ test('CSS selects relevant UI checks without C++/GIS build or data generation co
 test('native Core external checks retain every compiled input and exclude shared frontend resources', () => {
   const repository = { catalog, files: [], tests: [], owners: new Map(), dependencies: () => [] };
   const nativeCheck = catalog.externalChecks.find(check => check.id === 'native-core');
-  const manifest = JSON.parse(readFileSync(new URL('../../shared/frontend/static/wasm/pandoeditor-core.manifest.json', import.meta.url), 'utf8'));
+  const manifest = JSON.parse(readFileSync(new URL("../../assets/wasm/pandoeditor-core.manifest.json", import.meta.url), 'utf8'));
   assert.ok(manifest.inputs.length > 0);
   for (const path of [...manifest.inputs.map(input => input.path), 'CMakeLists.txt', 'CMakePresets.json']) {
     const plan = planApplicationChecks({ repository, changedFiles: [path] });
     assert.deepEqual(plan.externalChecks, [nativeCheck], path);
   }
-  for (const path of ['shared/frontend/css/features/map-rendering.css', 'shared/frontend/js/workers/canvas-render-worker.js']) {
+  for (const path of ['src/ui/css/features/map-rendering.css', 'src/rendering/workers/canvas-render-worker.js']) {
     const plan = planApplicationChecks({ repository, changedFiles: [path] });
     assert.deepEqual(plan.externalChecks, [], path);
   }

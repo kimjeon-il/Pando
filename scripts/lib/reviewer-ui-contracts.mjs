@@ -60,7 +60,7 @@ export function validateReviewUi(kind,{html:providedHtml}={}) {
  const index=buildFrontendIndex(root);
  const fromPublic=path=>frontendAsset(root,path,{index}).bytes.toString('utf8');
  const css=UI_VIEWER_SOURCES.map(fromPublic).join('\n');
- const viewerCss=read('apps/viewer/css/viewer.css');
+ const viewerCss=read('src/ui/css/viewer.css');
  const bundled=buildUiBundles(root,{readSource:fromPublic}).viewer;
  const errors=[];
  const fail=message=>errors.push(message);
@@ -85,10 +85,10 @@ export function validateReviewUi(kind,{html:providedHtml}={}) {
  if(!/assets\/js\/viewer\.js/.test(html) || !/assets\/css\/ui-viewer\.bundle\.css/.test(html))
    fail('Canonical Viewer scripts and stylesheet must be present');
  if(kind==='architecture') {
-   const source=read('apps/viewer/js/modules/viewer-composition.js');
-   const project=read('shared/frontend/js/modules/project-domain.js');
-   const map=read('shared/frontend/js/modules/map-owner-composition.js');
-   const renderer=read('shared/frontend/js/modules/rendering-domain.js');
+   const source=read('src/app/viewer-composition.js');
+   const project=read('src/document/project-domain.js');
+   const map=read('src/app/map-owner-composition.js');
+   const renderer=read('src/rendering/rendering-domain.js');
    for(const [name,text,pattern] of [
      ['Viewer owner',source,/createMapOwners\(\{productMode,readOnly:true/],
      ['Core read-only document',source,/createDocumentSession\(\{productMode,readOnly:true/],
@@ -98,8 +98,8 @@ export function validateReviewUi(kind,{html:providedHtml}={}) {
    for(const hook of ['editPreviewController','editingRenderResources','getEditingRenderPacket','emitEditingInteraction','createEditingPresentation'])
      if(renderer.includes(hook))fail('Retired rendering edit hook returned: '+hook);
    errors.push(...auditReviewCss('viewer.css',viewerCss),
-     ...auditReviewCss('layout/surfaces.css',read('shared/frontend/css/layout/surfaces.css')));
-   if(statSync(resolve(root,'apps/viewer/css/viewer.css')).size>12288)
+     ...auditReviewCss('layout/surfaces.css',read('src/ui/css/layout/surfaces.css')));
+   if(statSync(resolve(root,'src/ui/css/viewer.css')).size>12288)
      fail('Viewer placement CSS exceeded the R1 12 KiB ceiling');
    if(!/\.viewer-root/.test(viewerCss)||!/\.viewer-review-panel/.test(viewerCss))
      fail('Viewer placement and review surfaces need separate scoped styles');

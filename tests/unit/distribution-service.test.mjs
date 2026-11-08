@@ -2,7 +2,7 @@ import { describe as contractSuite } from 'node:test';
 import * as __dep0 from "node:assert/strict";
 import * as __dep1 from "node:test";
 import * as __dep2 from "../helpers/core-command-services/distribution-service.mjs";
-import * as __dep3 from "../../shared/frontend/js/modules/distribution-model.js";
+import * as __dep3 from "../../src/document/distribution-model.js";
 
 // Original feature contract: distribution-service.test.mjs
 contractSuite("distribution-service", () => {

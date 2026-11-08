@@ -3,8 +3,8 @@ import {readBuiltinCountryStoredBytes} from '../../tools/builtin-country-bytes.m
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {gunzipSync} from 'node:zlib';
-import {temporalContains} from "../../shared/frontend/js/modules/temporal.js";
-import {selectBuiltinCountries} from "../../shared/frontend/js/modules/builtin-world-loader.js";
+import {temporalContains} from "../../src/document/temporal.js";
+import {selectBuiltinCountries} from "../../src/data/builtin-world-loader.js";
 import {normalizeTerritorialLibraryEntity,selectGeometryVersion,territorialEntityExistsAt} from "../../tools/gis/territorial-library.js";
 
 const transitions=[

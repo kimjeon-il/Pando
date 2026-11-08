@@ -2,19 +2,20 @@ import { describe as contractSuite } from 'node:test';
 import * as __dep0 from "node:assert/strict";
 import * as __dep1 from "node:test";
 import * as __dep2 from "node:fs";
-import * as __dep3 from "../../shared/frontend/js/modules/timeline-storage.js";
-import * as __dep4 from "../../shared/frontend/js/modules/timeline-resolver.js";
+import * as __dep3 from "../../src/document/timeline-storage.js";
+import * as __dep4 from "../../src/document/timeline-resolver.js";
 import * as __dep5 from "../helpers/spherical-core.mjs";
 import * as __dep6 from "../../tools/gis/timeline-edit.js";
-import * as __dep7 from "../../shared/frontend/js/modules/timeline-records.js";
+import * as __dep7 from "../../src/document/timeline-records.js";
 import * as __dep8 from "../../tools/builtin-country-bytes.mjs";
 import * as __dep9 from "node:crypto";
 import * as __dep10 from "node:zlib";
 import * as __dep11 from "../../tools/territorial-entity-sources.mjs";
 import * as __dep12 from "../../tools/gis/territorial-library.js";
 import * as __dep13 from "../../tools/gis/normalize-2026-source-reference.mjs";
-import * as __dep14 from "../../shared/frontend/js/modules/builtin-world-loader.js";
-import * as __dep15 from "../../shared/frontend/js/modules/temporal.js";
+import * as __dep14 from "../../src/data/builtin-world-loader.js";
+import * as __dep15 from "../../src/document/temporal.js";
+contractSuite('timeline-resolver',async()=>{
 const assert = __dep0.default;
 const test = __dep1.default;
 const { readFileSync } = __dep2;
@@ -225,4 +226,5 @@ test('published world retains uninterrupted source geometry through October 2026
   assert.equal(before.territorialEntities[0].properties.sourceGeometryVersion,rule.history);
   assert.equal(after.territorialEntities[0].properties.sourceGeometryVersion,rule.history);
  }
+});
 });

@@ -5,11 +5,11 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { geometryAreaKm2, lineDistanceKm, percentChange } from "../../tools/gis/geometry-metrics.js";
-import { validateGeometry } from "../../shared/frontend/js/modules/geometry-validation.js";
-import * as validation from "../../shared/frontend/js/modules/geometry-validation.js";
-import { automaticLabelSettings, LABEL_PRIORITIES, layoutLabels } from "../../shared/frontend/js/modules/label-layout.js";
-import { createAtomicMapStateController } from "../../shared/frontend/js/modules/map-state-transition.js";
-import { sharedCalculationCore } from "../../shared/frontend/js/modules/temporal.js";
+import { validateGeometry } from "../../src/geometry/geometry-validation.js";
+import * as validation from "../../src/geometry/geometry-validation.js";
+import { automaticLabelSettings, LABEL_PRIORITIES, layoutLabels } from "../../src/rendering/label-layout.js";
+import { createAtomicMapStateController } from "../../src/app/map-state-transition.js";
+import { sharedCalculationCore } from "../../src/document/temporal.js";
 
 const feature = (id, coordinates) => ({
   type: 'Feature',

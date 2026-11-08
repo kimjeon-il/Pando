@@ -10,7 +10,7 @@ on:
       - 'tools/stage-monorepo-pages.mjs'
       - 'tests/unit/monorepo-pages-staging.test.mjs'
       - 'tools/check-current-hydro-layout.mjs'
-      - 'apps/viewer/js/viewer.js'
+      - 'src/app/viewer.js'
       - 'tests/unit/frontend-product-output.test.mjs'
       - 'config/library-data.json'
   workflow_dispatch:

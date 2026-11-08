@@ -4,7 +4,7 @@ import path from 'node:path';
 import {createHash} from 'node:crypto';
 import {selectTerritorialChunkBytes} from './territorial-chunk-compression.mjs';
 import {readTerritorialSources,readTerritorialSource,readTerritorialLineages,entityFileName,territorialDataRoot,territorialSourceRoot} from './territorial-entity-sources.mjs';
-import {parseTemporal} from "../shared/frontend/js/modules/temporal.js";
+import {parseTemporal} from "../src/document/temporal.js";
 import {territorialIndexEntry} from "./gis/territorial-index-entry.js";
 const output=path.join(territorialDataRoot,'generated/v2');
 const check=process.argv.includes('--check');

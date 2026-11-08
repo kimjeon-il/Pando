@@ -139,7 +139,7 @@ if (process.argv.includes('--baseline-json')) {
   const {execFileSync} = await import('node:child_process');
   const raw = execFileSync('git', ['ls-tree', '-r', '-l', '-z', 'HEAD'],
     {cwd: root, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024});
-  const prefixes = ['apps/viewer/', 'apps/editor/', 'shared/frontend/', 'shared/core/',
+  const prefixes = ['src/', 'shared/core/',
     'shared/wasm/', 'tools/', 'scripts/', 'tests/', '.github/workflows/'];
   const areas = new Map();
   let trackedFiles = 0, trackedBytes = 0;

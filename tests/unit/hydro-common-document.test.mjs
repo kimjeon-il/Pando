@@ -3,9 +3,9 @@ import * as __hydro_dep0 from "node:assert/strict";
 import * as __hydro_dep1 from "node:test";
 import * as __hydro_dep2 from "node:fs";
 import * as __hydro_dep3 from "../helpers/core-project.mjs";
-import * as __hydro_dep4 from "../../shared/frontend/js/modules/territorial-units.js";
-import * as __hydro_dep5 from "../../shared/frontend/js/modules/timeline-records.js";
-import * as __hydro_dep6 from "../../shared/frontend/js/modules/temporal.js";
+import * as __hydro_dep4 from "../../src/document/territorial-units.js";
+import * as __hydro_dep5 from "../../src/document/timeline-records.js";
+import * as __hydro_dep6 from "../../src/document/temporal.js";
 contractSuite("hydro-common-document", () => {
 const assert = __hydro_dep0.default;
 const test = __hydro_dep1.default;

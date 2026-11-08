@@ -24,13 +24,13 @@ for(const required of ['commandOwner','executeCommand'])
   if(!testAdapter.includes(required))failures.push('Generic test adapter lacks '+required);
 for(const forbidden of ['createDocumentMutationRunner','commandPipeline','recordHistory(','queueAutosave(','restoreSnapshot('])
   if(testAdapter.includes(forbidden))failures.push('Generic test adapter includes archived mutation logic: '+forbidden);
-const project=read('shared/frontend/js/modules/project-domain.js');
+const project=read('src/document/project-domain.js');
 for(const contract of ['commandQueue','commandOwner.execute(envelope)','publishCommand','expectedGeneration',
   'captureReplacement','rollbackReplacement','releaseReplacement','commandOwner[direction]()','validateImport'])
   if(!project.includes(contract))failures.push(`Application command boundary is missing ${contract}`);
 for(const forbidden of ['commitHistorySnapshot','createHistoryService','runMutation(','commandPipeline.execute'])
   if(project.includes(forbidden))failures.push(`Application boundary retains another history writer: ${forbidden}`);
-const store=read('shared/frontend/js/modules/territorial-entity-store.js');
+const store=read('src/document/territorial-entity-store.js');
 if(!store.includes('documentModel.territorialViews')||!store.includes('commandOwner.setTimelineCursor'))
   failures.push('Territorial Store must derive current-world rows from the same document session.');
 for(const method of ['setField','setLocked','transaction','restoreProject','replaceEntities','appendEntities','removeEntities','applyChanges'])

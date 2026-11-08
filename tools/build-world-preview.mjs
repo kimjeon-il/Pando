@@ -7,13 +7,13 @@ import vm from 'node:vm';
 import zlib from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 
-import { validateGeometry } from "../shared/frontend/js/modules/geometry-validation.js";
-import { inspectCanonicalCountryPacket } from "../shared/frontend/js/modules/canonical-country-packet.js";
+import { validateGeometry } from "../src/geometry/geometry-validation.js";
+import { inspectCanonicalCountryPacket } from "../src/rendering/canonical-country-packet.js";
 import { encodeCanonicalCountryPacket } from './canonical-country-packet-encoder.mjs';
 import { buildTopologyPreview } from './preview-topology.mjs';
-import { classifyBuiltinCountries } from "../shared/frontend/js/modules/builtin-subunits.js";
+import { classifyBuiltinCountries } from "../src/document/builtin-subunits.js";
 import { loadBuiltinDisplayPolicy } from './gis/builtin-display-policy.mjs';
-import { geometryFingerprint } from "../shared/frontend/js/modules/project-preview-policy.js";
+import { geometryFingerprint } from "../src/document/project-preview-policy.js";
 import { verifyGzipAssetBytes } from '../scripts/lib/gzip-asset-verification.mjs';
 import './load-spherical-core.mjs';
 

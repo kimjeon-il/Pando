@@ -20,13 +20,13 @@ if(process.argv.includes('--sample-root')) {
   const {loadNodeCore}=await load('tools/load-node-core.mjs');
   globalThis.PandoLabSphericalCore=await loadNodeCore({root});
   globalThis.self=globalThis;
-  vm.runInThisContext(readFileSync(resolve(root,'shared/frontend/js/vendor/d3.min.js'),'utf8'));
-  if(mode==='baseline')vm.runInThisContext(readFileSync(resolve(root,'shared/frontend/js/vendor/polygon-clipping.min.js'),'utf8'));
-  else await load('shared/frontend/js/modules/polygon-clipping-core.js');
+  vm.runInThisContext(readFileSync(resolve(root,'assets/js-vendor/d3.min.js'),'utf8'));
+  if(mode==='baseline')vm.runInThisContext(readFileSync(resolve(root,'assets/js-vendor/polygon-clipping.min.js'),'utf8'));
+  else await load('src/geometry/polygon-clipping-core.js');
   const world=JSON.parse(read('assets/data/countries-ne-5.1.1.geojson'));
   const geometry=id=>{const g=world.features.find(f=>f.id===id).geometry;return g.type==='Polygon'?[g.coordinates]:g.coordinates;};
   const polygonCases=[['union',[geometry('ARM'),geometry('TUR')]],['difference',[geometry('RUS'),[[[[25,50],[45,50],[45,65],[25,65],[25,50]]]]]]];
-  await load('shared/frontend/js/modules/polygon-geometry.js');
+  await load('src/geometry/polygon-geometry.js');
   const cut=await load('tools/gis/cut-worker-preparation.js');
   const cutCases=JSON.parse(read('tests/fixtures/shared-core/web-m97/cut-corpus.json')).map(row=>row.payload);
   const river=await load('tools/gis/river-territory-partition.js');

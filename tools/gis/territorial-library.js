@@ -1,6 +1,6 @@
 // Preserved GIS data/core calculation contract after retired editor source removal.
-import { normalizeTemporalInterval, parseTemporal, temporalIntervalsOverlap, sharedCalculationCore } from "../../shared/frontend/js/modules/temporal.js";
-import {createGeometryVersionStore} from "../../shared/frontend/js/modules/geometry-version-store.js";
+import { normalizeTemporalInterval, parseTemporal, temporalIntervalsOverlap, sharedCalculationCore } from "../../src/document/temporal.js";
+import {createGeometryVersionStore} from "../../src/geometry/geometry-version-store.js";
 
 export const TERRITORIAL_LIBRARY_SCHEMA_VERSION = 2;
 export const LIBRARY_ENTITY_TYPES = Object.freeze({ GENERAL: 'general', REGIONAL: 'regional', RIVER:'river', LAKE:'lake' });

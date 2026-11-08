@@ -5,7 +5,7 @@ on:
     branches: [work/gis]
     paths:
       - 'tools/gis/stage-hydro-all-nonosm.mjs'
-      - 'shared/frontend/js/workers/hydro-tile-worker.js'
+      - 'src/rendering/workers/hydro-tile-worker.js'
       - 'tools/check-current-hydro-layout.mjs'
       - 'scripts/lib/product-assets.mjs'
       - 'tools/gis/hydro-bulk-independent-remaining29.json'

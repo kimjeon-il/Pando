@@ -3,9 +3,9 @@ import test from 'node:test';
 import {readTerritorialSource} from '../../tools/territorial-entity-sources.mjs';
 import {selectGeometryVersion} from "../../tools/gis/territorial-library.js";
 import {scopedBuiltinProject} from '../helpers/builtin-world.mjs';
-import {createGeometryVersionStore} from "../../shared/frontend/js/modules/geometry-version-store.js";
-import {resolvedTimelineViews} from "../../shared/frontend/js/modules/timeline-resolver.js";
-import {createRingHitTester} from "../../shared/frontend/js/modules/ring-hit-test.js";
+import {createGeometryVersionStore} from "../../src/geometry/geometry-version-store.js";
+import {resolvedTimelineViews} from "../../src/document/timeline-resolver.js";
+import {createRingHitTester} from "../../src/geometry/ring-hit-test.js";
 
 const ids=['state:SDN','state:SDS','state:UKR','state:RUS'];
 const read=()=>new Map(ids.map(id=>[id,readTerritorialSource(id)]));

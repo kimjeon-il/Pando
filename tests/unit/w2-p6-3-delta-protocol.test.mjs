@@ -2,12 +2,12 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {readFileSync} from 'node:fs';
 import {Worker} from 'node:worker_threads';
-import {createGeometryVersionStore,geometryReferenceFor} from '../../shared/frontend/js/modules/geometry-version-store.js';
+import {createGeometryVersionStore,geometryReferenceFor} from "../../src/geometry/geometry-version-store.js";
 import {createBoundaryDeltaSender} from '../../tools/w2-p6-3-boundary-delta-sender.mjs';
 import {injectBoundaryDeltaWorker} from '../../tools/w2-p6-3-worker-bridge.mjs';
 
-const originalUrl=new URL('../../shared/frontend/js/workers/country-shared-boundary-worker.js',import.meta.url);
-const moduleRoot=new URL('../../shared/frontend/js/modules/',import.meta.url).href;
+const originalUrl=new URL("../../src/rendering/workers/country-shared-boundary-worker.js",import.meta.url);
+const moduleRoot=new URL('../../src/runtime/',import.meta.url).href;
 const nodeCoreUrl=new URL('../../tools/load-spherical-core.mjs',import.meta.url).href;
 const original=readFileSync(originalUrl,'utf8');
 const workerCode=injectBoundaryDeltaWorker(original.replaceAll('../modules/',moduleRoot));

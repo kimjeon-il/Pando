@@ -1,5 +1,5 @@
 import { describe as contractSuite } from 'node:test';
-import * as __gis_dep0 from "../../shared/frontend/js/modules/builtin-subunits.js";
+import * as __gis_dep0 from "../../src/document/builtin-subunits.js";
 import {loadBuiltinDisplayPolicy} from '../../tools/gis/builtin-display-policy.mjs';
 import * as __gis_dep1 from "node:test";
 import * as __gis_dep2 from "node:assert/strict";
@@ -13,9 +13,9 @@ import * as __gis_dep9 from "../../tools/build-builtin-world.mjs";
 import * as __gis_dep10 from "../fixtures/historical-world-cases.mjs";
 import * as __gis_dep11 from "../helpers/builtin-world.mjs";
 import * as __gis_dep12 from "../../tools/gis/territorial-index-entry.js";
-import * as __gis_dep13 from "../../shared/frontend/js/modules/polygon-mesh-codec.js";
-import * as __gis_dep14 from "../../shared/frontend/js/modules/prepared-polygon-mesh.js";
-import * as __gis_dep15 from "../../shared/frontend/js/modules/physical-resources.js";
+import * as __gis_dep13 from "../../src/rendering/polygon-mesh-codec.js";
+import * as __gis_dep14 from "../../src/rendering/prepared-polygon-mesh.js";
+import * as __gis_dep15 from "../../src/data/physical-resources.js";
 contractSuite("prepared-country-scope", () => {
 const BUILTIN_SUBUNITS = loadBuiltinDisplayPolicy().subunits.map(row=>({...row,id:__gis_dep0.builtinSubunitId(row.sourceCountryId)}));
 const test = __gis_dep1.default;

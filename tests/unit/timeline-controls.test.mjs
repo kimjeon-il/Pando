@@ -3,11 +3,11 @@ import { describe as contractSuite } from 'node:test';
 import * as __merge_dep0 from "../helpers/virtual-clock.mjs";
 import * as __merge_dep1 from "node:assert/strict";
 import * as __merge_dep2 from "node:test";
-import * as __merge_dep3 from "../../shared/frontend/js/modules/timeline-controls.js";
-import * as __merge_dep4 from "../../shared/frontend/js/modules/builtin-month-clock.js";
+import * as __merge_dep3 from "../../src/document/timeline-controls.js";
+import * as __merge_dep4 from "../../src/document/builtin-month-clock.js";
 import * as __merge_dep5 from "node:fs";
 import * as __merge_dep6 from "node:vm";
-import * as __merge_dep7 from "../../shared/frontend/js/modules/application-lifecycle.js";
+import * as __merge_dep7 from "../../src/app/application-lifecycle.js";
 const { createVirtualClock } = __merge_dep0;
 const assert = __merge_dep1.default;
 const test = __merge_dep2.default;
@@ -366,7 +366,7 @@ const tick = nextEventTurn;
 // Calendar correctness is covered by temporal tests. This fixture isolates the
 // clock's real async ownership from the unavailable compiled engine in Node.
 const context=vm.createContext({Date,parseTemporal:()=>({precision:'month'})});
-vm.runInContext(readFileSync(new URL('../../shared/frontend/js/modules/builtin-month-clock.js',import.meta.url),'utf8')
+vm.runInContext(readFileSync(new URL("../../src/document/builtin-month-clock.js",import.meta.url),'utf8')
   .replace(/^import .*;\r?$/gm,'').replaceAll('export ',''),context);
 const createClock=context.createBuiltinMonthClock;
 const now=()=>new Date(2026,9,31);

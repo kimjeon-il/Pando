@@ -4,11 +4,11 @@ import * as __dep0 from "node:assert/strict";
 import * as __dep1 from "node:test";
 import * as __dep3 from "node:zlib";
 import * as __dep4 from "node:crypto";
-import * as __dep5 from "../../shared/frontend/js/modules/project-domain.js";
+import * as __dep5 from "../../src/document/project-domain.js";
 import * as __dep6 from "../helpers/core-command-services/save-state-controller.mjs";
 import * as __dep7 from "../helpers/core-project.mjs";
 import * as __dep8 from "../helpers/current-command-fixture.mjs";
-import * as __dep9 from "../../shared/frontend/js/modules/initial-document.js";
+import * as __dep9 from "../../src/document/initial-document.js";
 contractSuite("project-lifecycle", () => {
 const assert = __dep0.default;
 const test = __dep1.default;

@@ -5,7 +5,7 @@ on:
     branches: [work/optimization]
     paths:
       - '.github/workflows/p7-rendering-regression.yml'
-      - 'shared/frontend/static/wasm/**'
+      - 'assets/wasm/**'
   workflow_dispatch:
 
 permissions:
@@ -30,7 +30,7 @@ jobs:
       - uses: ./.github/actions/library-data
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Confirm existing shared WASM source identity
-        run: node tools/package-shared-core-assets.mjs --build-dir shared/frontend/static/wasm --check
+        run: node tools/package-shared-core-assets.mjs --build-dir assets/wasm --check
       - name: Execute actual render, Canvas, DEM, timeline and document behavior
         run: |
           node --test --test-concurrency=1 \
@@ -63,7 +63,7 @@ jobs:
       - uses: pnpm/action-setup@v4
       - uses: ./.github/actions/library-data
       - run: pnpm install --frozen-lockfile --ignore-scripts
-      - run: node tools/package-shared-core-assets.mjs --build-dir shared/frontend/static/wasm --check
+      - run: node tools/package-shared-core-assets.mjs --build-dir assets/wasm --check
       - run: pnpm exec playwright install --with-deps chromium
       - name: Execute current Viewer in real Chromium backend
         shell: bash

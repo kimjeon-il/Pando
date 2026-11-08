@@ -8,9 +8,9 @@ on:
       - '.github/actions/library-data/**'
       - 'tools/library-*.mjs'
       - 'tools/build-world-bundle.mjs'
-      - 'shared/frontend/js/workers/gpu-mesh-core.js'
-      - 'shared/frontend/js/modules/physical-layer-service.js'
-      - 'shared/frontend/js/modules/terrain-manifest.js'
+      - 'src/rendering/workers/gpu-mesh-core.js'
+      - 'src/rendering/physical-layer-service.js'
+      - 'src/rendering/terrain-manifest.js'
       - 'tests/unit/gpu-mesh-country-strokes.test.mjs'
       - 'tests/unit/mesh-geometry-assets.test.mjs'
       - 'tests/unit/world-archive-retirement-integrity.test.mjs'
@@ -23,9 +23,9 @@ on:
       - '.github/actions/library-data/**'
       - 'tools/library-*.mjs'
       - 'tools/build-world-bundle.mjs'
-      - 'shared/frontend/js/workers/gpu-mesh-core.js'
-      - 'shared/frontend/js/modules/physical-layer-service.js'
-      - 'shared/frontend/js/modules/terrain-manifest.js'
+      - 'src/rendering/workers/gpu-mesh-core.js'
+      - 'src/rendering/physical-layer-service.js'
+      - 'src/rendering/terrain-manifest.js'
       - 'tests/unit/gpu-mesh-country-strokes.test.mjs'
       - 'tests/unit/mesh-geometry-assets.test.mjs'
       - 'tests/unit/world-archive-retirement-integrity.test.mjs'
@@ -59,8 +59,8 @@ jobs:
           import {libraryConfig,libraryCheckout,safeChild} from './tools/library-data.mjs';
           import {decodeLibraryArchiveBytes} from './tools/library-archive.mjs';
           import {assertDataPath,publishWorldBundle} from './tools/build-world-bundle.mjs';
-          import {HYDRO_DATA_VERSION} from './shared/frontend/js/modules/physical-layer-service.js';
-          import {TERRAIN_RASTER_VERSION} from './shared/frontend/js/modules/terrain-manifest.js';
+          import {HYDRO_DATA_VERSION} from './src/rendering/physical-layer-service.js';
+          import {TERRAIN_RASTER_VERSION} from './src/rendering/terrain-manifest.js';
           const root=process.cwd(),config=libraryConfig(root),checkout=libraryCheckout(root);
           const git=(cwd,args,{encoding='utf8',maxBuffer=16*1024*1024}={})=>execFileSync('git',args,{cwd,encoding,maxBuffer,
             env:{...process.env,GIT_NO_LAZY_FETCH:'1'}});

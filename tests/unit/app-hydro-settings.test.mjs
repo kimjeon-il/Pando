@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createHydroSettings } from "../../shared/frontend/js/modules/physical-settings.js";
+import { createHydroSettings } from "../../src/ui/physical-settings.js";
 
 test('built-in hydro lookup uses tiled features by cache key and logical ID', () => {
   const feature = { id: 'fragment', properties: { pandolab_id: 'river-1' } };

@@ -1,10 +1,10 @@
 import { expect, test } from '@playwright/test';
-import { terrainDemFragmentSource } from "../../shared/frontend/js/modules/terrain-dem-shaders.js";
+import { terrainDemFragmentSource } from "../../src/rendering/terrain-dem-shaders.js";
 import { readFileSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
 const presentation = JSON.parse(readFileSync(new URL('../fixtures/terrain-presentation.json', import.meta.url)));
 const cpuScope={self:{}};
-runInNewContext(readFileSync(new URL('../../shared/frontend/js/workers/canvas-terrain-dem-core.js',import.meta.url),'utf8'),cpuScope);
+runInNewContext(readFileSync(new URL("../../src/rendering/workers/canvas-terrain-dem-core.js",import.meta.url),'utf8'),cpuScope);
 
 // Keep CI deterministic, but allow the same pixel regressions on a native GPU.
 const angleBackend = process.env.PANDOLAB_TEST_ANGLE_BACKEND || 'swiftshader';

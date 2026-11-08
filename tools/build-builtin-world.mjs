@@ -10,7 +10,7 @@ import {readTerritorialSources,readTerritorialSource,entityFileName,territorialS
 import {normalizeTerritorialLibraryEntity} from './gis/territorial-library.js';
 import {buildCurrentWorld} from './territorial-current-world.mjs';
 import {compileBuiltinWorldCatalog,coalesceCoverageAdjustments,replaceBuiltinWorldCountryNames} from './builtin-world-compiler.mjs';
-import {builtinSubunitId} from "../shared/frontend/js/modules/builtin-subunits.js";
+import {builtinSubunitId} from "../src/document/builtin-subunits.js";
 import {loadBuiltinDisplayPolicy} from './gis/builtin-display-policy.mjs';
 import {finalizeBuiltinWorldFiles,readBuiltinCountryStoredBytes} from './builtin-country-bytes.mjs';
 export {finalizeBuiltinWorldFiles};

@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { dirname, relative, resolve } from 'node:path';
 import { build } from 'esbuild';
-import {builtinCountryAssets} from '../../shared/frontend/js/modules/builtin-country-files.js';
+import {builtinCountryAssets} from "../../src/data/builtin-country-files.js";
 
 // Dependencies selected through URLs or classic Worker APIs are reviewed here;
 // static ESM edges are discovered by the same parser used by the build tooling.

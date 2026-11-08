@@ -4,7 +4,7 @@ on:
   pull_request:
     paths:
       - 'shared/**'
-      - 'shared/frontend/static/wasm/**'
+      - 'assets/wasm/**'
       - 'assets/js/modules/**'
       - 'assets/js/vendor/**'
       - 'assets/js/workers/core-session-worker.js'
@@ -43,7 +43,7 @@ on:
     branches: [main, work/optimization, work/ui, work/objects, work/gis, work/places, work/remote-only]
     paths:
       - 'shared/**'
-      - 'shared/frontend/static/wasm/**'
+      - 'assets/wasm/**'
       - 'assets/js/modules/**'
       - 'assets/js/vendor/**'
       - 'assets/js/workers/core-session-worker.js'
@@ -378,7 +378,7 @@ jobs:
           import { sharedSourceManifest } from './tools/package-shared-core-assets.mjs';
           const source = sourceIdentity(process.cwd());
           if (!source.clean) throw Error('Official shared-core evidence requires a clean checkout');
-          const manifest = JSON.parse(readFileSync('shared/frontend/static/wasm/pandoeditor-core.manifest.json'));
+          const manifest = JSON.parse(readFileSync('assets/wasm/pandoeditor-core.manifest.json'));
           const shared = sharedSourceManifest(process.cwd());
           if (shared.sourceSha256 !== manifest.sourceSha256) throw Error('Compiled shared source mismatch');
           const hashFile = path => ({ path, sha256: sha256(readFileSync(resolve(path))) });
@@ -517,7 +517,7 @@ jobs:
           cmake --build build-native/core --target pandoeditor_core --parallel 2
           c++ -std=c++17 -O2 -Ishared/core/include tests/native/temporal-parity-probe.cpp build-native/core/core/libpandoeditor_core.a -lz -o build-native/core/temporal-parity-probe
       - name: Verify committed JS and WASM against this exact C++ source
-        run: node tools/package-shared-core-assets.mjs --build-dir shared/frontend/static/wasm --check
+        run: node tools/package-shared-core-assets.mjs --build-dir assets/wasm --check
       - name: Identical fixed inputs, actual native and WASM results, failure and rollback
         run: node --test tests/native/temporal-parity-p5-7.test.mjs
       - name: Focused Worker cancellation and late acknowledgement contracts

@@ -1,6 +1,6 @@
 import { createNodeCoreProject } from './core-project.mjs';
-import { createTerritorialEntityStore } from '../../shared/frontend/js/modules/territorial-entity-store.js';
-import { createTerritorialEntityRepository } from '../../shared/frontend/js/modules/territorial-entity-repository.js';
+import { createTerritorialEntityStore } from "../../src/document/territorial-entity-store.js";
+import { createTerritorialEntityRepository } from "../../src/document/territorial-entity-repository.js";
 import { createTerritorialApplicationService } from './core-command-services/territorial-service.mjs';
 
 /** Current Web service graph backed by the actual C++ document Worker. */

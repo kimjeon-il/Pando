@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import test from 'node:test';
-const runtimePath = resolve(process.env.PANDOEDITOR_WASM_MODULE ?? fileURLToPath(new URL("../../shared/frontend/static/wasm/pandoeditor-core.js",import.meta.url)));
+const runtimePath = resolve(process.env.PANDOEDITOR_WASM_MODULE ?? fileURLToPath(new URL("../../assets/wasm/pandoeditor-core.js",import.meta.url)));
 const [jsBytes, wasmBytes, seedBytes] = await Promise.all([
   readFile(runtimePath), readFile(runtimePath.replace(/\.js$/, '.wasm')),
   readFile(new URL('../fixtures/portability/web-document-seed.json', import.meta.url)),

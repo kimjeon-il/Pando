@@ -1,10 +1,10 @@
 import { describe as contractSuite } from 'node:test';
 import * as __hydro_dep0 from "node:test";
 import * as __hydro_dep1 from "node:assert/strict";
-import * as __hydro_dep2 from "../../shared/frontend/js/modules/gpu-hydro-coverage.js";
+import * as __hydro_dep2 from "../../src/rendering/gpu-hydro-coverage.js";
 import * as __hydro_dep3 from "node:fs";
-import * as __hydro_dep4 from "../../shared/frontend/js/modules/hydro-tile-window.js";
-import * as __hydro_dep5 from "../../shared/frontend/js/modules/physical-resources.js";
+import * as __hydro_dep4 from "../../src/data/hydro-tile-window.js";
+import * as __hydro_dep5 from "../../src/data/physical-resources.js";
 contractSuite("hydro-coverage-surface", () => {
 const test = __hydro_dep0.default;
 const assert = __hydro_dep1.default;
@@ -267,7 +267,7 @@ test('quantized globe windows conservatively retain every legacy visible tile', 
 });
 
 test('gpu hydro request cache no longer includes raw view revision', () => {
-  const source = fs.readFileSync(new URL("../../shared/frontend/js/modules/gpu-hydro-preparation.js", import.meta.url), 'utf8');
+  const source = fs.readFileSync(new URL("../../src/rendering/gpu-hydro-preparation.js", import.meta.url), 'utf8');
   const start = source.indexOf('function requestHydroView');
   const end = source.indexOf('function loadHydroLogicalFeature', start);
   const requestSource = source.slice(start, end);

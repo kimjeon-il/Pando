@@ -3,7 +3,7 @@ import * as __project_dep0 from "node:assert/strict";
 import * as __project_dep1 from "node:test";
 import * as __project_dep2 from "node:fs/promises";
 import * as __project_dep3 from "../helpers/core-project.mjs";
-import * as __project_dep4 from "../../shared/frontend/js/modules/project-domain.js";
+import * as __project_dep4 from "../../src/document/project-domain.js";
 import * as __project_dep5 from "../helpers/core-command-services/save-state-controller.mjs";
 import * as __project_dep6 from "node:fs";
 contractSuite("core-project-file-save-wasm", () => {

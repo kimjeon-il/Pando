@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import '../../shared/frontend/js/vendor/polygon-clipping.min.js';
+import "../../assets/js-vendor/polygon-clipping.min.js";
 import {adjustGeometry,splitVersion} from '../../tools/gis/caspian-territory-delta.mjs';
 const pc=globalThis.polygonClipping;
 const box=(x,y,X,Y)=>({type:'Polygon',coordinates:[[[x,y],[X,y],[X,Y],[x,Y],[x,y]]]});

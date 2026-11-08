@@ -2,9 +2,9 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import test from 'node:test';
 import {createNodeCoreProject} from '../helpers/core-project.mjs';
-import {createPlaceRuntime} from "../../shared/frontend/js/modules/place-runtime.js";
-import {normalizePlace} from "../../shared/frontend/js/modules/place-contract.js";
-import {createPhysicalResources} from "../../shared/frontend/js/modules/physical-resources.js";
+import {createPlaceRuntime} from "../../src/document/place-runtime.js";
+import {normalizePlace} from "../../src/document/place-contract.js";
+import {createPhysicalResources} from "../../src/data/physical-resources.js";
 
 test('actual C++ catalogs keep independent live place and hydro identities across source admission',async t=>{
   const seed=JSON.parse(readFileSync(new URL('../fixtures/portability/web-document-seed.json',import.meta.url),'utf8'));

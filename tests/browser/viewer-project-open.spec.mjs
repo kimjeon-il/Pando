@@ -1,8 +1,8 @@
 import { test as featureTest } from '@playwright/test';
 import * as __suiteDependency0 from "@playwright/test";
 import * as __suiteDependency1 from "../fixtures/viewer-project-package.mjs";
-import * as __suiteDependency2 from "../../shared/frontend/js/modules/initial-document.js";
-import * as __suiteDependency3 from "../../shared/frontend/js/modules/distribution-model.js";
+import * as __suiteDependency2 from "../../src/document/initial-document.js";
+import * as __suiteDependency3 from "../../src/document/distribution-model.js";
 import * as __suiteDependency4 from "./helpers/viewing-display.mjs";
 import * as __suiteDependency5 from "./helpers/viewing-display.mjs";
 import * as __suiteDependency6 from "@playwright/test";

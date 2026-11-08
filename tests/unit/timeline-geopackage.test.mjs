@@ -4,12 +4,12 @@ import * as __gpkg_dep1 from "../helpers/production-geopackage.mjs";
 import * as __gpkg_dep2 from "../fixtures/timeline-storage-cases.mjs";
 import * as __gpkg_dep3 from "node:assert/strict";
 import * as __gpkg_dep4 from "../../tools/gis/project-template-compiler.js";
-import * as __gpkg_dep5 from "../../shared/frontend/js/modules/project-state.js";
+import * as __gpkg_dep5 from "../../src/document/project-state.js";
 import * as __gpkg_dep6 from "../helpers/timeline-project.mjs";
-import * as __gpkg_dep7 from "../../shared/frontend/js/modules/territorial-units.js";
+import * as __gpkg_dep7 from "../../src/document/territorial-units.js";
 import * as __gpkg_dep8 from "node:fs/promises";
-import * as __gpkg_dep9 from "../../shared/frontend/js/modules/timeline-storage.js";
-import * as __gpkg_dep10 from "../../shared/frontend/js/modules/generic-feature-normalization.js";
+import * as __gpkg_dep9 from "../../src/document/timeline-storage.js";
+import * as __gpkg_dep10 from "../../src/document/generic-feature-normalization.js";
 import * as __gpkg_dep11 from "node:fs";
 import * as __gpkg_dep12 from "../helpers/core-project.mjs";
 contractSuite("timeline-geopackage", () => {

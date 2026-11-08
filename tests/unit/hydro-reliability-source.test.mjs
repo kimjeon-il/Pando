@@ -4,9 +4,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { createGpuMapRenderer } from "../../shared/frontend/js/modules/gpu-map-renderer.js";
-import { mapVisualOrder } from "../../shared/frontend/js/modules/layer-presentation.js";
-import {createObjectSearchModel,visibleObjectSearchRows} from '../../shared/frontend/js/modules/object-search-model.js';
+import { createGpuMapRenderer } from "../../src/rendering/gpu-map-renderer.js";
+import { mapVisualOrder } from "../../src/ui/layer-presentation.js";
+import {createObjectSearchModel,visibleObjectSearchRows} from "../../src/document/object-search-model.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -148,14 +148,14 @@ test('duplicate immutable fragment packs retain accepted Canvas aggregation unti
 });
 
 test('hydro worker reports typed init/view completion and failures', () => {
-  const source = read('shared/frontend/js/workers/hydro-tile-worker.js');
+  const source = read('src/rendering/workers/hydro-tile-worker.js');
   for (const token of ["type: 'ready'", "type: 'init-error'", "type: 'view-ready'", "type: 'view-error'"]) {
     assert.ok(source.includes(token), `missing ${token}`);
   }
 });
 
 test('hydro worker probes Range with GET and can abort background cache', () => {
-  const source = read('shared/frontend/js/workers/hydro-tile-worker.js');
+  const source = read('src/rendering/workers/hydro-tile-worker.js');
   assert.ok(source.includes("Range: 'bytes=0-0'"));
   assert.ok(!source.includes("method: 'HEAD'"));
   assert.ok(source.includes('new AbortController()'));
@@ -164,12 +164,12 @@ test('hydro worker probes Range with GET and can abort background cache', () => 
 });
 
 test('hydro preparation separates requested and loaded views and treats cache failure as unavailable', () => {
-  const source = read('shared/frontend/js/modules/gpu-hydro-preparation.js');
+  const source = read('src/rendering/gpu-hydro-preparation.js');
   assert.ok(source.includes('hydroViewRequests.start(key, hydroRequestRevision + 1)'));
   assert.ok(source.includes('hydroViewRequests.ready(revision)'));
   assert.ok(source.includes('hydroViewRequests.fail(revision, message)'));
   assert.ok(source.includes("loadState.hydroCache = 'unavailable';"));
-  assert.ok(read('shared/frontend/js/modules/hydro-view-requests.js').includes('message.retryable !== false'));
+  assert.ok(read('src/data/hydro-view-requests.js').includes('message.retryable !== false'));
   assert.ok(!source.includes("hydroViewKey = key"));
 });
 
@@ -184,8 +184,8 @@ test('rivers and lakes remain individually searchable in the current visible obj
 });
 
 test('active GPU and Canvas hydro renderers inherit ocean colour and configured opacity', () => {
-  const gpu = read('shared/frontend/js/modules/gpu-map-renderer.js');
-  const canvas = read('shared/frontend/js/workers/canvas-render-worker.js');
+  const gpu = read('src/rendering/gpu-map-renderer.js');
+  const canvas = read('src/rendering/workers/canvas-render-worker.js');
   const canvasHydro = functionSource(canvas,'renderHydroPass');
   assert.ok(gpu.includes('const color = [...rgb, hydroOpacity];'));
   assert.ok(!gpu.includes("(category === 'lake' ? 0.92 : 0.96)"));
@@ -195,9 +195,9 @@ test('active GPU and Canvas hydro renderers inherit ocean colour and configured 
 });
 
 test('completed hydro renders before canonical country boundaries in every native path', () => {
-  const gpu = read('shared/frontend/js/modules/gpu-map-renderer.js');
-  const worker = read('shared/frontend/js/workers/canvas-render-worker.js');
-  const webgl = read('shared/frontend/js/modules/gpu-base-scene-pass.js');
+  const gpu = read('src/rendering/gpu-map-renderer.js');
+  const worker = read('src/rendering/workers/canvas-render-worker.js');
+  const webgl = read('src/rendering/gpu-base-scene-pass.js');
   assert.ok(gpu.includes('const result = drawGpuBaseScene('));
   for (const backend of ['gpu', 'canvas']) {
     const order = mapVisualOrder('base', backend);

@@ -3,12 +3,12 @@ import * as __boundary_dep0 from "../helpers/gis-polygon-fixture.mjs";
 import "../helpers/spherical-core.mjs";
 import * as __boundary_dep1 from "node:assert/strict";
 import * as __boundary_dep2 from "node:test";
-import "../../shared/frontend/js/vendor/earcut.min.js";
-import "../../shared/frontend/js/workers/gpu-mesh-core.js";
-import * as __boundary_dep3 from "../../shared/frontend/js/modules/geographic-boundary.js";
-import * as __boundary_dep4 from "../../shared/frontend/js/modules/boundary-topology.js";
-import * as __boundary_dep5 from "../../shared/frontend/js/modules/country-shared-boundary-packet.js";
-import * as __boundary_dep6 from "../../shared/frontend/js/modules/territorial-highlight-boundary.js";
+import "../../assets/js-vendor/earcut.min.js";
+import "../../src/rendering/workers/gpu-mesh-core.js";
+import * as __boundary_dep3 from "../../src/geometry/geographic-boundary.js";
+import * as __boundary_dep4 from "../../src/geometry/boundary-topology.js";
+import * as __boundary_dep5 from "../../src/rendering/country-shared-boundary-packet.js";
+import * as __boundary_dep6 from "../../src/rendering/territorial-highlight-boundary.js";
 import * as __boundary_dep7 from "../../tools/gis/measure-border-detail.mjs";
 contractSuite("boundary-display-refinement", () => {
 const { rectanglePolygon } = __boundary_dep0;

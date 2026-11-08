@@ -65,7 +65,7 @@ test('shared boundary generator rejects missing archives', async t => {
 
 test('offline source and browser packet share compiled grouping, phase and seam rules', async () => {
   const {prepareCountrySharedBoundaryPacket}=await import(
-    "../../shared/frontend/js/modules/country-shared-boundary-packet.js");
+    "../../src/rendering/country-shared-boundary-packet.js");
   const sources=[
     {start:[179.8,30],end:[-179.8,30],ownerIds:['E','W']},
     {start:[0,0],end:[0,.25],ownerIds:['A','B']},

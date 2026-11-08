@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createGpuTerrainPreparation } from "../../shared/frontend/js/modules/gpu-terrain-preparation.js";
-import { createMapVisualFrame } from "../../shared/frontend/js/modules/map-visual-frame.js";
+import { createGpuTerrainPreparation } from "../../src/rendering/gpu-terrain-preparation.js";
+import { createMapVisualFrame } from "../../src/rendering/map-visual-frame.js";
 
 test('GPU and Canvas share one tile geometry, neighbours and viewport selection algorithm', () => {
   const core=globalThis.PandoLabTerrainTileSelection;

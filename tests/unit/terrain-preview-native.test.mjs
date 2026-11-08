@@ -12,7 +12,7 @@ const masks=JSON.parse(readFileSync('tests/fixtures/terrain-land-mask.json','utf
 const physicalMasks=JSON.parse(readFileSync('tests/fixtures/physical-land-mask-oracle.json','utf8'));
 test('frozen preview slopes, coasts and polar rows agree with Canvas DEM conversion',()=>{
   const context={self:{}};
-  vm.runInNewContext(readFileSync('shared/frontend/js/workers/canvas-terrain-dem-core.js','utf8'),context);
+  vm.runInNewContext(readFileSync('src/rendering/workers/canvas-terrain-dem-core.js','utf8'),context);
   const convert=context.self.PandoLabCanvasTerrainDem.convertTile;
   for(const row of cases.filter(item=>item.name.startsWith('latitude-'))){
     const tint=[];for(let i=0;i<row.tint.length;i+=3)tint.push(...row.tint.slice(i,i+3),255);

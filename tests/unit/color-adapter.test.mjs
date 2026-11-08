@@ -1,10 +1,10 @@
 import { describe as contractSuite } from 'node:test';
 import * as __dep0 from "node:assert/strict";
 import * as __dep1 from "node:test";
-import * as __dep2 from "../../shared/frontend/js/modules/color-adapter.js";
-import * as __dep3 from "../../shared/frontend/js/modules/territorial-label-flags.js";
-import * as __dep4 from "../../shared/frontend/js/modules/map-interaction-style.js";
-import * as __dep5 from "../../shared/frontend/js/modules/map-visual-frame.js";
+import * as __dep2 from "../../src/ui/color-adapter.js";
+import * as __dep3 from "../../src/rendering/territorial-label-flags.js";
+import * as __dep4 from "../../src/map/map-interaction-style.js";
+import * as __dep5 from "../../src/rendering/map-visual-frame.js";
 
 // Original feature contract: color-adapter.test.mjs
 contractSuite("color-adapter", () => {

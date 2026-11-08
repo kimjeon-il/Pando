@@ -1,8 +1,8 @@
 import { describe as contractSuite } from 'node:test';
 import * as __dep0 from "node:assert/strict";
 import * as __dep1 from "node:test";
-import * as __dep2 from "../../shared/frontend/js/modules/gpu-country-geometry-revisions.js";
-import * as __dep3 from "../../shared/frontend/js/modules/geometry-version-store.js";
+import * as __dep2 from "../../src/rendering/gpu-country-geometry-revisions.js";
+import * as __dep3 from "../../src/geometry/geometry-version-store.js";
 import * as __dep4 from "../../tools/gis/country-import-identity.js";
 contractSuite("country-geometry-revision", () => {
 const assert = __dep0.default;

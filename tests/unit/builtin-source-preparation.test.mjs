@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createBuiltinSession} from '../../shared/frontend/js/modules/builtin-session.js';
-import {createBuiltinProjectSetup} from '../../shared/frontend/js/modules/project-setup.js';
+import {createBuiltinSession} from "../../src/document/builtin-session.js";
+import {createBuiltinProjectSetup} from "../../src/document/project-setup.js";
 
 const setup=({loader=null,buildMeta={dataRevision:'fixture',builtinWorld:{sha256:'a'.repeat(64)}}}={})=>{
  const document={documentId:'active',projectSetup:{initialMonth:'2026-10'},territorialEntities:[{id:'active'}]};

@@ -1,9 +1,9 @@
 import '../helpers/spherical-core.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import "../../shared/frontend/js/vendor/polygon-clipping.min.js";
+import "../../assets/js-vendor/polygon-clipping.min.js";
 import { createCountryCommandCalculator } from "../../tools/gis/country-geometry-calculator.js";
-import { hasCanonicalPolygonWinding } from "../../shared/frontend/js/modules/map-edit-geometry.js";
+import { hasCanonicalPolygonWinding } from "../../src/geometry/map-edit-geometry.js";
 
 const pc = globalThis.polygonClipping;
 const api = createCountryCommandCalculator();

@@ -2,12 +2,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import '../helpers/spherical-core.mjs';
-import "../../shared/frontend/js/vendor/polygon-clipping.min.js";
-import "../../shared/frontend/js/modules/polygon-geometry.js";
-import { createMapDisplayPreparation } from "../../shared/frontend/js/modules/map-display-preparation.js";
-import { touchGeometry } from "../../shared/frontend/js/modules/geometry-versions.js";
+import "../../assets/js-vendor/polygon-clipping.min.js";
+import "../../src/geometry/polygon-geometry.js";
+import { createMapDisplayPreparation } from "../../src/rendering/map-display-preparation.js";
+import { touchGeometry } from "../../src/geometry/geometry-versions.js";
 import { createGeometrySnapshotPool } from "../helpers/legacy-project-autosave.mjs";
-import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
+import { createTerritorialFeature } from "../../src/document/territorial-units.js";
 
 const square = { type: 'Polygon', coordinates: [[[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]]] };
 

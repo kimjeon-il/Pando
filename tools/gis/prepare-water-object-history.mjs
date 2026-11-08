@@ -3,10 +3,10 @@ import path from 'node:path';
 import {createHash} from 'node:crypto';
 import {gzipSync,gunzipSync} from 'node:zlib';
 import {pathToFileURL} from 'node:url';
-import '../../shared/frontend/js/vendor/polygon-clipping.min.js';
+import "../../assets/js-vendor/polygon-clipping.min.js";
 import {normalizeTerritorialLibraryEntity} from './territorial-library.js';
 import {territorialIndexEntry} from './territorial-index-entry.js';
-import {sharedCalculationCore} from '../../shared/frontend/js/modules/temporal.js';
+import {sharedCalculationCore} from "../../src/document/temporal.js";
 import {withLibraryWrite} from '../library-data.mjs';
 
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');

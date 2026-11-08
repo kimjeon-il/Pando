@@ -3,28 +3,28 @@ import * as __dep0 from "node:assert/strict";
 import * as __dep1 from "node:test";
 import * as __dep2 from "../fixtures/viewer-project-package.mjs";
 import * as __dep3 from "../helpers/core-project.mjs";
-import * as __dep4 from "../../shared/frontend/js/modules/territorial-entity-repository.js";
-import * as __dep5 from "../../shared/frontend/js/modules/distribution-model.js";
-import * as __dep6 from "../../shared/frontend/js/modules/layer-presentation.js";
-import * as __dep7 from "../../shared/frontend/js/modules/map-theme.js";
-import * as __dep8 from "../../shared/frontend/js/modules/generic-feature-normalization.js";
-import * as __dep9 from "../../shared/frontend/js/modules/color-adapter.js";
-import * as __dep10 from "../../shared/frontend/js/modules/map-content-presentation.js";
-import * as __dep11 from "../../shared/frontend/js/modules/object-selection-controller.js";
+import * as __dep4 from "../../src/document/territorial-entity-repository.js";
+import * as __dep5 from "../../src/document/distribution-model.js";
+import * as __dep6 from "../../src/ui/layer-presentation.js";
+import * as __dep7 from "../../src/ui/map-theme.js";
+import * as __dep8 from "../../src/document/generic-feature-normalization.js";
+import * as __dep9 from "../../src/ui/color-adapter.js";
+import * as __dep10 from "../../src/ui/map-content-presentation.js";
+import * as __dep11 from "../../src/ui/object-selection-controller.js";
 import * as __dep12 from "node:worker_threads";
-import * as __dep13 from "../../shared/frontend/js/modules/map-display-client.js";
-import * as __dep14 from "../../shared/frontend/js/modules/worker-rpc.js";
-import * as __dep15 from "../../shared/frontend/js/modules/territorial-units.js";
-import * as __dep16 from "../../shared/frontend/js/modules/map-display-menu-state.js";
+import * as __dep13 from "../../src/ui/map-display-client.js";
+import * as __dep14 from "../../src/runtime/worker-rpc.js";
+import * as __dep15 from "../../src/document/territorial-units.js";
+import * as __dep16 from "../../src/ui/map-display-menu-state.js";
 import * as __dep17 from "../helpers/read-frontend-source.mjs";
 import * as __dep18 from "node:fs/promises";
-import * as __dep19 from "../../shared/frontend/js/modules/map-interaction-gate.js";
-import * as __dep20 from "../../shared/frontend/js/modules/map-host.js";
-import * as __dep21 from "../../shared/frontend/js/modules/map-render-coordinator.js";
-import * as __dep22 from "../../shared/frontend/js/modules/gpu-base-scene-pass.js";
-import * as __dep23 from "../../shared/frontend/js/modules/initial-document.js";
-import * as __dep24 from "../../shared/frontend/js/modules/core-document-read-model.js";
-import * as __dep25 from "../../shared/frontend/js/modules/geometry-version-store.js";
+import * as __dep19 from "../../src/map/map-interaction-gate.js";
+import * as __dep20 from "../../src/ui/map-host.js";
+import * as __dep21 from "../../src/rendering/map-render-coordinator.js";
+import * as __dep22 from "../../src/rendering/gpu-base-scene-pass.js";
+import * as __dep23 from "../../src/document/initial-document.js";
+import * as __dep24 from "../../src/document/core-document-read-model.js";
+import * as __dep25 from "../../src/geometry/geometry-version-store.js";
 import * as __dep26 from "node:vm";
 import * as __dep27 from "node:fs";
 import * as __dep28 from "../helpers/map-transition-baseline.mjs";
@@ -219,9 +219,9 @@ test('MapHost surface drag contract preserves the user input direction', () => {
 
 test('flat projection remains equirectangular and is not constrained by Mercator latitude', async () => {
   const app = readFrontendSources('map-projection','map-workspace-host');
-  const gpuRenderer = await readFile(new URL("../../shared/frontend/js/modules/gpu-map-renderer.js", import.meta.url), 'utf8');
-  const polygonPass = await readFile(new URL("../../shared/frontend/js/modules/gpu-polygon-overlay-pass.js", import.meta.url), 'utf8');
-  const strokeRenderer = await readFile(new URL("../../shared/frontend/js/modules/gpu-stroke-renderer.js", import.meta.url), 'utf8');
+  const gpuRenderer = await readFile(new URL("../../src/rendering/gpu-map-renderer.js", import.meta.url), 'utf8');
+  const polygonPass = await readFile(new URL("../../src/rendering/gpu-polygon-overlay-pass.js", import.meta.url), 'utf8');
+  const strokeRenderer = await readFile(new URL("../../src/rendering/gpu-stroke-renderer.js", import.meta.url), 'utf8');
   assert.match(app, /d3\.geo\.equirectangular\(\)/);
   assert.doesNotMatch(app, /clamp\([^\n]*-85,\s*85\)/);
   for (const source of [gpuRenderer, polygonPass, strokeRenderer]) {
@@ -411,7 +411,7 @@ test('instrumentation preserves Core temporal adoption statement and refuses uns
           worldSha256:prepared.worldSha256,replacementId:checkpoint.replacementId,
           expectedEpoch:prepared.expectedEpoch,
         });`;
-  const source = readFileSync(new URL('../../shared/frontend/js/modules/project-domain.js', import.meta.url), 'utf8');
+  const source = readFileSync(new URL("../../src/document/project-domain.js", import.meta.url), 'utf8');
   const output = instrumentMapBaselineSource(source, 'project-domain.js');
   assert.ok(output.includes(statement)); assert.ok(output.includes('candidate-adopt:start')); assert.ok(output.includes('candidate-adopt:end'));
   assert.throws(() => instrumentMapBaselineSource('', 'unknown.js'), /Unknown probe/);
@@ -433,7 +433,7 @@ test('Worker timing probe preserves return values and errors and measures only t
   assert.throws(() => invoke({core, method:'temporalSourcePrepare', args:[], projectResult: value => value}), /source failure/);
   assert.deepEqual(measures.map(row => row.name), ['pando-worker:temporalCandidatePrepare','pando-worker:temporalSourcePrepare']);
   assert.throws(() => instrumentTemporalWorkerSource(''), /exactly one/);
-  const runtime = readFileSync(new URL('../../shared/frontend/js/modules/core-document-runtime.js', import.meta.url), 'utf8');
+  const runtime = readFileSync(new URL("../../src/document/core-document-runtime.js", import.meta.url), 'utf8');
   assert.match(instrumentTemporalWorkerSource(runtime), /pando-worker:/);
 });
 
@@ -452,9 +452,9 @@ test('diagnostic observation distinguishes a real null, thrown error and data', 
 
 test('temporal probes instrument the active production sources on LF and CRLF checkouts',()=>{
  for(const [name,path] of [
-  ['viewer-composition.js','apps/viewer/js/modules/viewer-composition.js'],
-  ['builtin-session.js','shared/frontend/js/modules/builtin-session.js'],
-  ['project-domain.js','shared/frontend/js/modules/project-domain.js'],
+  ['viewer-composition.js','src/app/viewer-composition.js'],
+  ['builtin-session.js','src/document/builtin-session.js'],
+  ['project-domain.js','src/document/project-domain.js'],
  ]){
   const source=readFileSync(new URL('../../'+path,import.meta.url),'utf8').replaceAll('\r\n','\n');
   const instrumented=instrumentMapBaselineSource(source,name);

@@ -3,7 +3,7 @@ import * as __country_dep0 from "node:test";
 import * as __country_dep1 from "node:assert/strict";
 import * as __country_dep2 from "../../tools/builtin-world-compiler.mjs";
 import * as __country_dep3 from "../../tools/territorial-current-world.mjs";
-import * as __country_dep4 from "../../shared/frontend/js/modules/temporal.js";
+import * as __country_dep4 from "../../src/document/temporal.js";
 import * as __country_dep5 from "node:crypto";
 import * as __country_dep6 from "../../tools/territorial-entity-sources.mjs";
 import * as __country_dep7 from "../../tools/gis/apply-post-2000-territorial-links.mjs";

@@ -10,7 +10,7 @@ import {
   revisionIndexDiff,verificationSummary,
 } from '../../tools/review/e3-revision-diff.mjs';
 import {generateE3RevisionEvidence} from '../../tools/review/generate-e3-review.mjs';
-import {normalizeReviewBundle,reviewState} from '../../shared/frontend/js/modules/review-change-records.js';
+import {normalizeReviewBundle,reviewState} from "../../src/document/review-change-records.js";
 
 const A='a'.repeat(40),B='b'.repeat(40),D='d'.repeat(40);
 const hash=value=>createHash('sha256').update(value).digest('hex');

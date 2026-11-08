@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { selectLateSovietCheckPartition } from '../../scripts/lib/late-soviet-check.mjs';
 import { selectGeometryVersion, territorialEntityExistsAt } from '../../tools/gis/territorial-library.js';
-import { validateGeometry } from '../../shared/frontend/js/modules/geometry-validation.js';
+import { validateGeometry } from "../../src/geometry/geometry-validation.js";
 
 function version(versionId, validFrom, validTo) {
   return { versionId, validFrom, validTo, geometry: {

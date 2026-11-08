@@ -3,7 +3,7 @@ import * as __country_dep0 from "node:test";
 import * as __country_dep1 from "node:assert/strict";
 import * as __country_dep2 from "node:crypto";
 import * as __country_dep3 from "node:zlib";
-import * as __country_dep4 from "../../shared/frontend/js/modules/builtin-world-loader.js";
+import * as __country_dep4 from "../../src/data/builtin-world-loader.js";
 import * as __country_dep5 from "../../tools/build-builtin-world.mjs";
 import * as __country_dep6 from "../fixtures/historical-world-cases.mjs";
 import * as __country_dep7 from "../helpers/builtin-world.mjs";

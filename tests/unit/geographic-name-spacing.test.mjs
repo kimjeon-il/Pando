@@ -4,9 +4,9 @@ import fs from 'node:fs';
 import test from 'node:test';
 import { gunzipSync } from 'node:zlib';
 
-import { normalizeCountryFeature } from "../../shared/frontend/js/modules/country-feature.js";
+import { normalizeCountryFeature } from "../../src/document/country-feature.js";
 import {readTerritorialSources} from '../../tools/territorial-entity-sources.mjs';
-import { createCanonicalCountryStore } from "../../shared/frontend/js/modules/canonical-country-packet.js";
+import { createCanonicalCountryStore } from "../../src/rendering/canonical-country-packet.js";
 
 const data = new URL('../../assets/data/', import.meta.url);
 const canonical = JSON.parse(fs.readFileSync(new URL('countries-ne-5.1.1.geojson', data)));

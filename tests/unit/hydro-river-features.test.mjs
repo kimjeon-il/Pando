@@ -1,4 +1,4 @@
-import "../../shared/frontend/js/vendor/polygon-clipping.min.js";
+import "../../assets/js-vendor/polygon-clipping.min.js";
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {buildHydroRiverFeatures} from '../../tools/gis/hydro-river-features.mjs';
@@ -7,8 +7,8 @@ import {copyFile, mkdtemp, mkdir, rm, writeFile, readFile} from 'node:fs/promise
 import {tmpdir} from 'node:os';
 import {join, resolve} from 'node:path';
 import {prepareHydroRiverSources} from '../../tools/gis/hydro-calibration-input.mjs';
-import {createPhysicalWaterPresentation} from '../../shared/frontend/js/modules/physical-resources.js';
-import {createGeometryVersionStore} from '../../shared/frontend/js/modules/geometry-version-store.js';
+import {createPhysicalWaterPresentation} from "../../src/data/physical-resources.js";
+import {createGeometryVersionStore} from "../../src/geometry/geometry-version-store.js";
 import {createHash} from 'node:crypto';
 import {prepareHydroRegion} from '../../tools/gis/hydro-region-pipeline.mjs';
 import {withHydroSourceSelection} from '../../tools/gis/hydro-connectivity-native.mjs';

@@ -2,7 +2,7 @@ import { readPortabilityProjectSeed } from '../helpers/portability-project-seed.
 import assert from 'node:assert/strict';
 import { Buffer } from 'node:buffer';
 import test from 'node:test';
-import { createCoreDocumentReadModel } from "../../shared/frontend/js/modules/core-document-read-model.js";
+import { createCoreDocumentReadModel } from "../../src/document/core-document-read-model.js";
 
 const seed = () => readPortabilityProjectSeed();
 const expectedSnapshot = project => {

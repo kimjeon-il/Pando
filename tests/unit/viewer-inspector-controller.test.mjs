@@ -1,10 +1,11 @@
 import { describe as contractSuite } from 'node:test';
 import * as __contract_dep0 from "node:assert/strict";
 import * as __contract_dep1 from "node:test";
-import * as __contract_dep2 from "../../apps/viewer/js/modules/viewer-inspector-controller.js";
-import * as __contract_dep3 from "../../apps/viewer/js/modules/viewer-review-panel.js";
-import * as __contract_dep6 from "../../apps/viewer/js/modules/viewer-inspector-state.js";
+import * as __contract_dep2 from "../../src/ui/inspector/viewer-inspector-controller.js";
+import * as __contract_dep3 from "../../src/ui/inspector/viewer-review-panel.js";
+import * as __contract_dep6 from "../../src/ui/inspector/viewer-inspector-state.js";
 import * as __contract_dep7 from "node:fs";
+contractSuite('viewer-inspector-controller',async()=>{
 const assert = __contract_dep0.default;
 const test = __contract_dep1.default;
 const { createViewerInspectorController } = __contract_dep2;
@@ -203,7 +204,7 @@ test('viewer diagnostics are bounded and preserve actual renderer pending states
   assert.equal(evidence.map.frameAcknowledged,false);
   assert.equal(evidence.map.countryCount,253);
   assert.equal(evidence.data.documentEntities,2);
-  assert.doesNotMatch(readFileSync(new URL('../../apps/viewer/js/modules/viewer-inspector-state.js',import.meta.url),'utf8'),/\.territorialEntities/);
+  assert.doesNotMatch(readFileSync(new URL('../../src/ui/inspector/viewer-inspector-state.js',import.meta.url),'utf8'),/\.territorialEntities/);
   assert.equal(evidence.data.readOnly,true);
   assert.match(evidence.data.topologyValidation,/미실행/);
   assert.equal(evidence.performance.available,false);
@@ -233,4 +234,5 @@ test('inspection does not copy entire documents, sensitive stacks or unbounded e
   assert.equal(info.performance.domInteractiveMs,421);
   assert.equal(info.performance.memorySamples,2);
   assert.doesNotMatch(JSON.stringify(info),/SECRET_STACK|SECRET_TOKEN|NEVER_EXPORT|SECRET_DOCUMENT/);
+});
 });

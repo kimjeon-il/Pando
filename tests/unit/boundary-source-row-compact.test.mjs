@@ -2,9 +2,9 @@ import { describe as contractSuite } from 'node:test';
 import "../helpers/spherical-core.mjs";
 import * as __boundary_dep0 from "node:test";
 import * as __boundary_dep1 from "node:assert/strict";
-import * as __boundary_dep2 from "../../shared/frontend/js/modules/boundary-topology.js";
-import * as __boundary_dep3 from "../../shared/frontend/js/modules/country-contact-core.js";
-import * as __boundary_dep4 from "../../shared/frontend/js/modules/boundary-spatial-index.js";
+import * as __boundary_dep2 from "../../src/geometry/boundary-topology.js";
+import * as __boundary_dep3 from "../../src/geometry/country-contact-core.js";
+import * as __boundary_dep4 from "../../src/geometry/boundary-spatial-index.js";
 contractSuite("boundary-source-row-compact", () => {
 const test = __boundary_dep0.default;
 const assert = __boundary_dep1.default;

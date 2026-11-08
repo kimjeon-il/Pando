@@ -75,7 +75,7 @@ test('storage HEAD and a stale publication channel cannot replace the committed 
 
 test('required Worker cannot publish with a missing WASM pair member', async t => {
   const {root,stage,manifest}=await fixture(t);
-  assert.equal(run('git',['rm','-q','shared/frontend/static/wasm/pandoeditor-core.wasm'],root).status,0);
+  assert.equal(run('git',['rm','-q','assets/wasm/pandoeditor-core.wasm'],root).status,0);
   assert.equal(run('git',['commit','-q','-m','broken core assets'],root).status,0);
   const result=run(process.execPath,[script,'--root',root,'--stage',stage,'--manifest',manifest],root);
   assert.notEqual(result.status,0);
@@ -95,7 +95,7 @@ test('rejects a modified Web file before creating a site', async t => {
 test('stages committed LF bytes from an equivalent Windows CRLF checkout', async t => {
   const { root, stage, manifest } = await fixture(t);
   put(root, 'assets/fonts/crlf.txt', 'one\ntwo\n');
-  assert.equal(run('git', ['add', 'shared/frontend/static/fonts/crlf.txt'], root).status, 0);
+  assert.equal(run('git', ['add', 'assets/fonts/crlf.txt'], root).status, 0);
   assert.equal(run('git', ['commit', '-q', '-m', 'text'], root).status, 0);
   put(root, 'assets/fonts/crlf.txt', 'one\r\ntwo\r\n');
   const result = run(process.execPath, [script, '--root', root, '--stage', stage, '--manifest', manifest], root);
@@ -106,7 +106,7 @@ test('stages committed LF bytes from an equivalent Windows CRLF checkout', async
 test('stages committed bytes when checkout line endings are mixed', async t => {
   const { root, stage, manifest } = await fixture(t);
   put(root, 'assets/fonts/crlf.txt', 'one\ntwo\nthree\n');
-  assert.equal(run('git', ['add', 'shared/frontend/static/fonts/crlf.txt'], root).status, 0);
+  assert.equal(run('git', ['add', 'assets/fonts/crlf.txt'], root).status, 0);
   assert.equal(run('git', ['commit', '-q', '-m', 'text'], root).status, 0);
   put(root, 'assets/fonts/crlf.txt', 'one\r\ntwo\nthree\r\n');
   const result = run(process.execPath, [script, '--root', root, '--stage', stage, '--manifest', manifest], root);

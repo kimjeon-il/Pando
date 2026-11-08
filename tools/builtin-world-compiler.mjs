@@ -1,13 +1,13 @@
 import { createHash } from 'node:crypto';
-import { normalizeTemporalInterval, parseTemporal } from "../shared/frontend/js/modules/temporal.js";
-import { normalizeCountryCollection } from "../shared/frontend/js/modules/country-feature.js";
-import { classifyBuiltinCountries, builtinSubunitSourceId } from "../shared/frontend/js/modules/builtin-subunits.js";
+import { normalizeTemporalInterval, parseTemporal } from "../src/document/temporal.js";
+import { normalizeCountryCollection } from "../src/document/country-feature.js";
+import { classifyBuiltinCountries, builtinSubunitSourceId } from "../src/document/builtin-subunits.js";
 import {loadBuiltinDisplayPolicy} from "./gis/builtin-display-policy.mjs";
-import { createTerritorialFeature, normalizeTerritorialIdentities, TERRITORIAL_IDENTITY_FIELDS } from "../shared/frontend/js/modules/territorial-units.js";
-import { createGeometryVersionStore } from "../shared/frontend/js/modules/geometry-version-store.js";
-import { normalizeTimelineRecords } from "../shared/frontend/js/modules/timeline-records.js";
+import { createTerritorialFeature, normalizeTerritorialIdentities, TERRITORIAL_IDENTITY_FIELDS } from "../src/document/territorial-units.js";
+import { createGeometryVersionStore } from "../src/geometry/geometry-version-store.js";
+import { normalizeTimelineRecords } from "../src/document/timeline-records.js";
 import { createProjectTemplateCompiler } from "./gis/project-template-compiler.js";
-import { DISTRIBUTION_MODES } from "../shared/frontend/js/modules/distribution-model.js";
+import { DISTRIBUTION_MODES } from "../src/document/distribution-model.js";
 import {territorialNameData} from './gis/territorial-library.js';
 import { adjustHistoricalTerritories, historicalWorldClipper,createHistoricalTerritoryCache } from './historical-world-territories.mjs';
 

@@ -6,7 +6,7 @@ import {fileURLToPath} from 'node:url';
 import {
   collectRevisionDiff, createPendingRevisionReview, verificationSummary,
 } from './e3-revision-diff.mjs';
-import {normalizeReviewBundle, reviewState} from '../../shared/frontend/js/modules/review-change-records.js';
+import {normalizeReviewBundle, reviewState} from "../../src/document/review-change-records.js";
 
 const SHA=/^[a-f0-9]{40}$/;
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');

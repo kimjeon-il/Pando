@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createBuiltinSession} from '../../shared/frontend/js/modules/builtin-session.js';
+import {createBuiltinSession} from "../../src/document/builtin-session.js";
 
 function fixture(){
   let generation=1,reads=0,admissions=0;

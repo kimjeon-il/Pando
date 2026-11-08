@@ -4,7 +4,7 @@ import {createHash,randomBytes} from 'node:crypto';
 import {gzipSync} from 'node:zlib';
 import {existsSync} from 'node:fs';
 import {finalizeBuiltinWorldFiles} from '../../tools/build-builtin-world.mjs';
-import {createBuiltinWorldLoader} from '../../shared/frontend/js/modules/builtin-world-loader.js';
+import {createBuiltinWorldLoader} from "../../src/data/builtin-world-loader.js";
 const LIMIT=512*1024;
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 function fixture(){

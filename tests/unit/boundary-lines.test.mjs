@@ -1,10 +1,10 @@
 import "../helpers/spherical-core.mjs";
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {connectBoundarySegments} from '../../shared/frontend/js/modules/boundary-lines.js';
-import {buildBoundaryTopologyFromSegments, serializeCountrySharedBoundarySegments, buildCountrySharedBoundarySegments} from '../../shared/frontend/js/modules/boundary-topology.js';
-import {createCountrySharedBoundaryState, prepareCountrySharedBoundaryPacket} from '../../shared/frontend/js/modules/country-shared-boundary-packet.js';
-import {geometryRevisionKey} from '../../shared/frontend/js/modules/geometry-versions.js';
+import {connectBoundarySegments} from "../../src/geometry/boundary-lines.js";
+import {buildBoundaryTopologyFromSegments, serializeCountrySharedBoundarySegments, buildCountrySharedBoundarySegments} from "../../src/geometry/boundary-topology.js";
+import {createCountrySharedBoundaryState, prepareCountrySharedBoundaryPacket} from "../../src/rendering/country-shared-boundary-packet.js";
+import {geometryRevisionKey} from "../../src/geometry/geometry-versions.js";
 
 test('short reversed segments form a continuous line for dash spacing', () => {
   const lines = connectBoundarySegments([[[0, 0], [1, 0]], [[2, 0], [1, 0]], [[2, 0], [3, 0]]]);

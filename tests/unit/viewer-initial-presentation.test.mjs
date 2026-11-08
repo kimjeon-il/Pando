@@ -2,16 +2,16 @@ import { nextEventTurn } from '../helpers/async-test-ports.mjs';
 import { describe as contractSuite } from 'node:test';
 import * as __merge_dep0 from "node:test";
 import * as __merge_dep1 from "node:assert/strict";
-import * as __merge_dep2 from "../../apps/viewer/js/modules/viewer-initial-presentation.js";
-import * as __merge_dep3 from "../../apps/viewer/js/modules/viewer-post-presentation.js";
+import * as __merge_dep2 from "../../src/app/viewer-initial-presentation.js";
+import * as __merge_dep3 from "../../src/app/viewer-post-presentation.js";
 import * as __merge_dep4 from "node:fs";
-import * as __merge_dep5 from "../../apps/viewer/js/modules/viewer-load-status.js";
-import * as __merge_dep6 from "../../shared/frontend/js/modules/product-mode-policy.js";
-import * as __merge_dep7 from "../../shared/frontend/js/modules/project-session.js";
-import * as __merge_dep8 from "../../shared/frontend/js/modules/map-state-transition.js";
-import * as __merge_dep9 from "../../shared/frontend/js/modules/camera-navigation.js";
-import * as __merge_dep10 from "../../shared/frontend/js/modules/map-layout-metrics.js";
-import * as __merge_dep11 from "../../shared/frontend/js/modules/project-setup.js";
+import * as __merge_dep5 from "../../src/app/viewer-load-status.js";
+import * as __merge_dep6 from "../../src/app/product-mode-policy.js";
+import * as __merge_dep7 from "../../src/document/project-session.js";
+import * as __merge_dep8 from "../../src/app/map-state-transition.js";
+import * as __merge_dep9 from "../../src/map/camera-navigation.js";
+import * as __merge_dep10 from "../../src/map/map-layout-metrics.js";
+import * as __merge_dep11 from "../../src/document/project-setup.js";
 contractSuite("viewer-initial-presentation", () => {
 const { describe : contractSuite } = __merge_dep0;
 const __dep0 = __merge_dep0;
@@ -282,7 +282,7 @@ const { presentViewerLoadStatus } = __dep5;
 const read = path => readFileSync(new URL('../../' + path, import.meta.url), 'utf8');
 
 test('viewer status stays accessible without covering the displayed map', () => {
-  const html = read('apps/viewer/templates/index.html');
+  const html = read('src/app/index.html');
   const region = html.match(/<span\b[^>]*\bid="viewerStatus"[^>]*>/)?.[0];
   assert.ok(region, 'Viewer must expose an accessible status region');
   for (const [attribute, value] of [['class', 'ui-visually-hidden'], ['role', 'status'],

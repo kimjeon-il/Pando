@@ -1,12 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { normalizeTemporalInterval } from '../../shared/frontend/js/modules/temporal.js';
+import { normalizeTemporalInterval } from "../../src/document/temporal.js";
 import {
   REVIEW_BUNDLE_SCHEMA_VERSION, REVIEW_DATA_REPOSITORY,
   createReviewBundle, normalizeReviewBundle, appendReviewEvent, reviewState,
   serializeReviewBundle, indexReviewHistory,
-} from '../../shared/frontend/js/modules/review-change-records.js';
+} from "../../src/document/review-change-records.js";
 
 const fixture = () => JSON.parse(readFileSync(new URL('../fixtures/review/e2-synthetic-review.json', import.meta.url), 'utf8'));
 const validation = (overrides = {}) => ({

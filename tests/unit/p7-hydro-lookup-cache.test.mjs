@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createProjectSession} from '../../shared/frontend/js/modules/project-session.js';
-import {createHydroSettings} from '../../shared/frontend/js/modules/physical-settings.js';
+import {createProjectSession} from "../../src/document/project-session.js";
+import {createHydroSettings} from "../../src/ui/physical-settings.js";
 
 function acceptedRows() {
   let accessCount=0;

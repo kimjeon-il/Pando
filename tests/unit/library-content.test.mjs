@@ -7,7 +7,7 @@ import * as __dep4 from "node:path";
 import * as __dep5 from "../../tools/library-content.mjs";
 import * as __dep6 from "../../tools/library-history.mjs";
 import * as __dep7 from "../../tools/load-node-core.mjs";
-import * as __dep8 from "../../shared/frontend/js/modules/territorial-units.js";
+import * as __dep8 from "../../src/document/territorial-units.js";
 import * as __dep9 from "../helpers/core-startup.mjs";
 import * as __dep10 from "../../tools/library-data.mjs";
 

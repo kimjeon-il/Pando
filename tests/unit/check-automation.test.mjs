@@ -134,14 +134,14 @@ function fixture() {
   const put = (path, source = '') => { mkdirSync(dirname(join(root, path)), { recursive: true }); writeFileSync(join(root, path), source); };
   const catalog = { schema: 'pando-application-checks-v1', groups: [
     { id: 'units', kind: 'unit', testPatterns: ['tests/unit/*.test.mjs'], inputs: [] },
-    { id: 'terrain', kind: 'browser', testPatterns: ['tests/browser/terrain-*.spec.mjs'], inputs: ['shared/frontend/js/modules/terrain.js'], requires: ['generated'] },
+    { id: 'terrain', kind: 'browser', testPatterns: ['tests/browser/terrain-*.spec.mjs'], inputs: ['src/runtime/terrain.js'], requires: ['generated'] },
     { id: 'manual', kind: 'browser', mode: 'manual', reason: 'Controlled measurement', testPatterns: ['tests/browser/measure.spec.mjs'], inputs: [] },
-  ], prerequisites: { generated: { argv: ['node', 'scripts/generate.mjs'] } }, productRoots: ['shared/frontend/**', 'apps/**', 'scripts/**'] };
-  put('shared/frontend/js/modules/terrain.js', "export { value } from './leaf.js';");
-  put('shared/frontend/js/modules/leaf.js', 'export const value = 1;');
-  put('shared/frontend/js/modules/other.js', 'export const unrelated = 2;');
-  put('tests/unit/terrain.test.mjs', "import '../../shared/frontend/js/modules/terrain.js';");
-  put('tests/unit/other.test.mjs', "import '../../shared/frontend/js/modules/other.js';");
+  ], prerequisites: { generated: { argv: ['node', 'scripts/generate.mjs'] } }, productRoots: ['src/**', 'apps/**', 'scripts/**'] };
+  put('src/runtime/terrain.js', "export { value } from './leaf.js';");
+  put('src/runtime/leaf.js', 'export const value = 1;');
+  put('src/runtime/other.js', 'export const unrelated = 2;');
+  put('tests/unit/terrain.test.mjs', "import '../../src/runtime/terrain.js';");
+  put('tests/unit/other.test.mjs', "import '../../src/runtime/other.js';");
   put('tests/browser/terrain-time.spec.mjs'); put('tests/browser/measure.spec.mjs');
   put('scripts/generate.mjs');
   return { root, put, catalog, repository: () => loadRepository(root, { catalog }) };
@@ -258,7 +258,7 @@ test('Architecture aggregate rejects missing failed or cancelled work and accept
 
 test('transitive source changes choose related units and declared HTTP browser consumers', () => {
   const f = fixture();
-  const plan = planApplicationChecks({ changedFiles: ['shared/frontend/js/modules/leaf.js'], repository: f.repository() });
+  const plan = planApplicationChecks({ changedFiles: ['src/runtime/leaf.js'], repository: f.repository() });
   assert.deepEqual(plan.unitTests, ['tests/unit/terrain.test.mjs']);
   assert.deepEqual(plan.browserSpecs, ['tests/browser/terrain-time.spec.mjs']);
   assert.deepEqual(plan.prerequisites, ['generated']);
@@ -268,14 +268,14 @@ test('transitive source changes choose related units and declared HTTP browser c
 
 test('current Viewer startup imports share the canonical frontend owner', t => {
   const f=fixture();t.after(()=>rmSync(f.root,{recursive:true,force:true}));
-  f.put('apps/viewer/js/viewer.js',"import '../../../shared/frontend/js/modules/runtime-context.js';");
-  f.put('shared/frontend/js/modules/runtime-context.js',"import './platform-ports.js';");
-  f.put('shared/frontend/js/modules/platform-ports.js','export const ports=true;');
+  f.put('src/app/viewer.js',"import '../runtime/runtime-context.js';");
+  f.put('src/runtime/runtime-context.js',"import './platform-ports.js';");
+  f.put('src/runtime/platform-ports.js','export const ports=true;');
   const repo=f.repository();
-  assert.deepEqual(repo.dependencies('apps/viewer/js/viewer.js'),
-    ['shared/frontend/js/modules/runtime-context.js']);
-  assert.deepEqual(repo.dependencies('shared/frontend/js/modules/runtime-context.js'),
-    ['shared/frontend/js/modules/platform-ports.js']);
+  assert.deepEqual(repo.dependencies('src/app/viewer.js'),
+    ['src/runtime/runtime-context.js']);
+  assert.deepEqual(repo.dependencies('src/runtime/runtime-context.js'),
+    ['src/runtime/platform-ports.js']);
 });
 
 test('module URL reads retain root configuration and workflow consumers', () => {
@@ -340,21 +340,21 @@ test('docs-only changes skip runtime work and unknown product code fails registr
   const f = fixture(); const repo = f.repository();
   const docs = planApplicationChecks({ changedFiles: ['reports/a.md'], repository: repo });
   assert.deepEqual(docs.unitTests, []); assert.deepEqual(docs.browserSpecs, []);
-  f.put('shared/frontend/js/modules/unlinked.js', 'export const orphan = 1;');
-  assert.throws(() => planApplicationChecks({ changedFiles: ['shared/frontend/js/modules/unlinked.js'], repository: f.repository() }), /unclassified.*unlinked/i);
+  f.put('src/runtime/unlinked.js', 'export const orphan = 1;');
+  assert.throws(() => planApplicationChecks({ changedFiles: ['src/runtime/unlinked.js'], repository: f.repository() }), /unclassified.*unlinked/i);
 });
 
 test('an unknown computed executable import fails with its owner and does not invent a dependency', () => {
-  const f = fixture(); f.put('shared/frontend/js/modules/terrain.js', 'export const load = path => import(path);');
-  assert.throws(() => planApplicationChecks({ changedFiles: ['shared/frontend/js/modules/terrain.js'], repository: f.repository() }), /dynamic.*terrain.js/i);
+  const f = fixture(); f.put('src/runtime/terrain.js', 'export const load = path => import(path);');
+  assert.throws(() => planApplicationChecks({ changedFiles: ['src/runtime/terrain.js'], repository: f.repository() }), /dynamic.*terrain.js/i);
 });
 
 test('classic mixed arguments cannot hide a computed script behind a literal script', () => {
   const f = fixture();
-  f.catalog.groups[1].inputs.push('shared/frontend/js/workers/canvas-render-worker.js');
-  f.put('shared/frontend/js/workers/canvas-render-worker.js', "importScripts('./known.js', event.data.module);");
-  f.put('shared/frontend/js/workers/known.js', 'self.known = true;');
-  assert.throws(() => planApplicationChecks({ changedFiles: ['shared/frontend/js/workers/canvas-render-worker.js'], repository: f.repository() }), /dynamic.*canvas-render-worker/i);
+  f.catalog.groups[1].inputs.push('src/rendering/workers/canvas-render-worker.js');
+  f.put('src/rendering/workers/canvas-render-worker.js', "importScripts('./known.js', event.data.module);");
+  f.put('src/runtime/workers/known.js', 'self.known = true;');
+  assert.throws(() => planApplicationChecks({ changedFiles: ['src/rendering/workers/canvas-render-worker.js'], repository: f.repository() }), /dynamic.*canvas-render-worker/i);
 });
 
 test('fixed fixture directories are data leaves and their child changes retain test consumers', () => {
@@ -389,7 +389,7 @@ test('computing a script base URL does not make every sibling script a consumed 
   assert.deepEqual(f.repository().dependencies('scripts/check.mjs'), []);
 });
 test('classic generated metadata resolves to its source owner without a root output file',()=>{
- const f=fixture(),worker='shared/frontend/js/workers/generated-meta-worker.js',owner='scripts/lib/frontend-build.mjs';
+ const f=fixture(),worker='src/runtime/workers/generated-meta-worker.js',owner='scripts/lib/frontend-build.mjs';
  f.put(worker,"importScripts('../build-meta.js');");f.put(owner,'export const generated = true;');
  f.catalog.groups[1].inputs.push(worker);const repo=f.repository();
  assert.equal(repo.exists('assets/js/build-meta.js'),false);

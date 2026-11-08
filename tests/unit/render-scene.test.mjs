@@ -1,14 +1,14 @@
 import { describe as contractSuite } from 'node:test';
 import * as __render_dep0 from "node:test";
 import * as __render_dep1 from "node:assert/strict";
-import * as __render_dep2 from "../../shared/frontend/js/modules/render-scene.js";
-import * as __render_dep3 from "../../shared/frontend/js/modules/map-interaction-style.js";
-import * as __render_dep4 from "../../shared/frontend/js/modules/render-lod.js";
-import * as __render_dep5 from "../../shared/frontend/js/modules/country-stroke-preparation.js";
-import * as __render_dep6 from "../../shared/frontend/js/modules/gpu-stroke-geometry.js";
-import * as __render_dep7 from "../../shared/frontend/js/modules/ring-hit-test.js";
-import * as __render_dep8 from "../../shared/frontend/js/modules/country-mesh-codec.js";
-import "../../shared/frontend/js/workers/gpu-mesh-core.js";
+import * as __render_dep2 from "../../src/rendering/render-scene.js";
+import * as __render_dep3 from "../../src/map/map-interaction-style.js";
+import * as __render_dep4 from "../../src/rendering/render-lod.js";
+import * as __render_dep5 from "../../src/rendering/country-stroke-preparation.js";
+import * as __render_dep6 from "../../src/rendering/gpu-stroke-geometry.js";
+import * as __render_dep7 from "../../src/geometry/ring-hit-test.js";
+import * as __render_dep8 from "../../src/rendering/country-mesh-codec.js";
+import "../../src/rendering/workers/gpu-mesh-core.js";
 contractSuite("render-scene", () => {
 const { describe : contractSuite } = __render_dep0;
 const __dep0 = __render_dep1;

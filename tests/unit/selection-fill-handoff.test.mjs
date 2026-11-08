@@ -1,14 +1,14 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createRenderingDomain } from "../../shared/frontend/js/modules/rendering-domain.js";
+import { createRenderingDomain } from "../../src/rendering/rendering-domain.js";
 import {createNodeSelection} from '../helpers/core-selection.mjs';
-import { createSelectionPass } from "../../shared/frontend/js/modules/selection-pass.js";
-import { createMapVisualFrame } from "../../shared/frontend/js/modules/map-visual-frame.js";
-import { resolveMapInteractionStyle } from "../../shared/frontend/js/modules/map-interaction-style.js";
-import { createGpuMapRenderer } from "../../shared/frontend/js/modules/gpu-map-renderer.js";
-import "../../shared/frontend/js/vendor/polygon-clipping.min.js";
-import { validateGeometry } from "../../shared/frontend/js/modules/geometry-validation.js";
-import { createRenderSceneBuilder } from "../../shared/frontend/js/modules/render-scene.js";
+import { createSelectionPass } from "../../src/rendering/selection-pass.js";
+import { createMapVisualFrame } from "../../src/rendering/map-visual-frame.js";
+import { resolveMapInteractionStyle } from "../../src/map/map-interaction-style.js";
+import { createGpuMapRenderer } from "../../src/rendering/gpu-map-renderer.js";
+import "../../assets/js-vendor/polygon-clipping.min.js";
+import { validateGeometry } from "../../src/geometry/geometry-validation.js";
+import { createRenderSceneBuilder } from "../../src/rendering/render-scene.js";
 
 // Only the DOM/D3 adapter and render device are doubles; selection planning,
 // staging, coordinator invalidation and accepted-frame reconciliation are real.

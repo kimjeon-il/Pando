@@ -13,7 +13,7 @@ import {contentAddress} from '../../tools/build-world-bundle.mjs';
 
 export const GRAPH_PATH='config/generated-artifacts.json';
 export const RECEIPT_PATH='assets/data/generated-artifacts/p2-manifest.json';
-const WASM_OUTPUTS=['shared/frontend/static/wasm/pandoeditor-core.js','shared/frontend/static/wasm/pandoeditor-core.wasm','shared/frontend/static/wasm/pandoeditor-core.manifest.json'];
+const WASM_OUTPUTS=['assets/wasm/pandoeditor-core.js','assets/wasm/pandoeditor-core.wasm','assets/wasm/pandoeditor-core.manifest.json'];
 const sha=b=>createHash('sha256').update(b).digest('hex');
 const canonical=value=>JSON.stringify(value);
 const normalize=p=>p.replaceAll('\\','/');
@@ -351,7 +351,7 @@ export function artifactEvidence(root,{resultSha,expectedSourceSha,evidenceFile,
   const wasmAssets={};
   for(const [kind,spec] of Object.entries(wasmManifest.assets)) {
     assert.ok(['js','wasm'].includes(kind)&&spec.file==='pandoeditor-core.'+kind,'P2_WASM_ASSET_PATH');
-    const bytes=committed('shared/frontend/static/wasm/'+spec.file);assert.equal(sha(bytes),spec.sha256,'P2_RESULT_WASM_MISMATCH: '+kind);
+    const bytes=committed('assets/wasm/'+spec.file);assert.equal(sha(bytes),spec.sha256,'P2_RESULT_WASM_MISMATCH: '+kind);
     wasmAssets[kind]={sha256:spec.sha256,bytes:bytes.length};
   }
   const evidence={schema:'pandolab-p2-result-evidence',schemaVersion:1,sourceSha:expectedSourceSha,resultSha,...(config?{libraryRevision:config.revision}:{}),

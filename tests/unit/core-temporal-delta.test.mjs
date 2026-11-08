@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {createDocumentSessionRuntime} from '../../shared/frontend/js/modules/core-document-runtime.js';
-import {createCoreDocumentReadModel} from '../../shared/frontend/js/modules/core-document-read-model.js';
-import {createProjectDomain} from '../../shared/frontend/js/modules/project-domain.js';
+import {createDocumentSessionRuntime} from "../../src/document/core-document-runtime.js";
+import {createCoreDocumentReadModel} from "../../src/document/core-document-read-model.js";
+import {createProjectDomain} from "../../src/document/project-domain.js";
 
 const seed=()=>JSON.parse(readFileSync(new URL('../fixtures/portability/web-document-seed.json',import.meta.url),'utf8'));
 const fields={territorial:'territorialEntities',label:'labels',hydro:'hydroEdits',generic:'genericFeatures',distributionLayer:'distributionLayers',distributionEntry:'distributionEntries'};

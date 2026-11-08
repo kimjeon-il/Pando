@@ -27,7 +27,7 @@
         ]
       ],
       "consumers": [
-        "shared/frontend/js/modules/territorial-entity-repository.js"
+        "src/document/territorial-entity-repository.js"
       ],
       "tools": [
         "node"
@@ -91,7 +91,7 @@
         ]
       ],
       "consumers": [
-        "shared/frontend/js/modules/builtin-world-loader.js"
+        "src/data/builtin-world-loader.js"
       ],
       "tools": [
         "node"
@@ -105,7 +105,7 @@
       ],
       "inputs": [
         "assets/data/world/build-input.json",
-        "shared/frontend/js/workers/gpu-mesh-core.js"
+        "src/rendering/workers/gpu-mesh-core.js"
       ],
       "outputs": [],
       "generate": [
@@ -138,8 +138,8 @@
       ],
       "inputs": [
         "assets/data/world/build-input.json",
-        "shared/frontend/js/vendor/d3.min.js",
-        "shared/frontend/js/workers/gpu-mesh-core.js"
+        "assets/js-vendor/d3.min.js",
+        "src/rendering/workers/gpu-mesh-core.js"
       ],
       "outputs": [],
       "generate": [
@@ -189,7 +189,7 @@
         ]
       ],
       "consumers": [
-        "shared/frontend/js/workers/data-loader-worker.js"
+        "src/data/workers/data-loader-worker.js"
       ],
       "tools": [
         "node"
@@ -217,7 +217,7 @@
         ]
       ],
       "consumers": [
-        "shared/frontend/js/modules/country-shared-boundary-cache.js"
+        "src/rendering/country-shared-boundary-cache.js"
       ],
       "tools": [
         "node"
@@ -233,7 +233,7 @@
         "wasm"
       ],
       "inputs": [
-        "shared/frontend/js/workers/gpu-mesh-core.js"
+        "src/rendering/workers/gpu-mesh-core.js"
       ],
       "outputs": [
         "assets/data/prepared-polygons/generated/v2/"
@@ -252,7 +252,7 @@
         ]
       ],
       "consumers": [
-        "shared/frontend/js/modules/prepared-polygon-mesh.js"
+        "src/rendering/prepared-polygon-mesh.js"
       ],
       "tools": [
         "node"
@@ -288,7 +288,7 @@
         ]
       ],
       "consumers": [
-        "shared/frontend/js/modules/place-runtime.js"
+        "src/document/place-runtime.js"
       ],
       "tools": [
         "node"
@@ -302,7 +302,7 @@
       "generate": [],
       "validate": [],
       "consumers": [
-        "shared/frontend/js/workers/data-loader-worker.js"
+        "src/data/workers/data-loader-worker.js"
       ],
       "tools": [
         "node",
@@ -320,7 +320,7 @@
       "generate": [],
       "validate": [],
       "consumers": [
-        "shared/frontend/js/workers/data-loader-worker.js"
+        "src/data/workers/data-loader-worker.js"
       ],
       "tools": [
         "node",

@@ -11,7 +11,7 @@ are preserved by the one-time publication conversion.
 
 ## Physical files
 
-`shared/frontend/js/modules/builtin-country-files.js` is the shared physical-file
+`src/data/builtin-country-files.js` is the shared physical-file
 contract for the generator, loader and both product asset collectors.
 `storageLayout: country-files-v1` and payload schema 2 remain current. No transport
 or offset is accepted by runtime or deployment consumers.

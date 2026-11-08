@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createMapOverlayLayers} from '../../shared/frontend/js/modules/map-workspace-host.js';
-import {createRenderingDomain} from '../../shared/frontend/js/modules/rendering-domain.js';
-import {createCoreDocumentClient} from '../../shared/frontend/js/modules/core-document-client.js';
+import {createMapOverlayLayers} from "../../src/ui/map-workspace-host.js";
+import {createRenderingDomain} from "../../src/rendering/rendering-domain.js";
+import {createCoreDocumentClient} from "../../src/document/core-document-client.js";
 
 function fakeLayer(){
   const target={appendChild(){}};

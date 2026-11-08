@@ -1,9 +1,9 @@
 import { performance } from 'node:perf_hooks';
 
-import { layoutLabels } from "../shared/frontend/js/modules/label-layout.js";
+import { layoutLabels } from "../src/rendering/label-layout.js";
 import { layoutLabelsLegacy } from '../tools/benchmark-helpers/legacy-label-layout.mjs';
-import { createMapObjectSpatialIndex } from "../shared/frontend/js/modules/map-object-spatial-index.js";
-import { buildTerritorialInternalBoundarySegments } from "../shared/frontend/js/modules/boundary-topology.js";
+import { createMapObjectSpatialIndex } from "../src/map/map-object-spatial-index.js";
+import { buildTerritorialInternalBoundarySegments } from "../src/geometry/boundary-topology.js";
 
 function benchmarkLabels(count) {
   const candidates = Array.from({ length: count }, (_, index) => ({

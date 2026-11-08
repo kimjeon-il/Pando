@@ -3,8 +3,8 @@ import {readFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {createHash} from 'node:crypto';
 import {buildFrontendSnapshot} from '../../scripts/lib/frontend-build.mjs';
-import {builtinCountryAssets} from '../../shared/frontend/js/modules/builtin-country-files.js';
-import {createBuiltinWorldLoader,selectBuiltinCountries} from '../../shared/frontend/js/modules/builtin-world-loader.js';
+import {builtinCountryAssets} from "../../src/data/builtin-country-files.js";
+import {createBuiltinWorldLoader,selectBuiltinCountries} from "../../src/data/builtin-world-loader.js";
 import {libraryConfig,libraryCheckout,decodeArchiveEntry} from '../../tools/library-data.mjs';
 import {execFileSync} from 'node:child_process';
 

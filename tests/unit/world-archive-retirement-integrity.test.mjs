@@ -8,8 +8,8 @@ import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 import { gzipSync } from 'node:zlib';
 import { bundleDescriptor } from '../../tools/build-world-bundle.mjs';
-import { HYDRO_DATA_VERSION } from '../../shared/frontend/js/modules/physical-layer-service.js';
-import { TERRAIN_RASTER_VERSION } from '../../shared/frontend/js/modules/terrain-manifest.js';
+import { HYDRO_DATA_VERSION } from "../../src/rendering/physical-layer-service.js";
+import { TERRAIN_RASTER_VERSION } from "../../src/rendering/terrain-manifest.js";
 
 const repository = fileURLToPath(new URL('../..', import.meta.url));
 const workflow = readFileSync(new URL('../../.github/workflows/world-archive-retirement-integrity.yml', import.meta.url), 'utf8').replaceAll('\r\n','\n');

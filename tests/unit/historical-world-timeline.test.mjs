@@ -2,11 +2,11 @@ import {initializeTestTerritorialState,testCoreProject} from '../helpers/timelin
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { historicalWorldCases } from '../fixtures/historical-world-cases.mjs';
-import { createEmptyTerritorialState } from "../../shared/frontend/js/modules/territorial-entity-store.js";
-import { effectiveTerritorialFlagUrl } from "../../shared/frontend/js/modules/country-flags.js";
+import { createEmptyTerritorialState } from "../../src/document/territorial-entity-store.js";
+import { effectiveTerritorialFlagUrl } from "../../src/ui/country-flags.js";
 
 import {compileBuiltinWorldCatalog} from '../../tools/builtin-world-compiler.mjs';
-import {assembleBuiltinWorld,selectBuiltinCountries} from "../../shared/frontend/js/modules/builtin-world-loader.js";
+import {assembleBuiltinWorld,selectBuiltinCountries} from "../../src/data/builtin-world-loader.js";
 import {withExplicitView,contextProject} from '../helpers/builtin-world.mjs';
 function compileFixture(input){const catalog=compileBuiltinWorldCatalog(withExplicitView(input));return {...catalog,project:contextProject(catalog)};}
 let built;

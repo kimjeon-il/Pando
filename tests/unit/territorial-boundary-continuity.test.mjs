@@ -1,14 +1,14 @@
 import { rectanglePolygon } from '../helpers/gis-polygon-fixture.mjs';
 import '../helpers/spherical-core.mjs';
-import { createMapVisualFrame } from "../../shared/frontend/js/modules/map-visual-frame.js";
+import { createMapVisualFrame } from "../../src/rendering/map-visual-frame.js";
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createRenderingDomain } from "../../shared/frontend/js/modules/rendering-domain.js";
-import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
-import { createTerritorialEntityStore } from "../../shared/frontend/js/modules/territorial-entity-store.js";
-import { createTerritorialEntityRepository } from "../../shared/frontend/js/modules/territorial-entity-repository.js";
-import { normalizeLayerPresentation, layerStyle } from "../../shared/frontend/js/modules/layer-presentation.js";
-import { buildTerritorialInternalBoundarySegments } from "../../shared/frontend/js/modules/boundary-topology.js";
+import { createRenderingDomain } from "../../src/rendering/rendering-domain.js";
+import { createTerritorialFeature } from "../../src/document/territorial-units.js";
+import { createTerritorialEntityStore } from "../../src/document/territorial-entity-store.js";
+import { createTerritorialEntityRepository } from "../../src/document/territorial-entity-repository.js";
+import { normalizeLayerPresentation, layerStyle } from "../../src/ui/layer-presentation.js";
+import { buildTerritorialInternalBoundarySegments } from "../../src/geometry/boundary-topology.js";
 import { testCoreProject, initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
 
 const rectangle = rectanglePolygon;

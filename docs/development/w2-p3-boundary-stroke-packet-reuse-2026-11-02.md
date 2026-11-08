@@ -10,7 +10,7 @@ Windows GTX 1650 D3D11에서 초기 공유국경 Worker가 첫 연도 이동과 
 
 ## 구현
 
-- 변경 소유자: shared/frontend/js/workers/country-shared-boundary-worker.js. 마지막으로 검증된 패킷 하나를 Worker 내부에 보관.
+- 변경 소유자: src/rendering/workers/country-shared-boundary-worker.js. 마지막으로 검증된 패킷 하나를 Worker 내부에 보관.
 - 동일성: Worker가 실제 형상에서 계산한 SHA-256 + 순서가 유지된 국가 ID·상위 관계 + 품질·외곽선 표시 상태. 복제된 JS 객체 주소·세대 번호만으로 재사용하지 않음.
 - 변경된 형상 또는 새로 적용한 외부 토폴로지 캐시가 있으면 보관본 무효화.
 - 패킷 보관 추정량 상한 96 MiB / 1개. 이는 typed-array 바이트와 segment 개수로 산출한 상한 검사용 추정량으로, 전체 JS/GPU 네이티브 메모리 실측이 아님.

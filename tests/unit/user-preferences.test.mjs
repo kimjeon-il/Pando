@@ -1,17 +1,17 @@
 import { describe as contractSuite } from 'node:test';
 import * as __merge_dep0 from "node:test";
 import * as __merge_dep1 from "node:assert/strict";
-import * as __merge_dep2 from "../../shared/frontend/js/modules/user-preferences.js";
-import * as __merge_dep3 from "../../shared/frontend/js/modules/app-accent.js";
-import * as __merge_dep4 from "../../shared/frontend/js/modules/accent-presets.js";
-import * as __merge_dep5 from "../../shared/frontend/js/modules/map-interaction-style.js";
+import * as __merge_dep2 from "../../src/ui/user-preferences.js";
+import * as __merge_dep3 from "../../src/ui/app-accent.js";
+import * as __merge_dep4 from "../../src/ui/accent-presets.js";
+import * as __merge_dep5 from "../../src/map/map-interaction-style.js";
 import * as __merge_dep6 from "node:fs";
-import * as __merge_dep7 from "../../shared/frontend/js/modules/core-document-read-model.js";
-import * as __merge_dep8 from "../../shared/frontend/js/modules/map-workspace-host.js";
-import * as __merge_dep9 from "../../shared/frontend/js/modules/render-quality.js";
-import * as __merge_dep10 from "../../shared/frontend/js/modules/territorial-entity-store.js";
-import * as __merge_dep11 from "../../shared/frontend/js/modules/geometry-version-store.js";
-import * as __merge_dep12 from "../../shared/frontend/js/modules/physical-settings.js";
+import * as __merge_dep7 from "../../src/document/core-document-read-model.js";
+import * as __merge_dep8 from "../../src/ui/map-workspace-host.js";
+import * as __merge_dep9 from "../../src/rendering/render-quality.js";
+import * as __merge_dep10 from "../../src/document/territorial-entity-store.js";
+import * as __merge_dep11 from "../../src/geometry/geometry-version-store.js";
+import * as __merge_dep12 from "../../src/ui/physical-settings.js";
 contractSuite("user-preferences", () => {
 const { describe : contractSuite } = __merge_dep0;
 const __unit_dep0 = __merge_dep0;

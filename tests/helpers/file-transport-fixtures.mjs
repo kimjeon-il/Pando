@@ -1,4 +1,4 @@
-import {createBrowserFileAccess} from '../../shared/frontend/js/modules/browser-file-access.js';
+import {createBrowserFileAccess} from "../../src/data/browser-file-access.js";
 
 export const fixtureProjectFile=()=>new globalThis.File([new Uint8Array([0,1,2,255])],'project.gpkg',{type:'application/geopackage+sqlite3'});
 export function createBrowserFileAccessFixture({productMode='viewer',autoPick=true,projectFiles=()=>[fixtureProjectFile()]}={}){

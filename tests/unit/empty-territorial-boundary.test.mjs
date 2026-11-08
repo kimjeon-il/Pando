@@ -2,7 +2,7 @@ import '../helpers/spherical-core.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { buildCountrySharedBoundarySegments, buildTerritorialInternalBoundarySegments } from "../../shared/frontend/js/modules/boundary-topology.js";
+import { buildCountrySharedBoundarySegments, buildTerritorialInternalBoundarySegments } from "../../src/geometry/boundary-topology.js";
 
 test('no polygon units never inspect canonical country geometry', () => {
   const countries = [{ get geometry() { throw new Error('must not inspect countries'); } }];

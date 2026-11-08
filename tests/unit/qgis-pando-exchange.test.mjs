@@ -6,7 +6,7 @@ import { resolve, join, relative, isAbsolute } from 'node:path';
 import test from 'node:test';
 import { createGisCoreFixture } from '../helpers/gis-core-fixture.mjs';
 import { qgisFixture as original } from '../fixtures/qgis/pando.mjs';
-import { validateGeometry } from "../../shared/frontend/js/modules/geometry-validation.js";
+import { validateGeometry } from "../../src/geometry/geometry-validation.js";
 
 test('QGIS JSON fields reach the actual Core with atomic Undo and preserved source geometry', async () => {
   const foreign = structuredClone(original);

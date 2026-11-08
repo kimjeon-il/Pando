@@ -18,7 +18,7 @@ export function classifyViewerPreview(paths,{web}={},scope='auto') {
   if(!validScope.has(scope)) throw Error('VIEWER_PREVIEW_INVALID_SCOPE: '+scope);
   if(!Array.isArray(paths)||paths.some(path=>typeof path!=='string'))
     throw Error('VIEWER_PREVIEW_INVALID_CHANGE_LIST');
-  const availableWeb=web??existsSync(resolve(root,'apps/viewer/templates/index.html'));
+  const availableWeb=web??existsSync(resolve(root,'src/app/index.html'));
   const touched=paths.some(path=>!path.endsWith('.md') &&
     /^(?:apps\/viewer\/|shared\/|assets\/|config\/library-data\.json$|index\.html$|\.nojekyll$|contracts\/|tests\/browser\/|tests\/unit\/(?:viewer|builtin|map|gpu|terrain|hydro|current-browser)-|tools\/stage-monorepo-pages\.mjs$|scripts\/(?:stage-viewer-preview|viewer-preview-plan)\.mjs$|\.github\/workflows\/viewer-preview\.yml$|playwright\.config\.js$)/.test(path));
   const active=availableWeb&&scope!=='off';
@@ -50,7 +50,7 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
       event:event==='workflow_dispatch'?'push':event,head:'HEAD'}).files;
   }catch(error){
     if(scope==='auto'){
-      changes=['apps/viewer/js/viewer.js'];
+      changes=['src/app/viewer.js'];
       console.warn('Viewer preview comparison unavailable; validating conservatively:',error.message);
     }else throw error;
   }

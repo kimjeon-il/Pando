@@ -4,7 +4,7 @@ import { createGisImportPlan } from '../../../tools/gis/gis-import-plan.js';
 
 export {GIS_GEOMETRY_TIMEOUT_MS,createGisGeometryValidator} from "../../../tools/gis/gis-geometry-validator.js";
 
-export { applyImportedPackageAssets } from "../../../shared/frontend/js/modules/project-package-assets.js";
+export { applyImportedPackageAssets } from "../../../src/data/project-package-assets.js";
 
 export function appendImportedSourceInfo(previous, next, now = () => new Date().toISOString()) {
   const imports = [];

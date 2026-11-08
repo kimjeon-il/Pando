@@ -19,7 +19,7 @@
 
 ## 구현 범위
 
-1. `shared/frontend/js/modules/product-mode-policy.js` — `createProductModePolicy(productMode,{readOnly})`에 권한 분리 및 잘못된 값 검증.
+1. `src/app/product-mode-policy.js` — `createProductModePolicy(productMode,{readOnly})`에 권한 분리 및 잘못된 값 검증.
 2. `core-document-client.js` / `document-session.js` — `readOnly:true`이면 편집 명령을 Worker 호출 전에 거부하며 Windows 평면 검수용 Core Worker는 기존 read-only viewer Worker를 선택한다. 두 제품의 기본 Worker 선택은 그대로다.
 3. `project-domain.js` — `readOnly:true` 구성에는 편집·저장·Undo/Redo 메서드를 노출하지 않는다. Core의 시점 조회·프로젝트 열기·검증 조회는 유지한다.
 4. `project-session.js` — 읽기 전용 평면 구성에서 편집 드래프트 및 save-state owner를 초기화하지 않는다. 기존 보기 상태는 재활용한다.
@@ -48,7 +48,7 @@ Github Actions의 실행/완료 여부는 코드 커밋의 검사 기록에서 �
 - Ubuntu `canonical-read-boundary`: 실제 기존 C++/WASM Core를 사용한 조회·시간축·선택·편집 차단 및 기타 계약 **61 tests passed, 0 failed**. E1 소스 ESLint와 runtime boundary checker 통과.
 - Windows 2022 `windows-shared-contract`: 평면 읽기 모드/공통 owner/파일 접근/Tauri JS↔Rust 문서 전송 계약 **36 tests passed, 0 failed**.
 - Chromium `web-editor-regression`: `shared-map-parity`, `selection-domain-smoke`, `viewer-project-open` 두 테스트 **4 passed, 0 failed**, 재시도 없음. 실제 웹/편집기 로딩, GeoPackage 불러오기·실패·취소·경합 및 지도/선택 동등성 확인.
-- 수용 검증 중 발견한 회귀: 유효하지 않은 GeoPackage 파일의 열기 실패 후 이미 준비된 웹 지도의 `viewerStatus.dataset.ready`가 `false`로 돌아가던 오류. `apps/viewer/js/modules/viewer-composition.js`에서 기존 준비 상태를 보존하도록 수정하고 `tests/unit/viewer-composition-recovery.test.mjs`에 신규 회귀 계약을 추가함. [변경 커밋 c335e267](https://github.com/kimjeon-il/Pando/commit/c335e2671a3207e8665798c4678dbcb48286cfae), [테스트 fixture 계약 보정 70877624](https://github.com/kimjeon-il/Pando/commit/708776242d1596d1f3f4e3ded1626dd3732c7edb).
+- 수용 검증 중 발견한 회귀: 유효하지 않은 GeoPackage 파일의 열기 실패 후 이미 준비된 웹 지도의 `viewerStatus.dataset.ready`가 `false`로 돌아가던 오류. `src/app/viewer-composition.js`에서 기존 준비 상태를 보존하도록 수정하고 `tests/unit/viewer-composition-recovery.test.mjs`에 신규 회귀 계약을 추가함. [변경 커밋 c335e267](https://github.com/kimjeon-il/Pando/commit/c335e2671a3207e8665798c4678dbcb48286cfae), [테스트 fixture 계약 보정 70877624](https://github.com/kimjeon-il/Pando/commit/708776242d1596d1f3f4e3ded1626dd3732c7edb).
 - 이전 검증 [41369887508](https://github.com/kimjeon-il/Pando/actions/runs/41369887508)에서 브라우저 3/4 통과, 파일 복구 1/4 실패를 확인했으며, 새 실행에서 그 사례가 통과한 것으로 검증함. 중간 실패 기록은 삭제하지 않음.
 
 **E1 범위 밖/추후 게이트:** Windows Tauri 애플리케이션의 실제 GUI 실행과 새로운 읽기 전용 검수 화면 연결·파일 선택 실사용은 E5에서 검증해야 한다. Android 앱 제거는 E6, 웹·Windows 최종 제품 회귀 검증은 E7에서 수행한다. 이번 결과를 네이티브 GUI 실행 성공이나 Android 앱 검증으로 표현하지 않는다.

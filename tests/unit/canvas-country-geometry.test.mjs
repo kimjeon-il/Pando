@@ -1,15 +1,15 @@
 import { describe as contractSuite } from 'node:test';
 import * as __canvas_dep0 from "node:test";
 import * as __canvas_dep1 from "node:assert/strict";
-import * as __canvas_dep2 from "../../shared/frontend/js/modules/gpu-map-renderer.js";
-import * as __canvas_dep3 from "../../shared/frontend/js/modules/geometry-versions.js";
+import * as __canvas_dep2 from "../../src/rendering/gpu-map-renderer.js";
+import * as __canvas_dep3 from "../../src/geometry/geometry-versions.js";
 import * as __canvas_dep4 from "node:fs";
 import * as __canvas_dep5 from "node:vm";
 import * as __canvas_dep6 from "node:crypto";
-import * as __canvas_dep7 from "../../shared/frontend/js/modules/resource-update-policy.js";
-import * as __canvas_dep8 from "../../shared/frontend/js/modules/country-mesh-zoom-policy.js";
-import * as __canvas_dep9 from "../../shared/frontend/js/modules/gpu-canvas-worker.js";
-import "../../shared/frontend/js/workers/canvas-scene-composition-core.js";
+import * as __canvas_dep7 from "../../src/rendering/resource-update-policy.js";
+import * as __canvas_dep8 from "../../src/rendering/country-mesh-zoom-policy.js";
+import * as __canvas_dep9 from "../../src/rendering/gpu-canvas-worker.js";
+import "../../src/rendering/workers/canvas-scene-composition-core.js";
 // Shared imports and fixtures used by the independent Canvas feature groups.
 const __dep0 = __canvas_dep0;
 const __dep1 = __canvas_dep1;
@@ -61,7 +61,7 @@ featureDescribe("canvas-coupled-land", () => {
   const vm = __suiteDependency6.default;
   const test = __suiteDependency7.default;
 test('Canvas land uses the admitted physical packet independently from countries', () => {
-  const scope={};vm.runInNewContext(readFileSync(new URL("../../shared/frontend/js/workers/canvas-scene-composition-core.js",import.meta.url),'utf8'),scope);
+  const scope={};vm.runInNewContext(readFileSync(new URL("../../src/rendering/workers/canvas-scene-composition-core.js",import.meta.url),'utf8'),scope);
   const geometry={type:'Polygon',coordinates:[[[0,0],[1,0],[0,1],[0,0]]]},paths=[];
   const context={beginPath(){},fill(){}};
   const packet={role:'physical-land',ringCoordinates:new Float64Array([5,5,6,5,5,6,5,5]),ringOffsets:[0,4],polygonOffsets:[0,1]};
@@ -74,7 +74,7 @@ test('Canvas land uses the admitted physical packet independently from countries
 });
 
 test('Canvas pending surface suppresses regional fills as well as country fills', () => {
-  const scope={};vm.runInNewContext(readFileSync(new URL("../../shared/frontend/js/workers/canvas-scene-composition-core.js",import.meta.url),'utf8'),scope);
+  const scope={};vm.runInNewContext(readFileSync(new URL("../../src/rendering/workers/canvas-scene-composition-core.js",import.meta.url),'utf8'),scope);
   scope.PandoLabCanvasSceneComposition.drawTerritorialFills(new Proxy({}, {get(){assert.fail('pending territorial fill touched the Canvas');}}),
     ()=>assert.fail('pending territorial fill drew a path'),[{role:'territorial-fill'}],null,1,{quality:'pending'});
 });
@@ -453,7 +453,7 @@ const fs = __canvas_dep4.default;
 const vm = __canvas_dep5.default;
 
 const context = { self: {} };
-vm.runInNewContext(fs.readFileSync(new URL("../../shared/frontend/js/workers/canvas-terrain-dem-core.js", import.meta.url), 'utf8'), context);
+vm.runInNewContext(fs.readFileSync(new URL("../../src/rendering/workers/canvas-terrain-dem-core.js", import.meta.url), 'utf8'), context);
 const { convertTile, affineTransform, flatTileRectangle, triangleClip, budgetedDemTiles, convertedBytesPerPixel } = context.self.PandoLabCanvasTerrainDem;
 const presentation = JSON.parse(fs.readFileSync(new URL('../fixtures/terrain-presentation.json', import.meta.url)));
 const constantTile = height => {

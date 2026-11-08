@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
-import {sharedCalculationCore} from "../shared/frontend/js/modules/temporal.js";
+import {sharedCalculationCore} from "../src/document/temporal.js";
 import {normalizeTerritorialLibraryEntity} from "./gis/territorial-library.js";
 import {entityFileName,territorialSourceRoot} from './territorial-entity-sources.mjs';
 

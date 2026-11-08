@@ -7,7 +7,7 @@ import { UI_AUDIT_STYLE_SOURCES } from './lib/ui-source-catalog.mjs';
 const root = process.cwd();
 const frontend=await buildFrontendSnapshot({root});
 const readInput=(file,encoding)=>readFrontendInput(frontend,file,encoding);
-const jsRoot = path.join(root, 'shared/frontend/js');
+const jsRoot = path.join(root, 'src');
 const cssSource = UI_AUDIT_STYLE_SOURCES
   .map(source => readInput(path.join(root, source), 'utf8'))
   .join('\n');
@@ -161,7 +161,7 @@ for (const rule of rules) {
   }
 }
 
-for (const file of [...walkJavaScript(jsRoot),...walkJavaScript(path.join(root,'apps/viewer/js'))]) {
+for (const file of walkJavaScript(jsRoot)) {
   const source = readInput(file, 'utf8');
   if (/style\.cssText\s*=\s*['"`][\s\S]*?(?:padding|margin|gap|top|right|bottom|left)\s*:/i.test(source)) {
     failures.push(`inline spacing cssText found in ${path.relative(root, file)}`);

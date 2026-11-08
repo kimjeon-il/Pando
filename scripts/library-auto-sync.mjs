@@ -62,7 +62,7 @@ export function createAutomaticAdapters({root,env=process.env,settings,io={}}){
  const archived=(rev,p)=>{const entry=archive(rev).files[p];if(!entry)fail('MISSING_ARCHIVED_FILE');return (io.decodeArchiveEntry||decodeArchiveEntry)(dataRoot,entry,rev,{fetch:false});};
  const github=io.github||createGithubPages({token:env.GITHUB_TOKEN,verifyLive:io.verifyLive});
  let prepared=null,derived=null,stored=null,latest=null;
- function generator(appSha){const files=text(root,['ls-tree','-r','--name-only',appSha,'--','tools','scripts/lib/library-auto-inputs.mjs','scripts/lib/library-auto-runtime.mjs','scripts/lib/p2-artifact-graph.mjs','config/generated-artifacts.json','config/toolchain-versions.json','shared/frontend/js/modules']);return hash(Buffer.concat(files.split('\n').filter(Boolean).sort().flatMap(p=>[Buffer.from(p+'\0'),git(root,['show',`${appSha}:${p}`]),Buffer.from('\0')])));}
+ function generator(appSha){const files=text(root,['ls-tree','-r','--name-only',appSha,'--','tools','scripts/lib/library-auto-inputs.mjs','scripts/lib/library-auto-runtime.mjs','scripts/lib/p2-artifact-graph.mjs','config/generated-artifacts.json','config/toolchain-versions.json','src']);return hash(Buffer.concat(files.split('\n').filter(Boolean).sort().flatMap(p=>[Buffer.from(p+'\0'),git(root,['show',`${appSha}:${p}`]),Buffer.from('\0')])));}
  async function inspect(){
   const h=heads();latest=h;
   if(settings.requestedDataSha&&h.data!==settings.requestedDataSha&&h.data!==stored)fail('REQUEST_DATA_HEAD_MOVED');

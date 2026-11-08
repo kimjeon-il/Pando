@@ -40,8 +40,8 @@ function makeFixture(shardCount=4){
     const receipt=manifest.sources?.[kind];
     if(receipt?.file)write(main+receipt.file,readFileSync(new URL('../../'+main+receipt.file,import.meta.url)));
   }
-  for(const file of ['hydro-shard-store.js','hydro-tile-worker.js'])write('shared/frontend/js/workers/'+file,
-    readFileSync(new URL('../../shared/frontend/js/workers/'+file,import.meta.url)));
+  for(const file of ['hydro-shard-store.js','hydro-tile-worker.js'])write('src/runtime/workers/'+file,
+    readFileSync(new URL('../../src/runtime/workers/'+file,import.meta.url)));
   return {root,manifest,blob,manifestBytes,write};
 }
 async function fixture(run,shardCount){const f=makeFixture(shardCount);try{return await run(f);}finally{rmSync(f.root,{recursive:true,force:true});}}

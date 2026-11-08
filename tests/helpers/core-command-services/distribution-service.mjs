@@ -1,6 +1,6 @@
 // Test-owned Core ACK adapter. Not part of the Viewer or Windows product.
 // C++/WASM owns command admission, mutations, history and validation.
-import { distributionEntriesForLayer } from "../../../shared/frontend/js/modules/distribution-model.js";
+import { distributionEntriesForLayer } from "../../../src/document/distribution-model.js";
 
 const text = value => String(value ?? '').trim();
 const fields = Object.freeze({ distributionLayer: 'distributionLayers', distributionEntry: 'distributionEntries' });

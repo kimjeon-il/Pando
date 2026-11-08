@@ -5,7 +5,7 @@ import * as __gis_dep2 from "node:path";
 import * as __gis_dep3 from "node:test";
 import * as __gis_dep4 from "node:vm";
 import * as __gis_dep5 from "node:url";
-import * as __gis_dep6 from "../../shared/frontend/js/modules/geographic-boundary.js";
+import * as __gis_dep6 from "../../src/geometry/geographic-boundary.js";
 import * as __gis_dep7 from "../../tools/gis/geometry-metrics.js";
 import * as __gis_dep8 from "../../tools/gis/river-territory-partition.js";
 import * as __gis_dep9 from "../../tools/gis/geometry-validation.js";
@@ -53,7 +53,7 @@ function loadClassic(relativePath, globalName, context) {
 function createBoundaryWorker() {
   const context = vm.createContext({ console, self: null });
   context.self = context;
-  vm.runInContext(read('shared/frontend/js/workers/geographic-boundary-core.js'), context);
+  vm.runInContext(read('src/geometry/workers/geographic-boundary-core.js'), context);
   return context.PandoLabGeographicBoundary;
 }
 
@@ -168,7 +168,7 @@ test('GIS Worker validates canonical geometry and reports the shared physical ov
 test('main validator and actual GIS Worker agree on normal, empty, invalid, precision and date-line fixtures', async t => {
   const worker = createGisWorkerHarness(t);
   const clipperContext = vm.createContext({});
-  vm.runInContext(read('shared/frontend/js/vendor/polygon-clipping.min.js'), clipperContext);
+  vm.runInContext(read('assets/js-vendor/polygon-clipping.min.js'), clipperContext);
   const fixtures = [
     { name: 'normal', collection: { type: 'FeatureCollection', features: [polygonFeature('normal', [ring(0, 0, 2, 2)])] } },
     { name: 'empty', collection: { type: 'FeatureCollection', features: [] } },
@@ -194,8 +194,8 @@ test('main validator and actual GIS Worker agree on normal, empty, invalid, prec
 test('country normalizer and GPU mesh preserve winding, finite packets and owner ranges', () => {
   const classicContext = vm.createContext({ console, self: null, PandoLabSphericalCore: sphericalCore });
   classicContext.self = classicContext;
-  const countryGeometry = loadClassic('shared/frontend/js/modules/polygon-geometry.js', 'PandoLabPolygonGeometry', classicContext);
-  const meshCore = loadClassic('shared/frontend/js/workers/gpu-mesh-core.js', 'PandoLabGpuMeshCore', classicContext);
+  const countryGeometry = loadClassic('src/geometry/polygon-geometry.js', 'PandoLabPolygonGeometry', classicContext);
+  const meshCore = loadClassic('src/rendering/workers/gpu-mesh-core.js', 'PandoLabGpuMeshCore', classicContext);
   const fixtures = [
     polygonFeature('normal', [ring(0, 0, 2, 2)]),
     polygonFeature('reversed', [ring(3, 0, 5, 2, false), ring(3.5, 0.5, 4, 1, true)]),
@@ -226,7 +226,7 @@ test('country normalizer and GPU mesh preserve winding, finite packets and owner
 
 test('river partition browser contract is deterministic and non-mutating', () => {
   const clipperContext = vm.createContext({});
-  vm.runInContext(read('shared/frontend/js/vendor/polygon-clipping.min.js'), clipperContext);
+  vm.runInContext(read('assets/js-vendor/polygon-clipping.min.js'), clipperContext);
   const donors = [
     { countryId: 'donor-a', geometryRevision: 1, geometry: { type: 'Polygon', coordinates: [ring(0, 0, 10, 10)] } },
     { countryId: 'donor-b', geometryRevision: 1, geometry: { type: 'MultiPolygon', coordinates: [[ring(20, 0, 30, 10)], [ring(40, 0, 41, 1)]] } },
@@ -251,19 +251,19 @@ test('river partition browser contract is deterministic and non-mutating', () =>
 
 test('GIS contract test sources stay worker-safe and do not revive removed paths', () => {
   const workerSources = [
-    read('shared/frontend/js/workers/geographic-boundary-core.js'),
+    read('src/geometry/workers/geographic-boundary-core.js'),
     read('tools/gis/gis-geometry-worker.js'),
-    read('shared/frontend/js/workers/gpu-mesh-core.js'),
+    read('src/rendering/workers/gpu-mesh-core.js'),
   ].join('\n');
   assert.doesNotMatch(workerSources, /document\.|window\.|getContext\(|activeProjection\(|state\.view/);
   const productionSources = [
-    read('shared/frontend/js/modules/geographic-boundary.js'),
+    read('src/geometry/geographic-boundary.js'),
     read('tools/gis/river-territory-partition.js'),
     workerSources,
   ].join('\n');
   assert.doesNotMatch(productionSources, /gpu-state-scope|selection-coverage|annex-source-v1|frontier-pocket/);
-  assert.match(read('shared/frontend/js/workers/geographic-boundary-core.js'), /180/);
-  assert.match(read('shared/frontend/js/modules/geographic-boundary.js'), /atPole|atDateLine/);
+  assert.match(read('src/geometry/workers/geographic-boundary-core.js'), /180/);
+  assert.match(read('src/geometry/geographic-boundary.js'), /atPole|atDateLine/);
 });
 });
 contractSuite("p5-spherical-area-delegation", () => {
@@ -276,7 +276,7 @@ const test = __gis_dep3.default;
 
 
 
-const source=readFileSync(new URL("../../shared/frontend/js/modules/polygon-geometry.js",import.meta.url),'utf8');
+const source=readFileSync(new URL("../../src/geometry/polygon-geometry.js",import.meta.url),'utf8');
 const ring=[[179,-2],[179,2],[-179,2],[-179,-2],[179,-2]];
 
 function loadedCore() {

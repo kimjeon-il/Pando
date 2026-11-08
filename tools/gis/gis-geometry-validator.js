@@ -1,5 +1,5 @@
 // Canonical GIS Worker RPC validation, independent of the retired graphical editor.
-import {WORKER_RPC_ERROR_CATEGORIES,createWorkerRpcClient} from "../../shared/frontend/js/modules/worker-rpc.js";
+import {WORKER_RPC_ERROR_CATEGORIES,createWorkerRpcClient} from "../../src/runtime/worker-rpc.js";
 
 export const GIS_GEOMETRY_TIMEOUT_MS = 60_000;
 

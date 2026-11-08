@@ -1,20 +1,20 @@
 import "../helpers/spherical-core.mjs";
-import "../../shared/frontend/js/workers/gpu-mesh-core.js";
+import "../../src/rendering/workers/gpu-mesh-core.js";
 import { describe as contractSuite } from 'node:test';
 import * as __dep0 from "node:test";
 import * as __dep1 from "node:assert/strict";
-import * as __dep2 from "../../shared/frontend/js/modules/country-mesh-preparation.js";
-import * as __dep3 from "../../shared/frontend/js/modules/mesh-spatial-blocks.js";
+import * as __dep2 from "../../src/rendering/country-mesh-preparation.js";
+import * as __dep3 from "../../src/rendering/mesh-spatial-blocks.js";
 import * as __dep4 from "node:fs";
 import * as __dep5 from "node:zlib";
-import * as __dep6 from "../../shared/frontend/js/modules/country-mesh-codec.js";
-import * as __dep7 from "../../shared/frontend/js/modules/country-mesh-content-key.js";
-import * as __dep8 from "../../shared/frontend/js/modules/resource-update-policy.js";
-import * as __dep9 from "../../shared/frontend/js/modules/geometry-version-store.js";
-import * as __dep10 from "../../shared/frontend/js/modules/country-mesh-quality-gate.js";
-import * as __dep11 from "../../shared/frontend/js/modules/country-mesh-transfer.js";
-import * as __dep12 from "../../shared/frontend/js/modules/country-mesh-zoom-policy.js";
-import * as __dep13 from "../../shared/frontend/js/modules/gpu-map-renderer.js";
+import * as __dep6 from "../../src/rendering/country-mesh-codec.js";
+import * as __dep7 from "../../src/rendering/country-mesh-content-key.js";
+import * as __dep8 from "../../src/rendering/resource-update-policy.js";
+import * as __dep9 from "../../src/geometry/geometry-version-store.js";
+import * as __dep10 from "../../src/rendering/country-mesh-quality-gate.js";
+import * as __dep11 from "../../src/rendering/country-mesh-transfer.js";
+import * as __dep12 from "../../src/rendering/country-mesh-zoom-policy.js";
+import * as __dep13 from "../../src/rendering/gpu-map-renderer.js";
 
 // Original feature contract: country-mesh-preparation.test.mjs
 contractSuite("country-mesh-preparation", () => {

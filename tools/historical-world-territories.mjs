@@ -1,8 +1,8 @@
-import "../shared/frontend/js/vendor/polygon-clipping.min.js";
+import "../assets/js-vendor/polygon-clipping.min.js";
 import './load-spherical-core.mjs';
-import "../shared/frontend/js/modules/polygon-geometry.js";
-import {area as polygonArea} from '../shared/frontend/js/modules/map-edit-geometry.js';
-import { normalizeTemporalInterval, compareTemporal, sharedCalculationCore } from "../shared/frontend/js/modules/temporal.js";
+import "../src/geometry/polygon-geometry.js";
+import {area as polygonArea} from "../src/geometry/map-edit-geometry.js";
+import { normalizeTemporalInterval, compareTemporal, sharedCalculationCore } from "../src/document/temporal.js";
 
 // One deterministic, native Boolean owner for historical compilation. The
 // shared Core uses robust orientation arithmetic and accepts the original

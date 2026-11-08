@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-await import("../../shared/frontend/js/vendor/polygon-clipping.min.js");
+await import("../../assets/js-vendor/polygon-clipping.min.js");
 const {
   buildRiverTerritoryPartitions,
   composeRiverBoundaryTerritoryComponents,

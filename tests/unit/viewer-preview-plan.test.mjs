@@ -6,15 +6,15 @@ import * as __dep3 from "node:path";
 import * as __dep4 from "node:test";
 import * as __dep5 from "../../scripts/viewer-preview-plan.mjs";
 import * as __dep6 from "../../scripts/stage-viewer-preview.mjs";
-import * as __dep7 from "../../shared/frontend/js/modules/runtime-performance-metrics.js";
+import * as __dep7 from "../../src/runtime/runtime-performance-metrics.js";
 import * as __dep8 from "../helpers/frontend-source.mjs";
 import * as __dep9 from "node:module";
 import * as __dep10 from "node:url";
 import * as __dep11 from "node:util";
 import * as __dep12 from "node:buffer";
 import * as __dep13 from "node:vm";
-import * as __dep14 from "../../shared/frontend/js/modules/project-file-reader.js";
-import * as __dep15 from "../../shared/frontend/js/modules/initial-document.js";
+import * as __dep14 from "../../src/data/project-file-reader.js";
+import * as __dep15 from "../../src/document/initial-document.js";
 import * as __dep16 from "../helpers/core-project.mjs";
 import * as __dep17 from "../fixtures/viewer-project-package.mjs";
 contractSuite("viewer-preview-plan", () => {
@@ -29,7 +29,7 @@ const { createRuntimePerformanceMetrics } = __dep7;
 
 const full={web:true};
 test('Viewer changes select the preview and source-matched application checks',()=>{
-  const changed=classifyViewerPreview(['shared/frontend/css/ui.css'],full);
+  const changed=classifyViewerPreview(['src/ui/css/ui.css'],full);
   for(const id of ['preview','browser','contracts'])assert.equal(changed[id],true,id);
   const native=classifyViewerPreview(['shared/core/src/project.cpp'],full);
   assert.equal(native.preview,true);
@@ -65,7 +65,7 @@ test('static preview emits the committed viewer closure without native code',asy
   assert.throws(()=>readFileSync(join(x.output,'native/secret.txt')),/ENOENT/);
 });
 test('preview refuses an untracked or missing required WASM pair',async t=>{
-  const x=await fixture(t);rmSync(join(x.root,'shared/frontend/static/wasm/pandoeditor-core.wasm'));
+  const x=await fixture(t);rmSync(join(x.root,'assets/wasm/pandoeditor-core.wasm'));
   await assert.rejects(stagePreview({...x,branch:'work/objects'}),/ENOENT|protected|source file/);
 });
 test('preview never writes over the repository checkout',async t=>{
@@ -135,7 +135,7 @@ const { createNodeCoreProject } = __dep16;
 const { createViewerProjectPackage } = __dep17;
 
 // Execute the production read Worker and sql.js; adapt only browser transport to Node.
-const sqlDirectory = new URL('../../shared/frontend/js/vendor/sql/', import.meta.url);
+const sqlDirectory = new URL('../../assets/js-vendor/sql/', import.meta.url);
 const sqlContext = vm.createContext({ module: { exports: {} }, require: createRequire(import.meta.url), process,
   __dirname: fileURLToPath(sqlDirectory), Buffer, console, TextEncoder, TextDecoder });
 vm.runInContext(readFileSync(new URL('sql-wasm.js', sqlDirectory), 'utf8'), sqlContext);
@@ -145,7 +145,7 @@ const frontendSnapshot=await repositoryFrontendSnapshot();
 function installReaderWorker(t) {
   const original = globalThis.Worker,originalURL=globalThis.URL,originalMeta=globalThis.PANDOLAB_BUILD_META;
   globalThis.PANDOLAB_BUILD_META=frontendSnapshot.buildMeta;
-  globalThis.URL=class extends originalURL{constructor(value,base){super(value,base);if(this.protocol==='file:'&&this.pathname.endsWith('/shared/frontend/js/workers/project-read-worker.js'))return new originalURL('https://fixture.invalid/assets/js/workers/project-read-worker.js');}};
+  globalThis.URL=class extends originalURL{constructor(value,base){super(value,base);if(this.protocol==='file:'&&this.pathname.endsWith('/src/data/workers/project-read-worker.js'))return new originalURL('https://fixture.invalid/assets/js/workers/project-read-worker.js');}};
   const workers = [];
   globalThis.Worker = class {
     constructor(url) {
