@@ -77,3 +77,6 @@ The first full-catalog CI attempt identified false positives in executable
 path detection (matrix shard arguments and SDK-managed zlib port). The
 reference scanner now scopes both cases to repository-owned executable paths.
 The complete catalog is requested again; runtime results remain pending.
+
+A further full-catalog check now includes the restored automation regression
+suite and validates its matrix/SDK path handling before other check phases.
