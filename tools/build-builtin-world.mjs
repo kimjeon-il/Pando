@@ -10,7 +10,8 @@ import {readTerritorialSources,readTerritorialSource,entityFileName,territorialS
 import {normalizeTerritorialLibraryEntity} from './gis/territorial-library.js';
 import {buildCurrentWorld} from './territorial-current-world.mjs';
 import {compileBuiltinWorldCatalog,coalesceCoverageAdjustments,replaceBuiltinWorldCountryNames} from './builtin-world-compiler.mjs';
-import {BUILTIN_SUBUNITS} from "../shared/frontend/js/modules/builtin-subunits.js";
+import {builtinSubunitId} from "../shared/frontend/js/modules/builtin-subunits.js";
+import {loadBuiltinDisplayPolicy} from './gis/builtin-display-policy.mjs';
 import {finalizeBuiltinWorldFiles,readBuiltinCountryStoredBytes} from './builtin-country-bytes.mjs';
 export {finalizeBuiltinWorldFiles};
 
@@ -78,7 +79,7 @@ export function buildBuiltinWorldPartialPublication({entityIds,sourceIndex,previ
  const sources=new Map(sourceIndex.entities.map(row=>[row.entityId,row])),oldSources=new Map(previousSourceIndex.entities.map(row=>[row.entityId,row]));
  const mapping=new Map(previousIndex.sourceIdentities.flatMap(row=>row.sourceEntityIds.map(id=>[id,row.projectEntityId])));
  const current=new Map(view.selections.map(row=>[row.entityId,row.geometryVersionId]));
- const subunits=new Map(BUILTIN_SUBUNITS.map(row=>[row.id,row.parentId]));
+ const subunits=new Map(loadBuiltinDisplayPolicy().subunits.map(row=>[builtinSubunitId(row.sourceCountryId),row.parentId]));
  const nodes=previousIndex.sourceIdentities.map(row=>{
   const versions=row.sourceEntityIds.flatMap(id=>[sources.get(id),oldSources.get(id)]).filter(Boolean);
   const first=sources.get(row.sourceEntityIds[0])||oldSources.get(row.sourceEntityIds[0]);

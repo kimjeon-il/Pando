@@ -1,5 +1,6 @@
 import { describe as contractSuite } from 'node:test';
 import * as __gis_dep0 from "../../shared/frontend/js/modules/builtin-subunits.js";
+import {loadBuiltinDisplayPolicy} from '../../tools/gis/builtin-display-policy.mjs';
 import * as __gis_dep1 from "node:test";
 import * as __gis_dep2 from "node:assert/strict";
 import * as __gis_dep3 from "node:fs";
@@ -16,7 +17,7 @@ import * as __gis_dep13 from "../../shared/frontend/js/modules/polygon-mesh-code
 import * as __gis_dep14 from "../../shared/frontend/js/modules/prepared-polygon-mesh.js";
 import * as __gis_dep15 from "../../shared/frontend/js/modules/physical-resources.js";
 contractSuite("prepared-country-scope", () => {
-const { BUILTIN_SUBUNITS } = __gis_dep0;
+const BUILTIN_SUBUNITS = loadBuiltinDisplayPolicy().subunits.map(row=>({...row,id:__gis_dep0.builtinSubunitId(row.sourceCountryId)}));
 const test = __gis_dep1.default;
 const assert = __gis_dep2.default;
 const fs = __gis_dep3.default;

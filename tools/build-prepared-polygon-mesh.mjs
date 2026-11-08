@@ -17,7 +17,8 @@ import { resolveWorld } from "../shared/frontend/js/modules/timeline-resolver.js
 import { createTerritorialScopeResolver } from "../shared/frontend/js/modules/territorial-scope.js";
 import {assembleBuiltinWorld,selectBuiltinCountries} from "../shared/frontend/js/modules/builtin-world-loader.js";
 import {resolvePhysicalWaterObjects,composePhysicalWaterGeometry} from '../shared/frontend/js/modules/physical-resources.js';
-import {BUILTIN_SUBUNITS} from '../shared/frontend/js/modules/builtin-subunits.js';
+import {builtinSubunitId} from '../shared/frontend/js/modules/builtin-subunits.js';
+import {loadBuiltinDisplayPolicy} from './gis/builtin-display-policy.mjs';
 import {timelineObjectKey} from '../shared/frontend/js/modules/timeline-records.js';
 
 const defaultRoot=fileURLToPath(new URL('../',import.meta.url));
@@ -76,7 +77,7 @@ if(selectedIds){
  const known=new Set(index.entities.map(row=>row.entityId));
  if(countryIds.some(id=>!known.has(id)))throw Error('Unknown scoped mesh country');
  const mapping=new Map(index.sourceIdentities.flatMap(row=>row.sourceEntityIds.map(id=>[id,row.projectEntityId])));
- const subunits=new Map(BUILTIN_SUBUNITS.map(row=>[row.id,row.parentId])),neighbors=new Map();
+ const subunits=new Map(loadBuiltinDisplayPolicy().subunits.map(row=>[builtinSubunitId(row.sourceCountryId),row.parentId])),neighbors=new Map();
  for(const source of sourceIndex.entities){
   const child=mapping.get(source.entityId),parent=subunits.get(child)||mapping.get(source.parentEntityId)||source.parentEntityId;
   if(!child||!parent||child===parent)continue;
