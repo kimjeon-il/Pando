@@ -5,6 +5,7 @@ import { writeFileSync } from 'node:fs';
 import { isolatedTestWorkspace } from '../helpers/check-workspace-fixture.mjs';
 import { join } from 'node:path';
 import { collectChanges } from '../../scripts/lib/check-changes.mjs';
+import {planUnitTestBatches, UNIT_BATCH_LIMIT} from '../../scripts/lib/unit-test-batches.mjs';
 import { executePlan as executeCiPlan, executionOutputs, selectionRequest } from '../../scripts/run-application-checks.mjs';
 import * as runner from '../../scripts/run-application-checks.mjs';
 
@@ -228,4 +229,20 @@ test('execution CI outputs bound a nonempty browser matrix and keep native setup
   assert.equal(empty.non_browser, false);
   assert.equal(empty.browser, false);
   assert.deepEqual(empty.browser_matrix, { include: [] });
+});
+
+
+test('P3 full and affected unit entrypoints share stable prerequisite-bounded batches', () => {
+  const files = ['tests/unit/plain.test.mjs', 'tests/unit/native.test.mjs',
+    'tests/unit/again.test.mjs', 'tests/unit/isolate.test.mjs'];
+  const requirements = new Map([['tests/unit/native.test.mjs', ['native-map-image']]]);
+  const batches = planUnitTestBatches(files, {requirements,
+    isolation: name => name.endsWith('/isolate.test.mjs'), limit: 2});
+  assert.equal(UNIT_BATCH_LIMIT, 30);
+  assert.deepEqual(batches.map(row => row.files), [
+    ['tests/unit/plain.test.mjs','tests/unit/again.test.mjs'],
+    ['tests/unit/native.test.mjs'], ['tests/unit/isolate.test.mjs']]);
+  assert.deepEqual(batches.map(row => row.required), [[], ['native-map-image'], []]);
+  assert.equal(batches.at(-1).isolated, true);
+  assert.throws(() => planUnitTestBatches(files, {limit: 0}), /Invalid unit batch limit/);
 });

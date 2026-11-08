@@ -4,7 +4,7 @@ import { appendFileSync, writeFileSync, mkdtempSync,readFileSync,existsSync,rmSy
 import { resolve, join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { pathToFileURL } from 'node:url';
-import { requiresUnitIsolation } from './lib/unit-test-isolation.mjs';
+import { planUnitTestBatches } from './lib/unit-test-batches.mjs';
 import { collectChanges } from './lib/check-changes.mjs';
 import { loadRepository, planApplicationChecks } from './plan-application-checks.mjs';
 import {assertRemoteOnlyNativeAllowed} from './lib/remote-only-native-policy.mjs';
@@ -152,7 +152,7 @@ export function executePlan(plan, { repository, phase = 'all', shard = null, env
   if (phase !== 'browser' && plan.unitTests.length) {
     if (states.get('core') === false) results.push({ id: 'unit', status: 'blocked', reason: 'core prerequisite failed' });
     else {
-      const batches = new Map(), isolated = [];
+      const ready = [], requirements = new Map();
       for (const file of plan.unitTests) {
         const required = plan.unitTestPrerequisites?.[file] || [];
         const failed = required.filter(id => !prerequisite(id));
@@ -160,15 +160,11 @@ export function executePlan(plan, { repository, phase = 'all', shard = null, env
           results.push({ id: 'unit', files: [file], status: 'blocked', reason: 'prerequisite failed', prerequisites: failed });
           continue;
         }
-        if (requiresUnitIsolation(file)) { isolated.push({required, file}); continue; }
-        const key = JSON.stringify(required);
-        if (!batches.has(key)) batches.set(key, { required, files: [] });
-        batches.get(key).files.push(file);
+        ready.push(file);
+        requirements.set(file, required);
       }
-      for (const { required, files } of batches.values()) for (let at = 0; at < files.length; at += 30)
-        command('unit', ['node', '--test', '--test-concurrency=2', ...files.slice(at, at + 30)], required, environment(required));
-      for (const {required, file} of isolated)
-        command('unit', ['node', '--test', '--test-concurrency=2', file], required, environment(required));
+      for (const {required, files} of planUnitTestBatches(ready, {requirements}))
+        command('unit', ['node', '--test', '--test-concurrency=2', ...files], required, environment(required));
     }
   }
   if (phase !== 'non-browser' && plan.browserSpecs.length) {
