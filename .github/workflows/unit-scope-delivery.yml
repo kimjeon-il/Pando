@@ -102,5 +102,22 @@ jobs:
             printf '%s\n' "${staged[@]}" | grep -Fqx -- "$path"
           done
           git diff --cached --check
+          # The Actions token cannot update workflow files. Keep those files
+          # in the preserved recovery patch for separately authorized updates.
+          workflow_paths=()
+          for path in "${staged[@]}"; do
+            if [[ "$path" == .github/workflows/* ]]; then
+              workflow_paths+=("$path")
+            fi
+          done
+          if (( ${#workflow_paths[@]} )); then
+            printf 'Deferring workflow updates to authorized GitHub connector: %s\\n' "${workflow_paths[@]}"
+            git restore --staged -- "${workflow_paths[@]}"
+          fi
+          git diff --cached --check
+          if git diff --cached --quiet; then
+            echo 'No source changes remain to publish'
+            exit 1
+          fi
           git commit -m 'test: remove brittle and retired cases and consolidate feature suites'
           git push origin HEAD:refs/heads/work/optimization
