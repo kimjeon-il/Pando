@@ -33,6 +33,7 @@ jobs:
           git rev-parse HEAD > "$RUNNER_TEMP/ui-read-index/start"
           node tools/ui-read-index-integration.mjs
           node tools/ui-read-index-contracts.mjs
+          node tools/ui-read-index-corrections.mjs
           node --input-type=module -e "import {readLibraryDataFile} from './tools/data/library-context.mjs';readLibraryDataFile('assets/data/builtin-world/display-policy-v1.json',{fetch:true});"
           git diff --check
       - name: Verify temporal coverage, transport integrity, bounded reads and cancellation
