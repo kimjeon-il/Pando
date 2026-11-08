@@ -110,7 +110,7 @@ test('a verifier runs again after a different profile replaces its staged input'
 test('explicit manual coverage stays explicit while artifact auto dispatch stays affected-only', () => {
   const catalog = { groups: [{ id: 'units' }, { id: 'browser' }, { id: 'measurement', mode: 'manual' }],
     manualScopes: { focused: ['tests/browser/focused.spec.mjs'] }, remoteScopes: { p1: { ui: ['browser'] } } };
-  assert.deepEqual(selectionRequest(catalog, { GITHUB_EVENT_NAME: 'workflow_dispatch', BROWSER_SCOPE: 'default' }).groups, ['units', 'browser']);
+  assert.deepEqual(selectionRequest(catalog, { GITHUB_EVENT_NAME: 'workflow_dispatch', BROWSER_SCOPE: 'default' }), {groups:[],diff:true});
   assert.deepEqual(selectionRequest(catalog, { GITHUB_EVENT_NAME: 'workflow_dispatch', BROWSER_SCOPE: 'focused' }).specs, ['tests/browser/focused.spec.mjs']);
   assert.deepEqual(selectionRequest(catalog, { GITHUB_EVENT_NAME: 'workflow_dispatch', CHECK_PROFILE: 'p1', CHECK_SCOPE: 'ui' }).groups, ['browser']);
   assert.equal(selectionRequest(catalog, { GITHUB_EVENT_NAME: 'workflow_dispatch', CHECK_PROFILE: 'p3', CHECK_SCOPE: 'auto' }).diff, true);
@@ -215,7 +215,7 @@ test('execution CI outputs bound a nonempty browser matrix and keep native setup
   for (const count of [0, 1, 2, 4, 5, 8, 9]) {
     const selected = { ...plan, browserSpecs: plan.browserSpecs.slice(0, count) };
     const outputs = runner.executionOutputs(selected, { repository });
-    const total = Math.min(8, count);
+    const total = Math.min(8, Math.ceil(count / 4));
     assert.equal(outputs.browser, count > 0);
     assert.equal(outputs.non_browser, true);
     assert.equal(outputs.browser_count, count);

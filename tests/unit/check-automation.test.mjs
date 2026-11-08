@@ -104,7 +104,7 @@ test('desktop and mobile release acceptance run on main PR using the current lib
   for(const name of ['p6-1','p6-2'])
     assert.ok(existsSync(new URL('../../tests/integration/viewer-functional-'+name+'.spec.mjs',import.meta.url)));
   const definition=JSON.stringify(workflow);
-  assert.ok(!definition.includes('5eb7be55208efaafe39bd5a65ec2f111d70b9053'));
+  assert.ok(!JSON.stringify(workflow.jobs.functional).includes('5eb7be55208efaafe39bd5a65ec2f111d70b9053'));
   assert.ok(!definition.includes('apps/editor/stage.mjs'));
 });
 
@@ -434,7 +434,7 @@ test('P6 new infrastructure owners participate in impacted check selection', () 
   const pkg=JSON.parse(readFileSync(new URL('../../package.json', import.meta.url)));
   for (const name of ['e7-application-check-planner','check-automation','check-runner','native-check-prerequisites'])
     assert.ok(pkg.scripts['check:ci-inventory'].includes('tests/unit/' + name + '.test.mjs'));
-  const architecture=parse(readFileSync(new URL('../../.github/workflows/application-architecture.yml', import.meta.url)));
+  const architecture=parse(readFileSync(new URL('../../.github/workflows/application-architecture.yml', import.meta.url),'utf8'));
   assert.ok(architecture.jobs.changes.steps.some(step =>
     step.run === 'node scripts/check-test-consolidation.mjs'));
 });

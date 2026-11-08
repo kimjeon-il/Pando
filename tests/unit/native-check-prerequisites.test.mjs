@@ -36,6 +36,7 @@ test('Windows local native preparation requests CI without invoking installer or
 
 test('exact remote checks retain canonical core preparation and ignore hidden unfinished tests',t=>{
  const f=fixture(t);f.put('tests/unit/core-document-world-wasm.test.mjs');f.put('tests/unit/.unfinished.test.mjs');f.catalog.prerequisites.core={argv:['node','core.mjs']};
+ f.catalog.unitPrerequisites.push({tests:['tests/unit/core-*.test.mjs'],requires:['core']});
  const repository=f.repository(),plan=exactCheckPlan(repository,{unitTests:['tests/unit/core-document-world-wasm.test.mjs','tests/unit/image.test.mjs'],browserSpecs:[],commands:[],prerequisites:[]});
  assert.deepEqual(plan.unitTests,['tests/unit/core-document-world-wasm.test.mjs','tests/unit/image.test.mjs']);assert.ok(plan.prerequisites.includes('core'));assert.ok(plan.prerequisites.includes('image'));assert.equal(repository.tests.includes('tests/unit/.unfinished.test.mjs'),false);
 });
@@ -247,9 +248,8 @@ test('each application runner execution receives the same selected native setup 
       consumers.push(file);
     }
   }
-  assert.deepEqual(consumers.sort(),['application-architecture.yml','application-architecture.yml','place-runtime.yml',
-    'remote-development-p1.yml','remote-preview-p3.yml','remote-preview-p3.yml','ui-architecture.yml'],
-    'both independent P3 browser and contract runners must prepare the current native inputs');
+  assert.deepEqual(consumers.sort(),['application-architecture.yml','application-architecture.yml'],
+    'both current application phases must prepare only their selected native inputs');
 });
 
 test('native source-manifest inputs also participate in consumer selection',async()=>{

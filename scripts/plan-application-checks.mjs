@@ -275,7 +275,7 @@ export function planApplicationChecks({ changedFiles = [], repository, groups: r
     const inputs = inputsFor(group);
     const command = group.kind === 'command';
     const groupReasons = [...new Set([
-      ...(command ? inputs.flatMap(file => affected(file)) : []),
+      ...inputs.flatMap(file => affected(file)),
       ...changed.filter(file => matches(file, group.inputs) &&
         (command || !/\.[cm]?js$/.test(file) || !directConsumers.get(file)?.has(group.id))),
     ])];
