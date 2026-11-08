@@ -12,7 +12,6 @@ on:
       - 'tests/helpers/web-*-contract.mjs'
       - 'tests/helpers/web-oracle.mjs'
       - 'tests/unit/builtin-resource-*.test.mjs'
-      - 'tests/helpers/web-removal-oracle.mjs'
       - 'tests/helpers/web-hydro-create-oracle.mjs'
       - 'tests/helpers/web-hydro-hidden-oracle.mjs'
       - 'tests/helpers/gis-core-fixture.mjs'
@@ -51,7 +50,6 @@ on:
       - 'tests/helpers/core-*.mjs'
       - 'tests/helpers/web-*-contract.mjs'
       - 'tests/helpers/web-oracle.mjs'
-      - 'tests/helpers/web-removal-oracle.mjs'
       - 'tests/helpers/web-hydro-create-oracle.mjs'
       - 'tests/helpers/web-hydro-hidden-oracle.mjs'
       - 'tests/helpers/gis-core-fixture.mjs'
@@ -343,11 +341,8 @@ jobs:
           tests/unit/core-save-state-projection.test.mjs
           tests/unit/core-draft-primitives.test.mjs
           tests/unit/timeline-controls.test.mjs tests/unit/shared-core-assets.test.mjs
-          tests/unit/web-document-seed.test.mjs
            tests/unit/core-worker-ownership.test.mjs
           tests/unit/web-oracle-admission.test.mjs
-          tests/unit/web-map-presentation-contract.test.mjs
-          tests/unit/web-object-removal-original.test.mjs
       - name: Ordered storage snapshot and project replacement boundaries
         env:
           PANDOEDITOR_WASM_MODULE: build-native/p1/pando-wasm/shared/wasm/pandoeditor-core.js

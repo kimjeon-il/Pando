@@ -99,3 +99,29 @@ Confirmed blocker classes from job logs:
 5. **Other failures:** stale territorial index, GIS historical fixtures and additional generated-world/Native/GPKG cases are not certified as resolved by the preceding changes.
 
 Corrective source commits were applied after the failing run; the latest full CI must be read independently. Do not claim the suite passed until the new run is complete and all selected jobs succeed.
+
+
+## Active-test pruning review (after the 616-identity gate removal)
+
+The historical requirement to preserve every original suite was retired. The
+original `unit-contract-identities.json`, GIS basename remap, original-name
+selection alias and marker-only contract audit were removed.
+
+Reviewed concrete test bodies and retired six low-value unit entrypoints:
+
+- `web-document-seed`: only reasserted a fixture's collection presence and
+  immutability; current project serialization and Core tests cover the behavior.
+- `web-map-presentation-contract` and `web-object-removal-original`:
+  frozen, historical Web oracle behaviors rather than active Viewer semantics;
+  their dedicated helper modules and explicit Shared Core workflow calls retired.
+- `platform-portability`: fixed 14-sample count was not real cross-platform parity.
+- `compiler-deactivation`: old compiler cache deactivation is covered by the
+  current remote-only-native and worktree-storage ownership tests.
+- `large-data-layout`: legacy-layout equality and ad hoc scan benchmark are
+  superseded by actual label-layout contracts and performance verification.
+
+Retained after source review: the hydro fingerprint and geometry-version cache
+cases, native LSIB independent evidence, read-only GPKG attachment rejection,
+Native/Core command-ownership failures, DEM path security, and native source
+sampling cases. The deletion policy is evidence-based, not a fixed target count.
+This is source editing only: no unit, browser, Native or CI tests were executed.
