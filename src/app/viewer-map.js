@@ -34,6 +34,7 @@ import { normalizeMapSurfaceDragDelta,MAP_HOST_KINDS } from "../ui/map-host.js";
 import { createMapInputController } from "../map/map-input-controller.js";
 import { createMapVisualFrame } from "../rendering/map-visual-frame.js";
 import { createRenderSceneBuilder } from "../rendering/render-scene.js";
+import { builtinMeshMatchesScene } from '../rendering/country-mesh-content-key.js';
 import { resolveMapTheme } from "../ui/map-theme.js";
 import { createTerritorialEntityRepository } from "../document/territorial-entity-repository.js";
 import { normalizeLayerPresentation } from "../ui/layer-presentation.js";
@@ -276,7 +277,30 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
     if(rootGeometryDirty||renderer.getRuntimeState().projectRenderBlocked){
       rootGeometryDirty=false;
       try {
-        const built=await renderQuality.prepareCanonicalMesh({features:rootFeatures,reason:'document-mesh'});
+        // A generated mesh is only safe for the exact ordered source geometry.
+        // Historical scopes usually differ from the modern world baseline.
+        const source= session.documentModel.snapshot().projectSetup?.sourceMode;
+        const store=builtinSession.canonicalCountryStore;
+        const slotIds=store?.ids?.() || [];
+        const canUseBaseline=source==='builtin'
+          && ['webgl1','webgl2'].includes(renderer.getRuntimeState().renderer)
+          && builtinMeshMatchesScene({slotIds,features:rootFeatures,
+            geometryEquals:(id,geometry)=>store.geometryEquals(id,geometry)});
+        let built;
+        if(canUseBaseline){
+          const projectGeneration=renderer.getProjectGeneration();
+          const loaded=await renderer.ensureBuiltinMeshBaseline(slotIds);
+          if(generation!==updateGeneration)return;
+          if(!loaded)throw new Error('확인된 내장 메시를 불러오지 못했습니다.');
+          built=await renderer.activateBuiltinMeshBaseline({projectGeneration,
+            onStaged:()=>renderingDomain.invalidateProject('built-in-mesh-staged')});
+          if(built){
+            renderQuality.applyAdaptiveRenderQuality({refreshScene:false,reason:'built-in-mesh-ready'});
+            renderingDomain.invalidateProject('built-in-mesh-ready');
+          }
+        }else{
+          built=await renderQuality.prepareCanonicalMesh({features:rootFeatures,reason:'document-mesh'});
+        }
         if(generation===updateGeneration&&built===false)throw new Error('지도 형상을 표시하지 못했습니다.');
       } catch(error){rootGeometryDirty=true;throw error;}
     }
