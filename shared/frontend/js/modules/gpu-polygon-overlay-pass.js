@@ -193,6 +193,27 @@ export function createGpuPolygonOverlayPass({ onError = null, onResourceReady = 
     return setGpuViewUniforms(gl, { frameContext, worldOffset, getLocation: name => programInfo.uniforms[name] });
   }
 
+  // A shared draw submission is independent of base-vs-interaction admission.
+  function submitPolygon(resource,style,blendMode,frameContext,{claimTransparent=true}={}) {
+    const [red,green,blue]=parseGpuColor(style.color);
+    const alpha=Math.max(0,Math.min(1,Number(style.fillAlpha??style.alpha??1)));
+    if(alpha<=0&&!claimTransparent)return;
+    applyGpuBlendMode(gl,blendMode);
+    const rgbAlpha=blendMode==='multiply'?alpha:1;
+    gl.uniform4f(programInfo.uniforms.uColor,red*rgbAlpha,green*rgbAlpha,blue*rgbAlpha,alpha);
+    gl.bindBuffer(gl.ARRAY_BUFFER,resource.positionBuffer);
+    gl.enableVertexAttribArray(programInfo.coord);
+    try {
+      gl.vertexAttribPointer(programInfo.coord,2,gl.FLOAT,false,0,0);
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,resource.indexBuffer);
+      for(const worldOffset of frameContext.worldOffsets||[0]){
+        setViewUniforms(frameContext,worldOffset);
+        gl.drawElements(gl.TRIANGLES,resource.indexCount,gl.UNSIGNED_INT,0);
+        drawCallCount++;
+      }
+    } finally { gl.disableVertexAttribArray(programInfo.coord); }
+  }
+
   function drawPackets(packets = [], frameContext, { styleByKey = null, claimTransparent = false, preparedOnly = false } = {}) {
     const started = performance.now();
     drawCount += 1;
@@ -216,25 +237,7 @@ export function createGpuPolygonOverlayPass({ onError = null, onResourceReady = 
       try {
         resourceBudget.touch(key, packet?.priority);
         const style = styleByKey?.get?.(key) || packet.style || {};
-        const [red, green, blue] = parseGpuColor(style.color);
-        const alpha = Math.max(0, Math.min(1, Number(style.fillAlpha ?? style.alpha ?? 1)));
-        if (alpha <= 0 && !claimTransparent) {
-          if (key) renderedKeys.push(key);
-          continue;
-        }
-        applyGpuBlendMode(gl, packet.blendMode || style.blendMode);
-        const rgbAlpha = (packet.blendMode || style.blendMode) === 'multiply' ? alpha : 1;
-        gl.uniform4f(programInfo.uniforms.uColor, red * rgbAlpha, green * rgbAlpha, blue * rgbAlpha, alpha);
-        gl.bindBuffer(gl.ARRAY_BUFFER, resource.positionBuffer);
-        gl.enableVertexAttribArray(programInfo.coord);
-        gl.vertexAttribPointer(programInfo.coord, 2, gl.FLOAT, false, 0, 0);
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, resource.indexBuffer);
-        for (const worldOffset of frameContext.worldOffsets || [0]) {
-          setViewUniforms(frameContext, worldOffset);
-          gl.drawElements(gl.TRIANGLES, resource.indexCount, gl.UNSIGNED_INT, 0);
-          drawCallCount += 1;
-        }
-        gl.disableVertexAttribArray(programInfo.coord);
+        submitPolygon(resource,style,packet.blendMode||style.blendMode,frameContext,{claimTransparent});
         if (key) renderedKeys.push(key);
       } catch (error) {
         if (key) missingKeys.push(key);
@@ -275,21 +278,7 @@ export function createGpuPolygonOverlayPass({ onError = null, onResourceReady = 
       try {
         resourceBudget.touch(key, item?.priority);
         const style = item.style || {};
-        const [red, green, blue] = parseGpuColor(style.color);
-        const alpha = Math.max(0, Math.min(1, Number(style.fillAlpha ?? style.alpha ?? 1)));
-        applyGpuBlendMode(gl, item.blendMode || style.blendMode);
-        const rgbAlpha = (item.blendMode || style.blendMode) === 'multiply' ? alpha : 1;
-        gl.uniform4f(programInfo.uniforms.uColor, red * rgbAlpha, green * rgbAlpha, blue * rgbAlpha, alpha);
-        gl.bindBuffer(gl.ARRAY_BUFFER, resource.positionBuffer);
-        gl.enableVertexAttribArray(programInfo.coord);
-        gl.vertexAttribPointer(programInfo.coord, 2, gl.FLOAT, false, 0, 0);
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, resource.indexBuffer);
-        for (const worldOffset of frameContext.worldOffsets || [0]) {
-          setViewUniforms(frameContext, worldOffset);
-          gl.drawElements(gl.TRIANGLES, resource.indexCount, gl.UNSIGNED_INT, 0);
-          drawCallCount += 1;
-        }
-        gl.disableVertexAttribArray(programInfo.coord);
+        submitPolygon(resource,style,item.blendMode||style.blendMode,frameContext);
         if (key) renderedKeys.push(key);
       } catch (error) {
         if (key) missingKeys.push(key);
