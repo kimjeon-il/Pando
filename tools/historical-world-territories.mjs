@@ -1,4 +1,5 @@
 import "../shared/frontend/js/vendor/polygon-clipping.min.js";
+import {createHash} from 'node:crypto';
 import './load-spherical-core.mjs';
 import "../shared/frontend/js/modules/polygon-geometry.js";
 import {area as polygonArea} from '../shared/frontend/js/modules/map-edit-geometry.js';
@@ -14,8 +15,12 @@ export const historicalWorldClipper = Object.freeze(Object.fromEntries(
 // Geometry versions are immutable; one compilation owns and releases this
 // in-memory cache. Dates, policy decisions and precision budgets remain local
 // to each adjustment call.
+const subtractionCertificates=new WeakMap();
 export function createHistoricalTerritoryCache(clipper=historicalWorldClipper){
-  return {clipper,wrapped:new WeakMap(),areas:new WeakMap(),keys:new WeakMap(),nextKey:0,operations:new Map()};
+  const cache={clipper,wrapped:new WeakMap(),areas:new WeakMap(),keys:new WeakMap(),nextKey:0,operations:new Map()};
+  // Certificates are private, not caller-editable cache annotations.
+  subtractionCertificates.set(cache,{links:new WeakMap(),snapshots:new WeakMap(),recoveries:new Map()});
+  return cache;
 }
 function intersects(a, b) {
   const left = normalizeTemporalInterval(a.validFrom, a.validTo), right = normalizeTemporalInterval(b.validFrom, b.validTo);
@@ -32,6 +37,31 @@ export function adjustHistoricalTerritories(input, policy, clipper = historicalW
     if (!wrapped.has(geometry)) wrapped.set(geometry, globalThis.PandoLabPolygonGeometry.wrapPolygonGeometry(geometry, clipper));
     const value = wrapped.get(geometry);
     return value.type === 'Polygon' ? [value.coordinates] : value.coordinates;
+  };
+  const certificates=subtractionCertificates.get(cache);
+  const fingerprint=value=>createHash('sha256').update(JSON.stringify(value)).digest('hex');
+  const capture=(geometry,value)=>{
+    if(!certificates)return null;
+    if(!certificates.snapshots.has(geometry)){
+      try{
+        certificates.snapshots.set(geometry,Object.freeze({geometry,
+          sha256:fingerprint(geometry),coordinatesSha256:fingerprint(value||coordinates(geometry))}));
+      }catch{return null;}
+    }
+    return certificates.snapshots.get(geometry);
+  };
+  const validateSnapshots=snapshots=>{
+    try{
+      for(const snapshot of snapshots)if(!snapshot||fingerprint(snapshot.geometry)!==snapshot.sha256
+          ||fingerprint(coordinates(snapshot.geometry))!==snapshot.coordinatesSha256)return 'mutated geometry certificate';
+    }catch{return 'uncertain geometry certificate';}
+    return '';
+  };
+  const booleanFailure=(error,operation,inputs,rejected='')=>{
+    const failure=new Error('HISTORICAL_CLIP_BOOLEAN_FAILED: '+operation+
+      ': operandComponents='+inputs.map(value=>value.length).join(',')+': '+error.message,{cause:error});
+    if(rejected)failure.recoveryRejected=rejected;
+    return failure;
   };
   const owners = new WeakMap(input.filter(row => row.geometry).map(row => [row.geometry, row.entityId]));
   const owner = geometry => owners.get(geometry) || 'intermediate';
@@ -149,8 +179,23 @@ export function adjustHistoricalTerritories(input, policy, clipper = historicalW
   const evaluate=(name,geometries,operation)=>{
     const ids=geometries.map(geometry=>{if(!cache.keys.has(geometry))cache.keys.set(geometry,++cache.nextKey);return cache.keys.get(geometry);});
     const key=JSON.stringify([name,ids,operation]),previous=cache.operations.get(key);
-    if(previous){for(const row of previous.precision)recordPrecision(row);return previous.geometry;}
-    const offset=adjustments.length,inputs=geometries.map(coordinates);
+    if(previous){
+      const recovery=certificates?.recoveries.get(key);
+      if(recovery){
+        const rejected=recovery.entry!==previous||previous.geometry!==null
+          ||recovery.operands.some((geometry,index)=>geometry!==geometries[index])
+          ?'uncertain cached certificate':validateSnapshots(recovery.snapshots);
+        if(rejected)throw booleanFailure(recovery.error,operation,geometries.map(coordinates),rejected);
+      }
+      for(const row of previous.precision)recordPrecision(row);
+      if(recovery)adjustments.push(structuredClone(recovery.audit));
+      return previous.geometry;
+    }
+    const offset=adjustments.length,precisionOffset=discardedPrecisionComponents,inputs=geometries.map(coordinates);
+    // Capture each participating geometry once, before subtraction. Recheck
+    // fingerprints only on the rare recovery path or a recovered cache hit.
+    const sourceSnapshots=name==='difference'?geometries.map((geometry,index)=>capture(geometry,inputs[index])):null;
+    let recovery;
     let raw;
     try {
       // Multiple cutters are independent set subtractions. Never combine
@@ -160,13 +205,82 @@ export function adjustHistoricalTerritories(input, policy, clipper = historicalW
         && (inputs[1].length>1 || inputs[0].length>1);
       raw=complexDifference?componentDifference(inputs[0],inputs[1],operation):clipper[name](...inputs);
     }catch(error){
+      // A validated difference is a subset of its left operand and excludes
+      // its exact right operand. Preserve only zero-discard subtraction
+      // identities; clones, unions and other operations cannot borrow them.
+      // These set witnesses resolve an empty intersection without trusting a
+      // failed sweep of derived edges or manufacturing replacement geometry.
+      let provenEmpty=false,rejected='';
+      if(name==='intersection'&&geometries.length===2
+          &&error.message==='Unable to complete output ring'
+          &&error.code!=='HISTORICAL_CLIP_PRECISION_BUDGET_EXCEEDED'
+          &&discardedPrecisionComponents===precisionOffset&&certificates){
+        const snapshots=new Set(),links=new Set();
+        const trace=geometry=>{
+          const seen=new Set(),chain=[];
+          while(certificates.links.has(geometry)){
+            if(seen.has(geometry)){rejected='cyclic subtraction certificate';break;}
+            if(chain.length>=64){rejected='subtraction certificate depth limit';break;}
+            seen.add(geometry);
+            const link=certificates.links.get(geometry);
+            if(link.result.geometry!==geometry){rejected='uncertain subtraction certificate';break;}
+            for(const snapshot of [link.result,link.left,link.right])snapshots.add(snapshot);
+            chain.push(link);links.add(link);geometry=link.left.geometry;
+          }
+          return {ancestor:geometry,chain};
+        };
+        const traces=geometries.map(trace);
+        const operandSnapshots=geometries.map((geometry,index)=>capture(geometry,inputs[index]));
+        operandSnapshots.forEach(snapshot=>snapshots.add(snapshot));
+        rejected||=validateSnapshots(snapshots);
+        let method='exact-subtraction-cutter';
+        if(!rejected)provenEmpty=traces.some((trace,index)=>trace.chain.some(link=>link.right.geometry===geometries[1-index]));
+        if(!rejected&&!provenEmpty){
+          const ancestors=traces.map(trace=>trace.ancestor);
+          if(ancestors.some((geometry,index)=>geometry!==geometries[index])){
+            try{
+              // Accept only an actually empty native result. A nonempty raw
+              // artifact is not evidence, and a failed witness keeps the
+              // original operation failed. No normalization or retry follows.
+              const witness=clipper.intersection(...ancestors.map(coordinates));
+              provenEmpty=Array.isArray(witness)&&witness.length===0;
+              method='native-empty-ancestor';
+            }catch{/* The original failure below remains authoritative. */}
+          }
+        }
+        // A custom clipper must not mutate an operand while producing its
+        // witness. Recheck before accepting the proof as well as on reuse.
+        if(provenEmpty){rejected=validateSnapshots(snapshots);provenEmpty=!rejected;}
+        if(provenEmpty){
+          const relation=operation.slice(operation.indexOf(' ')+1).split(' / ');
+          const audit={entityId:relation[0],kind:'certified-empty-intersection-recovery',relatedIds:[relation[1]],operation,
+            nativeError:{message:error.message,code:error.code||null},
+            proof:{method,operandSha256:operandSnapshots.map(snapshot=>snapshot.sha256),
+              ancestorSha256:traces.map(trace=>capture(trace.ancestor).sha256),
+              subtractionDepths:traces.map(trace=>trace.chain.length),precisionDiscardCount:0,
+              nativeWitnessComponents:method==='native-empty-ancestor'?0:null,
+              certificates:[...links].map(link=>({resultSha256:link.result.sha256,leftSha256:link.left.sha256,rightSha256:link.right.sha256}))}};
+          recovery={operands:geometries.slice(),snapshots:[...snapshots],audit,error};
+          adjustments.push(structuredClone(audit));
+        }
+      }
+      if(provenEmpty)raw=[];
+      else{
       // Input dimensions identify the minimal failing source pair without
       // logging private geometry or converting a Boolean failure to an empty map.
-      throw new Error('HISTORICAL_CLIP_BOOLEAN_FAILED: '+operation+
-        ': operandComponents='+inputs.map(value=>value.length).join(',')+': '+error.message,{cause:error});
+        throw booleanFailure(error,operation,inputs,rejected);
+      }
     }
     const geometry=shape(raw,operation);
-    cache.operations.set(key,{geometry,precision:adjustments.slice(offset)});
+    if(name==='difference'&&geometries.length===2&&geometry&&geometry!==geometries[0]
+        &&discardedPrecisionComponents===precisionOffset&&sourceSnapshots.every(Boolean)){
+      const result=capture(geometry);
+      if(result)certificates.links.set(geometry,Object.freeze({result,left:sourceSnapshots[0],right:sourceSnapshots[1]}));
+    }
+    const entry={geometry,precision:adjustments.slice(offset).filter(row=>row.kind==='certified-clipping-precision-artifact')};
+    cache.operations.set(key,entry);
+    if(recovery)certificates.recoveries.set(key,{...recovery,entry});
+    else certificates?.recoveries.delete(key);
     return geometry;
   };
   const intersection = (a, b) => evaluate('intersection',[a,b],`intersection ${owner(a)} / ${owner(b)}`);

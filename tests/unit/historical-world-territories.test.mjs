@@ -8,6 +8,238 @@ const module = await import('../../tools/historical-world-territories.mjs').catc
 const box = (left, right) => ({ type: 'Polygon', coordinates: [[[left, 0], [right, 0], [right, 2], [left, 2], [left, 0]]] });
 const candidate = (entityId, left, right, parentId = '') => ({ entityId, parentId, geometry: box(left, right), validFrom: '1991-09-02', validTo: '1991-12-25', currentSnapshot: false });
 const policy = { schemaVersion: 1, unknownPeerOverlap: 'exclude-from-all', replacements: [] };
+
+// Inject only the observed native ring error. All geometry operations and
+// expected set relationships still use the actual native Core.
+function subtractionWitnessFixture({external=null,precision=false,error='Unable to complete output ring',witness='native'}={}){
+ const rows=[candidate('parent',0,10),candidate('cutter',4,12)];
+ if(external)rows.push(candidate('external',...external));
+ const rules={...policy,replacements:[{targetEntityId:'parent',priorityEntityId:'cutter',validFrom:'1991-01-01',validTo:'1992-01-01'}]};
+ const range=value=>{const xs=value.flat(2).map(point=>point[0]);return [Math.min(...xs),Math.max(...xs)];};
+ const has=(operands,bounds)=>operands.some(value=>JSON.stringify(range(value))===JSON.stringify(bounds));
+ const calls={failures:0,witnesses:0,differences:0};
+ const artifact=[[46.798053,39.097382],[46.803617228283514,39.10088708625098],[46.80361722811995,39.10088708614795],[46.798053,39.097382]];
+ const clipper={...module.historicalWorldClipper,
+  difference:(...args)=>{
+   calls.differences++;
+   const result=module.historicalWorldClipper.difference(...args);
+   return precision?[...result,[artifact]]:result;
+  },
+  intersection:(...args)=>{
+   if(has(args,[0,4])&&has(args,external||[4,12])){calls.failures++;throw typeof error==='string'?new Error(error):error;}
+   if(external&&has(args,[0,10])&&has(args,external)){
+    calls.witnesses++;
+    if(witness==='throws')throw new Error('ancestor witness failed');
+    if(witness==='artifact')return [[artifact]];
+    if(witness==='malformed')return {length:0};
+    if(witness==='empty-string')return '';
+   }
+   return module.historicalWorldClipper.intersection(...args);
+  },
+ };
+ return {rows,rules,clipper,calls};
+}
+
+test('subtraction witness recovers a ring intersection only for the exact prior cutter object',()=>{
+ const {rows,rules,clipper,calls}=subtractionWitnessFixture(),before=structuredClone(rows);
+ const result=module.adjustHistoricalTerritories(rows,rules,clipper);
+ assert.equal(calls.failures,1);
+ assert.deepEqual(module.historicalWorldClipper.xor([result.candidates.find(r=>r.entityId==='parent').geometry.coordinates],[box(0,4).coordinates]),[]);
+ assert.equal(result.adjustments.filter(r=>r.kind==='certified-clipping-precision-artifact').length,0);
+ assert.deepEqual(rows,before);
+});
+
+test('subtraction witness requires an actually empty native ancestor intersection',()=>{
+ const {rows,rules,clipper,calls}=subtractionWitnessFixture({external:[20,22]});
+ const result=module.adjustHistoricalTerritories(rows,rules,clipper);
+ assert.equal(calls.failures,1);assert.equal(calls.witnesses,1);
+ assert.deepEqual(module.historicalWorldClipper.xor([result.candidates.find(r=>r.entityId==='parent').geometry.coordinates],[box(0,4).coordinates]),[]);
+ assert.deepEqual(result.candidates.find(r=>r.entityId==='external').geometry,box(20,22));
+});
+
+test('subtraction witness fails closed for overlapping, failed or precision-only ancestor results',()=>{
+ for(const options of [{external:[2,3]},{external:[20,22],witness:'throws'},{external:[20,22],witness:'artifact'}]){
+  const {rows,rules,clipper,calls}=subtractionWitnessFixture(options);
+  assert.throws(()=>module.adjustHistoricalTerritories(rows,rules,clipper),error=>{
+   assert.match(error.message,/HISTORICAL_CLIP_BOOLEAN_FAILED: intersection/);
+   assert.equal(error.cause.message,'Unable to complete output ring');return true;
+  });
+  assert.equal(calls.witnesses,1);
+ }
+});
+
+test('subtraction witness cannot cross a precision-discard difference or recover unrelated errors',()=>{
+ for(const options of [{precision:true},{error:'unrelated clipping failure'}]){
+  const {rows,rules,clipper}=subtractionWitnessFixture(options);
+  assert.throws(()=>module.adjustHistoricalTerritories(rows,rules,clipper),new RegExp(options.error||'Unable to complete output ring'));
+ }
+});
+
+test('subtraction witness keeps cached positive precision evidence ineligible on later date cuts',()=>{
+ const {rows,rules,clipper,calls}=subtractionWitnessFixture({precision:true});
+ const cache=module.createHistoricalTerritoryCache(clipper);
+ assert.throws(()=>module.adjustHistoricalTerritories(rows,rules,clipper,cache),/Unable to complete output ring/);
+ const differences=calls.differences;
+ const evidence=[...cache.operations.values()].flatMap(value=>value.precision);
+ assert.equal(evidence.length,1);assert.ok(evidence[0].areaM2>0);
+ const later=rows.map(r=>({...r,validFrom:'1991-10-01',validTo:'1991-10-31'}));
+ assert.throws(()=>module.adjustHistoricalTerritories(later,rules,clipper,cache),/Unable to complete output ring/);
+ assert.equal(calls.differences,differences,'this rejection must exercise the cached difference');
+ assert.deepEqual([...cache.operations.values()].flatMap(value=>value.precision),evidence);
+});
+
+test('subtraction witness does not infer identity from clones, normalization or union outputs',()=>{
+ const {rows,rules,clipper}=subtractionWitnessFixture();
+ const cache=module.createHistoricalTerritoryCache(clipper);
+ const result=module.adjustHistoricalTerritories(rows,rules,clipper,cache);
+ const derived=result.candidates.find(r=>r.entityId==='parent'),cutter=rows[1];
+ const normalized=globalThis.PandoLabPolygonGeometry.normalizeClippedPolygonGeometry([derived.geometry.coordinates]);
+ const union=globalThis.PandoLabPolygonGeometry.normalizeClippedPolygonGeometry(module.historicalWorldClipper.union([derived.geometry.coordinates]));
+ for(const [left,right] of [
+  [derived,{...cutter,geometry:structuredClone(cutter.geometry)}],
+  [{...derived,geometry:structuredClone(derived.geometry)},cutter],
+  [{...derived,geometry:normalized},cutter],
+  [{...derived,geometry:union},cutter],
+ ])assert.throws(()=>module.adjustHistoricalTerritories([left,right],policy,clipper,cache),/Unable to complete output ring/);
+});
+
+test('subtraction witness follows exact zero-discard chains and reuses cached proofs across date cuts',()=>{
+ const {rows,rules,clipper,calls}=subtractionWitnessFixture();
+ rows[1].entityId='a-cutter';rules.replacements[0].priorityEntityId='a-cutter';
+ rows.push(candidate('b-cutter',1,2));
+ rules.replacements.push({...rules.replacements[0],priorityEntityId:'b-cutter'});
+ const cache=module.createHistoricalTerritoryCache(clipper),before=structuredClone(rows);
+ const first=module.adjustHistoricalTerritories(rows,rules,clipper,cache),failures=calls.failures;
+ assert.equal(failures,1);
+ const derived=first.candidates.find(r=>r.entityId==='parent');
+ assert.equal(owns(first,'parent',0.5),true);assert.equal(owns(first,'parent',1.5),false);
+ assert.equal(owns(first,'parent',3),true);assert.equal(owns(first,'parent',6),false);
+ const later=rows.map(r=>({...r,validFrom:'1991-10-01',validTo:'1991-10-31'}));
+ const second=module.adjustHistoricalTerritories(later,rules,clipper,cache);
+ assert.equal(calls.failures,failures,'cached successful proof must not repeat the failed native sweep');
+ assert.strictEqual(second.candidates.find(r=>r.entityId==='parent').geometry,derived.geometry);
+ assert.deepEqual(second.adjustments,first.adjustments);
+ assert.equal(second.candidates[0].validFrom,'1991-10-01');assert.deepEqual(rows,before);
+});
+
+test('subtraction witness recovery audit replays separately from precision and cannot be mutated by callers',()=>{
+ const {rows,rules,clipper}=subtractionWitnessFixture();
+ const cache=module.createHistoricalTerritoryCache(clipper);
+ const first=module.adjustHistoricalTerritories(rows,rules,clipper,cache);
+ const audit=first.adjustments.find(r=>r.kind==='certified-empty-intersection-recovery');
+ assert.ok(audit);assert.equal(audit.proof.method,'exact-subtraction-cutter');
+ assert.deepEqual(audit.proof.subtractionDepths,[0,1]);
+ assert.equal(audit.proof.precisionDiscardCount,0);
+ assert.equal(audit.nativeError.message,'Unable to complete output ring');
+ const before=structuredClone(audit);audit.proof.method='caller mutation';
+ const second=module.adjustHistoricalTerritories(rows,rules,clipper,cache);
+ assert.deepEqual(second.adjustments.find(r=>r.kind==='certified-empty-intersection-recovery'),before);
+ assert.equal([...cache.operations.values()].flatMap(r=>r.precision).length,0);
+});
+
+test('subtraction witness audit is identical after unrelated cache warmup',()=>{
+ const {rows,rules,clipper}=subtractionWitnessFixture();
+ const fresh=module.createHistoricalTerritoryCache(clipper),warm=module.createHistoricalTerritoryCache(clipper);
+ module.adjustHistoricalTerritories([candidate('unrelated-x',20,22),candidate('unrelated-y',24,26)],policy,clipper,warm);
+ const audits=cache=>module.adjustHistoricalTerritories(rows,rules,clipper,cache).adjustments.filter(r=>r.kind==='certified-empty-intersection-recovery');
+ assert.equal(JSON.stringify(audits(warm)),JSON.stringify(audits(fresh)));
+});
+
+test('subtraction witness audit does not spend the ten-artifact precision budget on cached replay',()=>{
+ const {rows,rules,clipper}=subtractionWitnessFixture(),intersection=clipper.intersection;
+ const artifact=[[46.798053,39.097382],[46.803617228283514,39.10088708625098],[46.80361722811995,39.10088708614795],[46.798053,39.097382]];
+ let emitted=false;
+ clipper.intersection=(...args)=>{
+  const raw=intersection(...args);
+  if(!emitted&&raw.length){emitted=true;return [...raw,...Array.from({length:10},()=>[structuredClone(artifact)])];}
+  return raw;
+ };
+ const cache=module.createHistoricalTerritoryCache(clipper);
+ const first=module.adjustHistoricalTerritories(rows,rules,clipper,cache);
+ const second=module.adjustHistoricalTerritories(rows,rules,clipper,cache);
+ for(const result of [first,second]){
+  assert.equal(result.adjustments.filter(r=>r.kind==='certified-clipping-precision-artifact').length,10);
+  assert.equal(result.adjustments.filter(r=>r.kind==='certified-empty-intersection-recovery').length,1);
+ }
+ assert.deepEqual(second.adjustments,first.adjustments);
+});
+
+test('subtraction witness rejects mutated result, ancestor or cutter on recovery and cached reuse',()=>{
+ for(const reuseCache of [true,false])for(const part of ['result','ancestor','cutter']){
+  const {rows,rules,clipper}=subtractionWitnessFixture(),cache=module.createHistoricalTerritoryCache(clipper);
+  const first=module.adjustHistoricalTerritories(rows,rules,clipper,cache);
+  const result=first.candidates.find(r=>r.entityId==='parent');
+  const geometry=part==='result'?result.geometry:rows[part==='ancestor'?0:1].geometry;
+  assert.equal(Object.isFrozen(geometry),false,'do not freeze caller inputs');
+  geometry.coordinates[0][1][0]+=.125;
+  if(!reuseCache)cache.operations.clear();
+  assert.throws(()=>module.adjustHistoricalTerritories([result,rows[1]],policy,clipper,cache),error=>{
+   assert.equal(error.cause.message,'Unable to complete output ring');
+   assert.match(error.recoveryRejected,/mutated/);return true;
+  });
+ }
+});
+
+test('subtraction witness captures operands before a difference that mutates its source',()=>{
+ const {rows,rules,clipper}=subtractionWitnessFixture(),difference=clipper.difference;
+ clipper.difference=(...args)=>{
+  const raw=difference(...args);rows[0].geometry.coordinates[0][1][0]+=.125;return raw;
+ };
+ assert.throws(()=>module.adjustHistoricalTerritories(rows,rules,clipper),error=>{
+  assert.equal(error.cause.message,'Unable to complete output ring');assert.match(error.recoveryRejected,/mutated/);return true;
+ });
+});
+
+test('subtraction witness rejects forged, cyclic and uncertain public cache certificates',()=>{
+ for(const makeCertificate of [(result,cutter)=>({left:result,right:cutter}),(_result,cutter)=>({left:null,right:cutter}),(_result,cutter)=>({right:cutter})]){
+  const {rows,clipper}=subtractionWitnessFixture(),cache=module.createHistoricalTerritoryCache(clipper);
+  const derived={...rows[0],geometry:box(0,4)};
+  cache.subtractions??=new WeakMap();
+  cache.subtractions.set(derived.geometry,makeCertificate(derived.geometry,rows[1].geometry));
+  assert.throws(()=>module.adjustHistoricalTerritories([derived,rows[1]],policy,clipper,cache),/Unable to complete output ring/);
+ }
+});
+
+test('subtraction witness rejects a recovered cache key reassigned to a different operand object',()=>{
+ const {rows,rules,clipper}=subtractionWitnessFixture(),cache=module.createHistoricalTerritoryCache(clipper);
+ const first=module.adjustHistoricalTerritories(rows,rules,clipper,cache);
+ const derived=first.candidates.find(r=>r.entityId==='parent');
+ const different={...derived,geometry:box(0,8)};
+ cache.keys.set(different.geometry,cache.keys.get(derived.geometry));
+ assert.throws(()=>module.adjustHistoricalTerritories([different,rows[1]],policy,clipper,cache),error=>{
+  assert.equal(error.cause.message,'Unable to complete output ring');assert.match(error.recoveryRejected,/uncertain/);return true;
+ });
+});
+
+test('subtraction witness rejects malformed empty ancestors and budget errors without changing their causes',()=>{
+ const budget=Object.assign(new Error('Unable to complete output ring'),{code:'HISTORICAL_CLIP_PRECISION_BUDGET_EXCEEDED'});
+ for(const options of [{external:[20,22],witness:'malformed'},{external:[20,22],witness:'empty-string'},{error:budget}]){
+  const {rows,rules,clipper}=subtractionWitnessFixture(options);
+  assert.throws(()=>module.adjustHistoricalTerritories(rows,rules,clipper),error=>{
+   assert.equal(error.cause.message,'Unable to complete output ring');
+   if(options.error)assert.strictEqual(error.cause,budget);
+   return true;
+  });
+ }
+});
+
+test('subtraction witness stops an over-depth chain without erasing the native error',()=>{
+ const rows=[candidate('parent',0,80)],rules={...policy,replacements:[]};
+ for(let i=0;i<65;i++){
+  const id='cutter-'+String(i).padStart(2,'0');
+  rows.push({...candidate(id,79-i,80-i),currentSnapshot:true});
+  rules.replacements.push({targetEntityId:'parent',priorityEntityId:id,validFrom:'1991-01-01',validTo:'1992-01-01'});
+ }
+ const range=value=>{const xs=value.flat(2).map(p=>p[0]);return [Math.min(...xs),Math.max(...xs)];};
+ const clipper={...module.historicalWorldClipper,intersection:(a,b)=>{
+  const ranges=[a,b].map(range).map(x=>x.join(','));
+  if(ranges.includes('0,15')&&ranges.includes('79,80'))throw Error('Unable to complete output ring');
+  return module.historicalWorldClipper.intersection(a,b);
+ }};
+ assert.throws(()=>module.adjustHistoricalTerritories(rows,rules,clipper),error=>{
+  assert.equal(error.cause.message,'Unable to complete output ring');assert.match(error.recoveryRejected,/depth/);return true;
+ });
+});
 test('native difference terminates for a shared near-collinear historical triangle', () => {
   const a = [[[[9.758080569987348,47.03701035412004],[9.857982,47.015478],[9.856328,47.004083],[9.758080569987348,47.03701035412004]]]];
   const b = [[[[9.84987981578944,47.01722431233553],[9.838242,47.0120742],[9.807049969632736,47.026455685842755],[9.84987981578944,47.01722431233553]]]];
