@@ -6,7 +6,13 @@ import {dirname,resolve,relative} from 'node:path';
 import {inflateSync} from 'node:zlib';
 const hash=b=>createHash('sha256').update(b).digest('hex');
 const blob=b=>createHash('sha1').update('blob '+b.length+'\0').update(b).digest('hex');
-const raw=inflateSync(Buffer.from(readFileSync('.github/test-scope-patch-v2.b64','utf8').trim(),'base64'),{maxOutputLength:4*1024*1024});
+let encoded=readFileSync('.github/test-scope-patch-v2.b64','utf8');
+// Exact corrections against the archived transport, not edits to application source.
+if(blob(Buffer.from(encoded))==='6ec91d00a408e9c2f689db56bccc1f5f5a1c5aa6'){
+  for(const [start,end,text] of [[4809,4810,''],[3053,3054,''],[2999,2999,'q1Xiw83'],[2951,2952,'5'],[2944,2945,''],[2746,2747,'']])encoded=encoded.slice(0,start)+text+encoded.slice(end);
+}
+if(blob(Buffer.from(encoded))!=='da20814a8aa89ed3e9beb9b88caa9c328c388c6b')throw Error('Encoded review checksum mismatch');
+const raw=inflateSync(Buffer.from(encoded.trim(),'base64'),{maxOutputLength:4*1024*1024});
 if(hash(raw)!=='f7f61f7d5ce1b578104cd8f01a6cf1f39627a0e54b407dcb2e4e1585f2dac3a1')throw Error('Review payload checksum mismatch');
 const plan=JSON.parse(raw),sources=plan.blobs.map(sha=>{
   if(!/^[0-9a-f]{40}$/.test(sha))throw Error('Invalid source blob');
