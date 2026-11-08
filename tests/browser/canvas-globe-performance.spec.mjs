@@ -40,7 +40,7 @@ for (const mode of ['physical', 'political']) {
         expect(source.split(anchor).length, anchor).toBe(2);
         source = source.replace(anchor, body);
       };
-      replace('lastRenderMessage = message;', `lastRenderMessage = message;
+      replace('function* renderSteps(message, renderRequestId = null) {\n      lastRenderMessage = message;', `function* renderSteps(message, renderRequestId = null) {\n      lastRenderMessage = message;
         const started = performance.now(), profile = { phases: {}, projection: message.projection,
           zoom: message.view?.globeZoom, style: message.physicalSettings?.terrainStyle, styleRevision };`);
       replace('for (const role of message.visualOrder.base) {',
