@@ -231,4 +231,20 @@ test('unknown worktree identities cannot take main library ownership',t=>{
   writeFileSync(join(gitdir,'HEAD'),'ref: refs/heads/integration/r4-gis-w2-20261103\n');
   assert.throws(()=>libraryOwnerId(root),/worktree owner/i);
 });
+
+test('optimization permanent worktrees keep separate library ownership across branch changes',t=>{
+  const base=mkdtempSync(join(tmpdir(),'pando-optimization-owner-'));
+  t.after(()=>rmSync(base,{recursive:true,force:true}));
+  for(const owner of ['optimization','pando-work-optimization']){
+    const gitdir=join(base,'repository','.git','worktrees',owner),root=join(base,owner);
+    mkdirSync(gitdir,{recursive:true});mkdirSync(root);
+    writeFileSync(join(root,'.git'),`gitdir: ${gitdir}\n`);
+    writeFileSync(join(gitdir,'HEAD'),'ref: refs/heads/work/optimization\n');
+    assert.equal(libraryOwnerId(root),owner);
+    writeFileSync(join(gitdir,'HEAD'),'ref: refs/heads/integration/optimization\n');
+    assert.equal(libraryOwnerId(root),owner);
+    assert.notEqual(libraryOwnerId(root),'main');
+    assert.notEqual(libraryOwnerId(root),'gis');
+  }
+});
 });

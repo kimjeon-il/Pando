@@ -89,8 +89,8 @@ export function libraryOwnerId(root) {
   if(!match)throw Error('Invalid permanent worktree Git directory');
   const directory=resolve(root,match[1]);
   const owner=basename(directory);
-  if(basename(dirname(directory))!=='worktrees'||!['ui','objects','gis','places'].includes(owner))
-    throw Error('Unknown permanent worktree owner');
+  if(basename(dirname(directory))!=='worktrees'||!['ui','objects','gis','places','optimization','pando-work-optimization'].includes(owner))
+    throw Object.assign(Error('Unknown permanent worktree owner'),{code:'PANDO_LIBRARY_OWNER_UNKNOWN'});
   return owner;
 }
 function reportRegistry(root) {
@@ -468,7 +468,13 @@ function retireOwnedCaches(root, current) {
   catch { return; }
   for (const worktree of roots) {
     if (!existsSync(resolve(worktree, 'config/library-data.json'))) continue;
-    active.add(libraryMaterializedRoot(worktree));
+    try { active.add(libraryMaterializedRoot(worktree)); }
+    catch (error) {
+      if (error.code !== 'PANDO_LIBRARY_OWNER_UNKNOWN') throw error;
+      // An unrecognized peer may still consume a cache. Preserve every cache
+      // rather than guessing its owner or blocking this owner's preparation.
+      return { status:'skipped', reason:'unrecognized-peer-owner', worktree };
+    }
     for(const lease of libraryRuntimeLeasePaths(worktree))if (existsSync(lease)) {
       const record = JSON.parse(readFileSync(lease, 'utf8'));
       try { process.kill(record.pid, 0); for (const path of record.materialized) active.add(path); }
@@ -987,9 +993,9 @@ export function prepareOwnedLibraryData({ root, fetch }) {
     }
     symlinkSync(target, output, process.platform === 'win32' ? 'junction' : 'dir');
   }
-  retireOwnedCaches(root, materialized);
+  const cacheRetirement = retireOwnedCaches(root, materialized);
   const compaction = compactOwnedCheckout(checkout, true);
-  return { repository: config.repository, revision: config.revision, checkout, materialized, files: index.files, compaction };
+  return { repository: config.repository, revision: config.revision, checkout, materialized, files: index.files, compaction, cacheRetirement };
 }
 
 function organizationTree(shared, revision) {

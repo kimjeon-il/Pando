@@ -250,6 +250,31 @@ test('dirty legacy cache bytes and extra files are independently retained for ev
   assert.equal(readFileSync(join(f.app,'assets/data/local.json'),'utf8'),'unarchived');assert.ok(existsSync(join(legacy,'assets/data/local.json')));
 });
 
+test('an unregistered read-only peer defers cache retirement without blocking the owned runtime',t=>{
+  const f=fixture(t),audit=join(f.parent,'audit');
+  const staleRevision='a'.repeat(40),stale=join(dirname(library.libraryMaterializedRoot(f.ui)),staleRevision);
+  const bytes=Buffer.from('runtime original');
+  put(join(stale,f.logical),bytes);
+  put(join(stale,'.cache-owner.json'),JSON.stringify({schema:'pando-shared-runtime-v1',revision:staleRevision,files:{[f.logical]:{sha256:createHash('sha256').update(bytes).digest('hex'),bytes:bytes.length,storage:'shared'}}}));
+  git(f.app,'worktree','add','--detach',audit);
+  const result=library.prepareLibraryData({root:f.ui,fetch:false});
+  assert.equal(readFileSync(join(f.ui,f.logical),'utf8'),'runtime original');
+  assert.equal(result.cacheRetirement.status,'skipped');
+  assert.equal(result.cacheRetirement.reason,'unrecognized-peer-owner');
+  assert.equal(result.cacheRetirement.worktree,audit);
+  assert.deepEqual(readFileSync(join(stale,f.logical)),bytes);
+  assert.throws(()=>library.libraryOwnerId(audit),/worktree owner/i);
+  assert.equal(existsSync(join(audit,'assets/data')),false);
+  assert.equal(git(audit,'rev-parse','HEAD'),git(f.app,'rev-parse','HEAD'));
+});
+
+test('unrelated peer configuration failures still abort runtime preparation',t=>{
+  const f=fixture(t),audit=join(f.parent,'audit');
+  git(f.app,'worktree','add','--detach',audit);
+  put(join(audit,'config/library-data.json'),'{invalid');
+  assert.throws(()=>library.prepareLibraryData({root:f.ui,fetch:false}),SyntaxError);
+});
+
 test('async write leases persist until completion and reject overlapping writes', async t => {
   const f=fixture(t);library.prepareLibraryData({root:f.app,fetch:false});
   let release;const waiting=new Promise(resolve=>{release=resolve;});
