@@ -44,6 +44,7 @@ jobs:
             tests/unit/rendering/canvas-terrain-independence.test.mjs \
             tests/unit/rendering/gpu-terrain-preparation.test.mjs \
             tests/unit/rendering/map-presentation-readiness.test.mjs \
+            tests/unit/rendering/map-surface-recovery.test.mjs \
             tests/unit/document/core-document-read-model.test.mjs \
             tests/unit/document/timeline-controls.test.mjs
   browser-regression:
