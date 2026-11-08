@@ -4,12 +4,6 @@ import {mkdir,writeFile} from 'node:fs/promises';
 
 test.use({timezoneId:'Asia/Seoul',locale:'ko-KR',viewport:{width:1280,height:800},trace:'off'});
 
-function replaceExactlyOnce(source,anchor,replacement){
-  const first=source.indexOf(anchor);
-  if(first<0||source.indexOf(anchor,first+anchor.length)!==-1)
-    throw new Error('GPU cross benchmark source contract changed: '+anchor.slice(0,100));
-  return source.slice(0,first)+replacement+source.slice(first+anchor.length);
-}
 function classifyBackend(value){
   const raw=[value?.unmaskedRenderer,value?.unmaskedVendor,value?.renderer,value?.vendor].filter(Boolean).join(' ');
   if(!raw)return 'unverified';
@@ -29,43 +23,36 @@ function percentile(values,p){
 const time=()=>performance.now();
 
 async function installInstrumentation(page){
+  // Observe published map readiness rather than modifying production JS.
   await page.addInitScript(()=>{
-    globalThis.__gpuCrossProbe={
-      marks:[],longTasks:[],
-      mark(stage,month='',extra={}){this.marks.push({stage,month,at:performance.now(),...extra});}
+    const probe=globalThis.__gpuCrossProbe={
+      marks:[],longTasks:[],ticket:0,
+      mark(stage,month=''){
+        if(this.marks.some(event=>event.stage===stage))return;
+        this.marks.push({stage,month,at:performance.now()});
+      },
+      watch(month){
+        const token=++this.ticket;
+        const sample=()=>{
+          if(token!==this.ticket)return;
+          const api=globalThis.__PANDOLAB_VIEWER__;
+          const state=api?.documentState?.();
+          const ready=document.getElementById('viewerStatus')?.dataset.ready;
+          const renderer=api?.rendererStats?.();
+          if(state?.timelineCursor===month&&renderer?.mapReadiness?.mapReady)this.mark('presented',month);
+          if(state?.timelineCursor===month&&api?.builtinMonth?.()?.month===month&&ready==='true')
+            this.mark('ready',month);
+          if(!this.marks.some(row=>row.stage==='presented')||!this.marks.some(row=>row.stage==='ready'))
+            requestAnimationFrame(sample);
+        };
+        requestAnimationFrame(sample);
+      },
     };
     try{
-      new PerformanceObserver(list=>{
-        for(const entry of list.getEntries())
-          globalThis.__gpuCrossProbe.longTasks.push({at:entry.startTime,ms:entry.duration});
-      }).observe({type:'longtask',buffered:true});
-    }catch(_){/* Chrome version may not implement this observation */ }
-  });
-  await page.route('**/modules/viewer-composition.js*',async route=>{
-    const response=await route.fetch();let source=await response.text();
-    source=replaceExactlyOnce(source,
-      'applyMonth:async(month,{isCurrent,commit})=>{',
-      "applyMonth:async(month,{isCurrent,commit})=>{globalThis.__gpuCrossProbe?.mark('requested',month);");
-    source=replaceExactlyOnce(source,
-      "onPresented:()=>{commit();}",
-      "onPresented:()=>{commit();globalThis.__gpuCrossProbe?.mark('presented',month);}");
-
-    source=replaceExactlyOnce(source,
-      "status.dataset.ready='true';",
-      "status.dataset.ready='true';globalThis.__gpuCrossProbe?.mark('ready');");
-    await route.fulfill({response,body:source});
-  });
-  await page.route('**/modules/core-document-client.js*',async route=>{
-    const response=await route.fetch();let source=await response.text();
-    source=replaceExactlyOnce(source,
-      '      const { result } = await rpc.request(operation, request, atomic || speculative',
-      "      if(operation==='core.document-replacement-release')globalThis.__gpuCrossProbe?.mark('release-start');"+
-      '      const { result, timing: __gpuCrossWorkerTiming } = await rpc.request(operation, request, atomic || speculative');
-    source=replaceExactlyOnce(source,
-      '        ? { timeoutMs: 0 } : { signal: options.signal });',
-      "        ? { timeoutMs: 0 } : { signal: options.signal });"+
-      "if(operation==='core.document-replacement-release')globalThis.__gpuCrossProbe?.mark('release-end','',{workerMs:__gpuCrossWorkerTiming?.durationMs??null});");
-    await route.fulfill({response,body:source});
+      new PerformanceObserver(list=>list.getEntries().forEach(entry=>
+        probe.longTasks.push({at:entry.startTime,ms:entry.duration})
+      )).observe({type:'longtask',buffered:true});
+    }catch(_){}
   });
 }
 async function runOne(mode,baseURL){
@@ -111,7 +98,7 @@ async function runOne(mode,baseURL){
     for(let i=0;i<warmups+rounds;i++){
       const target=i%2===0?previous:report.initialMonth;
       const button=i%2===0?'#timelinePreviousYear':'#timelineNextYear';
-      await page.evaluate(()=>{globalThis.__gpuCrossProbe.marks=[];globalThis.__gpuCrossProbe.longTasks=[];});
+      await page.evaluate(month=>{const probe=globalThis.__gpuCrossProbe;probe.marks=[];probe.longTasks=[];probe.mark('requested',month);probe.watch(month);},target);
       await page.locator(button).click({timeout:70000});
       await expect.poll(()=>page.evaluate(()=>({
         month:globalThis.__PANDOLAB_VIEWER__?.builtinMonth()?.month,
@@ -142,7 +129,7 @@ async function runOne(mode,baseURL){
           longTasks:filtered.filter(e=>e.ms>=100).slice(0,8),
           visible:globalThis.__PANDOLAB_VIEWER__.visibleTerritorialCount(),semantic};
       });
-      for(const k of ['requested','presented','ready','releaseStart','releaseFinish']){
+      for(const k of ['requested','presented','ready']){
         if(!Number.isFinite(record[k]))throw new Error('Missing actual transition marker '+k+' in mode '+mode.name);
       }
       if(record.visible<=0)throw new Error('No countries visible after accepted map in '+mode.name);
@@ -154,7 +141,7 @@ async function runOne(mode,baseURL){
         requestedToPresentedMs:record.presented-record.requested,
         requestedToReadyMs:record.ready-record.requested,
         presentedToReadyMs:record.ready-record.presented,
-        releaseRoundtripMs:record.releaseFinish-record.releaseStart,
+        releaseRoundtripMs:null,
         workerReleaseMs:record.workerReleaseMs,longTaskMaxMs:record.longTaskMaxMs,
         longTasks:record.longTasks,semanticHash,visible:record.visible};
       if(i>=warmups)report.samples.push(sample);
@@ -165,7 +152,7 @@ async function runOne(mode,baseURL){
     const numeric=key=>report.samples.map(s=>s[key]).filter(Number.isFinite);
     report.stats=Object.fromEntries(['requestedToPresentedMs','requestedToReadyMs','presentedToReadyMs','releaseRoundtripMs','longTaskMaxMs']
       .map(key=>[key,{p50:percentile(numeric(key),.5),p95Exploratory:percentile(numeric(key),.95),
-        max:Math.max(...numeric(key))}]));
+        max:numeric(key).length?Math.max(...numeric(key)):null}]));
     if(report.errors.length)throw new Error('Unexpected page errors: '+report.errors.slice(0,5).join('; '));
     report.status='passed';
   }catch(error){
