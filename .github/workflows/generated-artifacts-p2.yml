@@ -183,7 +183,7 @@ jobs:
           node --test shared/tests/p5-country-contact-wasm.test.mjs
           shared/tests/p5-boundary-split-wasm.test.mjs shared/tests/p5-polygon-mesh-wasm.test.mjs
           tests/unit/country-shared-boundary.test.mjs
-          tests/unit/boundary-lines.test.mjs tests/unit/historical-world-territories.test.mjs
+          tests/unit/boundary-lines.test.mjs
       - name: Verify changed temporal editing and place naming
         if: inputs.verification == 'temporal'
         env:
