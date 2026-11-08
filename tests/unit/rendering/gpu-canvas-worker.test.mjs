@@ -326,7 +326,8 @@ function canvasRuntime({ renderError = null, features = [], theme = {}, visualOr
     {format:'iife',globalName:'PandoLabResourceUpdatePolicy',target:'es2022',legalComments:'none'}).code;
   scope.importScripts = (...urls) => urls.forEach(url => vm.runInContext(new URL(url).pathname.endsWith('/resource-update-policy-core.js')
     ? policy+'\nself.PandoLabResourceUpdatePolicy=PandoLabResourceUpdatePolicy;'
-    : readFileSync(new URL(url), 'utf8'), scope));
+    : readFileSync(new URL(new URL(url).pathname.endsWith('/vendor/d3.min.js')
+      ? '../../../assets/js-vendor/d3.min.js' : url, import.meta.url), 'utf8'), scope));
   vm.runInContext(readFileSync(script, 'utf8'), scope);
   const pathFactory = scope.d3.geo.path;
   let pathBuildCount = 0;
