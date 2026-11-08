@@ -222,13 +222,33 @@ export function adjustHistoricalTerritories(input, policy, clipper = historicalW
       // The intersection is the only geometry this peer can subtract.
       // Do not combine unrelated source boundaries in the same difference
       // sweep: real shared borders can create numerical backtracking slivers.
-      overlaps.get(row.entityId).push({ geometry: overlap, entityId: peer.entityId });
+      overlaps.get(row.entityId).push({ geometry: overlap, sourceGeometry: peer.geometry, entityId: peer.entityId });
     }
   }
   for (const row of candidates) if (overlaps.has(row.entityId)) {
     const parts = overlaps.get(row.entityId);
     const union=evaluate('union',parts.map(part=>part.geometry),`overlap-union ${row.entityId}`);
-    replace(row,difference(row.geometry,union),'unknown-peer-overlap',parts.map(part=>part.entityId).sort());
+    const precisionOffset=adjustments.length;
+    let geometry;
+    try{geometry=difference(row.geometry,union);}
+    catch(error){
+      // Some valid native intersection outputs cannot be swept again. Keep
+      // the bounded intersection path by default, and recover only this exact
+      // ring failure when the abandoned attempt has no precision evidence.
+      // A \\ union(A intersect B_i) = A \\ union(B_i), using only the same
+      // significant peers captured before any row was changed. This preserves
+      // three-way gaps and never switches engines, coordinates or budgets.
+      if(error.cause?.message!=='Unable to complete output ring'
+          || adjustments.length!==precisionOffset)throw error;
+      try{
+        const peers=evaluate('union',parts.map(part=>part.sourceGeometry),`original-peer-union ${row.entityId}`);
+        geometry=difference(row.geometry,peers);
+      }catch(recoveryError){
+        recoveryError.originalFailure=error;
+        throw recoveryError;
+      }
+    }
+    replace(row,geometry,'unknown-peer-overlap',parts.map(part=>part.entityId).sort());
   }
   clipChildren();
   return { candidates: candidates.filter(row => row.geometry), adjustments };

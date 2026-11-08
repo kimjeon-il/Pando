@@ -302,3 +302,100 @@ test('connected cutters are normalized between exact historical differences',()=
   assert.ok(operations.every(([left,right])=>left===1&&right===1),
     'the second sweep can only receive one already normalized subject and one original cutter');
 });
+
+const wrap=geometry=>geometry?.type==='Polygon'?[geometry.coordinates]:geometry?.coordinates||[];
+
+test('equivalent peer operands recover a ring failure without changing triple-overlap gaps or source coordinates',()=>{
+ const rows=[candidate('a',0,12),candidate('b',3,15),candidate('c',6,18)],before=structuredClone(rows);
+ const clipper={...module.historicalWorldClipper,difference:(left,right)=>{
+  const xs=value=>value.flat(2).map(point=>point[0]);
+  if((Math.min(...xs(left))===0&&Math.max(...xs(left))===12&&Math.max(...xs(right))===12)
+    || (Math.min(...xs(left))===6&&Math.max(...xs(left))===18&&Math.min(...xs(right))===6))
+   throw new Error('Unable to complete output ring');
+  return module.historicalWorldClipper.difference(left,right);
+ }};
+ const result=module.adjustHistoricalTerritories(rows,policy,clipper);
+ assert.deepEqual(result.candidates.map(row=>row.entityId),['a','c']);
+ assert.deepEqual(globalThis.polygonClipping.xor(wrap(result.candidates[0].geometry),[box(0,3).coordinates]),[]);
+ assert.deepEqual(globalThis.polygonClipping.xor(wrap(result.candidates[1].geometry),[box(15,18).coordinates]),[]);
+ assert.deepEqual(rows,before,'the original peer snapshots remain immutable');
+ assert.deepEqual(module.adjustHistoricalTerritories([...rows].reverse(),policy,clipper),result);
+});
+
+test('ring recovery cannot erase precision evidence emitted before the failed difference',()=>{
+ const artifact=[[46.798053,39.097382],[46.803617228283514,39.10088708625098],
+  [46.80361722811995,39.10088708614795],[46.798053,39.097382]];
+ const rows=[candidate('a',0,20),{...candidate('b',0,1),geometry:{type:'MultiPolygon',coordinates:[box(3,5).coordinates,box(10,12).coordinates]}}];
+ let calls=0;
+ const clipper={...module.historicalWorldClipper,difference:(...args)=>{
+  calls++;if(calls===2)throw new Error('Unable to complete output ring');
+  const result=module.historicalWorldClipper.difference(...args);
+  return calls===1?[...result,[artifact]]:result;
+ }};
+ assert.throws(()=>module.adjustHistoricalTerritories(rows,policy,clipper),/Unable to complete output ring/);
+ assert.equal(calls,2,'a partially audited failed subtraction cannot use another path');
+});
+
+test('equivalent peer recovery does not mask unrelated Boolean failures',()=>{
+ const rows=[candidate('a',0,6),candidate('b',4,10)];
+ let calls=0;
+ const clipper={...module.historicalWorldClipper,difference:()=>{calls++;throw new Error('unrelated clipping failure');}};
+ assert.throws(()=>module.adjustHistoricalTerritories(rows,policy,clipper),/unrelated clipping failure/);
+ assert.equal(calls,1);
+});
+
+
+test('a failed equivalent recovery retains the original native error and never retries again',()=>{
+ const rows=[candidate('a',0,6),candidate('b',4,10)];
+ let calls=0;
+ const clipper={...module.historicalWorldClipper,difference:()=>{
+  calls++;throw new Error(calls===1?'Unable to complete output ring':'recovery rejected');
+ }};
+ assert.throws(()=>module.adjustHistoricalTerritories(rows,policy,clipper),error=>{
+  assert.match(error.message,/recovery rejected/);
+  assert.equal(error.originalFailure.cause.message,'Unable to complete output ring');
+  return true;
+ });
+ assert.equal(calls,2);
+});
+
+test('explicit replacements do not opt into unknown-peer ring recovery',()=>{
+ const rows=[candidate('a',0,6),candidate('b',4,10)];
+ let calls=0;
+ const clipper={...module.historicalWorldClipper,difference:()=>{calls++;throw new Error('Unable to complete output ring');}};
+ const rules={...policy,replacements:[{targetEntityId:'a',priorityEntityId:'b',validFrom:'1991-01-01',validTo:'1992-01-01'}]};
+ assert.throws(()=>module.adjustHistoricalTerritories(rows,rules,clipper),/Unable to complete output ring/);
+ assert.equal(calls,1);
+});
+
+test('cached equivalent recovery replays precision evidence across later intervals',()=>{
+ const artifact=[[46.798053,39.097382],[46.803617228283514,39.10088708625098],
+  [46.80361722811995,39.10088708614795],[46.798053,39.097382]];
+ const rows=[candidate('a',0,12),candidate('b',3,15),candidate('c',6,18)];
+ const xs=value=>value.flat(2).map(point=>point[0]);
+ let failures=0,nativeCalls=0;
+ const clipper=Object.fromEntries(['union','intersection','difference'].map(name=>[name,(...operands)=>{
+  if(name==='difference'&&Math.min(...xs(operands[0]))===0
+      &&Math.max(...xs(operands[0]))===12&&Math.max(...xs(operands[1]))===12){
+   failures++;throw new Error('Unable to complete output ring');
+  }
+  nativeCalls++;
+  const result=module.historicalWorldClipper[name](...operands);
+  const peerExtent=operands.flatMap(xs);
+  return name==='union'&&Math.min(...peerExtent)===3&&Math.max(...peerExtent)===18
+   ? [...result,[artifact]]:result;
+ }]));
+ const cache=module.createHistoricalTerritoryCache(clipper);
+ const first=module.adjustHistoricalTerritories(rows,policy,clipper,cache),initialCalls=nativeCalls;
+ const later=rows.map(row=>({...row,validFrom:'2000-01-01',validTo:'2001-12-31'}));
+ const reused=module.adjustHistoricalTerritories(later,policy,clipper,cache);
+ assert.equal(failures,2,'each interval can reach the same original native failure');
+ assert.equal(nativeCalls,initialCalls,'the equivalent result is reused without new native work');
+ assert.deepEqual(reused.adjustments,first.adjustments,'cached recovery must replay its precision audit');
+ assert.equal(reused.adjustments.filter(row=>row.kind==='certified-clipping-precision-artifact').length,1);
+ assert.deepEqual(reused.candidates.map(row=>[row.entityId,row.validFrom,row.validTo]),[
+  ['a','2000-01-01','2001-12-31'],['c','2000-01-01','2001-12-31'],
+ ]);
+ assert.deepEqual(globalThis.polygonClipping.xor(wrap(reused.candidates[0].geometry),[box(0,3).coordinates]),[]);
+ assert.deepEqual(globalThis.polygonClipping.xor(wrap(reused.candidates[1].geometry),[box(15,18).coordinates]),[]);
+});
