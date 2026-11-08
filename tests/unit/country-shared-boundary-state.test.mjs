@@ -12,7 +12,8 @@ import { MAX_BOUNDARY_EDGE_DEGREES } from "../../shared/frontend/js/modules/geog
 import { sharedCalculationCore } from "../../shared/frontend/js/modules/temporal.js";
 
 const rectangle = (id, west, south, east, north, root = id) => {
-  const geometry = rectanglePolygon(west, south, east, north);
+  const geometry = rectanglePolygon(west, south, east, north,
+    {allowDatelineWrap: east < west});
   return { type: 'Feature', id, properties: {}, geometry, boundaryRootId: root,
     boundaryGeometryRevision: geometryRevisionKey(geometry) };
 };

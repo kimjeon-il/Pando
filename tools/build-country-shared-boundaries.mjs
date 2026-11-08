@@ -9,6 +9,7 @@ import { buildCountrySharedBoundarySegments, serializeCountrySharedBoundarySegme
 import { sharedCalculationCore } from "../shared/frontend/js/modules/temporal.js";
 import { countryGeometrySignature } from "../shared/frontend/js/modules/country-shared-boundary-cache.js";
 import { classifyBuiltinCountries } from "../shared/frontend/js/modules/builtin-subunits.js";
+import { loadBuiltinDisplayPolicy } from "./gis/builtin-display-policy.mjs";
 
 // The source contact topology and grouped chain-conservation check both use
 // the same C++ kernel as the Web worker. Keep cache serialization and exact v1
@@ -31,6 +32,7 @@ const inputs = [
   ['preview', bundle.assets.previewCountries.url, bundle.compatibility.sharedBoundaries.preview],
   ['canonical', bundle.source.url, bundle.compatibility.sharedBoundaries.canonical],
 ];
+const displayPolicy = loadBuiltinDisplayPolicy();
 const qualityArgument = process.argv.find(value => value.startsWith('--quality='));
 const selectedQuality = qualityArgument?.slice('--quality='.length);
 if (qualityArgument && !inputs.some(([quality]) => quality === selectedQuality))
@@ -38,7 +40,7 @@ if (qualityArgument && !inputs.some(([quality]) => quality === selectedQuality))
 for (const [quality, input, output] of inputs.filter(([quality]) => !qualityArgument || quality === selectedQuality)) {
   const raw = fs.readFileSync(path.join(data, input));
   const source = JSON.parse(input.endsWith('.gz') ? gunzipSync(raw) : raw);
-  const classified = classifyBuiltinCountries(source);
+  const classified = classifyBuiltinCountries(source, {displayPolicy});
   const countries = [...classified.countries.features, ...classified.subunits.map(unit => ({
     id: unit.properties.metadata.builtinSubunit.sourceCountryId,
     geometry: unit.geometry,

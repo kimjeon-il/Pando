@@ -90,7 +90,7 @@ test('each registered UI audit invokes its own mode and rejects unknown modes', 
     assert.deepEqual(catalog.groups.find(group => group.id === id).argv, ['node','scripts/check-ui.mjs',mode]);
     const result = spawnSync(process.execPath, ['scripts/check-ui.mjs', mode], { cwd:root, encoding:'utf8' });
     assert.equal(result.status, 0, result.stderr);
-    assert.match(result.stdout, new RegExp(`Viewer/Windows ${mode} audit passed`));
+    assert.match(result.stdout, new RegExp(`Viewer ${mode} audit passed`));
   }
   const invalid = spawnSync(process.execPath, ['scripts/check-ui.mjs','invalid'], { cwd:root, encoding:'utf8' });
   assert.notEqual(invalid.status, 0);

@@ -447,6 +447,7 @@ test('P7 consolidated registry retains original contracts and all current CI tes
   assert.deepEqual(report.issues, {
     missingOriginalContracts: [], duplicateOriginalContracts: [], retiredDirectReferences: [],
     invalidGisOwners: [], invalidWorkflowReferences: [], missingDirectTestReferences: [],
+    missingActivePerformanceTests: [],
   });
   assert.equal(report.ok, true);
 });
