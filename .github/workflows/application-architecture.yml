@@ -105,6 +105,8 @@ jobs:
       - &library
         name: Prepare pinned external library data
         uses: ./.github/actions/library-data
+      - name: Reject retired workflow executables before selecting checks
+        run: node scripts/lib/workflow-reference-integrity.mjs
       - name: Select current application checks
         id: plan
         env: &a5

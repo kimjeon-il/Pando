@@ -404,3 +404,23 @@ test('current C++/GIS and Viewer workflows have one application runner and sourc
   for(const old of ['remote-development-p1','remote-preview-p3','remote-only-gate'])
     assert.equal(existsSync(new URL('../../.github/workflows/'+old+'.yml',import.meta.url)),false);
 });
+
+
+test('P6 new infrastructure owners participate in impacted check selection', () => {
+  const repo = loadRepository();
+  for (const [changed, owner] of [
+    ['scripts/lib/unit-contract-owners.mjs', 'tests/unit/e7-application-check-planner.test.mjs'],
+    ['scripts/lib/unit-test-batches.mjs', 'tests/unit/check-runner.test.mjs'],
+    ['scripts/lib/unit-test-isolation.mjs', 'tests/unit/check-runner.test.mjs'],
+    ['tests/helpers/check-workspace-fixture.mjs', 'tests/unit/native-check-prerequisites.test.mjs'],
+  ]) {
+    const plan=planApplicationChecks({changedFiles:[changed],repository:repo});
+    assert.ok(plan.unitTests.includes(owner), changed + ' -> ' + owner);
+  }
+  const pkg=JSON.parse(readFileSync(new URL('../../package.json', import.meta.url)));
+  for (const name of ['e7-application-check-planner','check-automation','check-runner','native-check-prerequisites'])
+    assert.ok(pkg.scripts['check:ci-inventory'].includes('tests/unit/' + name + '.test.mjs'));
+  const architecture=parse(readFileSync(new URL('../../.github/workflows/application-architecture.yml', import.meta.url)));
+  assert.ok(architecture.jobs.changes.steps.some(step =>
+    step.run === 'node scripts/lib/workflow-reference-integrity.mjs'));
+});

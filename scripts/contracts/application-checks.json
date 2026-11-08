@@ -1318,6 +1318,37 @@
         "assets/data/builtin-world/**",
         "tools/build-builtin-world.mjs"
       ]
+    },
+    {
+      "inputs": [
+        "scripts/lib/unit-contract-owners.mjs",
+        "scripts/lib/unit-contract-inventory.mjs",
+        "scripts/contracts/unit-contract-identities.json",
+        "scripts/contracts/gis-unit-consolidation-map.json"
+      ],
+      "tests": [
+        "tests/unit/e7-application-check-planner.test.mjs"
+      ]
+    },
+    {
+      "inputs": [
+        "scripts/lib/unit-test-batches.mjs",
+        "scripts/lib/unit-test-isolation.mjs",
+        "scripts/run-active-tests.mjs"
+      ],
+      "tests": [
+        "tests/unit/check-runner.test.mjs"
+      ]
+    },
+    {
+      "inputs": [
+        "tests/helpers/check-workspace-fixture.mjs"
+      ],
+      "tests": [
+        "tests/unit/check-runner.test.mjs",
+        "tests/unit/native-check-prerequisites.test.mjs",
+        "tests/unit/build-metadata.test.mjs"
+      ]
     }
   ],
   "runtimeBases": {},

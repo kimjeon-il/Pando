@@ -28,3 +28,17 @@ Out of scope: re-enabling retired Python modules, Windows/Android editor product
 ## Deferred validation
 
 Per user request, no Node tests, Native/C++/WASM build, Playwright, CI execution, or benchmarks will run until the all-area consolidation completes. Committed source changes are not proof of passing tests. The final run must separately verify contract coverage, native prerequisites, resource isolation, direct workflow references, and selection correctness.
+
+## P0–P6 source implementation record
+
+The work is committed in sequence on the same `work/optimization` branch:
+
+- **P0:** current 397-file baseline and responsibility matrix recorded.
+- **P1:** `tests/helpers/check-workspace-fixture.mjs` centralizes owned temporary directories and cleanup for runner, native and frontend test fixtures.
+- **P2:** `scripts/lib/unit-contract-owners.mjs` is the single source for old marker identity → executable test ownership, reused by the selector and inventory audit.
+- **P3:** `scripts/lib/unit-test-batches.mjs` groups unit tests by prerequisite set and limited batch size; full and affected runs share that batching policy. A local full run must not count native checks as successes without CI preparation.
+- **P4:** explicit shared-report worktree isolation ownership and duplicate suite rejection prevent ordinary unit batches from overlapping global report fixtures.
+- **P5:** GitHub Actions full unit runs use the canonical native/Core prerequisite executor, preserve caller-provided unit flags and request GIS native development libraries for territorial recipe consumers when needed.
+- **P6:** the check catalog maps changes in the new infrastructure modules to their owning regression tests; the `check:ci-inventory` script names the current runner/native suites; the application workflow validates executable references before selection.
+
+This is a source change and review record only. **No Node/Native/WASM/CI/Playwright tests or performance measurements were executed**; behavioral pass/fail and isolation under actual parallel CI remain unverified until the user's final combined check run. P7 final consolidation and full verification remain separate work.
