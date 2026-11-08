@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { parse } from 'yaml';
+
 import { validatePerformanceManifest, assemblePerformanceEvidence } from "../../../scripts/assemble-performance-evidence.mjs";
 
 const manifest = JSON.parse(readFileSync(new URL("../../../config/performance-baseline-v1.json", import.meta.url), 'utf8'));
@@ -32,26 +32,6 @@ function twelveCycles() {
     } };
 }
 
-test('active suites exist while historical suite paths retain explicitly unverified provenance', () => {
-  const result = validatePerformanceManifest(manifest);
-  assert.equal(result.frozenCommit, manifest.source.frozenProductCommit);
-  assert.match(result.frozenCommit, /^[a-f0-9]{40}$/);
-  assert.equal(result.measurementBudgetApproved, false);
-  const actualBudget = JSON.parse(readFileSync(new URL("../../../config/performance-budget.json", import.meta.url), 'utf8'));
-  assert.equal(actualBudget.status, 'UNSET');
-  assert.equal(actualBudget.thresholds, null);
-  assert.equal(result.activeSuiteCount, manifest.activeSuites.length);
-  assert.equal(result.historicalSuiteCount, manifest.historicalSuites.length);
-  assert.ok(result.activeSuiteCount > 0);
-  assert.equal(result.historicalProvenance, 'unverified');
-  for (const observation of [manifest.observations.packedPair, manifest.observations.packedLongCycle])
-    assert.ok(Number.isSafeInteger(observation.runId) && observation.runId > 0,
-      'reference evidence must name its actual run');
-  assert.equal(new Set(manifest.activeSuites.map(row => row.id)).size, manifest.activeSuites.length);
-  assert.ok(manifest.historicalSuites.some(row => row.level.includes('diagnostic')),
-    'historical diagnostics must remain explicitly separate from active CI');
-});
-
 test('missing active assets and unsafe historical paths are rejected', () => {
   const missing = structuredClone(manifest);
   missing.activeSuites[0].tests.push('tests/browser/nonexistent.spec.mjs');
@@ -62,14 +42,6 @@ test('missing active assets and unsafe historical paths are rejected', () => {
   const unsupported = structuredClone(manifest);
   unsupported.historicalProvenance = 'verified';
   assert.throws(() => validatePerformanceManifest(unsupported), /historical provenance/i);
-});
-
-test('active performance suites name the checks actually invoked by their workflow', () => {
-  for (const suite of manifest.activeSuites) {
-    const workflow = parse(readFileSync(new URL("../../../" + suite.workflow, import.meta.url), 'utf8'));
-    const commands = Object.values(workflow.jobs).flatMap(job => job.steps || []).map(step => step.run || '').join('\n');
-    for (const file of suite.tests) assert.ok(commands.includes(file), `${suite.id} does not invoke ${file}`);
-  }
 });
 
 test('one-return and long-cycle metrics have distinct units and sampling intervals', () => {

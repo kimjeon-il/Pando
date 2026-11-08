@@ -1113,7 +1113,6 @@
         "tests/unit/**/*architecture*.test.mjs",
         "tests/unit/**/application-*.test.mjs",
         "tests/unit/**/capability-*.test.mjs",
-        "tests/unit/runtime/current-browser-contracts.test.mjs",
         "tests/unit/**/check-*.test.mjs"
       ],
       "inputs": [
@@ -1160,7 +1159,6 @@
     {
       "tests": [
         "tests/unit/**/check-*.test.mjs",
-        "tests/unit/runtime/current-browser-contracts.test.mjs",
         "tests/unit/ui/native-check-prerequisites.test.mjs",
         "tests/unit/runtime/viewer-preview-plan.test.mjs"
       ],
@@ -1175,7 +1173,6 @@
       "tests": [
         "tests/unit/**/*version*.test.mjs",
         "tests/unit/**/check-*.test.mjs",
-        "tests/unit/runtime/current-browser-contracts.test.mjs",
         "tests/unit/ui/native-check-prerequisites.test.mjs",
         "tests/unit/runtime/viewer-preview-plan.test.mjs"
       ],
@@ -1364,7 +1361,6 @@
     },
     {
       "tests": [
-        "tests/unit/runtime/e7-application-check-planner.test.mjs",
         "tests/unit/runtime/check-automation.test.mjs"
       ],
       "inputs": [

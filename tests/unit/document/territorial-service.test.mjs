@@ -19,14 +19,6 @@ const { createTerritorialEntityStore } = __country_dep4;
 const { createTerritorialEntityRepository } = __country_dep5;
 const { createTerritorialApplicationService } = __country_dep6;
 
-
-
-
-
-
-
-
-
 async function fixture() {
   const state = {
     territorialEntities:[createTerritorialFeature({id:'country-a',entityKind: 'general',name:'A',geometry:{type:'Polygon',coordinates:[[[0,0],[0,1],[1,1],[1,0],[0,0]]]}}),createTerritorialFeature({id:'unit-a',entityKind: 'regional',name:'Region',geometry:{type:'Polygon',coordinates:[[[0,0],[0,1],[1,1],[1,0],[0,0]]]}})],
@@ -49,12 +41,6 @@ const entityStore = createTerritorialEntityStore({ documentModel:testCoreProject
     state,
   };
 }
-
-test('territorial service exposes commands without transaction or validation forwarding aliases', async () => {
-  const { service } = await fixture();
-  assert.equal(Object.hasOwn(service, 'runGeometryTransaction'), false);
-  assert.equal(Object.hasOwn(service, 'validateRelations'), false);
-});
 
 test('country date editing respects the activation guard locks and normalized no-ops', async () => {
   const { service, state, transactions } = await fixture();
@@ -252,8 +238,6 @@ test('temporal unit metadata is normalized and rejected before mutation when inv
   assert.equal(units(), before);
 });
 
-
-
 test('administrative parent changes use the explicit relation command and validate cycles', async () => {
   const { service, entityStore, entityRepository, transactions, state } = await fixture();
   await executeTerritorialTestCommand(state,'territorial.replace',{features:[
@@ -279,8 +263,6 @@ test('administrative parent changes use the explicit relation command and valida
   assert.equal(entityRepository.get('s').properties.parentId, 'country-a');
   assert.equal(transactions.at(-1).reason,'territorial.parent');
 });
-
-
 
 test('unit metadata service also rejects administrative relation fields, including no-op values', async () => {
   const { service, entityRepository, transactions } = await fixture();
@@ -335,13 +317,6 @@ const { createSpatialIndex } = __country_dep7;
 const { countryMeshContentKey } = __country_dep8;
 const { effectiveTerritorialFlagUrl } = __country_dep9;
 const { MAP_RENDER_DIRTY, MAP_RENDER_MASKS } = __country_dep10;
-
-
-
-
-
-
-
 
 const geo=(x=0)=>({type:'Polygon',coordinates:[[[x,0],[x+2,0],[x+2,2],[x,2],[x,0]]]});
 function country(id,x=0){

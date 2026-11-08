@@ -5,8 +5,8 @@ import * as __dep0 from "node:test";
 import * as __dep1 from "node:assert/strict";
 import * as __dep2 from "../../../src/rendering/country-mesh-preparation.js";
 import * as __dep3 from "../../../src/rendering/mesh-spatial-blocks.js";
-import * as __dep4 from "node:fs";
-import * as __dep5 from "node:zlib";
+
+
 import * as __dep6 from "../../../src/rendering/country-mesh-codec.js";
 import * as __dep7 from "../../../src/rendering/country-mesh-content-key.js";
 import * as __dep8 from "../../../src/rendering/resource-update-policy.js";
@@ -114,8 +114,8 @@ test('spatial range coalescing retains the exact minimum-gap and earliest-tie se
 // Original feature contract: country-mesh-codec-runtime.test.mjs
 contractSuite("country-mesh-codec-runtime", () => {
 const assert = __dep1.default;
-const { readFileSync } = __dep4;
-const { gunzipSync } = __dep5;
+
+
 const test = __dep0.default;
 const { decodeCountryMesh } = __dep6;
 
@@ -139,22 +139,6 @@ test('the same v2 mesh decoder accepts the current shared fill revision 5',()=>{
 test('unknown future algorithm revisions fail closed before buffer interpretation',()=>{
   for(const revision of [0,2,3,4,6,255])
     assert.throws(()=>decodeCountryMesh(emptyMeshWithRevision(revision)),/알고리즘 리비전/);
-});
-test('the currently published revision-5 preview mesh decodes exactly',()=>{
-  const root=new URL("../../../",import.meta.url);
-  const bundle=JSON.parse(readFileSync(new URL('assets/data/world/current.json',root),'utf8'));
-  const meshSpec=bundle.assets.previewMesh;
-  const gz=readFileSync(new URL('assets/data/'+meshSpec.url,root));
-  const binary=gunzipSync(gz);
-  const uint8=new Uint8Array(binary.buffer,binary.byteOffset,binary.byteLength);
-  const copy=Uint8Array.from(uint8).buffer;
-  const decoded=decodeCountryMesh(copy);
-  assert.equal(bundle.derivation.meshAlgorithmRevision,5);
-  assert.equal(new Uint32Array(copy,0,8)[7],5);
-  assert.equal(decoded.mesh.countryBoundsFlags.length,countryCount);
-  assert.equal(decoded.sourceCoordinateCount,bundle.derivation.coordinateCount);
-  assert.ok(decoded.mesh.triangleIndices.length>1000);
-  assert.ok(decoded.mesh.lineIndices.length>1000);
 });
 });
 

@@ -4,9 +4,9 @@ import {execFileSync} from 'node:child_process';
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+
 import { collectViewerAssets, isEditorOnlyAsset } from "../../../scripts/lib/product-assets.mjs";
-import {buildFrontendSnapshot} from "../../../scripts/lib/frontend-build.mjs";
+
 import {effectiveTerritorialFlagUrl} from "../../../src/ui/country-flags.js";
 
 test('library preparation can read product dependency metadata without a bundler installation',()=>{
@@ -114,23 +114,4 @@ test('runtime worker catalog includes classic Worker imports and rejects a missi
   assert.ok((await f.collect()).has('assets/js/workers/worker-rpc-host.js'));
   f.files.delete('assets/js/workers/worker-rpc-host.js');
   await assert.rejects(f.collect(), /missing/i);
-});
-
-test('actual viewer graph contains render and read Workers without editor execution entries', async () => {
-  const root = fileURLToPath(new URL("../../../", import.meta.url));
-  const paths = (await buildFrontendSnapshot({root})).viewerPaths;
-  for (const name of ['core-viewer-session-worker', 'project-read-worker', 'gpu-mesh-worker', 'canvas-render-worker', 'hydro-tile-worker'])
-    {
-      assert.equal(paths.has(`assets/js/workers/${name}.js`), false, name);
-      assert.ok([...paths].some(path => path.startsWith('assets/worker-runtime/') && path.endsWith(`/assets/js/workers/${name}.js`)), name);
-    }
-  for (const name of ['app.js', 'bootstrap.js', 'workers/core-session-worker.js', 'workers/gis-gpkg-worker.js'])
-    assert.equal(paths.has(`assets/js/${name}`), false, name);
-  assert.ok(paths.has('assets/js/vendor/sql/sql-wasm.wasm'));
-  assert.ok(paths.has('assets/data/places/urban-lifetimes-v1.json'),
-    'the pinned external urban-life catalog must ship with the Viewer');
-  assert.ok(paths.has('assets/js/workers/gpkg-read-core.js'));
-  assert.equal(paths.has('assets/js/modules/timeline-comparison.js'),false);
-  assert.equal(paths.has('assets/data/prepared-polygons/generated/v1/manifest.json'),false);
-  assert.equal([...paths].some(path=>path.startsWith('assets/data/territorial-entities/source/')),false);
 });

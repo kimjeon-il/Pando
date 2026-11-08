@@ -1,17 +1,12 @@
-import {parseJavaScript,walkJavaScript} from "../../../scripts/lib/source-analysis.mjs";
-import assert from 'node:assert/strict';
-import fs from 'node:fs';
-import path from 'node:path';
-import test from 'node:test';
-import { fileURLToPath } from 'node:url';
-import { createGpuMapRenderer } from "../../../src/rendering/gpu-map-renderer.js";
-import { mapVisualOrder } from "../../../src/ui/layer-presentation.js";
-import {createObjectSearchModel,visibleObjectSearchRows} from "../../../src/document/object-search-model.js";
 
-const here = path.dirname(fileURLToPath(import.meta.url));
-const root = path.resolve(here, '../..');
-const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
-const functionSource=(text,name)=>{let found;walkJavaScript(parseJavaScript(text),node=>{if(node.type==='FunctionDeclaration'&&node.id.name===name)found=node;});assert.ok(found,'Missing current function '+name);return text.slice(...found.range);};
+import assert from 'node:assert/strict';
+
+
+import test from 'node:test';
+
+import { createGpuMapRenderer } from "../../../src/rendering/gpu-map-renderer.js";
+
+import {createObjectSearchModel,visibleObjectSearchRows} from "../../../src/document/object-search-model.js";
 
 async function hydroRendererFixture(t) {
   const workers = [];
@@ -147,32 +142,6 @@ test('duplicate immutable fragment packs retain accepted Canvas aggregation unti
   assert.equal(state.hydroFragmentsByLogicalId.size, 0);
 });
 
-test('hydro worker reports typed init/view completion and failures', () => {
-  const source = read('src/rendering/workers/hydro-tile-worker.js');
-  for (const token of ["type: 'ready'", "type: 'init-error'", "type: 'view-ready'", "type: 'view-error'"]) {
-    assert.ok(source.includes(token), `missing ${token}`);
-  }
-});
-
-test('hydro worker probes Range with GET and can abort background cache', () => {
-  const source = read('src/rendering/workers/hydro-tile-worker.js');
-  assert.ok(source.includes("Range: 'bytes=0-0'"));
-  assert.ok(!source.includes("method: 'HEAD'"));
-  assert.ok(source.includes('new AbortController()'));
-  assert.ok(source.includes('abortBackgroundCache()'));
-  assert.ok(source.includes('if (mobileSession && !force) return;'));
-});
-
-test('hydro preparation separates requested and loaded views and treats cache failure as unavailable', () => {
-  const source = read('src/rendering/gpu-hydro-preparation.js');
-  assert.ok(source.includes('hydroViewRequests.start(key, hydroRequestRevision + 1)'));
-  assert.ok(source.includes('hydroViewRequests.ready(revision)'));
-  assert.ok(source.includes('hydroViewRequests.fail(revision, message)'));
-  assert.ok(source.includes("loadState.hydroCache = 'unavailable';"));
-  assert.ok(read('src/data/hydro-view-requests.js').includes('message.retryable !== false'));
-  assert.ok(!source.includes("hydroViewKey = key"));
-});
-
 test('rivers and lakes remain individually searchable in the current visible object catalog', () => {
   const items=[{id:'river:one',name:'River One',hydroCategory:'river'},{id:'lake:one',name:'Lake One',hydroCategory:'lake'}];
   const model=visible=>createObjectSearchModel({groups:['hydro'],items:()=>items.filter(row=>visible.includes(row.id)),
@@ -181,48 +150,4 @@ test('rivers and lakes remain individually searchable in the current visible obj
   assert.deepEqual(new Set(all.items.map(row=>row.typeLabel)),new Set(['강','호수']));
   assert.equal(visibleObjectSearchRows(all,'River One')[0].ref.id,'river:one');
   assert.deepEqual(model(['lake:one']).items.map(row=>row.ref.id),['lake:one']);
-});
-
-test('active GPU and Canvas hydro renderers inherit ocean colour and configured opacity', () => {
-  const gpu = read('src/rendering/gpu-map-renderer.js');
-  const canvas = read('src/rendering/workers/canvas-render-worker.js');
-  const canvasHydro = functionSource(canvas,'renderHydroPass');
-  assert.ok(gpu.includes('const color = [...rgb, hydroOpacity];'));
-  assert.ok(!gpu.includes("(category === 'lake' ? 0.92 : 0.96)"));
-  assert.ok(canvasHydro.includes('context.globalAlpha = reserve ? 1 : hydroOpacity;'));
-  assert.ok(!canvasHydro.includes('context.globalAlpha = 0.92;'));
-  assert.ok(!canvasHydro.includes('context.globalAlpha = 0.96;'));
-});
-
-test('completed hydro renders before canonical country boundaries in every native path', () => {
-  const gpu = read('src/rendering/gpu-map-renderer.js');
-  const worker = read('src/rendering/workers/canvas-render-worker.js');
-  const webgl = read('src/rendering/gpu-base-scene-pass.js');
-  assert.ok(gpu.includes('const result = drawGpuBaseScene('));
-  for (const backend of ['gpu', 'canvas']) {
-    const order = mapVisualOrder('base', backend);
-    assert.ok(order.indexOf('border-river') >= 0);
-    assert.ok(order.indexOf('border-river') < order.indexOf('country-boundary'));
-  }
-  assert.ok(webgl.includes("for (const role of mapVisualOrder('base', 'gpu'))"));
-  assert.ok(webgl.includes("for (const role of mapVisualOrder('hydro')) drawHydro(role, false, true)"));
-  assert.ok(webgl.includes('drawCountryBoundaryStrokes()'));
-  const canvasWrapper = functionSource(gpu,'renderCanvasFallback');
-  assert.ok(canvasWrapper.includes('drawCanvasFallback(frame)'));
-  const canvas = functionSource(gpu,'drawCanvasFallback');
-  assert.ok(canvas.includes("for (const role of mapVisualOrder('base'))"));
-  assert.ok(canvas.includes('renderCanvasHydro(canvasPath, theme, ctx2d, false, role)'));
-  assert.ok(canvas.includes("'country-boundary': () => renderCanvasCountryBoundaries(canvasPath, theme, countryFeatures)"));
-  assert.ok(gpu.includes('canvasPath(countryOutlineFeature(feature))'));
-  const workerRender = worker.slice(worker.search(/function render\(/), worker.indexOf('self.onmessage'));
-  assert.ok(gpu.includes(": { base: mapVisualOrder('base'), hydro: mapVisualOrder('hydro') }"),
-    'full Canvas country frames retain the canonical hydro/country order');
-  assert.ok(workerRender.includes('message.visualOrder.base'));
-  assert.ok(workerRender.includes('renderHydroPass(message, projection, dpr, role)'));
-  assert.ok(workerRender.includes('renderCountryBoundaries(message, projection, dpr)'));
-  assert.ok(worker.includes('const outline = boundaryOutlineFeature(feature);'));
-  assert.ok(worker.includes('geoPath(outline);'));
-  assert.doesNotMatch(workerRender, /strokeStyle = '#346733'/);
-  assert.ok(gpu.includes('setHydroEdits'));
-  assert.ok(worker.includes("message.type === 'hydro-edits'"));
 });

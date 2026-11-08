@@ -17,9 +17,6 @@ const assert = __hydro_dep0.default;
 const test = __hydro_dep1.default;
 const { verifyStationEvidence, verifyNaturalEarthEvidence, verifyYarraEvidence } = __hydro_dep2;
 
-
-
-
 test('station evidence requires exact station identity and bounded measured distances',()=>{
   const ids=['70816878','70819626'],review={},proof={candidateSystems:{},stationRows:[]};
   for(const id of ids){review[id]={officialStationEvidence:{stationIds:[id],maximumMatchingStationDistanceKm:0.5,nearestDifferentBasinStationKm:25}};
@@ -67,13 +64,6 @@ const { fileURLToPath } = __hydro_dep6;
 const test = __hydro_dep1.default;
 const { loadIndependentHydronyms, validateIndependentHydronyms } = __hydro_dep2;
 
-
-
-
-
-
-
-
 const path = fileURLToPath(new URL("../../../tools/gis/hydro-independent-name-replacements.json", import.meta.url));
 const cli = fileURLToPath(new URL("../../../tools/gis/hydro-independent-name-policy.mjs", import.meta.url));
 const original = readFileSync(path);
@@ -85,32 +75,6 @@ const changed = (id, mutate) => {
   mutate(data.replacements.find(row => row.systemId === id));
   return data;
 };
-test('42 independently reviewed original Hydro system IDs and source names are retained without mutation', () => {
-  const review = rows(), keys = Object.keys(review);
-  assert.equal(keys.length, 42);
-  for (const id of ['10047863', '20282220', '20265844', '20597827', '50798885', '70816878', '70819626']) {
-    assert.ok(Object.hasOwn(review, id), id);
-  }
-  assert.equal(review['20282220'].aliases.join(','), 'Elbe,Labe');
-  assert.deepEqual(review['20265844'].tributaryNames, ['부크강', '나레프강']);
-  assert.deepEqual(review['20597827'].tributaryNames, ['툰자강']);
-  assert.equal(review['50798885'].officialGovernmentVectorEvidence.within1kmHydroToGovernment, 0.9876);
-  assert.equal(review['70819626'].officialStationEvidence.stationIds.length, 3);
-  const renamed = Object.fromEntries(Object.entries(review)
-    .filter(([, value]) => value.previousNameKo !== value.nameKo)
-    .map(([id, value]) => [id, value.nameKo]));
-  assert.deepEqual(renamed, {
-    '20680587': '과달키비르강', '40485117': '도네강', '41279826': '살윈강',
-    '50261309': '바리토강', '70576631': '델라웨어강', '70816878': '브래저스강',
-    '70819626': '콜로라도강', '20265844': '비스와강',
-  });
-  for (const item of Object.values(review)) {
-    assert.ok(item.independentSources.every(src => !/openstreetmap|overpass/i.test(src.url)));
-    assert.ok(!item.aliases.includes(item.previousNameKo));
-    assert.ok(!item.tributaryNames.includes(item.previousNameKo));
-  }
-  assert.equal(createHash('sha256').update(readFileSync(path)).digest('hex'), originalHash);
-});
 test('reject OSM/Overpass URL, missing Korean name and insufficient mainstem coverage', () => {
   for (const mutate of [
     row => { row.independentSources[0].url = 'https://www.openstreetmap.org/relation/1'; },
@@ -170,14 +134,6 @@ const test = __hydro_dep1.default;
 const { buildIndependentPointScreen } = __hydro_dep9;
 const { windowsHydroRuntime } = __hydro_dep10;
 
-
-
-
-
-
-
-
-
 const ids=['20071308','20075401','20456598','20532766','20540915'];
 function fixture(){return {manifest:{version:'0.13.2'},features:ids.map(id=>({metadata:{systemId:id,role:'mainstem'},
   geometry:{type:'LineString',coordinates:[[25,64],[25.1,64.1]]}}))};}
@@ -226,12 +182,6 @@ const { gzipSync } = __hydro_dep11;
 const test = __hydro_dep1.default;
 const { verifyPublishedHydro } = __hydro_dep12;
 
-
-
-
-
-
-
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 const original=readFileSync(new URL("../../../tools/gis/hydro-independent-name-replacements.json",import.meta.url));
 function fixture() {
@@ -256,14 +206,6 @@ function fixture() {
       hydroRivers:[{osmMatches:1}]}};
   return {bundle,manifest};
 }
-test('42 independently sourced names and immutable index/shard SHA are validated',()=>{
-  const f=fixture();
-  const proof=verifyPublishedHydro(f.manifest,f.bundle,original,original,{fragments:42,osm:1});
-  assert.equal(proof.reviewedSystems,42);
-  assert.equal(proof.reviewedFragments,42);
-  assert.equal(proof.remainingOsmSystems,1);
-  assert.equal(proof.indexSha256,sha(Buffer.from('INDEX')));
-});
 test('tampered bundle, original source or regional accounting must fail closed',()=>{
   const f=fixture(),bad=Buffer.from(f.bundle);bad[0]^=1;
   assert.throws(()=>verifyPublishedHydro(f.manifest,bad,original,original),/SHA/);

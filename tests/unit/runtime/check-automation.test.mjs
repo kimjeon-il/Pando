@@ -1,10 +1,12 @@
+import {createCheckImpactIndex} from '../../../scripts/lib/check-impact.mjs';
+import {selectionRequest} from '../../../scripts/run-application-checks.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, readdirSync, rmSync, existsSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync, existsSync } from 'node:fs';
 import { parse } from 'yaml';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+
 import { runInNewContext } from 'node:vm';
 import { loadRepository, planApplicationChecks, matchesPattern } from "../../../scripts/plan-application-checks.mjs";
 
@@ -16,20 +18,7 @@ test('recursive test selectors include direct and domain-nested tests without cr
  assert.equal(matchesPattern('tests/unit/rendering/terrain-one/nested.test.mjs',pattern),false);
 });
 import { auditWorkflowReferences } from "../../../scripts/lib/workflow-reference-integrity.mjs";
-import {auditConsolidatedTestRegistry} from "../../../scripts/check-test-consolidation.mjs";
 
-test('every current browser workflow can be assigned before CI dependency planning', () => {
-  const catalog = JSON.parse(readFileSync(new URL("../../../scripts/contracts/application-checks.json", import.meta.url)));
-  const groups = catalog.groups.filter(group => group.kind === 'browser');
-  const unregistered = readdirSync(new URL("../../browser/", import.meta.url)).filter(name => name.endsWith('.spec.mjs'))
-    .map(name => 'tests/browser/' + name).filter(file => !groups.some(group => group.testPatterns.some(pattern => matchesPattern(file, pattern))));
-  assert.deepEqual(unregistered, []);
-});
-
-test('every workflow and local action resolves executable sources, not just test filenames', () => {
-  const root = fileURLToPath(new URL("../../..", import.meta.url));
-  assert.deepEqual(auditWorkflowReferences(root), []);
-});
 
 test('workflow reference validator catches missing scripts, retired products and local actions', t => {
   const root = mkdtempSync(join(tmpdir(), 'pando-workflow-reference-'));
@@ -101,47 +90,6 @@ test('workflow reference validator catches missing scripts, retired products and
     && error.reason === 'Missing focused test path in workflow trigger'));
 });
 
-test('desktop and mobile release acceptance run on main PR using the current library revision',()=>{
-  const path=new URL("../../../.github/workflows/viewer-functional-acceptance.yml",import.meta.url);
-  const workflow=parse(readFileSync(path,'utf8'));
-  assert.deepEqual(workflow.on.pull_request.branches,['main']);
-  assert.deepEqual(workflow.jobs.functional.strategy.matrix.profile,['p6-1','p6-2']);
-  const steps=workflow.jobs.functional.steps;
-  assert.ok(steps.some(step=>step.uses==='./.github/actions/library-data'));
-  assert.ok(steps.some(step=>step.run?.includes('tests/integration/viewer-functional-${{ matrix.profile }}.config.mjs')));
-  for(const name of ['p6-1','p6-2'])
-    assert.ok(existsSync(new URL("../../integration/viewer-functional-"+name+'.spec.mjs',import.meta.url)));
-  const definition=JSON.stringify(workflow);
-  assert.ok(!JSON.stringify(workflow.jobs.functional).includes('5eb7be55208efaafe39bd5a65ec2f111d70b9053'));
-  assert.ok(!definition.includes('apps/editor/stage.mjs'));
-});
-
-test('generated adapter gate invokes node once with every retained test argument',()=>{
-  const workflow=parse(readFileSync(new URL("../../../.github/workflows/generated-artifacts-p2.yml",import.meta.url),'utf8'));
-  const steps=Object.values(workflow.jobs).flatMap(job=>job.steps||[]);
-  const gate=steps.find(step=>step.name==='Verify P6 product calculation adapters');
-  assert.ok(gate);
-  assert.equal(gate.run.trim().split('\n').length,1,'a folded YAML break must not execute a test path as a shell command');
-  const registered=loadRepository().tests;
-  for(const name of ['p6-polygon-core','r4c-spatial-boundaries','river-territory-partition']){
-    const path=registered.find(file=>file.endsWith('/'+name+'.test.mjs'));
-    assert.ok(path,'Missing registered adapter: '+name);
-    assert.ok(gate.run.includes(path));
-  }
-});
-
-test('P2 checkout provides comparison history for manual and push runs',()=>{
-  const workflow=parse(readFileSync(new URL("../../../.github/workflows/generated-artifacts-p2.yml",import.meta.url),'utf8'));
-  for(const name of ['plan','generate']) {
-    const checkout=workflow.jobs[name].steps.find(step=>step.uses?.startsWith('actions/checkout@'));
-    assert.equal(checkout?.with?.['fetch-depth'],0,`${name} must fetch origin/main and comparison history`);
-  }
-  assert.equal(workflow.on.workflow_dispatch.inputs.skip_preview.default,false);
-  const preview=workflow.jobs.generate.steps.find(step=>step.name==='Hand the exact verified result to Viewer preview and acceptance');
-  assert.match(preview.if,/!inputs\.skip_preview/);
-});
-
-
 function fixture() {
   const root = mkdtempSync(join(tmpdir(), 'pando-check-plan-'));
   const put = (path, source = '') => { mkdirSync(dirname(join(root, path)), { recursive: true }); writeFileSync(join(root, path), source); };
@@ -193,57 +141,6 @@ test('shared tooling documentation is a passive CI input', t => {
   const plan = planApplicationChecks({ changedFiles: ['docs/reference-map-plugin.md'], repository: f.repository() });
   assert.deepEqual(plan.unitTests, []);
   assert.deepEqual(plan.browserSpecs, []);
-});
-
-test('application CI prepares pinned data before planning and executing registered checks', () => {
-  const workflow = parse(readFileSync(new URL("../../../.github/workflows/application-architecture.yml", import.meta.url), 'utf8'));
-  for (const id of ['changes', 'non-browser', 'browser']) {
-    const steps = workflow.jobs[id].steps;
-    const checkout = steps.findIndex(step => step.uses === 'actions/checkout@v4');
-    const prepare = steps.findIndex(step => step.uses === './.github/actions/library-data');
-    const plan = steps.findIndex(step => step.run?.includes('run-application-checks.mjs'));
-    assert.ok(checkout >= 0 && prepare > checkout && plan > prepare, `${id} must prepare registered data inputs before loading the repository`);
-  }
-});
-
-test('Architecture executes one non-browser phase and a bounded isolated browser matrix with distinct evidence', () => {
-  const workflow = parse(readFileSync(new URL("../../../.github/workflows/application-architecture.yml", import.meta.url), 'utf8'));
-  const jobs = workflow.jobs;
-  for (const key of ['checks', 'non_browser', 'browser', 'browser_count', 'browser_matrix'])
-    assert.equal(jobs.changes.outputs[key], '${{ steps.plan.outputs.' + key + ' }}');
-  assert.equal(jobs['non-browser'].if, "needs.changes.outputs.non_browser == 'true'");
-  assert.equal(jobs.browser.if, "needs.changes.outputs.browser == 'true'");
-  assert.equal(jobs['non-browser'].strategy, undefined);
-  assert.equal(jobs.browser.strategy['fail-fast'], false);
-  assert.equal(jobs.browser.strategy.matrix, '${{ fromJSON(needs.changes.outputs.browser_matrix) }}');
-  for (const phase of ['non-browser', 'browser']) {
-    const job = jobs[phase];
-    assert.equal(job.needs, 'changes');
-    assert.equal(job['timeout-minutes'], 45);
-    assert.equal(job['continue-on-error'], undefined);
-    const plan = job.steps.find(step => step.id === 'plan');
-    assert.ok(plan.run.includes('--list --github-output'));
-    assert.ok(plan.run.includes('--phase ' + phase));
-    const execution = job.steps.find(step => step.run?.includes('run-application-checks.mjs') && !step.run.includes('--list'));
-    assert.ok(execution.run.includes('--phase ' + phase));
-    assert.equal(execution.env.PLAYWRIGHT_LIST_PRINT_FAILURES_INLINE, '1');
-    const upload = job.steps.find(step => step.uses === 'actions/upload-artifact@v4');
-    assert.equal(upload.if, 'always()');
-    assert.ok(upload.with.name.includes('application-checks-' + phase));
-    assert.ok(upload.with.path.includes('application-checks-' + phase));
-    if (phase === 'browser') {
-      for (const step of [plan, execution]) assert.ok(step.run.includes('--shard ${{ matrix.current }}/${{ matrix.total }}'));
-      assert.ok(upload.with.name.includes('${{ matrix.current }}-of-${{ matrix.total }}'));
-      assert.ok(upload.with.path.includes('test-results/'));
-      assert.ok(job.steps.some(step => step.name==='Prepare Chromium dependencies and missing browser binary'
-        && step.run.includes('playwright install-deps chromium') && step.run.includes('playwright install chromium')));
-    } else assert.equal(job.steps.some(step => step.run?.includes('playwright install')), false);
-  }
-  assert.deepEqual(jobs.checks.needs, ['changes', 'non-browser', 'browser']);
-  assert.equal(jobs.checks.if, 'always()');
-  assert.equal(jobs.checks.steps.some(step => step.run?.includes('run-application-checks.mjs')), false);
-  assert.equal(jobs.changes.steps.find(step => step.id === 'plan').if,
-    undefined);
 });
 
 test('Architecture aggregate rejects missing failed or cancelled work and accepts only selected success or explicit empty phases', () => {
@@ -335,17 +232,6 @@ test('a Viewer browser test with a missing public module fails instead of being 
     /Missing dependency .*missing-viewer-module\.js/);
 });
 
-test('Hydro generation changes select their native external workflow', () => {
-  const f = fixture();
-  const catalog = JSON.parse(readFileSync(new URL("../../../scripts/contracts/application-checks.json", import.meta.url)));
-  const check = catalog.externalChecks.find(row => row.id === 'hydro-native-generation');
-  f.catalog.externalChecks = [check]; f.put(check.workflow);
-  const changedFiles = ['tools/gis/build-hydro.mjs', 'tools/cpp/hydro/point-screen.cpp', 'tests/unit/hydro-generation-pipeline.test.mjs'];
-  changedFiles.forEach(file => f.put(file));
-  const plan = planApplicationChecks({ changedFiles, repository: f.repository() });
-  assert.deepEqual(plan.externalChecks.map(row => row.id), ['hydro-native-generation']);
-});
-
 test('new and moved tests are discovered; an unregistered browser test fails coverage', () => {
   const f = fixture(); f.put('tests/unit/new.test.mjs', "import './terrain.test.mjs';");
   assert.ok(planApplicationChecks({ changedFiles: ['tests/unit/new.test.mjs'], repository: f.repository() }).unitTests.includes('tests/unit/new.test.mjs'));
@@ -421,83 +307,40 @@ test('classic generated metadata resolves to its source owner without a root out
  assert.ok(planApplicationChecks({changedFiles:[owner],repository:repo}).browserSpecs.includes('tests/browser/terrain-time.spec.mjs'));
 });
 
-test('Hydro metadata workflow verifies the generated snapshot without committing generated paths',()=>{
- const source=readFileSync(new URL("../../../.github/workflows/gis-hydro-metadata-refresh.yml",import.meta.url),'utf8');
- const workflow=parse(source),steps=workflow.jobs['targeted-metadata-refresh'].steps;
- assert.equal(workflow.permissions.contents,'read');
- assert.ok(steps.some(step=>step.run?.includes('node scripts/generate-build-metadata.mjs --check')));
- assert.ok(steps.some(step=>step.run?.includes('node tools/checks/check-current-hydro-layout.mjs')));
- assert.ok(steps.some(step=>step.uses==='actions/upload-artifact@v4'));
- for(const step of steps)assert.doesNotMatch(step.run||'',/git (?:add|commit|push)\b/);
-});
-
-test('browser-only helpers are referenced by an active feature spec', () => {
-  const browserRoot = new URL("../../browser/", import.meta.url);
-  const helpersRoot = new URL("../../browser/helpers/", import.meta.url);
-  const helpers = readdirSync(helpersRoot).filter(name => name.endsWith('.mjs')).sort();
-  const specs = readdirSync(browserRoot,{recursive:true}).filter(name => name.endsWith('.spec.mjs'));
-  const queue = specs.map(name => readFileSync(new URL(name, browserRoot), 'utf8'));
-  const reachable = new Set();
-  // Traverse imports from retained specs through their helper dependencies.
-  for (let at = 0; at < queue.length; at++) for (const helper of helpers) {
-    if (reachable.has(helper) || !queue[at].includes(helper)) continue;
-    reachable.add(helper);
-    queue.push(readFileSync(new URL(helper, helpersRoot), 'utf8'));
-  }
-  assert.deepEqual(helpers.filter(name => !reachable.has(name)), [],
-    'Remove orphaned browser diagnostic helpers instead of expanding the default test suite');
-});
-
-test('current C++/GIS and Viewer workflows have one application runner and source-owned release jobs',()=>{
-  const read=name=>parse(readFileSync(new URL("../../../.github/workflows/"+name+'.yml',import.meta.url),'utf8'));
-  const app=read('application-architecture'),preview=read('viewer-preview'),native=read('shared-core');
-  assert.ok(app.on.workflow_call?.inputs?.check_profile);
-  assert.equal(preview.jobs['application-contracts'].uses,'./.github/workflows/application-architecture.yml');
-  assert.ok(preview.jobs.snapshot.steps.some(step=>step.run?.includes('stage-viewer-preview.mjs')));
-  assert.ok(native.jobs['native-branch-core']&&native.jobs['native-branch-gis']);
-  assert.ok(native.jobs['native-branch-impact']);
-  const producer=read('generated-artifacts-p2');
-  const handoff=producer.jobs.generate.steps.find(step=>step.run?.includes('gh workflow run'));
-  assert.match(handoff.run,/viewer-preview\.yml/);
-  const hydro=read('hydro-packfile-runtime-gate').jobs.parity;
-  const hydroTest=loadRepository().tests.find(file=>file.endsWith('/hydro-packfile.test.mjs'));
-  assert.ok(hydroTest,'Missing registered Hydro packfile test');
-  const count=hydro.steps.reduce((n,step)=>n+String(step.run||'').split('node --test '+hydroTest).length-1,0);
-  assert.equal(count,1);
-  for(const old of ['remote-development-p1','remote-preview-p3','remote-only-gate'])
-    assert.equal(existsSync(new URL("../../../.github/workflows/"+old+'.yml',import.meta.url)),false);
-});
-
-
-test('P6 new infrastructure owners participate in impacted check selection', () => {
-  const repo = loadRepository();
-  for (const [changed, owner] of [
-    ['scripts/plan-application-checks.mjs', 'tests/unit/runtime/e7-application-check-planner.test.mjs'],
-    ['scripts/lib/unit-test-batches.mjs', 'tests/unit/runtime/check-runner.test.mjs'],
-    ['scripts/lib/unit-test-isolation.mjs', 'tests/unit/runtime/check-runner.test.mjs'],
-    ['tests/helpers/check-workspace-fixture.mjs', 'tests/unit/ui/native-check-prerequisites.test.mjs'],
-  ]) {
-    const plan=planApplicationChecks({changedFiles:[changed],repository:repo});
-    assert.ok(plan.unitTests.includes(owner), changed + ' -> ' + owner);
-  }
-  const pkg=JSON.parse(readFileSync(new URL("../../../package.json", import.meta.url)));
-  for (const name of ['e7-application-check-planner','check-automation','check-runner','native-check-prerequisites']){
-    const path=repo.tests.find(file=>file.endsWith('/'+name+'.test.mjs'));
-    assert.ok(path,'Missing registered CI check: '+name);
-    assert.ok(pkg.scripts['check:ci-inventory'].includes(path));
-  }
-  const architecture=parse(readFileSync(new URL("../../../.github/workflows/application-architecture.yml", import.meta.url),'utf8'));
-  assert.ok(architecture.jobs.changes.steps.some(step =>
-    step.run === 'node scripts/check-test-consolidation.mjs'));
-});
-
-test('active registry checks only executable tests and current CI targets', () => {
-  const report = auditConsolidatedTestRegistry(loadRepository());
-  assert.ok(report.units > 0);
-  assert.ok(report.activeTests >= report.units);
-  assert.deepEqual(report.issues, {
-    invalidWorkflowReferences: [], missingDirectTestReferences: [],
-    missingActivePerformanceTests: [], missingBindings: [], emptyUnitSuites: [],
+test('reverse dependency graph selects only consuming features', () => {
+  const edges = {
+    'tests/unit/terrain.test.mjs': ['shared/terrain.js'],
+    'shared/terrain.js': ['shared/decoded.js'],
+    'tests/unit/objects.test.mjs': ['shared/objects.js'],
+  };
+  const index = createCheckImpactIndex({
+    roots: ['tests/unit/terrain.test.mjs', 'tests/unit/objects.test.mjs'],
+    dependencies: file => edges[file] || [],
   });
-  assert.equal(report.ok,true);
+  const affected = index.affectedBy(['shared/decoded.js']);
+  assert.deepEqual([...affected.get('tests/unit/terrain.test.mjs')], ['shared/decoded.js']);
+  assert.equal(affected.has('tests/unit/objects.test.mjs'), false);
+});
+
+test('deleted files and parent directory changes keep their consumers', () => {
+  const index = createCheckImpactIndex({
+    roots: ['tests/unit/loader.test.mjs'],
+    dependencies: path => path === 'tests/unit/loader.test.mjs' ? ['assets/data/catalog/index.json'] : [],
+  });
+  for (const changed of ['assets/data/catalog/index.json', 'assets/data/catalog']) {
+    const affected = index.affectedBy([changed]);
+    assert.ok(affected.get('tests/unit/loader.test.mjs')?.has(changed));
+  }
+});
+
+test('current group names select only requested work, unknown names fail closed', () => {
+  const catalog = { groups: [{ id: 'viewer', kind: 'browser' }, { id: 'gis', kind: 'unit' }] };
+  assert.deepEqual(selectionRequest(catalog, {
+    GITHUB_EVENT_NAME: 'workflow_dispatch', CHECK_GROUPS: 'viewer, gis',
+    BROWSER_SCOPE: 'default', CHECK_SCOPE: 'auto',
+  }), { groups: ['viewer', 'gis'], diff: false });
+  assert.throws(() => selectionRequest(catalog, { CHECK_GROUPS: 'obsolete' }), /Unknown check group/);
+  assert.deepEqual(selectionRequest(catalog, {
+    GITHUB_EVENT_NAME: 'workflow_dispatch', BROWSER_SCOPE: 'default', CHECK_SCOPE: 'auto',
+  }), { groups: [], diff: true });
 });

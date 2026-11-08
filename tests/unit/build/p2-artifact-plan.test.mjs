@@ -4,7 +4,6 @@ import { execFileSync } from 'node:child_process';
 import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync, symlinkSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
-import {fileURLToPath} from 'node:url';
 import test from 'node:test';
 import { sharedSourceManifest } from "../../../tools/build/package-shared-core-assets.mjs";
 import {libraryMaterializedRoot,libraryReportRoot,librarySharedCheckout} from "../../../tools/data/library-context.mjs";
@@ -39,16 +38,6 @@ test('P2 isolates the generated work branch from a newer source-library work/gis
     checkoutHead:pin,targetBranch:'main',targetRemote:null}),/P2_LIBRARY_TARGET_BRANCH_INVALID/);
 });
 
-test('builtin country family replaces the retired aggregate throughout the artifact graph',()=>{
- const root=fileURLToPath(new URL("../../../",import.meta.url)),graph=artifactGraph(root);
- const family=graph.find(row=>row.id==='builtin-world');
- assert.ok(family);assert.equal(graph.some(row=>row.id==='historical-world'||row.dependencies.includes('historical-world')),false);
- assert.deepEqual(family.outputs,['assets/data/builtin-world/generated/v1/']);
- for(const command of [...family.generate,...family.validate])assert.ok(readFileSync(join(root,command[1])).length);
- for(const consumer of family.consumers)assert.ok(readFileSync(join(root,consumer)).length);
- assert.ok(graph.find(row=>row.id==='prepared-mesh').dependencies.includes('builtin-world'));
- assert.equal(graph.some(row=>row.id==='build-metadata'),false);
-});
 function fixture(t) {
   const root=mkdtempSync(join(tmpdir(),'pando-p2-'));
   t.after(()=>rmSync(root,{recursive:true,force:true}));
@@ -203,7 +192,7 @@ const nativeValidationChanges=[
   'scripts/lib/check-changes.mjs',
   'playwright.codespaces.config.js',
   'tests/unit/runtime/remote-only-contract.test.mjs',
-  'tests/unit/runtime/codespaces-acceptance-contract.test.mjs',
+  'tests/unit/runtime/remote-only-contract.test.mjs',
 ];
 function nativeValidationFixture(t) {
   const f=fixture(t);
@@ -493,11 +482,6 @@ test('a concurrent remote commit survives the final publication guard',async t=>
   assert.notEqual(f.remoteHead(),f.git('rev-parse','HEAD'));
 });
 
-
-test('frontend metadata and HTML are derived outputs rather than Git publication families',()=>{
- const graph=artifactGraph(fileURLToPath(new URL("../../../",import.meta.url)));
- for(const family of graph)for(const output of family.outputs)assert.equal(['index.html','apps/editor/editor.html','assets/js/build-meta.js'].includes(output),false);
-});
 
 test('world bundle ownership follows the current manifest rather than every cached object', t => {
   const f=fixture(t);

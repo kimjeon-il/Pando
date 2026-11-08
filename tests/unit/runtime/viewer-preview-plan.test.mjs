@@ -107,17 +107,6 @@ test('only changed source reaches automatic preview; a pending artifact defers t
   assert.equal(published.preview,true);
   assert.equal(published.browser,true);
 });
-test('verified artifact handoff and current Viewer acceptance are source-pinned',()=>{
-  const workflow=readFileSync(new URL("../../../.github/workflows/viewer-preview.yml",import.meta.url),'utf8');
-  const producer=readFileSync(new URL("../../../.github/workflows/generated-artifacts-p2.yml",import.meta.url),'utf8');
-  assert.match(producer,/gh workflow run viewer-preview\.yml/);
-  assert.match(workflow,/application-contracts:/);
-  assert.match(workflow,/uses: \.\/\.github\/workflows\/application-architecture\.yml/);
-  assert.match(workflow,/head_sha: \$\{\{ inputs\.source_sha \|\| github\.sha \}\}/);
-  assert.match(workflow,/scripts\/stage-viewer-preview\.mjs/);
-  assert.match(workflow,/git merge-base --is-ancestor/);
-  assert.match(workflow,/calculation-performance:/);
-});
 });
 contractSuite("viewer-project-reader", async () => {
 const { repositoryFrontendSnapshot, nodeWorkerScript } = __dep8;

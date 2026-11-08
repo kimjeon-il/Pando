@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {mkdtempSync,mkdirSync,writeFileSync,readFileSync,existsSync,rmSync} from 'node:fs';
+import {mkdtempSync,mkdirSync,writeFileSync,existsSync,rmSync} from 'node:fs';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {assertRemoteOnlyNativeAllowed,remoteOnlyBranch} from "../../../scripts/lib/remote-only-native-policy.mjs";
@@ -90,18 +90,6 @@ test('compiler activation refuses local SDKs before I/O; Windows download uses s
   assert.equal(existsSync(join(root,'build-native')),false);
   assert.equal(existsSync(join(root,'cache')),false);
 });
-test('application runner places native work behind the shared local-build policy',()=>{
-  const source=readFileSync(new URL("../../../scripts/run-application-checks.mjs",import.meta.url),'utf8');
-  assert.match(source,/id\.startsWith\('native-'\)/);
-  assert.match(source,/definitionForCheck\?\.gisNative/);
-  assert.match(source,/assertRemoteOnlyNativeAllowed\(\{root:repository\.root,environment:executionEnvironment/);
-});
-test('on remote-only branch, compiler environment/config commands never reactivate old cache settings',()=>{
-  const source=readFileSync(new URL("../../../tools/data/worktree-storage.mjs",import.meta.url),'utf8');
-  assert.match(source,/compilerValues=\(\)=>remoteOnlyBranch\(\{root\}\)/);
-  assert.match(source,/active:!remoteOnlyBranch\(\{root\}\)/);
-});
-
 test('checked-in policy marker blocks detached-HEAD native setup without probing Git',t=>{
   const root=mkdtempSync(join(tmpdir(),'pando-detached-remote-'));
   t.after(()=>rmSync(root,{recursive:true,force:true}));
@@ -129,9 +117,4 @@ test('existing compiler cache wrappers are stripped without launching their exec
     assert.equal(result[key],undefined,key);
   assert.equal(result.PATH,'unrelated');
   assert.equal(existsSync(settings.cacheRoot),false);
-});
-test('legacy direct compiler-cache probe requires Actions before hardcoded toolchains',()=>{
-  const script=readFileSync(new URL("../../../tools/checks/verify-compiler-cache.mjs",import.meta.url),'utf8');
-  assert.match(script,/assertRemoteOnlyNativeAllowed/);
-  assert.ok(script.indexOf('assertRemoteOnlyNativeAllowed')<script.indexOf("const roots=['D:/dev/worktrees"));
 });

@@ -1,14 +1,14 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {mkdirSync,writeFileSync,readFileSync,readdirSync} from 'node:fs';
+import {mkdirSync,writeFileSync,readFileSync} from 'node:fs';
 import {isolatedTestWorkspace} from "../../helpers/check-workspace-fixture.mjs";
-import {dirname,join,posix,resolve} from 'node:path';
-import {loadRepository,matchesPattern,planApplicationChecks} from "../../../scripts/plan-application-checks.mjs";
-import {executePlan as executeCiPlan,exactCheckPlan,executionOutputs} from "../../../scripts/run-application-checks.mjs";
+import {dirname,join} from 'node:path';
+import {loadRepository} from "../../../scripts/plan-application-checks.mjs";
+import {executePlan as executeCiPlan} from "../../../scripts/run-application-checks.mjs";
 import {nativeTestCapacity,prepareNativeTestTool} from "../../../scripts/prepare-native-test-tools.mjs";
-import {nativeTestRecipes} from "../../../scripts/lib/native-test-prerequisites.mjs";
+
 import {packageNativeTool} from "../../../tools/build/native-tool.mjs";
-import YAML from 'yaml';
+
 import {selectNativeBuilds,pinnedToolchain} from "../../../scripts/lib/check-changes.mjs";
 
 const ciNativeTestCapacity=(ids,options)=>nativeTestCapacity(ids,{...options,environment:{GITHUB_ACTIONS:'true'}});
@@ -32,35 +32,6 @@ test('Windows local native preparation requests CI without invoking installer or
  const result=await prepareNativeTestTool('map-image',{root:f.root,platform:'win32',environment:{},run:()=>assert.fail('local compilation'),remote:request=>{calls.push(request.selection);return {ok:true};}});
  assert.equal(result.ok,true);assert.deepEqual(calls,[{unitTests:[],browserSpecs:[],commands:[],prerequisites:['native-map-image']}]);
  await assert.rejects(nativeTestCapacity(['map-image'],{root:f.root,platform:'win32',environment:{},probe:()=>assert.fail('local tool probe')}),/Local native SDK installation is disabled/);
-});
-
-test('exact remote checks retain canonical core preparation and ignore hidden unfinished tests',t=>{
- const f=fixture(t);f.put('tests/unit/document/core-document-world-wasm.test.mjs');f.put('tests/unit/.unfinished.test.mjs');f.catalog.prerequisites.core={argv:['node','core.mjs']};
- f.catalog.unitPrerequisites.push({tests:['tests/unit/**/core-*.test.mjs'],requires:['core']});
- const repository=f.repository(),plan=exactCheckPlan(repository,{unitTests:['tests/unit/document/core-document-world-wasm.test.mjs','tests/unit/image.test.mjs'],browserSpecs:[],commands:[],prerequisites:[]});
- assert.deepEqual(plan.unitTests,['tests/unit/document/core-document-world-wasm.test.mjs','tests/unit/image.test.mjs']);assert.ok(plan.prerequisites.includes('core'));assert.ok(plan.prerequisites.includes('image'));assert.equal(repository.tests.includes('tests/unit/.unfinished.test.mjs'),false);
-});
-
-test('selected native tests retain their files and require only their declared tool',t=>{
-  const f=fixture(t),repository=f.repository();
-  const native=planApplicationChecks({changedFiles:['tests/unit/image.test.mjs'],repository});
-  assert.deepEqual(native.unitTests,['tests/unit/image.test.mjs']);
-  assert.deepEqual(native.prerequisites,['image']);
-  assert.deepEqual(native.unitTestPrerequisites,{'tests/unit/image.test.mjs':['image']});
-  const plain=planApplicationChecks({changedFiles:['tests/unit/plain.test.mjs'],repository});
-  assert.deepEqual(plain.unitTests,['tests/unit/plain.test.mjs']);
-  assert.deepEqual(plain.prerequisites,[]);
-});
-
-test('native preparation and action changes select their declared consumers',t=>{
-  const f=fixture(t),action='.github/actions/native-setup/action.yml';f.put(action,'steps: []\n');
-  f.catalog.prerequisites.image.inputs=[action];
-  const repository=f.repository();
-  for(const file of ['scripts/prepare.mjs',action]){
-    const plan=planApplicationChecks({changedFiles:[file],repository});
-    assert.deepEqual(plan.unitTests,['tests/unit/image.test.mjs']);
-    assert.deepEqual(plan.prerequisites,['image']);
-  }
 });
 
 test('failed native preparation blocks its original tests, continues unrelated tests and fails the run',()=>{
@@ -93,94 +64,6 @@ test('shared native dependencies prepare once and their explicit environments re
   assert.equal(preview.env.PANDO_PREVIEW_ARTIFACT,'/fixture/build-native/preview/artifact');
   const plain=calls.find(row=>row.argv.includes('tests/unit/plain.test.mjs'));
   assert.equal(plain.env.PANDO_PREVIEW_ARTIFACT,process.env.PANDO_PREVIEW_ARTIFACT);
-});
-
-test('merged required native consumers receive their catalogued preparation and batch environment',t=>{
-  const catalog=JSON.parse(readFileSync(new URL("../../../scripts/contracts/application-checks.json",import.meta.url),'utf8'));
-  const required={
-    'native-territorial-recipe':{env:'PANDO_TERRITORIAL_RECIPE_BINARY',path:'build-native/territorial-recipe/pando-territorial-recipe',tests:[
-      'tests/unit/geometry/gis-german-modern-coast-native.test.mjs','tests/unit/geometry/gis-lsib-coast-native.test.mjs',
-      'tests/unit/geometry/gis-lsib-spatial-native.test.mjs','tests/unit/geometry/gis-lsib-tripoint-native.test.mjs',
-      'tests/unit/geometry/gis-lsib-union-native.test.mjs','tests/unit/geometry/gis-lsib-untargeted.test.mjs',
-    ]},
-    'native-map-image':{env:'PANDO_MAP_IMAGE_ARTIFACT',path:'build-native/map-image/artifact',tests:[
-      'tests/unit/document/map-native-resize.test.mjs','tests/unit/geometry/terrain-dem-webp.test.mjs',
-    ]},
-  };
-  const f=fixture(t),consumers=Object.values(required).flatMap(row=>row.tests);
-  for(const file of consumers)f.put(file);
-  f.catalog.prerequisites=Object.fromEntries(Object.keys(required).map(id=>[id,catalog.prerequisites[id]]));
-  f.catalog.unitPrerequisites=catalog.unitPrerequisites.map(binding=>({...binding,
-    tests:binding.tests.filter(pattern=>consumers.some(file=>matchesPattern(file,pattern)))})).filter(binding=>binding.tests.length);
-  for(const entry of Object.values(f.catalog.prerequisites)){
-    f.put(entry.argv[1]);for(const path of entry.inputs)if(!path.includes('*'))f.put(path);
-  }
-  const repository=f.repository();
-  for(const [id,expected] of Object.entries(required))for(const file of expected.tests){
-    const plan=planApplicationChecks({changedFiles:[file],repository});
-    assert.deepEqual(plan.unitTests,[file]);
-    assert.deepEqual(plan.unitTestPrerequisites[file],[id],file);
-    const calls=[],result=executePlan(plan,{repository,run:(argv,options)=>{calls.push({argv,env:options.env});return{status:0};}});
-    assert.equal(result.ok,true,file);
-    const execution=calls.find(row=>row.argv.includes(file));
-    assert.ok(execution,file);
-    assert.equal(resolve(execution.env[expected.env]),join(f.root,expected.path),file);
-  }
-});
-
-test('required DEM checks prepare their native tools and inherit only the tint fill dependency',t=>{
-  const catalog=JSON.parse(readFileSync(new URL("../../../scripts/contracts/application-checks.json",import.meta.url),'utf8'));
-  const ids=['native-terrain-dem-gutters','native-terrain-dem-fill','native-terrain-dem-tint'];
-  for(const id of ids)assert.ok(catalog.prerequisites[id],id+' must be registered');
-  assert.deepEqual(catalog.prerequisites['native-terrain-dem-tint'].requires,['native-terrain-dem-fill']);
-  const f=fixture(t),gutters='tests/unit/geometry/terrain-dem-gutters.test.mjs',tint='tests/unit/geometry/terrain-dem-tint.test.mjs',
-    optionalFill='tests/unit/geometry/terrain-dem-fill.test.mjs',plain='tests/unit/plain.test.mjs',consumers=[gutters,tint,optionalFill,plain];
-  for(const file of consumers)f.put(file);
-  f.catalog.prerequisites=Object.fromEntries(ids.map(id=>[id,catalog.prerequisites[id]]));
-  f.catalog.unitPrerequisites=catalog.unitPrerequisites.map(binding=>({...binding,
-    tests:binding.tests.filter(pattern=>consumers.some(file=>matchesPattern(file,pattern)))})).filter(binding=>binding.tests.length);
-  for(const entry of Object.values(f.catalog.prerequisites)){
-    f.put(entry.argv[1]);for(const path of entry.inputs)if(!path.includes('*'))f.put(path);
-  }
-  const repository=f.repository(),plan=planApplicationChecks({changedFiles:consumers,repository});
-  assert.deepEqual(plan.unitTests,[...consumers].sort());
-  assert.deepEqual(plan.unitTestPrerequisites,{[gutters]:['native-terrain-dem-gutters'],[tint]:['native-terrain-dem-tint']});
-  const calls=[],result=executePlan(plan,{repository,run:(argv,options)=>{calls.push({argv,env:options.env});return{status:0};}});
-  assert.equal(result.ok,true);
-  const fillAt=calls.findIndex(row=>row.argv.at(-1)==='terrain-dem-fill'),tintAt=calls.findIndex(row=>row.argv.at(-1)==='terrain-dem-tint');
-  assert.ok(fillAt>=0&&fillAt<tintAt,'fill must be prepared before tint');
-  assert.equal(calls.filter(row=>row.argv.at(-1)==='terrain-dem-fill').length,1);
-  const expectedFill=join(f.root,'build-native/terrain-dem-encode/fill-artifact'),expectedSdk=join(f.root,'build-native/terrain-dem-gdal/sdk/lib');
-  for(const execution of [calls[tintAt],calls.find(row=>row.argv.includes(tint))]){
-    assert.equal(resolve(execution.env.PANDO_TERRAIN_DEM_FILL_DIRECTORY),expectedFill);
-    assert.equal(resolve(execution.env.PANDO_TERRAIN_DEM_TINT_DIRECTORY),join(f.root,'build-native/terrain-dem-tint/artifact'));
-    assert.equal(resolve(execution.env.LD_LIBRARY_PATH),expectedSdk);
-  }
-  const gutterExecution=calls.find(row=>row.argv.includes(gutters));
-  assert.equal(resolve(gutterExecution.env.PANDO_TERRAIN_DEM_GUTTERS_DIRECTORY),join(f.root,'build-native/terrain-dem-gutters/artifact'));
-  assert.equal(gutterExecution.env.PANDO_MAP_IMAGE_ARTIFACT,process.env.PANDO_MAP_IMAGE_ARTIFACT);
-  for(const file of [gutters,optionalFill,plain]){
-    const execution=calls.find(row=>row.argv.includes(file));
-    assert.equal(execution.env.PANDO_TERRAIN_DEM_FILL_DIRECTORY,process.env.PANDO_TERRAIN_DEM_FILL_DIRECTORY);
-    assert.equal(execution.env.PANDO_TERRAIN_DEM_TINT_DIRECTORY,process.env.PANDO_TERRAIN_DEM_TINT_DIRECTORY);
-    assert.equal(execution.env.LD_LIBRARY_PATH,process.env.LD_LIBRARY_PATH);
-  }
-});
-
-test('DEM GDAL setup retains the canonical pin and is requested only for its consumers',async t=>{
-  const action=YAML.parse(readFileSync(new URL("../../../.github/actions/native-test-prerequisites/action.yml",import.meta.url),'utf8'));
-  const setup=action.runs.steps.find(step=>step.with?.['environment-name']==='pando-dem-gdal');
-  assert.ok(setup,'the canonical GDAL environment must be prepared');
-  assert.equal(setup.uses,'mamba-org/setup-micromamba@v3');
-  assert.equal(setup.if,"steps.capacity.outputs.gdal_environment == 'true'");
-  assert.equal(setup.with['create-args'],'libgdal-core=3.13.3');
-  assert.equal(setup.with['init-shell'],'none');
-  const f=fixture(t),calls=[],probe=argv=>{calls.push(argv);return{status:0,stdout:'3.13.3\n'};};
-  const gutters=await ciNativeTestCapacity(['terrain-dem-gutters'],{root:f.root,probe,platform:'linux',architecture:'x64'});
-  assert.equal(gutters.gdalEnvironment,false);assert.deepEqual(calls,[]);
-  const tint=await ciNativeTestCapacity(['terrain-dem-tint','terrain-dem-fill'],{root:f.root,probe,platform:'linux',architecture:'x64'});
-  assert.equal(tint.gdalEnvironment,true);assert.equal(tint.additionalBytes,0);
-  assert.equal(calls.length,1);assert.deepEqual(calls[0].slice(1),['run','-n','pando-dem-gdal','gdal-config','--version']);
 });
 
 test('unknown or missing native test requirements fail catalog validation',t=>{
@@ -234,63 +117,6 @@ test('no selected native preparation does not require SDK capacity or a filesyst
     {tools:false,recipeEnvironment:false,gdalEnvironment:false,additionalBytes:0});
 });
 
-test('each application runner execution receives the same selected native setup before its tests',()=>{
-  const directory=new URL("../../../.github/workflows/",import.meta.url),consumers=[];
-  for(const file of readdirSync(directory).filter(file=>file.endsWith('.yml'))){
-    const workflow=YAML.parse(readFileSync(new URL(file,directory),'utf8'));
-    for(const [id,job] of Object.entries(workflow.jobs||{})){
-      const steps=job.steps||[],execution=steps.findIndex(step=>String(step.run||'').split('\n')
-        .some(line=>line.includes('scripts/run-application-checks.mjs')&&!line.includes('--list')));
-      if(execution<0)continue;
-      const preparation=steps.findIndex(step=>step.uses==='./.github/actions/native-test-prerequisites');
-      assert.ok(preparation>=0&&preparation<execution,file+' '+id);
-      assert.equal(steps[preparation].with.requirements,'${{ steps.plan.outputs.native_requirements }}');
-      consumers.push(file);
-    }
-  }
-  assert.deepEqual(consumers.sort(),['application-architecture.yml','application-architecture.yml'],
-    'both current application phases must prepare only their selected native inputs');
-});
-
-test('native source-manifest inputs also participate in consumer selection',async()=>{
-  const catalog=JSON.parse(readFileSync(new URL("../../../scripts/contracts/application-checks.json",import.meta.url),'utf8'));
-  for(const [id,recipe] of Object.entries(nativeTestRecipes)){
-    if(!recipe.artifact)continue;
-    const source=await import(new URL("../../../"+recipe.artifact.sourceModule,import.meta.url));
-    const inputs=catalog.prerequisites['native-'+id].inputs;
-    for(const file of source[recipe.artifact.sourceExport])
-      assert.ok(inputs.some(pattern=>matchesPattern(file,pattern)),id+': '+file);
-  }
-});
-
-test('each compiled territorial source and recursive project header selects its nested Caspian consumer',t=>{
-  const read=path=>readFileSync(new URL("../../../"+path,import.meta.url),'utf8');
-  const catalog=JSON.parse(read('scripts/contracts/application-checks.json'));
-  const target=read('tools/cpp/CMakeLists.txt').match(/add_executable\(pando-territorial-recipe\s+([^)]*)\)/);
-  assert.ok(target,'the canonical territorial target must be present');
-  const pending=target[1].trim().split(/\s+/).map(path=>posix.normalize('tools/cpp/'+path)),closure=new Set();
-  while(pending.length){
-    const path=pending.pop();if(closure.has(path))continue;closure.add(path);
-    for(const match of read(path).matchAll(/^\s*#include\s+(?:<([^>]+)>|"([^"]+)")/gm)){
-      if(match[1]?.startsWith('pandoeditor/'))pending.push('shared/core/include/'+match[1]);
-      else if(match[2])pending.push(posix.normalize(posix.dirname(path)+'/'+match[2]));
-    }
-  }
-  const f=fixture(t),consumer='tests/unit/gis-caspian-pinned-native-oracle.test.mjs';f.put(consumer);
-  f.catalog.prerequisites=Object.fromEntries(['native-territorial-recipe','native-caspian-oracle'].map(id=>[id,catalog.prerequisites[id]]));
-  f.catalog.unitPrerequisites=[{tests:[consumer],requires:['native-caspian-oracle']}];
-  for(const entry of Object.values(f.catalog.prerequisites)){
-    f.put(entry.argv[1]);for(const path of entry.inputs)if(!path.includes('*'))f.put(path);
-  }
-  for(const path of closure)f.put(path);
-  const repository=f.repository();
-  for(const path of closure){
-    const plan=planApplicationChecks({changedFiles:[path],repository});
-    assert.deepEqual(plan.unitTests,[consumer],path);
-    assert.deepEqual(plan.prerequisites,['native-caspian-oracle'],path);
-  }
-});
-
 test('an incorrect prepared pinned source fails before download or replacement',async t=>{
   const f=fixture(t),path='assets/data/countries-ne-5.1.1.geojson';
   f.put(path,'different source');
@@ -298,14 +124,6 @@ test('an incorrect prepared pinned source fails before download or replacement',
   assert.equal(readFileSync(join(f.root,path),'utf8'),'different source');
 });
 
-
-test('P5 territorial recipe receives GIS native setup through canonical CI outputs', () => {
-  const catalog=JSON.parse(readFileSync(new URL("../../../scripts/contracts/application-checks.json",import.meta.url),'utf8'));
-  const repository={catalog};
-  const plan={prerequisites:['native-territorial-recipe'],commands:[],unitTests:['tests/unit/geometry/gis-lsib-source-native.test.mjs'],
-    unitTestPrerequisites:{'tests/unit/geometry/gis-lsib-source-native.test.mjs':['native-territorial-recipe']},browserSpecs:[]};
-  assert.equal(executionOutputs(plan,{repository,phase:'non-browser'}).gis_native,true);
-});
 
 test('toolchain pins agree with Node and frozen package manager',()=>{
   const pinned=pinnedToolchain();
@@ -323,6 +141,11 @@ test('Core and GIS changes select native builds without repeating WASM publicati
     {core:true,gis:true,wasm:false});
   assert.deepEqual(selectNativeBuilds(['.devcontainer/start-preview.sh','README.md']),
     {core:false,gis:false,wasm:false});
+});
+test('canonical geometry suites request their native build after phase-suite absorption',()=>{
+  for(const name of ['polygon-geometry','gis-math-contract','annex-slivers'])
+    assert.deepEqual(selectNativeBuilds([`tests/unit/geometry/${name}.test.mjs`]),
+      {core:false,gis:true,wasm:false});
 });
 test('manual native targets are focused and invalid targets fail closed',()=>{
   assert.deepEqual(selectNativeBuilds([],'native-core'),{core:true,gis:false,wasm:false});

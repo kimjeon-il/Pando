@@ -1,6 +1,6 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
-import {existsSync, readFileSync} from 'node:fs';
+
+
+
 import { nextEventTurn } from "../../helpers/async-test-ports.mjs";
 import { describe as contractSuite } from 'node:test';
 import * as __merge_dep0 from "node:test";
@@ -62,7 +62,7 @@ function fixture({failures=0,hold=false,fatal=false}={}){
   const source=readFileSync(new URL("../../../src/app/viewer.js",import.meta.url),'utf8')
     .replace(/^import .*;\r?$/gm,'')
     .replaceAll('import.meta.url',JSON.stringify('https://test.local/assets/js/viewer.js'))
-    .replace("import('./modules/viewer-composition.js')",'importViewer()');
+    .replace('import("./viewer-composition.js")','importViewer()');
   vm.runInContext(source,context);
   return {status,document,window,errors,release:()=>release(),signal:()=>signal,
     stats:()=>({reads,imports,compositions}),wake:()=>window.dispatchEvent(new Event('focus'))};
@@ -291,12 +291,4 @@ test('an asset-free platform suppresses automatic place preparation', async () =
   const labels = createTerritorialLabels({ capabilities: {builtinPlaces:false} });
   assert.equal(await labels.preparePlaces({ force: true }), false);
 });
-});
-contractSuite('retired adjacent-month prefetch', () => {
-  test('the single-project Viewer has no obsolete neighbouring-month prefetch owner', () => {
-    const retired = new URL("../../../src/runtime/viewer-adjacent-prefetch.js", import.meta.url);
-    const composition = new URL("../../../src/app/viewer-composition.js", import.meta.url);
-    assert.equal(existsSync(retired), false);
-    assert.doesNotMatch(readFileSync(composition, 'utf8'), /viewer-adjacent-prefetch|createViewerAdjacentPrefetch|adjacentViewerYears/);
-  });
 });

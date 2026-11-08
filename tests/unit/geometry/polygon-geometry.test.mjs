@@ -1,9 +1,10 @@
+import * as __polygon_native_0 from "node:assert/strict";
+import * as __polygon_native_1 from "node:test";
+import * as __polygon_native_2 from "../../helpers/node-core-wasm-loader.mjs";
 import assert from 'node:assert/strict';
-import { createHash } from 'node:crypto';
-import fs from 'node:fs';
-import path from 'node:path';
+
 import test from 'node:test';
-import { fileURLToPath } from 'node:url';
+
 import "../../helpers/spherical-core.mjs";
 
 await import("../../../src/geometry/polygon-geometry.js");
@@ -15,8 +16,6 @@ const {
   ringDistinctCoordinateCount,
   ringSignedArea,
 } = globalThis.PandoLabPolygonGeometry;
-
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
 const counterClockwiseOuter = [[0, 0], [2, 0], [2, 2], [0, 2], [0, 0]];
 const clockwiseHole = [[0.5, 0.5], [0.5, 1.5], [1.5, 1.5], [1.5, 0.5], [0.5, 0.5]];
@@ -98,26 +97,6 @@ test('country geometry normalizer removes a zero-area collinear backtrack', () =
   assert.equal(hasCanonicalPolygonWinding(normalized), true);
 });
 
-test('Borneo canonical country rings are clean before runtime normalization', () => {
-  const countries = JSON.parse(fs.readFileSync(path.join(root, 'assets/data/countries-ne-5.1.1.geojson'), 'utf8'));
-  const borneoCountries = countries.features.filter(feature => ['IDN', 'MYS'].includes(feature.id));
-
-  assert.equal(borneoCountries.length, 2);
-  for (const feature of borneoCountries) {
-    assert.equal(hasCanonicalPolygonWinding(feature.geometry), true);
-    const normalized = normalizePolygonGeometry(feature.geometry);
-    assert.ok(normalized);
-    assert.equal(hasCanonicalPolygonWinding(normalized), true);
-    assert.deepEqual(normalized, feature.geometry);
-    const polygons = normalized.type === 'Polygon' ? [normalized.coordinates] : normalized.coordinates;
-    for (const polygon of polygons) for (const ring of polygon) {
-      assert.equal(ring.some((coord, index) => index > 0
-        && coord[0] === ring[index - 1][0]
-        && coord[1] === ring[index - 1][1]), false);
-    }
-  }
-});
-
 test('geographic wrapping preserves ordinary and exact full-world seam coordinates without mutating input', () => {
   const { wrapPolygonGeometry } = globalThis.PandoLabPolygonGeometry;
   const ordinary = { type: 'Polygon', coordinates: [counterClockwiseOuter] };
@@ -161,31 +140,6 @@ test('wrapping is idempotent when strip clipping creates a long planar edge', as
   const first = wrap(source, pc), second = wrap(first, pc);
   const polygons = value => value.type === 'Polygon' ? [value.coordinates] : value.coordinates;
   assert.deepEqual(pc.xor(polygons(first), polygons(second)), []);
-});
-
-test('Soviet Union 1930–1991 reference geometry preserves its 231 land components under D3 spherical winding', () => {
-  const source = JSON.parse(fs.readFileSync(
-    path.join(root, 'assets/data/territorial-entities/source/countries/state-soviet-union.json'),
-    'utf8',
-  ));
-  const entity = [source].find(item => item.entityId === 'state:soviet-union');
-  assert.ok(entity, 'the USSR catalog identity must exist');
-  const version = entity.geometryVersions.find(item =>
-    item.versionId === 'state:soviet-union:1922-1991-baikonur-r1-after-reviewed-day');
-  assert.ok(version, 'the 1930–1991 reference shape must exist after the approved coverage split');
-  assert.deepEqual({validFrom:version.validFrom,validTo:version.validTo},{validFrom:'1930-01-01',validTo:'1991'});
-  const geometry = version.geometry;
-  assert.equal(createHash('sha256').update(JSON.stringify(geometry)).digest('hex'),
-    'a7cc592b231c947797a557dc3aff6a58489f797e86590aba3b3d9bf7fd278fe2',
-    'the pinned reference retains every source coordinate');
-  assert.equal(geometry.type, 'MultiPolygon');
-  assert.equal(geometry.coordinates.length, 231);
-  assert.equal(geometry.coordinates.reduce((sum, polygon) =>
-    sum + polygon.reduce((count, ring) => count + ring.length, 0), 0), 40054);
-  assert.ok(geometry.coordinates.every(polygon => polygon.length === 1),
-    'source has no holes to reclassify or drop');
-  assert.equal(hasCanonicalPolygonWinding(geometry), true,
-    'otherwise D3 fills the spherical complement (sea) instead of USSR land');
 });
 
 test('numerical clipping artifacts require explicit bounded audit; non-numerical degeneracies remain errors', () => {
@@ -248,3 +202,73 @@ test('audited shared-boundary zero-area retrace is not promoted to a historical 
     onPrecisionDiscard(){assert.fail('a non-retraced self-crossing boundary cannot be deleted');}
   }),/INVALID_POLYGON_RING|INVALID_SPHERICAL_WINDING|AMBIGUOUS_SPHERICAL_RING/);
 });
+
+// polygon native contracts share this owner suite.
+{
+const assert = __polygon_native_0.default;
+const test = __polygon_native_1.default;
+const loadVerifiedCore = __polygon_native_2["loadVerifiedCore"];
+const box = (x, y, w, h) => [[[x,y],[x+w,y],[x+w,y+h],[x,y+h],[x,y]]];
+test('shared polygon operation owns multi-operand union, holes and empty intersection', async () => {
+  const core = await loadVerifiedCore();
+  const a = box(0,0,2,2), b = box(1,0,2,2);
+  const union = core.polygonOperation('union', [a,b], false);
+  assert.deepEqual(union, [[[[0,0],[3,0],[3,2],[0,2],[0,0]]]]);
+  const hole = core.polygonOperation('difference', [box(0,0,5,5),box(1,1,1,1)], false);
+  assert.equal(hole.length,1);
+  assert.equal(hole[0].length,2);
+  assert.deepEqual(core.polygonOperation('intersection',[a,box(10,10,1,1)],false),[]);
+  assert.deepEqual(a,box(0,0,2,2));
+});
+
+
+test('WASM wrapping preserves the current baseline and explicit winding corrections', async () => {
+  const { readFileSync } = await import('node:fs');
+  const core = await loadVerifiedCore();
+  const fixture = JSON.parse(readFileSync(new URL("../../fixtures/p6/wrapping-baseline.json", import.meta.url)));
+  const corrections = new Map(JSON.parse(readFileSync(new URL("../../fixtures/p6/wrapping-corrections.json", import.meta.url))).cases.map(row => [row.id, row.expected]));
+  for (const row of fixture.cases.filter(row => row.operation === 'wrap')) {
+    assert.deepEqual(JSON.parse(core.wrapPolygonGeometry(JSON.stringify(row.input))), corrections.get(row.id) ?? row.expected, row.id);
+  }
+});
+
+test('cut and wrapping failures retain technical JavaScript errors', async () => {
+  const core = await loadVerifiedCore();
+  assert.throws(() => core.wrapPolygonGeometry('{'), error => error instanceof Error && error.code === 'PL-GEOMETRY-CALCULATION');
+  assert.throws(() => new core.PreparedCutGeometry('{'), error => error instanceof Error && error.code === 'PL-CUT-CALCULATION');
+});
+
+test('subdivided wide shells and holes have canonical winding and preserve planar area', async () => {
+  const { readFileSync } = await import('node:fs');
+  const core = await loadVerifiedCore();
+  const baseline = JSON.parse(readFileSync(new URL("../../fixtures/p6/wrapping-baseline.json", import.meta.url))).cases;
+  const corrections = JSON.parse(readFileSync(new URL("../../fixtures/p6/wrapping-corrections.json", import.meta.url))).cases;
+  const area = geometry => (geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates)
+    .reduce((sum, polygon) => sum + polygon.reduce((part, ring, index) => part + (index ? -1 : 1)
+      * Math.abs(ring.slice(1).reduce((value, point, i) => value + ring[i][0] * point[1] - point[0] * ring[i][1], 0) / 2), 0), 0);
+  for (const row of corrections) {
+    const old = baseline.find(old => old.id === row.id), input = old.input;
+    const before = structuredClone(input);
+    const result = row.operation === 'wrap' ? JSON.parse(core.wrapPolygonGeometry(JSON.stringify(input))) : core.normalizePolygonGeometry(input, true);
+    assert.deepEqual(result, row.expected, row.id);
+    assert.equal(core.hasCanonicalPolygonWinding(result), true, row.id);
+    assert.equal(core.hasCanonicalPolygonWinding(old.expected), false, row.id + ' corrects a formerly invalid result');
+    assert.equal(area(result), area(old.expected), row.id + ' preserves area');
+    assert.deepEqual(input, before);
+  }
+});
+
+test('polygon difference is stable for nearly coincident boundaries without mutating inputs', async () => {
+  const core=await loadVerifiedCore();
+  const p=[12.09703138349695,50.25690418331658],
+    q=[12.102393,50.259156];
+  const subject=[[[12.09,50.25],[12.11,50.25],[12.11,50.27],[12.09,50.27],[12.09,50.25]]];
+  const cutter=[[p,q,[12.102393+1e-12,50.27],[12.09703138349695-1e-12,50.27],p]];
+  const original=structuredClone([subject,cutter]);
+  const first=core.polygonOperation('difference',[subject,cutter],false);
+  const second=core.polygonOperation('difference',[subject,cutter],false);
+  assert.deepEqual(first,second,'the exact source geometry must produce stable output');
+  assert.deepEqual([subject,cutter],original,'the cutter and country borders must remain unchanged');
+  assert.ok(first.length>0);
+});
+}

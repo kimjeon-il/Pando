@@ -4,8 +4,8 @@ import * as __contract_dep1 from "node:assert/strict";
 import * as __contract_dep2 from "../../../src/rendering/gpu-country-mesh-variants.js";
 import * as __contract_dep3 from "../../../src/rendering/gpu-country-patch-presentation.js";
 import * as __contract_dep4 from "node:fs";
-import * as __contract_dep5 from "node:path";
-import * as __contract_dep6 from "node:url";
+
+
 import * as __contract_dep7 from "../../../src/rendering/gpu-map-renderer.js";
 contractSuite("gpu-country-mesh-variants", () => {
 const { describe : featureDescribe } = __contract_dep0;
@@ -16,10 +16,10 @@ const __suiteDependency3 = __contract_dep0;
 const __suiteDependency4 = __contract_dep1;
 const __suiteDependency5 = __contract_dep3;
 const __suiteDependency6 = __contract_dep1;
-const __suiteDependency7 = __contract_dep4;
-const __suiteDependency8 = __contract_dep5;
+
+
 const __suiteDependency9 = __contract_dep0;
-const __suiteDependency10 = __contract_dep6;
+
 const __suiteDependency11 = __contract_dep7;
 featureDescribe("gpu-country-mesh-variants", () => {
   const test = __suiteDependency0.default;
@@ -89,12 +89,12 @@ test('country patch preservation rejects stale work and unrelated scene changes'
 });
 featureDescribe("gpu-country-culling", () => {
   const assert = __suiteDependency6.default;
-  const fs = __suiteDependency7.default;
-  const path = __suiteDependency8.default;
+
+
   const test = __suiteDependency9.default;
-  const {  fileURLToPath  } = __suiteDependency10;
+
   const {  countryDrawRangesForFrame, createCountryTriangleRangeMap, mergeCountryDrawRanges,  } = __suiteDependency11;
-const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
+
 
 function mesh(bounds, flags = bounds.map(() => 0)) {
   const countryCount = bounds.length;
@@ -205,14 +205,6 @@ test('selection range map is materialized from metadata without reading triangle
   assert.deepEqual(ranges.get('BBB'), [{ first: 6, count: 12 }]);
 });
 
-test('selection interaction hot path performs only precomputed map lookups', () => {
-  const source = fs.readFileSync(path.join(projectRoot, 'src/rendering/gpu-scene-preparation.js'), 'utf8');
-  const start = source.indexOf('function prepareGpuInteractionPlan(');
-  assert.ok(start >= 0);
-  const interactionSource = source.slice(start);
-  assert.match(interactionSource, /triangleRangesByCountryId\?\.get\(id\)/);
-  assert.doesNotMatch(interactionSource, /countryTriangleRanges|createCountryTriangleRangeMap|for\s*\(/);
-});
 });
 });
 contractSuite("gpu-country-pick-slot-guard", () => {

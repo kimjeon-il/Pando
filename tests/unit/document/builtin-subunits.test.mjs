@@ -3,97 +3,51 @@ import * as __country_dep0 from "../../../tools/gis/builtin-display-policy.mjs";
 import * as __country_dep1 from "../../../src/document/country-feature.js";
 import * as __country_dep2 from "node:test";
 import * as __country_dep3 from "node:assert/strict";
-import * as __country_dep4 from "node:fs";
 import * as __country_dep5 from "../../../src/document/builtin-subunits.js";
 import * as __country_dep6 from "../../../src/document/territorial-units.js";
-import * as __country_dep7 from "../../../src/document/builtin-territory-policy.js";
 import * as __country_dep8 from "../../../src/document/builtin-session.js";
 import * as __country_dep9 from "../../../src/geometry/geometry-versions.js";
 import * as __country_dep10 from "../../../src/ui/layer-presentation.js";
 contractSuite("builtin-subunits", () => {
-const { loadBuiltinDisplayPolicy, validateBuiltinDisplayPolicy } = __country_dep0;
-const { normalizeCountryCollection } = __country_dep1;
-const test = __country_dep2.default;
-const assert = __country_dep3.default;
-const { readFileSync } = __country_dep4;
-const { classifyBuiltinCountries, builtinSubunitSourceId } = __country_dep5;
-const { normalizeTerritorialEntities } = __country_dep6;
-const { mergeBuiltinTerritories } = __country_dep7;
+const {validateBuiltinDisplayPolicy}=__country_dep0;
+const {normalizeCountryCollection}=__country_dep1;
+const test=__country_dep2.default,assert=__country_dep3.default;
+const {classifyBuiltinCountries,builtinSubunitId,builtinSubunitSourceId}=__country_dep5;
+const square=x=>({type:'Polygon',coordinates:[[[x,0],[x,1],[x+1,1],[x+1,0],[x,0]]]});
+const source=()=>({type:'FeatureCollection',features:['AAA','BBB','CCC'].map((id,i)=>({
+  type:'Feature',id,properties:{name:id},geometry:square(i*3),
+}))});
+const policy=()=>({schema:'pandolab-builtin-display-policy',schemaVersion:1,revision:'fixture-v1',
+  subunits:[{sourceCountryId:'BBB',parentId:'AAA',controllerCountryId:'CCC',lesseeCountryId:'DDD',note:'Synthetic provenance'}],
+  territoryMerges:[],sourceAttributions:{}});
 
-
-
-
-
-
-
-
-
-const displayPolicy=loadBuiltinDisplayPolicy();
-const source = JSON.parse(readFileSync(new URL("../../../assets/data/countries-ne-5.1.1.geojson", import.meta.url)));
-const before = JSON.stringify(source);
-const result = classifyBuiltinCountries(normalizeCountryCollection(source),{displayPolicy});
-const ids = new Set(result.countries.features.map(f => f.id));
-
-test('47 agreed source objects become stable Subunits; 207 countries and exceptions remain', () => {
-  assert.equal(displayPolicy.subunits.length, 47);
-  assert.equal(new Set(result.subunits.map(f => f.id)).size, 47);
-  assert.equal(ids.size, 207);
-  for (const id of ['ATA', 'BRT', 'SAH', 'CNM', 'CYN', 'SOL', 'KAS', 'SPI']) assert.ok(ids.has(id));
-  for (const unit of result.subunits) {
-    assert.match(unit.id, /^[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
-    assert.ok(ids.has(unit.properties.parentId));
-    assert.equal('sovereignId' in unit.properties, false);
-  }
+test('explicit parent policy classifies stable subunits without changing source geometry or identity',()=>{
+  const input=source(),before=structuredClone(input),displayPolicy=policy();
+  const result=classifyBuiltinCountries(normalizeCountryCollection(input),{displayPolicy});
+  assert.deepEqual(result.countries.features.map(row=>row.id),['AAA','CCC']);
+  assert.equal(result.subunits.length,1);
+  const unit=result.subunits[0];
+  assert.equal(unit.id,builtinSubunitId('BBB'));
+  assert.equal(builtinSubunitSourceId(unit),'BBB');
+  assert.equal(unit.properties.parentId,'AAA');
+  assert.equal(unit.properties.metadata.builtinSubunit.controllerCountryId,'CCC');
+  assert.equal(unit.properties.metadata.builtinSubunit.lesseeCountryId,'DDD');
+  assert.deepEqual(unit.geometry,input.features[1].geometry);
+  const changed=structuredClone(displayPolicy);changed.subunits[0].parentId='CCC';
+  assert.equal(classifyBuiltinCountries(normalizeCountryCollection(input),{displayPolicy:changed}).subunits[0].properties.parentId,'CCC');
+  assert.equal(unit.properties.parentId,'AAA');
+  assert.deepEqual(input,before);
+  assert.throws(()=>classifyBuiltinCountries({...input,features:input.features.slice(1)},{displayPolicy}),/원본\/부모 누락/);
 });
 
-test('all source geometries stay identical; normalization and classification do not mutate input', () => {
-  const originals = new Map(source.features.map(f => [f.id, f]));
-  const normalized = normalizeTerritorialEntities([...result.countries.features, ...result.subunits]).filter(feature => feature.properties.parentId);
-  assert.equal(normalized.length, 47);
-  for (const feature of [...result.countries.features, ...normalized]) {
-    const original = originals.get(builtinSubunitSourceId(feature) || feature.id);
-    const expected = mergeBuiltinTerritories(source,displayPolicy.territoryMerges).features.find(f => f.id === original.id);
-    assert.deepEqual(feature.geometry, expected?.geometry || original.geometry);
-    assert.equal(feature.properties.name, original.properties.name);
-  }
-  assert.equal(JSON.stringify(source), before);
-  assert.deepEqual(classifyBuiltinCountries(normalizeCountryCollection(source),{displayPolicy}), result);
-});
-
-test('changing declarative parent data changes only generated project metadata',()=>{
-  const altered=structuredClone(displayPolicy);
-  altered.subunits.find(row=>row.sourceCountryId==='JEY').parentId='FRA';
-  const derived=classifyBuiltinCountries(normalizeCountryCollection(source),{displayPolicy:altered});
-  const find=sourceId=>derived.subunits.find(feature=>builtinSubunitSourceId(feature)===sourceId);
-  assert.equal(find('JEY').properties.parentId,'FRA');
-  assert.equal(result.subunits.find(feature=>builtinSubunitSourceId(feature)==='JEY').properties.parentId,'GBR');
-  assert.equal(JSON.stringify(source),before,'source geography is never edited by policy experiments');
-});
-
-test('Guantanamo and Baikonur separate parent from controller or lessee', () => {
-  const unit = id => result.subunits.find(f => builtinSubunitSourceId(f) === id);
-  assert.equal(unit('USG').properties.parentId, 'CUB');
-  assert.equal(unit('USG').properties.metadata.builtinSubunit.controllerCountryId, 'USA');
-  assert.equal(unit('KAB').properties.parentId, 'KAZ');
-  assert.equal(unit('KAB').properties.metadata.builtinSubunit.lesseeCountryId, 'RUS');
-  assert.match(unit('KAB').properties.notes, /OpenStreetMap.*(?:\n|.)*ODbL/u);
-  assert.match(result.countries.features.find(feature => feature.id === 'KAZ').properties.notes, /OpenStreetMap.*(?:\n|.)*ODbL/u);
-  assert.throws(() => classifyBuiltinCountries({ ...source, features: source.features.filter(f => f.id !== 'CUB') },{displayPolicy}), /원본\/부모 누락/);
-});
-
-
-
-
-test('declarative display policy rejects duplicate source IDs and invalid parent mappings',()=>{
- const duplicate=structuredClone(displayPolicy);
- duplicate.subunits.push({...duplicate.subunits[0]});
- assert.throws(()=>validateBuiltinDisplayPolicy(duplicate),/duplicate/);
- const self=structuredClone(displayPolicy);
- self.subunits[0].parentId=self.subunits[0].sourceCountryId;
- assert.throws(()=>validateBuiltinDisplayPolicy(self),/relation/);
- const merge=structuredClone(displayPolicy);
- merge.territoryMerges.push({...merge.territoryMerges[0]});
- assert.throws(()=>validateBuiltinDisplayPolicy(merge),/duplicate/);
+test('display policy rejects ambiguous, duplicate and self-parent mappings',()=>{
+  for(const mutate of [
+    p=>p.subunits.push({...p.subunits[0]}),
+    p=>{p.subunits[0].parentId='BBB';},
+    p=>{p.territoryMerges=[{sourceId:'DDD',controller:'AAA'},{sourceId:'DDD',controller:'CCC'}];},
+    p=>{p.territoryMerges=[{sourceId:'BBB',controller:'AAA'}];},
+  ]){const value=policy();mutate(value);assert.throws(()=>validateBuiltinDisplayPolicy(value));}
+  assert.doesNotThrow(()=>validateBuiltinDisplayPolicy(policy()));
 });
 });
 contractSuite("builtin-subunit-geometry-revision", () => {
@@ -104,13 +58,6 @@ const { builtinSubunitId, builtinSubunitSourceId } = __country_dep5;
 const { createTerritorialFeature } = __country_dep6;
 const { geometryRevision, touchGeometry } = __country_dep9;
 const { layerStyle } = __country_dep10;
-
-
-
-
-
-
-
 
 const square = x => ({ type: 'Polygon', coordinates: [[[x, 0], [x, 1], [x + 1, 1], [x + 1, 0], [x, 0]]] });
 

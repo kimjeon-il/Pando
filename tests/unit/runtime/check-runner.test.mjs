@@ -250,9 +250,9 @@ test('P3 full and affected unit entrypoints share stable prerequisite-bounded ba
 
 
 test('P4 isolation policy binds active shared report owners, never an untracked dummy suite', () => {
-  for (const file of ['place-publication.test.mjs','place-sync-contract.test.mjs']) {
-    assert.equal(unitIsolationResource('tests/unit/' + file), 'shared-report-worktree');
-    assert.equal(requiresUnitIsolation('tests/unit/' + file), true);
+  for (const file of ['tests/unit/data/place-publication.test.mjs','tests/unit/document/place-sync-contract.test.mjs']) {
+    assert.equal(unitIsolationResource(file), 'shared-report-worktree');
+    assert.equal(requiresUnitIsolation(file), true);
   }
   assert.equal(requiresUnitIsolation('tests/unit/reference-cache-cleanup.test.mjs'), false);
   assert.equal(unitIsolationResource('tests/unit/other.test.mjs'), null);

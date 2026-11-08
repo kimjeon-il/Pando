@@ -18,3 +18,12 @@ test('only current project markers replace the project and retired target types 
   assert.equal(targetRequiresExistingProject('project'), false);
   for (const targetType of ['country', 'subunit', 'region', 'territory']) assert.throws(() => normalizeImportPlan({ targetType }), /종류/);
 });
+
+
+test('detached GIS plans deduplicate targets and reject a different project generation', async () => {
+  const {createGisImportPlan,assertCurrentGisImportPlan}=await import('../../../tools/gis/gis-import-plan.js');
+  const plan=createGisImportPlan({id:'fixture',kind:'territorial',projectGeneration:5,affectedIds:['A','A']});
+  assert.deepEqual(plan.affectedIds,['A']);
+  assert.equal(assertCurrentGisImportPlan(plan,5),plan);
+  assert.throws(()=>assertCurrentGisImportPlan(plan,6),{code:'PL-GIS-STALE-PLAN-001'});
+});

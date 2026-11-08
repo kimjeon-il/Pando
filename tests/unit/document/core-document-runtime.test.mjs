@@ -1,3 +1,7 @@
+import * as __temporal_runtime_0 from "node:test";
+import * as __temporal_runtime_1 from "node:assert/strict";
+
+import * as __temporal_runtime_3 from "../../../src/runtime/core-worker-runtime.js";
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createDocumentSessionRuntime } from "../../../src/document/core-document-runtime.js";
@@ -194,3 +198,58 @@ test('cursor transition rejects missing, stale or malformed Core world without a
     await runtime.dispose();
   }
 });
+
+// temporal runtime contracts share this owner suite.
+{
+const test = __temporal_runtime_0.default;
+const assert = __temporal_runtime_1.default;
+
+const createCoreWorkerRuntime = __temporal_runtime_3["createCoreWorkerRuntime"];
+const state=epoch=>({epoch,stateRevision:0,revision:0,checkpoint:0,canUndo:false,canRedo:false,
+  dirty:false,timelineCursor:'2026-10',storageBaselineId:0});
+const sourceFacts={kind:'stored-asset',sourceBytes:new Uint8Array([1,2,3]),encoding:'identity',
+  compressedBytes:3,decodedBytes:3,baseDataset:'fixture',sourceMonth:'2026-10',fingerprint:'a'.repeat(64)};
+const setup={initialMonth:'2026-10',timelineRange:null,initialMapBounds:null,sourceMode:'builtin'};
+const receipt={candidateId:7,sourceId:5,targetMonth:'2026-10',expectedEpoch:1,
+  sourceFingerprint:'a'.repeat(64),worldSha256:'b'.repeat(64),resolvedEntityCount:1,reused:false};
+const dispatchContext={throwIfCancelled() {}};
+
+test('Worker dispatch only exposes reviewed viewer operations in one Core owner',async()=>{
+  const calls=[];
+  class CoreSession {
+    documentLoad(){calls.push('load');return state(1);}
+    documentSnapshot(){return {active:true};}
+    selectionSnapshot(){return {items:[],primary:null,hover:null};}
+    draftSnapshot(){return {active:false};}
+    resolveWorld(month,epoch){return {month,sourceEpoch:epoch,entities:[]};}
+    temporalSourcePrepare(source){calls.push('source');assert.ok(source.source.sourceBytes instanceof Uint8Array);
+      return {sourceId:5,fingerprint:source.source.fingerprint,sourceMonth:source.source.sourceMonth,reused:false};}
+    temporalSourceStats(){return {entries:1,declaredDecodedBytes:3,hits:0,evictions:0};}
+    temporalSourceRelease(x){calls.push('source-release');return x.sourceId===5;}
+    temporalCandidatePrepare(){calls.push('candidate');return receipt;}
+    temporalCandidateInspect(){return null;}
+    temporalCandidateDiscard(){calls.push('discard');return true;}
+    temporalCandidateAdopt(){calls.push('adopt');return {state:state(2),delta:null};}
+    delete(){calls.push('delete');}
+  }
+  const runtime=createCoreWorkerRuntime({
+    productMode:'viewer',loadModule:async()=>({DocumentSession:CoreSession}),
+    validateFlagDataUrl(){},
+  });
+  assert.ok(runtime.operations.includes('core.document-temporal-candidate-adopt'));
+  await assert.rejects(runtime.dispatch('core.document-temporal-source-prepare',{},dispatchContext),
+    {code:'PL-CORE-NOT-LOADED'});
+  await runtime.dispatch('core.document-load',{storageJson:'{}'},dispatchContext);
+  const result=await runtime.dispatch('core.document-temporal-source-prepare',
+    {source:sourceFacts,dataRevision:'fixture',manifestSha256:'c'.repeat(64),expectedEpoch:1},dispatchContext);
+  assert.equal(result.sourceId,5);
+  assert.equal((await runtime.dispatch('core.document-temporal-source-stats',{},dispatchContext)).entries,1);
+  await runtime.dispatch('core.document-temporal-candidate-prepare',{...receipt,setup,documentId:'fixture'},dispatchContext);
+  await runtime.dispatch('core.document-temporal-candidate-discard',{candidateId:7,expectedEpoch:1},dispatchContext);
+  await runtime.dispatch('core.document-temporal-source-release',{sourceId:5,expectedEpoch:1},dispatchContext);
+  assert.equal((await runtime.dispatch('core.document-temporal-candidate-adopt',{},dispatchContext)).state.epoch,2);
+  await assert.rejects(runtime.dispatch('core.document-execute',{},dispatchContext),{code:'PL-PRODUCT-READONLY'});
+  await runtime.dispose();
+  assert.deepEqual(calls,['load','source','candidate','discard','source-release','adopt','delete']);
+});
+}

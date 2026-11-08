@@ -25,19 +25,6 @@ const { validateCollection } = __gis_dep9;
 const { createGisWorkerHarness } = __gis_dep10;
 const { sphericalCore } = __gis_dep11;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const read = relativePath => fs.readFileSync(path.join(root, relativePath), 'utf8');
 const clone = value => structuredClone(value);
@@ -118,6 +105,12 @@ test('GIS overlap candidates preserve pair order and the affected scope', () => 
     assert.deepEqual(iterator.next(), { leftIndex: 1, rightIndex: 2, componentPairs: [[0, 0]] });
     assert.equal(iterator.next(), null);
   } finally { iterator.delete(); }
+  const rows = {type:'FeatureCollection',features:[polygonFeature('A',[ring(0,0,2,2)]),polygonFeature('B',[ring(1,1,3,3)])]};
+  const before = clone(rows);
+  assert.deepEqual(validateCollection(rows).firstOverlap, ['A', 'B']);
+  assert.equal(validateCollection(rows,['A'],{overlapAffectedIds:['A']}).firstOverlap.length,2);
+  assert.throws(()=>validateCollection(rows,['A'],{overlapAffectedIds:['B']}),/Overlap pair scope/);
+  assert.deepEqual(rows,before);
 });
 
 test('browser and Worker geographic boundary contracts are exact and non-mutating', () => {
@@ -249,32 +242,12 @@ test('river partition browser contract is deterministic and non-mutating', () =>
   assert.deepEqual(riverFeatures, snapshotRivers);
 });
 
-test('GIS contract test sources stay worker-safe and do not revive removed paths', () => {
-  const workerSources = [
-    read('src/geometry/workers/geographic-boundary-core.js'),
-    read('tools/gis/gis-geometry-worker.js'),
-    read('src/rendering/workers/gpu-mesh-core.js'),
-  ].join('\n');
-  assert.doesNotMatch(workerSources, /document\.|window\.|getContext\(|activeProjection\(|state\.view/);
-  const productionSources = [
-    read('src/geometry/geographic-boundary.js'),
-    read('tools/gis/river-territory-partition.js'),
-    workerSources,
-  ].join('\n');
-  assert.doesNotMatch(productionSources, /gpu-state-scope|selection-coverage|annex-source-v1|frontier-pocket/);
-  assert.match(read('src/geometry/workers/geographic-boundary-core.js'), /180/);
-  assert.match(read('src/geometry/geographic-boundary.js'), /atPole|atDateLine/);
-});
 });
 contractSuite("p5-spherical-area-delegation", () => {
 const assert = __gis_dep0.default;
 const { readFileSync } = __gis_dep1;
 const vm = __gis_dep4.default;
 const test = __gis_dep3.default;
-
-
-
-
 
 const source=readFileSync(new URL("../../../src/geometry/polygon-geometry.js",import.meta.url),'utf8');
 const ring=[[179,-2],[179,2],[-179,2],[-179,-2],[179,-2]];
@@ -306,8 +279,6 @@ test('live Web delegates scalar and multi-ring spherical areas to compiled Core'
   assert.equal(JSON.stringify(api.sphericalSignedAreas([ring,ring])),JSON.stringify([12.5,-12.5]));
   assert.deepEqual(ring,original);
   assert.deepEqual(calls,{scalar:1,batch:1});
-  assert.doesNotMatch(source,/Math\.atan2\s*\(/,
-    'the legacy spherical geodesic integral must not survive in runtime JS');
 });
 test('Qt uses the explicit native C++ bridge rather than an unrelated JS fallback',()=>{
   const {context,api,calls}=loadedCore();

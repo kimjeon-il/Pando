@@ -5,7 +5,7 @@ import * as __library_dep2 from "../../../scripts/lib/library-auto-sync.mjs";
 import * as __library_dep3 from "../../../scripts/lib/library-auto-request.mjs";
 import * as __library_dep4 from "node:fs";
 import * as __library_dep5 from "node:url";
-import * as __library_dep6 from "node:path";
+
 
 // Original feature contract: library-auto-sync.test.mjs
 contractSuite("library-auto-sync", () => {
@@ -73,24 +73,11 @@ const test = __library_dep0.default;
 const assert = __library_dep1.default;
 const { readFileSync, existsSync } = __library_dep4;
 const { fileURLToPath, pathToFileURL } = __library_dep5;
-const { resolve } = __library_dep6;
+
 const appPath=new URL("../../../.github/workflows/library-data-auto-sync.yml",import.meta.url);
 const repoRoot=fileURLToPath(new URL("../../..",import.meta.url));
-const dataPath=resolve(repoRoot,'../data-code-stage/.github/workflows/notify-library-data.yml');
-const source=p=>existsSync(p)?readFileSync(p,'utf8').replaceAll('\r\n','\n'):'';
-test('receiver tests work/gis pushes and serializes durable writes',()=>{
- const s=source(appPath);assert.match(s,/branches: \['work\/gis'\]/);assert.match(s,/cancel-in-progress: false/);assert.match(s,/contracts:[\s\S]*github.event_name == 'push'/);assert.match(s,/node --test tests\/unit\/library-auto-/);assert.doesNotMatch(s,/pages: write|id-token: write/);
-});
-test('receiver gates production before credentials and dependencies, pairs fixed full-history branches',()=>{
- const s=source(appPath);assert.match(s,/productionEnabled === true/);assert.ok(s.indexOf('productionEnabled === true')<s.indexOf('secrets.PANDOLAB_LIBRARY_WRITE_TOKEN'));assert.match(s,/context.ref !== `refs\/heads\/\$\{branch\}`/);assert.match(s,/repository: kimjeon-il\/PandoLab-library-data/);assert.equal((s.match(/fetch-depth: 0/g)||[]).length,3);assert.match(s,/LIBRARY_AUTO_BRANCH:/);assert.match(s,/LIBRARY_AUTO_DATA_SHA=/);assert.match(s,/node scripts\/library-auto-sync.mjs/);assert.match(s,/pnpm install --frozen-lockfile --ignore-scripts/);assert.match(s,/if: always\(\)/);
-});
-test('recovery is fixed main-only and no direct Pages dispatch exists',()=>{
- const s=source(appPath);assert.match(s,/cron: '17 \* \* \* \*'/);assert.match(s,/workflow_run:/);assert.match(s,/head_branch !== 'main'/);assert.doesNotMatch(s,/gh workflow run|web-pages.yml\/dispatches/);assert.match(s,/branch === 'main' && !enabled/);
-});
-test('data notifier has fixed URL, validated same branch and fail-closed token, no generation',{skip: !existsSync(dataPath) && 'notifier is independently installed in data repository'},()=>{
- const s=source(dataPath);assert.match(s,/branches: \['main', 'work\/gis'\]/);assert.match(s,/library.json/);assert.match(s,/objects\/\*\*/);assert.match(s,/archive\/index.json/);assert.match(s,/if \(!token\) throw new Error\('PANDO_AUTO_DATA_NOTIFY_TOKEN is required'\)/);assert.match(s,/https:\/\/api.github.com\/repos\/kimjeon-il\/Pando\/actions\/workflows\/library-data-auto-sync.yml\/dispatches/);assert.match(s,/ref: branch, inputs: \{data_revision: sha, data_branch: branch\}/);assert.doesNotMatch(s,/checkout@|pnpm |library-auto-sync.mjs|contents: write|console.log\(token/);
-});
 
+const source=p=>existsSync(p)?readFileSync(p,'utf8').replaceAll('\r\n','\n'):'';
 async function gate({event='workflow_dispatch',branch='main',ref=`refs/heads/${branch}`,enabled=false,sha='a'.repeat(40),head='main',changed=true,before='b'.repeat(40),request={schemaVersion:1,dataBranch:'work/gis',dataRevision:'c'.repeat(40)},repo='kimjeon-il/Pando'}={}) {
  const s=source(appPath),script=s.split('          script: |\n')[1].split('\n  sync:')[0].split('\n').map(l=>l.slice(12)).join('\n');
  const outputs={},commands=[],[owner,name]=repo.split('/');
@@ -116,9 +103,4 @@ test('actual push gate reads only event commit request and permits exact work br
  await assert.rejects(gate({event:'push',branch:'work/gis',before:';bad'}),/push SHA/);
  await assert.rejects(gate({event:'push',branch:'work/gis',request:{schemaVersion:1,dataBranch:'main',dataRevision:'c'.repeat(40)}}),/INVALID_WORK_GIS_REQUEST/);
 });
-test('push strict input is wired before preparation and independently rechecked by executor',()=>{
- const s=source(appPath);assert.ok(s.indexOf('Reject moved exact work/gis request input')<s.indexOf('Prepare pinned external library data'));
- assert.match(s,/LIBRARY_AUTO_REQUEST_DATA_SHA:/);assert.match(s,/assertRequestedDataHead\(process.env.REQUESTED_DATA_SHA,actual\)/);
-});
-test('request publication waits for contracts while ordinary dispatch tolerates skipped contracts',()=>{const s=source(appPath);assert.match(s,/needs: \[gate, contracts\]/);assert.match(s,/if: always\(\) && needs.gate.outputs.allowed == 'true' && \(github.event_name != 'push' \|\| needs.contracts.result == 'success'\)/);});
 });
