@@ -7,20 +7,26 @@ const freezeTriple = value => Object.freeze([
   Number(value?.[2] || 0),
 ]);
 
-function visibleFlatWorldOffsets({ translateX, scale, flatCenterRadians, viewportWidth }) {
-  const candidates = [-2 * PI, 0, 2 * PI];
-  const visible = candidates.filter(worldOffset => {
-    const left = translateX + scale * (-PI + worldOffset - flatCenterRadians);
-    const right = translateX + scale * (PI + worldOffset - flatCenterRadians);
-    return Math.min(right, viewportWidth) - Math.max(left, 0) > 0.5;
+// One source of truth for wraparound offsets in GPU, Canvas and frame projectors.
+export function visibleFlatWorldOffsets({
+  translateX,scale,flatCenterRadians=0,viewportWidth,minimumOverlap=0.5,
+}={}) {
+  const x=Number(translateX),size=Math.abs(Number(scale)),center=Number(flatCenterRadians);
+  const width=Math.max(1,Number(viewportWidth));
+  if(![x,size,center,width].every(Number.isFinite)||size<=0)return [0];
+  const threshold=Math.max(0,Number(minimumOverlap)||0);
+  const offsets=[-2*Math.PI,0,2*Math.PI];
+  const visible=offsets.filter(offset=>{
+    const left=x+size*(-Math.PI+offset-center);
+    const right=x+size*(Math.PI+offset-center);
+    return Math.min(right,width)-Math.max(left,0)>threshold;
   });
-  if (visible.length) return visible;
-  const viewportCenter = viewportWidth / 2;
-  return [candidates.reduce((nearest, worldOffset) => {
-    const center = translateX + scale * (worldOffset - flatCenterRadians);
-    const distance = Math.abs(center - viewportCenter);
-    return distance < nearest.distance ? { worldOffset, distance } : nearest;
-  }, { worldOffset: 0, distance: Infinity }).worldOffset];
+  if(visible.length)return visible;
+  const middle=width/2;
+  return [offsets.reduce((best,offset)=>{
+    const distance=Math.abs(x+size*(offset-center)-middle);
+    return distance<best.distance?{offset,distance}:best;
+  },{offset:0,distance:Infinity}).offset];
 }
 
 function globeRows(projectCoordinate, translate, scale) {

@@ -27,6 +27,7 @@ import { createGpuHydroCoverage } from './gpu-hydro-coverage.js';
 import { createBuiltinMeshResourceLoader } from './builtin-mesh-resource.js';
 import { isRenderScene, buildPolygonGeometryPacket } from './render-scene.js';
 import { isMapVisualFrame } from './map-visual-frame.js';
+export { visibleFlatWorldOffsets } from './map-visual-frame.js';
 import { createGpuMeshWorkerJobs } from './gpu-mesh-worker-jobs.js';
 import { decideCountryPatchPresentation } from './country-mesh-quality-gate.js';
 import { resolveCountryMeshQuality, resolveMapSurfacePresentation, canAdmitCanvasWorkerPartialBackground, canAdmitWebGlPartialBackground, canvasWorkerFrameMatchesPhysical, canvasWorkerPresentationKey, canvasWorkerBackgroundPresentationKey, selectCanvasPhysicalSource } from './country-mesh-zoom-policy.js';
@@ -83,36 +84,6 @@ export function resolveRenderPixelRatioValue(devicePixelRatio, mobileLayout = fa
   const deviceRatio = Math.max(1, Number(devicePixelRatio || 1));
   const cap = Math.max(1, Number(qualityCap) || Infinity);
   return Math.min(mobileLayout ? 2 : 3, cap, deviceRatio);
-}
-
-export function visibleFlatWorldOffsets({
-  translateX,
-  scale,
-  flatCenterRadians = 0,
-  viewportWidth,
-  minimumOverlap = 0.5,
-} = {}) {
-  const resolvedTranslate = Number(translateX);
-  const resolvedScale = Math.abs(Number(scale));
-  const resolvedCenter = Number(flatCenterRadians);
-  const resolvedWidth = Math.max(1, Number(viewportWidth));
-  if (![resolvedTranslate, resolvedScale, resolvedCenter, resolvedWidth].every(Number.isFinite) || resolvedScale <= 0) {
-    return [0];
-  }
-  const overlapThreshold = Math.max(0, Number(minimumOverlap) || 0);
-  const candidates = [-2 * Math.PI, 0, 2 * Math.PI];
-  const visible = candidates.filter(worldOffset => {
-    const left = resolvedTranslate + resolvedScale * (-Math.PI + worldOffset - resolvedCenter);
-    const right = resolvedTranslate + resolvedScale * (Math.PI + worldOffset - resolvedCenter);
-    return Math.min(right, resolvedWidth) - Math.max(left, 0) > overlapThreshold;
-  });
-  if (visible.length) return visible;
-  const viewportCenter = resolvedWidth / 2;
-  return [candidates.reduce((nearest, worldOffset) => {
-    const center = resolvedTranslate + resolvedScale * (worldOffset - resolvedCenter);
-    const distance = Math.abs(center - viewportCenter);
-    return distance < nearest.distance ? { worldOffset, distance } : nearest;
-  }, { worldOffset: 0, distance: Infinity }).worldOffset];
 }
 
 // Presentation changes may replace feature wrappers without changing the data
