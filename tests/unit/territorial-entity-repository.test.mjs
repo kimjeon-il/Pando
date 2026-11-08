@@ -21,8 +21,6 @@ import * as __country_dep16 from "node:crypto";
 import * as __country_dep17 from "../../tools/gis/territorial-entity-loader.js";
 import * as __country_dep18 from "../../tools/territorial-entity-sources.mjs";
 import * as __country_dep19 from "../../shared/frontend/js/modules/country-feature.js";
-
-// Original feature contract: territorial-entity-repository.test.mjs
 contractSuite("territorial-entity-repository", () => {
 const { describe : contractSuite } = __country_dep0;
 const __dep0 = __country_dep1;
@@ -40,26 +38,6 @@ const __dep11 = __country_dep11;
 const __dep12 = __country_dep12;
 const __dep13 = __country_dep13;
 const __dep14 = __country_dep14;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// Original feature contract: territorial-entity-repository.test.mjs
 contractSuite("territorial-entity-repository", () => {
 const { executeTerritorialTestCommand, testCoreProject, initializeTestTerritorialState } = __dep0;
 const test = __dep1.default;
@@ -105,8 +83,6 @@ test('duplicate identity, cycles and missing parents fail visibly',async ()=>{
  assert.equal(repo.root('T').id,'A');assert.equal(repo.get('X'),null);
 });
 });
-
-// Original feature contract: territorial-hierarchy-model.test.mjs
 contractSuite("territorial-hierarchy-model", () => {
 const { testCoreProject, initializeTestTerritorialState, executeTerritorialTestCommand } = __dep0;
 const { createTerritorialEntityStore } = __dep4;
@@ -193,8 +169,6 @@ test('parent style inheritance stops at explicit style without changing country 
   assert.equal(resolveTerritorialColor(units[1], { entityRepository: repository, countryColor: () => '#112233' }), '#ff9900');
 });
 });
-
-// Original feature contract: territorial-scope.test.mjs
 contractSuite("territorial-scope", () => {
 const { executeTerritorialTestCommand, testCoreProject, initializeTestTerritorialState } = __dep0;
 const test = __dep1.default;
@@ -268,8 +242,6 @@ test('month and style metadata reuse prepared extent; geometry edits invalidate 
   assert.equal(unions, 2);
 });
 });
-
-// Original feature contract: territorial-geometry.test.mjs
 contractSuite("territorial-geometry", () => {
 const test = __dep1.default;
 const assert = __dep2.default;
@@ -322,8 +294,6 @@ test('cut-line endpoint snapping ignores holes and points outside the pixel tole
   assert.equal(result.snaps.end, null);
 });
 });
-
-// Original feature contract: scoped-territorial-registration.test.mjs
 contractSuite("scoped-territorial-registration", () => {
 const test = __dep1.default;
 const assert = __dep2.default;
@@ -345,8 +315,6 @@ test('scoped registration preserves existing membership and rejects orphan, dupl
 });
 });
 });
-
-// Original feature contract: territorial-entity-loader.test.mjs
 contractSuite("territorial-entity-loader", () => {
 const assert = __country_dep2.default;
 const fs = __country_dep6.default;
@@ -386,8 +354,6 @@ test('stored hash mismatch never publishes an entity and failed requests can ret
  assert.equal(f.service.peek('state:KOR'),null);const calls=f.calls();await assert.rejects(f.service.loadEntity('state:KOR'));assert.ok(f.calls()>calls);
 });
 });
-
-// Original feature contract: territorial-entity-store.test.mjs
 contractSuite("territorial-entity-store", () => {
 const test = __country_dep0.default;
 const assert = __country_dep2.default;

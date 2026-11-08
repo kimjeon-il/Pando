@@ -9,8 +9,6 @@ import * as __project_dep6 from "../helpers/timeline-project.mjs";
 import * as __project_dep7 from "../helpers/legacy-project-autosave.mjs";
 import * as __project_dep8 from "../../shared/frontend/js/modules/project-state.js";
 import * as __project_dep9 from "../../shared/frontend/js/modules/version-contract.js";
-
-// Original feature contract: project-creation-contract.test.mjs
 contractSuite("project-creation-contract", () => {
 const { describe : contractSuite } = __project_dep0;
 const __dep0 = __project_dep0;
@@ -18,8 +16,6 @@ const __dep1 = __project_dep1;
 const __dep2 = __project_dep2;
 const __dep3 = __project_dep3;
 const __dep4 = __project_dep4;
-
-// Original feature contract: project-creation-contract.test.mjs
 contractSuite("project-creation-contract", () => {
 const test = __dep0.default;
 const assert = __dep1.default;
@@ -56,8 +52,6 @@ test('Core file and autosave serialization exclude device viewing while preservi
  }finally{owner.dispose();}
 });
 });
-
-// Original feature contract: project-creation-storage.test.mjs
 contractSuite("project-creation-storage", () => {
 const test = __dep0.default;
 const assert = __dep1.default;
@@ -86,8 +80,6 @@ test('retired settings commands and old saves cannot change the active document'
 });
 });
 });
-
-// Original feature contract: project-serializer.test.mjs
 contractSuite("project-serializer", () => {
 const test = __project_dep0.default;
 const assert = __project_dep1.default;

@@ -15,8 +15,6 @@ import * as __dep12 from "../../tools/gis/territorial-library.js";
 import * as __dep13 from "../../tools/gis/normalize-2026-source-reference.mjs";
 import * as __dep14 from "../../shared/frontend/js/modules/builtin-world-loader.js";
 import * as __dep15 from "../../shared/frontend/js/modules/temporal.js";
-
-// Original feature contract: timeline-resolver.test.mjs
 contractSuite("timeline-resolver", () => {
 const assert = __dep0.default;
 const test = __dep1.default;
@@ -135,8 +133,6 @@ test('scattered timeline rows retain catalog order, exact values, ancestry and v
   assert.equal(JSON.stringify(records), before);
 });
 });
-
-// Original feature contract: timeline-objects-parity.test.mjs
 contractSuite("timeline-objects-parity", () => {
 const assert = __dep0.default;
 const test = __dep1.default;
@@ -167,8 +163,6 @@ test('historical timeline edits match the shared web/native golden corpus', () =
   }
 });
 });
-
-// Original feature contract: source-date-cut-normalization.test.mjs
 contractSuite("source-date-cut-normalization", () => {
 const test = __dep1.default;
 const { readBuiltinCountryStoredBytes } = __dep8;

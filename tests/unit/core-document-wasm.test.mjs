@@ -8,8 +8,6 @@ import * as __core_dep5 from "../helpers/web-oracle.mjs";
 
 // Initialize the original Web source oracle at module scope, before synchronous suites.
 const __coreContentOracle = await __core_dep5.loadWebOracle('assets/js/modules/generic-feature-service.js');
-
-// Original feature contract: core-document-wasm.test.mjs
 contractSuite("core-document-wasm", () => {
 const assert = __core_dep0.default;
 const { readFileSync } = __core_dep1;
@@ -71,8 +69,6 @@ test('actual document WASM no-op, rejection and cancelled preview preserve every
   } finally { client.dispose(); }
 });
 });
-
-// Original feature contract: core-document-content-wasm.test.mjs
 contractSuite("core-document-content-wasm", () => {
 const assert = __core_dep0.default;
 const { readFileSync } = __core_dep1;
@@ -145,8 +141,6 @@ test('actual Core service metadata and empty import own no-op, checkpoint and sm
   } finally { client.dispose(); }
 });
 });
-
-// Original feature contract: core-document-draft-wasm.test.mjs
 contractSuite("core-document-draft-wasm", () => {
 const assert = __core_dep0.default;
 const { readFileSync } = __core_dep1;

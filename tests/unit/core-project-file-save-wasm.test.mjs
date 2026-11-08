@@ -6,8 +6,6 @@ import * as __project_dep3 from "../helpers/core-project.mjs";
 import * as __project_dep4 from "../../shared/frontend/js/modules/project-domain.js";
 import * as __project_dep5 from "../helpers/core-command-services/save-state-controller.mjs";
 import * as __project_dep6 from "node:fs";
-
-// Original feature contract: core-project-file-save-wasm.test.mjs
 contractSuite("core-project-file-save-wasm", () => {
 const assert = __project_dep0.default;
 const test = __project_dep1.default;
@@ -40,8 +38,6 @@ test('file save encodes Core output and a late device write cannot clean a newer
   } finally { project.dispose();owner.dispose(); }
 });
 });
-
-// Original feature contract: core-project-replacement-wasm.test.mjs
 contractSuite("core-project-replacement-wasm", () => {
 const assert = __project_dep0.default;
 const test = __project_dep1.default;
@@ -79,8 +75,6 @@ test('a failed post-load platform replacement restores the same C++ full history
   } finally { owner.dispose(); }
 });
 });
-
-// Original feature contract: core-project-admission-wasm.test.mjs
 contractSuite("core-project-admission-wasm", () => {
 const assert = __project_dep0.default;
 const { readFileSync } = __project_dep6;

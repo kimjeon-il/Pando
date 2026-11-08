@@ -12,8 +12,6 @@ import * as __gpkg_dep9 from "../../shared/frontend/js/modules/timeline-storage.
 import * as __gpkg_dep10 from "../../shared/frontend/js/modules/generic-feature-normalization.js";
 import * as __gpkg_dep11 from "node:fs";
 import * as __gpkg_dep12 from "../helpers/core-project.mjs";
-
-// Original feature contract: timeline-geopackage.test.mjs
 contractSuite("timeline-geopackage", () => {
 const { describe : contractSuite } = __gpkg_dep0;
 const __dep0 = __gpkg_dep1;
@@ -26,8 +24,6 @@ const __dep6 = __gpkg_dep6;
 const __dep7 = __gpkg_dep7;
 const __dep8 = __gpkg_dep8;
 const __dep9 = __gpkg_dep9;
-
-// Original feature contract: timeline-geopackage.test.mjs
 contractSuite("timeline-geopackage", () => {
 const { productionGeoPackage : request, spatialLayerCount, coreFileProjection } = __dep0;
 const { timelineStorageCases } = __dep1;
@@ -109,8 +105,6 @@ for (const [name, mutate, code] of [
   assert.deepEqual(project, before);
 });
 });
-
-// Original feature contract: timeline-storage.test.mjs
 contractSuite("timeline-storage", () => {
 const assert = __dep3.default;
 const test = __dep2.default;
@@ -165,8 +159,6 @@ test('store and entity catalog are required dependencies', () => {
 });
 });
 });
-
-// Original feature contract: core-gpkg-file-boundary.test.mjs
 contractSuite("core-gpkg-file-boundary", () => {
 const { normalizeGenericFeatureSemantics } = __gpkg_dep10;
 const assert = __gpkg_dep3.default;

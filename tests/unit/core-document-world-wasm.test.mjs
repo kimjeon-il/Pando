@@ -28,8 +28,6 @@ import * as __suiteDependency25 from "../../shared/frontend/js/modules/layer-pre
 import * as __suiteDependency26 from "../helpers/core-session.mjs";
 import * as __suiteDependency27 from "../../shared/frontend/js/modules/core-document-read-model.js";
 import * as __suiteDependency28 from "../../shared/frontend/js/modules/territorial-entity-store.js";
-
-// Original feature contract: core-document-world-wasm.test.mjs
 featureDescribe("core-document-world-wasm", () => {
   const assert = __suiteDependency0.default;
   const {  readFileSync  } = __suiteDependency1;
@@ -73,7 +71,6 @@ test('the whole document Worker preserves every semantic world field and distinc
   } finally { client.dispose(); }
 });
 });
-// Original feature contract: core-document-batch-wasm.test.mjs
 featureDescribe("core-document-batch-wasm", () => {
   const assert = __suiteDependency5.default;
   const {  readFileSync  } = __suiteDependency6;
@@ -120,7 +117,6 @@ test('actual Worker batch cancellation and a failed second operation never commi
   } finally { client.dispose(); }
 });
 });
-// Original feature contract: core-document-field-wasm.test.mjs
 featureDescribe("core-document-field-wasm", () => {
   const assert = __suiteDependency9.default;
   const {  readFileSync  } = __suiteDependency10;
@@ -168,7 +164,6 @@ for (const id of ['A','R']) for (const [field,value,stored] of [['notes','  kept
   });
 }
 });
-// Original feature contract: core-document-flag-wasm.test.mjs
 featureDescribe("core-document-flag-wasm", () => {
   const assert = __suiteDependency13.default;
   const {  readFileSync  } = __suiteDependency14;
@@ -205,7 +200,6 @@ test('actual Worker flag promotion/null/removal and whole-document Undo match al
   }
 });
 });
-// Original feature contract: core-document-view-selection-wasm.test.mjs
 featureDescribe("core-document-view-selection-wasm", () => {
   const assert = __suiteDependency18.default;
   const {  readFileSync  } = __suiteDependency19;
@@ -244,7 +238,6 @@ test('current-view admission and cursor pruning are published atomically by the 
   } finally { client.dispose(); }
 });
 });
-// Original feature contract: core-empty-document-wasm.test.mjs
 featureDescribe("core-empty-document-wasm", () => {
   const assert = __suiteDependency22.default;
   const test = __suiteDependency23.default;

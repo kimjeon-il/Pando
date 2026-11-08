@@ -9,8 +9,6 @@ import * as __dep6 from "../helpers/core-command-services/save-state-controller.
 import * as __dep7 from "../helpers/core-project.mjs";
 import * as __dep8 from "../helpers/current-command-fixture.mjs";
 import * as __dep9 from "../../shared/frontend/js/modules/initial-document.js";
-
-// Original feature contract: project-lifecycle.test.mjs
 contractSuite("project-lifecycle", () => {
 const assert = __dep0.default;
 const test = __dep1.default;
@@ -163,8 +161,6 @@ test('creation period rejects out-of-range navigation and keeps project records 
  assert.equal('configureProject' in domain,false);
 });
 });
-
-// Original feature contract: project-opening.test.mjs
 contractSuite("project-opening", () => {
 const test = __dep1.default;
 const assert = __dep0.default;

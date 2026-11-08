@@ -17,8 +17,6 @@ import * as __dep14 from "../helpers/core-project.mjs";
 import * as __dep15 from "../../shared/frontend/js/modules/territorial-labels.js";
 import * as __dep16 from "../../shared/frontend/js/modules/place-contract.js";
 import * as __dep17 from "../../shared/frontend/js/modules/project-domain.js";
-
-// Original feature contract: project-state.test.mjs
 contractSuite("project-state", () => {
 const { createEmptyTerritorialState }=__dep0;
 const { staticTerritorialInput }=__dep1;
@@ -255,8 +253,6 @@ test('P0 reproducible static baseline reports checked-out Git files without inve
  assert.ok(data.areas['apps/viewer'].files>0);
 });
 });
-
-// Original feature contract: project-invariants.test.mjs
 contractSuite("project-invariants", () => {
 const { createTerritorialFeature }=__dep2;
 const assert=__dep3.default;
@@ -361,8 +357,6 @@ test('invalid distribution value and free geometry are rejected', () => {
   assert.ok(result.issues.some(row => row.code === 'PL-INV-DIST-GEOMETRY'));
 });
 });
-
-// Original feature contract: project-resource-overlay.test.mjs
 contractSuite("project-resource-overlay", () => {
 const test=__dep4.default;
 const assert=__dep3.default;
@@ -524,8 +518,6 @@ test('time-scoped source selection composes with immutable project resources wit
  assert.throws(()=>projectResourceOverlay('hydro',[],[river],{isReferenceActive:true}),/activity/);
 });
 });
-
-// Original feature contract: project-domain-async-history.test.mjs
 contractSuite("project-domain-async-history", () => {
 const assert=__dep3.default;
 const test=__dep4.default;
