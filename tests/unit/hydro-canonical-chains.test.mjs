@@ -1,16 +1,8 @@
-import { describe as contractSuite } from 'node:test';
-import * as __hydro_dep0 from "node:assert/strict";
-import * as __hydro_dep1 from "node:test";
-import * as __hydro_dep2 from "../../tools/gis/hydro-reference-guides.mjs";
-import * as __hydro_dep3 from "../../tools/gis/hydro-chain-normalization.mjs";
-import * as __hydro_dep4 from "../../tools/gis/hydro-network-normalization.mjs";
-contractSuite("hydro-canonical-chains", () => {
-const assert = __hydro_dep0.default;
-const test = __hydro_dep1.default;
-const { assembleHydroCanonicalChains } = __hydro_dep2;
-
-
-
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import {assembleHydroCanonicalChains} from '../../tools/gis/hydro-reference-guides.mjs';
+import {normalizeHydroChains} from '../../tools/gis/hydro-chain-normalization.mjs';
+import {normalizeHydroNetwork} from '../../tools/gis/hydro-network-normalization.mjs';
 
 const directory=process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY;
 const connectivity=process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY;
@@ -36,15 +28,6 @@ test('selected source reaches follow the named reference through a confluence',
     assert.deepEqual(snapped[2].parts,[[[0,0],[1,0]]]);
     await assert.rejects(assembleHydroCanonicalChains({reaches:reaches.slice(0,2),references},options),/downstream/i);
   });
-});
-contractSuite("hydro-chain-normalization", () => {
-const assert = __hydro_dep0.default;
-const test = __hydro_dep1.default;
-const { normalizeHydroChains } = __hydro_dep3;
-
-
-
-
 test('chain normalization preserves border endpoints and triple-border junctions',
   {skip:!process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY||!process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY},async()=>{
     const borders=[{pair:['AAA','BBB'],coordinates:[[1,0],[1,2]]},{pair:['BBB','CCC'],coordinates:[[1,1],[2,1]]}],
@@ -57,15 +40,6 @@ test('chain normalization preserves border endpoints and triple-border junctions
     await assert.rejects(normalizeHydroChains({chains,borders:[]},{pointScreen:{directory:process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY,
       runtimeRoot:process.env.PANDO_HYDRO_RUNTIME_ROOT},connectivity:{directory:process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY}}),/junction/i);
   });
-});
-contractSuite("hydro-network-normalization", () => {
-const assert = __hydro_dep0.default;
-const test = __hydro_dep1.default;
-const { normalizeHydroNetwork } = __hydro_dep4;
-
-
-
-
 test('network normalization repairs source-proven junctions without mutating input',
   {skip:!process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY},async()=>{
     const reach=(id,next,points,borderPair=null)=>({id,next,mainRiver:10,parts:[points],borderPair});
@@ -89,4 +63,3 @@ test('network normalization retains the order of repeated split source IDs',
     assert.deepEqual(result.chains[1].map(row=>row.parts[0]),[[[1.002,0],[1.5,0]],[[1.5,0],[2,0]]]);
     assert.equal(result.remaining.length,0);
   });
-});

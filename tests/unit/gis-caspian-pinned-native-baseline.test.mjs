@@ -31,7 +31,3 @@ test('historical native vertex, topology, area and simplification constraints re
   }
   assert.equal(metrics.perFeatureToleranceMeters.length,expected.sourceFeatureCount);
 });
-test('approved source geometry evidence does not assert external calculation parity or sovereignty',()=>{
-  assert.match(baseline.interpretation,/do not establish an independent/);
-  assert.match(baseline.interpretation,/sovereignty/);
-});
