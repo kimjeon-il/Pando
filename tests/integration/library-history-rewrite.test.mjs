@@ -4,8 +4,8 @@ import { execFileSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, writeFileSync, readFileSync, unlinkSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
-import { buildResearchPurgeManifest, rewriteHistory } from '../../tools/library-history.mjs';
-import * as history from '../../tools/library-history.mjs';
+import { buildResearchPurgeManifest, rewriteHistory } from "../../tools/data/library-history.mjs";
+import * as history from "../../tools/data/library-history.mjs";
 
 test('history rewrite purges archived research across branches, tags and owner refs while preserving runtime bytes', async t => {
   const base = mkdtempSync(join(tmpdir(), 'pando-history-fixture-'));

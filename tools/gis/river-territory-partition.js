@@ -1,5 +1,5 @@
 // Extracted calculation/data contract; not part of the shipped Viewer runtime.
-import { sharedCalculationCore } from "../../shared/frontend/js/modules/temporal.js";
+import { sharedCalculationCore } from "../../src/document/temporal.js";
 
 export const RIVER_TERRITORY_PARTITION_ALGORITHM_REVISION = 'river-partitions-v2';
 export const RIVER_TERRITORY_PARTITION_CONFIG = Object.freeze({

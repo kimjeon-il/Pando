@@ -6,7 +6,7 @@ on:
     paths:
       - '.github/workflows/gis-p1-dem-real-data.yml'
       - 'tools/gis/verify-p1-dem-publication.mjs'
-      - 'tools/verify-terrain-dem.mjs'
+      - 'tools/checks/verify-terrain-dem.mjs'
       - 'tools/gis/terrain-dem-check.mjs'
   workflow_dispatch:
 
@@ -87,7 +87,7 @@ jobs:
           PANDO_GDAL_LOCATIONINFO: gdallocationinfo
         run: |
           set -euo pipefail
-          node tools/verify-terrain-dem.mjs \
+          node tools/checks/verify-terrain-dem.mjs \
             --etopo "$RUNNER_TEMP/ETOPO_2022_v1_30s_N90W180_surface.tif" \
             --output .pando-p1-dem/terrain/v0.13.3 \
             | tee p1-reports/p1-dem-original-native-result.json

@@ -1,6 +1,6 @@
 // Preserved GIS data/core calculation contract after retired editor source removal.
-import { normalizeTemporalInterval, parseTemporal, temporalIntervalsOverlap, sharedCalculationCore } from "../../shared/frontend/js/modules/temporal.js";
-import {createGeometryVersionStore} from "../../shared/frontend/js/modules/geometry-version-store.js";
+import { normalizeTemporalInterval, parseTemporal, temporalIntervalsOverlap, sharedCalculationCore } from "../../src/document/temporal.js";
+import {createGeometryVersionStore} from "../../src/geometry/geometry-version-store.js";
 
 export const TERRITORIAL_LIBRARY_SCHEMA_VERSION = 2;
 export const LIBRARY_ENTITY_TYPES = Object.freeze({ GENERAL: 'general', REGIONAL: 'regional', RIVER:'river', LAKE:'lake' });
@@ -101,7 +101,14 @@ export function normalizeTerritorialLibraryIndex(raw) {
   return freeze(structuredClone(raw));
 }
 
-export function normalizeTerritorialLibraryEntity(raw) {
+export function normalizeTerritorialGeometryVersion(version,entityKind,id,entityId) {
+  if (!(entityKind==='river'?['LineString','MultiLineString']:['Polygon', 'MultiPolygon']).includes(version.geometry?.type)
+    || !Array.isArray(version.geometry.coordinates) || !version.geometry.coordinates.length) throw new Error(`${entityId}: expected source Polygon/MultiPolygon or river geometry`);
+  const validated=createGeometryVersionStore([{id,version:1,geojson:version.geometry}]);
+  return {geometry:validated.get({id,version:1})};
+}
+
+export function normalizeTerritorialLibraryEntity(raw,{normalizeVersionGeometry=normalizeTerritorialGeometryVersion}={}) {
   if (raw?.schemaVersion !== TERRITORIAL_LIBRARY_SCHEMA_VERSION) throw new Error('Territorial entity schemaVersion mismatch');
   const entityId = text(raw.entityId);
   if (!/^[a-z][a-z0-9_-]*:[A-Za-z0-9_-]+$/.test(entityId) || !Object.values(LIBRARY_ENTITY_TYPES).includes(raw.entityKind)) throw new Error('Invalid territorial entity identity/kind');
@@ -114,11 +121,9 @@ export function normalizeTerritorialLibraryEntity(raw) {
     const id = text(version.versionId);
     if (!id || ids.has(id)) throw new Error(`${entityId}: duplicate/empty geometry version ID`);
     ids.add(id);
-    if (!(raw.entityKind==='river'?['LineString','MultiLineString']:['Polygon', 'MultiPolygon']).includes(version.geometry?.type) || !Array.isArray(version.geometry.coordinates) || !version.geometry.coordinates.length) throw new Error(`${entityId}: expected Polygon/MultiPolygon`);
     // Use the existing archive's structural validator. This isolated registry
     // validates a snapshot; its reference never becomes a project GeometryRef.
-    const validated=createGeometryVersionStore([{id,version:1,geojson:version.geometry}]);
-    return { ...structuredClone(version), geometry:validated.get({id,version:1}), versionId:id, ...interval(version) };
+    return { ...structuredClone(version), ...normalizeVersionGeometry(version,raw.entityKind,id,entityId), versionId:id, ...interval(version) };
   });
   for (let i = 0; i < geometryVersions.length; i++) {
     for (let j = i + 1; j < geometryVersions.length; j++) {

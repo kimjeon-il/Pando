@@ -16,18 +16,18 @@
       "generate": [
         [
           "node",
-          "tools/build-territorial-entity-chunks.mjs"
+          "tools/build/build-territorial-entity-chunks.mjs"
         ]
       ],
       "validate": [
         [
           "node",
-          "tools/build-territorial-entity-chunks.mjs",
+          "tools/build/build-territorial-entity-chunks.mjs",
           "--check"
         ]
       ],
       "consumers": [
-        "shared/frontend/js/modules/territorial-entity-repository.js"
+        "src/document/territorial-entity-repository.js"
       ],
       "tools": [
         "node"
@@ -47,13 +47,13 @@
       "generate": [
         [
           "node",
-          "tools/build-territorial-current-world.mjs"
+          "tools/build/build-territorial-current-world.mjs"
         ]
       ],
       "validate": [
         [
           "node",
-          "tools/build-territorial-current-world.mjs",
+          "tools/build/build-territorial-current-world.mjs",
           "--check"
         ]
       ],
@@ -72,7 +72,8 @@
         "wasm"
       ],
       "inputs": [
-        "assets/data/historical-world/policy.json"
+        "assets/data/historical-world/policy.json",
+        "assets/data/builtin-world/display-policy-v1.json"
       ],
       "outputs": [
         "assets/data/builtin-world/generated/v1/"
@@ -80,18 +81,18 @@
       "generate": [
         [
           "node",
-          "tools/build-builtin-world.mjs"
+          "tools/build/build-builtin-world.mjs"
         ]
       ],
       "validate": [
         [
           "node",
-          "tools/build-builtin-world.mjs",
+          "tools/build/build-builtin-world.mjs",
           "--check"
         ]
       ],
       "consumers": [
-        "shared/frontend/js/modules/builtin-world-loader.js"
+        "src/data/builtin-world-loader.js"
       ],
       "tools": [
         "node"
@@ -105,13 +106,13 @@
       ],
       "inputs": [
         "assets/data/world/build-input.json",
-        "shared/frontend/js/workers/gpu-mesh-core.js"
+        "src/rendering/workers/gpu-mesh-core.js"
       ],
       "outputs": [],
       "generate": [
         [
           "node",
-          "tools/build-world-mesh.mjs"
+          "tools/build/build-world-mesh.mjs"
         ]
       ],
       "validate": [
@@ -138,20 +139,20 @@
       ],
       "inputs": [
         "assets/data/world/build-input.json",
-        "shared/frontend/js/vendor/d3.min.js",
-        "shared/frontend/js/workers/gpu-mesh-core.js"
+        "assets/js-vendor/d3.min.js",
+        "src/rendering/workers/gpu-mesh-core.js"
       ],
       "outputs": [],
       "generate": [
         [
           "node",
-          "tools/build-world-preview.mjs"
+          "tools/build/build-world-preview.mjs"
         ]
       ],
       "validate": [
         [
           "node",
-          "tools/build-world-preview.mjs",
+          "tools/build/build-world-preview.mjs",
           "--check"
         ]
       ],
@@ -178,18 +179,18 @@
       "generate": [
         [
           "node",
-          "tools/build-world-bundle.mjs"
+          "tools/build/build-world-bundle.mjs"
         ]
       ],
       "validate": [
         [
           "node",
-          "tools/build-world-bundle.mjs",
+          "tools/build/build-world-bundle.mjs",
           "--check"
         ]
       ],
       "consumers": [
-        "shared/frontend/js/workers/data-loader-worker.js"
+        "src/data/workers/data-loader-worker.js"
       ],
       "tools": [
         "node"
@@ -206,18 +207,18 @@
       "generate": [
         [
           "node",
-          "tools/build-country-shared-boundaries.mjs"
+          "tools/build/build-country-shared-boundaries.mjs"
         ]
       ],
       "validate": [
         [
           "node",
-          "tools/build-country-shared-boundaries.mjs",
+          "tools/build/build-country-shared-boundaries.mjs",
           "--check"
         ]
       ],
       "consumers": [
-        "shared/frontend/js/modules/country-shared-boundary-cache.js"
+        "src/rendering/country-shared-boundary-cache.js"
       ],
       "tools": [
         "node"
@@ -233,7 +234,7 @@
         "wasm"
       ],
       "inputs": [
-        "shared/frontend/js/workers/gpu-mesh-core.js"
+        "src/rendering/workers/gpu-mesh-core.js"
       ],
       "outputs": [
         "assets/data/prepared-polygons/generated/v2/"
@@ -241,7 +242,7 @@
       "generate": [
         [
           "node",
-          "tools/build-prepared-polygon-mesh.mjs"
+          "tools/build/build-prepared-polygon-mesh.mjs"
         ]
       ],
       "validate": [
@@ -252,7 +253,7 @@
         ]
       ],
       "consumers": [
-        "shared/frontend/js/modules/prepared-polygon-mesh.js"
+        "src/rendering/prepared-polygon-mesh.js"
       ],
       "tools": [
         "node"
@@ -277,18 +278,18 @@
       "generate": [
         [
           "node",
-          "tools/build-place-runtime.mjs"
+          "tools/build/build-place-runtime.mjs"
         ]
       ],
       "validate": [
         [
           "node",
-          "tools/build-place-runtime.mjs",
+          "tools/build/build-place-runtime.mjs",
           "--check"
         ]
       ],
       "consumers": [
-        "shared/frontend/js/modules/place-runtime.js"
+        "src/document/place-runtime.js"
       ],
       "tools": [
         "node"
@@ -302,7 +303,7 @@
       "generate": [],
       "validate": [],
       "consumers": [
-        "shared/frontend/js/workers/data-loader-worker.js"
+        "src/data/workers/data-loader-worker.js"
       ],
       "tools": [
         "node",
@@ -320,7 +321,7 @@
       "generate": [],
       "validate": [],
       "consumers": [
-        "shared/frontend/js/workers/data-loader-worker.js"
+        "src/data/workers/data-loader-worker.js"
       ],
       "tools": [
         "node",

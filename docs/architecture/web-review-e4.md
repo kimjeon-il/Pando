@@ -4,7 +4,7 @@
 
 ## 사용 경로
 
-기존 웹 뷰어의 상단 `검수` 버튼(모바일은 메뉴의 `변경 검수`)으로 검수 패널을 연다. 패널은 숨김 상태에서 시작하고 클릭할 때만 `apps/viewer/js/modules/viewer-review-panel.js`를 동적으로 불러온다. 기존 지도·Core 읽기/선택·시간축과 프로젝트 파일 읽기 동작은 바꾸지 않는다.
+기존 웹 뷰어의 상단 `검수` 버튼(모바일은 메뉴의 `변경 검수`)으로 검수 패널을 연다. 패널은 숨김 상태에서 시작하고 클릭할 때만 `src/ui/inspector/viewer-review-panel.js`를 동적으로 불러온다. 기존 지도·Core 읽기/선택·시간축과 프로젝트 파일 읽기 동작은 바꾸지 않는다.
 
 사용자는 E3 GitHub Actions 아티팩트에서 다음 JSON 파일을 추출해 동시에 선택한다.
 
@@ -35,7 +35,7 @@
 
 반응형 overlay, 키보드 ESC 닫기·트리거로 포커스 복귀, `aria-expanded`/라벨/상태 안내, 라이트·다크 기존 토큰 적용. 창을 닫고 다른 파일을 열어도 기존 지도 상태·렌더 캐시는 보존한다. E4 수용 범위는 웹이며 Android 네이티브 기능을 개발하지 않는다. Windows 검수 GUI 연결은 E5다.
 
-자동 검증: [.github/workflows/e4-web-review-acceptance.yml](../../.github/workflows/e4-web-review-acceptance.yml). 집중 계약 시험은 `tests/unit/review-inspection.test.mjs`, `tests/unit/notification-priority.test.mjs`. 실제 브라우저는 `tests/browser/viewer-review-e4.spec.mjs` 및 기존 `viewer-project-open.spec.mjs`를 실행한다.
+자동 검증: [.github/workflows/e4-web-review-acceptance.yml](../../.github/workflows/e4-web-review-acceptance.yml). 집중 계약 시험은 `tests/unit/document/review-inspection.test.mjs`, `tests/unit/ui/notification-priority.test.mjs`. 실제 브라우저는 `tests/browser/document/viewer-review-e4.spec.mjs` 및 기존 `viewer-project-open.spec.mjs`를 실행한다.
 
 **배포 정책:** 코드 작성 및 CI 검증은 `work/ui`에서만 한다. `main` 통합과 Pages 배포는 수행하지 않으며, 실제 역사 GIS 원본·핀·C++/WASM·Rust·Android 파일도 수정하지 않는다.
 

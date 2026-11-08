@@ -53,7 +53,7 @@ Chromium 8개 테스트는 재시도 없이 통과했다. Windows 검수용 플�
 
 `scripts/contracts/application-checks.json`에서 원본 저장소의 별도 마운트 파일을 직접 요구하던 5개 입력을 `config/library-data.json` 데이터 리비전 소유 경계로 교정했다. 실시간 운영 회귀 `tests/browser/windows-review-e5.spec.mjs`는 활성 Viewer 그룹으로, P6-5/6/7 장시간 성능·메모리 측정은 기존 수동 `measurements` 그룹으로 명시 등록했다. 기존 테스트 코드는 삭제하지 않았다.
 
-`scripts/plan-application-checks.mjs`는 변경사항이 0건인 경우 입력 및 테스트 목록 자체를 검증한 뒤 **빈 실행 계획을 반환**한다. 이때 제거된 편집기 모듈을 참조하는 보관용 테스트 전체의 동적 의존성 그래프를 강제로 순회하지 않는다. 변경사항이 있거나 특정 검사를 명시 지정한 경우의 엄격한 스케줄링을 삭제하지 않았다. 회귀 테스트: `tests/unit/e7-application-check-planner.test.mjs`.
+`scripts/plan-application-checks.mjs`는 변경사항이 0건인 경우 입력 및 테스트 목록 자체를 검증한 뒤 **빈 실행 계획을 반환**한다. 이때 제거된 편집기 모듈을 참조하는 보관용 테스트 전체의 동적 의존성 그래프를 강제로 순회하지 않는다. 변경사항이 있거나 특정 검사를 명시 지정한 경우의 엄격한 스케줄링을 삭제하지 않았다. 회귀 테스트: `tests/unit/runtime/e7-application-check-planner.test.mjs`.
 
 ### 유지한 제약 및 이후 검증 범위
 

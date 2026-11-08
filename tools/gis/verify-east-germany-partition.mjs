@@ -5,9 +5,10 @@
 import {spawnSync} from 'node:child_process';
 import {readFileSync,existsSync,mkdtempSync,rmSync,writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
-import {join,resolve} from 'node:path';
+import {join,resolve,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
+import {decodeTerritorialSource} from '../data/territorial-source-codec.mjs';
 
 export const ROOT=fileURLToPath(new URL('../../',import.meta.url));
 export const DDR=resolve(ROOT,'assets/data/territorial-entities/source/countries/state-deutsche-demokratische-republik.json');
@@ -78,7 +79,7 @@ export function verifyNativeEastGermanyPartition({
   requireValue(binary&&existsSync(binary),'Standalone native historical GEOS/PROJ executable required');
   const originalBytes=readFileSync(original),canonicalBytes=readFileSync(canonical);
   const originalSha=sha256(originalBytes),canonicalSha=sha256(canonicalBytes);
-  const candidate=immutableDDRRecord(JSON.parse(originalBytes));
+  const candidate=immutableDDRRecord(decodeTerritorialSource(JSON.parse(originalBytes),file=>readFileSync(resolve(dirname(original),'..',file))));
   const reference=canonicalGermanCountry(JSON.parse(canonicalBytes));
   const scope=mkdtempSync(join(tmpdir(),'pando-historical-ddr-partition-'));
   try{

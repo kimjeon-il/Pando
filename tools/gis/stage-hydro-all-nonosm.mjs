@@ -11,7 +11,7 @@ import {parseArgs} from 'node:util';
 import {validateIndependentHydronyms} from './hydro-independent-name-policy.mjs';
 import {rewriteHydroNames} from './prepare-hydro-name-replacement-bundle.mjs';
 import {auditHydroOsm,ORIGINAL_OSM_SYSTEM_IDS} from './audit-osm-credit-removal.mjs';
-import {readHydroMetadataSection} from '../inventory-osm-hydronyms.mjs';
+import {readHydroMetadataSection} from "./inventory-osm-hydronyms.mjs";
 
 const sha=x=>createHash('sha256').update(x).digest('hex');
 const check=(v,m)=>{if(!v)throw Error(m);};

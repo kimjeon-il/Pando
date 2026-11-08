@@ -2,12 +2,12 @@
 import {execFile,spawn} from 'node:child_process';
 import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {verifyNativeTool} from '../native-tool.mjs';
+import {verifyNativeTool} from "../build/native-tool.mjs";
 
 const defaultRoot=fileURLToPath(new URL('../../',import.meta.url));
 export const terrainPreviewSources=Object.freeze(['tools/cpp/terrain/CMakeLists.txt','tools/cpp/terrain/preview.cpp','tools/cpp/terrain/land-mask.cpp',
   'tools/cpp/map-image/resample.cpp','tools/cpp/map-image/resample.h',
-  'tools/cpp/terrain/land-mask.h','tools/cpp/map-image/raster-draw.h','shared/core/include/pandoeditor/losslessjson.h','shared/core/src/losslessjson.cpp']);
+  'tools/cpp/terrain/land-mask.h','tools/cpp/map-image/raster-draw.h','src/data/native/include/pandoeditor/losslessjson.h','src/data/native/src/losslessjson.cpp']);
 function terrainBinary({root=defaultRoot,directory=process.env.PANDO_TERRAIN_PREVIEW_DIRECTORY||resolve(root,'build-native/terrain-preview/artifact')}={}){
   const executable=process.platform==='win32'?'pando-terrain-preview.exe':'pando-terrain-preview';
   return verifyNativeTool({root,directory,target:'terrain-preview',executable,sourceFiles:terrainPreviewSources}).binary;

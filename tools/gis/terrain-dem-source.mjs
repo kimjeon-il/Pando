@@ -2,7 +2,7 @@
 import {execFile} from 'node:child_process';
 import {delimiter,dirname,isAbsolute,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {verifyNativeTool} from '../native-tool.mjs';
+import {verifyNativeTool} from "../build/native-tool.mjs";
 
 const defaultRoot=fileURLToPath(new URL('../../',import.meta.url));
 

@@ -299,7 +299,7 @@ self.onmessage = async event => {
       return;
     }
     if (action === 'read') {
-      const { readAtlasTables } = await import("../../../../../shared/frontend/js/workers/gpkg-read-core.js");
+      const { readAtlasTables } = await import("../../../../../src/rendering/workers/gpkg-read-core.js");
       const metadata = await readAtlasTables(buffer, getSql);
       self.postMessage({ id, ok: true, metadata });
       return;

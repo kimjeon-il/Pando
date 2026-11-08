@@ -17,11 +17,11 @@ test('audit CLI rewrites only its isolated copy and records ref and size evidenc
   git(original,'add','.');git(original,'commit','-qm','old terrain');git(original,'update-ref','refs/pull/1/head','main');
   const before=git(original,'rev-parse','main');
   const env={...process.env,AUDIT_DIR:root,GITHUB_REPOSITORY:'fixture/project',GITHUB_SHA:before};
-  execFileSync(process.execPath,['tools/git-history-dryrun.mjs','rewrite'],{env,stdio:'pipe'});
+  execFileSync(process.execPath,['tools/data/git-history-dryrun.mjs','rewrite'],{env,stdio:'pipe'});
   git(filtered,'repack','-a','-d');unlinkSync(join(filtered,'objects/info/alternates'));
   git(filtered,'fsck','--full','--no-dangling');
   writeFileSync(join(evidence,'original-objects-bytes.txt'),'100\n');writeFileSync(join(evidence,'filtered-objects-bytes.txt'),'40\n');
-  execFileSync(process.execPath,['tools/git-history-dryrun.mjs','summarize'],{env,stdio:'pipe'});
+  execFileSync(process.execPath,['tools/data/git-history-dryrun.mjs','summarize'],{env,stdio:'pipe'});
   const summary=JSON.parse(readFileSync(join(evidence,'summary.json'),'utf8'));
   assert.equal(summary.original_main,before);assert.equal(summary.pull_ref_count,1);
   assert.equal(summary.pull_refs_with_obsolete_path_on_tip,1);assert.deepEqual(summary.missing_refs,[]);

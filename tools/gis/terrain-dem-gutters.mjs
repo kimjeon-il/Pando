@@ -8,7 +8,7 @@ import {readNativeRawWebp} from '../map-image/native-resample.mjs';
 import {encodeNativeDemElevation} from './terrain-dem-encode.mjs';
 import {createNativeDemWindowReader,inspectNativeDemSource} from './terrain-dem-raster.mjs';
 import {encodeDemWebp} from './terrain-dem-webp.mjs';
-import {verifyNativeTool} from '../native-tool.mjs';
+import {verifyNativeTool} from "../build/native-tool.mjs";
 
 const defaultRoot=fileURLToPath(new URL('../../',import.meta.url));
 export const terrainDemGutterSources=Object.freeze(['tools/cpp/terrain-dem-gutters/CMakeLists.txt','tools/cpp/terrain-dem-gutters/gutters.cpp']);

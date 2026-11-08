@@ -7,11 +7,13 @@ import { createHash } from 'node:crypto';
 import { gzipSync } from 'node:zlib';
 import {UI_VIEWER_SOURCES} from '../../scripts/lib/ui-source-catalog.mjs';
 import { buildWorkerAsset } from '../../scripts/lib/worker-assets.mjs';
+import {buildFrontendIndex,emitFrontendModule} from '../../scripts/lib/frontend-layout.mjs';
 
 export const put = (root, path, value) => {
-  if(path==='index.html')path='apps/viewer/templates/index.html';
-  else if(path.startsWith('assets/js/')&&!path.endsWith('build-meta.js'))path='shared/frontend/js/'+path.slice(10);
-  else if(path.startsWith('assets/wasm/')||path.startsWith('assets/fonts/'))path='shared/frontend/static/'+path.slice(7);
+  if(path==='index.html')path='src/app/index.html';
+  else if(path==='assets/js/viewer.js')path='src/app/viewer.js';
+  else if(path.startsWith('assets/js/')&&!path.endsWith('build-meta.js'))path='src/runtime/'+path.slice(10);
+  else if(path.startsWith('assets/wasm/')||path.startsWith('assets/fonts/'))path='assets/'+path.slice(7);
   const target = join(root, path);
   mkdirSync(dirname(target), { recursive: true });
   writeFileSync(target, value);
@@ -32,16 +34,16 @@ export async function pagesRepositoryFixture(t) {
   put(root, 'assets/js/app.js', '// editor only');
   put(root,'package.json','{"version":"1.0.0"}');
   put(root,'apps/editor/templates/index.html','<h1>Editor</h1><script type="module" src="assets/js/app.js"></script>');
-  put(root,'shared/frontend/js/modules/resource-update-policy.js','export const policy=true;');
-  for(const path of new Set([...UI_VIEWER_SOURCES,'assets/css/app.css','assets/css/viewer.css']))put(root,path.replace('assets/css/','shared/frontend/css/'),'.fixture { color:red; }');
+  put(root,'src/rendering/resource-update-policy.js','export const policy=true;');
+  for(const path of new Set([...UI_VIEWER_SOURCES,'assets/css/app.css','assets/css/viewer.css']))put(root,path.replace('assets/css/','src/ui/css/'),'.fixture { color:red; }');
   put(root, '.nojekyll', '');
   put(root, 'assets/data/terrain-preview/v0.13.3-p2/manifest.json', '{"tiles":{}}');
   put(root, 'assets/data/hydro/v0.13.4/manifest.json', '{"container":{"url":"hydro.bin"},"shards":[]}');
   put(root, 'assets/data/hydro/v0.13.4/hydro.bin', 'fixture packfile');
   put(root, 'reports/a.md', 'report');
   put(root, 'native/CMakeLists.txt', 'project(native)');
-  put(root, 'shared/core/CMakeLists.txt', 'project(shared)');
-  put(root, 'shared/core/src/project.cpp', '// native and wasm source');
+  put(root, 'tools/build/native/core/CMakeLists.txt', 'project(shared)');
+  put(root, 'src/document/native/src/project.cpp', '// native and wasm source');
   put(root, 'apps/editor/src-tauri/src/lib.rs', '// native shell source');
   put(root, 'apps/editor/src-tauri/gen/android/build.gradle.kts', '// Android build');
   put(root, 'assets/js/workers/core-session-worker.js', '// required core worker');
@@ -49,7 +51,12 @@ export async function pagesRepositoryFixture(t) {
   put(root, 'assets/wasm/pandoeditor-core.wasm', Buffer.from([0, 97, 115, 109, 1, 0, 0, 0]));
   put(root, 'assets/wasm/pandoeditor-core.manifest.json', '{}');
   /* The frontend builder, rather than this fixture, owns generated Workers. */
-  const worker = await buildWorkerAsset({root,entry:'assets/js/workers/core-viewer-session-worker.js',readSource:path=>readFileSync(join(root,'shared/frontend/js/'+path.slice(10)),'utf8')});
+  const index=buildFrontendIndex(root);
+  const worker = await buildWorkerAsset({root,entry:'assets/js/workers/core-viewer-session-worker.js',readSource:path=>{
+    const entry=index.get(path);
+    if(!entry)throw Error('Missing Worker fixture: '+path);
+    return emitFrontendModule(readFileSync(join(root,entry.sourcePath),'utf8'),entry.sourcePath,index);
+  }});
   for (const [path, source] of worker.files) put(root, path, source);
   put(root, 'assets/js/build-meta.js', 'globalThis.PANDOLAB_BUILD_META = Object.freeze(' + JSON.stringify({ workerAssets: {
     'assets/js/workers/core-viewer-session-worker.js': { url: worker.url, files: [...worker.files.keys()],
@@ -66,7 +73,7 @@ export async function pagesRepositoryFixture(t) {
   put(root,'assets/data/physical-land/land.bin',landCompressed);
   put(root,'assets/data/places/manifest.json','{"shards":{}}');
   put(root,'assets/data/territorial-entities/generated/v2/index.json','{"entities":[]}');
-  put(root,'assets/data/builtin-world/generated/v1/index.json','{"schema":"pandolab-builtin-world","schemaVersion":2,"storageLayout":"country-files-v1","entities":[]}');
+  put(root,'assets/data/builtin-world/generated/v1/index.json','{"schema":"pandolab-builtin-world","schemaVersion":2,"storageLayout":"descriptor-geometries-v1","geometryAssets":[],"entities":[]}');
   put(root,'assets/data/prepared-polygons/generated/v2/manifest.json','{"meshes":{}}');
   const data = join(root, '.library-data/repository');
   mkdirSync(data, { recursive: true });

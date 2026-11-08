@@ -5,7 +5,7 @@ import {existsSync,mkdirSync,readFileSync,readdirSync,realpathSync,writeFileSync
 import {basename,dirname,isAbsolute,relative,resolve,sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {parseArgs} from 'node:util';
-import {withLibraryOutputs} from '../library-data.mjs';
+import {withLibraryOutputs} from "../data/library-runtime.mjs";
 
 const rootDefault=fileURLToPath(new URL('../../',import.meta.url));
 const sources=[['rivers_base','river','ne_10m_rivers_lake_centerlines_scale_rank'],['rivers_australia','river','ne_10m_rivers_australia'],

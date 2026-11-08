@@ -5,7 +5,7 @@ import {mkdir,readFile,realpath,stat} from 'node:fs/promises';
 import {basename,dirname,isAbsolute,join,relative,resolve,sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {parseArgs} from 'node:util';
-import {writeLibraryOutput} from '../library-data.mjs';
+import {writeLibraryOutput} from "../data/library-runtime.mjs";
 import {prepareHydroRiverSources} from './hydro-calibration-input.mjs';
 import {readPhysicalRaster} from './physical-raster-native.mjs';
 import {createHydroWaterRasterSampler} from './hydro-outlets.mjs';

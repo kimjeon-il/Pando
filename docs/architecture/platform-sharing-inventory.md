@@ -39,11 +39,11 @@ The following areas are already in the correct shared layer and are not migratio
 | C++ document / geometry / temporal logic | `shared/core/` | Keep shared. |
 | WASM bindings and generated Web core use | `shared/wasm/`, shared frontend loaders | Keep shared. |
 | Map owner graph, resource loading, rendering helpers | `shared/frontend/js/modules/` | Keep shared. |
-| Runtime metadata and versioned asset URLs | `shared/frontend/js/modules/runtime-context.js` | Keep as canonical runtime configuration owner. |
-| File workflow orchestration | `shared/frontend/js/modules/file-controller.js` | Keep shared; transports remain injected ports. |
-| Browser project/view persistence | `shared/frontend/js/modules/browser-project-storage.js` | Keep shared. Native WebViews also use the browser storage model for Web-side autosave/view state. |
-| Responsive layout detection | `shared/frontend/js/modules/workspace-layout.js` | Keep device-independent; dimensions/input characteristics choose layout. |
-| Mobile sheet presentation | `shared/frontend/js/modules/mobile-sheet-presentation.js` | Keep shared. “Mobile” is a responsive layout, not an Android code path. |
+| Runtime metadata and versioned asset URLs | `src/runtime/runtime-context.js` | Keep as canonical runtime configuration owner. |
+| File workflow orchestration | `src/ui/file-controller.js` | Keep shared; transports remain injected ports. |
+| Browser project/view persistence | `src/data/browser-project-storage.js` | Keep shared. Native WebViews also use the browser storage model for Web-side autosave/view state. |
+| Responsive layout detection | `src/ui/workspace-layout.js` | Keep device-independent; dimensions/input characteristics choose layout. |
+| Mobile sheet presentation | `src/ui/mobile-sheet-presentation.js` | Keep shared. “Mobile” is a responsive layout, not an Android code path. |
 | Shared UI fragments/styles | `shared/frontend/ui/`, `shared/frontend/css/` | Keep shared. |
 | Native build identity/artifact selection | `apps/editor/native-contract.mjs`, related producer/artifact tooling | Already shares Windows/Android common native inputs. |
 
@@ -53,7 +53,7 @@ There are no exact duplicate frontend source blobs or same-basename source modul
 
 ### Web Viewer
 
-`apps/viewer/js/viewer.js` hands off to `viewer-composition.js`. The Viewer constructs the shared `runtime-context`, browser file access, browser project/view storage, shared map owners and shared presentation/services.
+`src/app/viewer.js` hands off to `viewer-composition.js`. The Viewer constructs the shared `runtime-context`, browser file access, browser project/view storage, shared map owners and shared presentation/services.
 
 Viewer-specific composition remains valid because the product is intentionally read-only.
 
@@ -75,7 +75,7 @@ The same editor frontend is used by Windows and Android. OS-specific behavior is
 
 ## 4. Current platform-port surface
 
-The former flat platform bag is gone. `shared/frontend/js/modules/platform-ports.js` validates one explicit schema with `resources`, `storage`, `files`, `library` and `world` groups.
+The former flat platform bag is gone. `src/runtime/platform-ports.js` validates one explicit schema with `resources`, `storage`, `files`, `library` and `world` groups.
 
 `apps/editor/native-platform-adapter.js` is the only frontend runtime owner of raw Tauri/shell globals. Native ports are installed through module-scoped `platform-runtime.js`; browser execution resolves the same contract with `kind: 'browser'`. File access is separately governed by `file-access-contract.js`.
 
@@ -145,7 +145,7 @@ The inventory narrows the earlier refactor plan.
 
 ### T1 — Explicit platform-port contract
 
-Implemented after A0. `shared/frontend/js/modules/platform-ports.js` is the canonical validator/factory, and runtime composition now consumes its nested `resources`, `storage`, `files`, `library` and `world` ports instead of the former flat property bag.
+Implemented after A0. `src/runtime/platform-ports.js` is the canonical validator/factory, and runtime composition now consumes its nested `resources`, `storage`, `files`, `library` and `world` ports instead of the former flat property bag.
 
 The contract separates:
 
@@ -163,7 +163,7 @@ Implemented. `apps/editor/native-platform-adapter.js` is the sole frontend runti
 
 ### T3 — Contract-level file-access consolidation, not transport merging
 
-Implemented. `shared/frontend/js/modules/file-access-contract.js` now owns the required methods by product mode plus project/GIS selection, prepared-save and write-receipt validation. `platform-ports.js` and `file-controller.js` consume this same owner. `browser-file-access.js` and `native-storage.js` remain separate transports and are exercised by one shared contract suite.
+Implemented. `src/data/file-access-contract.js` now owns the required methods by product mode plus project/GIS selection, prepared-save and write-receipt validation. `platform-ports.js` and `file-controller.js` consume this same owner. `browser-file-access.js` and `native-storage.js` remain separate transports and are exercised by one shared contract suite.
 
 ### T4 — Native JS/Rust document-transfer protocol check
 

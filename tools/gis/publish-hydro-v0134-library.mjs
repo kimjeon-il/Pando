@@ -9,7 +9,7 @@ import {resolve,join} from 'node:path';
 import {parseArgs} from 'node:util';
 import {fileURLToPath} from 'node:url';
 import {auditHydroOsm} from './audit-osm-credit-removal.mjs';
-import {manifestRoles} from '../check-current-hydro-layout.mjs';
+import {manifestRoles} from "../checks/check-current-hydro-layout.mjs";
 
 const BASE='assets/data/hydro';
 const SRC=BASE+'/v0.13.2';

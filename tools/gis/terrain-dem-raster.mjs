@@ -4,7 +4,7 @@ import {realpath,stat} from 'node:fs/promises';
 import {endianness} from 'node:os';
 import {delimiter,isAbsolute,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {verifyNativeTool} from '../native-tool.mjs';
+import {verifyNativeTool} from "../build/native-tool.mjs";
 
 const defaultRoot=fileURLToPath(new URL('../../',import.meta.url));
 export const terrainDemRasterSources=Object.freeze(['tools/cpp/terrain-dem-raster/CMakeLists.txt','tools/cpp/terrain-dem-raster/source.cpp']);

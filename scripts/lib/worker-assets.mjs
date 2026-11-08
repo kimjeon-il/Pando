@@ -62,7 +62,7 @@ export async function buildWorkerAsset({ root, entry, readSource = path => readF
   await build({ absWorkingDir: root, entryPoints: [entry], bundle: true, write: false, format: 'esm', platform: 'browser', logLevel: 'silent',
     plugins: [{ name: 'worker-execution-closure', setup(builder) {
       builder.onResolve({ filter: /.*/ }, args => {
-        if (args.path === '../../../tools/load-node-core.mjs') return { path: args.path, external: true };
+        if (args.path === '../../../tools/build/load-node-core.mjs') return { path: args.path, external: true };
         const path = args.kind === 'entry-point' ? slash(relative(root, resolve(root, args.path)))
           : local(args.path, slash(relative(root, args.importer)));
         if (!path.startsWith('assets/')) throw Error(`Worker dependency outside assets: ${path}`);

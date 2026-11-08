@@ -1,5 +1,5 @@
 // Canonical lazy verified historical-territory catalog loader.
-import {createStoredAssetLoader} from "../../shared/frontend/js/modules/stored-asset-loader.js";
+import {createStoredAssetLoader} from "../../src/data/stored-asset-loader.js";
 import {normalizeTerritorialLibraryEntity,normalizeTerritorialLibraryIndex,selectGeometryVersion,assertTerritorialIndexEntity} from "./territorial-library.js";
 
 export function createTerritorialEntityLoader({indexUrl,indexSpec,dataRevision,fetchFn=globalThis.fetch,cacheStorage=globalThis.caches}) {

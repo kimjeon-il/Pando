@@ -12,7 +12,7 @@ on:
       - 'assets/js/modules/label-layout.js'
       - 'assets/js/modules/user-preferences.js'
       - 'assets/js/modules/app-map-settings.js'
-      - 'tests/unit/place-sync-contract.test.mjs'
+      - 'tests/unit/document/place-sync-contract.test.mjs'
       - 'package.json'
       - '.github/workflows/place-sync-contract.yml'
   pull_request:
@@ -24,7 +24,7 @@ on:
       - 'assets/js/modules/label-layout.js'
       - 'assets/js/modules/user-preferences.js'
       - 'assets/js/modules/app-map-settings.js'
-      - 'tests/unit/place-sync-contract.test.mjs'
+      - 'tests/unit/document/place-sync-contract.test.mjs'
       - 'package.json'
       - '.github/workflows/place-sync-contract.yml'
 

@@ -4,8 +4,8 @@ import { createReadStream, existsSync, realpathSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { extname, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { reportPath } from '../tools/report-paths.mjs';
-import {libraryConfig,libraryMaterializedRoot} from '../tools/library-data.mjs';
+import { reportPath } from "../tools/data/report-paths.mjs";
+import {libraryConfig,libraryMaterializedRoot} from "../tools/data/library-context.mjs";
 
 const sourceRoot=fileURLToPath(new URL('../', import.meta.url));
 const MIME=Object.freeze({

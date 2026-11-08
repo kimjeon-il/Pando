@@ -6,7 +6,7 @@ import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import vm from 'node:vm';
 import { createNodeCoreProject } from './core-project.mjs';
-const sqlDir = new URL('../../shared/frontend/js/vendor/sql/', import.meta.url);
+const sqlDir = new URL('../../assets/js-vendor/sql/', import.meta.url);
 const sqlContext = vm.createContext({ module: { exports: {} }, require: createRequire(import.meta.url), process,
   __dirname: fileURLToPath(sqlDir), Buffer, console, TextEncoder, TextDecoder });
 vm.runInContext(readFileSync(new URL('sql-wasm.js', sqlDir), 'utf8'), sqlContext);

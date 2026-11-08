@@ -4,7 +4,7 @@ import {mkdirSync,readFileSync,writeFileSync} from 'node:fs';
 import {resolve,join} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {chromium,expect} from '@playwright/test';
-import {prepareLibraryData} from './library-data.mjs';
+import {prepareLibraryData} from "./data/library-runtime.mjs";
 
 const PIN='fe8282ba32761ab9586348d1712e11cc1f4e7882';
 const DATA='5eb7be55208efaafe39bd5a65ec2f111d70b9053';

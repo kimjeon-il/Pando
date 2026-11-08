@@ -1,12 +1,12 @@
 // Decode the actual generated packets and verify current Web/WASM consumption bytes.
 import assert from 'node:assert/strict';
-import { sharedSourceManifest } from '../tools/package-shared-core-assets.mjs';
+import { sharedSourceManifest } from "../tools/build/package-shared-core-assets.mjs";
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { gunzipSync } from 'node:zlib';
-import { decodeCountryMesh } from "../shared/frontend/js/modules/country-mesh-codec.js";
-import { decodePolygonMesh } from "../shared/frontend/js/modules/polygon-mesh-codec.js";
+import { decodeCountryMesh } from "../src/rendering/country-mesh-codec.js";
+import { decodePolygonMesh } from "../src/rendering/polygon-mesh-codec.js";
 import { safePath } from './lib/p2-artifact-graph.mjs';
 import {verifyPreparedInputHashes} from './lib/prepared-input-verification.mjs';
 

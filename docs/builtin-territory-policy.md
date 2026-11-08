@@ -55,6 +55,6 @@ SPI는 73.588036–73.057424W / 49.759959–49.272754S이다.
 보존한다. 이 정보는 새로운 지리 경계 판정이 아니라 표시 정책의 기록이다.
 기존 외부 라이브러리 국가 좌표·원본 지명·원본 하천은 수정하지 않는다.
 
-회귀 검사: `tests/unit/builtin-subunits.test.mjs`와
-`tests/unit/builtin-territory-policy.test.mjs`.
+회귀 검사: `tests/unit/document/builtin-subunits.test.mjs`와
+`tests/unit/document/builtin-territory-policy.test.mjs`.
 내장지도 생성 자산은 별도 원본 검증 및 짝지어진 데이터 게시 후 갱신해야 한다.

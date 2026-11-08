@@ -2,7 +2,7 @@ import {execFileSync} from 'node:child_process';
 import {mkdtempSync,writeFileSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-import {verifyPagesDeployment} from '../../tools/verify-pages-deployment.mjs';
+import {verifyPagesDeployment} from "../../tools/checks/verify-pages-deployment.mjs";
 // Fixed GitHub authority. No repository, URL, ref, workflow or executable from events.
 const BASE='https://api.github.com/repos/kimjeon-il/Pando/';
 const SHA=/^(?!0{40}$)[a-f0-9]{40}$/;

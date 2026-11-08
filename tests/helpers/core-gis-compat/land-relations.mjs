@@ -1,6 +1,6 @@
 // R4-E2: test-owned archived land dependent transfer oracle.
 // Test actual GIS/Core plans against this; do not ship with a map editor.
-import { wrapPolygonGeometry, multiCoordinates, normalizeClippedPolygonGeometry } from "../../../shared/frontend/js/modules/map-edit-geometry.js";
+import { wrapPolygonGeometry, multiCoordinates, normalizeClippedPolygonGeometry } from "../../../src/geometry/map-edit-geometry.js";
 /** LandRelations: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.

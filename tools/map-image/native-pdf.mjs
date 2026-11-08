@@ -3,7 +3,7 @@ import {createHash} from 'node:crypto';
 import {chmodSync,createReadStream,existsSync,readFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {verifyNativeTool} from '../native-tool.mjs';
+import {verifyNativeTool} from "../build/native-tool.mjs";
 import {resizeNativeRgba} from './native-resample.mjs';
 
 export const mapPdfSourceFiles=Object.freeze(['tools/cpp/map-pdf/CMakeLists.txt','tools/cpp/map-pdf/pdf-read.c',

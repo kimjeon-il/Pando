@@ -1,13 +1,13 @@
-import { TIMELINE_RECORD_SCHEMA_VERSION } from "../../shared/frontend/js/modules/timeline-records.js";
-import { createProjectSession } from "../../shared/frontend/js/modules/project-session.js";
-import { normalizeLayerPresentation } from "../../shared/frontend/js/modules/layer-presentation.js";
-import { createTerritorialEntityStore } from "../../shared/frontend/js/modules/territorial-entity-store.js";
-import { createTerritorialEntityRepository } from "../../shared/frontend/js/modules/territorial-entity-repository.js";
+import { TIMELINE_RECORD_SCHEMA_VERSION } from "../../src/document/timeline-records.js";
+import { createProjectSession } from "../../src/document/project-session.js";
+import { normalizeLayerPresentation } from "../../src/ui/layer-presentation.js";
+import { createTerritorialEntityStore } from "../../src/document/territorial-entity-store.js";
+import { createTerritorialEntityRepository } from "../../src/document/territorial-entity-repository.js";
 import { createNodeCoreProject } from './core-project.mjs';
-import { normalizeTerritorialIdentities,TERRITORIAL_IDENTITY_FIELDS } from "../../shared/frontend/js/modules/territorial-units.js";
+import { normalizeTerritorialIdentities,TERRITORIAL_IDENTITY_FIELDS } from "../../src/document/territorial-units.js";
 import {gzipSync} from 'node:zlib';
 import {createHash} from 'node:crypto';
-import {fingerprintProjectBaseline} from "../../shared/frontend/js/modules/project-baseline-fingerprint.js";
+import {fingerprintProjectBaseline} from "../../src/document/project-baseline-fingerprint.js";
 
 const noop=() => {};
 function emptySession() {

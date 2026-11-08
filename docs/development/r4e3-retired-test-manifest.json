@@ -264,7 +264,7 @@
     "tests/unit/r1-retired-editor-inventory.test.mjs",
     "tests/unit/r4d-legacy-ci-boundaries.test.mjs",
     "tests/unit/r4e0-dependency-audit.test.mjs",
-    "tests/unit/current-browser-contracts.test.mjs",
+    "tests/unit/runtime/current-browser-contracts.test.mjs",
     "tests/unit/map-diagnostics.test.mjs"
   ],
   "knownBlockers": [
@@ -340,7 +340,7 @@
     {
       "test": "tests/browser/ui-components.spec.mjs",
       "active": [
-        "tests/unit/current-browser-contracts.test.mjs"
+        "tests/unit/runtime/current-browser-contracts.test.mjs"
       ]
     },
     {

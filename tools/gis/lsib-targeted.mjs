@@ -7,7 +7,8 @@ import {gunzipSync} from 'node:zlib';
 import {classifyLSIBExclusion} from './lsib-exclusion.mjs';
 import {loadLSIBReviewedSource} from './lsib-reviewed-source.mjs';
 import {mergeLSIBUnion,prepareLSIBCoast,prepareLSIBEnclave,prepareLSIBTripoint} from './lsib-screen-native.mjs';
-import {writeLibraryOutput} from '../library-data.mjs';
+import {writeLibraryOutput} from "../data/library-runtime.mjs";
+import {readTerritorialSource} from '../data/territorial-entity-sources.mjs';
 
 const sourceId='dos-lsib-11.4', tolerance=.0004, scale=2560*64/360;
 const plans={
@@ -47,7 +48,7 @@ export async function buildLSIBTargetedCandidate({root,targets,referenceManifest
   const view=await readJSON(resolve(source,'views/world.json')),selections=new Map(view.selections.map(row=>[row.entityId,row.geometryVersionId]));
   const entities={},versions={},geometries={},hashes={};
   for(const code of [...codes].sort()){
-    signal?.throwIfAborted();const bytes=await readFile(resolve(source,'countries',`state-${code}.json`)),entity=JSON.parse(bytes.toString('utf8'));
+    signal?.throwIfAborted();const bytes=await readFile(resolve(source,'countries',`state-${code}.json`)),entity=readTerritorialSource('state:'+code,source);
     const version=entity.geometryVersions.find(value=>value.versionId===selections.get(entity.entityId));
     if(entity.sourceInfo?.featureId!==code||!version||version.validTo!=null)throw Error(`Historical or mismatched source must not be overwritten: ${code}`);
     entities[code]=entity;versions[code]=version;geometries[code]=version.geometry;hashes[code]=sha(bytes);

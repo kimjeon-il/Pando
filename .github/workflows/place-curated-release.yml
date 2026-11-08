@@ -41,16 +41,16 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Generate approved-only PLAC v3 catalog, shard and manifest
-        run: node tools/build-place-runtime.mjs
+        run: node tools/build/build-place-runtime.mjs
 
       - name: Verify byte-for-byte reproducibility
-        run: node tools/build-place-runtime.mjs --check
+        run: node tools/build/build-place-runtime.mjs --check
 
       - name: Run focused publication and codec tests
-        run: node --test tests/unit/place-publication.test.mjs tests/unit/place-codec.test.mjs
+        run: node --test tests/unit/data/place-publication.test.mjs tests/unit/data/place-codec.test.mjs
 
       - name: Lint updated release publisher and tests
-        run: pnpm exec eslint tools/build-place-runtime.mjs tests/unit/place-publication.test.mjs
+        run: pnpm exec eslint tools/build/build-place-runtime.mjs tests/unit/data/place-publication.test.mjs
 
       - name: Check generated file integrity
         run: git diff --check
@@ -65,7 +65,7 @@ jobs:
           fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          node tools/library-data.mjs --store-and-stage --push -- assets/data/places/reviewed-records-v1.json assets/data/places/places-v1.bin assets/data/places/manifest.json
+          node tools/data/library-data.mjs --store-and-stage --push -- assets/data/places/reviewed-records-v1.json assets/data/places/places-v1.bin assets/data/places/manifest.json
           git commit -m 'build(places): publish approved-only city shard and search manifest'
           # If the remote moved while this job ran, fail safely rather than rewrite it.
           git push origin 'HEAD:work/places'

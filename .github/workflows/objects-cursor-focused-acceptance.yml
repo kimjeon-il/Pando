@@ -5,13 +5,13 @@ on:
     paths:
       - '.github/workflows/objects-cursor-focused-acceptance.yml'
       - 'shared/core/**'
-      - 'shared/wasm/session-bindings.cpp'
-      - 'shared/frontend/static/wasm/pandoeditor-core.manifest.json'
-      - 'shared/frontend/js/modules/core-document-runtime.js'
-      - 'tests/browser/viewer-calendar.spec.mjs'
-      - 'tests/browser/viewer-review-e4.spec.mjs'
-      - 'tests/unit/core-document-runtime.test.mjs'
-      - 'tests/unit/core-document-client.test.mjs'
+      - 'src/document/native/bindings/session-bindings.cpp'
+      - 'assets/wasm/pandoeditor-core.manifest.json'
+      - 'src/document/core-document-runtime.js'
+      - 'tests/browser/document/viewer-calendar.spec.mjs'
+      - 'tests/browser/document/viewer-review-e4.spec.mjs'
+      - 'tests/unit/document/core-document-runtime.test.mjs'
+      - 'tests/unit/document/core-document-client.test.mjs'
   workflow_dispatch:
 permissions:
   contents: read
@@ -37,13 +37,13 @@ jobs:
           cmake --build build-native/cursor-focused --target temporal_editing_tests project_codec_tests document_session_tests web_object_command_tests web_storage_tests web_territorial_command_tests --parallel 2
           ctest --test-dir build-native/cursor-focused -R '^(temporal_editing_tests|project_codec_tests|document_session_tests|web_object_command_tests|web_storage_tests|web_territorial_command_tests)$' --output-on-failure
       - name: Check published source-matched WASM
-        run: node tools/package-shared-core-assets.mjs --build-dir shared/frontend/static/wasm --check
+        run: node tools/build/package-shared-core-assets.mjs --build-dir assets/wasm --check
       - name: Verify cursor transition ABI against source-matched generated WASM
         env:
-          PANDOEDITOR_WASM_MODULE: ${{ github.workspace }}/shared/frontend/static/wasm/pandoeditor-core.js
+          PANDOEDITOR_WASM_MODULE: ${{ github.workspace }}/assets/wasm/pandoeditor-core.js
         run: |
-          node --test tests/unit/core-document-runtime.test.mjs tests/unit/core-document-client.test.mjs
-          node --test shared/tests/wasm-document-session.test.mjs shared/tests/p5-temporal-wasm.test.mjs shared/tests/p5-timeline-wasm.test.mjs
+          node --test tests/unit/document/core-document-runtime.test.mjs tests/unit/document/core-document-client.test.mjs
+          node --test tests/native/document/wasm-document-session.test.mjs tests/native/document/p5-temporal-wasm.test.mjs tests/native/document/p5-timeline-wasm.test.mjs
           node --input-type=module <<'NODE'
           import assert from 'node:assert/strict';
           import { readFile } from 'node:fs/promises';
@@ -93,14 +93,14 @@ jobs:
       - name: Install pinned browser deps
         run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Assert source-matched WASM for actual browser validation
-        run: node tools/package-shared-core-assets.mjs --build-dir shared/frontend/static/wasm --check
+        run: node tools/build/package-shared-core-assets.mjs --build-dir assets/wasm --check
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
       - name: Run actual Soviet selection and historical world roundtrip contracts
         env:
           PANDOLAB_BROWSER_CHANNEL: chromium
         run: |
-          pnpm exec playwright test tests/browser/viewer-calendar.spec.mjs --workers=1 --retries=0 --trace off
+          pnpm exec playwright test tests/browser/document/viewer-calendar.spec.mjs --workers=1 --retries=0 --trace off
       - name: Preserve browser evidence on failures
         if: always()
         uses: actions/upload-artifact@v4
@@ -126,24 +126,24 @@ jobs:
       - name: Install pinned browser dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Require rebuilt source-matched WASM before browser testing
-        run: node tools/package-shared-core-assets.mjs --build-dir shared/frontend/static/wasm --check
+        run: node tools/build/package-shared-core-assets.mjs --build-dir assets/wasm --check
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
       - name: Repeat new-project reset then verify real dated-view acceptance
         env:
           PANDOLAB_BROWSER_CHANNEL: chromium
-        run: pnpm exec playwright test tests/browser/viewer-calendar.spec.mjs --grep='.' --repeat-each=3 --workers=1 --retries=0 --trace off
+        run: pnpm exec playwright test tests/browser/document/viewer-calendar.spec.mjs --grep='.' --repeat-each=3 --workers=1 --retries=0 --trace off
       - name: Verify label Undo/Redo and save/reopen on the published WASM
         env:
           PANDOLAB_BROWSER_CHANNEL: chromium
-        run: pnpm exec playwright test tests/browser/viewer-review-e4.spec.mjs --workers=1 --retries=0 --trace off
+        run: pnpm exec playwright test tests/browser/document/viewer-review-e4.spec.mjs --workers=1 --retries=0 --trace off
       - name: Verify browser Undo/Redo for deletion and distribution edits
         env:
           PANDOLAB_BROWSER_CHANNEL: chromium
         run: >-
           pnpm exec playwright test
-          tests/browser/viewer-calendar.spec.mjs
-          tests/browser/viewer-review-e4.spec.mjs
+          tests/browser/document/viewer-calendar.spec.mjs
+          tests/browser/document/viewer-review-e4.spec.mjs
           --grep='.'
           --workers=1 --retries=0 --trace off
       - name: Preserve reset failure evidence

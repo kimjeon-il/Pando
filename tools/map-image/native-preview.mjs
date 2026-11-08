@@ -3,7 +3,7 @@ import {createHash} from 'node:crypto';
 import {chmodSync,existsSync,readFileSync,statSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {verifyNativeTool} from '../native-tool.mjs';
+import {verifyNativeTool} from "../build/native-tool.mjs";
 import {encodeNativePng,resizeNativeRgba,resizeNativePdfThumbnail} from './native-resample.mjs';
 
 export const mapPreviewSourceFiles=Object.freeze(['tools/cpp/map-preview/CMakeLists.txt','tools/cpp/map-preview/preview.cpp','tools/cpp/map-image/raster-draw.h',

@@ -37,7 +37,7 @@
 - tint `tint.webp` 2,433,794바이트. 전체 배포 `854964279`바이트.
 - 집계 SHA-256: `622a6d272bdda6b507a1f4ba49794fe9ef41aca06f29d8b38e24114caa50d023`.
 - NOAA ETOPO 원본: 1,585,813,987바이트, SHA-256 `8630abc401cc6bdd30b507a68d3eb9eda5b65f5636f7199e4b1eefd476b5a9e2`, CI에서 실제 다운로드 후 대조.
-- `tools/verify-terrain-dem.mjs`는 GDAL의 `gdallocationinfo`와 네이티브 `pando-map-image`, `pando-terrain-dem-check`를 실제 구축·호출하여 6단계의 모든 WebP 타일 형식, 채널 및 경계 규칙을 검증. 원본의 LOD5 지정 4개 표본 고도를 대조함.
+- `tools/checks/verify-terrain-dem.mjs`는 GDAL의 `gdallocationinfo`와 네이티브 `pando-map-image`, `pando-terrain-dem-check`를 실제 구축·호출하여 6단계의 모든 WebP 타일 형식, 채널 및 경계 규칙을 검증. 원본의 LOD5 지정 4개 표본 고도를 대조함.
 - [GitHub Actions P1 DEM full published + NOAA ETOPO native CI](https://github.com/kimjeon-il/Pando/actions/runs/41556056754) 성공, `p1-dem-entire-release-and-etopo-proof` 아티팩트로 byte/네이티브 결과 JSON 보존.
 
 ## 재실행 방법 (원본 변경 금지)
@@ -61,7 +61,7 @@ node tools/gis/verify-p1-dem-publication.mjs \
   --output /new/external/report-dem.json
 
 # NOAA ETOPO와 네이티브 C++ SDK·GDAL이 준비된 환경:
-node tools/verify-terrain-dem.mjs \
+node tools/checks/verify-terrain-dem.mjs \
   --etopo /source/ETOPO_2022_v1_30s_N90W180_surface.tif \
   --output /source/terrain/v0.13.3
 ```

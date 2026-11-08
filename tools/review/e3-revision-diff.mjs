@@ -2,9 +2,10 @@ import {createHash} from 'node:crypto';
 import {
   parseTemporal, normalizeTemporalInterval, temporalIntervalsOverlap,
   temporalContains, temporalMonthEnd, compareTemporal, compareTemporalKeys, temporalFollowingDay,
-} from '../../shared/frontend/js/modules/temporal.js';
+} from "../../src/document/temporal.js";
 import {normalizeTerritorialLibraryEntity} from '../gis/territorial-library.js';
-import {createReviewBundle, REVIEW_DATA_REPOSITORY} from '../../shared/frontend/js/modules/review-change-records.js';
+import {decodeTerritorialSource} from '../data/territorial-source-codec.mjs';
+import {createReviewBundle, REVIEW_DATA_REPOSITORY} from "../../src/document/review-change-records.js";
 
 export const E3_DIFF_SCHEMA_VERSION = 1;
 const SHA = /^[a-f0-9]{40}$/;
@@ -158,7 +159,7 @@ export function diffTerritorialEntities(beforeInput,afterInput,{sourceEntityId}=
   return {sourceEntityId:id,changes:unique,issues,metadataChanges};
 }
 function validateIndex(value){
-  if(!plain(value)||value.schemaVersion!==1||!plain(value.entities))invalid('Data library.json schema 1 index is required.');
+  if(!plain(value)||value.schemaVersion!==1||!plain(value.entities))invalid('Source content index schema 1 is required.');
   for(const [id,digest] of Object.entries(value.entities))
     if(!ID.test(id)||!DIGEST.test(digest))invalid('Invalid library index entity digest: '+id);
   return value;
@@ -193,13 +194,29 @@ export function collectRevisionDiff({baseRevision,candidateRevision,baseIndex,ca
     }
     const before=row.beforeDigest?readEntity({revision:baseRevision,entityId:row.sourceEntityId,digest:row.beforeDigest}):null;
     const after=row.afterDigest?readEntity({revision:candidateRevision,entityId:row.sourceEntityId,digest:row.afterDigest}):null;
+    const entities=new Map();
     for(const [value,expected,revision] of [[before,row.beforeDigest,baseRevision],[after,row.afterDigest,candidateRevision]]) {
       if(expected===null)continue;
       if(!value||!Buffer.isBuffer(value.bytes)||sha256(value.bytes)!==expected)invalid('Source content hash mismatch: '+row.sourceEntityId+'@'+revision);
-      readHashes.push({sourceEntityId:row.sourceEntityId,revision,sha256:expected});
+      const resource=value.resource;
+      if(!resource||typeof resource.url!=='string'||!/^[-A-Za-z0-9_./]+$/.test(resource.url)
+        ||resource.url.startsWith('/')||resource.url.split('/').some(p=>!p||p==='.'||p==='..')
+        ||!['identity','gzip'].includes(resource.encoding)||!DIGEST.test(resource.sha256||'')
+        ||!Number.isSafeInteger(resource.compressedBytes)||resource.compressedBytes<1
+        ||resource.decodedBytes!==value.bytes.length)invalid('Source transport receipt is required: '+row.sourceEntityId);
+      const descriptor=JSON.parse(value.bytes),geometryResources=[];
+      entities.set(value,decodeTerritorialSource(descriptor,file=>{
+        const payload=value.geometryPayloads?.get(file);
+        if(!payload||!Buffer.isBuffer(payload.bytes)||!payload.resource
+          ||payload.resource.decodedBytes!==payload.bytes.length)invalid('Geometry transport receipt is required: '+file);
+        return payload.bytes;
+      }));
+      for(const version of descriptor.geometryVersions)geometryResources.push({versionId:version.versionId,
+        sha256:version.geometryResource.sha256,resource:value.geometryPayloads.get(version.geometryResource.file).resource});
+      readHashes.push({sourceEntityId:row.sourceEntityId,revision,sha256:expected,resource,geometryResources});
     }
-    const diff=diffTerritorialEntities(before?JSON.parse(before.bytes.toString('utf8')):null,
-      after?JSON.parse(after.bytes.toString('utf8')):null,{sourceEntityId:row.sourceEntityId});
+    const entity=value=>value?entities.get(value):null;
+    const diff=diffTerritorialEntities(entity(before),entity(after),{sourceEntityId:row.sourceEntityId});
     changes.push(...diff.changes);issues.push(...diff.issues);
     if(diff.metadataChanges.length)nonMapMetadata.push({sourceEntityId:row.sourceEntityId,fields:diff.metadataChanges});
   }

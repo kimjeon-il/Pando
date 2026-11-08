@@ -6,8 +6,8 @@ on:
     paths:
       - '.github/workflows/git-history-size-audit.yml'
       - 'tools/git-history-dryrun.sh'
-      - 'tools/git-history-dryrun.mjs'
-      - 'tools/library-history*.mjs'
+      - 'tools/data/git-history-dryrun.mjs'
+      - 'tools/data/library-history*.mjs'
   workflow_dispatch:
 
 permissions:
@@ -24,10 +24,10 @@ jobs:
           sparse-checkout-cone-mode: false
           sparse-checkout: |
             tools/git-history-dryrun.sh
-            tools/git-history-dryrun.mjs
-            tools/library-history.mjs
-            tools/library-history-stream.mjs
-            tools/library-report-layout.mjs
+            tools/data/git-history-dryrun.mjs
+            tools/data/library-history.mjs
+            tools/data/library-history-stream.mjs
+            tools/data/library-report-layout.mjs
       - uses: actions/setup-node@v4
         with:
           node-version: '24'

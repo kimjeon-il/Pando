@@ -12,7 +12,7 @@ on:
       - 'tools/cpp/hydro/point-screen.cpp'
       - 'tools/cpp/CMakeLists.txt'
       - 'tools/gis/hydro-independent-name-policy.mjs'
-      - 'tests/unit/hydro-independent-evidence.test.mjs'
+      - 'tests/unit/geometry/hydro-independent-evidence.test.mjs'
       - '.github/workflows/gis-hydro-osm-batch03-research.yml'
   workflow_dispatch:
 
@@ -51,7 +51,7 @@ jobs:
           node tools/gis/package-hydro-point-screen.mjs --binary build-native/hydro-point-screen/pando-hydro-point-screen --directory build-native/hydro-point-screen/artifact
       - name: Decode identical published Hydro geometry with product decoder
         run: |
-          node tools/decode-hydro-connectivity.mjs \
+          node tools/gis/decode-hydro-connectivity.mjs \
             .pando-hydro-input/assets/data/hydro/v0.13.2 /tmp/osm-hydro-batch03-decoded.json
       - name: Query United States NGA independent named river points and compare all last eleven
         run: |
@@ -64,7 +64,7 @@ jobs:
           const data=JSON.parse(readFileSync('/tmp/osm-hydro-batch03-results.json','utf8'));
           for(const line of formatBatch03Receipts(data))console.log(line);
           JS
-          node --test tests/unit/hydro-independent-evidence.test.mjs
+          node --test tests/unit/geometry/hydro-independent-evidence.test.mjs
       - uses: actions/upload-artifact@v4
         with:
           name: gis-osm-hydro-batch03-independent-points

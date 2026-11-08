@@ -1,4 +1,4 @@
-import { loadNodeCore } from '../tools/load-node-core.mjs';
+import { loadNodeCore } from "../tools/build/load-node-core.mjs";
 
 try {
   const core = await loadNodeCore();

@@ -8,7 +8,7 @@ import { appendFileSync, readFileSync } from 'node:fs';
 import { isAbsolute, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { collectChanges } from './lib/check-changes.mjs';
-import { sharedSourceManifest } from '../tools/package-shared-core-assets.mjs';
+import { sharedSourceManifest } from "../tools/build/package-shared-core-assets.mjs";
 import { graphStatus, artifactGraph, ownsPath, RECEIPT_PATH, stageArtifacts, publishArtifacts, artifactEvidence } from './lib/p2-artifact-graph.mjs';
 
 export const root=fileURLToPath(new URL('../',import.meta.url));
@@ -17,8 +17,8 @@ const sourceEncoding=bytes=>Buffer.from(new TextDecoder('utf-8',{fatal:true})
   .decode(bytes).replace(/\r\n/g,'\n'));
 
 export const OUTPUTS=Object.freeze({
-  wasm:Object.freeze(['shared/frontend/static/wasm/pandoeditor-core.js','shared/frontend/static/wasm/pandoeditor-core.wasm',
-    'shared/frontend/static/wasm/pandoeditor-core.manifest.json'])
+  wasm:Object.freeze(['assets/wasm/pandoeditor-core.js','assets/wasm/pandoeditor-core.wasm',
+    'assets/wasm/pandoeditor-core.manifest.json'])
 });
 
 function absolute(rootDir,p) {
@@ -39,7 +39,7 @@ function matches(rootDir,p,expected,{text=false}={}) {
 
 export function wasmStatus(rootDir=root,pin=null) {
   const config=pin||json(rootDir,'config/toolchain-versions.json');
-  const manifest=attempt(()=>json(rootDir,'shared/frontend/static/wasm/pandoeditor-core.manifest.json'));
+  const manifest=attempt(()=>json(rootDir,'assets/wasm/pandoeditor-core.manifest.json'));
   const currentSource=sharedSourceManifest(rootDir);
   const reasons=[];
   if(manifest?.schema!=='pandoeditor-core-wasm'||manifest.abiVersion!==1)
@@ -53,7 +53,7 @@ export function wasmStatus(rootDir=root,pin=null) {
   for(const name of ['js','wasm']) {
     const entry=manifest?.assets?.[name];
     const filename=name==='js'?'pandoeditor-core.js':'pandoeditor-core.wasm';
-    if(entry?.file!==filename||!matches(rootDir,'shared/frontend/static/wasm/'+filename,entry?.sha256))
+    if(entry?.file!==filename||!matches(rootDir,'assets/wasm/'+filename,entry?.sha256))
       reasons.push(name+' bytes/hash');
   }
   return {needed:reasons.length>0,reasons,sourceSha256:currentSource.sourceSha256};
@@ -66,11 +66,11 @@ export function selectJobs({wasm},changed=[],manual='auto') {
   // compiled input identity and must not force an otherwise unchanged compiler.
   const bootstrap=changed.some(p=>[
     '.github/workflows/generated-artifacts-p2.yml',
-    'scripts/p2-artifact-plan.mjs','tests/unit/p2-artifact-plan.test.mjs',
+    'scripts/p2-artifact-plan.mjs','tests/unit/build/p2-artifact-plan.test.mjs',
     'cmake/P2NativeBuildReceipt.cmake'].includes(p));
   const forced=manual==='all';
   const wasmDefinitionChanged=changed.some(p=>[
-    'tools/package-shared-core-assets.mjs','CMakeLists.txt','CMakePresets.json'].includes(p));
+    'tools/build/package-shared-core-assets.mjs','CMakeLists.txt','CMakePresets.json'].includes(p));
   return {
     wasm:forced||manual==='wasm'||(manual==='auto'&&(wasm.needed||wasmDefinitionChanged)),
     bootstrap,
@@ -125,14 +125,14 @@ function validationOrPresentationOnly(changes,graph) {
     'scripts/contracts/territorial-storage-access.json','scripts/lib/territorial-storage-audit.mjs',
     'tools/cpp/validate-country-geometry.cpp','tools/cpp/country-properties.h',
     'scripts/contracts/application-checks.json','scripts/p2-artifact-plan.mjs',
-    'shared/frontend/js/modules/map-input-presentation.js',
-    'shared/frontend/js/modules/country-mesh-zoom-policy.js',
-    'shared/frontend/js/workers/canvas-render-worker.js',
-    'shared/frontend/js/modules/gpu-canvas-scene-packets.js',
-    'shared/frontend/js/modules/gpu-canvas-worker.js',
-    'shared/frontend/js/modules/map-renderer-composition.js',
-    'shared/frontend/js/modules/physical-resources.js',
-    'shared/frontend/js/modules/gpu-map-renderer.js',
+    'src/map/map-input-presentation.js',
+    'src/rendering/country-mesh-zoom-policy.js',
+    'src/rendering/workers/canvas-render-worker.js',
+    'src/rendering/gpu-canvas-scene-packets.js',
+    'src/rendering/gpu-canvas-worker.js',
+    'src/rendering/map-renderer-composition.js',
+    'src/data/physical-resources.js',
+    'src/rendering/gpu-map-renderer.js',
     'scripts/r4d-check-retired-tests.mjs',
     'scripts/remote-only-doctor.mjs','scripts/lib/check-changes.mjs',
     'playwright.codespaces.config.js'
@@ -155,6 +155,10 @@ export function plan(rootDir=root,{changes=[],manual='auto',families=[],event=pr
     wasm:wasmStatus(rootDir)
   };
   const jobs=selectJobs(statuses,changes,manual);
+  // A compiled-core-only request has no GIS input dependency. Do not expand
+  // other families merely to discard their selections afterwards: scoped
+  // preparation intentionally leaves their payloads unhydrated.
+  if(manual==='wasm')return {statuses,...jobs,dataGenerationDeferred:false,selectedFamilies:[],blockedFamilies:[]};
   const graph=graphStatus(rootDir,{wasm:statuses.wasm,requested:families,force:manual==='all'});
   // An automatic validation/presentation push must not repair unrelated stale
   // data. Explicit generation, unknown comparisons and WASM rebuilds retain

@@ -47,7 +47,7 @@ jobs:
           node tools/gis/package-hydro-point-screen.mjs --binary build-native/hydro-point-screen/pando-hydro-point-screen --directory build-native/hydro-point-screen/artifact
       - name: Decode unchanged original Hydro geometry
         run: |
-          node tools/decode-hydro-connectivity.mjs \
+          node tools/gis/decode-hydro-connectivity.mjs \
             .pando-hydro-input/assets/data/hydro/v0.13.2 /tmp/pando-hydro-decoded.json
       - name: Compare with official Victorian Yarra river centerline
         run: |

@@ -6,14 +6,14 @@ on:
       - 'assets/data/**'
       - 'config/library-data.json'
       - '.github/actions/library-data/**'
-      - 'tools/library-*.mjs'
-      - 'tools/build-world-bundle.mjs'
-      - 'shared/frontend/js/workers/gpu-mesh-core.js'
-      - 'shared/frontend/js/modules/physical-layer-service.js'
-      - 'shared/frontend/js/modules/terrain-manifest.js'
-      - 'tests/unit/gpu-mesh-country-strokes.test.mjs'
-      - 'tests/unit/mesh-geometry-assets.test.mjs'
-      - 'tests/unit/world-archive-retirement-integrity.test.mjs'
+      - 'tools/data/library-*.mjs'
+      - 'tools/build/build-world-bundle.mjs'
+      - 'src/rendering/workers/gpu-mesh-core.js'
+      - 'src/rendering/physical-layer-service.js'
+      - 'src/rendering/terrain-manifest.js'
+      - 'tests/unit/geometry/gpu-mesh-country-strokes.test.mjs'
+      - 'tests/unit/rendering/mesh-geometry-assets.test.mjs'
+      - 'tests/unit/rendering/world-archive-retirement-integrity.test.mjs'
       - '.github/workflows/world-archive-retirement-integrity.yml'
   push:
     branches: [main]
@@ -21,14 +21,14 @@ on:
       - 'assets/data/**'
       - 'config/library-data.json'
       - '.github/actions/library-data/**'
-      - 'tools/library-*.mjs'
-      - 'tools/build-world-bundle.mjs'
-      - 'shared/frontend/js/workers/gpu-mesh-core.js'
-      - 'shared/frontend/js/modules/physical-layer-service.js'
-      - 'shared/frontend/js/modules/terrain-manifest.js'
-      - 'tests/unit/gpu-mesh-country-strokes.test.mjs'
-      - 'tests/unit/mesh-geometry-assets.test.mjs'
-      - 'tests/unit/world-archive-retirement-integrity.test.mjs'
+      - 'tools/data/library-*.mjs'
+      - 'tools/build/build-world-bundle.mjs'
+      - 'src/rendering/workers/gpu-mesh-core.js'
+      - 'src/rendering/physical-layer-service.js'
+      - 'src/rendering/terrain-manifest.js'
+      - 'tests/unit/geometry/gpu-mesh-country-strokes.test.mjs'
+      - 'tests/unit/rendering/mesh-geometry-assets.test.mjs'
+      - 'tests/unit/rendering/world-archive-retirement-integrity.test.mjs'
       - '.github/workflows/world-archive-retirement-integrity.yml'
   workflow_dispatch:
 
@@ -47,7 +47,7 @@ jobs:
         with:
           node-version: '24'
       - name: Verify the pinned archive gate regressions
-        run: node --test tests/unit/world-archive-retirement-integrity.test.mjs
+        run: node --test tests/unit/rendering/world-archive-retirement-integrity.test.mjs
       - name: Prepare pinned external library data
         uses: ./.github/actions/library-data
       - name: Verify current pinned archive bytes and retired world paths
@@ -56,11 +56,11 @@ jobs:
           import assert from 'node:assert/strict';
           import {readFileSync} from 'node:fs';
           import {execFileSync} from 'node:child_process';
-          import {libraryConfig,libraryCheckout,safeChild} from './tools/library-data.mjs';
-          import {decodeLibraryArchiveBytes} from './tools/library-archive.mjs';
-          import {assertDataPath,publishWorldBundle} from './tools/build-world-bundle.mjs';
-          import {HYDRO_DATA_VERSION} from './shared/frontend/js/modules/physical-layer-service.js';
-          import {TERRAIN_RASTER_VERSION} from './shared/frontend/js/modules/terrain-manifest.js';
+          import {libraryConfig,libraryCheckout,safeChild} from './tools/data/library-context.mjs';
+          import {decodeLibraryArchiveBytes} from './tools/data/library-archive.mjs';
+          import {assertDataPath,publishWorldBundle} from './tools/build/build-world-bundle.mjs';
+          import {HYDRO_DATA_VERSION} from './src/rendering/physical-layer-service.js';
+          import {TERRAIN_RASTER_VERSION} from './src/rendering/terrain-manifest.js';
           const root=process.cwd(),config=libraryConfig(root),checkout=libraryCheckout(root);
           const git=(cwd,args,{encoding='utf8',maxBuffer=16*1024*1024}={})=>execFileSync('git',args,{cwd,encoding,maxBuffer,
             env:{...process.env,GIT_NO_LAZY_FETCH:'1'}});
@@ -114,4 +114,4 @@ jobs:
             worldAssets:result.validatedAssets,retiredVersionGroupsAbsent:4}));
           NODE
       - name: Verify original current preview geometry and mesh assertions
-        run: node --test tests/unit/gpu-mesh-country-strokes.test.mjs tests/unit/mesh-geometry-assets.test.mjs
+        run: node --test tests/unit/geometry/gpu-mesh-country-strokes.test.mjs tests/unit/rendering/mesh-geometry-assets.test.mjs

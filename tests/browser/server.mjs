@@ -3,7 +3,8 @@ import {resolve,dirname} from 'node:path';
 import {buildFrontendSnapshot} from '../../scripts/lib/frontend-build.mjs';
 import {developmentAssets} from '../../scripts/frontend-dev-server.mjs';
 import {createP3PreviewServer} from '../../scripts/p3-preview-server.mjs';
-import {prepareLibraryData,libraryRuntimeLeasePath} from '../../tools/library-data.mjs';
+import {prepareLibraryData} from "../../tools/data/library-runtime.mjs";
+import {libraryRuntimeLeasePath} from "../../tools/data/library-context.mjs";
 
 const root=resolve(process.cwd()),port=Number(process.env.PANDOLAB_TEST_PORT||4173);
 const prepared=prepareLibraryData({root}),snapshot=await buildFrontendSnapshot({root});

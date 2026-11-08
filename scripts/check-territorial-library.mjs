@@ -3,11 +3,11 @@ import path from 'node:path';
 import vm from 'node:vm';
 import { fileURLToPath } from 'node:url';
 
-import { validateGeometry } from "../shared/frontend/js/modules/geometry-validation.js";
-import {readTerritorialSources} from '../tools/territorial-entity-sources.mjs';
-import {buildCurrentWorld} from '../tools/territorial-current-world.mjs';
+import { validateGeometry } from "../src/geometry/geometry-validation.js";
+import {readTerritorialSources} from "../tools/data/territorial-entity-sources.mjs";
+import {buildCurrentWorld} from "../tools/data/territorial-current-world.mjs";
 import { selectLateSovietCheckPartition } from './lib/late-soviet-check.mjs';
-import '../tools/load-spherical-core.mjs';
+import "../tools/build/load-spherical-core.mjs";
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(scriptDirectory, '..');

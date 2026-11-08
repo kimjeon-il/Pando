@@ -85,7 +85,7 @@ export function auditTerritorialStorage(source, file = '<source>') {
     const imported = definitions.find(item => item.type === 'ImportBinding');
     return imported?.node.imported?.name === 'createInitialDocument'
       && posix.normalize(posix.join(posix.dirname(file), imported.parent.source.value))
-        === 'shared/frontend/js/modules/initial-document.js';
+        === 'src/document/initial-document.js';
   }
 
   function origin(value, seen = new Set()) {

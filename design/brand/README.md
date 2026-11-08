@@ -21,7 +21,7 @@
 
 Android 네이티브 아이콘 소스·생성 스크립트는 폐기되어 현재 저장소에 없다. 필요하면 과거 Git 기록을 참조하되 앱 실행·브랜딩 테스트에서 다시 생성하지 않는다.
 
-웹 배포 자산은 `shared/frontend/static/brand/`, 공통 head 선언은 `shared/frontend/ui/fragments/brand-icons.html`이 소유한다. 기존 HTML 빌드의 자산 수집과 assetRevision을 유지한다. retired native 교체를 웹에 자동 전파하지 않는다.
+웹 배포 자산은 `shared/frontend/static/brand/`, 공통 head 선언은 `src/ui/fragments/brand-icons.html`이 소유한다. 기존 HTML 빌드의 자산 수집과 assetRevision을 유지한다. retired native 교체를 웹에 자동 전파하지 않는다.
 
 ## 검사와 재출력 규칙
 

@@ -1,0 +1,552 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import vm from 'node:vm';
+import { transformSync } from 'esbuild';
+import { createGpuCanvasWorker } from "../../../src/rendering/gpu-canvas-worker.js";
+
+test('failed synchronous Canvas submission does not strand a busy renderer or a pick promise', async () => {
+  const errors=[],worker={
+    postMessage(message){if(message.type==='view'||message.type==='hydro-pick')throw new Error('worker channel closed');},
+    terminate(){},
+  };
+  const channel=createGpuCanvasWorker({worker,generation:1,acceptFrame:()=>true});
+  channel.onerror=event=>errors.push(event.message);
+  worker.onmessage({data:{type:'ready'}});
+  channel.queueFrame({type:'view',revision:1,projectGeneration:1});
+  assert.equal(channel.busy,false);
+  assert.equal(channel.hasPendingFrame,true);
+  await assert.rejects(channel.pick([0,0]),{code:'PL-CANVAS-WORKER-SEND'});
+  assert.equal(errors.length,2);
+  channel.terminate();
+});
+
+test('bitmapless Canvas acknowledgment does not enter picture-admission callback', () => {
+  let admissions=0;
+  const worker={postMessage(){},terminate(){}};
+  const channel=createGpuCanvasWorker({worker,generation:1,acceptFrame:()=>{admissions++;return true;}});
+  worker.onmessage({data:{type:'ready'}});
+  channel.queueFrame({type:'view',revision:1,projectGeneration:1});
+  worker.onmessage({data:{type:'frame',revision:1,projectGeneration:1,renderRequestId:1}});
+  assert.equal(admissions,0);
+  channel.terminate();
+});
+
+test('Canvas send error may retire its worker synchronously without restoring a closed pending frame', () => {
+  const worker={postMessage(){throw Error('worker closed');},terminate(){}};
+  const channel=createGpuCanvasWorker({worker,generation:1,acceptFrame:()=>true});
+  channel.onerror=()=>channel.terminate();
+  worker.onmessage({data:{type:'ready'}});
+  channel.queueFrame({type:'view',projectGeneration:1,revision:1});
+  assert.equal(channel.ready,false);
+  assert.equal(channel.busy,false);
+  assert.equal(channel.hasPendingFrame,false);
+});
+
+test('project replacement retains a ready worker and rejects old completion without releasing the new frame', () => {
+  const { channel, sent, receive, complete, presented } = transport();
+  receive({ type: 'ready' });
+  channel.queueFrame({ type: 'view', revision: 9, projectGeneration: 2 });
+  const old = sent[0];
+  channel.resetGeneration(3);
+  assert.deepEqual(sent[1], { type: 'reset-generation', projectGeneration: 3 });
+  channel.queueFrame({ type: 'view', revision: 1, projectGeneration: 3 });
+  complete(old, { bitmap: { close() {} } });
+  assert.equal(channel.busy, true);
+  assert.equal(presented.length, 0);
+  complete(sent[2]);
+  assert.equal(channel.busy, false);
+  assert.equal(presented.length, 1);
+  assert.equal(channel.ready, true);
+  channel.terminate();
+});
+
+test('canceled same-generation Canvas paint resubmits the newest view after style/physical updates',()=>{
+  const {channel,sent,receive,complete,view,presented}=transport();
+  receive({type:'ready'});
+  channel.queueFrame(view(10,1));
+  complete(sent[0],{bitmap:null}); // A style packet canceled this paint.
+  assert.equal(sent.length,2,'explicit replacement must not depend on an unsolicited repaint');
+  assert.notEqual(sent[0].renderRequestId,sent[1].renderRequestId);
+  assert.equal(sent[1].frameId,10);
+  const older=sent[0];
+  complete(older,{bitmap:null}); // A duplicate cannot release the replacement.
+  assert.equal(sent.length,2);
+  assert.equal(channel.busy,true);
+  channel.queueFrame(view(11,2));
+  complete(sent[1],{bitmap:null});
+  assert.equal(sent[2].frameId,11,'only the latest requested scene may be replayed');
+  complete(sent[2]);
+  assert.equal(channel.busy,false);
+  assert.equal(presented.length,1);
+  channel.terminate();
+});
+
+test('Canvas owner coalesces busy frames and closes stale bitmaps before notifying the presenter', () => {
+  const sent = [], presented = [], stale = [];
+  const native = { postMessage: value => sent.push(value), terminate() {} };
+  const channel = createGpuCanvasWorker({ worker: native, generation: 2,
+    acceptFrame: () => true, onStale: value => stale.push(value) });
+  channel.onmessage = event => { if (event.data.type === 'frame') presented.push(event.data.revision); };
+  channel.queueFrame({ type: 'view', revision: 1, projectGeneration: 2 });
+  native.onmessage({ data: { type: 'ready' } });
+  channel.queueFrame({ type: 'view', revision: 2, projectGeneration: 2 });
+  channel.queueFrame({ type: 'view', revision: 3, projectGeneration: 2 });
+  let closed = 0;
+  native.onmessage({ data: { type: 'frame', renderRequestId: sent[0].renderRequestId, revision: 1, projectGeneration: 2, bitmap: { close: () => closed++ } } });
+  assert.deepEqual(sent.map(message => message.revision), [1, 3]);
+  assert.deepEqual(presented, []);
+  assert.equal(closed, 1);
+  native.onmessage({ data: { type: 'frame', renderRequestId: sent[1].renderRequestId, revision: 3, projectGeneration: 2, bitmap: {} } });
+  assert.deepEqual(presented, [3]);
+  assert.equal(stale.length, 1);
+  channel.terminate();
+});
+
+test('Canvas owner ignores delayed ready/error and settles picks on termination', async () => {
+  let terminated = 0, delivered = 0, errors = 0, closed = 0;
+  const native = { postMessage() {}, terminate() { terminated++; } };
+  const channel = createGpuCanvasWorker({ worker: native, generation: 0, acceptFrame: () => true });
+  channel.onmessage = () => delivered++;
+  channel.onerror = () => errors++;
+  native.onmessage({ data: { type: 'ready' } });
+  const pending = channel.pick([1, 2]);
+  channel.terminate(); channel.terminate();
+  native.onmessage({ data: { type: 'ready' } });
+  native.onerror({ message: 'late failure' });
+  native.onmessage({ data: { type: 'frame', bitmap: { close: () => closed++ } } });
+  assert.equal(await pending, null);
+  assert.equal(terminated, 1);
+  assert.equal(delivered, 1);
+  assert.equal(errors, 0);
+  assert.equal(closed, 1);
+});
+
+function transport({ generation = 2, acceptFrame = () => true } = {}) {
+  const sent = [], presented = [], stale = [];
+  const worker = { postMessage: message => sent.push(message), terminate() {} };
+  const channel = createGpuCanvasWorker({ worker, generation, acceptFrame, onStale: message => stale.push(message) });
+  channel.onmessage = event => { if (event.data.type === 'frame') presented.push(event.data); };
+  const receive = message => worker.onmessage({ data: message });
+  const view = (frameId, revision = 2) => ({ type: 'view', frameId, revision, viewRevision: revision, projectGeneration: generation });
+  const complete = (request, extra = {}) => receive({ ...request, type: 'frame', bitmap: {}, ...extra });
+  return { worker, channel, sent, presented, stale, receive, view, complete };
+}
+
+for (const sameView of [false, true]) {
+  test(`unsolicited ${sameView ? 'same-view' : 'older-view'} bitmap does not release another view submission`, () => {
+    const { channel, sent, presented, stale, receive, view, complete } = transport();
+    receive({ type: 'ready' });
+    channel.queueFrame(view(10));
+    complete(sent[0]);
+    channel.queueFrame(view(11, sameView ? 2 : 3));
+    channel.queueFrame(view(12, sameView ? 2 : 4));
+    let closed = 0;
+    const unsolicitedBitmap = { close: () => closed++ };
+    complete(sent[0], { renderRequestId: null, bitmap: unsolicitedBitmap });
+    assert.deepEqual(sent.map(message => message.frameId), [10, 11]);
+    assert.equal(channel.busy, true);
+    assert.equal(channel.hasPendingFrame, true);
+    assert.equal(presented.length, sameView ? 2 : 1);
+    assert.equal(closed, sameView ? 0 : 1);
+    assert.equal(stale.length, sameView ? 0 : 1);
+    if (sameView) assert.equal(presented[1].bitmap, unsolicitedBitmap);
+
+    // B's result is obsolete in the older-view case, but still completes B.
+    complete(sent[1], { bitmap: { close: () => closed++ } });
+    assert.deepEqual(sent.map(message => message.frameId), [10, 11, 12]);
+    assert.equal(channel.hasPendingFrame, false);
+    assert.equal(closed, sameView ? 0 : 2);
+    complete(sent[2]);
+    assert.equal(channel.busy, false);
+    channel.terminate();
+  });
+}
+
+test('each actual submission gets a distinct completion identity even when its visual frame is reused', () => {
+  const { channel, sent, receive, view, complete } = transport();
+  const message = view(10);
+  channel.queueFrame(view(9));
+  channel.queueFrame(message);
+  assert.equal(sent.length, 0);
+  receive({ type: 'ready' });
+  assert.equal(sent[0].renderRequestId, 1);
+  assert.equal(Object.hasOwn(message, 'renderRequestId'), false);
+  complete(sent[0]);
+  channel.queueFrame(message);
+  channel.queueFrame(message);
+  assert.equal(sent[1].renderRequestId, 2);
+  complete(sent[0]); // Delayed duplicate acknowledgement cannot complete request 2.
+  assert.equal(sent.length, 2);
+  assert.equal(channel.hasPendingFrame, true);
+  complete(sent[1]);
+  assert.equal(sent[2].renderRequestId, 3);
+  complete(sent[2]);
+  assert.equal(channel.busy, false);
+  channel.terminate();
+});
+
+test('a matching stale-style completion releases its slot independently of bitmap acceptance', () => {
+  const { channel, sent, presented, stale, receive, view, complete } = transport({ acceptFrame: message => message.styleRevision === 2 });
+  receive({ type: 'ready' });
+  channel.queueFrame(view(10));
+  channel.queueFrame(view(11));
+  let closed = 0;
+  complete(sent[0], { styleRevision: 1, bitmap: { close: () => closed++ } });
+  assert.equal(sent.length, 2);
+  assert.equal(closed, 1);
+  assert.equal(stale.length, 1);
+  assert.equal(presented.length, 0);
+  complete(sent[1], { styleRevision: 2 });
+  assert.equal(channel.busy, false);
+  assert.equal(presented.length, 1);
+  channel.terminate();
+});
+
+test('another project generation cannot acknowledge a matching request number', () => {
+  const { channel, sent, receive, view, complete } = transport();
+  receive({ type: 'ready' });
+  channel.queueFrame(view(10));
+  channel.queueFrame(view(11));
+  let closed = 0;
+  complete(sent[0], { projectGeneration: 1, bitmap: { close: () => closed++ } });
+  assert.equal(sent.length, 1);
+  assert.equal(channel.busy, true);
+  assert.equal(channel.hasPendingFrame, true);
+  assert.equal(closed, 1);
+  complete(sent[0], { bitmap: null });
+  assert.equal(sent.length, 2);
+  complete(sent[1]);
+  assert.equal(channel.busy, false);
+  channel.terminate();
+});
+
+for (const readyFirst of [false, true]) {
+  test(`a replacement channel rejects cached old-project views ${readyFirst ? 'after' : 'before'} readiness without poisoning revisions`, () => {
+    const { channel, sent, presented, receive, view, complete } = transport({ generation: 3 });
+    if (readyFirst) receive({ type: 'ready' });
+    channel.queueFrame({ ...view(10, 100), projectGeneration: 2 });
+    assert.equal(sent.length, 0);
+    assert.equal(channel.busy, false);
+    assert.equal(channel.hasPendingFrame, false);
+    channel.queueFrame(view(20, 1));
+    if (!readyFirst) receive({ type: 'ready' });
+    assert.deepEqual(sent.map(message => message.frameId), [20]);
+    assert.equal(sent[0].renderRequestId, 1);
+    complete(sent[0]);
+    assert.equal(channel.busy, false);
+    assert.equal(channel.hasPendingFrame, false);
+    assert.equal(presented.length, 1);
+    assert.equal(presented[0].frameId, 20);
+
+    // An obsolete high revision also cannot replace valid queued work.
+    channel.queueFrame(view(21, 2));
+    channel.queueFrame(view(22, 3));
+    channel.queueFrame({ ...view(11, 101), projectGeneration: 2 });
+    complete(sent[1]);
+    assert.deepEqual(sent.map(message => message.frameId), [20, 21, 22]);
+    complete(sent[2]);
+    assert.equal(presented.at(-1).frameId, 22);
+    assert.equal(channel.busy, false);
+    channel.terminate();
+  });
+}
+
+test('termination drops queued views and late completions cannot release a replacement channel', () => {
+  const old = transport(), replacement = transport({ generation: 3 });
+  old.receive({ type: 'ready' });
+  old.channel.queueFrame(old.view(10));
+  old.channel.queueFrame(old.view(11));
+  old.channel.terminate();
+  assert.equal(old.channel.busy, false);
+  assert.equal(old.channel.hasPendingFrame, false);
+  replacement.receive({ type: 'ready' });
+  replacement.channel.queueFrame(replacement.view(20));
+  replacement.channel.queueFrame(replacement.view(21));
+  let closed = 0;
+  old.complete(old.sent[0], { bitmap: { close: () => closed++ } });
+  old.receive({ type: 'ready' });
+  old.channel.queueFrame(old.view(12));
+  assert.equal(closed, 1);
+  assert.equal(old.sent.length, 1);
+  assert.equal(replacement.sent.length, 1);
+  assert.equal(replacement.channel.busy, true);
+  replacement.complete(replacement.sent[0]);
+  assert.equal(replacement.sent.length, 2);
+  replacement.channel.terminate();
+});
+
+for (const nativeError of [false, true]) {
+  test(`${nativeError ? 'native' : 'render'} errors reach the owner and termination clears its outstanding work`, async () => {
+    const { channel, worker, sent, receive, view, complete } = transport();
+    const errors = [];
+    const fail = error => { errors.push(error); channel.terminate(); };
+    channel.onerror = fail;
+    channel.onmessage = event => { if (event.data.type === 'error') fail(event.data); };
+    receive({ type: 'ready' });
+    channel.queueFrame(view(10));
+    channel.queueFrame(view(11));
+    const pick = channel.pick([1, 2]);
+    const error = { type: 'error', message: 'render failed' };
+    if (nativeError) worker.onerror(error);
+    else receive(error);
+    assert.equal(errors[0], error);
+    assert.equal(errors.length, 1);
+    assert.equal(channel.ready, false);
+    assert.equal(channel.busy, false);
+    assert.equal(channel.hasPendingFrame, false);
+    assert.equal(await pick, null);
+    let closed = 0;
+    complete(sent[0], { bitmap: { close: () => closed++ } });
+    assert.equal(closed, 1);
+    assert.deepEqual(sent.filter(message => message.type === 'view').map(message => message.frameId), [10]);
+  });
+}
+
+// Execute the real classic Worker and imported rendering modules. Canvas pixels
+// and timer delivery are the only browser facilities replaced for this protocol test.
+function canvasRuntime({ renderError = null, features = [], theme = {}, visualOrder = { base: [], hydro: [] } } = {}) {
+  const replies = [], timers = [];
+  const script = new URL("../../../src/rendering/workers/canvas-render-worker.js", import.meta.url);
+  class Canvas {
+    constructor(width, height) { this.width = width; this.height = height; }
+    getContext() { return { canvas: this, setTransform() {}, clearRect() {}, drawImage() {},
+      save() {}, restore() {}, beginPath() {}, moveTo() {}, lineTo() {}, arc() {}, closePath() {}, stroke() {}, fill() {}, setLineDash() {} }; }
+    transferToImageBitmap() {
+      if (renderError) throw renderError;
+      return { close() {} };
+    }
+  }
+  const scope = vm.createContext({ URL, OffscreenCanvas: Canvas,
+    clearTimeout() {},
+    setTimeout: callback => { timers.push(callback); return timers.length; },
+    location: script, postMessage: (message, transfer) => replies.push({ message, transfer }) });
+  scope.self = scope;
+  const policy=transformSync(readFileSync(new URL("../../../src/rendering/resource-update-policy.js",import.meta.url),'utf8'),
+    {format:'iife',globalName:'PandoLabResourceUpdatePolicy',target:'es2022',legalComments:'none'}).code;
+  scope.importScripts = (...urls) => urls.forEach(url => vm.runInContext(new URL(url).pathname.endsWith('/resource-update-policy-core.js')
+    ? policy+'\nself.PandoLabResourceUpdatePolicy=PandoLabResourceUpdatePolicy;'
+    : readFileSync(new URL(new URL(url).pathname.endsWith('/vendor/d3.min.js')
+      ? '../../../assets/js-vendor/d3.min.js' : url, import.meta.url), 'utf8'), scope));
+  vm.runInContext(readFileSync(script, 'utf8'), scope);
+  const pathFactory = scope.d3.geo.path;
+  let pathBuildCount = 0;
+  scope.d3.geo.path = () => {
+    const original = pathFactory(), path = geometry => { pathBuildCount++; return original(geometry); };
+    for (const field of ['projection','context']) path[field] = function(...args) {
+      const result = original[field](...args); return args.length ? path : result;
+    };
+    return path;
+  };
+  const send = message => scope.onmessage({ data: message });
+  send({ type: 'init', projectGeneration: 2, revision: 2, viewRevision: 2, styleRevision: 1,
+    surfacePresentation: { targetQuality: 'canonical', quality: 'canonical' },
+    width: 20, height: 20, theme, features, visible: true, visualOrder,
+    fills: Object.fromEntries(features.map(row=>[row.id,{color:'#ffffff',fillAlpha:1}])) });
+  return { replies, send, runTimer: () => timers.shift()(), pendingTimers: () => timers.length,
+    pathBuildCount: () => pathBuildCount };
+}
+
+test('the real Canvas Worker reuses unchanged projected country geometry across replace-data', () => {
+  const row = (key, east = 1) => ({ type: 'Feature', id: 'ROOT', boundaryGeometryRevision: key, properties: {},
+    geometry: { type: 'Polygon', coordinates: [[[0, 0], [east, 0], [east, 1], [0, 1], [0, 0]]] } });
+  const { replies, send, pathBuildCount } = canvasRuntime({ features: [row('allocation:0')],
+    theme: { border: '#ffffff', borderAlpha: 1, strokes: { country: { width: 1 } } },
+    visualOrder: { base: ['country-fill'], hydro: [] } });
+  const paint = (projectGeneration = 2) => {
+    send({ type: 'view', renderRequestId: 1, frameId: 1, revision: 2, viewRevision: 2, projectGeneration });
+    assert.equal(replies.at(-1).message.type, 'frame', replies.at(-1).message.message);
+  };
+  paint(); assert.equal(pathBuildCount(), 1);
+  send({ type: 'replace-data', geometryRevision: 0, projectGeneration: 2,
+    features: [structuredClone(row('allocation:0'))] });
+  paint(); assert.equal(pathBuildCount(), 1);
+  send({ type: 'patch', geometryRevision: 1, projectGeneration: 2,
+    features: [row('new-allocation:0', 2)] });
+  paint(); assert.equal(pathBuildCount(), 2);
+  send({ type: 'replace-data', geometryRevision: 1, projectGeneration: 3,
+    features: [row('new-allocation:0', 2)] });
+  paint(3); assert.equal(pathBuildCount(), 2, 'a new delivery generation cannot invalidate unchanged projected geometry');
+});
+
+
+test('real Canvas Worker generation reset retires old physical packets before new land and water', () => {
+  const { replies, send } = canvasRuntime();
+  const ring = new Float64Array([0, 0, 1, 0, 1, 1, 0, 0]);
+  const packet = (key, revision) => ({
+    key, role: key, sourceKey: revision, geometryRevision: revision,
+    ringCoordinates: ring, ringOffsets: new Uint32Array([0, 4]),
+    polygonOffsets: new Uint32Array([0, 1]),
+  });
+  const pending = { surfacePresentation: { targetQuality: 'canonical', quality: 'pending' },
+    visible: false, sceneStrokes: [], visualOrder: { base: ['substrate', 'physical-water'], hydro: [] } };
+  send({ type: 'view', projectGeneration: 2, revision: 2, viewRevision: 2,
+    ...pending, scenePolygons: [packet('physical-land', 'old-land')] });
+  assert.equal(replies.at(-1).message.physicalLandRevision, 'old-land');
+  const count = replies.length;
+  send({ type: 'reset-generation', projectGeneration: 3 });
+  send({ type: 'view', projectGeneration: 2, revision: 3, viewRevision: 3 });
+  assert.equal(replies.length, count, 'old generation views cannot reintroduce retired pixels');
+  // Production refreshes scene/style state before its first new-generation view.
+  send({ type: 'style', projectGeneration: 3, styleRevision: 2,
+    ...pending, theme: {}, physicalSettings: { terrainVisible: false }, fills: {}, scenePolygons: [] });
+  const currentView = { type: 'view', projectGeneration: 3, revision: 1, viewRevision: 1,
+    width: 20, height: 20, projection: 'flat', view: { flatCenter: [0, 0] },
+    renderProjection: { scale: 20, translate: [10, 10] } };
+  send({ ...currentView, scenePolygons: [] });
+  assert.equal(replies.at(-1).message.projectGeneration, 3, replies.at(-1).message.message);
+  assert.equal(replies.at(-1).message.physicalLandCount, 0,
+    'the new project cannot inherit the old physical land packet');
+  send({ ...currentView, scenePolygons: [packet('physical-land', 'land-v3'), packet('physical-water', 'water-v3')] });
+  const frame = replies.at(-1).message;
+  assert.equal(frame.projectGeneration, 3);
+  assert.equal(frame.physicalLandCount, 1);
+  assert.equal(frame.physicalLandRevision, 'land-v3');
+  assert.equal(frame.physicalWaterCount, 1);
+  assert.equal(frame.physicalWaterRevision, 'water-v3');
+  // Source packets still exist, but the next bitmap draws neither physical pass.
+  send({ ...currentView, viewRevision: 2, revision: 2,
+    visualOrder: { base: [], hydro: [] },
+    scenePolygons: [packet('physical-land', 'land-v3'), packet('physical-water', 'water-v3')] });
+  const unpainted = replies.at(-1).message;
+  assert.equal(unpainted.type, 'frame');
+  assert.equal(unpainted.physicalLandCount, 0);
+  assert.equal(unpainted.physicalWaterCount, 0);
+});
+
+test('Canvas data acknowledgements identify their project and obsolete data cannot acknowledge a new project', () => {
+  const { send, replies } = canvasRuntime();
+  send({ type: 'replace-data', projectGeneration: 3, geometryRevision: 0, features: [] });
+  assert.equal(replies.at(-1).message.type, 'data-ready');
+  assert.equal(replies.at(-1).message.projectGeneration, 3);
+  const count = replies.length;
+  send({ type: 'replace-data', projectGeneration: 2, geometryRevision: 99, features: [] });
+  assert.equal(replies.length, count);
+});
+
+test('the Worker echoes a submission identity only for its direct view result, never a hydro redraw', () => {
+  const { replies, send, runTimer } = canvasRuntime();
+  assert.equal(replies[0].message.type, 'ready');
+  send({ type: 'view', renderRequestId: 7, frameId: 10, revision: 2, viewRevision: 2, projectGeneration: 2 });
+  const first = replies.at(-1);
+  assert.equal(first.message.type, 'frame');
+  assert.equal(first.message.renderRequestId, 7);
+  assert.equal(first.transfer[0], first.message.bitmap);
+  send({ type: 'hydro-edits', revision: 1, features: [] });
+  runTimer();
+  const hydro = replies.at(-1).message;
+  assert.equal(hydro.type, 'frame');
+  assert.equal(hydro.frameId, 10);
+  assert.equal(hydro.renderRequestId, null);
+  assert.notEqual(hydro.bitmap, first.message.bitmap);
+  send({ type: 'view', renderRequestId: 8, frameId: 10, revision: 2, viewRevision: 2, projectGeneration: 2 });
+  assert.equal(replies.at(-1).message.renderRequestId, 8);
+});
+
+test('a Worker-skipped older view acknowledges completion without rendering a bitmap', () => {
+  const { replies, send } = canvasRuntime();
+  send({ type: 'view', renderRequestId: 7, frameId: 9, revision: 1, viewRevision: 1, projectGeneration: 2 });
+  assert.equal(replies.length, 2);
+  assert.equal(replies[1].message.type, 'frame');
+  assert.equal(replies[1].message.renderRequestId, 7);
+  assert.equal(replies[1].message.projectGeneration, 2);
+  assert.equal(replies[1].message.bitmap, undefined);
+  send({ type: 'view', renderRequestId: 8, frameId: 10, revision: 2, viewRevision: 2, projectGeneration: 2 });
+  assert.equal(replies.at(-1).message.renderRequestId, 8);
+  assert.ok(replies.at(-1).message.bitmap);
+});
+
+test('the Worker reports direct and spontaneous render failures through its existing error boundary', () => {
+  const { replies, send, runTimer } = canvasRuntime({ renderError: new Error('bitmap transfer failed') });
+  send({ type: 'view', renderRequestId: 7, frameId: 10, revision: 2, viewRevision: 2, projectGeneration: 2 });
+  assert.equal(replies.at(-1).message.type, 'error');
+  assert.equal(replies.at(-1).message.message.split('\n')[0], 'Error: bitmap transfer failed');
+  send({ type: 'hydro-edits', revision: 1, features: [] });
+  runTimer();
+  assert.equal(replies.at(-1).message.type, 'error');
+  assert.equal(replies.at(-1).message.message, 'bitmap transfer failed');
+  assert.equal(replies.filter(({ message }) => message.type === 'frame').length, 0);
+});
+
+test('pick failures reject their own request and keep the Canvas worker alive', async () => {
+  const sent = [], native = { postMessage: value => sent.push(value), terminate() {} };
+  const channel = createGpuCanvasWorker({ worker: native, generation: 1, acceptFrame: () => true });
+  native.onmessage({ data: { type: 'ready' } });
+  const first = channel.pick([1, 2]);
+  native.onmessage({ data: { type: 'hydro-pick', requestId: sent.at(-1).requestId,
+    error: { code: 'PL-CANVAS-HYDRO-PICK', message: 'pick failed', stack: 'original stack' } } });
+  await assert.rejects(first, error => error.code === 'PL-CANVAS-HYDRO-PICK' && error.stack === 'original stack');
+  const second = channel.pick([3, 4]);
+  native.onmessage({ data: { type: 'hydro-pick', requestId: sent.at(-1).requestId, fid: 7 } });
+  assert.equal(await second, 7);
+  let prevented = false; channel.onerror = () => {};
+  native.onerror({ preventDefault() { prevented = true; } });
+  assert.equal(prevented, true);
+  channel.terminate();
+});
+
+
+test('rejected unsolicited Canvas paint reports staleness without acknowledging obsolete pixels',()=>{
+  const sent=[],stale=[],accepted=[];
+  const worker={postMessage:message=>sent.push(message),terminate(){}};
+  const channel=createGpuCanvasWorker({worker,generation:3,
+    acceptFrame:message=>message.frameId===9&&message.styleRevision===4,
+    onStale:message=>stale.push(message)});
+  channel.onmessage=event=>{if(event.data.type==='frame')accepted.push(event.data);};
+  worker.onmessage({data:{type:'ready'}});
+  channel.queueFrame({type:'view',projectGeneration:3,revision:5,frameId:9});
+  let closed=0;
+  worker.onmessage({data:{type:'frame',renderRequestId:null,projectGeneration:3,
+    revision:5,frameId:9,styleRevision:3,bitmap:{close:()=>closed++}}});
+  assert.equal(closed,1,'obsolete unsolicited bitmap must be released');
+  assert.equal(stale.length,1,'current presentation owner receives unsolicited stale frame');
+  assert.deepEqual(accepted,[],'no readiness acknowledgment for an old style');
+  worker.onmessage({data:{type:'frame',renderRequestId:sent[0].renderRequestId,
+    projectGeneration:3,revision:5,frameId:9,styleRevision:4,bitmap:{}}});
+  assert.equal(accepted.length,1,'current accepted bitmap can still be presented');
+  channel.terminate();
+});
+
+
+test('only a renderer-authorized current physical background can bypass an older requested view revision',()=>{
+  const sent=[],accepted=[],rejected=[];let revoked=0;
+  const worker={postMessage:message=>sent.push(message),terminate(){}};
+  const channel=createGpuCanvasWorker({
+    worker,generation:1,
+    acceptFrame:message=>message.backgroundOnly===true && message.backgroundPresentationKey==='same-picture',
+    allowOlderBackgroundFrame:message=>message.backgroundOnly===true && message.backgroundPresentationKey==='same-picture',
+    onStale:message=>rejected.push(message),
+  });
+  channel.onmessage=event=>{if(event.data.type==='frame')accepted.push(event.data)};
+  worker.onmessage({data:{type:'ready'}});
+  channel.queueFrame({type:'view',frameId:5,revision:1,projectGeneration:1});
+  channel.queueFrame({type:'view',frameId:6,revision:2,projectGeneration:1});
+  worker.onmessage({data:{type:'frame',projectGeneration:1,revision:1,frameId:5,
+    renderRequestId:sent[0].renderRequestId,backgroundOnly:true,
+    backgroundPresentationKey:'same-picture',bitmap:{close(){revoked++}}}});
+  assert.equal(accepted.length,1,'a matching source/camera background can be shown before the next submission');
+  assert.deepEqual(sent.map(message=>message.frameId),[5,6]);
+  worker.onmessage({data:{type:'frame',projectGeneration:1,revision:2,
+    renderRequestId:sent[1].renderRequestId,backgroundOnly:true,
+    backgroundPresentationKey:'old-picture',bitmap:{close(){revoked++}}}});
+  assert.equal(accepted.length,1,'a different camera/physical picture must be discarded');
+  assert.equal(rejected.length,1);
+  assert.equal(revoked,1);
+  channel.terminate();
+});
+
+test('Worker coalesces resource redraw only after a project view has been rendered', () => {
+  const { send, replies, pendingTimers } = canvasRuntime();
+  send({type:'style',styleRevision:2});
+  send({type:'physical-style',physicalStyleRevision:2});
+  send({type:'hydro-edits',revision:3,features:[]});
+  assert.equal(pendingTimers(),0,'init and staged styles cannot paint an obsolete pre-view scene');
+  send({type:'view',projectGeneration:2,frameId:3,revision:3,viewRevision:3,renderRequestId:4});
+  assert.equal(replies.at(-1).message.type,'frame');
+  send({type:'style',styleRevision:3});
+  assert.equal(pendingTimers(),1,'accepted view retains normal coalesced style repaint');
+  send({type:'reset-generation',projectGeneration:3});
+  assert.equal(pendingTimers(),1,'generation reset cannot enqueue a retired redraw');
+  send({type:'style',projectGeneration:3,styleRevision:4});
+  assert.equal(pendingTimers(),1,'new generation styles cannot render before a new view');
+});

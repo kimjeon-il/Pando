@@ -4,12 +4,12 @@ import {resolve} from 'node:path';
 import {createInterface} from 'node:readline';
 import {fileURLToPath} from 'node:url';
 import {isDeepStrictEqual} from 'node:util';
-import {verifyNativeTool} from '../native-tool.mjs';
+import {verifyNativeTool} from "../build/native-tool.mjs";
 import {readHydroSources,scanHydroRegionMetadata} from './hydro-source-reader.mjs';
 
 const rootDefault=fileURLToPath(new URL('../../',import.meta.url));
 export const hydroConnectivitySources=Object.freeze(['tools/cpp/CMakeLists.txt','tools/cpp/hydro/connectivity-junctions.cpp',
-  'shared/core/include/pandoeditor/losslessjson.h','shared/core/src/losslessjson.cpp']);
+  'src/data/native/include/pandoeditor/losslessjson.h','src/data/native/src/losslessjson.cpp']);
 const regions=['eu','as','si','af','sa','na','ar','au','gr'];
 const causes=new Set(['missing-downstream','ambiguous-source-parts','original-mismatch','border-alignment','chain-connection']);
 export function hydroPartsBySource(features){

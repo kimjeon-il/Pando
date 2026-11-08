@@ -1,4 +1,4 @@
-import {TERRITORIAL_SCHEMA_VERSION} from "../../shared/frontend/js/modules/territorial-units.js";
+import {TERRITORIAL_SCHEMA_VERSION} from "../../src/document/territorial-units.js";
 import { mkdir, writeFile } from 'node:fs/promises';
 import { createProjectTemplateCompiler } from "../../tools/gis/project-template-compiler.js";
 import { projectForStorage } from '../helpers/timeline-project.mjs';

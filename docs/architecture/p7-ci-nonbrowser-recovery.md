@@ -17,6 +17,6 @@
 
 ## 후속 확인
 
-- `node --test tests/unit/country-lineage-preservation.test.mjs tests/unit/p2-artifact-plan.test.mjs tests/unit/p2-publication-paths.test.mjs`
+- `node --test tests/unit/country-lineage-preservation.test.mjs tests/unit/build/p2-artifact-plan.test.mjs tests/unit/data/p2-publication-paths.test.mjs`
 - 이 커밋에 대한 Application checks 비브라우저 전체 통과와 P2 계획/게시 실행 결과 확인
 - 브라우저 실패·DEM·LOD·GPKG는 별도 단계로 남긴다. main 병합·배포는 하지 않는다.

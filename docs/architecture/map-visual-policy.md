@@ -31,7 +31,7 @@ remain in use. GPU front-to-back fill claims and M3 stroke staging are unchanged
   generated after the M4 checkpoint commit. M5 is a separate successor checkpoint.
 - RED: `node --test tests/unit/map-visual-order.test.mjs`: 0 pass, 1 fail, 0 skip.
 - Focused units: 64 pass, 0 fail, 0 skip. Command:
-  `node --test tests/unit/map-visual-order.test.mjs tests/unit/gpu-base-scene-order.test.mjs tests/unit/gpu-prepared-draw.test.mjs tests/unit/interaction-roles.test.mjs tests/unit/map-interaction-style.test.mjs tests/unit/gpu-scene-staging.test.mjs tests/unit/render-channel-ownership.test.mjs tests/unit/selection-overlay-plan.test.mjs`.
+  `node --test tests/unit/map-visual-order.test.mjs tests/unit/rendering/gpu-base-scene-order.test.mjs tests/unit/gpu-prepared-draw.test.mjs tests/unit/interaction-roles.test.mjs tests/unit/map-interaction-style.test.mjs tests/unit/rendering/gpu-scene-staging.test.mjs tests/unit/render-channel-ownership.test.mjs tests/unit/selection-overlay-plan.test.mjs`.
   Final log: `test-results/m4-final-unit64.log`.
 - Actual Canvas Worker/WebGL pixel and SVG interaction-root order regression:
   `pnpm exec playwright test tests/browser/renderer-migration-gaps.spec.mjs --grep='Canvas receives' --output=test-results/m4-accepted-pixels`:
@@ -95,7 +95,7 @@ theme ink is unmultiplied; native and pending country outlines use the resolved
   The test checks exact SVG width and computed width; CSSOM's six-significant-digit
   formatting is accounted for separately.
 - Final focused unit command: 123 pass, 0 fail, 0 skip, exit 0:
-  `node --test tests/unit/map-stroke-style.test.mjs tests/unit/map-interaction-style.test.mjs tests/unit/interaction-roles.test.mjs tests/unit/country-shared-boundary.test.mjs tests/unit/territorial-boundary-continuity.test.mjs tests/unit/edit-preview-presentation.test.mjs tests/unit/edit-preview-controller.test.mjs tests/unit/map-visual-order.test.mjs tests/unit/gpu-base-scene-order.test.mjs tests/unit/gpu-prepared-draw.test.mjs tests/unit/gpu-scene-staging.test.mjs tests/unit/gpu-stroke-renderer.test.mjs tests/unit/selection-overlay-plan.test.mjs tests/unit/render-channel-ownership.test.mjs`.
+  `node --test tests/unit/map-stroke-style.test.mjs tests/unit/map-interaction-style.test.mjs tests/unit/interaction-roles.test.mjs tests/unit/geometry/country-shared-boundary.test.mjs tests/unit/document/territorial-boundary-continuity.test.mjs tests/unit/edit-preview-presentation.test.mjs tests/unit/edit-preview-controller.test.mjs tests/unit/map-visual-order.test.mjs tests/unit/rendering/gpu-base-scene-order.test.mjs tests/unit/gpu-prepared-draw.test.mjs tests/unit/rendering/gpu-scene-staging.test.mjs tests/unit/rendering/gpu-stroke-renderer.test.mjs tests/unit/selection-overlay-plan.test.mjs tests/unit/render-channel-ownership.test.mjs`.
   Log: `test-results/m5-final-units.log`.
 - `pnpm exec playwright test tests/browser/renderer-migration-gaps.spec.mjs --grep='shared stroke policy|multiply strokes|Canvas receives' --output=test-results/m5-stroke-pixels`:
   3 pass, 0 fail, 0 skip. Covers actual DPR width, multiply/AA pixels and production
@@ -170,7 +170,7 @@ a new renderer, resource owner or render loop.
   evaluating live projection even when a valid frame is supplied. Final coverage
   also exercises the real renderer's DPR cap through production frame preparation.
 - Final focused units: 139 pass, 0 fail, 0 skip (`m6-final-units.log`):
-  `node --test tests/unit/visual-frame-consumers.test.mjs tests/unit/map-visual-frame.test.mjs tests/unit/map-render-coordinator.test.mjs tests/unit/map-label-visibility.test.mjs tests/unit/edit-preview-presentation.test.mjs tests/unit/territorial-boundary-continuity.test.mjs tests/unit/domain-split-contract.test.mjs tests/unit/editing-render-packet.test.mjs tests/unit/distribution-selection.test.mjs tests/unit/label-shell-performance.test.mjs tests/unit/gpu-hydro-preparation.test.mjs tests/unit/gpu-renderer-lifecycle.test.mjs tests/unit/country-mesh-zoom-runtime.test.mjs tests/unit/country-shared-boundary.test.mjs tests/unit/app-map-audit.test.mjs`.
+  `node --test tests/unit/visual-frame-consumers.test.mjs tests/unit/map-visual-frame.test.mjs tests/unit/map-render-coordinator.test.mjs tests/unit/map-label-visibility.test.mjs tests/unit/edit-preview-presentation.test.mjs tests/unit/document/territorial-boundary-continuity.test.mjs tests/unit/domain-split-contract.test.mjs tests/unit/editing-render-packet.test.mjs tests/unit/distribution-selection.test.mjs tests/unit/label-shell-performance.test.mjs tests/unit/gpu-hydro-preparation.test.mjs tests/unit/gpu-renderer-lifecycle.test.mjs tests/unit/country-mesh-zoom-runtime.test.mjs tests/unit/geometry/country-shared-boundary.test.mjs tests/unit/app-map-audit.test.mjs`.
 - WebGL2, Canvas Worker and forced direct Canvas UI: frame IDs/revisions, globe
   circle coordinates/radius, backing dimensions, real Worker projection payloads,
   rotation/zoom and flat/globe transitions:

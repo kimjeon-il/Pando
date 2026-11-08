@@ -5,21 +5,30 @@ import { createCheckImpactIndex } from './lib/check-impact.mjs';
 import { fileURLToPath } from 'node:url';
 import { parseJavaScript, walkJavaScript } from './lib/source-analysis.mjs';
 import { runtimeDependencies, dynamicExpressions } from './lib/product-assets.mjs';
+import {git,libraryConfig,libraryCheckout} from '../tools/data/library-context.mjs';
 
 export const catalogPath = 'scripts/contracts/application-checks.json';
 
 const slash = path => path.replaceAll('\\', '/');
 export function matchesPattern(file, pattern) {
-  const tokens = pattern.split(/(\*\*|\*)/).map(part => part === '**' ? '.*' : part === '*' ? '[^/]*' : part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  const tokens = pattern.split(/(\*\*\/|\*\*|\*)/).map(part => part === '**/' ? '(?:.*/)?' : part === '**' ? '.*' : part === '*' ? '[^/]*' : part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
   return new RegExp('^' + tokens.join('') + '$').test(file);
 }
 const matches = (file, patterns = []) => patterns.some(pattern => matchesPattern(file, pattern));
 const executable = file => /\.[cm]?js$/.test(file) && !/\/(?:vendor|worker-runtime|fixtures|gen|target|dist)\//.test(file);
-const product = file => /^(?:shared\/frontend\/js\/|apps\/viewer\/)/.test(file);
+const product = file => /^src\//.test(file);
 
-export function loadRepository(root = process.cwd(), { catalog } = {}) {
+export function loadRepository(root = process.cwd(), { catalog, libraryFiles } = {}) {
   if (root instanceof URL) root = fileURLToPath(root);
-  const exists = file => existsSync(resolve(root, file));
+  const archived = file => {
+    if (!file.startsWith('assets/data/')) return false;
+    if (libraryFiles === undefined) {
+      libraryFiles = existsSync(resolve(root,'config/library-data.json'))
+        ? JSON.parse(git(libraryCheckout(root),['show',libraryConfig(root).revision+':archive/index.json'])).files : {};
+    }
+    return Object.hasOwn(libraryFiles,file);
+  };
+  const exists = file => existsSync(resolve(root, file)) || archived(file);
   const read = file => readFileSync(resolve(root, file), 'utf8');
   catalog ||= JSON.parse(read(catalogPath));
   if (catalog.schema !== 'pando-application-checks-v1') throw Error('Invalid application check catalog');
@@ -32,7 +41,7 @@ export function loadRepository(root = process.cwd(), { catalog } = {}) {
       return [file];
     });
   }
-  const files = ['assets', 'apps/viewer', 'scripts', 'tools', 'tests', 'shared', 'contracts', 'config', '.github/workflows', '.github/actions']
+  const files = ['assets', 'src', 'scripts', 'tools', 'tests', 'shared', 'contracts', 'config', '.github/workflows', '.github/actions']
     .flatMap(filesIn).concat(['index.html', 'package.json', 'playwright.config.js', 'eslint.config.js'].filter(exists)).sort();
   const tests = files.filter(file => /\.(?:test|spec)\.mjs$/.test(file) && /^tests\/(?:unit|browser)\//.test(file));
   const ids = new Set();
@@ -109,7 +118,7 @@ export function loadRepository(root = process.cwd(), { catalog } = {}) {
     const found = new Set([...(runtimeDependencies[publicFile] || []).map(sourcePath),
       ...[...(unitRequirements.get(file) || [])].flatMap(prerequisiteInputs)]);
     dependencyCache.set(file, found);
-    if (!executable(file) || !exists(file)) return [...found];
+    if (file.startsWith('assets/data/') || !executable(file) || !exists(file)) return [...found];
     const text=publicBySource.has(file)?emitFrontendModule(read(file),file,frontendIndex):read(file);
     const source = parseJavaScript(text, { filePath: file });
     const output = publicFile;
@@ -152,7 +161,7 @@ export function loadRepository(root = process.cwd(), { catalog } = {}) {
       if (browserUrl && file.startsWith('tests/browser/') && /^(?:\.\/|\/)assets\//.test(value)) value = value.replace(/^(?:\.\/|\/)/, '');
       let target;
       if (value.startsWith('.')) target = relativeTarget(value);
-      else if (/^(?:assets|tests|scripts|tools|apps|shared|contracts|config)\//.test(value)) target = value;
+      else if (/^(?:assets|src|tests|scripts|tools|shared|contracts|config)\//.test(value)) target = value;
       else return;
       if (target.startsWith('../')) throw Error('Dependency outside repository: ' + file);
       target=sourcePath(target);
@@ -226,7 +235,7 @@ export function planApplicationChecks({ changedFiles = [], repository, groups: r
   // Unknown active Viewer file types must not be silently claimed by a broad
   // directory-level test group. Deleted/added known source extensions remain
   // eligible for their normal dependency and retirement checks.
-  for (const file of changed) if (/^apps\/viewer\//.test(file) && !repo.exists(file)
+  for (const file of changed) if (/^src\//.test(file) && !repo.exists(file)
       && !/\.(?:[cm]?js|mjs|json|css|html|svg|png|webp|ico|md|woff2?|ttf|map)$/.test(file))
     throw Error('Unclassified product change: ' + file);
   // A no-op diff has no affected consumers; the dynamic inventory is validated

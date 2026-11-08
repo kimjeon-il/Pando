@@ -5,7 +5,7 @@ import {copyFile,lstat,mkdir,open,readFile,realpath,rename,stat,statfs,unlink} f
 import {basename,dirname,isAbsolute,join,relative,resolve,sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {parseArgs} from 'node:util';
-import {withLibraryOutputs} from '../library-data.mjs';
+import {withLibraryOutputs} from "../data/library-runtime.mjs";
 import {futureRealpath} from './build-physical-hydro.mjs';
 import {hashTerrainFile,summarizeTerrainAssets} from './terrain-dem-assets.mjs';
 import {encodeNativeDemElevation} from './terrain-dem-encode.mjs';

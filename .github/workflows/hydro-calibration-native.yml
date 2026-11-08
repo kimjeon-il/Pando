@@ -6,19 +6,19 @@ on:
     paths:
       - 'tools/cpp/hydro-calibration/**'
       - 'tools/cpp/hydro/calibration.cpp'
-      - 'shared/core/include/pandoeditor/losslessjson.h'
-      - 'shared/core/src/losslessjson.cpp'
+      - 'src/data/native/include/pandoeditor/losslessjson.h'
+      - 'src/data/native/src/losslessjson.cpp'
       - 'tools/gis/calibrate-hydro.mjs'
       - 'tools/gis/hydro-calibration-native.mjs'
       - 'tools/gis/hydro-calibration-metrics.mjs'
       - 'tools/gis/hydro-calibration-preparation.mjs'
       - 'tools/gis/hydro-calibration-report.mjs'
       - 'tools/gis/package-hydro-calibration.mjs'
-      - 'tests/unit/hydro-calibration-native.test.mjs'
-      - 'tests/unit/hydro-name.test.mjs'
-      - 'tests/unit/hydro-calibration-native.test.mjs'
-      - 'tests/unit/hydro-calibration-preparation.test.mjs'
-      - 'tests/unit/hydro-calibration-input.test.mjs'
+      - 'tests/unit/geometry/hydro-calibration-native.test.mjs'
+      - 'tests/unit/geometry/hydro-name.test.mjs'
+      - 'tests/unit/geometry/hydro-calibration-native.test.mjs'
+      - 'tests/unit/build/hydro-calibration-preparation.test.mjs'
+      - 'tests/unit/geometry/hydro-calibration-input.test.mjs'
       - 'tests/fixtures/hydro-calibration-chain-oracle.json'
       - 'tests/fixtures/hydro-calibration-optimizer-oracle.json'
       - 'tests/fixtures/hydro-calibration-direction-oracle.json'
@@ -57,7 +57,7 @@ jobs:
         shell: pwsh
         run: |
           $env:PANDO_HYDRO_CALIBRATION_ARTIFACT = "$env:GITHUB_WORKSPACE/build-native/hydro-calibration/artifact"
-          node --test tests/unit/hydro-calibration-native.test.mjs tests/unit/hydro-name.test.mjs tests/unit/hydro-calibration-input.test.mjs tests/unit/hydro-calibration-preparation.test.mjs
+          node --test tests/unit/geometry/hydro-calibration-native.test.mjs tests/unit/geometry/hydro-name.test.mjs tests/unit/geometry/hydro-calibration-input.test.mjs tests/unit/build/hydro-calibration-preparation.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Calibration oracle differs' }
       - uses: actions/upload-artifact@v4
         with:

@@ -7,7 +7,7 @@ assert.equal(process.env.PANDO_CORE_CANDIDATE_DIAGNOSTIC_ISOLATED,'1',
 
 const replacements = [
   {
-    path:'shared/core/src/commandbatch.cpp',
+    path:'src/document/native/src/commandbatch.cpp',
     from:'#include <set>',
     to:`#include <set>
 #include <chrono>
@@ -20,7 +20,7 @@ static void obj097BatchStage(const char* name, Obj097Clock::time_point begin) {
 }`,
   },
   {
-    path:'shared/core/src/commandbatch.cpp',
+    path:'src/document/native/src/commandbatch.cpp',
     from:'    for(std::size_t index=0;index<count;++index) {\n        const auto request=build(current,index);\n        auto prepared=prepareRequest(current,request,{},operation=="document.batch"?std::string{}:operation);',
     to:`    for(std::size_t index=0;index<count;++index) {
         const auto decodeAt=Obj097Clock::now();
@@ -31,7 +31,7 @@ static void obj097BatchStage(const char* name, Obj097Clock::time_point begin) {
         if(operation=="territorial.edit")obj097BatchStage("prepareRequest",prepareAt);`,
   },
   {
-    path:'shared/core/src/commandbatch.cpp',
+    path:'src/document/native/src/commandbatch.cpp',
     from:'    if(!checkpoint&&semanticallyEqual(original.document(),current.document())) {',
     to:`    const auto semanticAt=Obj097Clock::now();
     const auto semanticallySame=!checkpoint&&semanticallyEqual(original.document(),current.document());
@@ -39,7 +39,7 @@ static void obj097BatchStage(const char* name, Obj097Clock::time_point begin) {
     if(semanticallySame) {`,
   },
   {
-    path:'shared/core/src/commandbatch.cpp',
+    path:'src/document/native/src/commandbatch.cpp',
     from:'    if(operation!="document.batch")try {finalState=std::make_shared<const detail::DocumentState>(current.document());}',
     to:`    if(operation!="document.batch")try {
         const auto validateAt=Obj097Clock::now();
@@ -48,14 +48,14 @@ static void obj097BatchStage(const char* name, Obj097Clock::time_point begin) {
     }`,
   },
   {
-    path:'shared/core/src/commandbatch.cpp',
+    path:'src/document/native/src/commandbatch.cpp',
     from:'    change->impact_=calculateChangeImpact(change->before(),change->after(),change->request_.targets,original.timelineMonth());',
     to:`    const auto impactAt=Obj097Clock::now();
     change->impact_=calculateChangeImpact(change->before(),change->after(),change->request_.targets,original.timelineMonth());
     if(operation=="territorial.edit")obj097BatchStage("finalChangeImpact",impactAt);`,
   },
   {
-    path:'shared/core/src/commands.cpp',
+    path:'src/document/native/src/commands.cpp',
     from:'#include <utility>',
     to:`#include <utility>
 #include <chrono>
@@ -68,7 +68,7 @@ static void obj097RequestStage(const char* name, Obj097CoreClock::time_point beg
 }`,
   },
   {
-    path:'shared/core/src/commands.cpp',
+    path:'src/document/native/src/commands.cpp',
     from:`        if(const auto* edit=std::get_if<WebTerritorialEdit>(&request.args.action)) {
             validateRequest(project,request);
             auto candidate=applyWebTerritorialEdit(project,*edit,workflow=="territorial.library-import"?TerritorialEditContext::LibraryImport:TerritorialEditContext::UserCommand);`,
@@ -81,7 +81,7 @@ static void obj097RequestStage(const char* name, Obj097CoreClock::time_point beg
             if(workflow=="territorial.edit")obj097RequestStage("applyWebTerritorialEdit",applyAt);`,
   },
   {
-    path:'shared/core/src/commands.cpp',
+    path:'src/document/native/src/commands.cpp',
     from:`            if(semanticallyEqual(project.document(),candidate)){result.status=CommandStatus::NoOp;return result;}
             reconcileGeometryProvenance(project.document(),candidate);
             std::set<ObjectRef> created;for(const auto& unit:candidate.units)`,
@@ -95,7 +95,7 @@ static void obj097RequestStage(const char* name, Obj097CoreClock::time_point beg
             std::set<ObjectRef> created;for(const auto& unit:candidate.units)`,
   },
   {
-    path:'shared/core/src/commands.cpp',
+    path:'src/document/native/src/commands.cpp',
     from:`            GeometryProvenanceCodecAccess::admitCreatedOpaqueBaseline(project.document(),candidate,created);
             auto after=candidateState(std::move(candidate));
             auto change=std::unique_ptr<ChangeSet>(new ChangeSet(project.state_,std::move(after),request));`,
@@ -106,7 +106,7 @@ static void obj097RequestStage(const char* name, Obj097CoreClock::time_point beg
             auto change=std::unique_ptr<ChangeSet>(new ChangeSet(project.state_,std::move(after),request));`,
   },
   {
-    path:'shared/wasm/session-bindings.cpp',
+    path:'src/document/native/bindings/session-bindings.cpp',
     from:'#include <algorithm>',
     to:`#include <algorithm>
 #include <chrono>
@@ -119,7 +119,7 @@ static void obj097BindingStage(const char* name,Obj097BindingClock::time_point b
 }`,
   },
   {
-    path:'shared/wasm/session-bindings.cpp',
+    path:'src/document/native/bindings/session-bindings.cpp',
     from:`                auto outcome=session_.prepareBatch(count+(appendSource?1:0),[&](const ProjectSnapshot& candidate,std::size_t index){
                     if(index<count)return typedRequest(candidate,operations[static_cast<unsigned>(index)],ports_);`,
     to:`                const auto prepareAt=Obj097BindingClock::now();
@@ -132,7 +132,7 @@ static void obj097BindingStage(const char* name,Obj097BindingClock::time_point b
                     }`,
   },
   {
-    path:'shared/wasm/session-bindings.cpp',
+    path:'src/document/native/bindings/session-bindings.cpp',
     from:`                },epoch,commandId);
                 if(execute&&outcome.candidateId)outcome=session_.confirmCandidate(outcome.candidateId,epoch);
                 return commandOutcome(outcome,session_);`,

@@ -7,8 +7,10 @@ on:
       - work/**
       - '!work/optimization'
     paths:
-      - 'apps/viewer/**'
-      - 'shared/**'
+      - 'src/**'
+      - 'src/**/native/**'
+      - 'tools/build/native/**'
+      - 'tests/native/**'
       - 'assets/**'
       - 'config/library-data.json'
       - 'tests/browser/**'
@@ -156,9 +158,9 @@ jobs:
           set -euo pipefail
           mkdir -p test-results/viewer-preview
           if [ -n "$PANDO_BROWSER_TESTS" ]; then
-            pnpm exec playwright test tests/browser/p3-remote-preview.spec.mjs --grep "$PANDO_BROWSER_TESTS" --workers=1 --retries=0 --output=test-results/viewer-preview
+            pnpm exec playwright test tests/browser/runtime/p3-remote-preview.spec.mjs --grep "$PANDO_BROWSER_TESTS" --workers=1 --retries=0 --output=test-results/viewer-preview
           else
-            pnpm exec playwright test tests/browser/p3-remote-preview.spec.mjs --workers=1 --retries=0 --output=test-results/viewer-preview
+            pnpm exec playwright test tests/browser/runtime/p3-remote-preview.spec.mjs --workers=1 --retries=0 --output=test-results/viewer-preview
           fi
       - uses: actions/upload-artifact@v4
         if: always()

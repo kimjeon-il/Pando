@@ -1,7 +1,7 @@
 // R4-C: canonical detached country geometry calculation; the shared C++ Core
 // remains the only clipping precision and topology authority.
-import { normalizeClippedPolygonGeometry as normalizePolygonGeometry, wrapPolygonGeometry, multiCoordinates, area, geometryBounds, boundsOverlap, polygonBounds, featureId, clone } from "../../shared/frontend/js/modules/map-edit-geometry.js";
-import { ringSignedArea, hasCanonicalPolygonWinding } from "../../shared/frontend/js/modules/map-edit-geometry.js";
+import { normalizeClippedPolygonGeometry as normalizePolygonGeometry, wrapPolygonGeometry, multiCoordinates, area, geometryBounds, boundsOverlap, polygonBounds, featureId, clone } from "../../src/geometry/map-edit-geometry.js";
+import { ringSignedArea, hasCanonicalPolygonWinding } from "../../src/geometry/map-edit-geometry.js";
 import { clippingOperationWithPrecisionRetry } from './polygon-clipping-calculation.js';
 
 /** Calculation kernel; every command owns a private working map. */

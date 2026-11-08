@@ -1,10 +1,10 @@
 // Compatibility adapter for historic autosave/Core tests only. GIS publication
 // uses project-template-compiler.js; the deployed Viewer never imports this file.
 import {createProjectTemplateCompiler} from '../../tools/gis/project-template-compiler.js';
-import {assertCurrentProjectSchema,assertProjectBaselineFingerprint} from '../../shared/frontend/js/modules/project-state.js';
-import {normalizeTerritorialIdentities} from '../../shared/frontend/js/modules/territorial-units.js';
-import {geometryRevision} from '../../shared/frontend/js/modules/geometry-versions.js';
-export {fingerprintProjectBaseline} from '../../shared/frontend/js/modules/project-baseline-fingerprint.js';
+import {assertCurrentProjectSchema,assertProjectBaselineFingerprint} from "../../src/document/project-state.js";
+import {normalizeTerritorialIdentities} from "../../src/document/territorial-units.js";
+import {geometryRevision} from "../../src/geometry/geometry-versions.js";
+export {fingerprintProjectBaseline} from "../../src/document/project-baseline-fingerprint.js";
 
 // Only history owns these frozen copies. Live editing coordinates never alias them.
 export function createGeometrySnapshotPool() {

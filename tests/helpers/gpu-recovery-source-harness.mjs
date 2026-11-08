@@ -1,8 +1,8 @@
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
-import {createGpuUploadScheduler} from '../../shared/frontend/js/modules/gpu-upload-scheduler.js';
-import {createGpuContextRecovery} from '../../shared/frontend/js/modules/gpu-context-recovery.js';
-import {createCanvasScenePackets} from '../../shared/frontend/js/modules/gpu-canvas-scene-packets.js';
+import {createGpuUploadScheduler} from "../../src/rendering/gpu-upload-scheduler.js";
+import {createGpuContextRecovery} from "../../src/rendering/gpu-context-recovery.js";
+import {createCanvasScenePackets} from "../../src/rendering/gpu-canvas-scene-packets.js";
 
 export const tick = () => new Promise(resolve => setImmediate(resolve));
 export const makeMesh = name => ({name, positions:new Int32Array([0,0,1,0,0,1]),
@@ -11,7 +11,7 @@ export const makeMesh = name => ({name, positions:new Int32Array([0,0,1,0,0,1]),
 // Runs actual renderer functions and scheduler, but not the full module graph.
 // GL allocation, UI and unrelated renderer dependencies are controlled doubles.
 export async function fixture({override=false, version=2, shared=false, holdStroke=false, selectionReady=true, realFallback=false, canvasWorkerMode=false}={}) {
-  const source=readFileSync(new URL('../../shared/frontend/js/modules/gpu-map-renderer.js',import.meta.url),'utf8').replaceAll('\r\n','\n');
+  const source=readFileSync(new URL("../../src/rendering/gpu-map-renderer.js",import.meta.url),'utf8').replaceAll('\r\n','\n');
   const extract=name=>{
     const start=source.search(new RegExp('^    (?:async )?function '+name+'\\(', 'm'));
     if(start<0)return '';
@@ -33,6 +33,7 @@ export async function fixture({override=false, version=2, shared=false, holdStro
     disposed:false, gl,glVersion:version,webGlContextKind:version===2?'webgl2':'webgl',canvas:{getContext:()=>gl},
     renderDevice:{},renderDeviceContextRevision:10,projectGeneration:7,webglContextLost:false,
     rendererMode:version===2?'webgl2':'webgl1',webglRecoveryTimer:0,stagingSequence:0,
+    terrainFallbackRequest:null,
     mesh:base,meshVariants:new Map([['canonical',{quality:'canonical',mesh:base,countryIds:['a'],resources:null,dependencies:{context:[gl,10]}}]]),
     activeMeshQuality:'canonical',overrideMesh:override?makeMesh('old-override'):null,builtinMeshBaseline:null,
     positionBuffer:null,countryBuffer:null,fillIndexBuffer:null,fillVao:null,

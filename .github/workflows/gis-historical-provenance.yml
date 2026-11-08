@@ -5,7 +5,7 @@ on:
     branches: [work/gis]
     paths:
       - tools/gis/check-historical-source-provenance.mjs
-      - tests/unit/historical-source-provenance.test.mjs
+      - tests/unit/document/historical-source-provenance.test.mjs
       - .github/workflows/gis-historical-provenance.yml
   workflow_dispatch:
 
@@ -23,7 +23,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - run: node --test tests/unit/historical-source-provenance.test.mjs
+      - run: node --test tests/unit/document/historical-source-provenance.test.mjs
       - name: Identify the current approved external library revision
         run: |
           mkdir -p build-native/historical

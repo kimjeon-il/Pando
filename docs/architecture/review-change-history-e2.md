@@ -53,9 +53,9 @@
 
 ## 4. 기존 외부 라이브러리에 저장
 
-권장 위치: **`reports/development/ui/review-records/<proposalId>.json`** (외부 `PandoLab-library-data`, Pando 코드 저장소 아님). `tools/report-paths.mjs`의 `reportPath(...,{access:'read'|'write'})`, 기존 라이브러리 쓰기 lease, `reports:publish`/`reports:check` 절차를 그대로 사용한다. JSON 배열에 이벤트를 추가하는 것은 도메인상의 append-only이며 동시 쓰기 충돌 방지/실제 보관은 Git 원문 버전과 기존 라이브러리 절차가 담당한다.
+권장 위치: **`reports/development/ui/review-records/<proposalId>.json`** (외부 `PandoLab-library-data`, Pando 코드 저장소 아님). `tools/data/report-paths.mjs`의 `reportPath(...,{access:'read'|'write'})`, 기존 라이브러리 쓰기 lease, `reports:publish`/`reports:check` 절차를 그대로 사용한다. JSON 배열에 이벤트를 추가하는 것은 도메인상의 append-only이며 동시 쓰기 충돌 방지/실제 보관은 Git 원문 버전과 기존 라이브러리 절차가 담당한다.
 
-공통 코드: [review-change-records.js](../../shared/frontend/js/modules/review-change-records.js)
+공통 코드: [review-change-records.js](../../src/document/review-change-records.js)
 
 - `createReviewBundle(proposal)`: 새 불변 제안.
 - `normalizeReviewBundle(bundle)`: 엄격한 스키마·기간·근거·이벤트 순서 검증.
@@ -75,7 +75,7 @@ E2는 실제 데이터 리비전 비교·CI 자동 차이 추출(E3), 지도 검
 - 수용 기준 커밋: `d8f6e58f4ea0d3b6da0ab174950689c3c3fb842a`.
 - 독립 GitHub Actions: [E2 review sidecar and history acceptance / 41372768718](https://github.com/kimjeon-il/Pando/actions/runs/41372768718). `review-contract` 실행 **success**.
 - 정식 C++/WASM temporal prerequisite 통과. C++ 시간축을 재구현하거나 날짜 정밀도를 월 단위로 강제하지 않았다.
-- `tests/unit/review-change-records.test.mjs` **9개 통과, 실패 0**. 유효 제안, 엄격한 국가 원본 ID/해시·리비전/근거 경로, 연·월·일 유효성, 불변 재검증, 상태 전이, 승인 전 CI 필수 검사, 반영 이력, 중복·누락·시간 역행 거부, 결정적 객체별 이력 색인 확인.
+- `tests/unit/document/review-change-records.test.mjs` **9개 통과, 실패 0**. 유효 제안, 엄격한 국가 원본 ID/해시·리비전/근거 경로, 연·월·일 유효성, 불변 재검증, 상태 전이, 승인 전 CI 필수 검사, 반영 이력, 중복·누락·시간 역행 거부, 결정적 객체별 이력 색인 확인.
 - ESLint, `node tools/review/validate-review-bundle.mjs tests/fixtures/review/e2-synthetic-review.json` 및 `node scripts/check-runtime-boundaries.mjs` 모두 성공.
 - 초기 CI에서 발견한 ESLint 경고 2건(제어 문자 정규식, 미사용 헬퍼)은 [`d8f6e58f`](https://github.com/kimjeon-il/Pando/commit/d8f6e58f4ea0d3b6da0ab174950689c3c3fb842a)에서 수정했고 수용 CI를 재실행하여 통과했다. 초기 실패 기록은 변경하지 않는다.
 

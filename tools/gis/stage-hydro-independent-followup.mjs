@@ -8,7 +8,7 @@ import {parseArgs} from 'node:util';
 import {fileURLToPath} from 'node:url';
 import {validateIndependentHydronyms} from './hydro-independent-name-policy.mjs';
 import {rewriteHydroNames} from './prepare-hydro-name-replacement-bundle.mjs';
-import {readHydroMetadataSection} from '../inventory-osm-hydronyms.mjs';
+import {readHydroMetadataSection} from "./inventory-osm-hydronyms.mjs";
 import {auditHydroOsm} from './audit-osm-credit-removal.mjs';
 
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');

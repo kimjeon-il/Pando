@@ -5,51 +5,51 @@ on:
     branches: [ work/objects ]
     paths:
       - '.github/workflows/p5-shared-border-verification.yml'
-      - 'shared/core/include/pandoeditor/boundarychain.h'
-      - 'shared/core/src/boundarychain.cpp'
-      - 'shared/core/include/pandoeditor/boundarypacket.h'
-      - 'shared/core/src/boundarypacket.cpp'
-      - 'shared/tests/boundary-packet-tests.cpp'
-      - 'shared/tests/p5-boundary-packet-wasm.test.mjs'
-      - 'shared/core/include/pandoeditor/boundarycontact.h'
-      - 'shared/core/src/boundarycontact.cpp'
-      - 'shared/core/include/pandoeditor/boundaryoverlap.h'
-      - 'shared/core/src/boundaryoverlap.cpp'
-      - 'shared/core/include/pandoeditor/boundaryrefinement.h'
-      - 'shared/core/src/boundaryrefinement.cpp'
-      - 'shared/core/include/pandoeditor/boundarysplit.h'
-      - 'shared/core/src/boundarysplit.cpp'
-      - 'shared/core/include/pandoeditor/countrycontact.h'
-      - 'shared/core/src/countrycontact.cpp'
-      - 'shared/core/CMakeLists.txt'
-      - 'shared/tests/boundary-chain-tests.cpp'
-      - 'shared/tests/boundary-interior-tests.cpp'
-      - 'shared/tests/boundary-overlap-tests.cpp'
-      - 'shared/tests/boundary-refinement-tests.cpp'
-      - 'shared/tests/boundary-split-tests.cpp'
-      - 'shared/tests/country-contact-tests.cpp'
-      - 'shared/tests/CMakeLists.txt'
-      - 'shared/frontend/static/wasm/pandoeditor-core.manifest.json'
+      - 'src/geometry/native/include/pandoeditor/boundarychain.h'
+      - 'src/geometry/native/src/boundarychain.cpp'
+      - 'src/geometry/native/include/pandoeditor/boundarypacket.h'
+      - 'src/geometry/native/src/boundarypacket.cpp'
+      - 'tests/native/geometry/boundary-packet-tests.cpp'
+      - 'tests/native/document/p5-boundary-packet-wasm.test.mjs'
+      - 'src/geometry/native/include/pandoeditor/boundarycontact.h'
+      - 'src/geometry/native/src/boundarycontact.cpp'
+      - 'src/geometry/native/include/pandoeditor/boundaryoverlap.h'
+      - 'src/geometry/native/src/boundaryoverlap.cpp'
+      - 'src/geometry/native/include/pandoeditor/boundaryrefinement.h'
+      - 'src/geometry/native/src/boundaryrefinement.cpp'
+      - 'src/geometry/native/include/pandoeditor/boundarysplit.h'
+      - 'src/geometry/native/src/boundarysplit.cpp'
+      - 'src/geometry/native/include/pandoeditor/countrycontact.h'
+      - 'src/geometry/native/src/countrycontact.cpp'
+      - 'tools/build/native/core/CMakeLists.txt'
+      - 'tests/native/geometry/boundary-chain-tests.cpp'
+      - 'tests/native/geometry/boundary-interior-tests.cpp'
+      - 'tests/native/geometry/boundary-overlap-tests.cpp'
+      - 'tests/native/geometry/boundary-refinement-tests.cpp'
+      - 'tests/native/geometry/boundary-split-tests.cpp'
+      - 'tests/native/document/country-contact-tests.cpp'
+      - 'tools/build/native/tests/CMakeLists.txt'
+      - 'assets/wasm/pandoeditor-core.manifest.json'
       - 'assets/js/modules/boundary-lines.js'
       - 'assets/js/modules/geographic-boundary.js'
-      - 'tests/unit/boundary-display-refinement.test.mjs'
+      - 'tests/unit/geometry/boundary-display-refinement.test.mjs'
       - 'assets/js/modules/boundary-topology.js'
       - 'assets/js/modules/country-contact-core.js'
-      - 'tests/unit/country-shared-boundary.test.mjs'
+      - 'tests/unit/geometry/country-shared-boundary.test.mjs'
       - 'assets/js/modules/country-shared-boundary-packet.js'
-      - 'tests/unit/p5-6-contribution-merge.test.mjs'
-      - 'tests/unit/p5-6-core-ownership.test.mjs'
+      - 'tests/unit/geometry/p5-6-contribution-merge.test.mjs'
+      - 'tests/unit/document/p5-6-core-ownership.test.mjs'
       - 'tools/p5-6-core-ownership.mjs'
       - 'tools/p5-6-review-performance.mjs'
-      - 'tests/browser/viewer-boundary-p4-5.spec.mjs'
+      - 'tests/browser/geometry/viewer-boundary-p4-5.spec.mjs'
       - 'assets/js/build-meta.js'
       - 'assets/data/prepared-polygons/generated/v2/manifest.json'
       - 'scripts/check-version.mjs'
-      - 'tools/build-country-shared-boundaries.mjs'
+      - 'tools/build/build-country-shared-boundaries.mjs'
       - 'tools/benchmark-shared-border-p5.mjs'
-      - 'tests/unit/boundary-lines.test.mjs'
-      - 'tests/unit/country-shared-boundary-generator.test.mjs'
-      - 'tests/unit/boundary-lines.test.mjs'
+      - 'tests/unit/geometry/boundary-lines.test.mjs'
+      - 'tests/unit/rendering/country-shared-boundary-generator.test.mjs'
+      - 'tests/unit/geometry/boundary-lines.test.mjs'
       - 'CMakePresets.json'
   workflow_dispatch:
 permissions:
@@ -68,7 +68,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y ninja-build zlib1g-dev
       - name: Build and check canonical native boundary-chain kernel
         run: |
-          cmake -S shared -B build-native/p5-border -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
+          cmake -S tools/build/native -B build-native/p5-border -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
           cmake --build build-native/p5-border --target boundary_chain_tests boundary_packet_tests boundary_interior_tests boundary_overlap_tests boundary_refinement_tests boundary_split_tests country_contact_tests --parallel 2
           ctest --test-dir build-native/p5-border -R '^(boundary_chain_tests|boundary_packet_tests|boundary_interior_tests|boundary_overlap_tests|boundary_refinement_tests|boundary_split_tests|country_contact_tests)$' --output-on-failure
   generator:
@@ -87,7 +87,7 @@ jobs:
         run: node scripts/check-version.mjs
       - name: Assert shared C++ ownership of migrated Web rules
         run: |
-          node --test tests/unit/p5-6-core-ownership.test.mjs tests/unit/p5-6-contribution-merge.test.mjs
+          node --test tests/unit/document/p5-6-core-ownership.test.mjs tests/unit/geometry/p5-6-contribution-merge.test.mjs
           node tools/p5-6-core-ownership.mjs --output build-native/p5-6-ownership.json
       - name: Preserve ownership audit even when a later generator check fails
         if: always()
@@ -102,8 +102,8 @@ jobs:
         run: |
           node --input-type=module <<'NODE'
           import { readFileSync, appendFileSync } from 'node:fs';
-          import { sharedSourceManifest } from './tools/package-shared-core-assets.mjs';
-          const manifest=JSON.parse(readFileSync('shared/frontend/static/wasm/pandoeditor-core.manifest.json','utf8'));
+          import { sharedSourceManifest } from './tools/build/package-shared-core-assets.mjs';
+          const manifest=JSON.parse(readFileSync('assets/wasm/pandoeditor-core.manifest.json','utf8'));
           const ready=sharedSourceManifest(process.cwd()).sourceSha256===manifest.sourceSha256;
           appendFileSync(process.env.GITHUB_OUTPUT,'ready='+ready+'\n');
           if (!ready) console.log('P2 source-matched WASM publication must precede this generator verification.');
@@ -111,7 +111,7 @@ jobs:
       - name: Run Web chain and immutable shared-cache generator regression
         if: steps.core.outputs.ready == 'true'
         run: |
-          node --test tests/unit/boundary-lines.test.mjs tests/unit/country-shared-boundary-generator.test.mjs tests/unit/p5-6-contribution-merge.test.mjs tests/unit/country-shared-boundary-state.test.mjs tests/unit/boundary-display-refinement.test.mjs tests/unit/country-shared-boundary.test.mjs
+          node --test tests/unit/geometry/boundary-lines.test.mjs tests/unit/rendering/country-shared-boundary-generator.test.mjs tests/unit/geometry/p5-6-contribution-merge.test.mjs tests/unit/geometry/country-shared-boundary-state.test.mjs tests/unit/geometry/boundary-display-refinement.test.mjs tests/unit/geometry/country-shared-boundary.test.mjs
 
   performance:
     runs-on: ubuntu-24.04
@@ -179,7 +179,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p test-results/p5-6-russia
-          pnpm exec playwright test tests/browser/viewer-boundary-p4-5.spec.mjs \
+          pnpm exec playwright test tests/browser/geometry/viewer-boundary-p4-5.spec.mjs \
             --grep='.' \
             --workers=1 --retries=0 --output=test-results/p5-6-russia \
             2>&1 | tee test-results/p5-6-russia.log

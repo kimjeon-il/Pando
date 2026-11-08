@@ -23,8 +23,12 @@ jobs:
           node --input-type=module <<'JS'
           import assert from 'node:assert/strict';
           import fs from 'node:fs';
-          await import('./assets/js/modules/polygon-geometry.js');
-          const soviet=JSON.parse(fs.readFileSync('assets/data/territorial-entities/source/countries/state-soviet-union.json','utf8'));
+          import {prepareLibraryData} from './tools/data/library-runtime.mjs';
+          import {artifactPreparationPrefixes} from './scripts/lib/p2-artifact-graph.mjs';
+          import {readTerritorialSource} from './tools/data/territorial-entity-sources.mjs';
+          prepareLibraryData({purpose:'gis',prefixes:artifactPreparationPrefixes(JSON.parse(fs.readFileSync('config/generated-artifacts.json')).families,['prepared-mesh'])});
+          await import('./src/geometry/polygon-geometry.js');
+          const soviet=readTerritorialSource('state:soviet-union');
           const geometry=soviet?.geometryVersions.find(v=>v.versionId==='state:soviet-union:1922-1991-baikonur-r1')?.geometry;
           assert.equal(geometry?.coordinates?.length,231);
           assert.equal(geometry.coordinates.reduce((sum,p)=>sum+p.reduce((n,r)=>n+r.length,0),0),40054);
@@ -33,22 +37,22 @@ jobs:
           JS
       - name: Regenerate territorial chunks and historical timeline
         run: |
-          node tools/build-territorial-entity-chunks.mjs
-          node tools/build-builtin-world.mjs
-          node tools/build-prepared-polygon-mesh.mjs
+          node tools/build/build-territorial-entity-chunks.mjs
+          node tools/build/build-builtin-world.mjs
+          node tools/build/build-prepared-polygon-mesh.mjs
           PANDOLAB_BUILD_ID=ussr-spherical-20261013 node scripts/generate-build-metadata.mjs
       - name: Verify reproducibility, lineage and temporal data contracts
         run: |
-          node tools/build-territorial-entity-chunks.mjs --check
+          node tools/build/build-territorial-entity-chunks.mjs --check
           node scripts/check-version.mjs
-          node --test tests/unit/polygon-geometry.test.mjs tests/unit/territorial-chunks.test.mjs tests/unit/historical-world-publication.test.mjs
+          node --test tests/unit/geometry/polygon-geometry.test.mjs tests/unit/ui/territorial-chunks.test.mjs tests/unit/data/historical-world-publication.test.mjs
       - name: Verify generated output scope
         shell: bash
         env:
           PANDOLAB_LIBRARY_WRITE_TOKEN: ${{ secrets.PANDOLAB_LIBRARY_WRITE_TOKEN }}
         run: |
           set -euo pipefail
-          node tools/library-data.mjs --store-and-stage --push -- -A -- \
+          node tools/data/library-data.mjs --store-and-stage --push -- -A -- \
             assets/data/territorial-entities/generated/v2 \
             assets/data/builtin-world/generated/v1 \
             assets/data/prepared-polygons/generated/v2 \

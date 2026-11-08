@@ -6,7 +6,7 @@
 
 | 계열 | 실행 경로 | 도구 |
 | --- | --- | --- |
-| 공통 C++ → WASM | `pando-wasm` → `tools/package-shared-core-assets.mjs` | 원격 Emscripten, CMake; 게시용 Node |
+| 공통 C++ → WASM | `pando-wasm` → `tools/build/package-shared-core-assets.mjs` | 원격 Emscripten, CMake; 게시용 Node |
 | 영토·현재 세계·역사 세계 | 그래프에 연결한 기존 생성기 | Node 및 동일 C++ WASM |
 | 국가 메시·미리보기·공유 경계·준비 메시 | 기존 생성기와 바이트/디코더 검증 | Node, 필요한 웹 패키지 |
 | 지명 | 기존 생성기 | Node; 웹 산출물을 앱에서 staging |
