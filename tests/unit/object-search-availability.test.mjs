@@ -81,7 +81,6 @@ test('parent links do not create folders or hide cyclic entries in the flat resu
   assert.deepEqual(visibleObjectSearchRows(result,'객체').map(row=>row.id),['a','b']);
 });
 });
-});
 contractSuite("object-search-controller", () => {
 const assert = __dep1.default;
 const test = __dep0.default;
@@ -220,6 +219,7 @@ test('search catalog is reused between queries and rebuilt on a real catalog rev
     elements:{searchResults:results},
     groups:{search:['objects']},
     createEmptyState:element,
+    commands:{},
     model:{
       snapshot:()=>({search:query,searchActive:true}),
       catalogRevision:()=>revision,
@@ -518,4 +518,5 @@ test('cached builtin results follow current month and visibility and restore the
  state.layerVisibility.labels=true;controller.render();await tick();assert.equal(rows().length,1);assert.equal(calls,2);
  state.timelineCursor='1915-01';controller.render();await tick();assert.equal(calls,3);
  state.itemVisibility.labels={'builtin:place:synthetic:seoul':false};controller.render();await tick();assert.equal(rows().length,0);controller.dispose();
+});
 });

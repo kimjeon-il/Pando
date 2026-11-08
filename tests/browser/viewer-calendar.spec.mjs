@@ -321,8 +321,6 @@ test('P4-4 actual country birth and extinction refresh map selection and open se
   expect(await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentState().timelineCursor)).toBe('2006-12');
   expect(errors).toEqual([]);
 });
-
-});
 });
 featureTest.describe("viewer-temporal-regressions", () => {
   const {  test, expect  } = __suiteDependency0;
@@ -824,4 +822,5 @@ test.afterEach(async({page},info)=>{
       status:document.getElementById('viewerStatus')?.dataset.ready};
   }).catch(error=>({unavailable:String(error)}));
   console.error('P7_FAILED_MAP_STATE '+JSON.stringify({test:info.title,state}).slice(0,14000));
+});
 });

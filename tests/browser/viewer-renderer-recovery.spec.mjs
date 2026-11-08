@@ -11,6 +11,7 @@ import * as __suiteDependency8 from "node:fs/promises";
 import * as __suiteDependency9 from "node:http";
 import * as __suiteDependency10 from "node:path";
 import * as __suiteDependency11 from "@playwright/test";
+featureTest.use({trace:'off',launchOptions:{args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader','--disable-gpu-sandbox']}});
 
 // Preserved Viewer feature contract: viewer-renderer-recovery.spec.mjs
 featureTest.describe("viewer-renderer-recovery", () => {
@@ -23,7 +24,7 @@ featureTest.describe("viewer-renderer-recovery", () => {
 
 
 test.describe("Real context loss and repeated restoration", () => {
-test.use({viewport:{width:1280,height:900},trace:'off',actionTimeout:10000,launchOptions:{args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']}});
+test.use({viewport:{width:1280,height:900},actionTimeout:10000});
 test.setTimeout(200000);
 const hash=value=>createHash('sha256').update(value).digest('hex');
 const observed={'gpu-map-renderer.js':['createGpuMapRenderer','renderer'],'document-session.js':['createDocumentSession','session'],'rendering-domain.js':['createRenderingDomain','rendering'],'map-visual-frame.js':['createMapVisualFrame','frame']};
@@ -77,7 +78,7 @@ for(const backend of ['webgl2','webgl1'])test(`viewer acceptance ${backend}: rep
    await page.locator('#timelineDateButton').click();await page.locator('#timelineYearInput').fill(String(year));await page.locator('#timelineGoBtn').click();
    await expect.poll(async()=>(await state(page)).state?.timelineCursor,{timeout:45000}).toBe(`${year}-12`);await ready(page,backend);await selectCountry(page);await page.waitForTimeout(750);
    const before=await state(page);expect(before.world.month).toBe(before.state.timelineCursor);expect(before.world.epoch).toBe(before.state.epoch);expect(before.selection.items.length).toBeGreaterThan(0);
-   const imageBefore=await page.locator('#map').screenshot({path:join(dir,`${year}-before.png`),animations:'disabled'});
+   const imageBefore=await page.locator('#map').screenshot({path:join(dir,`${year}-before.png`),animations:'disabled',timeout:30000});
    const available=await page.evaluate(()=>{const d=globalThis.__viewerAcceptance.renderer.getRenderDevice(),extension=d.gl.getExtension('WEBGL_lose_context');if(!extension)return false;const loss={extension,lost:false,restored:false};globalThis.__acceptanceLoss=loss;d.canvas.addEventListener('webglcontextlost',()=>loss.lost=true,{once:true});d.canvas.addEventListener('webglcontextrestored',()=>loss.restored=true,{once:true});extension.loseContext();return true;});
    expect(available).toBe(true);await expect.poll(()=>page.evaluate(()=>globalThis.__acceptanceLoss.lost)).toBe(true);await page.waitForTimeout(150);await page.evaluate(()=>globalThis.__acceptanceLoss.extension.restoreContext());
    await expect.poll(()=>page.evaluate(()=>globalThis.__acceptanceLoss.restored),{timeout:10000}).toBe(true);
@@ -86,7 +87,7 @@ for(const backend of ['webgl2','webgl1'])test(`viewer acceptance ${backend}: rep
    await ready(page,backend);await page.waitForTimeout(500);
    const after=await state(page);expect(hash(after.document)).toBe(hash(before.document));expect(after.state.timelineCursor).toBe(before.state.timelineCursor);expect(after.world).toEqual(before.world);expect(after.selection).toEqual(before.selection);expect(after.camera).toEqual(before.camera);
    expect(after.rendering.lastCommittedVisualFrameId).toBeGreaterThan(before.rendering.lastCommittedVisualFrameId);expect(after.stats.gpuRecovery.timerPending).toBe(false);
-   const difference=await pixels(page,imageBefore,await page.locator('#map').screenshot({path:join(dir,`${year}-restored.png`),animations:'disabled'}));
+   const difference=await pixels(page,imageBefore,await page.locator('#map').screenshot({path:join(dir,`${year}-restored.png`),animations:'disabled',timeout:30000}));
    expect(difference.sameSize).toBe(true);expect(difference.colors).toBeGreaterThan(8);expect(difference.changedFraction).toBeLessThan(0.03);expect(difference.meanChannelError).toBeLessThan(2);
    result.rounds.push({year,documentSha256:hash(after.document),selection:after.selection,camera:after.camera,world:after.world,recovery:after.stats.gpuRecovery,frame:after.rendering.lastCommittedVisualFrameId,difference});
   }
@@ -103,7 +104,6 @@ for(const backend of ['webgl2','webgl1'])test(`viewer acceptance ${backend}: rep
 featureTest.describe("gpu-scene-staging", () => {
   const {  expect, test  } = __suiteDependency5;
   const {  writeFile  } = __suiteDependency6;
-test.use({ launchOptions: { args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu-sandbox'] } });
 
 test('real WebGL strokes retain A through partial uploads and present all of B before releasing A', async ({ page }) => {
   await page.route('**/m3-staging-fixture', route => route.fulfill({ contentType: 'text/html', body: '<!doctype html><title>M3 GPU frame evidence</title>' }));

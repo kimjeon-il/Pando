@@ -9,11 +9,11 @@ export function createObjectSearchModel({items,groups,itemRef,compare}) {
     rows.set(key,{...source,kind:'object',key,ref,layerGroup,typeLabel});
   }
   const order=(a,b)=>compare({name:a.name,id:''},{name:b.name,id:''})||(a.key<b.key?-1:a.key>b.key?1:0);
-  const items=Object.freeze([...rows.values()].sort(order));
+  const orderedItems=Object.freeze([...rows.values()].sort(order));
   // Search text is prepared once per catalog generation, not per keystroke.
-  const terms=Object.freeze(items.map(item=>
+  const terms=Object.freeze(orderedItems.map(item=>
     [item.name,item.typeLabel,item.searchText||'',item.id].join(' ').toLocaleLowerCase('ko')));
-  return Object.freeze({items,terms});
+  return Object.freeze({items:orderedItems,terms});
 }
 export function visibleObjectSearchRows(model,search='') {
   const query=search.trim().toLocaleLowerCase('ko');
