@@ -5,8 +5,6 @@ import * as __hydro_dep2 from "node:fs";
 import * as __hydro_dep3 from "node:test";
 import * as __hydro_dep4 from "../../tools/gis/hydro-calibration-native.mjs";
 import * as __hydro_dep5 from "../../tools/gis/hydro-calibration-metrics.mjs";
-
-// Original feature contract: hydro-calibration-native.test.mjs
 contractSuite("hydro-calibration-native", () => {
 const assert = __hydro_dep0.default;
 const { spawnSync } = __hydro_dep1;
@@ -73,8 +71,6 @@ test('calibration stream rejects invalid input and keeps coordinates unchanged',
   await assert.rejects(countHydroCalibrationChains(selected.features,{signal:controller.signal}),{name:'AbortError'});
 });
 });
-
-// Original feature contract: hydro-calibration-metrics.test.mjs
 contractSuite("hydro-calibration-metrics", () => {
 const assert = __hydro_dep0.default;
 const { readFileSync } = __hydro_dep2;

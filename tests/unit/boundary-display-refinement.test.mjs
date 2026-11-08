@@ -10,8 +10,6 @@ import * as __boundary_dep4 from "../../shared/frontend/js/modules/boundary-topo
 import * as __boundary_dep5 from "../../shared/frontend/js/modules/country-shared-boundary-packet.js";
 import * as __boundary_dep6 from "../../shared/frontend/js/modules/territorial-highlight-boundary.js";
 import * as __boundary_dep7 from "../../tools/gis/measure-border-detail.mjs";
-
-// Original feature contract: boundary-display-refinement.test.mjs
 contractSuite("boundary-display-refinement", () => {
 const { rectanglePolygon } = __boundary_dep0;
 const assert = __boundary_dep1.default;
@@ -127,8 +125,6 @@ test('child selection hides inherited coast and refines only the remaining edge'
   assert.deepEqual([parent, child], before);
 });
 });
-
-// Original feature contract: border-detail-measurement.test.mjs
 contractSuite("border-detail-measurement", () => {
 const test = __boundary_dep2.default;
 const assert = __boundary_dep1.default;

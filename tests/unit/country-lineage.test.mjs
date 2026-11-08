@@ -8,8 +8,6 @@ import * as __country_dep5 from "node:crypto";
 import * as __country_dep6 from "../../tools/library-data.mjs";
 import * as __country_dep7 from "node:path";
 import * as __country_dep8 from "../../tools/territorial-entity-sources.mjs";
-
-// Original feature contract: country-lineage.test.mjs
 contractSuite("country-lineage", () => {
 const assert = __country_dep0.default;
 const test = __country_dep1.default;
@@ -46,8 +44,6 @@ test('retired names and version ID keys are rejected rather than read as fallbac
   for(const mutate of [r=>r.canonicalName='old',r=>r.displayNames={ko:'old'},r=>r.geometryVersions[0].id='old',r=>r.names={}]){const raw=entity('state:test');mutate(raw);assert.throws(()=>catalog.normalizeTerritorialLibraryEntity(raw));}
 });
 });
-
-// Original feature contract: country-lineage-preservation.test.mjs
 contractSuite("country-lineage-preservation", () => {
 const test = __country_dep1.default;
 const assert = __country_dep0.default;

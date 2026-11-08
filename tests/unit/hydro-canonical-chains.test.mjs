@@ -4,8 +4,6 @@ import * as __hydro_dep1 from "node:test";
 import * as __hydro_dep2 from "../../tools/gis/hydro-reference-guides.mjs";
 import * as __hydro_dep3 from "../../tools/gis/hydro-chain-normalization.mjs";
 import * as __hydro_dep4 from "../../tools/gis/hydro-network-normalization.mjs";
-
-// Original feature contract: hydro-canonical-chains.test.mjs
 contractSuite("hydro-canonical-chains", () => {
 const assert = __hydro_dep0.default;
 const test = __hydro_dep1.default;
@@ -39,8 +37,6 @@ test('selected source reaches follow the named reference through a confluence',
     await assert.rejects(assembleHydroCanonicalChains({reaches:reaches.slice(0,2),references},options),/downstream/i);
   });
 });
-
-// Original feature contract: hydro-chain-normalization.test.mjs
 contractSuite("hydro-chain-normalization", () => {
 const assert = __hydro_dep0.default;
 const test = __hydro_dep1.default;
@@ -62,8 +58,6 @@ test('chain normalization preserves border endpoints and triple-border junctions
       runtimeRoot:process.env.PANDO_HYDRO_RUNTIME_ROOT},connectivity:{directory:process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY}}),/junction/i);
   });
 });
-
-// Original feature contract: hydro-network-normalization.test.mjs
 contractSuite("hydro-network-normalization", () => {
 const assert = __hydro_dep0.default;
 const test = __hydro_dep1.default;

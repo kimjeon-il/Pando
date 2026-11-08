@@ -8,8 +8,6 @@ import * as __hydro_dep5 from "../../tools/gis/verify-osm-hydro-batch02-points.m
 import * as __hydro_dep6 from "../../tools/gis/hydro-osm-batch03-anchors.mjs";
 import * as __hydro_dep7 from "../../tools/gis/hydro-independent-name-policy.mjs";
 import * as __hydro_dep8 from "../../tools/gis/verify-osm-hydro-batch03-points.mjs";
-
-// Original feature contract: hydro-osm-batch01-screen.test.mjs
 contractSuite("hydro-osm-batch01-screen", () => {
 const assert = __hydro_dep0.default;
 const { batch01Anchors } = __hydro_dep1;
@@ -44,8 +42,6 @@ test('first-ten audit rejects a changed baseline, missing systems and invalid na
   await assert.rejects(buildBatch01Screen(data,async()=>({lineLengthsMeters:[],points:[]})),/native.*result/i);
 });
 });
-
-// Original feature contract: hydro-osm-batch02-screen.test.mjs
 contractSuite("hydro-osm-batch02-screen", () => {
 const assert = __hydro_dep0.default;
 const test = __hydro_dep3.default;
@@ -91,8 +87,6 @@ test('second-ten screen rejects missing systems, mismatched source provenance an
   await assert.rejects(buildBatch02Screen(data,{screen:async()=>({lineLengthsMeters:[],points:[]})}),/native.*result/i);
 });
 });
-
-// Original feature contract: hydro-osm-batch03-screen.test.mjs
 contractSuite("hydro-osm-batch03-screen", () => {
 const assert = __hydro_dep0.default;
 const test = __hydro_dep3.default;

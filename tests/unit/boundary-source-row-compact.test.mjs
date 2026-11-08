@@ -5,8 +5,6 @@ import * as __boundary_dep1 from "node:assert/strict";
 import * as __boundary_dep2 from "../../shared/frontend/js/modules/boundary-topology.js";
 import * as __boundary_dep3 from "../../shared/frontend/js/modules/country-contact-core.js";
 import * as __boundary_dep4 from "../../shared/frontend/js/modules/boundary-spatial-index.js";
-
-// Original feature contract: boundary-source-row-compact.test.mjs
 contractSuite("boundary-source-row-compact", () => {
 const test = __boundary_dep0.default;
 const assert = __boundary_dep1.default;
@@ -101,8 +99,6 @@ test('prepared compact source topology can materialize old source refs for legac
     [[1,0],[1,1]], 'source segment direction is not an output contract');
 });
 });
-
-// Original feature contract: boundary-spatial-index-packed.test.mjs
 contractSuite("boundary-spatial-index-packed", () => {
 const test = __boundary_dep0.default;
 const assert = __boundary_dep1.default;

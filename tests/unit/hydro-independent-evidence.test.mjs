@@ -12,8 +12,6 @@ import * as __hydro_dep9 from "../../tools/gis/verify-independent-river-point-an
 import * as __hydro_dep10 from "../../tools/gis/hydro-point-screen-native.mjs";
 import * as __hydro_dep11 from "node:zlib";
 import * as __hydro_dep12 from "../../tools/gis/verify-published-hydro-independent-names.mjs";
-
-// Original feature contract: hydro-independent-evidence.test.mjs
 contractSuite("hydro-independent-evidence", () => {
 const assert = __hydro_dep0.default;
 const test = __hydro_dep1.default;
@@ -60,8 +58,6 @@ test('Yarra comparison requires the recorded source, license and directional met
   assert.throws(()=>verifyYarraEvidence({...proof,source:{...proof.source,license:'unknown'}},review),/license/i);
 });
 });
-
-// Original feature contract: hydro-independent-name-policy.test.mjs
 contractSuite("hydro-independent-name-policy", () => {
 const assert = __hydro_dep0.default;
 const { spawnSync } = __hydro_dep3;
@@ -164,8 +160,6 @@ test('Node CLI returns the same approved mapping without changing its input JSON
   assert.equal(createHash('sha256').update(readFileSync(path)).digest('hex'), originalHash);
 });
 });
-
-// Original feature contract: hydro-independent-point-screen.test.mjs
 contractSuite("hydro-independent-point-screen", () => {
 const assert = __hydro_dep0.default;
 const { spawnSync } = __hydro_dep3;
@@ -224,8 +218,6 @@ test('independent Hydro screen rejects wrong baseline, missing systems and inval
   await assert.rejects(buildIndependentPointScreen(valid,async()=>({lineLengthsMeters:[],points:[]})),/native.*result/i);
 });
 });
-
-// Original feature contract: hydro-published-independent.test.mjs
 contractSuite("hydro-published-independent", () => {
 const assert = __hydro_dep0.default;
 const { createHash } = __hydro_dep4;

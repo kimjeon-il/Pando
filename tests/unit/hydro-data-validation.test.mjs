@@ -9,8 +9,6 @@ import * as __hydro_dep6 from "node:path";
 import * as __hydro_dep7 from "../../tools/gis/hydro-source-selection.mjs";
 import * as __hydro_dep8 from "../../tools/gis/hydro-connectivity-native.mjs";
 import * as __hydro_dep9 from "../../tools/gis/hydro-source-reader.mjs";
-
-// Original feature contract: hydro-data-validation.test.mjs
 contractSuite("hydro-data-validation", () => {
 const assert = __hydro_dep0.default;
 const { createHash } = __hydro_dep1;
@@ -54,8 +52,6 @@ test('explicit complete Hydro validation preserves count, terminal, Korea, lake 
     const bad={...input,expectedLakeCoordinateCount:5};await assert.rejects(verifyHydroCompleteCatalog(bad,options),/coordinate count/i);
   });
 });
-
-// Original feature contract: hydro-source-selection.test.mjs
 contractSuite("hydro-source-selection", () => {
 const assert = __hydro_dep0.default;
 const { createHash } = __hydro_dep1;

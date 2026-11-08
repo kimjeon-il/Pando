@@ -17,8 +17,6 @@ import * as __hydro_dep13 from "../../tools/gis/hydro-source-reader.mjs";
 import * as __hydro_dep14 from "../../tools/gis/hydro-encoding-native.mjs";
 import * as __hydro_dep15 from "../../tools/gis/hydro-pack-layout.mjs";
 import * as __hydro_dep16 from "../../tools/gis/hydro-pack-decoder.mjs";
-
-// Original feature contract: hydro-river-features.test.mjs
 contractSuite("hydro-river-features", () => {
 const { describe : featureDescribe } = __hydro_dep0;
 const __suiteDependency0 = __hydro_dep1;
@@ -37,26 +35,6 @@ const __suiteDependency12 = __hydro_dep0;
 const __suiteDependency13 = __hydro_dep1;
 const __suiteDependency14 = __hydro_dep8;
 const __suiteDependency15 = __hydro_dep9;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// Original feature contract: hydro-river-features.test.mjs
 featureDescribe("hydro-river-features", () => {
   const assert = __suiteDependency0.default;
   const test = __suiteDependency1.default;
@@ -77,7 +55,6 @@ test('river feature assembly preserves split source IDs, stage fragments and ter
     assert.deepEqual(result.features[2].metadata.terminal,{class:'sea',sourceEndpoint:[3,0],renderEndpoint:[3,0]});
   });
 });
-// Original feature contract: hydro-lake-features.test.mjs
 featureDescribe("hydro-lake-features", () => {
   const assert = __suiteDependency3.default;
   const test = __suiteDependency4.default;
@@ -95,7 +72,6 @@ test('Natural Earth lake features preserve names, stages and source identity',
       [[4,8,'테스트호수',0,'A'],[5,9,'Blue',2,'lake-b']]);
   });
 });
-// Original feature contract: hydro-river-input.test.mjs
 featureDescribe("hydro-river-input", () => {
   const assert = __suiteDependency6.default;
   const { copyFile,mkdtemp,mkdir,rm,writeFile } = __suiteDependency7;
@@ -120,7 +96,6 @@ test('river source discovery fingerprints requested original members and rejects
   await assert.rejects(prepareHydroRiverSources({riverRoots:[root],codes:['eu'],signal:controller.signal}),{name:'AbortError'});
 });
 });
-// Original feature contract: hydro-physical-replacement.test.mjs
 featureDescribe("hydro-physical-replacement", () => {
   const test = __suiteDependency12.default;
   const assert = __suiteDependency13.default;
@@ -142,8 +117,6 @@ test('physical water follows the effective copied object geometry, reuses its ma
 });
 });
 });
-
-// Original feature contract: hydro-region-pipeline.test.mjs
 contractSuite("hydro-region-pipeline", () => {
 const assert = __hydro_dep1.default;
 const { createHash } = __hydro_dep10;

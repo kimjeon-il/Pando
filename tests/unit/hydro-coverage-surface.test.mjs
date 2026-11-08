@@ -5,8 +5,6 @@ import * as __hydro_dep2 from "../../shared/frontend/js/modules/gpu-hydro-covera
 import * as __hydro_dep3 from "node:fs";
 import * as __hydro_dep4 from "../../shared/frontend/js/modules/hydro-tile-window.js";
 import * as __hydro_dep5 from "../../shared/frontend/js/modules/physical-resources.js";
-
-// Original feature contract: hydro-coverage-surface.test.mjs
 contractSuite("hydro-coverage-surface", () => {
 const test = __hydro_dep0.default;
 const assert = __hydro_dep1.default;
@@ -119,8 +117,6 @@ test('unavailable WebGL1 MAX blending and budget overflow return to direct SDF',
   assert.equal(coverage.stats().fallbackCount,2);
 });
 });
-
-// Original feature contract: hydro-tile-window.test.mjs
 contractSuite("hydro-tile-window", () => {
 const assert = __hydro_dep1.default;
 const fs = __hydro_dep3.default;

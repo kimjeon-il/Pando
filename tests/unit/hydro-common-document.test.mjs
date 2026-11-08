@@ -6,8 +6,6 @@ import * as __hydro_dep3 from "../helpers/core-project.mjs";
 import * as __hydro_dep4 from "../../shared/frontend/js/modules/territorial-units.js";
 import * as __hydro_dep5 from "../../shared/frontend/js/modules/timeline-records.js";
 import * as __hydro_dep6 from "../../shared/frontend/js/modules/temporal.js";
-
-// Original feature contract: hydro-common-document.test.mjs
 contractSuite("hydro-common-document", () => {
 const assert = __hydro_dep0.default;
 const test = __hydro_dep1.default;
@@ -169,8 +167,6 @@ test('territorial source admission keeps authored water once when the source als
   assert.deepEqual(owner.documentModel.snapshot().timelineRecords.geometryBindings.filter(row=>row.objectRef.domain==='hydro'),before.timelineRecords.geometryBindings.filter(row=>row.objectRef.domain==='hydro'));
 });
 });
-
-// Original feature contract: hydro-common-timeline.test.mjs
 contractSuite("hydro-common-timeline", () => {
 const assert = __hydro_dep0.default;
 const test = __hydro_dep1.default;

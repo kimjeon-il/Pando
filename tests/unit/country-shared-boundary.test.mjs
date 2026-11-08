@@ -10,8 +10,6 @@ import * as __boundary_dep6 from "../../shared/frontend/js/modules/country-share
 import "../../shared/frontend/js/workers/canvas-scene-composition-core.js";
 import * as __boundary_dep7 from "../../shared/frontend/js/modules/boundary-lines.js";
 import * as __boundary_dep8 from "../../shared/frontend/js/modules/country-contact-core.js";
-
-// Original feature contract: country-shared-boundary.test.mjs
 contractSuite("country-shared-boundary", () => {
 const { rectanglePolygon } = __boundary_dep0;
 const { resolveMapStrokeStyle } = __boundary_dep1;
@@ -214,8 +212,6 @@ test('the same owner pair can have both a coincident coast and an internal conta
   assert.equal(packet.outlineOverrides.segments.filter(segment => segment.ownerIds[0] === 'HKG' && segment.start[0] <= 1 && segment.end[0] <= 1).length, 0);
 });
 });
-
-// Original feature contract: country-contact-core.test.mjs
 contractSuite("country-contact-core", () => {
 const test = __boundary_dep2.default;
 const assert = __boundary_dep3.default;

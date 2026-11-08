@@ -23,8 +23,6 @@ import * as __suiteDependency20 from "node:zlib";
 import * as __suiteDependency21 from "../../tools/gis/hydro-pack-layout.mjs";
 import * as __suiteDependency22 from "../../tools/gis/hydro-pack-decoder.mjs";
 import * as __suiteDependency23 from "../../tools/gis/hydro-selected-data.mjs";
-
-// Original feature contract: hydro-packfile.test.mjs
 featureDescribe("hydro-packfile", () => {
   const assert = __suiteDependency0.default;
   const test = __suiteDependency1.default;
@@ -143,7 +141,6 @@ test('virtual shard reader issues absolute ranges and saves isolated cache entri
   assert.ok([...records.keys()].every(x=>x.includes('__hydro_segment=')));
 });
 });
-// Original feature contract: hydro-packfile-builder.test.mjs
 featureDescribe("hydro-packfile-builder", () => {
   const assert = __suiteDependency6.default;
   const test = __suiteDependency7.default;
@@ -198,7 +195,6 @@ test('packfile refuses corrupt inputs, drift, and unsafe paths',t=>{
  assert.throws(()=>buildHydroPackfile(f),/SHA-256 mismatch/);
 });
 });
-// Original feature contract: hydro-pack-layout.test.mjs
 featureDescribe("hydro-pack-layout", () => {
   const assert = __suiteDependency13.default;
   const { createHash } = __suiteDependency14;

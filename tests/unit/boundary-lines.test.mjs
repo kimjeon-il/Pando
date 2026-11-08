@@ -6,8 +6,6 @@ import "../helpers/spherical-core.mjs";
 import * as __boundary_dep3 from "../../shared/frontend/js/modules/boundary-topology.js";
 import * as __boundary_dep4 from "../../shared/frontend/js/modules/country-shared-boundary-packet.js";
 import * as __boundary_dep5 from "../../shared/frontend/js/modules/geometry-versions.js";
-
-// Original feature contract: boundary-lines.test.mjs
 contractSuite("boundary-lines", () => {
 const test = __boundary_dep0.default;
 const assert = __boundary_dep1.default;
@@ -42,8 +40,6 @@ test('closed boundaries preserve every segment', () => {
   assert.deepEqual(lines[0][0], lines[0].at(-1));
 });
 });
-
-// Original feature contract: boundary-topology-split.test.mjs
 contractSuite("boundary-topology-split", () => {
 const test = __boundary_dep0.default;
 const assert = __boundary_dep1.default;
@@ -98,8 +94,6 @@ test('the compiled candidate scan respects custom precision and epsilon',()=>{
   assert.deepEqual(buildBoundaryTopologyFromSegments([],{}).segments.size,0);
 });
 });
-
-// Original feature contract: shared-edge-singleton.test.mjs
 contractSuite("shared-edge-singleton", () => {
 const test = __boundary_dep0.default;
 const assert = __boundary_dep1.default;

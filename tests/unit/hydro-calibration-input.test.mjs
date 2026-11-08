@@ -9,8 +9,6 @@ import * as __hydro_dep6 from "node:test";
 import * as __hydro_dep7 from "../../tools/gis/hydro-calibration-input.mjs";
 import * as __hydro_dep8 from "node:fs";
 import * as __hydro_dep9 from "../../tools/gis/hydro-calibration-report.mjs";
-
-// Original feature contract: hydro-calibration-input.test.mjs
 contractSuite("hydro-calibration-input", () => {
 const assert = __hydro_dep0.default;
 const { createHash } = __hydro_dep1;
@@ -62,8 +60,6 @@ test('calibration CLI rejects missing required source paths',()=>{
   assert.notEqual(result.status,0);assert.match(result.stderr,/Expected --hydrorivers-root/);
 });
 });
-
-// Original feature contract: hydro-calibration-report.test.mjs
 contractSuite("hydro-calibration-report", () => {
 const assert = __hydro_dep0.default;
 const { readFileSync } = __hydro_dep8;
