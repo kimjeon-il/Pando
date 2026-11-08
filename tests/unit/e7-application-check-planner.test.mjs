@@ -157,13 +157,13 @@ test('P7 does not revive retired Python sources or the border editing test entry
 test('P2 unit contract index identifies original feature markers and rejects duplicate owners', () => {
   const files = ['tests/unit/first.test.mjs', 'tests/unit/second.test.mjs'];
   const read = file => file.includes('first')
-    ? '// Original feature contract: old-one.test.mjs\\n'
-    : '// Original feature contract: old-two.test.mjs\\n';
+    ? '// Original feature contract: old-one.test.mjs\n'
+    : '// Original feature contract: old-two.test.mjs\n';
   const indexed = indexUnitContractOwners(files, read);
   assert.deepEqual(indexed.duplicates, []);
   assert.equal(indexed.contractOwners.get('tests/unit/old-one.test.mjs'), files[0]);
   assert.equal(indexed.contractOwners.get('tests/unit/old-two.test.mjs'), files[1]);
-  const conflict = indexUnitContractOwners(files, () => '// Original feature contract: shared.test.mjs\\n');
+  const conflict = indexUnitContractOwners(files, () => '// Original feature contract: shared.test.mjs\n');
   assert.equal(conflict.duplicates.length, 1);
   assert.equal(conflict.duplicates[0].identity, 'tests/unit/shared.test.mjs');
 });
