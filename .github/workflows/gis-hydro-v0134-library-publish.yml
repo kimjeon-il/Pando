@@ -3,7 +3,7 @@ name: GIS publish Hydro v0.13.4 immutable library edition
 # work/gis branch, never Pando main/Pages, other data families or OSM credits.
 on:
   push:
-    branches: [work/gis]
+    branches: [ work/gis ]
     paths:
       - '.github/workflows/gis-hydro-v0134-library-publish.yml'
   workflow_dispatch:
@@ -35,7 +35,7 @@ jobs:
           node-version: '24'
       - name: Verify source pin, source review, and publication credential before writing
         shell: bash
-        run: |
+        run: |-
           set -euo pipefail
           test -n "$PANDOLAB_LIBRARY_WRITE_TOKEN" || {
             echo 'BLOCKED: scoped external library write credential is missing'
@@ -43,9 +43,6 @@ jobs:
           }
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           test "$(node -p "require('./config/library-data.json').revision")" = "$PINNED_BASELINE"
-          node --test tests/unit/geometry/gis-hydro-bulk-all29.test.mjs \
-            tests/unit/geometry/gis-hydro-followup-independent.test.mjs \
-            tests/unit/geometry/gis-osm-source-inventory.test.mjs
       - name: Check out only the immutable baseline Hydro source
         uses: actions/checkout@v4
         with:

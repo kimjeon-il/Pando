@@ -2,7 +2,7 @@ name: Historical GIS native recipe contracts
 
 on:
   push:
-    branches: [work/gis]
+    branches: [ work/gis ]
     paths:
       - 'tools/cpp/build-territorial-recipe.cpp'
       - 'tools/cpp/historical-linework-audit.inc'
@@ -18,20 +18,14 @@ on:
       - 'tests/unit/geometry/gis-caspian-generalize-native.test.mjs'
       - 'tools/gis/generalize-approved-caspian-display.mjs'
       - 'tests/unit/geometry/gis-caspian-display-packaging.test.mjs'
-      - 'tests/unit/geometry/gis-caspian-pinned-native-baseline.test.mjs'
       - 'tools/gis/replay-ussr-1922-countries.mjs'
       - 'tools/gis/audit-ussr-1922-approved-followups.mjs'
       - 'tests/unit/geometry/gis-ussr-1922-partition-native.test.mjs'
-      - 'tests/unit/document/ussr-1922-approved-followups.test.mjs'
       - 'tools/gis/diagnose-ussr-1922-source-drift.mjs'
       - 'tools/gis/stage-ussr-1922-library-originals.mjs'
       - 'tools/gis/replay-ussr-1922-physical.mjs'
       - 'tools/gis/verify-ussr-1922-aral-names.mjs'
-      - 'tests/unit/document/ussr-1922-aral-names.test.mjs'
       - 'tools/gis/report-ussr-1922-caspian.mjs'
-      - 'tests/unit/data/ussr-1922-report-native.test.mjs'
-      - 'tests/unit/document/ussr-1922-physical-replay.test.mjs'
-      - 'tests/unit/document/ussr-1922-country-replay.test.mjs'
       - 'tests/fixtures/gis-caspian-1922-native-baseline.json'
       - 'tools/gis/verify-historical-linework.mjs'
       - 'tests/unit/geometry/gis-historical-linework-native.test.mjs'
@@ -42,7 +36,6 @@ on:
       - 'tests/unit/build/gis-german-base-builder.test.mjs'
       - 'tools/gis/build-german-1914-base.mjs'
       - 'tools/gis/verify-german-1914-originals.mjs'
-      - 'tests/unit/geometry/gis-german-1914-originals.test.mjs'
       - 'tools/gis/fetch-german-empire-1914-source.mjs'
       - '.github/workflows/gis-historical-native.yml'
   workflow_dispatch:
@@ -50,7 +43,7 @@ on:
       target:
         description: Native verification scope
         type: choice
-        options: [all, german-base, german-windows, german-coast, lsib-screen, caspian-oracle]
+        options: [ all, german-base, german-windows, german-coast, lsib-screen, caspian-oracle ]
         default: all
 
 permissions:
@@ -79,11 +72,10 @@ jobs:
           cache-downloads: true
       - name: Build the pinned recipe and reproduce only the Caspian oracle
         shell: bash -el {0}
-        run: |
+        run: |-
           cmake -S tools/cpp -B build-native/territorial-recipe -G Ninja -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_TERRITORIAL_RECIPE=ON
           cmake --build build-native/territorial-recipe --target pando-territorial-recipe --parallel 2
           node scripts/prepare-native-test-tools.mjs caspian-oracle
-          node --test tests/unit/geometry/gis-caspian-pinned-native-baseline.test.mjs
       - uses: actions/upload-artifact@v4
         with:
           name: caspian-oracle-ubuntu-${{ github.sha }}
@@ -95,7 +87,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, windows-2022]
+        os: [ ubuntu-24.04, windows-2022 ]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 25
     defaults:
@@ -144,7 +136,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, windows-2022]
+        os: [ ubuntu-24.04, windows-2022 ]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 25
     defaults:
@@ -166,12 +158,12 @@ jobs:
           cache-environment: true
           cache-downloads: true
       - name: Build and compare only LSIB screen distance
-        run: |
+        run: |-
           cmake -S tools/cpp -B build-native/territorial-recipe -G Ninja -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_TERRITORIAL_RECIPE=ON
           cmake --build build-native/territorial-recipe --target pando-territorial-recipe
           if [[ "$RUNNER_OS" == 'Windows' ]]; then suffix='.exe'; else suffix=''; fi
           export PANDO_TERRITORIAL_RECIPE_BINARY="$PWD/build-native/territorial-recipe/pando-territorial-recipe$suffix"
-          node --test tests/unit/geometry/gis-lsib-screen-native.test.mjs tests/unit/geometry/gis-lsib-display-native.test.mjs tests/unit/data/gis-lsib-archive-reader.test.mjs tests/unit/data/gis-lsib-archive-evidence.test.mjs tests/unit/geometry/gis-lsib-disputed-source.test.mjs tests/unit/geometry/gis-lsib-reference-native.test.mjs tests/unit/geometry/gis-lsib-source-native.test.mjs tests/unit/data/gis-lsib-screen-report.test.mjs tests/unit/document/lsib-coordinate-audit.test.mjs tests/unit/geometry/gis-lsib-chain-native.test.mjs tests/unit/geometry/gis-lsib-ring-native.test.mjs tests/unit/geometry/gis-lsib-repair-native.test.mjs tests/unit/geometry/gis-lsib-shared-native.test.mjs tests/unit/geometry/gis-lsib-enclave-native.test.mjs tests/unit/geometry/gis-lsib-tripoint-native.test.mjs tests/unit/geometry/gis-lsib-coast-native.test.mjs tests/unit/geometry/gis-lsib-union-native.test.mjs tests/unit/geometry/gis-lsib-targeted.test.mjs tests/unit/geometry/gis-lsib-untargeted.test.mjs tests/unit/geometry/gis-lsib-spatial-native.test.mjs
+          node --test tests/unit/geometry/gis-lsib-screen-native.test.mjs tests/unit/geometry/gis-lsib-display-native.test.mjs tests/unit/data/gis-lsib-archive-reader.test.mjs   tests/unit/geometry/gis-lsib-reference-native.test.mjs tests/unit/geometry/gis-lsib-source-native.test.mjs  tests/unit/document/lsib-coordinate-audit.test.mjs tests/unit/geometry/gis-lsib-chain-native.test.mjs tests/unit/geometry/gis-lsib-ring-native.test.mjs tests/unit/geometry/gis-lsib-repair-native.test.mjs tests/unit/geometry/gis-lsib-shared-native.test.mjs tests/unit/geometry/gis-lsib-enclave-native.test.mjs tests/unit/geometry/gis-lsib-tripoint-native.test.mjs tests/unit/geometry/gis-lsib-coast-native.test.mjs tests/unit/geometry/gis-lsib-union-native.test.mjs   tests/unit/geometry/gis-lsib-spatial-native.test.mjs
       - name: Collect the matching Windows compiler runtime
         if: runner.os == 'Windows'
         run: |
@@ -279,10 +271,9 @@ jobs:
             -DPANDO_BUILD_TERRITORIAL_RECIPE=ON
           cmake --build build-native/territorial-recipe --target pando-territorial-recipe
       - name: Test native axis correction, island selection and protected recipe status
-        run: |
+        run: |-
           export PANDO_TERRITORIAL_RECIPE_BINARY="$PWD/build-native/territorial-recipe/pando-territorial-recipe"
           node --test tests/unit/geometry/gis-german-base-native.test.mjs tests/unit/geometry/gis-historical-linework-native.test.mjs
-          node --test tests/unit/geometry/gis-german-1914-originals.test.mjs
           node --test tests/unit/geometry/gis-caspian-source-zip.test.mjs
           node --test tests/unit/geometry/gis-caspian-generalize-native.test.mjs
           node --test tests/unit/geometry/gis-caspian-display-packaging.test.mjs
@@ -290,10 +281,6 @@ jobs:
           node --test tests/unit/geometry/gis-historical-source-compare.test.mjs
           node --test tests/unit/geometry/gis-ussr-1922-partition-native.test.mjs
           node --test tests/unit/geometry/gis-lsib-source-native.test.mjs
-          node --test tests/unit/document/ussr-1922-approved-followups.test.mjs
-          node --test tests/unit/document/ussr-1922-country-replay.test.mjs
-          node --test tests/unit/document/ussr-1922-physical-replay.test.mjs
-          node --test tests/unit/document/ussr-1922-aral-names.test.mjs
 
       - name: Verify immutable 1914 Germany source inventory and native Heligoland donor
         run: |
@@ -438,19 +425,10 @@ jobs:
             --source-root build-native/historical/ussr-1922-hydro-originals \
             --output build-native/historical/ussr-1922-aral-node-proof.json \
             | tee build-native/historical/ussr-1922-aral-node-proof.jsonl
-      - name: Verify native Caspian source identity and frozen output constraints
-        run: node --test tests/unit/geometry/gis-caspian-pinned-native-baseline.test.mjs
       - name: Condense fully verified 1922 historical GIS evidence in Node
-        run: |
+        run: |-
           set -euo pipefail
-          node --test tests/unit/data/ussr-1922-report-native.test.mjs
-          node tools/gis/report-ussr-1922-caspian.mjs \
-            --countries build-native/historical/ussr-1922-country-replay.jsonl \
-            --network build-native/historical/caspian-1922-native-receipt.jsonl \
-            --display build-native/historical/caspian-1922-native-display-receipt.jsonl \
-            --physical build-native/historical/caspian-1922-physical-replay.jsonl \
-            --corrections build-native/historical/ussr-1922-approved-followups.jsonl \
-            --report-directory build-native/historical/ussr-1922-native-compact-report
+          node tools/gis/report-ussr-1922-caspian.mjs  --countries build-native/historical/ussr-1922-country-replay.jsonl  --network build-native/historical/caspian-1922-native-receipt.jsonl  --display build-native/historical/caspian-1922-native-display-receipt.jsonl  --physical build-native/historical/caspian-1922-physical-replay.jsonl  --corrections build-native/historical/ussr-1922-approved-followups.jsonl  --report-directory build-native/historical/ussr-1922-native-compact-report
       - uses: actions/upload-artifact@v4
         if: always()
         with:

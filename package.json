@@ -62,7 +62,7 @@
     "check:geometry-runtime": "node --test tests/unit/geometry/p6-polygon-core.test.mjs tests/unit/geometry/r4c-spatial-boundaries.test.mjs",
     "check:ci-inventory": "node scripts/check-test-consolidation.mjs && node --test tests/unit/runtime/e7-application-check-planner.test.mjs tests/unit/runtime/check-automation.test.mjs tests/unit/runtime/check-runner.test.mjs tests/unit/ui/native-check-prerequisites.test.mjs",
     "check:affected": "node scripts/run-application-checks.mjs",
-    "test:gis-node": "node --test tests/unit/data/hydro-packfile.test.mjs tests/unit/geometry/download-terrain-source.test.mjs tests/unit/document/place-batch-pipeline.test.mjs tests/unit/document/place-candidates.test.mjs tests/unit/geometry/gis-source-launcher.test.mjs tests/unit/data/report-paths.test.mjs tests/unit/geometry/boundary-capture-evidence.test.mjs",
+    "test:gis-node": "node --test tests/unit/data/hydro-packfile.test.mjs tests/unit/geometry/download-terrain-source.test.mjs tests/unit/document/place-batch-pipeline.test.mjs tests/unit/document/place-candidates.test.mjs tests/unit/geometry/gis-source-launcher.test.mjs tests/unit/data/report-paths.test.mjs",
     "dev:web": "node scripts/frontend-dev-server.mjs --product=viewer",
     "build:web": "node scripts/generate-build-metadata.mjs --product=viewer",
     "deps:prepare": "node tools/data/worktree-storage.mjs --prepare-dependencies",

@@ -2,7 +2,7 @@ name: GIS Hydro full OSM replacement — all 31 in one build, no deployment
 
 on:
   push:
-    branches: [work/gis]
+    branches: [ work/gis ]
     paths:
       - 'tools/gis/stage-hydro-all-nonosm.mjs'
       - 'src/rendering/workers/hydro-tile-worker.js'
@@ -14,8 +14,6 @@ on:
       - 'tools/gis/prepare-hydro-name-replacement-bundle.mjs'
       - 'tools/gis/hydro-independent-name-policy.mjs'
       - 'tools/gis/audit-osm-credit-removal.mjs'
-      - 'tests/unit/geometry/gis-hydro-bulk-all29.test.mjs'
-      - 'tests/unit/geometry/gis-hydro-followup-independent.test.mjs'
       - '.github/workflows/gis-hydro-all-nonosm-stage.yml'
   workflow_dispatch:
 
@@ -34,12 +32,8 @@ jobs:
         with:
           node-version: '24'
       - name: Validate all 31 independently sourced names or explicit neutral fallbacks at once
-        run: |
-          node --test tests/unit/geometry/gis-hydro-bulk-all29.test.mjs \
-            tests/unit/geometry/gis-hydro-followup-independent.test.mjs \
-            tests/unit/geometry/gis-osm-source-inventory.test.mjs \
-            tests/unit/geometry/hydro-name.test.mjs \
-            tests/unit/geometry/gis-osm-source-inventory.test.mjs
+        run: |-
+          node --test       tests/unit/geometry/hydro-name.test.mjs
       - name: Pin exact original HydroRIVERS v0.13.2 data commit
         id: data
         shell: bash

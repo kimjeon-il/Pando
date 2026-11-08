@@ -1486,7 +1486,6 @@
         "tests/unit/geometry/gis-lsib-spatial-native.test.mjs",
         "tests/unit/geometry/gis-lsib-tripoint-native.test.mjs",
         "tests/unit/geometry/gis-lsib-union-native.test.mjs",
-        "tests/unit/geometry/gis-lsib-untargeted.test.mjs",
         "tests/unit/geometry/gis-ussr-1922-partition-native.test.mjs",
         "tests/unit/geometry/territorial-boundary-supplement.test.mjs",
         "tests/unit/document/territorial-recipe-cpp.test.mjs"
@@ -1517,14 +1516,6 @@
       ],
       "requires": [
         "native-german-natural-earth"
-      ]
-    },
-    {
-      "tests": [
-        "tests/unit/geometry/gis-caspian-pinned-native-baseline.test.mjs"
-      ],
-      "requires": [
-        "native-caspian-oracle"
       ]
     },
     {

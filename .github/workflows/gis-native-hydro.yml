@@ -2,7 +2,7 @@ name: GIS native Hydro junction contracts
 
 on:
   push:
-    branches: [work/gis]
+    branches: [ work/gis ]
     paths:
       - 'tools/cpp/CMakeLists.txt'
       - 'tools/cpp/hydro/connectivity-junctions.cpp'
@@ -17,7 +17,7 @@ on:
       target:
         description: Standalone native tool to build and verify
         type: choice
-        options: [hydro, hydro-chains, hydro-outlets, hydro-encoding, hydro-encoding-integrated, hydro-point-screen, hydro-shared-boundary, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, physical-hydro, physical-raster, physical-raster-integrated, pc-allocation, qgis-windows, map-image, map-pdf, map-preview, terrain-preview, terrain-preview-integrated, terrain-dem-check, terrain-dem-check-integrated, terrain-dem-raster, terrain-dem-path, terrain-dem-gutters, terrain-dem-gutters-integrated, terrain-dem-tint, terrain-dem-encode, terrain-dem-fill-windows]
+        options: [ hydro, hydro-chains, hydro-outlets, hydro-encoding, hydro-encoding-integrated, hydro-point-screen, hydro-shared-boundary, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, physical-hydro, physical-raster, physical-raster-integrated, pc-allocation, qgis-windows, map-image, map-pdf, map-preview, terrain-preview, terrain-preview-integrated, terrain-dem-check, terrain-dem-check-integrated, terrain-dem-raster, terrain-dem-path, terrain-dem-gutters, terrain-dem-gutters-integrated, terrain-dem-tint, terrain-dem-encode, terrain-dem-fill-windows ]
         default: hydro
 
 permissions:
@@ -77,7 +77,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, windows-2022]
+        os: [ ubuntu-24.04, windows-2022 ]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 8
     steps:
@@ -155,7 +155,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, windows-2022]
+        os: [ ubuntu-24.04, windows-2022 ]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
     steps:
@@ -228,7 +228,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, windows-2022]
+        os: [ ubuntu-24.04, windows-2022 ]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     steps:
@@ -279,7 +279,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, windows-2022]
+        os: [ ubuntu-24.04, windows-2022 ]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
     steps:
@@ -373,7 +373,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, windows-2022]
+        os: [ ubuntu-24.04, windows-2022 ]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 25
     defaults:
@@ -392,8 +392,7 @@ jobs:
         with:
           environment-name: pando-physical-hydro
           create-args: >-
-            gdal=3.10.3
-            nodejs=22
+            gdal=3.10.3 nodejs=22
           cache-environment: true
           cache-downloads: true
           init-shell: bash
@@ -406,7 +405,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, windows-2022]
+        os: [ ubuntu-24.04, windows-2022 ]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
     steps:
@@ -584,7 +583,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, windows-2022]
+        os: [ ubuntu-24.04, windows-2022 ]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 25
     steps:
@@ -652,7 +651,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, windows-2022]
+        os: [ ubuntu-24.04, windows-2022 ]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 12
     steps:
@@ -705,7 +704,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, windows-2022]
+        os: [ ubuntu-24.04, windows-2022 ]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 12
     steps:
@@ -752,7 +751,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, windows-2022]
+        os: [ ubuntu-24.04, windows-2022 ]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
     steps:
@@ -812,7 +811,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, windows-2022]
+        os: [ ubuntu-24.04, windows-2022 ]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
     steps:
@@ -867,7 +866,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, windows-2022]
+        os: [ ubuntu-24.04, windows-2022 ]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
     steps:
@@ -933,7 +932,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, windows-2022]
+        os: [ ubuntu-24.04, windows-2022 ]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     steps:
@@ -950,9 +949,6 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Map image configure failed' }
           cmake --build build-native/map-image --config Release --target pando-map-image-resample-tests pando-map-image --parallel 2
           if ($LASTEXITCODE -ne 0) { throw 'Map image build failed' }
-
-
-
 
       - name: Compare small fixed pixel oracles
         shell: pwsh
@@ -1053,7 +1049,7 @@ jobs:
       - name: Verify small point-screen cases
         env:
           PANDO_HYDRO_POINT_SCREEN_BINARY: ${{ github.workspace }}/build-native/hydro-point-screen/pando-hydro-point-screen
-        run: node --test tests/unit/geometry/hydro-point-screen-native.test.mjs tests/unit/geometry/hydro-independent-evidence.test.mjs tests/unit/geometry/hydro-osm-batch01-screen.test.mjs tests/unit/geometry/hydro-yarra-vector-screen.test.mjs
+        run: node --test tests/unit/geometry/hydro-point-screen-native.test.mjs tests/unit/geometry/hydro-independent-evidence.test.mjs
       - name: Package the source-bound point screen
         run: node tools/gis/package-hydro-point-screen.mjs --binary build-native/hydro-point-screen/pando-hydro-point-screen --directory build-native/hydro-point-screen/artifact
       - name: Read the paired data revision

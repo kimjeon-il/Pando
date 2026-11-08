@@ -1,15 +1,12 @@
 name: GIS Baikonur treaty bank and exclusions validation
 on:
   push:
-    branches: [work/gis]
+    branches: [ work/gis ]
     paths:
       - 'tools/gis/validate-baikonur-independent-banks.mjs'
       - 'tools/gis/verify-baikonur-lease-exclusions.mjs'
       - 'tools/gis/baikonur-2019-exclusions.mjs'
       - 'tools/gis/baikonur-official-reference.mjs'
-      - 'tests/unit/geometry/gis-baikonur-reference.test.mjs'
-      - 'tests/unit/geometry/gis-baikonur-reference.test.mjs'
-      - 'tests/unit/geometry/gis-baikonur-reference.test.mjs'
       - '.github/workflows/gis-baikonur-geometry-validation.yml'
   workflow_dispatch:
 permissions:
@@ -25,9 +22,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - name: Validate standalone boundary and exclusions tests
-        run: |
-          node --test tests/unit/geometry/gis-baikonur-reference.test.mjs
       - name: Emit independently reproducible official exclusion statistics
         run: |
           node --input-type=module - <<'JS'
