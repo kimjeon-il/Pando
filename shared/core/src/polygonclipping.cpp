@@ -93,14 +93,14 @@ int orientation(Point base,Point a,Point b) {
 }
 
 struct Event;struct Segment;struct RingOut;
-struct Vertex { Point p; std::vector<Event*> events; };
+struct Vertex { Point p; std::vector<Event*> events; std::vector<std::size_t> supports; };
 struct InputRing { std::size_t polygon, multi; bool exterior; };
 struct State {std::vector<InputRing*> rings;std::vector<int> windings;std::vector<std::size_t> multis;};
 struct Event {
     Vertex* point;bool left;Segment* segment=nullptr;Event* other=nullptr;Event* consumed=nullptr;
 };
 struct Segment {
-    std::size_t id;Event *left,*right;std::vector<InputRing*> rings;std::vector<int> windings;
+    std::size_t id,lineage;Event *left,*right;std::vector<InputRing*> rings;std::vector<int> windings;
     Segment *consumed=nullptr,*prev=nullptr,*previousResult=nullptr;
     RingOut* ringOut=nullptr;
     bool previousResultKnown=false;
@@ -109,6 +109,9 @@ struct Segment {
     Point vector()const{return subtract(right->point->p,left->point->p);}
     Box box()const {Box b;b.add(left->point->p);b.add(right->point->p);return b;}
     bool endpoint(Point p)const{return equal(p,left->point->p)||equal(p,right->point->p);}
+    bool containsVertex(const Vertex* v)const {
+        return std::find(v->supports.begin(),v->supports.end(),lineage)!=v->supports.end()||comparePoint(v->p)==0;
+    }
     int comparePoint(Point p)const {
         if(endpoint(p))return 0;
         // Splay-tree order must not depend on rounded line interpolation:
@@ -172,6 +175,9 @@ void checkConsuming(Vertex* point) {
 int compareEvents(Event* a,Event* b) {
     const int cmp=comparePoints(a->point->p,b->point->p);if(cmp)return cmp;
     if(a->point!=b->point){
+        for(auto lineage:b->point->supports)
+            if(std::find(a->point->supports.begin(),a->point->supports.end(),lineage)==a->point->supports.end())
+                a->point->supports.push_back(lineage);
         const auto events=b->point->events;
         for(auto* e:events){a->point->events.push_back(e);e->point=a->point;}
         checkConsuming(a->point);
@@ -255,7 +261,7 @@ struct Operation {
         auto* result=e.get();events.push_back(std::move(e));v->events.push_back(result);return result;
     }
     Segment* segment(Event* left,Event* right,const std::vector<InputRing*>& rings,const std::vector<int>& windings){
-        auto s=std::make_unique<Segment>();s->id=segments.size()+1;s->left=left;s->right=right;s->rings=rings;s->windings=windings;
+        auto s=std::make_unique<Segment>();s->id=segments.size()+1;s->lineage=s->id;s->left=left;s->right=right;s->rings=rings;s->windings=windings;
         auto* result=s.get();left->segment=right->segment=result;left->other=right;right->other=left;
         segments.push_back(std::move(s));return result;
     }
@@ -263,7 +269,7 @@ struct Operation {
     std::vector<Event*> split(Segment* s,Vertex* v){
         const bool linked=!v->events.empty();auto* l=event(v,true);auto* r=event(v,false);auto* old=s->right;
         s->right=r;r->segment=s;r->other=s->left;s->left->other=r;
-        auto* n=segment(l,old,s->rings,s->windings);
+        auto* n=segment(l,old,s->rings,s->windings);n->lineage=s->lineage;
         if(comparePoints(n->left->point->p,n->right->point->p)>0)swapEvents(n);
         if(comparePoints(s->left->point->p,s->right->point->p)>0)swapEvents(s);
         if(linked){checkConsuming(l->point);checkConsuming(r->point);}
@@ -272,14 +278,22 @@ struct Operation {
     Vertex* intersection(Segment* a,Segment* b){
         const auto ab=a->box(),bb=b->box();const auto both=overlap(ab,bb);if(!both)return nullptr;
         auto *al=a->left->point,*ar=a->right->point,*bl=b->left->point,*br=b->right->point;
-        const bool touchBL=ab.contains(bl->p)&&a->comparePoint(bl->p)==0;
-        const bool touchAL=bb.contains(al->p)&&b->comparePoint(al->p)==0;
-        const bool touchBR=ab.contains(br->p)&&a->comparePoint(br->p)==0;
-        const bool touchAR=bb.contains(ar->p)&&b->comparePoint(ar->p)==0;
-        if(touchAL&&touchBL){if(touchAR&&!touchBR)return ar;if(!touchAR&&touchBR)return br;return nullptr;}
-        if(touchAL){if(touchBR&&equal(al->p,br->p))return nullptr;return al;}
-        if(touchBL){if(touchAR&&equal(ar->p,bl->p))return nullptr;return bl;}
-        if(touchAR&&touchBR)return nullptr;if(touchAR)return ar;if(touchBR)return br;
+        const auto mark=[&](Vertex* v){
+            for(auto lineage:{a->lineage,b->lineage})
+                if(std::find(v->supports.begin(),v->supports.end(),lineage)==v->supports.end())v->supports.push_back(lineage);
+            return v;
+        };
+        // A computed intersection is rounded to a representable double and
+        // can lie infinitesimally off its exact supporting lines. Remember the
+        // lines it split so exact orientation does not split it repeatedly.
+        const bool touchBL=ab.contains(bl->p)&&a->containsVertex(bl);
+        const bool touchAL=bb.contains(al->p)&&b->containsVertex(al);
+        const bool touchBR=ab.contains(br->p)&&a->containsVertex(br);
+        const bool touchAR=bb.contains(ar->p)&&b->containsVertex(ar);
+        if(touchAL&&touchBL){if(touchAR&&!touchBR)return mark(ar);if(!touchAR&&touchBR)return mark(br);return nullptr;}
+        if(touchAL){if(touchBR&&equal(al->p,br->p))return nullptr;return mark(al);}
+        if(touchBL){if(touchAR&&equal(ar->p,bl->p))return nullptr;return mark(bl);}
+        if(touchAR&&touchBR)return nullptr;if(touchAR)return mark(ar);if(touchBR)return mark(br);
         const Point av=a->vector(),bv=b->vector();Point p;
         if(av.x==0){if(bv.x==0)return nullptr;p={al->p.x,bl->p.y+bv.y/bv.x*(al->p.x-bl->p.x)};}
         else if(bv.x==0)p={bl->p.x,al->p.y+av.y/av.x*(bl->p.x-al->p.x)};
@@ -292,7 +306,7 @@ struct Operation {
             const double y1=al->p.y+d2*av.y,y2=bl->p.y+d1*bv.y;
             p={(x1+x2)/2,(y1+y2)/2};
         }
-        return both->contains(p)?vertex(p):nullptr;
+        return both->contains(p)?mark(vertex(p)):nullptr;
     }
     std::vector<Event*> splitSafely(Segment* s,Vertex* p){
         tree.remove(s);auto* right=s->right;queue.remove(right);auto added=split(s,p);added.push_back(right);
