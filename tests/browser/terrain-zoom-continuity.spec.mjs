@@ -12,14 +12,19 @@ import * as __suiteDependency9 from "@playwright/test";
 import * as __suiteDependency10 from "../../shared/frontend/js/modules/terrain-dem-shaders.js";
 import * as __suiteDependency11 from "./helpers/synthetic-dem-terrain.mjs";
 
+// Playwright worker-scoped options belong to the file, not nested feature groups.
+featureTest.use({
+  trace: 'off',screenshot: 'off',
+  launchOptions: { args: process.platform === 'win32' ? ['--use-angle=d3d11']
+    : ['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader','--disable-gpu-sandbox'] },
+});
+
 // Preserved Viewer feature contract: terrain-zoom-continuity.spec.mjs
 featureTest.describe("terrain-zoom-continuity", () => {
   const {  expect, test  } = __suiteDependency0;
   const { routeSyntheticDem } = __suiteDependency1;
   const {  createViewerProjectPackage  } = __suiteDependency2;
-test.use({ viewport: { width: 1100, height: 760 }, trace: 'off',
-  launchOptions: { args: process.platform === 'win32' ? ['--use-angle=d3d11']
-    : ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu-sandbox'] } });
+test.use({ viewport: { width: 1100, height: 760 } });
 
 for (const initialQuality of ['preview', 'detail', 'startup']) {
 test(`zoom keeps loaded ${initialQuality} terrain painting while the next LOD is delayed`, async ({ page, baseURL }) => {
@@ -396,8 +401,7 @@ for (const setup of [
 featureTest.describe("terrain-inheritance", () => {
   const {  test, expect  } = __suiteDependency3;
   const {  writeFile  } = __suiteDependency4;
-test.use({ viewport: { width: 1280, height: 800 }, trace: 'off', screenshot: 'off',
-  launchOptions: { args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu-sandbox'] } });
+test.use({ viewport: { width: 1280, height: 800 } });
 
 for (const renderer of ['webgl2', 'canvas']) for (const mode of ['political', 'physical']) {
   test(`child land enters the viewport and survives paint toggles (${renderer}, ${mode})`, async ({ page }, testInfo) => {
@@ -491,10 +495,7 @@ test.use({
   viewport: { width: 390, height: 844 },
   isMobile: true,
   deviceScaleFactor: 2,
-  // Full trace snapshots compete with terrain uploads on SwiftShader.
-  // Keep failure metrics/screenshots without tracing every rendered frame.
-  trace: 'off',
-  launchOptions: { args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu-sandbox'] },
+  // Trace/driver options are selected once at the file worker boundary.
 });
 test.skip(process.env.PANDOLAB_VERIFY_LIVE_DEM !== '1' && !process.env.PANDOLAB_DEM_OUTPUT_DIR,
   'Opt in to hosted DEM network regression or provide generated DEM assets');
@@ -624,8 +625,7 @@ test('slow mobile globe retains loaded DEM while requesting promoted detail dire
 // Preserved Viewer feature contract: terrain-request-priority.spec.mjs
 featureTest.describe("terrain-request-priority", () => {
   const {  expect, test  } = __suiteDependency8;
-test.use({ viewport: { width: 1100, height: 760 }, trace: 'off',
-  launchOptions: { args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu-sandbox'] } });
+test.use({ viewport: { width: 1100, height: 760 } });
 
 test('rotating the globe loads the new viewport while obsolete responses remain stalled', async ({ page, baseURL }) => {
   test.setTimeout(150_000);
@@ -679,7 +679,7 @@ featureTest.describe("terrain-interaction-streaming", () => {
   const { expect,test } = __suiteDependency9;
   const { terrainDemFragmentSource } = __suiteDependency10;
   const { routeSyntheticDem } = __suiteDependency11;
-test.use({viewport:{width:1440,height:900},launchOptions:{args:process.platform==='win32'?['--use-angle=d3d11']:[]},trace:'off'});
+test.use({viewport:{width:1440,height:900}});
 
 // Flat encoded elevation with deliberately coarse precomputed shade. The
 // production shader must derive the same detailed light before/during input.

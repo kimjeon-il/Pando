@@ -6,6 +6,7 @@ import * as __suiteDependency3 from "@playwright/test";
 import * as __suiteDependency4 from "node:fs/promises";
 
 // Preserved Viewer feature contract: viewer-startup-and-terrain.spec.mjs
+featureTest.use({trace:'off'});
 featureTest.describe("viewer-startup-and-terrain", () => {
   const {  test, expect  } = __suiteDependency0;
   const {  writeFileSync  } = __suiteDependency1;
@@ -367,7 +368,7 @@ test('WebGL publishes an actual physical country frame before optional terrain d
 featureTest.describe("physical-land-time", () => {
   const {  test, expect  } = __suiteDependency3;
   const {  writeFile  } = __suiteDependency4;
-test.use({ viewport: { width: 1280, height: 800 }, trace: 'off' });
+test.use({ viewport: { width: 1280, height: 800 } });
 
 for (const renderer of ['canvas', 'webgl2']) test(`${renderer} keeps physical land across empty time and hidden objects with immutable Workers`, async ({ playwright }, info) => {
   test.setTimeout(180_000);
