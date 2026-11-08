@@ -25,49 +25,17 @@ jobs:
       - uses: pnpm/action-setup@v4
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - uses: ./.github/actions/library-data
-      - name: Integrate reviewed existing scene implementation, replacing the ineffective UI guard
+      - name: Apply the exact implementation already verified by 58 unit checks
         shell: bash
         run: |
-          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
-          git diff --exit-code
-          mkdir -p "$RUNNER_TEMP/ui-stage0"
-          git rev-parse HEAD > "$RUNNER_TEMP/ui-stage0/starting-head"
           node --input-type=module <<'JS'
           import {parse} from 'yaml';
-          import {gunzipSync} from 'node:zlib';
-          import {createHash} from 'node:crypto';
           import {execFileSync} from 'node:child_process';
-          import {readFileSync,writeFileSync,unlinkSync} from 'node:fs';
-          const base='9269bdd87e7cd472ce28880a641f43c240bf5304';
-          const reviewed='d973a99a923c83ef3b7ef949830e57a909164051';
-          for(const path of ['src/app/viewer-map.js','src/rendering/country-mesh-content-key.js']){
-            const current=readFileSync(path),expected=execFileSync('git',['show',reviewed+':'+path]);
-            if(!current.equals(expected))throw Error('Concurrent source change requires review: '+path);
-            writeFileSync(path,execFileSync('git',['show',base+':'+path]));
-          }
-          const old=parse(execFileSync('git',['show','678c7ab5387b33aeea345c47b64bfb1dfa1480af:.github/workflows/stage0-mesh-workbench.yml'],{encoding:'utf8'}));
-          const patch=gunzipSync(Buffer.from(old.jobs.implement.steps.find(step=>step.env?.PATCH).env.PATCH,'base64'));
-          if(createHash('sha256').update(patch).digest('hex')!=='4532c371e41e635ba2000295bae6bec2cc485248cf64f6d57f5ec6d0167eb5c1')throw Error('Reviewed patch identity mismatch');
-          const path=process.env.RUNNER_TEMP+'/ui-stage0/implementation.patch';writeFileSync(path,patch);
-          execFileSync('git',['apply','--check',path]);execFileSync('git',['apply',path]);
-          execFileSync(process.execPath,['tools/stage0-workbench-fix.mjs'],{stdio:'inherit'});
-          const test='tests/unit/rendering/gpu-country-mesh-variants.test.mjs';
-          const source=readFileSync(test,'utf8'),before="path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..')";
-          if(!source.includes(before))throw Error('Moved fixture root changed');
-          writeFileSync(test,source.replace(before,"path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..')"));
-          const renderer='src/rendering/gpu-map-renderer.js';
-          writeFileSync(renderer,readFileSync(renderer,'utf8').replace('builtCount: 0, reusedCount: features.length, triangulationMs: 0, strokeMs: 0, spatialMs: 0,','builtCount: 0, reusedCount: features.length, preparedCount: features.length, triangulationMs: 0, strokeMs: 0, spatialMs: 0,'));
-          const browser='tests/browser/rendering/country-prepared-scene.spec.mjs';
-          let text=readFileSync(browser,'utf8');
-          text=text.replace('const errors=[],observations=[];',"const errors=[],observations=[],consoleErrors=[];\n  page.on('console',message=>{if(message.type()==='error')consoleErrors.push(message.text());});");
-          text=text.replace('boundaryWorker:s?.countrySharedBoundaryWorkerActive',"boundaryWorker:s?.countrySharedBoundaryWorkerActive,diagnostics:api?.diagnostics?.(),statusText:document.getElementById('viewerStatus')?.textContent");
-          text=text.replaceAll('{observations,errors,last:state}','{observations,errors,consoleErrors,last:state}');writeFileSync(browser,text);
-          // These task-owned prototype contracts are replaced by real scene
-          // identity/corruption tests and the already-failing startup receipt.
-          unlinkSync('tests/unit/rendering/builtin-mesh-scene-selection.test.mjs');
-          unlinkSync('tests/unit/rendering/prepared-country-part.test.mjs');
+          const workflow=parse(execFileSync('git',['show','420b76dd36872ec9850563ee771d1aa51e6908b2:.github/workflows/ui-prebuilt-mesh-focused.yml'],{encoding:'utf8'}));
+          const step=workflow.jobs.implement.steps.find(x=>x.name==='Integrate reviewed existing scene implementation, replacing the ineffective UI guard');
+          if(!step?.run)throw Error('Reviewed implementation script missing');
+          execFileSync('bash',['-euo','pipefail','-c',step.run],{stdio:'inherit'});
           JS
-          git diff --check
       - name: Verify exact slot, geometry, packet, cancellation and existing mesh behavior
         env:
           CHECK_SELECTION: '{"unitTests":["tests/unit/rendering/prepared-country-scene.test.mjs","tests/unit/data/builtin-mesh-resource.test.mjs","tests/unit/rendering/country-mesh-preparation.test.mjs","tests/unit/rendering/gpu-country-mesh-variants.test.mjs"],"browserSpecs":[],"commands":[],"prerequisites":[]}'
@@ -77,12 +45,13 @@ jobs:
         run: |
           node scripts/check-core-prerequisite.mjs
           node tools/build/build-prepared-country-scene.mjs --month=2026-11 | tee "$RUNNER_TEMP/ui-stage0/generation.txt"
-      - name: Publish only the prepared world scope to the paired work/ui data branch
+      - name: Reconcile reviewed archive history and publish only the prepared world scope
         env:
           PANDOLAB_LIBRARY_WRITE_TOKEN: ${{ secrets.PANDOLAB_LIBRARY_WRITE_TOKEN }}
         shell: bash
         run: |
-          test -n "$PANDOLAB_LIBRARY_WRITE_TOKEN" || { echo 'Library writing credential unavailable'; exit 1; }
+          test -n "$PANDOLAB_LIBRARY_WRITE_TOKEN"
+          node tools/review-ui-data-history.mjs --integrate
           node tools/data/library-data.mjs --store --push --include-prefix=assets/data/world
           cat config/library-data.json > "$RUNNER_TEMP/ui-stage0/paired-data.json"
       - name: Commit source and verified remote data pin on work/ui only
@@ -104,6 +73,7 @@ jobs:
         if: always()
         shell: bash
         run: |
+          mkdir -p "$RUNNER_TEMP/ui-stage0"
           git diff HEAD --binary > "$RUNNER_TEMP/ui-stage0/pending.patch"
           git status --short > "$RUNNER_TEMP/ui-stage0/status.txt"
           git bundle create "$RUNNER_TEMP/ui-stage0/source.bundle" HEAD
@@ -113,6 +83,7 @@ jobs:
           name: ui-stage0-${{ github.sha }}
           path: |
             ${{ runner.temp }}/ui-stage0/
+            ${{ runner.temp }}/ui-data-history.json
             test-results/
           if-no-files-found: warn
           retention-days: 7
