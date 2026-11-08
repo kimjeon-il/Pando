@@ -35,6 +35,8 @@ jobs:
           node --test --test-concurrency=1 \
             tests/unit/gpu-base-scene-order.test.mjs \
             tests/unit/gpu-scene-staging.test.mjs \
+            tests/unit/gpu-resource-owners.test.mjs \
+            tests/unit/gpu-stroke-renderer.test.mjs \
             tests/unit/gpu-helper-utils.test.mjs \
             tests/unit/canvas-country-geometry.test.mjs \
             tests/unit/gpu-canvas-worker.test.mjs \
