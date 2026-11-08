@@ -60,7 +60,28 @@ for(const row of plan.files){
       try {
         bytes=execFileSync('git',['merge-file','-p',ours,ancestor,theirs],{maxBuffer:8*1024*1024});
       } catch(error) {
-        throw Error('Three-way merge conflict; no changes applied: '+path+' (exit '+error.status+')');
+        // A whole-file merge can report a conflict when an unrelated adjacent
+        // section changed. Apply only the exact reviewed diff with normal
+        // context; git apply rejects any nonmatching hunk.
+        let delta;
+        try {
+          delta=execFileSync('git',['diff','--no-index','--unified=3','--','ancestor','reviewed'],{cwd:temp,maxBuffer:8*1024*1024});
+        } catch(diffError) {
+          if(diffError.status!==1)throw diffError;
+          delta=diffError.stdout;
+        }
+        const patch=delta.toString('utf8')
+          .replace(/^diff --git a\\/ancestor b\\/reviewed/m,'diff --git a/current b/current')
+          .replace(/^--- a\\/ancestor/m,'--- a/current')
+          .replace(/^\\+\\+\\+ b\\/reviewed/m,'+++ b/current');
+        try {
+          execFileSync('git',['apply','--check','-'],{cwd:temp,input:patch,maxBuffer:8*1024*1024});
+          execFileSync('git',['apply','-'],{cwd:temp,input:patch,maxBuffer:8*1024*1024});
+          bytes=readFileSync(ours);
+          console.log('Merged using context-checked independent hunks: '+path);
+        } catch(applyError) {
+          throw Error('Merge conflict requires manual review: '+path+' (merge '+error.status+', hunk '+applyError.status+')');
+        }
       }
     } finally {
       rmSync(temp,{recursive:true,force:true});
