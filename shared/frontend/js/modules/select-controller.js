@@ -59,6 +59,13 @@ export function createSelectController({
   let documentObserver = null;
   let componentSequence = 0;
   let positionFrame = 0;
+  let disposed = false;
+  const subscriptions = [];
+  const listen = (node, event, handler, options) => {
+    if (!node) return;
+    node.addEventListener(event, handler, options);
+    subscriptions.push(() => node.removeEventListener(event, handler, options));
+  };
 
   function nativeSelectValue(select) {
     return nativeValueDescriptor?.get ? nativeValueDescriptor.get.call(select) : select.value;
@@ -206,6 +213,7 @@ export function createSelectController({
     const selectedIndex = options.findIndex(option => option.value === selected?.value);
     setActiveOption(component, selectedIndex >= 0 ? selectedIndex : 0, { scroll: false });
     windowRef.requestAnimationFrame(() => {
+      if (disposed) return;
       const active = component.listbox.querySelector('.ui-select-option.is-active');
       active?.scrollIntoView({ block: 'nearest' });
     });
@@ -348,9 +356,12 @@ export function createSelectController({
   }
 
   function enhance(select) {
+    if (disposed) return null;
     if (!select || components.has(select) || select.multiple || Number(select.size || 0) > 1 || select.hasAttribute('data-native-select')) return components.get(select) || null;
     componentSequence += 1;
     const componentId = select.id || `uiSelect${componentSequence}`;
+    const originalTabIndex = select.getAttribute('tabindex');
+    const originalAriaHidden = select.getAttribute('aria-hidden');
     const label = associatedLabelText(select, documentRef);
     const shell = documentRef.createElement('div');
     shell.className = 'ui-select-shell';
@@ -402,17 +413,21 @@ export function createSelectController({
       open: false,
       activationPointerType: '',
       observer: null,
+      originalTabIndex,
+      originalAriaHidden,
+      ownsValueDescriptor: false,
     };
     components.set(select, component);
 
     if (nativeValueDescriptor?.get && nativeValueDescriptor?.set && !Object.hasOwn(select, 'value')) {
+      component.ownsValueDescriptor = true;
       Object.defineProperty(select, 'value', {
         configurable: true,
         enumerable: nativeValueDescriptor.enumerable,
         get() { return nativeValueDescriptor.get.call(this); },
         set(value) {
           nativeValueDescriptor.set.call(this, String(value ?? ''));
-          windowRef.queueMicrotask(() => sync(this));
+          windowRef.queueMicrotask(() => { if (!disposed) sync(this); });
         },
       });
     }
@@ -437,9 +452,9 @@ export function createSelectController({
     control.addEventListener('input', () => scheduleQueryRender(component));
     control.addEventListener('compositionupdate', () => scheduleQueryRender(component));
     control.addEventListener('compositionend', () => scheduleQueryRender(component));
-    select.addEventListener('input', () => sync(select));
-    select.addEventListener('change', () => sync(select));
-    select.addEventListener('focus', () => control.focus({ preventScroll: true }));
+    listen(select, 'input', () => sync(select));
+    listen(select, 'change', () => sync(select));
+    listen(select, 'focus', () => control.focus({ preventScroll: true }));
     component.observer = new windowRef.MutationObserver(() => windowRef.queueMicrotask(() => sync(select)));
     component.observer.observe(select, { attributes: true, childList: true, characterData: true, subtree: true });
     sync(select);
@@ -447,6 +462,7 @@ export function createSelectController({
   }
 
   function enhanceAll(root = documentRef) {
+    if (disposed) return 0;
     root.querySelectorAll?.('select').forEach(enhance);
     if (!documentObserver) {
       documentObserver = new windowRef.MutationObserver(records => {
@@ -463,16 +479,16 @@ export function createSelectController({
     return components.size;
   }
 
-  documentRef.addEventListener('pointerdown', event => {
+  listen(documentRef, 'pointerdown', event => {
     if (!activeComponent) return;
     if (activeComponent.shell.contains(event.target) || activeComponent.popover.contains(event.target)) return;
     closeActive();
   }, true);
-  documentRef.addEventListener('reset', () => windowRef.queueMicrotask(() => components.forEach((_, select) => sync(select))), true);
-  windowRef.addEventListener('resize', () => schedulePosition());
-  windowRef.visualViewport?.addEventListener('resize', () => schedulePosition());
-  windowRef.visualViewport?.addEventListener('scroll', () => schedulePosition());
-  documentRef.addEventListener('scroll', event => {
+  listen(documentRef, 'reset', () => windowRef.queueMicrotask(() => { if (!disposed) components.forEach((_, select) => sync(select)); }), true);
+  listen(windowRef, 'resize', () => schedulePosition());
+  listen(windowRef.visualViewport, 'resize', () => schedulePosition());
+  listen(windowRef.visualViewport, 'scroll', () => schedulePosition());
+  listen(documentRef, 'scroll', event => {
     if (activeComponent?.popover.contains(event.target)) return;
     schedulePosition();
   }, true);
@@ -483,5 +499,29 @@ export function createSelectController({
     sync,
     closeAll: closeActive,
     get size() { return components.size; },
+    dispose() {
+      if (disposed) return;
+      disposed = true;
+      closeActive();
+      if (positionFrame) windowRef.cancelAnimationFrame(positionFrame);
+      positionFrame = 0;
+      documentObserver?.disconnect();
+      documentObserver = null;
+      for (const unsubscribe of subscriptions.splice(0)) unsubscribe();
+      for (const [select, component] of components) {
+        component.observer?.disconnect();
+        if (component.queryFrame) windowRef.cancelAnimationFrame(component.queryFrame);
+        if (component.ownsValueDescriptor) delete select.value;
+        if (component.originalTabIndex === null) select.removeAttribute('tabindex');
+        else select.setAttribute('tabindex', component.originalTabIndex);
+        if (component.originalAriaHidden === null) select.removeAttribute('aria-hidden');
+        else select.setAttribute('aria-hidden', component.originalAriaHidden);
+        select.classList.remove('ui-native-select');
+        component.shell.before(select);
+        component.shell.remove();
+        component.popover.remove();
+      }
+      components.clear();
+    },
   });
 }

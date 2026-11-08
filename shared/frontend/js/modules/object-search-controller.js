@@ -27,6 +27,13 @@ export function createObjectSearchController({
   let renderedSearchRefs = [];
   let hydrated = false;
   let disposed = false;
+  let bound = false;
+  const subscriptions = [];
+  const listen = (node, name, handler) => {
+    if (!node) return;
+    node.addEventListener(name, handler);
+    subscriptions.push(() => node.removeEventListener(name, handler));
+  };
   let searchGeneration = 0;
   let builtinQuery = null;
   let builtinRows = [];
@@ -205,46 +212,51 @@ export function createObjectSearchController({
     return true;
   }
 
-  function selectResult(target, event) {
-    if (!currentRow(target)) return;
+  async function selectResult(target, event) {
+    if (!currentRow(target)) return false;
     const group = target.dataset.objectSearchSelect;
     const id = target.dataset.itemId;
-    if (!group || !id) return;
+    if (!group || !id) return false;
     const additive = event.ctrlKey || event.metaKey;
     const range = event.shiftKey;
-    const didSelect = commands.selectItem({
-      group,
-      id,
-      additive,
-      range,
+    const queryRevision = searchGeneration, rowTicket = rowRevision;
+    const selected = await commands.selectItem({
+      group, id, additive, range,
       orderedRefs: range ? renderedSearchRefs : [],
     });
-    if (didSelect && !additive && !range) commands.closeAfterSingleSelection?.();
+    if (disposed || projectSuspended || queryRevision !== searchGeneration || rowTicket !== rowRevision) return false;
+    if (selected === true && !additive && !range) commands.closeAfterSingleSelection?.();
+    return selected === true;
   }
 
-  function focusResult(target) {
-    if (!currentRow(target)) return;
+  async function focusResult(target) {
+    if (!currentRow(target)) return false;
     const group = target.dataset.objectSearchFocus;
     const id = target.dataset.itemId;
-    if (!group || !id) return;
-    commands.selectItem({ group, id, additive: false, range: false, orderedRefs: [] });
+    if (!group || !id) return false;
+    const rowTicket = rowRevision, queryRevision = searchGeneration;
+    const selected = await commands.selectItem({ group, id, additive: false, range: false, orderedRefs: [] });
+    if (selected !== true || disposed || projectSuspended || rowTicket !== rowRevision || queryRevision !== searchGeneration) return false;
     commands.focusItem?.(group, id);
+    return true;
   }
 
   function bind() {
+    if (bound || disposed) return;
+    bound = true;
     const hoverRow = event => event.target.closest('[data-object-search-select]');
-    elements.searchResults?.addEventListener('pointerover', event => {
+    listen(elements.searchResults, 'pointerover', event => {
       if (event.pointerType === 'touch') return;
       const row = hoverRow(event);
       if (currentRow(row) && !row.contains(event.relatedTarget))
         commands.hoverItem?.(row.dataset.objectSearchSelect, row.dataset.itemId, true);
     });
-    elements.searchResults?.addEventListener('pointerout', event => {
+    listen(elements.searchResults, 'pointerout', event => {
       const row = hoverRow(event);
       if (currentRow(row) && !row.contains(event.relatedTarget))
         commands.hoverItem?.(row.dataset.objectSearchSelect, row.dataset.itemId, false);
     });
-    elements.search?.addEventListener('input', event => {
+    listen(elements.search, 'input', event => {
       searchGeneration += 1;
       builtinQuery = null;
       cancelBuiltinSearch();
@@ -255,21 +267,21 @@ export function createObjectSearchController({
         render();
       }, searchDelay);
     });
-    elements.searchClear?.addEventListener('click', () => {
+    listen(elements.searchClear, 'click', () => {
       if (!elements.search) return;
       elements.search.value = '';
       elements.search.dispatchEvent(new window.Event('input', { bubbles: true }));
       elements.search.focus({ preventScroll: true });
     });
-    elements.searchResults?.addEventListener('click', event => {
+    listen(elements.searchResults, 'click', event => {
       const focus = event.target.closest('[data-object-search-focus]');
       if (focus) {
         event.preventDefault();
-        focusResult(focus);
+        void focusResult(focus).catch(onSearchError);
         return;
       }
       const row = event.target.closest('[data-object-search-select]');
-      if (row) selectResult(row, event);
+      if (row) void selectResult(row, event).catch(onSearchError);
     });
   }
 
@@ -319,7 +331,10 @@ export function createObjectSearchController({
   }
 
   function dispose() {
+    if (disposed) return;
     disposed = true;
+    for (const unsubscribe of subscriptions.splice(0)) unsubscribe();
+    bound = false;
     projectSuspended = false;
     projectTransition++;
     if (elements.searchResults) {

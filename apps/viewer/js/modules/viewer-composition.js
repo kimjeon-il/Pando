@@ -59,7 +59,7 @@ export async function composeViewer({ productMode, meta }) {
   const notifications=createNotificationPresentation({document,getElement:get,isMobile:()=>surfaces.isMobile(),protectErrorNotices:true});
   const report=(error,message='작업을 완료하지 못했습니다.',code='PL-MAP-OPERATION')=>notifications.reportOperationError(error,message,code);
   const documentSession=createDocumentSession({productMode,readOnly:true,initialProject:createInitialDocument({appVersion:meta.appVersion})});
-  const disposables=[preferencePresentation,surfaces,notifications,documentSession.commandOwner,initialPresentation];
+  const disposables=[selectController,preferencePresentation,surfaces,notifications,documentSession.commandOwner,initialPresentation];
   async function composeMap() {
   let openingPreserved=null;
   const projectDomain=createProjectDomain({productMode,readOnly:true,commandOwner:documentSession.commandOwner,documentModel:documentSession.documentModel,
