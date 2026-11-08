@@ -189,6 +189,10 @@ export function createGpuMapRenderer(deps) {
     const temporalPending = () => !!temporalPresentation && !temporalPresentation.presented;
     function canPresentVisualFrame(frame, result = null, { canvasPresented = false } = {}) {
       if (projectRenderBlocked || result?.preserved || result?.succeeded === false) return false;
+      // Do not commit a partial framebuffer as a recovered map. Recovery
+      // ownership is released only by its actual source-matched GL submission.
+      if (gpuRecovery.snapshot().active && (!gpuRecoveryFrameEvidence
+        || gpuRecoveryFrameEvidence.frame !== frame)) return false;
       if (!temporalPending()) return true;
       if (result?.deferred && !canvasPresented) return false;
       return !temporalPresentation.error && temporalPresentation.isCurrent()
@@ -345,6 +349,11 @@ export function createGpuMapRenderer(deps) {
         previewVerified: landReady,
         backgroundPresented: temporalPending() || countriesPublishedGeneration === projectGeneration
           || !!backgroundPresentedKey && backgroundPresentedKey === backgroundTargetKey(),
+        // Restoration redraws the same validated document/mesh in one pass.
+        // Do not force the quality back to pending while waiting for the new
+        // GL context's first actual frame. This is not a readiness certificate.
+        recoveryDrawing: gpuRecovery.snapshot().active && isWebGlRenderer()
+          && canonicalMeshReady && !projectRenderBlocked && !!renderScene,
       });
       desiredCountryMeshQuality = nextPresentation.targetQuality;
       const changed = nextPresentation.quality !== surfacePresentation.quality;
@@ -3913,12 +3922,23 @@ export function createGpuMapRenderer(deps) {
     }
 
     function prewarmCountryStrokeResources() {
-      if (shouldShowSharedCountryBorders(state.physicalSettings)) return false;
-      if (!strokeRenderer.isAvailable?.() || !mesh) return false;
+      if (!strokeRenderer.isAvailable?.()) return false;
       if (meshQuality === 'canonical' && !canonicalMeshReady) return false;
+      const sharedOnly = shouldShowSharedCountryBorders(state.physicalSettings);
       const packets = new Map();
-      for (const resource of Object.values(currentCountryStrokeResources())) {
-        if (resource?.packet) packets.set(resource.packet.key, resource.packet);
+      // The actual drawn country boundary is the shared prepared packet,
+      // not the mesh's legacy fallback. It must be queued after GL restoration
+      // even when "shared borders only" is selected.
+      if (countrySharedBoundary?.sourceQuality === surfacePresentation.quality
+          && countrySharedBoundary.sourceProjectGeneration === projectGeneration) {
+        for (const packet of globalThis.PandoLabCanvasSceneComposition.countryBoundaryBatches(
+          countrySharedBoundary, mapTheme(), sharedOnly, countryBoundaryStyleById))
+          packets.set(packet.key, packet);
+      }
+      if (!sharedOnly && mesh) {
+        for (const resource of Object.values(currentCountryStrokeResources())) {
+          if (resource?.packet) packets.set(resource.packet.key, resource.packet);
+        }
       }
       for (const packet of packets.values()) strokeRenderer.ensureResource(packet);
       return packets.size > 0;
@@ -4248,6 +4268,21 @@ export function createGpuMapRenderer(deps) {
       performanceMetrics.webGlLastFrameSceneDrawCalls = {
         direct, polygons, strokes, total: direct + polygons + strokes,
       };
+      if (gpuRecovery.snapshot().active) {
+        // Persistent bounded diagnosis for real recovery failures, never a
+        // fabricated readiness signal or a test-specific source replacement.
+        performanceMetrics.gpuRecoveryFrameDependencies = {
+          quality: surfacePresentation.quality,
+          baseSubmitted: !!baseResult && !baseSubmissionFailed,
+          physicalSceneMatched: physicalSceneMatchesContext(renderScene, getPhysicalContextState()),
+          physicalLandPrepared: preparedBaseScene?.physicalLandItems?.every(({ packet }) =>
+            polygonOverlayPass.hasPreparedResource(packet)) === true,
+          countryStrokeReady: baseResult?.countryStrokeResult?.succeeded === true,
+          missingOverlayKeys: (baseResult?.overlayMissingKeys || []).slice(0, 8),
+          failedOverlayKeys: (baseResult?.overlayFailures || []).slice(0, 8).map(item => item.key),
+          deferredOverlayCount: preparedBaseScene?.deferredOverlayKeys?.size || 0,
+        };
+      }
       displayedRenderRevision = currentRenderRevision;
       if (mesh && baseResult && !baseSubmissionFailed) markPreviewFramePresented();
       if (!webglContextLost && baseResult && !baseSubmissionFailed) recordMapPresentation(visualFrame,
