@@ -135,7 +135,10 @@ for(const month of [...months].sort()){
   country.timelineRecords.geometryBindings.find(row=>temporalContains(row,temporalMonthEnd(month)))?.geometryRef]));
  if(seenScopes.has(signature))continue;seenScopes.add(signature);
  const project=assembleBuiltinWorld({...index,entities:wanted.filter(row=>needed.has(row.entityId))},selected,month);
- if(selectedIds)for(const geometry of project.geometries)collect(geometry.geojson);
+ if(selectedIds){
+  const activeRefs=new Set(project.timelineRecords.geometryBindings.filter(row=>temporalContains(row,temporalMonthEnd(month))).map(row=>JSON.stringify([row.geometryRef.id,row.geometryRef.version])));
+  for(const geometry of project.geometries)if(activeRefs.has(JSON.stringify([geometry.id,geometry.version])))collect(geometry.geojson);
+ }
  const archive=createGeometryVersionStore(project.geometries),world=resolveWorld(project.territorialEntities,project.timelineRecords,archive,month);
  const features=world.entities.map(row=>({...row.identity,geometry:row.geometry,properties:{...row.identity.properties,parentId:row.parentId}}));
  const byId=new Map(features.map(feature=>[feature.id,feature]));

@@ -15,7 +15,7 @@ const cursor=(session,month)=>session.setTimelineCursor(month,session.projectSta
 const execute=(session,field,value)=>session.executeCommand({commandId:'territorial.field',expectedEpoch:session.projectState().epoch,
   targets:[{domain:'territorial',id:'A'}],payload:{id:'A',field,value}});
 const name=session=>session.resolveWorld(session.projectState().timelineCursor,session.projectState().epoch).entities
-  .find(row=>row.id==='A').properties.name?.name ?? seed.territorialEntities.find(row=>row.id==='A').properties.name;
+  .find(row=>row.objectRef.id==='A').properties.name?.name ?? seed.territorialEntities.find(row=>row.id==='A').properties.name;
 
 test('startup empty state is admitted by the current C++ timeline contract',()=>{
   const empty=createEmptyTerritorialState();
@@ -51,16 +51,17 @@ test('dated names preserve previous months and the next explicit change',()=>{
   }finally{session.delete();}
 });
 
-test('cursor-only export restores the work month without changing history or dirty state',()=>{
+test('cursor-only export preserves creation month, history and dirty state',()=>{
   const session=new core.DocumentSession({validateFlagDataUrl:()=>{}}),restored=new core.DocumentSession({validateFlagDataUrl:()=>{}});
   try {
     session.documentLoad(JSON.stringify(seed),'2026-10');const before=session.projectState();cursor(session,'2012-01');
     const state=session.projectState();assert.equal(state.dirty,before.dirty);assert.equal(state.canUndo,before.canUndo);
     const exported=session.exportSnapshot({expectedEpoch:state.epoch,format:'pandolab-project-state',version:'0.36.0',savedAt:'2026-10-16T00:00:00Z'});
-    assert.equal(JSON.parse(exported.storageJson).editorState.lastViewedMonth,'2012-01');
+    assert.equal(JSON.parse(exported.storageJson).projectSetup.initialMonth,seed.projectSetup.initialMonth);
     const prepared=restored.validateImport(exported.storageJson,null);
-    assert.equal(prepared.editorState.lastViewedMonth,'2012-01');
-    restored.documentLoad(JSON.stringify(prepared),'2026-10');assert.equal(restored.projectState().timelineCursor,'2012-01');
+    assert.equal(prepared.projectSetup.initialMonth,seed.projectSetup.initialMonth);
+    restored.documentLoad(JSON.stringify(prepared),'2026-10');assert.equal(restored.projectState().timelineCursor,seed.projectSetup.initialMonth);
+    cursor(restored,'2012-01');
     assert.equal(execute(restored,'name','Resumed').ok,true);
     cursor(restored,'2011-01');assert.equal(name(restored),seed.territorialEntities.find(row=>row.id==='A').properties.name);
   }finally{session.delete();restored.delete();}
