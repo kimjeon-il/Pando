@@ -125,7 +125,7 @@ The present German Empire 1914 working geometry still has provisional modern
 coastline sections.
 
 Validate its data contract with
-`node --test tests/unit/historical-german-coastline-events.test.mjs`.
+`node --test tests/unit/document/historical-german-coastline-events.test.mjs`.
 
 ## German Empire 1914 working base
 
@@ -234,7 +234,7 @@ curated DDR version without writing any assets:
 micromamba create -y -f tools/cpp/territorial-recipe-environment.yml
 micromamba run -n pando-territorial-recipe cmake -S tools/cpp -B build-native/territorial-recipe -G Ninja -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_TERRITORIAL_RECIPE=ON
 micromamba run -n pando-territorial-recipe cmake --build build-native/territorial-recipe --target pando-territorial-recipe
-PANDO_TERRITORIAL_RECIPE_BINARY="$PWD/build-native/territorial-recipe/pando-territorial-recipe" micromamba run -n pando-territorial-recipe node --test tests/unit/territorial-recipe-cpp.test.mjs
+PANDO_TERRITORIAL_RECIPE_BINARY="$PWD/build-native/territorial-recipe/pando-territorial-recipe" micromamba run -n pando-territorial-recipe node --test tests/unit/document/territorial-recipe-cpp.test.mjs
 ```
 
 The focused test checks all five source SHA-256 values, component/ring/vertex

@@ -35,7 +35,7 @@ node tools/gis/place-batch-pipeline.mjs finalize \
   --output reports/places/tier1-major-cities-batch16-reviewed.json
 
 # 6. 독립 단위 검사
-node --test tests/unit/place-batch-pipeline.test.mjs
+node --test tests/unit/document/place-batch-pipeline.test.mjs
 ```
 
 `plan`은 출력 경로를 생략하면 결과 JSON을 터미널에 출력한다. 정상 상태에서 `.cache/refined-candidates.ndjson`이 없으면 `review`를 먼저 실행해야 한다. `.cache`의 검증된 ZIP 소스 자체가 없는 환경에서는 기존 `fetch`→`build`→`review` 순서를 적용하되, 원본 스냅샷이 바뀌면 기존 판정 근거·해시를 먼저 재검토한다. 임의의 후보 파일을 시험할 때만 `--candidates ... --skip-source-hash-check`를 사용한다.

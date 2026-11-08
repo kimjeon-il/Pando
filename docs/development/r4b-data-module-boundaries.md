@@ -27,6 +27,6 @@ The unchanged shared C++/WASM Core still validates time, geometric revisions, co
 3. Generic Feature schema v2 canonical keys, provenance, rejects duplicate IDs and forbidden fields; no input mutation in collection normalization.
 4. Historical library day-precision validity boundary inclusion, no rewritten source geometry.
 5. No imports from retired editor source in canonical modules; no direct Core mutation commands in normalization; active GIS and Windows staging tests must pass.
-6. Run `node --test tests/unit/r4b-data-module-boundaries.test.mjs`, R4 pruning/architecture CI, current historical GIS and Windows E5/E6/E7.
+6. Run `node --test tests/unit/document/r4b-data-module-boundaries.test.mjs`, R4 pruning/architecture CI, current historical GIS and Windows E5/E6/E7.
 
 The pre-existing R4 source-pruning count (45 of 153) remains unchanged; this stage is **module separation**, not a claim of full R4 deletion. The remaining archived editor tree is a later R4-D/E concern.

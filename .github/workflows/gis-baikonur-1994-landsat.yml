@@ -4,7 +4,7 @@ on:
     branches: [work/gis]
     paths:
       - 'tools/gis/probe-baikonur-1994-landsat.mjs'
-      - 'tests/unit/gis-baikonur-1994-landsat.test.mjs'
+      - 'tests/unit/geometry/gis-baikonur-1994-landsat.test.mjs'
       - '.github/workflows/gis-baikonur-1994-landsat.yml'
   workflow_dispatch:
 permissions:
@@ -21,7 +21,7 @@ jobs:
         with:
           node-version: '24'
       - name: Test strict historic-scene selection against offline fixtures
-        run: node --test tests/unit/gis-baikonur-1994-landsat.test.mjs
+        run: node --test tests/unit/geometry/gis-baikonur-1994-landsat.test.mjs
       - name: Query independent USGS archive for 1994/1995 and 2019/2020
         run: |
           node tools/gis/probe-baikonur-1994-landsat.mjs             --output "$RUNNER_TEMP/baikonur-historic-satellite-scenes.json"

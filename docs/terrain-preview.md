@@ -55,10 +55,10 @@ WebGL의 화면 내 sampling과 Canvas의 생성 타일 sampling은
 ```text
 node tools/build/build-terrain-preview.mjs --check
 node tools/build/build-terrain-preview.mjs --rebuild-check
-node --test tests/unit/terrain-preview-native.test.mjs tests/unit/terrain-preview-sources.test.mjs tests/unit/terrain-preview-grid.test.mjs tests/unit/terrain-preview-builder.test.mjs tests/unit/terrain-preview-cli.test.mjs
+node --test tests/unit/geometry/terrain-preview-native.test.mjs tests/unit/terrain-preview-sources.test.mjs tests/unit/terrain-preview-grid.test.mjs tests/unit/build/terrain-preview-builder.test.mjs tests/unit/terrain-preview-cli.test.mjs
 node tools/checks/check-terrain-preview.mjs --out terrain-preview-evidence.json
-node --test tests/unit/terrain-preview-audit.test.mjs tests/unit/terrain-manifest.test.mjs tests/unit/canvas-terrain-dem-core.test.mjs tests/unit/physical-layer-service.test.mjs
-pnpm exec playwright test tests/browser/terrain-preview.spec.mjs
+node --test tests/unit/geometry/terrain-preview-audit.test.mjs tests/unit/terrain-manifest.test.mjs tests/unit/canvas-terrain-dem-core.test.mjs tests/unit/rendering/physical-layer-service.test.mjs
+pnpm exec playwright test tests/browser/geometry/terrain-preview.spec.mjs
 ```
 
 검증용 DEM 원본 캐시는 `.terrain-preview-cache/source/`에 둔다. Playwright의

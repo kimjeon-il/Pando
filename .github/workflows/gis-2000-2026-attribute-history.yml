@@ -47,7 +47,7 @@ jobs:
         run: |
           node tools/gis/apply-2000-2026-name-flag-history.mjs --plan
           node tools/gis/apply-2000-2026-additional-attributes.mjs --plan
-          node --test tests/unit/gis-2000-2026-attribute-history.test.mjs
+          node --test tests/unit/data/gis-2000-2026-attribute-history.test.mjs
       - name: Apply approved name and flag records; regenerate coupled index and world
         run: |
           node tools/gis/apply-2000-2026-name-flag-history.mjs --apply
@@ -55,7 +55,7 @@ jobs:
       - name: Verify generated chunks and real dated world snapshot properties
         run: |
           node tools/build/build-territorial-entity-chunks.mjs --check
-          node --test tests/unit/gis-2000-2026-attribute-history.test.mjs
+          node --test tests/unit/data/gis-2000-2026-attribute-history.test.mjs
       - name: Store and push changed source, chunk and world bytes with the library owner
         run: |
           node tools/data/library-data.mjs --store-and-stage --push \
@@ -72,7 +72,7 @@ jobs:
       - name: Install focused browser runtime
         run: pnpm exec playwright install --with-deps chromium
       - name: Verify historical flags and names in the actual editor
-        run: pnpm exec playwright test tests/browser/viewer-calendar.spec.mjs tests/browser/viewer-calendar.spec.mjs --workers=1 --retries=0 --trace off
+        run: pnpm exec playwright test tests/browser/document/viewer-calendar.spec.mjs tests/browser/document/viewer-calendar.spec.mjs --workers=1 --retries=0 --trace off
       - name: Pin verified data on work/gis only; never merge main
         shell: bash
         run: |

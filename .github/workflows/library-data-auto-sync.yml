@@ -5,7 +5,7 @@ on:
     paths:
       - 'scripts/library-auto-*.mjs'
       - 'scripts/lib/library-auto-*.mjs'
-      - 'tests/unit/library-auto-*.test.mjs'
+      - 'tests/unit/**/library-auto-*.test.mjs'
       - 'tools/data/library-data.mjs'
       - 'config/library-auto-sync.json'
       - 'config/library-auto-work-gis-request.json'
@@ -43,7 +43,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - run: node --test tests/unit/library-auto-{sync,inputs,publication,runtime,executor,github}.test.mjs tests/unit/library-data-scope.test.mjs tests/unit/library-data-auth.test.mjs
+      - run: node --test tests/unit/library-auto-{sync,inputs,publication,runtime,executor,github}.test.mjs tests/unit/data/library-data-scope.test.mjs tests/unit/data/library-data-auth.test.mjs
   gate:
     if: github.repository == 'kimjeon-il/Pando'
     runs-on: ubuntu-24.04

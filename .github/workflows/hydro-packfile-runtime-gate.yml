@@ -7,7 +7,7 @@ on:
       - 'src/rendering/workers/hydro-shard-store.js'
       - 'src/rendering/workers/hydro-tile-worker.js'
       - 'tools/build/build-hydro-packfile.mjs'
-      - 'tests/unit/hydro-packfile.test.mjs'
+      - 'tests/unit/data/hydro-packfile.test.mjs'
       - '.github/workflows/hydro-packfile-runtime-gate.yml'
   workflow_dispatch:
 
@@ -29,7 +29,7 @@ jobs:
             /src/rendering/workers/hydro-tile-worker.js
             /assets/data/hydro/v0.13.2/
             /tools/build/build-hydro-packfile.mjs
-            /tests/unit/hydro-packfile.test.mjs
+            /tests/unit/data/hydro-packfile.test.mjs
             /tools/data/library-*.mjs
             /scripts/lib/frontend-layout.mjs
             /tools/data/library-report-layout.mjs
@@ -56,6 +56,6 @@ jobs:
         run: |
           node tools/build/build-hydro-packfile.mjs --source historical-hydro/assets/data/hydro/v0.13.1 --output "$RUNNER_TEMP/hydro-pinned"
           node tools/build/build-hydro-packfile.mjs --source historical-hydro/assets/data/hydro/v0.13.1 --output "$RUNNER_TEMP/hydro-pinned" --check
-          node --test tests/unit/hydro-packfile.test.mjs
+          node --test tests/unit/data/hydro-packfile.test.mjs
           node --check src/rendering/workers/hydro-tile-worker.js
           node --check src/rendering/workers/hydro-shard-store.js

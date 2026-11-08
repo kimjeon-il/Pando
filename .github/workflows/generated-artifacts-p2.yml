@@ -72,7 +72,7 @@ jobs:
           node-version-file: '.nvmrc'
       - name: Test source fingerprint, rebuild selection, publication guard
         if: github.event_name == 'push' || inputs.verification == 'full'
-        run: node --test tests/unit/p2-artifact-plan.test.mjs tests/unit/shared-core-assets.test.mjs tests/unit/p2-publication-paths.test.mjs tests/unit/library-data.test.mjs
+        run: node --test tests/unit/build/p2-artifact-plan.test.mjs tests/unit/document/shared-core-assets.test.mjs tests/unit/data/p2-publication-paths.test.mjs tests/unit/data/library-data.test.mjs
       - name: Read the declared place-report generation inputs
         run: node tools/data/report-paths.mjs reports/places read
       - name: Select only stale source-derived assets
@@ -182,15 +182,15 @@ jobs:
         run: >-
           node --test shared/tests/p5-country-contact-wasm.test.mjs
           shared/tests/p5-boundary-split-wasm.test.mjs shared/tests/p5-polygon-mesh-wasm.test.mjs
-          tests/unit/country-shared-boundary.test.mjs
-          tests/unit/boundary-lines.test.mjs
+          tests/unit/geometry/country-shared-boundary.test.mjs
+          tests/unit/geometry/boundary-lines.test.mjs
       - name: Verify changed temporal editing and place naming
         if: inputs.verification == 'temporal'
         env:
           PANDOEDITOR_WASM_MODULE: ${{ github.workspace }}/assets/wasm/pandoeditor-core.js
         run: >-
           node --test shared/tests/temporal-editing.test.mjs
-          tests/unit/place-names.test.mjs tests/unit/territorial-entity-repository.test.mjs
+          tests/unit/document/place-names.test.mjs tests/unit/document/territorial-entity-repository.test.mjs
       - uses: actions/upload-artifact@v4
         if: always() && inputs.verification == 'temporal'
         with:
@@ -205,15 +205,15 @@ jobs:
         if: inputs.verification == 'full'
         shell: bash
         run: |
-          node --test tests/unit/shared-core-assets.test.mjs tests/unit/core-wasm-loader.test.mjs
-          PANDOEDITOR_WASM_MODULE="$PWD/assets/wasm/pandoeditor-core.js" node --test shared/tests/wasm-document-session.test.mjs shared/tests/p5-spherical-area-wasm.test.mjs shared/tests/p5-temporal-wasm.test.mjs shared/tests/p5-timeline-wasm.test.mjs shared/tests/p5-boundary-chains-wasm.test.mjs shared/tests/p5-boundary-packet-wasm.test.mjs shared/tests/p5-boundary-interiors-wasm.test.mjs shared/tests/p5-boundary-overlap-wasm.test.mjs shared/tests/p5-boundary-refinement-wasm.test.mjs shared/tests/p5-boundary-split-wasm.test.mjs shared/tests/p5-country-contact-wasm.test.mjs tests/unit/boundary-lines.test.mjs
+          node --test tests/unit/document/shared-core-assets.test.mjs tests/unit/runtime/core-wasm-loader.test.mjs
+          PANDOEDITOR_WASM_MODULE="$PWD/assets/wasm/pandoeditor-core.js" node --test shared/tests/wasm-document-session.test.mjs shared/tests/p5-spherical-area-wasm.test.mjs shared/tests/p5-temporal-wasm.test.mjs shared/tests/p5-timeline-wasm.test.mjs shared/tests/p5-boundary-chains-wasm.test.mjs shared/tests/p5-boundary-packet-wasm.test.mjs shared/tests/p5-boundary-interiors-wasm.test.mjs shared/tests/p5-boundary-overlap-wasm.test.mjs shared/tests/p5-boundary-refinement-wasm.test.mjs shared/tests/p5-boundary-split-wasm.test.mjs shared/tests/p5-country-contact-wasm.test.mjs tests/unit/geometry/boundary-lines.test.mjs
 
       - name: Verify P6 product calculation adapters
         if: inputs.verification == 'full'
         run: >-
-          node --test tests/unit/p6-polygon-core.test.mjs
-          tests/unit/r4c-spatial-boundaries.test.mjs
-          tests/unit/river-territory-partition.test.mjs
+          node --test tests/unit/geometry/p6-polygon-core.test.mjs
+          tests/unit/geometry/r4c-spatial-boundaries.test.mjs
+          tests/unit/document/river-territory-partition.test.mjs
       - name: Commit verified phases locally, then publish one guarded result
         id: publish
         shell: bash

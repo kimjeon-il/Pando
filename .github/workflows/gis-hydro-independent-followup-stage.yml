@@ -6,7 +6,7 @@ on:
       - 'tools/gis/stage-hydro-independent-followup.mjs'
       - 'tools/gis/hydro-followup-independent-name-replacements.json'
       - 'tools/gis/osm-independent-river-source-inventory.json'
-      - 'tests/unit/gis-hydro-followup-independent.test.mjs'
+      - 'tests/unit/geometry/gis-hydro-followup-independent.test.mjs'
       - 'tools/gis/prepare-hydro-name-replacement-bundle.mjs'
       - 'tools/gis/hydro-independent-name-policy.mjs'
       - '.github/workflows/gis-hydro-independent-followup-stage.yml'
@@ -28,7 +28,7 @@ jobs:
           node-version: '24'
       - name: Verify government/NE independent followup and immutable 31-candidate source screen
         run: |
-          node --test tests/unit/gis-hydro-followup-independent.test.mjs tests/unit/gis-osm-source-inventory.test.mjs
+          node --test tests/unit/geometry/gis-hydro-followup-independent.test.mjs tests/unit/geometry/gis-osm-source-inventory.test.mjs
       - name: Pin the exact current external geographic data commit
         id: pinned
         run: |

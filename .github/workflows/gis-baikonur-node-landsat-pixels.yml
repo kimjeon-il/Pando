@@ -4,7 +4,7 @@ on:
     branches: [work/gis]
     paths:
       - 'tools/gis/baikonur-landsat-pixel-preflight.mjs'
-      - 'tests/unit/gis-baikonur-1994-landsat.test.mjs'
+      - 'tests/unit/geometry/gis-baikonur-1994-landsat.test.mjs'
       - '.github/workflows/gis-baikonur-node-landsat-pixels.yml'
   workflow_dispatch:
 permissions:
@@ -22,7 +22,7 @@ jobs:
           node-version: '24'
       - name: Check Node GIS spectral calculations
         run: |
-          node --test tests/unit/gis-baikonur-1994-landsat.test.mjs
+          node --test tests/unit/geometry/gis-baikonur-1994-landsat.test.mjs
           node tools/gis/baikonur-landsat-pixel-preflight.mjs --self-test
       - name: Install deterministic scientific JS dependencies in isolated temporary folder
         run: |

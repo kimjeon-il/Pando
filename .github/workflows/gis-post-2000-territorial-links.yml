@@ -45,7 +45,7 @@ jobs:
       - name: Validate existing geometry and planned source edits
         run: |
           node tools/gis/apply-post-2000-territorial-links.mjs --plan
-          node --test tests/unit/historical-world-parent-relations.test.mjs
+          node --test tests/unit/document/historical-world-parent-relations.test.mjs
       - name: Record the unchanged baseline Soviet geometry validator defect
         shell: bash
         run: |
@@ -88,7 +88,7 @@ jobs:
         run: |
           node tools/build/build-territorial-entity-chunks.mjs --check
           node tools/build/build-builtin-world.mjs --check
-          node --test tests/unit/historical-world-parent-relations.test.mjs tests/unit/historical-world-publication.test.mjs tests/unit/post-2000-generated-world-display.test.mjs tests/unit/timeline-resolver.test.mjs
+          node --test tests/unit/document/historical-world-parent-relations.test.mjs tests/unit/data/historical-world-publication.test.mjs tests/unit/data/post-2000-generated-world-display.test.mjs tests/unit/document/timeline-resolver.test.mjs
       - name: Store and push changed territorial sources and generated world as one pinned library revision
         run: |
           node tools/data/library-data.mjs --store-and-stage --push \
@@ -106,7 +106,7 @@ jobs:
       - name: Install the test Chromium
         run: pnpm exec playwright install --with-deps chromium
       - name: Check actual year-end geographic display in the editor
-        run: pnpm exec playwright test tests/browser/viewer-calendar.spec.mjs --workers=1 --retries=0 --trace off
+        run: pnpm exec playwright test tests/browser/document/viewer-calendar.spec.mjs --workers=1 --retries=0 --trace off
       - name: Publish the reviewed work/gis data pin without touching main
         shell: bash
         run: |

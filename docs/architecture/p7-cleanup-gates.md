@@ -30,7 +30,7 @@
 
 - `project-session.js`의 `state.itemVisibility`는 매 getter 호출마다 `projectResourceOverlay('hydro', …)`를 생성했다. 지금은 수용된 C++ `documentModel.list('hydro')` 배열 정체성이 바뀔 때에만 원본 대체 마스크를 재구성한다. 설정된 프로젝트별 가시성은 매번 최신 값을 사용하며 원본 ID를 지우지 않는다.
 - `physical-settings.js`의 선형 `hydroEditById` 검색과 `isHydroEditFeature`의 배열 `includes` 검사는 이미 존재하던 `projectHydroResources()`의 작성 객체 ID 색인으로 통합한다. C++ 불변 목록의 갱신·이전 원본 복원 시 기존 캐시 무효화 규칙을 유지한다.
-- `tests/unit/p7-hydro-lookup-cache.test.mjs`에서 원본 마스크의 반복 계산 생략, 프로젝트/날짜 목록 교체, 명시적 표시 설정 유지, 작성 객체 조회와 식별자 분리를 집중 검증한다.
+- `tests/unit/document/p7-hydro-lookup-cache.test.mjs`에서 원본 마스크의 반복 계산 생략, 프로젝트/날짜 목록 교체, 명시적 표시 설정 유지, 작성 객체 조회와 식별자 분리를 집중 검증한다.
 - 계측 전 성능 향상 수치는 주장하지 않는다. 기존 CI/브라우저 검증 게이트는 그대로 남는다.
 
 ## P7 메모리 할당 감소 — 기본 수계 별칭 조회
@@ -47,10 +47,10 @@
 
 ## 최신 검증 장부
 
-- `tests/unit/p7-viewer-presentation.test.mjs`, `tests/unit/p7-hydro-lookup-cache.test.mjs`는 `scripts/contracts/application-checks.json`의 활성 `units` 그룹 범위에 포함된다. 신규 테스트 파일을 등록되지 않은 상태로 남기지 않는다.
+- `tests/unit/p7-viewer-presentation.test.mjs`, `tests/unit/document/p7-hydro-lookup-cache.test.mjs`는 `scripts/contracts/application-checks.json`의 활성 `units` 그룹 범위에 포함된다. 신규 테스트 파일을 등록되지 않은 상태로 남기지 않는다.
 - 수정된 P7 실제 함수에 대해 독립 실행한 합성 검증: 프로젝트 수계 캐시·원본 대체 마스크 **11개 검사 통과**, 하천 1,024개 직접/논리 ID 조회 **4가지 검증 통과**. 첫 작성 테스트에서 캐시 키 가정을 잘못 적용한 것은 `499a0b34`에서 바로잡고 재검증했다. 전용 Node 전체 테스트 실행, 프로덕션 WASM, 실제 브라우저 수용을 대체하지 않는다.
 - P5 이전 Application checks(`42046742980`)의 Unit 실패에는 새 점검기 팩터리 주입이 누락된 구성 테스트 11개가 있었다(P6에서 코드 보정, 최신 재실행 미확인). Browser 실패는 초기 국가 게시 세대 미일치(`map-startup-publication`), WebGL 날짜 전환 정체(`resource-dependency-reuse`), 외부 GPKG 열기 후 viewer readiness 정체(`shared-viewing-shell`), 지형 인터랙션/LOD 타임아웃이었다. 테스트 대기시간만 늘려 통과로 위장하지 않는다.
-- 권장 영향 범위 검증: `node --test tests/unit/p7-viewer-presentation.test.mjs tests/unit/p7-hydro-lookup-cache.test.mjs tests/unit/p6-project-persistence.test.mjs tests/unit/app-hydro-settings.test.mjs tests/unit/project-resource-overlay.test.mjs tests/unit/viewer-initial-composition.test.mjs`; 변경 파일 ESLint, Viewer 프로젝트 열기/맵 준비/Inspector에 대한 선택적 브라우저 회귀. WASM 도구 또는 원본 데이터가 없는 환경에서 전체 검사를 강행하거나 CI 준비를 위해 SDK를 설치하지 않는다.
+- 권장 영향 범위 검증: `node --test tests/unit/p7-viewer-presentation.test.mjs tests/unit/document/p7-hydro-lookup-cache.test.mjs tests/unit/data/p6-project-persistence.test.mjs tests/unit/ui/app-hydro-settings.test.mjs tests/unit/project-resource-overlay.test.mjs tests/unit/app/viewer-initial-composition.test.mjs`; 변경 파일 ESLint, Viewer 프로젝트 열기/맵 준비/Inspector에 대한 선택적 브라우저 회귀. WASM 도구 또는 원본 데이터가 없는 환경에서 전체 검사를 강행하거나 CI 준비를 위해 SDK를 설치하지 않는다.
 
 **차단 게이트:** P7 재검증용 GitHub Actions는 실제로 실행 중이다. P1·P2·P3·P4·Core·지명 동기화 등은 확인된 실행에서 일부 또는 전부 통과했으나, 최신 코드의 전체 Application checks·DEM Gate와 실제 브라우저 성능 측정은 모두 최종 수용 전 확인해야 한다. 앞선 실패나 현재 진행 중인 검사를 통과로 바꾸어 표시하지 않는다.
 

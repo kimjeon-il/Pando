@@ -153,7 +153,7 @@ integration without a concrete additional task.
 Focused verification:
 
 ```powershell
-node --test tests/unit/qgis-native-client.test.mjs tests/unit/qgis-native-bridge.test.mjs tests/unit/qgis-native-mcp.test.mjs tests/unit/qgis-native-export.test.mjs tests/unit/qgis-normalize.test.mjs tests/unit/qgis-pando-exchange.test.mjs
+node --test tests/unit/geometry/qgis-native-client.test.mjs tests/unit/geometry/qgis-native-bridge.test.mjs tests/unit/geometry/qgis-native-mcp.test.mjs tests/unit/geometry/qgis-native-export.test.mjs tests/unit/geometry/qgis-normalize.test.mjs tests/unit/geometry/qgis-pando-exchange.test.mjs
 node tests/integration/qgis-native-mcp-live.mjs
 pnpm.cmd exec playwright test tests/browser/qgis-pando-exchange.spec.mjs
 ```

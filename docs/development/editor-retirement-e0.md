@@ -89,7 +89,7 @@
 - 별도 이 로컬 세션에는 상설 `work/ui` 워크트리와 의존성 캐시가 없으므로 `pnpm`, Playwright, C++/Rust 및 실기기 테스트는 실행하지 않았다. GitHub 원격 코드·트리·CI 기록만 조사했다.
 - E1 필수 정적 검사: `node scripts/check-runtime-boundaries.mjs`, `pnpm check:architecture`, `pnpm check:ui`. 기존 checker는 `editing-domain.js` export, `editorSurface` 존재 등을 전제로 하므로 E6 이전 임의 수정 금지.
 - E1 집중 단위 테스트: `tests/unit/domain-split-contract.test.mjs`, `application-composition.test.mjs`, `shared-map-composition.test.mjs`, `file-access-contract.test.mjs`, `project-state.test.mjs`, `project-serializer.test.mjs`, `timeline-resolver.test.mjs`, `native-document-transfer-contract.test.mjs`.
-- E1 이상 브라우저 검사: `tests/browser/viewer-project-open.spec.mjs`, `viewer-layout.spec.mjs`, `shared-map-parity.spec.mjs`, `selection-domain-smoke.spec.mjs`, `editing-state-recovery.spec.mjs`. 이 중 편집 전용 테스트는 E4까지 이전 동작 확인용으로 유지.
+- E1 이상 브라우저 검사: `tests/browser/document/viewer-project-open.spec.mjs`, `viewer-layout.spec.mjs`, `shared-map-parity.spec.mjs`, `selection-domain-smoke.spec.mjs`, `editing-state-recovery.spec.mjs`. 이 중 편집 전용 테스트는 E4까지 이전 동작 확인용으로 유지.
 - E4/E7 실기기 확인: Windows 네이티브, Android ARM64, 평면 지도 보기, 현재 지원 프로젝트 열기, 시간축, 국명·국기·관계, GIS 검사·파일 읽기. 브라우저 에뮬레이션은 실기기 검증의 대체가 아니다.
 - `scripts/contracts/application-checks.json`의 영향 기반 테스트 계획과 `scripts/check-ui-information-architecture.mjs`, `scripts/check-runtime-boundaries.mjs`는 E6의 기존 DOM/편집 경계 제거와 **같은 변경 범위**에서 갱신해야 한다.
 

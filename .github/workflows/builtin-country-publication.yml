@@ -8,12 +8,12 @@ on:
       - 'tools/gis/prepare-water-object-history.mjs'
       - 'src/data/builtin-world-loader.js'
       - 'src/data/stored-asset-loader.js'
-      - 'tests/unit/builtin-country-publication.test.mjs'
-      - 'tests/unit/historical-world-publication.test.mjs'
-      - 'tests/unit/builtin-world-catalog.test.mjs'
-      - 'tests/unit/builtin-world-loader.test.mjs'
-      - 'tests/unit/builtin-country-loading.test.mjs'
-      - 'tests/unit/builtin-country-loading.test.mjs'
+      - 'tests/unit/data/builtin-country-publication.test.mjs'
+      - 'tests/unit/data/historical-world-publication.test.mjs'
+      - 'tests/unit/document/builtin-world-catalog.test.mjs'
+      - 'tests/unit/data/builtin-world-loader.test.mjs'
+      - 'tests/unit/data/builtin-country-loading.test.mjs'
+      - 'tests/unit/data/builtin-country-loading.test.mjs'
       - '.github/workflows/builtin-country-publication.yml'
   workflow_dispatch:
 
@@ -45,4 +45,4 @@ jobs:
       - name: Prepare the pinned runtime used by the existing country compiler
         uses: ./.github/actions/library-data
       - name: Verify generation and direct loading only; do not regenerate or publish library data
-        run: node --test --test-timeout=15000 tests/unit/builtin-country-publication.test.mjs tests/unit/historical-world-publication.test.mjs tests/unit/builtin-world-catalog.test.mjs tests/unit/builtin-world-loader.test.mjs tests/unit/builtin-country-loading.test.mjs
+        run: node --test --test-timeout=15000 tests/unit/data/builtin-country-publication.test.mjs tests/unit/data/historical-world-publication.test.mjs tests/unit/document/builtin-world-catalog.test.mjs tests/unit/data/builtin-world-loader.test.mjs tests/unit/data/builtin-country-loading.test.mjs

@@ -76,11 +76,11 @@ Focused checks only; counts below are per command, not the full suite:
 | Workflow YAML parse, scoped job/commands and always evidence upload | 1 / 0 / 0 | `test-results/m3-workflow-check.log` |
 
 ```sh
-node --test tests/unit/gpu-scene-staging.test.mjs \
-  tests/unit/gpu-prepared-draw.test.mjs tests/unit/gpu-base-scene-order.test.mjs \
-  tests/unit/render-scene.test.mjs tests/unit/gpu-stroke-renderer.test.mjs \
+node --test tests/unit/rendering/gpu-scene-staging.test.mjs \
+  tests/unit/gpu-prepared-draw.test.mjs tests/unit/rendering/gpu-base-scene-order.test.mjs \
+  tests/unit/rendering/render-scene.test.mjs tests/unit/rendering/gpu-stroke-renderer.test.mjs \
   tests/unit/gpu-upload-staging.test.mjs \
-  tests/unit/territorial-boundary-continuity.test.mjs \
+  tests/unit/document/territorial-boundary-continuity.test.mjs \
   tests/unit/edit-preview-presentation.test.mjs
 pnpm exec playwright test tests/browser/territorial-boundary-continuity.spec.mjs \
   --grep=webgl2 --output=test-results/m3-ui-final-accepted

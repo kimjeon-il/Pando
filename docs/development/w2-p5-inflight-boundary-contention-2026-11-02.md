@@ -8,7 +8,7 @@
 - 보관 원시 Windows 자료: kimjeon-il/PandoLab-library-data@3e63d665f70972902a68008e0d14ec26a2506bad, reports/development/performance/w2-p4-2-windows-gpu-2026-11-02/p4-analysis.json 및 README.md/final-audit.json.
 - 원시 120개 주 전환 완료, 날짜별 국가·국경·지명·계층 해시 일치 및 대표 A/B 픽셀 차이 0은 W2-P4-2 원본의 판정. **이번 W2-P5에서는 GTX1650을 새로 측정하지 않았음**.
 - W2-P5 재현 분석: tools/w2-p5-inflight-packet-audit.mjs. 기존 원본을 변경하지 않고 읽기 전용으로 집계, B 이전/신규 요청 ID와 경합·cache hit를 검증.
-- W2-P5 프로토콜 A-B-A: tests/unit/w2-p5-worker-contention.test.mjs 및 .github/workflows/w2-p5-boundary-contention.yml. 이는 실제 공개 Worker 원본을 메모리에 불러 test-only hook을 삽입하고 Node Worker/검증된 C++ core로 기능 검사한다. **런타임 JS 파일은 수정하지 않는다.**
+- W2-P5 프로토콜 A-B-A: tests/unit/runtime/w2-p5-worker-contention.test.mjs 및 .github/workflows/w2-p5-boundary-contention.yml. 이는 실제 공개 Worker 원본을 메모리에 불러 test-only hook을 삽입하고 Node Worker/검증된 C++ core로 기능 검사한다. **런타임 JS 파일은 수정하지 않는다.**
 
 ## 2. 원시 Windows 측정에 대한 추가 확정
 

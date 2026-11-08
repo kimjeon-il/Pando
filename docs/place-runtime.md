@@ -75,7 +75,7 @@ Node 24.19 / 이 작업 환경에서의 수치다. 실제 데이터 품질이나
 
 ```sh
 node --test tests/unit/place-million.test.mjs
-node --test tests/unit/place-codec.test.mjs tests/unit/place-layout.test.mjs tests/unit/place-runtime.test.mjs tests/unit/place-worker-store.test.mjs tests/unit/place-label-workflow.test.mjs
+node --test tests/unit/data/place-codec.test.mjs tests/unit/place-layout.test.mjs tests/unit/rendering/place-runtime.test.mjs tests/unit/data/place-worker-store.test.mjs tests/unit/place-label-workflow.test.mjs
 npx playwright test tests/browser/place-runtime.spec.mjs tests/browser/label-metadata-edit.spec.mjs
 ```
 
@@ -138,7 +138,7 @@ npx playwright test tests/browser/place-runtime.spec.mjs tests/browser/label-met
 ```sh
 node tools/build/build-place-runtime.mjs
 node tools/build/build-place-runtime.mjs --check
-node --test tests/unit/place-publication.test.mjs tests/unit/place-codec.test.mjs
+node --test tests/unit/data/place-publication.test.mjs tests/unit/data/place-codec.test.mjs
 ```
 
 세 게시 산출물 `assets/data/places/reviewed-records-v1.json`, `places-v1.bin`, `manifest.json`은 하나의 승인 목록과 22개 조사본으로 결정론적으로 재생성된다. manifest의 검색 prefix·tile 범위·sha256은 **승인된 레코드만** 포함해야 한다. PR 검증은 `place-runtime.yml`이 담당하고, `work/places`에서만 새로 생성된 바이너리를 커밋하는 자동 게시 작업은 `place-curated-release.yml`이 담당한다. `main` 통합과 웹사이트 실배포 및 앱 저장소 이전은 별도 작업이다.

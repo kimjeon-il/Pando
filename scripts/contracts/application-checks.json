@@ -5,8 +5,8 @@
       "id": "frontend-layout",
       "kind": "unit",
       "testPatterns": [
-        "tests/unit/frontend-*.test.mjs",
-        "tests/unit/library-runtime-prefetch.test.mjs"
+        "tests/unit/**/frontend-*.test.mjs",
+        "tests/unit/data/library-runtime-prefetch.test.mjs"
       ],
       "inputs": [
         "src/**",
@@ -20,7 +20,7 @@
       "id": "place-contracts",
       "kind": "unit",
       "testPatterns": [
-        "tests/unit/place-*.test.mjs"
+        "tests/unit/**/place-*.test.mjs"
       ],
       "inputs": [
         "src/**/place-*.js",
@@ -33,9 +33,9 @@
       "id": "project-file-contracts",
       "kind": "unit",
       "testPatterns": [
-        "tests/unit/map-plugin-cutover.test.mjs",
-        "tests/unit/map-plugin-hydro-history.test.mjs",
-        "tests/unit/qgis-pando-exchange.test.mjs"
+        "tests/unit/document/map-plugin-cutover.test.mjs",
+        "tests/unit/geometry/map-plugin-hydro-history.test.mjs",
+        "tests/unit/geometry/qgis-pando-exchange.test.mjs"
       ],
       "inputs": [
         "src/**/generic-feature-*.js",
@@ -48,13 +48,13 @@
       "mode": "manual",
       "reason": "Controlled performance, attribution, or external remote-preview environment. Run the named spec explicitly with its existing workflow prerequisites.",
       "testPatterns": [
-        "tests/browser/soviet-*.spec.mjs",
-        "tests/browser/*-benchmark.spec.mjs",
-        "tests/browser/*-memory.spec.mjs",
-        "tests/browser/performance-*.spec.mjs",
-        "tests/browser/canvas-globe-performance.spec.mjs",
-        "tests/browser/p3-remote-preview.spec.mjs",
-        "tests/browser/codespaces-live.spec.mjs"
+        "tests/browser/**/soviet-*.spec.mjs",
+        "tests/browser/**/*-benchmark.spec.mjs",
+        "tests/browser/**/*-memory.spec.mjs",
+        "tests/browser/**/performance-*.spec.mjs",
+        "tests/browser/rendering/canvas-globe-performance.spec.mjs",
+        "tests/browser/runtime/p3-remote-preview.spec.mjs",
+        "tests/browser/document/codespaces-live.spec.mjs"
       ],
       "inputs": []
     },
@@ -62,15 +62,15 @@
       "id": "object-contracts",
       "kind": "unit",
       "testPatterns": [
-        "tests/unit/object-*.test.mjs",
-        "tests/unit/territorial-*.test.mjs",
-        "tests/unit/project-*.test.mjs",
-        "tests/unit/temporal*.test.mjs",
-        "tests/unit/timeline*.test.mjs",
-        "tests/unit/generic-*.test.mjs",
-        "tests/unit/distribution-*.test.mjs",
-        "tests/unit/core-*.test.mjs",
-        "tests/unit/web-*.test.mjs"
+        "tests/unit/**/object-*.test.mjs",
+        "tests/unit/**/territorial-*.test.mjs",
+        "tests/unit/**/project-*.test.mjs",
+        "tests/unit/**/temporal*.test.mjs",
+        "tests/unit/**/timeline*.test.mjs",
+        "tests/unit/**/generic-*.test.mjs",
+        "tests/unit/**/distribution-*.test.mjs",
+        "tests/unit/**/core-*.test.mjs",
+        "tests/unit/**/web-*.test.mjs"
       ],
       "inputs": []
     },
@@ -78,10 +78,10 @@
       "id": "ussr-partition-native",
       "kind": "command",
       "testPatterns": [
-        "tests/unit/gis-ussr-1922-partition-native.test.mjs"
+        "tests/unit/geometry/gis-ussr-1922-partition-native.test.mjs"
       ],
       "inputs": [
-        "tests/unit/gis-ussr-1922-partition-native.test.mjs",
+        "tests/unit/geometry/gis-ussr-1922-partition-native.test.mjs",
         "tools/cpp/build-territorial-recipe.cpp",
         "tools/cpp/historical-ussr-partition-audit.inc",
         "tools/cpp/CMakeLists.txt"
@@ -96,20 +96,20 @@
       "id": "gis-contracts",
       "kind": "unit",
       "testPatterns": [
-        "tests/unit/gis-*.test.mjs",
-        "tests/unit/polygon-*.test.mjs",
-        "tests/unit/hydro-*.test.mjs",
-        "tests/unit/terrain-*.test.mjs",
-        "tests/unit/physical-land*.test.mjs",
-        "tests/unit/country-*.test.mjs",
-        "tests/unit/boundary-*.test.mjs",
-        "tests/unit/lsib-*.test.mjs",
-        "tests/unit/prepared-*.test.mjs",
-        "tests/unit/river-territory-*.test.mjs",
-        "tests/unit/map-geometry-validation.test.mjs",
-        "tests/unit/historical-german-*.test.mjs",
-        "tests/unit/historical-display-review.test.mjs",
-        "tests/unit/historical-source-*.test.mjs"
+        "tests/unit/**/gis-*.test.mjs",
+        "tests/unit/**/polygon-*.test.mjs",
+        "tests/unit/**/hydro-*.test.mjs",
+        "tests/unit/**/terrain-*.test.mjs",
+        "tests/unit/**/physical-land*.test.mjs",
+        "tests/unit/**/country-*.test.mjs",
+        "tests/unit/**/boundary-*.test.mjs",
+        "tests/unit/**/lsib-*.test.mjs",
+        "tests/unit/**/prepared-*.test.mjs",
+        "tests/unit/**/river-territory-*.test.mjs",
+        "tests/unit/geometry/map-geometry-validation.test.mjs",
+        "tests/unit/**/historical-german-*.test.mjs",
+        "tests/unit/rendering/historical-display-review.test.mjs",
+        "tests/unit/**/historical-source-*.test.mjs"
       ],
       "inputs": []
     },
@@ -117,7 +117,7 @@
       "id": "shared-toolkit",
       "kind": "unit",
       "testPatterns": [
-        "tests/unit/shared-toolkit.test.mjs"
+        "tests/unit/runtime/shared-toolkit.test.mjs"
       ],
       "inputs": [
         "tools/data/shared-toolkit.mjs",
@@ -128,8 +128,8 @@
       "id": "shared-image-tools",
       "kind": "unit",
       "testPatterns": [
-        "tests/unit/map-native-pdf.test.mjs",
-        "tests/unit/map-native-preview.test.mjs"
+        "tests/unit/document/map-native-pdf.test.mjs",
+        "tests/unit/document/map-native-preview.test.mjs"
       ],
       "inputs": [
         "tools/map-image/**"
@@ -139,7 +139,7 @@
       "id": "units",
       "kind": "unit",
       "testPatterns": [
-        "tests/unit/*.test.mjs"
+        "tests/unit/**/*.test.mjs"
       ],
       "inputs": [],
       "requires": []
@@ -148,7 +148,7 @@
       "id": "terrain",
       "kind": "browser",
       "testPatterns": [
-        "tests/browser/terrain-*.spec.mjs"
+        "tests/browser/**/terrain-*.spec.mjs"
       ],
       "inputs": [
         "src/**/terrain-*.js",
@@ -177,8 +177,8 @@
       "id": "boundaries",
       "kind": "browser",
       "testPatterns": [
-        "tests/browser/boundary-*.spec.mjs",
-        "tests/browser/territorial-boundary-*.spec.mjs"
+        "tests/browser/**/boundary-*.spec.mjs",
+        "tests/browser/**/territorial-boundary-*.spec.mjs"
       ],
       "inputs": [
         "src/**/*boundary*.js",
@@ -197,10 +197,10 @@
       "id": "rendering",
       "kind": "browser",
       "testPatterns": [
-        "tests/browser/canvas-*.spec.mjs",
-        "tests/browser/gpu-*.spec.mjs",
-        "tests/browser/country-*.spec.mjs",
-        "tests/browser/renderer-*.spec.mjs"
+        "tests/browser/**/canvas-*.spec.mjs",
+        "tests/browser/**/gpu-*.spec.mjs",
+        "tests/browser/**/country-*.spec.mjs",
+        "tests/browser/**/renderer-*.spec.mjs"
       ],
       "inputs": [
         "src/**/gpu-*.js",
@@ -223,16 +223,16 @@
       "id": "objects",
       "kind": "browser",
       "testPatterns": [
-        "tests/browser/annex-*.spec.mjs",
-        "tests/browser/generic-*.spec.mjs",
-        "tests/browser/territorial-*.spec.mjs",
-        "tests/browser/territory-*.spec.mjs",
-        "tests/browser/unified-object*.spec.mjs",
-        "tests/browser/subunit-*.spec.mjs",
-        "tests/browser/selection-*.spec.mjs",
-        "tests/browser/object-*.spec.mjs",
-        "tests/browser/temporal-*.spec.mjs",
-        "tests/browser/timeline-*.spec.mjs"
+        "tests/browser/**/annex-*.spec.mjs",
+        "tests/browser/**/generic-*.spec.mjs",
+        "tests/browser/**/territorial-*.spec.mjs",
+        "tests/browser/**/territory-*.spec.mjs",
+        "tests/browser/**/unified-object*.spec.mjs",
+        "tests/browser/**/subunit-*.spec.mjs",
+        "tests/browser/**/selection-*.spec.mjs",
+        "tests/browser/**/object-*.spec.mjs",
+        "tests/browser/**/temporal-*.spec.mjs",
+        "tests/browser/**/timeline-*.spec.mjs"
       ],
       "inputs": [
         "src/**/object-*.js",
@@ -255,7 +255,7 @@
       "id": "projects",
       "kind": "browser",
       "testPatterns": [
-        "tests/browser/project-*.spec.mjs"
+        "tests/browser/**/project-*.spec.mjs"
       ],
       "inputs": [
         "src/**/project-*.js",
@@ -278,10 +278,10 @@
       "id": "viewer",
       "kind": "browser",
       "testPatterns": [
-        "tests/browser/viewer-*.spec.mjs",
-        "tests/browser/web-viewer.spec.mjs",
-        "tests/browser/shared-map-*.spec.mjs",
-        "tests/browser/shared-view*.spec.mjs"
+        "tests/browser/**/viewer-*.spec.mjs",
+        "tests/browser/document/web-viewer.spec.mjs",
+        "tests/browser/**/shared-map-*.spec.mjs",
+        "tests/browser/**/shared-view*.spec.mjs"
       ],
       "inputs": [
         "src/app/viewer.js",
@@ -300,8 +300,8 @@
       "id": "hydro-gis",
       "kind": "browser",
       "testPatterns": [
-        "tests/browser/gis-*.spec.mjs",
-        "tests/browser/hydro-*.spec.mjs"
+        "tests/browser/**/gis-*.spec.mjs",
+        "tests/browser/**/hydro-*.spec.mjs"
       ],
       "inputs": [
         "shared/frontend/js/gis-*.js",
@@ -321,13 +321,13 @@
       "id": "ui",
       "kind": "browser",
       "testPatterns": [
-        "tests/browser/interaction-*.spec.mjs",
-        "tests/browser/mobile-*.spec.mjs",
-        "tests/browser/startup-*.spec.mjs",
-        "tests/browser/statusbar-*.spec.mjs",
-        "tests/browser/topbar-*.spec.mjs",
-        "tests/browser/ui-*.spec.mjs",
-        "tests/browser/info-*.spec.mjs"
+        "tests/browser/**/interaction-*.spec.mjs",
+        "tests/browser/**/mobile-*.spec.mjs",
+        "tests/browser/**/startup-*.spec.mjs",
+        "tests/browser/**/statusbar-*.spec.mjs",
+        "tests/browser/**/topbar-*.spec.mjs",
+        "tests/browser/**/ui-*.spec.mjs",
+        "tests/browser/**/info-*.spec.mjs"
       ],
       "inputs": [
         "src/ui/css/**",
@@ -804,7 +804,7 @@
       "mode": "manual",
       "reason": "User-deferred unresolved cases: July 1953 transition completion and injected-failure previous-year click. Preserve both cases without automatic rerun or a passing status; execute only when explicitly resumed.",
       "testPatterns": [
-        "tests/browser/deferred-builtin-timeline.spec.mjs"
+        "tests/browser/ui/deferred-builtin-timeline.spec.mjs"
       ],
       "inputs": [],
       "requires": [
@@ -1074,9 +1074,9 @@
   "bindings": [
     {
       "tests": [
-        "tests/unit/prepared-polygon-mesh.test.mjs",
-        "tests/browser/viewer-startup-and-terrain.spec.mjs",
-        "tests/unit/prepared-country-scope.test.mjs"
+        "tests/unit/rendering/prepared-polygon-mesh.test.mjs",
+        "tests/browser/geometry/viewer-startup-and-terrain.spec.mjs",
+        "tests/unit/rendering/prepared-country-scope.test.mjs"
       ],
       "inputs": [
         "assets/data/physical-land/**",
@@ -1086,11 +1086,11 @@
     },
     {
       "tests": [
-        "tests/unit/*architecture*.test.mjs",
-        "tests/unit/application-*.test.mjs",
-        "tests/unit/capability-*.test.mjs",
-        "tests/unit/current-browser-contracts.test.mjs",
-        "tests/unit/check-*.test.mjs"
+        "tests/unit/**/*architecture*.test.mjs",
+        "tests/unit/**/application-*.test.mjs",
+        "tests/unit/**/capability-*.test.mjs",
+        "tests/unit/runtime/current-browser-contracts.test.mjs",
+        "tests/unit/**/check-*.test.mjs"
       ],
       "inputs": [
         "src/**/app-capability-ports*.js",
@@ -1103,7 +1103,7 @@
     },
     {
       "tests": [
-        "tests/browser/web-viewer.spec.mjs"
+        "tests/browser/document/web-viewer.spec.mjs"
       ],
       "inputs": [
         "src/**/**",
@@ -1113,9 +1113,9 @@
     },
     {
       "tests": [
-        "tests/unit/*staging*.test.mjs",
-        "tests/unit/*assets.test.mjs",
-        "tests/unit/object-search*.test.mjs"
+        "tests/unit/**/*staging*.test.mjs",
+        "tests/unit/**/*assets.test.mjs",
+        "tests/unit/**/object-search*.test.mjs"
       ],
       "inputs": [
         "scripts/lib/product-assets.mjs",
@@ -1126,8 +1126,8 @@
     },
     {
       "tests": [
-        "tests/unit/core-*.test.mjs",
-        "tests/unit/web-*.test.mjs"
+        "tests/unit/**/core-*.test.mjs",
+        "tests/unit/**/web-*.test.mjs"
       ],
       "inputs": [
         "shared/**"
@@ -1135,10 +1135,10 @@
     },
     {
       "tests": [
-        "tests/unit/check-*.test.mjs",
-        "tests/unit/current-browser-contracts.test.mjs",
-        "tests/unit/native-check-prerequisites.test.mjs",
-        "tests/unit/viewer-preview-plan.test.mjs"
+        "tests/unit/**/check-*.test.mjs",
+        "tests/unit/runtime/current-browser-contracts.test.mjs",
+        "tests/unit/ui/native-check-prerequisites.test.mjs",
+        "tests/unit/runtime/viewer-preview-plan.test.mjs"
       ],
       "inputs": [
         ".github/workflows/application-architecture.yml",
@@ -1149,11 +1149,11 @@
     },
     {
       "tests": [
-        "tests/unit/*version*.test.mjs",
-        "tests/unit/check-*.test.mjs",
-        "tests/unit/current-browser-contracts.test.mjs",
-        "tests/unit/native-check-prerequisites.test.mjs",
-        "tests/unit/viewer-preview-plan.test.mjs"
+        "tests/unit/**/*version*.test.mjs",
+        "tests/unit/**/check-*.test.mjs",
+        "tests/unit/runtime/current-browser-contracts.test.mjs",
+        "tests/unit/ui/native-check-prerequisites.test.mjs",
+        "tests/unit/runtime/viewer-preview-plan.test.mjs"
       ],
       "inputs": [
         "package.json",
@@ -1162,7 +1162,7 @@
     },
     {
       "tests": [
-        "tests/browser/web-viewer.spec.mjs"
+        "tests/browser/document/web-viewer.spec.mjs"
       ],
       "inputs": [
         "package.json",
@@ -1172,8 +1172,8 @@
     },
     {
       "tests": [
-        "tests/unit/country-lineage.test.mjs",
-        "tests/unit/territorial-source-parity.test.mjs"
+        "tests/unit/document/country-lineage.test.mjs",
+        "tests/unit/document/territorial-source-parity.test.mjs"
       ],
       "inputs": [
         "config/library-data.json",
@@ -1185,7 +1185,7 @@
     },
     {
       "tests": [
-        "tests/unit/builtin-world-catalog.test.mjs"
+        "tests/unit/document/builtin-world-catalog.test.mjs"
       ],
       "inputs": [
         "config/library-data.json",
@@ -1196,8 +1196,8 @@
     },
     {
       "tests": [
-        "tests/unit/terrain-interaction-streaming.test.mjs",
-        "tests/unit/map-presentation-readiness.test.mjs"
+        "tests/unit/rendering/terrain-interaction-streaming.test.mjs",
+        "tests/unit/rendering/map-presentation-readiness.test.mjs"
       ],
       "inputs": [
         "src/app/startup-readiness.js",
@@ -1208,7 +1208,7 @@
     },
     {
       "tests": [
-        "tests/unit/performance-baseline-contract.test.mjs"
+        "tests/unit/runtime/performance-baseline-contract.test.mjs"
       ],
       "inputs": [
         "config/performance-baseline-v1.json",
@@ -1218,7 +1218,7 @@
     },
     {
       "tests": [
-        "tests/browser/web-viewer.spec.mjs"
+        "tests/browser/document/web-viewer.spec.mjs"
       ],
       "inputs": [
         "src/ui/css/**",
@@ -1228,7 +1228,7 @@
     },
     {
       "tests": [
-        "tests/browser/web-viewer.spec.mjs"
+        "tests/browser/document/web-viewer.spec.mjs"
       ],
       "inputs": [
         "src/ui/css/**",
@@ -1238,7 +1238,7 @@
     },
     {
       "tests": [
-        "tests/browser/viewer-renderer-recovery.spec.mjs"
+        "tests/browser/rendering/viewer-renderer-recovery.spec.mjs"
       ],
       "inputs": [
         "src/**/gpu-*.js",
@@ -1248,7 +1248,7 @@
     },
     {
       "tests": [
-        "tests/browser/viewer-boundary-p4-5.spec.mjs"
+        "tests/browser/geometry/viewer-boundary-p4-5.spec.mjs"
       ],
       "inputs": [
         "src/**/*boundary*.js",
@@ -1258,7 +1258,7 @@
     },
     {
       "tests": [
-        "tests/browser/viewer-startup-and-terrain.spec.mjs"
+        "tests/browser/geometry/viewer-startup-and-terrain.spec.mjs"
       ],
       "inputs": [
         "src/**/physical-*.js",
@@ -1268,7 +1268,7 @@
     },
     {
       "tests": [
-        "tests/browser/viewer-calendar.spec.mjs"
+        "tests/browser/document/viewer-calendar.spec.mjs"
       ],
       "inputs": [
         "src/document/builtin-month-clock.js",
@@ -1279,7 +1279,7 @@
     },
     {
       "tests": [
-        "tests/browser/viewer-review-e4.spec.mjs"
+        "tests/browser/document/viewer-review-e4.spec.mjs"
       ],
       "inputs": [
         "src/**/review-*.js",
@@ -1288,7 +1288,7 @@
     },
     {
       "tests": [
-        "tests/browser/viewer-project-open.spec.mjs"
+        "tests/browser/document/viewer-project-open.spec.mjs"
       ],
       "inputs": [
         "src/**/project-*.js",
@@ -1298,7 +1298,7 @@
     },
     {
       "tests": [
-        "tests/unit/check-automation.test.mjs"
+        "tests/unit/runtime/check-automation.test.mjs"
       ],
       "inputs": [
         ".github/workflows/**",
@@ -1307,11 +1307,11 @@
     },
     {
       "tests": [
-        "tests/browser/viewer-calendar.spec.mjs",
-        "tests/unit/post-2000-generated-world-display.test.mjs",
-        "tests/unit/timeline-resolver.test.mjs",
-        "tests/unit/indonesia-territory-timeline.test.mjs",
-        "tests/unit/sudan-ukraine-transition.test.mjs"
+        "tests/browser/document/viewer-calendar.spec.mjs",
+        "tests/unit/data/post-2000-generated-world-display.test.mjs",
+        "tests/unit/document/timeline-resolver.test.mjs",
+        "tests/unit/geometry/indonesia-territory-timeline.test.mjs",
+        "tests/unit/geometry/sudan-ukraine-transition.test.mjs"
       ],
       "inputs": [
         "config/library-data.json",
@@ -1326,7 +1326,7 @@
         "scripts/run-active-tests.mjs"
       ],
       "tests": [
-        "tests/unit/check-runner.test.mjs"
+        "tests/unit/runtime/check-runner.test.mjs"
       ]
     },
     {
@@ -1334,15 +1334,15 @@
         "tests/helpers/check-workspace-fixture.mjs"
       ],
       "tests": [
-        "tests/unit/check-runner.test.mjs",
-        "tests/unit/native-check-prerequisites.test.mjs",
-        "tests/unit/build-metadata.test.mjs"
+        "tests/unit/runtime/check-runner.test.mjs",
+        "tests/unit/ui/native-check-prerequisites.test.mjs",
+        "tests/unit/build/build-metadata.test.mjs"
       ]
     },
     {
       "tests": [
-        "tests/unit/e7-application-check-planner.test.mjs",
-        "tests/unit/check-automation.test.mjs"
+        "tests/unit/runtime/e7-application-check-planner.test.mjs",
+        "tests/unit/runtime/check-automation.test.mjs"
       ],
       "inputs": [
         "scripts/plan-application-checks.mjs",
@@ -1356,8 +1356,8 @@
   },
   "manualScopes": {
     "map-rendering": [
-      "tests/browser/viewer-project-open.spec.mjs",
-      "tests/browser/viewer-gpu-backend-cross.spec.mjs"
+      "tests/browser/document/viewer-project-open.spec.mjs",
+      "tests/browser/rendering/viewer-gpu-backend-cross.spec.mjs"
     ]
   },
   "externalChecks": [
@@ -1391,7 +1391,7 @@
         "tools/gis/build-hydro.mjs",
         "tools/gis/hydro-generation-*.mjs",
         "tools/cpp/hydro/*.cpp",
-        "tests/unit/hydro-generation-*.test.mjs"
+        "tests/unit/**/hydro-generation-*.test.mjs"
       ],
       "workflow": ".github/workflows/gis-native-hydro.yml",
       "reason": "Hydro generation uses focused native and source-bound GIS checks."
@@ -1421,11 +1421,11 @@
   "unitPrerequisites": [
     {
       "tests": [
-        "tests/unit/map-native-jpeg-encode.test.mjs",
-        "tests/unit/map-native-packaging.test.mjs",
-        "tests/unit/map-native-resize.test.mjs",
-        "tests/unit/map-native-webp-encode.test.mjs",
-        "tests/unit/terrain-dem-webp.test.mjs"
+        "tests/unit/document/map-native-jpeg-encode.test.mjs",
+        "tests/unit/document/map-native-packaging.test.mjs",
+        "tests/unit/document/map-native-resize.test.mjs",
+        "tests/unit/document/map-native-webp-encode.test.mjs",
+        "tests/unit/geometry/terrain-dem-webp.test.mjs"
       ],
       "requires": [
         "native-map-image"
@@ -1433,7 +1433,7 @@
     },
     {
       "tests": [
-        "tests/unit/hydro-calibration-native.test.mjs"
+        "tests/unit/geometry/hydro-calibration-native.test.mjs"
       ],
       "requires": [
         "native-hydro-calibration"
@@ -1441,7 +1441,7 @@
     },
     {
       "tests": [
-        "tests/unit/hydro-shared-boundary.test.mjs"
+        "tests/unit/geometry/hydro-shared-boundary.test.mjs"
       ],
       "requires": [
         "native-hydro-point-screen"
@@ -1449,24 +1449,24 @@
     },
     {
       "tests": [
-        "tests/unit/gis-caspian-display-packaging.test.mjs",
-        "tests/unit/gis-caspian-generalize-native.test.mjs",
-        "tests/unit/gis-caspian-physical-native.test.mjs",
-        "tests/unit/gis-ddr-native-partition.test.mjs",
-        "tests/unit/gis-german-base-builder.test.mjs",
-        "tests/unit/gis-german-base-native.test.mjs",
-        "tests/unit/gis-german-modern-coast-native.test.mjs",
-        "tests/unit/gis-historical-linework-native.test.mjs",
-        "tests/unit/gis-historical-source-compare.test.mjs",
-        "tests/unit/gis-lsib-coast-native.test.mjs",
-        "tests/unit/gis-lsib-source-native.test.mjs",
-        "tests/unit/gis-lsib-spatial-native.test.mjs",
-        "tests/unit/gis-lsib-tripoint-native.test.mjs",
-        "tests/unit/gis-lsib-union-native.test.mjs",
-        "tests/unit/gis-lsib-untargeted.test.mjs",
-        "tests/unit/gis-ussr-1922-partition-native.test.mjs",
-        "tests/unit/territorial-boundary-supplement.test.mjs",
-        "tests/unit/territorial-recipe-cpp.test.mjs"
+        "tests/unit/geometry/gis-caspian-display-packaging.test.mjs",
+        "tests/unit/geometry/gis-caspian-generalize-native.test.mjs",
+        "tests/unit/geometry/gis-caspian-physical-native.test.mjs",
+        "tests/unit/geometry/gis-ddr-native-partition.test.mjs",
+        "tests/unit/build/gis-german-base-builder.test.mjs",
+        "tests/unit/geometry/gis-german-base-native.test.mjs",
+        "tests/unit/geometry/gis-german-modern-coast-native.test.mjs",
+        "tests/unit/geometry/gis-historical-linework-native.test.mjs",
+        "tests/unit/geometry/gis-historical-source-compare.test.mjs",
+        "tests/unit/geometry/gis-lsib-coast-native.test.mjs",
+        "tests/unit/geometry/gis-lsib-source-native.test.mjs",
+        "tests/unit/geometry/gis-lsib-spatial-native.test.mjs",
+        "tests/unit/geometry/gis-lsib-tripoint-native.test.mjs",
+        "tests/unit/geometry/gis-lsib-union-native.test.mjs",
+        "tests/unit/geometry/gis-lsib-untargeted.test.mjs",
+        "tests/unit/geometry/gis-ussr-1922-partition-native.test.mjs",
+        "tests/unit/geometry/territorial-boundary-supplement.test.mjs",
+        "tests/unit/document/territorial-recipe-cpp.test.mjs"
       ],
       "requires": [
         "native-territorial-recipe"
@@ -1474,7 +1474,7 @@
     },
     {
       "tests": [
-        "tests/unit/terrain-dem-gutters.test.mjs"
+        "tests/unit/geometry/terrain-dem-gutters.test.mjs"
       ],
       "requires": [
         "native-terrain-dem-gutters"
@@ -1482,7 +1482,7 @@
     },
     {
       "tests": [
-        "tests/unit/terrain-dem-tint.test.mjs"
+        "tests/unit/geometry/terrain-dem-tint.test.mjs"
       ],
       "requires": [
         "native-terrain-dem-tint"
@@ -1490,7 +1490,7 @@
     },
     {
       "tests": [
-        "tests/unit/gis-german-base-builder.test.mjs"
+        "tests/unit/build/gis-german-base-builder.test.mjs"
       ],
       "requires": [
         "native-german-natural-earth"
@@ -1498,7 +1498,7 @@
     },
     {
       "tests": [
-        "tests/unit/gis-caspian-pinned-native-baseline.test.mjs"
+        "tests/unit/geometry/gis-caspian-pinned-native-baseline.test.mjs"
       ],
       "requires": [
         "native-caspian-oracle"
@@ -1506,7 +1506,7 @@
     },
     {
       "tests": [
-        "tests/unit/map-native-pdf.test.mjs"
+        "tests/unit/document/map-native-pdf.test.mjs"
       ],
       "requires": [
         "native-map-pdf",
@@ -1515,7 +1515,7 @@
     },
     {
       "tests": [
-        "tests/unit/map-native-preview.test.mjs"
+        "tests/unit/document/map-native-preview.test.mjs"
       ],
       "requires": [
         "native-map-preview",
@@ -1524,8 +1524,8 @@
     },
     {
       "tests": [
-        "tests/unit/core-*.test.mjs",
-        "tests/unit/*-wasm.test.mjs"
+        "tests/unit/**/core-*.test.mjs",
+        "tests/unit/**/*-wasm.test.mjs"
       ],
       "requires": [
         "core"

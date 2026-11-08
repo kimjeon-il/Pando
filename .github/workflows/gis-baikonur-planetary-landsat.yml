@@ -4,7 +4,7 @@ on:
     branches: [work/gis]
     paths:
       - 'tools/gis/probe-baikonur-planetary-landsat.mjs'
-      - 'tests/unit/gis-baikonur-1994-landsat.test.mjs'
+      - 'tests/unit/geometry/gis-baikonur-1994-landsat.test.mjs'
       - '.github/workflows/gis-baikonur-planetary-landsat.yml'
   workflow_dispatch:
 
@@ -23,7 +23,7 @@ jobs:
         with:
           node-version: '24'
       - name: Test no credential leaks from anonymous Planetary Computer SAS
-        run: node --test tests/unit/gis-baikonur-1994-landsat.test.mjs
+        run: node --test tests/unit/geometry/gis-baikonur-1994-landsat.test.mjs
       - name: Fetch only public-domain Landsat STAC metadata and ephemeral signed COG HEAD
         run: |
           node tools/gis/probe-baikonur-planetary-landsat.mjs \

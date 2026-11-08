@@ -43,9 +43,9 @@ jobs:
           }
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           test "$(node -p "require('./config/library-data.json').revision")" = "$PINNED_BASELINE"
-          node --test tests/unit/gis-hydro-bulk-all29.test.mjs \
-            tests/unit/gis-hydro-followup-independent.test.mjs \
-            tests/unit/gis-osm-source-inventory.test.mjs
+          node --test tests/unit/geometry/gis-hydro-bulk-all29.test.mjs \
+            tests/unit/geometry/gis-hydro-followup-independent.test.mjs \
+            tests/unit/geometry/gis-osm-source-inventory.test.mjs
       - name: Check out only the immutable baseline Hydro source
         uses: actions/checkout@v4
         with:

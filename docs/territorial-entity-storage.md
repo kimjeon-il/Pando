@@ -292,7 +292,7 @@ M15의 성능 gate는 미통과 상태로 남긴다. 배포 완료와 전체 계
 manifest의 입력 경로가 여전히 옛 Natural Earth 직접 입력이라고 기대하는 낡은 검사(B)였다.
 해당 파일만 실행해 실패를 재현한 뒤 실제 authoritative generated current-world를
 읽도록 갱신했다. 형상 repair 불필요·좌표 순서·ring 수·공유 topology·구멍 검증은 유지했다.
-`node --test tests/unit/preview-country-geometry.test.mjs` **5 통과·0 실패·0 skip**,
+`node --test tests/unit/geometry/preview-country-geometry.test.mjs` **5 통과·0 실패·0 skip**,
 해당 파일 ESLint 종료 코드 0. 전체 suite를 로컬에서 재실행하지 않았다.
 
 원격 `Validation entrypoints and current generated assets`의 preview gzip 재생성 byte

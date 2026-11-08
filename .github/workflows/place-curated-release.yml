@@ -47,10 +47,10 @@ jobs:
         run: node tools/build/build-place-runtime.mjs --check
 
       - name: Run focused publication and codec tests
-        run: node --test tests/unit/place-publication.test.mjs tests/unit/place-codec.test.mjs
+        run: node --test tests/unit/data/place-publication.test.mjs tests/unit/data/place-codec.test.mjs
 
       - name: Lint updated release publisher and tests
-        run: pnpm exec eslint tools/build/build-place-runtime.mjs tests/unit/place-publication.test.mjs
+        run: pnpm exec eslint tools/build/build-place-runtime.mjs tests/unit/data/place-publication.test.mjs
 
       - name: Check generated file integrity
         run: git diff --check

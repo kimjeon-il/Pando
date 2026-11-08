@@ -41,7 +41,7 @@ jobs:
         run: |
           node tools/build/build-territorial-entity-chunks.mjs --check
           node scripts/check-version.mjs
-          node --test tests/unit/polygon-geometry.test.mjs tests/unit/territorial-chunks.test.mjs tests/unit/historical-world-publication.test.mjs
+          node --test tests/unit/geometry/polygon-geometry.test.mjs tests/unit/ui/territorial-chunks.test.mjs tests/unit/data/historical-world-publication.test.mjs
       - name: Verify generated output scope
         shell: bash
         env:

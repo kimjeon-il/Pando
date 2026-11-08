@@ -8,10 +8,10 @@ on:
       - 'shared/wasm/session-bindings.cpp'
       - 'assets/wasm/pandoeditor-core.manifest.json'
       - 'src/document/core-document-runtime.js'
-      - 'tests/browser/viewer-calendar.spec.mjs'
-      - 'tests/browser/viewer-review-e4.spec.mjs'
-      - 'tests/unit/core-document-runtime.test.mjs'
-      - 'tests/unit/core-document-client.test.mjs'
+      - 'tests/browser/document/viewer-calendar.spec.mjs'
+      - 'tests/browser/document/viewer-review-e4.spec.mjs'
+      - 'tests/unit/document/core-document-runtime.test.mjs'
+      - 'tests/unit/document/core-document-client.test.mjs'
   workflow_dispatch:
 permissions:
   contents: read
@@ -42,7 +42,7 @@ jobs:
         env:
           PANDOEDITOR_WASM_MODULE: ${{ github.workspace }}/assets/wasm/pandoeditor-core.js
         run: |
-          node --test tests/unit/core-document-runtime.test.mjs tests/unit/core-document-client.test.mjs
+          node --test tests/unit/document/core-document-runtime.test.mjs tests/unit/document/core-document-client.test.mjs
           node --test shared/tests/wasm-document-session.test.mjs shared/tests/p5-temporal-wasm.test.mjs shared/tests/p5-timeline-wasm.test.mjs
           node --input-type=module <<'NODE'
           import assert from 'node:assert/strict';
@@ -100,7 +100,7 @@ jobs:
         env:
           PANDOLAB_BROWSER_CHANNEL: chromium
         run: |
-          pnpm exec playwright test tests/browser/viewer-calendar.spec.mjs --workers=1 --retries=0 --trace off
+          pnpm exec playwright test tests/browser/document/viewer-calendar.spec.mjs --workers=1 --retries=0 --trace off
       - name: Preserve browser evidence on failures
         if: always()
         uses: actions/upload-artifact@v4
@@ -132,18 +132,18 @@ jobs:
       - name: Repeat new-project reset then verify real dated-view acceptance
         env:
           PANDOLAB_BROWSER_CHANNEL: chromium
-        run: pnpm exec playwright test tests/browser/viewer-calendar.spec.mjs --grep='.' --repeat-each=3 --workers=1 --retries=0 --trace off
+        run: pnpm exec playwright test tests/browser/document/viewer-calendar.spec.mjs --grep='.' --repeat-each=3 --workers=1 --retries=0 --trace off
       - name: Verify label Undo/Redo and save/reopen on the published WASM
         env:
           PANDOLAB_BROWSER_CHANNEL: chromium
-        run: pnpm exec playwright test tests/browser/viewer-review-e4.spec.mjs --workers=1 --retries=0 --trace off
+        run: pnpm exec playwright test tests/browser/document/viewer-review-e4.spec.mjs --workers=1 --retries=0 --trace off
       - name: Verify browser Undo/Redo for deletion and distribution edits
         env:
           PANDOLAB_BROWSER_CHANNEL: chromium
         run: >-
           pnpm exec playwright test
-          tests/browser/viewer-calendar.spec.mjs
-          tests/browser/viewer-review-e4.spec.mjs
+          tests/browser/document/viewer-calendar.spec.mjs
+          tests/browser/document/viewer-review-e4.spec.mjs
           --grep='.'
           --workers=1 --retries=0 --trace off
       - name: Preserve reset failure evidence

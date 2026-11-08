@@ -11,7 +11,7 @@
 - Node/C++ Worker 회귀: https://github.com/kimjeon-il/Pando/actions/runs/41548841247 (25/25 PASS).
 - 실제 고정 Viewer A-B-A: https://github.com/kimjeon-il/Pando/actions/runs/41549908013 (PASS, 각 조건 새 브라우저 1회).
 - A-B-A 원본 증거: GitHub Actions artifact 13190188282, w2-p6-3-immutable-country-delta-viewer-pilot, 보관 14일.
-- 시험 코드: tools/w2-p6-3-boundary-delta-sender.mjs, tools/w2-p6-3-worker-bridge.mjs, tests/unit/w2-p6-3-delta-protocol.test.mjs, tools/w2-p6-3-browser-delta-probe.mjs, 전용 CI workflow 2개. 실제 shipping Viewer/Worker 및 C++/WASM/GIS 소스는 변경하지 않았다.
+- 시험 코드: tools/w2-p6-3-boundary-delta-sender.mjs, tools/w2-p6-3-worker-bridge.mjs, tests/unit/geometry/w2-p6-3-delta-protocol.test.mjs, tools/w2-p6-3-browser-delta-probe.mjs, 전용 CI workflow 2개. 실제 shipping Viewer/Worker 및 C++/WASM/GIS 소스는 변경하지 않았다.
 
 ## 2. 프로토콜과 안전성
 

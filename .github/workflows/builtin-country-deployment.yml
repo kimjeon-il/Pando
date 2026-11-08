@@ -5,18 +5,18 @@ on:
     branches: [work/gis]
     paths:
       - '.github/workflows/builtin-country-deployment.yml'
-      - 'tests/unit/builtin-country-publication.test.mjs'
-      - 'tests/unit/builtin-country-parts.test.mjs'
+      - 'tests/unit/data/builtin-country-publication.test.mjs'
+      - 'tests/unit/data/builtin-country-parts.test.mjs'
       - 'tests/integration/builtin-country-deployment.mjs'
-      - 'tests/browser/viewer-calendar.spec.mjs'
+      - 'tests/browser/document/viewer-calendar.spec.mjs'
       - 'tools/data/builtin-country-storage.mjs'
       - 'tools/data/builtin-country-bytes.mjs'
       - 'src/data/builtin-country-files.js'
       - 'scripts/lib/product-assets.mjs'
       - 'src/app/viewer.js'
       - 'tools/build/stage-monorepo-pages.mjs'
-      - 'tests/unit/frontend-product-output.test.mjs'
-      - 'tests/unit/monorepo-pages-staging.test.mjs'
+      - 'tests/unit/build/frontend-product-output.test.mjs'
+      - 'tests/unit/document/monorepo-pages-staging.test.mjs'
       - 'docs/development/builtin-country-deployment.md'
   workflow_dispatch:
     inputs:
@@ -111,7 +111,7 @@ jobs:
       - name: Verify affected generation, loader, deployment and Viewer publication contracts
         if: steps.reuse.outputs.verified != 'true'
         run: |
-          node --test --test-timeout=15000 tests/unit/builtin-country-publication.test.mjs tests/unit/historical-world-publication.test.mjs tests/unit/builtin-world-catalog.test.mjs tests/unit/builtin-world-loader.test.mjs tests/unit/builtin-country-loading.test.mjs tests/unit/builtin-country-parts.test.mjs tests/unit/frontend-product-output.test.mjs tests/unit/monorepo-pages-staging.test.mjs
+          node --test --test-timeout=15000 tests/unit/data/builtin-country-publication.test.mjs tests/unit/data/historical-world-publication.test.mjs tests/unit/document/builtin-world-catalog.test.mjs tests/unit/data/builtin-world-loader.test.mjs tests/unit/data/builtin-country-loading.test.mjs tests/unit/data/builtin-country-parts.test.mjs tests/unit/build/frontend-product-output.test.mjs tests/unit/document/monorepo-pages-staging.test.mjs
       - name: Prepare independent files and a locally verified paired pin; preserve every country hash
         run: |
           node --input-type=module <<'JS'
@@ -130,13 +130,13 @@ jobs:
         run: node tests/integration/builtin-country-deployment.mjs
       - name: Verify product asset unit contracts
         if: steps.reuse.outputs.verified != 'true'
-        run: node --test --test-timeout=30000 tests/unit/product-assets.test.mjs
+        run: node --test --test-timeout=30000 tests/unit/ui/product-assets.test.mjs
       - name: Prepare one real Chromium loading regression
         if: steps.reuse.outputs.verified != 'true'
         run: pnpm exec playwright install --with-deps chromium
       - name: Verify current month, historical selection and no aggregate network request
         if: steps.reuse.outputs.verified != 'true'
-        run: pnpm exec playwright test tests/browser/viewer-calendar.spec.mjs --grep 'follows calendar rollover' --workers=1 --retries=0 --trace off
+        run: pnpm exec playwright test tests/browser/document/viewer-calendar.spec.mjs --grep 'follows calendar rollover' --workers=1 --retries=0 --trace off
       - name: Publish only verified country files to the data work/gis branch
         if: inputs.activate == true || contains(github.event.head_commit.message, '[activate-country-files]')
         env:

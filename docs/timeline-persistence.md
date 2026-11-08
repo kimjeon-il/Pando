@@ -137,7 +137,7 @@ Undo/Redo, 자동저장/재열기 검사를 유지했다.
 
 ```powershell
 $env:NODE_OPTIONS='--experimental-vm-modules'
-node --test "tests/unit/timeline-*.test.mjs" tests/unit/temporal.test.mjs tests/unit/project-serializer.test.mjs tests/unit/project-state.test.mjs tests/unit/place-label-workflow.test.mjs tests/unit/app-builtin-session.test.mjs
+node --test "tests/unit/timeline-*.test.mjs" tests/unit/document/temporal.test.mjs tests/unit/project-serializer.test.mjs tests/unit/document/project-state.test.mjs tests/unit/place-label-workflow.test.mjs tests/unit/document/app-builtin-session.test.mjs
 $env:PANDOLAB_TEST_PORT='4206'
 node node_modules/@playwright/test/cli.js test tests/browser/timeline-persistence.spec.mjs tests/browser/territorial-common-commands.spec.mjs tests/browser/territorial-parent-edit.spec.mjs
 ```

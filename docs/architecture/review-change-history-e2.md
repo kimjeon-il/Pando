@@ -75,7 +75,7 @@ E2는 실제 데이터 리비전 비교·CI 자동 차이 추출(E3), 지도 검
 - 수용 기준 커밋: `d8f6e58f4ea0d3b6da0ab174950689c3c3fb842a`.
 - 독립 GitHub Actions: [E2 review sidecar and history acceptance / 41372768718](https://github.com/kimjeon-il/Pando/actions/runs/41372768718). `review-contract` 실행 **success**.
 - 정식 C++/WASM temporal prerequisite 통과. C++ 시간축을 재구현하거나 날짜 정밀도를 월 단위로 강제하지 않았다.
-- `tests/unit/review-change-records.test.mjs` **9개 통과, 실패 0**. 유효 제안, 엄격한 국가 원본 ID/해시·리비전/근거 경로, 연·월·일 유효성, 불변 재검증, 상태 전이, 승인 전 CI 필수 검사, 반영 이력, 중복·누락·시간 역행 거부, 결정적 객체별 이력 색인 확인.
+- `tests/unit/document/review-change-records.test.mjs` **9개 통과, 실패 0**. 유효 제안, 엄격한 국가 원본 ID/해시·리비전/근거 경로, 연·월·일 유효성, 불변 재검증, 상태 전이, 승인 전 CI 필수 검사, 반영 이력, 중복·누락·시간 역행 거부, 결정적 객체별 이력 색인 확인.
 - ESLint, `node tools/review/validate-review-bundle.mjs tests/fixtures/review/e2-synthetic-review.json` 및 `node scripts/check-runtime-boundaries.mjs` 모두 성공.
 - 초기 CI에서 발견한 ESLint 경고 2건(제어 문자 정규식, 미사용 헬퍼)은 [`d8f6e58f`](https://github.com/kimjeon-il/Pando/commit/d8f6e58f4ea0d3b6da0ab174950689c3c3fb842a)에서 수정했고 수용 CI를 재실행하여 통과했다. 초기 실패 기록은 변경하지 않는다.
 

@@ -11,7 +11,7 @@ on:
       - 'tests/helpers/core-*.mjs'
       - 'tests/helpers/web-*-contract.mjs'
       - 'tests/helpers/web-oracle.mjs'
-      - 'tests/unit/builtin-resource-*.test.mjs'
+      - 'tests/unit/**/builtin-resource-*.test.mjs'
       - 'tests/helpers/web-hydro-create-oracle.mjs'
       - 'tests/helpers/web-hydro-hidden-oracle.mjs'
       - 'tests/helpers/gis-core-fixture.mjs'
@@ -22,15 +22,15 @@ on:
       - 'tests/fixtures/portability/web-9300609-hydro-create/**'
       - 'tests/fixtures/portability/web-9300609-hydro-hidden/**'
       - 'tests/fixtures/portability/web-9300609-hydro-copy/**'
-      - 'tests/unit/map-hover-*.test.mjs'
-      - 'tests/unit/r4c-spatial-boundaries.test.mjs'
-      - 'tests/unit/selection-*.test.mjs'
-      - 'tests/unit/*core*.test.mjs'
-      - 'tests/unit/native-*.test.mjs'
-      - 'tests/unit/web-*-contract.test.mjs'
-      - 'tests/unit/project-creation-contract.test.mjs'
-      - 'tests/unit/r4b-data-module-boundaries.test.mjs'
-      - 'tests/unit/project-preview-policy.test.mjs'
+      - 'tests/unit/**/map-hover-*.test.mjs'
+      - 'tests/unit/geometry/r4c-spatial-boundaries.test.mjs'
+      - 'tests/unit/**/selection-*.test.mjs'
+      - 'tests/unit/**/*core*.test.mjs'
+      - 'tests/unit/**/native-*.test.mjs'
+      - 'tests/unit/**/web-*-contract.test.mjs'
+      - 'tests/unit/document/project-creation-contract.test.mjs'
+      - 'tests/unit/document/r4b-data-module-boundaries.test.mjs'
+      - 'tests/unit/document/project-preview-policy.test.mjs'
       - 'tools/build/package-shared-core-assets.mjs'
       - 'tools/reference-fixtures/**'
       - 'tools/lib/checkout-identity.mjs'
@@ -53,7 +53,7 @@ on:
       - 'tests/helpers/web-hydro-create-oracle.mjs'
       - 'tests/helpers/web-hydro-hidden-oracle.mjs'
       - 'tests/helpers/gis-core-fixture.mjs'
-      - 'tests/unit/builtin-resource-*.test.mjs'
+      - 'tests/unit/**/builtin-resource-*.test.mjs'
       - 'tests/helpers/editable-history-fixture.mjs'
       - 'tests/fixtures/portability/web-*.json'
       - 'tests/fixtures/portability/web-9300609-oracle/**'
@@ -61,15 +61,15 @@ on:
       - 'tests/fixtures/portability/web-9300609-hydro-create/**'
       - 'tests/fixtures/portability/web-9300609-hydro-hidden/**'
       - 'tests/fixtures/portability/web-9300609-hydro-copy/**'
-      - 'tests/unit/map-hover-*.test.mjs'
-      - 'tests/unit/r4c-spatial-boundaries.test.mjs'
-      - 'tests/unit/selection-*.test.mjs'
-      - 'tests/unit/*core*.test.mjs'
-      - 'tests/unit/native-*.test.mjs'
-      - 'tests/unit/web-*-contract.test.mjs'
-      - 'tests/unit/project-creation-contract.test.mjs'
-      - 'tests/unit/r4b-data-module-boundaries.test.mjs'
-      - 'tests/unit/project-preview-policy.test.mjs'
+      - 'tests/unit/**/map-hover-*.test.mjs'
+      - 'tests/unit/geometry/r4c-spatial-boundaries.test.mjs'
+      - 'tests/unit/**/selection-*.test.mjs'
+      - 'tests/unit/**/*core*.test.mjs'
+      - 'tests/unit/**/native-*.test.mjs'
+      - 'tests/unit/**/web-*-contract.test.mjs'
+      - 'tests/unit/document/project-creation-contract.test.mjs'
+      - 'tests/unit/document/r4b-data-module-boundaries.test.mjs'
+      - 'tests/unit/document/project-preview-policy.test.mjs'
       - 'tools/build/package-shared-core-assets.mjs'
       - 'tools/reference-fixtures/**'
       - 'tools/lib/checkout-identity.mjs'
@@ -320,54 +320,54 @@ jobs:
           PANDOEDITOR_WASM_MODULE: build-native/p1/pando-wasm/shared/wasm/pandoeditor-core.js
         run: >-
           node --test --test-concurrency=1 --test-timeout=15000 shared/tests/wasm-document-session.test.mjs
-          tests/unit/core-wasm-loader.test.mjs tests/unit/web-core-contract.test.mjs
-          tests/unit/core-document-client.test.mjs tests/unit/core-document-runtime.test.mjs
-          tests/unit/core-document-read-model.test.mjs tests/unit/core-document-wasm.test.mjs
-          tests/unit/core-document-selection-wasm.test.mjs
-          tests/unit/core-document-world-wasm.test.mjs
-           tests/unit/core-codec-unicode-wasm.test.mjs
-          tests/unit/core-codec-unicode-ids-wasm.test.mjs
-           tests/unit/core-project-command-wasm.test.mjs
-          tests/unit/core-map-presentation-wasm.test.mjs tests/unit/core-object-catalog-wasm.test.mjs
-          tests/unit/core-delete-selection-wasm.test.mjs
-          tests/unit/core-distribution-array-metadata-wasm.test.mjs
-          tests/unit/core-direct-object-writers-wasm.test.mjs
-          tests/unit/core-hydro-create-wasm.test.mjs tests/unit/core-web-history-limit-wasm.test.mjs
-           tests/unit/core-label-gesture-wasm.test.mjs
-          tests/unit/timeline-geopackage.test.mjs
-          tests/unit/core-project-file-save-wasm.test.mjs
-          tests/unit/core-territorial-service-wasm.test.mjs
-          tests/unit/core-territorial-store-wasm.test.mjs
-          tests/unit/core-save-state-projection.test.mjs
-          tests/unit/timeline-controls.test.mjs tests/unit/core-temporal-viewer-p5-6.test.mjs tests/unit/shared-core-assets.test.mjs
-           tests/unit/core-worker-ownership.test.mjs
+          tests/unit/runtime/core-wasm-loader.test.mjs tests/unit/runtime/web-core-contract.test.mjs
+          tests/unit/document/core-document-client.test.mjs tests/unit/document/core-document-runtime.test.mjs
+          tests/unit/document/core-document-read-model.test.mjs tests/unit/document/core-document-wasm.test.mjs
+          tests/unit/document/core-document-selection-wasm.test.mjs
+          tests/unit/document/core-document-world-wasm.test.mjs
+           tests/unit/document/core-codec-unicode-wasm.test.mjs
+          tests/unit/document/core-codec-unicode-ids-wasm.test.mjs
+           tests/unit/document/core-project-command-wasm.test.mjs
+          tests/unit/runtime/core-map-presentation-wasm.test.mjs tests/unit/document/core-object-catalog-wasm.test.mjs
+          tests/unit/document/core-delete-selection-wasm.test.mjs
+          tests/unit/document/core-distribution-array-metadata-wasm.test.mjs
+          tests/unit/document/core-direct-object-writers-wasm.test.mjs
+          tests/unit/document/core-hydro-create-wasm.test.mjs tests/unit/document/core-web-history-limit-wasm.test.mjs
+           tests/unit/document/core-label-gesture-wasm.test.mjs
+          tests/unit/document/timeline-geopackage.test.mjs
+          tests/unit/document/core-project-file-save-wasm.test.mjs
+          tests/unit/document/core-territorial-service-wasm.test.mjs
+          tests/unit/document/core-territorial-store-wasm.test.mjs
+          tests/unit/document/core-save-state-projection.test.mjs
+          tests/unit/document/timeline-controls.test.mjs tests/unit/document/core-temporal-viewer-p5-6.test.mjs tests/unit/document/shared-core-assets.test.mjs
+           tests/unit/runtime/core-worker-ownership.test.mjs
       - name: Ordered storage snapshot and project replacement boundaries
         env:
           PANDOEDITOR_WASM_MODULE: build-native/p1/pando-wasm/shared/wasm/pandoeditor-core.js
         run: >-
           node --test --test-concurrency=1 --test-timeout=15000
-          tests/unit/project-creation-contract.test.mjs tests/unit/r4b-data-module-boundaries.test.mjs
-          tests/unit/project-preview-policy.test.mjs
+          tests/unit/document/project-creation-contract.test.mjs tests/unit/document/r4b-data-module-boundaries.test.mjs
+          tests/unit/document/project-preview-policy.test.mjs
       - name: Retired attachment contracts
         run: >-
           node --test --test-concurrency=1 --test-timeout=15000
-          tests/unit/map-plugin-cutover.test.mjs
+          tests/unit/document/map-plugin-cutover.test.mjs
       - name: Core-owned generic and distribution service contracts
         run: >-
           node --test --test-concurrency=1 --test-timeout=15000
-          tests/unit/generic-feature-service.test.mjs tests/unit/territorial-entity-repository.test.mjs
-          tests/unit/core-service-writer-clock-wasm.test.mjs
+          tests/unit/document/generic-feature-service.test.mjs tests/unit/document/territorial-entity-repository.test.mjs
+          tests/unit/document/core-service-writer-clock-wasm.test.mjs
       - name: Accepted selection and input presentation boundaries
         run: >-
           node --test --test-concurrency=1 --test-timeout=15000
-          tests/unit/selection-domain-core.test.mjs
-          tests/unit/selection-emphasis.test.mjs
-          tests/unit/layer-footer-contract.test.mjs
-          tests/unit/builtin-resource-admission.test.mjs tests/unit/builtin-resource-core-wasm.test.mjs tests/unit/place-runtime.test.mjs
-          tests/unit/map-hover-async-boundary.test.mjs
-          tests/unit/r4c-spatial-boundaries.test.mjs
+          tests/unit/document/selection-domain-core.test.mjs
+          tests/unit/rendering/selection-emphasis.test.mjs
+          tests/unit/runtime/layer-footer-contract.test.mjs
+          tests/unit/document/builtin-resource-admission.test.mjs tests/unit/document/builtin-resource-core-wasm.test.mjs tests/unit/rendering/place-runtime.test.mjs
+          tests/unit/document/map-hover-async-boundary.test.mjs
+          tests/unit/geometry/r4c-spatial-boundaries.test.mjs
       - name: Pages source exclusion and complete required runtime
-        run: node --test tests/unit/monorepo-pages-staging.test.mjs
+        run: node --test tests/unit/document/monorepo-pages-staging.test.mjs
       - name: Record the bounded native and WASM source evidence
         shell: bash
         run: |
@@ -475,7 +475,7 @@ jobs:
         with:
           node-version: '24'
       - name: Ordered Worker transport, late acknowledgement and existing client contracts
-        run: node --test tests/unit/core-temporal-transport-p5-5.test.mjs tests/unit/core-document-client.test.mjs tests/unit/core-document-runtime.test.mjs tests/unit/core-worker-ownership.test.mjs
+        run: node --test tests/unit/document/core-temporal-transport-p5-5.test.mjs tests/unit/document/core-document-client.test.mjs tests/unit/document/core-document-runtime.test.mjs tests/unit/runtime/core-worker-ownership.test.mjs
       - name: Prepare exact pinned builtin-world comparison data
         uses: ./.github/actions/library-data
       - name: Checkout exact pinned Emscripten SDK
@@ -521,7 +521,7 @@ jobs:
       - name: Identical fixed inputs, actual native and WASM results, failure and rollback
         run: node --test tests/native/temporal-parity-p5-7.test.mjs
       - name: Focused Worker cancellation and late acknowledgement contracts
-        run: node --test tests/unit/core-temporal-transport-p5-5.test.mjs
+        run: node --test tests/unit/document/core-temporal-transport-p5-5.test.mjs
       - name: Retain bounded evidence even when a gate fails
         if: always()
         uses: actions/upload-artifact@v4

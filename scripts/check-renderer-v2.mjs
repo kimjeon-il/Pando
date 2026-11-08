@@ -5,13 +5,13 @@ import { spawnSync } from 'node:child_process';
 import process from 'node:process';
 
 const suites = [
-  'tests/unit/gpu-base-scene-order.test.mjs',
-  'tests/unit/gpu-helper-utils.test.mjs',
-  'tests/unit/gpu-resource-owners.test.mjs',
-  'tests/unit/gpu-scene-staging.test.mjs',
-  'tests/unit/gpu-stroke-renderer.test.mjs',
-  'tests/unit/gpu-canvas-worker.test.mjs',
-  'tests/unit/map-presentation-readiness.test.mjs',
+  'tests/unit/rendering/gpu-base-scene-order.test.mjs',
+  'tests/unit/rendering/gpu-helper-utils.test.mjs',
+  'tests/unit/rendering/gpu-resource-owners.test.mjs',
+  'tests/unit/rendering/gpu-scene-staging.test.mjs',
+  'tests/unit/rendering/gpu-stroke-renderer.test.mjs',
+  'tests/unit/rendering/gpu-canvas-worker.test.mjs',
+  'tests/unit/rendering/map-presentation-readiness.test.mjs',
 ];
 const result = spawnSync(process.execPath,
   ['--test','--test-concurrency=1',...suites],

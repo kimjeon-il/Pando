@@ -61,8 +61,8 @@
     "tools/gis/territorial-batch-calculation.js",
     "tools/gis/territory-component-plan.js",
     "tools/gis/country-geometry-calculator.js",
-    "tests/unit/gis-math-contract.test.mjs",
-    "tests/unit/gis-geometry-worker.test.mjs",
+    "tests/unit/geometry/gis-math-contract.test.mjs",
+    "tests/unit/geometry/gis-geometry-worker.test.mjs",
     "tests/helpers/production-geopackage.mjs",
     "src/document/core-document-client.js",
     "src/ui/inspector/viewer-review-panel.js"

@@ -13,17 +13,17 @@ on:
       - 'src/app/viewer-map.js'
       - 'src/app/viewer-composition.js'
       - 'src/app/viewer-initial-presentation.js'
-      - 'tests/browser/viewer-project-open.spec.mjs'
-      - 'tests/browser/viewer-calendar.spec.mjs'
+      - 'tests/browser/document/viewer-project-open.spec.mjs'
+      - 'tests/browser/document/viewer-calendar.spec.mjs'
       - 'src/rendering/gpu-base-scene-pass.js'
       - 'src/app/startup-readiness.js'
       - 'src/rendering/workers/canvas-render-worker.js'
       - 'src/rendering/workers/canvas-terrain-dem-core.js'
-      - 'tests/unit/canvas-country-geometry.test.mjs'
-      - 'tests/unit/canvas-terrain-independence.test.mjs'
-      - 'tests/unit/gpu-base-scene-order.test.mjs'
-      - 'tests/unit/map-presentation-readiness.test.mjs'
-      - 'tests/browser/viewer-startup-and-terrain.spec.mjs'
+      - 'tests/unit/rendering/canvas-country-geometry.test.mjs'
+      - 'tests/unit/rendering/canvas-terrain-independence.test.mjs'
+      - 'tests/unit/rendering/gpu-base-scene-order.test.mjs'
+      - 'tests/unit/rendering/map-presentation-readiness.test.mjs'
+      - 'tests/browser/geometry/viewer-startup-and-terrain.spec.mjs'
       - '.github/workflows/terrain-preview-gate.yml'
   pull_request:
     paths:
@@ -35,17 +35,17 @@ on:
       - 'src/app/viewer-map.js'
       - 'src/app/viewer-composition.js'
       - 'src/app/viewer-initial-presentation.js'
-      - 'tests/browser/viewer-project-open.spec.mjs'
-      - 'tests/browser/viewer-calendar.spec.mjs'
+      - 'tests/browser/document/viewer-project-open.spec.mjs'
+      - 'tests/browser/document/viewer-calendar.spec.mjs'
       - 'src/rendering/gpu-base-scene-pass.js'
       - 'src/app/startup-readiness.js'
       - 'src/rendering/workers/canvas-render-worker.js'
       - 'src/rendering/workers/canvas-terrain-dem-core.js'
-      - 'tests/unit/canvas-country-geometry.test.mjs'
-      - 'tests/unit/canvas-terrain-independence.test.mjs'
-      - 'tests/unit/gpu-base-scene-order.test.mjs'
-      - 'tests/unit/map-presentation-readiness.test.mjs'
-      - 'tests/browser/viewer-startup-and-terrain.spec.mjs'
+      - 'tests/unit/rendering/canvas-country-geometry.test.mjs'
+      - 'tests/unit/rendering/canvas-terrain-independence.test.mjs'
+      - 'tests/unit/rendering/gpu-base-scene-order.test.mjs'
+      - 'tests/unit/rendering/map-presentation-readiness.test.mjs'
+      - 'tests/browser/geometry/viewer-startup-and-terrain.spec.mjs'
   workflow_dispatch:
 
 permissions:
@@ -79,18 +79,18 @@ jobs:
           node tools/map-image/package-native.mjs --binary build-native/map-image/pando-map-image --directory "$PANDO_MAP_IMAGE_ARTIFACT"
           node tools/build/build-terrain-preview.mjs --rebuild-check
           node tools/checks/check-terrain-preview.mjs --out terrain-preview-evidence.json
-          node --test tests/unit/terrain-preview-native.test.mjs tests/unit/terrain-preview-audit.test.mjs tests/unit/terrain-preview-builder.test.mjs
-          node --test tests/unit/terrain-preview-audit.test.mjs tests/unit/physical-layer-service.test.mjs tests/unit/canvas-country-geometry.test.mjs
-          node --test tests/unit/canvas-terrain-independence.test.mjs tests/unit/gpu-scene-staging.test.mjs
+          node --test tests/unit/geometry/terrain-preview-native.test.mjs tests/unit/geometry/terrain-preview-audit.test.mjs tests/unit/build/terrain-preview-builder.test.mjs
+          node --test tests/unit/geometry/terrain-preview-audit.test.mjs tests/unit/rendering/physical-layer-service.test.mjs tests/unit/rendering/canvas-country-geometry.test.mjs
+          node --test tests/unit/rendering/canvas-terrain-independence.test.mjs tests/unit/rendering/gpu-scene-staging.test.mjs
       - name: Check actual WebGL and Canvas display paths with fixed terrain responses
         run: |
           pnpm install --frozen-lockfile
-          node --test tests/unit/gpu-canvas-worker.test.mjs tests/unit/gpu-base-scene-order.test.mjs tests/unit/map-presentation-readiness.test.mjs
+          node --test tests/unit/rendering/gpu-canvas-worker.test.mjs tests/unit/rendering/gpu-base-scene-order.test.mjs tests/unit/rendering/map-presentation-readiness.test.mjs
           pnpm exec playwright install --with-deps chromium
-          pnpm exec playwright test tests/browser/viewer-calendar.spec.mjs --grep 'webgl 1280px dedicated temporal path|Canvas user-file opening retains full document admission after a builtin delta transition' --workers=1 --output=viewer-date-browser
-          pnpm exec playwright test tests/browser/viewer-project-open.spec.mjs --grep 'viewer opens the real editor GeoPackage' --output=viewer-gpkg-browser
-          pnpm exec playwright test tests/browser/terrain-preview.spec.mjs --output=terrain-preview-browser
-          pnpm exec playwright test tests/browser/viewer-startup-and-terrain.spec.mjs --grep 'WebGL publishes an actual physical country frame before optional terrain detail resolves' --output=webgl-initial-browser
+          pnpm exec playwright test tests/browser/document/viewer-calendar.spec.mjs --grep 'webgl 1280px dedicated temporal path|Canvas user-file opening retains full document admission after a builtin delta transition' --workers=1 --output=viewer-date-browser
+          pnpm exec playwright test tests/browser/document/viewer-project-open.spec.mjs --grep 'viewer opens the real editor GeoPackage' --output=viewer-gpkg-browser
+          pnpm exec playwright test tests/browser/geometry/terrain-preview.spec.mjs --output=terrain-preview-browser
+          pnpm exec playwright test tests/browser/geometry/viewer-startup-and-terrain.spec.mjs --grep 'WebGL publishes an actual physical country frame before optional terrain detail resolves' --output=webgl-initial-browser
       - uses: actions/upload-artifact@v4
         if: always()
         with:

@@ -31,11 +31,11 @@
 
 ## 테스트 대상
 
-- `tests/unit/core-product-mode.test.mjs`: viewer, editor 기본 Worker 및 Windows 평면 읽기 전용 Worker가 올바르게 선택되는지 확인.
+- `tests/unit/ui/core-product-mode.test.mjs`: viewer, editor 기본 Worker 및 Windows 평면 읽기 전용 Worker가 올바르게 선택되는지 확인.
 - `tests/unit/project-product-surface.test.mjs`: Windows 읽기 전용에서 편집 명령·저장 API가 노출되지 않는지 확인.
 - `tests/unit/viewer-globe-only.test.mjs`: Windows 읽기 전용 구성도 flat 투영을 유지하고 편집 세션 상태를 만들지 않는지 확인.
 - `tests/unit/shared-map-composition.test.mjs`: 공통 owner가 읽기 전용 평면 구성에서도 동작하고 편집 hook을 거부하는지 확인.
-- `tests/unit/map-readonly-flat-boundary.test.mjs`: 불필요한 편집 레이어 및 편집 렌더러 주입 차단, Core 명령 사전 차단 확인.
+- `tests/unit/ui/map-readonly-flat-boundary.test.mjs`: 불필요한 편집 레이어 및 편집 렌더러 주입 차단, Core 명령 사전 차단 확인.
 
 Github Actions의 실행/완료 여부는 코드 커밋의 검사 기록에서 별도 확인한다. 계획 단계만 성공했거나 건너뛴 작업을 실행 테스트 통과라고 주장하지 않는다.
 

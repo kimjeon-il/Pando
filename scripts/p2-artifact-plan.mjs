@@ -66,7 +66,7 @@ export function selectJobs({wasm},changed=[],manual='auto') {
   // compiled input identity and must not force an otherwise unchanged compiler.
   const bootstrap=changed.some(p=>[
     '.github/workflows/generated-artifacts-p2.yml',
-    'scripts/p2-artifact-plan.mjs','tests/unit/p2-artifact-plan.test.mjs',
+    'scripts/p2-artifact-plan.mjs','tests/unit/build/p2-artifact-plan.test.mjs',
     'cmake/P2NativeBuildReceipt.cmake'].includes(p));
   const forced=manual==='all';
   const wasmDefinitionChanged=changed.some(p=>[

@@ -32,24 +32,24 @@ on:
       - 'assets/wasm/pandoeditor-core.manifest.json'
       - 'assets/js/modules/boundary-lines.js'
       - 'assets/js/modules/geographic-boundary.js'
-      - 'tests/unit/boundary-display-refinement.test.mjs'
+      - 'tests/unit/geometry/boundary-display-refinement.test.mjs'
       - 'assets/js/modules/boundary-topology.js'
       - 'assets/js/modules/country-contact-core.js'
-      - 'tests/unit/country-shared-boundary.test.mjs'
+      - 'tests/unit/geometry/country-shared-boundary.test.mjs'
       - 'assets/js/modules/country-shared-boundary-packet.js'
-      - 'tests/unit/p5-6-contribution-merge.test.mjs'
-      - 'tests/unit/p5-6-core-ownership.test.mjs'
+      - 'tests/unit/geometry/p5-6-contribution-merge.test.mjs'
+      - 'tests/unit/document/p5-6-core-ownership.test.mjs'
       - 'tools/p5-6-core-ownership.mjs'
       - 'tools/p5-6-review-performance.mjs'
-      - 'tests/browser/viewer-boundary-p4-5.spec.mjs'
+      - 'tests/browser/geometry/viewer-boundary-p4-5.spec.mjs'
       - 'assets/js/build-meta.js'
       - 'assets/data/prepared-polygons/generated/v2/manifest.json'
       - 'scripts/check-version.mjs'
       - 'tools/build/build-country-shared-boundaries.mjs'
       - 'tools/benchmark-shared-border-p5.mjs'
-      - 'tests/unit/boundary-lines.test.mjs'
-      - 'tests/unit/country-shared-boundary-generator.test.mjs'
-      - 'tests/unit/boundary-lines.test.mjs'
+      - 'tests/unit/geometry/boundary-lines.test.mjs'
+      - 'tests/unit/rendering/country-shared-boundary-generator.test.mjs'
+      - 'tests/unit/geometry/boundary-lines.test.mjs'
       - 'CMakePresets.json'
   workflow_dispatch:
 permissions:
@@ -87,7 +87,7 @@ jobs:
         run: node scripts/check-version.mjs
       - name: Assert shared C++ ownership of migrated Web rules
         run: |
-          node --test tests/unit/p5-6-core-ownership.test.mjs tests/unit/p5-6-contribution-merge.test.mjs
+          node --test tests/unit/document/p5-6-core-ownership.test.mjs tests/unit/geometry/p5-6-contribution-merge.test.mjs
           node tools/p5-6-core-ownership.mjs --output build-native/p5-6-ownership.json
       - name: Preserve ownership audit even when a later generator check fails
         if: always()
@@ -111,7 +111,7 @@ jobs:
       - name: Run Web chain and immutable shared-cache generator regression
         if: steps.core.outputs.ready == 'true'
         run: |
-          node --test tests/unit/boundary-lines.test.mjs tests/unit/country-shared-boundary-generator.test.mjs tests/unit/p5-6-contribution-merge.test.mjs tests/unit/country-shared-boundary-state.test.mjs tests/unit/boundary-display-refinement.test.mjs tests/unit/country-shared-boundary.test.mjs
+          node --test tests/unit/geometry/boundary-lines.test.mjs tests/unit/rendering/country-shared-boundary-generator.test.mjs tests/unit/geometry/p5-6-contribution-merge.test.mjs tests/unit/geometry/country-shared-boundary-state.test.mjs tests/unit/geometry/boundary-display-refinement.test.mjs tests/unit/geometry/country-shared-boundary.test.mjs
 
   performance:
     runs-on: ubuntu-24.04
@@ -179,7 +179,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p test-results/p5-6-russia
-          pnpm exec playwright test tests/browser/viewer-boundary-p4-5.spec.mjs \
+          pnpm exec playwright test tests/browser/geometry/viewer-boundary-p4-5.spec.mjs \
             --grep='.' \
             --workers=1 --retries=0 --output=test-results/p5-6-russia \
             2>&1 | tee test-results/p5-6-russia.log

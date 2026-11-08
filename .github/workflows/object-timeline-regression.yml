@@ -15,8 +15,8 @@ on:
       - 'src/document/project-baseline-fingerprint.js'
       - 'shared/core/src/timeline*.cpp'
       - 'shared/core/include/**/timeline*.h'
-      - 'tests/unit/temporal.test.mjs'
-      - 'tests/unit/timeline-*.test.mjs'
+      - 'tests/unit/document/temporal.test.mjs'
+      - 'tests/unit/**/timeline-*.test.mjs'
       - 'tests/fixtures/timeline-*'
       - 'tests/fixtures/portability/timeline-*'
   workflow_dispatch:
@@ -55,11 +55,11 @@ jobs:
         if: steps.core.outputs.ready == 'true'
         run: |
           node --test \
-            tests/unit/temporal.test.mjs \
-            tests/unit/timeline-records.test.mjs \
-            tests/unit/timeline-geopackage.test.mjs \
-            tests/unit/project-timeline-domain.test.mjs \
-            tests/unit/timeline-resolver.test.mjs \
-            tests/unit/territorial-library.test.mjs \
-            tests/unit/territorial-entity-repository.test.mjs \
-            tests/unit/territorial-timeline-storage.test.mjs
+            tests/unit/document/temporal.test.mjs \
+            tests/unit/document/timeline-records.test.mjs \
+            tests/unit/document/timeline-geopackage.test.mjs \
+            tests/unit/document/project-timeline-domain.test.mjs \
+            tests/unit/document/timeline-resolver.test.mjs \
+            tests/unit/document/territorial-library.test.mjs \
+            tests/unit/document/territorial-entity-repository.test.mjs \
+            tests/unit/document/territorial-timeline-storage.test.mjs

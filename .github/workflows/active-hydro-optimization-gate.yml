@@ -5,8 +5,8 @@ on:
     branches: [main, work/ui, work/objects, work/gis, work/places]
     paths:
       - 'tools/checks/check-current-hydro-layout.mjs'
-      - 'tests/unit/current-hydro-layout.test.mjs'
-      - 'tests/unit/hydro-packfile.test.mjs'
+      - 'tests/unit/geometry/current-hydro-layout.test.mjs'
+      - 'tests/unit/data/hydro-packfile.test.mjs'
       - 'src/rendering/workers/hydro-tile-worker.js'
       - 'src/rendering/workers/hydro-shard-store.js'
       - 'assets/data/hydro/**'
@@ -33,8 +33,8 @@ jobs:
             /scripts/lib/frontend-layout.mjs
             /config/library-data.json
             /tools/checks/check-current-hydro-layout.mjs
-            /tests/unit/current-hydro-layout.test.mjs
-            /tests/unit/hydro-packfile.test.mjs
+            /tests/unit/geometry/current-hydro-layout.test.mjs
+            /tests/unit/data/hydro-packfile.test.mjs
             /src/rendering/workers/hydro-tile-worker.js
             /src/rendering/workers/hydro-shard-store.js
             /assets/data/hydro/
@@ -44,7 +44,7 @@ jobs:
         with:
           node-version-file: '.nvmrc'
       - name: Verify current package and Worker contracts
-        run: node --test tests/unit/current-hydro-layout.test.mjs tests/unit/hydro-packfile.test.mjs
+        run: node --test tests/unit/geometry/current-hydro-layout.test.mjs tests/unit/data/hydro-packfile.test.mjs
       - name: Verify current Web bytes and real Worker reads
         run: >-
           node tools/checks/check-current-hydro-layout.mjs --root . --allow-retired false

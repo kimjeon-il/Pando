@@ -49,7 +49,7 @@ node tools/gis/inspect-world-data.mjs --country DEU --mode boundary --out /tmp/d
 ## 검증
 
 ```sh
-node --test tests/unit/world-data-inspection.test.mjs
+node --test tests/unit/document/world-data-inspection.test.mjs
 ```
 
 테스트에서는 국가 색인 기반 선택, 원본 좌표 보존, BBOX 경계 교점 표시, 수계 추출, 자동 분할, 파일 해시, 기존 출력 보호, 역사적 시점의 오용 방지 등을 검사한다.

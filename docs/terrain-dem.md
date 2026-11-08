@@ -16,7 +16,7 @@ WebGL 지형 해상도는 국가 메시의 preview·canonical 상태와 독립�
 | 최초 최종 브라우저 묶음 | 4 | 2 | 0 | `test-results/terrain-release-candidate.log` |
 | 남은 두 브라우저 검사 재실행 | 2 | 0 | 0 | `test-results/terrain-focused-final.log` |
 
-단위 명령: `node --test tests/unit/gpu-terrain-preparation.test.mjs tests/unit/gpu-upload-staging.test.mjs tests/unit/domain-split-contract.test.mjs tests/unit/gpu-base-scene-order.test.mjs`.
+단위 명령: `node --test tests/unit/rendering/gpu-terrain-preparation.test.mjs tests/unit/gpu-upload-staging.test.mjs tests/unit/domain-split-contract.test.mjs tests/unit/rendering/gpu-base-scene-order.test.mjs`.
 
 브라우저 명령: `PANDOLAB_VERIFY_LIVE_DEM=1 pnpm exec playwright test tests/browser/terrain-lod-independence.spec.mjs tests/browser/terrain-progressive.spec.mjs tests/browser/terrain-request-priority.spec.mjs tests/browser/terrain-preview-quality.spec.mjs --grep 'keeps terrain resources|rotating the globe|improved webgl2|slow mobile globe|surfaces exhausted' --output=test-results/terrain-release-candidate` (PowerShell에서는 `$env:PANDOLAB_VERIFY_LIVE_DEM='1'`; 최초 실행 포트 4194). 후속 실행은 `--grep 'slow mobile globe|surfaces exhausted' --output=test-results/terrain-focused-final`, 포트 4195였다. 동일 제품 코드에 대해 여섯 시나리오가 모두 통과했으며 전체 테스트 suite는 실행하지 않았다.
 

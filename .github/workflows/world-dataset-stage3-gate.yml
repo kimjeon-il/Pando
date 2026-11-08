@@ -26,9 +26,9 @@ on:
       - 'tools/build/build-world-mesh.mjs'
       - 'tools/build/build-country-shared-boundaries.mjs'
       - 'tools/checks/run-country-validator.mjs'
-      - 'tests/browser/viewer-startup-and-terrain.spec.mjs'
-      - 'tests/unit/world-bundle*.test.mjs'
-      - 'tests/unit/stored-asset-content-cache.test.mjs'
+      - 'tests/browser/geometry/viewer-startup-and-terrain.spec.mjs'
+      - 'tests/unit/**/world-bundle*.test.mjs'
+      - 'tests/unit/data/stored-asset-content-cache.test.mjs'
       - 'package.json'
       - 'pnpm-lock.yaml'
   workflow_dispatch:
@@ -82,8 +82,8 @@ jobs:
           pnpm check:js
       - name: Check changed JavaScript modules and targeted regressions
         run: |
-          pnpm exec eslint             tools/build/build-world-bundle.mjs             tools/build/build-world-preview.mjs             tools/build/build-world-mesh.mjs             tools/build/build-country-shared-boundaries.mjs             assets/js/modules/world-bundle-manifest.js             assets/js/modules/stored-asset-loader.js             assets/js/workers/data-loader-worker.js             scripts/check-version.mjs             scripts/generate-build-metadata.mjs             tests/unit/world-bundle-versioning.test.mjs             tests/unit/world-bundle-runtime.test.mjs             tests/unit/stored-asset-content-cache.test.mjs
-          node --test             tests/unit/world-bundle-versioning.test.mjs             tests/unit/world-bundle-runtime.test.mjs             tests/unit/stored-asset-content-cache.test.mjs             tests/unit/country-shared-boundary-generator.test.mjs             tests/unit/caribbean-reef-identity.test.mjs             tests/unit/preview-country-geometry.test.mjs             tests/unit/territorial-canonical-parity.test.mjs             tests/unit/startup-performance.test.mjs
+          pnpm exec eslint             tools/build/build-world-bundle.mjs             tools/build/build-world-preview.mjs             tools/build/build-world-mesh.mjs             tools/build/build-country-shared-boundaries.mjs             assets/js/modules/world-bundle-manifest.js             assets/js/modules/stored-asset-loader.js             assets/js/workers/data-loader-worker.js             scripts/check-version.mjs             scripts/generate-build-metadata.mjs             tests/unit/document/world-bundle-versioning.test.mjs             tests/unit/data/world-bundle-runtime.test.mjs             tests/unit/data/stored-asset-content-cache.test.mjs
+          node --test             tests/unit/document/world-bundle-versioning.test.mjs             tests/unit/data/world-bundle-runtime.test.mjs             tests/unit/data/stored-asset-content-cache.test.mjs             tests/unit/rendering/country-shared-boundary-generator.test.mjs             tests/unit/document/caribbean-reef-identity.test.mjs             tests/unit/geometry/preview-country-geometry.test.mjs             tests/unit/document/territorial-canonical-parity.test.mjs             tests/unit/rendering/startup-performance.test.mjs
 
   chromium-smoke:
     name: Real Chromium startup and immutable cache
@@ -123,7 +123,7 @@ jobs:
           pnpm check:version
       - name: Exercise real map startup and cache recovery
         run: |
-          pnpm exec playwright test tests/browser/viewer-startup-and-terrain.spec.mjs             --grep='.'             --workers=1
+          pnpm exec playwright test tests/browser/geometry/viewer-startup-and-terrain.spec.mjs             --grep='.'             --workers=1
       - name: Upload failure evidence
         if: failure()
         uses: actions/upload-artifact@v4

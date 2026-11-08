@@ -118,7 +118,7 @@ passes:
 1. July 1953 transition completion wait.
 2. Previous-year click after camera movement in the injected-failure scenario.
 
-`tests/browser/deferred-builtin-timeline.spec.mjs` remains present. The
+`tests/browser/ui/deferred-builtin-timeline.spec.mjs` remains present. The
 `deferred-builtin-timeline` application-check group remains `mode: manual`.
 P6-8 verified that it is excluded from automatic selection and explicitly
 callable manually. Neither case was rerun in P6.

@@ -7,7 +7,7 @@ on:
       - 'tools/gis/decode-hydro-connectivity.mjs'
       - 'tools/gis/research-hydro-names.mjs'
       - 'tools/gis/promote-hydro-names.mjs'
-      - 'tests/unit/river-territory-partition-serbia.test.mjs'
+      - 'tests/unit/geometry/river-territory-partition-serbia.test.mjs'
       - '.github/workflows/hydro-retirement-consumers-gate.yml'
       - 'assets/data/hydro/v0.13.2/**'
   workflow_dispatch:
@@ -32,7 +32,7 @@ jobs:
             /tools/gis/promote-hydro-names.mjs
             /tools/lib/
             /reports/hydro/names/
-            /tests/unit/river-territory-partition-serbia.test.mjs
+            /tests/unit/geometry/river-territory-partition-serbia.test.mjs
             /assets/js/
             /assets/data/hydro/v0.13.2/
             /assets/data/countries-ne-5.1.1.geojson
@@ -62,4 +62,4 @@ jobs:
           Moldova partitions
         run: |
           node tools/gis/decode-hydro-connectivity.mjs assets/data/hydro/v0.13.2 "$RUNNER_TEMP/hydro-v0132-decoded.json"
-          node --test tests/unit/river-territory-partition-serbia.test.mjs
+          node --test tests/unit/geometry/river-territory-partition-serbia.test.mjs

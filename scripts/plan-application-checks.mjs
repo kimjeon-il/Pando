@@ -10,7 +10,7 @@ export const catalogPath = 'scripts/contracts/application-checks.json';
 
 const slash = path => path.replaceAll('\\', '/');
 export function matchesPattern(file, pattern) {
-  const tokens = pattern.split(/(\*\*|\*)/).map(part => part === '**' ? '.*' : part === '*' ? '[^/]*' : part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  const tokens = pattern.split(/(\*\*\/|\*\*|\*)/).map(part => part === '**/' ? '(?:.*/)?' : part === '**' ? '.*' : part === '*' ? '[^/]*' : part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
   return new RegExp('^' + tokens.join('') + '$').test(file);
 }
 const matches = (file, patterns = []) => patterns.some(pattern => matchesPattern(file, pattern));
