@@ -51,6 +51,7 @@ for(const part of parts){
       }
     }
   }
+  console.log('Reviewing remaining path: '+path);
   const result=spawnSync('git',['apply','--3way','--index','-'],{input:part,encoding:'utf8',maxBuffer:8*1024*1024});
   if(result.status!==0)throw Error('Cannot apply reviewed edit without overriding newer changes: '+path+'\n'+(result.stderr||result.stdout));
   applied.push(path);
