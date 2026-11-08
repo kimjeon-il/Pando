@@ -1321,17 +1321,6 @@
     },
     {
       "inputs": [
-        "scripts/lib/unit-contract-owners.mjs",
-        "scripts/lib/unit-contract-inventory.mjs",
-        "scripts/contracts/unit-contract-identities.json",
-        "scripts/contracts/gis-unit-consolidation-map.json"
-      ],
-      "tests": [
-        "tests/unit/e7-application-check-planner.test.mjs"
-      ]
-    },
-    {
-      "inputs": [
         "scripts/lib/unit-test-batches.mjs",
         "scripts/lib/unit-test-isolation.mjs",
         "scripts/run-active-tests.mjs"
@@ -1348,6 +1337,16 @@
         "tests/unit/check-runner.test.mjs",
         "tests/unit/native-check-prerequisites.test.mjs",
         "tests/unit/build-metadata.test.mjs"
+      ]
+    },
+    {
+      "tests": [
+        "tests/unit/e7-application-check-planner.test.mjs",
+        "tests/unit/check-automation.test.mjs"
+      ],
+      "inputs": [
+        "scripts/plan-application-checks.mjs",
+        "scripts/check-test-consolidation.mjs"
       ]
     }
   ],

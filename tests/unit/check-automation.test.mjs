@@ -423,7 +423,7 @@ test('current C++/GIS and Viewer workflows have one application runner and sourc
 test('P6 new infrastructure owners participate in impacted check selection', () => {
   const repo = loadRepository();
   for (const [changed, owner] of [
-    ['scripts/lib/unit-contract-owners.mjs', 'tests/unit/e7-application-check-planner.test.mjs'],
+    ['scripts/plan-application-checks.mjs', 'tests/unit/e7-application-check-planner.test.mjs'],
     ['scripts/lib/unit-test-batches.mjs', 'tests/unit/check-runner.test.mjs'],
     ['scripts/lib/unit-test-isolation.mjs', 'tests/unit/check-runner.test.mjs'],
     ['tests/helpers/check-workspace-fixture.mjs', 'tests/unit/native-check-prerequisites.test.mjs'],
@@ -439,15 +439,13 @@ test('P6 new infrastructure owners participate in impacted check selection', () 
     step.run === 'node scripts/check-test-consolidation.mjs'));
 });
 
-test('P7 consolidated registry retains original contracts and all current CI test targets', () => {
+test('active registry checks only executable tests and current CI targets', () => {
   const report = auditConsolidatedTestRegistry(loadRepository());
-  assert.equal(report.originalContracts, 616);
   assert.ok(report.units > 0);
-  assert.ok(report.registeredContracts >= report.originalContracts);
+  assert.ok(report.activeTests >= report.units);
   assert.deepEqual(report.issues, {
-    missingOriginalContracts: [], duplicateOriginalContracts: [], retiredDirectReferences: [],
-    invalidGisOwners: [], invalidWorkflowReferences: [], missingDirectTestReferences: [],
-    missingActivePerformanceTests: [],
+    invalidWorkflowReferences: [], missingDirectTestReferences: [],
+    missingActivePerformanceTests: [], missingBindings: [], emptyUnitSuites: [],
   });
-  assert.equal(report.ok, true);
+  assert.equal(report.ok,true);
 });

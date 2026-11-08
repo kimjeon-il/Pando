@@ -2,7 +2,6 @@ import {buildFrontendIndex,emitFrontendModule,frontendGeneratedOwners} from './l
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { posix, resolve } from 'node:path';
 import { createCheckImpactIndex } from './lib/check-impact.mjs';
-import { indexUnitContractOwners } from './lib/unit-contract-owners.mjs';
 import { fileURLToPath } from 'node:url';
 import { parseJavaScript, walkJavaScript } from './lib/source-analysis.mjs';
 import { runtimeDependencies, dynamicExpressions } from './lib/product-assets.mjs';
@@ -79,25 +78,21 @@ export function loadRepository(root = process.cwd(), { catalog } = {}) {
     if (!group) throw Error('Unregistered test: ' + file);
     owners.set(file, group);
   }
-  // A consolidated file may own several historical feature contracts. Resolve
-  // every identity to one runnable suite without retaining removed entrypoints.
-  const { contractOwners, suiteContracts, duplicates: ambiguousContracts } =
-    indexUnitContractOwners(tests.filter(file => file.startsWith('tests/unit/')), read);
-  if (ambiguousContracts.length)
-    throw Error('Ambiguous unit contract: ' + ambiguousContracts[0].identity);
+  // Executable suites alone own checks. Removed legacy filenames are never aliases.
   for (const group of catalog.groups) for (const pattern of group.testPatterns || []) {
-    if (!pattern.includes('*') && !owners.has(pattern) && !contractOwners.has(pattern))
+    if (!pattern.includes('*') && !owners.has(pattern))
       throw Error('Missing registered test: ' + pattern);
   }
   const unitRequirements = new Map(tests.filter(file => file.startsWith('tests/unit/'))
     .map(file => [file, new Set(owners.get(file).requires || [])]));
   for (const binding of catalog.unitPrerequisites || []) {
-    if (!Array.isArray(binding.tests) || !Array.isArray(binding.requires)) throw Error('Invalid unit prerequisite binding');
-    for (const pattern of binding.tests) if (!pattern.includes('*') && !contractOwners.has(pattern))
+    if (!Array.isArray(binding.tests) || !Array.isArray(binding.requires))
+      throw Error('Invalid unit prerequisite binding');
+    for (const pattern of binding.tests) if (!pattern.includes('*') && !unitRequirements.has(pattern))
       throw Error('Missing registered unit prerequisite test: ' + pattern);
     for (const id of binding.requires) if (!catalog.prerequisites?.[id]?.argv)
       throw Error('Missing prerequisite: ' + id);
-    for (const [file, required] of unitRequirements) if ([...suiteContracts.get(file)].some(identity => matches(identity, binding.tests)))
+    for (const [file, required] of unitRequirements) if (matches(file, binding.tests))
       binding.requires.forEach(id => required.add(id));
   }
   function prerequisiteInputs(id) {
@@ -222,7 +217,7 @@ export function loadRepository(root = process.cwd(), { catalog } = {}) {
     ]), ...(catalog.bindings || []).flatMap(binding => files.filter(file => matches(file, binding.inputs || [])))],
     dependencies,
   });
-  return { root: resolve(root), catalog, files, tests, owners, contractOwners, suiteContracts, frontendIndex, exists, read, dependencies, unitRequirements, impactIndex };
+  return { root: resolve(root), catalog, files, tests, owners, frontendIndex, exists, read, dependencies, unitRequirements, impactIndex };
 }
 
 export function planApplicationChecks({ changedFiles = [], repository, groups: requestedGroups = [],exactSelection=null }) {

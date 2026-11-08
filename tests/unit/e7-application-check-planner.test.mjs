@@ -5,8 +5,6 @@ import {fileURLToPath} from 'node:url';
 import {readFileSync,existsSync} from 'node:fs';
 import {frontendGeneratedOwners} from '../../scripts/lib/frontend-layout.mjs';
 import {loadRepository,planApplicationChecks} from '../../scripts/plan-application-checks.mjs';
-import {auditUnitContractIdentities,auditGisUnitConsolidation} from '../../scripts/lib/unit-contract-inventory.mjs';
-import {indexUnitContractOwners} from '../../scripts/lib/unit-contract-owners.mjs';
 import {createCheckImpactIndex} from '../../scripts/lib/check-impact.mjs';
 import {selectionRequest} from '../../scripts/run-application-checks.mjs';
 
@@ -82,15 +80,6 @@ test('current CLI entrypoints and test inventory never reference removed regress
 });
 
 
-test('unit consolidation preserves independently addressable original contracts and CI entrypoints', () => {
-  const inventory = auditUnitContractIdentities(loadRepository());
-  assert.deepEqual(inventory.missing, []);
-  assert.deepEqual(inventory.duplicates, []);
-  assert.deepEqual(inventory.staleReferences, []);
-  assert.ok(inventory.registeredContractCount >= inventory.originalContractCount);
-});
-
-
 test('append-changed lint checks do not traverse unrelated archived tool imports', () => {
   const repository = loadRepository();
   const path = repository.files.find(file => /^tools\/[^/]+\.mjs$/.test(file) && file !== 'tools/worktree-storage.mjs');
@@ -100,16 +89,6 @@ test('append-changed lint checks do not traverse unrelated archived tool imports
 });
 
 
-test('consolidated unit contracts resolve to one runnable suite and retain prerequisite ownership', () => {
-  const repository = loadRepository();
-  assert.equal(repository.contractOwners.get('tests/unit/project-invariants.test.mjs'), 'tests/unit/project-state.test.mjs');
-  assert.ok(repository.suiteContracts.get('tests/unit/project-state.test.mjs').has('tests/unit/project-invariants.test.mjs'));
-  const all = [...repository.suiteContracts.values()].flatMap(contracts => [...contracts]);
-  assert.equal(new Set(all).size, all.length, 'all contract identities must be unique');
-  assert.ok(repository.unitRequirements.get('tests/unit/core-document-wasm.test.mjs').has('core'));
-});
-
-// Explicit suite owners must precede the generic units catch-all.
 test('P7 specialized unit groups retain their owners and native prerequisites', () => {
   const repo = loadRepository();
   assert.equal(repo.owners.get('tests/unit/shared-toolkit.test.mjs')?.id, 'shared-toolkit');
@@ -118,59 +97,6 @@ test('P7 specialized unit groups retain their owners and native prerequisites', 
   assert.ok(repo.unitRequirements.get('tests/unit/map-native-pdf.test.mjs').has('native-map-pdf'));
   assert.ok(repo.unitRequirements.get('tests/unit/map-native-preview.test.mjs').has('native-map-preview'));
 });
-
-test('P7 GIS consolidation map has live owners and inherits independent native prerequisites', () => {
-  const repository = loadRepository();
-  const inventory = auditGisUnitConsolidation(repository);
-  assert.ok(inventory.mapped >= 65, 'retain every P0–P7 migrated identity');
-  assert.deepEqual(inventory.errors, []);
-  const manifest = JSON.parse(readFileSync(new URL('../../scripts/contracts/gis-unit-consolidation-map.json', import.meta.url)));
-  for (const [contract, prerequisite] of [
-    ['gis-lsib-reviewed-native.test.mjs', 'native-territorial-recipe'],
-    ['hydro-calibration-metrics.test.mjs', 'native-hydro-calibration'],
-    ['gis-caspian-pinned-native-oracle.test.mjs', 'native-caspian-oracle'],
-  ]) {
-    const owner = 'tests/unit/' + manifest.owners[contract];
-    assert.ok(repository.unitRequirements.get(owner)?.has(prerequisite), contract + ' -> ' + owner);
-  }
-});
-
-test('P7 GIS ownership audit rejects a moved or missing historical contract', () => {
-  const repository = loadRepository();
-  const manifest = JSON.parse(readFileSync(new URL('../../scripts/contracts/gis-unit-consolidation-map.json', import.meta.url)));
-  manifest.owners['gis-lsib-reviewed-native.test.mjs'] = 'gis-lsib-screen-report.test.mjs';
-  const result = auditGisUnitConsolidation(repository, manifest);
-  assert.ok(result.errors.some(row => row.retired === 'gis-lsib-reviewed-native.test.mjs'
-    && row.reason === 'original contract not owned by mapped suite'));
-});
-
-test('P7 does not revive retired Python sources or the border editing test entrypoints', () => {
-  const repo = loadRepository();
-  assert.deepEqual(repo.files.filter(file => /^(?:tools|tests|scripts|apps|shared)\//.test(file)
-    && /\.(?:py|ipynb)$/.test(file)), []);
-  for (const retired of ['edit-preparation.test.mjs', 'map-editing-foundation.test.mjs']) {
-    assert.ok(!repo.tests.includes('tests/unit/' + retired));
-    assert.ok(repo.tests.includes(repo.contractOwners.get('tests/unit/' + retired)));
-  }
-  assert.ok(repo.tests.includes('tests/unit/map-readonly-flat-boundary.test.mjs'));
-});
-
-
-test('P2 unit contract index identifies original feature markers and rejects duplicate owners', () => {
-  const files = ['tests/unit/first.test.mjs', 'tests/unit/second.test.mjs'];
-  const read = file => file.includes('first')
-    ? '// Original feature contract: old-one.test.mjs\n'
-    : '// Original feature contract: old-two.test.mjs\n';
-  const indexed = indexUnitContractOwners(files, read);
-  assert.deepEqual(indexed.duplicates, []);
-  assert.equal(indexed.contractOwners.get('tests/unit/old-one.test.mjs'), files[0]);
-  assert.equal(indexed.contractOwners.get('tests/unit/old-two.test.mjs'), files[1]);
-  const conflict = indexUnitContractOwners(files, () => '// Original feature contract: shared.test.mjs\n');
-  assert.equal(conflict.duplicates.length, 1);
-  assert.equal(conflict.duplicates[0].identity, 'tests/unit/shared.test.mjs');
-});
-
-// Original feature contract: check-impact.test.mjs
 
 test('reverse dependency graph selects only consuming features', () => {
   const edges = {

@@ -28,11 +28,7 @@ test('current map PDF check retains independent native PDF and image prerequisit
 
 test('Hydro calibration and shared-boundary checks select their native tools', () => {
   const repository = loadRepository(new URL('../../', import.meta.url));
-  for(const contract of ['hydro-calibration-metrics','hydro-calibration-native']) {
-    const owner=repository.contractOwners.get(`tests/unit/${contract}.test.mjs`);
-    assert.ok(owner, 'Missing original Hydro contract: '+contract);
-    assert.ok(repository.unitRequirements.get(owner)?.has('native-hydro-calibration'),contract);
-  }
+  assert.ok(repository.unitRequirements.get('tests/unit/hydro-calibration-native.test.mjs')?.has('native-hydro-calibration'));
   assert.ok(repository.unitRequirements.get('tests/unit/hydro-shared-boundary.test.mjs').has('native-hydro-point-screen'));
   assert.equal(repository.catalog.prerequisites['native-hydro-point-screen'].env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY,
     '{root}/build-native/hydro-point-screen/artifact');
@@ -41,7 +37,7 @@ test('Hydro calibration and shared-boundary checks select their native tools', (
 test('current discovered tests each have one owner; diagnostic purposes and commands remain explicit', () => {
   const repository = loadRepository(new URL('../../', import.meta.url));
   assert.equal(repository.owners.size, repository.tests.length);
-  assert.ok(repository.contractOwners.size >= 616, 'original unit contracts must remain addressable');
+  assert.ok(repository.tests.some(file => file.startsWith('tests/unit/')));
   for (const group of catalog.groups.filter(group => group.mode === 'manual')) assert.ok(group.reason);
   for (const group of catalog.groups) assert.notEqual(group.argv?.includes('--grep'), true);
 });
