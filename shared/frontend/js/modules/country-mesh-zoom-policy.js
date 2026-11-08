@@ -12,11 +12,15 @@ export function resolveCountryMeshQuality({ cssScale, previous = null, focus = f
 
 /** Country paint, land, borders and picking consume this same decision. */
 export function resolveMapSurfacePresentation({ canonicalReady = false, previewReady = false,
-  previewVerified = false, backgroundPresented = true, ...view }) {
+  previewVerified = false, backgroundPresented = true, recoveryDrawing = false, ...view }) {
   const targetQuality = resolveCountryMeshQuality(view);
   const geometryQuality = targetQuality === 'preview' && previewReady && previewVerified
     ? 'preview' : canonicalReady ? 'canonical' : 'pending';
-  return Object.freeze({ targetQuality, geometryQuality, quality: backgroundPresented ? geometryQuality : 'pending' });
+  // A restored GL device must redraw the already-admitted canonical mesh
+  // before it can publish its first new physical frame. This flag chooses
+  // draw quality only; map readiness still requires an actually accepted frame.
+  return Object.freeze({ targetQuality, geometryQuality,
+    quality: backgroundPresented || recoveryDrawing ? geometryQuality : 'pending' });
 }
 
 
