@@ -165,7 +165,7 @@ export function createGpuMapRenderer(deps) {
       mapPresentationWaiters.clear();
     }
     function settleMapPresentationWaiters() {
-      if (!mapReadiness().mapReady) return false;
+      if (temporalPending() || !mapReadiness().mapReady) return false;
       committedMapGeneration = projectGeneration;
       for (const waiter of mapPresentationWaiters) {
         if (waiter.generation !== projectGeneration) continue;
@@ -177,7 +177,7 @@ export function createGpuMapRenderer(deps) {
     function waitForMapPresentation(generation) {
       if (disposed || Number(generation) !== projectGeneration)
         return Promise.reject(staleMapPresentation('Project map presentation was superseded.'));
-      if (committedMapGeneration === projectGeneration && mapReadiness().mapReady) return Promise.resolve(true);
+      if (!temporalPending() && committedMapGeneration === projectGeneration && mapReadiness().mapReady) return Promise.resolve(true);
       return new Promise((resolve,reject) => {
         mapPresentationWaiters.add({generation,resolve,reject});
         invalidateGpuFrame('await-current-map-frame');
@@ -185,10 +185,40 @@ export function createGpuMapRenderer(deps) {
     }
     let temporalPresentation = null;
     let temporalCanvas = null;
+    let temporalViewSequence = 0;
 
     const temporalPending = () => !!temporalPresentation && !temporalPresentation.presented;
+    // A same-project month query has a preparation interval before the C++
+    // cursor and new mesh are admitted. Freeze only its pixels, not the camera
+    // input state. Once admitted, reuse the existing complete-frame gate.
+    function beginTemporalViewTransition(isCurrent = () => true) {
+      const token = ++temporalViewSequence;
+      temporalPresentation = { token, generation: projectGeneration,
+        context: renderDeviceContextRevision, isCurrent: () => !disposed
+          && token === temporalViewSequence && isCurrent(),
+        onPresented: () => {}, presented: false, sourceAdmitted: false,
+        error: null, frameId: null };
+      return token;
+    }
+    function admitTemporalViewTransition(token) {
+      if (!temporalPending() || temporalPresentation.token !== token
+        || !temporalPresentation.isCurrent()) return false;
+      temporalPresentation.sourceAdmitted = true;
+      invalidateGpuFrame('temporal-source-admitted');
+      return true;
+    }
+    function finishTemporalViewTransition(token) {
+      if (temporalPresentation?.token !== token) return false;
+      if (!temporalPresentation.presented) {
+        temporalPresentation = null;
+        temporalCanvas = null;
+        invalidateGpuFrame('temporal-source-rejected');
+      }
+      return true;
+    }
     function canPresentVisualFrame(frame, result = null, { canvasPresented = false } = {}) {
-      if (projectRenderBlocked || result?.preserved || result?.succeeded === false) return false;
+      if (projectRenderBlocked || temporalPresentation?.sourceAdmitted === false
+        || result?.preserved || result?.succeeded === false) return false;
       // Do not commit a partial framebuffer as a recovered map. Recovery
       // ownership is released only by its actual source-matched GL submission.
       if (gpuRecovery.snapshot().active && (!gpuRecoveryFrameEvidence
@@ -211,7 +241,7 @@ export function createGpuMapRenderer(deps) {
     }
     function temporalFrameReady(resourcesDrawn, terrain = currentTerrainReadiness()) {
       if (!temporalPending()) return true;
-      if (temporalPresentation.error) return false;
+      if (temporalPresentation.error || temporalPresentation.sourceAdmitted === false) return false;
       if (!temporalPresentation.isCurrent() || temporalPresentation.generation !== projectGeneration
         || temporalPresentation.context !== renderDeviceContextRevision) {
         failTemporalPresentation(Object.assign(new Error('Temporal presentation superseded'), {name:'AbortError',cancelled:true}));
@@ -4851,6 +4881,8 @@ export function createGpuMapRenderer(deps) {
       if (!isMapVisualFrame(visualFrame)) throw new TypeError('renderFrame() requires a MapVisualFrame.');
       currentRenderRevision = Math.max(currentRenderRevision, Number(visualFrame.viewRevision || 0));
       lastVisualFrame = visualFrame;
+      if (temporalPresentation?.sourceAdmitted === false)
+        return { deferred: true, preserved: true, frameId: visualFrame.frameId, viewRevision: visualFrame.viewRevision };
       syncCountryMeshQuality({ cssScale: visualFrame.cssScale, projection: visualFrame.projection });
       publishMapReadiness();
       // A boundary Worker can finish before the GPU stroke renderer is attached.
@@ -4873,6 +4905,10 @@ export function createGpuMapRenderer(deps) {
     function renderInteraction(visualFrame = lastVisualFrame) {
       if (!isMapVisualFrame(visualFrame)) return null;
       currentRenderRevision = Math.max(currentRenderRevision, Number(visualFrame.viewRevision || 0));
+      if (temporalPresentation?.sourceAdmitted === false) {
+        lastVisualFrame = visualFrame;
+        return { deferred: true, preserved: true };
+      }
       if (!isWebGlRenderer()) return renderFrame(visualFrame);
       performanceMetrics.selectionOnlyFrameCount += 1;
       return renderWebGl(visualFrame, { interactionOnly: true });
@@ -6039,7 +6075,8 @@ export function createGpuMapRenderer(deps) {
       setHydroInteractionActive, setRenderQuality,
       requestCountryFocus, cancelCountryFocus, syncCountryMeshQuality,
       invalidateHydroVisibility, invalidatePhysicalStyle, resetCountryGeometryVisualState,
-      resetProjectRenderState, ensureBuiltinMeshBaseline, activateBuiltinMeshBaseline, invalidateCountryPreview,
+      resetProjectRenderState, beginTemporalViewTransition, admitTemporalViewTransition,
+      finishTemporalViewTransition, ensureBuiltinMeshBaseline, activateBuiltinMeshBaseline, invalidateCountryPreview,
       hasBuiltinMeshBaseline: () => !!builtinMeshBaseline?.mesh,
       getProjectGeneration: () => projectGeneration,
       invalidateCountryPalette,
@@ -6069,12 +6106,12 @@ export function createGpuMapRenderer(deps) {
       },
       commitVisualFrame: frame => {
         if (!canPresentVisualFrame(frame)) return;
-        if (frame?.projectGeneration === projectGeneration) settleMapPresentationWaiters();
         if (temporalPending()) {
           temporalPresentation.presented = true;
           temporalCanvas = null;
           temporalPresentation.onPresented();
         }
+        if (frame?.projectGeneration === projectGeneration) settleMapPresentationWaiters();
         commitGpuRecoveryFrame(frame);
         // Focus owns a camera session. Only explicit navigation, projection
         // change or project replacement releases it; publishing frames does not.
