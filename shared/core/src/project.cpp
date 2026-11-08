@@ -231,7 +231,7 @@ ProjectSnapshot Project::snapshotForView() const {
 }
 ResolvedWorld Project::resolveWorld(const std::string& month) const {
     const auto& d=document();
-    if(preparedTimelineSource_!=state_||!preparedTimeline_) {
+    if(preparedTimelineSource_.lock()!=state_||!preparedTimeline_) {
         auto prepared=std::make_shared<const PreparedTimelineWorld>(d.timelineRecords,
             TimelineValidationContext{timelineEntityCatalog(d),
                 [&](const ObjectRef& owner,const GeometryRef& ref){return d.geometries.get(ref)!=nullptr;}});

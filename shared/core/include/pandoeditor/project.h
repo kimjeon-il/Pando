@@ -109,7 +109,7 @@ private:
     std::shared_ptr<const detail::DocumentState> state_, saved_, viewState_;
     // Rebuilt only when the authoritative document snapshot changes, never
     // for a cursor-only transition. The source pin prevents address reuse.
-    mutable std::shared_ptr<const detail::DocumentState> preparedTimelineSource_;
+    mutable std::weak_ptr<const detail::DocumentState> preparedTimelineSource_;
     mutable std::shared_ptr<const PreparedTimelineWorld> preparedTimeline_;
     std::shared_ptr<const std::vector<ChangeSet>> commands_=std::make_shared<const std::vector<ChangeSet>>();
     std::string instanceId_;
