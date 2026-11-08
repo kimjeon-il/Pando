@@ -28,6 +28,16 @@ for(const part of parts){
     if(!path.startsWith('tests/unit/'))throw Error('Missing currently required source: '+path);
     retired.push(path);continue;
   }
+  if(current){
+    // An overlapping commit may have independently performed all actual
+    // additions and removals. Do not re-edit it solely for style or ordering.
+    const lines=readFileSync(path,'utf8').split('\n');
+    const removed=part.split('\n').filter(line=>line.startsWith('-')&&!line.startsWith('---')).map(line=>line.slice(1));
+    const added=part.split('\n').filter(line=>line.startsWith('+')&&!line.startsWith('+++')).map(line=>line.slice(1));
+    if((removed.length||added.length)&&removed.every(line=>!lines.includes(line))&&added.every(line=>lines.includes(line))){
+      already.push(path);continue;
+    }
+  }
   const result=spawnSync('git',['apply','--3way','--index','-'],{input:part,encoding:'utf8',maxBuffer:8*1024*1024});
   if(result.status!==0)throw Error('Cannot apply reviewed edit without overriding newer changes: '+path+'\n'+(result.stderr||result.stdout));
   applied.push(path);
