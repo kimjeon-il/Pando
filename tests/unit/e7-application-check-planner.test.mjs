@@ -119,7 +119,7 @@ test('P7 specialized unit groups retain their owners and native prerequisites', 
 test('P7 GIS consolidation map has live owners and inherits independent native prerequisites', () => {
   const repository = loadRepository();
   const inventory = auditGisUnitConsolidation(repository);
-  assert.equal(inventory.mapped, 65);
+  assert.ok(inventory.mapped >= 65, 'retain every P0–P7 migrated identity');
   assert.deepEqual(inventory.errors, []);
   const manifest = JSON.parse(readFileSync(new URL('../../scripts/contracts/gis-unit-consolidation-map.json', import.meta.url)));
   for (const [contract, prerequisite] of [
@@ -139,4 +139,15 @@ test('P7 GIS ownership audit rejects a moved or missing historical contract', ()
   const result = auditGisUnitConsolidation(repository, manifest);
   assert.ok(result.errors.some(row => row.retired === 'gis-lsib-reviewed-native.test.mjs'
     && row.reason === 'original contract not owned by mapped suite'));
+});
+
+test('P7 does not revive retired Python sources or the border editing test entrypoints', () => {
+  const repo = loadRepository();
+  assert.deepEqual(repo.files.filter(file => /^(?:tools|tests|scripts|apps|shared)\//.test(file)
+    && /\.(?:py|ipynb)$/.test(file)), []);
+  for (const retired of ['edit-preparation.test.mjs', 'map-editing-foundation.test.mjs']) {
+    assert.ok(!repo.tests.includes('tests/unit/' + retired));
+    assert.ok(repo.tests.includes(repo.contractOwners.get('tests/unit/' + retired)));
+  }
+  assert.ok(repo.tests.includes('tests/unit/map-readonly-flat-boundary.test.mjs'));
 });

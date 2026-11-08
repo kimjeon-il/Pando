@@ -89,3 +89,34 @@ verification policy. The changes and their source-level ownership are
 committed; behavioral correctness, prerequisite isolation and stale
 references still require the final consolidated verification. Do not
 treat the static review as a test pass.
+
+## P7 residual closure: registration and workflow reference guards
+
+A source-only pass over the current tree checked the explicit executable test
+paths in **72 GitHub Actions workflows**, **71 `scripts/**/*.mjs` files**,
+and `package.json` against tracked test entries. No dangling concrete
+`tests/{unit,browser,native,integration,cpp}/*.{test,spec}.mjs` path was
+found by this reference comparison. Glob selectors, dynamic shell expressions,
+and semantic correctness are *not* certified by this scan.
+
+The follow-up P7 fixes also:
+
+- move the dedicated `shared-toolkit` and `shared-image-tools` groups ahead
+  of the catch-all `units` group, so their unit ownership is not shadowed;
+- make the 65-record GIS migration map executable audit input: each retired
+  suite must resolve to one existing, non-manual, registered unit owner and
+  retain its historical contract marker;
+- add focused regression assertions that LSIB, Hydro calibration, and the
+  approved Caspian Native baseline inherit their own prerequisites;
+- check concrete test filenames in GitHub Actions `on.push.paths` and
+  `on.pull_request.paths`, in addition to command entrypoints;
+- retain an explicit retirement guard for tracked Python source files and the
+  removed border-editor test entrypoints, while preserving the read-only map
+  boundary contract.
+
+This closing pass does not delete legitimate historical GIS sources, alter
+production algorithms, run an interpreter or bring back manual border editing.
+The unit-test file count remains **397**; the residual work strengthens
+selection, registration and regression ownership rather than forcing further
+merges. All Node, C++/WASM, browser, Native, GitHub CI and holistic unit
+verification is still **deferred** until the final all-area test run.
