@@ -5,6 +5,7 @@ import {
 import {readReviewEvidenceFiles} from "../../data/review-evidence-files.js";
 import {collectViewerInspection} from "./viewer-inspector-state.js";
 import {createStoredAssetLoader} from '../../data/stored-asset-loader.js';
+import {territorialSourceLayout,validateTerritorialSourceGeometry} from '../../data/territorial-source-format.js';
 
 const SHA=/^[0-9a-f]{64}$/;
 const safeName=id=>id.replace(/[^A-Za-z0-9_.-]/g,'-').slice(0,100);
@@ -26,23 +27,17 @@ export async function readReviewGeometry(inspection,sourceEntityId,change,{
     no('선택된 항목이 원본 형상 변경이 아닙니다.');
   if(!subtle)no('원본 SHA 검증에는 보안 연결이 필요합니다.');
   const dataset=inspection.diff.dataset,output=[];
-  for(const [revision,expected,side] of [
-    [dataset.baseRevision,change.before,'before'],
-    [dataset.candidateRevision,change.after,'after'],
-  ]){
-    if(expected===null){output.push(null);continue;}
-    const row=inspection.diff.readObjects.find(x=>x.revision===revision
-      &&x.sourceEntityId===sourceEntityId);
-    if(!row||!SHA.test(row.sha256))no('해당 리비전의 원본 객체 해시가 없습니다.');
-    const resource=row.resource;
+  const decodedResources=new Map();
+  async function readResource(revision,resource,sha256,side){
+    if(decodedResources.has(sha256))return decodedResources.get(sha256);
     if(!resource||typeof resource.url!=='string'||!/^[-A-Za-z0-9_./]+$/.test(resource.url)
       ||resource.url.startsWith('/')||resource.url.split('/').some(p=>!p||p==='.'||p==='..')
       ||![resource.compressedBytes,resource.decodedBytes].every(n=>Number.isSafeInteger(n)&&n>0&&n<=16*1024*1024))
       no('원본 자료의 전송 정보가 올바르지 않습니다.');
     const url='https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/'+revision+'/'+resource.url;
-    let raw=sourceBytes?.get(revision);
+    let raw=sourceBytes?.get(sha256);
     if(!raw){
-      if(sourceBytes)no('변경 전후 두 원본 JSON 파일이 모두 필요합니다.');
+      if(sourceBytes)no('원본 descriptor와 선택된 좌표 JSON 파일이 모두 필요합니다.');
       if(typeof fetchFn!=='function')no('원본 자료를 가져올 연결이 없습니다.');
       const response=await fetchFn(url,{credentials:'omit',mode:'cors',signal});
       if(!response?.ok)no('원본 Git 객체를 가져오지 못했습니다 ('+side+').');
@@ -55,19 +50,35 @@ export async function readReviewGeometry(inspection,sourceEntityId,change,{
         'review','source-'+side,'검수 원본',buffer=>new Uint8Array(buffer));
       raw=decoded.value;
     }
-    if(!ArrayBuffer.isView(raw)||raw.byteLength>16*1024*1024||raw.byteLength===0)
+    if(!ArrayBuffer.isView(raw)||raw.byteLength!==resource.decodedBytes||raw.byteLength>16*1024*1024||raw.byteLength===0)
       no('원본 파일의 형식 또는 크기가 올바르지 않습니다.');
-    if(hex(await subtle.digest('SHA-256',raw))!==row.sha256)
-      no('원본 Git 객체 SHA-256 불일치: '+side);
+    if(hex(await subtle.digest('SHA-256',raw))!==sha256)no('원본 Git 객체 SHA-256 불일치: '+side);
+    decodedResources.set(sha256,raw);return raw;
+  }
+  for(const [revision,expected,side] of [
+    [dataset.baseRevision,change.before,'before'],
+    [dataset.candidateRevision,change.after,'after'],
+  ]){
+    if(expected===null){output.push(null);continue;}
+    const row=inspection.diff.readObjects.find(x=>x.revision===revision
+      &&x.sourceEntityId===sourceEntityId);
+    if(!row||!SHA.test(row.sha256))no('해당 리비전의 원본 객체 해시가 없습니다.');
+    const raw=await readResource(revision,row.resource,row.sha256,side);
     let entity;
     try{entity=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(raw));}
     catch{no('원본 객체 JSON을 읽을 수 없습니다.');}
-    if(entity.entityId!==sourceEntityId||!Array.isArray(entity.geometryVersions))
+    if(entity.storageLayout!==territorialSourceLayout||entity.entityId!==sourceEntityId||!Array.isArray(entity.geometryVersions))
       no('원본 객체 ID가 검수 대상과 일치하지 않습니다.');
     const versions=entity.geometryVersions.filter(x=>x.versionId===expected.versionId);
-    if(versions.length!==1||!['Polygon','MultiPolygon'].includes(versions[0].geometry?.type))
+    if(versions.length!==1)
       no('대상 형상 버전을 원본에서 찾을 수 없습니다.');
-    const geometry=versions[0].geometry;
+    const ref=validateTerritorialSourceGeometry(versions[0],entity.entityId),receipts=row.geometryResources?.filter(x=>x.versionId===expected.versionId);
+    if(receipts?.length!==1||receipts[0].sha256!==ref.sha256||receipts[0].resource.decodedBytes!==ref.bytes)
+      no('좌표 자원의 해시 또는 전송 정보가 검수 기록과 다릅니다.');
+    let geometry;
+    try{geometry=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(await readResource(revision,receipts[0].resource,ref.sha256,side+'-geometry')));}
+    catch(error){no('원본 좌표를 읽을 수 없습니다: '+error.message);}
+    if(geometry.type!==ref.type||!['Polygon','MultiPolygon'].includes(geometry.type))no('대상 좌표 형식이 일치하지 않습니다.');
     const body=new TextEncoder().encode(JSON.stringify(geometry));
     if(hex(await subtle.digest('SHA-256',body))!==expected.sha256)
       no('형상 좌표 SHA-256이 검수 기록과 다릅니다: '+side);
@@ -456,9 +467,9 @@ export function createViewerReviewPanel({document,window,map,documentSession,isB
         if(!isCurrent())return;
         const digest=hex(await window.crypto.subtle.digest('SHA-256',bytes));
         if(!isCurrent())return;
-        const item=current.diff.readObjects.find(x=>x.sourceEntityId===subject&&x.sha256===digest);
+        const item=current.diff.readObjects.find(x=>x.sourceEntityId===subject&&(x.sha256===digest||x.geometryResources.some(g=>g.sha256===digest)));
         if(!item)no('이 파일은 선택된 객체의 E3 Git SHA와 일치하지 않습니다.');
-        records.set(item.revision,bytes);
+        records.set(digest,bytes);
       }
       if(!isCurrent())return;
       rawObjectBytes=records;

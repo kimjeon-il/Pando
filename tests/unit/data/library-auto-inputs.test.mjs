@@ -3,17 +3,24 @@ import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {gzipSync} from 'node:zlib';
 import {inspectCanonicalInputs} from '../../../scripts/lib/library-auto-inputs.mjs';
+import {encodeTerritorialSource,decodeTerritorialSource} from '../../../tools/data/territorial-source-codec.mjs';
 const baselineRevision='a'.repeat(40),revision='b'.repeat(40),BASE='assets/data/territorial-entities/source/';
 const hash=b=>createHash('sha256').update(b).digest('hex'),bytes=x=>Buffer.from(JSON.stringify(x));
 const raw=()=>({schemaVersion:2,entityId:'state:AAA',lineageId:'aaa',entityKind:'general',names:{en:'A'},lifetime:{validFrom:null,validTo:null},parentEntityId:'',geometryVersions:[{versionId:'v1',validFrom:null,validTo:null,geometry:{type:'Polygon',coordinates:[[[0,0],[1,0],[1,1],[0,0]]]},custom:'kept'}],sourceInfo:{title:'source',custom:'kept'}});
 function fixture(edit=()=>{}){
  const stores={},reads=[];
  const put=(rev,p,value,{encoding='gzip',format=false}={})=>{
+  if(value?.geometryVersions&&!value.storageLayout){
+   const encoded=encodeTerritorialSource(value);for(const [file,b]of encoded.geometries)put(rev,BASE+file,b);value=encoded.descriptor;
+  }
   const s=stores[rev],a=JSON.parse(s['archive/index.json']),b=Buffer.isBuffer(value)?value:Buffer.from(JSON.stringify(value,null,format?2:undefined)),sha256=hash(b),stored='archive/blobs/'+sha256+(encoding==='gzip'?'.gz':'.bin');
   a.files[p]={stored,encoding,sha256,bytes:b.length};s[stored]=encoding==='gzip'?gzipSync(b):b;s['archive/index.json']=bytes(a);return a.files[p];
  };
  for(const rev of [baselineRevision,revision]){
   stores[rev]={'archive/index.json':bytes({schemaVersion:1,files:{}}),'library.json':Buffer.from('retired, unreadable manifest'),'objects/retired.json':Buffer.from('retired, unreadable object')};
+  if(rev===revision)for(const [p,entry]of Object.entries(JSON.parse(stores[baselineRevision]['archive/index.json']).files))if(p.startsWith(BASE+'geometries/')){
+   const a=JSON.parse(stores[rev]['archive/index.json']);a.files[p]=entry;stores[rev][entry.stored]=stores[baselineRevision][entry.stored];stores[rev]['archive/index.json']=bytes(a);
+  }
   const e=raw();if(rev===revision)edit(e);put(rev,BASE+'countries/'+e.entityId.replace(':','-')+'.json',e);
  }
  const readBlob=(rev,p)=>{reads.push([rev,p]);if(!stores[rev][p])throw Error('missing '+p);return stores[rev][p];};
@@ -24,6 +31,7 @@ const country=BASE+'countries/state-AAA.json',world=BASE+'views/world.json';
 test('source-only edit is accepted without reading legacy manifests or generated chunks',()=>{
  const f=fixture(e=>e.names.en='B'),r=f.run();
  assert.deepEqual(r.changedEntityIds,['state:AAA']);assert.equal(r.requiredFamilies.length,8);
+ assert.equal(r.writes.length,1,'metadata edit must not emit any coordinate payload');
  assert.equal(r.writes[0].path,country);const e=JSON.parse(r.writes[0].bytes);
  assert.equal(e.names.en,'B');assert.equal(e.sourceInfo.custom,'kept');assert.equal(e.geometryVersions[0].custom,'kept');
  assert.equal(f.reads.some(([,p])=>p==='library.json'||p.startsWith('objects/')),false);
@@ -36,7 +44,8 @@ for(const key of ['entityId','entityKind','lineageId','parentEntityId','lifetime
  assert.throws(()=>fixture(e=>{e[key]=key==='lifetime'?{validFrom:'2000',validTo:null}:key==='entityId'?'state:BBB':key==='entityKind'?'regional':'other';}).run());
 });
 test('geometry edit preserves exact coordinates and metadata',()=>{
- const r=fixture(e=>e.geometryVersions[0].geometry.coordinates[0][1][0]=1.1234567890123457).run(),e=JSON.parse(r.writes[0].bytes);
+ const r=fixture(e=>e.geometryVersions[0].geometry.coordinates[0][1][0]=1.1234567890123457).run(),descriptor=JSON.parse(r.writes.find(w=>w.path===country).bytes);
+ const e=decodeTerritorialSource(descriptor,file=>r.writes.find(w=>w.path===BASE+file)?.bytes);
  assert.equal(e.geometryVersions[0].geometry.coordinates[0][1][0],1.1234567890123457);assert.equal(e.geometryVersions[0].custom,'kept');
 });
 for(const mutate of [e=>e.surprise=true,e=>e.schemaVersion=1,e=>e.geometryVersions=[],e=>e.geometryVersions.push(structuredClone(e.geometryVersions[0]))])test('invalid source schema or duplicate version fails before emission',()=>assert.throws(()=>fixture(mutate).run()));

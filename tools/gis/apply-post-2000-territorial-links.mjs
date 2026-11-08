@@ -3,7 +3,7 @@ import path from 'node:path';
 import {createHash} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
-import {readTerritorialSources,readTerritorialLineages,territorialSourceRoot,entityFileName,updateTerritorialSource} from "../data/territorial-entity-sources.mjs";
+import {readTerritorialSources,readTerritorialLineages,territorialSourceRoot,entityFileName,updateTerritorialSource,writeTerritorialSource} from "../data/territorial-entity-sources.mjs";
 import {writeLibraryOutput} from "../data/library-runtime.mjs";
 import {normalizeTerritorialLibraryEntity,normalizeTerritorialLineage} from './territorial-library.js';
 
@@ -120,7 +120,7 @@ function main(args) {
  });
  for(const e of plan.created){
   const p=path.join(territorialSourceRoot,'countries',entityFileName(e.entityId));
-  requireFact(!fs.existsSync(p),'Destination exists: '+p);write(p,e);
+  requireFact(!fs.existsSync(p),'Destination exists: '+p);writeTerritorialSource(e);
  }
  for(const l of plan.lineages)write(path.join(territorialSourceRoot,'lineages',l.lineageId+'.json'),l);
  write(policyPath,plan.policy);

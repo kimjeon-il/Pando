@@ -34,7 +34,7 @@ export default [
     'tests/fixtures/shared-core/web-m97/lifecycle-source/**'] },
   js.configs.recommended,
   {
-    files: ['src/**/*.js', 'src/**/*.js', 'apps/editor/*.js'],
+    files: ['src/**/*.js'],
     languageOptions: { ecmaVersion: 'latest', sourceType: 'module', globals: { ...browserGlobals, console: 'readonly' } },
     rules: {
       'no-unused-vars': ['error', { args: 'none', caughtErrors: 'none', ignoreRestSiblings: true }],
@@ -72,12 +72,12 @@ export default [
     languageOptions: { sourceType: 'module' },
   },
   {
-    files: ['tests/**/*.mjs', 'shared/tests/**/*.mjs', 'scripts/**/*.mjs', '.github/scripts/**/*.mjs', 'tools/**/*.mjs', 'native/tools/**/*.mjs', 'apps/editor/**/*.mjs', 'plugins/pando-map-tools/**/*.mjs', '*.config.js', '.pnpmfile.mjs'],
+    files: ['tests/**/*.mjs', 'scripts/**/*.mjs', '.github/scripts/**/*.mjs', 'tools/**/*.{mjs,js}', '*.config.js', '.pnpmfile.mjs'],
     languageOptions: { ecmaVersion: 'latest', sourceType: 'module', globals: nodeGlobals },
     rules: { 'no-unused-vars': ['error', { args: 'none', caughtErrors: 'none', ignoreRestSiblings: true }] },
   },
   {
-    files: ['tests/browser/**/*.mjs', 'tests/integration/**/*.mjs', 'apps/editor/tests/**/*.mjs'],
+    files: ['tests/browser/**/*.mjs', 'tests/integration/**/*.mjs'],
     languageOptions: { globals: { ...nodeGlobals, ...browserGlobals } },
   },
   {

@@ -12,6 +12,7 @@ import {decodeArchiveEntry,libraryReportRoot,libraryReportEditRoot,libraryMateri
 import {hydrateReports} from "../../../tools/data/library-reports.mjs";
 import {storeLibraryData,libraryPublicationRef} from "../../../tools/data/library-store.mjs";
 import { reportPath } from "../../../tools/data/report-paths.mjs";
+import {encodeTerritorialSource} from '../../../tools/data/territorial-source-codec.mjs';
 
 test('scoped native storage requires every changed source chunk and shared index together',async()=>{
   const {assertTerritorialStorageScope}=await import("../../../tools/data/library-store.mjs");
@@ -33,9 +34,11 @@ test('source storage preserves retired native metadata and supports source-befor
   const base='assets/data/territorial-entities',source=base+'/source/countries/state-test.json',chunk=base+'/generated/v2/state-test.json.gz',indexPath=base+'/generated/v2/index.json';
   const entity={schemaVersion:2,entityId:'state:test',entityKind:'general',names:{ko:'Before'},lifetime:{validFrom:null,validTo:null},geometryVersions:[{versionId:'v1',validFrom:null,validTo:null,geometry:{type:'Polygon',coordinates:[[[0,0],[1,0],[1,1],[0,0]]]}}]};
   const before=JSON.stringify(entity),after=JSON.stringify({...entity,names:{ko:'After'}});
+  const encoded=encodeTerritorialSource(entity),sourceBefore=JSON.stringify(encoded.descriptor),sourceAfter=JSON.stringify(encodeTerritorialSource({...entity,names:{ko:'After'}}).descriptor);
   const bytes=gzipSync(before),hash=value=>createHash('sha256').update(value).digest('hex');
   const oldIndex=Buffer.from(JSON.stringify({entities:[{entityId:'state:test',file:'state-test.json.gz',sha256:hash(bytes)}]}));
-  const files={[source]:Buffer.from(before),[chunk]:bytes,[indexPath]:oldIndex};
+  const files={[source]:Buffer.from(sourceBefore),[chunk]:bytes,[indexPath]:oldIndex,
+    ...Object.fromEntries([...encoded.geometries].map(([p,b])=>[base+'/source/'+p,b]))};
   const archive={};for(const [path,value]of Object.entries(files)){put(data,path,value);archive[path]={stored:path,encoding:'identity',bytes:value.length,sha256:hash(value)};}
   put(data,'archive/index.json',JSON.stringify({schemaVersion:1,branch:'main',files:archive}));
   put(data,`objects/${hash(oldIndex)}.json`,oldIndex);put(data,'library.json',JSON.stringify({schemaVersion:1,indexHash:hash(oldIndex),entities:{'state:test':'old-native'}}));
@@ -46,17 +49,17 @@ test('source storage preserves retired native metadata and supports source-befor
   prepareLibraryData({purpose:'gis',prefixes:['assets/data'],root,fetch:false});
   const next=gzipSync(after);
   withLibraryWrite({root,prefixes:[source,chunk,indexPath]},()=>{
-    put(root,source,after);put(root,chunk,next);
+    put(root,source,sourceAfter);put(root,chunk,next);
     put(root,indexPath,JSON.stringify({entities:[{entityId:'state:test',file:'state-test.json.gz',sha256:hash(next)}]}));
   });
   const retiredBefore=git(data,'show','HEAD:library.json'),objectsBefore=git(data,'ls-tree','-r','HEAD','--','objects');
   storeLibraryData({root,prefixes:[source]});
   const first=JSON.parse(git(data,'show','HEAD:archive/index.json'));
-  assert.equal(first.files[source].sha256,hash(after));
+  assert.equal(first.files[source].sha256,hash(sourceAfter));
   assert.deepEqual(first.files[chunk],archive[chunk],'source storage must not regenerate geometry/chunks');
   storeLibraryData({root,prefixes:[source,chunk,indexPath]});
   const stored=JSON.parse(git(data,'show','HEAD:archive/index.json'));
-  assert.equal(stored.files[source].sha256,hash(after));assert.equal(stored.files[chunk].sha256,hash(next));
+  assert.equal(stored.files[source].sha256,hash(sourceAfter));assert.equal(stored.files[chunk].sha256,hash(next));
   assert.equal(git(data,'show','HEAD:library.json'),retiredBefore);
   assert.equal(git(data,'ls-tree','-r','HEAD','--','objects'),objectsBefore);
 });

@@ -7,6 +7,7 @@ import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'no
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {withLibraryOutputs} from "../data/library-runtime.mjs";
+import {readTerritorialSource} from '../data/territorial-entity-sources.mjs';
 
 export const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 export const OUTPUT = join(ROOT, 'tools/historical-library/sources/east-germany');
@@ -247,8 +248,7 @@ export async function main(argv = process.argv.slice(2), { fetcher = fetch } = {
     ? JSON.parse(readFileSync(capturePath, 'utf8'))
     : approvedVG25Capture(await fetchSourceJSON(wfsUrl(VG25_WFS,
       'vg25:vg25_lan', 'EPSG:25832', "ags IN ('12','13','14','15','16')"), { fetcher }));
-  const german = JSON.parse(readFileSync(join(ROOT,
-    'assets/data/territorial-entities/source/countries/state-DEU.json'), 'utf8'));
+  const german = readTerritorialSource('state:DEU',join(ROOT,'assets/data/territorial-entities/source'));
   const worldView = JSON.parse(readFileSync(join(ROOT,
     'assets/data/territorial-entities/source/views/world.json'), 'utf8'));
   const capturedAt = captured ? statSync(capturePath).mtime.toISOString()

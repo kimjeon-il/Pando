@@ -67,6 +67,16 @@ function validDiff(diff) {
       ||!['identity','gzip'].includes(resource.encoding)||!digest.test(resource.sha256||'')
       ||![resource.compressedBytes,resource.decodedBytes].every(n=>Number.isSafeInteger(n)&&n>0&&n<=16*1024*1024))
       invalid('E3 원본 객체 참조가 올바르지 않습니다.');
+    const versions=new Set();
+    if(!Array.isArray(row.geometryResources))invalid('E3 좌표 자원 참조가 없습니다.');
+    for(const geometry of row.geometryResources){
+      const r=geometry?.resource;
+      if(typeof geometry?.versionId!=='string'||!geometry.versionId||versions.has(geometry.versionId)||!digest.test(geometry.sha256||'')
+        ||!r||typeof r.url!=='string'||!/^[-A-Za-z0-9_./]+$/.test(r.url)||r.url.startsWith('/')||r.url.split('/').some(p=>!p||p==='.'||p==='..')
+        ||!['identity','gzip'].includes(r.encoding)||!digest.test(r.sha256||'')
+        ||![r.compressedBytes,r.decodedBytes].every(n=>Number.isSafeInteger(n)&&n>0&&n<=16*1024*1024))invalid('E3 좌표 자원 참조가 올바르지 않습니다.');
+      versions.add(geometry.versionId);
+    }
     const key=row.sourceEntityId+':'+row.revision;
     if(receiptKeys.has(key))invalid('E3 원본 객체 참조가 중복됐습니다.');
     receiptKeys.add(key);

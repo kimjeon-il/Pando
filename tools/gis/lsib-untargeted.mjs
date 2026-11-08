@@ -8,6 +8,7 @@ import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
 import {gzipSync} from 'node:zlib';
 import {writeLibraryOutput} from "../data/library-runtime.mjs";
+import {readTerritorialSource} from '../data/territorial-entity-sources.mjs';
 import {applyLSIBCountryPatches,classifyLSIBSpatial,extractLSIBSharedChains,mergeLSIBUnion,
   prepareLSIBNearestReplacements} from './lsib-screen-native.mjs';
 
@@ -158,7 +159,7 @@ export async function runLSIBUntargeted(request,options={}){
     if(typeof selection.entityId!=='string'||!/^state:[A-Z]{3}$/.test(selection.entityId))
       throw Error('Invalid current country identity');
     const bytes=await readFile(join(source,'countries',selection.entityId.replaceAll(':','-')+'.json'));
-    const entity=JSON.parse(bytes),version=entity.geometryVersions.find(value=>value.versionId===selection.geometryVersionId);
+    const entity=readTerritorialSource(selection.entityId,source),version=entity.geometryVersions.find(value=>value.versionId===selection.geometryVersionId);
     if(entity.entityId!==selection.entityId||!version||version.validTo!=null)throw Error('Historical display geometry is protected: '+selection.entityId);
     const code=entity.sourceInfo?.featureId;
     if(typeof code!=='string'||!code||Object.hasOwn(entities,code))throw Error('Duplicate or missing LSIB country identity');

@@ -1,6 +1,7 @@
 import {collectRuntimeDataAssets} from '../../src/data/runtime-manifest-assets.js';
 import {createHash} from 'node:crypto';
 import {viewerDataEntryPaths} from '../../scripts/lib/product-assets.mjs';
+import {validateTerritorialSourceGeometry,territorialSourceLayout} from '../../src/data/territorial-source-format.js';
 
 // Archive metadata remains complete. A preparation scope is only a view over it.
 export function runtimeArchiveIndex(index,readVerified,{purpose='viewer',prefixes=[]}={}){
@@ -29,6 +30,16 @@ export function runtimeArchiveIndex(index,readVerified,{purpose='viewer',prefixe
   for(const p of prefixes)if(typeof p!=='string'||!p||p.startsWith('/')||p.includes('\\')||p.split('/').some(x=>!x||x==='.'||x==='..'))throw Error('Invalid GIS input scope');
   selected=new Set(Object.keys(index.files).filter(path=>!path.startsWith('reports/')
    &&prefixes.some(prefix=>path===prefix||path.startsWith(prefix+'/'))));
+  const source='assets/data/territorial-entities/source/';
+  for(const p of [...selected])if(p.startsWith(source+'countries/')&&p.endsWith('.json')){
+   const descriptor=JSON.parse(readVerified(index.files[p],p));
+   if(descriptor.storageLayout!==territorialSourceLayout)throw Error('Current source descriptor is required for GIS preparation: '+p);
+   for(const version of descriptor.geometryVersions){
+    const resource=validateTerritorialSourceGeometry(version,descriptor.entityId),file=source+resource.file,entry=index.files[file];
+    if(!entry||entry.sha256!==resource.sha256||entry.bytes!==resource.bytes)throw Error('Missing or mismatched GIS source geometry: '+file);
+    selected.add(file);
+   }
+  }
  }else throw Error('Unknown library preparation purpose: '+purpose);
  const files=Object.fromEntries([...selected].sort().map(path=>[path,index.files[path]]));
  const scopeId=createHash('sha256').update(JSON.stringify({purpose,prefixes:[...new Set(prefixes)].sort(),

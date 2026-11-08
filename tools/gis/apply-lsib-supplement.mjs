@@ -4,7 +4,7 @@ import {createHash} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import {sharedCalculationCore} from "../../src/document/temporal.js";
 import {normalizeTerritorialLibraryEntity} from "./territorial-library.js";
-import {entityFileName,territorialSourceRoot} from "../data/territorial-entity-sources.mjs";
+import {entityFileName,territorialSourceRoot,readTerritorialSource,writeTerritorialSource} from "../data/territorial-entity-sources.mjs";
 
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 export function applyLsibSupplement(candidate,{root=territorialSourceRoot,check=false}={}){
@@ -16,7 +16,7 @@ export function applyLsibSupplement(candidate,{root=territorialSourceRoot,check=
     const file=path.join(root,'countries',entityFileName(change.entityId));
     const before=fs.readFileSync(file);
     if(!/^[a-f0-9]{64}$/.test(change.inputFileSha256)||sha(before)!==change.inputFileSha256)throw new Error(`LSIB source changed after candidate calculation: ${change.entityId}`);
-    const entity=JSON.parse(before);
+    const entity=structuredClone(readTerritorialSource(change.entityId,root));
     const version=entity.geometryVersions.find(row=>row.versionId===change.geometryVersionId);
     if(!version || version.versionId!==selections.get(entity.entityId)||version.validTo!==null)throw new Error(`Historical source must not be overwritten: ${change.entityId}`);
     const geometry=sharedCalculationCore.normalizePolygonGeometry(change.geometry);
@@ -31,10 +31,10 @@ export function applyLsibSupplement(candidate,{root=territorialSourceRoot,check=
       sourceAttributions:[...new Map([...(entity.sourceInfo.sourceAttributions??[]),...change.sourceAttributions].map(row=>[row.sourceId,row])).values()],
       geometrySha256:sha(JSON.stringify(geometry))};
     normalizeTerritorialLibraryEntity(entity);
-    writes.push({file,bytes:`${JSON.stringify(entity,null,2)}\n`});
+    writes.push(entity);
   }
   // Validate the complete multi-country candidate before writing any counterpart.
-  if(!check)for(const {file,bytes} of writes)fs.writeFileSync(file,bytes);
+  if(!check)for(const entity of writes)writeTerritorialSource(entity,root);
   return {countries:writes.length,applied:!check};
 }
 if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url)){

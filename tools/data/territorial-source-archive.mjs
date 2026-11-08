@@ -1,5 +1,6 @@
 import {createHash} from 'node:crypto';
 import {decodeLibraryArchiveBytes} from './library-archive.mjs';
+import {decodeTerritorialSource} from './territorial-source-codec.mjs';
 
 export const territorialCountryPrefix='assets/data/territorial-entities/source/countries/';
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -19,13 +20,29 @@ export function territorialSourceIndex(archive){
     if(Object.hasOwn(entities,id))throw Error('Duplicate territorial source: '+id);
     entities[id]=entry.sha256;sources[id]={path,...entry};
   }
-  return {schemaVersion:1,entities,sources};
+  const resources=Object.fromEntries(Object.entries(archive.files).filter(([path])=>path.startsWith('assets/data/territorial-entities/source/geometries/')));
+  return {schemaVersion:1,entities,sources,resources};
 }
 
-export function readTerritorialArchiveEntity(index,entityId,readStored){
+export function readTerritorialArchiveDescriptor(index,entityId,readStored){
   const entry=index.sources[entityId];if(!entry)throw Error('Missing territorial source: '+entityId);
   const stored=readStored(entry.stored),bytes=decodeLibraryArchiveBytes(stored,entry);
   if(JSON.parse(bytes).entityId!==entityId)throw Error('Territorial source filename identity mismatch: '+entityId);
   return {bytes,resource:{url:entry.stored,encoding:entry.encoding,compressedBytes:stored.length,
     decodedBytes:bytes.length,sha256:hash(stored)}};
+}
+
+export function readTerritorialArchiveEntity(index,entityId,readStored){
+  const source=readTerritorialArchiveDescriptor(index,entityId,readStored),geometryPayloads=new Map();
+  decodeTerritorialSource(JSON.parse(source.bytes),file=>{
+    if(!geometryPayloads.has(file)){
+      const entry=index.resources?.['assets/data/territorial-entities/source/'+file];
+      if(!entry||!safe(entry.stored))throw Error('Missing territorial geometry archive resource: '+file);
+      const stored=readStored(entry.stored),bytes=decodeLibraryArchiveBytes(stored,entry);
+      geometryPayloads.set(file,{bytes,resource:{url:entry.stored,encoding:entry.encoding,compressedBytes:stored.length,
+        decodedBytes:bytes.length,sha256:hash(stored)}});
+    }
+    return geometryPayloads.get(file).bytes;
+  });
+  return {...source,geometryPayloads};
 }

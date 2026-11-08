@@ -4,6 +4,7 @@ import {
   temporalContains, temporalMonthEnd, compareTemporal, compareTemporalKeys, temporalFollowingDay,
 } from "../../src/document/temporal.js";
 import {normalizeTerritorialLibraryEntity} from '../gis/territorial-library.js';
+import {decodeTerritorialSource} from '../data/territorial-source-codec.mjs';
 import {createReviewBundle, REVIEW_DATA_REPOSITORY} from "../../src/document/review-change-records.js";
 
 export const E3_DIFF_SCHEMA_VERSION = 1;
@@ -193,6 +194,7 @@ export function collectRevisionDiff({baseRevision,candidateRevision,baseIndex,ca
     }
     const before=row.beforeDigest?readEntity({revision:baseRevision,entityId:row.sourceEntityId,digest:row.beforeDigest}):null;
     const after=row.afterDigest?readEntity({revision:candidateRevision,entityId:row.sourceEntityId,digest:row.afterDigest}):null;
+    const entities=new Map();
     for(const [value,expected,revision] of [[before,row.beforeDigest,baseRevision],[after,row.afterDigest,candidateRevision]]) {
       if(expected===null)continue;
       if(!value||!Buffer.isBuffer(value.bytes)||sha256(value.bytes)!==expected)invalid('Source content hash mismatch: '+row.sourceEntityId+'@'+revision);
@@ -202,10 +204,19 @@ export function collectRevisionDiff({baseRevision,candidateRevision,baseIndex,ca
         ||!['identity','gzip'].includes(resource.encoding)||!DIGEST.test(resource.sha256||'')
         ||!Number.isSafeInteger(resource.compressedBytes)||resource.compressedBytes<1
         ||resource.decodedBytes!==value.bytes.length)invalid('Source transport receipt is required: '+row.sourceEntityId);
-      readHashes.push({sourceEntityId:row.sourceEntityId,revision,sha256:expected,resource});
+      const descriptor=JSON.parse(value.bytes),geometryResources=[];
+      entities.set(value,decodeTerritorialSource(descriptor,file=>{
+        const payload=value.geometryPayloads?.get(file);
+        if(!payload||!Buffer.isBuffer(payload.bytes)||!payload.resource
+          ||payload.resource.decodedBytes!==payload.bytes.length)invalid('Geometry transport receipt is required: '+file);
+        return payload.bytes;
+      }));
+      for(const version of descriptor.geometryVersions)geometryResources.push({versionId:version.versionId,
+        sha256:version.geometryResource.sha256,resource:value.geometryPayloads.get(version.geometryResource.file).resource});
+      readHashes.push({sourceEntityId:row.sourceEntityId,revision,sha256:expected,resource,geometryResources});
     }
-    const diff=diffTerritorialEntities(before?JSON.parse(before.bytes.toString('utf8')):null,
-      after?JSON.parse(after.bytes.toString('utf8')):null,{sourceEntityId:row.sourceEntityId});
+    const entity=value=>value?entities.get(value):null;
+    const diff=diffTerritorialEntities(entity(before),entity(after),{sourceEntityId:row.sourceEntityId});
     changes.push(...diff.changes);issues.push(...diff.issues);
     if(diff.metadataChanges.length)nonMapMetadata.push({sourceEntityId:row.sourceEntityId,fields:diff.metadataChanges});
   }

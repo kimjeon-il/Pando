@@ -8,6 +8,7 @@ import {normalizeTerritorialLibraryEntity} from './territorial-library.js';
 import {territorialIndexEntry} from './territorial-index-entry.js';
 import {sharedCalculationCore} from "../../src/document/temporal.js";
 import {withLibraryWrite} from "../data/library-runtime.mjs";
+import {writeTerritorialSource} from '../data/territorial-entity-sources.mjs';
 
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 const json=value=>Buffer.from(JSON.stringify(value,null,2)+'\n');
@@ -76,8 +77,9 @@ export async function prepareWaterObjectHistory({root,approvedManifest}) {
   const lineage={schemaVersion:2,lineageId:'caspian',names:entity.names,entityRefs:[id],relations:[]};
   index.lineages=index.lineages.filter(row=>row.lineageId!=='caspian').concat(lineage);
   const outputs=[[path.join(physical,'caspian-modern-water.json.gz'),modernWater.bytes],[path.join(physical,'manifest.json'),json(manifest)],
-    [path.join(territorial,'source/countries/waterbody-caspian.json'),source],[path.join(territorial,'source/lineages/caspian.json'),json(lineage)],
+    [path.join(territorial,'source/lineages/caspian.json'),json(lineage)],
     [path.join(territorial,'generated/v2/waterbody-caspian.json.gz'),stored],[indexPath,json(index)]];
+  writeTerritorialSource(entity,path.join(territorial,'source'));
   await withLibraryWrite({root,prefixes:outputs.map(([file])=>path.relative(root,file).replaceAll('\\','/'))},()=>{
     for(const [file,bytes] of outputs)fs.writeFileSync(file,bytes);
   });

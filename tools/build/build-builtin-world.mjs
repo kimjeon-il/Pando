@@ -9,6 +9,7 @@ import {withLibraryOutputs} from "../data/library-runtime.mjs";
 import {libraryConfig,libraryCheckout,decodeArchiveEntry} from "../data/library-context.mjs";
 import {readTerritorialSources,readTerritorialSource,entityFileName,territorialSourceRoot,territorialDataRoot} from "../data/territorial-entity-sources.mjs";
 import {normalizeTerritorialLibraryEntity} from "../gis/territorial-library.js";
+import {decodeTerritorialSource} from '../data/territorial-source-codec.mjs';
 import {buildCurrentWorld} from "../data/territorial-current-world.mjs";
 import {compileBuiltinWorldCatalog,coalesceCoverageAdjustments,replaceBuiltinWorldCountryNames} from "./builtin-world-compiler.mjs";
 import {builtinSubunitId} from "../../src/document/builtin-subunits.js";
@@ -181,7 +182,7 @@ if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.ur
    const root=fileURLToPath(new URL("../../",import.meta.url)),config=libraryConfig(root),checkout=libraryCheckout(root);
    const archive=JSON.parse(execFileSync('git',['-c','maintenance.auto=false','-c','gc.auto=0','show',`${config.revision}:archive/index.json`],{cwd:checkout,maxBuffer:16*1024*1024}));
    files=buildBuiltinWorldNamePublication({entityIds:ids,sourceIndex,previousIndex:index,readCountry:file=>fs.readFileSync(path.join(output,file)),
-    readPreviousSource:id=>normalizeTerritorialLibraryEntity(JSON.parse(decodeArchiveEntry(checkout,archive.files[`assets/data/territorial-entities/source/countries/${entityFileName(id)}`],config.revision)))});
+    readPreviousSource:id=>normalizeTerritorialLibraryEntity(decodeTerritorialSource(JSON.parse(decodeArchiveEntry(checkout,archive.files[`assets/data/territorial-entities/source/countries/${entityFileName(id)}`],config.revision)),file=>decodeArchiveEntry(checkout,archive.files['assets/data/territorial-entities/source/'+file],config.revision)))});
    console.log(`Name-only generation: ${ids.length} selected source; geometry and coverage reused without recomputation.`);
   }else{
   const root=fileURLToPath(new URL("../../",import.meta.url)),config=libraryConfig(root),checkout=libraryCheckout(root);

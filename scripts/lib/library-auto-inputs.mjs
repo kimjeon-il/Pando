@@ -1,6 +1,7 @@
 import {createHash} from 'node:crypto';
 import {gunzipSync} from 'node:zlib';
-import {normalizeTerritorialLibraryEntity} from '../../tools/gis/territorial-library.js';
+import {normalizeTerritorialGeometryVersion} from '../../tools/gis/territorial-library.js';
+import {normalizeTerritorialSourceDescriptor} from '../../tools/data/territorial-entity-sources.mjs';
 import {territorialSourceIndex} from '../../tools/data/territorial-source-archive.mjs';
 const MAX=32*1024*1024;
 const FAMILIES=Object.freeze(['territorial','current-world','world-mesh','world-preview','world-bundle','shared-boundaries','builtin-world','prepared-mesh']);
@@ -11,8 +12,8 @@ function fail(code,message=code){throw Object.assign(new Error(message),{code});
 function sha(v,n=64){if(typeof v!=='string'||!new RegExp(`^[a-f0-9]{${n}}$`).test(v)||/^0+$/.test(v))fail('INVALID_HASH');return v;}
 function plain(v){if(v===null||typeof v!=='object')return;if(!Array.isArray(v)&&Object.getPrototypeOf(v)!==Object.prototype)fail('INVALID_JSON');for(const [k,c] of Object.entries(v)){if(['__proto__','constructor','prototype'].includes(k))fail('INVALID_JSON');plain(c);}}
 function json(b){let v;try{v=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(b));}catch{fail('INVALID_JSON');}plain(v);if(!v||Array.isArray(v)||typeof v!=='object')fail('INVALID_JSON');return v;}
-const entityKeys=new Set(['schemaVersion','entityId','entityKind','lineageId','names','alternateNames','nameVersions','lifetime','parentEntityId','geometryVersions','instantiation','metadata','sourceInfo']);
-function normalize(raw){for(const k of Object.keys(raw))if(!entityKeys.has(k))fail('UNKNOWN_ENTITY_FIELD');return normalizeTerritorialLibraryEntity(raw);}
+const entityKeys=new Set(['schemaVersion','storageLayout','entityId','entityKind','lineageId','names','alternateNames','nameVersions','lifetime','parentEntityId','geometryVersions','instantiation','metadata','sourceInfo']);
+function normalize(raw){for(const k of Object.keys(raw))if(!entityKeys.has(k))fail('UNKNOWN_ENTITY_FIELD');return normalizeTerritorialSourceDescriptor(raw);}
 function path(p){if(typeof p!=='string'||!p||p.startsWith('/')||p.includes('\\')||p.split('/').some(s=>!s||s==='.'||s==='..')||!/^[A-Za-z0-9_./-]+$/.test(p))fail('INVALID_ARCHIVE_PATH');return p;}
 
 const SOURCE='assets/data/territorial-entities/source/';
@@ -41,15 +42,16 @@ export function inspectCanonicalInputs({revision,baselineRevision,readBlob,verif
   for(const p of countries)path(p);
   return {archive,rev,countries};
  }
- function archived(state,p){
+ function readDecoded(state,p){
   const d=state.archive.files[p];if(!d)fail('MISSING_ARCHIVE_SOURCE');
   path(d.stored);sha(d.sha256);
   if(!Number.isInteger(d.bytes)||d.bytes<0||d.bytes>MAX||!['identity','gzip'].includes(d.encoding))fail('INVALID_ARCHIVE_DESCRIPTOR');
   const stored=read(state.rev,d.stored);let b;
   try{b=d.encoding==='gzip'?gunzipSync(stored,{maxOutputLength:MAX}):stored;}catch{fail('INVALID_ARCHIVE_GZIP');}
   if(b.length!==d.bytes||hash(b)!==d.sha256)fail('ARCHIVE_HASH_MISMATCH');
-  return json(b);
+  return b;
  }
+ const archived=(state,p)=>json(readDecoded(state,p));
  function entity(state,p){
   const e=normalize(archived(state,p));
   if(p!==SOURCE+'countries/'+e.entityId.replace(':','-')+'.json')fail('ENTITY_ID_MISMATCH');
@@ -58,26 +60,43 @@ export function inspectCanonicalInputs({revision,baselineRevision,readBlob,verif
  const base=load(baselineRevision),next=load(revision);
  if(stable(base.countries)!==stable(next.countries))fail('UNSUPPORTED_MEMBERSHIP_CHANGE');
  const managed=new Set([...next.countries,worldPath]),generatedChanges=[];
- for(const p of [...new Set([...Object.keys(base.archive.files),...Object.keys(next.archive.files)])].sort()){
-  path(p);
-  if(stable(logicalIdentity(base.archive.files[p]))===stable(logicalIdentity(next.archive.files[p]))||p.startsWith('reports/')||managed.has(p))continue;
-  const authoritative=p.startsWith(SOURCE)||/^assets\/data\/(?:hydro|terrain|physical-land|places)(?:\/|\.)/.test(p);
-  if(authoritative||!p.startsWith('assets/data/')||!verifiedGenerated.has(p))fail('UNSUPPORTED_ARCHIVE_INPUT','UNSUPPORTED_ARCHIVE_INPUT: '+p);
-  generatedChanges.push(p);
- }
  const changedEntityIds=[],inspectedEntityIds=[],writes=[],fingerprintFiles={};
+ for(const [p,entry]of Object.entries(next.archive.files))if(p.startsWith(SOURCE+'geometries/')){
+  if(p!==SOURCE+'geometries/sha256-'+entry.sha256+'.json')fail('SOURCE_GEOMETRY_IDENTITY');
+  fingerprintFiles[p]=logicalIdentity(entry);
+  if(changedStored?.has(entry.stored))readDecoded(next,p);
+ }
  for(const p of next.countries){
   const a=base.archive.files[p],b=next.archive.files[p];
   fingerprintFiles[p]=logicalIdentity(b);
   const selected=changedStored===null||stable(a)!==stable(b)||changedStored.has(a.stored)||changedStored.has(b.stored);
   if(!selected)continue;
   const prior=entity(base,p),e=entity(next,p);inspectedEntityIds.push(e.entityId);
+  for(const version of e.geometryVersions){
+   const resource=version.geometryResource,geometryPath=SOURCE+resource.file,entry=next.archive.files[geometryPath];
+   if(!entry||entry.sha256!==resource.sha256||entry.bytes!==resource.bytes)fail('SOURCE_GEOMETRY_IDENTITY');
+   managed.add(geometryPath);
+   fingerprintFiles[geometryPath]=logicalIdentity(entry);
+   const previous=prior.geometryVersions.find(v=>v.versionId===version.versionId)?.geometryResource;
+   if(stable(resource)===stable(previous)&&stable(logicalIdentity(base.archive.files[geometryPath]))===stable(logicalIdentity(entry))
+     &&!changedStored?.has(entry.stored))continue;
+   const geometry=archived(next,geometryPath);
+   normalizeTerritorialGeometryVersion({geometry},e.entityKind,version.versionId,e.entityId);
+   if(stable(logicalIdentity(base.archive.files[geometryPath]))!==stable(logicalIdentity(entry)))writes.push({path:geometryPath,bytes:readDecoded(next,geometryPath)});
+  }
   if(stable(prior)===stable(e))continue;
   if(!/^state:[A-Za-z0-9_-]+$/.test(e.entityId)||!['general','regional'].includes(e.entityKind))fail('UNSUPPORTED_ENTITY_KIND');
   for(const k of ['entityId','entityKind','lineageId','parentEntityId','lifetime'])if(stable(e[k])!==stable(prior[k]))fail('UNSUPPORTED_IDENTITY_CHANGE');
   const bytes=Buffer.from(JSON.stringify(e,null,2)+'\n');
   changedEntityIds.push(e.entityId);writes.push({path:p,bytes});
   fingerprintFiles[p]={sha256:hash(bytes),bytes:bytes.length};
+ }
+ for(const p of [...new Set([...Object.keys(base.archive.files),...Object.keys(next.archive.files)])].sort()){
+  path(p);
+  if(stable(logicalIdentity(base.archive.files[p]))===stable(logicalIdentity(next.archive.files[p]))||p.startsWith('reports/')||managed.has(p))continue;
+  const authoritative=p.startsWith(SOURCE)||/^assets\/data\/(?:hydro|terrain|physical-land|places)(?:\/|\.)/.test(p);
+  if(authoritative||!p.startsWith('assets/data/')||!verifiedGenerated.has(p))fail('UNSUPPORTED_ARCHIVE_INPUT','UNSUPPORTED_ARCHIVE_INPUT: '+p);
+  generatedChanges.push(p);
  }
  const a=base.archive.files[worldPath],b=next.archive.files[worldPath];let viewChanged=false;
  if(a||b){
@@ -99,5 +118,5 @@ export function inspectCanonicalInputs({revision,baselineRevision,readBlob,verif
   }
  }
  const inputFingerprint=hash(Buffer.from(stable({kind:'canonical-territorial-source-v1',files:fingerprintFiles}))),noop=!changedEntityIds.length&&!viewChanged;
- return {inputFingerprint,changedEntityIds,inspectedEntityIds,viewChanged,requiredFamilies:noop?[]:[...FAMILIES],writes,noop,generatedChanges};
+ return {inputFingerprint,changedEntityIds,inspectedEntityIds,viewChanged,requiredFamilies:noop?[]:[...FAMILIES],writes:[...new Map(writes.map(row=>[row.path,row])).values()],noop,generatedChanges};
 }

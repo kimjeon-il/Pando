@@ -7,8 +7,7 @@ import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 import {sharedCalculationCore} from "../../src/document/temporal.js";
 import {clippingOperationWithPrecisionRetry} from "../gis/polygon-clipping-calculation.js";
-import {readTerritorialSource,entityFileName,territorialSourceRoot} from "../data/territorial-entity-sources.mjs";
-import {withLibraryOutputs} from "../data/library-runtime.mjs";
+import {readTerritorialSource,writeTerritorialSource} from "../data/territorial-entity-sources.mjs";
 import {normalizeTerritorialLibraryEntity} from "../gis/territorial-library.js";
 
 const root=fileURLToPath(new URL("../../",import.meta.url));
@@ -145,9 +144,9 @@ export function run({check=false}={}) {
   assert.equal(sha(lines),evidence.vector.contentSha256,'Retained original LSIB evidence changed');
   const sources=new Map(['KOR','PRK','CHN'].map(code=>{const id='state:'+code;return [id,readTerritorialSource(id)];}));
   const updates=buildKoreanBaselineSources({sources,countries,lines});
-  const outputs=[...updates].map(([id,value])=>({id,value:normalizeTerritorialLibraryEntity(value),path:path.join(territorialSourceRoot,'countries',entityFileName(id))}));
+  const outputs=[...updates].map(([id,value])=>({id,value:normalizeTerritorialLibraryEntity(value)}));
   if(check)for(const row of outputs)assert.deepEqual(sources.get(row.id),row.value,'Stale Korean NE-baseline source: '+row.id);
-  else withLibraryOutputs({paths:outputs.map(row=>row.path)},()=>{for(const row of outputs)fs.writeFileSync(row.path,JSON.stringify(row.value,null,2)+'\n');});
+  else for(const row of outputs)writeTerritorialSource(row.value);
   console.log((check?'Checked':'Restored')+' pre-LSIB Korean display baseline for three source objects; all phase dates retained');
 }
 if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url))run({check:process.argv.includes('--check')});

@@ -6,11 +6,20 @@ import {join,dirname} from 'node:path';
 import {createHash} from 'node:crypto';
 import {collectRuntimeDataAssets} from '../../../src/data/runtime-manifest-assets.js';
 import {runtimeArchiveIndex} from '../../../tools/data/library-runtime-index.mjs';
+import {encodeTerritorialSource} from '../../../tools/data/territorial-source-codec.mjs';
 import {materializeRuntimeView} from '../../../tools/data/library-runtime.mjs';
 import {makePrivate} from '../../../tools/data/library-content.mjs';
 import {librarySharedCheckout} from '../../../tools/data/library-context.mjs';
 
 const root='assets/data/world/current.json';
+test('selected GIS source prepares its coordinate dependencies without materializing unrelated sources',()=>{
+ const prefix='assets/data/territorial-entities/source/',country=prefix+'countries/state-AAA.json';
+ const encoded=encodeTerritorialSource({schemaVersion:2,entityId:'state:AAA',geometryVersions:[{versionId:'v1',geometry:{type:'Polygon',coordinates:[[[0,0],[1,0],[1,1],[0,0]]]}}]});
+ const [file,bytes]=[...encoded.geometries][0],files={[country]:{},[prefix+file]:{sha256:createHash('sha256').update(bytes).digest('hex'),bytes:bytes.length},[prefix+'countries/state-BBB.json']:{}},reads=[];
+ const scope=runtimeArchiveIndex({files},(_entry,p)=>{reads.push(p);return Buffer.from(JSON.stringify(encoded.descriptor));},{purpose:'gis',prefixes:[country]});
+ assert.deepEqual(Object.keys(scope.files).sort(),[country,prefix+file].sort());assert.deepEqual(reads,[country]);
+ delete files[prefix+file];assert.throws(()=>runtimeArchiveIndex({files},()=>Buffer.from(JSON.stringify(encoded.descriptor)),{purpose:'gis',prefixes:[country]}),/geometry/);
+});
 test('runtime closure selects current payloads without reading provenance, reports or unused editions',()=>{
  const payload='assets/data/world/objects/current.bin';
  const source='assets/data/territorial-entities/source/countries/original.json';

@@ -12,8 +12,9 @@
 
 외부 자료 구성:
 
-- `assets/data/territorial-entities/source/countries/`: 객체 편집의 유일한 정본. 생성 청크와 국가 런타임은 이 입력에서 파생한다.
+- `assets/data/territorial-entities/source/countries/`: 객체 편집의 유일한 정본 descriptor. `geometry-resources-v1` 형식에서 신원·기간·관계·출처와 논리 형상 버전을 소유하며, 좌표는 `source/geometries/sha256-<내용 해시>.json`의 불변 자원을 참조한다. 서로 다른 객체가 같은 좌표를 공유해도 논리 버전과 출처는 구분한다. 생성 청크와 국가 런타임은 이를 검증·복원한 객체에서 파생한다. 이름·설명 변경은 좌표 파일을 다시 쓰지 않는다. 선택 GIS 준비는 descriptor를 읽고 해당 좌표만 추가로 준비한다.
 - `library.json`, `objects/<sha256>.json`: 과거 pin의 이전·복구 입력이다. 현행 저장·자동 입력·E3 검수는 이를 정본으로 읽거나 다시 쓰지 않는다. 별도 `territorial-source-migration.mjs --checkpoint=<경로>`가 원본을 덮어쓰지 않고 source와 필드·형상 identity를 대조한다.
+- 작성용 inline 좌표를 분리하는 명시적 이전은 `node tools/data/territorial-source-migration.mjs --factor-geometries [--apply [--push]] --checkpoint=<결과 경로>`를 사용한다. 저장 전에 모든 원래 객체를 정확히 복원·비교하며, 작업 중인 바이트가 pin이나 검증된 변환 결과와 다르면 보존하고 실패한다. 구 형식은 이전 입력으로만 읽으며 현재 로더의 대체 경로로 사용하지 않는다. E3 검수는 descriptor와 선택 좌표의 독립 전송·내용 해시를 모두 검증한다.
 - `assets/data/`: 현재 실행 의존 자료의 정확한 바이트. 기존 압축·해시·정밀도를 유지한다.
 - 국가 런타임의 `descriptor-geometries-v1` 목록은 전체 시대의 국가 descriptor와 `geometryAssets`를 구분한다. descriptor에는 신원·기간·관계와 논리 지오메트리 참조를 두고, 좌표는 내용별 독립 gzip payload로 공유한다. 전송 SHA-256과 해독한 좌표 내용 SHA-256은 별개다. 큰 descriptor의 전송 part는 좌표 지연 로딩 계약으로 사용하지 않는다. 메타데이터만 갱신할 때 좌표 payload와 메시를 다시 쓰지 않는다.
 - `archive/index.json`, `archive/blobs/`: 논리 경로와 보관 원문의 대응. 현재 보고서는 `reports/<경로>`의 전체 원문을 직접 보관하고, 기존 revision의 압축 원문은 Git 이력에서 복구한다. 런타임과 예전 국가 입력의 기존 보관 형식은 유지한다.

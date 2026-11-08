@@ -1,4 +1,5 @@
 import {gzipSync} from 'node:zlib';
+import {encodeTerritorialSource} from '../../../tools/data/territorial-source-codec.mjs';
 import { test as featureTest } from '@playwright/test';
 import * as __suiteDependency0 from "@playwright/test";
 import * as __suiteDependency1 from "node:crypto";
@@ -21,10 +22,9 @@ function dataFixture(baseRevision){
     after:{versionId:newVersion,sha256:sha(Buffer.from(JSON.stringify(after)))},
     evidenceIds:['research-map'],
   }];
-  const rawBefore=JSON.stringify({schemaVersion:2,entityId:'state:EXAMPLE_A',
-    geometryVersions:[{versionId:oldVersion,geometry:before}]});
-  const rawAfter=JSON.stringify({schemaVersion:2,entityId:'state:EXAMPLE_A',
-    geometryVersions:[{versionId:newVersion,geometry:after}]});
+  const encodedBefore=encodeTerritorialSource({schemaVersion:2,entityId:'state:EXAMPLE_A',geometryVersions:[{versionId:oldVersion,geometry:before}]}),
+    encodedAfter=encodeTerritorialSource({schemaVersion:2,entityId:'state:EXAMPLE_A',geometryVersions:[{versionId:newVersion,geometry:after}]});
+  const rawBefore=JSON.stringify(encodedBefore.descriptor),rawAfter=JSON.stringify(encodedAfter.descriptor);
   const sourceBefore=gzipSync(Buffer.from(rawBefore));
   const diff={
     schemaVersion:1,dataset:structuredClone(proposal.proposal.dataset),comparisonMonth:'2008-10',
@@ -36,6 +36,11 @@ function dataFixture(baseRevision){
     changes:proposal.proposal.changes.map(({evidenceIds,...row})=>row),
     issues:[],nonMapMetadata:[],selectedAtComparisonMonth:1,
   };
+  const responses=new Map([[sha(sourceBefore),sourceBefore],[sha(Buffer.from(rawAfter)),rawAfter]]);
+  for(const [i,encoded]of [encodedBefore,encodedAfter].entries())diff.readObjects[i].geometryResources=encoded.descriptor.geometryVersions.map(version=>{
+    const bytes=encoded.geometries.get(version.geometryResource.file),digest=sha(bytes);responses.set(digest,bytes);
+    return {versionId:version.versionId,sha256:digest,resource:{url:'archive/blobs/'+digest+'.json',encoding:'identity',sha256:digest,compressedBytes:bytes.length,decodedBytes:bytes.length}};
+  });
   const verification={schemaVersion:1,kind:'e3-source-revision-verification',
     dataset:structuredClone(diff.dataset),comparisonMonth:diff.comparisonMonth,
     sourceHashCheck:'passed',changedEntities:1,totalChangedEntities:1,scope:structuredClone(diff.scope),
@@ -51,7 +56,7 @@ function dataFixture(baseRevision){
     scope:structuredClone(diff.scope),files:files.map(x=>({name:x.name,sha256:sha(x.buffer),bytes:x.buffer.byteLength}))};
   files.push({name:'e3-output-manifest.json',mimeType:'application/json',
     buffer:Buffer.from(JSON.stringify(manifest,null,2)+'\n')});
-  return {files,rawBefore,rawAfter,sourceBefore,diff};
+  return {files,rawBefore,rawAfter,sourceBefore,diff,responses};
 }
 
 test('E4 map revision follows the actual builtin or opened project',async({page})=>{
@@ -87,7 +92,7 @@ test('E4 can compare again after cancelling an in-flight source request',async({
   let first=true;
   await page.route('https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/**',async route=>{
     if(first){first=false;requested();await firstRequest;}
-    const body=route.request().url().includes(model.diff.readObjects[0].resource.sha256)?model.sourceBefore:model.rawAfter;
+    const body=[...model.responses].find(([digest])=>route.request().url().includes(digest))?.[1];
     await route.fulfill({status:200,contentType:'application/json',body,headers:{'access-control-allow-origin':'*'}}).catch(()=>{});
   });
   await ready(page);
@@ -111,7 +116,7 @@ test('E4 review opens matching immutable revisions, draws verified source previe
   const model=dataFixture(),errors=[];
   page.on('pageerror',error=>errors.push(error.message));
   await page.route('https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/**',async route=>{
-    const url=route.request().url(),body=url.includes(model.diff.readObjects[0].resource.sha256)?model.sourceBefore:model.rawAfter;
+    const url=route.request().url(),body=[...model.responses].find(([digest])=>url.includes(digest))?.[1];
     await route.fulfill({status:200,contentType:'application/json',body,
       headers:{'access-control-allow-origin':'*'}});
   });

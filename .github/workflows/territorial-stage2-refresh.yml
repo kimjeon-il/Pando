@@ -23,8 +23,12 @@ jobs:
           node --input-type=module <<'JS'
           import assert from 'node:assert/strict';
           import fs from 'node:fs';
-          await import('./assets/js/modules/polygon-geometry.js');
-          const soviet=JSON.parse(fs.readFileSync('assets/data/territorial-entities/source/countries/state-soviet-union.json','utf8'));
+          import {prepareLibraryData} from './tools/data/library-runtime.mjs';
+          import {artifactPreparationPrefixes} from './scripts/lib/p2-artifact-graph.mjs';
+          import {readTerritorialSource} from './tools/data/territorial-entity-sources.mjs';
+          prepareLibraryData({purpose:'gis',prefixes:artifactPreparationPrefixes(JSON.parse(fs.readFileSync('config/generated-artifacts.json')).families,['prepared-mesh'])});
+          await import('./src/geometry/polygon-geometry.js');
+          const soviet=readTerritorialSource('state:soviet-union');
           const geometry=soviet?.geometryVersions.find(v=>v.versionId==='state:soviet-union:1922-1991-baikonur-r1')?.geometry;
           assert.equal(geometry?.coordinates?.length,231);
           assert.equal(geometry.coordinates.reduce((sum,p)=>sum+p.reduce((n,r)=>n+r.length,0),0),40054);

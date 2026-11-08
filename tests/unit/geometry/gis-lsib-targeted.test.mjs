@@ -6,6 +6,7 @@ import {dirname, join, resolve, sep} from 'node:path';
 import test from 'node:test';
 import {gzipSync} from 'node:zlib';
 import {buildLSIBTargetedCandidate,writeLSIBTargetedCandidate} from "../../../tools/gis/lsib-targeted.mjs";
+import {encodeTerritorialSource} from '../../../tools/data/territorial-source-codec.mjs';
 
 const binary=process.env.PANDO_TERRITORIAL_RECIPE_BINARY;
 const fixture=JSON.parse(await readFile(new URL("../../fixtures/lsib-coast-oracle.json",import.meta.url),'utf8'))[0];
@@ -13,6 +14,11 @@ const enclave=JSON.parse(await readFile(new URL("../../fixtures/lsib-enclave-ora
 const tripoint=JSON.parse(await readFile(new URL("../../fixtures/lsib-tripoint-oracle.json",import.meta.url),'utf8'))[0];
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 async function file(path,value){
+  if(path.includes('countries')&&value?.entityId){
+    const entity={schemaVersion:2,entityKind:'general',names:{en:value.entityId},lifetime:{validFrom:null,validTo:null},...value};
+    entity.geometryVersions=entity.geometryVersions.map((version,i)=>({...version,validFrom:i===0&&entity.geometryVersions.length>1?'1911':version.validFrom}));
+    const encoded=encodeTerritorialSource(entity);for(const [p,b]of encoded.geometries)await file(resolve(dirname(path),'..',p),b);value=encoded.descriptor;
+  }
   await mkdir(dirname(path),{recursive:true});
   const bytes=Buffer.isBuffer(value)?value:Buffer.from(JSON.stringify(value));
   await writeFile(path,bytes,{flag:'wx'});return bytes;

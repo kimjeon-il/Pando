@@ -10,6 +10,8 @@ import {libraryConfig,libraryCheckout} from "../../tools/data/library-context.mj
 import {prepareLibraryData,withLibraryOutputs} from "../../tools/data/library-runtime.mjs";
 import {readBuiltinCountryStoredBytes,readBuiltinCountry} from "../../tools/data/builtin-country-bytes.mjs";
 import {builtinCountryAssets} from "../../src/data/builtin-country-files.js";
+import {decodeTerritorialSource} from '../../tools/data/territorial-source-codec.mjs';
+import {validateTerritorialSourceGeometry} from '../../src/data/territorial-source-format.js';
 import {temporalContains,temporalMonthEnd} from "../../src/document/temporal.js";
 import {createAutoPublicationReceipt} from './library-auto-publication.mjs';
 const FAMILIES=Object.freeze(['territorial','current-world','world-mesh','world-preview','world-bundle','shared-boundaries','builtin-world','prepared-mesh']);
@@ -28,14 +30,14 @@ function assertCurrent(root,{expectedAppSha,expectedDataSha,branch}){
 }
 function readPinnedSources(root,revision,paths){
  const archive=JSON.parse(localGit(libraryCheckout(root),['show',revision+':archive/index.json']));
- return Object.fromEntries(paths.map(p=>{const d=archive.files?.[p];if(!d||!/^[a-f0-9]{64}$/.test(d.sha256)||!Number.isSafeInteger(d.bytes)||d.bytes<0)fail('PINNED_SOURCE_MISSING: '+p);return [p,{sha256:d.sha256,bytes:d.bytes}];}));
+ return Object.fromEntries(paths.map(p=>{const d=archive.files?.[p];if(!d&&p.startsWith('assets/data/territorial-entities/source/geometries/'))return [p,null];if(!d||!/^[a-f0-9]{64}$/.test(d.sha256)||!Number.isSafeInteger(d.bytes)||d.bytes<0)fail('PINNED_SOURCE_MISSING: '+p);return [p,{sha256:d.sha256,bytes:d.bytes}];}));
 }
 function runCommand(command,cwd,env){
  assert.ok(Array.isArray(command)&&command.length>=2,'AUTO_RUNTIME_INVALID_OWNER_COMMAND');
  execFileSync(command[0]==='node'?process.execPath:command[0],command.slice(1),{cwd,env:{...process.env,...env,GIT_NO_LAZY_FETCH:'1'},stdio:'inherit'});
 }
 function runBaseline(root){execFileSync(process.execPath,['--test','--test-name-pattern=builtin-world-baseline','tests/unit/document/builtin-world-catalog.test.mjs'],{cwd:root,env:{...process.env,GIT_NO_LAZY_FETCH:'1'},stdio:'inherit'});}
-function write(root,p,bytes,lease){const target=safePath(root,p);mkdirSync(dirname(target),{recursive:true});return lease({root,paths:[target]},()=>writeFileSync(target,bytes));}
+function write(root,p,bytes,lease,onWritten=()=>{}){const target=safePath(root,p);mkdirSync(dirname(target),{recursive:true});return lease({root,paths:[target]},()=>{writeFileSync(target,bytes);onWritten();});}
 function replaceFixture(root,bytes,{rename=renameSync}={}){
  const target=safePath(root,FIXTURE),temporary=safePath(root,FIXTURE+'.auto-fixture-'+randomUUID());
  try{writeFileSync(temporary,bytes,{flag:'wx'});rename(temporary,target);}
@@ -87,8 +89,9 @@ function scopedFixture(fixture,compiled,changedEntityIds,provenance){
 function verifyNativeProjection(root,writes){
  const index=json(root,TERRITORIAL+'index.json');
  for(const w of writes){
+  if(w.path.includes('/source/geometries/'))continue;
   if(w.path.endsWith('/views/world.json')){assert.deepEqual(index.views?.find(v=>v.id==='world:catalog'),JSON.parse(w.bytes),'AUTO_RUNTIME_WORLD_SOURCE_MISMATCH');continue;}
-  const entity=JSON.parse(w.bytes),entry=index.entities?.find(e=>e.entityId===entity.entityId);if(!entry)fail('NATIVE_ENTRY_MISSING');
+  const entity=decodeTerritorialSource(JSON.parse(w.bytes),file=>readFileSync(safePath(root,'assets/data/territorial-entities/source/'+file))),entry=index.entities?.find(e=>e.entityId===entity.entityId);if(!entry)fail('NATIVE_ENTRY_MISSING');
   const stored=readFileSync(safePath(root,TERRITORIAL+entry.file));
   if(stored.length!==entry.compressedBytes||hash(stored)!==entry.sha256)fail('NATIVE_HASH');
   const bytes=stored[0]===0x1f&&stored[1]===0x8b?gunzipSync(stored,{maxOutputLength:32*1024*1024}):stored;
@@ -110,25 +113,39 @@ export async function deriveAutomaticRuntime({root,inputProjection,inputDataSha,
  if(!Array.isArray(writes)||(!writes.length&&!regenerationOnly)||!Array.isArray(inputProjection.changedEntityIds)||new Set(inputProjection.changedEntityIds).size!==inputProjection.changedEntityIds.length)fail('PROJECTION');
  const allowed=new Set(inputProjection.changedEntityIds.map(id=>{if(!/^state:[A-Za-z0-9_-]+$/.test(id))fail('ENTITY_ID');return 'assets/data/territorial-entities/source/countries/'+id.replace(':','-')+'.json';}));
  if(inputProjection.viewChanged)allowed.add('assets/data/territorial-entities/source/views/world.json');
- if(writes.length!==allowed.size||new Set(writes.map(w=>w.path)).size!==writes.length||writes.some(w=>!allowed.has(w.path)||!Buffer.isBuffer(w.bytes)||w.bytes.length>32*1024*1024))fail('SOURCE_PATH');
+ if([...allowed].some(p=>!writes.some(w=>w.path===p)))fail('SOURCE_PATH');
+ for(const w of writes)if(allowed.has(w.path)&&!w.path.endsWith('/views/world.json')){
+  const descriptor=JSON.parse(w.bytes);
+  if(w.path!=='assets/data/territorial-entities/source/countries/'+String(descriptor.entityId).replace(':','-')+'.json')fail('SOURCE_IDENTITY');
+  if(!Array.isArray(descriptor.geometryVersions))fail('SOURCE_GEOMETRY');
+  for(const version of descriptor.geometryVersions)allowed.add('assets/data/territorial-entities/source/'+validateTerritorialSourceGeometry(version,descriptor.entityId).file);
+ }
+ if(new Set(writes.map(w=>w.path)).size!==writes.length||writes.some(w=>!allowed.has(w.path)||!Buffer.isBuffer(w.bytes)||w.bytes.length>32*1024*1024))fail('SOURCE_PATH');
  if(JSON.stringify(inputProjection.requiredFamilies)!==JSON.stringify(FAMILIES))fail('FAMILIES');
- for(const w of writes){const value=JSON.parse(w.bytes);if(w.path.endsWith('/views/world.json')){if(value.id!=='world:catalog')fail('SOURCE_IDENTITY');}
+ for(const w of writes){const value=JSON.parse(w.bytes);if(w.path.includes('/source/geometries/')){if(!w.path.endsWith('/sha256-'+hash(w.bytes)+'.json'))fail('SOURCE_GEOMETRY_HASH');}
+  else if(w.path.endsWith('/views/world.json')){if(value.id!=='world:catalog')fail('SOURCE_IDENTITY');}
   else if(w.path!=='assets/data/territorial-entities/source/countries/'+String(value.entityId).replace(':','-')+'.json')fail('SOURCE_IDENTITY');}
  const d={assertCurrent,readPinnedSources,prepareLibraryData,withLibraryOutputs,stageArtifacts,publishArtifacts,graphStatus,runBaseline,runCommand,renameFixture:renameSync,...dependencies};
  const guard=()=>d.assertCurrent(root,{expectedAppSha,expectedDataSha,branch});guard();
  const pinned=await d.readPinnedSources(root,expectedDataSha,writes.map(w=>w.path)),originals=new Map();
  // All originals verified before the first write; never trust caller-supplied hashes.
- for(const w of writes){const bytes=readFileSync(safePath(root,w.path)),descriptor=pinned[w.path];if(!descriptor||bytes.length!==descriptor.bytes||hash(bytes)!==descriptor.sha256)fail('ORIGINAL_SOURCE: '+w.path);originals.set(w.path,bytes);}
+ const matchesPinned=(target,w)=>{const descriptor=pinned[w.path],p=safePath(target,w.path);
+  if(descriptor===null)return !existsSync(p);
+  if(!descriptor||!existsSync(p))return false;
+  const bytes=readFileSync(p);return bytes.length===descriptor.bytes&&hash(bytes)===descriptor.sha256;
+ };
+ for(const w of writes){if(!matchesPinned(root,w))fail('ORIGINAL_SOURCE: '+w.path);originals.set(w.path,pinned[w.path]===null?null:readFileSync(safePath(root,w.path)));}
  const baselineAssets=new Map(builtinCountryAssets(json(root,COUNTRY+'index.json')).map(row=>[row.file,row]));
  const previous=countries(root),fixtureBytes=readFileSync(safePath(root,FIXTURE)),fixture=JSON.parse(fixtureBytes);
  // Existing baseline test proves fixture identity/geometry/points and SOURCE_CUTS
  // against the old compiled baseline before any selective refresh can mask drift.
  await d.runBaseline(root);
- const inject=target=>{for(const w of writes)write(target,w.path,w.bytes,d.withLibraryOutputs);};
+ const rootWrites=new Set();
+ const inject=target=>{for(const w of [...writes].sort((a,b)=>Number(b.path.includes('/source/geometries/'))-Number(a.path.includes('/source/geometries/'))))write(target,w.path,w.bytes,d.withLibraryOutputs,()=>{if(resolve(target)===resolve(root))rootWrites.add(w.path);});};
  let published=false;
  try{
   guard();
-  for(const w of writes)if(!readFileSync(safePath(root,w.path)).equals(originals.get(w.path)))fail('SOURCE_MOVED: '+w.path);
+  for(const w of writes)if(!matchesPinned(root,w))fail('SOURCE_MOVED: '+w.path);
   inject(root);
   let builtinPruned=false;
   const publication=await d.stageArtifacts(root,{families:[...FAMILIES],expectedSourceSha:expectedAppSha,stageDir,run:async(command,cwd,env)=>{
@@ -140,7 +157,7 @@ export async function deriveAutomaticRuntime({root,inputProjection,inputDataSha,
   },prepareData:({root:target,purpose,prefixes})=>{
    const result=d.prepareLibraryData({root:target,fetch:false,purpose,prefixes});if(result?.then)fail('ASYNC_PREPARE_UNSUPPORTED');
    // Official stage prepares the pinned baseline; reapply verified edits BEFORE owners run.
-   for(const w of writes){const b=readFileSync(safePath(target,w.path)),p=pinned[w.path];if(b.length!==p.bytes||hash(b)!==p.sha256)fail('STAGE_ORIGINAL_SOURCE: '+w.path);}inject(target);
+   for(const w of writes)if(!matchesPinned(target,w))fail('STAGE_ORIGINAL_SOURCE: '+w.path);inject(target);
   }});
   if(!builtinPruned)fail('BUILTIN_OWNER_NOT_RUN');
   const checkout=resolve(safePath(root,stageDir),'checkout');
@@ -184,7 +201,9 @@ export async function deriveAutomaticRuntime({root,inputProjection,inputDataSha,
   return {changedPaths:[...new Set([...result.changedPaths,...writes.map(w=>w.path),...(regenerationOnly?[]:[FIXTURE])])].sort(),sourcePaths:writes.map(w=>w.path),fixturePath:FIXTURE,autoReceipt,verification:{officialStage:true,nativeProjection:true,countryIntegrity:true,unrelatedCountriesPreserved:!regenerationOnly,regenerationOnly,baselineBefore:true,baselineAfter:true}};
  }catch(error){
   if(published){error.localPublicationComplete=true;error.recovery='fresh-clean-checkout-required';}
-  if(!published)for(const w of writes){try{if(readFileSync(safePath(root,w.path)).equals(w.bytes))write(root,w.path,originals.get(w.path),d.withLibraryOutputs);}catch(restoreError){(error.restoreErrors??=[]).push({path:w.path,message:restoreError.message});}}
+  if(!published)for(const w of writes){if(!rootWrites.has(w.path))continue;try{const p=safePath(root,w.path);if(existsSync(p)&&readFileSync(p).equals(w.bytes)){
+   const original=originals.get(w.path);if(original===null)d.withLibraryOutputs({root,paths:[p]},()=>unlinkSync(p));else write(root,w.path,original,d.withLibraryOutputs);
+  }}catch(restoreError){(error.restoreErrors??=[]).push({path:w.path,message:restoreError.message});}}
   throw error;
  }
 }

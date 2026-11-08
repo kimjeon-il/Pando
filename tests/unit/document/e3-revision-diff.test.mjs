@@ -12,10 +12,15 @@ import {
 } from "../../../tools/review/e3-revision-diff.mjs";
 import {generateE3RevisionEvidence} from "../../../tools/review/generate-e3-review.mjs";
 import {normalizeReviewBundle,reviewState} from "../../../src/document/review-change-records.js";
+import {encodeTerritorialSource} from '../../../tools/data/territorial-source-codec.mjs';
 
 const A='a'.repeat(40),B='b'.repeat(40),D='d'.repeat(40);
 const hash=value=>createHash('sha256').update(value).digest('hex');
-const sourceObject=bytes=>({bytes,resource:{url:'archive/blobs/'+hash(bytes)+'.json',encoding:'identity',compressedBytes:bytes.length,decodedBytes:bytes.length,sha256:hash(bytes)}});
+const geometryBytes=new Map(),receipt=bytes=>({url:'archive/blobs/'+hash(bytes)+'.json',encoding:'identity',compressedBytes:bytes.length,decodedBytes:bytes.length,sha256:hash(bytes)});
+const sourceBytes=entity=>{const encoded=encodeTerritorialSource(entity);for(const [file,bytes]of encoded.geometries)geometryBytes.set(file,bytes);return Buffer.from(JSON.stringify(encoded.descriptor));};
+const sourceObject=bytes=>({bytes,resource:receipt(bytes),geometryPayloads:new Map(JSON.parse(bytes).geometryVersions.map(v=>{
+ const file=v.geometryResource.file,b=geometryBytes.get(file);return [file,{bytes:b,resource:receipt(b)}];
+}))});
 const geo=extent=>({type:'Polygon',coordinates:[[[0,0],[extent,0],[extent,1],[0,1],[0,0]]]});
 const entity=()=>({
   schemaVersion:2,entityId:'state:EXAMPLE_A',entityKind:'general',lineageId:'example-a',
@@ -27,7 +32,7 @@ const entity=()=>({
   metadata:{representativeGeometryVersionId:'geo-original'},sourceInfo:{},
 });
 const snapshots=(before,after)=>{
- const old=Buffer.from(JSON.stringify(before)),next=Buffer.from(JSON.stringify(after));
+ const old=sourceBytes(before),next=sourceBytes(after);
  const beforeDigest=hash(old),afterDigest=hash(next);
  const baseIndex={schemaVersion:1,entities:{[before.entityId]:beforeDigest}};
  const candidateIndex={schemaVersion:1,entities:{[after.entityId]:afterDigest}};
@@ -155,9 +160,13 @@ function put(root,path,content){
   const target=join(root,path);mkdirSync(dirname(target),{recursive:true});writeFileSync(target,content);
 }
 function commitFixture(root,entityValue,report=false){
-  const body=Buffer.from(JSON.stringify(entityValue)),digest=hash(body);
+  const body=sourceBytes(entityValue),digest=hash(body);
   const path='assets/data/territorial-entities/source/countries/'+entityValue.entityId.replace(':','-')+'.json';
-  const stored='archive/blobs/'+digest+'.gz';put(root,stored,gzipSync(body));put(root,'archive/index.json',JSON.stringify({schemaVersion:1,files:{[path]:{stored,encoding:'gzip',sha256:digest,bytes:body.length}}}));
+  const stored='archive/blobs/'+digest+'.gz';put(root,stored,gzipSync(body));
+  const files={[path]:{stored,encoding:'gzip',sha256:digest,bytes:body.length}};
+  for(const v of JSON.parse(body).geometryVersions){const file=v.geometryResource.file,b=geometryBytes.get(file),target='archive/blobs/'+hash(b)+'.json';put(root,target,b);
+   files['assets/data/territorial-entities/source/'+file]={stored:target,encoding:'identity',sha256:hash(b),bytes:b.length};}
+  put(root,'archive/index.json',JSON.stringify({schemaVersion:1,files}));
   put(root,'library.json','retired unreadable manifest');
   if(report)put(root,'reports/borders/reconstruction/synthetic-case/README.md','# Synthetic historical evidence\n');
   git(root,'add','.');git(root,'commit','-qm',report?'candidate':'base');
@@ -220,7 +229,7 @@ test('E3 visits every changed source exactly once through explicit bounded batch
     before.entityId='state:EXAMPLE_'+suffix;
     after.entityId=before.entityId;
     after.geometryVersions[0].geometry=geo(suffix.charCodeAt(0)-63);
-    const b=Buffer.from(JSON.stringify(before)),a=Buffer.from(JSON.stringify(after));
+    const b=sourceBytes(before),a=sourceBytes(after);
     baseIndex.entities[before.entityId]=hash(b);
     candidateIndex.entities[before.entityId]=hash(a);
     bytes.set(A+':'+hash(b),b);bytes.set(B+':'+hash(a),a);

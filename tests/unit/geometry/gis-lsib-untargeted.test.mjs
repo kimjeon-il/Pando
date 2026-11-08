@@ -7,6 +7,7 @@ import {createHash} from 'node:crypto';
 import {gunzipSync} from 'node:zlib';
 import test from 'node:test';
 import {buildLSIBUntargetedCandidate,prepareLSIBEvidence,runLSIBUntargeted} from "../../../tools/gis/lsib-untargeted.mjs";
+import {encodeTerritorialSource} from '../../../tools/data/territorial-source-codec.mjs';
 
 const cases=JSON.parse(await readFile(new URL("../../fixtures/lsib-untargeted-oracle.json",import.meta.url),'utf8'));
 test('LSIB evidence retains raw source attributes and records output hashes',()=>{
@@ -37,9 +38,11 @@ test('untargeted source runner writes fresh candidate and evidence without chang
     await mkdir(join(root,'config'),{recursive:true});await mkdir(disputedDirectory,{recursive:true});
     const selections=[],originals={};
     for(const code of ['AAA','BBB']){
-      const entity={entityId:'state:'+code,sourceInfo:{featureId:code},geometryVersions:[{...fixture.versions[code],
+      const entity={schemaVersion:2,entityKind:'general',names:{en:code},lifetime:{validFrom:null,validTo:null},entityId:'state:'+code,sourceInfo:{featureId:code},geometryVersions:[{...fixture.versions[code],
         validTo:null,geometry:fixture.geometries[code]}]};
-      const bytes=Buffer.from(JSON.stringify(entity));originals[code]=bytes;
+      const encoded=encodeTerritorialSource(entity),bytes=Buffer.from(JSON.stringify(encoded.descriptor));originals[code]=bytes;
+      await mkdir(join(source,'geometries'),{recursive:true});
+      for(const [p,b]of encoded.geometries)await writeFile(join(source,p),b);
       await writeFile(join(source,'countries',`state-${code}.json`),bytes,{flag:'wx'});
       selections.push({entityId:entity.entityId,geometryVersionId:entity.geometryVersions[0].versionId});
     }
