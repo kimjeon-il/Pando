@@ -14,9 +14,13 @@ const applied=[],already=[],retired=[];
 const permitted=p=>/^(?:tests\/unit\/|\.github\/workflows\/|scripts\/contracts\/)/.test(p)||p==='package.json'||p==='scripts/lib/check-changes.mjs';
 for(const part of parts){
   const match=/^diff --git a\/([^\n]+) b\/([^\n]+)\n/.exec(part);
-  if(!match||match[1]!==match[2])throw Error('Noncanonical diff header');
-  const path=match[1];
-  if(!permitted(path)||relative(process.cwd(),resolve(path)).startsWith('..'))throw Error('Unsafe patch path: '+path);
+  if(!match)throw Error('Noncanonical diff header');
+  const path=match[1], destination=match[2];
+  if(!permitted(path)||!permitted(destination)||relative(process.cwd(),resolve(path)).startsWith('..')||relative(process.cwd(),resolve(destination)).startsWith('..'))throw Error('Unsafe patch path: '+path);
+  if(path!==destination){
+    if(!part.includes('rename from '+path+'\n')||!part.includes('rename to '+destination+'\n'))throw Error('Unexpected rename: '+path);
+    if(existsSync(destination))throw Error('Rename destination already exists: '+destination);
+  }
   const hashes=/^index ([0-9a-f]+)\.\.([0-9a-f]+)/m.exec(part);
   if(!hashes)throw Error('Missing source identity: '+path);
   const current=existsSync(path)?execFileSync('git',['hash-object','--',path],{encoding:'utf8'}).trim():null;
