@@ -3,9 +3,6 @@ import assert from 'node:assert/strict';
 import {readFileSync,existsSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {resolve} from 'node:path';
-import {createProjectTemplateCompiler} from '../../tools/gis/project-template-compiler.js';
-import {createProjectSerializer} from '../helpers/legacy-project-autosave.mjs';
-import {staticSerializerSnapshot} from '../helpers/timeline-project.mjs';
 import {createTerritorialFeature} from '../../shared/frontend/js/modules/territorial-units.js';
 import {fingerprintProjectBaseline} from '../../shared/frontend/js/modules/project-baseline-fingerprint.js';
 import {normalizeGenericFeatureCollection,normalizeGenericFeatureSemantics,GENERIC_FEATURE_SCHEMA_VERSION} from '../../shared/frontend/js/modules/generic-feature-normalization.js';
@@ -15,20 +12,6 @@ const root=fileURLToPath(new URL('../../',import.meta.url));
 const read=path=>readFileSync(resolve(root,path),'utf8');
 const coords=right=>({type:'Polygon',coordinates:[[[0,0],[0,1],[right,1],[right,0],[0,0]]]});
 const feature=id=>createTerritorialFeature({id,entityKind:'general',name:id,geometry:coords(1)});
-
-test('R4-B project generator and legacy autosave produce the identical canonical project bytes',()=>{
- const snapshot=staticSerializerSnapshot({territorialEntities:[feature('A')],fullAutosave:true});
- const options={appVersion:'0.36.0',baseDataset:'base',distributionModes:['territorial','geometry'],
-   readSnapshot:()=>snapshot,now:()=>new Date('2026-10-03T00:00:00Z')};
- const published=createProjectTemplateCompiler(options).buildProject();
- const legacy=createProjectSerializer(options).buildProject();
- assert.equal(JSON.stringify(published),JSON.stringify(legacy),'project JSON byte order and values changed');
- assert.equal(published.format,'pandolab-project-state');
- assert.equal(published.baseDataset,'external-territorial-entities');
- assert.equal(published.savedAt,'2026-10-03T00:00:00.000Z');
- assert.equal(typeof createProjectTemplateCompiler(options).buildAutosave,'undefined');
- assert.equal(typeof createProjectSerializer(options).buildAutosave,'function');
-});
 
 test('R4-B baseline fingerprint is deterministic over metadata, shapes, order and source objects',async()=>{
  const first=feature('A'),second=feature('B');

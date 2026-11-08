@@ -342,7 +342,6 @@ jobs:
           tests/unit/core-draft-primitives.test.mjs
           tests/unit/timeline-controls.test.mjs tests/unit/shared-core-assets.test.mjs
            tests/unit/core-worker-ownership.test.mjs
-          tests/unit/web-oracle-admission.test.mjs
       - name: Ordered storage snapshot and project replacement boundaries
         env:
           PANDOEDITOR_WASM_MODULE: build-native/p1/pando-wasm/shared/wasm/pandoeditor-core.js

@@ -125,3 +125,14 @@ cases, native LSIB independent evidence, read-only GPKG attachment rejection,
 Native/Core command-ownership failures, DEM path security, and native source
 sampling cases. The deletion policy is evidence-based, not a fixed target count.
 This is source editing only: no unit, browser, Native or CI tests were executed.
+
+
+## Further source-level pruning
+
+Removed the Windows-only native installer/artifact suite (`native-artifact-storage`)
+because the Windows review app is retired, and frozen Web-oracle admission
+tests which verify historical module graphs rather than the current Viewer.
+Removed a staging-era GIS candidate-count check, an obsolete legacy autosave
+serializer comparison, and a retired editor API absence assertion. Core/WASM,
+source provenance, worktree deletion safety, and active Viewer tests remain.
+The Shared Core workflow no longer invokes the removed Web-oracle suite.

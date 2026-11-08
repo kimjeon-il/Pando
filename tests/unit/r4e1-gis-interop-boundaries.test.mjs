@@ -59,12 +59,3 @@ test('R4-E1 freezes unshipped GeoPackage writer and GIS adapters as byte-identic
  const adapterTest=read('tests/unit/gis-adapters.test.mjs');
  assert.doesNotMatch(adapterTest,/apps\/editor\/frontend/);
 });
-
-test('R4-E1 preserves 103 candidates until editor-only Core/test dependencies are retired in E2-E5',()=>{
- const report=JSON.parse(read('docs/development/r4e0-source-dispositions.json'));
- const e1=report.decisions.filter(row=>row.category==='gis-interop');
- assert.equal(e1.length,13);
- assert.ok(e1.some(x=>x.path.endsWith('gis-geometry-worker.js')));
- assert.ok(e1.some(x=>x.path.endsWith('gis-gpkg-worker.js')));
- assert.ok(e1.some(x=>x.path.endsWith('gis-import-transaction.js')));
-});
