@@ -1,19 +1,9 @@
-import { describe as contractSuite } from 'node:test';
-import * as __source_dep0 from "node:assert/strict";
-import * as __source_dep1 from "node:child_process";
-import * as __source_dep2 from "node:test";
-import * as __source_dep3 from "../../tools/gis/verify-lsib-country-sources.mjs";
-import * as __source_dep4 from "node:fs/promises";
-import * as __source_dep5 from "../../tools/gis/lsib-screen-native.mjs";
-contractSuite("gis-lsib-source-native", () => {
-const assert = __source_dep0.default;
-const { spawnSync } = __source_dep1;
-const test = __source_dep2.default;
-const { auditLSIBGeometry, readOriginalLineages, verifyLSIBCountryContracts } = __source_dep3;
-
-
-
-
+import assert from 'node:assert/strict';
+import {spawnSync} from 'node:child_process';
+import test from 'node:test';
+import {auditLSIBGeometry, readOriginalLineages, verifyLSIBCountryContracts} from '../../tools/gis/verify-lsib-country-sources.mjs';
+import {readFile} from 'node:fs/promises';
+import {prepareLSIBReviewed} from '../../tools/gis/lsib-screen-native.mjs';
 
 const square=(w,s,e,n)=>({type:'Polygon',coordinates:[[
   [w,s],[e,s],[e,n],[w,n],[w,s]]]});
@@ -116,18 +106,7 @@ test('native GEOS rejects a self-crossing modern polygon',
     assert.equal(result.modernChangedPolygonsValid,false);
     assert.equal(result.passed,false);
   });
-});
-contractSuite("gis-lsib-reviewed-native", () => {
-const assert = __source_dep0.default;
-const { readFile } = __source_dep4;
-const test = __source_dep2.default;
-const { prepareLSIBReviewed } = __source_dep5;
 
-
-
-
-
-const binary=process.env.PANDO_TERRITORIAL_RECIPE_BINARY;
 test('GEOS validates reviewed open coastlines and rejects closed or crossing lines',{skip:!binary},async()=>{
   const line={type:'LineString',coordinates:[[7,43],[7.1,43.1],[7.2,43.1]]};
   assert.deepEqual(await prepareLSIBReviewed('coast',line,{binary}),{coordinates:line.coordinates});
@@ -148,5 +127,4 @@ test('reviewed source lines match the pinned independent projection reference',{
     for(let i=0;i<actual.length;i++)for(let c=0;c<2;c++)
       assert.ok(Math.abs(actual[i][c]-row.expected[i][c])<1e-12,`${row.name} coordinate ${i}/${c}`);
   }
-});
 });
