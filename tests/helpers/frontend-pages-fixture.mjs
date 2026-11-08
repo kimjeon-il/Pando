@@ -42,8 +42,8 @@ export async function pagesRepositoryFixture(t) {
   put(root, 'assets/data/hydro/v0.13.4/hydro.bin', 'fixture packfile');
   put(root, 'reports/a.md', 'report');
   put(root, 'native/CMakeLists.txt', 'project(native)');
-  put(root, 'shared/core/CMakeLists.txt', 'project(shared)');
-  put(root, 'shared/core/src/project.cpp', '// native and wasm source');
+  put(root, 'tools/build/native/core/CMakeLists.txt', 'project(shared)');
+  put(root, 'src/document/native/src/project.cpp', '// native and wasm source');
   put(root, 'apps/editor/src-tauri/src/lib.rs', '// native shell source');
   put(root, 'apps/editor/src-tauri/gen/android/build.gradle.kts', '// Android build');
   put(root, 'assets/js/workers/core-session-worker.js', '// required core worker');

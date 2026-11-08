@@ -13,7 +13,7 @@ active only in the current process:
 ```sh
 emcmake cmake -S shared -B build-native/wasm -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF
 cmake --build build-native/wasm --target pandoeditor_wasm --parallel 1
-PANDOEDITOR_WASM_MODULE=/absolute/coherent/pandoeditor-core.js node --test shared/tests/wasm-document-session.test.mjs
+PANDOEDITOR_WASM_MODULE=/absolute/coherent/pandoeditor-core.js node --test tests/native/document/wasm-document-session.test.mjs
 ```
 
 The generated module and binary are `build-native/wasm/wasm/pandoeditor-core.js`

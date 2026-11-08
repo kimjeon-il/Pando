@@ -28,7 +28,7 @@ export async function packageSharedToolkit({root,revision,artifacts}={}){
     'tools/map-image/native-resample.mjs','tools/map-image/native-pdf.mjs','tools/map-image/native-preview.mjs',
     'src/document/source-provenance.js','src/runtime/version-contract.js',
     'src/runtime/worker-rpc.js','src/rendering/workers/worker-rpc-host.js',
-    'tools/cpp/map-preview/aileron-subset.ttf','shared/third_party/proj-robinson-LICENSE',
+    'tools/cpp/map-preview/aileron-subset.ttf','src/geometry/native/vendor/proj-robinson-LICENSE',
     'docs/historical-border-reconstruction-policy.md',...mapImageSourceFiles,...mapPdfSourceFiles,...mapPreviewSourceFiles,
     ...sharedSourceManifest(root).inputs.map(row=>row.path),
     ...['pandoeditor-core.js','pandoeditor-core.wasm','pandoeditor-core.manifest.json'].map(name=>frontendWasmRoot+'/'+name)];

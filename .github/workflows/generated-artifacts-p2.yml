@@ -6,7 +6,9 @@ on:
   push:
     branches: ['work/**']
     paths:
-      - 'shared/**'
+      - 'src/**/native/**'
+      - 'tools/build/native/**'
+      - 'tests/native/**'
       - 'assets/**'
       - 'tools/**'
       - 'scripts/p2-*.mjs'
@@ -179,17 +181,14 @@ jobs:
         if: needs.plan.outputs.wasm == 'true' && inputs.verification != 'full' && inputs.verification != 'temporal'
         env:
           PANDOEDITOR_WASM_MODULE: ${{ github.workspace }}/assets/wasm/pandoeditor-core.js
-        run: >-
-          node --test shared/tests/p5-country-contact-wasm.test.mjs
-          shared/tests/p5-boundary-split-wasm.test.mjs shared/tests/p5-polygon-mesh-wasm.test.mjs
-          tests/unit/geometry/country-shared-boundary.test.mjs
-          tests/unit/geometry/boundary-lines.test.mjs
+          CHECK_SELECTION: '{"unitTests":["tests/unit/geometry/country-shared-boundary.test.mjs","tests/unit/geometry/boundary-lines.test.mjs"],"browserSpecs":[],"commands":["wasm-domain-geometry"],"prerequisites":[]}'
+        run: node scripts/run-application-checks.mjs
       - name: Verify changed temporal editing and place naming
         if: inputs.verification == 'temporal'
         env:
           PANDOEDITOR_WASM_MODULE: ${{ github.workspace }}/assets/wasm/pandoeditor-core.js
         run: >-
-          node --test shared/tests/temporal-editing.test.mjs
+          node --test tests/native/document/temporal-editing.test.mjs
           tests/unit/document/place-names.test.mjs tests/unit/document/territorial-entity-repository.test.mjs
       - uses: actions/upload-artifact@v4
         if: always() && inputs.verification == 'temporal'
@@ -206,7 +205,7 @@ jobs:
         shell: bash
         run: |
           node --test tests/unit/document/shared-core-assets.test.mjs tests/unit/runtime/core-wasm-loader.test.mjs
-          PANDOEDITOR_WASM_MODULE="$PWD/assets/wasm/pandoeditor-core.js" node --test shared/tests/wasm-document-session.test.mjs shared/tests/p5-spherical-area-wasm.test.mjs shared/tests/p5-temporal-wasm.test.mjs shared/tests/p5-timeline-wasm.test.mjs shared/tests/p5-boundary-chains-wasm.test.mjs shared/tests/p5-boundary-packet-wasm.test.mjs shared/tests/p5-boundary-interiors-wasm.test.mjs shared/tests/p5-boundary-overlap-wasm.test.mjs shared/tests/p5-boundary-refinement-wasm.test.mjs shared/tests/p5-boundary-split-wasm.test.mjs shared/tests/p5-country-contact-wasm.test.mjs tests/unit/geometry/boundary-lines.test.mjs
+          PANDOEDITOR_WASM_MODULE="$PWD/assets/wasm/pandoeditor-core.js" node --test tests/native/document/wasm-document-session.test.mjs tests/native/document/p5-spherical-area-wasm.test.mjs tests/native/document/p5-temporal-wasm.test.mjs tests/native/document/p5-timeline-wasm.test.mjs tests/native/document/p5-boundary-chains-wasm.test.mjs tests/native/document/p5-boundary-packet-wasm.test.mjs tests/native/document/p5-boundary-interiors-wasm.test.mjs tests/native/document/p5-boundary-overlap-wasm.test.mjs tests/native/document/p5-boundary-refinement-wasm.test.mjs tests/native/document/p5-boundary-split-wasm.test.mjs tests/native/document/p5-country-contact-wasm.test.mjs tests/unit/geometry/boundary-lines.test.mjs
 
       - name: Verify P6 product calculation adapters
         if: inputs.verification == 'full'

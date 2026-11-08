@@ -3,7 +3,9 @@ name: Shared C++ core and bounded WASM contracts
 on:
   pull_request:
     paths:
-      - 'shared/**'
+      - 'src/**/native/**'
+      - 'tools/build/native/**'
+      - 'tests/native/**'
       - 'assets/wasm/**'
       - 'assets/js/modules/**'
       - 'assets/js/vendor/**'
@@ -42,7 +44,9 @@ on:
   push:
     branches: [main, work/optimization, work/ui, work/objects, work/gis, work/places, work/remote-only]
     paths:
-      - 'shared/**'
+      - 'src/**/native/**'
+      - 'tools/build/native/**'
+      - 'tests/native/**'
       - 'assets/wasm/**'
       - 'assets/js/modules/**'
       - 'assets/js/vendor/**'
@@ -184,7 +188,7 @@ jobs:
         uses: ./.github/actions/library-data
       - name: Build only the changed temporal command contracts
         run: |
-          cmake -S shared -B build-native/temporal-core -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
+          cmake -S tools/build/native -B build-native/temporal-core -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
           cmake --build build-native/temporal-core --target temporal_editing_tests --parallel 2
           ctest --test-dir build-native/temporal-core -R '^temporal_editing_tests$' --output-on-failure --no-tests=error
   geometry:
@@ -197,7 +201,7 @@ jobs:
         uses: ./.github/actions/library-data
       - name: Build the changed contact, split and fill-mesh kernels
         run: |
-          cmake -S shared -B build-native/geometry-core -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
+          cmake -S tools/build/native -B build-native/geometry-core -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
           cmake --build build-native/geometry-core --target country_contact_tests boundary_split_tests polygon_mesh_tests --parallel 2
           ctest --test-dir build-native/geometry-core -R '^(country_contact_tests|boundary_split_tests|polygon_mesh_tests)$' --output-on-failure --no-tests=error
   p6-polygon:
@@ -214,7 +218,7 @@ jobs:
       - name: Compile native polygon kernel and current contract probe
         id: compile
         run: |
-          cmake -S shared -B build-native/p6-core -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
+          cmake -S tools/build/native -B build-native/p6-core -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
           cmake --build build-native/p6-core --target polygon_clipping_probe cut_geometry_probe reference_image_core_tests river_partition_probe --parallel 2
       - name: Compare pinned polygon behavior
         run: |
@@ -223,7 +227,7 @@ jobs:
         run: node tools/p6-cut-parity.mjs build-native/p6-core/tests/cut_geometry_probe
       - name: Compare frozen river behavior
         if: (success() || failure()) && steps.compile.outcome == 'success'
-        run: node shared/tests/river-partition-parity.mjs build-native/p6-core/tests/river_partition_probe
+        run: node tests/native/geometry/river-partition-parity.mjs build-native/p6-core/tests/river_partition_probe
       - name: Compare frozen reference behavior
         if: (success() || failure()) && steps.compile.outcome == 'success'
         run: ctest --test-dir build-native/p6-core -R '^reference_image_core_tests$' --output-on-failure
@@ -250,7 +254,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y ninja-build zlib1g-dev
       - name: Build only the small native core, codec and document tests
         run: |
-          cmake -S shared -B build-native/core-session -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
+          cmake -S tools/build/native -B build-native/core-session -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
           cmake --build build-native/core-session --target project_codec_tests document_session_tests geometry_draft_tests web_content_codec_tests web_content_command_tests web_territorial_command_tests source_admission_tests web_storage_tests web_object_command_tests --parallel 1
           ctest --test-dir build-native/core-session -R '^(project_codec_tests|document_session_tests|geometry_draft_tests|web_content_codec_tests|web_content_command_tests|web_territorial_command_tests|source_admission_tests|web_storage_tests|web_object_command_tests)$' --output-on-failure --timeout 10
       - name: Read the same pinned build toolchain as the artifact producer
@@ -319,7 +323,7 @@ jobs:
         env:
           PANDOEDITOR_WASM_MODULE: build-native/p1/pando-wasm/shared/wasm/pandoeditor-core.js
         run: >-
-          node --test --test-concurrency=1 --test-timeout=15000 shared/tests/wasm-document-session.test.mjs
+          node --test --test-concurrency=1 --test-timeout=15000 tests/native/document/wasm-document-session.test.mjs
           tests/unit/runtime/core-wasm-loader.test.mjs tests/unit/runtime/web-core-contract.test.mjs
           tests/unit/document/core-document-client.test.mjs tests/unit/document/core-document-runtime.test.mjs
           tests/unit/document/core-document-read-model.test.mjs tests/unit/document/core-document-wasm.test.mjs
@@ -431,7 +435,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Configure only the native Core and tests
-        run: cmake -S shared -B build-native/p5-2 -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
+        run: cmake -S tools/build/native -B build-native/p5-2 -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
       - name: Compile immutable source and existing document admission tests
         run: cmake --build build-native/p5-2 --target temporal_source_tests source_admission_tests document_session_tests --parallel 2
       - name: Verify bounded registry and existing Core state contracts
@@ -447,7 +451,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Configure existing native Core
-        run: cmake -S shared -B build-native/p5-3 -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
+        run: cmake -S tools/build/native -B build-native/p5-3 -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
       - name: Compile candidate, adoption, source and existing Core contracts
         run: cmake --build build-native/p5-3 --target temporal_adopt_tests temporal_candidate_tests temporal_source_tests document_session_tests --parallel 2
       - name: Verify P5-4 adoption and rollback
@@ -491,12 +495,12 @@ jobs:
           build-native/emsdk/emsdk install 6.0.3
           build-native/emsdk/emsdk activate 6.0.3
           source build-native/emsdk/emsdk_env.sh
-          emcmake cmake -S shared -B build-native/p5-5 -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF
+          emcmake cmake -S tools/build/native -B build-native/p5-5 -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF
           cmake --build build-native/p5-5 --target pandoeditor_wasm --parallel 1
       - name: Actual native-backed WASM source, candidate, discard, rollback and buffer isolation
         env:
           PANDOEDITOR_WASM_MODULE: build-native/p5-5/wasm/pandoeditor-core.js
-        run: node --test shared/tests/temporal-transport-p5-5.test.mjs
+        run: node --test tests/native/document/temporal-transport-p5-5.test.mjs
 
 
   equivalence:
@@ -513,9 +517,9 @@ jobs:
       - name: Compile only the native Core and parity probe
         shell: bash
         run: |
-          cmake -S shared -B build-native/core -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF
+          cmake -S tools/build/native -B build-native/core -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF
           cmake --build build-native/core --target pandoeditor_core --parallel 2
-          c++ -std=c++17 -O2 -Ishared/core/include tests/native/temporal-parity-probe.cpp build-native/core/core/libpandoeditor_core.a -lz -o build-native/core/temporal-parity-probe
+          c++ -std=c++17 -O2 -Isrc/document/native/include -Isrc/geometry/native/include -Isrc/map/native/include -Isrc/rendering/native/include -Isrc/data/native/include -Isrc/runtime/native/include tests/native/temporal-parity-probe.cpp build-native/core/core/libpandoeditor_core.a -lz -o build-native/core/temporal-parity-probe
       - name: Verify committed JS and WASM against this exact C++ source
         run: node tools/build/package-shared-core-assets.mjs --build-dir assets/wasm --check
       - name: Identical fixed inputs, actual native and WASM results, failure and rollback

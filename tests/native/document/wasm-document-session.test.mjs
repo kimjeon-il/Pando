@@ -7,12 +7,12 @@ import { pathToFileURL } from 'node:url';
 import test from 'node:test';
 import {createHash} from 'node:crypto';
 import {gzipSync} from 'node:zlib';
-import {builtinProject} from '../../tests/helpers/builtin-world.mjs';
+import {builtinProject} from "../../helpers/builtin-world.mjs";
 
 const runtimePath=resolve(process.env.PANDOEDITOR_WASM_MODULE ?? 'build-native/wasm/wasm/pandoeditor-core.js');
 const { default:createCore }=await import(pathToFileURL(runtimePath));
 const core=await createCore({wasmBinary:await readFile(runtimePath.replace(/\.js$/,'.wasm'))});
-const seed=JSON.parse(await readFile(new URL('../../tests/fixtures/portability/web-document-seed.json',import.meta.url)));
+const seed=JSON.parse(await readFile(new URL("../../fixtures/portability/web-document-seed.json",import.meta.url)));
 test('gzip and identity builtin sources resolve the same world and preserve full autosave after an identity edit', { timeout: 60_000 }, async t => {
   const month='2026-10',source=builtinProject(month,month),decoded=Buffer.from(JSON.stringify(source));
   const worlds=[];

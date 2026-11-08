@@ -6,7 +6,7 @@ import vm from 'node:vm';
 
 const executable = process.argv[2];
 assert.ok(executable, 'Compiled river_partition_probe path required');
-const root = new URL('../../', import.meta.url);
+const root = new URL("../../../", import.meta.url);
 const frozen = await import(new URL('tests/fixtures/shared-core/web-m97/lifecycle-source/assets/js/modules/river-territory-partition.js', root));
 const clipperContext = { globalThis: {} };
 vm.createContext(clipperContext);

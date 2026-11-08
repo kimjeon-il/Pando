@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21)
 
-# Shared C++/WASM and GIS tools; the application lives in apps/web-shell.
+# Shared C++/WASM and GIS tools; the application lives in src/app.
 project(PandoLab LANGUAGES CXX)
 include(cmake/compiler-cache.cmake)
 set(CMAKE_CXX_STANDARD 17)
@@ -24,10 +24,10 @@ endif()
 include(CTest)
 
 if(PANDO_BUILD_VARIANT STREQUAL "core" OR PANDO_BUILD_VARIANT STREQUAL "wasm")
-    if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/shared/CMakeLists.txt")
-        message(FATAL_ERROR "This branch has no shared/ C++ source. Sync the integrated branch before building core/WASM.")
+    if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tools/build/native/CMakeLists.txt")
+        message(FATAL_ERROR "This branch has no domain-owned C++ build definition. Sync the integrated branch before building core/WASM.")
     endif()
-    add_subdirectory(shared)
+    add_subdirectory(tools/build/native shared)
 else()
     if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tools/cpp/CMakeLists.txt")
         message(FATAL_ERROR "This branch has no tools/cpp/ GIS C++ sources.")

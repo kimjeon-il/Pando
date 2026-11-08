@@ -1,4 +1,4 @@
-add_executable(pandoeditor_wasm session-bindings.cpp timeline-bindings.cpp boundary-bindings.cpp polygon-bindings.cpp mesh-bindings.cpp cut-bindings.cpp river-bindings.cpp reference-bindings.cpp place-bindings.cpp)
+add_executable(pandoeditor_wasm "${PANDOEDITOR_REPOSITORY_ROOT}/src/document/native/bindings/session-bindings.cpp" "${PANDOEDITOR_REPOSITORY_ROOT}/src/document/native/bindings/timeline-bindings.cpp" "${PANDOEDITOR_REPOSITORY_ROOT}/src/geometry/native/bindings/boundary-bindings.cpp" "${PANDOEDITOR_REPOSITORY_ROOT}/src/geometry/native/bindings/polygon-bindings.cpp" "${PANDOEDITOR_REPOSITORY_ROOT}/src/rendering/native/bindings/mesh-bindings.cpp" "${PANDOEDITOR_REPOSITORY_ROOT}/src/geometry/native/bindings/cut-bindings.cpp" "${PANDOEDITOR_REPOSITORY_ROOT}/src/geometry/native/bindings/river-bindings.cpp" "${PANDOEDITOR_REPOSITORY_ROOT}/src/geometry/native/bindings/reference-bindings.cpp" "${PANDOEDITOR_REPOSITORY_ROOT}/src/document/native/bindings/place-bindings.cpp")
 target_link_libraries(pandoeditor_wasm PRIVATE Pandoeditor::Core)
 target_compile_options(pandoeditor_wasm PRIVATE -fwasm-exceptions)
 target_compile_definitions(pandoeditor_wasm PRIVATE

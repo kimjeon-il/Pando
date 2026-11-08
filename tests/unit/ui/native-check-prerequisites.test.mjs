@@ -315,7 +315,7 @@ test('toolchain pins agree with Node and frozen package manager',()=>{
   assert.throws(()=>pinnedToolchain(process.cwd(),'0.0.0'),/PINNED_TOOLCHAIN_NODE_MAJOR/);
 });
 test('Core and GIS changes select native builds without repeating WASM publication',()=>{
-  const core=selectNativeBuilds(['shared/core/src/document.cpp']);
+  const core=selectNativeBuilds(['src/document/native/src/document.cpp']);
   assert.deepEqual(core,{core:true,gis:false,wasm:false});
   assert.deepEqual(selectNativeBuilds(['tools/cpp/hydro/connectivity.cpp']),
     {core:false,gis:true,wasm:false});

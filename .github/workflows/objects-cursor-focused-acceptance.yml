@@ -5,7 +5,7 @@ on:
     paths:
       - '.github/workflows/objects-cursor-focused-acceptance.yml'
       - 'shared/core/**'
-      - 'shared/wasm/session-bindings.cpp'
+      - 'src/document/native/bindings/session-bindings.cpp'
       - 'assets/wasm/pandoeditor-core.manifest.json'
       - 'src/document/core-document-runtime.js'
       - 'tests/browser/document/viewer-calendar.spec.mjs'
@@ -43,7 +43,7 @@ jobs:
           PANDOEDITOR_WASM_MODULE: ${{ github.workspace }}/assets/wasm/pandoeditor-core.js
         run: |
           node --test tests/unit/document/core-document-runtime.test.mjs tests/unit/document/core-document-client.test.mjs
-          node --test shared/tests/wasm-document-session.test.mjs shared/tests/p5-temporal-wasm.test.mjs shared/tests/p5-timeline-wasm.test.mjs
+          node --test tests/native/document/wasm-document-session.test.mjs tests/native/document/p5-temporal-wasm.test.mjs tests/native/document/p5-timeline-wasm.test.mjs
           node --input-type=module <<'NODE'
           import assert from 'node:assert/strict';
           import { readFile } from 'node:fs/promises';

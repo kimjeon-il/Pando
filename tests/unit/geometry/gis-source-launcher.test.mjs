@@ -213,7 +213,7 @@ test('unrelated GIS JavaScript edits do not trigger a native or WASM build',()=>
   assert.deepEqual(selectNativeBuilds([path]),{core:false,gis:false,wasm:false});
  }
  assert.deepEqual(selectNativeBuilds(['tools/cpp/hydro/point-screen.cpp']),{core:false,gis:true,wasm:false});
- assert.deepEqual(selectNativeBuilds(['shared/core/src/project.cpp']),{core:true,gis:false,wasm:false});
+ assert.deepEqual(selectNativeBuilds(['src/document/native/src/project.cpp']),{core:true,gis:false,wasm:false});
 });
 
 test('application and native Core contracts do not install GIS Python test suites',()=>{

@@ -45,7 +45,7 @@
 ## 5. 검사 및 변경 한계
 
 - **변경하지 않는 계약:** 프로젝트 14, 타임라인 3, 영토·수계·라벨 식별자, C++/WASM 공통 정본, 외부 데이터 핀, 읽기 전용 점검기, 현재 UI/조작.
-- 현재 런타임 소유권·프로젝트 필드 분리는 `src/document/project-state.js`, `timeline-records.js`, `project-setup.js`, `initial-document.js`, `project-domain.js`, `builtin-world-loader.js`, `place-contract.js` 및 `shared/core/include/pandoeditor/project.h`를 기준으로 한다.
+- 현재 런타임 소유권·프로젝트 필드 분리는 `src/document/project-state.js`, `timeline-records.js`, `project-setup.js`, `initial-document.js`, `project-domain.js`, `builtin-world-loader.js`, `place-contract.js` 및 `src/document/native/include/pandoeditor/project.h`를 기준으로 한다.
 - 작업 시 검증할 회귀 범위: 프로젝트 문서/세션 분리, 원본 및 프로젝트 ID 분리, 타임라인 카탈로그/형상 참조, 프로젝트 간 복사 격리, 기본지도 월별 생성/캐시, 읽기 전용 및 외부 원본 비변경.
 - 원본 지명 `nameTimeline`과 프로젝트 공통 타임라인 사이의 정식 매핑, 기존 내장지도의 프로젝트 lifecycle 완전 통합, 수계 원본/수정본 합성은 **P2–P4 작업**이며 P1에서 구현되었다고 주장하지 않는다.
 

@@ -6,7 +6,7 @@ assert.equal(process.env.PANDO_CORE_CANDIDATE_DIAGNOSTIC_ISOLATED,'1',
 
 const files=[
   {
-    path:'shared/core/src/webterritorialedit.cpp',
+    path:'src/document/native/src/webterritorialedit.cpp',
     changes:[
       ['#include <set>', `#include <set>
 #include <chrono>
@@ -71,7 +71,7 @@ static void obj097WebStage(const char* name,Obj097WebClock::time_point started) 
     ],
   },
   {
-    path:'shared/core/src/timeline-view.cpp',
+    path:'src/document/native/src/timeline-view.cpp',
     changes:[
       ['#include <stdexcept>', `#include <stdexcept>
 #include <chrono>

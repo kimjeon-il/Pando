@@ -35,7 +35,7 @@ test('native country property validation follows the canonical producer contract
   writeFileSync(input,source);
   const compile=spawnSync(process.env.CXX||'c++',['-std=c++17',
     '-I'+resolve(root,'tools/cpp'),'-I'+resolve(root,'shared/core/include'),
-    input,resolve(root,'shared/core/src/losslessjson.cpp'),'-o',binary],
+    input,resolve(root,'src/data/native/src/losslessjson.cpp'),'-o',binary],
   {cwd:root,encoding:'utf8',timeout:60000});
   assert.ifError(compile.error);
   assert.equal(compile.status,0,compile.stderr);

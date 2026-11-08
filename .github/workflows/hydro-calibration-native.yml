@@ -6,8 +6,8 @@ on:
     paths:
       - 'tools/cpp/hydro-calibration/**'
       - 'tools/cpp/hydro/calibration.cpp'
-      - 'shared/core/include/pandoeditor/losslessjson.h'
-      - 'shared/core/src/losslessjson.cpp'
+      - 'src/data/native/include/pandoeditor/losslessjson.h'
+      - 'src/data/native/src/losslessjson.cpp'
       - 'tools/gis/calibrate-hydro.mjs'
       - 'tools/gis/hydro-calibration-native.mjs'
       - 'tools/gis/hydro-calibration-metrics.mjs'

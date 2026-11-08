@@ -14,7 +14,7 @@ const wasm=arg('--target')==='wasm'||Boolean(emxx);
 if(arg('--target')&&!['native','wasm'].includes(arg('--target')))throw Error('Unknown target');
 const extension=wasm?'.mjs':'.exe';
 const baselineSha=execFileSync('git',['rev-parse',(arg('--baseline')||'main')+'^{commit}'],{cwd:root,encoding:'utf8'}).trim();
-const sourcePath='shared/core/src/geometrypredicates.cpp';
+const sourcePath='src/geometry/native/src/geometrypredicates.cpp';
 let variants=[
  {id:'main-control',sha:baselineSha},
  {id:'geo-containment-index',sha:'0362f3ddda0475dc68fb78cf2647a3f804287371'},

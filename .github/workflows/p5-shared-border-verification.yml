@@ -5,30 +5,30 @@ on:
     branches: [ work/objects ]
     paths:
       - '.github/workflows/p5-shared-border-verification.yml'
-      - 'shared/core/include/pandoeditor/boundarychain.h'
-      - 'shared/core/src/boundarychain.cpp'
-      - 'shared/core/include/pandoeditor/boundarypacket.h'
-      - 'shared/core/src/boundarypacket.cpp'
-      - 'shared/tests/boundary-packet-tests.cpp'
-      - 'shared/tests/p5-boundary-packet-wasm.test.mjs'
-      - 'shared/core/include/pandoeditor/boundarycontact.h'
-      - 'shared/core/src/boundarycontact.cpp'
-      - 'shared/core/include/pandoeditor/boundaryoverlap.h'
-      - 'shared/core/src/boundaryoverlap.cpp'
-      - 'shared/core/include/pandoeditor/boundaryrefinement.h'
-      - 'shared/core/src/boundaryrefinement.cpp'
-      - 'shared/core/include/pandoeditor/boundarysplit.h'
-      - 'shared/core/src/boundarysplit.cpp'
-      - 'shared/core/include/pandoeditor/countrycontact.h'
-      - 'shared/core/src/countrycontact.cpp'
-      - 'shared/core/CMakeLists.txt'
-      - 'shared/tests/boundary-chain-tests.cpp'
-      - 'shared/tests/boundary-interior-tests.cpp'
-      - 'shared/tests/boundary-overlap-tests.cpp'
-      - 'shared/tests/boundary-refinement-tests.cpp'
-      - 'shared/tests/boundary-split-tests.cpp'
-      - 'shared/tests/country-contact-tests.cpp'
-      - 'shared/tests/CMakeLists.txt'
+      - 'src/geometry/native/include/pandoeditor/boundarychain.h'
+      - 'src/geometry/native/src/boundarychain.cpp'
+      - 'src/geometry/native/include/pandoeditor/boundarypacket.h'
+      - 'src/geometry/native/src/boundarypacket.cpp'
+      - 'tests/native/geometry/boundary-packet-tests.cpp'
+      - 'tests/native/document/p5-boundary-packet-wasm.test.mjs'
+      - 'src/geometry/native/include/pandoeditor/boundarycontact.h'
+      - 'src/geometry/native/src/boundarycontact.cpp'
+      - 'src/geometry/native/include/pandoeditor/boundaryoverlap.h'
+      - 'src/geometry/native/src/boundaryoverlap.cpp'
+      - 'src/geometry/native/include/pandoeditor/boundaryrefinement.h'
+      - 'src/geometry/native/src/boundaryrefinement.cpp'
+      - 'src/geometry/native/include/pandoeditor/boundarysplit.h'
+      - 'src/geometry/native/src/boundarysplit.cpp'
+      - 'src/geometry/native/include/pandoeditor/countrycontact.h'
+      - 'src/geometry/native/src/countrycontact.cpp'
+      - 'tools/build/native/core/CMakeLists.txt'
+      - 'tests/native/geometry/boundary-chain-tests.cpp'
+      - 'tests/native/geometry/boundary-interior-tests.cpp'
+      - 'tests/native/geometry/boundary-overlap-tests.cpp'
+      - 'tests/native/geometry/boundary-refinement-tests.cpp'
+      - 'tests/native/geometry/boundary-split-tests.cpp'
+      - 'tests/native/document/country-contact-tests.cpp'
+      - 'tools/build/native/tests/CMakeLists.txt'
       - 'assets/wasm/pandoeditor-core.manifest.json'
       - 'assets/js/modules/boundary-lines.js'
       - 'assets/js/modules/geographic-boundary.js'
@@ -68,7 +68,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y ninja-build zlib1g-dev
       - name: Build and check canonical native boundary-chain kernel
         run: |
-          cmake -S shared -B build-native/p5-border -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
+          cmake -S tools/build/native -B build-native/p5-border -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
           cmake --build build-native/p5-border --target boundary_chain_tests boundary_packet_tests boundary_interior_tests boundary_overlap_tests boundary_refinement_tests boundary_split_tests country_contact_tests --parallel 2
           ctest --test-dir build-native/p5-border -R '^(boundary_chain_tests|boundary_packet_tests|boundary_interior_tests|boundary_overlap_tests|boundary_refinement_tests|boundary_split_tests|country_contact_tests)$' --output-on-failure
   generator:

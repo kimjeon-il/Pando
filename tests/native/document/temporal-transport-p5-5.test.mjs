@@ -4,13 +4,13 @@ import {readFile} from 'node:fs/promises';
 import {resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {createHash} from 'node:crypto';
-import {builtinProject} from '../../tests/helpers/builtin-world.mjs';
+import {builtinProject} from "../../helpers/builtin-world.mjs";
 
 const jsPath=resolve(process.env.PANDOEDITOR_WASM_MODULE
   ||'build-native/p5-5/wasm/pandoeditor-core.js');
 const {default:createCore}=await import(pathToFileURL(jsPath).href);
 const core=await createCore({wasmBinary:await readFile(jsPath.replace(/\.js$/,'.wasm'))});
-const seed=JSON.parse(await readFile(new URL('../../tests/fixtures/portability/web-document-seed.json',import.meta.url)));
+const seed=JSON.parse(await readFile(new URL("../../fixtures/portability/web-document-seed.json",import.meta.url)));
 const month='2026-10',setup={initialMonth:month,timelineRange:null,
   initialMapBounds:null,sourceMode:'builtin'};
 const input=builtinProject(month,month);

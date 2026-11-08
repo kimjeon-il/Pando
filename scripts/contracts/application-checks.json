@@ -811,6 +811,27 @@
         "generated",
         "core"
       ]
+    },
+    {
+      "id": "wasm-domain-geometry",
+      "kind": "command",
+      "mode": "manual",
+      "reason": "Focused geometry ABI verification after a source-matched CI WASM build.",
+      "inputs": [
+        "src/**/native/**",
+        "tools/build/native/**",
+        "config/core-source-roots.json"
+      ],
+      "argv": [
+        "node",
+        "--test",
+        "tests/native/document/p5-country-contact-wasm.test.mjs",
+        "tests/native/document/p5-boundary-split-wasm.test.mjs",
+        "tests/native/document/p5-polygon-mesh-wasm.test.mjs"
+      ],
+      "requires": [
+        "core"
+      ]
     }
   ],
   "prerequisites": {
@@ -826,8 +847,8 @@
       "inputs": [
         "tools/cpp/hydro-calibration/**",
         "tools/cpp/hydro/calibration.cpp",
-        "shared/core/include/pandoeditor/losslessjson.h",
-        "shared/core/src/losslessjson.cpp",
+        "src/data/native/include/pandoeditor/losslessjson.h",
+        "src/data/native/src/losslessjson.cpp",
         "tools/gis/package-hydro-calibration.mjs",
         ".github/actions/native-test-prerequisites/action.yml"
       ]
@@ -847,8 +868,8 @@
         "tools/cpp/hydro/point-screen.cpp",
         "tools/cpp/map-image/raster-draw.h",
         "tools/cpp/map-preview/PILLOW-LICENSE",
-        "shared/core/include/pandoeditor/losslessjson.h",
-        "shared/core/src/losslessjson.cpp",
+        "src/data/native/include/pandoeditor/losslessjson.h",
+        "src/data/native/src/losslessjson.cpp",
         "tools/gis/package-hydro-point-screen.mjs",
         ".github/actions/native-test-prerequisites/action.yml"
       ]
@@ -990,18 +1011,18 @@
         "tools/cpp/build-territorial-recipe.cpp",
         "tools/cpp/historical-*.inc",
         "tools/cpp/territorial-recipe-environment.yml",
-        "shared/core/src/losslessjson.cpp",
-        "shared/core/include/pandoeditor/losslessjson.h",
-        "shared/core/src/sphericalpolygon.cpp",
-        "shared/core/include/pandoeditor/sphericalpolygon.h",
-        "shared/core/include/pandoeditor/geometry-types.h",
-        "shared/core/include/pandoeditor/geometryoperations.h",
-        "shared/core/include/pandoeditor/polygonclipping.h",
-        "shared/core/include/pandoeditor/document.h",
-        "shared/core/include/pandoeditor/geometryprovenance.h",
-        "shared/core/include/pandoeditor/presentation.h",
-        "shared/core/include/pandoeditor/temporal.h",
-        "shared/core/include/pandoeditor/timeline-records.h",
+        "src/data/native/src/losslessjson.cpp",
+        "src/data/native/include/pandoeditor/losslessjson.h",
+        "src/geometry/native/src/sphericalpolygon.cpp",
+        "src/geometry/native/include/pandoeditor/sphericalpolygon.h",
+        "src/geometry/native/include/pandoeditor/geometry-types.h",
+        "src/geometry/native/include/pandoeditor/geometryoperations.h",
+        "src/geometry/native/include/pandoeditor/polygonclipping.h",
+        "src/document/native/include/pandoeditor/document.h",
+        "src/geometry/native/include/pandoeditor/geometryprovenance.h",
+        "src/document/native/include/pandoeditor/presentation.h",
+        "src/document/native/include/pandoeditor/temporal.h",
+        "src/document/native/include/pandoeditor/timeline-records.h",
         ".github/actions/native-test-prerequisites/action.yml"
       ]
     },
@@ -1376,7 +1397,7 @@
         "shared/**/*.h.in",
         "shared/*.cmake",
         "shared/**/*.cmake",
-        "shared/CMakeLists.txt",
+        "tools/build/native/CMakeLists.txt",
         "shared/**/CMakeLists.txt",
         "CMakeLists.txt",
         "CMakePresets.json"

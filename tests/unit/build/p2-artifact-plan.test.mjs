@@ -56,7 +56,7 @@ function fixture(t) {
   const get=p=>readFileSync(join(root,p));
   put('config/toolchain-versions.json',JSON.stringify({emscripten:'6.0.3'}));
   put('config/generated-artifacts.json',JSON.stringify({schema:'pandolab-generated-artifact-graph',schemaVersion:1,families:[]}));
-  put('shared/CMakeLists.txt','project(Shared)\n');
+  put('tools/build/native/CMakeLists.txt','project(Shared)\n');
   put('shared/core/src/calc.cpp','int calc=1;\n');
   const identity=sharedSourceManifest(root);
   put('assets/wasm/pandoeditor-core.js','export default()=>{};\n');
@@ -88,7 +88,7 @@ test('missing or corrupted WASM runtime cannot be called up to date',t=>{
   assert.match(wasmStatus(f.root).reasons.join(';'),/wasm bytes\/hash/);
 });
 test('shared reference calculation edits invalidate WASM',t=>{
-  const f=fixture(t);f.put('shared/core/src/referenceimage.cpp','int reference=1;\n');
+  const f=fixture(t);f.put('src/data/native/src/referenceimage.cpp','int reference=1;\n');
   assert.equal(plan(f.root).wasm,true);
 });
 test('scope overrides are explicit and controller changes do not rebuild current WASM',()=>{
@@ -104,7 +104,7 @@ test('scope overrides are explicit and controller changes do not rebuild current
 });
 test('publishing is limited to declared generated artifacts, not source or test fixtures',()=>{
   assertSafeGeneratedPaths(['assets/wasm/pandoeditor-core.js'],{wasm:true});
-  assert.throws(()=>assertSafeGeneratedPaths(['shared/core/src/project.cpp'],{wasm:true}),/P2_UNEXPECTED_GENERATED_FILE/);
+  assert.throws(()=>assertSafeGeneratedPaths(['src/document/native/src/project.cpp'],{wasm:true}),/P2_UNEXPECTED_GENERATED_FILE/);
   assert.throws(()=>assertSafeGeneratedPaths(['assets/wasm/pandoeditor-core.wasm'],{wasm:false}),/P2_UNEXPECTED_GENERATED_FILE/);
   assert.throws(()=>assertSafeGeneratedPaths(['tests/fixtures/geometry/cut-corpus.json'],{geometry:true}),/P2_UNEXPECTED_GENERATED_FILE/);
 });

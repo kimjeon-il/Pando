@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import test from 'node:test';
-import { timelineCases, timelineContext } from '../../tests/fixtures/timeline-records-cases.mjs';
+import { timelineCases, timelineContext } from "../../fixtures/timeline-records-cases.mjs";
 
 const modulePath=resolve(process.env.PANDOEDITOR_WASM_MODULE
   ?? 'build-native/wasm/wasm/pandoeditor-core.js');
@@ -33,8 +33,8 @@ test('P5-4 timeline normalization rejects the same invalid corpus and preserves 
   }
 });
 test('P5-4 read-only C++ month-end world results match the cross-platform golden corpus',()=>{
-  const project=JSON.parse(readFileSync(new URL('../../tests/fixtures/timeline-exchange/complex.json',import.meta.url),'utf8'));
-  const golden=JSON.parse(readFileSync(new URL('../../tests/fixtures/portability/timeline-resolution.json',import.meta.url),'utf8'));
+  const project=JSON.parse(readFileSync(new URL("../../fixtures/timeline-exchange/complex.json",import.meta.url),'utf8'));
+  const golden=JSON.parse(readFileSync(new URL("../../fixtures/portability/timeline-resolution.json",import.meta.url),'utf8'));
   const context={
     entities:project.territorialEntities.map(x=>({id:x.id,entityKind:x.properties.entityKind})),
     geometryExists:ref=>project.geometries.some(x=>x.id===ref.id&&x.version===ref.version)
@@ -49,7 +49,7 @@ test('P5-4 read-only C++ month-end world results match the cross-platform golden
   }
 });
 test('P5-4 C++ record edits split, preserve future dates and preserve no-op identity signals',()=>{
-  const golden=JSON.parse(readFileSync(new URL('../../tests/fixtures/portability/timeline-edit.json',import.meta.url),'utf8'));
+  const golden=JSON.parse(readFileSync(new URL("../../fixtures/portability/timeline-edit.json",import.meta.url),'utf8'));
   for(const entry of golden.cases) {
     const source=structuredClone(golden.records);
     const output=entry.op==='truncate'

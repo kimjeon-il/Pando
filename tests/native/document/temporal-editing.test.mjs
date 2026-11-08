@@ -3,14 +3,14 @@ import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import test from 'node:test';
-import {createEmptyTerritorialState} from "../../src/document/territorial-entity-store.js";
-import {createCoreDocumentReadModel} from "../../src/document/core-document-read-model.js";
-import {createTerritorialFeature} from "../../src/document/territorial-units.js";
+import {createEmptyTerritorialState} from "../../../src/document/territorial-entity-store.js";
+import {createCoreDocumentReadModel} from "../../../src/document/core-document-read-model.js";
+import {createTerritorialFeature} from "../../../src/document/territorial-units.js";
 
 const modulePath=resolve(process.env.PANDOEDITOR_WASM_MODULE ?? 'build-native/wasm/wasm/pandoeditor-core.js');
 const {default:createCore}=await import(pathToFileURL(modulePath));
 const core=await createCore({wasmBinary:await readFile(modulePath.replace(/\.js$/,'.wasm'))});
-const seed=JSON.parse(await readFile(new URL('../../tests/fixtures/portability/web-document-seed.json',import.meta.url)));
+const seed=JSON.parse(await readFile(new URL("../../fixtures/portability/web-document-seed.json",import.meta.url)));
 const cursor=(session,month)=>session.setTimelineCursor(month,session.projectState().epoch);
 const execute=(session,field,value)=>session.executeCommand({commandId:'territorial.field',expectedEpoch:session.projectState().epoch,
   targets:[{domain:'territorial',id:'A'}],payload:{id:'A',field,value}});

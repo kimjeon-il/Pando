@@ -31,7 +31,7 @@ const full={web:true};
 test('Viewer changes select the preview and source-matched application checks',()=>{
   const changed=classifyViewerPreview(['src/ui/css/ui.css'],full);
   for(const id of ['preview','browser','contracts'])assert.equal(changed[id],true,id);
-  const native=classifyViewerPreview(['shared/core/src/project.cpp'],full);
+  const native=classifyViewerPreview(['src/document/native/src/project.cpp'],full);
   assert.equal(native.preview,true);
   const docs=classifyViewerPreview(['reports/development/testing/a.md'],full);
   assert.equal(docs.preview,false);
@@ -98,7 +98,7 @@ test('Viewer startup telemetry preserves late interactive, editable and ready mi
 
 
 test('only changed source reaches automatic preview; a pending artifact defers the run',()=>{
-  const affected=classifyViewerPreview(['shared/core/src/polygonclipping.cpp'],full);
+  const affected=classifyViewerPreview(['src/geometry/native/src/polygonclipping.cpp'],full);
   const pending={statuses:{wasm:{needed:true}},selectedFamilies:['world-mesh'],blockedFamilies:[]};
   const deferred=scheduleViewerPreview(affected,{event:'push',scope:'auto',artifactState:pending});
   for(const id of ['preview','browser','contracts'])assert.equal(deferred[id],false);

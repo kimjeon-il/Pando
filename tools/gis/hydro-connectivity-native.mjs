@@ -9,7 +9,7 @@ import {readHydroSources,scanHydroRegionMetadata} from './hydro-source-reader.mj
 
 const rootDefault=fileURLToPath(new URL('../../',import.meta.url));
 export const hydroConnectivitySources=Object.freeze(['tools/cpp/CMakeLists.txt','tools/cpp/hydro/connectivity-junctions.cpp',
-  'shared/core/include/pandoeditor/losslessjson.h','shared/core/src/losslessjson.cpp']);
+  'src/data/native/include/pandoeditor/losslessjson.h','src/data/native/src/losslessjson.cpp']);
 const regions=['eu','as','si','af','sa','na','ar','au','gr'];
 const causes=new Set(['missing-downstream','ambiguous-source-parts','original-mismatch','border-alignment','chain-connection']);
 export function hydroPartsBySource(features){

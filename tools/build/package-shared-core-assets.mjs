@@ -1,21 +1,32 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { mkdirSync, readFileSync, readdirSync, renameSync, writeFileSync } from 'node:fs';
+import { lstatSync, mkdirSync, readFileSync, readdirSync, renameSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import {frontendWasmRoot} from "../../scripts/lib/frontend-layout.mjs";
 
 const sha256=bytes=>createHash('sha256').update(bytes).digest('hex');
 export function sharedSourceManifest(root) {
-  const base=join(root,'shared'),paths=[];
-  function scan(folder,prefix='shared/') {
+  const configuration='config/core-source-roots.json';
+  const manifest=JSON.parse(readFileSync(join(root,configuration),'utf8'));
+  assert.equal(manifest.schema,'pando-core-source-roots-v1','invalid core source roots');
+  assert.ok(Array.isArray(manifest.roots)&&manifest.roots.length>0,'core source roots required');
+  assert.equal(new Set(manifest.roots).size,manifest.roots.length,'duplicate core source roots');
+  const paths=[configuration];
+  function scan(folder,prefix) {
+    assert.ok(!lstatSync(folder).isSymbolicLink(),'linked native source is not allowed');
     for(const entry of readdirSync(folder,{withFileTypes:true})) {
       const name=prefix+entry.name;
+      assert.ok(!entry.isSymbolicLink(),'linked native input is not allowed: '+name);
       if(entry.isDirectory())scan(join(folder,entry.name),name+'/');
       else if(entry.isFile()&&(/\.(cpp|h|hpp)(\.in)?$|\.cmake$/.test(name)||entry.name==='CMakeLists.txt'))paths.push(name);
     }
   }
-  scan(base);
+  for(const source of manifest.roots){
+    assert.ok(typeof source==='string'&&/^(?:src|tools|tests)\/[A-Za-z0-9_/-]+$/.test(source)
+      &&!source.split('/').some(part=>!part||part==='.'||part==='..'),'unsafe native source root');
+    scan(join(root,source),source+'/');
+  }
   const inputs=paths.sort().map(path=>({path,sha256:sha256(Buffer.from(
     new TextDecoder('utf-8',{fatal:true}).decode(readFileSync(join(root,path))).replace(/\r\n/g,'\n')))}));
   return {inputs,sourceSha256:sha256(inputs.map(row=>`${row.path}\n${row.sha256}\n`).join(''))};

@@ -7,7 +7,9 @@ import {previewSlug} from './viewer-preview-plan.mjs';
 export async function stagePreview({root,output,branch}){
  const slug=previewSlug(branch),evidenceFile=resolve(output)+'.evidence.json';
  const evidence=await stageWebPages(root,output,evidenceFile);
- const manifest={schema:'pando-branch-preview-v1',branch,slug,sourceCommit:evidence.sourceCommit,dataRepository:evidence.dataRepository,dataCommit:evidence.dataCommit,mode:'downloadable-static-snapshot',publicUrl:null,files:evidence.fileCount,bytes:evidence.bytes,included:evidence.files,excludes:['native/**','shared/**','reports/**','tests/**','tools/**']};
+ const manifest={schema:'pando-branch-preview-v1',branch,slug,sourceCommit:evidence.sourceCommit,dataRepository:evidence.dataRepository,dataCommit:evidence.dataCommit,mode:'downloadable-static-snapshot',publicUrl:null,files:evidence.fileCount,bytes:evidence.bytes,included:evidence.files,excludes:['native/**','src/**/native/**'
+      - 'tools/build/native/**'
+      - 'tests/native/**','reports/**','tests/**','tools/**']};
  renameSync(evidenceFile,join(output,'viewer-evidence.json'));
  writeFileSync(join(output,'preview-manifest.json'),JSON.stringify(manifest,null,2)+'\n');
  return manifest;

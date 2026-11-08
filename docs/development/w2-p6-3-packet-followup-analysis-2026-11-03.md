@@ -37,7 +37,7 @@ Worker packet 결과의 cacheHit는 false. A/A2는 242개 full 좌표, B는 242�
    - `prepareStrokePacket(visible,...)`과 `prepareStrokePacket(outlines 또는 빈 배열,...)` 호출. 각 함수는 owner key별 정렬, JS source 배열 생성, **C++ WASM `boundaryAssembleStrokePacket`**, JS `buildGpuStrokeInstances`를 수행.
 4. 패킷 용량 상한(96MiB) 판단 후 `copyTransferredArrays(packet)`로 보유할 6개 TypedArray 복제.
 
-`shared/wasm/boundary-bindings.cpp`의 `assembleSharedStrokeForWeb`는 JS `val` 입력을 읽고 native stroke assembler를 실행한 뒤, 매 세그먼트 객체·owner 배열을 `emscripten::val`로 구성하고 Float32Array를 만든다. 이전 W2-P2 분석에서 WASM↔JS 핸들 변환 프로파일 신호가 확인됐으나, **이번 약 3초 중 native 조립/JS marshalling/buildGpuStrokeInstances 각각의 시간은 미계측**이다. 과거 별도 샘플의 ~1초 또는 Linux CI 복사 시간 수치를 이 측정의 내부 비율로 대입하지 않는다.
+`src/geometry/native/bindings/boundary-bindings.cpp`의 `assembleSharedStrokeForWeb`는 JS `val` 입력을 읽고 native stroke assembler를 실행한 뒤, 매 세그먼트 객체·owner 배열을 `emscripten::val`로 구성하고 Float32Array를 만든다. 이전 W2-P2 분석에서 WASM↔JS 핸들 변환 프로파일 신호가 확인됐으나, **이번 약 3초 중 native 조립/JS marshalling/buildGpuStrokeInstances 각각의 시간은 미계측**이다. 과거 별도 샘플의 ~1초 또는 Linux CI 복사 시간 수치를 이 측정의 내부 비율로 대입하지 않는다.
 
 패킷 타이머 *밖*의 636ms는 `boundaryState.replace` → `preparedStore.replace` → 변경한 국가와 공간적으로 인접한 국가의 contact `reconcile`, `computeCountrySharedContacts`, 적용 후 최신 요청 확인 및 yield 등을 포함한다. 이를 GPU 실행시간 또는 단순 setTimeout 대기로 단정하지 않는다.
 
@@ -72,4 +72,4 @@ const orderCompatible = expectedOrder.length === order.length
 
 순서 게이트만 완화하면 1991→1992의 약 0.2초 수준 postMessage 비용 개선 가능성이 있지만, 실제 변경 연도 packet miss의 약 3초 계산은 그대로 남을 수 있다. 반대로 packet을 무조건 재사용하면 변경 국경·국가 관계에 대한 정합성을 깨뜨린다. 검증 전 제품 통합/채택, `main` 병합 및 배포는 보류한다.
 
-참조 소스: `src/rendering/country-boundary-geometry-transport.js`, `src/rendering/country-shared-boundary-packet.js`, `src/rendering/workers/country-shared-boundary-worker.js`, `src/document/builtin-session.js`, `shared/wasm/boundary-bindings.cpp` — P6-3 B 고정 SHA `0af8b63d2efbeb19e9b677ec23d5f3fb92abfb83`. 이 문서는 분석 전용이며 제품 파일을 수정하지 않는다.
+참조 소스: `src/rendering/country-boundary-geometry-transport.js`, `src/rendering/country-shared-boundary-packet.js`, `src/rendering/workers/country-shared-boundary-worker.js`, `src/document/builtin-session.js`, `src/geometry/native/bindings/boundary-bindings.cpp` — P6-3 B 고정 SHA `0af8b63d2efbeb19e9b677ec23d5f3fb92abfb83`. 이 문서는 분석 전용이며 제품 파일을 수정하지 않는다.

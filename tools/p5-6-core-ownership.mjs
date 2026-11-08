@@ -9,35 +9,35 @@ const root=fileURLToPath(new URL('../',import.meta.url));
 const hash=s=>createHash('sha256').update(s).digest('hex');
 
 export const calculations=Object.freeze([
-  {area:'date/calendar',cpp:'shared/core/src/temporal.cpp',
+  {area:'date/calendar',cpp:'src/document/native/src/temporal.cpp',
     web:'src/document/temporal.js',
     api:['core.temporalParse(', 'core.temporalCompare(', 'core.temporalShiftMonth(']},
-  {area:'timeline/records',cpp:'shared/core/src/timeline-records.cpp',
+  {area:'timeline/records',cpp:'src/document/native/src/timeline-records.cpp',
     web:'src/document/timeline-records.js',api:['sharedCalculationCore.timelineNormalizeRecords(']},
-  {area:'timeline/resolution',cpp:'shared/core/src/timeline-resolver.cpp',
+  {area:'timeline/resolution',cpp:'src/document/native/src/timeline-resolver.cpp',
     web:'src/document/timeline-resolver.js',api:['sharedCalculationCore.timelineResolveWorld(']},
-  {area:'timeline/edit',cpp:'shared/core/src/timeline-edit.cpp',
+  {area:'timeline/edit',cpp:'src/document/native/src/timeline-edit.cpp',
     web:'tools/gis/timeline-edit.js',api:['sharedCalculationCore.timelineEditRecord(', 'sharedCalculationCore.timelineTruncateEntity(']},
-  {area:'spherical/ring-area',cpp:'shared/core/src/sphericalpolygon.cpp',
+  {area:'spherical/ring-area',cpp:'src/geometry/native/src/sphericalpolygon.cpp',
     web:'src/geometry/polygon-geometry.js',
     api:['sphericalRingSignedArea(', 'sphericalRingSignedAreas('],
     forbidden:[/Math\.atan2\s*\(/]},
-  {area:'boundary/refinement',cpp:'shared/core/src/boundaryrefinement.cpp',
+  {area:'boundary/refinement',cpp:'src/geometry/native/src/boundaryrefinement.cpp',
     web:'src/geometry/geographic-boundary.js',
     api:['sharedCalculationCore.boundaryRefineSegments(']},
-  {area:'boundary/splitting',cpp:'shared/core/src/boundarysplit.cpp',
+  {area:'boundary/splitting',cpp:'src/geometry/native/src/boundarysplit.cpp',
     web:'src/geometry/boundary-topology.js',
     api:['sharedCalculationCore.boundarySplitCandidatesBatch(']},
-  {area:'country/contact',cpp:'shared/core/src/countrycontact.cpp',
+  {area:'country/contact',cpp:'src/geometry/native/src/countrycontact.cpp',
     web:'src/geometry/country-contact-core.js',
     api:['sharedCalculationCore.countryContactPairsBatch(']},
-  {area:'boundary/packet',cpp:'shared/core/src/boundarypacket.cpp',
+  {area:'boundary/packet',cpp:'src/geometry/native/src/boundarypacket.cpp',
     web:'src/rendering/country-shared-boundary-packet.js',
     api:['sharedCalculationCore.boundaryAssembleStrokePacket(', 'mergeSharedBoundaryContributions('],
     forbidden:[/\bfunction connectBoundarySegments\s*\(/]},
 ]);
 
-const WASM='shared/wasm/boundary-bindings.cpp';
+const WASM='src/geometry/native/bindings/boundary-bindings.cpp';
 
 export function inspectOwnership(load=path=>readFileSync(resolve(root,path),'utf8')) {
   const entries=calculations.map(rule=>{

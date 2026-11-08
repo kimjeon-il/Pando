@@ -54,7 +54,7 @@ test('subdivided wide shells and holes have canonical winding and preserve plana
 
 test('native SweepLine comparePoint uses robust orientation for nearly coincident historical boundaries', async () => {
   const { readFileSync } = await import('node:fs');
-  const source=readFileSync(new URL("../../../shared/core/src/polygonclipping.cpp",import.meta.url),'utf8');
+  const source=readFileSync(new URL("../../../src/geometry/native/src/polygonclipping.cpp",import.meta.url),'utf8');
   const start=source.indexOf('    int comparePoint(Point p)const {');
   const end=source.indexOf('\n    }',start);
   assert.ok(start>=0&&end>start,'native comparator must exist');

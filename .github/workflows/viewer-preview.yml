@@ -8,7 +8,9 @@ on:
       - '!work/optimization'
     paths:
       - 'src/**'
-      - 'shared/**'
+      - 'src/**/native/**'
+      - 'tools/build/native/**'
+      - 'tests/native/**'
       - 'assets/**'
       - 'config/library-data.json'
       - 'tests/browser/**'
