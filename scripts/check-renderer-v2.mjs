@@ -1,81 +1,27 @@
-// Active render ownership is the shared map composition and Viewer runtime.
-import fs from 'node:fs';
-import path from 'node:path';
+// Renderer v2 gate: exercise observable draw, resource, publication and
+// backend behavior. Internal function names and source placement are not
+// contracts, so this gate deliberately never slices or matches source text.
+import { spawnSync } from 'node:child_process';
 import process from 'node:process';
-import {
-  auditSharedGpuPassInitialization,
-  PROJECT_RENDERER_SEQUENCE,
-  REQUIRED_STROKE_SOURCE_MARKERS,
-} from './lib/renderer-v2-architecture.mjs';
 
-const root = process.cwd();
-const read = relativePath => fs.readFileSync(path.join(root, relativePath), 'utf8');
-const failures = [];
-const expect = (condition, message) => { if (!condition) failures.push(message); };
-
-const renderer = read('shared/frontend/js/modules/gpu-map-renderer.js');
-const selection = read('shared/frontend/js/modules/selection-pass.js');
-const stroke = read('shared/frontend/js/modules/gpu-stroke-renderer.js');
-const scene = read('shared/frontend/js/modules/render-scene.js');
-const coordinator = read('shared/frontend/js/modules/map-render-coordinator.js');
-const meshWorker = read('shared/frontend/js/workers/gpu-mesh-worker.js');
-const app = read('shared/frontend/js/modules/map-owner-composition.js') + '\n' + read('apps/viewer/js/modules/viewer-composition.js');
-const css = read('shared/frontend/css/app.css');
-
-expect(renderer.includes('createRenderDevice({'), 'main GPU renderer must own the RenderDevice');
-expect(renderer.includes('createGpuStrokeRenderer({'), 'main GPU renderer must own the shared stroke renderer');
-failures.push(...auditSharedGpuPassInitialization(renderer));
-expect(!selection.includes('getContext('), 'selection pass may not create a second WebGL context');
-expect(!app.includes('gpu-selection-canvas') && !css.includes('gpu-selection-canvas'), 'selection-only WebGL canvas must stay removed');
-
-for (const marker of REQUIRED_STROKE_SOURCE_MARKERS) {
-  expect(stroke.includes(marker), `shared GPU stroke renderer is missing ${marker}`);
+const suites = [
+  'tests/unit/gpu-base-scene-order.test.mjs',
+  'tests/unit/gpu-helper-utils.test.mjs',
+  'tests/unit/gpu-resource-owners.test.mjs',
+  'tests/unit/gpu-scene-staging.test.mjs',
+  'tests/unit/gpu-stroke-renderer.test.mjs',
+  'tests/unit/gpu-canvas-worker.test.mjs',
+  'tests/unit/map-presentation-readiness.test.mjs',
+];
+const result = spawnSync(process.execPath,
+  ['--test','--test-concurrency=1',...suites],
+  { cwd:process.cwd(), stdio:'inherit', env:process.env });
+if(result.error) {
+  console.error('Renderer v2 behavioral verification could not start:',result.error);
+  process.exitCode=1;
+} else if(result.signal) {
+  console.error('Renderer v2 behavioral verification terminated:',result.signal);
+  process.exitCode=1;
+} else {
+  process.exitCode=result.status===0?0:1;
 }
-expect(stroke.includes("if (join === 'miter') return 1"), 'GPU stroke renderer must expose miter joins');
-expect(stroke.includes("if (join === 'bevel') return 2"), 'GPU stroke renderer must expose bevel joins');
-expect(stroke.includes("style.cap === 'round'"), 'GPU stroke renderer must expose round caps');
-
-for (const marker of [
-  'Object.freeze({',
-  'geometryRevision',
-  'resolveRenderLod',
-  'simplifyRenderGeometry',
-  'polygonCache',
-  'strokeCache',
-]) expect(scene.includes(marker), `RenderScene contract is missing ${marker}`);
-expect(scene.includes("projection: input.projection === 'globe' ? 'globe' : 'flat'"), 'RenderScene cache key must separate projection without depending on view position');
-
-const interactionMask = coordinator.slice(
-  coordinator.indexOf('const INTERACTION_MASK'),
-  coordinator.indexOf('const SETTLE_MASK'),
-);
-expect(interactionMask.includes('MAP_RENDER_DIRTY.VIEW'), 'view-only dirty mask must include view state');
-expect(interactionMask.includes('MAP_RENDER_DIRTY.GPU_FRAME'), 'view-only dirty mask must draw the shared GPU frame');
-expect(!interactionMask.includes('MAP_RENDER_DIRTY.OVERLAY_GEOMETRY'), 'view-only dirty mask may not rebuild overlay geometry');
-const sceneGpuMask = coordinator.slice(
-  coordinator.indexOf('const sceneGpuMask'),
-  coordinator.indexOf('let viewFrameResult'),
-);
-expect(!sceneGpuMask.includes('MAP_RENDER_DIRTY.GPU_FRAME'), 'view-only GPU draws must not rebuild scene geometry');
-
-let previousRendererIndex = -1;
-for (const name of PROJECT_RENDERER_SEQUENCE) {
-  const index = coordinator.indexOf(`callRenderer('${name}'`, previousRendererIndex + 1);
-  expect(index > previousRendererIndex, `project renderer output order is missing or stale at ${name}`);
-  if (index >= 0) previousRendererIndex = index;
-}
-for (const name of ['geometryPreview','validation','boundaryEdit','vertices','draft','snapIndicator']) {
-  expect(!coordinator.includes(`callRenderer('${name}'`),
-    `retired editor render stage must remain absent: ${name}`);
-}
-
-expect(meshWorker.includes("'geometry.mesh'"), 'country mesh compilation must remain a Worker RPC operation');
-expect(meshWorker.includes('transferResult(mesh, meshTransferables(mesh))'), 'mesh Worker must preserve transferable GPU packets');
-
-if (failures.length) {
-  console.error(`Renderer v2 architecture check failed with ${failures.length} issue(s):`);
-  for (const failure of [...new Set(failures)]) console.error(`- ${failure}`);
-  process.exit(1);
-}
-
-console.log('Renderer v2 architecture OK: one GPU device, immutable scene packets, view-only frames, and connected AA strokes are canonical.');
