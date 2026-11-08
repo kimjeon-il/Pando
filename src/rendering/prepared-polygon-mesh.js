@@ -1,4 +1,6 @@
 import { decodePolygonMesh, encodePolygonMesh } from "./polygon-mesh-codec.js";
+import {applyPreparedMeshDelta,preparedMeshDeltaLayout} from '../data/prepared-mesh-delta.js';
+const binaryDigest=async bytes=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))].map(byte=>byte.toString(16).padStart(2,'0')).join('');
 
 export async function polygonGeometryDigest(geometry) {
   const bytes = new TextEncoder().encode(JSON.stringify([geometry.type, geometry.coordinates]));
@@ -23,7 +25,18 @@ export function createPreparedPolygonMeshStore({ engine, loadManifest = null, lo
       if (!encoded) {
         const manifest = loadManifest ? await (manifestPromise ||= loadManifest()) : null;
         const spec = manifest?.meshes?.[digest];
-        if (spec) { encoded = await loadAsset(spec); assetHits++; }
+        if (spec) {
+          if(spec.storageLayout===undefined)encoded=await loadAsset(spec);
+          else{
+            if(spec.storageLayout!==preparedMeshDeltaLayout||!spec.baseGeometryDigest||!spec.base||spec.base.storageLayout!==undefined||!spec.replacement)throw Error('Invalid prepared mesh storage representation');
+            const base=digests.get(spec.baseGeometryDigest)||await loadAsset(spec.base),delta=await loadAsset(spec.replacement);
+            context.throwIfCancelled();
+            if(await binaryDigest(base)!==spec.baseContentSha256)throw Error('Prepared mesh base content mismatch');
+            encoded=applyPreparedMeshDelta(base,delta,{decodedBytes:spec.decodedBytes});
+            if(await binaryDigest(encoded)!==spec.contentSha256)throw Error('Prepared mesh result content mismatch');
+          }
+          assetHits++;
+        }
         else { encoded = encodePolygonMesh(engine.buildPolygonGeometryPacket(geometry, { ownerId: item.cacheKey, throwIfCancelled: () => context.throwIfCancelled() })); builds++; }
         context.throwIfCancelled();
         // Admit only the current algorithm and precision contract.

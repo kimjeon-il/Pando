@@ -17,6 +17,8 @@ import { resolveWorld } from "../../src/document/timeline-resolver.js";
 import { createTerritorialScopeResolver } from "../../src/document/territorial-scope.js";
 import {assembleBuiltinWorld,selectBuiltinCountries} from "../../src/data/builtin-world-loader.js";
 import {resolvePhysicalWaterObjects,composePhysicalWaterGeometry} from "../../src/data/physical-resources.js";
+import {applyPhysicalLandPatch,regionalLandLayout} from '../../src/data/physical-land-patch.js';
+import {applyPreparedMeshDelta,preparedMeshDeltaLayout} from '../../src/data/prepared-mesh-delta.js';
 import {builtinSubunitId} from "../../src/document/builtin-subunits.js";
 import {loadBuiltinDisplayPolicy} from "../gis/builtin-display-policy.mjs";
 import {timelineObjectKey} from "../../src/document/timeline-records.js";
@@ -44,6 +46,20 @@ function source(file) {
   if (inputHashes[file]) return;
   inputHashes[file] = sha256(readFileSync(resolve(root, file))); collect(readJson(file));
 }
+const physicalInputs=new Map();
+function readPhysicalAsset(spec){
+ if(physicalInputs.has(spec.url))return physicalInputs.get(spec.url);
+ const raw=readFileSync(resolve(root,spec.url));
+ if(raw.length!==spec.compressedBytes||sha256(raw)!==spec.sha256)throw Error('Physical source identity mismatch: '+spec.url);
+ inputHashes[spec.url]=sha256(raw);const value=readJson(spec.url);physicalInputs.set(spec.url,value);return value;
+}
+function readPhysicalLand(spec){
+ if(spec.storageLayout===undefined)return readPhysicalAsset(spec);
+ if(spec.storageLayout!==regionalLandLayout||!spec.base||spec.base.storageLayout!==undefined||!spec.replacement)throw Error('Invalid regional physical source');
+ const base=readPhysicalAsset(spec.base),patch=readPhysicalAsset(spec.replacement),geometry=applyPhysicalLandPatch(base,patch);
+ if(sha256(JSON.stringify(base))!==patch.baseContentSha256||patch.resultContentSha256!==spec.contentSha256||sha256(JSON.stringify(geometry))!==spec.contentSha256)throw Error('Regional physical source content mismatch');
+ return geometry;
+}
 const precisionDiscards=[],seenScopes=new Set(),retiredInputs=new Set();
 let currentCountryInputs=null,selectedCountryPrefixes=[];
 if(physicalMonth){
@@ -53,12 +69,7 @@ if(physicalMonth){
  if(!selected.length)throw Error('No physical-water context is selected for '+physicalMonth);
  const land=selected[0].assets.land;
  if(selected.some(row=>row.assets.land.sha256!==land.sha256))throw Error('Selected waters require one coherent land derivative.');
- const readAsset=spec=>{
-  const raw=readFileSync(resolve(root,spec.url));
-  if(raw.length!==spec.compressedBytes||sha256(raw)!==spec.sha256)throw Error('Physical source identity mismatch: '+spec.url);
-  inputHashes[spec.url]=sha256(raw);return readJson(spec.url);
- };
- collect(readAsset(land));collect(composePhysicalWaterGeometry(selected.map(row=>readAsset(row.assets.asset))));
+ collect(readPhysicalLand(land));collect(composePhysicalWaterGeometry(selected.map(row=>readPhysicalAsset(row.assets.asset))));
 }else{
 const indexPath='assets/data/builtin-world/generated/v1/index.json';
 const indexBytes=readFileSync(resolve(root,indexPath)),index=JSON.parse(indexBytes);
@@ -107,8 +118,9 @@ if(!selectedIds){
  source('assets/data/physical-land/v1/geometry.json.gz');
  const physicalManifestPath='assets/data/physical-land/v1/manifest.json';
  inputHashes[physicalManifestPath]=sha256(readFileSync(resolve(root,physicalManifestPath)));
- for(const context of readJson(physicalManifestPath).waterObjects?.geometries||[])
-  for(const item of [context.land,context.asset])source(item.url);
+ for(const context of readJson(physicalManifestPath).waterObjects?.geometries||[]){
+  collect(readPhysicalLand(context.land));collect(readPhysicalAsset(context.asset));
+ }
  for(const entity of sourceIndex.entities)source('assets/data/territorial-entities/generated/v2/'+entity.file);
 }
 const months=new Set(countryMonths||[]);
@@ -174,6 +186,14 @@ if(append){
 let count = 0, bytes = 0, reused = 0;
 for (const [digest, geometry] of [...geometries].sort(([a], [b]) => a.localeCompare(b))) {
   const previous=reusable?oldManifest.meshes[digest]:null;
+  if(previous?.storageLayout===preparedMeshDeltaLayout){
+    const readMesh=spec=>{const raw=readFileSync(resolve(root,spec.url));if(raw.length!==spec.compressedBytes||sha256(raw)!==spec.sha256)throw Error('Prepared mesh transfer mismatch');const bytes=gunzipSync(raw);if(bytes.length!==spec.decodedBytes)throw Error('Prepared mesh decoded size mismatch');return bytes;};
+    const base=readMesh(previous.base),delta=readMesh(previous.replacement),array=b=>b.buffer.slice(b.byteOffset,b.byteOffset+b.length);
+    if(sha256(base)!==previous.baseContentSha256)throw Error('Prepared mesh base content mismatch');
+    const decoded=applyPreparedMeshDelta(array(base),array(delta),{decodedBytes:previous.decodedBytes});
+    if(sha256(new Uint8Array(decoded))!==previous.contentSha256)throw Error('Prepared mesh result content mismatch');
+    decodePolygonMesh(decoded,{algorithmVersion:engine.MESH_ALGORITHM_REVISION});meshes[digest]=previous;bytes+=previous.replacement.compressedBytes;count++;reused++;continue;
+  }
   if(previous && existsSync(resolve(root,previous.url))){
     const stored=readFileSync(resolve(root,previous.url));
     if(stored.length===previous.compressedBytes && sha256(stored)===previous.sha256){

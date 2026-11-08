@@ -17,7 +17,9 @@ async function file(path,value){
   if(path.includes('countries')&&value?.entityId){
     const entity={schemaVersion:2,entityKind:'general',names:{en:value.entityId},lifetime:{validFrom:null,validTo:null},...value};
     entity.geometryVersions=entity.geometryVersions.map((version,i)=>({...version,validFrom:i===0&&entity.geometryVersions.length>1?'1911':version.validFrom}));
-    const encoded=encodeTerritorialSource(entity);for(const [p,b]of encoded.geometries)await file(resolve(dirname(path),'..',p),b);value=encoded.descriptor;
+    const encoded=encodeTerritorialSource(entity);for(const [p,b]of encoded.geometries){const target=resolve(dirname(path),'..',p);
+      try{await file(target,b);}catch(error){if(error.code!=='EEXIST')throw error;assert.deepEqual(await readFile(target),b);}
+    }value=encoded.descriptor;
   }
   await mkdir(dirname(path),{recursive:true});
   const bytes=Buffer.isBuffer(value)?value:Buffer.from(JSON.stringify(value));
@@ -133,7 +135,7 @@ test('targeted batch accumulates host changes and preserves reviewed provenance'
     await assert.rejects(buildLSIBTargetedCandidate({root,targets:['AND/FRA'],referenceManifest:manifestPath,binary}),/not explicitly selected/i);
     await writeFile(join(evidence,'igm.geojson'),Buffer.concat([official,Buffer.from('changed')]));
     await assert.rejects(buildLSIBTargetedCandidate({root,targets:['ITA/SMR'],referenceManifest:manifestPath,binary}),/pinned evidence/i);
-    const old=JSON.parse(originals.AND.toString());old.geometryVersions[0].validTo='1910-01-01';
+    const old=JSON.parse(originals.AND.toString());old.geometryVersions=[{...old.geometryVersions[0],validFrom:'1900-01-01',validTo:'1910-01-01'}];
     await writeFile(join(source,'countries/state-AND.json'),JSON.stringify(old));
     await assert.rejects(buildLSIBTargetedCandidate({root,targets:['AND/FRA'],binary}),/historical/i);
     await writeFile(join(source,'countries/state-AND.json'),originals.AND);

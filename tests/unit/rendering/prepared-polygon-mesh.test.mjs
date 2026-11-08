@@ -8,10 +8,27 @@ import { createRenderSceneBuilder } from "../../../src/rendering/render-scene.js
 import { readFileSync } from 'node:fs';
 import { gunzipSync } from 'node:zlib';
 import { createHash } from 'node:crypto';
+import {createPreparedMeshDelta} from '../../../tools/data/prepared-mesh-storage.mjs';
+import {applyPreparedMeshDelta,preparedMeshDeltaLayout} from '../../../src/data/prepared-mesh-delta.js';
 
 const geometry = { type: 'Polygon', coordinates: [[[0, 0], [2, 0], [2, 1], [0, 1], [0, 0]]] };
 const engine = globalThis.PandoLabGpuMeshCore;
 const context = { throwIfCancelled() {} };
+
+test('prepared binary delta preserves every mesh byte and reuses the loaded base without triangulating',async()=>{
+ const after=structuredClone(geometry);after.coordinates[0][1][0]=3;
+ const base=encodePolygonMesh(engine.buildPolygonGeometryPacket(geometry)),target=encodePolygonMesh(engine.buildPolygonGeometryPacket(after));
+ const patch=createPreparedMeshDelta(Buffer.from(base),Buffer.from(target)),delta=Uint8Array.from(patch).buffer;
+ assert.deepEqual(new Uint8Array(applyPreparedMeshDelta(base,delta,{decodedBytes:target.byteLength})),new Uint8Array(target));
+ assert.throws(()=>applyPreparedMeshDelta(base,delta.slice(0,-1),{decodedBytes:target.byteLength}),/mesh|delta/i);
+ const digest=bytes=>createHash('sha256').update(new Uint8Array(bytes)).digest('hex'),baseKey=await polygonGeometryDigest(geometry),targetKey=await polygonGeometryDigest(after),baseSpec={url:'base'},patchSpec={url:'patch'},calls=[];
+ const asset={storageLayout:preparedMeshDeltaLayout,baseGeometryDigest:baseKey,base:baseSpec,replacement:patchSpec,
+  baseContentSha256:digest(base),contentSha256:digest(target),decodedBytes:target.byteLength};
+ const store=createPreparedPolygonMeshStore({engine:{...engine,buildPolygonGeometryPacket:()=>assert.fail('existing mesh bytes must be reused')},
+  loadManifest:async()=>({meshes:{[baseKey]:baseSpec,[targetKey]:asset}}),loadAsset:async spec=>{calls.push(spec.url);return spec===baseSpec?base:delta;}});
+ await store.prepare({cacheKey:'base',geometry},context);await store.prepare({cacheKey:'historical',geometry:after},context);
+ assert.deepEqual(calls,['base','patch']);assert.equal(store.stats().builds,0);
+});
 
 test('fixed physical land loads a verified prepared mesh instead of triangulating the world at runtime', async () => {
   const read = file => readFileSync(new URL("../../../" + file, import.meta.url));

@@ -1,4 +1,6 @@
 import {builtinCountryAssets} from './builtin-country-files.js';
+import {regionalLandLayout} from './physical-land-patch.js';
+import {preparedMeshDeltaLayout} from './prepared-mesh-delta.js';
 
 /** All independently source-verified name receipts that belong with a Hydro release.
  * Prehistoric/old production manifests may only have the 42-system receipt.
@@ -41,6 +43,10 @@ export function collectRuntimeDataAssets({availablePaths,readManifest,entryPaths
     'assets/data/physical-land/v1/manifest.json',
   ];
   const dataAsset=(url,base,spec)=>{
+    if(spec?.storageLayout!==undefined){
+      if(![regionalLandLayout,preparedMeshDeltaLayout].includes(spec.storageLayout)||spec.base?.storageLayout!==undefined||!spec.base||!spec.replacement)throw Error('Invalid composed resource dependencies');
+      dataAsset(spec.base.url,'assets/data/',spec.base);dataAsset(spec.replacement.url,'assets/data/',spec.replacement);return;
+    }
     if(typeof url!=='string'||!url||/[?#\\]/.test(url))throw Error(`Invalid manifest resource: ${url}`);
     return include(url.startsWith('assets/')?url:base+url,spec);
   };

@@ -8,6 +8,8 @@ import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 import {createGeometryVersionStore} from "../../../src/geometry/geometry-version-store.js";
 import {modernCaspianWater} from "../../../tools/gis/prepare-water-object-history.mjs";
+import {createPhysicalLandPatch} from '../../../tools/data/physical-land-storage.mjs';
+import {regionalLandLayout} from '../../../src/data/physical-land-patch.js';
 import {drawGpuBaseScene} from "../../../src/rendering/gpu-base-scene-pass.js";
 import "../../../src/rendering/workers/canvas-scene-composition-core.js";
 
@@ -42,6 +44,8 @@ test('physical history prefetch is detached, deduplicated and reusable when its 
  const bytes=new Map(),requests=[];
  const asset=(name,geometry)=>{const body=Buffer.from(JSON.stringify(geometry));bytes.set(name,body);return {url:'assets/data/'+name,encoding:'identity',sha256:createHash('sha256').update(body).digest('hex'),compressedBytes:body.length,decodedBytes:body.length};};
  const modern=asset('modern-prefetch',{type:'MultiPolygon',coordinates:[]}),land=asset('history-prefetch',{type:'MultiPolygon',coordinates:[[[[0,0],[0,1],[1,1],[0,0]]]]}),water=asset('water-prefetch',{type:'Polygon',coordinates:[]});
+ const patch=createPhysicalLandPatch(JSON.parse(bytes.get('modern-prefetch')),JSON.parse(bytes.get('history-prefetch')),{validFrom:'1922-01-01',validTo:'1929-12-31'});
+ Object.assign(land,{storageLayout:regionalLandLayout,base:modern,replacement:asset('history-replacement',patch),contentSha256:patch.resultContentSha256});
  globalThis.fetch=async url=>{const name=new URL(url).pathname.split('/').at(-1);requests.push(name);return new Response(bytes.get(name));};
  const state={timelineCursor:'2026-10',hydroFeatureCache:new Map()},invalidations=[];
  const resource=createPhysicalResources({buildMeta:{dataRevision:'prefetch-test',physicalLand:modern,physicalWaterObjects:catalog(land,water)},capabilities:{terrain:false,builtinHydro:false}});
@@ -50,7 +54,9 @@ test('physical history prefetch is detached, deduplicated and reusable when its 
  await Promise.all([resource.preparePhysicalContext('1922-12'),resource.preparePhysicalContext('1922-12')]);
  assert.equal(state.timelineCursor,'2026-10');assert.equal(resource.physicalLand,initial);assert.equal(state.hydroFeatureCache.size,0);
  assert.deepEqual(invalidations,[],'preparation cannot publish or invalidate the current view');
- assert.equal(requests.filter(name=>name==='history-prefetch').length,1);
+ assert.equal(requests.filter(name=>name==='history-replacement').length,1);
+ assert.equal(requests.filter(name=>name==='history-prefetch').length,0,'the retired full derivative is never fetched');
+ assert.equal(requests.filter(name=>name==='modern-prefetch').length,1,'the already-loaded base is shared');
  state.timelineCursor='1922-12';const selected=resource.physicalLand;
  assert.equal(selected.revision,land.sha256);assert.equal(selected.water.type,'Polygon');
  const count=requests.length;await resource.preparePhysicalContext('1925-04');assert.equal(requests.length,count,'same selected versions share the existing cache');

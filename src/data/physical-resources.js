@@ -4,6 +4,7 @@ import { createStoredAssetLoader } from "./stored-asset-loader.js";
 import { sharedCalculationCore } from "../document/temporal.js";
 import { timelineObjectKey } from "../document/timeline-records.js";
 import {projectResourceOverlay} from "../document/project-resource-overlay.js";
+import {loadPhysicalLandGeometry} from './physical-land-patch.js';
 // Hydro v0.13.4 preserves its published 6.0/6.7/7.0/7.5 stage metadata.
 // Gate those existing stages by actual map zoom; no geometry, names, or basin
 // selection data need to be rewritten.
@@ -134,7 +135,11 @@ export function createPhysicalResources({ buildMeta,capabilities = {terrain:true
     waterContexts.set(key,entry);
     const loader=storedPhysicalAssets(),decode=buffer=>JSON.parse(new TextDecoder().decode(buffer));
     entry.promise=Promise.all([
-      landAsset.sha256===buildMeta.physicalLand.sha256?loadPhysicalLandMask({notify:false}).then(value=>({value:value.geometry})):loader.loadAsset(landAsset,'background',key+'-land','육지 배경',decode),
+      loadPhysicalLandGeometry(landAsset,{
+        loadGeometry:spec=>spec.sha256===buildMeta.physicalLand.sha256?loadPhysicalLandMask({notify:false}).then(value=>value.geometry)
+          :loader.loadAsset(spec,'background',key+'-land','육지 배경',decode).then(result=>result.value),
+        loadPatch:spec=>loader.loadAsset(spec,'background',key+'-land-replacement','지역 육지 변경',decode).then(result=>result.value),
+      }).then(value=>({value})),
       ...selected.map(row=>loader.loadAsset(row.assets.asset,'background',JSON.stringify(row.geometryRef)+'-water','수역 형상',decode)),
     ]).then(([land,...waters])=>{
       if(land.value.type!=='MultiPolygon'||waters.some(water=>!['Polygon','MultiPolygon'].includes(water.value.type)))throw new Error('Invalid physical-water geometry.');
