@@ -123,7 +123,7 @@ test('verified artifact handoff and current Viewer acceptance are source-pinned'
 });
 
 // Original feature contract: viewer-project-reader.test.mjs
-contractSuite("viewer-project-reader", () => {
+contractSuite("viewer-project-reader", async () => {
 const { repositoryFrontendSnapshot, nodeWorkerScript } = __dep8;
 const assert = __dep1.default;
 const { readFileSync } = __dep2;
