@@ -38,21 +38,21 @@ bool overlap(std::initializer_list<Validity> intervals) {
     }
     return !start||!end||!(*end<*start);
 }
-void applyProperties(ProjectDocument& document,const TimelineRecords& records,const std::string& month) {
-    const auto point=temporalMonthEnd(month);
+void applyProperties(ProjectDocument& document,const ResolvedWorld& world) {
     std::map<std::string,TerritorialUnit*> units;for(auto& unit:document.units)units.emplace(unit.id,&unit);
-    for(const auto& row:records.propertyBindings)if(validityContainsAtEnd(row.validity,point)) {
-        if(row.objectRef.domain=="hydro") {
-            auto found=std::find_if(document.hydro.begin(),document.hydro.end(),[&](const auto& water){return water.id==row.objectRef.id;});
+    for(const auto& [ref,properties]:world.activeProperties)
+        for(const auto& [property,encoded]:properties) {
+        if(ref.domain=="hydro") {
+            auto found=std::find_if(document.hydro.begin(),document.hydro.end(),[&](const auto& water){return water.id==ref.id;});
             if(found==document.hydro.end())throw TimelineError("TIMELINE_ENTITY","Water identity missing.");
-            const auto value=codecjson::parse(row.value);
-            if(row.property=="name")found->name=value.object.at("name").string;
-            else if(row.property=="color")found->color=static_cast<std::uint32_t>(std::stod(value.object.at("color").raw));
+            const auto value=codecjson::parse(encoded);
+            if(property=="name")found->name=value.object.at("name").string;
+            else if(property=="color")found->color=static_cast<std::uint32_t>(std::stod(value.object.at("color").raw));
             continue;
         }
-        auto& unit=*units.at(row.objectRef.id);const auto ref=territorialRef(unit.id);const auto value=codecjson::parse(row.value);
-        if(row.property=="name") {unit.name=value.object.at("name").string;unit.nameExplicit=value.object.at("nameExplicit").raw=="true";nameDetails(unit,value,"names");}
-        else if(row.property=="color") {auto& style=document.presentation.objectStyles.at(ref);style.color=static_cast<std::uint32_t>(std::stod(value.object.at("color").raw));style.explicitColor=value.object.at("explicitColor").raw=="true";}
+        auto& unit=*units.at(ref.id);const auto ref=territorialRef(unit.id);const auto value=codecjson::parse(encoded);
+        if(property=="name") {unit.name=value.object.at("name").string;unit.nameExplicit=value.object.at("nameExplicit").raw=="true";nameDetails(unit,value,"names");}
+        else if(property=="color") {auto& style=document.presentation.objectStyles.at(ref);style.color=static_cast<std::uint32_t>(std::stod(value.object.at("color").raw));style.explicitColor=value.object.at("explicitColor").raw=="true";}
         else {
             TerritorialSymbolStyle symbol;const auto policy=value.object.at("policy").string;
             symbol.policy=policy=="embedded"?FlagPolicy::Embedded:policy=="none"?FlagPolicy::None:FlagPolicy::Default;
@@ -75,6 +75,18 @@ TimelineDocumentView timelineDocumentView(const ProjectDocument& source,const st
     }
     result.document=source;
     result.document.timelineRecords={};
+    std::map<ObjectRef,const TimelineGeometryBinding*> firstBindings;
+    bool fallbackIndexed=false;
+    const fallbackBinding=[&](const ObjectRef& ref)->const TimelineGeometryBinding& {
+        if(!fallbackIndexed) {
+            for(const auto& binding:source.timelineRecords.geometryBindings)
+                firstBindings.emplace(binding.objectRef,&binding);
+            fallbackIndexed=true;
+        }
+        const auto found=firstBindings.find(ref);
+        if(found==firstBindings.end())throw TimelineError("TIMELINE_GEOMETRY","Missing entity binding.");
+        return *found->second;
+    };
     for(const auto& unit:source.units) {
         const auto* active=result.world.find(territorialRef(unit.id));
         GeometryRef geometry;
@@ -85,11 +97,7 @@ TimelineDocumentView timelineDocumentView(const ProjectDocument& source,const st
             coverage=active->coverageMode;
         } else {
             result.inactiveIds.insert(territorialRef(unit.id));
-            const auto found=std::find_if(source.timelineRecords.geometryBindings.begin(),
-                source.timelineRecords.geometryBindings.end(),[&](const auto& row){return row.objectRef==territorialRef(unit.id);});
-            if(found==source.timelineRecords.geometryBindings.end())
-                throw std::invalid_argument("TIMELINE_GEOMETRY: missing entity binding");
-            geometry=found->geometryRef;
+            geometry=fallbackBinding(territorialRef(unit.id)).geometryRef;
         }
         addStaticTerritorialRecords(result.document,unit.id,geometry,parent,coverage);
     }
@@ -99,13 +107,17 @@ TimelineDocumentView timelineDocumentView(const ProjectDocument& source,const st
     }
     for(const auto& water:source.hydro) {
         const ObjectRef ref{"hydro",water.id};const auto* active=result.world.find(ref);
-        auto binding=std::find_if(source.timelineRecords.geometryBindings.begin(),source.timelineRecords.geometryBindings.end(),[&](const auto& row){return row.objectRef==ref;});
-        if(binding==source.timelineRecords.geometryBindings.end())throw TimelineError("TIMELINE_GEOMETRY","Missing water binding.");
-        addStaticObjectRecords(result.document,ref,active?active->geometryRef:binding->geometryRef);
-        staticGeometryBinding(result.document,ref).rendering=active?active->rendering:binding->rendering;
+        if(!active) {
+            const auto& binding=fallbackBinding(ref);
+            addStaticObjectRecords(result.document,ref,binding.geometryRef);
+            staticGeometryBinding(result.document,ref).rendering=binding.rendering;
+        } else {
+            addStaticObjectRecords(result.document,ref,active->geometryRef);
+            staticGeometryBinding(result.document,ref).rendering=active->rendering;
+        }
         if(!active){result.inactiveIds.insert(ref);result.document.presentation.webPresentation.itemVisibility["hydro"][water.id]=false;}
     }
-    applyProperties(result.document,source.timelineRecords,month);
+    applyProperties(result.document,result.world);
     return result;
 }
 void captureTimelinePropertyChanges(const ProjectDocument& source,const ProjectDocument& beforeView,

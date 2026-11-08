@@ -20,6 +20,15 @@ export function createGpuScene({getPhysicalLand=()=>null}={}) {
   let renderSceneOrderRevision;
   let currentSelectionPacket;
   let gpuSceneResourceObjectKeys;
+  let polygonKeysByObject = new Map();
+  const sameValue = (left,right) => {
+    if(Object.is(left,right))return true;
+    if(!left||!right||typeof left!=='object'||typeof right!=='object')return false;
+    if(Array.isArray(left)!==Array.isArray(right))return false;
+    const keys=Object.keys(left);
+    return keys.length===Object.keys(right).length
+      &&keys.every(key=>Object.hasOwn(right,key)&&sameValue(left[key],right[key]));
+  };
   let hoverRequestSequence = 0;
   let pendingPreparation = null;
   let preparationFailure = null;
@@ -81,12 +90,18 @@ export function createGpuScene({getPhysicalLand=()=>null}={}) {
     const geometrySignature = [...normalizedPolygons, ...normalizedStrokes]
       .map(item => [item.key, item.geometryRevision, item.objectKey || '', item.chunkKey,
         item.lodPolicy, item.priority, item.protected === true, item.role, item.ownerId, item.parentId, item.territoryDepth].join(':')).join('|');
-    const styleSignature = [...normalizedPolygons, ...normalizedStrokes]
-      .map(item => `${item.key}:${JSON.stringify(item.style || {})}:${item.order}:${item.blendMode || ''}`).join('|');
     const previous = gpuSceneDomains.get(domain);
-    if (previous?.geometrySignature === geometrySignature && previous?.styleSignature === styleSignature) return false;
-    if (previous?.geometrySignature !== geometrySignature) renderSceneGeometryRevision += 1;
-    if (previous?.styleSignature !== styleSignature) renderSceneStyleRevision += 1;
+    const currentItems=[...normalizedPolygons,...normalizedStrokes];
+    const oldItems=previous?[...previous.polygons,...previous.strokes]:[];
+    const sameStyle=oldItems.length===currentItems.length
+      &&currentItems.every((item,index)=>{
+        const prior=oldItems[index];
+        return prior.key===item.key&&prior.order===item.order
+          &&prior.blendMode===item.blendMode&&sameValue(prior.style,item.style);
+      });
+    if(previous?.geometrySignature===geometrySignature&&sameStyle)return false;
+    if(previous?.geometrySignature!==geometrySignature)renderSceneGeometryRevision++;
+    if(!sameStyle)renderSceneStyleRevision++;
     // Remove superseded packet-to-object links. These are presentation
     // indexes and must not retain keys from deleted scenes indefinitely.
     if(previous)for(const item of [...previous.polygons,...previous.strokes])
@@ -94,7 +109,6 @@ export function createGpuScene({getPhysicalLand=()=>null}={}) {
         gpuSceneResourceObjectKeys.delete(String(item.key));
     gpuSceneDomains.set(domain, {
       geometrySignature,
-      styleSignature,
       polygons: normalizedPolygons,
       strokes: normalizedStrokes,
     });
@@ -119,7 +133,9 @@ export function createGpuScene({getPhysicalLand=()=>null}={}) {
     }
     currentSelectionPacket = selectionPacket || null;
     dependencies.interactionStateCommands.replaceGpuInteractionFillItems(interactionFillItems || []);
-    const qualitySignature = `${dependencies.renderScene.currentRenderQuality.revision}:${dependencies.renderScene.currentRenderQuality.backgroundLod}:${dependencies.projectState.state.projection}`;
+    // Only a different LOD/projection changes mesh packets. Interaction,
+    // frame budgets and DPR revisions must not trigger triangulation.
+    const qualitySignature = `${dependencies.renderScene.currentRenderQuality.backgroundLod}:${dependencies.projectState.state.projection}`;
     if (lastQualitySignature !== qualitySignature) {
       lastQualitySignature = qualitySignature;
       renderSceneGeometryRevision += 1;
@@ -251,6 +267,15 @@ export function createGpuScene({getPhysicalLand=()=>null}={}) {
       currentRenderScene = renderSceneBuilder.patch(currentRenderScene, sceneInput);
     }
     gpuSceneDirtyDomains.clear();
+    // Invert the accepted scene once, not once for each selected object.
+    const objectIndex=new Map();
+    for(const packet of currentRenderScene.polygons){
+      const owner=gpuSceneResourceObjectKeys.get(String(packet.key));
+      if(!owner)continue;
+      if(!objectIndex.has(owner))objectIndex.set(owner,[]);
+      objectIndex.get(owner).push(String(packet.key));
+    }
+    polygonKeysByObject=new Map([...objectIndex].map(([owner,keys])=>[owner,Object.freeze(keys)]));
     renderSceneBuilder.releasePrepared();
     dependencies.rendering.gpuMapRenderer.setRenderScene?.(currentRenderScene);
     return currentRenderScene;
@@ -268,9 +293,7 @@ export function createGpuScene({getPhysicalLand=()=>null}={}) {
   function gpuPolygonResourceKeysForObject(objectKey) {
     const normalizedKey = String(objectKey || '');
     if (!normalizedKey) return [];
-    return (currentRenderScene?.polygons || [])
-      .map(packet => String(packet.key || ''))
-      .filter(key => gpuSceneResourceObjectKeys.get(key) === normalizedKey);
+    return polygonKeysByObject.get(normalizedKey) || [];
   }
 
   function buildGpuInteractionFillItems(requests = []) {
@@ -365,6 +388,7 @@ export function createGpuScene({getPhysicalLand=()=>null}={}) {
     (renderSceneOrderRevision = 0);
 
     (currentSelectionPacket = null);
+    polygonKeysByObject.clear();
     preparationFailure = null;
     lastOverlayOrderSignature = null;
     lastQualitySignature = null;
@@ -372,6 +396,7 @@ export function createGpuScene({getPhysicalLand=()=>null}={}) {
 
   function initializeGpuSceneResourceObjectKeys() {
     (gpuSceneResourceObjectKeys = new Map());
+    polygonKeysByObject = new Map();
   }
 
   return Object.freeze({
