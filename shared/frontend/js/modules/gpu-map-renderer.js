@@ -603,7 +603,7 @@ export function createGpuMapRenderer(deps) {
     let terrainManifestUrl = null;
     let terrainSource = 'raster';
     let terrainFallbackReason = null;
-    let terrainFallbackPending = false;
+    let terrainFallbackRequest = null;
     let canvasTerrainStats = {};
     const terrainPreparation = state.resourceCapabilities?.terrain===false ? null : createGpuTerrainPreparation({
       isMobile, invalidate: invalidatePhysicalScene, geoDistance: (...args) => d3.geo.distance(...args),
@@ -2675,6 +2675,10 @@ export function createGpuMapRenderer(deps) {
     }
 
     function resetProjectRenderState({ generation = null, presentation = 'default', isCurrent = () => true, onPresented = () => {} } = {}) {
+      // A fall-back result requested for the previous project must not be
+      // accepted, warned about, or block the next project's terrain source.
+      terrainFallbackRequest?.abort();
+      terrainFallbackRequest=null;
       cancelSharedGpuInitialization('project-reset', { preserveReady: true });
       invalidateGpuRecoveryInputs('project-reset');
       canonicalPromotionError = '';
@@ -5659,29 +5663,39 @@ export function createGpuMapRenderer(deps) {
     }
 
     async function fallbackTerrainToRaster(reason) {
-      if (terrainFallbackPending || terrainManifest?.representation !== TERRAIN_DEM_FORMAT) return;
-      terrainFallbackPending = true;
-      const originalManifest = terrainManifest;
-      const generation = projectGeneration;
+      if(terrainFallbackRequest || terrainManifest?.representation !== TERRAIN_DEM_FORMAT || disposed)return;
+      const controller=new AbortController();
+      terrainFallbackRequest=controller;
+      const originalManifest=terrainManifest,generation=projectGeneration;
+      const current=()=>!disposed&&!controller.signal.aborted&&generation===projectGeneration
+        &&terrainManifest===originalManifest&&terrainFallbackRequest===controller;
       try {
-        const response = await fetch(TERRAIN_RASTER_MANIFEST_URL);
-        if (!response.ok) throw new Error(`Raster terrain HTTP ${response.status}`);
-        const fallback = validateTerrainManifest(await response.json());
-        if (generation === projectGeneration && terrainManifest === originalManifest) {
-          console.warn('DEM terrain fallback:', reason);
-          setTerrainManifest(fallback, TERRAIN_RASTER_MANIFEST_URL, { source: 'fallback', fallbackReason: reason });
-          onTerrainSourceChanged?.(fallback);
+        const response=await fetch(TERRAIN_RASTER_MANIFEST_URL,{signal:controller.signal});
+        if(!response.ok)throw new Error(`Raster terrain HTTP ${response.status}`);
+        const fallback=validateTerrainManifest(await response.json());
+        if(!current())return;
+        console.warn('DEM terrain fallback:',reason);
+        setTerrainManifest(fallback,TERRAIN_RASTER_MANIFEST_URL,{source:'fallback',fallbackReason:reason});
+        onTerrainSourceChanged?.(fallback);
+      }catch(error){
+        // A cancelled or superseded DEM attempt has no authority to report
+        // a new project's terrain failure or trigger a second fallback.
+        if(current()){
+          console.warn('Raster terrain fallback failed',error);
+          reportOperationError(error,'지형 타일을 불러오지 못했습니다. 국가 지도는 계속 사용할 수 있습니다. 잠시 후 다시 시도하세요.','PL-TERRAIN-001',0);
         }
-      } catch (error) {
-        console.warn('Raster terrain fallback failed', error);
-        reportOperationError(error, '지형 타일을 불러오지 못했습니다. 국가 지도는 계속 사용할 수 있습니다. 잠시 후 다시 시도하세요.', 'PL-TERRAIN-001', 0);
+      }finally{
+        if(terrainFallbackRequest===controller)terrainFallbackRequest=null;
       }
-      finally { terrainFallbackPending = false; }
     }
 
     function setTerrainManifest(manifest, manifestUrl = TERRAIN_RASTER_MANIFEST_URL,
       { source = 'raster', fallbackReason = null } = {}) {
       if(!terrainPreparation)throw new Error('Terrain resources are unavailable in this product.');
+      if(manifest!==terrainManifest){
+        terrainFallbackRequest?.abort();
+        terrainFallbackRequest=null;
+      }
       terrainManifest = manifest?.levels?.length ? manifest : null;
       terrainManifestUrl = manifestUrl;
       terrainSource = source;
@@ -5946,6 +5960,8 @@ export function createGpuMapRenderer(deps) {
       presentedStrokeDomains.clear();
       if (disposed) return;
       disposed = true;
+      terrainFallbackRequest?.abort();
+      terrainFallbackRequest=null;
       gpuRecovery.dispose();
       cancelGpuRecoveryPresentation();
       cancelSharedGpuInitialization('renderer-disposed');
