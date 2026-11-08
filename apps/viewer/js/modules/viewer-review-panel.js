@@ -391,7 +391,11 @@ export function createViewerReviewPanel({document,window,map,documentSession,isB
   async function focusOnMap(){
     const ref=sourceMatch();
     if(!ref||!map.objectQuery.objectRefExists(ref))return updateFocus();
+    const entity=chosenEntity,ticket=loadSerial;
+    const generation=documentSession.projectDomain?.getGeneration?.();
     await documentSession.selectionDomain.replace(ref,{scope:'review',reason:'review-map-focus'});
+    if(disposed||panel.hidden||ticket!==loadSerial||entity!==chosenEntity
+      ||(generation!==undefined&&generation!==documentSession.projectDomain.getGeneration()))return;
     const focused=map.objectQuery.focusObjectRef(ref,{announce:false});
     feedback('reviewFocusStatus',focused?'현재 자료의 객체로 이동했습니다. 변경 후 지도라는 뜻은 아닙니다.':'현재 지도에서 해당 형상을 표시할 수 없습니다.');
   }
@@ -421,23 +425,26 @@ export function createViewerReviewPanel({document,window,map,documentSession,isB
     }
   }
   async function loadSourceFiles(files){
-    if(!current||!selectedChange()||selectedChange().kind!=='geometry')return;
-    const subject=chosenEntity;
+    if(disposed||panel.hidden||!current||selectedChange()?.kind!=='geometry')return;
+    const subject=chosenEntity,ticket=loadSerial;
+    const isCurrent=()=>!disposed&&!panel.hidden&&ticket===loadSerial&&subject===chosenEntity;
     try{
       const records=new Map();
       for(const file of files){
         if(file.size<=0||file.size>16*1024*1024||!file.name.endsWith('.json'))no('원본 JSON 크기 또는 파일명을 확인하세요.');
         const bytes=new Uint8Array(await file.arrayBuffer());
+        if(!isCurrent())return;
         const digest=hex(await window.crypto.subtle.digest('SHA-256',bytes));
-        if(subject!==chosenEntity)no('원본 파일 선택 중 검수 대상이 바뀌었습니다.');
-        const item=current.diff.readObjects.find(x=>x.sourceEntityId===chosenEntity&&x.sha256===digest);
+        if(!isCurrent())return;
+        const item=current.diff.readObjects.find(x=>x.sourceEntityId===subject&&x.sha256===digest);
         if(!item)no('이 파일은 선택된 객체의 E3 Git SHA와 일치하지 않습니다.');
         records.set(item.revision,bytes);
       }
+      if(!isCurrent())return;
       rawObjectBytes=records;
       await compare({useLocal:true});
-    }catch(e){feedback('reviewCompareStatus','원본 JSON 검사 실패: '+e.message,'error');}
-    finally{get('reviewSourceInput').value='';}
+    }catch(e){if(isCurrent())feedback('reviewCompareStatus','원본 JSON 검사 실패: '+e.message,'error');}
+    finally{if(!disposed)get('reviewSourceInput').value='';}
   }
   async function downloadCorrection(){
     const change=selectedChange();

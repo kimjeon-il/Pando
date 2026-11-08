@@ -115,7 +115,8 @@ export async function composeViewer({ productMode, meta }) {
       const {createViewerReviewPanel}=await import('./viewer-review-panel.js');
       return createViewerReviewPanel({document,window,map,documentSession:activeSession,
         isBuiltinMap:()=>builtinActive,meta:runtimeContext.meta,
-        readMonth:()=>builtinClock?.month()||'',
+        readMonth:()=>builtinActive?(builtinClock?.month()||activeSession.commandOwner.state().timelineCursor)
+          :activeSession.commandOwner.state().timelineCursor,
         readDiagnostics:()=>diagnostics.snapshot(),
         readPerformance:()=>typeof window.__PANDOLAB_PERFORMANCE_REPORT__==='function'
           ?window.__PANDOLAB_PERFORMANCE_REPORT__():null,
