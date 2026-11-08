@@ -12,8 +12,6 @@ import * as __country_dep9 from "node:os";
 import * as __country_dep10 from "node:path";
 import * as __country_dep11 from "node:child_process";
 import * as __country_dep12 from "../../tools/library-data.mjs";
-
-// Original feature contract: builtin-country-loading.test.mjs
 contractSuite("builtin-country-loading", () => {
 const test = __country_dep0.default;
 const assert = __country_dep1.default;
@@ -197,8 +195,6 @@ test('invalid per-query country concurrency rejects before fetching the catalog'
  }
 });
 });
-
-// Original feature contract: builtin-country-retry.test.mjs
 contractSuite("builtin-country-retry", () => {
 const test = __country_dep0.default;
 const assert = __country_dep1.default;
@@ -243,8 +239,6 @@ test('a failed query settles its outstanding failed reads before an immediate cl
  for(const entry of index.entities)assert.equal(calls.filter(file=>file===entry.file).length,4);
 });
 });
-
-// Original feature contract: builtin-country-materialization.test.mjs
 contractSuite("builtin-country-materialization", () => {
 const test = __country_dep0.default;
 const assert = __country_dep1.default;

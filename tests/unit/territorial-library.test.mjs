@@ -7,8 +7,6 @@ import * as __country_dep4 from "node:crypto";
 import * as __country_dep5 from "node:fs";
 import * as __country_dep6 from "../../tools/territorial-entity-sources.mjs";
 import * as __country_dep7 from "../../tools/gis/territorial-library-provenance.js";
-
-// Original feature contract: territorial-library.test.mjs
 contractSuite("territorial-library", () => {
 const assert = __country_dep0.default;
 const test = __country_dep1.default;
@@ -123,8 +121,6 @@ test('a single country identity selects historic replacement and modern independ
   assert.equal(latest.metadata.historicalProvenance,undefined);
 });
 });
-
-// Original feature contract: territorial-library-data.test.mjs
 contractSuite("territorial-library-data", () => {
 const assert = __country_dep0.default;
 const test = __country_dep1.default;
@@ -300,8 +296,6 @@ test('Soviet constituent republics remain flagged political entities, not admini
   }
 });
 });
-
-// Original feature contract: territorial-library-provenance.test.mjs
 contractSuite("territorial-library-provenance", () => {
 const test = __country_dep1.default;
 const assert = __country_dep0.default;

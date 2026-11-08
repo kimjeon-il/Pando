@@ -10,8 +10,6 @@ import * as __country_dep7 from "../../shared/frontend/js/modules/builtin-territ
 import * as __country_dep8 from "../../shared/frontend/js/modules/builtin-session.js";
 import * as __country_dep9 from "../../shared/frontend/js/modules/geometry-versions.js";
 import * as __country_dep10 from "../../shared/frontend/js/modules/layer-presentation.js";
-
-// Original feature contract: builtin-subunits.test.mjs
 contractSuite("builtin-subunits", () => {
 const { loadBuiltinDisplayPolicy, validateBuiltinDisplayPolicy } = __country_dep0;
 const { normalizeCountryCollection } = __country_dep1;
@@ -98,8 +96,6 @@ test('declarative display policy rejects duplicate source IDs and invalid parent
  assert.throws(()=>validateBuiltinDisplayPolicy(merge),/duplicate/);
 });
 });
-
-// Original feature contract: builtin-subunit-geometry-revision.test.mjs
 contractSuite("builtin-subunit-geometry-revision", () => {
 const assert = __country_dep3.default;
 const test = __country_dep2.default;

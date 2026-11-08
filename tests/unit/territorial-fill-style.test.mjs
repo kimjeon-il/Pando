@@ -16,8 +16,6 @@ import * as __dep12 from "../../shared/frontend/js/modules/map-display-preparati
 import * as __dep13 from "../helpers/core-gis-compat/land-relations.mjs";
 import * as __dep14 from "../../tools/gis/country-geometry-calculator.js";
 import * as __dep15 from "../../shared/frontend/js/modules/distribution-model.js";
-
-// Original feature contract: territorial-fill-style.test.mjs
 contractSuite("territorial-fill-style", () => {
 const { executeTerritorialTestCommand, testCoreProject, initializeTestTerritorialState } = __dep0;
 const { createTerritorialFeature } = __dep1;
@@ -184,8 +182,6 @@ test('unassigned territories and new objects remain unpainted, while historical 
   });
 });
 });
-
-// Original feature contract: territorial-display-picking.test.mjs
 contractSuite("territorial-display-picking", () => {
 const { normalizeLayerPresentation } = __dep6;
 const { executeTerritorialTestCommand, testCoreProject, initializeTestTerritorialState } = __dep0;
@@ -247,8 +243,6 @@ const store = createTerritorialEntityStore({ documentModel:testCoreProject(state
   assert.deepEqual(A.geometry, square(0, 10));
 });
 });
-
-// Original feature contract: territorial-display-projection.test.mjs
 contractSuite("territorial-display-projection", () => {
 const { executeTerritorialTestCommand, testCoreProject, initializeTestTerritorialState } = __dep0;
 const test = __dep4.default;
@@ -282,8 +276,6 @@ test('display projection follows canonical identity, metadata and geometry witho
   assert.deepEqual([A, B], before);
 });
 });
-
-// Original feature contract: territorial-highlight-boundary.test.mjs
 contractSuite("territorial-highlight-boundary", () => {
 const test = __dep4.default;
 const assert = __dep3.default;
@@ -350,8 +342,6 @@ test('polar and seam closure edges never become selection highlight strokes', ()
   assert.equal(length(excludeAncestorHighlightBoundary(cap, [cap])), 0);
 });
 });
-
-// Original feature contract: land-relations-presentation.test.mjs
 contractSuite("land-relations-presentation", () => {
 const { normalizeLayerPresentation } = __dep6;
 const test = __dep4.default;

@@ -10,8 +10,6 @@ import * as __country_dep7 from "../../shared/frontend/js/modules/spatial-index.
 import * as __country_dep8 from "../../shared/frontend/js/modules/country-mesh-content-key.js";
 import * as __country_dep9 from "../../shared/frontend/js/modules/country-flags.js";
 import * as __country_dep10 from "../../shared/frontend/js/modules/map-render-coordinator.js";
-
-// Original feature contract: territorial-service.test.mjs
 contractSuite("territorial-service", () => {
 const { testCoreProject, initializeTestTerritorialState, executeTerritorialTestCommand } = __country_dep0;
 const assert = __country_dep1.default;
@@ -329,8 +327,6 @@ test('country-specific metadata uses the common entity metadata surface for no-o
   assert.equal(transactions.length, flagCount);
 });
 });
-
-// Original feature contract: territorial-property-only-p4-3.test.mjs
 contractSuite("territorial-property-only-p4-3", () => {
 const test = __country_dep2.default;
 const assert = __country_dep1.default;

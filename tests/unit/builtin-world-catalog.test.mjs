@@ -15,8 +15,6 @@ import * as __country_dep12 from "../../shared/frontend/js/modules/geometry-vers
 import * as __country_dep13 from "node:fs";
 import * as __country_dep14 from "../helpers/builtin-world.mjs";
 import * as __country_dep15 from "../../shared/frontend/js/modules/builtin-month-clock.js";
-
-// Original feature contract: builtin-world-catalog.test.mjs
 contractSuite("builtin-world-catalog", () => {
 const test = __country_dep0.default;
 const assert = __country_dep1.default;
@@ -192,8 +190,6 @@ test('one immutable project resolves every historical month through the native t
  assert.throws(()=>selectBuiltinCountries(index,'1914-07-01'),/query month/i);
 });
 });
-
-// Original feature contract: builtin-world-coverage-adjustments.test.mjs
 contractSuite("builtin-world-coverage-adjustments", () => {
 const test = __country_dep0.default;
 const assert = __country_dep1.default;
@@ -257,8 +253,6 @@ test('empty and single coverage records keep their original shape',()=>{
  assert.deepEqual(coalesceCoverageAdjustments([row(null,null)]),[row(null,null)]);
 });
 });
-
-// Original feature contract: builtin-world-baseline.test.mjs
 contractSuite("builtin-world-baseline", () => {
 const test = __country_dep0.default;
 const assert = __country_dep1.default;

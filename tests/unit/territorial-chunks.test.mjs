@@ -12,8 +12,6 @@ import * as __country_dep9 from "node:fs/promises";
 import * as __country_dep10 from "node:child_process";
 import * as __country_dep11 from "../../shared/frontend/js/modules/object-presentation.js";
 import * as __country_dep12 from "../../scripts/lib/territorial-storage-audit.mjs";
-
-// Original feature contract: territorial-chunks.test.mjs
 contractSuite("territorial-chunks", () => {
 const assert = __country_dep0.default;
 const fs = __country_dep1.default;
@@ -73,8 +71,6 @@ test('unchanged compressed chunk bytes are reused rather than recompressed with 
  assert.throws(()=>selectTerritorialChunkBytes(content,Buffer.from('corrupt zip')), /incorrect header|invalid|gzip|Z_DATA_ERROR/i);
 });
 });
-
-// Original feature contract: territorial-store-boundary.test.mjs
 contractSuite("territorial-store-boundary", () => {
 const { repositoryFrontendUrl } = __country_dep8;
 const test = __country_dep5.default;
@@ -131,8 +127,6 @@ test('territorial Store exposes only accepted views and session-month queries', 
   assert.doesNotMatch(store, /function\s+(?:appendCountries|appendUnits|removeCountries|removeUnits|replaceCountries|replaceUnits|replaceCountryOverrides)\b/);
 });
 });
-
-// Original feature contract: territorial-storage-audit.test.mjs
 contractSuite("territorial-storage-audit", () => {
 const test = __country_dep5.default;
 const assert = __country_dep0.default;

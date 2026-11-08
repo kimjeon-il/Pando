@@ -16,8 +16,6 @@ import * as __country_dep12 from "../helpers/timeline-project.mjs";
 import * as __country_dep13 from "../helpers/gis-core-fixture.mjs";
 import * as __country_dep14 from "node:vm";
 import * as __country_dep15 from "../../shared/frontend/js/modules/territorial-units.js";
-
-// Original feature contract: territorial-canonical-parity.test.mjs
 contractSuite("territorial-canonical-parity", () => {
 const assert = __country_dep0.default;
 const fs = __country_dep1.default;
@@ -55,8 +53,6 @@ test('explicit world view reproduces canonical shared-boundary signatures and ev
  assert.deepEqual(serializeCountrySharedBoundarySegments(buildCountrySharedBoundarySegments(countries)),packet.segments);
 });
 });
-
-// Original feature contract: territorial-snapshots.test.mjs
 contractSuite("territorial-snapshots", () => {
 const assert = __country_dep0.default;
 const fs = __country_dep1.default;
@@ -91,8 +87,6 @@ test('snapshot input cannot mutate the normalized reference list',()=>{
   assert.throws(()=>index.snapshots[0].entityRefs.push('unrelated'),TypeError);
 });
 });
-
-// Original feature contract: territorial-gis-current.test.mjs
 contractSuite("territorial-gis-current", () => {
 const { executeTerritorialTestCommand } = __country_dep12;
 const { createGisCoreFixture } = __country_dep13;

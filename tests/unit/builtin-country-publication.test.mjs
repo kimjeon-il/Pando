@@ -11,8 +11,6 @@ import * as __country_dep8 from "../../tools/gis/territorial-index-entry.js";
 import * as __country_dep9 from "../fixtures/historical-world-cases.mjs";
 import * as __country_dep10 from "../helpers/builtin-world.mjs";
 import * as __country_dep11 from "../../scripts/lib/product-assets.mjs";
-
-// Original feature contract: builtin-country-publication.test.mjs
 contractSuite("builtin-country-publication", () => {
 const test = __country_dep0.default;
 const assert = __country_dep1.default;
@@ -165,8 +163,6 @@ test('finalizing a selected publication drops old transport metadata without mut
  assert.ok(previousIndex.entities.every(entry=>Object.hasOwn(entry,'offset')));
 });
 });
-
-// Original feature contract: builtin-country-deployment.test.mjs
 contractSuite("builtin-country-deployment", () => {
 const test = __country_dep0.default;
 const assert = __country_dep1.default;
@@ -210,8 +206,6 @@ test('Viewer closure rejects retired transport, offsets and unsafe country descr
  }
 });
 });
-
-// Original feature contract: builtin-country-residuals.test.mjs
 contractSuite("builtin-country-residuals", () => {
 const test = __country_dep0.default;
 const assert = __country_dep1.default;

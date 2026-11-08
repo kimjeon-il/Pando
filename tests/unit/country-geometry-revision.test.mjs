@@ -4,8 +4,6 @@ import * as __dep1 from "node:test";
 import * as __dep2 from "../../shared/frontend/js/modules/gpu-country-geometry-revisions.js";
 import * as __dep3 from "../../shared/frontend/js/modules/geometry-version-store.js";
 import * as __dep4 from "../../tools/gis/country-import-identity.js";
-
-// Original feature contract: country-geometry-revision.test.mjs
 contractSuite("country-geometry-revision", () => {
 const assert = __dep0.default;
 const test = __dep1.default;
@@ -52,8 +50,6 @@ test('reset invalidates outstanding render tasks and preserves monotonic revisio
   assert.deepEqual(tracker.pendingIds(), []);
 });
 });
-
-// Original feature contract: geometry-version-store.test.mjs
 contractSuite("geometry-version-store", () => {
 const assert = __dep0.default;
 const test = __dep1.default;
@@ -164,8 +160,6 @@ test('isolated registries share only validated immutable values and still reject
   assert.throws(()=>createGeometryVersionStore([{...ref(),geojson:malformed}]),{code:'INVALID_GEOMETRY'});
 });
 });
-
-// Original feature contract: country-import-identity.test.mjs
 contractSuite("country-import-identity", () => {
 const assert = __dep0.default;
 const test = __dep1.default;
