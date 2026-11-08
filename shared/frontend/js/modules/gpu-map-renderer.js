@@ -39,7 +39,7 @@ import { shouldShowSharedCountryBorders } from './country-shared-boundary-packet
 import { geometryRevisionKey } from './geometry-versions.js';
 import { countryMeshContentKey } from './country-mesh-content-key.js';
 import { resourceKey, resourceUpdate } from './resource-update-policy.js';
-import { physicalSceneMatchesContext, mapPresentationTargetKey, mapBackgroundTargetKey } from './map-render-publication.js';
+import { physicalSceneMatchesContext, mapPresentationTargetKey, mapBackgroundTargetKey, canDrawTerrainTiles } from './map-render-publication.js';
 export { physicalSceneMatchesContext };
 
 
@@ -640,10 +640,8 @@ export function createGpuMapRenderer(deps) {
       });
     }
     function hasRenderableTerrain() {
-      // A missing DEM/tint is not a GPU draw. Do not rasterize the same
-      // physical-land polygon again just to mask an empty terrain pass.
-      return preparedTerrain.length > 0 && (terrainManifest?.representation !== TERRAIN_DEM_FORMAT
-        || state.physicalSettings.terrainStyle !== 'physical' || terrainPreparation.stats().terrainTintReady);
+      return canDrawTerrainTiles(preparedTerrain,terrainManifest?.representation,
+        state.physicalSettings.terrainStyle,terrainPreparation.stats().terrainTintReady,TERRAIN_DEM_FORMAT);
     }
     function renderTerrain(pass = 'land') {
       for (const tile of preparedTerrain) drawTerrainTile(tile, pass);

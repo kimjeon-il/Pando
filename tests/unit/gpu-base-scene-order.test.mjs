@@ -13,6 +13,7 @@ import * as __render_dep10 from "../../shared/frontend/js/modules/gpu-stroke-ren
 import * as __render_dep11 from "../../shared/frontend/js/modules/selection-pass.js";
 import * as __render_dep12 from "../../shared/frontend/js/modules/gpu-interaction-pass.js";
 import "../../shared/frontend/js/workers/canvas-scene-composition-core.js";
+import { canDrawTerrainTiles } from "../../shared/frontend/js/modules/map-render-publication.js";
 const assert = __render_dep0.default;
 const test = __render_dep1.default;
 const { readFileSync } = __render_dep2;
@@ -86,15 +87,8 @@ for (const style of ['political', 'physical']) {
 }
 
 test('WebGL never submits a second physical-land mask when raster/DEM tiles are not drawable', () => {
-  const source = readFileSync(new URL('../../shared/frontend/js/modules/gpu-map-renderer.js', import.meta.url),'utf8');
-  const begin = source.indexOf('    function hasRenderableTerrain() {');
-  const end = source.indexOf('    function renderTerrain(', begin);
-  assert.ok(begin > 0 && end > begin);
-  const functionBody = source.slice(begin,end)+';return hasRenderableTerrain();';
-  const canDraw = (tiles, representation, style, tintReady) =>
-    new Function('preparedTerrain','terrainManifest','state','terrainPreparation','TERRAIN_DEM_FORMAT',functionBody)(
-      tiles, {representation}, {physicalSettings:{terrainStyle:style}},
-      {stats:()=>({terrainTintReady:tintReady})},'dem-relief-v1');
+  const canDraw=(tiles,representation,style,tintReady)=>
+    canDrawTerrainTiles(tiles,representation,style,tintReady,'dem-relief-v1');
   assert.equal(canDraw([], 'dem-relief-v1', 'physical', true), false);
   assert.equal(canDraw([{}], 'dem-relief-v1', 'physical', false), false);
   assert.equal(canDraw([{}], 'dem-relief-v1', 'physical', true), true);
