@@ -66,7 +66,7 @@ jobs:
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - run: node tools/build/package-shared-core-assets.mjs --build-dir assets/wasm --check
       - run: pnpm exec playwright install --with-deps chromium
-      # Reverify the exact published WASM and first-paint recovery on this SHA.
+      # Reverify source-matched WASM, domain-relocated Canvas harnesses and first-paint recovery.
       # Run the same three independent backends after WASM source admission;
       # do not substitute a source-string probe for a presented frame.
       - name: Execute current Viewer in real Chromium backend
