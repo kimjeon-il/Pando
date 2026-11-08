@@ -42,3 +42,15 @@ The work is committed in sequence on the same `work/optimization` branch:
 - **P6:** the check catalog maps changes in the new infrastructure modules to their owning regression tests; the `check:ci-inventory` script names the current runner/native suites; the application workflow validates executable references before selection.
 
 This is a source change and review record only. **No Node/Native/WASM/CI/Playwright tests or performance measurements were executed**; behavioral pass/fail and isolation under actual parallel CI remain unverified until the user's final combined check run. P7 final consolidation and full verification remain separate work.
+
+## P7 consolidated infrastructure suites
+
+Moved the reverse impact-graph and group-selection cases from
+`check-impact.test.mjs` into `e7-application-check-planner.test.mjs`, and
+the Native scope/pinned toolchain cases from `native-build-scope.test.mjs`
+into `native-check-prerequisites.test.mjs`. Both original feature contract
+markers remain in the current executable owner. Source bindings now point to
+current suite files. No assertions or test scenarios were intentionally removed.
+
+The source consolidation changes the physical suite count from 397 to 395.
+This count is not a substitute for the pending full runtime verification.

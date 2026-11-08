@@ -1137,7 +1137,7 @@
       "tests": [
         "tests/unit/check-*.test.mjs",
         "tests/unit/current-browser-contracts.test.mjs",
-        "tests/unit/native-build-scope.test.mjs",
+        "tests/unit/native-check-prerequisites.test.mjs",
         "tests/unit/viewer-preview-plan.test.mjs"
       ],
       "inputs": [
@@ -1152,7 +1152,7 @@
         "tests/unit/*version*.test.mjs",
         "tests/unit/check-*.test.mjs",
         "tests/unit/current-browser-contracts.test.mjs",
-        "tests/unit/native-build-scope.test.mjs",
+        "tests/unit/native-check-prerequisites.test.mjs",
         "tests/unit/viewer-preview-plan.test.mjs"
       ],
       "inputs": [

@@ -7,6 +7,8 @@ import {frontendGeneratedOwners} from '../../scripts/lib/frontend-layout.mjs';
 import {loadRepository,planApplicationChecks} from '../../scripts/plan-application-checks.mjs';
 import {auditUnitContractIdentities,auditGisUnitConsolidation} from '../../scripts/lib/unit-contract-inventory.mjs';
 import {indexUnitContractOwners} from '../../scripts/lib/unit-contract-owners.mjs';
+import {createCheckImpactIndex} from '../../scripts/lib/check-impact.mjs';
+import {selectionRequest} from '../../scripts/run-application-checks.mjs';
 
 test('E7 validates all active test registrations without obsolete exception rules',()=>{
   const repository=loadRepository();
@@ -166,4 +168,47 @@ test('P2 unit contract index identifies original feature markers and rejects dup
   const conflict = indexUnitContractOwners(files, () => '// Original feature contract: shared.test.mjs\n');
   assert.equal(conflict.duplicates.length, 1);
   assert.equal(conflict.duplicates[0].identity, 'tests/unit/shared.test.mjs');
+});
+
+// Original feature contract: check-impact.test.mjs
+import test from 'node:test';
+import { createCheckImpactIndex } from '../../scripts/lib/check-impact.mjs';
+import { selectionRequest } from '../../scripts/run-application-checks.mjs';
+
+test('reverse dependency graph selects only consuming features', () => {
+  const edges = {
+    'tests/unit/terrain.test.mjs': ['shared/terrain.js'],
+    'shared/terrain.js': ['shared/decoded.js'],
+    'tests/unit/objects.test.mjs': ['shared/objects.js'],
+  };
+  const index = createCheckImpactIndex({
+    roots: ['tests/unit/terrain.test.mjs', 'tests/unit/objects.test.mjs'],
+    dependencies: file => edges[file] || [],
+  });
+  const affected = index.affectedBy(['shared/decoded.js']);
+  assert.deepEqual([...affected.get('tests/unit/terrain.test.mjs')], ['shared/decoded.js']);
+  assert.equal(affected.has('tests/unit/objects.test.mjs'), false);
+});
+
+test('deleted files and parent directory changes keep their consumers', () => {
+  const index = createCheckImpactIndex({
+    roots: ['tests/unit/loader.test.mjs'],
+    dependencies: path => path === 'tests/unit/loader.test.mjs' ? ['assets/data/catalog/index.json'] : [],
+  });
+  for (const changed of ['assets/data/catalog/index.json', 'assets/data/catalog']) {
+    const affected = index.affectedBy([changed]);
+    assert.ok(affected.get('tests/unit/loader.test.mjs')?.has(changed));
+  }
+});
+
+test('current group names select only requested work, unknown names fail closed', () => {
+  const catalog = { groups: [{ id: 'viewer', kind: 'browser' }, { id: 'gis', kind: 'unit' }] };
+  assert.deepEqual(selectionRequest(catalog, {
+    GITHUB_EVENT_NAME: 'workflow_dispatch', CHECK_GROUPS: 'viewer, gis',
+    BROWSER_SCOPE: 'default', CHECK_SCOPE: 'auto',
+  }), { groups: ['viewer', 'gis'], diff: false });
+  assert.throws(() => selectionRequest(catalog, { CHECK_GROUPS: 'obsolete' }), /Unknown check group/);
+  assert.deepEqual(selectionRequest(catalog, {
+    GITHUB_EVENT_NAME: 'workflow_dispatch', BROWSER_SCOPE: 'default', CHECK_SCOPE: 'auto',
+  }), { groups: [], diff: true });
 });
