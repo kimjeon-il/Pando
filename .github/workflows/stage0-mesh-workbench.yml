@@ -12,7 +12,7 @@ concurrency:
 jobs:
   implement:
     runs-on: ubuntu-24.04
-    timeout-minutes: 25
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
         with:
@@ -25,7 +25,39 @@ jobs:
       - uses: pnpm/action-setup@v4
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - uses: ./.github/actions/library-data
-      - name: Execute the reviewed scoped workbench with corrected prerequisite selection
+      - name: Determine whether concurrent C++ changes need their paired WASM
+        id: core
+        shell: bash
+        run: |
+          if node scripts/check-core-prerequisite.mjs; then echo 'build=false' >> "$GITHUB_OUTPUT"; else echo 'build=true' >> "$GITHUB_OUTPUT"; fi
+      - uses: jwlawson/actions-setup-cmake@v2
+        if: steps.core.outputs.build == 'true'
+        with:
+          cmake-version: '3.31.6'
+      - uses: actions/checkout@v4
+        if: steps.core.outputs.build == 'true'
+        with:
+          repository: emscripten-core/emsdk
+          ref: db04e88298d9916fc51fcd3743045ca3eb695127
+          path: build-native/emsdk
+          persist-credentials: false
+      - name: Run the existing source-matched WASM build owner only
+        if: steps.core.outputs.build == 'true'
+        env:
+          EMSDK_VERSION: '6.0.3'
+          EMCC_CORES: '1'
+          BINARYEN_CORES: '1'
+        run: |
+          node --input-type=module <<'JS'
+          import {parse} from 'yaml';
+          import {readFileSync} from 'node:fs';
+          import {execFileSync} from 'node:child_process';
+          const wf=parse(readFileSync('.github/workflows/generated-artifacts-p2.yml','utf8'));
+          const step=wf.jobs.generate.steps.find(s=>s.name==='Build the pinned C++ WASM and verify its actual source identity');
+          if(!step?.run)throw Error('Canonical WASM build owner changed');
+          execFileSync('bash',['--noprofile','--norc','-e','-o','pipefail','-c',step.run],{stdio:'inherit'});
+          JS
+      - name: Execute the reviewed scoped workbench
         env:
           PANDOLAB_LIBRARY_WRITE_TOKEN: ${{ secrets.PANDOLAB_LIBRARY_WRITE_TOKEN }}
         shell: bash
@@ -34,30 +66,15 @@ jobs:
           import {parse} from 'yaml';
           import {execFileSync} from 'node:child_process';
           import {readFileSync,writeFileSync} from 'node:fs';
-          const helper='tools/stage0-workbench-fix.mjs';let text=readFileSync(helper,'utf8');
-          const guard="if(changed.some(key=>key!=='template'))throw Error('Concurrent catalog change exceeds reviewed template-only scope');";
-          if(!text.includes(guard))throw Error('Correction context changed');
-          text=text.replace(guard,`if(changed.some(key=>!['template','geometryAssets'].includes(key)))throw Error('Unexpected concurrent catalog fields');
-          if(changed.includes('geometryAssets')){
-            const key=row=>JSON.stringify([row.id,row.version]);
-            const old=new Map(before.geometryAssets.map(row=>[key(row),row]));
-            if(old.size!==after.geometryAssets.length)throw Error('Concurrent geometry identity membership changed');
-            const deltas=[];
-            for(const row of after.geometryAssets){const prior=old.get(key(row));
-              const fields=prior?[...new Set([...Object.keys(prior),...Object.keys(row)])].filter(k=>JSON.stringify(prior[k])!==JSON.stringify(row[k])):['missing'];
-              if(fields.length)deltas.push({id:row.id,version:row.version,fields,before:prior,after:row});
-            }
-            console.log('CONCURRENT_GEOMETRY_DESCRIPTORS',JSON.stringify(deltas));
-            if(deltas.some(d=>!d.before||d.before.sha256!==d.after.sha256))throw Error('Concurrent geometry bytes changed; review before combining');
-          }`);
-          writeFileSync(helper,text);
           const definition=parse(execFileSync('git',['show','83691b590669d2db5f03865fce7e876fcf0d2fb9:.github/workflows/stage0-mesh-workbench.yml'],{encoding:'utf8'}));
           for(const step of definition.jobs.implement.steps){
             if(!step.run||step.run==='pnpm install --frozen-lockfile --ignore-scripts')continue;
             const env={...process.env};
             if(step.env?.CHECK_SELECTION){const selection=JSON.parse(step.env.CHECK_SELECTION);selection.prerequisites=[];env.CHECK_SELECTION=JSON.stringify(selection);}
-            console.log('STAGE0_STEP',step.name||step.run.split('\n')[0]);
-            execFileSync('bash',['--noprofile','--norc','-e','-o','pipefail','-c',step.run],{env,stdio:'inherit'});
+            let command=step.run;
+            if(step.name?.startsWith('Commit verified'))command=command.replace('git diff --cached --check','git add assets/wasm/pandoeditor-core.js assets/wasm/pandoeditor-core.wasm assets/wasm/pandoeditor-core.manifest.json\ngit diff --cached --check');
+            console.log('STAGE0_STEP',step.name||command.split('\n')[0]);
+            execFileSync('bash',['--noprofile','--norc','-e','-o','pipefail','-c',command],{env,stdio:'inherit'});
           }
           JS
       - uses: actions/upload-artifact@v4
@@ -67,5 +84,6 @@ jobs:
           path: |
             ${{ runner.temp }}/stage0/
             test-results/
+            assets/wasm/pandoeditor-core.manifest.json
           retention-days: 7
           if-no-files-found: warn
