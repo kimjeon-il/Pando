@@ -30,16 +30,21 @@
     const flatHalfLat=height/Math.max(1,scale)*90/Math.PI;
     const globeRadius=Math.asin(Math.min(1,Math.hypot(width,height)*0.5/Math.max(1,scale)));
     for(let row=0;row<level.rows;row++)for(let column=0;column<level.columns;column++){
-      const spec=tileSpec(level,column,row,numericLevel);
-      if(includeAll){specs.push(spec);continue;}
-      const [west,north,east,south]=spec.bounds;
+      if(includeAll){specs.push(tileSpec(level,column,row,numericLevel));continue;}
+      // Derive bounds before allocating a tile descriptor. Most high-LOD
+      // tiles are offscreen during a zoomed-in view.
+      const x0=column*level.tileSize,y0=row*level.tileSize;
+      const x1=Math.min(level.width,x0+level.tileSize),y1=Math.min(level.height,y0+level.tileSize);
+      const west=-180+x0/level.width*360,north=90-y0/level.height*180;
+      const east=-180+x1/level.width*360,south=90-y1/level.height*180;
       const center=[(west+east)/2,(north+south)/2];
       const halfLon=(east-west)/2,halfLat=(north-south)/2;
       if(projection==='flat'){
         const deltaLon=Math.abs((((center[0]-flatCenter[0])+540)%360)-180);
-        if(deltaLon<=flatHalfLon+halfLon+2&&Math.abs(center[1]-flatCenter[1])<=flatHalfLat+halfLat+2)specs.push(spec);
+        if(deltaLon<=flatHalfLon+halfLon+2&&Math.abs(center[1]-flatCenter[1])<=flatHalfLat+halfLat+2)
+          specs.push(tileSpec(level,column,row,numericLevel));
       }else if(distance(globeCenter,center)<=globeRadius+Math.hypot(halfLon,halfLat)*Math.PI/180+0.04)
-        specs.push(spec);
+        specs.push(tileSpec(level,column,row,numericLevel));
     }
     return specs;
   }

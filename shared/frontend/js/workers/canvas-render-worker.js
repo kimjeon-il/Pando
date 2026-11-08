@@ -403,17 +403,24 @@ function canvasFallbackWorkerMain() {
         || manifest.levels[manifest.levels.length - 1];
     }
 
+    let visibleWindow=null,visibleTileCache=new Map();
     function visibleTerrainTileSpecs(level,message,projection,width,height,includeAll=false) {
-      const view=message.view||{};
-      const rotation=view.globeRotation||[0,0,0];
-      return tileSelection.visible(level,{
-        includeAll,viewport:[width,height],scale:projection.scale(),
-        projection:message.projection,
-        flatCenter:view.flatCenter||[0,20],
-        globeCenter:[-Number(rotation[0]||0),-Number(rotation[1]||0)],
-        distance:self.d3.geo.distance,
-        numericLevel:true,
+      const view=message.view||{},rotation=view.globeRotation||[0,0,0],flatCenter=view.flatCenter||[0,20];
+      const camera=[width,height,projection.scale(),message.projection,flatCenter[0],flatCenter[1],
+        Number(rotation[0]||0),Number(rotation[1]||0),terrainManifest,terrainDemManifest];
+      if(!visibleWindow||camera.some((value,index)=>!Object.is(value,visibleWindow[index]))) {
+        visibleWindow=camera;visibleTileCache.clear();
+      }
+      let cached=visibleTileCache.get(level);
+      if(!cached){cached={};visibleTileCache.set(level,cached);}
+      const type=includeAll?'all':'visible';
+      if(cached[type])return cached[type];
+      cached[type]=tileSelection.visible(level,{
+        includeAll,viewport:[width,height],scale:camera[2],projection:camera[3],
+        flatCenter,globeCenter:[-camera[6],-camera[7]],
+        distance:self.d3.geo.distance,numericLevel:true,
       });
+      return cached[type];
     }
 
     function drawTexturedTriangle(image, sourcePoints, destinationPoints, dpr) {
