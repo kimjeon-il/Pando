@@ -43,7 +43,7 @@ export function createVerifiedCoreWorker(value,options,{WorkerClass=globalThis.W
 async function requestSharedCore(manifest,signal){
   const worker=globalThis;
   const enabled=typeof worker.document==='undefined'&&typeof worker.postMessage==='function'
-    &&new URL(worker.location.href).searchParams.get('shareCore');
+    &&typeof worker.location?.href==='string'&&new URL(worker.location.href).searchParams.get('shareCore');
   if(!enabled)return null;
   if(enabled!==manifest.sourceSha256)fail('PL-CORE-WASM-SHARED','Worker source differs from its parent engine.');
   signal?.throwIfAborted();

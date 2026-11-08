@@ -51,3 +51,11 @@ test('invalid verified-byte compilation rejects instead of hanging Emscripten in
  const f=await fixture(new TextEncoder().encode('invalid wasm but accurately hashed'));
  await assert.rejects(loader.loadVerifiedCore(f.options),/WebAssembly|wasm|magic|compil/i);
 });
+
+test('Node transport postMessage without a browser worker URL never requests a shared module',async t=>{
+  const prior=Object.getOwnPropertyDescriptor(globalThis,'postMessage');
+  Object.defineProperty(globalThis,'postMessage',{configurable:true,value(){assert.fail('standalone Node worker requested a browser package');}});
+  t.after(()=>{if(prior)Object.defineProperty(globalThis,'postMessage',prior);else delete globalThis.postMessage;});
+  const f=await fixture();await loader.loadVerifiedCore(f.options);
+  assert.equal(f.instances.length,1);assert.equal(f.fetched.length,3);
+});

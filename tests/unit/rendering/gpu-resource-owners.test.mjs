@@ -55,9 +55,9 @@ test('lifecycle releases each GL resource once using the context that allocated 
 
 test('terminated Worker channels close late bitmaps and never dispatch late errors', () => {
   const workers = [];
-  class NativeWorker { constructor() { workers.push(this); } postMessage() {} terminate() {} }
+  class NativeWorker extends EventTarget { constructor() { super();workers.push(this); } postMessage() {} terminate() {} }
   const owner = createGpuWorkerChannels({ WorkerClass: NativeWorker });
-  const first = owner.create('url');
+  const first = owner.create('https://test.local/worker.js');
   let delivered = 0, closed = 0;
   first.onmessage = first.onerror = () => delivered++;
   first.terminate();
