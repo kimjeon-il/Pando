@@ -8,16 +8,26 @@ permissions:
 jobs:
   source:
     runs-on: ubuntu-24.04
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - name: Archive tracked application sources only
-        run: git archive --format=tar.gz --output="$RUNNER_TEMP/pando-source.tar.gz" HEAD
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Archive review dependencies without credentials or runtime datasets
+        run: |
+          tar -czf "$RUNNER_TEMP/pando-review-deps.tar.gz" node_modules
+          git archive --format=tar.gz --output="$RUNNER_TEMP/pando-source.tar.gz" HEAD
       - uses: actions/upload-artifact@v4
         with:
-          name: pando-unit-scope-source
-          path: ${{ runner.temp }}/pando-source.tar.gz
+          name: pando-unit-scope-review
+          path: |
+            ${{ runner.temp }}/pando-source.tar.gz
+            ${{ runner.temp }}/pando-review-deps.tar.gz
           retention-days: 3
           if-no-files-found: error
