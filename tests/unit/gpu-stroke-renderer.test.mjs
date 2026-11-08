@@ -4,8 +4,6 @@ import * as __gpu_dep1 from "node:test";
 import * as __gpu_dep2 from "../../shared/frontend/js/modules/gpu-stroke-renderer.js";
 import * as __gpu_dep3 from "../../shared/frontend/js/modules/map-render-coordinator.js";
 import * as __gpu_dep4 from "../../shared/frontend/js/modules/render-scene.js";
-
-// Original feature contract: gpu-stroke-renderer.test.mjs
 contractSuite("gpu-stroke-renderer", () => {
 const assert = __gpu_dep0.default;
 const test = __gpu_dep1.default;
@@ -97,8 +95,6 @@ test('node owner ranges use the same scoped range resolver', () => {
   assert.deepEqual(resolveGpuStrokeRanges(resource, ['FRA'], 'ownerNodeRanges', 'nodeCount'), [{ first: 4, count: 2 }]);
 });
 });
-
-// Original feature contract: renderer-v2.test.mjs
 contractSuite("renderer-v2", () => {
 const assert = __gpu_dep0.default;
 const test = __gpu_dep1.default;

@@ -5,8 +5,6 @@ import * as __contract_dep2 from "node:worker_threads";
 import * as __contract_dep3 from "../../shared/frontend/js/modules/worker-rpc.js";
 import * as __contract_dep4 from "../../shared/frontend/js/modules/country-mesh-transfer.js";
 import * as __contract_dep5 from "../../shared/frontend/js/modules/gpu-mesh-worker-jobs.js";
-
-// Original feature contract: gpu-mesh-transfer.test.mjs
 contractSuite("gpu-mesh-transfer", () => {
 const assert = __contract_dep0.default;
 const test = __contract_dep1.default;
@@ -68,8 +66,6 @@ test('actual mesh Worker transfers every output buffer and detaches its original
   assert.equal(response.detached, true, 'original Worker buffers must be detached');
 });
 });
-
-// Original feature contract: gpu-mesh-worker-jobs.test.mjs
 contractSuite("gpu-mesh-worker-jobs", () => {
 const test = __contract_dep1.default;
 const assert = __contract_dep0.default;

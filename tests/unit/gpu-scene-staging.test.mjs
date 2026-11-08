@@ -5,8 +5,6 @@ import * as __contract_dep2 from "../../shared/frontend/js/modules/gpu-scene-pre
 import * as __contract_dep3 from "../../shared/frontend/js/modules/gpu-base-scene-pass.js";
 import * as __contract_dep4 from "node:fs";
 import * as __contract_dep5 from "../../shared/frontend/js/modules/map-content-presentation.js";
-
-// Original feature contract: gpu-scene-staging.test.mjs
 contractSuite("gpu-scene-staging", () => {
 const assert = __contract_dep0.default;
 const test = __contract_dep1.default;
@@ -150,8 +148,6 @@ test('failure of both B and eligible A is a failed presentation with no promotio
   assert.deepEqual(result.strokeDomainReplacements, []);
 });
 });
-
-// Original feature contract: gpu-scene-worker-presentation.test.mjs
 contractSuite("gpu-scene-worker-presentation", () => {
 const test = __contract_dep1.default;
 const assert = __contract_dep0.default;
@@ -299,8 +295,6 @@ test('Canvas ready and data-ready reconnect the current physical scene without a
     'worker-local stats must not be mistaken for a committed bitmap');
 });
 });
-
-// Original feature contract: gpu-scene-presentation-ownership.test.mjs
 contractSuite("gpu-scene-presentation-ownership", () => {
 const test = __contract_dep1.default;
 const assert = __contract_dep0.default;

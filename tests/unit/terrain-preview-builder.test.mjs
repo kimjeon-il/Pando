@@ -11,8 +11,6 @@ import * as __dem_dep8 from "../../tools/gis/terrain-preview-sources.mjs";
 import * as __dem_dep9 from "../../tools/build-terrain-preview.mjs";
 import * as __dem_dep10 from "node:fs";
 import * as __dem_dep11 from "../../tools/gis/terrain-preview-grid.mjs";
-
-// Original feature contract: terrain-preview-builder.test.mjs
 contractSuite("terrain-preview-builder", () => {
 const assert = __dem_dep0.default;
 const { createHash } = __dem_dep1;
@@ -70,8 +68,6 @@ test('pinned small preview produces the expected source-bound manifest and lossl
   await assert.rejects(buildTerrainPreview({source,cache,fetcher,landMaskSha256:sha(countries),signal:controller.signal}),/abort/i);
 });
 });
-
-// Original feature contract: terrain-preview-cli.test.mjs
 contractSuite("terrain-preview-cli", () => {
 const assert = __dem_dep0.default;
 const test = __dem_dep5.default;
@@ -86,8 +82,6 @@ test('terrain preview CLI selects one explicit action and rejects invalid argume
   assert.throws(()=>parseTerrainPreviewArgs(['--unknown']),/argument/i);
 });
 });
-
-// Original feature contract: terrain-preview-grid.test.mjs
 contractSuite("terrain-preview-grid", () => {
 const assert = __dem_dep0.default;
 const test = __dem_dep5.default;

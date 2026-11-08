@@ -7,8 +7,6 @@ import * as __dem_dep4 from "node:fs/promises";
 import * as __dem_dep5 from "node:os";
 import * as __dem_dep6 from "node:path";
 import * as __dem_dep7 from "../../tools/gis/terrain-preview-sources.mjs";
-
-// Original feature contract: terrain-preview-audit.test.mjs
 contractSuite("terrain-preview-audit", () => {
 const test = __dem_dep0.default;
 const assert = __dem_dep1.default;
@@ -57,8 +55,6 @@ test('manifest corruption and undeclared tiles cannot pass', () => {
   assert.ok(verify(input).errors.some(error => error.includes('inventory')));
 });
 });
-
-// Original feature contract: terrain-preview-sources.test.mjs
 contractSuite("terrain-preview-sources", () => {
 const assert = __dem_dep1.default;
 const { createHash } = __dem_dep2;

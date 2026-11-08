@@ -6,8 +6,6 @@ import * as __terrain_dep3 from "../../shared/frontend/js/modules/gpu-upload-sch
 import * as __terrain_dep4 from "../../shared/frontend/js/modules/gpu-terrain-preparation.js";
 import * as __terrain_dep5 from "../../shared/frontend/js/modules/map-visual-frame.js";
 import * as __terrain_dep6 from "../../shared/frontend/js/modules/scene-color-cache.js";
-
-// Original feature contract: terrain-interaction-streaming.test.mjs
 contractSuite("terrain-interaction-streaming", () => {
 const test = __terrain_dep0.default;
 const assert = __terrain_dep1.default;
@@ -171,8 +169,6 @@ test('prefetch uses spare capacity and releases both fetch slots when the curren
   assert.equal(f.owner.stats().terrainFailureCount,0);
 });
 });
-
-// Original feature contract: renderer-responsiveness-source.test.mjs
 contractSuite("renderer-responsiveness-source", () => {
 const test = __terrain_dep0.default;
 const assert = __terrain_dep1.default;

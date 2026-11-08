@@ -10,8 +10,6 @@ import * as __gpu_dep7 from "../../shared/frontend/js/modules/boundary-topology.
 import * as __gpu_dep8 from "../../shared/frontend/js/modules/temporal.js";
 import * as __gpu_dep9 from "../../shared/frontend/js/modules/country-stroke-group-reuse.js";
 import "../helpers/spherical-core.mjs";
-
-// Original feature contract: gpu-mesh-country-strokes.test.mjs
 contractSuite("gpu-mesh-country-strokes", () => {
 const assert = __gpu_dep0.default;
 const fs = __gpu_dep1.default;
@@ -238,8 +236,6 @@ test('a polygon collapsed by packing leaves no ghost outline', () => {
   assert.deepEqual(geometry, before);
 });
 });
-
-// Original feature contract: renderable-boundary-stream.test.mjs
 contractSuite("renderable-boundary-stream", () => {
 const test = __gpu_dep3.default;
 const assert = __gpu_dep0.default;
@@ -313,8 +309,6 @@ test('stream visit covers collections and supports early visitor rejection witho
     /cancelled/);
 });
 });
-
-// Original feature contract: country-stroke-group-reuse.test.mjs
 contractSuite("country-stroke-group-reuse", () => {
 const assert = __gpu_dep0.default;
 const test = __gpu_dep3.default;
