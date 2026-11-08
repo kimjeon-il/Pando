@@ -3,7 +3,11 @@ import {assertHistoricalDisplayChanges} from './gis/historical-display-review.mj
 import {writeLibraryOutput} from './library-data.mjs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {normalizeTerritorialLibraryEntity,normalizeTerritorialLineage} from "./gis/territorial-library.js";
+import {createHash} from 'node:crypto';
+import {gunzipSync} from 'node:zlib';
+import {isDeepStrictEqual} from 'node:util';
+import {normalizeTerritorialLibraryEntity,normalizeTerritorialLineage,assertTerritorialIndexEntity} from "./gis/territorial-library.js";
+import {territorialIndexEntry} from './gis/territorial-index-entry.js';
 
 export const territorialDataRoot=fileURLToPath(new URL('../assets/data/territorial-entities/',import.meta.url));
 export const territorialSourceRoot=process.env.PANDOLAB_LIBRARY_SOURCE_ROOT
@@ -40,16 +44,36 @@ function validateMembership(lineages,byId){
     }
   }
 }
-export function readTerritorialSource(entityId,root=territorialSourceRoot){
+function assertIndexedSource(entity,{sourceIndex=null,chunkRoot=path.join(territorialDataRoot,'generated/v2')}={}){
+  if(!sourceIndex)return;
+  const entries=sourceIndex.entities.filter(row=>row.entityId===entity.entityId);
+  if(!entries.length)throw new Error(`Missing indexed territorial source: ${entity.entityId}`);
+  if(entries.length!==1)throw new Error(`Duplicate indexed territorial source: ${entity.entityId}`);
+  const [entry]=entries;
+  try{
+    assertTerritorialIndexEntity(entry,entity);
+    if(!isDeepStrictEqual(territorialIndexEntry(entity,entry),entry))throw new Error('Catalog projection differs');
+  }catch(cause){throw new Error(`Territorial source index mismatch: ${entity.entityId}`,{cause});}
+  // Preserve and verify the actual stored gzip identity. Recompression is not a
+  // valid identity check: unchanged chunks may retain older valid gzip bytes.
+  const stored=fs.readFileSync(path.join(chunkRoot,entry.file));
+  if(createHash('sha256').update(stored).digest('hex')!==entry.sha256)throw new Error(`Territorial source chunk hash mismatch: ${entity.entityId}`);
+  const decoded=gunzipSync(stored);
+  if(stored.length!==entry.compressedBytes||decoded.length!==entry.decodedBytes
+    ||!isDeepStrictEqual(JSON.parse(decoded),entity))throw new Error(`Territorial source/chunk mismatch: ${entity.entityId}`);
+}
+export function readTerritorialSource(entityId,root=territorialSourceRoot,options={}){
   const entity=normalizeTerritorialLibraryEntity(read(path.join(root,'countries',entityFileName(entityId))));
   if(entity.entityId!==entityId)throw new Error(`Country filename mismatch: ${entityId}`);
+  assertIndexedSource(entity,options);
   return entity;
 }
-export function readTerritorialSources(root=territorialSourceRoot){
+export function readTerritorialSources(root=territorialSourceRoot,options={}){
   const lineages=readTerritorialLineages(root),directory=path.join(root,'countries'),byId=new Map();
   for(const name of fs.readdirSync(directory).filter(name=>name.endsWith('.json')).sort()){
     const entity=normalizeTerritorialLibraryEntity(read(path.join(directory,name)));
     if(name!==entityFileName(entity.entityId)||byId.has(entity.entityId))throw new Error(`Country filename/identity mismatch: ${name}`);
+    assertIndexedSource(entity,options);
     byId.set(entity.entityId,entity);
   }
   validateMembership(lineages,byId);

@@ -8,7 +8,6 @@ import {execFileSync} from 'node:child_process';
 import {withLibraryOutputs,libraryConfig,libraryCheckout,decodeArchiveEntry} from './library-data.mjs';
 import {readTerritorialSources,readTerritorialSource,entityFileName,territorialSourceRoot,territorialDataRoot} from './territorial-entity-sources.mjs';
 import {normalizeTerritorialLibraryEntity} from './gis/territorial-library.js';
-import {buildCurrentWorld} from './territorial-current-world.mjs';
 import {compileBuiltinWorldCatalog,coalesceCoverageAdjustments,replaceBuiltinWorldCountryNames} from './builtin-world-compiler.mjs';
 import {builtinSubunitId} from "../shared/frontend/js/modules/builtin-subunits.js";
 import {loadBuiltinDisplayPolicy} from './gis/builtin-display-policy.mjs';
@@ -24,9 +23,11 @@ export function recordBuiltinWorldInputs(index,sourceRevisions,view,policy){
 }
 export function buildBuiltinWorldPublication({input=null,policyFile=new URL('../assets/data/historical-world/policy.json',import.meta.url)}={}){
  const policy=input?.policy||JSON.parse(fs.readFileSync(policyFile));
- const entities=input?.entities||readTerritorialSources();
+ // Explicit entities/readSource are caller-verified inputs (for example, an
+ // already verified scoped authoring batch). Default readers verify stored chunks.
+ const entities=input?.entities||readTerritorialSources(territorialSourceRoot,{sourceIndex:input?.sourceIndex});
  const view=input?.view||JSON.parse(fs.readFileSync(path.join(territorialSourceRoot,'views/world.json')));
- const currentWorld=input?.currentWorld||buildCurrentWorld({entities,view});
+ const currentWorld=input?.currentWorld;
  const {index,countries,coverageReport}=compileBuiltinWorldCatalog({entities,view,currentWorld,policy});
  const files=encodeCountries(index,countries);
  recordBuiltinWorldInputs(index,input?.sourceIndex?Object.fromEntries(input.sourceIndex.entities.filter(row=>!['river','lake'].includes(row.entityType)).map(row=>[row.entityId,row.sha256])):
@@ -47,8 +48,9 @@ function encodeCountries(index,countries){
  return files;
 }
 
-export function buildBuiltinWorldNamePublication({entityIds,sourceIndex,previousIndex,readSource=readTerritorialSource,readPreviousSource,readCountry}) {
+export function buildBuiltinWorldNamePublication({entityIds,sourceIndex,previousIndex,readSource=null,readPreviousSource,readCountry}) {
  if(!entityIds?.length||new Set(entityIds).size!==entityIds.length)throw Error('Explicit unique name scope required');
+ readSource??=id=>readTerritorialSource(id,territorialSourceRoot,{sourceIndex});
  const index=structuredClone(previousIndex),files=new Map();
  const revisions={...index.inputHashes.sourceRevisions};
  for(const id of entityIds){
@@ -73,11 +75,19 @@ export function buildBuiltinWorldNamePublication({entityIds,sourceIndex,previous
 /** Recompile only connected spatial/hierarchy components. Unrelated payloads
  * are neither read nor returned: their verified descriptors stay in the index. */
 export function buildBuiltinWorldPartialPublication({entityIds,sourceIndex,previousSourceIndex,view,policy,
- previousIndex,previousCoverage,readSource=readTerritorialSource,currentWorld=null,onScope=()=>{},planOnly=false}){
+ previousIndex,previousCoverage,readSource=null,currentWorld=null,onScope=()=>{},planOnly=false}){
  if(!entityIds?.length||new Set(entityIds).size!==entityIds.length)throw new Error('Explicit unique entity scope required');
  if(previousIndex.inputHashes.view!==sha(JSON.stringify(view))||previousIndex.inputHashes.policy!==sha(JSON.stringify(policy)))throw new Error('World view or policy changed; partial country scope is insufficient');
  const sources=new Map(sourceIndex.entities.map(row=>[row.entityId,row])),oldSources=new Map(previousSourceIndex.entities.map(row=>[row.entityId,row]));
  const mapping=new Map(previousIndex.sourceIdentities.flatMap(row=>row.sourceEntityIds.map(id=>[id,row.projectEntityId])));
+ readSource??=id=>readTerritorialSource(id,territorialSourceRoot,{sourceIndex});
+ const loadedSources=new Map(),loadSource=id=>{
+  if(!loadedSources.has(id))loadedSources.set(id,readSource(id));
+  return loadedSources.get(id);
+ };
+ // Reject stale selected metadata/bounds before trusting it for dependency scope.
+ // A plan is metadata-only; execution must repeat this verified preflight.
+ if(!planOnly)for(const id of entityIds){if(!mapping.has(id))throw new Error(`Unknown scoped source: ${id}`);loadSource(id);}
  const current=new Map(view.selections.map(row=>[row.entityId,row.geometryVersionId]));
  const subunits=new Map(loadBuiltinDisplayPolicy().subunits.map(row=>[builtinSubunitId(row.sourceCountryId),row.parentId]));
  const nodes=previousIndex.sourceIdentities.map(row=>{
@@ -127,13 +137,19 @@ export function buildBuiltinWorldPartialPublication({entityIds,sourceIndex,previ
  if(planOnly)return scope;
  const files=new Map(),replacements=new Map(),coverage=new Map(),adjustments=[];
  const availableSourceIds=new Set(previousIndex.sourceIdentities.flatMap(row=>row.sourceFeatureIds));
+ if(currentWorld!==null){
+  if(currentWorld.type!=='FeatureCollection'||!Array.isArray(currentWorld.features)
+   ||new Set(currentWorld.features.map(row=>row.id)).size!==currentWorld.features.length
+   ||currentWorld.features.some(row=>!availableSourceIds.has(row.id)))throw new Error('Current world source identity: invalid, duplicate or unknown supplied feature');
+ }
  for(const component of components){
   const ids=new Set(nodes.filter(row=>component.has(row.projectEntityId)).flatMap(row=>row.sourceEntityIds));
-  const entities=[...ids].map(id=>readSource(id));
+  const entities=[...ids].map(loadSource);
   const scopedView={...view,selections:view.selections.filter(row=>ids.has(row.entityId))};
   const scopedPolicy={...policy,replacements:policy.replacements.filter(row=>ids.has(row.targetEntityId)&&ids.has(row.priorityEntityId)),
    ...(policy.parentRelations ? {parentRelations:policy.parentRelations.filter(row=>ids.has(row.entityId)&&ids.has(row.parentEntityId))} : {})};
-  const world=currentWorld?{...currentWorld,features:currentWorld.features.filter(row=>entities.some(e=>e.sourceInfo?.featureId===row.id))}:buildCurrentWorld({entities,view:scopedView});
+  const selectedFeatureIds=new Set(scopedView.selections.map(row=>loadedSources.get(row.entityId).sourceInfo.featureId));
+  const world=currentWorld?{...currentWorld,features:currentWorld.features.filter(row=>selectedFeatureIds.has(row.id))}:null;
   const compiled=compileBuiltinWorldCatalog({entities,view:scopedView,currentWorld:world,policy:scopedPolicy,availableSourceIds});
   for(const [file,bytes] of encodeCountries(compiled.index,compiled.countries))files.set(file,bytes);
   for(const row of compiled.index.entities)replacements.set(row.entityId,row);

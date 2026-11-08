@@ -122,6 +122,7 @@ test('edited country names and flags reach independently published runtime ident
  const source=input.entities.find(row=>row.sourceInfo?.featureId==='KOR');source.names.ko='새 대한민국';
  const feature=input.currentWorld.features.find(row=>row.id==='KOR');feature.properties.name='새 대한민국';
  feature.properties.metadata={flagDataUrl:'assets/vendor/edited-kor.svg'};
+ source.metadata.defaultFlagDataUrl='assets/vendor/edited-kor.svg';
  const compiled=compileBuiltinWorldCatalog(input);
  const country=compiled.countries.find(row=>row.entityId==='KOR');
  assert.equal(country.identity.properties.name,'새 대한민국');

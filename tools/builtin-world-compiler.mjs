@@ -9,6 +9,7 @@ import { normalizeTimelineRecords } from "../shared/frontend/js/modules/timeline
 import { createProjectTemplateCompiler } from "./gis/project-template-compiler.js";
 import { DISTRIBUTION_MODES } from "../shared/frontend/js/modules/distribution-model.js";
 import {territorialNameData} from './gis/territorial-library.js';
+import {buildCurrentWorld} from './territorial-current-world.mjs';
 import { adjustHistoricalTerritories, historicalWorldClipper,createHistoricalTerritoryCache } from './historical-world-territories.mjs';
 
 const compare = (a, b) => {
@@ -106,7 +107,7 @@ export function replaceBuiltinWorldCountryNames(country,entity) {
 }
 
 /** Build an ordinary editable project; library inputs and raw intervals stay immutable. */
-export function compileBuiltinWorldCatalog({ entities, view, currentWorld, policy, clipper = historicalWorldClipper, availableSourceIds = null,displayPolicy=loadBuiltinDisplayPolicy() }) {
+export function compileBuiltinWorldCatalog({ entities, view, currentWorld = null, policy, clipper = historicalWorldClipper, availableSourceIds = null,displayPolicy=loadBuiltinDisplayPolicy() }) {
   entities=entities.filter(entity=>['general','regional'].includes(entity.entityKind));
   if(view?.schemaVersion!==1 || !Array.isArray(view.selections) || Object.hasOwn(view,'referenceDate'))throw new Error('Invalid world view');
   if (!policy || policy.schemaVersion !== 1) throw new Error('Missing historical world policy');
@@ -116,6 +117,7 @@ export function compileBuiltinWorldCatalog({ entities, view, currentWorld, polic
   if (bySource.size !== entities.length) throw new Error('Duplicate source entity');
   const currentIds = new Set(selection.keys());
   for (const id of currentIds) if (!bySource.has(id)) throw new Error(`Missing current source: ${id}`);
+  currentWorld=buildCurrentWorld({entities,view,currentWorld});
   const classified = classifyBuiltinCountries(normalizeCountryCollection(currentWorld), { availableSourceIds,displayPolicy });
   const definitions = new Map(), sourceToProject = new Map(), sourceIdentities = [];
   for (const feature of [...classified.countries.features, ...classified.subunits]) {

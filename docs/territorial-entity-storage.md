@@ -37,6 +37,20 @@ deferred, and their unbounded coverage is not a historical accuracy claim.
 - `source/views/world.json` is an explicit entity/version display selection with no
   common reference date. `generated/current-world.geojson`, packed world assets and
   indexes are derivatives. Actual dated presets stay in `source/snapshots/`.
+- Builtin compilation derives current geometry and properties from those selected
+  source versions. An explicitly supplied `currentWorld` only asserts the selected
+  feature identities and geometry; presentation properties cannot override sources.
+  A mismatched donor must first be adopted into its canonical selected version,
+  with its provenance/review and paired source chunk/index updated. A separate
+  donor hash cannot attribute different geometry to an unchanged source version.
+- When a paired `sourceIndex` is supplied, including CLI publication, default full,
+  partial and name-only builtin readers require exactly one index row per consumed
+  source and verify its stored chunk SHA and decoded entity, including catalog
+  metadata and bounding boxes. Full generation without `sourceIndex` instead records
+  content-derived source hashes. Partial execution checks requested sources before
+  planning dependencies; plan-only remains a metadata-only estimate. Callers that
+  inject `entities` or `readSource` own this same source/chunk/index verification
+  before invoking compilation. Such inputs are not an alternate source owner.
 - `assets/data/builtin-world/generated/v1/index.json` selects country-scoped
   derived files by month. The viewer starts at the device-local current month;
   source objects have no common observation date or fixed default month.
