@@ -84,3 +84,18 @@ suite and validates its matrix/SDK path handling before other check phases.
 The full-catalog selection also exposed duplicate ESM import declarations in
 newly migrated P7 suites; all former imports now share one module-level owner.
 Request a fresh full-catalog run on this corrected commit.
+
+
+## P7 full-catalog CI findings (2026-11-08)
+
+The GitHub Actions full-catalog run [42438512208](https://github.com/kimjeon-il/Pando/actions/runs/42438512208) at `72a56df507db093c79c41939124d8fa2f43c33de` **failed**. The selection job passed; the non-browser job and all three browser shards failed. This is actual execution evidence, not a static estimate.
+
+Confirmed blocker classes from job logs:
+
+1. **Pinned library materialization:** `assets/data/builtin-world/display-policy-v1.json` and `assets/data/places/urban-lifetimes-v1.json` were unavailable in the CI runtime even though those files are present in the pinned library repository tree. The Viewer closure fails closed rather than publishing an incomplete bundle. Investigate archive index/materialization and the source revision; do not silently delete required assets or synthesize placeholder content.
+2. **Stale removed export:** `object-catalog.js` imported the removed `BUILTIN_SUBUNITS` constant. Its current catalog now derives the source ID from each live territorial feature's stored metadata.
+3. **Temporal precision:** `core-document-world-wasm` still expected a year-only query despite the current month-only query contract. The test now uses a canonical month and checks that the year-only query is rejected.
+4. **Post-consolidation expectations:** `current-browser-contracts` referenced a removed Hydro physical file and asserted over 600 physical suites. It now resolves original contract owners and checks the original identity count instead.
+5. **Other failures:** stale territorial index, GIS historical fixtures and additional generated-world/Native/GPKG cases are not certified as resolved by the preceding changes.
+
+Corrective source commits were applied after the failing run; the latest full CI must be read independently. Do not claim the suite passed until the new run is complete and all selected jobs succeed.
