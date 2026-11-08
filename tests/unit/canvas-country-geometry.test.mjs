@@ -143,6 +143,7 @@ function runtime() {
   scope.PandoLabResourceUpdatePolicy = resourceUpdatePolicy;
   vm.createContext(scope);
   vm.runInContext(readFileSync(new URL('vendor/d3.min.js', root), 'utf8'), scope);
+  vm.runInContext(readFileSync(new URL('workers/terrain-tile-selection-core.js', root), 'utf8'), scope);
   const source = readFileSync(new URL('workers/canvas-render-worker.js', root), 'utf8');
   const anchor = 'self.onmessage = event => {';
   assert.ok(source.includes(anchor));

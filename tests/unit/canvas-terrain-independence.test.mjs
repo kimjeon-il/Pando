@@ -7,6 +7,7 @@ import {createCanvasScenePackets} from '../../shared/frontend/js/modules/gpu-can
 
 const workerSource = readFileSync(new URL("../../shared/frontend/js/workers/canvas-render-worker.js", import.meta.url), 'utf8');
 const terrainCoreSource = readFileSync(new URL("../../shared/frontend/js/workers/canvas-terrain-dem-core.js", import.meta.url), 'utf8');
+const terrainTileSource = readFileSync(new URL("../../shared/frontend/js/workers/terrain-tile-selection-core.js", import.meta.url), 'utf8');
 const manifest = { gutter: 1, urlTemplate: 'terrain/v0.12.6/{level}/{column}-{row}.webp', levels: [
   { id: 0, width: 1350, height: 675, columns: 2, rows: 1, tileSize: 1024 },
   { id: 1, width: 2700, height: 1350, columns: 3, rows: 2, tileSize: 1024 },
@@ -94,6 +95,7 @@ function canvasTerrainRuntime({ expectDem = false, timerPorts = null, now = () =
       }, { once: true });
     });
   new Function('self', terrainCoreSource)(scope);
+  new Function('self', terrainTileSource)(scope);
   scope.PandoLabResourceUpdatePolicy = resourcePolicy;
   new Function('self', 'importScripts', 'OffscreenCanvas', 'fetch', 'createImageBitmap',
     'ImageData', 'performance', 'setTimeout', 'clearTimeout', workerSource.replace('self.onmessage = event => {',

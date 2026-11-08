@@ -1,6 +1,6 @@
 'use strict';
 const assetRevision = new URL(self.location.href).searchParams.get('v') || '';
-importScripts(...['../vendor/d3.min.js', './geographic-boundary-core.js', './canvas-scene-composition-core.js', './canvas-terrain-dem-core.js', './resource-update-policy-core.js']
+importScripts(...['../vendor/d3.min.js', './geographic-boundary-core.js', './canvas-scene-composition-core.js', './canvas-terrain-dem-core.js', './terrain-tile-selection-core.js', './resource-update-policy-core.js']
   .map(path => { const url = new URL(path, self.location.href); url.searchParams.set('v', assetRevision); return url.href; }));
 
 function canvasFallbackWorkerMain() {
@@ -151,42 +151,9 @@ function canvasFallbackWorkerMain() {
       return lastRenderMessage;
     }
 
-    function terrainTileSpec(level, column, row) {
-      const x0 = column * level.tileSize;
-      const y0 = row * level.tileSize;
-      const x1 = Math.min(level.width, x0 + level.tileSize);
-      const y1 = Math.min(level.height, y0 + level.tileSize);
-      return {
-        key: `${level.id}/${column}-${row}`,
-        level: Number(level.id),
-        column,
-        row,
-        pixelWidth: x1 - x0,
-        pixelHeight: y1 - y0,
-        bounds: [
-          -180 + x0 / level.width * 360,
-          90 - y0 / level.height * 180,
-          -180 + x1 / level.width * 360,
-          90 - y1 / level.height * 180,
-        ],
-      };
-    }
-
-    function terrainNeighbourSpecs(level, specs) {
-      const output = [];
-      const seen = new Set(specs.map(spec => spec.key));
-      for (const spec of specs) {
-        for (let row = Math.max(0, spec.row - 1); row <= Math.min(level.rows - 1, spec.row + 1); row += 1) {
-          for (let column = Math.max(0, spec.column - 1); column <= Math.min(level.columns - 1, spec.column + 1); column += 1) {
-            const neighbour = terrainTileSpec(level, column, row);
-            if (seen.has(neighbour.key)) continue;
-            seen.add(neighbour.key);
-            output.push(neighbour);
-          }
-        }
-      }
-      return output;
-    }
+    const tileSelection=self.PandoLabTerrainTileSelection;
+    const terrainTileSpec=(level,column,row)=>tileSelection.tileSpec(level,column,row,true);
+    const terrainNeighbourSpecs=(level,specs)=>tileSelection.neighbours(level,specs,true);
 
     function terrainTileUrl(spec, manifest = terrainManifest, manifestUrl = terrainManifestUrl) {
       const relative = manifest.urlTemplate
@@ -436,36 +403,17 @@ function canvasFallbackWorkerMain() {
         || manifest.levels[manifest.levels.length - 1];
     }
 
-    function visibleTerrainTileSpecs(level, message, projection, width, height, includeAll = false) {
-      const specs = [];
-      const view = message.view || {};
-      const scale = projection.scale();
-      const center = message.projection === 'globe'
-        ? [-Number(view.globeRotation?.[0] || 0), -Number(view.globeRotation?.[1] || 0)]
-        : (view.flatCenter || [0, 20]);
-      const flatHalfLon = width / Math.max(1, scale) * 90 / Math.PI;
-      const flatHalfLat = height / Math.max(1, scale) * 90 / Math.PI;
-      const globeRadius = Math.asin(Math.min(1, Math.hypot(width, height) * 0.5 / Math.max(1, scale)));
-      for (let row = 0; row < level.rows; row += 1) {
-        for (let column = 0; column < level.columns; column += 1) {
-          const spec = terrainTileSpec(level, column, row);
-          if (includeAll) {
-            specs.push(spec);
-            continue;
-          }
-          const [west, north, east, south] = spec.bounds;
-          const tileCenter = [(west + east) / 2, (north + south) / 2];
-          const halfLon = (east - west) / 2;
-          const halfLat = (north - south) / 2;
-          if (message.projection === 'flat') {
-            const deltaLon = Math.abs((((tileCenter[0] - center[0]) + 540) % 360) - 180);
-            if (deltaLon <= flatHalfLon + halfLon + 2 && Math.abs(tileCenter[1] - center[1]) <= flatHalfLat + halfLat + 2) specs.push(spec);
-          } else if (self.d3.geo.distance(center, tileCenter) <= globeRadius + Math.hypot(halfLon, halfLat) * Math.PI / 180 + 0.04) {
-            specs.push(spec);
-          }
-        }
-      }
-      return specs;
+    function visibleTerrainTileSpecs(level,message,projection,width,height,includeAll=false) {
+      const view=message.view||{};
+      const rotation=view.globeRotation||[0,0,0];
+      return tileSelection.visible(level,{
+        includeAll,viewport:[width,height],scale:projection.scale(),
+        projection:message.projection,
+        flatCenter:view.flatCenter||[0,20],
+        globeCenter:[-Number(rotation[0]||0),-Number(rotation[1]||0)],
+        distance:self.d3.geo.distance,
+        numericLevel:true,
+      });
     }
 
     function drawTexturedTriangle(image, sourcePoints, destinationPoints, dpr) {

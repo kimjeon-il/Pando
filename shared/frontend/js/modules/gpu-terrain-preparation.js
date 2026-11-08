@@ -1,4 +1,5 @@
 import { resourceKey, resourceUpdate } from './resource-update-policy.js';
+import '../workers/terrain-tile-selection-core.js';
 // Owns terrain requests, retries, decoded bitmaps, upload queue, textures and grids.
 // prepare() returns ready draw records; drawing never initiates preparation.
 export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, onTileFailure, isMobile, invalidate, geoDistance }) {
@@ -41,76 +42,19 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, onTi
         || terrainManifest.levels[terrainManifest.levels.length - 1];
     }
 
-    function terrainTileSpec(level, column, row) {
-      const x0 = column * level.tileSize;
-      const y0 = row * level.tileSize;
-      const x1 = Math.min(level.width, x0 + level.tileSize);
-      const y1 = Math.min(level.height, y0 + level.tileSize);
-      return {
-        key: `${level.id}/${column}-${row}`,
-        level: level.id,
-        column,
-        row,
-        pixelWidth: x1 - x0,
-        pixelHeight: y1 - y0,
-        bounds: [
-          -180 + x0 / level.width * 360,
-          90 - y0 / level.height * 180,
-          -180 + x1 / level.width * 360,
-          90 - y1 / level.height * 180,
-        ],
-      };
-    }
-
-    function terrainNeighbourSpecs(level, specs) {
-      const output = [];
-      const seen = new Set(specs.map(spec => spec.key));
-      for (const spec of specs) {
-        for (let row = Math.max(0, spec.row - 1); row <= Math.min(level.rows - 1, spec.row + 1); row += 1) {
-          for (let column = Math.max(0, spec.column - 1); column <= Math.min(level.columns - 1, spec.column + 1); column += 1) {
-            const neighbour = terrainTileSpec(level, column, row);
-            if (seen.has(neighbour.key)) continue;
-            seen.add(neighbour.key);
-            output.push(neighbour);
-          }
-        }
-      }
-      return output;
-    }
-
-    function visibleTerrainTileSpecs(level, includeAll = false, frameContext = activeFrameContext) {
-      const specs = [];
-      const viewport = frameContext?.viewport || [view.width, view.height];
-      const scale = Number(frameContext?.scale) || 1;
-      const flatHalfLon = viewport[0] / Math.max(1, scale) * 90 / PI;
-      const flatHalfLat = viewport[1] / Math.max(1, scale) * 90 / PI;
-      const rotation = frameContext?.viewState?.rotation || view.rotation;
-      const flatCenter = frameContext?.viewState?.projectionCenter || view.flatCenter;
-      const globeCenter = [-Number(rotation?.[0] || 0), -Number(rotation?.[1] || 0)];
-      const globeRadius = Math.asin(Math.min(1, Math.hypot(viewport[0], viewport[1]) * 0.5 / Math.max(1, scale)));
-      for (let row = 0; row < level.rows; row += 1) {
-        for (let column = 0; column < level.columns; column += 1) {
-          const spec = terrainTileSpec(level, column, row);
-          if (includeAll) {
-            specs.push(spec);
-            continue;
-          }
-          const [west, north, east, south] = spec.bounds;
-          const center = [(west + east) / 2, (north + south) / 2];
-          const halfLon = (east - west) / 2;
-          const halfLat = (north - south) / 2;
-          const projectionKind = frameContext?.viewState?.projection || view.projection;
-          if (projectionKind === 'flat') {
-            const deltaLon = Math.abs((((center[0] - flatCenter[0]) + 540) % 360) - 180);
-            const deltaLat = Math.abs(center[1] - flatCenter[1]);
-            if (deltaLon <= flatHalfLon + halfLon + 2 && deltaLat <= flatHalfLat + halfLat + 2) specs.push(spec);
-          } else {
-            const padding = Math.hypot(halfLon, halfLat) * PI / 180;
-            if (geoDistance(globeCenter, center) <= globeRadius + padding + 0.04) specs.push(spec);
-          }
-        }
-      }
-      return specs;
+    const tileSelection=globalThis.PandoLabTerrainTileSelection;
+    const terrainTileSpec=tileSelection.tileSpec;
+    const terrainNeighbourSpecs=tileSelection.neighbours;
+    function visibleTerrainTileSpecs(level,includeAll=false,frameContext=activeFrameContext) {
+      const rotation=frameContext?.viewState?.rotation||view.rotation;
+      return tileSelection.visible(level,{
+        includeAll,viewport:frameContext?.viewport||[view.width,view.height],
+        scale:Number(frameContext?.scale)||1,
+        projection:frameContext?.viewState?.projection||view.projection,
+        flatCenter:frameContext?.viewState?.projectionCenter||view.flatCenter,
+        globeCenter:[-Number(rotation?.[0]||0),-Number(rotation?.[1]||0)],
+        distance:geoDistance,
+      });
     }
 
     function requestTerrainTile(spec, priority = 0, pump = true) {
