@@ -173,7 +173,7 @@ export function createNavigationBindings() {
       cancelBuiltinSearch: () => dependencies.labelPresentation.builtinPlaces.cancelSearch(),
       onSearchError: error => dependencies.feedback.reportOperationError(error, '내장 지명 검색에 실패했습니다.', 'PL-PLACE-SEARCH-001'),
       syncCanonicalControls: dependencies.readinessUi.syncCanonicalControls,
-      invalidateObjectPresentation: dependencies.objectDisplay.invalidateObjectPresentation, selectObjectSearchItem: dependencies.navigation.selectObjectSearchItem,
+      selectObjectSearchItem: dependencies.navigation.selectObjectSearchItem,
       focusObjectRef: dependencies.objectOperationsA.focusObjectRef,
       closeSearchAfterSingleSelection: () => (0, dependencies.workspaceUiA.closeSurface)('search'),
     }));

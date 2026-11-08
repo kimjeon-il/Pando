@@ -269,7 +269,6 @@ export function createObjectSearchController({
       commands.setSearchValue(event.currentTarget.value || '');
       window.clearTimeout(searchTimer);
       searchTimer = window.setTimeout(() => {
-        commands.commitSearch?.();
         render();
       }, searchDelay);
     });
@@ -370,7 +369,7 @@ export function createAppObjectSearchController(runtime = {}) {
   const {
     window, document, getElement: $, state,
     objectSearchGroupKeys, listObjectSearchItems, layerItemObjectRef, selectionDomain,
-    invalidateObjectPresentation, selectObjectSearchItem, closeSearchAfterSingleSelection, focusObjectRef, createIcon,
+    selectObjectSearchItem, closeSearchAfterSingleSelection, focusObjectRef, createIcon,
   } = runtime;
   const handleHoverError=error=>{if(!error.cancelled&&error.name!=='AbortError')runtime.onSearchError(error);};
   return createObjectSearchController({
@@ -431,7 +430,6 @@ export function createAppObjectSearchController(runtime = {}) {
         state.objectSearch = value;
         syncSearchClearButton($('objectSearchInput'), $('objectSearchClearBtn'));
       },
-      commitSearch: invalidateObjectPresentation,
       selectItem: ({ group, id, additive, range, orderedRefs }) => {
         const didSelect = selectObjectSearchItem(group, id, {
           mode: additive ? 'toggle' : 'replace',

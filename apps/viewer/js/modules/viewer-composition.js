@@ -132,7 +132,6 @@ export async function composeViewer({ productMode, meta }) {
     isSearchOpen:()=>surfaces.surfaceController.isOpen('search')&&map.searchActive(),isSearchSurfaceOpen:()=>surfaces.surfaceController.isOpen('search'),
     createIcon:(name,className)=>createSemanticIcon(document,name,className),createEmptyState:createEmptyState.bind(null,document),
     onSearchError:report,cancelBuiltinSearch:()=>map.cancelSearch(),builtinSearch:value=>map.searchPlaces(value),
-    invalidateObjectPresentation:map.objectCatalog.invalidateObjectPresentation,
     selectObjectSearchItem:map.navigation.selectObjectSearchItem,focusObjectRef:map.objectQuery.focusObjectRef,
     closeSearchAfterSingleSelection:()=>surfaces.closeSurface('search')});
   disposables.push(searchController);
