@@ -4,57 +4,89 @@ on:
     branches: [work/ui]
     paths: ['.github/workflows/ui-prebuilt-mesh-focused.yml']
   workflow_dispatch:
-permissions: {contents: read}
+permissions: {contents: write}
+defaults:
+  run:
+    shell: bash
 jobs:
-  contracts:
+  acceptance:
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
-        with: {persist-credentials: false}
+        with: {ref: work/ui, persist-credentials: true, fetch-depth: 0}
       - uses: actions/setup-node@v4
         with: {node-version-file: .nvmrc}
       - uses: pnpm/action-setup@v4
       - uses: ./.github/actions/library-data
       - run: pnpm install --frozen-lockfile --ignore-scripts
-      - name: Prepare only the policy used by synthetic compiler fixtures
-        run: node --input-type=module -e "import {readLibraryDataFile} from './tools/data/library-context.mjs';readLibraryDataFile('assets/data/builtin-world/display-policy-v1.json',{fetch:true});"
-      - name: Verify the affected mesh, read-index, worker and upload contracts
+      - name: Update precise test ports without changing production expectations
+        run: |
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          git diff --exit-code
+          mkdir -p "$RUNNER_TEMP/ui-final"
+          node --input-type=module <<'JS'
+          import {readFileSync,writeFileSync} from 'node:fs';
+          const replace=(file,before,after)=>{const s=readFileSync(file,'utf8');if(!s.includes(before))throw Error('Changed fixture: '+file);writeFileSync(file,s.replace(before,after));};
+          const boot='tests/unit/app/viewer-bootstrap-recovery.test.mjs';
+          replace(boot,"import assert from 'node:assert/strict';","import {installRuntimePerformanceMetrics} from '../../../src/runtime/runtime-performance-metrics.js';\nimport assert from 'node:assert/strict';");
+          replace(boot,'window.navigator={onLine:true};window.document=document;','window.navigator={onLine:true};window.document=document;window.performance=performance;');
+          replace(boot,'PANDOLAB_BUILD_META:{appVersion:\'fixture\'},isRecoverableLoadError,',"PANDOLAB_BUILD_META:{appVersion:'fixture'},isRecoverableLoadError,\n    installRuntimePerformanceMetrics:()=>installRuntimePerformanceMetrics({globalObject:window,documentRef:document}),");
+          replace(boot,'loadVerifiedCore:async options=>{reads++;signal=options.signal;',"loadVerifiedCore:async options=>{assert.equal(typeof window.__PANDOLAB_PERFORMANCE_REPORT__,'function','metrics must be installed before engine preparation');reads++;signal=options.signal;");
+          const workers='tests/unit/rendering/gpu-resource-owners.test.mjs';
+          replace(workers,'class NativeWorker { constructor() { workers.push(this); } postMessage() {} terminate() {} }','class NativeWorker extends EventTarget { constructor() { super();workers.push(this); } postMessage() {} terminate() {} }');
+          replace(workers,"const first = owner.create('url');","const first = owner.create('https://test.local/worker.js');");
+          const recovery='tests/unit/runtime/background-startup-recovery.test.mjs';
+          replace(recovery,'let calls=0,factories=0,imports=0,revoked=0,failures=0,corrupt=false,missing=false;','let calls=0,factories=0,imports=0,revoked=0,failures=0,corrupt=false,missing=false;const requests=[];');
+          replace(recovery,'fetchAsset:async url=>{calls++;if(failures-->0)', 'fetchAsset:async url=>{requests.push(url);calls++;if(failures-->0)');
+          replace(recovery,'return {options,manifest,fail:()=>failures=1,','return {options,manifest,requests,fail:()=>failures=1,');
+          replace(recovery,'assert.deepEqual(f.stats(),{calls:3,factories:0,imports:0,revoked:0});',"// Existing immutable-byte owner makes three bounded attempts per damaged asset.\n  assert.deepEqual(f.stats(),{calls:7,factories:0,imports:0,revoked:0});\n  assert.equal(f.requests.filter(url=>url.includes('manifest.json')).length,1);\n  assert.equal(f.requests.filter(url=>url.includes('pandoeditor-core.js?')).length,3);\n  assert.equal(f.requests.filter(url=>url.includes('pandoeditor-core.wasm?')).length,3);");
+          JS
+          node --input-type=module -e "import {readLibraryDataFile} from './tools/data/library-context.mjs';readLibraryDataFile('assets/data/builtin-world/display-policy-v1.json',{fetch:true});"
+          git diff --check
+      - name: Verify all and only affected mesh, read-index, worker and upload contracts
         env:
           CHECK_SELECTION: '{"unitTests":["tests/unit/rendering/prepared-country-scene.test.mjs","tests/unit/data/builtin-mesh-resource.test.mjs","tests/unit/rendering/country-mesh-preparation.test.mjs","tests/unit/rendering/gpu-country-mesh-variants.test.mjs","tests/unit/data/builtin-read-index.test.mjs","tests/unit/data/builtin-world-loader.test.mjs","tests/unit/data/builtin-country-loading.test.mjs","tests/unit/data/builtin-country-parts.test.mjs","tests/unit/runtime/core-module-sharing.test.mjs","tests/unit/runtime/core-wasm-loader.test.mjs","tests/unit/runtime/background-startup-recovery.test.mjs","tests/unit/rendering/gpu-upload-budget.test.mjs","tests/unit/rendering/gpu-resource-owners.test.mjs","tests/unit/document/core-document-client.test.mjs","tests/unit/app/viewer-bootstrap-recovery.test.mjs"],"browserSpecs":[],"commands":[],"prerequisites":[]}'
-        run: node scripts/run-application-checks.mjs --phase non-browser | tee "$RUNNER_TEMP/ui-contracts.log"
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: ui-contracts-${{ github.sha }}
-          path: ${{ runner.temp }}/ui-contracts.log
-          retention-days: 7
-  presentation:
-    runs-on: ubuntu-24.04
-    timeout-minutes: 12
-    steps:
-      - uses: actions/checkout@v4
-        with: {persist-credentials: false, fetch-depth: 0}
-      - uses: actions/setup-node@v4
-        with: {node-version-file: .nvmrc}
-      - uses: pnpm/action-setup@v4
-      - uses: ./.github/actions/library-data
-      - run: pnpm install --frozen-lockfile --ignore-scripts
+        run: |
+          set -o pipefail
+          node scripts/run-application-checks.mjs --phase non-browser | tee "$RUNNER_TEMP/ui-final/unit.log"
       - run: pnpm exec playwright install --with-deps chromium
-      - name: Verify current country and border frames, engine requests and date return
+      - name: Verify real country and border frames, engine requests and date return
         env:
           CHECK_SELECTION: '{"unitTests":[],"browserSpecs":["tests/browser/runtime/viewer-readonly-startup.spec.mjs","tests/browser/rendering/country-prepared-scene.spec.mjs"],"commands":[],"prerequisites":[]}'
-        run: node scripts/run-application-checks.mjs --phase browser | tee "$RUNNER_TEMP/ui-presentation.log"
-      - name: Preserve exact committed source delta and browser evidence
+        run: |
+          set -o pipefail
+          node scripts/run-application-checks.mjs --phase browser | tee "$RUNNER_TEMP/ui-final/browser.log"
+      - name: Commit verified fixtures and restore a fail-fast read-only acceptance workflow
+        run: |
+          test "$(git ls-remote origin refs/heads/work/ui | cut -f1)" = "$GITHUB_SHA"
+          node --input-type=module <<'JS'
+          import {execFileSync} from 'node:child_process';
+          import {writeFileSync} from 'node:fs';
+          const file='.github/workflows/ui-prebuilt-mesh-focused.yml';
+          let source=execFileSync('git',['show','00001717ff698224e47664d1302066d29c8db087:'+file],{encoding:'utf8'});
+          source=source.replace('permissions: {contents: read}','permissions: {contents: read}\ndefaults:\n  run:\n    shell: bash');
+          writeFileSync(file,source);
+          JS
+          git add tests/unit/app/viewer-bootstrap-recovery.test.mjs tests/unit/rendering/gpu-resource-owners.test.mjs tests/unit/runtime/background-startup-recovery.test.mjs .github/workflows/ui-prebuilt-mesh-focused.yml
+          git diff --cached --check
+          git -c user.name='Pando Viewer implementation' -c user.email='viewer@users.noreply.github.com' commit -m 'test(viewer): wire real metrics and worker event ports; preserve fail-fast acceptance [skip ci]'
+          git push origin HEAD:refs/heads/work/ui
+          test "$(git ls-remote origin refs/heads/work/ui | cut -f1)" = "$(git rev-parse HEAD)"
+          git rev-parse HEAD > "$RUNNER_TEMP/ui-final/commit"
+          cat config/library-data.json > "$RUNNER_TEMP/ui-final/data-pin.json"
+      - name: Preserve actual committed source and measurement evidence
         if: always()
-        run: git bundle create "$RUNNER_TEMP/ui-final.bundle" HEAD ^c55de747c224eeddea48d1bd6db7eb6f1a37f2df
+        run: |
+          mkdir -p "$RUNNER_TEMP/ui-final"
+          git diff HEAD --binary > "$RUNNER_TEMP/ui-final/pending.patch"
+          git bundle create "$RUNNER_TEMP/ui-final/source.bundle" HEAD ^c55de747c224eeddea48d1bd6db7eb6f1a37f2df
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: ui-presentation-${{ github.sha }}
+          name: ui-final-${{ github.sha }}
           path: |
-            ${{ runner.temp }}/ui-presentation.log
-            ${{ runner.temp }}/ui-final.bundle
+            ${{ runner.temp }}/ui-final/
             test-results/
           if-no-files-found: warn
           retention-days: 7
