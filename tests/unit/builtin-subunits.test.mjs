@@ -29,14 +29,17 @@ const { mergeBuiltinTerritories } = __country_dep7;
 
 
 const displayPolicy=loadBuiltinDisplayPolicy();
-const source = JSON.parse(readFileSync(new URL('../../assets/data/countries-ne-5.1.1.geojson', import.meta.url)));
+// Runtime classification consumes the canonical active view, not the preserved
+// raw Natural Earth evidence (whose mislabelled PGA feature is no longer active).
+const source = JSON.parse(readFileSync(new URL('../../assets/data/territorial-entities/generated/current-world.geojson', import.meta.url)));
 const before = JSON.stringify(source);
 const result = classifyBuiltinCountries(normalizeCountryCollection(source),{displayPolicy});
 const ids = new Set(result.countries.features.map(f => f.id));
 
-test('47 agreed source objects become stable Subunits; 207 countries and exceptions remain', () => {
-  assert.equal(displayPolicy.subunits.length, 47);
-  assert.equal(new Set(result.subunits.map(f => f.id)).size, 47);
+test('46 active source objects become stable Subunits; 207 countries and exceptions remain', () => {
+  assert.equal(displayPolicy.subunits.length, 46);
+  assert.equal(new Set(result.subunits.map(f => f.id)).size, 46);
+  assert.equal(source.features.some(feature=>feature.id==='PGA'),false);
   assert.equal(ids.size, 207);
   for (const id of ['ATA', 'BRT', 'SAH', 'CNM', 'CYN', 'SOL', 'KAS', 'SPI']) assert.ok(ids.has(id));
   for (const unit of result.subunits) {
@@ -49,7 +52,7 @@ test('47 agreed source objects become stable Subunits; 207 countries and excepti
 test('all source geometries stay identical; normalization and classification do not mutate input', () => {
   const originals = new Map(source.features.map(f => [f.id, f]));
   const normalized = normalizeTerritorialEntities([...result.countries.features, ...result.subunits]).filter(feature => feature.properties.parentId);
-  assert.equal(normalized.length, 47);
+  assert.equal(normalized.length, 46);
   for (const feature of [...result.countries.features, ...normalized]) {
     const original = originals.get(builtinSubunitSourceId(feature) || feature.id);
     const expected = mergeBuiltinTerritories(source,displayPolicy.territoryMerges).features.find(f => f.id === original.id);

@@ -5,7 +5,7 @@
 
 | 원본 공간 ID | 새 기본 표시 |
 | --- | --- |
-| PGA | 미국 하위단위 웨이크섬 |
+| PGA | Invalid Wake-labelled identity retired; raw NE Spratly geometry remains original evidence. |
 | BRI | 브라질 국토에 포함 |
 | BJN, SER | 콜롬비아 국토에 포함 |
 | SCR | 중국 국토에 포함 |
@@ -43,8 +43,8 @@ SPI는 73.588036–73.057424W / 49.759959–49.272754S이다.
 
 ## 구현 구조 변경 (2026-11-07, `work/optimization`)
 
-국가·속령 관계 47건과 영토 합성 예외 4건의 데이터 소유자는
-`config/builtin-display-policy.json`이다. 생성기는
+국가·속령 관계 46건과 영토 합성 예외 4건의 데이터 소유자는
+`assets/data/builtin-world/display-policy-v1.json`이다. 생성기는
 `tools/gis/builtin-display-policy.mjs`의 검증을 거쳐 이 파일을 읽는다.
 `builtin-subunits.js`와 `builtin-territory-policy.js`는 국가 식별자·
 관할국 목록을 내장하지 않는 순수 처리기로 전환됐다.
