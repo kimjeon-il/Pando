@@ -2,7 +2,7 @@ import {compactNotificationMessage} from './notification-copy.js';
 export function createNotificationPresentation(ports){
   const getElement=(...args)=>ports.getElement(...args),isMobile=()=>ports.isMobile();
   let errorHoldUntil=0;
-  let notificationTimer=null;
+  let notificationTimer=null, disposed=false;
   function clearNotification() {
     errorHoldUntil=0;
     clearTimeout(notificationTimer);
@@ -21,6 +21,7 @@ export function createNotificationPresentation(ports){
   }
 
   function setActionStatus(message, tone = 'success', timeout = 1800, { forceVisible = false } = {}) {
+    if(disposed)return;
     const notice = getElement('actionStatus');
     if (!notice) return;
     // Background readiness/success must not immediately erase a user's file
@@ -76,5 +77,6 @@ export function createNotificationPresentation(ports){
     return message;
   }
 
-  return Object.freeze({clearNotification,clearErrorNotification,setActionStatus,isSafeKoreanErrorMessage,reportOperationError,dispose:()=>{clearTimeout(notificationTimer);notificationTimer=null;}});
+  return Object.freeze({clearNotification,clearErrorNotification,setActionStatus,isSafeKoreanErrorMessage,reportOperationError,
+    dispose(){if(disposed)return;disposed=true;clearNotification();}});
 }

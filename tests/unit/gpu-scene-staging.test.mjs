@@ -1,4 +1,5 @@
 import { describe as contractSuite } from 'node:test';
+import { createGpuScene } from '../../shared/frontend/js/modules/gpu-scene.js';
 import * as __contract_dep0 from "node:assert/strict";
 import * as __contract_dep1 from "node:test";
 import * as __contract_dep2 from "../../shared/frontend/js/modules/gpu-scene-preparation.js";
@@ -147,6 +148,49 @@ test('failure of both B and eligible A is a failed presentation with no promotio
   assert.deepEqual(result.strokeDomainReplacements, []);
 });
 contractSuite("gpu-scene-worker-presentation", () => {
+test('failed polygon preparation clears pending identity and retries the current input',async()=>{
+  let attempts=0, ready=false, scheduled=null, presented=0, errorReports=0;
+  const builder={
+    clear(){},setCacheByteBudget(){},releasePrepared(){},cancelPreparation(){},
+    missingPolygons:()=>ready?[]:[{cacheKey:'polygon:A'}],
+    preparePolygons:()=>++attempts===1?Promise.reject(new Error('temporary worker error'))
+      :Promise.resolve().then(()=>{ready=true;}),
+    build:input=>({revision:input.revision,revisions:input.revisions,polygons:input.polygons||[],strokes:input.strokes||[]}),
+    patch:(previous,input)=>({...previous,...input,polygons:input.polygons||previous.polygons,strokes:input.strokes||previous.strokes}),
+  };
+  const scene=createGpuScene();
+  scene.connect({
+    projectState:{state:{layerPresentation:{},layerVisibility:{objects:true,rivers:true,lakes:true},
+      pendingCountryRenderIds:new Set(),physicalSettings:{terrainVisible:false},projection:'flat',stateRevision:1},
+      mapWorkScheduler:{cancel(){},scheduleIdle(_key,fn){scheduled=fn;}}},
+    interactionPresentation:{currentGpuInteractionFillItems:[]},
+    interactionStateCommands:{replaceGpuInteractionFillItems(){}},
+    countries:{countryLandRevision:1},mapLayout:{viewRevision:1},
+    renderScene:{createRenderSceneBuilder:()=>builder,currentRenderQuality:{revision:1,backgroundLod:'high',renderPacketCacheBudgetBytes:1024},OVERLAY_GROUPS:[]},
+    platform:{runtimeAssetUrl:name=>name},
+    rendering:{gpuMapRenderer:{getRuntimeState:()=>({renderer:'webgl2'}),setRenderScene(){presented++;}}},
+    domains:{renderingDomain:{invalidateBaseScene(){},invalidateGpuInteraction(){}}},
+    feedback:{reportOperationError(){errorReports++;}},
+  });
+  scene.initializeGpuSceneDomains();scene.initializeGpuSceneResourceObjectKeys();scene.initializeRenderSceneBuilder();
+  scene.replaceGpuSceneDomain('generic-features',{polygons:[{key:'A',geometryRevision:'v1',
+    geometry:{type:'Polygon',coordinates:[]},style:{color:'#ffffff'}}]});
+  scene.syncGpuRenderScene();
+  await Promise.resolve();await Promise.resolve();
+  assert.equal(attempts,1);
+  assert.equal(typeof scheduled,'function');
+  assert.equal(errorReports,0);
+  scheduled();
+  scene.syncGpuRenderScene();
+  await Promise.resolve();await Promise.resolve();
+  assert.equal(attempts,2);
+  assert.ok(presented>=1);
+  scene.replaceGpuSceneDomain('generic-features',{polygons:[{key:'A',geometryRevision:'v1',
+    geometry:{type:'Polygon',coordinates:[]},style:{color:'#ffffff'}}]});
+  assert.ok(presented>=1);
+});
+
+
 const test = __contract_dep1.default;
 const assert = __contract_dep0.default;
 const { readFileSync } = __contract_dep4;

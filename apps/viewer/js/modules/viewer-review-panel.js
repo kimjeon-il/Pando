@@ -500,7 +500,9 @@ export function createViewerReviewPanel({document,window,map,documentSession,isB
   listen(get('reviewEvidenceInput'),'change',event=>{if(event.target.files?.length)loadEvidence(event.target.files);});
   listen(get('reviewSearch'),'input',renderBrowse);
   listen(get('reviewKindFilter'),'change',renderBrowse);
-  listen(get('reviewFocusBtn'),'click',()=>focusOnMap().catch(e=>feedback('reviewFocusStatus',e.message,'error')));
+  listen(get('reviewFocusBtn'),'click',()=>focusOnMap().catch(e=>{
+    if(!disposed&&!panel.hidden)feedback('reviewFocusStatus',e.message,'error');
+  }));
   listen(get('reviewFetchGeometry'),'click',()=>compare());
   listen(get('reviewSourceBtn'),'click',()=>get('reviewSourceInput').click());
   listen(get('reviewSourceInput'),'change',e=>{if(e.target.files?.length)loadSourceFiles(e.target.files);});

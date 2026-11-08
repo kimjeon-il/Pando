@@ -149,6 +149,17 @@ test('current document world rows share immutable authoritative identities/archi
   assert.equal(next.byId.get('A').geometry, world.byId.get('A').geometry);
 });
 
+test('unchanged consecutive C++ month results preserve accepted view row identity', () => {
+  const model=createCoreDocumentReadModel(seed());
+  const entry={objectRef:{domain:'territorial',id:'A'},geometryRef:{id:'shape',version:1},
+    parentId:'',coverageMode:'explicit',validFrom:null,validTo:null,rootId:'A',ancestors:[],properties:{}};
+  const previous=model.acceptWorld({month:'1914-07',sourceEpoch:1,entities:[entry]},1);
+  const next=model.acceptWorld({month:'1914-08',sourceEpoch:2,entities:[structuredClone(entry)]},2);
+  assert.equal(next.entities[0],previous.entities[0]);
+  assert.equal(next.byId.get('A'),previous.entities[0]);
+  assert.equal(model.territorialViews()[0].geometry,previous.entities[0].geometry);
+});
+
 test('world projection rejects stale epochs and invalid refs without modifying the accepted document', () => {
   const model = createCoreDocumentReadModel(seed()), before = model.snapshot();
   assert.throws(() => model.projectWorld({ month: '1914-07', sourceEpoch: 1, entities: [] },2), { code: 'PL-CORE-STALE' });
