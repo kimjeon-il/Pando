@@ -25,6 +25,7 @@ export function createObjectSearchController({
   let searchTimer = 0;
   let renderedDependencies = null;
   let renderedSearchRefs = [];
+  let cachedCatalog = null, cachedRevision;
   let hydrated = false;
   let disposed = false;
   let bound = false;
@@ -110,13 +111,18 @@ export function createObjectSearchController({
 
   function rowsFor(query) {
     if (!query) return [];
-    const presentation = createObjectSearchModel({
-      items: model.items,
-      groups: groups.search,
-      itemRef: model.itemRef,
-      compare: model.compare,
-    });
-    return visibleObjectSearchRows(presentation, query);
+    // Unknown revisions (e.g. isolated callers) keep the safe uncached path.
+    const revision = model.catalogRevision?.();
+    if (!cachedCatalog || revision === undefined || revision !== cachedRevision) {
+      cachedCatalog = createObjectSearchModel({
+        items: model.items,
+        groups: groups.search,
+        itemRef: model.itemRef,
+        compare: model.compare,
+      });
+      cachedRevision = revision;
+    }
+    return visibleObjectSearchRows(cachedCatalog, query);
   }
 
   function commitRows(query, rows) {
@@ -322,6 +328,7 @@ export function createObjectSearchController({
     }
     renderedDependencies = null;
     renderedSearchRefs = [];
+    cachedCatalog = null;
     builtinQuery = null;
     builtinRows = [];
     builtinTruncated = false;
@@ -345,6 +352,7 @@ export function createObjectSearchController({
     cancelBuiltinSearch();
     builtinRows = [];
     renderedSearchRefs = [];
+    cachedCatalog = null;
     window.clearTimeout(searchTimer);
   }
 
@@ -393,6 +401,7 @@ export function createAppObjectSearchController(runtime = {}) {
       snapshot: () => ({ builtinContext:JSON.stringify([state.timelineCursor,state.layerVisibility?.labels,state.itemVisibility?.labels]),search: state.objectSearch, searchActive: runtime.isSearchOpen(),
         searchSurfaceOpen: runtime.isSearchSurfaceOpen() }),
       items: listObjectSearchItems,
+      catalogRevision: () => state.objectPresentationRevision,
       itemRef: layerItemObjectRef,
       selectionSnapshot: () => selectionDomain.snapshot(),
       compare: compareSearchItems,

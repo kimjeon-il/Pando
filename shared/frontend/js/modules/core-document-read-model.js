@@ -100,7 +100,7 @@ export function createCoreDocumentReadModel(initialProject) {
       const sourceVersion=sourceBinding?.sourceVersionId||'';
       const prior=previousWorld?.byId?.getObject?.(row.objectRef);
       if(prior && prior.geometry===geometry
-        && prior.identity?.properties?.sourceGeometryVersion === sourceVersion
+        && String(prior.identity?.properties?.sourceGeometryVersion ?? '') === sourceVersion
         && ['parentId','coverageMode','validFrom','validTo','rootId'].every(field=>prior[field]===row[field])
         && sameDisplayValue(prior.geometryRef,row.geometryRef)
         && sameDisplayValue(prior.ancestors,row.ancestors)

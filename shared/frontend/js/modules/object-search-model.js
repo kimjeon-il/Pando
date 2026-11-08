@@ -9,10 +9,16 @@ export function createObjectSearchModel({items,groups,itemRef,compare}) {
     rows.set(key,{...source,kind:'object',key,ref,layerGroup,typeLabel});
   }
   const order=(a,b)=>compare({name:a.name,id:''},{name:b.name,id:''})||(a.key<b.key?-1:a.key>b.key?1:0);
-  return Object.freeze({items:Object.freeze([...rows.values()].sort(order))});
+  const items=Object.freeze([...rows.values()].sort(order));
+  // Search text is prepared once per catalog generation, not per keystroke.
+  const terms=Object.freeze(items.map(item=>
+    [item.name,item.typeLabel,item.searchText||'',item.id].join(' ').toLocaleLowerCase('ko')));
+  return Object.freeze({items,terms});
 }
 export function visibleObjectSearchRows(model,search='') {
   const query=search.trim().toLocaleLowerCase('ko');
   if(!query)return [];
+  if(Array.isArray(model.terms)&&model.terms.length===model.items.length)
+    return model.items.filter((item,index)=>model.terms[index].includes(query));
   return model.items.filter(item=>[item.name,item.typeLabel,item.searchText||'',item.id].join(' ').toLocaleLowerCase('ko').includes(query));
 }

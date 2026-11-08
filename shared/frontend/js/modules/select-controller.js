@@ -14,9 +14,9 @@ export function normalizeSelectQuery(value) {
 
 function optionMatchRank(option, query) {
   if (!query) return 0;
-  const label = normalizeSelectQuery(option.label);
-  const value = normalizeSelectQuery(option.value);
-  const searchText = normalizeSelectQuery(option.searchText);
+  const label = option.normalizedLabel ?? normalizeSelectQuery(option.label);
+  const value = option.normalizedValue ?? normalizeSelectQuery(option.value);
+  const searchText = option.normalizedSearchText ?? normalizeSelectQuery(option.searchText);
   if (label === query || value === query) return 0;
   if (label.startsWith(query) || value.startsWith(query)) return 1;
   if (searchText.split(' ').some(part => part.startsWith(query))) return 2;
@@ -76,17 +76,22 @@ export function createSelectController({
   }
 
   function optionData(select) {
-    return [...select.options].map((option, index) => ({
-      index,
-      value: String(option.value),
-      label: String(option.label || option.textContent || option.value),
-      searchText: `${option.dataset.searchText || ''} ${option.value}`,
-      tooltip: option.dataset.tooltip || '',
-      disabled: !!option.disabled,
-      hidden: !!option.hidden,
-      placeholder: isPlaceholderOption(option),
-      selected: !!option.selected,
-    }));
+    return [...select.options].map((option, index) => {
+      const value = String(option.value);
+      const label = String(option.label || option.textContent || option.value);
+      const searchText = `${option.dataset.searchText || ''} ${option.value}`;
+      return {
+        index, value, label, searchText,
+        normalizedLabel: normalizeSelectQuery(label),
+        normalizedValue: normalizeSelectQuery(value),
+        normalizedSearchText: normalizeSelectQuery(searchText),
+        tooltip: option.dataset.tooltip || '',
+        disabled: !!option.disabled,
+        hidden: !!option.hidden,
+        placeholder: isPlaceholderOption(option),
+        selected: !!option.selected,
+      };
+    });
   }
 
   function selectedOption(component) {
@@ -156,15 +161,20 @@ export function createSelectController({
   function setActiveOption(component, index, { scroll = true } = {}) {
     if (!component.renderedOptions.length) {
       component.activeIndex = -1;
+      component.activeRow?.classList.remove('is-active');
+      component.activeRow = null;
       component.control.removeAttribute('aria-activedescendant');
       return;
     }
     const count = component.renderedOptions.length;
     component.activeIndex = ((index % count) + count) % count;
-    const rows = [...component.listbox.querySelectorAll('.ui-select-option')];
-    rows.forEach((row, rowIndex) => row.classList.toggle('is-active', rowIndex === component.activeIndex));
-    const activeRow = rows[component.activeIndex];
+    const activeRow = component.renderedRows[component.activeIndex];
     if (!activeRow) return;
+    if (component.activeRow !== activeRow) {
+      component.activeRow?.classList.remove('is-active');
+      activeRow.classList.add('is-active');
+      component.activeRow = activeRow;
+    }
     component.control.setAttribute('aria-activedescendant', activeRow.id);
     if (scroll) activeRow.scrollIntoView({ block: 'nearest' });
   }
@@ -174,6 +184,7 @@ export function createSelectController({
     component.renderedOptions = options;
     const selected = selectedOption(component);
     const fragment = documentRef.createDocumentFragment();
+    const renderedRows = [];
     for (const [rowIndex, option] of options.entries()) {
       const row = documentRef.createElement('div');
       row.id = `${component.listbox.id}-option-${option.index}`;
@@ -196,6 +207,7 @@ export function createSelectController({
         if (!option.disabled) commitOption(component, option);
       });
       row.addEventListener('pointermove', () => setActiveOption(component, rowIndex, { scroll: false }));
+      renderedRows.push(row);
       fragment.appendChild(row);
     }
     if (!options.length) {
@@ -210,6 +222,8 @@ export function createSelectController({
       fragment.appendChild(status);
     }
     component.listbox.replaceChildren(fragment);
+    component.renderedRows = renderedRows;
+    component.activeRow = null;
     const selectedIndex = options.findIndex(option => option.value === selected?.value);
     setActiveOption(component, selectedIndex >= 0 ? selectedIndex : 0, { scroll: false });
     windowRef.requestAnimationFrame(() => {
@@ -406,6 +420,8 @@ export function createSelectController({
       listbox,
       options: [],
       renderedOptions: [],
+      renderedRows: [],
+      activeRow: null,
       activeIndex: -1,
       query: '',
       queryFrame: 0,
