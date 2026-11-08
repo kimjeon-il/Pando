@@ -21,7 +21,6 @@ on:
       - 'tools/gis/fetch-german-empire-1914-source.mjs'
       - 'tools/gis/fetch-east-germany-sources.mjs'
       - 'tests/unit/geometry/hydro-independent-evidence.test.mjs'
-      - 'tests/unit/geometry/osm-hydro-inventory.test.mjs'
       - 'tools/lib/geonames-zip.mjs'
       - 'tools/lib/geonames-policy.mjs'
       - 'tools/lib/geonames-review.mjs'
@@ -37,7 +36,8 @@ on:
       - 'tests/unit/geometry/gis-source-launcher.test.mjs'
       - 'tests/unit/data/report-paths.test.mjs'
       - 'tests/unit/ui/ui-source-catalog.test.mjs'
-      - 'tests/unit/geometry/r4c-spatial-boundaries.test.mjs'
+      - 'tests/unit/geometry/gis-math-contract.test.mjs'
+      - 'tests/unit/geometry/annex-slivers.test.mjs'
   workflow_dispatch:
 permissions:
   contents: read
@@ -78,5 +78,5 @@ jobs:
           node --check tools/lib/geonames-review.mjs
           node --check tools/lib/geonames-statistics.mjs
           node --test tests/unit/data/hydro-packfile.test.mjs tests/unit/geometry/download-terrain-source.test.mjs tests/unit/document/place-batch-pipeline.test.mjs tests/unit/document/place-candidates.test.mjs tests/unit/geometry/gis-source-launcher.test.mjs tests/unit/data/report-paths.test.mjs  tests/unit/ui/ui-source-catalog.test.mjs
-          node --test   tests/unit/geometry/hydro-independent-evidence.test.mjs tests/unit/geometry/hydro-ne-sampling.test.mjs tests/unit/geometry/hydro-name.test.mjs  tests/unit/geometry/osm-hydro-inventory.test.mjs tests/unit/geometry/r4c-spatial-boundaries.test.mjs tests/unit/geometry/gis-source-launcher.test.mjs
-          pnpm exec eslint tools/gis/fetch-east-germany-sources.mjs  tools/gis/baikonur-official-reference.mjs  tools/gis/fetch-german-empire-1914-source.mjs  tools/gis/verify-published-hydro-independent-names.mjs tests/unit/geometry/hydro-independent-evidence.test.mjs tools/gis/compare-osm-hydro-natural-earth.mjs tests/unit/geometry/hydro-ne-sampling.test.mjs tools/gis/inventory-hydro-names.mjs tests/unit/geometry/hydro-name.test.mjs tools/gis/check-official-usgs-hydro-gauges.mjs  tools/gis/hydro-independent-name-policy.mjs tools/gis/inventory-osm-hydronyms.mjs tests/unit/geometry/osm-hydro-inventory.test.mjs tools/build/build-place-candidates.mjs tools/lib/geonames-zip.mjs tools/lib/geonames-policy.mjs tools/lib/geonames-review.mjs tools/lib/geonames-statistics.mjs tools/gis/place-batch-pipeline.mjs tools/gis/download-terrain-source.mjs tools/build/build-hydro-packfile.mjs tools/data/report-paths.mjs scripts/gis/run-source.mjs scripts/summarize-boundary-capture-evidence.mjs tests/helpers/geonames-fixtures.mjs tests/unit/document/place-candidates.test.mjs tests/unit/geometry/gis-source-launcher.test.mjs  tests/unit/ui/ui-source-catalog.test.mjs tests/unit/geometry/r4c-spatial-boundaries.test.mjs
+          node --test   tests/unit/geometry/hydro-independent-evidence.test.mjs tests/unit/geometry/hydro-ne-sampling.test.mjs tests/unit/geometry/hydro-name.test.mjs   tests/unit/geometry/gis-math-contract.test.mjs tests/unit/geometry/annex-slivers.test.mjs tests/unit/geometry/gis-source-launcher.test.mjs
+          pnpm exec eslint tools/gis/fetch-east-germany-sources.mjs  tools/gis/baikonur-official-reference.mjs  tools/gis/fetch-german-empire-1914-source.mjs  tools/gis/verify-published-hydro-independent-names.mjs tests/unit/geometry/hydro-independent-evidence.test.mjs tools/gis/compare-osm-hydro-natural-earth.mjs tests/unit/geometry/hydro-ne-sampling.test.mjs tools/gis/inventory-hydro-names.mjs tests/unit/geometry/hydro-name.test.mjs tools/gis/check-official-usgs-hydro-gauges.mjs  tools/gis/hydro-independent-name-policy.mjs tools/gis/inventory-osm-hydronyms.mjs  tools/build/build-place-candidates.mjs tools/lib/geonames-zip.mjs tools/lib/geonames-policy.mjs tools/lib/geonames-review.mjs tools/lib/geonames-statistics.mjs tools/gis/place-batch-pipeline.mjs tools/gis/download-terrain-source.mjs tools/build/build-hydro-packfile.mjs tools/data/report-paths.mjs scripts/gis/run-source.mjs scripts/summarize-boundary-capture-evidence.mjs tests/helpers/geonames-fixtures.mjs tests/unit/document/place-candidates.test.mjs tests/unit/geometry/gis-source-launcher.test.mjs  tests/unit/ui/ui-source-catalog.test.mjs tests/unit/geometry/gis-math-contract.test.mjs tests/unit/geometry/annex-slivers.test.mjs
