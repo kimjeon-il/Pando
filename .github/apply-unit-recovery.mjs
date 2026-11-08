@@ -41,7 +41,9 @@ for(const part of parts){
     // If every removed test reference is already absent, preserve its newer
     // semantics and presentation rather than replaying an obsolete layout.
     if(path.startsWith('.github/workflows/')){
-      const obsolete=removed.flatMap(line=>Array.from(line.matchAll(/tests\/(?:unit|native)\/[a-zA-Z0-9._\/-]+\.test\.mjs/g),m=>m[0]));
+      const testRefs=line=>Array.from(line.matchAll(/tests\/(?:unit|native)\/[a-zA-Z0-9._\/-]+\.test\.mjs/g),m=>m[0]);
+      const retained=new Set(added.flatMap(testRefs));
+      const obsolete=removed.flatMap(testRefs).filter(name=>!retained.has(name));
       const now=readFileSync(path,'utf8');
       if(obsolete.length&&obsolete.every(name=>!now.includes(name))){
         console.log('Already retired references in newer workflow: '+path);
