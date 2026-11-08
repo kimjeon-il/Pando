@@ -6,6 +6,7 @@ import { isolatedTestWorkspace } from '../helpers/check-workspace-fixture.mjs';
 import { join } from 'node:path';
 import { collectChanges } from '../../scripts/lib/check-changes.mjs';
 import {planUnitTestBatches, UNIT_BATCH_LIMIT} from '../../scripts/lib/unit-test-batches.mjs';
+import {unitIsolationResource, requiresUnitIsolation} from '../../scripts/lib/unit-test-isolation.mjs';
 import { executePlan as executeCiPlan, executionOutputs, selectionRequest } from '../../scripts/run-application-checks.mjs';
 import * as runner from '../../scripts/run-application-checks.mjs';
 
@@ -71,17 +72,17 @@ test('missing tools and test process failures are failures, never skipped passes
   assert.equal(executePlan(plan, { repository, run: () => { throw Error('ENOENT'); } }).ok, false);
 });
 
-test('shared report and cleanup fixtures run separately after other unit tests', () => {
+test('shared report worktree suites run in dedicated processes after ordinary units', () => {
   const repository = { root: '/fixture', catalog: { prerequisites: {}, groups: [] } };
   const files = ['tests/unit/place-publication.test.mjs','tests/unit/other.test.mjs',
-    'tests/unit/place-sync-contract.test.mjs','tests/unit/reference-cache-cleanup.test.mjs'];
+    'tests/unit/place-sync-contract.test.mjs'];
   const calls=[];
   const result=executePlan({prerequisites:[],commands:[],unitTests:files,browserSpecs:[]},
     {repository,phase:'non-browser',run:argv=>{calls.push(argv);return {status:0};}});
   assert.equal(result.ok,true);
   assert.deepEqual(calls.map(args=>args.filter(arg=>arg.startsWith('tests/unit/'))),[
-    ['tests/unit/other.test.mjs'],['tests/unit/place-publication.test.mjs'],
-    ['tests/unit/place-sync-contract.test.mjs'],['tests/unit/reference-cache-cleanup.test.mjs'],
+    ['tests/unit/other.test.mjs'], ['tests/unit/place-publication.test.mjs'],
+    ['tests/unit/place-sync-contract.test.mjs'],
   ]);
 });
 
@@ -245,4 +246,14 @@ test('P3 full and affected unit entrypoints share stable prerequisite-bounded ba
   assert.deepEqual(batches.map(row => row.required), [[], ['native-map-image'], []]);
   assert.equal(batches.at(-1).isolated, true);
   assert.throws(() => planUnitTestBatches(files, {limit: 0}), /Invalid unit batch limit/);
+});
+
+
+test('P4 isolation policy binds active shared report owners, never an untracked dummy suite', () => {
+  for (const file of ['place-publication.test.mjs','place-sync-contract.test.mjs']) {
+    assert.equal(unitIsolationResource('tests/unit/' + file), 'shared-report-worktree');
+    assert.equal(requiresUnitIsolation('tests/unit/' + file), true);
+  }
+  assert.equal(requiresUnitIsolation('tests/unit/reference-cache-cleanup.test.mjs'), false);
+  assert.equal(unitIsolationResource('tests/unit/other.test.mjs'), null);
 });

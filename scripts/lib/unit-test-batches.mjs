@@ -7,10 +7,12 @@ export const UNIT_BATCH_LIMIT = 30;
 export function planUnitTestBatches(files, {requirements = new Map(), isolation = requiresUnitIsolation,
     limit = UNIT_BATCH_LIMIT} = {}) {
   if (!Number.isSafeInteger(limit) || limit < 1) throw Error('Invalid unit batch limit');
-  const groups = new Map(), isolated = [];
+  const groups = new Map(), isolated = [], seen = new Set();
   for (const file of files) {
     if (typeof file !== 'string' || !file.startsWith('tests/unit/') || !file.endsWith('.test.mjs'))
       throw Error('Invalid unit test entrypoint: ' + file);
+    if (seen.has(file)) throw Error('Duplicate selected unit test: ' + file);
+    seen.add(file);
     const required = [...new Set(requirements.get(file) || [])].sort();
     const row = {files: [file], required, isolated: Boolean(isolation(file))};
     if (row.isolated) { isolated.push(row); continue; }
