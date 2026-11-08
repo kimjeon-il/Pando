@@ -1,20 +1,13 @@
-import { describe as contractSuite } from 'node:test';
-import * as __country_dep0 from "node:assert/strict";
-import * as __country_dep1 from "node:test";
-import * as __country_dep2 from "../../tools/gis/territorial-library.js";
-import * as __country_dep3 from "node:fs";
-import * as __country_dep4 from "node:child_process";
-import * as __country_dep5 from "node:crypto";
-import * as __country_dep6 from "../../tools/library-data.mjs";
-import * as __country_dep7 from "node:path";
-import * as __country_dep8 from "../../tools/territorial-entity-sources.mjs";
-contractSuite("country-lineage", () => {
-const assert = __country_dep0.default;
-const test = __country_dep1.default;
-const catalog = __country_dep2;
-
-
-
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import * as catalog from '../../tools/gis/territorial-library.js';
+import {normalizeTerritorialLibraryEntity} from '../../tools/gis/territorial-library.js';
+import fs from 'node:fs';
+import {execFileSync} from 'node:child_process';
+import {createHash} from 'node:crypto';
+import {libraryCheckout} from '../../tools/library-data.mjs';
+import {join} from 'node:path';
+import {entityFileName, readTerritorialSources, readTerritorialLineages, territorialSourceRoot} from '../../tools/territorial-entity-sources.mjs';
 
 const entity=(entityId,from=null,to=null)=>({schemaVersion:2,entityId,entityKind:'general',names:{ko:entityId,en:entityId,de:'curated'},alternateNames:['alias'],lifetime:{validFrom:from,validTo:to},geometryVersions:[{versionId:'border',validFrom:from,validTo:to,certainty:'high',sourceId:'synthetic-test',geometry:{type:'Polygon',coordinates:[[[0,0],[1,0],[1,1],[0,0]]]}}]});
 const lineage=()=>({schemaVersion:2,lineageId:'germany',names:{ko:'독일',en:'Germany'},entityRefs:['state:test-frg','state:test-gdr'],relations:[]});
@@ -43,26 +36,6 @@ test('duplicate entities, unsafe lineage names and malformed succession fail vis
 test('retired names and version ID keys are rejected rather than read as fallback',()=>{
   for(const mutate of [r=>r.canonicalName='old',r=>r.displayNames={ko:'old'},r=>r.geometryVersions[0].id='old',r=>r.names={}]){const raw=entity('state:test');mutate(raw);assert.throws(()=>catalog.normalizeTerritorialLibraryEntity(raw));}
 });
-});
-contractSuite("country-lineage-preservation", () => {
-const test = __country_dep1.default;
-const assert = __country_dep0.default;
-const fs = __country_dep3.default;
-const { execFileSync } = __country_dep4;
-const { createHash } = __country_dep5;
-const { libraryCheckout } = __country_dep6;
-const { join } = __country_dep7;
-const { entityFileName, readTerritorialSources, readTerritorialLineages, territorialSourceRoot } = __country_dep8;
-const { normalizeTerritorialLibraryEntity } = __country_dep2;
-
-
-
-
-
-
-
-
-
 
 const read = file => JSON.parse(fs.readFileSync(file, 'utf8'));
 const countryPath = id => join(territorialSourceRoot, 'countries', entityFileName(id));
@@ -143,5 +116,4 @@ test('invalid identities, duplicate geometry versions and corrupt coordinates ar
   point[0] = 181;
   assert.throws(() => normalizeTerritorialLibraryEntity(corrupted), /coordinate|geometry|invalid/i);
   assert.deepEqual(read(countryPath(entity.entityId)), original, 'negative tests must not mutate source files');
-});
 });

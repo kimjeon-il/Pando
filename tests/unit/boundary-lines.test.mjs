@@ -1,18 +1,10 @@
-import { describe as contractSuite } from 'node:test';
-import * as __boundary_dep0 from "node:test";
-import * as __boundary_dep1 from "node:assert/strict";
-import * as __boundary_dep2 from "../../shared/frontend/js/modules/boundary-lines.js";
 import "../helpers/spherical-core.mjs";
-import * as __boundary_dep3 from "../../shared/frontend/js/modules/boundary-topology.js";
-import * as __boundary_dep4 from "../../shared/frontend/js/modules/country-shared-boundary-packet.js";
-import * as __boundary_dep5 from "../../shared/frontend/js/modules/geometry-versions.js";
-contractSuite("boundary-lines", () => {
-const test = __boundary_dep0.default;
-const assert = __boundary_dep1.default;
-const { connectBoundarySegments } = __boundary_dep2;
-
-
-
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {connectBoundarySegments} from '../../shared/frontend/js/modules/boundary-lines.js';
+import {buildBoundaryTopologyFromSegments, serializeCountrySharedBoundarySegments, buildCountrySharedBoundarySegments} from '../../shared/frontend/js/modules/boundary-topology.js';
+import {createCountrySharedBoundaryState, prepareCountrySharedBoundaryPacket} from '../../shared/frontend/js/modules/country-shared-boundary-packet.js';
+import {geometryRevisionKey} from '../../shared/frontend/js/modules/geometry-versions.js';
 
 test('short reversed segments form a continuous line for dash spacing', () => {
   const lines = connectBoundarySegments([[[0, 0], [1, 0]], [[2, 0], [1, 0]], [[2, 0], [3, 0]]]);
@@ -39,15 +31,6 @@ test('closed boundaries preserve every segment', () => {
   assert.equal(lines[0].length, 4);
   assert.deepEqual(lines[0][0], lines[0].at(-1));
 });
-});
-contractSuite("boundary-topology-split", () => {
-const test = __boundary_dep0.default;
-const assert = __boundary_dep1.default;
-const { buildBoundaryTopologyFromSegments } = __boundary_dep3;
-
-
-
-
 
 const raw = (featureId, segmentIndex, a, b) => ({
   featureId, polygonIndex: 0, ringIndex: 0,
@@ -93,19 +76,6 @@ test('the compiled candidate scan respects custom precision and epsilon',()=>{
   assert.equal([...topology.segments.values()].filter(s=>s.kind==='shared').length,1);
   assert.deepEqual(buildBoundaryTopologyFromSegments([],{}).segments.size,0);
 });
-});
-contractSuite("shared-edge-singleton", () => {
-const test = __boundary_dep0.default;
-const assert = __boundary_dep1.default;
-const { createCountrySharedBoundaryState, prepareCountrySharedBoundaryPacket } = __boundary_dep4;
-const { serializeCountrySharedBoundarySegments, buildCountrySharedBoundarySegments } = __boundary_dep3;
-const { geometryRevisionKey } = __boundary_dep5;
-
-
-
-
-
-
 
 const rectangle = (id, west, south, east, north) => {
   const geometry = { type: 'Polygon',
@@ -192,5 +162,4 @@ test('unmodified singleton contact metadata and prepared geometry survive irrele
   assert.strictEqual(state.segments()[0], segment);
   state.replace(features.slice(0, 2));
   assert.strictEqual(state.segments()[0], segment);
-});
 });

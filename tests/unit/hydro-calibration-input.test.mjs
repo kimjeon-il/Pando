@@ -1,31 +1,13 @@
-import { describe as contractSuite } from 'node:test';
-import * as __hydro_dep0 from "node:assert/strict";
-import * as __hydro_dep1 from "node:crypto";
-import * as __hydro_dep2 from "node:child_process";
-import * as __hydro_dep3 from "node:fs/promises";
-import * as __hydro_dep4 from "node:os";
-import * as __hydro_dep5 from "node:path";
-import * as __hydro_dep6 from "node:test";
-import * as __hydro_dep7 from "../../tools/gis/hydro-calibration-input.mjs";
-import * as __hydro_dep8 from "node:fs";
-import * as __hydro_dep9 from "../../tools/gis/hydro-calibration-report.mjs";
-contractSuite("hydro-calibration-input", () => {
-const assert = __hydro_dep0.default;
-const { createHash } = __hydro_dep1;
-const { spawnSync } = __hydro_dep2;
-const { mkdir, mkdtemp, rm, writeFile } = __hydro_dep3;
-const { tmpdir } = __hydro_dep4;
-const { join } = __hydro_dep5;
-const test = __hydro_dep6.default;
-const { loadHydroCalibrationReferences, prepareHydroCalibrationSourceFiles } = __hydro_dep7;
-
-
-
-
-
-
-
-
+import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
+import {spawnSync} from 'node:child_process';
+import {mkdir, mkdtemp, rm, writeFile} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import test from 'node:test';
+import {loadHydroCalibrationReferences, prepareHydroCalibrationSourceFiles} from '../../tools/gis/hydro-calibration-input.mjs';
+import {readFileSync, mkdirSync, mkdtempSync, rmSync, writeFileSync} from 'node:fs';
+import {renderCalibrationReport, writeCalibrationReport} from '../../tools/gis/hydro-calibration-report.mjs';
 
 test('calibration input reads only named Natural Earth files and keeps verified source identities',async t=>{
   const root=await mkdtemp(join(tmpdir(),'pando-hydro-reference-'));t.after(()=>rm(root,{recursive:true}));
@@ -59,24 +41,6 @@ test('calibration CLI rejects missing required source paths',()=>{
   const result=spawnSync(process.execPath,['tools/gis/calibrate-hydro.mjs'],{encoding:'utf8'});
   assert.notEqual(result.status,0);assert.match(result.stderr,/Expected --hydrorivers-root/);
 });
-});
-contractSuite("hydro-calibration-report", () => {
-const assert = __hydro_dep0.default;
-const { readFileSync } = __hydro_dep8;
-const { mkdirSync, mkdtempSync, rmSync, writeFileSync } = __hydro_dep8;
-const { tmpdir } = __hydro_dep4;
-const { join } = __hydro_dep5;
-const { spawnSync } = __hydro_dep2;
-const test = __hydro_dep6.default;
-const { renderCalibrationReport, writeCalibrationReport } = __hydro_dep9;
-
-
-
-
-
-
-
-
 
 const cases=JSON.parse(readFileSync(new URL('../fixtures/hydro-calibration-report-oracle.json',import.meta.url),'utf8'));
 const metrics=JSON.parse(readFileSync(new URL('../fixtures/hydro-calibration-metrics-oracle.json',import.meta.url),'utf8'));
@@ -118,5 +82,4 @@ test('report can verify acceptance against the underlying stage measurements',t=
   result.acceptance.riverFinalWithin15Percent=!result.acceptance.riverFinalWithin15Percent;writeFileSync(input,JSON.stringify(result));
   run=spawnSync(process.execPath,[...args.slice(0,4),join(root,'bad.md'),'--verify-acceptance'],{encoding:'utf8'});
   assert.notEqual(run.status,0);assert.match(run.stderr,/acceptance/i);
-});
 });
