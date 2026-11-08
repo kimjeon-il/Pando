@@ -5,7 +5,7 @@ import { parse } from 'yaml';
 
 // Source entrypoints, not generated runtime assets or arbitrary data files.
 // A path must end in an executable-source extension (never .json, .js.map, etc.).
-const ENTRYPOINT = /(?:\.\/)?(?:apps|scripts|tools|tests|shared|contracts|\.github)\/[\w.*\/-]+\.(?:mjs|cjs|js|jsx|ts|tsx|py|sh|bash|ps1)(?![\w.])/g;
+const ENTRYPOINT = /(?<![\w./\\-])(?:\.\/)?(?:apps|scripts|tools|tests|shared|contracts|\.github)\/[\w.*\/-]+\.(?:mjs|cjs|js|jsx|ts|tsx|py|sh|bash|ps1)(?![\w.])/g;
 const DIRECT_ASSET_EXEC = /(?:^|[;&|\n])\s*(?:node|python3?|bash|sh|pwsh)\s+(?:--[\w=-]+\s+)*((?:\.\/)?assets\/[\w./-]+\.(?:mjs|cjs|js|py|sh|ps1))(?![\w.])/g;
 const RETIRED_PRODUCT = /(?:^|[^a-zA-Z0-9_])apps\/(?:editor|android|windows)\//g;
 const MATRIX = /\x24\{\{\s*matrix\.([a-zA-Z_]\w*)\s*\}\}/g;
@@ -41,14 +41,14 @@ function sourceLines(run) {
   return kept.join('\n');
 }
 
+// Expand only matrix substitutions inside an executable *path*. A matrix
+// argument such as --shard current/total belongs to the runner, not a file.
+const EXECUTABLE_MATRIX_PATH = /(?:\.\/)?(?:apps|scripts|tools|tests|shared|contracts|\.github)\/(?:[\w./-]|\$\{\{\s*matrix\.[a-zA-Z_]\w*\s*\}\})+\.(?:mjs|cjs|js|jsx|ts|tsx|py|sh|bash|ps1)\b/g;
+
 function matrixVariants(command, job, errors, file, location) {
-  // Only expand matrix expressions embedded in executable-source paths.
-  // Other workflow expressions (titles, arguments, output labels) need not
-  // have a statically enumerable matrix and must not block the path audit.
-  const executableLines = command.split(/\r?\n/).filter(line =>
-    /(?:apps|scripts|tools|tests|shared|contracts|\.github)\/[^\n]*\x24\{\{\s*matrix\./.test(line) &&
-    /\.(?:mjs|cjs|js|jsx|ts|tsx|py|sh|bash|ps1)\b/.test(line));
-  const keys = [...new Set([...executableLines.join('\n').matchAll(MATRIX)].map(match => match[1]))];
+  const executablePaths = [...command.matchAll(EXECUTABLE_MATRIX_PATH)].map(match => match[0]);
+  const keys = [...new Set(executablePaths.flatMap(path =>
+    [...path.matchAll(MATRIX)].map(match => match[1])))];
   if (!keys.length) return [command];
   const matrix = job?.strategy?.matrix || {};
   const included = Array.isArray(matrix.include) ? matrix.include : [];
