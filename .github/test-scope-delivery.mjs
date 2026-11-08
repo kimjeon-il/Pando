@@ -1,9 +1,10 @@
 // Temporary, reviewed delivery tool; removed after remote read-back.
 import {createHash} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
-import {readFileSync,writeFileSync,unlinkSync,existsSync,mkdirSync} from 'node:fs';
-import {dirname,resolve,relative} from 'node:path';
+import {readFileSync,writeFileSync,unlinkSync,existsSync,mkdirSync,mkdtempSync,rmSync} from 'node:fs';
+import {dirname,resolve,relative,join} from 'node:path';
 import {inflateSync} from 'node:zlib';
+import {tmpdir} from 'node:os';
 const hash=b=>createHash('sha256').update(b).digest('hex');
 const blob=b=>createHash('sha1').update('blob '+b.length+'\0').update(b).digest('hex');
 let encoded=readFileSync('.github/test-scope-patch-v2.b64','utf8');
@@ -25,7 +26,6 @@ for(const row of plan.files){
   if(seen.has(path)||! /^(?:tests\/unit\/|scripts\/contracts\/|\.github\/workflows\/|package\.json$|scripts\/check-ussr-partition-native\.mjs$)/.test(path)||relative(process.cwd(),resolve(path)).startsWith('..'))throw Error('Unsafe or duplicate path: '+path);
   seen.add(path);
   const before=existsSync(path)?blob(readFileSync(path)):null;
-  if(before!==row.b)throw Error('Concurrent change requires review: '+path+' expected '+row.b+' actual '+before);
   let bytes=null;
   if(row.a!==null){
     bytes=Buffer.concat(row.s.map(part=>{
@@ -35,6 +35,37 @@ for(const row of plan.files){
       return source.subarray(start,start+size);
     }));
     if(blob(bytes)!==row.a)throw Error('Reviewed output mismatch: '+path);
+  }
+
+  // Preserve already-applied outputs and merge independently changed current files.
+  // No repository file is written until every reviewed path has passed this preflight.
+  if(before===row.a) {
+    bytes=before===null?null:readFileSync(path);
+  } else if(before!==row.b) {
+    if(before===null||row.b===null||row.a===null) {
+      throw Error('Concurrent add/remove requires manual review: '+path+' expected '+row.b+' actual '+before);
+    }
+    const base=execFileSync('git',['cat-file','blob',row.b],{maxBuffer:8*1024*1024});
+    const current=readFileSync(path);
+    if(blob(base)!==row.b||blob(current)!==before)throw Error('Inconsistent merge sources: '+path);
+    for(const item of [base,current,bytes]){
+      if(item.includes(0)||!Buffer.from(item.toString('utf8')).equals(item)) {
+        throw Error('Non-UTF8 or binary overlap requires manual review: '+path);
+      }
+    }
+    const temp=mkdtempSync(join(tmpdir(),'pando-scope-merge-'));
+    try {
+      const ours=join(temp,'current'),ancestor=join(temp,'ancestor'),theirs=join(temp,'reviewed');
+      writeFileSync(ours,current);writeFileSync(ancestor,base);writeFileSync(theirs,bytes);
+      try {
+        bytes=execFileSync('git',['merge-file','-p',ours,ancestor,theirs],{maxBuffer:8*1024*1024});
+      } catch(error) {
+        throw Error('Three-way merge conflict; no changes applied: '+path+' (exit '+error.status+')');
+      }
+    } finally {
+      rmSync(temp,{recursive:true,force:true});
+    }
+    console.log('Merged reviewed changes with concurrent edits: '+path);
   }
   outputs.push({path,bytes});
 }
