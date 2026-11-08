@@ -61,10 +61,10 @@ export function createSelectController({
   let positionFrame = 0;
   let disposed = false;
   const subscriptions = [];
-  const listen = (node, event, handler, options) => {
+  const listen = (node, event, handler, options, owner = null) => {
     if (!node) return;
     node.addEventListener(event, handler, options);
-    subscriptions.push(() => node.removeEventListener(event, handler, options));
+    (owner?.subscriptions || subscriptions).push(() => node.removeEventListener(event, handler, options));
   };
 
   function nativeSelectValue(select) {
@@ -226,10 +226,10 @@ export function createSelectController({
     component.activeRow = null;
     const selectedIndex = options.findIndex(option => option.value === selected?.value);
     setActiveOption(component, selectedIndex >= 0 ? selectedIndex : 0, { scroll: false });
-    windowRef.requestAnimationFrame(() => {
-      if (disposed) return;
-      const active = component.listbox.querySelector('.ui-select-option.is-active');
-      active?.scrollIntoView({ block: 'nearest' });
+    if (component.scrollFrame) windowRef.cancelAnimationFrame(component.scrollFrame);
+    component.scrollFrame = windowRef.requestAnimationFrame(() => {
+      component.scrollFrame = 0;
+      if (!disposed && component.open) component.activeRow?.scrollIntoView({ block: 'nearest' });
     });
   }
 
@@ -249,7 +249,9 @@ export function createSelectController({
   function close(component, { restoreFocus = false } = {}) {
     if (!component?.open) return;
     if (component.queryFrame) windowRef.cancelAnimationFrame(component.queryFrame);
+    if (component.scrollFrame) windowRef.cancelAnimationFrame(component.scrollFrame);
     component.queryFrame = 0;
+    component.scrollFrame = 0;
     component.open = false;
     component.query = '';
     component.popover.hidden = true;
@@ -425,6 +427,8 @@ export function createSelectController({
       activeIndex: -1,
       query: '',
       queryFrame: 0,
+      scrollFrame: 0,
+      subscriptions: [],
       searchable: false,
       open: false,
       activationPointerType: '',
@@ -468,13 +472,33 @@ export function createSelectController({
     control.addEventListener('input', () => scheduleQueryRender(component));
     control.addEventListener('compositionupdate', () => scheduleQueryRender(component));
     control.addEventListener('compositionend', () => scheduleQueryRender(component));
-    listen(select, 'input', () => sync(select));
-    listen(select, 'change', () => sync(select));
-    listen(select, 'focus', () => control.focus({ preventScroll: true }));
+    listen(select, 'input', () => sync(select), undefined, component);
+    listen(select, 'change', () => sync(select), undefined, component);
+    listen(select, 'focus', () => control.focus({ preventScroll: true }), undefined, component);
     component.observer = new windowRef.MutationObserver(() => windowRef.queueMicrotask(() => sync(select)));
     component.observer.observe(select, { attributes: true, childList: true, characterData: true, subtree: true });
     sync(select);
     return component;
+  }
+
+  function releaseComponent(select) {
+    const component = components.get(select);
+    if (!component) return;
+    close(component);
+    component.observer?.disconnect();
+    for (const unsubscribe of component.subscriptions.splice(0)) unsubscribe();
+    if (component.queryFrame) windowRef.cancelAnimationFrame(component.queryFrame);
+    if (component.scrollFrame) windowRef.cancelAnimationFrame(component.scrollFrame);
+    if (component.ownsValueDescriptor) delete select.value;
+    if (component.originalTabIndex === null) select.removeAttribute('tabindex');
+    else select.setAttribute('tabindex', component.originalTabIndex);
+    if (component.originalAriaHidden === null) select.removeAttribute('aria-hidden');
+    else select.setAttribute('aria-hidden', component.originalAriaHidden);
+    select.classList.remove('ui-native-select');
+    if (component.shell.isConnected && component.shell.contains(select)) component.shell.before(select);
+    component.shell.remove();
+    component.popover.remove();
+    components.delete(select);
   }
 
   function enhanceAll(root = documentRef) {
@@ -482,6 +506,10 @@ export function createSelectController({
     root.querySelectorAll?.('select').forEach(enhance);
     if (!documentObserver) {
       documentObserver = new windowRef.MutationObserver(records => {
+        if (disposed) return;
+        for (const [select, component] of components) {
+          if (!component.shell.isConnected || !component.shell.contains(select)) releaseComponent(select);
+        }
         for (const record of records) {
           for (const node of record.addedNodes) {
             if (!(node instanceof windowRef.Element)) continue;
@@ -524,20 +552,7 @@ export function createSelectController({
       documentObserver?.disconnect();
       documentObserver = null;
       for (const unsubscribe of subscriptions.splice(0)) unsubscribe();
-      for (const [select, component] of components) {
-        component.observer?.disconnect();
-        if (component.queryFrame) windowRef.cancelAnimationFrame(component.queryFrame);
-        if (component.ownsValueDescriptor) delete select.value;
-        if (component.originalTabIndex === null) select.removeAttribute('tabindex');
-        else select.setAttribute('tabindex', component.originalTabIndex);
-        if (component.originalAriaHidden === null) select.removeAttribute('aria-hidden');
-        else select.setAttribute('aria-hidden', component.originalAriaHidden);
-        select.classList.remove('ui-native-select');
-        component.shell.before(select);
-        component.shell.remove();
-        component.popover.remove();
-      }
-      components.clear();
+      for (const select of components.keys()) releaseComponent(select);
     },
   });
 }
