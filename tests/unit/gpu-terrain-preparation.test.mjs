@@ -3,6 +3,21 @@ import assert from 'node:assert/strict';
 import { createGpuTerrainPreparation } from "../../shared/frontend/js/modules/gpu-terrain-preparation.js";
 import { createMapVisualFrame } from "../../shared/frontend/js/modules/map-visual-frame.js";
 
+test('GPU and Canvas share one tile geometry, neighbours and viewport selection algorithm', () => {
+  const core=globalThis.PandoLabTerrainTileSelection;
+  assert.ok(core && typeof core.tileSpec==='function' && typeof core.visible==='function');
+  const level={id:'2',width:360,height:180,tileSize:180,columns:2,rows:1};
+  const first=core.tileSpec(level,0,0),neighbours=core.neighbours(level,[first]);
+  assert.deepEqual(first.bounds,[-180,90,0,-90]);
+  assert.deepEqual(neighbours.map(row=>row.key),['2/1-0']);
+  assert.equal(first.level,'2');
+  assert.equal(core.tileSpec(level,0,0,true).level,2,'Canvas keeps its numeric level');
+  const input={includeAll:true,viewport:[800,600],scale:400,projection:'flat',flatCenter:[0,0]};
+  assert.deepEqual(core.visible(level,input).map(row=>row.key),['2/0-0','2/1-0']);
+  assert.deepEqual(core.visible(level,{...input,numericLevel:true}).map(row=>row.bounds),
+    core.visible(level,input).map(row=>row.bounds));
+});
+
 function fixture(t, onUnusable = () => {}, { mobile = false, geoDistance = () => 0, tintUrl, onTileFailure = () => {} } = {}) {
   const requests = [];
   const jobs = [];

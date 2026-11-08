@@ -1,4 +1,6 @@
 import { describe as featureDescribe } from 'node:test';
+import { mapPresentationTargetKey, mapBackgroundTargetKey, physicalSceneMatchesContext } from '../../shared/frontend/js/modules/map-render-publication.js';
+import { visibleFlatWorldOffsets } from '../../shared/frontend/js/modules/map-visual-frame.js';
 import * as __suiteDependency0 from "node:assert/strict";
 import * as __suiteDependency1 from "node:test";
 import * as __suiteDependency2 from "../../shared/frontend/js/modules/startup-readiness.js";
@@ -29,6 +31,26 @@ const snapshot = center => createMapVisualFrame({frameId: 1, viewRevision: 1,
 const stage = (current, presented=current, overrides={}) => ({
   boundaryReady:true, terrainVisible:true, terrain:{terrainReady:true},
   targetKey:current.signature, presentedKey:presented?.signature, band:'low', ...overrides,
+});
+
+test('publication keys exclude optional terrain completion but include authoritative source and camera', () => {
+  const frame=snapshot([0,0]),changed=snapshot([20,0]);
+  const source={projectGeneration:4,contextRevision:2,geometryRevision:8,paletteRevision:1,
+    physicalStyleRevision:1,terrainVisible:true,surfaceQuality:'canonical',surfaceGeometryQuality:'canonical'};
+  const key=mapPresentationTargetKey(frame,source);
+  assert.equal(mapPresentationTargetKey(frame,{...source,terrainTileCompletion:42}),key);
+  assert.notEqual(mapPresentationTargetKey(changed,source),key);
+  assert.notEqual(mapPresentationTargetKey(frame,{...source,geometryRevision:9}),key);
+  const scene={polygons:[{role:'physical-land',sourceKey:'land:v1'}]};
+  const background={scene,projectGeneration:4,contextRevision:2,physicalStyleRevision:1,terrainVisible:true};
+  assert.equal(mapBackgroundTargetKey(frame,background),mapBackgroundTargetKey(frame,{...background,demTileCount:50}));
+  assert.notEqual(mapBackgroundTargetKey(frame,{...background,scene:{polygons:[{role:'physical-land',sourceKey:'land:v2'}]}}),
+    mapBackgroundTargetKey(frame,background));
+  assert.equal(physicalSceneMatchesContext({polygons:[{role:'physical-land',geometryRevision:'land:v1'}]},
+    {ready:true,landRevision:'land:v1',waterRevision:null}),true);
+  assert.equal(physicalSceneMatchesContext({polygons:[]},{ready:true,landRevision:'land:v1'}),false);
+  assert.deepEqual(visibleFlatWorldOffsets({translateX:450,scale:420,viewportWidth:900}),[0]);
+  assert.deepEqual(visibleFlatWorldOffsets({translateX:Infinity,scale:420,viewportWidth:900}),[0]);
 });
 
 test('only an accepted frame with its own source/camera identity certifies a ready map', () => {

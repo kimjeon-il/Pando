@@ -5,6 +5,33 @@ import vm from 'node:vm';
 import { transformSync } from 'esbuild';
 import { createGpuCanvasWorker } from "../../shared/frontend/js/modules/gpu-canvas-worker.js";
 
+test('failed synchronous Canvas submission does not strand a busy renderer or a pick promise', async () => {
+  const errors=[],worker={
+    postMessage(message){if(message.type==='view'||message.type==='hydro-pick')throw new Error('worker channel closed');},
+    terminate(){},
+  };
+  const channel=createGpuCanvasWorker({worker,generation:1,acceptFrame:()=>true});
+  channel.onerror=event=>errors.push(event.message);
+  worker.onmessage({data:{type:'ready'}});
+  channel.queueFrame({type:'view',revision:1,projectGeneration:1});
+  assert.equal(channel.busy,false);
+  assert.equal(channel.hasPendingFrame,true);
+  await assert.rejects(channel.pick([0,0]),{code:'PL-CANVAS-WORKER-SEND'});
+  assert.equal(errors.length,2);
+  channel.terminate();
+});
+
+test('bitmapless Canvas acknowledgment does not enter picture-admission callback', () => {
+  let admissions=0;
+  const worker={postMessage(){},terminate(){}};
+  const channel=createGpuCanvasWorker({worker,generation:1,acceptFrame:()=>{admissions++;return true;}});
+  worker.onmessage({data:{type:'ready'}});
+  channel.queueFrame({type:'view',revision:1,projectGeneration:1});
+  worker.onmessage({data:{type:'frame',revision:1,projectGeneration:1,renderRequestId:1}});
+  assert.equal(admissions,0);
+  channel.terminate();
+});
+
 test('project replacement retains a ready worker and rejects old completion without releasing the new frame', () => {
   const { channel, sent, receive, complete, presented } = transport();
   receive({ type: 'ready' });

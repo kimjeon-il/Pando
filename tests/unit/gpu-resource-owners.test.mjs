@@ -114,6 +114,22 @@ test('P3-4 late GL handles after lifecycle disposal are released by their alloca
   assert.equal(lifecycle.retain(gl, 'Buffer', lateBuffer), null);
   assert.deepEqual(freed, [lateBuffer]);
 });
+test('upload priority is sorted on admission and not resorted during repeated drain frames', async () => {
+  const frames=[],order=[];
+  const scheduler=createGpuUploadScheduler({
+    requestFrame:cb=>(frames.push(cb),frames.length),cancelFrame(){},
+    now:()=>0,isHidden:()=>false,isInputPending:()=>false,
+  });
+  const push=(key,priority)=>scheduler.enqueueUpload({
+    key,priority,step:()=>{order.push(key);return {done:true,bytes:1};},
+  });
+  const low=push('low',1),high=push('high',5),medium=push('medium',2);
+  frames.shift()();
+  await Promise.all([low,high,medium]);
+  assert.deepEqual(order,['high','medium','low']);
+  assert.equal(scheduler.getStats().pending,0);
+  scheduler.dispose();
+});
 });
 featureDescribe("gpu-resource-budget", () => {
   const assert = __suiteDependency5.default;
