@@ -386,7 +386,7 @@ export function createViewerReviewPanel({document,window,map,documentSession,isB
       if(current.entities.length)selectEntity(current.entities[0].sourceEntityId);
       else {get('reviewDetail').hidden=true;renderBrowse();}
     }catch(error){if(ticket===loadSerial&&!disposed){err('검수 파일을 적용하지 않았습니다: '+error.message);onError(error);}
-    }finally{get('reviewEvidenceInput').value='';}
+    }finally{if(!disposed)get('reviewEvidenceInput').value='';}
   }
   async function focusOnMap(){
     const ref=sourceMatch();
@@ -403,7 +403,12 @@ export function createViewerReviewPanel({document,window,map,documentSession,isB
   async function compare({useLocal=false}={}){
     const change=selectedChange();
     if(change?.kind!=='geometry')return;
-    const entity=chosenEntity,ticket=++requestSerial;
+    const entity=chosenEntity,changeKey=chosenChange,evidence=current;
+    const generation=documentSession.projectDomain?.getGeneration?.();
+    const ticket=++requestSerial;
+    const isCurrent=()=>!disposed&&!panel.hidden&&ticket===requestSerial
+      &&entity===chosenEntity&&changeKey===chosenChange&&current===evidence
+      &&(generation===undefined||generation===documentSession.projectDomain.getGeneration());
     activeFetch?.abort();activeFetch=new AbortController();
     get('reviewFetchGeometry').disabled=true;
     feedback('reviewCompareStatus','원본 객체·형상 SHA를 확인하는 중…');clearPreview();
@@ -412,22 +417,27 @@ export function createViewerReviewPanel({document,window,map,documentSession,isB
         fetchFn:window.fetch?.bind(window),subtle:window.crypto?.subtle,
         signal:activeFetch.signal,sourceBytes:useLocal?rawObjectBytes:null,
       });
-      if(disposed||ticket!==requestSerial)return;
+      if(!isCurrent())return;
       renderGeometryPair(document,pair);
       get('reviewGeometryPreviews').hidden=false;
       feedback('reviewCompareStatus','두 형상 원본 SHA-256 검증 완료. 같은 투영으로 비교 표시 중 (국경 위상·역사 정확성 미검증).');
     }catch(error){
-      if(!disposed&&ticket===requestSerial){
+      if(isCurrent()){
         feedback('reviewCompareStatus','형상 비교 불가: '+error.message+' (원본 JSON을 직접 선택할 수 있습니다.)','error');
       }
     }finally{
-      if(ticket===requestSerial){activeFetch=null;get('reviewFetchGeometry').disabled=false;}
+      if(ticket===requestSerial){activeFetch=null;if(!disposed)get('reviewFetchGeometry').disabled=false;}
     }
   }
   async function loadSourceFiles(files){
     if(disposed||panel.hidden||!current||selectedChange()?.kind!=='geometry')return;
-    const subject=chosenEntity,ticket=loadSerial;
-    const isCurrent=()=>!disposed&&!panel.hidden&&ticket===loadSerial&&subject===chosenEntity;
+    const subject=chosenEntity,changeKey=chosenChange,ticket=loadSerial,evidence=current;
+    const generation=documentSession.projectDomain?.getGeneration?.();
+    const choiceRevision=requestSerial;
+    const isCurrent=()=>!disposed&&!panel.hidden&&ticket===loadSerial
+      &&subject===chosenEntity&&changeKey===chosenChange&&evidence===current
+      &&choiceRevision===requestSerial
+      &&(generation===undefined||generation===documentSession.projectDomain.getGeneration());
     try{
       const records=new Map();
       for(const file of files){

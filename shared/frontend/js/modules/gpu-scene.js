@@ -22,6 +22,7 @@ export function createGpuScene({getPhysicalLand=()=>null}={}) {
   let gpuSceneResourceObjectKeys;
   let hoverRequestSequence = 0;
   let pendingPreparation = null;
+  let preparationFailure = null;
   let lastOverlayOrderSignature = null, lastQualitySignature = null;
   function connect(ports) {
     if (dependencies) throw new Error('gpu-scene already connected');
@@ -164,12 +165,14 @@ export function createGpuScene({getPhysicalLand=()=>null}={}) {
     if (missing.length) {
       const signature = missing.map(item => item.cacheKey).join('|');
       if (pendingPreparation?.signature !== signature) {
+        if (preparationFailure?.signature !== signature) preparationFailure = null;
         const builder = renderSceneBuilder;
         const pending = { signature };
         pendingPreparation = pending;
         builder.preparePolygons(requiredPolygons, sceneInput).then(() => {
           if (pendingPreparation !== pending || builder !== renderSceneBuilder) return;
           pendingPreparation = null;
+          preparationFailure = null;
           syncGpuRenderScene();
           // An interaction-only invalidation does not request the Canvas Worker
           // base bitmap. Physical substrate packets remain absent from the
@@ -184,10 +187,21 @@ export function createGpuScene({getPhysicalLand=()=>null}={}) {
           } else
             dependencies.domains.renderingDomain.invalidateGpuInteraction('overlay-mesh-ready');
         }).catch(error => {
-          if (pendingPreparation !== pending) return;
-          pending.failed = true;
-          if (!error.cancelled && error.name !== 'AbortError')
-            dependencies.feedback.reportOperationError(error, '지도 면을 준비하지 못했습니다.', 'PL-MESH-PREPARE', 4200);
+          if (pendingPreparation !== pending || builder !== renderSceneBuilder) return;
+          pendingPreparation = null;
+          if (error?.cancelled || error?.name === 'AbortError') return;
+          const attempts = (preparationFailure?.signature === signature ? preparationFailure.attempts : 0) + 1;
+          preparationFailure = { signature, attempts };
+          if (attempts < 3 && dependencies.projectState.mapWorkScheduler?.scheduleIdle) {
+            // One bounded retry family per unchanged input. A new scene/builder
+            // cancels the old candidate instead of posting a stale bitmap.
+            dependencies.projectState.mapWorkScheduler.scheduleIdle('gpu-scene-mesh-retry', () => {
+              if (renderSceneBuilder === builder && !pendingPreparation
+                && preparationFailure?.signature === signature)
+                dependencies.domains.renderingDomain.invalidateBaseScene('overlay-mesh-retry');
+            }, 120 * attempts);
+          } else dependencies.feedback.reportOperationError(error,
+            '지도 면을 준비하지 못했습니다.', 'PL-MESH-PREPARE', 4200);
         });
       }
       return currentRenderScene;
@@ -320,8 +334,10 @@ export function createGpuScene({getPhysicalLand=()=>null}={}) {
   }
 
   function initializeRenderSceneBuilder() {
+    dependencies?.projectState?.mapWorkScheduler?.cancel?.('gpu-scene-mesh-retry');
     renderSceneBuilder?.clear();
     pendingPreparation = null;
+    preparationFailure = null;
     (renderSceneBuilder = (0, dependencies.renderScene.createRenderSceneBuilder)({
       meshJobs: createGpuMeshWorkerJobs({
         createWorker: () => new Worker(dependencies.platform.runtimeAssetUrl('workers/gpu-mesh-worker.js'), { name: 'pandolab-overlay-mesh' }),
@@ -349,6 +365,7 @@ export function createGpuScene({getPhysicalLand=()=>null}={}) {
     (renderSceneOrderRevision = 0);
 
     (currentSelectionPacket = null);
+    preparationFailure = null;
     lastOverlayOrderSignature = null;
     lastQualitySignature = null;
   }

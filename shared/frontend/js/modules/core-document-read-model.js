@@ -73,17 +73,17 @@ export function createCoreDocumentReadModel(initialProject) {
     if (!ref || typeof ref.id !== 'string') invalid('An explicit C++ document object reference is required.');
     return list(ref.domain).find(row => row.id === ref.id) || null;
   }
-  function worldAgainst(world,expectedEpoch,sourceProject,sourceGeometries,detached = false) {
-    if (!world || !Array.isArray(world.entities) || typeof world.month !== 'string')
+  function worldAgainst(responseWorld,expectedEpoch,sourceProject,sourceGeometries,detached = false) {
+    if (!responseWorld || !Array.isArray(responseWorld.entities) || typeof responseWorld.month !== 'string')
       invalid('A source-pinned C++ world response is required.');
-    if (detached ? Object.hasOwn(world,'sourceEpoch') : !Number.isSafeInteger(world.sourceEpoch) || !Number.isSafeInteger(expectedEpoch))
+    if (detached ? Object.hasOwn(responseWorld,'sourceEpoch') : !Number.isSafeInteger(responseWorld.sourceEpoch) || !Number.isSafeInteger(expectedEpoch))
       invalid('A detached import world must be distinct from an epoch-pinned active read model.');
-    if (!detached && world.sourceEpoch !== expectedEpoch) throw Object.assign(new Error('The C++ world belongs to another document operation epoch.'),
+    if (!detached && responseWorld.sourceEpoch !== expectedEpoch) throw Object.assign(new Error('The C++ world belongs to another document operation epoch.'),
       { code: 'PL-CORE-STALE', name: 'AbortError', cancelled: true });
     const identities = new Map([...sourceProject.territorialEntities.map(identity=>[timelineObjectKey({domain:'territorial',id:identity.id}),identity]),...sourceProject.hydroEdits.map(identity=>[timelineObjectKey({domain:'hydro',id:identity.id}),identity])]), byId = new Map();
-    const referenceDate=temporalMonthEnd(world.month);
+    const referenceDate=temporalMonthEnd(responseWorld.month);
     const previousWorld = !detached && worldSourceProject === sourceProject ? world : null;
-    const rows = world.entities.map(row => {
+    const rows = responseWorld.entities.map(row => {
       const identity = identities.get(timelineObjectKey(row.objectRef)), geometry = sourceGeometries.get(row.geometryRef);
       if (!identity || !geometry || byId.has(timelineObjectKey(row.objectRef)) || !Array.isArray(row.ancestors))
         invalid(`The C++ world contains an unknown/duplicate identity or geometry: ${row.objectRef.id}`);
@@ -119,7 +119,7 @@ export function createCoreDocumentReadModel(initialProject) {
       byId.set(timelineObjectKey(row.objectRef), projected);
       return projected;
     });
-    return Object.freeze({ month: world.month,...(detached ? {} : { sourceEpoch: world.sourceEpoch }), entities: Object.freeze(rows),
+    return Object.freeze({ month: responseWorld.month,...(detached ? {} : { sourceEpoch: responseWorld.sourceEpoch }), entities: Object.freeze(rows),
       byId: Object.freeze({ get: id => byId.get(timelineObjectKey({domain:'territorial',id})), getObject: ref => byId.get(timelineObjectKey(ref)) }) });
   }
   const projectWorld=(value,expectedEpoch) => worldAgainst(value,expectedEpoch,project,geometries);
