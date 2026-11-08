@@ -147,6 +147,18 @@ function fixture() {
   return { root, put, catalog, repository: () => loadRepository(root, { catalog }) };
 }
 
+test('exact check selection does not build the unrelated dependency graph', t => {
+  const f = fixture();
+  t.after(() => rmSync(f.root, { recursive: true, force: true }));
+  const repo = f.repository();
+  repo.impactIndex = () => { throw Error('unrelated dependency graph accessed'); };
+  const plan = planApplicationChecks({ repository: repo, exactSelection: {
+    unitTests: [], browserSpecs: ['tests/browser/terrain-time.spec.mjs'], commands: [], prerequisites: [],
+  } });
+  assert.deepEqual(plan.browserSpecs, ['tests/browser/terrain-time.spec.mjs']);
+  assert.deepEqual(plan.browserPrerequisites, ['generated']);
+});
+
 test('shared tooling documentation is a passive CI input', t => {
   const f = fixture();
   t.after(() => rmSync(f.root, { recursive: true, force: true }));

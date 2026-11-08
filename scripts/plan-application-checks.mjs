@@ -240,6 +240,8 @@ export function planApplicationChecks({ changedFiles = [], repository, groups: r
       browser:repo.tests.filter(file=>file.includes('/browser/')).length},
   };
   const reasons = {}, selected = new Set(), commands = [], prerequisites = new Set();
+  let externalChecks = [];
+  if (!exactSelection) {
   const expand = patterns => repo.files.filter(file => matches(file, patterns));
   const entry = id => repo.catalog.prerequisites?.[id] || repo.catalog.groups.find(group => group.id === id);
   function implementationInputs(check, seen = new Set()) {
@@ -263,7 +265,7 @@ export function planApplicationChecks({ changedFiles = [], repository, groups: r
     directConsumers.get(file)?.add(owner.id);
   const infrastructure = changed.some(file => matches(file, repo.catalog.infrastructure || []));
   const matchedProduct = new Set();
-  const externalChecks = (repo.catalog.externalChecks || []).filter(check => changed.some(file => matches(file, check.inputs)));
+  externalChecks = (repo.catalog.externalChecks || []).filter(check => changed.some(file => matches(file, check.inputs)));
   externalChecks.forEach(check => changed.filter(file => matches(file, check.inputs)).forEach(file => matchedProduct.add(file)));
   for (const group of repo.catalog.groups) {
     const members = [...repo.owners].filter(([,owner]) => owner.id === group.id).map(([file]) => file);
@@ -303,6 +305,7 @@ export function planApplicationChecks({ changedFiles = [], repository, groups: r
   for (const file of changed) {
     if (!requestedGroups.length && matches(file, repo.catalog.productRoots) && !matchedProduct.has(file) && !infrastructure
       && !matches(file, repo.catalog.passiveInputs || []) && !repo.owners.has(file)) throw Error('Unclassified product change: ' + file);
+  }
   }
   if(exactSelection){
     selected.clear();commands.length=0;prerequisites.clear();
