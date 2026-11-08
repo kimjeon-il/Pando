@@ -257,3 +257,16 @@ test('P4 isolation policy binds active shared report owners, never an untracked 
   assert.equal(requiresUnitIsolation('tests/unit/reference-cache-cleanup.test.mjs'), false);
   assert.equal(unitIsolationResource('tests/unit/other.test.mjs'), null);
 });
+
+
+test('P5 CI unit test arguments are forwarded without dropping prerequisites', () => {
+  const repository={root:'/fixture',catalog:{prerequisites:{core:{argv:['node','core.mjs']}},groups:[]}};
+  const plan={prerequisites:[],commands:[],unitTests:['tests/unit/core-contract.test.mjs'],
+    unitTestPrerequisites:{'tests/unit/core-contract.test.mjs':['core']},browserSpecs:[]};
+  const calls=[],result=executePlan(plan,{repository,phase:'non-browser',
+    unitTestArgs:['--test-name-pattern=contract'],run:(argv,options)=>{calls.push({argv,options});return{status:0};}});
+  assert.equal(result.ok,true);
+  assert.ok(calls.some(row=>row.argv.includes('core.mjs')));
+  assert.ok(calls.some(row=>row.argv.includes('--test-name-pattern=contract')));
+  assert.throws(()=>executePlan(plan,{repository,unitTestArgs:'invalid'}),/Invalid unit test arguments/);
+});

@@ -79,14 +79,17 @@ export function executionOutputs(plan, { repository, ...options } = {}) {
     checks: nonBrowser || count > 0, non_browser: nonBrowser, browser: count > 0, browser_count: count,
     browser_matrix: { include: Array.from({ length: total }, (_, i) => ({ current: i + 1, total })) },
     gis_native: phase !== 'browser' && (required.has('native-hydro-point-screen') ||
+      required.has('native-territorial-recipe') || required.has('native-caspian-oracle') ||
       plan.commands.some(id => repository.catalog.groups.find(group => group.id === id)?.gisNative)),
     native_requirements: [...required].filter(id => id.startsWith('native-')).map(id => id.slice(7)).sort(),
   };
 }
 
-export function executePlan(plan, { repository, phase = 'all', shard = null, environment:executionEnvironment=process.env,remote=dispatchSelectedChecks, run = (argv, options) => spawnSync(
+export function executePlan(plan, { repository, phase = 'all', shard = null, unitTestArgs = [], environment:executionEnvironment=process.env,remote=dispatchSelectedChecks, run = (argv, options) => spawnSync(
   argv[0] === 'node' ? process.execPath : argv[0], argv.slice(1), { ...options, stdio: 'inherit', shell: false }) } = {}) {
   const execution = executionOptions({ phase, shard });
+  if (!Array.isArray(unitTestArgs) || unitTestArgs.some(arg => typeof arg !== 'string'))
+    throw Error('Invalid unit test arguments');
   const prerequisites = phasePrerequisites(plan, phase);
   const pending=[...prerequisites,...(phase==='browser'?[]:[...plan.commands,...Object.values(plan.unitTestPrerequisites||{}).flat()])],seen=new Set();
   while(pending.length){const id=pending.pop();if(seen.has(id))continue;seen.add(id);const entry=repository.catalog.prerequisites[id]||repository.catalog.groups.find(g=>g.id===id);pending.push(...(entry?.requires||[]));}
@@ -164,7 +167,7 @@ export function executePlan(plan, { repository, phase = 'all', shard = null, env
         requirements.set(file, required);
       }
       for (const {required, files} of planUnitTestBatches(ready, {requirements}))
-        command('unit', ['node', '--test', '--test-concurrency=2', ...files], required, environment(required));
+        command('unit', ['node', '--test', '--test-concurrency=2', ...files, ...unitTestArgs], required, environment(required));
     }
   }
   if (phase !== 'non-browser' && plan.browserSpecs.length) {

@@ -4,7 +4,7 @@ import {mkdirSync,writeFileSync,readFileSync,readdirSync} from 'node:fs';
 import {isolatedTestWorkspace} from '../helpers/check-workspace-fixture.mjs';
 import {dirname,join,posix,resolve} from 'node:path';
 import {loadRepository,matchesPattern,planApplicationChecks} from '../../scripts/plan-application-checks.mjs';
-import {executePlan as executeCiPlan,exactCheckPlan} from '../../scripts/run-application-checks.mjs';
+import {executePlan as executeCiPlan,exactCheckPlan,executionOutputs} from '../../scripts/run-application-checks.mjs';
 import {nativeTestCapacity,prepareNativeTestTool} from '../../scripts/prepare-native-test-tools.mjs';
 import {nativeTestRecipes} from '../../scripts/lib/native-test-prerequisites.mjs';
 import {packageNativeTool} from '../../tools/native-tool.mjs';
@@ -295,4 +295,13 @@ test('an incorrect prepared pinned source fails before download or replacement',
   f.put(path,'different source');
   await assert.rejects(ciPrepareNativeTestTool('german-natural-earth',{root:f.root,platform:'linux',architecture:'x64'}),/Prepared native test source differs/);
   assert.equal(readFileSync(join(f.root,path),'utf8'),'different source');
+});
+
+
+test('P5 territorial recipe receives GIS native setup through canonical CI outputs', () => {
+  const catalog=JSON.parse(readFileSync(new URL('../../scripts/contracts/application-checks.json',import.meta.url),'utf8'));
+  const repository={catalog};
+  const plan={prerequisites:['native-territorial-recipe'],commands:[],unitTests:['tests/unit/gis-lsib-source-native.test.mjs'],
+    unitTestPrerequisites:{'tests/unit/gis-lsib-source-native.test.mjs':['native-territorial-recipe']},browserSpecs:[]};
+  assert.equal(executionOutputs(plan,{repository,phase:'non-browser'}).gis_native,true);
 });

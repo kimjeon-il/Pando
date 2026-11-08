@@ -2,6 +2,7 @@
 import {spawnSync} from 'node:child_process';
 import {loadRepository} from './plan-application-checks.mjs';
 import {planUnitTestBatches} from './lib/unit-test-batches.mjs';
+import {executePlan} from './run-application-checks.mjs';
 
 const kind=process.argv[2];
 if (!['unit','browser'].includes(kind)) {
@@ -15,6 +16,17 @@ if (!['unit','browser'].includes(kind)) {
   else {
     const forwarded=process.argv.slice(3);
     if (forwarded[0]==='--') forwarded.shift();
+    if (kind==='unit' && process.env.GITHUB_ACTIONS==='true') {
+      // Full CI runs prepare the same source-pinned Core/Native prerequisites
+      // as the affected-only runner; no test is silently skipped for missing tools.
+      const unitTestPrerequisites=Object.fromEntries(files.map(file=>[
+        file, [...(repository.unitRequirements.get(file)||[])].sort()
+      ]).filter(([,required])=>required.length));
+      const plan={changedFiles:[],unitTests:files,unitTestPrerequisites,commands:[],
+        browserSpecs:[],browserPrerequisites:[],prerequisites:[],externalChecks:[]};
+      const result=executePlan(plan,{repository,phase:'non-browser',unitTestArgs:forwarded});
+      process.exitCode=result.ok?0:1;
+    } else {
     const batches=kind==='unit' ? planUnitTestBatches(files, {requirements: repository.unitRequirements})
       : [{files}];
     let failed=false;
@@ -35,5 +47,6 @@ if (!['unit','browser'].includes(kind)) {
       if (result.status!==0) failed=true;
     }
     process.exitCode=failed?1:0;
+    }
   }
 }
