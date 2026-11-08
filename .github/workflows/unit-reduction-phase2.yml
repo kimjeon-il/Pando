@@ -1,0 +1,51 @@
+name: Unit reduction phase 2 focused audit
+on:
+  push:
+    branches: ['work/optimization']
+    paths: ['.github/workflows/unit-reduction-phase2.yml', 'tests/unit/**']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Inventory unit tests by AST
+        run: |
+          node --input-type=module <<'JS'
+          import {readFileSync,readdirSync} from 'node:fs';
+          import {join} from 'node:path';
+          import {parseJavaScript,walkJavaScript} from './scripts/lib/source-analysis.mjs';
+          const files=[];
+          function scan(dir){for(const ent of readdirSync(dir,{withFileTypes:true})){const p=join(dir,ent.name);if(ent.isDirectory())scan(p);else if(p.endsWith('.test.mjs'))files.push(p.replaceAll('\\','/'));}}
+          scan('tests/unit');files.sort();
+          const totals={files:0,declarations:0,assertions:0,lines:0};const detail=[];
+          for(const file of files){
+            const source=readFileSync(file,'utf8');
+            const ast=parseJavaScript(source,{filePath:file});
+            let declarations=0,assertions=0;
+            walkJavaScript(ast,node=>{
+              if(node.type!=='CallExpression')return;
+              const callee=node.callee;
+              if(callee.type==='Identifier'&&['test','it'].includes(callee.name))declarations++;
+              if(callee.type==='Identifier'&&callee.name==='assert')assertions++;
+              if(callee.type==='MemberExpression'&&callee.object.type==='Identifier'&&callee.object.name==='assert')assertions++;
+            });
+            const lines=source.split(/\r?\n/).length;
+            const row={file,declarations,assertions,lines};
+            detail.push(row);totals.files++;totals.declarations+=declarations;totals.assertions+=assertions;totals.lines+=lines;
+          }
+          console.log('PANDO_UNIT_PHASE2_TOTALS='+JSON.stringify(totals));
+          for(const [key,count] of [['declarations',40],['assertions',40],['lines',40]]){
+           const ranked=[...detail].sort((a,b)=>b[key]-a[key]).slice(0,count);
+           console.log('PANDO_UNIT_PHASE2_TOP_'+key.toUpperCase()+'='+JSON.stringify(ranked));
+          }
+          JS
