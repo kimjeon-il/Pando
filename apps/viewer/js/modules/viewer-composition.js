@@ -241,7 +241,18 @@ export async function composeViewer({ productMode, meta }) {
       }
     }
   };
-  const action=(element,event,task)=>element.addEventListener(event,e=>{Promise.resolve().then(()=>task(e)).catch(report);});
+  const actionSubscriptions=[];
+  let actionsDisposed=false;
+  const action=(element,event,task)=>{
+    if(!element)return;
+    const handler=e=>{Promise.resolve().then(()=>{if(!actionsDisposed)return task(e);}).catch(report);};
+    element.addEventListener(event,handler);
+    actionSubscriptions.push(()=>element.removeEventListener(event,handler));
+  };
+  disposables.push({dispose(){
+    actionsDisposed=true;
+    for(const unsubscribe of actionSubscriptions.splice(0))unsubscribe();
+  }});
   const changeBuiltinCursor=async(month,{isCurrent,commit})=>{
     const previous=activeSession.commandOwner.state().timelineCursor;
     const previouslyReady=status.dataset.ready==='true';
@@ -307,7 +318,11 @@ export async function composeViewer({ productMode, meta }) {
     readinessUi:notifications});
   navigationBindings.bindNavigationUI();
   disposables.push(navigationBindings);
-  for(const id of ['openProjectBtn','builtinMapBtn'])get(id).addEventListener('click',()=>surfaces.closeFileMenu());
+  for(const id of ['openProjectBtn','builtinMapBtn']){
+    const element=get(id),handler=()=>surfaces.closeFileMenu();
+    element.addEventListener('click',handler);
+    actionSubscriptions.push(()=>element.removeEventListener('click',handler));
+  }
   const preferencesDialog=createPreferencesDialog({document,productMode,returnFocus:()=>get(surfaces.isMobile()?'mobileMenuBtn':'preferencesBtn'),getPreferences:()=>preferencePresentation.current,
     applyPreferences:value=>preferencePresentation.apply(value,{persist:false}),beforeOpen:()=>surfaces.closeFileMenu()});
   disposables.push(preferencesDialog);
