@@ -17,41 +17,47 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
-      - name: Snapshot only the mesh delivery source graph for remote editing
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - uses: ./.github/actions/library-data
+      - name: Inspect pinned identities and mesh manifest without regenerating GIS
         shell: bash
         run: |
           mkdir -p "$RUNNER_TEMP/stage0"
-          git ls-files > "$RUNNER_TEMP/stage0/files.txt"
-          python3 - <<'PY'
-          import os,subprocess,tarfile
-          files=subprocess.check_output(['git','ls-files'],text=True).splitlines()
-          chosen=[p for p in files if p.endswith(('AGENTS.md','AGENTS.override.md')) or p in ['package.json','pnpm-lock.yaml','playwright.config.js','.github/actions/library-data/action.yml','.github/workflows/application-architecture.yml'] or p.startswith(('src/rendering/','src/geometry/','src/data/','src/runtime/','src/app/','src/document/','src/map/','scripts/','config/')) and not '/native/' in p or p.startswith('tools/') and any(w in p for w in ['mesh','world','library-data','frontend','runtime-asset','render-asset']) or p.startswith('tests/') and any(w in p for w in ['mesh','builtin','render-quality','country-packet','server.mjs','startup','stage0'])]
-          with tarfile.open(os.path.join(os.environ['RUNNER_TEMP'],'stage0/sources.tar.gz'),'w:gz') as t:
-            for p in chosen:
-              if os.path.isfile(p):t.add(p,arcname=p,recursive=False)
-          print('SCOPED_SOURCES',len(chosen))
-          PY
-          git rev-parse HEAD > "$RUNNER_TEMP/stage0/source-commit.txt"
-      - uses: ./.github/actions/library-data
-      - name: Inspect manifest and mesh files without regenerating GIS
+          node --input-type=module <<'JS'
+          import {readdirSync,readFileSync,statSync,writeFileSync,existsSync} from 'node:fs';
+          import {join} from 'node:path';
+          import {gunzipSync} from 'node:zlib';
+          import {createHash} from 'node:crypto';
+          const out=process.env.RUNNER_TEMP+'/stage0/',paths=[];
+          function scan(root,depth=0){if(depth>5)return;for(const e of readdirSync(root,{withFileTypes:true})){const p=join(root,e.name);if(e.isDirectory())scan(p,depth+1);else if(/mesh|bundle|manifest|world|prepared|country/.test(p))paths.push({path:p,bytes:statSync(p).size});}}
+          scan('assets/data');
+          writeFileSync(out+'assets.json',JSON.stringify(paths,null,2));
+          const read=p=>JSON.parse(p.endsWith('.gz')?gunzipSync(readFileSync(p)):readFileSync(p,'utf8'));
+          const digest=g=>createHash('sha256').update(JSON.stringify([g.type,g.coordinates])).digest('hex');
+          for(const p of ['assets/data/world/current.json','assets/data/world/build-input.json','assets/data/builtin-world/generated/v1/index.json','assets/data/prepared-polygons/generated/v2/manifest.json'])
+            if(existsSync(p))writeFileSync(out+p.replaceAll('/','__'),readFileSync(p));
+          const source=read('assets/data/territorial-entities/generated/current-world.geojson');
+          writeFileSync(out+'current-world-identity.json',JSON.stringify(source.features.map(f=>({id:f.id,properties:f.properties,digest:digest(f.geometry)})),null,2));
+          const index=read('assets/data/builtin-world/generated/v1/index.json'),rows=[];
+          for(const entry of index.entities){
+            let country;
+            if(entry.parts){const raw=Buffer.concat(entry.parts.map(p=>readFileSync('assets/data/builtin-world/generated/v1/'+p.file)));country=JSON.parse(gunzipSync(raw));}
+            else country=read('assets/data/builtin-world/generated/v1/'+entry.file);
+            rows.push({id:entry.entityId,identity:country.identity,timelineRecords:country.timelineRecords,geometries:country.geometries.map(g=>({id:g.id,version:g.version,digest:digest(g.geojson)}))});
+          }
+          writeFileSync(out+'builtin-identity.json',JSON.stringify(rows,null,2));
+          console.log('MESH_AUDIT_COUNTS',JSON.stringify({world:source.features.length,builtin:rows.length}));
+          JS
+      - name: Retain relevant source dependencies
         shell: bash
         run: |
-          node --input-type=module <<'JS'
-          import {readdirSync,readFileSync,statSync,writeFileSync} from 'node:fs';
-          import {join} from 'node:path';
-          const paths=[];
-          function scan(root,depth=0){if(depth>3)return;for(const e of readdirSync(root,{withFileTypes:true})){const p=join(root,e.name);if(e.isDirectory())scan(p,depth+1);else if(/mesh|bundle|manifest|world|prepared|country/.test(p))paths.push({path:p,bytes:statSync(p).size});}}
-          scan('assets/data');
-          writeFileSync(process.env.RUNNER_TEMP+'/stage0/assets.json',JSON.stringify(paths,null,2));
-          for(const p of paths.filter(x=>x.path.endsWith('.json')&&x.bytes<300000&&/mesh|world.*manifest|world.*bundle|prepared/.test(x.path))){
-            const name=p.path.replaceAll('/','__');writeFileSync(process.env.RUNNER_TEMP+'/stage0/'+name,readFileSync(p.path));
-          }
-          console.log('MESH_ASSETS',JSON.stringify(paths.filter(x=>/mesh|bundle|prepared/.test(x.path))));
-          JS
+          tar -czf "$RUNNER_TEMP/stage0/tool-sources.tar.gz" tools/build tools/data tests/helpers src/ui/object-presentation.js 2>/dev/null || tar -czf "$RUNNER_TEMP/stage0/tool-sources.tar.gz" tools/build tools/data tests/helpers
+          git rev-parse HEAD > "$RUNNER_TEMP/stage0/source-commit.txt"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: stage0-mesh-inspection-${{ github.sha }}
           path: ${{ runner.temp }}/stage0/
           retention-days: 7
-          if-no-files-found: error
+          if-no-files-found: warn
