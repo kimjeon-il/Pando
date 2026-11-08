@@ -1,21 +1,9 @@
-import { describe as contractSuite } from 'node:test';
-import * as __hydro_dep0 from "node:assert/strict";
-import * as __hydro_dep1 from "node:child_process";
-import * as __hydro_dep2 from "node:fs";
-import * as __hydro_dep3 from "node:test";
-import * as __hydro_dep4 from "../../tools/gis/hydro-calibration-native.mjs";
-import * as __hydro_dep5 from "../../tools/gis/hydro-calibration-metrics.mjs";
-contractSuite("hydro-calibration-native", () => {
-const assert = __hydro_dep0.default;
-const { spawnSync } = __hydro_dep1;
-const { readFileSync } = __hydro_dep2;
-const test = __hydro_dep3.default;
-const { assignHydroCalibrationStages, compareHydroCalibrationDirections, countHydroCalibrationChains, optimizeHydroCalibration } = __hydro_dep4;
-
-
-
-
-
+import assert from 'node:assert/strict';
+import {spawnSync} from 'node:child_process';
+import {readFileSync} from 'node:fs';
+import test from 'node:test';
+import {assignHydroCalibrationStages, compareHydroCalibrationDirections, countHydroCalibrationChains, optimizeHydroCalibration} from '../../tools/gis/hydro-calibration-native.mjs';
+import {calibrationAcceptance, calibrationRepresentativeChecks, calibrationResidualOverlap, calibrationStageMetrics, estimateCalibrationWorld} from '../../tools/gis/hydro-calibration-metrics.mjs';
 
 const cases=JSON.parse(readFileSync(new URL('../fixtures/hydro-calibration-chain-oracle.json',import.meta.url),'utf8'));
 const optimizerCases=JSON.parse(readFileSync(new URL('../fixtures/hydro-calibration-optimizer-oracle.json',import.meta.url),'utf8'));
@@ -70,18 +58,6 @@ test('calibration stream rejects invalid input and keeps coordinates unchanged',
   const controller=new AbortController();controller.abort();
   await assert.rejects(countHydroCalibrationChains(selected.features,{signal:controller.signal}),{name:'AbortError'});
 });
-});
-contractSuite("hydro-calibration-metrics", () => {
-const assert = __hydro_dep0.default;
-const { readFileSync } = __hydro_dep2;
-const { spawnSync } = __hydro_dep1;
-const test = __hydro_dep3.default;
-const { calibrationAcceptance, calibrationRepresentativeChecks, calibrationResidualOverlap, calibrationStageMetrics, estimateCalibrationWorld } = __hydro_dep5;
-
-
-
-
-
 
 const oracle=JSON.parse(readFileSync(new URL('../fixtures/hydro-calibration-metrics-oracle.json',import.meta.url),'utf8'));
 test('stage measurements and residual overlap match the Python calibration',()=>{
@@ -118,5 +94,4 @@ test('world estimate uses the native chain count and the original extrapolation'
   assert.equal(cli.status,0,cli.stderr);assert.deepEqual(JSON.parse(cli.stdout),oracle.worldExpected);
   const controller=new AbortController();controller.abort();
   await assert.rejects(estimateCalibrationWorld(oracle.worldInput,{signal:controller.signal}),{name:'AbortError'});
-});
 });
