@@ -247,6 +247,10 @@ export function createGpuMapRenderer(deps) {
     let selectionPass = null;
     let lastSelectionRenderResult = null;
     let lastBaseSceneResult = null;
+    // Actual published surface evidence survives later non-published
+    // RenderScene invalidations, but never survives a new source generation
+    // or a lost GL context. Preparation is not presentation.
+    let lastPublishedSurfaceDraw = null;
     // Desired domains remain in app-gpu-scene. This cache records only stroke
     // resources already presented by the GPU, including the pending fallback.
     const presentedStrokeDomains = new Map();
@@ -475,6 +479,8 @@ export function createGpuMapRenderer(deps) {
       if (temporalPending() && temporalFrameReady(resourcesDrawn, terrain)) temporalPresentation.frameId = frame.frameId;
       if (resourcesDrawn && (terrainDrawn || terrain.terrainFailed)) {
         if (surfacePresentation.quality !== 'pending') {
+          if (submittedWebGlBaseFrame && lastBaseSceneResult?.surface?.quality === surfacePresentation.quality)
+            lastPublishedSurfaceDraw = lastBaseSceneResult.surface;
           countriesPublishedGeneration = projectGeneration;
           firstCountryPublishedMs ??= Math.max(0, performance.now() - rendererStartedAt);
           if (submittedWebGlBaseFrame)
@@ -1756,6 +1762,7 @@ export function createGpuMapRenderer(deps) {
       cancelSharedGpuInitialization('context-lost');
       renderDeviceContextRevision += 1;
       backgroundPresentedKey = ''; countriesPublishedGeneration = -1;
+      lastPublishedSurfaceDraw = null;
       terrainPreparation?.setContext({ gl: null, ready: false, scheduler: terrainUploadScheduler,
         projectGeneration, contextGeneration: renderDeviceContextRevision });
       hydroPreparation.setContext({ gl: null, version: glVersion, scheduler: hydroUploadScheduler,
@@ -2690,6 +2697,7 @@ export function createGpuMapRenderer(deps) {
       invalidateGpuRecoveryInputs('project-reset');
       canonicalPromotionError = '';
       backgroundPresentedKey = ''; countriesPublishedGeneration = -1;
+      lastPublishedSurfaceDraw = null;
       previewSurfaceFeatures = null; previewDisplayCertificate = null; previewCertificateRevision = ''; previewLandPackets.clear();
       surfacePresentation = Object.freeze({ targetQuality: 'canonical', quality: 'pending' });
       desiredCountryMeshQuality = 'preview';
@@ -5791,7 +5799,7 @@ export function createGpuMapRenderer(deps) {
         screenScale: lastVisualFrame?.cssScale ?? null,
         scaleBand: scaleQuality === 'preview' ? 'low' : 'high',
         previewAdmission: 'validated-scale-bound', surfacePresentation, previewDisplayCertificate,
-        surfaceDraw: lastBaseSceneResult?.surface || null,
+        surfaceDraw: countriesPublishedGeneration === projectGeneration ? lastPublishedSurfaceDraw : null,
         renderer: rendererMode,
         terrainPreparationEnabled:terrainPreparation!==null,
         fallbackReason,
@@ -5836,7 +5844,7 @@ export function createGpuMapRenderer(deps) {
         screenScale: lastVisualFrame?.cssScale ?? null,
         scaleBand: scaleQuality === 'preview' ? 'low' : 'high',
         previewAdmission: 'validated-scale-bound', surfacePresentation, previewDisplayCertificate,
-        surfaceDraw: lastBaseSceneResult?.surface || null,
+        surfaceDraw: countriesPublishedGeneration === projectGeneration ? lastPublishedSurfaceDraw : null,
         renderer: rendererMode,
         // Expose the exact picture certificate only in the explicit debug
         // metrics path. This does not affect frame admission or readiness.
