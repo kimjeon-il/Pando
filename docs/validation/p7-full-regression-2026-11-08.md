@@ -69,3 +69,9 @@ blanket skip or handled by suppressing dependencies.
 
 These commits **have not yet passed the complete suite**. A new full run after
 the library archive fix and domain repairs is required before stating success.
+
+## Follow-up confirmation run
+
+A second full-catalog run was requested after the identified P7 infrastructure
+and active-test ownership fixes. Its result must be evaluated independently of
+the prior failed run; the external archive index discrepancy remains known.
