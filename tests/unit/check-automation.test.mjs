@@ -117,6 +117,14 @@ test('generated adapter gate invokes node once with every retained test argument
   for(const name of ['p6-polygon-core','r4c-spatial-boundaries','river-territory-partition'])assert(gate.run.includes('tests/unit/'+name+'.test.mjs'));
 });
 
+test('P2 checkout provides comparison history for manual and push runs',()=>{
+  const workflow=parse(readFileSync(new URL('../../.github/workflows/generated-artifacts-p2.yml',import.meta.url),'utf8'));
+  for(const name of ['plan','generate']) {
+    const checkout=workflow.jobs[name].steps.find(step=>step.uses?.startsWith('actions/checkout@'));
+    assert.equal(checkout?.with?.['fetch-depth'],0,`${name} must fetch origin/main and comparison history`);
+  }
+});
+
 
 function fixture() {
   const root = mkdtempSync(join(tmpdir(), 'pando-check-plan-'));
