@@ -124,6 +124,7 @@ test('Canvas invalidates prepared strokes on changed revision, buffer identity o
   paint({ ...packet, geometryRevision: 'shape:2', ownerIds: ['LEFT'], ownerRanges: { LEFT: { first: 1, count: 1 } } });
   assert.deepEqual(paints[3].coordinates, [[[1, 0], [3, 0]]]);
 });
+});
 contractSuite("canvas-globe-viewport", () => {
 const test=__dep0.default;
 const assert=__dep1.default;
@@ -444,9 +445,6 @@ test('background picture identity ignores coordinator churn but rejects changed 
 
 // Background style certificates are exercised above with the real key API;
 // exact temporal/partial background admission is covered in this suite.
-});
-});
-contractSuite("canvas-terrain-dem-core", () => {});
 });
 contractSuite("canvas-terrain-dem-core", () => {
 const test = __canvas_dep0.default;

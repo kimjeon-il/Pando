@@ -246,6 +246,7 @@ test('Canvas picture classifier rejects superseded geometry, style and physical 
   assert.equal(classify({...bg,backgroundPresentationKey:'old'},ctx),'background-presentation');
   assert.equal(classify({...bg,physicalStyleRevision:2},ctx),'physical-style');
 });
+});
 
 contractSuite("gpu-scene-presentation-ownership", () => {
 const test = __contract_dep1.default;
