@@ -20,6 +20,13 @@ export function createMapSettings({ capabilities,viewPresentation } = {}) {
   let LAYER_STYLE_TARGETS;
   const menuState=createMapDisplayMenuState();
   let desktopViewMenuPositioner;
+  let bound = false, disposed = false;
+  const subscriptions = [], observers = [];
+  const listen = (node, type, callback, options) => {
+    if (!node) return;
+    node.addEventListener(type, callback, options);
+    subscriptions.push(() => node.removeEventListener(type, callback, options));
+  };
   function connect(ports) {
     if (dependencies) throw new Error('map-settings already connected');
     if (typeof ports?.feedback?.reportOperationError !== 'function') throw new TypeError('Map settings require their operation error reporter.');
@@ -518,16 +525,18 @@ export function createMapSettings({ capabilities,viewPresentation } = {}) {
   }
 
   function bindMapDisplayUI() {
+    if (bound || disposed) return;
     const surface = (0, dependencies.platform.$)('mapDisplaySurface');
     if (!surface) return;
-    surface.addEventListener('focusin', event => { menuState.rememberFocus(event.target); });
-    document.addEventListener('focusin', event => { if (!surface.contains(event.target)) menuState.rememberFocus(null); });
-    window.addEventListener('pandolab:project-changed', renderMapDisplaySettings);
+    bound = true;
+    listen(surface, 'focusin', event => { menuState.rememberFocus(event.target); });
+    listen(document, 'focusin', event => { if (!surface.contains(event.target)) menuState.rememberFocus(null); });
+    listen(window, 'pandolab:project-changed', renderMapDisplaySettings);
     const state=dependencies.projectState.state;
     for(const input of surface.querySelectorAll('[data-map-background]')) {
       const key=input.dataset.mapBackground;
       input.checked=state.backgroundSettings[key];
-      input.addEventListener('change',()=>runViewAction(async()=>{
+      listen(input, 'change',()=>runViewAction(async()=>{
         state.backgroundSettings[key]=input.checked;
         const current=dependencies.preferences.userPreferences;
         dependencies.preferences.setUserPreferences(dependencies.preferences.saveUserPreferences({...current,backgrounds:{...current.backgrounds,viewer:{...current.backgrounds.viewer,[key]:input.checked}}}));
@@ -544,25 +553,25 @@ export function createMapSettings({ capabilities,viewPresentation } = {}) {
       ['labels', 'labelsVisible'],
     ];
     for (const [group, id] of visibilityInputs) {
-      (0, dependencies.platform.$)(id)?.addEventListener('change', event => runViewAction(() => setLayerVisibility(group, event.currentTarget.checked)));
+      listen((0, dependencies.platform.$)(id), 'change', event => runViewAction(() => setLayerVisibility(group, event.currentTarget.checked)));
     }
     for (const input of surface.querySelectorAll('[data-place-language]')) {
-      input.addEventListener('change', event => setPlaceLanguage(event.currentTarget.dataset.placeLanguage, event.currentTarget.checked));
+      listen(input, 'change', event => setPlaceLanguage(event.currentTarget.dataset.placeLanguage, event.currentTarget.checked));
     }
     for (const input of surface.querySelectorAll('[data-territorial-symbol]')) {
-      input.addEventListener('change', event => runViewAction(() => setLayerVisibility(event.currentTarget.dataset.territorialSymbol, event.currentTarget.checked)));
+      listen(input, 'change', event => runViewAction(() => setLayerVisibility(event.currentTarget.dataset.territorialSymbol, event.currentTarget.checked)));
     }
-    surface.addEventListener('change', event => {
+    listen(surface, 'change', event => {
       const input = event.target.closest?.('[data-layer-style-color]');
       if (input) return runViewAction(() => updateLayerPresentationStyle(input.dataset.layerStyleColor, { colorVisible: input.checked }));
     });
     for (const id of ['terrainNoneRadio', 'terrainPoliticalRadio', 'terrainPhysicalRadio']) {
-      (0, dependencies.platform.$)(id)?.addEventListener('change', event => {
+      listen((0, dependencies.platform.$)(id), 'change', event => {
         if (!event.currentTarget.checked) return;
         return runViewAction(() => setTerrainMode(event.currentTarget.value));
       });
     }
-    surface.addEventListener('click', event => {
+    listen(surface, 'click', event => {
       const parent = event.target.closest('.view-menu-parent');
       if (parent && isDesktopViewMenu()) {
         event.preventDefault();
@@ -574,7 +583,7 @@ export function createMapSettings({ capabilities,viewPresentation } = {}) {
       if (!row || isDesktopViewMenu()) return;
       toggleMapDisplayDisclosure(row.dataset.mapDisplayRow);
     });
-    surface.addEventListener('pointerdown', event => {
+    listen(surface, 'pointerdown', event => {
       if (event.target.closest('input[type="range"], .sheet-drag-handle, .surface-header')) {
         menuState.beginGesture(event.pointerId);
       }
@@ -582,13 +591,13 @@ export function createMapSettings({ capabilities,viewPresentation } = {}) {
     const finishMenuGesture = event => {
       if (!menuState.endGesture(event.pointerId)) return;
       requestAnimationFrame(() => {
-        if (menuState.pendingLayout) syncMapDisplayDisclosures();
+        if (!disposed && menuState.pendingLayout) syncMapDisplayDisclosures();
       });
     };
-    document.addEventListener('pointerup', finishMenuGesture);
-    document.addEventListener('pointercancel', finishMenuGesture);
-    surface.addEventListener('lostpointercapture', finishMenuGesture);
-    surface.addEventListener('pointerover', event => {
+    listen(document, 'pointerup', finishMenuGesture);
+    listen(document, 'pointercancel', finishMenuGesture);
+    listen(surface, 'lostpointercapture', finishMenuGesture);
+    listen(surface, 'pointerover', event => {
       if (!desktopMenuOpen() || event.pointerType !== 'mouse' || menuState.gesture !== null) return;
       const row = event.target.closest('.ui-menu-item');
       const previousRow = event.relatedTarget instanceof globalThis.Element ? event.relatedTarget.closest('.ui-menu-item') : null;
@@ -609,17 +618,17 @@ export function createMapSettings({ capabilities,viewPresentation } = {}) {
       const menu = row.closest('[role="menu"]');
       if (menu?.classList.contains('view-menu-root')) closeDesktopViewMenuGroup();
     });
-    surface.addEventListener('pointerout', event => {
+    listen(surface, 'pointerout', event => {
       if (!desktopMenuOpen() || event.pointerType !== 'mouse' || menuState.gesture !== null) return;
       if (event.relatedTarget instanceof globalThis.Node && surface.contains(event.relatedTarget)) return;
       scheduleDesktopViewMenuClose();
     });
-    surface.addEventListener('pointerenter', () => menuState.cancelCloseTimer());
+    listen(surface, 'pointerenter', () => menuState.cancelCloseTimer());
     const menuActions = menu => [...(menu?.querySelectorAll('.ui-menu-item, input[type="range"], select') || [])]
       .filter(item => item.closest('[role="menu"]') === menu && !item.closest('[hidden], .hidden, [inert]') && item.getClientRects().length)
       .map(item => item.matches('button, input, select') ? item : item.querySelector('input, button'))
       .filter(item => item && !item.disabled);
-    surface.addEventListener('keydown', event => {
+    listen(surface, 'keydown', event => {
       if (!desktopMenuOpen()) return;
       event.stopPropagation();
       cancelDesktopMenuTimers();
@@ -662,7 +671,7 @@ export function createMapSettings({ capabilities,viewPresentation } = {}) {
           setDesktopViewMenuGroup(group);
           const panel = displayPanelForDesktopGroup(group);
           requestAnimationFrame(() => {
-            if (desktopMenuOpen() && !panel?.hidden) menuActions(panel)[0]?.focus({ preventScroll: true });
+            if (!disposed && desktopMenuOpen() && !panel?.hidden) menuActions(panel)[0]?.focus({ preventScroll: true });
           });
         } else if (event.key === 'Enter' && active?.matches('input[type="checkbox"], input[type="radio"]')) {
           event.preventDefault();
@@ -682,26 +691,29 @@ export function createMapSettings({ capabilities,viewPresentation } = {}) {
       event.preventDefault();
       items[(nextIndex + items.length) % items.length]?.focus({ preventScroll: true });
     });
-    surface.addEventListener('keyup', event => {
+    listen(surface, 'keyup', event => {
       if (desktopMenuOpen()) event.stopPropagation();
     });
     const app = (0, dependencies.platform.$)('app');
-    new MutationObserver(() => {
+    const layoutObserver = new MutationObserver(() => {
       cancelDesktopMenuTimers();
       syncMapDisplayDisclosures();
       if (!surface.classList.contains('surface-open') && !surface.classList.contains('mobile-open')) closeDesktopViewMenuGroup();
-    }).observe(app, { attributes: true, attributeFilter: ['data-layout'] });
-    new MutationObserver(() => {
+    });
+    layoutObserver.observe(app, { attributes: true, attributeFilter: ['data-layout'] });
+    const surfaceObserver = new MutationObserver(() => {
       if (!surface.classList.contains('surface-open') && !surface.classList.contains('mobile-open')) closeDesktopViewMenuGroup();
       else desktopViewMenuPositioner.schedule();
-    }).observe(surface, { attributes: true, attributeFilter: ['class'] });
-    window.addEventListener('resize', () => desktopViewMenuPositioner.schedule());
-    window.visualViewport?.addEventListener?.('resize', () => desktopViewMenuPositioner.schedule());
-    window.visualViewport?.addEventListener?.('scroll', () => desktopViewMenuPositioner.schedule());
-    surface.addEventListener('scroll', () => {
+    });
+    surfaceObserver.observe(surface, { attributes: true, attributeFilter: ['class'] });
+    observers.push(layoutObserver, surfaceObserver);
+    listen(window, 'resize', () => desktopViewMenuPositioner.schedule());
+    listen(window.visualViewport, 'resize', () => desktopViewMenuPositioner.schedule());
+    listen(window.visualViewport, 'scroll', () => desktopViewMenuPositioner.schedule());
+    listen(surface, 'scroll', () => {
       if (desktopMenuOpen()) desktopViewMenuPositioner.schedule();
     }, true);
-    surface.addEventListener('change', event => runViewAction(async () => {
+    listen(surface, 'change', event => runViewAction(async () => {
       syncDesktopMenuChecks();
       const boundary = event.target.closest('[data-layer-style-boundary]');
       if (boundary) await updateLayerPresentationStyle(boundary.dataset.layerStyleBoundary, { boundaryVisible: boundary.checked });
@@ -717,7 +729,7 @@ export function createMapSettings({ capabilities,viewPresentation } = {}) {
         await setDistributionControl('distributionBoundaryVisible', event.target.checked, 'distribution-boundary-visibility');
       }
     }));
-    surface.addEventListener('input', event => {
+    listen(surface, 'input', event => {
       const opacity = event.target.closest('[data-layer-style-opacity]');
       if (opacity) return runViewAction(() => updateLayerPresentationStyle(opacity.dataset.layerStyleOpacity, { opacity: Number(opacity.value) / 100 }));
     });
@@ -787,8 +799,18 @@ export function createMapSettings({ capabilities,viewPresentation } = {}) {
     (desktopViewMenuPositioner = createMenuPositionScheduler(positionDesktopViewMenus));
   }
 
+  function dispose() {
+    if (disposed) return;
+    disposed = true;
+    for (const observer of observers.splice(0)) observer.disconnect();
+    for (const unsubscribe of subscriptions.splice(0)) unsubscribe();
+    menuState.cancelTimers();
+    menuState.originals.clear();
+    desktopViewMenuPositioner?.cancel();
+    bound = false;
+  }
   return Object.freeze({
-    connect,
+    connect, dispose,
     get bindMapDisplayUI() { return bindMapDisplayUI; },
     get closeDesktopViewMenuGroup() { return closeDesktopViewMenuGroup; },
     initializeLAYER_STYLE_TARGETS,

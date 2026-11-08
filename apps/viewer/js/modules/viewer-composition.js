@@ -300,6 +300,7 @@ export async function composeViewer({ productMode, meta }) {
     workspaceUiA:surfaces,workspaceUiB:surfaces,
   });
   display.initializeLAYER_STYLE_TARGETS();
+  disposables.push(display);
   const navigationBindings=createNavigationBindings();
   navigationBindings.connect({platform:{$:get},workspaceUiA:surfaces,workspaceUiB:surfaces,workspaceUiC:surfaces,surfaces,
     mapSettingsUi:display,navigation:map.navigation,projectState:{state:map.viewState},objectPicking:map.objectPicking,
