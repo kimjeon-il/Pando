@@ -55,7 +55,10 @@ for (const mode of ['physical', 'political']) {
         profile.paints = Object.fromEntries((message.scenePolygons || []).filter(packet => packet.role === 'territorial-fill')
           .map(packet => [packet.key, { alpha: packet.style.fillAlpha, color: packet.style.color }]));
         const bitmap = canvas.transferToImageBitmap();`);
-      replace("self.postMessage({\n        type: 'frame',", "self.postMessage({\n        type: 'frame', profile,");
+      // Only actual transferred bitmap frames carry profile receipts;
+      // cancellation acknowledgements remain uninstrumented.
+      replace("self.postMessage({\n        type: 'frame',\n        physicalLandCount:",
+        "self.postMessage({\n        type: 'frame', profile,\n        physicalLandCount:");
       await route.fulfill({ response, body: source });
     });
     await page.goto('/?debug=1');
