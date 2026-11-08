@@ -5,13 +5,11 @@
 #include <pandoeditor/polygonclipping.h>
 #include <algorithm>
 #include <cmath>
-#include <iomanip>
 #include <limits>
 #include <map>
 #include <memory>
 #include <optional>
 #include <set>
-#include <sstream>
 #include <stdexcept>
 #include <utility>
 
@@ -423,14 +421,7 @@ struct Operation {
                 while(true){
                     std::vector<Event*> available;
                     for(auto* linked:e->point->events)if(linked!=e&&!linked->segment->ringOut&&isInResult(linked->segment))available.push_back(linked);
-                    if(available.empty()){
-                        std::ostringstream out;out<<std::setprecision(17)<<"Unable to complete output ring at "<<e->point->p.x<<","<<e->point->p.y
-                            <<" start="<<start->p.x<<","<<start->p.y<<" previous="<<previous->point->p.x<<","<<previous->point->p.y;
-                        for(auto* linked:e->point->events){auto* seg=linked->segment;
-                            out<<" | id="<<seg->id<<" left="<<linked->left<<" result="<<isInResult(seg)<<" assigned="<<(seg->ringOut!=nullptr)
-                               <<" other="<<linked->other->point->p.x<<","<<linked->other->point->p.y;}
-                        throw std::runtime_error(out.str());
-                    }
+                    if(available.empty())throw std::runtime_error("Unable to complete output ring");
                     if(available.size()==1){next=available[0]->other;break;}
                     auto it=std::find_if(intersections.begin(),intersections.end(),[&](auto entry){return entry.second==e->point;});
                     if(it!=intersections.end()){
