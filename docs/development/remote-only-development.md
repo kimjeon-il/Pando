@@ -142,10 +142,10 @@ storage owner offers a **preview** of unreferenced, immutable, source-hashed
 native views and an explicit, journaled operation:
 
 ```powershell
-node tools/worktree-storage.mjs --retire-native
-node tools/worktree-storage.mjs --retire-native --apply
-node tools/worktree-storage.mjs --prune-blobs
-node tools/worktree-storage.mjs --prune-blobs --apply
+node tools/data/worktree-storage.mjs --retire-native
+node tools/data/worktree-storage.mjs --retire-native --apply
+node tools/data/worktree-storage.mjs --prune-blobs
+node tools/data/worktree-storage.mjs --prune-blobs --apply
 ```
 
 Only a user/local operator with access to the storage may opt into applying

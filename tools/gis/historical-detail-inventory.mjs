@@ -1,10 +1,10 @@
 /** Metadata inventory across every compiled interval; never validates world coordinates. */
 import fs from 'node:fs';
 import {execFileSync} from 'node:child_process';
-import {libraryCheckout} from '../library-data.mjs';
+import {libraryCheckout} from "../data/library-context.mjs";
 import {gunzipSync} from 'node:zlib';
 import {pathToFileURL} from 'node:url';
-import {readBuiltinCountryStoredBytes} from '../builtin-country-bytes.mjs';
+import {readBuiltinCountryStoredBytes} from "../data/builtin-country-bytes.mjs";
 export function buildHistoricalDetailInventory({sourceEntities,countries,sourceIdentities,currentSelections=[],nativeObjects={}}){
  const current=new Map(currentSelections.map(r=>[r.entityId,r.geometryVersionId])),rows=[];
  for(const entity of sourceEntities)for(const version of entity.geometryVersions){

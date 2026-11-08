@@ -2,7 +2,7 @@ import { describe as contractSuite } from 'node:test';
 import * as __dem_dep0 from "node:test";
 import * as __dem_dep1 from "node:assert/strict";
 import * as __dem_dep2 from "node:crypto";
-import * as __dem_dep3 from "../../tools/check-terrain-preview.mjs";
+import * as __dem_dep3 from "../../tools/checks/check-terrain-preview.mjs";
 import * as __dem_dep4 from "node:fs/promises";
 import * as __dem_dep5 from "node:os";
 import * as __dem_dep6 from "node:path";

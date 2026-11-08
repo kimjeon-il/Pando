@@ -5,7 +5,7 @@ import {existsSync,mkdirSync,readFileSync,writeFileSync} from 'node:fs';
 import {dirname,isAbsolute,relative,resolve,sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {parseArgs} from 'node:util';
-import {withLibraryOutputs} from '../library-data.mjs';
+import {withLibraryOutputs} from "../data/library-runtime.mjs";
 import {verifyCanonicalDEU,verifyHistoricalStateSource} from './verify-german-1914-originals.mjs';
 
 const defaultRoot=fileURLToPath(new URL('../../',import.meta.url));

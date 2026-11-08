@@ -4,7 +4,7 @@ on:
   push:
     branches: [work/gis]
     paths:
-      - tools/inventory-osm-hydronyms.mjs
+      - tools/gis/inventory-osm-hydronyms.mjs
       - tests/unit/osm-hydro-inventory.test.mjs
       - tools/gis/compare-osm-hydro-natural-earth.mjs
       - tools/gis/hydro-numeric.mjs
@@ -43,13 +43,13 @@ jobs:
           node-version: '24'
       - name: Extract verified matched systems without modifying map data
         run: |
-          node tools/inventory-osm-hydronyms.mjs \
+          node tools/gis/inventory-osm-hydronyms.mjs \
             --manifest assets/data/hydro/v0.13.2/manifest.json \
             --bundle assets/data/hydro/v0.13.2/hydro.bin \
             --output /tmp/osm-hydro-inventory.json
       - name: Decode original Hydro geometry using the published production decoder
         run: |
-          node tools/decode-hydro-connectivity.mjs \
+          node tools/gis/decode-hydro-connectivity.mjs \
             assets/data/hydro/v0.13.2 /tmp/hydro-decoded.json
       - name: Select pinned Natural Earth name geometry
         run: |

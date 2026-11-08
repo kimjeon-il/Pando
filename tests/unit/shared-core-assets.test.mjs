@@ -4,7 +4,7 @@ import { createHash } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
-import { sharedSourceManifest, packageSharedCoreAssets } from '../../tools/package-shared-core-assets.mjs';
+import { sharedSourceManifest, packageSharedCoreAssets } from "../../tools/build/package-shared-core-assets.mjs";
 
 function fixture() {
   const root=mkdtempSync(join(tmpdir(),'pando-core-assets-'));

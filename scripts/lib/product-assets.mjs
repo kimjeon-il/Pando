@@ -142,7 +142,7 @@ export async function collectViewerAssets({ root, availablePaths, readSource = p
     plugins: [{ name: 'viewer-product-closure', setup(builder) {
       builder.onResolve({ filter: /.*/ }, args => {
         const importer = slash(relative(root, args.importer));
-        if (importer === 'assets/js/modules/temporal.js' && args.path === '../../../tools/load-node-core.mjs')
+        if (importer === 'assets/js/modules/temporal.js' && args.path === '../../../tools/build/load-node-core.mjs')
           return { path: args.path, external: true }; // Explicit Node-only calculation test adapter.
         const path = args.kind === 'entry-point' ? slash(relative(root, resolve(root, args.path))) : local(args.path, importer);
         include(path); return { path: resolve(root, path) };

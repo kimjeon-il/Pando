@@ -12,7 +12,7 @@ part of this phase.
 
 ## Generation contract
 
-`tools/build-builtin-world.mjs` remains the canonical publication owner.
+`tools/build/build-builtin-world.mjs` remains the canonical publication owner.
 `index.json` retains payload schema 2 and declares `storageLayout: country-files-v1`.
 Country paths are `countries/<entity>-sha256-<hash>.json.gz`, with `encoding`,
 `sha256`, `compressedBytes`, `decodedBytes` and country coverage in the index.

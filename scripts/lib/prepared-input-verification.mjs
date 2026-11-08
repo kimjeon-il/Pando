@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
-import {readBuiltinCountryStoredBytes} from '../../tools/builtin-country-bytes.mjs';
+import {readBuiltinCountryStoredBytes} from "../../tools/data/builtin-country-bytes.mjs";
 import {builtinCountryAssets} from "../../src/data/builtin-country-files.js";
 
 const builtinRoot='assets/data/builtin-world/generated/v1/';

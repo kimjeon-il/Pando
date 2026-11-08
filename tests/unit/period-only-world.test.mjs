@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {historicalWorldCases} from '../fixtures/historical-world-cases.mjs';
 import {withExplicitView} from '../helpers/builtin-world.mjs';
-import {compileBuiltinWorldCatalog} from '../../tools/builtin-world-compiler.mjs';
+import {compileBuiltinWorldCatalog} from "../../tools/build/builtin-world-compiler.mjs";
 import {selectBuiltinCountries,assembleBuiltinWorld} from "../../src/data/builtin-world-loader.js";
 
 test('a single interval catalog selects the same source regardless of the device month',()=>{

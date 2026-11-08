@@ -402,7 +402,7 @@ test('Hydro metadata workflow verifies the generated snapshot without committing
  const workflow=parse(source),steps=workflow.jobs['targeted-metadata-refresh'].steps;
  assert.equal(workflow.permissions.contents,'read');
  assert.ok(steps.some(step=>step.run?.includes('node scripts/generate-build-metadata.mjs --check')));
- assert.ok(steps.some(step=>step.run?.includes('node tools/check-current-hydro-layout.mjs')));
+ assert.ok(steps.some(step=>step.run?.includes('node tools/checks/check-current-hydro-layout.mjs')));
  assert.ok(steps.some(step=>step.uses==='actions/upload-artifact@v4'));
  for(const step of steps)assert.doesNotMatch(step.run||'',/git (?:add|commit|push)\b/);
 });

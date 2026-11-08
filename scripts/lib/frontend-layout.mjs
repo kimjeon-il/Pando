@@ -123,7 +123,7 @@ export function emitFrontendModule(source,sourcePath,index){
    publicPath=target.publicPath;
   }
   else if(generatedModulePaths.has(targetPath))publicPath=targetPath;
-  else if(targetPath==='tools/load-node-core.mjs'&&sourceEntry.publicPath==='assets/js/modules/temporal.js')publicPath=targetPath;
+  else if(targetPath==='tools/build/load-node-core.mjs'&&sourceEntry.publicPath==='assets/js/modules/temporal.js')publicPath=targetPath;
   else throw Error('Private or unmapped frontend import: '+sourcePath+' -> '+reference.specifier);
   let specifier=posix.relative(posix.dirname(sourceEntry.publicPath),publicPath);if(!specifier.startsWith('.'))specifier='./'+specifier;
   changes.push({...reference,text:reference.template?specifier:JSON.stringify(specifier+suffix)});

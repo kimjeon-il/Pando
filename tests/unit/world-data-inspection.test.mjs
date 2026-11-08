@@ -7,9 +7,9 @@ import { spawnSync } from 'node:child_process';
 import { gzipSync } from 'node:zlib';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { clipSegment, clippedLines, parseBbox } from '../../tools/inspect-world-data.mjs';
+import { clipSegment, clippedLines, parseBbox } from "../../tools/gis/inspect-world-data.mjs";
 
-const tool = fileURLToPath(new URL('../../tools/inspect-world-data.mjs', import.meta.url));
+const tool = fileURLToPath(new URL("../../tools/gis/inspect-world-data.mjs", import.meta.url));
 const square = (x, y, span = 3) => [[[x, y], [x + span, y], [x + span, y + span], [x, y + span], [x, y]]];
 const baseFixture = () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'world-inspect-'));

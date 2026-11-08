@@ -38,7 +38,7 @@ jobs:
           sparse-checkout: |
             /assets/data/territorial-entities/generated/v2/index.json
       - name: Hydrate original published KAB/KAZ runtime geometry without modification
-        run: node tools/library-data.mjs
+        run: node tools/data/library-data.mjs
       - name: Summarize the real compressed GIS geometry input schemas
         run: |
           node --input-type=module - <<'JS'

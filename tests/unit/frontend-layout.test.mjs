@@ -5,10 +5,10 @@ import * as __dep2 from "node:fs";
 import * as __dep3 from "node:os";
 import * as __dep4 from "node:path";
 import * as __dep5 from "../../scripts/lib/frontend-layout.mjs";
-import * as __dep6 from "../../tools/worktree-storage.mjs";
+import * as __dep6 from "../../tools/data/worktree-storage.mjs";
 import * as __dep7 from "../../.pnpmfile.mjs";
 import * as __dep8 from "node:child_process";
-import * as __dep9 from "../../tools/worktree-generated.mjs";
+import * as __dep9 from "../../tools/data/worktree-generated.mjs";
 
 // Original feature contract: frontend-layout.test.mjs
 contractSuite("frontend-layout", () => {

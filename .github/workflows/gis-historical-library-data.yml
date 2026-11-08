@@ -34,7 +34,7 @@ jobs:
         run: |
           node --input-type=module - <<'JS'
           import {createHash} from 'node:crypto';
-          import {readTerritorialSources} from './tools/territorial-entity-sources.mjs';
+          import {readTerritorialSources} from './tools/data/territorial-entity-sources.mjs';
           const sources=readTerritorialSources();
           const east=sources.find(x=>x.entityId==='state:east-prussia');
           if(!east)throw Error('East Prussia object missing');

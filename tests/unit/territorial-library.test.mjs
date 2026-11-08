@@ -4,7 +4,7 @@ import {normalizeTerritorialLibraryEntity, selectGeometryVersion, instantiateLib
 import {projectTimelineIdentity} from "../../src/document/timeline-resolver.js";
 import {createHash} from 'node:crypto';
 import {readFileSync} from 'node:fs';
-import {readTerritorialSources} from '../../tools/territorial-entity-sources.mjs';
+import {readTerritorialSources} from "../../tools/data/territorial-entity-sources.mjs";
 import {markEditedLibrarySource} from '../../tools/gis/territorial-library-provenance.js';
 
 const geometry = { type: 'Polygon', coordinates: [[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]] };

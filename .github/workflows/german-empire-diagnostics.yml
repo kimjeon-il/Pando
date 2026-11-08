@@ -45,7 +45,7 @@ jobs:
       - name: Verify the stored geometry through the C++ recipe
         run: |
           node --test tests/unit/territorial-recipe-cli.test.mjs tests/unit/territorial-recipe-cpp.test.mjs
-          node tools/build-territorial-geometry.mjs --check
+          node tools/build/build-territorial-geometry.mjs --check
 
   data-contracts:
     name: Validation entrypoints and current generated assets
@@ -75,7 +75,7 @@ jobs:
       - name: Validate generated preview assets and unified territorial catalog
         run: >-
           pnpm check:preview &&
-          node tools/build-territorial-entity-chunks.mjs --check &&
+          node tools/build/build-territorial-entity-chunks.mjs --check &&
           node scripts/check-territorial-library.mjs
       - name: Validate catalog geometry parity, lazy loading and timeline storage
         run: >-
@@ -122,5 +122,5 @@ jobs:
           PANDO_TERRITORIAL_RECIPE_BINARY: ${{ github.workspace }}/build-native/territorial-recipe/pando-territorial-recipe
         run: |
           node --test tests/unit/territorial-recipe-cli.test.mjs tests/unit/territorial-recipe-cpp.test.mjs
-          node tools/build-territorial-geometry.mjs --check
+          node tools/build/build-territorial-geometry.mjs --check
 

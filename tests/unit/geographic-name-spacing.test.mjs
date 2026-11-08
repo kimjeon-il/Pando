@@ -5,7 +5,7 @@ import test from 'node:test';
 import { gunzipSync } from 'node:zlib';
 
 import { normalizeCountryFeature } from "../../src/document/country-feature.js";
-import {readTerritorialSources} from '../../tools/territorial-entity-sources.mjs';
+import {readTerritorialSources} from "../../tools/data/territorial-entity-sources.mjs";
 import { createCanonicalCountryStore } from "../../src/rendering/canonical-country-packet.js";
 
 const data = new URL('../../assets/data/', import.meta.url);

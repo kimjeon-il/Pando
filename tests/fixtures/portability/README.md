@@ -7,6 +7,6 @@ specified ordered results, including silent anchor updates, duplicated inputs,
 pruning, encoded IDs and empty-selection no-ops. Do not regenerate expected values
 from the implementation under test.
 
-Run `node tools/check-platform-portability.mjs` for the current Web/shared selection regression.
+Run `node tools/checks/check-platform-portability.mjs` for the current Web/shared selection regression.
 The retired Qt app registry and probes have been removed. Frozen Web sources remain
 inputs to current shared/WASM regression tests; they do not claim app UI parity.

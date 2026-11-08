@@ -6,7 +6,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { buildFrontendIndex, frontendAsset, emitFrontendModule, frontendModuleReferences } from '../../scripts/lib/frontend-layout.mjs';
 import { buildWorkerAsset } from '../../scripts/lib/worker-assets.mjs';
-import { loadNodeCore } from '../../tools/load-node-core.mjs';
+import { loadNodeCore } from "../../tools/build/load-node-core.mjs";
 import { validateWebFlagDataUrl } from "../../src/ui/country-flags.js";
 import { createCoreDocumentClient } from "../../src/document/core-document-client.js";
 import { createCoreWorkerRuntime } from "../../src/runtime/core-worker-runtime.js";

@@ -4,9 +4,14 @@ import * as __library_dep1 from "node:assert/strict";
 import * as __library_dep2 from "node:fs/promises";
 import * as __library_dep3 from "node:os";
 import * as __library_dep4 from "node:path";
-import * as __library_dep5 from "../../tools/shared-toolkit.mjs";
+import * as __library_dep5 from "../../tools/data/shared-toolkit.mjs";
 import * as __library_dep6 from "node:fs";
-import * as __library_dep7 from "../../tools/library-data.mjs";
+import * as __library_dep7_context from "../../tools/data/library-context.mjs";
+import * as __library_dep7_reports from "../../tools/data/library-reports.mjs";
+import * as __library_dep7_runtime from "../../tools/data/library-runtime.mjs";
+import * as __library_dep7_publication from "../../tools/data/library-report-publication.mjs";
+import * as __library_dep7_store from "../../tools/data/library-store.mjs";
+const __library_dep7={...__library_dep7_context,...__library_dep7_reports,...__library_dep7_runtime,...__library_dep7_publication,...__library_dep7_store};
 
 // Original feature contract: shared-toolkit.test.mjs
 contractSuite("shared-toolkit", () => {

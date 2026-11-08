@@ -3,7 +3,7 @@ import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
-import { reportPath, reportArgument } from '../../tools/report-paths.mjs';
+import { reportPath, reportArgument } from "../../tools/data/report-paths.mjs";
 
 test('report consumers share a fixed original owner and reject non-report paths', t => {
   const root = mkdtempSync(join(tmpdir(), 'pando-reports-'));

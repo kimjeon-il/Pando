@@ -25,14 +25,14 @@ test('Hydro repair CLI writes a new decoded-verifiable pack and preserves existi
   skip:!process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY||!process.env.PANDO_HYDRO_ENCODING_DIRECTORY,
 },async t=>{
   const {root,input}=await hydroSourceFixture(t),output=join(root,'new-pack'),report=join(root,'new-report.json');
-  const args=[resolve('tools/repair-hydro-connectivity.mjs'),'--baseline',input,'--sources',root,'--output',output,'--report',report];
+  const args=[resolve('tools/gis/repair-hydro-connectivity.mjs'),'--baseline',input,'--sources',root,'--output',output,'--report',report];
   const result=JSON.parse((await exec(process.execPath,args,{windowsHide:true})).stdout);
   assert.equal(result.changedFeatures,1);assert.equal(result.features,3);
   const receipt=JSON.parse(await readFile(report,'utf8')),manifest=JSON.parse(await readFile(join(output,'manifest.json'),'utf8'));
   assert.equal(receipt.baselineManifestFingerprint,hydroBaselineFingerprintFromDocument(await readFile(input,'utf8')));
   assert.equal(receipt.serializedVerification.remaining,0);assert.equal(manifest.container,undefined);
-  const staged=join(root,'decoded.json');await exec(process.execPath,[resolve('tools/decode-hydro-connectivity.mjs'),output,staged],{windowsHide:true});
-  await exec(process.execPath,[resolve('tools/verify-hydro-connectivity.mjs'),'--baseline',input,'--staged',staged,'--sources',root,'--report',report],{windowsHide:true});
+  const staged=join(root,'decoded.json');await exec(process.execPath,[resolve('tools/gis/decode-hydro-connectivity.mjs'),output,staged],{windowsHide:true});
+  await exec(process.execPath,[resolve('tools/checks/verify-hydro-connectivity.mjs'),'--baseline',input,'--staged',staged,'--sources',root,'--report',report],{windowsHide:true});
   const before=await readFile(join(output,'manifest.json')),reportBefore=await readFile(report);
   await assert.rejects(exec(process.execPath,args,{windowsHide:true}),/exist|overwrite/i);
   assert.deepEqual(await readFile(join(output,'manifest.json')),before);assert.deepEqual(await readFile(report),reportBefore);
@@ -87,7 +87,7 @@ test('Hydro verification CLI reads pinned regional ZIPs and updates only the ver
   skip:!process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY,
 },async t=>{
   const {root,staged,input,output,receipt}=await hydroSourceFixture(t);
-  const args=[resolve('tools/verify-hydro-connectivity.mjs'),'--baseline',input,'--staged',output,'--sources',root,'--report',receipt];
+  const args=[resolve('tools/checks/verify-hydro-connectivity.mjs'),'--baseline',input,'--staged',output,'--sources',root,'--report',receipt];
   const result=await exec(process.execPath,args,{windowsHide:true});
   const verification=JSON.parse(result.stdout);assert.equal(verification.features,3);assert.equal(verification.remaining,0);
   const saved=JSON.parse(await readFile(receipt,'utf8'));assert.deepEqual(saved.serializedVerification,verification);
@@ -113,7 +113,7 @@ test('Hydro audit CLI verifies all source regions and refuses to overwrite repor
   skip:!process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY,
 },async t=>{
   const {root,input}=await hydroSourceFixture(t),report=join(root,'audit.json');
-  const args=[resolve('tools/audit-hydro-connectivity.mjs'),'--baseline',input,'--sources',root,'--report',report];
+  const args=[resolve('tools/checks/audit-hydro-connectivity.mjs'),'--baseline',input,'--sources',root,'--report',report];
   const output=JSON.parse((await exec(process.execPath,args,{windowsHide:true})).stdout),saved=JSON.parse(await readFile(report,'utf8'));
   assert.deepEqual(output,saved.regions);assert.equal(saved.regions.eu.repairable,1);
   assert.deepEqual(saved.issues.map(row=>row.source),[101]);

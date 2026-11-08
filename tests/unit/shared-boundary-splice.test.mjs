@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {replaceBoundaryChain,readBoundaryChain} from '../../tools/build-korean-boundaries.mjs';
+import {replaceBoundaryChain,readBoundaryChain} from "../../tools/build/build-korean-boundaries.mjs";
 const base={type:'Polygon',coordinates:[[[0,0],[1,-0.1],[2,0],[2,2],[1,2],[1,2],[0,2],[0,0]],[[0.2,0.5],[0.3,0.5],[0.3,0.6],[0.2,0.5]]]};
 for(const reversed of [false,true])test('bounded shared arc preserves unrelated coordinates; reversed='+reversed,()=>{
  const input=structuredClone(base);if(reversed)input.coordinates[0].reverse();

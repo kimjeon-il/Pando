@@ -1,6 +1,6 @@
 import { describe as contractSuite } from 'node:test';
 import "../../assets/js-vendor/polygon-clipping.min.js";
-import "../../tools/load-spherical-core.mjs";
+import "../../tools/build/load-spherical-core.mjs";
 import * as __country_dep0 from "node:test";
 import * as __country_dep1 from "../helpers/timeline-project.mjs";
 import * as __country_dep2 from "node:assert/strict";
@@ -15,11 +15,16 @@ import * as __country_dep10 from "../../src/document/map-object-categories.js";
 import * as __country_dep11 from "../../src/geometry/map-edit-geometry.js";
 import * as __country_dep12 from "../../src/geometry/geometry-versions.js";
 import * as __country_dep13 from "../../tools/gis/territorial-geometry.js";
-import * as __country_dep14 from "../../tools/library-data.mjs";
+import * as __country_dep14_context from "../../tools/data/library-context.mjs";
+import * as __country_dep14_reports from "../../tools/data/library-reports.mjs";
+import * as __country_dep14_runtime from "../../tools/data/library-runtime.mjs";
+import * as __country_dep14_publication from "../../tools/data/library-report-publication.mjs";
+import * as __country_dep14_store from "../../tools/data/library-store.mjs";
+const __country_dep14={...__country_dep14_context,...__country_dep14_reports,...__country_dep14_runtime,...__country_dep14_publication,...__country_dep14_store};
 import * as __country_dep15 from "node:path";
 import * as __country_dep16 from "node:crypto";
 import * as __country_dep17 from "../../tools/gis/territorial-entity-loader.js";
-import * as __country_dep18 from "../../tools/territorial-entity-sources.mjs";
+import * as __country_dep18 from "../../tools/data/territorial-entity-sources.mjs";
 import * as __country_dep19 from "../../src/document/country-feature.js";
 contractSuite("territorial-entity-repository", () => {
 const { describe : contractSuite } = __country_dep0;

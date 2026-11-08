@@ -558,7 +558,7 @@
 - 직전 전환의 `pnpm test:gis-node` 또는 `node --test` 3개(다운로드, Hydro packfile, 도시 배치)를 **실행하여** 테스트 로그와 실패원인 확정. 같은 입력에서 실제 반환·예외·SHA·파일 쓰기 안전성 검사. `World Dataset Stage 3 Gate`의 기저 실패도 별도 기록.
 - Node 24·pnpm 락파일 고정. Python 데이터 oracle은 기존 커밋의 **임시 작업 디렉터리**에서만 실행하고 앱 데이터나 승인 조사결과는 건드리지 않음.
 
-### A1. GeoNames 후보 생성기: `tools/build-place-candidates.py` → `tools/build-place-candidates.mjs`
+### A1. GeoNames 후보 생성기: `tools/build-place-candidates.py` → `tools/build/build-place-candidates.mjs`
 
 - 원본 경계: `cities500.zip` 우선, `allCountries.zip` 대체/커버리지 감사; `fetch → build → review` 명령, 명시적 공식 출처·라이선스·ETag/Last-Modified·다운로드 ZIP SHA·ZIP 내부 파일 CRC 보존.
 - 구현: Node 24 스트리밍 ZIP reader(직접 pin된 안전한 ZIP 라이브러리와 CRC 검증), `readline` 기반 NDJSON 스트리밍, 정수/유니코드·현대 feature-code/poplulation 선별, 안전한 원본 캐시·임시 파일 승격. 기존 `download-terrain-source.mjs`를 재사용하고 대용량 ZIP 전체 메모리 로딩 금지.
@@ -567,7 +567,7 @@
 
 ### A2. 파이프라인·도구 소유권 단일화
 
-- `tools/library_data.py`는 기존 `tools/library-data.mjs`의 `withLibraryOutputs` 등으로 호출처를 **먼저** 전환하고 삭제. `tools/report_paths.py`는 `tools/report-paths.mjs`에 `reportArgument`/형제 파일 경로 처리까지 포팅하고 호출처 전환 후 삭제. 외부 라이브러리 권한 lease, hydration, 쓰기/원본 보존, 브랜치별 경로를 동일 계약으로 검사.
+- `tools/library_data.py`는 기존 `tools/data/library-data.mjs`의 `withLibraryOutputs` 등으로 호출처를 **먼저** 전환하고 삭제. `tools/report_paths.py`는 `tools/data/report-paths.mjs`에 `reportArgument`/형제 파일 경로 처리까지 포팅하고 호출처 전환 후 삭제. 외부 라이브러리 권한 lease, hydration, 쓰기/원본 보존, 브랜치별 경로를 동일 계약으로 검사.
 - `scripts/gis/run-source.py` → `scripts/gis/run-source.mjs`: Node/native 허용목록, `--execute` 명시 동의 및 기본 dry-run, 저장소 경계/인수 이스케이프, 작업 원본 경로 검증. Python 생성기 대상은 대체 실행 파일이 준비되는 즉시 목록 교체하고 **마지막 Python 대상 교체 후** `.py` 실행기 삭제.
 - `scripts/summarize-boundary-capture-evidence.py` → Node 파일 요약기: ZIP·trace 크기 상한, 해시/컨텍스트 추출, 원본 불변성과 기존 캡처 비교 테스트 유지.
 - `tests/application_source.py`, `tests/test_application_source.py`, `tests/test_font_assets.py`, `tests/test_p4_gis_runner.py`, `tests/test_report_paths.py`: 현재 Node `scripts/lib/application-source.mjs`, 보고서·폰트·CLI 검사에 통합. `tests/application_source.py`는 역사/수계 Python 테스트가 마지막으로 교체될 때 삭제. `package.json`·관련 Actions·문서 참조를 동시 수정.

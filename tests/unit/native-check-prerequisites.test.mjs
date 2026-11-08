@@ -7,7 +7,7 @@ import {loadRepository,matchesPattern,planApplicationChecks} from '../../scripts
 import {executePlan as executeCiPlan,exactCheckPlan,executionOutputs} from '../../scripts/run-application-checks.mjs';
 import {nativeTestCapacity,prepareNativeTestTool} from '../../scripts/prepare-native-test-tools.mjs';
 import {nativeTestRecipes} from '../../scripts/lib/native-test-prerequisites.mjs';
-import {packageNativeTool} from '../../tools/native-tool.mjs';
+import {packageNativeTool} from "../../tools/build/native-tool.mjs";
 import YAML from 'yaml';
 import {selectNativeBuilds,pinnedToolchain} from '../../scripts/lib/check-changes.mjs';
 

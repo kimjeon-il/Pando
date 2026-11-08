@@ -21,11 +21,11 @@ on:
       - 'assets/js/workers/data-loader-worker.js'
       - 'scripts/generate-build-metadata.mjs'
       - 'scripts/check-version.mjs'
-      - 'tools/build-world-bundle.mjs'
-      - 'tools/build-world-preview.mjs'
-      - 'tools/build-world-mesh.mjs'
-      - 'tools/build-country-shared-boundaries.mjs'
-      - 'tools/run-country-validator.mjs'
+      - 'tools/build/build-world-bundle.mjs'
+      - 'tools/build/build-world-preview.mjs'
+      - 'tools/build/build-world-mesh.mjs'
+      - 'tools/build/build-country-shared-boundaries.mjs'
+      - 'tools/checks/run-country-validator.mjs'
       - 'tests/browser/viewer-startup-and-terrain.spec.mjs'
       - 'tests/unit/world-bundle*.test.mjs'
       - 'tests/unit/stored-asset-content-cache.test.mjs'
@@ -82,7 +82,7 @@ jobs:
           pnpm check:js
       - name: Check changed JavaScript modules and targeted regressions
         run: |
-          pnpm exec eslint             tools/build-world-bundle.mjs             tools/build-world-preview.mjs             tools/build-world-mesh.mjs             tools/build-country-shared-boundaries.mjs             assets/js/modules/world-bundle-manifest.js             assets/js/modules/stored-asset-loader.js             assets/js/workers/data-loader-worker.js             scripts/check-version.mjs             scripts/generate-build-metadata.mjs             tests/unit/world-bundle-versioning.test.mjs             tests/unit/world-bundle-runtime.test.mjs             tests/unit/stored-asset-content-cache.test.mjs
+          pnpm exec eslint             tools/build/build-world-bundle.mjs             tools/build/build-world-preview.mjs             tools/build/build-world-mesh.mjs             tools/build/build-country-shared-boundaries.mjs             assets/js/modules/world-bundle-manifest.js             assets/js/modules/stored-asset-loader.js             assets/js/workers/data-loader-worker.js             scripts/check-version.mjs             scripts/generate-build-metadata.mjs             tests/unit/world-bundle-versioning.test.mjs             tests/unit/world-bundle-runtime.test.mjs             tests/unit/stored-asset-content-cache.test.mjs
           node --test             tests/unit/world-bundle-versioning.test.mjs             tests/unit/world-bundle-runtime.test.mjs             tests/unit/stored-asset-content-cache.test.mjs             tests/unit/country-shared-boundary-generator.test.mjs             tests/unit/caribbean-reef-identity.test.mjs             tests/unit/preview-country-geometry.test.mjs             tests/unit/territorial-canonical-parity.test.mjs             tests/unit/startup-performance.test.mjs
 
   chromium-smoke:

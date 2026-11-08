@@ -54,7 +54,7 @@ jobs:
       - name: Test bounded independent-source acquisition
         run: node --test tests/unit/hydro-independent-evidence.test.mjs tests/unit/hydro-osm-batch01-screen.test.mjs
       - name: Decode Hydro exactly with production runtime
-        run: node tools/decode-hydro-connectivity.mjs .pando-hydro-input/assets/data/hydro/v0.13.2 /tmp/batch02-decoded.json
+        run: node tools/gis/decode-hydro-connectivity.mjs .pando-hydro-input/assets/data/hydro/v0.13.2 /tmp/batch02-decoded.json
       - name: Query NGA US government non-OSM named-stream locations
         run: node tools/gis/probe-nga-streams.mjs --output /tmp/batch02-nga.json
       - name: Acquire checksum-verified 2023 Central Asia scientific Hydromet gauge locations

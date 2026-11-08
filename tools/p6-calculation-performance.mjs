@@ -17,7 +17,7 @@ if(process.argv.includes('--sample-root')) {
   const inputRoot=resolve(arg('--input-root'));
   const read=path=>readFileSync(resolve(inputRoot,path));
   const load=path=>import(pathToFileURL(resolve(root,path)).href);
-  const {loadNodeCore}=await load('tools/load-node-core.mjs');
+  const {loadNodeCore}=await load('tools/build/load-node-core.mjs');
   globalThis.PandoLabSphericalCore=await loadNodeCore({root});
   globalThis.self=globalThis;
   vm.runInThisContext(readFileSync(resolve(root,'assets/js-vendor/d3.min.js'),'utf8'));

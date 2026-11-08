@@ -8,7 +8,7 @@ import {delimiter,isAbsolute,join,resolve} from 'node:path';
 import {Readable} from 'node:stream';
 import {pipeline} from 'node:stream/promises';
 import {fileURLToPath} from 'node:url';
-import {verifyNativeTool} from '../native-tool.mjs';
+import {verifyNativeTool} from "../build/native-tool.mjs";
 import {fillGdalDemTint} from './terrain-dem-source.mjs';
 import {encodeDemWebp} from './terrain-dem-webp.mjs';
 import {hashTerrainFile} from './terrain-dem-assets.mjs';

@@ -7,7 +7,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 import { gzipSync } from 'node:zlib';
-import { bundleDescriptor } from '../../tools/build-world-bundle.mjs';
+import { bundleDescriptor } from "../../tools/build/build-world-bundle.mjs";
 import { HYDRO_DATA_VERSION } from "../../src/rendering/physical-layer-service.js";
 import { TERRAIN_RASTER_VERSION } from "../../src/rendering/terrain-manifest.js";
 

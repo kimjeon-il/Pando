@@ -7,9 +7,10 @@ import { copyFileSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSy
   renameSync, unlinkSync, writeFileSync, realpathSync, statSync } from 'node:fs';
 import { dirname, isAbsolute, relative, resolve, sep } from 'node:path';
 
-import { libraryConfig, libraryCheckout, decodeArchiveEntry, libraryReportRoot, libraryMaterializedRoot, prepareLibraryData, withLibraryOutputs } from '../../tools/library-data.mjs';
-import {reportPath} from '../../tools/report-paths.mjs';
-import {contentAddress} from '../../tools/build-world-bundle.mjs';
+import {libraryConfig,libraryCheckout,decodeArchiveEntry,libraryReportRoot,libraryMaterializedRoot} from "../../tools/data/library-context.mjs";
+import {prepareLibraryData,withLibraryOutputs} from "../../tools/data/library-runtime.mjs";
+import {reportPath} from "../../tools/data/report-paths.mjs";
+import {contentAddress} from "../../tools/build/build-world-bundle.mjs";
 
 export const GRAPH_PATH='config/generated-artifacts.json';
 export const RECEIPT_PATH='assets/data/generated-artifacts/p2-manifest.json';

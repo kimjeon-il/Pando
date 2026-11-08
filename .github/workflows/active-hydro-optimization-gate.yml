@@ -4,7 +4,7 @@ on:
   push:
     branches: [main, work/ui, work/objects, work/gis, work/places]
     paths:
-      - 'tools/check-current-hydro-layout.mjs'
+      - 'tools/checks/check-current-hydro-layout.mjs'
       - 'tests/unit/current-hydro-layout.test.mjs'
       - 'tests/unit/hydro-packfile.test.mjs'
       - 'src/rendering/workers/hydro-tile-worker.js'
@@ -29,10 +29,10 @@ jobs:
           sparse-checkout: |
             /.nvmrc
             /.github/actions/library-data/
-            /tools/library-*.mjs
+            /tools/data/library-*.mjs
             /scripts/lib/frontend-layout.mjs
             /config/library-data.json
-            /tools/check-current-hydro-layout.mjs
+            /tools/checks/check-current-hydro-layout.mjs
             /tests/unit/current-hydro-layout.test.mjs
             /tests/unit/hydro-packfile.test.mjs
             /src/rendering/workers/hydro-tile-worker.js
@@ -47,7 +47,7 @@ jobs:
         run: node --test tests/unit/current-hydro-layout.test.mjs tests/unit/hydro-packfile.test.mjs
       - name: Verify current Web bytes and real Worker reads
         run: >-
-          node tools/check-current-hydro-layout.mjs --root . --allow-retired false
+          node tools/checks/check-current-hydro-layout.mjs --root . --allow-retired false
           --out build-native/active-hydro-optimization.json
       - uses: actions/upload-artifact@v4
         if: always()

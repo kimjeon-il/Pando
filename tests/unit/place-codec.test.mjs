@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { reportPath } from '../../tools/report-paths.mjs';
+import { reportPath } from "../../tools/data/report-paths.mjs";
 import { encodePlaceTile, decodePlaceTile } from "../../src/data/place-codec.js";
 import { normalizePlace, PLACE_LIMITS } from "../../src/document/place-contract.js";
 const raw = { source: 'synthetic', sourceId: '서울:1', name: '서울 🗺️', nameEn: 'Seoul', nameNative: '서울', nameTimeline: [{ fromYear: 1900, ko: '경성' }, { fromDate: '1945-08-15', ko: '서울 🗺️' }], kind: 'capital', coordinates: [127.12345, 37.56789], countryCode: 'KR', population: 12345678, priority: 90, minZoom: 1.25, featureCode: 'PPLC' };

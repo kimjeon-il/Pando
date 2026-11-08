@@ -31,10 +31,10 @@ on:
       - 'tests/unit/project-creation-contract.test.mjs'
       - 'tests/unit/r4b-data-module-boundaries.test.mjs'
       - 'tests/unit/project-preview-policy.test.mjs'
-      - 'tools/package-shared-core-assets.mjs'
+      - 'tools/build/package-shared-core-assets.mjs'
       - 'tools/reference-fixtures/**'
       - 'tools/lib/checkout-identity.mjs'
-      - 'tools/stage-monorepo-pages.mjs'
+      - 'tools/build/stage-monorepo-pages.mjs'
       - 'package.json'
       - 'pnpm-lock.yaml'
       - 'pnpm-workspace.yaml'
@@ -70,10 +70,10 @@ on:
       - 'tests/unit/project-creation-contract.test.mjs'
       - 'tests/unit/r4b-data-module-boundaries.test.mjs'
       - 'tests/unit/project-preview-policy.test.mjs'
-      - 'tools/package-shared-core-assets.mjs'
+      - 'tools/build/package-shared-core-assets.mjs'
       - 'tools/reference-fixtures/**'
       - 'tools/lib/checkout-identity.mjs'
-      - 'tools/stage-monorepo-pages.mjs'
+      - 'tools/build/stage-monorepo-pages.mjs'
       - 'package.json'
       - 'pnpm-lock.yaml'
       - 'pnpm-workspace.yaml'
@@ -314,7 +314,7 @@ jobs:
           emcmake cmake --preset pando-wasm
           cmake --build --preset pando-wasm
       - name: Verify the compiled source and committed runtime pair
-        run: node tools/package-shared-core-assets.mjs --build-dir build-native/p1/pando-wasm/shared/wasm --check
+        run: node tools/build/package-shared-core-assets.mjs --build-dir build-native/p1/pando-wasm/shared/wasm --check
       - name: Actual native/WASM month contracts and required Worker lifecycle
         env:
           PANDOEDITOR_WASM_MODULE: build-native/p1/pando-wasm/shared/wasm/pandoeditor-core.js
@@ -375,7 +375,7 @@ jobs:
           import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
           import { resolve } from 'node:path';
           import { sourceIdentity, sha256 } from './tools/lib/checkout-identity.mjs';
-          import { sharedSourceManifest } from './tools/package-shared-core-assets.mjs';
+          import { sharedSourceManifest } from './tools/build/package-shared-core-assets.mjs';
           const source = sourceIdentity(process.cwd());
           if (!source.clean) throw Error('Official shared-core evidence requires a clean checkout');
           const manifest = JSON.parse(readFileSync('assets/wasm/pandoeditor-core.manifest.json'));
@@ -517,7 +517,7 @@ jobs:
           cmake --build build-native/core --target pandoeditor_core --parallel 2
           c++ -std=c++17 -O2 -Ishared/core/include tests/native/temporal-parity-probe.cpp build-native/core/core/libpandoeditor_core.a -lz -o build-native/core/temporal-parity-probe
       - name: Verify committed JS and WASM against this exact C++ source
-        run: node tools/package-shared-core-assets.mjs --build-dir assets/wasm --check
+        run: node tools/build/package-shared-core-assets.mjs --build-dir assets/wasm --check
       - name: Identical fixed inputs, actual native and WASM results, failure and rollback
         run: node --test tests/native/temporal-parity-p5-7.test.mjs
       - name: Focused Worker cancellation and late acknowledgement contracts

@@ -2,7 +2,7 @@
 import {execFile,spawn} from 'node:child_process';
 import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {verifyNativeTool} from '../native-tool.mjs';
+import {verifyNativeTool} from "../build/native-tool.mjs";
 
 const defaultRoot=fileURLToPath(new URL('../../',import.meta.url));
 export const terrainPreviewSources=Object.freeze(['tools/cpp/terrain/CMakeLists.txt','tools/cpp/terrain/preview.cpp','tools/cpp/terrain/land-mask.cpp',

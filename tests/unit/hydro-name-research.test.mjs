@@ -229,7 +229,7 @@ for (const [label, duplicate] of [
 
 test('checked-in European major river review matches all 33 current candidates', () => {
   const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-  const result = spawnSync(process.execPath, ['tools/research-hydro-names.mjs', '--check'], {
+  const result = spawnSync(process.execPath, ['tools/gis/research-hydro-names.mjs', '--check'], {
     cwd: root,
     encoding: 'utf8',
   });

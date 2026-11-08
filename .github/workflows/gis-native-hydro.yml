@@ -9,7 +9,7 @@ on:
       - 'tools/gis/hydro-connectivity-native.mjs'
       - 'tests/unit/hydro-connectivity-native.test.mjs'
       - 'tools/gis/build-hydro.mjs'
-      - 'tools/repair-hydro-connectivity.mjs'
+      - 'tools/gis/repair-hydro-connectivity.mjs'
       - 'tests/unit/hydro-canonical-chains.test.mjs'
       - '.github/workflows/gis-native-hydro.yml'
   workflow_dispatch:
@@ -1071,7 +1071,7 @@ jobs:
       - name: Compare the five selected real Hydro systems
         if: inputs.target == 'hydro-point-screen'
         run: |
-          node tools/decode-hydro-connectivity.mjs .pando-hydro-input/assets/data/hydro/v0.13.2 /tmp/pando-point-decoded.json
+          node tools/gis/decode-hydro-connectivity.mjs .pando-hydro-input/assets/data/hydro/v0.13.2 /tmp/pando-point-decoded.json
           node tools/gis/verify-independent-river-point-anchors.mjs --decoded /tmp/pando-point-decoded.json --output /tmp/pando-point-native.json
           node --input-type=module - <<'JS'
           import assert from 'node:assert/strict';
@@ -1084,7 +1084,7 @@ jobs:
       - name: Compare the ten selected systems with the frozen original audit
         if: inputs.target == 'hydro-batch01'
         run: |
-          node tools/decode-hydro-connectivity.mjs .pando-hydro-input/assets/data/hydro/v0.13.2 /tmp/pando-batch01-decoded.json
+          node tools/gis/decode-hydro-connectivity.mjs .pando-hydro-input/assets/data/hydro/v0.13.2 /tmp/pando-batch01-decoded.json
           node tools/gis/verify-osm-hydro-batch01-anchors.mjs --decoded /tmp/pando-batch01-decoded.json --output /tmp/pando-batch01-native.json
           node --input-type=module - <<'JS'
           import assert from 'node:assert/strict';
@@ -1097,7 +1097,7 @@ jobs:
       - name: Compare second-ten audit with and without optional sources against the frozen baseline
         if: inputs.target == 'hydro-batch02'
         run: |
-          node tools/decode-hydro-connectivity.mjs .pando-hydro-input/assets/data/hydro/v0.13.2 /tmp/pando-batch02-decoded.json
+          node tools/gis/decode-hydro-connectivity.mjs .pando-hydro-input/assets/data/hydro/v0.13.2 /tmp/pando-batch02-decoded.json
           node tools/gis/verify-osm-hydro-batch02-points.mjs --decoded /tmp/pando-batch02-decoded.json --output /tmp/batch02-native-default.json
           node tools/gis/verify-osm-hydro-batch02-points.mjs --decoded /tmp/pando-batch02-decoded.json --external-gauges tests/fixtures/hydro-osm-batch02-gauges-fixture.json --nga tests/fixtures/hydro-osm-batch02-nga-fixture.json --output /tmp/batch02-native-sources.json
           node --input-type=module - <<'JS'
@@ -1111,7 +1111,7 @@ jobs:
       - name: Compare last-eleven audit against the frozen baseline using fixed NGA responses
         if: inputs.target == 'hydro-batch03'
         run: |
-          node tools/decode-hydro-connectivity.mjs .pando-hydro-input/assets/data/hydro/v0.13.2 /tmp/pando-batch03-decoded.json
+          node tools/gis/decode-hydro-connectivity.mjs .pando-hydro-input/assets/data/hydro/v0.13.2 /tmp/pando-batch03-decoded.json
           node --input-type=module - <<'JS'
           import assert from 'node:assert/strict';
           import {readFileSync,writeFileSync} from 'node:fs';
@@ -1129,7 +1129,7 @@ jobs:
       - name: Compare real Yarra source with the frozen original audit
         if: inputs.target == 'hydro-yarra'
         run: |
-          node tools/decode-hydro-connectivity.mjs .pando-hydro-input/assets/data/hydro/v0.13.2 /tmp/pando-yarra-decoded.json
+          node tools/gis/decode-hydro-connectivity.mjs .pando-hydro-input/assets/data/hydro/v0.13.2 /tmp/pando-yarra-decoded.json
           node --input-type=module - <<'JS'
           import assert from 'node:assert/strict';
           import {createHash} from 'node:crypto';
@@ -1332,7 +1332,7 @@ jobs:
           PANDO_PC_ALLOCATION_BINARY: ${{ github.workspace }}/build-native/pc-allocation/Release/pando-pc-file-allocation.exe
         run: node --test tests/unit/pc-file-allocation-native.test.mjs tests/unit/native-tool.test.mjs
       - name: Package source and binary identities
-        run: node tools/package-native-allocation.mjs --binary build-native/pc-allocation/Release/pando-pc-file-allocation.exe --directory build-native/pc-allocation
+        run: node tools/build/package-native-allocation.mjs --binary build-native/pc-allocation/Release/pando-pc-file-allocation.exe --directory build-native/pc-allocation
       - name: Verify the downloaded-tool invocation contract in the real cleanup owner
         run: node --test tests/unit/pc-cleanup.test.mjs
       - uses: actions/upload-artifact@v4

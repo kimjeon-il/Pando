@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import {
   sha256, contentAddress, bundleDescriptor, publishWorldBundle, assertDataPath,
-} from '../../tools/build-world-bundle.mjs';
+} from "../../tools/build/build-world-bundle.mjs";
 
 const seed = Object.freeze({
   schema: 'pandolab-world-build-input', schemaVersion: 1,

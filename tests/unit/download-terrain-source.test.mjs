@@ -5,7 +5,7 @@ import { mkdtempSync, writeFileSync, readFileSync, rmSync, readdirSync } from 'n
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { once } from 'node:events';
-import { downloadVerifiedRanges } from '../../tools/download-terrain-source.mjs';
+import { downloadVerifiedRanges } from "../../tools/gis/download-terrain-source.mjs";
 
 async function server(t,{bad=false}={}) {
  const contents=Buffer.from('verified-HTTP-ranges-0123456789-'.repeat(100000));

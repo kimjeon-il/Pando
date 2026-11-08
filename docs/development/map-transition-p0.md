@@ -25,4 +25,4 @@ Each report records code SHA, paired data pin, build metadata, original observed
 
 P0 is complete only after the actual runtime, existing regression tests, and benchmark execute successfully, and unique evidence is archived through the canonical library report procedure. Helper-only tests, created workflows, pushed commits or pending Actions are not a completed baseline. Do not invent latency numbers when a runtime prerequisite or benchmark fails. No main merge or deployment is authorized.
 
-Store verified evidence under `reports/development/performance/map-transition-p0/<run>/`, using `tools/report-paths.mjs` and the normal `--publish-reports` / `--check-reports` commands. GitHub Actions artifacts are temporary test outputs, not permanent library report publication.
+Store verified evidence under `reports/development/performance/map-transition-p0/<run>/`, using `tools/data/report-paths.mjs` and the normal `--publish-reports` / `--check-reports` commands. GitHub Actions artifacts are temporary test outputs, not permanent library report publication.

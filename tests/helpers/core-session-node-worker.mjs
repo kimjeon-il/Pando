@@ -1,5 +1,5 @@
 import { parentPort, workerData } from 'node:worker_threads';
-import { loadNodeCore } from '../../tools/load-node-core.mjs';
+import { loadNodeCore } from "../../tools/build/load-node-core.mjs";
 import { createCoreWorkerRuntime } from "../../src/runtime/core-worker-runtime.js";
 import { validateWebFlagDataUrl } from "../../src/ui/country-flags.js";
 

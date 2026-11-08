@@ -5,7 +5,7 @@ import {join} from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 
-const script = fileURLToPath(new URL('../../tools/stage-monorepo-pages.mjs', import.meta.url));
+const script = fileURLToPath(new URL("../../tools/build/stage-monorepo-pages.mjs", import.meta.url));
 import {pagesRepositoryFixture as fixture,put,run} from '../helpers/frontend-pages-fixture.mjs';
 
 test('stages committed viewer assets while excluding editor and repository source', async t => {

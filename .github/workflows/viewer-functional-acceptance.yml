@@ -57,7 +57,7 @@ jobs:
         uses: ./.github/actions/library-data
       - run: pnpm install --frozen-lockfile
       - name: Confirm actual compiled Core source identity
-        run: node tools/package-shared-core-assets.mjs --build-dir assets/wasm --check
+        run: node tools/build/package-shared-core-assets.mjs --build-dir assets/wasm --check
       - name: Install Chromium and system dependencies
         run: pnpm exec playwright install --with-deps chromium
       - name: Execute real desktop or mobile viewer acceptance

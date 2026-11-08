@@ -5,9 +5,9 @@ import {normalizeTerritorialLibraryEntity} from '../../tools/gis/territorial-lib
 import fs from 'node:fs';
 import {execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
-import {libraryCheckout} from '../../tools/library-data.mjs';
+import {libraryCheckout} from "../../tools/data/library-context.mjs";
 import {join} from 'node:path';
-import {entityFileName, readTerritorialSources, readTerritorialLineages, territorialSourceRoot} from '../../tools/territorial-entity-sources.mjs';
+import {entityFileName, readTerritorialSources, readTerritorialLineages, territorialSourceRoot} from "../../tools/data/territorial-entity-sources.mjs";
 
 const entity=(entityId,from=null,to=null)=>({schemaVersion:2,entityId,entityKind:'general',names:{ko:entityId,en:entityId,de:'curated'},alternateNames:['alias'],lifetime:{validFrom:from,validTo:to},geometryVersions:[{versionId:'border',validFrom:from,validTo:to,certainty:'high',sourceId:'synthetic-test',geometry:{type:'Polygon',coordinates:[[[0,0],[1,0],[1,1],[0,0]]]}}]});
 const lineage=()=>({schemaVersion:2,lineageId:'germany',names:{ko:'독일',en:'Germany'},entityRefs:['state:test-frg','state:test-gdr'],relations:[]});

@@ -18,7 +18,7 @@ PANDOEDITOR_WASM_MODULE=/absolute/coherent/pandoeditor-core.js node --test share
 
 The generated module and binary are `build-native/wasm/wasm/pandoeditor-core.js`
 and `pandoeditor-core.wasm`. Package that pair with its source/compiler/ABI
-manifest using `tools/package-shared-core-assets.mjs`. Tests may use an immutable
+manifest using `tools/build/package-shared-core-assets.mjs`. Tests may use an immutable
 copy selected by `PANDOEDITOR_WASM_MODULE` while another build is running.
 
 A native C++17/Zlib standalone build uses `shared/` with `BUILD_TESTING=ON`.

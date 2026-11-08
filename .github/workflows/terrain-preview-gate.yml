@@ -77,8 +77,8 @@ jobs:
           cmake -S tools/cpp -B build-native/map-image -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_MAP_IMAGE=ON
           cmake --build build-native/map-image --target pando-map-image --parallel 2
           node tools/map-image/package-native.mjs --binary build-native/map-image/pando-map-image --directory "$PANDO_MAP_IMAGE_ARTIFACT"
-          node tools/build-terrain-preview.mjs --rebuild-check
-          node tools/check-terrain-preview.mjs --out terrain-preview-evidence.json
+          node tools/build/build-terrain-preview.mjs --rebuild-check
+          node tools/checks/check-terrain-preview.mjs --out terrain-preview-evidence.json
           node --test tests/unit/terrain-preview-native.test.mjs tests/unit/terrain-preview-audit.test.mjs tests/unit/terrain-preview-builder.test.mjs
           node --test tests/unit/terrain-preview-audit.test.mjs tests/unit/physical-layer-service.test.mjs tests/unit/canvas-country-geometry.test.mjs
           node --test tests/unit/canvas-terrain-independence.test.mjs tests/unit/gpu-scene-staging.test.mjs

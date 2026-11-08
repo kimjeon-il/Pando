@@ -3,8 +3,8 @@ import path from 'node:path';
 import {createHash} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
-import {readTerritorialSources,readTerritorialSource,territorialSourceRoot,updateTerritorialSource} from '../territorial-entity-sources.mjs';
-import {writeLibraryOutput} from '../library-data.mjs';
+import {readTerritorialSources,readTerritorialSource,territorialSourceRoot,updateTerritorialSource} from "../data/territorial-entity-sources.mjs";
+import {writeLibraryOutput} from "../data/library-runtime.mjs";
 import {normalizeTerritorialLibraryEntity} from './territorial-library.js';
 
 export const SOURCE_REFERENCE_DATE='2026-10-06';
@@ -113,7 +113,7 @@ function main(args){
   fail(actual.geometryVersions.some(v=>v.versionId===spec.history&&v.validFrom===spec.first&&v.validTo===null)
    &&!actual.geometryVersions.some(v=>v.versionId===spec.modern),'Post-write interval mismatch: '+spec.id);
  }
- for(const command of ['tools/build-territorial-entity-chunks.mjs','tools/build-builtin-world.mjs'])
+ for(const command of ['tools/build/build-territorial-entity-chunks.mjs','tools/build/build-builtin-world.mjs'])
   execFileSync(process.execPath,[command],{cwd:root,stdio:'inherit'});
  console.log('SOURCE_DATE_CUT_APPLIED='+JSON.stringify({sourceEntities:task.updates.length,
   coordinatesEdited:0,worldViewUpdated:true,referenceDateOnly:SOURCE_REFERENCE_DATE}));

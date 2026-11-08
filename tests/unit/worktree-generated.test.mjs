@@ -1,10 +1,10 @@
-import {contentHash} from '../../tools/library-content.mjs';
+import {contentHash} from "../../tools/data/library-content.mjs";
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdtempSync,mkdirSync,writeFileSync,readFileSync,existsSync,rmSync,symlinkSync,statSync,linkSync,utimesSync,chmodSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-import {previewGeneratedCleanup,applyGeneratedCleanup,cargoRetirementRequests} from '../../tools/worktree-generated.mjs';
+import {previewGeneratedCleanup,applyGeneratedCleanup,cargoRetirementRequests} from "../../tools/data/worktree-generated.mjs";
 
 function fixture(t){const root=mkdtempSync(join(tmpdir(),'pando-generated-'));t.after(()=>rmSync(root,{recursive:true,force:true}));return root;}
 function put(root,path,text='generated'){mkdirSync(join(root,path,'..'),{recursive:true});writeFileSync(join(root,path),text);}

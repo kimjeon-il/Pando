@@ -25,7 +25,7 @@ oversized original, are emitted/deployed. Concatenation reconstructs ONE country
 original gzip bytes, never a world bundle. The reader verifies every part and the
 complete country hash/length before gzip decoding and schema validation.
 
-`tools/builtin-country-bytes.mjs` owns generation finalization and the Node reader.
+`tools/data/builtin-country-bytes.mjs` owns generation finalization and the Node reader.
 Partial generation emits only changed countries/parts and metadata. The loader
 keeps immutable part caches and reads parts sequentially inside a country slot,
 so the existing six-request ceiling and month supersession rules remain intact.
@@ -36,10 +36,10 @@ The App verification fixture uses this same finalizer rather than a separate pac
 Run from the existing Pando work/gis workspace with its pinned data prepared:
 
 ```sh
-node tools/builtin-country-storage.mjs --prepare
-node tools/builtin-country-storage.mjs --prepare --apply
-node tools/builtin-country-storage.mjs --verify
-node tools/builtin-country-storage.mjs --store --push
+node tools/data/builtin-country-storage.mjs --prepare
+node tools/data/builtin-country-storage.mjs --prepare --apply
+node tools/data/builtin-country-storage.mjs --verify
+node tools/data/builtin-country-storage.mjs --store --push
 ```
 
 Preparation reads only oversized original country streams, splits them without

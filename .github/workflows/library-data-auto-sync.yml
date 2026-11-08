@@ -6,7 +6,7 @@ on:
       - 'scripts/library-auto-*.mjs'
       - 'scripts/lib/library-auto-*.mjs'
       - 'tests/unit/library-auto-*.test.mjs'
-      - 'tools/library-data.mjs'
+      - 'tools/data/library-data.mjs'
       - 'config/library-auto-sync.json'
       - 'config/library-auto-work-gis-request.json'
       - '.github/workflows/library-data-auto-sync.yml'

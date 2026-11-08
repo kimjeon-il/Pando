@@ -1,4 +1,4 @@
-import "../../tools/load-spherical-core.mjs";
+import "../../tools/build/load-spherical-core.mjs";
 import {polygonGeometryDigest} from "../../src/rendering/prepared-polygon-mesh.js";
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -7,7 +7,7 @@ import {assertHistoricalDisplayChanges, assertHistoricalCompiledChanges} from '.
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import {updateTerritorialSource} from '../../tools/territorial-entity-sources.mjs';
+import {updateTerritorialSource} from "../../tools/data/territorial-entity-sources.mjs";
 import {assertHistoricalStorageChanges} from '../../tools/gis/historical-display-storage.mjs';
 import {buildHistoricalDetailInventory} from '../../tools/gis/historical-detail-inventory.mjs';
 

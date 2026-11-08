@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {mkdtempSync,mkdirSync,readFileSync,writeFileSync,statSync,rmSync,existsSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-import {installFrontendSnapshot,retireFrontendSnapshots} from '../../tools/worktree-storage.mjs';
+import {installFrontendSnapshot,retireFrontendSnapshots} from "../../tools/data/worktree-storage.mjs";
 test('immutable frontend outputs reuse file IDs and resume an interrupted installation',t=>{
  const root=mkdtempSync(join(tmpdir(),'pando-frontend-store-'));t.after(()=>rmSync(root,{recursive:true,force:true}));
  const settings={cacheRoot:join(root,'cache')},app=join(root,'one');mkdirSync(app);

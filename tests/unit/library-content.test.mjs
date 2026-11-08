@@ -4,12 +4,17 @@ import * as __dep1 from "node:assert/strict";
 import * as __dep2 from "node:fs";
 import * as __dep3 from "node:os";
 import * as __dep4 from "node:path";
-import * as __dep5 from "../../tools/library-content.mjs";
-import * as __dep6 from "../../tools/library-history.mjs";
-import * as __dep7 from "../../tools/load-node-core.mjs";
+import * as __dep5 from "../../tools/data/library-content.mjs";
+import * as __dep6 from "../../tools/data/library-history.mjs";
+import * as __dep7 from "../../tools/build/load-node-core.mjs";
 import * as __dep8 from "../../src/document/territorial-units.js";
 import * as __dep9 from "../helpers/core-startup.mjs";
-import * as __dep10 from "../../tools/library-data.mjs";
+import * as __dep10_context from "../../tools/data/library-context.mjs";
+import * as __dep10_reports from "../../tools/data/library-reports.mjs";
+import * as __dep10_runtime from "../../tools/data/library-runtime.mjs";
+import * as __dep10_publication from "../../tools/data/library-report-publication.mjs";
+import * as __dep10_store from "../../tools/data/library-store.mjs";
+const __dep10={...__dep10_context,...__dep10_reports,...__dep10_runtime,...__dep10_publication,...__dep10_store};
 
 // Original feature contract: library-content.test.mjs
 contractSuite("library-content", () => {

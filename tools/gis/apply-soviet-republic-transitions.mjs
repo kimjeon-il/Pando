@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
-import {readTerritorialSources,updateTerritorialSource} from '../territorial-entity-sources.mjs';
+import {readTerritorialSources,updateTerritorialSource} from "../data/territorial-entity-sources.mjs";
 import {normalizeTerritorialLibraryEntity} from "./territorial-library.js";
 
 const hash=value=>createHash('sha256').update(JSON.stringify(value)).digest('hex');

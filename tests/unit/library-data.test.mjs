@@ -7,11 +7,14 @@ import { execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { createHash } from 'node:crypto';
 import { gzipSync } from 'node:zlib';
-import { compactLibraryCheckout, decodeArchiveEntry, prepareLibraryData, libraryReportRoot, libraryReportEditRoot, libraryMaterializedRoot, withLibraryWrite, hydrateReports, safeChild, storeLibraryData, libraryPublicationRef } from '../../tools/library-data.mjs';
-import { reportPath } from '../../tools/report-paths.mjs';
+import {compactLibraryCheckout,prepareLibraryData,withLibraryWrite} from "../../tools/data/library-runtime.mjs";
+import {decodeArchiveEntry,libraryReportRoot,libraryReportEditRoot,libraryMaterializedRoot,safeChild} from "../../tools/data/library-context.mjs";
+import {hydrateReports} from "../../tools/data/library-reports.mjs";
+import {storeLibraryData,libraryPublicationRef} from "../../tools/data/library-store.mjs";
+import { reportPath } from "../../tools/data/report-paths.mjs";
 
 test('scoped native storage requires every changed source chunk and shared index together',async()=>{
-  const {assertTerritorialStorageScope}=await import('../../tools/library-data.mjs');
+  const {assertTerritorialStorageScope}=await import("../../tools/data/library-store.mjs");
   const base='assets/data/territorial-entities',old={entities:[{entityId:'state:edited',file:'state-edited.json.gz',sha256:'old'},{entityId:'state:kept',file:'state-kept.json.gz',sha256:'same'}]};
   const next=structuredClone(old);next.entities[0].sha256='new';
   const paths=[base+'/generated/v2/index.json',base+'/generated/v2/state-edited.json.gz',base+'/source/countries/state-edited.json'];
@@ -22,7 +25,7 @@ test('scoped native storage requires every changed source chunk and shared index
 });
 
 test('native library storage reuses unedited object references without reading their chunks',async()=>{
-  const {storeNativeLibraryObjects}=await import('../../tools/library-data.mjs');
+  const {storeNativeLibraryObjects}=await import("../../tools/data/library-store.mjs");
   assert.equal(typeof storeNativeLibraryObjects,'function');
   const old='a'.repeat(64),reads=[],writes=[];
   const entities=storeNativeLibraryObjects({libraryIndex:{entities:[{entityId:'state:edited',sha256:'new'},{entityId:'state:untouched',sha256:'same'}]},

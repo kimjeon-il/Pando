@@ -53,7 +53,7 @@
 
 ## 4. 기존 외부 라이브러리에 저장
 
-권장 위치: **`reports/development/ui/review-records/<proposalId>.json`** (외부 `PandoLab-library-data`, Pando 코드 저장소 아님). `tools/report-paths.mjs`의 `reportPath(...,{access:'read'|'write'})`, 기존 라이브러리 쓰기 lease, `reports:publish`/`reports:check` 절차를 그대로 사용한다. JSON 배열에 이벤트를 추가하는 것은 도메인상의 append-only이며 동시 쓰기 충돌 방지/실제 보관은 Git 원문 버전과 기존 라이브러리 절차가 담당한다.
+권장 위치: **`reports/development/ui/review-records/<proposalId>.json`** (외부 `PandoLab-library-data`, Pando 코드 저장소 아님). `tools/data/report-paths.mjs`의 `reportPath(...,{access:'read'|'write'})`, 기존 라이브러리 쓰기 lease, `reports:publish`/`reports:check` 절차를 그대로 사용한다. JSON 배열에 이벤트를 추가하는 것은 도메인상의 append-only이며 동시 쓰기 충돌 방지/실제 보관은 Git 원문 버전과 기존 라이브러리 절차가 담당한다.
 
 공통 코드: [review-change-records.js](../../src/document/review-change-records.js)
 

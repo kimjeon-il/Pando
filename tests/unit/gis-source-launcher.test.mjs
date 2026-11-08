@@ -5,7 +5,7 @@ import * as __source_dep2 from "node:fs";
 import * as __source_dep3 from "node:os";
 import * as __source_dep4 from "node:path";
 import * as __source_dep5 from "../../scripts/gis/run-source.mjs";
-import * as __source_dep6 from "../../tools/native-tool.mjs";
+import * as __source_dep6 from "../../tools/build/native-tool.mjs";
 import * as __source_dep7 from "../../tools/gis/terrain-dem-encode.mjs";
 import * as __source_dep8 from "../../tools/gis/terrain-dem-source.mjs";
 import * as __source_dep9 from "../../tools/gis/terrain-dem-raster.mjs";

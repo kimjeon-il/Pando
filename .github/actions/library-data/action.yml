@@ -24,7 +24,7 @@ runs:
       env:
         INPUT_SOURCE: .pando-inputs/${{ inputs.inputs-target }}
         INPUT_TARGET: ${{ inputs.inputs-target }}
-      run: node "$GITHUB_ACTION_PATH/../../../tools/library-data.mjs" --mount-inputs="$GITHUB_WORKSPACE/$INPUT_SOURCE" --root="$GITHUB_WORKSPACE/$INPUT_TARGET"
+      run: node "$GITHUB_ACTION_PATH/../../../tools/data/library-data.mjs" --mount-inputs="$GITHUB_WORKSPACE/$INPUT_SOURCE" --root="$GITHUB_WORKSPACE/$INPUT_TARGET"
     - shell: bash
       if: inputs.inputs-revision == ''
-      run: node tools/library-data.mjs
+      run: node tools/data/library-data.mjs

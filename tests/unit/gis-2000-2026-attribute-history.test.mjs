@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
-import {readTerritorialSources} from '../../tools/territorial-entity-sources.mjs';
+import {readTerritorialSources} from "../../tools/data/territorial-entity-sources.mjs";
 import {ATTRIBUTE_HISTORY_IDS, planAttributes} from '../../tools/gis/apply-2000-2026-name-flag-history.mjs';
 import {ADDITIONAL_IDS, ADDITIONAL_FLAG_IDS, ADDITIONAL_NAME_IDS, prepareAdditionalAttributePlan} from '../../tools/gis/apply-2000-2026-additional-attributes.mjs';
-import {readBuiltinCountryStoredBytes} from '../../tools/builtin-country-bytes.mjs';
+import {readBuiltinCountryStoredBytes} from "../../tools/data/builtin-country-bytes.mjs";
 import fs from 'node:fs';
 import {gunzipSync} from 'node:zlib';
 import {selectBuiltinCountries, assembleBuiltinWorld} from "../../src/data/builtin-world-loader.js";

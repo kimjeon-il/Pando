@@ -5,7 +5,7 @@ import { spawnSync } from 'node:child_process';
 import { realpathSync } from 'node:fs';
 import { isAbsolute, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import {verifyNativeTool} from '../../tools/native-tool.mjs';
+import {verifyNativeTool} from "../../tools/build/native-tool.mjs";
 import {terrainDemEncodeSources} from '../../tools/gis/terrain-dem-encode.mjs';
 import {terrainDemFillSources} from '../../tools/gis/terrain-dem-source.mjs';
 import {terrainDemRasterSources} from '../../tools/gis/terrain-dem-raster.mjs';
@@ -18,12 +18,12 @@ export const TASK_SOURCES = Object.freeze({
   'historical-border':'tools/gis/build-german-1914-base.mjs',
   'historical-coast':'tools/gis/build-german-1914-base.mjs',
   'terrain-dem':'tools/gis/terrain-dem-build.mjs',
-  'terrain-preview':'tools/build-terrain-preview.mjs',
+  'terrain-preview':'tools/build/build-terrain-preview.mjs',
   'hydro-tiles':'tools/gis/build-hydro.mjs',
-  'hydro-packfile':'tools/build-hydro-packfile.mjs',
-  'hydro-connectivity':'tools/repair-hydro-connectivity.mjs',
-  'physical-data':'tools/build-physical-data.mjs',
-  'place-candidates':'tools/build-place-candidates.mjs',
+  'hydro-packfile':'tools/build/build-hydro-packfile.mjs',
+  'hydro-connectivity':'tools/gis/repair-hydro-connectivity.mjs',
+  'physical-data':'tools/build/build-physical-data.mjs',
+  'place-candidates':'tools/build/build-place-candidates.mjs',
 });
 export function buildCommand(task,args=[],{root=ROOT}={}){
   if(!Object.hasOwn(TASK_SOURCES,task))throw Error('Unsupported GIS research task: '+task);

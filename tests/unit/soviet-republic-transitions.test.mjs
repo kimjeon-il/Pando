@@ -1,5 +1,5 @@
 import test from 'node:test';
-import {readBuiltinCountryStoredBytes} from '../../tools/builtin-country-bytes.mjs';
+import {readBuiltinCountryStoredBytes} from "../../tools/data/builtin-country-bytes.mjs";
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {gunzipSync} from 'node:zlib';

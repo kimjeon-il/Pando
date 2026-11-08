@@ -7,7 +7,7 @@ import "../../assets/js-vendor/polygon-clipping.min.js";
 import {normalizeTerritorialLibraryEntity} from './territorial-library.js';
 import {territorialIndexEntry} from './territorial-index-entry.js';
 import {sharedCalculationCore} from "../../src/document/temporal.js";
-import {withLibraryWrite} from '../library-data.mjs';
+import {withLibraryWrite} from "../data/library-runtime.mjs";
 
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 const json=value=>Buffer.from(JSON.stringify(value,null,2)+'\n');

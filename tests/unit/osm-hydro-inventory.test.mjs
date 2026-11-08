@@ -7,7 +7,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 import { gzipSync } from 'node:zlib';
-import { inventoryOsmHydronyms, readHydroMetadataSection, main } from '../../tools/inventory-osm-hydronyms.mjs';
+import { inventoryOsmHydronyms, readHydroMetadataSection, main } from "../../tools/gis/inventory-osm-hydronyms.mjs";
 
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 function fixture() {
@@ -75,7 +75,7 @@ test('CLI emits both Python-compatible log records and immutable input files', t
   const { manifest, bundle } = fixture();
   const m = join(dir, 'manifest.json'), b = join(dir, 'hydro.bin'), out = join(dir, 'inventory.json');
   writeFileSync(m, JSON.stringify(manifest)); writeFileSync(b, bundle);
-  const result = spawnSync(process.execPath, [fileURLToPath(new URL('../../tools/inventory-osm-hydronyms.mjs', import.meta.url)),
+  const result = spawnSync(process.execPath, [fileURLToPath(new URL("../../tools/gis/inventory-osm-hydronyms.mjs", import.meta.url)),
     '--manifest', m, '--bundle', b, '--output', out], { encoding: 'utf8' });
   assert.equal(result.status, 0, result.stderr);
   assert.match(result.stdout, /^OSM_AUDIT_TOTAL=1\n/m);

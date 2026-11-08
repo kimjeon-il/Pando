@@ -6,10 +6,15 @@ import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, st
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { gzipSync } from 'node:zlib';
-import * as library from '../../tools/library-data.mjs';
+import * as library_context from "../../tools/data/library-context.mjs";
+import * as library_reports from "../../tools/data/library-reports.mjs";
+import * as library_runtime from "../../tools/data/library-runtime.mjs";
+import * as library_publication from "../../tools/data/library-report-publication.mjs";
+import * as library_store from "../../tools/data/library-store.mjs";
+const library={...library_context,...library_reports,...library_runtime,...library_publication,...library_store};
 import { createP3PreviewServer } from '../../scripts/p3-preview-server.mjs';
-import {makePrivate} from '../../tools/library-content.mjs';
-import {reportArgument} from '../../tools/report-paths.mjs';
+import {makePrivate} from "../../tools/data/library-content.mjs";
+import {reportArgument} from "../../tools/data/report-paths.mjs";
 
 const put = (path, value) => { mkdirSync(dirname(path), { recursive: true }); writeFileSync(path, value); };
 const git = (cwd, ...args) => execFileSync('git', ['-c', 'core.autocrlf=false', '-c', 'gc.auto=0', '-C', cwd, ...args], { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }).trim();

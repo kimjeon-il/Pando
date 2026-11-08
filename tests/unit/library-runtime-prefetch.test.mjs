@@ -1,7 +1,7 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import {mkdtempSync,mkdirSync,readFileSync,readdirSync,writeFileSync,rmSync} from 'node:fs';import {tmpdir} from 'node:os';import {join} from 'node:path';import {pathToFileURL} from 'node:url';import {execFileSync,spawnSync} from 'node:child_process';
 import {randomBytes} from 'node:crypto';
-import {prefetchArchiveEntries} from '../../tools/library-data.mjs';
+import {prefetchArchiveEntries} from "../../tools/data/library-context.mjs";
 
 test('runtime preparation removes repeated fetched objects while preserving mixed-pack originals',t=>{
   const base=mkdtempSync(join(tmpdir(),'pando-prefetch-dedup-'));

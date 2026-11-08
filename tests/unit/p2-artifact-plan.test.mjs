@@ -6,10 +6,11 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import {fileURLToPath} from 'node:url';
 import test from 'node:test';
-import { sharedSourceManifest } from '../../tools/package-shared-core-assets.mjs';
-import { libraryMaterializedRoot, libraryReportRoot, librarySharedCheckout, withLibraryOutputs } from '../../tools/library-data.mjs';
-import {publishContent,linkContent} from '../../tools/library-content.mjs';
-import {reportPath} from '../../tools/report-paths.mjs';
+import { sharedSourceManifest } from "../../tools/build/package-shared-core-assets.mjs";
+import {libraryMaterializedRoot,libraryReportRoot,librarySharedCheckout} from "../../tools/data/library-context.mjs";
+import {withLibraryOutputs} from "../../tools/data/library-runtime.mjs";
+import {publishContent,linkContent} from "../../tools/data/library-content.mjs";
+import {reportPath} from "../../tools/data/report-paths.mjs";
 import { wasmStatus, selectJobs, assertSafeGeneratedPaths,
   plan, assertArtifactsCurrent } from '../../scripts/p2-artifact-plan.mjs';
 import { graphStatus, stageArtifacts, publishArtifacts, artifactEvidence, assertBranchState,

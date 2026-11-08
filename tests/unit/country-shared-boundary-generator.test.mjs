@@ -19,7 +19,7 @@ async function checkArchive(t, replacement, { missing = false } = {}) {
   const previousArgv = process.argv;
   process.argv = [...previousArgv, '--check'];
   try {
-    await import(new URL(`../../tools/build-country-shared-boundaries.mjs?case=${encodeURIComponent(t.name)}`, import.meta.url));
+    await import(new URL(`../../tools/build/build-country-shared-boundaries.mjs?case=${encodeURIComponent(t.name)}`, import.meta.url));
   } finally {
     process.argv = previousArgv;
   }

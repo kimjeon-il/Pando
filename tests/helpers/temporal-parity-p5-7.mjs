@@ -124,7 +124,7 @@ const typedSource = source => ({ ...source, sourceBytes:
 
 /** Test transport adapter only: all document behavior runs in the verified WASM. */
 export async function createWasmAdapter(options = {}) {
-  const { loadNodeCore } = await import('../../tools/load-node-core.mjs');
+  const { loadNodeCore } = await import("../../tools/build/load-node-core.mjs");
   const core = await loadNodeCore(options);
   const owner = new core.DocumentSession({ validateFlagDataUrl() {} });
   let disposed = false;

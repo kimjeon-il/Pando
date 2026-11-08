@@ -7,7 +7,7 @@ import {dirname,join,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
 import {gzipSync} from 'node:zlib';
-import {writeLibraryOutput} from '../library-data.mjs';
+import {writeLibraryOutput} from "../data/library-runtime.mjs";
 import {applyLSIBCountryPatches,classifyLSIBSpatial,extractLSIBSharedChains,mergeLSIBUnion,
   prepareLSIBNearestReplacements} from './lsib-screen-native.mjs';
 

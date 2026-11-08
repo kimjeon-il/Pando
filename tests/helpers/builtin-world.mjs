@@ -3,7 +3,7 @@ import {gunzipSync} from 'node:zlib';
 import {assembleBuiltinWorld,selectBuiltinCountries} from "../../src/data/builtin-world-loader.js";
 import {createStoredAssetLoader} from "../../src/data/stored-asset-loader.js";
 import {temporalContains,temporalMonthEnd} from "../../src/document/temporal.js";
-import {readBuiltinCountryStoredBytes} from '../../tools/builtin-country-bytes.mjs';
+import {readBuiltinCountryStoredBytes} from "../../tools/data/builtin-country-bytes.mjs";
 
 const root=new URL('../../assets/data/builtin-world/generated/v1/',import.meta.url);
 let catalog;

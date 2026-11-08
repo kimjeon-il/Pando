@@ -8,8 +8,8 @@ on:
       - 'tests/unit/builtin-country-loading.test.mjs'
       - 'tests/unit/prepared-country-scope.test.mjs'
       - 'tools/gis/prepare-water-object-history.mjs'
-      - 'tools/library-runtime-index.mjs'
-      - 'tools/library-data.mjs'
+      - 'tools/data/library-runtime-index.mjs'
+      - 'tools/data/library-data.mjs'
       - 'scripts/lib/prepared-input-verification.mjs'
       - 'scripts/p2-validate-artifacts.mjs'
   workflow_dispatch:

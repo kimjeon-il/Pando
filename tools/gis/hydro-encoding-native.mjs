@@ -2,7 +2,7 @@ import {execFile} from 'node:child_process';
 import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {gunzipSync} from 'node:zlib';
-import {verifyNativeTool} from '../native-tool.mjs';
+import {verifyNativeTool} from "../build/native-tool.mjs";
 
 const rootDefault=fileURLToPath(new URL('../../',import.meta.url));
 export const hydroEncodingSources=Object.freeze(['tools/cpp/hydro-encoding/CMakeLists.txt','tools/cpp/hydro-encoding/encode.cpp',

@@ -8,7 +8,7 @@ import {injectBoundaryDeltaWorker} from '../../tools/w2-p6-3-worker-bridge.mjs';
 
 const originalUrl=new URL("../../src/rendering/workers/country-shared-boundary-worker.js",import.meta.url);
 const moduleRoot=new URL('../../src/runtime/',import.meta.url).href;
-const nodeCoreUrl=new URL('../../tools/load-spherical-core.mjs',import.meta.url).href;
+const nodeCoreUrl=new URL("../../tools/build/load-spherical-core.mjs",import.meta.url).href;
 const original=readFileSync(originalUrl,'utf8');
 const workerCode=injectBoundaryDeltaWorker(original.replaceAll('../modules/',moduleRoot));
 const rect=(left,right)=>({type:'Polygon',coordinates:[

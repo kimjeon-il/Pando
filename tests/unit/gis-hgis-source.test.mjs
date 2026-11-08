@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 import { canonicalHgis, normalizeHgisSource, preserveHgis, wfsUrl, LAYER }
-  from '../../tools/fetch-german-empire-1914-source.mjs';
+  from "../../tools/gis/fetch-german-empire-1914-source.mjs";
 
 const polygon={type:'Polygon',coordinates:[[[10,50],[11,50],[11,51],[10,50]]]};
 const fixture=()=>({type:'FeatureCollection',features:[
@@ -52,7 +52,7 @@ test('offline CLI source import and byte comparison without network calls',t=>{
  const dir=mkdtempSync(join(tmpdir(),'hgis-fetch-cli-'));t.after(()=>rmSync(dir,{recursive:true,force:true}));
  const input=join(dir,'source.json'),output=join(dir,'output.json');
  writeFileSync(input,JSON.stringify(fixture()));
- const script=new URL('../../tools/fetch-german-empire-1914-source.mjs',import.meta.url);
+ const script=new URL("../../tools/gis/fetch-german-empire-1914-source.mjs",import.meta.url);
  const run=(...args)=>spawnSync(process.execPath,[fileURLToPath(script),...args],{encoding:'utf8'});
  assert.equal(run('--from-file',input,'--output',output).status,0);
  assert.equal(run('--from-file',input,'--output',output,'--check').status,0);

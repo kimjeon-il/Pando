@@ -5,7 +5,7 @@ import {createServer} from 'node:net';
 import {tmpdir} from 'node:os';
 import {join,resolve} from 'node:path';
 import test from 'node:test';
-import {packageNativeTool} from '../../tools/native-tool.mjs';
+import {packageNativeTool} from "../../tools/build/native-tool.mjs";
 import {qgisNativeSourceFiles} from '../../tools/qgis/native-client.mjs';
 import {prepareNativeProfile,startNativeQgis} from '../../tools/qgis/native-start.mjs';
 

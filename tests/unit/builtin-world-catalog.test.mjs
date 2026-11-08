@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {historicalWorldCases} from '../fixtures/historical-world-cases.mjs';
-import {compileBuiltinWorldCatalog, coalesceCoverageAdjustments} from '../../tools/builtin-world-compiler.mjs';
+import {compileBuiltinWorldCatalog, coalesceCoverageAdjustments} from "../../tools/build/builtin-world-compiler.mjs";
 import {assembleBuiltinWorld, selectBuiltinCountries} from "../../src/data/builtin-world-loader.js";
 import {createBuiltinProjectSetup} from "../../src/document/project-setup.js";
 import {PROJECT_SCHEMA_VERSION} from "../../src/runtime/version-contract.js";
-import {buildBuiltinWorldNamePublication} from '../../tools/build-builtin-world.mjs';
+import {buildBuiltinWorldNamePublication} from "../../tools/build/build-builtin-world.mjs";
 import {gzipSync, gunzipSync} from 'node:zlib';
 import {createHash} from 'node:crypto';
 import {temporalContains, temporalMonthEnd} from "../../src/document/temporal.js";

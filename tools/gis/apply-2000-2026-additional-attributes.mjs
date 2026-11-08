@@ -2,7 +2,7 @@ import {createHash} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
-import {readTerritorialSources,updateTerritorialSource} from '../territorial-entity-sources.mjs';
+import {readTerritorialSources,updateTerritorialSource} from "../data/territorial-entity-sources.mjs";
 import {normalizeTerritorialLibraryEntity} from './territorial-library.js';
 
 const error=message=>{throw new Error('ADDITIONAL_2000_2026_ATTRIBUTES: '+message);};
@@ -183,8 +183,8 @@ async function main(argv){
  }
  const root=path.resolve(fileURLToPath(new URL('../../',import.meta.url)));
  for(const args of [
-  ['tools/build-territorial-entity-chunks.mjs','--entities='+ADDITIONAL_IDS.join(',')],
-  ['tools/build-builtin-world.mjs']
+  ['tools/build/build-territorial-entity-chunks.mjs','--entities='+ADDITIONAL_IDS.join(',')],
+  ['tools/build/build-builtin-world.mjs']
  ])execFileSync(process.execPath,args,{cwd:root,stdio:'inherit'});
  console.log('ADDITIONAL_ATTR_APPLIED='+JSON.stringify({named:ADDITIONAL_NAME_IDS,flagged:ADDITIONAL_FLAG_IDS,
   coordinateChanges:0,parentChanges:0,lifetimeChanges:0}));

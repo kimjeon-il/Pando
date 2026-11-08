@@ -6,8 +6,8 @@ import {mkdtempSync,rmSync,existsSync,mkdirSync,writeFileSync,readFileSync,linkS
 import {homedir,tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {auditFileAllocation} from '../../tools/pc-file-allocation.mjs';
-import {previewGeneratedCleanup,applyGeneratedCleanup} from '../../tools/worktree-generated.mjs';
-import {contentHash} from '../../tools/library-content.mjs';
+import {previewGeneratedCleanup,applyGeneratedCleanup} from "../../tools/data/worktree-generated.mjs";
+import {contentHash} from "../../tools/data/library-content.mjs";
 import {randomBytes} from 'node:crypto';
 
 test('profile classification separates generated outputs, originals and keys',()=>{

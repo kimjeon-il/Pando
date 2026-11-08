@@ -1,1 +1,1 @@
-export { sphericalCore } from '../../tools/load-spherical-core.mjs';
+export { sphericalCore } from "../../tools/build/load-spherical-core.mjs";

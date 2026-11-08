@@ -1,6 +1,6 @@
 # 세계지도 데이터 부분 조회 도구
 
-`tools/inspect-world-data.mjs`는 GIS 자료 조사·검증을 위해 필요한 국가와 지도 구간만 추출하는 **읽기 전용** CLI다. 세계 통합 `current-world.geojson`과 렌더링 전용 PCG/메시는 열지 않는다.
+`tools/gis/inspect-world-data.mjs`는 GIS 자료 조사·검증을 위해 필요한 국가와 지도 구간만 추출하는 **읽기 전용** CLI다. 세계 통합 `current-world.geojson`과 렌더링 전용 PCG/메시는 열지 않는다.
 
 - 국가·역사적 국가: `assets/data/territorial-entities/generated/v2/index.json`으로 식별한 **해당 국가 압축 청크만** 해제하고 SHA-256을 검사한다.
 - 국가 선택 없이 영역만 지정하는 경우: `current-world` 스냅샷에 속한 국가의 색인을 BBOX로 사전 필터링한다. 이것이 임의 시점의 역사적 세계지도라는 뜻은 아니다.
@@ -13,26 +13,26 @@
 
 ```sh
 # 데이터 조회 대상 검색 (압축 청크를 해제하지 않음)
-node tools/inspect-world-data.mjs --mode list --bbox 3,50,9,55
+node tools/gis/inspect-world-data.mjs --mode list --bbox 3,50,9,55
 
 # 네덜란드 원본 형상 통계 (좌표 수, 폴리곤 수 등)
-node tools/inspect-world-data.mjs --country NLD --mode summary
+node tools/gis/inspect-world-data.mjs --country NLD --mode summary
 
 # 독일 북해 연안의 국경/해안선 후보만 추출
-node tools/inspect-world-data.mjs --country DEU --bbox 6,53,9,55 --mode boundary --out /tmp/germany-north-sea.geojson
+node tools/gis/inspect-world-data.mjs --country DEU --bbox 6,53,9,55 --mode boundary --out /tmp/germany-north-sea.geojson
 
 # 네덜란드 원본 육지 다각형, 분리된 구성요소만 추출
-node tools/inspect-world-data.mjs --country NLD --bbox 3,50,8,54 --mode polygon --out /tmp/netherlands.geojson
+node tools/gis/inspect-world-data.mjs --country NLD --bbox 3,50,8,54 --mode polygon --out /tmp/netherlands.geojson
 
 # 강 / 호수의 지정 지역 조사
-node tools/inspect-world-data.mjs --bbox 4,50,8,54 --mode rivers --out /tmp/river.geojson
-node tools/inspect-world-data.mjs --bbox 4,50,8,54 --mode lakes --out /tmp/lakes.geojson
+node tools/gis/inspect-world-data.mjs --bbox 4,50,8,54 --mode rivers --out /tmp/river.geojson
+node tools/gis/inspect-world-data.mjs --bbox 4,50,8,54 --mode lakes --out /tmp/lakes.geojson
 
 # 역사 국가의 정확한 entity ID를 이미 아는 경우
-node tools/inspect-world-data.mjs --country state:north-schleswig --date 1900-01-01 --mode summary
+node tools/gis/inspect-world-data.mjs --country state:north-schleswig --date 1900-01-01 --mode summary
 
 # 출력당 최대 크기 제한 (초과 시 *.part-0001.geojson 등으로 자동 분할)
-node tools/inspect-world-data.mjs --country DEU --mode boundary --out /tmp/deu.geojson --max-bytes 1000000
+node tools/gis/inspect-world-data.mjs --country DEU --mode boundary --out /tmp/deu.geojson --max-bytes 1000000
 ```
 
 `--country`는 ISO3 코드(`NLD`, `DEU`), 정확한 엔티티 ID(`state:DEU`) 또는 중복 없는 계보 ID를 받는다. `germany`처럼 하나의 계보에 여러 엔티티가 들어 있으면 정확한 ID를 요구한다. `--bbox`는 EPSG:4326 경도·위도 순서 `서쪽,남쪽,동쪽,북쪽`이며 날짜변경선을 넘을 경우 두 번 나누어 조회한다.

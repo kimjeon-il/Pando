@@ -68,7 +68,7 @@ E3가 비교하는 것은 Web/App 코드가 아닌 외부 데이터 저장소 **
 기존 `work/ui` 워크트리에서 외부 라이브러리 정본을 준비한 후, 기존 `.library-data/repository` checkout으로 원하는 자료 revision을 좁게 fetch한다. 관련 원본 객체/보고서만 on-demand 읽으며 GIS 전체 파일을 복제하지 않는다.
 
 ```bash
-node tools/library-data.mjs
+node tools/data/library-data.mjs
 git -C .library-data/repository fetch --no-tags --filter=blob:none origin a36bf7621a0cc72267415be19562cc78d3fc725d
 
 node tools/review/generate-e3-review.mjs \

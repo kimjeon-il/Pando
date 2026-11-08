@@ -1,7 +1,12 @@
 import { describe as contractSuite } from 'node:test';
 import * as __library_dep0 from "node:test";
 import * as __library_dep1 from "node:assert/strict";
-import * as __library_dep2 from "../../tools/library-data.mjs";
+import * as __library_dep2_context from "../../tools/data/library-context.mjs";
+import * as __library_dep2_reports from "../../tools/data/library-reports.mjs";
+import * as __library_dep2_runtime from "../../tools/data/library-runtime.mjs";
+import * as __library_dep2_publication from "../../tools/data/library-report-publication.mjs";
+import * as __library_dep2_store from "../../tools/data/library-store.mjs";
+const __library_dep2={...__library_dep2_context,...__library_dep2_reports,...__library_dep2_runtime,...__library_dep2_publication,...__library_dep2_store};
 
 // Original feature contract: library-data-scope.test.mjs
 contractSuite("library-data-scope", () => {

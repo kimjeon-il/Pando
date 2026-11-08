@@ -3,7 +3,7 @@ import {createHash} from 'node:crypto';
 import {constants,copyFileSync,readFileSync} from 'node:fs';
 import {join,resolve} from 'node:path';
 import {parseArgs} from 'node:util';
-import {packageNativeTool} from '../native-tool.mjs';
+import {packageNativeTool} from "../build/native-tool.mjs";
 import {mapPdfSourceFiles} from './native-pdf.mjs';
 
 const {values}=parseArgs({options:{binary:{type:'string'},directory:{type:'string'},sdk:{type:'string'}}});

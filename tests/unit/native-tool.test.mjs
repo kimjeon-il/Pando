@@ -4,7 +4,7 @@ import {mkdtempSync,mkdirSync,writeFileSync,rmSync,symlinkSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
-import {packageNativeTool,verifyNativeTool} from '../../tools/native-tool.mjs';
+import {packageNativeTool,verifyNativeTool} from "../../tools/build/native-tool.mjs";
 
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 function fixture(t){

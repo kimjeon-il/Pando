@@ -61,7 +61,7 @@ jobs:
           import {readFileSync} from 'node:fs';
           import assert from 'node:assert/strict';
           import {auditHydroOsm,auditOsmCreditRemoval} from './tools/gis/audit-osm-credit-removal.mjs';
-          import {manifestRoles} from './tools/check-current-hydro-layout.mjs';
+          import {manifestRoles} from './tools/checks/check-current-hydro-layout.mjs';
           const d=process.env.RUNNER_TEMP+'/hydro-v0.13.3-independent-review/';
           const manifest=JSON.parse(readFileSync(d+'manifest.json','utf8'));
           const bundle=readFileSync(d+'hydro.bin');

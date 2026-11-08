@@ -1,4 +1,4 @@
-import { reportPath } from '../../tools/report-paths.mjs';
+import { reportPath } from "../../tools/data/report-paths.mjs";
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFileSync } from 'node:fs';

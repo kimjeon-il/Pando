@@ -8,7 +8,7 @@ const required = [
 const core = await (async () => {
   if (globalThis.PandoLabSphericalCore) return globalThis.PandoLabSphericalCore;
   if (globalThis.process?.versions?.node) {
-    const { loadNodeCore } = await import("../../tools/load-node-core.mjs");
+    const { loadNodeCore } = await import("../../tools/build/load-node-core.mjs");
     return loadNodeCore();
   }
   const { loadVerifiedCore } = await import("../runtime/core-wasm-loader.js");

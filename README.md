@@ -171,7 +171,7 @@ v0.10.0에서는 QGIS 벡터 파일과 GeoPackage를 가져오고 저장하는 G
 
 국가 면은 원본 국경을 제거하거나 단순화하지 않고 WebGL2·WebGL1에서 렌더링합니다. 일반 영토는 날짜변경선을 해제한 경위도 평면, 극지 영토는 극 중심 방위평면에서 삼각분할과 세분화를 함께 수행해 렌더링 삼각형이 바다로 이탈하지 않게 합니다. 모든 렌더링 변의 구면 각거리는 `0.499°` 이하입니다.
 
-내장 메시를 다시 생성하려면 저장소 루트에서 `node tools/build-world-mesh.mjs`를 실행합니다. 이 과정은 배포 시 필요하지 않으며 정적 사이트는 생성된 메시를 바로 읽습니다.
+내장 메시를 다시 생성하려면 저장소 루트에서 `node tools/build/build-world-mesh.mjs`를 실행합니다. 이 과정은 배포 시 필요하지 않으며 정적 사이트는 생성된 메시를 바로 읽습니다.
 
 ## 지형 표시와 수계
 
@@ -192,7 +192,7 @@ v0.10.0에서는 QGIS 벡터 파일과 GeoPackage를 가져오고 저장하는 G
 물리 자료 생성기는 Natural Earth 원본을 읽어 별도의 새 후보 폴더에 생성합니다. 수계는 GDAL `ogr2ogr`와 Node가, 지형은 Node와 소스가 일치하는 `physical-raster`, `terrain-preview`, `map-image` C++ 도구가 처리합니다. Windows에서 GDAL DLL이 PATH에 없다면 `PANDO_PHYSICAL_RASTER_GDAL_BIN`으로 해당 절대 폴더를 지정합니다. 기존 산출물과 원본은 덮어쓰지 않습니다. 작은 고정 사례는 비교했으나 실제 TIFF 전체와 대형 입력 성능은 아직 확인하지 않았으므로 후보 결과는 별도로 검토합니다.
 
 ```powershell
-node tools/build-physical-data.mjs <Natural-Earth-원본-폴더> <새-후보-폴더> --countries assets/data/countries-ne-5.1.1.geojson
+node tools/build/build-physical-data.mjs <Natural-Earth-원본-폴더> <새-후보-폴더> --countries assets/data/countries-ne-5.1.1.geojson
 ```
 
 ### Hydro 전 세계 보충 자료 캘리브레이션

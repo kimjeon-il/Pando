@@ -7,7 +7,7 @@ import {clippingOperationWithPrecisionRetry} from "../../tools/gis/polygon-clipp
 import {scopedBuiltinProject} from '../helpers/builtin-world.mjs';
 import {createGeometryVersionStore} from "../../src/geometry/geometry-version-store.js";
 import {resolveWorld} from "../../src/document/timeline-resolver.js";
-import {restoreChinesePaektuSource,readBoundaryChain,buildKoreanBoundaryGeometry} from '../../tools/build-korean-boundaries.mjs';
+import {restoreChinesePaektuSource,readBoundaryChain,buildKoreanBoundaryGeometry} from "../../tools/build/build-korean-boundaries.mjs";
 
 const readCountry=id=>normalizeTerritorialLibraryEntity(JSON.parse(fs.readFileSync(new URL(`../../assets/data/territorial-entities/source/countries/state-${id}.json`,import.meta.url))));
 const korea=readCountry('KOR'),north=readCountry('PRK');

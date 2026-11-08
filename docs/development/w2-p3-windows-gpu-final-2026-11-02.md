@@ -55,7 +55,7 @@ trace 없는 B 대조의 60→160회 private 증가는 2.95MiB,
 
 새 재현은 기존 증거를 덮어쓰지 않는 새 report scope에서 수행한다.
 PowerShell의 `PANDOLAB_W3_EVIDENCE`를 그 scope의 owner 편집 경로로 지정한다.
-`node tools/report-paths.mjs reports/development/performance/<new-scope> write`
+`node tools/data/report-paths.mjs reports/development/performance/<new-scope> write`
 명령으로 해당 경로를 얻을 수 있다.
 
 1. `PANDOLAB_W3_INSTRUMENT_VERSION=v3`로 `node tools/w2-p3-server.mjs`를
@@ -80,5 +80,5 @@ PowerShell의 `PANDOLAB_W3_EVIDENCE`를 그 scope의 owner 편집 경로로 지�
 원시 JSON 중 큰 파일은 원래 바이트를 검증한 gzip으로 보관하며,
 compression 로그에 원문 SHA-256과 길이를 기록했다.
 원격 발행/재검증은 이 보고서 scope만 선택해
-`node tools/library-data.mjs --check-reports --include-prefix=reports/development/performance/w2-p3-windows-gpu-final-2026-11-02`
+`node tools/data/library-data.mjs --check-reports --include-prefix=reports/development/performance/w2-p3-windows-gpu-final-2026-11-02`
 로 실행한다. 전체 프로젝트 검사나 GIS 재생성은 필요하지 않다.

@@ -2,7 +2,7 @@ import {execFile} from 'node:child_process';
 import {readFileSync,statSync} from 'node:fs';
 import {delimiter,join,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {verifyNativeTool} from '../native-tool.mjs';
+import {verifyNativeTool} from "../build/native-tool.mjs";
 
 const defaultRoot=fileURLToPath(new URL('../../',import.meta.url));
 export const hydroPointScreenSources=Object.freeze(['tools/cpp/CMakeLists.txt','tools/cpp/hydro/point-screen.cpp',

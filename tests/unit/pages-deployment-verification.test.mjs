@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { verifyPagesDeployment } from '../../tools/verify-pages-deployment.mjs';
+import { verifyPagesDeployment } from "../../tools/checks/verify-pages-deployment.mjs";
 
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
 function fixture() {

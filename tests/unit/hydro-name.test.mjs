@@ -10,7 +10,7 @@ import * as __dep7 from "node:fs";
 import * as __dep8 from "node:os";
 import * as __dep9 from "node:path";
 import * as __dep10 from "node:zlib";
-import * as __dep11 from "../../tools/inventory-hydro-names.mjs";
+import * as __dep11 from "../../tools/gis/inventory-hydro-names.mjs";
 import * as __dep12 from "../../tools/lib/promote-hydro-names.mjs";
 import * as __dep13 from "node:url";
 import * as __dep14 from "../../tools/gis/prepare-hydro-name-replacement-bundle.mjs";

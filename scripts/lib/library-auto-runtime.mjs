@@ -6,8 +6,9 @@ import {readFileSync,writeFileSync,mkdirSync,readdirSync,lstatSync,unlinkSync,ex
 import {dirname,resolve} from 'node:path';
 import {gunzipSync} from 'node:zlib';
 import {stageArtifacts,publishArtifacts,graphStatus,safePath,assertBranchState,RECEIPT_PATH} from './p2-artifact-graph.mjs';
-import {libraryConfig,libraryCheckout,prepareLibraryData,withLibraryOutputs} from '../../tools/library-data.mjs';
-import {readBuiltinCountryStoredBytes} from '../../tools/builtin-country-bytes.mjs';
+import {libraryConfig,libraryCheckout} from "../../tools/data/library-context.mjs";
+import {prepareLibraryData,withLibraryOutputs} from "../../tools/data/library-runtime.mjs";
+import {readBuiltinCountryStoredBytes} from "../../tools/data/builtin-country-bytes.mjs";
 import {builtinCountryAssets} from "../../src/data/builtin-country-files.js";
 import {temporalContains,temporalMonthEnd} from "../../src/document/temporal.js";
 import {createAutoPublicationReceipt} from './library-auto-publication.mjs';
@@ -136,7 +137,7 @@ export async function deriveAutomaticRuntime({root,inputProjection,inputDataSha,
   const publication=await d.stageArtifacts(root,{families:[...FAMILIES],expectedSourceSha:expectedAppSha,stageDir,run:async(command,cwd,env)=>{
    assert.equal(resolve(cwd),resolve(safePath(root,stageDir),'checkout'),'AUTO_RUNTIME_OWNER_STAGE_LOCATION');
    await d.runCommand(command,cwd,env);
-   if(command.length===2&&command[0]==='node'&&command[1]==='tools/build-builtin-world.mjs'){
+   if(command.length===2&&command[0]==='node'&&command[1]==='tools/build/build-builtin-world.mjs'){
     pruneObsoleteCountryCopies(cwd,baselineAssets,d.withLibraryOutputs);builtinPruned=true;
    }
   },prepareData:({root:target})=>{

@@ -6,7 +6,7 @@ import * as __country_dep3 from "node:os";
 import * as __country_dep4 from "node:path";
 import * as __country_dep5 from "node:crypto";
 import * as __country_dep6 from "node:zlib";
-import * as __country_dep7 from "../../tools/build-builtin-world.mjs";
+import * as __country_dep7 from "../../tools/build/build-builtin-world.mjs";
 import * as __country_dep8 from "../../tools/gis/territorial-index-entry.js";
 import * as __country_dep9 from "../fixtures/historical-world-cases.mjs";
 import * as __country_dep10 from "../helpers/builtin-world.mjs";
@@ -222,7 +222,7 @@ test('water preparation cannot migrate or regenerate all builtin countries as a 
 });
 
 test('active builtin generation, loading and packaging have no aggregate transport execution path',()=>{
- for(const path of ['tools/build-builtin-world.mjs','src/data/builtin-world-loader.js','scripts/lib/product-assets.mjs','src/app/viewer-map.js','tools/stage-monorepo-pages.mjs']){
+ for(const path of ['tools/build/build-builtin-world.mjs','src/data/builtin-world-loader.js','scripts/lib/product-assets.mjs','src/app/viewer-map.js','tools/build/stage-monorepo-pages.mjs']){
   assert.doesNotMatch(source(path),/\bloadTransport\s*\(|\btransportPromise\b|\.transport\s*\.\s*url|transport\/countries-sha256-/,path);
  }
 });

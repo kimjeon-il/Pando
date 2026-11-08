@@ -8,7 +8,7 @@ import { appendFileSync, readFileSync } from 'node:fs';
 import { isAbsolute, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { collectChanges } from './lib/check-changes.mjs';
-import { sharedSourceManifest } from '../tools/package-shared-core-assets.mjs';
+import { sharedSourceManifest } from "../tools/build/package-shared-core-assets.mjs";
 import { graphStatus, artifactGraph, ownsPath, RECEIPT_PATH, stageArtifacts, publishArtifacts, artifactEvidence } from './lib/p2-artifact-graph.mjs';
 
 export const root=fileURLToPath(new URL('../',import.meta.url));
@@ -70,7 +70,7 @@ export function selectJobs({wasm},changed=[],manual='auto') {
     'cmake/P2NativeBuildReceipt.cmake'].includes(p));
   const forced=manual==='all';
   const wasmDefinitionChanged=changed.some(p=>[
-    'tools/package-shared-core-assets.mjs','CMakeLists.txt','CMakePresets.json'].includes(p));
+    'tools/build/package-shared-core-assets.mjs','CMakeLists.txt','CMakePresets.json'].includes(p));
   return {
     wasm:forced||manual==='wasm'||(manual==='auto'&&(wasm.needed||wasmDefinitionChanged)),
     bootstrap,

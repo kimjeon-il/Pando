@@ -5,7 +5,7 @@ import { historicalWorldCases } from '../fixtures/historical-world-cases.mjs';
 import { createEmptyTerritorialState } from "../../src/document/territorial-entity-store.js";
 import { effectiveTerritorialFlagUrl } from "../../src/ui/country-flags.js";
 
-import {compileBuiltinWorldCatalog} from '../../tools/builtin-world-compiler.mjs';
+import {compileBuiltinWorldCatalog} from "../../tools/build/builtin-world-compiler.mjs";
 import {assembleBuiltinWorld,selectBuiltinCountries} from "../../src/data/builtin-world-loader.js";
 import {withExplicitView,contextProject} from '../helpers/builtin-world.mjs';
 function compileFixture(input){const catalog=compileBuiltinWorldCatalog(withExplicitView(input));return {...catalog,project:contextProject(catalog)};}

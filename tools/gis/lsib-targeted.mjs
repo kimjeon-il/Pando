@@ -7,7 +7,7 @@ import {gunzipSync} from 'node:zlib';
 import {classifyLSIBExclusion} from './lsib-exclusion.mjs';
 import {loadLSIBReviewedSource} from './lsib-reviewed-source.mjs';
 import {mergeLSIBUnion,prepareLSIBCoast,prepareLSIBEnclave,prepareLSIBTripoint} from './lsib-screen-native.mjs';
-import {writeLibraryOutput} from '../library-data.mjs';
+import {writeLibraryOutput} from "../data/library-runtime.mjs";
 
 const sourceId='dos-lsib-11.4', tolerance=.0004, scale=2560*64/360;
 const plans={

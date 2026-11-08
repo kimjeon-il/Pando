@@ -4,7 +4,7 @@ import {lstat,mkdir,open,readFile} from 'node:fs/promises';
 import {dirname,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {parseArgs} from 'node:util';
-import {reportArgument} from '../report-paths.mjs';
+import {reportArgument} from "../data/report-paths.mjs";
 import {readLSIBLines} from './lsib-source-native.mjs';
 import {loadLSIBReviewedSource} from './lsib-reviewed-source.mjs';
 import {analyzeLSIBSection} from './lsib-screen-native.mjs';

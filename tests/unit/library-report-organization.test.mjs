@@ -6,8 +6,13 @@ import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, sy
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { gzipSync } from 'node:zlib';
-import * as library from '../../tools/library-data.mjs';
-import { organizedReportPath, reportSubjectReadmes, rewriteReportLinks } from '../../tools/library-report-layout.mjs';
+import * as library_context from "../../tools/data/library-context.mjs";
+import * as library_reports from "../../tools/data/library-reports.mjs";
+import * as library_runtime from "../../tools/data/library-runtime.mjs";
+import * as library_publication from "../../tools/data/library-report-publication.mjs";
+import * as library_store from "../../tools/data/library-store.mjs";
+const library={...library_context,...library_reports,...library_runtime,...library_publication,...library_store};
+import { organizedReportPath, reportSubjectReadmes, rewriteReportLinks } from "../../tools/data/library-report-layout.mjs";
 
 test('subject indexes show readable titles and declared status instead of only filenames', () => {
   const path = 'reports/borders/history/lifetimes/korea.md';

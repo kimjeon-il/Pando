@@ -7,7 +7,7 @@ import * as __source_dep4 from "node:fs";
 import * as __source_dep5 from "node:path";
 import * as __source_dep6 from "node:os";
 import * as __source_dep7 from "node:crypto";
-import * as __source_dep8 from "../../tools/apply-lsib-supplement.mjs";
+import * as __source_dep8 from "../../tools/gis/apply-lsib-supplement.mjs";
 contractSuite("lsib-coordinate-audit", () => {
 const test = __source_dep0.default;
 const assert = __source_dep1.default;
@@ -113,7 +113,7 @@ test('LSIB updates the open display version, independently of an undated histori
 
 // Closed historical geometry must fail before source-chain processing.
 test('Korean refinement rejects a closed explicitly selected version',async()=>{
- const {restoreChinesePaektuSource}=await import('../../tools/build-korean-boundaries.mjs');
+ const {restoreChinesePaektuSource}=await import("../../tools/build/build-korean-boundaries.mjs");
  const entity={geometryVersions:[{versionId:'closed',validTo:'1950'}]};
  const before=structuredClone(entity);
  assert.throws(()=>restoreChinesePaektuSource(entity,{features:[]},{features:[]},'closed'),/Missing open Chinese display geometry/);

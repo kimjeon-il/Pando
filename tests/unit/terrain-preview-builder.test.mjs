@@ -8,7 +8,7 @@ import * as __dem_dep5 from "node:test";
 import * as __dem_dep6 from "../../tools/map-image/native-resample.mjs";
 import * as __dem_dep7 from "../../tools/gis/terrain-preview-builder.mjs";
 import * as __dem_dep8 from "../../tools/gis/terrain-preview-sources.mjs";
-import * as __dem_dep9 from "../../tools/build-terrain-preview.mjs";
+import * as __dem_dep9 from "../../tools/build/build-terrain-preview.mjs";
 import * as __dem_dep10 from "node:fs";
 import * as __dem_dep11 from "../../tools/gis/terrain-preview-grid.mjs";
 contractSuite("terrain-preview-builder", () => {

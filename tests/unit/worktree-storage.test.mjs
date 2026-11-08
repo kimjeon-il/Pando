@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync, statSync, chmodSync, existsSync, unlinkSync, symlinkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { editorStageRoot, compilerCacheEnvironment, assertCompilerCacheServer, writeStagedContent, removeStagedDirectory, previewWorktreeStorage, applyWorktreeStorage, pruneApplicationBlobs, shareRetiredQtRuntimes } from '../../tools/worktree-storage.mjs';
-import { contentHash, contentFiles, publishContent } from '../../tools/library-content.mjs';
+import { editorStageRoot, compilerCacheEnvironment, assertCompilerCacheServer, writeStagedContent, removeStagedDirectory, previewWorktreeStorage, applyWorktreeStorage, pruneApplicationBlobs, shareRetiredQtRuntimes } from "../../tools/data/worktree-storage.mjs";
+import { contentHash, contentFiles, publishContent } from "../../tools/data/library-content.mjs";
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
@@ -31,7 +31,7 @@ test('compiler server ownership uses an exact cache directory rather than a matc
   assert.throws(()=>assertCompilerCacheServer(settings,{...stats,cache_location:'Local disk: "D:\\\\build\\\\cache\\\\pandolab\\\\sccache-other"'}),/ownership|configuration/);
 });
 test('explicit compiler command forwards its exit status without shell interpolation',t=>{
-  const root=fixture(t), script=fileURLToPath(new URL('../../tools/worktree-storage.mjs',import.meta.url));
+  const root=fixture(t), script=fileURLToPath(new URL("../../tools/data/worktree-storage.mjs",import.meta.url));
   const result=spawnSync(process.execPath,[script,`--root=${root}`,'--with-compiler-cache','--',process.execPath,'-e','process.exit(7)'],{encoding:'utf8'});
   assert.equal(result.status,7,result.stderr);
 });
@@ -113,7 +113,7 @@ test('actual process termination releases only its dead-owned migration stage le
   const root=fixture(t),settings={cacheRoot:join(root,'cache')},directory=join(editorStageRoot(root,settings),'dist'),bytes=Buffer.from('resume bytes');
   mkdirSync(join(directory,'shell'),{recursive:true});writeFileSync(join(directory,'.pandolab-web-shell-stage'),'owned');writeFileSync(join(directory,'data.bin'),bytes);
   writeFileSync(join(directory,'shell/stage-evidence.json'),JSON.stringify({schema:'pandolab-web-shell-stage',files:[{path:'data.bin',bytes:bytes.length,sha256:contentHash(bytes)}]}));
-  const script=new URL('../../tools/worktree-storage.mjs',import.meta.url).href,options={root,roots:[root],settings,processes:[]};
+  const script=new URL("../../tools/data/worktree-storage.mjs",import.meta.url).href,options={root,roots:[root],settings,processes:[]};
   const child=spawnSync(process.execPath,['--input-type=module','-e',`const {applyWorktreeStorage}=await import(${JSON.stringify(script)});applyWorktreeStorage({...${JSON.stringify(options)},afterPrepared(){process.exit(77)}});`],{encoding:'utf8'});
   assert.equal(child.status,77,child.stderr);const lease=join(editorStageRoot(root,settings),'.stage-lock');assert.ok(existsSync(lease));
   const result=applyWorktreeStorage(options);assert.equal(result.recovered.path,'data.bin');assert.equal(existsSync(lease),false);assert.equal(readFileSync(join(directory,'data.bin'),'utf8'),'resume bytes');

@@ -8,7 +8,7 @@ import {
   combineWallLayers, normalizedCollection, parseArguments, prepareVG25Derived,
   preserveSourceOutputs, selectEastGermanAdmin1, selectedGermanExterior,
   serializeSource, wfsUrl,
-} from '../../tools/fetch-east-germany-sources.mjs';
+} from "../../tools/gis/fetch-east-germany-sources.mjs";
 
 const polygon = { type: 'Polygon',
   coordinates: [[[13, 52], [14, 52], [14, 53], [13, 52]]] };

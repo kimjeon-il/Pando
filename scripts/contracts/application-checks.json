@@ -13,7 +13,7 @@
         "src/**",
         "scripts/lib/frontend-*.mjs",
         "scripts/frontend-dev-server.mjs",
-        "tools/worktree-storage.mjs"
+        "tools/data/worktree-storage.mjs"
       ]
     },
     {
@@ -120,8 +120,8 @@
         "tests/unit/shared-toolkit.test.mjs"
       ],
       "inputs": [
-        "tools/shared-toolkit.mjs",
-        "tools/package-shared-toolkit.mjs"
+        "tools/data/shared-toolkit.mjs",
+        "tools/build/package-shared-toolkit.mjs"
       ]
     },
     {
@@ -613,7 +613,7 @@
       ],
       "argv": [
         "node",
-        "tools/build-territorial-current-world.mjs",
+        "tools/build/build-territorial-current-world.mjs",
         "--check"
       ],
       "gisNative": true,
@@ -627,7 +627,7 @@
       ],
       "argv": [
         "node",
-        "tools/build-country-default-colors.mjs",
+        "tools/build/build-country-default-colors.mjs",
         "--check"
       ],
       "gisNative": true,
@@ -641,7 +641,7 @@
       ],
       "argv": [
         "node",
-        "tools/build-country-shared-boundaries.mjs",
+        "tools/build/build-country-shared-boundaries.mjs",
         "--check"
       ],
       "gisNative": true,
@@ -655,7 +655,7 @@
       ],
       "argv": [
         "node",
-        "tools/build-world-bundle.mjs",
+        "tools/build/build-world-bundle.mjs",
         "--check"
       ],
       "gisNative": true,
@@ -669,7 +669,7 @@
       ],
       "argv": [
         "node",
-        "tools/build-world-preview.mjs",
+        "tools/build/build-world-preview.mjs",
         "--check"
       ],
       "gisNative": true,
@@ -686,7 +686,7 @@
       ],
       "argv": [
         "node",
-        "tools/build-territorial-entity-chunks.mjs",
+        "tools/build/build-territorial-entity-chunks.mjs",
         "--check"
       ],
       "gisNative": true,
@@ -697,11 +697,11 @@
       "kind": "command",
       "inputs": [
         "assets/data/places/**",
-        "tools/build-place-runtime.mjs"
+        "tools/build/build-place-runtime.mjs"
       ],
       "argv": [
         "node",
-        "tools/build-place-runtime.mjs",
+        "tools/build/build-place-runtime.mjs",
         "--check"
       ],
       "gisNative": false,
@@ -716,12 +716,12 @@
         "src/ui/css/**",
         "apps/viewer/css/**",
         "assets/data/**",
-        "tools/stage-monorepo-pages.mjs",
+        "tools/build/stage-monorepo-pages.mjs",
         "scripts/lib/product-assets.mjs"
       ],
       "argv": [
         "node",
-        "tools/stage-monorepo-pages.mjs",
+        "tools/build/stage-monorepo-pages.mjs",
         "--root",
         ".",
         "--stage",
@@ -743,7 +743,7 @@
       ],
       "argv": [
         "node",
-        "tools/run-country-validator.mjs",
+        "tools/checks/run-country-validator.mjs",
         "--self-test"
       ],
       "gisNative": true,
@@ -758,7 +758,7 @@
       ],
       "argv": [
         "node",
-        "tools/run-country-validator.mjs",
+        "tools/checks/run-country-validator.mjs",
         "--canonical-only"
       ],
       "gisNative": true,
@@ -773,7 +773,7 @@
       ],
       "argv": [
         "node",
-        "tools/run-country-validator.mjs"
+        "tools/checks/run-country-validator.mjs"
       ],
       "gisNative": true,
       "requires": [
@@ -1081,7 +1081,7 @@
       "inputs": [
         "assets/data/physical-land/**",
         "assets/data/prepared-polygons/generated/v2/**",
-        "tools/build-prepared-polygon-mesh.mjs"
+        "tools/build/build-prepared-polygon-mesh.mjs"
       ]
     },
     {
@@ -1179,7 +1179,7 @@
         "config/library-data.json",
         "assets/data/territorial-entities/source/**",
         "assets/data/countries-ne-5.1.1.geojson",
-        "tools/territorial-entity-sources.mjs",
+        "tools/data/territorial-entity-sources.mjs",
         "tools/gis/territorial-library.js"
       ]
     },
@@ -1316,7 +1316,7 @@
       "inputs": [
         "config/library-data.json",
         "assets/data/builtin-world/**",
-        "tools/build-builtin-world.mjs"
+        "tools/build/build-builtin-world.mjs"
       ]
     },
     {

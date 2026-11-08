@@ -11,7 +11,7 @@ import * as __suiteDependency8 from "node:crypto";
 import * as __suiteDependency9 from "node:fs";
 import * as __suiteDependency10 from "node:os";
 import * as __suiteDependency11 from "node:path";
-import * as __suiteDependency12 from "../../tools/build-hydro-packfile.mjs";
+import * as __suiteDependency12 from "../../tools/build/build-hydro-packfile.mjs";
 import * as __suiteDependency13 from "node:assert/strict";
 import * as __suiteDependency14 from "node:crypto";
 import * as __suiteDependency15 from "node:fs";

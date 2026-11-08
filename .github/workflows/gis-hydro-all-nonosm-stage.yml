@@ -6,7 +6,7 @@ on:
     paths:
       - 'tools/gis/stage-hydro-all-nonosm.mjs'
       - 'src/rendering/workers/hydro-tile-worker.js'
-      - 'tools/check-current-hydro-layout.mjs'
+      - 'tools/checks/check-current-hydro-layout.mjs'
       - 'scripts/lib/product-assets.mjs'
       - 'tools/gis/hydro-bulk-independent-remaining29.json'
       - 'tools/gis/hydro-followup-independent-name-replacements.json'
@@ -73,7 +73,7 @@ jobs:
           import assert from 'node:assert/strict';
           import {readFileSync} from 'node:fs';
           import {auditHydroOsm,auditOsmCreditRemoval} from './tools/gis/audit-osm-credit-removal.mjs';
-          import {manifestRoles} from './tools/check-current-hydro-layout.mjs';
+          import {manifestRoles} from './tools/checks/check-current-hydro-layout.mjs';
           const root=process.env.RUNNER_TEMP+'/hydro-v0.13.4-nonosm';
           const manifest=JSON.parse(readFileSync(root+'/manifest.json','utf8'));
           const bundle=readFileSync(root+'/hydro.bin');
@@ -116,7 +116,7 @@ jobs:
           node --input-type=module - <<'JS'
           import assert from 'node:assert/strict';
           import {readFileSync} from 'node:fs';
-          import {verifyWorker} from './tools/check-current-hydro-layout.mjs';
+          import {verifyWorker} from './tools/checks/check-current-hydro-layout.mjs';
           const path=process.env.RUNNER_TEMP+'/hydro-v0.13.4-nonosm/';
           const manifest=JSON.parse(readFileSync(path+'manifest.json','utf8'));
           const bundle=readFileSync(path+'hydro.bin');
@@ -140,7 +140,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          node tools/decode-hydro-connectivity.mjs \
+          node tools/gis/decode-hydro-connectivity.mjs \
             "$RUNNER_TEMP/hydro-v0.13.4-nonosm" "$RUNNER_TEMP/hydro-v0.13.4-decoded.json"
           node --input-type=module - <<'JS'
           import assert from 'node:assert/strict';

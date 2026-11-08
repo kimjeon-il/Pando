@@ -2,7 +2,7 @@
 import {createHash} from 'node:crypto';
 import {existsSync,lstatSync,mkdirSync,readFileSync,writeFileSync} from 'node:fs';
 import {dirname} from 'node:path';
-import {containedPath} from '../library-content.mjs';
+import {containedPath} from "../data/library-content.mjs";
 
 export const TERRAIN_LAND_MASK_SHA256='52590ce133a779fc678496844c844137aeaa0dca41ceca1621cd7c50169f5efb';
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');

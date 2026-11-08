@@ -1,5 +1,5 @@
 import {parseArgs} from 'node:util';
-import {packageNativeTool} from '../native-tool.mjs';
+import {packageNativeTool} from "../build/native-tool.mjs";
 import {physicalRasterSources} from './physical-raster-native.mjs';
 
 const {values}=parseArgs({options:{binary:{type:'string'},directory:{type:'string'}}});

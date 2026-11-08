@@ -47,7 +47,7 @@ jobs:
           cmake --build build-native/hydro-point-screen --target pando-hydro-point-screen
           node tools/gis/package-hydro-point-screen.mjs --binary build-native/hydro-point-screen/pando-hydro-point-screen --directory build-native/hydro-point-screen/artifact
       - name: Decode version-pinned Hydro through production decoder
-        run: node tools/decode-hydro-connectivity.mjs .pando-hydro-input/assets/data/hydro/v0.13.2 /tmp/pando-hydro-point-decoded.json
+        run: node tools/gis/decode-hydro-connectivity.mjs .pando-hydro-input/assets/data/hydro/v0.13.2 /tmp/pando-hydro-point-decoded.json
       - name: Compare independent NLS/Kazakh river name anchors with original Hydro mainstems
         run: |
           node tools/gis/verify-independent-river-point-anchors.mjs \

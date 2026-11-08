@@ -74,7 +74,7 @@ jobs:
         if: github.event_name == 'push' || inputs.verification == 'full'
         run: node --test tests/unit/p2-artifact-plan.test.mjs tests/unit/shared-core-assets.test.mjs tests/unit/p2-publication-paths.test.mjs tests/unit/library-data.test.mjs
       - name: Read the declared place-report generation inputs
-        run: node tools/report-paths.mjs reports/places read
+        run: node tools/data/report-paths.mjs reports/places read
       - name: Select only stale source-derived assets
         id: scopes
         env:
@@ -119,7 +119,7 @@ jobs:
         if: needs.plan.outputs.selected_families != '[]' || inputs.scope == 'verify' || inputs.verification == 'full'
         run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Read the declared place-report generation inputs
-        run: node tools/report-paths.mjs reports/places read
+        run: node tools/data/report-paths.mjs reports/places read
       - uses: jwlawson/actions-setup-cmake@v2
         if: needs.plan.outputs.wasm == 'true'
         with:
@@ -172,9 +172,9 @@ jobs:
           NODE
           emcmake cmake --preset pando-wasm
           cmake --build --preset pando-wasm
-          node tools/package-shared-core-assets.mjs --build-dir build-native/p1/pando-wasm/shared/wasm
+          node tools/build/package-shared-core-assets.mjs --build-dir build-native/p1/pando-wasm/shared/wasm
       - name: Verify published compiled identity and package hashes
-        run: node tools/package-shared-core-assets.mjs --build-dir assets/wasm --check
+        run: node tools/build/package-shared-core-assets.mjs --build-dir assets/wasm --check
       - name: Verify the changed geographic contact and common fill kernels
         if: needs.plan.outputs.wasm == 'true' && inputs.verification != 'full' && inputs.verification != 'temporal'
         env:

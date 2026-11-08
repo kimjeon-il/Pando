@@ -57,7 +57,7 @@ test('physical data entry point delegates hydro to the same Node/GDAL owner',
     const root=mkdtempSync(join(tmpdir(),'pando-physical-legacy-')),source=join(root,'source'),output=join(root,'candidate');
     t.after(()=>rmSync(root,{recursive:true}));mkdirSync(source);
     for(const [name,base64] of Object.entries(fixture.files))writeFileSync(join(source,name),Buffer.from(base64,'base64'));
-    const processResult=spawnSync(process.execPath,['tools/build-physical-data.mjs',source,output,'--hydro-only'],
+    const processResult=spawnSync(process.execPath,['tools/build/build-physical-data.mjs',source,output,'--hydro-only'],
       {encoding:'utf8',windowsHide:true,env:process.env,timeout:60000});
     if(processResult.error)throw processResult.error;
     assert.equal(processResult.status,0,processResult.stderr);

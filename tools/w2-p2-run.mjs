@@ -2,7 +2,7 @@ import {chromium,expect} from '@playwright/test';
 import {existsSync,writeFileSync,mkdirSync} from 'node:fs';
 import {gzipSync} from 'node:zlib';
 import {execFileSync} from 'node:child_process';
-import {reportPath} from './report-paths.mjs';
+import {reportPath} from "./data/report-paths.mjs";
 const base=process.env.PANDOLAB_W2_EVIDENCE||reportPath('reports/development/performance/w2-p2-windows-first-transition-2026-11-02',{access:'write'});mkdirSync(base,{recursive:true});
 const results=[];
 function nativeMemory(processes){const ids=processes.map(p=>Number(p.id)).filter(Number.isInteger);return JSON.parse(execFileSync('powershell.exe',['-NoProfile','-Command','@(Get-Process -Id '+ids.join(',')+' -ErrorAction SilentlyContinue | Select-Object Id,WorkingSet64,PrivateMemorySize64) | ConvertTo-Json -Compress'],{encoding:'utf8',windowsHide:true})||'[]');}

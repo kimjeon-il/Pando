@@ -6,8 +6,8 @@ on:
       - 'assets/data/**'
       - 'config/library-data.json'
       - '.github/actions/library-data/**'
-      - 'tools/library-*.mjs'
-      - 'tools/build-world-bundle.mjs'
+      - 'tools/data/library-*.mjs'
+      - 'tools/build/build-world-bundle.mjs'
       - 'src/rendering/workers/gpu-mesh-core.js'
       - 'src/rendering/physical-layer-service.js'
       - 'src/rendering/terrain-manifest.js'
@@ -21,8 +21,8 @@ on:
       - 'assets/data/**'
       - 'config/library-data.json'
       - '.github/actions/library-data/**'
-      - 'tools/library-*.mjs'
-      - 'tools/build-world-bundle.mjs'
+      - 'tools/data/library-*.mjs'
+      - 'tools/build/build-world-bundle.mjs'
       - 'src/rendering/workers/gpu-mesh-core.js'
       - 'src/rendering/physical-layer-service.js'
       - 'src/rendering/terrain-manifest.js'
@@ -56,9 +56,9 @@ jobs:
           import assert from 'node:assert/strict';
           import {readFileSync} from 'node:fs';
           import {execFileSync} from 'node:child_process';
-          import {libraryConfig,libraryCheckout,safeChild} from './tools/library-data.mjs';
-          import {decodeLibraryArchiveBytes} from './tools/library-archive.mjs';
-          import {assertDataPath,publishWorldBundle} from './tools/build-world-bundle.mjs';
+          import {libraryConfig,libraryCheckout,safeChild} from './tools/data/library-data.mjs';
+          import {decodeLibraryArchiveBytes} from './tools/data/library-archive.mjs';
+          import {assertDataPath,publishWorldBundle} from './tools/build/build-world-bundle.mjs';
           import {HYDRO_DATA_VERSION} from './src/rendering/physical-layer-service.js';
           import {TERRAIN_RASTER_VERSION} from './src/rendering/terrain-manifest.js';
           const root=process.cwd(),config=libraryConfig(root),checkout=libraryCheckout(root);

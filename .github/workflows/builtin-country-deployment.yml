@@ -9,12 +9,12 @@ on:
       - 'tests/unit/builtin-country-parts.test.mjs'
       - 'tests/integration/builtin-country-deployment.mjs'
       - 'tests/browser/viewer-calendar.spec.mjs'
-      - 'tools/builtin-country-storage.mjs'
-      - 'tools/builtin-country-bytes.mjs'
+      - 'tools/data/builtin-country-storage.mjs'
+      - 'tools/data/builtin-country-bytes.mjs'
       - 'src/data/builtin-country-files.js'
       - 'scripts/lib/product-assets.mjs'
       - 'src/app/viewer.js'
-      - 'tools/stage-monorepo-pages.mjs'
+      - 'tools/build/stage-monorepo-pages.mjs'
       - 'tests/unit/frontend-product-output.test.mjs'
       - 'tests/unit/monorepo-pages-staging.test.mjs'
       - 'docs/development/builtin-country-deployment.md'
@@ -86,7 +86,7 @@ jobs:
           import {writeFileSync} from 'node:fs';
           import {execFileSync} from 'node:child_process';
           import assert from 'node:assert/strict';
-          import {defaultRoot,libraryConfig,libraryCheckout,withLibraryLock} from './tools/library-data.mjs';
+          import {defaultRoot,libraryConfig,libraryCheckout,withLibraryLock} from './tools/data/library-data.mjs';
           withLibraryLock(defaultRoot,()=>{
            const config=libraryConfig(),checkout=libraryCheckout();
            const git=(...args)=>execFileSync('git',args,{cwd:checkout,encoding:'utf8',stdio:'pipe'}).trim();
@@ -107,7 +107,7 @@ jobs:
            }
           },{compact:false});
           JS
-          node tools/library-data.mjs
+          node tools/data/library-data.mjs
       - name: Verify affected generation, loader, deployment and Viewer publication contracts
         if: steps.reuse.outputs.verified != 'true'
         run: |
@@ -116,8 +116,8 @@ jobs:
         run: |
           node --input-type=module <<'JS'
           import {writeFileSync} from 'node:fs';
-          import {libraryConfig} from './tools/library-data.mjs';
-          import {prepareBuiltinCountryFiles,verifyBuiltinCountryFiles,storeBuiltinCountryDelta} from './tools/builtin-country-storage.mjs';
+          import {libraryConfig} from './tools/data/library-data.mjs';
+          import {prepareBuiltinCountryFiles,verifyBuiltinCountryFiles,storeBuiltinCountryDelta} from './tools/data/builtin-country-storage.mjs';
           const beforeRevision=libraryConfig().revision;
           const prepared=prepareBuiltinCountryFiles({apply:true});
           const verified=verifyBuiltinCountryFiles();
@@ -125,7 +125,7 @@ jobs:
           writeFileSync(process.env.COUNTRY_PUBLICATION_PLAN,JSON.stringify({beforeRevision,revision:stored.revision,prefixes:prepared.prefixes}));
           console.log(JSON.stringify({preparedCountries:prepared.countryCount,changedStoragePaths:prepared.prefixes.length,preservedCountryHashes:prepared.preservedCountryHashes,...verified,localDataCommit:stored.revision}));
           JS
-          node tools/library-data.mjs
+          node tools/data/library-data.mjs
       - name: Verify real Web/App closures, dated loading and preservation of unrelated archived data
         run: node tests/integration/builtin-country-deployment.mjs
       - name: Verify product asset unit contracts
@@ -147,7 +147,7 @@ jobs:
           import {readFileSync} from 'node:fs';
           import assert from 'node:assert/strict';
           import {execFileSync} from 'node:child_process';
-          import {storeLibraryData,libraryConfig,libraryCheckout,decodeArchiveEntry} from './tools/library-data.mjs';
+          import {storeLibraryData,libraryConfig,libraryCheckout,decodeArchiveEntry} from './tools/data/library-data.mjs';
           import {createHash} from 'node:crypto';
           const plan=JSON.parse(readFileSync(process.env.COUNTRY_PUBLICATION_PLAN));
           assert.equal(execFileSync('git',['branch','--show-current'],{encoding:'utf8'}).trim(),'work/gis');

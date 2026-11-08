@@ -28,7 +28,7 @@ Native reviewer development uses Node, Git, browser and source-pinned Windows CI
 
 ## Outputs and consumers
 
-The existing storage owner (`tools/worktree-storage.mjs`) owns immutable blobs, frontend output views under its `frontend/<input-sha256>` directory and fixed per-checkout editor staging under `workspaces/<checkout-id>/editor`. In unconfigured CI checkouts, transient editor staging uses `.library-data/output/editor`.
+The existing storage owner (`tools/data/worktree-storage.mjs`) owns immutable blobs, frontend output views under its `frontend/<input-sha256>` directory and fixed per-checkout editor staging under `workspaces/<checkout-id>/editor`. In unconfigured CI checkouts, transient editor staging uses `.library-data/output/editor`.
 
 `.library-data/frontend-artifacts.json` and `.library-data/native-artifacts.json` reference active immutable products. Runtime server leases are process-scoped under `.library-data/runtime-leases`; they protect pinned library materializations. Source watchers exclude these outputs, `node_modules`, staging and verification profiles. A source refresh prepares library data only when the branch pin changes.
 

@@ -6,7 +6,7 @@ import * as __dep3 from "node:os";
 import * as __dep4 from "node:path";
 import * as __dep5 from "../../tools/lib/geonames-policy.mjs";
 import * as __dep6 from "../../tools/lib/geonames-review.mjs";
-import * as __dep7 from "../../tools/build-place-candidates.mjs";
+import * as __dep7 from "../../tools/build/build-place-candidates.mjs";
 import * as __dep8 from "../../tools/lib/geonames-zip.mjs";
 import * as __dep9 from "../helpers/geonames-fixtures.mjs";
 import * as __dep10 from "../../src/document/place-lifetime-policy.js";

@@ -4,7 +4,7 @@ on:
   push:
     branches: [work/gis]
     paths:
-      - 'tools/build-builtin-world.mjs'
+      - 'tools/build/build-builtin-world.mjs'
       - 'tools/gis/prepare-water-object-history.mjs'
       - 'src/data/builtin-world-loader.js'
       - 'src/data/stored-asset-loader.js'

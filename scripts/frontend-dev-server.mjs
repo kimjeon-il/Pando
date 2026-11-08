@@ -2,11 +2,12 @@ import {watch,readFileSync,statSync,realpathSync,existsSync} from 'node:fs';
 import {mkdir,writeFile,unlink} from 'node:fs/promises';
 import {resolve,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {finishArtifactMaintenance,runningStorageConsumers,storageSettings} from '../tools/worktree-storage.mjs';
+import {finishArtifactMaintenance,runningStorageConsumers,storageSettings} from "../tools/data/worktree-storage.mjs";
 import {createP3PreviewServer,previewFileIdentity} from './p3-preview-server.mjs';
 import {buildFrontendSnapshot} from './lib/frontend-build.mjs';
 import {frontendRoots,frontendTemplates,frontendFragmentRoot} from './lib/frontend-layout.mjs';
-import {prepareLibraryData,libraryMaterializedRoot,libraryRuntimeLeasePath} from '../tools/library-data.mjs';
+import {prepareLibraryData} from "../tools/data/library-runtime.mjs";
+import {libraryMaterializedRoot,libraryRuntimeLeasePath} from "../tools/data/library-context.mjs";
 import {prepareLibraryWhenAvailable} from './lib/library-preparation-wait.mjs';
 
 const root=fileURLToPath(new URL('../',import.meta.url));

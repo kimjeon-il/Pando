@@ -18,7 +18,7 @@ as a side effect of the plugin separation.
 
 ## Shared dependency contract
 
-`tools/package-shared-toolkit.mjs REVISION NEW_ARCHIVE` packages reviewed
+`tools/build/package-shared-toolkit.mjs REVISION NEW_ARCHIVE` packages reviewed
 Pando source plus existing CI-produced WASM and Linux/Windows image/PDF/preview
 artifacts. It checks source identities, native manifests and the compiled core.
 It never compiles, installs an SDK, includes plugin code/model weights or
@@ -27,7 +27,7 @@ Pando terrain and hydro generation and must remain here.
 
 The manifest pins interface version 1, Pando repository/commit, archive size/hash,
 a complete file-inventory hash, required source identities and licenses.
-`tools/shared-toolkit.mjs` validates paths, locks and every byte before use.
+`tools/data/shared-toolkit.mjs` validates paths, locks and every byte before use.
 The consumer rejects changed files and unknown interfaces. Update the shared
 artifact and the independent consumer pin deliberately; a moving branch is
 not a runtime dependency.

@@ -3,7 +3,7 @@ import {execFileSync} from 'node:child_process';
 import {existsSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {verifyNativeTool} from './native-tool.mjs';
+import {verifyNativeTool} from "./build/native-tool.mjs";
 
 export const allocationSourceFiles=Object.freeze(['tools/cpp/pc-file-allocation.cpp','shared/core/src/losslessjson.cpp','shared/core/include/pandoeditor/losslessjson.h']);
 const sourceRoot=fileURLToPath(new URL('../',import.meta.url));

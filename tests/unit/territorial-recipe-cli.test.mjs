@@ -4,7 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 import { replaceRecipeGeometry, sameRecipeGeometryWithinProjectionRounding, verifySourceHashes }
-  from '../../tools/build-territorial-geometry.mjs';
+  from "../../tools/build/build-territorial-geometry.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const recipe = JSON.parse(readFileSync(path.join(root, 'tools/historical-library/east-germany-1989.recipe.json'), 'utf8'));

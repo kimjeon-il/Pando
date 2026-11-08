@@ -110,7 +110,7 @@ jobs:
       - name: Cross-check persisted geometry against the pinned C++ recipe
         run: |
           node --test tests/unit/territorial-recipe-cli.test.mjs tests/unit/territorial-recipe-cpp.test.mjs
-          node tools/build-territorial-geometry.mjs --check
+          node tools/build/build-territorial-geometry.mjs --check
       - name: Preserve historical recipe proof, not reprocessed data
         if: always()
         uses: actions/upload-artifact@v4

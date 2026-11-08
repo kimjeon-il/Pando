@@ -42,7 +42,7 @@ jobs:
         run: |
           export PANDO_TERRITORIAL_RECIPE_BINARY="$PWD/build-native/territorial-recipe/pando-territorial-recipe"
           node --test tests/unit/territorial-recipe-cli.test.mjs tests/unit/territorial-recipe-cpp.test.mjs
-          node tools/build-territorial-geometry.mjs --check
+          node tools/build/build-territorial-geometry.mjs --check
           node --test tests/unit/gis-ddr-native-partition.test.mjs
           node tools/gis/verify-east-germany-partition.mjs
       - name: Prove no tracked source data was modified

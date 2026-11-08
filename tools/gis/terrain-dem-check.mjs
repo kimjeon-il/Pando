@@ -2,7 +2,7 @@ import {execFile} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {verifyNativeTool} from '../native-tool.mjs';
+import {verifyNativeTool} from "../build/native-tool.mjs";
 
 const rootDefault=fileURLToPath(new URL('../../',import.meta.url));
 export const terrainDemCheckSources=Object.freeze(['tools/cpp/terrain-dem-check/CMakeLists.txt','tools/cpp/terrain-dem-check/check.cpp']);

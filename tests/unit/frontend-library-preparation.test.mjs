@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import {mkdtempSync,mkdirSync,writeFileSync,readFileSync,existsSync,unlinkSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-import {discardDeadLibraryLock,withLibraryLock} from '../../tools/library-data.mjs';
+import {discardDeadLibraryLock,withLibraryLock} from "../../tools/data/library-context.mjs";
 import {prepareLibraryWhenAvailable} from '../../scripts/lib/library-preparation-wait.mjs';
 
 function activeOwner(t){

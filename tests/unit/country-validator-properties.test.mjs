@@ -4,7 +4,7 @@ import {mkdirSync,rmSync,writeFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import test from 'node:test';
-import {buildCurrentWorld} from '../../tools/territorial-current-world.mjs';
+import {buildCurrentWorld} from "../../tools/data/territorial-current-world.mjs";
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const source=[

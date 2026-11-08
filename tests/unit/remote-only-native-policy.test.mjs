@@ -5,7 +5,7 @@ import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {assertRemoteOnlyNativeAllowed,remoteOnlyBranch} from '../../scripts/lib/remote-only-native-policy.mjs';
 import {assertRemoteOnlyNativePreparation} from '../../scripts/prepare-native-test-tools.mjs';
-import {retireUnusedNativeViews,installNativeArtifactView,pruneApplicationBlobs,compilerCacheEnvironment} from '../../tools/worktree-storage.mjs';
+import {retireUnusedNativeViews,installNativeArtifactView,pruneApplicationBlobs,compilerCacheEnvironment} from "../../tools/data/worktree-storage.mjs";
 import {createHash} from 'node:crypto';
 const nativeHash=bytes=>createHash('sha256').update(bytes).digest('hex');
 
@@ -78,7 +78,7 @@ test('interrupted immutable native view cleanup is journaled and resumable',t=>{
 });
 
 test('compiler activation refuses local SDKs before I/O; Windows download uses same entrypoint guard',async t=>{
-  const {activateCompilerCache}=await import('../../tools/worktree-storage.mjs');
+  const {activateCompilerCache}=await import("../../tools/data/worktree-storage.mjs");
   const root=mkdtempSync(join(tmpdir(),'pando-entrypoint-guard-'));
   t.after(()=>rmSync(root,{recursive:true,force:true}));
   const environment={PANDO_REMOTE_ONLY:'1'};
@@ -97,7 +97,7 @@ test('application runner places native work behind the shared local-build policy
   assert.match(source,/assertRemoteOnlyNativeAllowed\(\{root:repository\.root,environment:executionEnvironment/);
 });
 test('on remote-only branch, compiler environment/config commands never reactivate old cache settings',()=>{
-  const source=readFileSync(new URL('../../tools/worktree-storage.mjs',import.meta.url),'utf8');
+  const source=readFileSync(new URL("../../tools/data/worktree-storage.mjs",import.meta.url),'utf8');
   assert.match(source,/compilerValues=\(\)=>remoteOnlyBranch\(\{root\}\)/);
   assert.match(source,/active:!remoteOnlyBranch\(\{root\}\)/);
 });
@@ -131,7 +131,7 @@ test('existing compiler cache wrappers are stripped without launching their exec
   assert.equal(existsSync(settings.cacheRoot),false);
 });
 test('legacy direct compiler-cache probe requires Actions before hardcoded toolchains',()=>{
-  const script=readFileSync(new URL('../../tools/verify-compiler-cache.mjs',import.meta.url),'utf8');
+  const script=readFileSync(new URL("../../tools/checks/verify-compiler-cache.mjs",import.meta.url),'utf8');
   assert.match(script,/assertRemoteOnlyNativeAllowed/);
   assert.ok(script.indexOf('assertRemoteOnlyNativeAllowed')<script.indexOf("const roots=['D:/dev/worktrees"));
 });

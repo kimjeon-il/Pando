@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import {gunzipSync} from 'node:zlib';
-import {buildBuiltinWorldPublication,buildBuiltinWorldPartialPublication,writeBuiltinWorldPublication} from '../../tools/build-builtin-world.mjs';
+import {buildBuiltinWorldPublication,buildBuiltinWorldPartialPublication,writeBuiltinWorldPublication} from "../../tools/build/build-builtin-world.mjs";
 import {territorialIndexEntry} from "../../tools/gis/territorial-index-entry.js";
 import {historicalWorldCases} from '../fixtures/historical-world-cases.mjs';
 import {withExplicitView} from '../helpers/builtin-world.mjs';

@@ -5,7 +5,7 @@ import {mkdtempSync,mkdirSync,writeFileSync,readFileSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join,dirname} from 'node:path';
 import {gzipSync} from 'node:zlib';
-import {CURRENT_MANIFEST,manifestRoles,auditLayout} from '../../tools/check-current-hydro-layout.mjs';
+import {CURRENT_MANIFEST,manifestRoles,auditLayout} from "../../tools/checks/check-current-hydro-layout.mjs";
 
 const hash=x=>createHash('sha256').update(x).digest('hex');
 const activeTemplate=JSON.parse(readFileSync(new URL('../../'+CURRENT_MANIFEST,import.meta.url)));

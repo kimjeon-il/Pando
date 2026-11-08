@@ -5,7 +5,7 @@ import {spawn,execFileSync} from 'node:child_process';
 import {mkdtempSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-import {libraryWriteGitEnvironment} from '../../tools/library-data.mjs';
+import {libraryWriteGitEnvironment} from "../../tools/data/library-store.mjs";
 const dummy='test-only-not-a-secret';
 test('write auth override is command scoped and absent token preserves checkout auth',()=>{
  const base={SENTINEL:'same'};assert.equal(libraryWriteGitEnvironment('',base),base);

@@ -45,7 +45,7 @@ on:
       - 'assets/js/build-meta.js'
       - 'assets/data/prepared-polygons/generated/v2/manifest.json'
       - 'scripts/check-version.mjs'
-      - 'tools/build-country-shared-boundaries.mjs'
+      - 'tools/build/build-country-shared-boundaries.mjs'
       - 'tools/benchmark-shared-border-p5.mjs'
       - 'tests/unit/boundary-lines.test.mjs'
       - 'tests/unit/country-shared-boundary-generator.test.mjs'
@@ -102,7 +102,7 @@ jobs:
         run: |
           node --input-type=module <<'NODE'
           import { readFileSync, appendFileSync } from 'node:fs';
-          import { sharedSourceManifest } from './tools/package-shared-core-assets.mjs';
+          import { sharedSourceManifest } from './tools/build/package-shared-core-assets.mjs';
           const manifest=JSON.parse(readFileSync('assets/wasm/pandoeditor-core.manifest.json','utf8'));
           const ready=sharedSourceManifest(process.cwd()).sourceSha256===manifest.sourceSha256;
           appendFileSync(process.env.GITHUB_OUTPUT,'ready='+ready+'\n');

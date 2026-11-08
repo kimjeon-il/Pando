@@ -136,8 +136,8 @@ npx playwright test tests/browser/place-runtime.spec.mjs tests/browser/label-met
 실행 계약(노드 표준 라이브러리 기반):
 
 ```sh
-node tools/build-place-runtime.mjs
-node tools/build-place-runtime.mjs --check
+node tools/build/build-place-runtime.mjs
+node tools/build/build-place-runtime.mjs --check
 node --test tests/unit/place-publication.test.mjs tests/unit/place-codec.test.mjs
 ```
 

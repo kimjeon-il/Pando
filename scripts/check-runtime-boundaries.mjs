@@ -63,7 +63,7 @@ function visit(asset){
         // Generated frontend metadata has no checked-in module source.
         if(Object.hasOwn(frontendGeneratedOwners,path))continue;
         // Temporal's Node helper is substituted by the existing Web build owner.
-        if(path==='tools/load-node-core.mjs'&&asset==='assets/js/modules/temporal.js')continue;
+        if(path==='tools/build/load-node-core.mjs'&&asset==='assets/js/modules/temporal.js')continue;
         fail('Unmapped active import: '+entry.sourcePath+' -> '+reference.specifier);
       }
       if(target.product!=='shared'&&target.product!==entry.product)

@@ -54,11 +54,11 @@ jobs:
           node tools/gis/apply-2000-2026-additional-attributes.mjs --apply
       - name: Verify generated chunks and real dated world snapshot properties
         run: |
-          node tools/build-territorial-entity-chunks.mjs --check
+          node tools/build/build-territorial-entity-chunks.mjs --check
           node --test tests/unit/gis-2000-2026-attribute-history.test.mjs
       - name: Store and push changed source, chunk and world bytes with the library owner
         run: |
-          node tools/library-data.mjs --store-and-stage --push \
+          node tools/data/library-data.mjs --store-and-stage --push \
             --include-prefix=assets/data/territorial-entities \
             --include-prefix=assets/data/builtin-world \
             -- config/library-data.json
@@ -66,7 +66,7 @@ jobs:
           git diff --cached --name-only
       - name: Prepare verified browser assets from the exact stored pin
         run: |
-          node tools/library-data.mjs
+          node tools/data/library-data.mjs
           node scripts/generate-build-metadata.mjs
           node scripts/check-version.mjs
       - name: Install focused browser runtime

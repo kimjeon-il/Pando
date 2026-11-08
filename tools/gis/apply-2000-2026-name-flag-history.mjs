@@ -2,7 +2,7 @@ import path from 'node:path';
 import {createHash} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
-import {readTerritorialSources,updateTerritorialSource} from '../territorial-entity-sources.mjs';
+import {readTerritorialSources,updateTerritorialSource} from "../data/territorial-entity-sources.mjs";
 import {normalizeTerritorialLibraryEntity} from './territorial-library.js';
 
 const fail=message=>{throw new Error('ATTRIBUTE_HISTORY_2000_2026: '+message);};
@@ -177,8 +177,8 @@ function main(argv){
  }
  const root=path.resolve(fileURLToPath(new URL('../../',import.meta.url)));
  for(const args of [
-  ['tools/build-territorial-entity-chunks.mjs','--entities='+ATTRIBUTE_HISTORY_IDS.join(',')],
-  ['tools/build-builtin-world.mjs']
+  ['tools/build/build-territorial-entity-chunks.mjs','--entities='+ATTRIBUTE_HISTORY_IDS.join(',')],
+  ['tools/build/build-builtin-world.mjs']
  ]){
   execFileSync(process.execPath,args,{cwd:root,stdio:'inherit'});
  }

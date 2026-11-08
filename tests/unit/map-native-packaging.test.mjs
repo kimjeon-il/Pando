@@ -4,7 +4,7 @@ import {mkdtempSync,writeFileSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join,resolve} from 'node:path';
 import test from 'node:test';
-import {packageNativeTool} from '../../tools/native-tool.mjs';
+import {packageNativeTool} from "../../tools/build/native-tool.mjs";
 import {collectMapImageArtifacts,mapImageSourceFiles} from '../../tools/map-image/native-resample.mjs';
 
 test('private map package includes both verified platform binaries and rejects changed bytes',t=>{

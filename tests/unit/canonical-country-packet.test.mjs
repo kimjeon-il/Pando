@@ -11,7 +11,7 @@ import {
   createCanonicalCountryStore,
   inspectCanonicalCountryPacket,
 } from "../../src/rendering/canonical-country-packet.js";
-import { encodeCanonicalCountryPacket } from '../../tools/canonical-country-packet-encoder.mjs';
+import { encodeCanonicalCountryPacket } from "../../tools/build/canonical-country-packet-encoder.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const canonical = JSON.parse(fs.readFileSync(path.join(root, 'assets/data/territorial-entities/generated/current-world.geojson'), 'utf8'));

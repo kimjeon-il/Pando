@@ -1,6 +1,6 @@
 import { rectanglePolygon } from '../helpers/gis-polygon-fixture.mjs';
 import '../helpers/spherical-core.mjs';
-const verifiedNodeCoreUrl = new URL('../../tools/load-spherical-core.mjs', import.meta.url).href;
+const verifiedNodeCoreUrl = new URL("../../tools/build/load-spherical-core.mjs", import.meta.url).href;
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { Worker } from 'node:worker_threads';

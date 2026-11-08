@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {createHash,randomBytes} from 'node:crypto';
 import {gzipSync} from 'node:zlib';
 import {existsSync} from 'node:fs';
-import {finalizeBuiltinWorldFiles} from '../../tools/build-builtin-world.mjs';
+import {finalizeBuiltinWorldFiles} from "../../tools/build/build-builtin-world.mjs";
 import {createBuiltinWorldLoader} from "../../src/data/builtin-world-loader.js";
 const LIMIT=512*1024;
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -45,7 +45,7 @@ test('partial generation reuses unchanged parts without reading or emitting them
  assert.ok(files.size>2);
 });
 test('remote storage plans include the index and changed files only, never an oversized original or an unrelated country',async()=>{
- const moduleUrl=new URL('../../tools/builtin-country-storage.mjs',import.meta.url);
+ const moduleUrl=new URL("../../tools/data/builtin-country-storage.mjs",import.meta.url);
  assert.ok(existsSync(moduleUrl),'the scoped country storage owner is required');
  const {planBuiltinCountryStorage}=await import(moduleUrl.href);
  const f=fixture();split(f);const previous=structuredClone(f.index),next=structuredClone(f.index);

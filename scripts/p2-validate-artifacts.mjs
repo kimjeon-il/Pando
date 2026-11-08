@@ -1,6 +1,6 @@
 // Decode the actual generated packets and verify current Web/WASM consumption bytes.
 import assert from 'node:assert/strict';
-import { sharedSourceManifest } from '../tools/package-shared-core-assets.mjs';
+import { sharedSourceManifest } from "../tools/build/package-shared-core-assets.mjs";
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';

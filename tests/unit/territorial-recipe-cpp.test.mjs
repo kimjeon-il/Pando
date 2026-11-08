@@ -5,7 +5,7 @@ import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
-import { sameRecipeGeometryWithinProjectionRounding } from '../../tools/build-territorial-geometry.mjs';
+import { sameRecipeGeometryWithinProjectionRounding } from "../../tools/build/build-territorial-geometry.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const recipePath = path.join(root, 'tools/historical-library/east-germany-1989.recipe.json');

@@ -4,8 +4,8 @@ import {existsSync,readFileSync,realpathSync,statSync} from 'node:fs';
 import {basename,dirname,isAbsolute,relative,resolve,sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {isDeepStrictEqual,parseArgs} from 'node:util';
-import {writeLibraryOutput} from '../library-data.mjs';
-import {reportArgument} from '../report-paths.mjs';
+import {writeLibraryOutput} from "../data/library-runtime.mjs";
+import {reportArgument} from "../data/report-paths.mjs";
 import {calibrationAcceptance} from './hydro-calibration-metrics.mjs';
 
 const stages=['6.0','6.7','7.0','7.5'];

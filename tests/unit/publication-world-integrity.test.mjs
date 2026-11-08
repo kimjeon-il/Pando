@@ -4,10 +4,10 @@ import * as __dep1 from "node:assert/strict";
 import * as __dep2 from "node:crypto";
 import * as __dep3 from "node:fs";
 import * as __dep4 from "../../src/data/world-bundle-manifest.js";
-import * as __dep5 from "../../tools/publication-label-anchors.mjs";
+import * as __dep5 from "../../tools/gis/publication-label-anchors.mjs";
 import * as __dep6 from "../../src/rendering/country-mesh-codec.js";
 import * as __dep7 from "../../src/runtime/worker-asset-url.js";
-import * as __dep8 from "../../tools/builtin-world-compiler.mjs";
+import * as __dep8 from "../../tools/build/builtin-world-compiler.mjs";
 import * as __dep9 from "../fixtures/historical-world-cases.mjs";
 import * as __dep10 from "../helpers/builtin-world.mjs";
 

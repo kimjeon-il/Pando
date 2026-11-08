@@ -43,7 +43,7 @@ on:
       - 'tools/gis/build-german-1914-base.mjs'
       - 'tools/gis/verify-german-1914-originals.mjs'
       - 'tests/unit/gis-german-1914-originals.test.mjs'
-      - 'tools/fetch-german-empire-1914-source.mjs'
+      - 'tools/gis/fetch-german-empire-1914-source.mjs'
       - '.github/workflows/gis-historical-native.yml'
   workflow_dispatch:
     inputs:

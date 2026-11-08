@@ -4,7 +4,7 @@ import { mkdtempSync, mkdirSync, rmSync, writeFileSync, existsSync } from 'node:
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { SCHEMA, STAGING_STATUS, audit, registered, plan, readJson, writeNewJson,
-  finalize, validateReviewed } from '../../tools/place-batch-pipeline.mjs';
+  finalize, validateReviewed } from "../../tools/gis/place-batch-pipeline.mjs";
 
 const json=(place,value)=>writeFileSync(place,JSON.stringify(value));
 function folder(t){

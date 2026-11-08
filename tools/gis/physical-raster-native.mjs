@@ -4,7 +4,7 @@ import {createReadStream} from 'node:fs';
 import {realpath,stat} from 'node:fs/promises';
 import {delimiter,isAbsolute,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {verifyNativeTool} from '../native-tool.mjs';
+import {verifyNativeTool} from "../build/native-tool.mjs";
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
 export const physicalRasterSources=Object.freeze(['tools/cpp/physical-raster/CMakeLists.txt','tools/cpp/physical-raster/source.cpp']);

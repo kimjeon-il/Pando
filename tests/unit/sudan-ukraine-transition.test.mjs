@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {readTerritorialSource} from '../../tools/territorial-entity-sources.mjs';
+import {readTerritorialSource} from "../../tools/data/territorial-entity-sources.mjs";
 import {selectGeometryVersion} from "../../tools/gis/territorial-library.js";
 import {scopedBuiltinProject} from '../helpers/builtin-world.mjs';
 import {createGeometryVersionStore} from "../../src/geometry/geometry-version-store.js";

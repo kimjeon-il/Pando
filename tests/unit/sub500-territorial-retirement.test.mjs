@@ -2,7 +2,7 @@ import { describe as contractSuite } from 'node:test';
 import * as __dep0 from "node:assert/strict";
 import * as __dep1 from "node:test";
 import * as __dep2 from "node:crypto";
-import * as __dep3 from "../../tools/territorial-entity-sources.mjs";
+import * as __dep3 from "../../tools/data/territorial-entity-sources.mjs";
 import * as __dep4 from "../../tools/gis/territorial-library.js";
 import * as __dep5 from "../helpers/builtin-world.mjs";
 import * as __dep6 from "../../src/geometry/geometry-version-store.js";

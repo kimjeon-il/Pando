@@ -82,7 +82,7 @@ test('current CLI entrypoints and test inventory never reference removed regress
 
 test('append-changed lint checks do not traverse unrelated archived tool imports', () => {
   const repository = loadRepository();
-  const path = repository.files.find(file => /^tools\/[^/]+\.mjs$/.test(file) && file !== 'tools/worktree-storage.mjs');
+  const path = repository.files.find(file => /^tools\/[^/]+\.mjs$/.test(file) && file !== 'tools/data/worktree-storage.mjs');
   assert.ok(path, 'at least one tracked standalone tool must be available');
   const plan = planApplicationChecks({changedFiles: [path], repository});
   assert.ok(plan.commands.includes('lint'), path);

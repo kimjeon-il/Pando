@@ -1,11 +1,11 @@
 import { describe as contractSuite } from 'node:test';
 import * as __country_dep0 from "node:test";
 import * as __country_dep1 from "node:assert/strict";
-import * as __country_dep2 from "../../tools/builtin-world-compiler.mjs";
-import * as __country_dep3 from "../../tools/territorial-current-world.mjs";
+import * as __country_dep2 from "../../tools/build/builtin-world-compiler.mjs";
+import * as __country_dep3 from "../../tools/data/territorial-current-world.mjs";
 import * as __country_dep4 from "../../src/document/temporal.js";
 import * as __country_dep5 from "node:crypto";
-import * as __country_dep6 from "../../tools/territorial-entity-sources.mjs";
+import * as __country_dep6 from "../../tools/data/territorial-entity-sources.mjs";
 import * as __country_dep7 from "../../tools/gis/apply-post-2000-territorial-links.mjs";
 
 // Original feature contract: historical-world-parent-relations.test.mjs
@@ -84,7 +84,7 @@ test('partial publication follows dated parent dependencies and leaves unrelated
  const {historicalWorldCases}=await import('../fixtures/historical-world-cases.mjs');
  const {withExplicitView}=await import('../helpers/builtin-world.mjs');
  const {territorialIndexEntry}=await import('../../tools/gis/territorial-index-entry.js');
- const {buildBuiltinWorldPublication,buildBuiltinWorldPartialPublication}=await import('../../tools/build-builtin-world.mjs');
+ const {buildBuiltinWorldPublication,buildBuiltinWorldPartialPublication}=await import("../../tools/build/build-builtin-world.mjs");
  const input=withExplicitView(historicalWorldCases());
  const child=input.entities.find(row=>row.entityId==='state:child');child.parentEntityId='';
  child.geometryVersions[0].geometry=box(70,71);

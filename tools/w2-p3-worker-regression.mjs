@@ -4,7 +4,7 @@ import {writeFileSync,existsSync} from 'node:fs';
 import assert from 'node:assert/strict';
 const base=process.env.PANDOLAB_W3_EVIDENCE;if(!base)throw Error('Specify evidence directory');
 const a='D:/dev/worktrees/w2-p3-before',b='D:/dev/worktrees/w2-p3-after';
-function create(root){const moduleUrl=pathToFileURL(root+'/shared/frontend/js/workers/country-shared-boundary-worker.js').href,coreUrl=pathToFileURL(root+'/tools/load-spherical-core.mjs').href;
+function create(root){const moduleUrl=pathToFileURL(root+'/shared/frontend/js/workers/country-shared-boundary-worker.js').href,coreUrl=pathToFileURL(root+'/tools/build/load-spherical-core.mjs').href;
  const code=`import{parentPort}from'node:worker_threads';globalThis.self={location:{href:${JSON.stringify(moduleUrl)}},postMessage:(...args)=>parentPort.postMessage(...args)};await import(${JSON.stringify(coreUrl)});await import(${JSON.stringify(moduleUrl)});parentPort.on('message',data=>self.onmessage({data}));`;
  const worker=new Worker(new URL('data:text/javascript,'+encodeURIComponent(code)));let requestId=0;
  return{worker,request:message=>new Promise((resolve,reject)=>{const id=++requestId;const timer=setTimeout(()=>reject(Error('Worker timeout')),30000);const onMessage=data=>{if(data.requestId!==id)return;clearTimeout(timer);worker.off('message',onMessage);worker.off('error',onError);data.type==='error'?reject(Error(data.message)):resolve(data);};const onError=e=>{clearTimeout(timer);worker.off('message',onMessage);reject(e);};worker.on('message',onMessage);worker.once('error',onError);worker.postMessage({type:'replace',projectGeneration:id,geometryRevision:id,quality:'canonical',...message,requestId:id});})};

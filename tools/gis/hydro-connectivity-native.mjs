@@ -4,7 +4,7 @@ import {resolve} from 'node:path';
 import {createInterface} from 'node:readline';
 import {fileURLToPath} from 'node:url';
 import {isDeepStrictEqual} from 'node:util';
-import {verifyNativeTool} from '../native-tool.mjs';
+import {verifyNativeTool} from "../build/native-tool.mjs";
 import {readHydroSources,scanHydroRegionMetadata} from './hydro-source-reader.mjs';
 
 const rootDefault=fileURLToPath(new URL('../../',import.meta.url));

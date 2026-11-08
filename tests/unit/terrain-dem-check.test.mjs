@@ -104,7 +104,7 @@ test('DEM verifier checks pinned synthetic source, tiles, reference and tint wit
   const manifest={version:'0.13.3',representation:'dem-relief-v1',shade:{quantizationStep:4},levels:[level],
     sources:[{sha256:sha(source).toString('hex')}],tint:{sha256:sha(tint).toString('hex')},assetsSha256:aggregate.digest('hex')};
   await writeFile(join(output,'manifest.json'),JSON.stringify(manifest));
-  const args=[resolve('tools/verify-terrain-dem.mjs'),'--etopo',etopo,'--output',output,'--reference-output',output];
+  const args=[resolve('tools/checks/verify-terrain-dem.mjs'),'--etopo',etopo,'--output',output,'--reference-output',output];
   const result=JSON.parse((await exec(process.execPath,args,{windowsHide:true,maxBuffer:1024*1024})).stdout);
   assert.equal(result.verified,true);assert.equal(result.levels[0].tiles,4);
   assert.deepEqual(await readFile(etopo),source);

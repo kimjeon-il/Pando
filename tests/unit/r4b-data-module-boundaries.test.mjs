@@ -63,6 +63,6 @@ test('R4-B data sources never depend on legacy editor entrypoints or mutation ad
  }
  for(const removed of ['tools/gis/project-serializer.js','tools/gis/generic-feature-service.js'])
    assert.equal(existsSync(resolve(root,removed)),false,removed);
- assert.ok(read('tools/builtin-world-compiler.mjs').includes("from \"./gis/project-template-compiler.js\""));
+ assert.ok(read('tools/build/builtin-world-compiler.mjs').includes("from \"./gis/project-template-compiler.js\""));
  assert.ok(read('tests/helpers/core-startup.mjs').includes("from \"../../src/document/project-baseline-fingerprint.js\""));
 });

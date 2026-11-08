@@ -16,13 +16,13 @@
       "generate": [
         [
           "node",
-          "tools/build-territorial-entity-chunks.mjs"
+          "tools/build/build-territorial-entity-chunks.mjs"
         ]
       ],
       "validate": [
         [
           "node",
-          "tools/build-territorial-entity-chunks.mjs",
+          "tools/build/build-territorial-entity-chunks.mjs",
           "--check"
         ]
       ],
@@ -47,13 +47,13 @@
       "generate": [
         [
           "node",
-          "tools/build-territorial-current-world.mjs"
+          "tools/build/build-territorial-current-world.mjs"
         ]
       ],
       "validate": [
         [
           "node",
-          "tools/build-territorial-current-world.mjs",
+          "tools/build/build-territorial-current-world.mjs",
           "--check"
         ]
       ],
@@ -80,13 +80,13 @@
       "generate": [
         [
           "node",
-          "tools/build-builtin-world.mjs"
+          "tools/build/build-builtin-world.mjs"
         ]
       ],
       "validate": [
         [
           "node",
-          "tools/build-builtin-world.mjs",
+          "tools/build/build-builtin-world.mjs",
           "--check"
         ]
       ],
@@ -111,7 +111,7 @@
       "generate": [
         [
           "node",
-          "tools/build-world-mesh.mjs"
+          "tools/build/build-world-mesh.mjs"
         ]
       ],
       "validate": [
@@ -145,13 +145,13 @@
       "generate": [
         [
           "node",
-          "tools/build-world-preview.mjs"
+          "tools/build/build-world-preview.mjs"
         ]
       ],
       "validate": [
         [
           "node",
-          "tools/build-world-preview.mjs",
+          "tools/build/build-world-preview.mjs",
           "--check"
         ]
       ],
@@ -178,13 +178,13 @@
       "generate": [
         [
           "node",
-          "tools/build-world-bundle.mjs"
+          "tools/build/build-world-bundle.mjs"
         ]
       ],
       "validate": [
         [
           "node",
-          "tools/build-world-bundle.mjs",
+          "tools/build/build-world-bundle.mjs",
           "--check"
         ]
       ],
@@ -206,13 +206,13 @@
       "generate": [
         [
           "node",
-          "tools/build-country-shared-boundaries.mjs"
+          "tools/build/build-country-shared-boundaries.mjs"
         ]
       ],
       "validate": [
         [
           "node",
-          "tools/build-country-shared-boundaries.mjs",
+          "tools/build/build-country-shared-boundaries.mjs",
           "--check"
         ]
       ],
@@ -241,7 +241,7 @@
       "generate": [
         [
           "node",
-          "tools/build-prepared-polygon-mesh.mjs"
+          "tools/build/build-prepared-polygon-mesh.mjs"
         ]
       ],
       "validate": [
@@ -277,13 +277,13 @@
       "generate": [
         [
           "node",
-          "tools/build-place-runtime.mjs"
+          "tools/build/build-place-runtime.mjs"
         ]
       ],
       "validate": [
         [
           "node",
-          "tools/build-place-runtime.mjs",
+          "tools/build/build-place-runtime.mjs",
           "--check"
         ]
       ],

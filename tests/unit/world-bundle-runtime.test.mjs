@@ -82,9 +82,9 @@ test('committed world/current.json is independently valid and app-version-free',
 
 test('country asset producers and runtime no longer derive data names from package version', () => {
   const source = name => readFileSync(new URL('../../' + name, import.meta.url), 'utf8');
-  const previewProducer = source('tools/build-world-preview.mjs');
-  const meshProducer = source('tools/build-world-mesh.mjs');
-  const boundaryProducer = source('tools/build-country-shared-boundaries.mjs');
+  const previewProducer = source('tools/build/build-world-preview.mjs');
+  const meshProducer = source('tools/build/build-world-mesh.mjs');
+  const boundaryProducer = source('tools/build/build-country-shared-boundaries.mjs');
   const metadata = source('scripts/lib/frontend-build.mjs');
   const runtime = source('src/data/workers/data-loader-worker.js');
   const renderer = source('src/rendering/gpu-map-renderer.js');

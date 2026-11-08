@@ -4,8 +4,8 @@ import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
-import { sharedSourceManifest } from '../../tools/package-shared-core-assets.mjs';
-import { loadNodeCore } from '../../tools/load-node-core.mjs';
+import { sharedSourceManifest } from "../../tools/build/package-shared-core-assets.mjs";
+import { loadNodeCore } from "../../tools/build/load-node-core.mjs";
 import { frontendWasmRoot } from '../../scripts/lib/frontend-layout.mjs';
 
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');

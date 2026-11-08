@@ -3,7 +3,7 @@ import * as __source_dep0 from "node:test";
 import * as __source_dep1 from "node:assert/strict";
 import * as __source_dep2 from "node:fs";
 import * as __source_dep3 from "node:crypto";
-import * as __source_dep4 from "../../tools/territorial-entity-sources.mjs";
+import * as __source_dep4 from "../../tools/data/territorial-entity-sources.mjs";
 import * as __source_dep5 from "../../tools/gis/territorial-library.js";
 import * as __source_dep6 from "node:os";
 import * as __source_dep7 from "node:path";
