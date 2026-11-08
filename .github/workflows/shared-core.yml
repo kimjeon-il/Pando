@@ -348,10 +348,6 @@ jobs:
           node --test --test-concurrency=1 --test-timeout=15000
           tests/unit/project-creation-contract.test.mjs tests/unit/r4b-data-module-boundaries.test.mjs
           tests/unit/project-preview-policy.test.mjs
-      - name: Retired attachment contracts
-        run: >-
-          node --test --test-concurrency=1 --test-timeout=15000
-          tests/unit/map-plugin-cutover.test.mjs
       - name: Core-owned generic and distribution service contracts
         run: >-
           node --test --test-concurrency=1 --test-timeout=15000

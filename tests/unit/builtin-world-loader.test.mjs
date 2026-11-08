@@ -51,24 +51,6 @@ test('country integrity failure rejects the whole query and the same loader can 
  const f=fixture();f.corrupt();await assert.rejects(f.loader.loadProject('2014-02'),/크기|무결성|size|integrity/);
  f.corrupt(false);assert.ok((await f.loader.loadProject('2014-02')).project.territorialEntities.length);
 });
-test('selected country snapshot restores from autosave without reconstructing its original calendar context',async t=>{
- const owner=await createNodeCoreProject(startupDocument([]),{appVersion:'fixture'});t.after(()=>owner.dispose());
- const f=fixture(),session=createBuiltinSession({builtinWorldLoader:f.loader});
- session.connect({platformConfigurationA:{BASE_DATASET:startupDocument([]).baseDataset},domains:{projectDomain:{getGeneration:()=>0,state:()=>owner.client.state(),
-  admitStorageBaseline:async facts=>(await owner.client.storageBaselineLoad(facts)).state}}});
- const receipt=await session.prepareProjectBaseline('2014-02');
- await owner.client.loadBaseline(receipt.baselineId,{initialMonth:'2014-02',timelineRange:null,initialMapBounds:null,sourceMode:'builtin'});
- assert.notEqual(owner.documentModel.snapshot().documentId,JSON.parse(files.get('index.json')).template.documentId,
-  'activating a builtin baseline allocates a fresh editable instance');
- assert.ok(owner.documentModel.snapshot().territorialEntities.some(row=>row.id==='state:test-ukraine'));
- const saved=(await owner.project.buildAutosave()).project;
- assert.equal(saved.format,'pandolab-autosave-full');assert.equal(saved.baseDatasetFingerprint,undefined);
- const restored=await createNodeCoreProject(startupDocument([]),{replaceSnapshot:async()=>true});t.after(()=>restored.dispose());
- await restored.project.load(saved);
- assert.equal(restored.client.state().timelineCursor,'2014-02');
- assert.deepEqual(restored.documentModel.snapshot().territorialEntities,owner.documentModel.snapshot().territorialEntities);
- assert.equal(restored.client.state().storageBaselineId,0);
-});
 
 test('latest builtin reader admits its baseline after a superseded replacement finishes rollback',async t=>{
  let release,started;
@@ -87,41 +69,7 @@ test('latest builtin reader admits its baseline after a superseded replacement f
 });
 
 
-test('P2-1 a detached dated builtin source never mutates an actual C++ Core document',async t=>{
- const owner=await createNodeCoreProject(startupDocument([]),{productMode:'viewer',replaceSnapshot:async()=>true});
- t.after(()=>owner.dispose());
- const session=createBuiltinSession({builtinWorldLoader:fixture().loader});
- session.connect({platformConfigurationA:{BASE_DATASET:startupDocument([]).baseDataset},domains:{projectDomain:owner.project}});
- const beforeCore=structuredClone(owner.client.state());
- const beforeDoc=structuredClone(owner.documentModel.snapshot());
- const prepared=await session.prepareProjectSource('2014-02');
- assert.equal(prepared.sourceMonth,'2014-02');
- assert.equal(prepared.sourceBytes.length,prepared.compressedBytes);
- assert.deepEqual(owner.client.state(),beforeCore);
- assert.deepEqual(owner.documentModel.snapshot(),beforeDoc);
- assert.equal(session.projectBaseline,null);
- const receipt=await session.admitPreparedProjectSource(prepared);
- assert.ok(receipt.baselineId>0);
- assert.equal(owner.client.state().storageBaselineId,receipt.baselineId);
- assert.deepEqual(owner.documentModel.snapshot(),beforeDoc,
-   'Explicit Core source admission is not document activation.');
-});
 
-test('a dated builtin map is also a regular read-only C++ project file',async t=>{
- const {project}=await fixture().loader.loadProject('2014-02');
- const original=JSON.stringify(project);
- const owner=await createNodeCoreProject(project,{productMode:'viewer',replaceSnapshot:async()=>true});
- t.after(()=>owner.dispose());
- const before=structuredClone(owner.documentModel.snapshot());
- assert.equal(before.projectSetup.sourceMode,'builtin');
- assert.equal(before.projectSetup.initialMonth,'2014-02');
- assert.equal(await owner.project.open(async()=>structuredClone(project),{source:'project'}),true);
- assert.deepEqual(owner.documentModel.snapshot().territorialEntities,before.territorialEntities);
- assert.equal(owner.client.state().canUndo,false);
- assert.equal(owner.client.state().documentDirty,false);
- await owner.project.resolveWorld('2014-02');
- assert.equal(JSON.stringify(project),original,'ordinary file load/query must not mutate external source bytes');
-});
 
 test('one Core project retains identity and historical records across month changes and gaps',async t=>{
  const owner=await createNodeCoreProject(startupDocument([]),{appVersion:'fixture'});

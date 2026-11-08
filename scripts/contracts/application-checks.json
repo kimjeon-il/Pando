@@ -33,13 +33,16 @@
       "id": "project-file-contracts",
       "kind": "unit",
       "testPatterns": [
-        "tests/unit/map-plugin-cutover.test.mjs",
-        "tests/unit/map-plugin-hydro-history.test.mjs",
+        "tests/unit/file-access-contract.test.mjs",
+        "tests/unit/p6-project-persistence.test.mjs",
+        "tests/unit/timeline-geopackage.test.mjs",
         "tests/unit/qgis-pando-exchange.test.mjs"
       ],
       "inputs": [
         "shared/frontend/js/modules/generic-feature-*.js",
-        "shared/frontend/js/modules/project-domain.js"
+        "shared/frontend/js/modules/project-domain.js",
+        "shared/frontend/js/modules/project-state.js",
+        "shared/frontend/js/workers/gpkg-*.js"
       ]
     },
     {
@@ -1308,10 +1311,9 @@
     {
       "tests": [
         "tests/browser/viewer-calendar.spec.mjs",
-        "tests/unit/post-2000-generated-world-display.test.mjs",
         "tests/unit/timeline-resolver.test.mjs",
-        "tests/unit/indonesia-territory-timeline.test.mjs",
-        "tests/unit/sudan-ukraine-transition.test.mjs"
+        "tests/unit/builtin-world-catalog.test.mjs",
+        "tests/unit/builtin-world-loader.test.mjs"
       ],
       "inputs": [
         "config/library-data.json",

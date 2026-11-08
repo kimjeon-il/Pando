@@ -146,3 +146,27 @@ test('hydro copy, delete and Undo/Redo derive source suppression without saving 
   assert.deepEqual(owner.documentModel.snapshot().distributionEntries,seed.distributionEntries);
 });
 });
+
+// Original feature contract: map-plugin-hydro-history.test.mjs
+// Current Core geometry history is shared by built-in and externally opened projects.
+featureDescribe("core-hydro-geometry-history", () => {
+  const test = __suiteDependency1.default;
+  const assert = __suiteDependency0.default;
+  const { readFileSync } = __suiteDependency2;
+  const { createNodeCoreProject } = __suiteDependency4;
+test('hydro geometry undo restores the accepted feature coordinates as well as Core history',async()=>{
+  const seed=JSON.parse(readFileSync(new URL('../fixtures/portability/web-document-seed.json',import.meta.url),'utf8'));
+  const owner=await createNodeCoreProject(seed);
+  const id='plugin-history-line',geometry={type:'LineString',coordinates:[[10,40],[11,41]]};
+  try {
+    const created=await owner.project.executeCommand({commandId:'hydro.edit',targets:[{domain:'hydro',id}],payload:{domain:'hydro',id,create:true,value:{type:'Feature',id,geometry,properties:{category:'river',name:'',notes:''}}}});
+    assert.equal(created.ok,true,JSON.stringify(created.error));
+    const edited=await owner.project.executeCommand({commandId:'hydro.geometry',targets:[{domain:'hydro',id}],payload:{id,geometry:{type:'LineString',coordinates:[[10.5,40.5],[11,41]]}}});
+    assert.equal(edited.ok,true,JSON.stringify(edited.error));
+    assert.notDeepEqual(owner.documentModel.get({domain:'hydro',id}).geometry,geometry);
+    await owner.project.undo();
+    assert.equal(owner.client.state().redoCommandId,'hydro.geometry');
+    assert.deepEqual(owner.documentModel.get({domain:'hydro',id}).geometry,geometry);
+  } finally {owner.dispose();}
+});
+});

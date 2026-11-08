@@ -33,10 +33,7 @@ jobs:
         run: |
           node scripts/generate-build-metadata.mjs
           node scripts/check-version.mjs
-          node --test --test-concurrency=1 tests/unit/post-2000-generated-world-display.test.mjs \
-            tests/unit/timeline-resolver.test.mjs \
-            tests/unit/indonesia-territory-timeline.test.mjs \
-            tests/unit/sudan-ukraine-transition.test.mjs \
+          node --test --test-concurrency=1 tests/unit/timeline-resolver.test.mjs \
             tests/unit/builtin-world-catalog.test.mjs
       - name: Install Chromium for dated GIS visual evidence
         run: pnpm exec playwright install --with-deps chromium

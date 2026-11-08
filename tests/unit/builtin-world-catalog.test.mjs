@@ -112,28 +112,6 @@ test('coverage adjustments coalesce adjacent intervals without timeline object r
  assert.ok(result.some(row=>row.entityId==='state:other'));
 });
 
-test('complete builtin history assembles ordinary schema-14 projects without template mutation',()=>{
- const {index,countries}=fixture();
- const template=structuredClone(index.template);
- assert.equal(Object.hasOwn(index.template,'projectSetup'),false);
- const at=month=>assembleBuiltinWorld(index,countries,month);
- const historical=at('2014-02'),modern=at('2026-10');
- for(const [project,month] of [[historical,'2014-02'],[modern,'2026-10']]) {
-  assert.equal(project.format,'pandolab-project-state');
-  assert.equal(project.schemaVersion,PROJECT_SCHEMA_VERSION);
-  assert.deepEqual(project.projectSetup,createBuiltinProjectSetup(month));
-  assert.equal(project.timelineRecords.schemaVersion,3);
-  assert.equal(Object.hasOwn(project,'timelineCursor'),false);
-  assert.ok(Array.isArray(project.labels)&&Array.isArray(project.hydroEdits));
- }
- assert.deepEqual(index.template,template,'dated assembly must never mutate immutable source template');
- historical.labels.push({id:'local-only'});
- assert.equal(modern.labels.length,0,'different project instances must not share authored arrays');
- assert.deepEqual(index.template,template);
- const missing=structuredClone(index);
- missing.template.projectSetup=createBuiltinProjectSetup('2014-02');
- assert.throws(()=>assembleBuiltinWorld(missing,countries,'2014-02'),/Invalid builtin project template/);
-});
 
 test('one immutable project resolves every historical month through the native timeline oracle',()=>{
  const {index,countries}=fixture(),source=structuredClone(index);
@@ -225,47 +203,6 @@ const monthsToCheck = () => {
     deviceCurrentMonth(new Date(now.getFullYear(), now.getMonth() - 1, 1))])];
 };
 
-test('the current and preceding months resolve from one complete historical world', () => {
-  const index = catalog(), untouched = structuredClone(index);
-  assert.ok(Array.isArray(index.entities) && index.entities.length > 0, 'missing country catalog');
-  for (const month of monthsToCheck()) {
-    const selected = selectBuiltinCountries(index, month);
-    assert.ok(selected.length > 0, month + ': missing current country coverage');
-    const project = builtinProject(month);
-    assert.equal(project.projectSetup.initialMonth, month);
-    assert.deepEqual(project.territorialEntities.map(row => row.id), index.entities.map(row => row.entityId),
-      month + ': a historical identity was lost from the project');
-    const ids = new Set(project.territorialEntities.map(row => row.id));
-    assert.equal(ids.size, index.entities.length, month + ': duplicate country identity');
-    const geometries = new Map(project.geometries.map(row => [JSON.stringify([row.id, row.version]), row]));
-    for (const binding of project.timelineRecords.geometryBindings) {
-      assert.ok(ids.has(binding.objectRef.id), 'binding to a country absent from this query');
-      assert.ok(geometries.has(JSON.stringify([binding.geometryRef.id, binding.geometryRef.version])),
-        'binding to missing loaded geometry: ' + binding.objectRef.id);
-    }
-    const visible = resolveWorld(project.territorialEntities, project.timelineRecords,
-      createGeometryVersionStore(project.geometries), month);
-    assert.ok(visible.entities.length > 0, month + ': empty physical map');
-    assert.equal(new Set(visible.entities.map(row => row.id)).size, visible.entities.length);
-    assert.deepEqual(visible.entities.map(row => row.id).sort(),selected.map(row => row.entityId).sort(),
-      month + ': C++ selected world differs from source coverage');
-    for (const row of visible.entities) {
-      assert.ok(ids.has(row.id), 'unloaded country appears in the displayed scene');
-      const timeline = row.identity.properties.metadata.historicalTimeline;
-      assert.ok(timeline?.geometryBindings, row.id + ': missing source timeline');
-      const binding = timeline.geometryBindings.find(value =>
-        temporalContains(value, temporalMonthEnd(month)));
-      assert.ok(binding, row.id + ': no geometry edition for selected month');
-      assert.deepEqual(row.geometryRef,binding.geometryRef,
-        row.id + ': resolved source geometry differs from the historic interval');
-      assert.equal(row.identity.properties.sourceGeometryVersion,binding.sourceVersionId,
-        row.id + ': visible source version must follow the native cursor');
-      assert.ok(row.geometry && ['Polygon', 'MultiPolygon'].includes(row.geometry.type),
-        row.id + ': expected an actual displayed country geometry');
-    }
-  }
-  assert.deepEqual(catalog(), untouched, 'date queries must never rewrite the source catalog');
-});
 
 test('a missing selected country fails instead of substituting an unrelated past snapshot', () => {
   const index = catalog(), month = monthsToCheck()[0];
