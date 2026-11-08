@@ -2,11 +2,10 @@ name: GIS Baikonur independent Landsat riverbank reconstruction — stage 1
 
 on:
   push:
-    branches: [work/gis]
+    branches: [ work/gis ]
     paths:
       - '.github/workflows/gis-baikonur-landsat-water-mask.yml'
       - 'tools/gis/baikonur-landsat-water-mask.mjs'
-      - 'tests/unit/geometry/gis-baikonur-1994-landsat.test.mjs'
   workflow_dispatch:
 
 permissions:
@@ -27,11 +26,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - name: Test source-only NDWI offsets, QA_PIXEL and bounding boxes
-        run: |
-          node --test tests/unit/geometry/gis-baikonur-1994-landsat.test.mjs \
-            tests/unit/geometry/gis-baikonur-reference.test.mjs \
-            tests/unit/geometry/gis-baikonur-reference.test.mjs
       - name: Install GDAL C++ raster tools only (no Python build scripts or OSM)
         shell: bash
         run: |

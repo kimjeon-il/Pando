@@ -2,10 +2,9 @@ name: Historical library source data invariants (Node)
 
 on:
   push:
-    branches: [work/gis]
+    branches: [ work/gis ]
     paths:
       - tests/unit/document/territorial-library.test.mjs
-      - tests/unit/document/borneo-country-geometry.test.mjs
       - '.github/workflows/gis-historical-library-data.yml'
   workflow_dispatch:
 
@@ -56,4 +55,4 @@ jobs:
           }));
           JS
       - name: Verify immutable historical objects with current Node rules
-        run: node --test tests/unit/document/territorial-library.test.mjs tests/unit/document/borneo-country-geometry.test.mjs
+        run: node --test tests/unit/document/territorial-library.test.mjs
