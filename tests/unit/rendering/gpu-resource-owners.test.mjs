@@ -271,7 +271,8 @@ test('upload keys deduplicate and only complete after all chunks', async () => {
   const job = { key: 'mesh', step: ({ byteBudget }) => { assert.ok(byteBudget <= 256 * 1024); return { bytes: byteBudget, done: ++chunks === 3 }; } };
   const promise = c.scheduler.enqueueUpload(job);
   assert.equal(c.scheduler.enqueueUpload(job), promise);
-  c.tick(16); assert.equal(chunks, 1); c.tick(16); c.tick(16); await promise;
+  c.tick(16); assert.equal(chunks, 3); await promise;
+  assert.equal(c.scheduler.getStats().frames, 1);
   assert.equal(c.scheduler.getStats().completed, 1);
 });
 test('input holds uploads until 500ms after release', async () => {

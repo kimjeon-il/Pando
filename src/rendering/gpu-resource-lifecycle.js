@@ -22,6 +22,7 @@ export function createGpuUploadScope(scheduler) {
     cancelKey,
     cancelAll() { for (const key of jobs.keys()) cancelKey(key); },
     defer() { scheduler.defer(); },
+    getStats() { return typeof scheduler.getStats==='function' ? {...scheduler.getStats(),scopePending:jobs.size}:null; },
   });
 }
 

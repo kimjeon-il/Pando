@@ -324,6 +324,8 @@ export function createGpuMapRenderer(deps) {
     let backgroundPresentedKey = '', countriesPublishedGeneration = -1;
     let firstBackgroundFrameMs = null;
     let firstCountryPublishedMs = null;
+    let firstCountryPresentedNavigationMs = null;
+    let firstMeshUploadTiming = null;
     let countryFocusPending = false;
     let countryFocusProjection = null;
     let previewActivationCount = 0;
@@ -513,6 +515,11 @@ export function createGpuMapRenderer(deps) {
             lastPublishedSurfaceDraw = lastBaseSceneResult.surface;
           countriesPublishedGeneration = projectGeneration;
           firstCountryPublishedMs ??= Math.max(0, performance.now() - rendererStartedAt);
+          if(firstCountryPresentedNavigationMs===null){
+            firstCountryPresentedNavigationMs=performance.now();
+            globalThis.__PANDOLAB_PERFORMANCE__?.mark('map.first-country-frame',{
+              generation:projectGeneration,renderer:rendererMode,fromNavigationMs:firstCountryPresentedNavigationMs});
+          }
           if (submittedWebGlBaseFrame)
             performanceMetrics.webGlFirstCountrySceneDrawCalls ??= performanceMetrics.webGlLastFrameSceneDrawCalls;
         }
@@ -2312,6 +2319,9 @@ export function createGpuMapRenderer(deps) {
         ['fillIndexBuffer', nextMesh.triangleIndices, gl.ELEMENT_ARRAY_BUFFER, false],
       ].map(([key, data, target, convert]) => ({ key, data, target, convert, offset: 0 }));
       const scheduler = uploadScheduler, key = `mesh:${++stagingSequence}`;
+      const timing=firstMeshUploadTiming===null ? firstMeshUploadTiming={
+        generation,queuedAtMs:performance.now(),submittedAtMs:null,gpuCompletedAtMs:null,
+        status:'queued',cpuCallsMs:0,bytes:0} : null;
       const pending = scheduler.enqueueUpload({
         key, projectGeneration: generation, contextGeneration, priority: 100, allowDuringInteraction,
         dispose: () => disposeMeshResources(resources),
@@ -2319,6 +2329,7 @@ export function createGpuMapRenderer(deps) {
           if (signal?.aborted || generation !== projectGeneration || contextGeneration !== renderDeviceContextRevision || gl !== uploadGl || gl.isContextLost()) throw Object.assign(new Error('Stale mesh staging'), { name: 'AbortError' });
           const task = tasks.find(item => !item.done);
           if (!task) return { done: true, value: uploadMeshResources(nextMesh, resources) };
+          const stepStarted=performance.now();
           const oldArray = gl.getParameter(gl.ARRAY_BUFFER_BINDING);
           const oldElement = gl.getParameter(gl.ELEMENT_ARRAY_BUFFER_BINDING);
           try {
@@ -2335,6 +2346,7 @@ export function createGpuMapRenderer(deps) {
             const chunk = task.convert ? Float32Array.from(task.data.subarray(task.offset / 4, (task.offset + bytes) / 4)) : new Uint8Array(task.data.buffer, task.data.byteOffset + task.offset, bytes);
             if (bytes) {
               gl.bufferSubData(task.target, task.offset, chunk);
+              if(timing)timing.bytes+=bytes;
               if (onProgress) onProgress(bytes);
               else {
                 const ticket = gpuRecovery.currentTicket();
@@ -2343,13 +2355,44 @@ export function createGpuMapRenderer(deps) {
             }
             task.offset += bytes; task.done = task.offset === length;
             return { bytes };
-          } finally { gl.bindBuffer(gl.ARRAY_BUFFER, oldArray); gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, oldElement); }
+          } finally { gl.bindBuffer(gl.ARRAY_BUFFER, oldArray); gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, oldElement); if(timing)timing.cpuCallsMs+=performance.now()-stepStarted; }
         },
       });
       const abort = () => scheduler.cancelKey(key);
       signal?.addEventListener('abort', abort, { once: true });
       if (signal?.aborted) abort();
-      try { return await pending; }
+      try {
+        const result=await pending;
+        if(timing){
+          timing.submittedAtMs=performance.now();timing.status='submitted';
+          globalThis.__PANDOLAB_PERFORMANCE__?.record('gpu.country-upload-submit',timing.submittedAtMs-timing.queuedAtMs,{...timing});
+          // Diagnostic fence is never another readiness gate or a gl.finish.
+          // Command completion is not physical monitor scanout.
+          try{if(glVersion===2&&typeof uploadGl.fenceSync==='function'){
+            const sync=lifecycle.retain(uploadGl,'Sync',uploadGl.fenceSync(uploadGl.SYNC_GPU_COMMANDS_COMPLETE,0));
+            if(sync){
+              uploadGl.flush();
+              const poll=()=>{
+                try{
+                  if(disposed||gl!==uploadGl||generation!==projectGeneration||uploadGl.isContextLost()){
+                    timing.status='superseded';lifecycle.release(sync);return;
+                  }
+                  const state=uploadGl.clientWaitSync(sync,0,0);
+                  if(state===uploadGl.ALREADY_SIGNALED||state===uploadGl.CONDITION_SATISFIED){
+                    timing.gpuCompletedAtMs=performance.now();timing.status='gpu-complete';lifecycle.release(sync);
+                    globalThis.__PANDOLAB_PERFORMANCE__?.record('gpu.country-upload-complete',timing.gpuCompletedAtMs-timing.queuedAtMs,{...timing});
+                  }else if(state===uploadGl.WAIT_FAILED||performance.now()-timing.submittedAtMs>10000){
+                    timing.status='unavailable';lifecycle.release(sync);
+                  }else lifecycle.frame(poll);
+                }catch(error){timing.status='unavailable';timing.error=String(error.message);lifecycle.release(sync);}
+              };
+              lifecycle.frame(poll);
+            }else timing.status='unavailable';
+          }else timing.status='unsupported';
+          }catch(error){timing.status='unavailable';timing.error=String(error.message);}
+        }
+        return result;
+      }catch(error){if(timing)timing.status=error.name==='AbortError'?'cancelled':'failed';throw error;}
       finally { signal?.removeEventListener('abort', abort); }
     }
 
@@ -6009,6 +6052,9 @@ export function createGpuMapRenderer(deps) {
         patchWorkerJobs: patchJobScheduler.stats(),
         patchWorkerOutputBytes: patchJobScheduler.outputBytes(),
         lastMeshPreparation: performanceMetrics.lastMeshPreparation || null,
+        gpuUpload: uploadScheduler?.getStats?.() || null,
+        firstMeshUploadTiming:firstMeshUploadTiming?{...firstMeshUploadTiming}:null,
+        firstCountryPresentedNavigationMs,
         lastGeometryCommitTimings: lastGeometryCommitTimings ? { ...lastGeometryCommitTimings } : null,
         canvasWorkerBusy: !!canvasWorker?.busy,
         canvasStyleRevision, canvasDisplayedStyleRevision,

@@ -1,3 +1,5 @@
+import {createVerifiedCoreWorker} from '../runtime/core-wasm-loader.js';
+
 // One owner for worker identity, lifetime and delivery. Payloads and transfer lists
 // pass through unchanged; domain-specific revision checks remain with consumers.
 export function createGpuWorkerChannels({ WorkerClass = globalThis.Worker } = {}) {
@@ -5,7 +7,7 @@ export function createGpuWorkerChannels({ WorkerClass = globalThis.Worker } = {}
   let disposed = false;
   function create(url, options) {
     if (disposed) throw Object.assign(new Error('Renderer disposed'), { name: 'AbortError' });
-    const worker = new WorkerClass(url, options);
+    const worker = createVerifiedCoreWorker(url, options, {WorkerClass});
     let live = true;
     let onmessage = null;
     let onerror = null;

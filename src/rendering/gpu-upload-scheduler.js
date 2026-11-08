@@ -13,7 +13,7 @@ export function createGpuUploadScheduler({ requestFrame = callback => globalThis
     if(index>=0)orderedJobs.splice(index,1);
   };
   let frame = 0, active = false, lastInput = -Infinity, disposed = false;
-  const stats = { frames: 0, uploadedBytes: 0, maxFrameMs: 0, overrunCount: 0, completed: 0, cancelled: 0 };
+  const stats = { frames: 0, uploadedBytes: 0, maxFrameMs: 0, overrunCount: 0, completed: 0, cancelled: 0, maxQueueWaitMs: 0, maxJobWallMs: 0, cpuStepMs: 0, steps: 0 };
   const schedule = () => { if (!disposed && jobs.size && !frame) frame = requestFrame(drain); };
   function drain() {
     frame = 0;
@@ -27,28 +27,44 @@ export function createGpuUploadScheduler({ requestFrame = callback => globalThis
     const interaction = active || pendingInput || now() - lastInput < 500;
     const start = now();
     let bytes = Math.min(interaction ? 256 * 1024 : 2 * 1024 * 1024, Math.max(4, getByteBudget()));
-    // Snapshot admission order to avoid processing a rotated entry twice.
-    for (const job of [...orderedJobs]) {
-      if (now() - start >= 2 || bytes <= 0) break;
-      if (!jobs.has(job.key)) continue;
-      // Visible resources must progress during navigation. Background work
-      // keeps its quiet period; both paths share the same frame/time budget.
-      if (interaction && !job.allowDuringInteraction) continue;
-      try {
-        const result = job.step({ byteBudget: Math.min(bytes, 256 * 1024), deadline: start + 2 }) || {};
-        // A step may synchronously cancel or replace itself (including a
-        // complete renderer shutdown). Such work cannot be re-admitted.
-        if (jobs.get(job.key) !== job) continue;
-        const used = Math.max(0, Number(result.bytes) || 0);
-        bytes -= used; stats.uploadedBytes += used;
-        jobs.delete(job.key);
-        removeOrdered(job);
-        if (result.done) { stats.completed++; job.resolve(result.value); }
-        else { jobs.set(job.key, job); insertOrdered(job); } // Round-robin within each priority.
-      } catch (error) {
-        if (jobs.get(job.key) !== job) continue;
-        jobs.delete(job.key); removeOrdered(job); job.dispose?.(); job.reject(error);
+    // Revisit progressing jobs while frame budget remains. A single large
+    // mesh must not be limited to one 256 KiB chunk per animation frame.
+    // Try zero-progress work only once per frame; never spin or starve peers.
+    const stalled = new Set();
+    let attempts = 0;
+    while (jobs.size && bytes > 0 && now() - start < 2 && attempts < 1024) {
+      let progressed = false;
+      for (const job of [...orderedJobs]) {
+        if (now() - start >= 2 || bytes <= 0 || attempts >= 1024) break;
+        if (jobs.get(job.key) !== job || stalled.has(job)) continue;
+        if (interaction && !job.allowDuringInteraction) continue;
+        const before = now();
+        if (job.startedAt === null) {
+          job.startedAt = before;
+          stats.maxQueueWaitMs = Math.max(stats.maxQueueWaitMs, before - job.queuedAt);
+        }
+        attempts++; stats.steps++;
+        try {
+          const result = job.step({ byteBudget: Math.min(bytes, 256 * 1024), deadline: start + 2 }) || {};
+          if (jobs.get(job.key) !== job) continue;
+          const used = Math.max(0, Number(result.bytes) || 0);
+          bytes -= used; stats.uploadedBytes += used;
+          jobs.delete(job.key); removeOrdered(job);
+          if (result.done) {
+            stats.completed++;
+            stats.maxJobWallMs = Math.max(stats.maxJobWallMs, now() - job.queuedAt);
+            job.resolve(result.value); progressed = true;
+          } else {
+            jobs.set(job.key, job); insertOrdered(job);
+            if (used > 0) progressed = true;
+            else stalled.add(job);
+          }
+        } catch (error) {
+          if (jobs.get(job.key) !== job) continue;
+          jobs.delete(job.key); removeOrdered(job); job.dispose?.(); job.reject(error);
+        } finally { stats.cpuStepMs += Math.max(0, now() - before); }
       }
+      if (!progressed) break;
     }
     const elapsed = now() - start;
     stats.frames++; stats.maxFrameMs = Math.max(stats.maxFrameMs, elapsed);
@@ -65,7 +81,7 @@ export function createGpuUploadScheduler({ requestFrame = callback => globalThis
     enqueueUpload(input) {
       if (disposed) return Promise.reject(new Error('GPU upload scheduler disposed'));
       if (jobs.has(input.key)) return jobs.get(input.key).promise;
-      const job = { priority: 0, ...input };
+      const job = { priority: 0, ...input, queuedAt: now(), startedAt: null };
       job.promise = new Promise((resolve, reject) => { job.resolve = resolve; job.reject = reject; });
       jobs.set(job.key, job); insertOrdered(job); schedule(); return job.promise;
     },
