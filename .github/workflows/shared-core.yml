@@ -228,9 +228,9 @@ jobs:
         if: (success() || failure()) && steps.compile.outcome == 'success'
         run: ctest --test-dir build-native/p6-core -R '^reference_image_core_tests$' --output-on-failure
   contracts:
-    if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && inputs.scope == 'all')
+    if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'push' && github.ref == 'refs/heads/work/optimization' && contains(github.event.head_commit.message, '[pando-full-verify]')) || (github.event_name == 'workflow_dispatch' && inputs.scope == 'all')
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 55
     env:
       EMCC_CORES: '1'
       BINARYEN_CORES: '1'

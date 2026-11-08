@@ -1,6 +1,10 @@
 name: Optimization same-run Viewer CPU/GPU/FPS/memory A/B
 
 on:
+  push:
+    branches: [work/optimization]
+    paths:
+      - '.github/workflows/p7-runtime-ab.yml'
   workflow_dispatch:
 
 permissions:
@@ -13,7 +17,7 @@ concurrency:
 jobs:
   paired-browser:
     runs-on: ubuntu-24.04
-    timeout-minutes: 55
+    timeout-minutes: 85
     steps:
       - uses: actions/checkout@v4
         with:
@@ -30,7 +34,7 @@ jobs:
       - name: Measure main and candidate sequentially on one Chromium runner
         shell: bash
         env:
-          BASE_SHA: 30a8402ac82a3e8a24f943f777a7aaedec211279
+          BASE_SHA: 7da2765dcb335eb613595f4b1d0f7d5eb80072ca
           HEAD_SHA: ${{ github.sha }}
         run: |
           set -euo pipefail

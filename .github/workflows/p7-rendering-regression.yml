@@ -1,0 +1,82 @@
+name: P7 runtime rendering and timeline regressions
+
+on:
+  push:
+    branches: [work/optimization]
+    paths:
+      - '.github/workflows/p7-rendering-regression.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: p7-rendering-verification-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  behavior-unit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - uses: ./.github/actions/library-data
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Confirm existing shared WASM source identity
+        run: node tools/package-shared-core-assets.mjs --build-dir shared/frontend/static/wasm --check
+      - name: Execute actual render, Canvas, DEM, timeline and document behavior
+        run: |
+          node --test --test-concurrency=1 \
+            tests/unit/gpu-base-scene-order.test.mjs \
+            tests/unit/gpu-scene-staging.test.mjs \
+            tests/unit/gpu-helper-utils.test.mjs \
+            tests/unit/canvas-country-geometry.test.mjs \
+            tests/unit/gpu-canvas-worker.test.mjs \
+            tests/unit/canvas-terrain-independence.test.mjs \
+            tests/unit/gpu-terrain-preparation.test.mjs \
+            tests/unit/map-presentation-readiness.test.mjs \
+            tests/unit/core-document-read-model.test.mjs \
+            tests/unit/timeline-controls.test.mjs
+  browser-regression:
+    strategy:
+      fail-fast: false
+      matrix:
+        suite: [webgl, canvas-dem, timeline]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 85
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - uses: ./.github/actions/library-data
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: node tools/package-shared-core-assets.mjs --build-dir shared/frontend/static/wasm --check
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Execute current Viewer in real Chromium backend
+        shell: bash
+        run: |
+          set -euo pipefail
+          case "${{ matrix.suite }}" in
+            webgl) specs="tests/browser/viewer-renderer-recovery.spec.mjs tests/browser/terrain-dem-shader.spec.mjs tests/browser/viewer-gpu-backend-cross.spec.mjs" ;;
+            canvas-dem) specs="tests/browser/terrain-zoom-continuity.spec.mjs tests/browser/canvas-globe-performance.spec.mjs tests/browser/viewer-startup-and-terrain.spec.mjs" ;;
+            timeline) specs="tests/browser/viewer-calendar.spec.mjs tests/browser/deferred-builtin-timeline.spec.mjs" ;;
+          esac
+          pnpm exec playwright test $specs --workers=1 --retries=0 --reporter=line
+      - name: Upload actual browser failure and measurement evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p7-rendering-${{ matrix.suite }}-${{ github.sha }}
+          path: test-results/
+          retention-days: 14
+          if-no-files-found: warn
