@@ -1,0 +1,63 @@
+name: Stage 0 prepared mesh focused workbench
+on:
+  push:
+    branches: [work/optimization]
+    paths: ['.github/workflows/stage0-mesh-workbench.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - uses: ./.github/actions/library-data
+      - name: Audit exact geometry and slot identities from runtime assets
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/stage0"
+          node --input-type=module <<'JS'
+          import {readFileSync,writeFileSync} from 'node:fs';
+          import {gunzipSync} from 'node:zlib';
+          import {createHash} from 'node:crypto';
+          import {createCanonicalCountryStore} from './src/rendering/canonical-country-packet.js';
+          import {readBuiltinCountry} from './tools/data/builtin-country-bytes.mjs';
+          const out=process.env.RUNNER_TEMP+'/stage0/',root='assets/data/';
+          const read=p=>JSON.parse(readFileSync(p,'utf8'));
+          const digest=g=>createHash('sha256').update(JSON.stringify([g.type,g.coordinates])).digest('hex');
+          const world=read(root+'world/current.json'),asset=world.assets.canonicalCountryPacket;
+          const bytes=gunzipSync(readFileSync(root+asset.url));
+          const store=createCanonicalCountryStore(bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength));
+          const source=store.materializeCollectionSync(),slots=source.features.map((f,slot)=>({slot,id:f.id,properties:f.properties,digest:digest(f.geometry)}));
+          writeFileSync(out+'world-slots.json',JSON.stringify(slots,null,2));
+          const index=read(root+'builtin-world/generated/v1/index.json'),rows=[];
+          for(const entry of index.entities){
+            const country=readBuiltinCountry(entry,index,relative=>readFileSync(root+'builtin-world/generated/v1/'+relative));
+            rows.push({id:entry.entityId,identity:country.identity,timelineRecords:country.timelineRecords,geometries:country.geometries.map(g=>({id:g.id,version:g.version,digest:digest(g.geojson)}))});
+          }
+          writeFileSync(out+'builtin-identity.json',JSON.stringify(rows,null,2));
+          const known=new Map(slots.map(x=>[x.digest,x.id]));
+          console.log('MESH_IDENTITY_AUDIT',JSON.stringify({slots:slots.length,countries:rows.length,matchingGeometryVersions:rows.flatMap(x=>x.geometries).filter(x=>known.has(x.digest)).length}));
+          JS
+      - name: Retain exact source dependencies for focused implementation
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/stage0"
+          tar -czf "$RUNNER_TEMP/stage0/tool-sources.tar.gz" tools/build tools/data tests/helpers
+          git rev-parse HEAD > "$RUNNER_TEMP/stage0/source-commit.txt"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: stage0-mesh-inspection-${{ github.sha }}
+          path: ${{ runner.temp }}/stage0/
+          retention-days: 7
+          if-no-files-found: warn
