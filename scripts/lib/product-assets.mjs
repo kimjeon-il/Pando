@@ -1,7 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { dirname, relative, resolve } from 'node:path';
-import { build } from 'esbuild';
 import {collectRuntimeDataAssets} from "../../src/data/runtime-manifest-assets.js";
 
 // Dependencies selected through URLs or classic Worker APIs are reviewed here;
@@ -38,6 +37,7 @@ const stripQuery = path => path.split(/[?#]/, 1)[0];
 export const isEditorOnlyAsset = path => editorOnly.test(path) || path.startsWith('assets/vendor/reference-analysis/');
 
 export async function collectViewerAssets({ root, availablePaths, readSource = path => readFileSync(resolve(root, path), 'utf8'), workerAssets = null }) {
+  const {build}=await import('esbuild');
   root = resolve(root);
   const available = new Set(availablePaths), selected = new Set(), entries = new Set();
   function include(path) {

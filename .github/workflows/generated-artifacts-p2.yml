@@ -37,7 +37,7 @@ on:
       verification:
         description: Run minimal publication checks or the consolidated P9 calculation suites
         type: choice
-        options: [minimal, full, temporal]
+        options: [minimal, full, temporal, geometry-resources]
         required: false
         default: minimal
       skip_preview:
@@ -178,10 +178,16 @@ jobs:
       - name: Verify published compiled identity and package hashes
         run: node tools/build/package-shared-core-assets.mjs --build-dir assets/wasm --check
       - name: Verify the changed geographic contact and common fill kernels
-        if: needs.plan.outputs.wasm == 'true' && inputs.verification != 'full' && inputs.verification != 'temporal'
+        if: needs.plan.outputs.wasm == 'true' && inputs.verification != 'full' && inputs.verification != 'temporal' && inputs.verification != 'geometry-resources'
         env:
           PANDOEDITOR_WASM_MODULE: ${{ github.workspace }}/assets/wasm/pandoeditor-core.js
           CHECK_SELECTION: '{"unitTests":["tests/unit/geometry/country-shared-boundary.test.mjs","tests/unit/geometry/boundary-lines.test.mjs"],"browserSpecs":[],"commands":["wasm-domain-geometry"],"prerequisites":[]}'
+        run: node scripts/run-application-checks.mjs
+      - name: Verify only immutable geometry admission and offline storage
+        if: inputs.verification == 'geometry-resources'
+        env:
+          PANDOEDITOR_WASM_MODULE: ${{ github.workspace }}/assets/wasm/pandoeditor-core.js
+          CHECK_SELECTION: '{"unitTests":["tests/unit/document/core-geometry-resources-wasm.test.mjs"],"browserSpecs":[],"commands":[],"prerequisites":[]}'
         run: node scripts/run-application-checks.mjs
       - name: Verify changed temporal editing and place naming
         if: inputs.verification == 'temporal'

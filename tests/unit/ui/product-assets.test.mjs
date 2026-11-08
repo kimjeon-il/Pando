@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import {execFileSync} from 'node:child_process';
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
@@ -7,6 +8,11 @@ import { fileURLToPath } from 'node:url';
 import { collectViewerAssets, isEditorOnlyAsset } from "../../../scripts/lib/product-assets.mjs";
 import {buildFrontendSnapshot} from "../../../scripts/lib/frontend-build.mjs";
 import {effectiveTerritorialFlagUrl} from "../../../src/ui/country-flags.js";
+
+test('library preparation can read product dependency metadata without a bundler installation',()=>{
+ const target=new URL('../../../tools/data/library-runtime-index.mjs',import.meta.url).href;
+ execFileSync(process.execPath,['--input-type=module','-e',`import {registerHooks} from 'node:module';registerHooks({resolve(name,context,next){if(name==='esbuild')throw Error('bundler unavailable');return next(name,context);}});await import(${JSON.stringify(target)});`],{stdio:'pipe'});
+});
 
 test('version checks and staging share the distinction between common viewing and editor assets',()=>{
   for(const name of ['app-accent','app-map-settings'])assert.equal(isEditorOnlyAsset(`assets/js/modules/${name}.js`),false);
