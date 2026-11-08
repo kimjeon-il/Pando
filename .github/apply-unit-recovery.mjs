@@ -9,6 +9,7 @@ if(identity!=='213071ff7295caa2045dbde43ca928414835c565348d681d9844a223a2858ffd'
 const patch=bytes.toString('utf8');
 const parts=patch.split(/(?=^diff --git a\/)/m).filter(Boolean);
 if(parts.length!==115)throw Error('Recovery patch file count mismatch: '+parts.length);
+console.log('Recovery verified: 115 reviewed paths; retaining already-modernized workflow contracts');
 const applied=[],already=[],retired=[];
 const permitted=p=>/^(?:tests\/unit\/|\.github\/workflows\/|scripts\/contracts\/)/.test(p)||p==='package.json'||p==='scripts/lib/check-changes.mjs';
 for(const part of parts){
