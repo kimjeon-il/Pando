@@ -1,23 +1,13 @@
-import { describe as contractSuite } from 'node:test';
-import * as __dep0 from "node:assert/strict";
-import * as __dep1 from "node:fs/promises";
-import * as __dep2 from "node:os";
-import * as __dep3 from "node:path";
-import * as __dep4 from "node:test";
-import * as __dep5 from "../../tools/gis/build-hydro.mjs";
-import * as __dep6 from "../../tools/gis/hydro-generation-manifest.mjs";
-import * as __dep7 from "node:crypto";
-import * as __dep8 from "../../tools/gis/hydro-generation-pipeline.mjs";
-import * as __dep9 from "../../tools/gis/hydro-pack-decoder.mjs";
-
-// Original feature contract: hydro-generation-command.test.mjs
-contractSuite("hydro-generation-command", () => {
-const assert = __dep0.default;
-const { copyFile, mkdir, mkdtemp, readFile, rm, writeFile } = __dep1;
-const { tmpdir } = __dep2;
-const { join } = __dep3;
-const test = __dep4.default;
-const { executeHydroGeneration } = __dep5;
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {copyFile, mkdir, mkdtemp, readFile, rm, writeFile} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join, resolve} from 'node:path';
+import {createHash} from 'node:crypto';
+import {executeHydroGeneration} from '../../tools/gis/build-hydro.mjs';
+import {buildHydroGenerationManifest} from '../../tools/gis/hydro-generation-manifest.mjs';
+import {generateHydroFromSources} from '../../tools/gis/hydro-generation-pipeline.mjs';
+import {decodeHydroGeneratedPack} from '../../tools/gis/hydro-pack-decoder.mjs';
 
 test('generation command writes verified new output and refuses replacement',
   {skip:!process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY||!process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY||
@@ -45,13 +35,6 @@ test('generation command writes verified new output and refuses replacement',
     assert.equal(manifest.stats.selectedReachCount,8);assert.equal(result.output,output);assert.ok(result.files.length>=4);
     await assert.rejects(executeHydroGeneration(input,options),/already exists/i);
   });
-});
-
-// Original feature contract: hydro-generation-manifest.test.mjs
-contractSuite("hydro-generation-manifest", () => {
-const assert = __dep0.default;
-const test = __dep4.default;
-const { buildHydroGenerationManifest } = __dep6;
 
 test('Hydro generation manifest combines only supplied source receipts and pack identities',()=>{
   const hash='a'.repeat(64),layout={index:{sha256:hash},metadata:{version:5},shards:[]},stats={featureCount:2},
@@ -65,17 +48,6 @@ test('Hydro generation manifest combines only supplied source receipts and pack 
   assert.equal(manifest.stats.seedReachCount,2);assert.equal(manifest.stats.borderAlignedLengthKm,3.1);
   assert.deepEqual(manifest.stats.terminalClassCounts,{sea:1});assert.deepEqual(manifest.sources.hydroRivers,sourceRows);
 });
-});
-
-// Original feature contract: hydro-generation-pipeline.test.mjs
-contractSuite("hydro-generation-pipeline", () => {
-const assert = __dep0.default;
-const { createHash } = __dep7;
-const { readFile } = __dep1;
-const { resolve } = __dep3;
-const test = __dep4.default;
-const { generateHydroFromSources } = __dep8;
-const { decodeHydroGeneratedPack } = __dep9;
 
 test('selected Hydro source flows into verifiable private packs and a source manifest',
   {skip:!process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY||!process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY||!process.env.PANDO_HYDRO_ENCODING_DIRECTORY},async()=>{
@@ -106,4 +78,3 @@ test('selected Hydro source flows into verifiable private packs and a source man
     assert.equal(decoded.length,result.manifest.stats.featureCount);assert.equal(decoded.at(-1).metadata.name,'시험호');
     assert.deepEqual(result.manifest.sources.hydroRivers[0].files,sourceFiles);
   });
-});
