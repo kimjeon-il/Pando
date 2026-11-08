@@ -40,17 +40,17 @@ export function createGpuHydroPreparation({ createWorker, getMode, getView, getC
     const hydroPacks = new Map();
     let hydroEditEntries = [];
     let hydroEditRevision = -1;
-    const hydroFeatureRequests = new Map();
-    const hydroLogicalQueryRequests = new Map();
+    // One typed pending table for both stateful Worker query endpoints.
+    const pendingHydroRequests = new Map();
     let hydroFeatureRequestId = 0;
     let hydroCacheCompletionNotified = false;
     let sourceDependencies = null;
 
-    function settleHydroRpc(requests, requestId, value, error = null) {
-      const pending = requests.get(requestId);
-      if (!pending) return false;
+    function settleHydroRpc(requestId, requestType, value, error = null) {
+      const pending = pendingHydroRequests.get(requestId);
+      if (!pending || (requestType && pending.requestType !== requestType)) return false;
       lifecycle.cancelTimeout(pending.timeoutHandle);
-      requests.delete(requestId);
+      pendingHydroRequests.delete(requestId);
       if (error) pending.reject(error);
       else pending.resolve(value);
       return true;
@@ -67,9 +67,8 @@ export function createGpuHydroPreparation({ createWorker, getMode, getView, getC
       hydroWorkerReadyResolve?.(false);
       hydroWorkerReadyResolve = null;
       hydroViewRequests.reset();
-      for (const requests of [hydroFeatureRequests, hydroLogicalQueryRequests]) {
-        for (const requestId of requests.keys()) settleHydroRpc(requests, requestId, null, error);
-      }
+      for (const requestId of pendingHydroRequests.keys())
+        settleHydroRpc(requestId, null, null, error);
       worker?.terminate();
       if (failed) {
         loadState.hydroWorker = 'error';
@@ -83,19 +82,19 @@ export function createGpuHydroPreparation({ createWorker, getMode, getView, getC
         : '강·호수 로더를 준비하지 못했습니다. 다시 시도하세요.', 'PL-WATER-003', 4200);
     }
 
-    function requestHydroRpc(requests, requestType, payload) {
+    function requestHydroRpc(requestType, payload) {
       if (!hydroWorker || !hydroWorkerReady) return Promise.reject(new Error('강·호수 로더가 준비되지 않았습니다.'));
       const requestId = ++hydroFeatureRequestId;
       const generation = hydroWorkerGeneration;
       return new Promise((resolve, reject) => {
         const timeoutHandle = lifecycle.timeout(() => {
-          if (generation !== hydroWorkerGeneration || !requests.has(requestId)) return;
+          if (generation !== hydroWorkerGeneration || !pendingHydroRequests.has(requestId)) return;
           const error = Object.assign(new Error(`강·호수 ${requestType} 응답 제한 시간(30000ms)을 초과했습니다.`), {
             name: 'TimeoutError', requestType, requestId,
           });
           retireHydroWorkerGeneration(error, { failed: true, notify: true });
         }, 30000);
-        requests.set(requestId, { resolve, reject, timeoutHandle, requestType });
+        pendingHydroRequests.set(requestId, { resolve, reject, timeoutHandle, requestType });
         try { hydroWorker.postMessage({ type: requestType, requestId, ...payload }); }
         catch (error) { retireHydroWorkerGeneration(error, { failed: true, notify: true }); }
       });
@@ -229,11 +228,11 @@ export function createGpuHydroPreparation({ createWorker, getMode, getView, getC
     }
 
     function loadHydroLogicalFeature(logicalFid) {
-      return requestHydroRpc(hydroFeatureRequests, 'load-feature', { logicalFid });
+      return requestHydroRpc('load-feature', { logicalFid });
     }
 
     function queryHydroLogicalFeatures(bounds, { category = 'river' } = {}) {
-      return requestHydroRpc(hydroLogicalQueryRequests, 'query-logical-features', { bounds, category });
+      return requestHydroRpc('query-logical-features', { bounds, category });
     }
 
     function retryHydroCache() {
@@ -325,12 +324,12 @@ export function createGpuHydroPreparation({ createWorker, getMode, getView, getC
       }
       if (message.type === 'feature' || message.type === 'feature-error') {
         const error = message.type === 'feature-error' ? new Error(message.message || '강·호수 전체 형상을 불러오지 못했습니다.') : null;
-        settleHydroRpc(hydroFeatureRequests, Number(message.requestId), message.feature || null, error);
+        settleHydroRpc(Number(message.requestId), 'load-feature', message.feature || null, error);
         return;
       }
       if (message.type === 'logical-features' || message.type === 'logical-features-error') {
         const error = message.type === 'logical-features-error' ? new Error(message.message || '수계 후보를 찾지 못했습니다.') : null;
-        settleHydroRpc(hydroLogicalQueryRequests, Number(message.requestId), (message.logicalFids || []).map(Number).filter(Number.isFinite), error);
+        settleHydroRpc(Number(message.requestId), 'query-logical-features', (message.logicalFids || []).map(Number).filter(Number.isFinite), error);
         return;
       }
       if (message.type === 'cache-progress') {
@@ -429,14 +428,19 @@ export function createGpuHydroPreparation({ createWorker, getMode, getView, getC
         receiveHydroWorkerMessage({ data: { type: 'error', error: event.error, message: event.message || '강·호수 Worker 실행 오류' } }); onLoadState({ ...loadState });
       };
       const hydroRevision = `${DATA_REVISION || ASSET_REVISION}-${String(hydroManifest.index?.sha256 || '').slice(0, 12)}`;
-      hydroWorker.postMessage({
-        type: 'init',
-        manifest: hydroManifest,
-        baseUrl: new URL('./', hydroManifestUrl).href,
-        assetRevision: hydroRevision,
-        dataRevision: DATA_REVISION || hydroRevision,
-        includeGeometry: wantedIncludeGeometry,
-      });
+      try {
+        hydroWorker.postMessage({
+          type: 'init',
+          manifest: hydroManifest,
+          baseUrl: new URL('./', hydroManifestUrl).href,
+          assetRevision: hydroRevision,
+          dataRevision: DATA_REVISION || hydroRevision,
+          includeGeometry: wantedIncludeGeometry,
+        });
+      } catch(error) {
+        retireHydroWorkerGeneration(error,{failed:true,notify:true});
+        return hydroWorkerReadyPromise;
+      }
       hydroWorkerReadyTimer = lifecycle.timeout(() => {
         if (generation !== hydroWorkerGeneration || hydroWorkerReady) return;
         retireHydroWorkerGeneration(Object.assign(new Error('강·호수 Worker 준비 제한 시간(30000ms)을 초과했습니다.'), {
@@ -462,8 +466,7 @@ export function createGpuHydroPreparation({ createWorker, getMode, getView, getC
     if (change.prepare || change.upload) resetGpu();
     if (projectGeneration !== context.projectGeneration) {
       const error = Object.assign(new Error('Project replaced during hydro query'), { name: 'AbortError', cancelled: true });
-      for (const requests of [hydroFeatureRequests, hydroLogicalQueryRequests])
-        for (const id of requests.keys()) settleHydroRpc(requests, id, null, error);
+      for (const id of pendingHydroRequests.keys()) settleHydroRpc(id, null, null, error);
     }
     ({ gl, version: glVersion, projectGeneration, contextGeneration: renderDeviceContextRevision, scheduler: uploadScheduler } = context);
     for (const entry of [...hydroPacks.values(), ...hydroEditEntries]) scheduleHydroUpload(entry);
@@ -493,7 +496,8 @@ export function createGpuHydroPreparation({ createWorker, getMode, getView, getC
     metrics: () => ({ ...metrics, hydroTileWindowSignature: hydroVisibleTileCache.signature }),
     stats: () => ({ ...metrics, hydroTileWindowSignature: hydroVisibleTileCache.signature, hydroPacksLoaded: hydroPacks.size,
       hydroPendingUploadCount: [...hydroPacks.values(), ...hydroEditEntries].filter(entry => entry.uploadQueued).length,
-      hydroFeaturePendingCount: hydroFeatureRequests.size, hydroLogicalQueryPendingCount: hydroLogicalQueryRequests.size,
+      hydroFeaturePendingCount: [...pendingHydroRequests.values()].filter(row=>row.requestType==='load-feature').length,
+      hydroLogicalQueryPendingCount: [...pendingHydroRequests.values()].filter(row=>row.requestType==='query-logical-features').length,
       hydroPacksActive: hydroActivePackIds.size, hydroEditRevision, hydroEditBatchCount: hydroEditEntries.length,
       hydroCacheBytes: [...hydroPacks.values()].reduce((sum, entry) => sum + Number(entry.byteLength || 0), 0) }),
   });
