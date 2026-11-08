@@ -5,6 +5,7 @@ on:
     branches: [work/optimization]
     paths:
       - '.github/workflows/p7-rendering-regression.yml'
+      - 'shared/frontend/static/wasm/**'
   workflow_dispatch:
 
 permissions:
