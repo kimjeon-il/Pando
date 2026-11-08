@@ -47,6 +47,7 @@ public:
     void insert(GeometryRef ref, Geometry geometry);
     void retain(GeometryRef,std::shared_ptr<const Geometry>);
     void retainFrom(const GeometryStore& validatedSource,const GeometryRef& sourceRef,GeometryRef destinationRef);
+    bool retainReadyFrom(const GeometryStore& verifiedSource);
     std::shared_ptr<const Geometry> get(const GeometryRef& ref) const;
     const auto& versions() const { return versions_; }
 private:

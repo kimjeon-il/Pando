@@ -1389,8 +1389,8 @@ PrepareResult CommandProcessor::prepareRequest(const ProjectSnapshot& project,co
             validateRequest(project,request);
             auto candidate=applyWebTerritorialEdit(project,*edit,workflow=="territorial.library-import"?TerritorialEditContext::LibraryImport:TerritorialEditContext::UserCommand);
             if(!workflow.empty()) {
-                const auto beforeWorld=resolveWorld(project.document().timelineRecords,{timelineEntityCatalog(project.document()),[&](const ObjectRef& owner,const GeometryRef& ref){return bool(project.document().geometries.get(ref));}},project.timelineMonth());
-                const auto afterWorld=resolveWorld(candidate.timelineRecords,{timelineEntityCatalog(candidate),[&](const ObjectRef& owner,const GeometryRef& ref){return bool(candidate.geometries.get(ref));}},project.timelineMonth());
+                const auto beforeWorld=resolveWorld(project.document().timelineRecords,{timelineEntityCatalog(project.document()),[&](const ObjectRef& owner,const GeometryRef& ref){return project.document().geometries.contains(ref);}},project.timelineMonth());
+                const auto afterWorld=resolveWorld(candidate.timelineRecords,{timelineEntityCatalog(candidate),[&](const ObjectRef& owner,const GeometryRef& ref){return candidate.geometries.contains(ref);}},project.timelineMonth());
                 auto& view=candidate.presentation.webPresentation;
                 for(const auto& row:beforeWorld.entities)if(row.objectRef.domain=="territorial" && !afterWorld.find(row.objectRef)) {
                     const std::string group="objects";
@@ -1529,7 +1529,7 @@ PrepareResult CommandProcessor::prepareRequest(const ProjectSnapshot& project,co
             auto candidate=project.document();
             try {
                 const auto world=resolveWorld(candidate.timelineRecords,
-                    {timelineEntityCatalog(candidate),[&](const ObjectRef& owner,const GeometryRef& ref){return candidate.geometries.get(ref)!=nullptr;}},month);
+                    {timelineEntityCatalog(candidate),[&](const ObjectRef& owner,const GeometryRef& ref){return candidate.geometries.contains(ref);}},month);
                 if(creation) {
                     const auto& in=creation->intent;
                     require(!in.id.empty()&&!Project::normalizeName(in.name).empty()&&
@@ -1632,7 +1632,7 @@ PrepareResult CommandProcessor::prepareRequest(const ProjectSnapshot& project,co
             auto candidate=project.document();
             try {
                 const auto world=resolveWorld(candidate.timelineRecords,
-                    {timelineEntityCatalog(candidate),[&](const ObjectRef& owner,const GeometryRef& ref){return candidate.geometries.get(ref)!=nullptr;}},month);
+                    {timelineEntityCatalog(candidate),[&](const ObjectRef& owner,const GeometryRef& ref){return candidate.geometries.contains(ref);}},month);
                 const auto* active=world.find(territorialRef(id));
                 if(!active)throw TimelineError("TIMELINE_INACTIVE","target is inactive at month end");
                 if(geometryEdit) {
@@ -1696,7 +1696,7 @@ PrepareResult CommandProcessor::prepareRequest(const ProjectSnapshot& project,co
                   invalidValidity(*std::get_if<TerritorialFieldEdit>(&request.args.action))),
                 CommandError::InvalidArguments,"TIMELINE_ACTIVATION: dated validity editing is unavailable");
             const auto world=resolveWorld(project.document().timelineRecords,
-                {timelineEntityCatalog(project.document()),[&](const ObjectRef& owner,const GeometryRef& ref){return project.document().geometries.get(ref)!=nullptr;}},
+                {timelineEntityCatalog(project.document()),[&](const ObjectRef& owner,const GeometryRef& ref){return project.document().geometries.contains(ref);}},
                 project.timelineMonth());
             for(const auto& target:request.targets)
                 if(target.domain=="territorial")

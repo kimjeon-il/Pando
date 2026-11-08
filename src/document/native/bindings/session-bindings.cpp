@@ -815,7 +815,7 @@ public:
             if(!preview)fail("PREVIEW_CONSUMED","The candidate is absent or replaced.");
             const auto& change=preview->change();const auto& candidate=change.after();
             auto value=val::object();value.set("delta",val::global("JSON").call<val>("parse",projectcodec::encodeWebDelta(change.before(),candidate,change.impact())));
-            auto resolved=world(pandoeditor::resolveWorld(candidate.timelineRecords,{timelineEntityCatalog(candidate),[&](const ObjectRef& owner,const GeometryRef& ref){return bool(candidate.geometries.get(ref));}},session_.project().timelineCursor()));
+            auto resolved=world(pandoeditor::resolveWorld(candidate.timelineRecords,{timelineEntityCatalog(candidate),[&](const ObjectRef& owner,const GeometryRef& ref){return candidate.geometries.contains(ref);}},session_.project().timelineCursor()));
             std::vector<ObjectRef> ids;for(const auto& ref:change.impact().changedObjects)if(ref.domain=="territorial"||ref.domain=="hydro")ids.push_back(ref);
             auto periods=val::array();for(const auto& period:timelineChangePeriods(change.before().timelineRecords,candidate.timelineRecords,ids)){
                 auto row=val::object();row.set("entityId",period.objectRef.id);row.set("from",optional(period.from));row.set("until",optional(period.until));periods.call<void>("push",row);

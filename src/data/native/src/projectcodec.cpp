@@ -597,14 +597,25 @@ GeometryRef nextInlineGeometryRef(const GeometryStore& geometries,const std::str
     for(const auto& [ref,shape]:geometries.versions())if(ref.id==canonical)latest=std::max(latest,ref.version);
     require(latest<std::numeric_limits<std::uint32_t>::max(),"GEOMETRY_VERSION_OVERFLOW");return {canonical,latest+1};
 }
+std::optional<GeometryRef> matchingOriginalGeometry(const ProjectDocument& d,const Geometry& shape,const std::string& encoded,std::optional<GeometryRef> preferred={}) {
+    const auto& originals=d.geometryProvenance.originalArchive;
+    if(preferred&&originals.count(*preferred)&&d.geometries.type(*preferred)==shape.type) {
+        d.geometries.requireReady({*preferred});
+        if(geometryValue(*d.geometries.get(*preferred)).encode()==encoded)return preferred;
+    }
+    // Preserve the original sorted identity choice. Only equal types can
+    // compare equal; missing candidates of another type need no payload.
+    std::vector<GeometryRef> candidates;
+    for(const auto& ref:originals)if(d.geometries.type(ref)==shape.type)candidates.push_back(ref);
+    d.geometries.requireReady(candidates);
+    for(const auto& ref:candidates)if(geometryValue(*d.geometries.get(ref)).encode()==encoded)return ref;
+    return {};
+}
 GeometryRef inlineShape(ProjectDocument& d,const std::string& domain,const std::string& id,std::shared_ptr<const Geometry> shape) {
     const auto encoded=geometryValue(*shape).encode();const GeometryRef canonical{"web-"+domain+":"+id,1};
     // Only incoming archive rows may be reused. Another inline owner's newly
     // synthesized allocation is not an identity carrier in the web format.
-    const auto& originals=d.geometryProvenance.originalArchive;
-    if(originals.count(canonical)&&geometryValue(*d.geometries.get(canonical)).encode()==encoded)return canonical;
-    for(const auto& candidate:originals)
-        if(geometryValue(*d.geometries.get(candidate)).encode()==encoded)return candidate;
+    if(const auto existing=matchingOriginalGeometry(d,*shape,encoded,canonical))return *existing;
     const auto ref=nextInlineGeometryRef(d.geometries,domain,id);
     d.geometries.retain(ref,std::move(shape));
     const auto nativeDomain=domain=="hydroEdits"?"hydro":domain=="genericFeatures"?"generic":domain;
@@ -704,7 +715,7 @@ ContentEdit readWebContentEdit(const ProjectSnapshot& snapshot,const ObjectRef& 
         const auto index=found->second;
         if(target.domain=="label")current=document.labels.at(index).geometry;
         else if(target.domain=="hydro") {
-            const auto world=resolveWorld(document.timelineRecords,{timelineEntityCatalog(document),[&](const ObjectRef& owner,const GeometryRef& ref){return bool(document.geometries.get(ref));}},snapshot.timelineMonth());
+            const auto world=resolveWorld(document.timelineRecords,{timelineEntityCatalog(document),[&](const ObjectRef& owner,const GeometryRef& ref){return document.geometries.contains(ref);}},snapshot.timelineMonth());
             const auto active=world.find(target);require(active,"TIMELINE_INACTIVE: water geometry");current=active->geometryRef;
         }
         else if(target.domain=="generic")current=document.genericFeatures.at(index).geometry;
@@ -721,10 +732,7 @@ ContentEdit readWebContentEdit(const ProjectSnapshot& snapshot,const ObjectRef& 
             const auto stored=document.geometries.get(*current);require(bool(stored),"DANGLING_REF: content geometry");
             if(geometryValue(*stored).encode()==encoded)return *current;
         }
-        for(const auto& archived:document.geometryProvenance.originalArchive) {
-            const auto stored=document.geometries.get(archived);require(bool(stored),"DANGLING_REF: original geometry");
-            if(geometryValue(*stored).encode()==encoded)return archived;
-        }
+        if(const auto archived=matchingOriginalGeometry(document,shape,encoded))return *archived;
         const auto ref=nextInlineGeometryRef(document.geometries,domain,id);
         edit.inlineAllocation=InlineGeometryAllocation{target,sha256(encoded),false};
         edit.geometry=std::make_pair(ref,std::move(shape));return ref;
@@ -737,7 +745,7 @@ ContentEdit readWebContentEdit(const ProjectSnapshot& snapshot,const ObjectRef& 
             const auto found=properties.object.find(key);if(found!=properties.object.end()){rendering.object[key]=found->second;properties.object.erase(found);}
         }
         if(rendering.object.empty()&&!edit.create) {
-            const auto world=resolveWorld(document.timelineRecords,{timelineEntityCatalog(document),[&](const ObjectRef&,const GeometryRef& ref){return document.geometries.get(ref)!=nullptr;}},snapshot.timelineMonth());
+            const auto world=resolveWorld(document.timelineRecords,{timelineEntityCatalog(document),[&](const ObjectRef&,const GeometryRef& ref){return document.geometries.contains(ref);}},snapshot.timelineMonth());
             const auto* active=world.find(target);if(active)rendering=codecjson::parse(active->rendering);
         }
         if(edit.geometry&&current&&!(edit.geometryBinding==current)) {
@@ -997,7 +1005,10 @@ ProjectDocument replaceWebTerritorialSource(const ProjectDocument& content,const
     std::set<GeometryRef> sourceGeometryRefs;
     for(const auto& row:next.timelineRecords.geometryBindings)sourceGeometryRefs.insert(row.geometryRef);
     for(const auto& ref:sourceGeometryRefs) {
-        next.geometries.retainFrom(source.geometries,ref,ref);next.geometryProvenance.originalArchive.insert(ref);
+        if(const auto resource=source.geometries.resources().find(ref);resource!=source.geometries.resources().end())next.geometries.declareResource(ref,resource->second);
+        if(source.geometries.get(ref))next.geometries.retainFrom(source.geometries,ref,ref);
+        else require(next.geometries.contains(ref),"DANGLING_REF: source admission geometry");
+        next.geometryProvenance.originalArchive.insert(ref);
     }
     next.presentation.objectStyles=source.presentation.objectStyles;
     const auto bind=[&](const char* domain,const std::string& id,const GeometryRef& ref) {

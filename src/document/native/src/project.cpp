@@ -302,10 +302,7 @@ void Project::admitGeometryResources(const GeometryStore& resources) {
     std::map<const detail::DocumentState*,std::shared_ptr<const detail::DocumentState>> rebuilt;
     const auto rebase=[&](const std::shared_ptr<const detail::DocumentState>& old) {
         if(const auto found=rebuilt.find(old.get());found!=rebuilt.end())return found->second;
-        auto document=old->document;bool changed=false;
-        for(const auto& [ref,shape]:resources.versions())if(document.geometries.resources().count(ref)&&!document.geometries.get(ref)) {
-            document.geometries.retainFrom(resources,ref,ref);changed=true;
-        }
+        auto document=old->document;const bool changed=document.geometries.retainReadyFrom(resources);
         auto next=changed?std::make_shared<const detail::DocumentState>(std::move(document)):old;
         rebuilt.emplace(old.get(),next);return next;
     };
@@ -352,6 +349,13 @@ ProjectSnapshot Project::commitSnapshot(const ChangeSet& change) const
     if(change.request_.projectInstanceId!=instanceId_||change.request_.documentId!=document().documentId||change.request_.revision!=revision_)
         throw std::invalid_argument("STALE_REVISION: command source changed");
     auto rebased=change.after_;
+    // A held preview is a semantic snapshot. Verified immutable downloads may
+    // finish after preparation; confirmation must retain those allocations
+    // without reverting readiness or introducing a content history entry.
+    {
+        auto candidate=rebased->document;
+        if(candidate.geometries.retainReadyFrom(document().geometries))rebased=std::make_shared<const detail::DocumentState>(std::move(candidate));
+    }
     if(!(document().presentation.webPresentation==change.before_->document.presentation.webPresentation)) {
         auto candidate=change.after_->document;
         candidate.presentation.webPresentation=rebasePresentation(document(),change.before_->document,candidate);

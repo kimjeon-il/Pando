@@ -232,6 +232,7 @@ jobs:
           retention-days: 7
       - name: Commit verified phases locally, then publish one guarded result
         id: publish
+        if: inputs.verification != 'geometry-resources'
         shell: bash
         env:
           PANDOLAB_LIBRARY_WRITE_TOKEN: ${{ secrets.PANDOLAB_LIBRARY_WRITE_TOKEN }}

@@ -66,6 +66,16 @@ void GeometryStore::retainFrom(const GeometryStore& source,const GeometryRef& so
 std::shared_ptr<const Geometry> GeometryStore::get(const GeometryRef& ref) const {
     auto it=versions_.find(ref); return it==versions_.end()?nullptr:it->second;
 }
+bool GeometryStore::retainReadyFrom(const GeometryStore& source) {
+    bool changed=false;
+    for(const auto& [ref,resource]:source.resources_) {
+        const auto target=resources_.find(ref);if(target==resources_.end())continue;
+        require(std::tie(target->second.type,target->second.contentSha256,target->second.decodedBytes)==
+            std::tie(resource.type,resource.contentSha256,resource.decodedBytes),"INVALID_GEOMETRY_RESOURCE: immutable catalog conflict");
+        if(!get(ref)&&source.get(ref)){retainFrom(source,ref,ref);changed=true;}
+    }
+    return changed;
+}
 std::vector<TimelineEntityIdentity> timelineEntityCatalog(const ProjectDocument& d) {
     std::vector<TimelineEntityIdentity> result;
     for(const auto& unit:d.units)result.push_back({territorialRef(unit.id),unit.kind==UnitKind::General?"general":"regional"});

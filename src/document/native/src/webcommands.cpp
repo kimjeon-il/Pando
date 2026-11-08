@@ -105,7 +105,7 @@ std::vector<ObjectRef> webTerritorialStyleTargets(const V& payload) {
 CommandRequest readWebTerritorialStyleCommand(const ProjectSnapshot& snapshot,const std::string& operation,const V& payload) {
     const auto targets=webTerritorialStyleTargets(payload);const auto projected=snapshot.timelineMonth().empty()?std::optional<TimelineDocumentView>{}:std::optional<TimelineDocumentView>{timelineDocumentView(snapshot.document(),snapshot.timelineMonth())};const auto& document=projected?projected->document:snapshot.document();
     const auto world=resolveWorld(snapshot.document().timelineRecords,{timelineEntityCatalog(document),
-        [&](const ObjectRef& owner,const GeometryRef& ref){return document.geometries.get(ref)!=nullptr;}},snapshot.timelineMonth());
+        [&](const ObjectRef& owner,const GeometryRef& ref){return document.geometries.contains(ref);}},snapshot.timelineMonth());
     for(const auto& target:targets)if(!world.find(target))throw TimelineError("not-found","Territorial entity was not found.");
     CommandArguments arguments;bool changed=false;std::string command=operation;
     if(operation=="territorial.lock") {
@@ -136,7 +136,7 @@ CommandRequest readWebObjectEditCommand(const ProjectSnapshot& snapshot,const st
     else edit.color=projectcodec::readWebColor(field(payload,"color"));
     std::set<ObjectRef> unique;
     const auto world=resolveWorld(snapshot.document().timelineRecords,{timelineEntityCatalog(snapshot.document()),
-        [&](const ObjectRef& owner,const GeometryRef& ref){return bool(snapshot.document().geometries.get(ref));}},snapshot.timelineMonth());
+        [&](const ObjectRef& owner,const GeometryRef& ref){return snapshot.document().geometries.contains(ref);}},snapshot.timelineMonth());
     for(const auto& value:refs.array) {
         const auto& domain=field(value,"domain"),&identity=field(value,"id");
         if(domain.kind!=V::String||identity.kind!=V::String||identity.string.empty())throw TimelineError("CORE_COMMAND_PAYLOAD","An exact document ref is required.");
@@ -160,7 +160,7 @@ CommandRequest readWebMetadataCommand(const ProjectSnapshot& snapshot,const V& p
     if(found==snapshot.index().objects.end())throw TimelineError("not-found","Territorial entity was not found.");
     const auto projected=snapshot.timelineMonth().empty()?std::optional<TimelineDocumentView>{}:std::optional<TimelineDocumentView>{timelineDocumentView(snapshot.document(),snapshot.timelineMonth())};const auto& document=projected?projected->document:snapshot.document();const auto& unit=document.units.at(found->second);
     const auto currentWorld=resolveWorld(snapshot.document().timelineRecords,
-        {timelineEntityCatalog(document),[&](const ObjectRef& owner,const GeometryRef& ref){return document.geometries.get(ref)!=nullptr;}},snapshot.timelineMonth());
+        {timelineEntityCatalog(document),[&](const ObjectRef& owner,const GeometryRef& ref){return document.geometries.contains(ref);}},snapshot.timelineMonth());
     if(!currentWorld.find(territorialRef(id)))throw TimelineError("not-found","Territorial entity is inactive.");
     if(unit.locked)throw TimelineError("locked","Territorial entity is locked.");
     if(name=="parentId"||name=="entityKind")throw TimelineError("unsupported-relation-field","Use the territorial relation command.");

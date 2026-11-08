@@ -35,7 +35,7 @@ ActiveTerritories activeTerritories(const ProjectSnapshot& snapshot) {
         result.parents.emplace(unit.id,parent);if(unit.kind==UnitKind::General&&parent.empty())result.roots.insert(unit.id);
     };
     if(snapshot.timelineEditsEnabled()||!isStaticTimeline(d)) {
-        const auto world=resolveWorld(d.timelineRecords,{timelineEntityCatalog(d),[&](const ObjectRef& owner,const GeometryRef& ref){return bool(d.geometries.get(ref));}},snapshot.timelineMonth());
+        const auto world=resolveWorld(d.timelineRecords,{timelineEntityCatalog(d),[&](const ObjectRef& owner,const GeometryRef& ref){return d.geometries.contains(ref);}},snapshot.timelineMonth());
         for(const auto& row:world.entities)if(row.objectRef.domain=="territorial")append(d.units.at(snapshot.index().objects.at(row.objectRef)),row.parentId);
     } else for(const auto& unit:d.units)append(unit,staticParentRelation(d,unit.id).parentId);
     return result;
@@ -76,7 +76,7 @@ template<class Rows>void erase(Rows& rows,const std::set<std::string>& ids) {
 }
 void restoreHydroSources(ProjectDocument& candidate,const std::set<std::string>& sourceIds,const std::string& month) {
     if(sourceIds.empty())return; // Non-water removals have no source visibility to restore.
-    const auto world=resolveWorld(candidate.timelineRecords,{timelineEntityCatalog(candidate),[&](const ObjectRef&,const GeometryRef& ref){return candidate.geometries.get(ref)!=nullptr;}},month);
+    const auto world=resolveWorld(candidate.timelineRecords,{timelineEntityCatalog(candidate),[&](const ObjectRef&,const GeometryRef& ref){return candidate.geometries.contains(ref);}},month);
     std::set<std::string> restore;
     for(const auto& id:sourceIds)if(std::none_of(candidate.hydro.begin(),candidate.hydro.end(),[&](const auto& row){return row.sourceFeatureId==id&&world.find({"hydro",row.id});}))restore.insert(id);
     if(restore.empty())return;

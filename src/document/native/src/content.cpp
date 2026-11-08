@@ -92,7 +92,7 @@ void indexContentImpl(const ProjectDocument& d,DocumentIndex& idx,bool completeR
         const auto& v=d.hydro[i]; auto ref=add("hydro",v.id,i);
         require(v.kind=="river"||v.kind=="lake","INVALID_HYDRO: kind");
         for(const auto& binding:d.timelineRecords.geometryBindings)if(binding.objectRef==ref) {
-            const auto value=d.geometries.get(binding.geometryRef);require(bool(value),"DANGLING_REF: water geometry");const auto& type=value->type;
+            const auto type=d.geometries.type(binding.geometryRef);require(!type.empty(),"DANGLING_REF: water geometry");
             require((v.kind=="river"&&(type=="LineString"||type=="MultiLineString"))||(v.kind=="lake"&&(type=="Polygon"||type=="MultiPolygon")),"INVALID_HYDRO: geometry kind");
         }
         require(v.color<=0xffffff,"INVALID_HYDRO: color"); source(v.source);
