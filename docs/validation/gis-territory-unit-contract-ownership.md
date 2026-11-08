@@ -55,3 +55,37 @@ The user's rule is **deferred validation**: no Node, Native, Playwright,
 CI or full test execution during this work. Source review is not a passing
 test result. Baseline fixture integrity and full performance measurements
 remain unverified until the final consolidated verification.
+
+## P0–P7 implementation record (source changes only)
+
+The implementation was committed in ordered batches on `work/optimization`:
+
+| Phase | Applied source change |
+| --- | --- |
+| P0 | `64c73fdc`: identified the 240 GIS/territorial candidates and excluded retired Python executables and border-editing UI |
+| P1 | `f5086671`: introduced detached polygon rectangle fixtures for independent boundary contracts |
+| P2 | `cf1741fd`: consolidated prepared polygon inputs and spherical metric contracts |
+| P3 | `dc9c00f9`: consolidated boundary topology, contact, compact row and display contracts |
+| P4 | `f03e4b3f`–`37765267`: consolidated country lineage, territorial storage, historical display and built-in world contracts |
+| P5 | `b21b6d85`–`d4b1c879`: consolidated Hydro chain, independent evidence, calibration and viewport contracts |
+| P6 | `5d784703`–`9fd1544c`: consolidated historical sources, LSIB and Baikonur evidence, and migrated the pinned Caspian reference to a Python-free native-baseline fixture |
+| P7 | `1054cd07`–`36b0a91f`: remapped test selection, native prerequisites, direct CI references and remaining obsolete border-cut test entrypoints |
+
+At `36b0a91f35ed730518c303a533dea8ca254b8829`, the tracked root unit-test directory has **397** `*.test.mjs` files, compared with **459** at the P0 baseline. This is a net reduction of **62 physical suites**, not a claim that 62 distinct verification cases were deleted.
+
+The retired `tests/unit/edit-preparation.test.mjs` and
+`tests/unit/map-editing-foundation.test.mjs` entrypoints are absent;
+retained geometry validation, shared-boundary presentation and read-only
+product contracts belong to active owners. The historical
+`gis-caspian-1922-python-native-oracle.json` fixture is absent and the
+remaining frozen source evidence is in
+`gis-caspian-1922-native-baseline.json`. This does not reintroduce a
+Python runtime or a border-editing UI.
+
+**Deferred verification:** No Node unit suite, native/C++/WASM build,
+browser test, CI execution, end-to-end contract audit or performance
+benchmark was run for this migration, per the requested all-at-once
+verification policy. The changes and their source-level ownership are
+committed; behavioral correctness, prerequisite isolation and stale
+references still require the final consolidated verification. Do not
+treat the static review as a test pass.
