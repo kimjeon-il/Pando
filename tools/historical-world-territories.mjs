@@ -160,19 +160,25 @@ export function adjustHistoricalTerritories(input, policy, clipper = historicalW
     // The precision budget still covers every certified removed artifact.
     const cutters=right.map(polygon=>({polygon,bounds:envelope(polygon)}));
     const pieces=[];
+    let boundsEpoch=0;
     for(const polygon of left){
-      let remaining=[polygon];
+      let remaining=[{polygon,epoch:-1}];
       for(const cutter of cutters){
         if(!remaining.length)break;
         const next=[];
         for(const part of remaining){
-          if(!touches(envelope(part),cutter.bounds)){next.push(part);continue;}
-          const clipped=shape(clipper.difference([part],[cutter.polygon]),operation);
-          if(clipped)next.push(...(clipped.type==='Polygon'?[clipped.coordinates]:clipped.coordinates));
+          if(part.epoch!==boundsEpoch){part.bounds=envelope(part.polygon);part.epoch=boundsEpoch;}
+          if(!touches(part.bounds,cutter.bounds)){next.push(part);continue;}
+          const clipped=shape(clipper.difference([part.polygon],[cutter.polygon]),operation);
+          // An injected clipper may mutate a retained part. Invalidate its
+          // bounds after callbacks, but reuse them across untouched cutters.
+          boundsEpoch++;
+          if(clipped)next.push(...(clipped.type==='Polygon'?[clipped.coordinates]:clipped.coordinates)
+            .map(polygon=>({polygon,epoch:-1})));
         }
         remaining=next;
       }
-      pieces.push(...remaining);
+      pieces.push(...remaining.map(part=>part.polygon));
     }
     return pieces;
   };

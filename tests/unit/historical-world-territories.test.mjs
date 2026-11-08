@@ -665,3 +665,73 @@ test('cached original peer subtraction replays precision evidence across later i
  assert.deepEqual(globalThis.polygonClipping.xor(wrap(reused.candidates[0].geometry),[box(0,3).coordinates]),[]);
  assert.deepEqual(globalThis.polygonClipping.xor(wrap(reused.candidates[1].geometry),[box(15,18).coordinates]),[]);
 });
+
+// Exercise the canonical local component sweep with its actual normalizer.
+// Extracting the local closure avoids exporting a second geometry API for tests.
+async function componentBoundsFixture() {
+ const {readFile}=await import('node:fs/promises');
+ const source=await readFile(new URL('../../tools/historical-world-territories.mjs',import.meta.url),'utf8');
+ const start=source.indexOf('  const envelope='),end=source.indexOf('  const evaluate=',start);
+ assert.ok(start>=0&&end>start);
+ const code=source.slice(start,end).replace('let west=','counter.scans++;let west=');
+ const counters={scans:0},calls=[],precision=[];
+ const clipper={difference:(a,b)=>{calls.push(structuredClone([a,b]));return module.historicalWorldClipper.difference(a,b);}};
+ const shape=(value,operation)=>!value.length?null:globalThis.PandoLabPolygonGeometry.normalizeClippedPolygonGeometry(value,{
+  onPrecisionDiscard:row=>precision.push({...row,operation}),
+ });
+ const run=new Function('clipper','shape','counter',code+'return componentDifference;')(clipper,shape,counters);
+ return {run,clipper,counters,calls,precision};
+}
+
+test('component bounds scan each untouched part once across many cutters',async()=>{
+ const {run,counters,calls}=await componentBoundsFixture();
+ const left=Array.from({length:30},(_,i)=>box(i*3,i*3+1).coordinates);
+ const right=Array.from({length:50},(_,i)=>box(500+i*3,501+i*3).coordinates);
+ const result=run(left,right,'difference subject / cutter');
+ assert.deepEqual(result,left);assert.ok(result.every((part,i)=>part===left[i]));
+ assert.equal(calls.length,0);assert.equal(counters.scans,80);
+});
+
+test('component bounds preserve exact ordered native split results and precision trace',async()=>{
+ const {run,clipper,calls,precision}=await componentBoundsFixture();
+ const left=[box(0,10).coordinates,box(20,22).coordinates,box(40,45).coordinates];
+ const right=[box(3,4).coordinates,box(6,7).coordinates,box(20,22).coordinates,box(100,101).coordinates];
+ const artifact=[[46.798053,39.097382],[46.803617228283514,39.10088708625098],[46.80361722811995,39.10088708614795],[46.798053,39.097382]];
+ const difference=clipper.difference;
+ clipper.difference=(a,b)=>[...difference(a,b),[artifact]];
+ const expected=[],expectedCalls=[],expectedPrecision=[];
+ // Direct scalar reference preserves the pre-optimization loop and shape order.
+ const bounds=p=>p.flat().reduce((b,[x,y])=>[Math.min(b[0],x),Math.min(b[1],y),Math.max(b[2],x),Math.max(b[3],y)],[Infinity,Infinity,-Infinity,-Infinity]);
+ for(const polygon of left){let remaining=[polygon];for(const cutter of right){const next=[];for(const part of remaining){
+  const a=bounds(part),b=bounds(cutter);if(!(a[0]<b[2]&&a[2]>b[0]&&a[1]<b[3]&&a[3]>b[1])){next.push(part);continue;}
+  expectedCalls.push(structuredClone([[part],[cutter]]));
+  const normalized=globalThis.PandoLabPolygonGeometry.normalizeClippedPolygonGeometry([...module.historicalWorldClipper.difference([part],[cutter]),[artifact]],{onPrecisionDiscard:row=>expectedPrecision.push({...row,operation:'difference subject / cutter'})});
+  if(normalized)next.push(...(normalized.type==='Polygon'?[normalized.coordinates]:normalized.coordinates));
+ }remaining=next;}expected.push(...remaining);}
+ assert.deepEqual(run(left,right,'difference subject / cutter'),expected);
+ assert.deepEqual(calls,expectedCalls);assert.deepEqual(precision,expectedPrecision);assert.ok(precision.length>0);
+});
+
+test('component bounds invalidate retained sibling bounds after injected clipper mutation',async()=>{
+ const {calls}=await componentBoundsFixture();
+ let call=0,retained;
+ const first=box(0,2).coordinates,second=box(4,10).coordinates;
+ // Shape normally copies coordinates. Capture the normalized sibling directly
+ // through a second local invocation, retaining the production sweep itself.
+ const {readFile}=await import('node:fs/promises');
+ const source=await readFile(new URL('../../tools/historical-world-territories.mjs',import.meta.url),'utf8');
+ const code=source.slice(source.indexOf('  const envelope='),source.indexOf('  const evaluate='));
+ const mutationClipper={difference:(a,b)=>{calls.push(structuredClone([a,b]));call++;if(call===1)return [first,second];if(call===2)for(const ring of retained)for(const point of ring)point[0]+=20;return [box(1,2).coordinates];}};
+ const shape=value=>{if(call===1)retained=value[1];return {type:'MultiPolygon',coordinates:value};};
+ const sweep=new Function('clipper','shape',code+'return componentDifference;')(mutationClipper,shape);
+ const result=sweep([box(0,10).coordinates],[box(3,4).coordinates,box(100,101).coordinates,box(0,1).coordinates,box(8,9).coordinates],'difference subject / cutter');
+ assert.equal(call,2);assert.deepEqual(result,[box(1,2).coordinates,box(24,30).coordinates]);
+});
+
+test('component bounds preserve lazy malformed input and direct clipping errors',async()=>{
+ const {run,clipper}=await componentBoundsFixture();
+ assert.deepEqual(run([null],[],'difference subject / cutter'),[null]);
+ assert.throws(()=>run([null],[box(0,1).coordinates],'difference subject / cutter'),TypeError);
+ const failure=new Error('native ring failure');clipper.difference=()=>{throw failure;};
+ assert.throws(()=>run([box(0,10).coordinates],[box(1,2).coordinates],'difference subject / cutter'),error=>error===failure);
+});
