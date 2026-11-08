@@ -71,9 +71,9 @@ for(const row of plan.files){
           delta=diffError.stdout;
         }
         const patch=delta.toString('utf8')
-          .replace(/^diff --git a\\/ancestor b\\/reviewed/m,'diff --git a/current b/current')
-          .replace(/^--- a\\/ancestor/m,'--- a/current')
-          .replace(/^\\+\\+\\+ b\\/reviewed/m,'+++ b/current');
+          .replace('diff --git a/ancestor b/reviewed','diff --git a/current b/current')
+          .replace('--- a/ancestor','--- a/current')
+          .replace('+++ b/reviewed','+++ b/current');
         try {
           execFileSync('git',['apply','--check','-'],{cwd:temp,input:patch,maxBuffer:8*1024*1024});
           execFileSync('git',['apply','-'],{cwd:temp,input:patch,maxBuffer:8*1024*1024});
