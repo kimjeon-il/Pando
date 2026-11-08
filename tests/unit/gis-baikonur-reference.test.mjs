@@ -9,8 +9,6 @@ import * as __source_dep6 from "../../tools/gis/baikonur-2019-exclusions.mjs";
 import * as __source_dep7 from "../../tools/gis/validate-baikonur-independent-banks.mjs";
 import * as __source_dep8 from "../../tools/gis/verify-baikonur-lease-exclusions.mjs";
 import * as __source_dep9 from "../../tools/gis/baikonur-independent-lease-candidate.mjs";
-
-// Original feature contract: gis-baikonur-reference.test.mjs
 contractSuite("gis-baikonur-reference", () => {
 const assert = __source_dep0.default;
 const { mkdtempSync, readFileSync, rmSync } = __source_dep1;
@@ -62,8 +60,6 @@ test('output is write-once and --check never modifies the original',t=>{
  assert.throws(()=>writeReference(file),/EEXIST/);
 });
 });
-
-// Original feature contract: gis-baikonur-2019-exclusions.test.mjs
 contractSuite("gis-baikonur-2019-exclusions", () => {
 const assert = __source_dep0.default;
 const test = __source_dep4.default;
@@ -106,8 +102,6 @@ test('closed polygons keep per-object provenance and effective dates',()=>{
   }
 });
 });
-
-// Original feature contract: gis-baikonur-independent-bank-validator.test.mjs
 contractSuite("gis-baikonur-independent-bank-validator", () => {
 const test = __source_dep4.default;
 const assert = __source_dep0.default;
@@ -189,8 +183,6 @@ test('a declaration alone is never accepted without both independent riverbank l
     /Both independently surveyed Syr Darya bank reaches/);
 });
 });
-
-// Original feature contract: gis-baikonur-independent-lease-candidate.test.mjs
 contractSuite("gis-baikonur-independent-lease-candidate", () => {
 const assert = __source_dep0.default;
 const test = __source_dep4.default;

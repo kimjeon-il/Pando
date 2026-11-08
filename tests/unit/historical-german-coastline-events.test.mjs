@@ -2,8 +2,6 @@ import { describe as contractSuite } from 'node:test';
 import * as __source_dep0 from "node:test";
 import * as __source_dep1 from "node:assert/strict";
 import * as __source_dep2 from "node:fs";
-
-// Original feature contract: historical-german-coastline-events.test.mjs
 contractSuite("historical-german-coastline-events", () => {
 const test = __source_dep0.default;
 const assert = __source_dep1.default;
@@ -78,8 +76,6 @@ test('retained coastal event inputs do not promote construction dates to verifie
   assert.equal(catalog.dataPolicy.geometryState, 'all entries source-indexed; historical geometry not digitized');
 });
 });
-
-// Original feature contract: historical-german-coastline-helgoland.test.mjs
 contractSuite("historical-german-coastline-helgoland", () => {
 const test = __source_dep0.default;
 const assert = __source_dep1.default;
@@ -172,8 +168,6 @@ test('Helgoland chronology distinguishes 1914 ongoing harbor works from 1938 exp
   assert.equal(chart.reportedControlPointCount, 6);
 });
 });
-
-// Original feature contract: historical-netherlands-coast-events.test.mjs
 contractSuite("historical-netherlands-coast-events", () => {
 const test = __source_dep0.default;
 const assert = __source_dep1.default;

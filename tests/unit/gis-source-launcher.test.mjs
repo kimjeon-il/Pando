@@ -13,8 +13,6 @@ import * as __source_dep10 from "../../tools/gis/terrain-dem-gutters.mjs";
 import * as __source_dep11 from "../../tools/gis/terrain-dem-tint.mjs";
 import * as __source_dep12 from "../../tools/map-image/native-resample.mjs";
 import * as __source_dep13 from "../../scripts/lib/check-changes.mjs";
-
-// Original feature contract: gis-source-launcher.test.mjs
 contractSuite("gis-source-launcher", () => {
 const assert = __source_dep0.default;
 const test = __source_dep1.default;
@@ -184,8 +182,6 @@ test('historical-border dispatches the migrated Node recipe owner without restor
  assert.equal(calls[0].settings.shell,false);assert.equal(logs[1].requiresExternalOriginals,true);
 });
 });
-
-// Original feature contract: gis-source-isolation.test.mjs
 contractSuite("gis-source-isolation", () => {
 const assert = __source_dep0.default;
 const { readFileSync, existsSync } = __source_dep2;

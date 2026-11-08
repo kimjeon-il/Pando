@@ -10,8 +10,6 @@ import * as __source_dep7 from "node:path";
 import * as __source_dep8 from "../../shared/frontend/js/modules/territorial-units.js";
 import * as __source_dep9 from "../helpers/core-project.mjs";
 import * as __source_dep10 from "../helpers/production-geopackage.mjs";
-
-// Original feature contract: territorial-source-parity.test.mjs
 contractSuite("territorial-source-parity", () => {
 const test = __source_dep0.default;
 const assert = __source_dep1.default;
@@ -109,8 +107,6 @@ test('source admission rejects newly overlapping geometry even when its version 
   assert.throws(() => normalizeTerritorialLibraryEntity(entity), /overlapping geometry versions/i);
 });
 });
-
-// Original feature contract: territorial-source-files.test.mjs
 contractSuite("territorial-source-files", () => {
 const assert = __source_dep1.default;
 const fs = __source_dep2.default;
@@ -164,8 +160,6 @@ test('orphan or multiply-owned country objects and dangling parent edits are rej
  assert.throws(()=>sources.readTerritorialSources(root));
 });
 });
-
-// Original feature contract: territorial-source-provenance.test.mjs
 contractSuite("territorial-source-provenance", () => {
 const assert = __source_dep1.default;
 const test = __source_dep0.default;

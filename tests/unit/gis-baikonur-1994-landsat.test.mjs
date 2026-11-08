@@ -6,8 +6,6 @@ import * as __source_dep3 from "../../tools/gis/probe-baikonur-government-hydrog
 import * as __source_dep4 from "../../tools/gis/baikonur-landsat-pixel-preflight.mjs";
 import * as __source_dep5 from "../../tools/gis/probe-baikonur-planetary-landsat.mjs";
 import * as __source_dep6 from "../../tools/gis/baikonur-landsat-water-mask.mjs";
-
-// Original feature contract: gis-baikonur-1994-landsat.test.mjs
 contractSuite("gis-baikonur-1994-landsat", () => {
 const assert = __source_dep0.default;
 const test = __source_dep1.default;
@@ -67,8 +65,6 @@ test('unreachable STAC cannot assert valid scene imagery',async()=>{
     &&x.candidates.length===0&&x.reasons.length>0));
 });
 });
-
-// Original feature contract: gis-baikonur-node-pixels.test.mjs
 contractSuite("gis-baikonur-node-pixels", () => {
 const assert = __source_dep0.default;
 const test = __source_dep1.default;
@@ -127,8 +123,6 @@ test('zero-water and off-grid points cannot generate a false connected-bank clai
   assert.throws(()=>measureSpectralConnectivity(new Uint8Array(12),3,3),/dimensions/);
 });
 });
-
-// Original feature contract: gis-baikonur-planetary-landsat.test.mjs
 contractSuite("gis-baikonur-planetary-landsat", () => {
 const assert = __source_dep0.default;
 const test = __source_dep1.default;
@@ -194,8 +188,6 @@ test('an unavailable STAC or SAS service never becomes a claim that imagery is m
   assert.equal(result.rightBankReconstructed,false);
 });
 });
-
-// Original feature contract: gis-baikonur-landsat-water-mask.test.mjs
 contractSuite("gis-baikonur-landsat-water-mask", () => {
 const assert = __source_dep0.default;
 const test = __source_dep1.default;

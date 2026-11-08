@@ -5,8 +5,6 @@ import * as __source_dep2 from "node:test";
 import * as __source_dep3 from "../../tools/gis/verify-lsib-country-sources.mjs";
 import * as __source_dep4 from "node:fs/promises";
 import * as __source_dep5 from "../../tools/gis/lsib-screen-native.mjs";
-
-// Original feature contract: gis-lsib-source-native.test.mjs
 contractSuite("gis-lsib-source-native", () => {
 const assert = __source_dep0.default;
 const { spawnSync } = __source_dep1;
@@ -119,8 +117,6 @@ test('native GEOS rejects a self-crossing modern polygon',
     assert.equal(result.passed,false);
   });
 });
-
-// Original feature contract: gis-lsib-reviewed-native.test.mjs
 contractSuite("gis-lsib-reviewed-native", () => {
 const assert = __source_dep0.default;
 const { readFile } = __source_dep4;
@@ -145,7 +141,7 @@ test('GEOS transforms a reviewed polygon exterior and refuses holes',{skip:!bina
   for(let i=0;i<ring.length;i++)for(let j=0;j<2;j++)assert.ok(Math.abs(actual.coordinates[i][j]-ring[i][j])<1e-8);
   await assert.rejects(prepareLSIBReviewed('igm',{...geometry,coordinates:[ring,ring]},{binary}),/polygon without holes/i);
 });
-test('reviewed source lines match the retained Python/PROJ result',{skip:!binary||!process.env.PANDO_LSIB_REVIEWED_ORACLE},async()=>{
+test('reviewed source lines match the pinned independent projection reference',{skip:!binary||!process.env.PANDO_LSIB_REVIEWED_ORACLE},async()=>{
   const {items}=JSON.parse(await readFile(process.env.PANDO_LSIB_REVIEWED_ORACLE,'utf8'));
   for(const row of items){const {coordinates:actual}=await prepareLSIBReviewed(row.mode,row.geometry,{binary});
     assert.equal(actual.length,row.expected.length,row.name);

@@ -9,8 +9,6 @@ import * as __source_dep6 from "../../tools/builtin-country-bytes.mjs";
 import * as __source_dep7 from "node:fs";
 import * as __source_dep8 from "node:zlib";
 import * as __source_dep9 from "../../shared/frontend/js/modules/builtin-world-loader.js";
-
-// Original feature contract: gis-2000-2026-attribute-history.test.mjs
 contractSuite("gis-2000-2026-attribute-history", () => {
 const test = __source_dep0.default;
 const assert = __source_dep1.default;
@@ -65,8 +63,6 @@ test('only dated name and flag attributes change; existing geometry and parent r
  assert.equal(n.nameVersions.at(-1).validFrom,'2026-05-12');
 });
 });
-
-// Original feature contract: gis-2000-2026-additional-attributes.test.mjs
 contractSuite("gis-2000-2026-additional-attributes", () => {
 const test = __source_dep0.default;
 const assert = __source_dep1.default;
@@ -129,8 +125,6 @@ test('additional historic flags and formal names preserve all unrelated identiti
  assert.equal(hash(cpv.geometryVersions),hash(byId.get('state:CPV').geometryVersions));
 });
 });
-
-// Original feature contract: gis-2000-2026-generated-attributes.test.mjs
 contractSuite("gis-2000-2026-generated-attributes", () => {
 const test = __source_dep0.default;
 const { readBuiltinCountryStoredBytes } = __source_dep6;

@@ -8,8 +8,6 @@ import * as __source_dep5 from "node:path";
 import * as __source_dep6 from "node:os";
 import * as __source_dep7 from "node:crypto";
 import * as __source_dep8 from "../../tools/apply-lsib-supplement.mjs";
-
-// Original feature contract: lsib-coordinate-audit.test.mjs
 contractSuite("lsib-coordinate-audit", () => {
 const test = __source_dep0.default;
 const assert = __source_dep1.default;
@@ -45,8 +43,6 @@ test('ring rotation and reversal cannot split a three-vertex original chain at t
 
 test('an inserted nonmatching pivot cannot split a cyclic retained subsequence',()=>{const open=[[0,0],[-1,-.1],[1,0],[2,0],[4,3],[0,3]];for(let n=0;n<open.length;n++)for(const reverse of[false,true]){let p=[...open.slice(n),...open.slice(0,n)];if(reverse)p.reverse();const r=audit({type:'Polygon',coordinates:[[...p,p[0]]]});const chain=r.chains.find(c=>c.kind==='retained-original-subsequence');assert.ok(chain);assert.equal(chain.retainedOriginalVertices,3);assert.equal(chain.vertices,4);assert.equal(chain.insertedOrDifferentVertices,1);assert.deepEqual([...chain.referenceIndices].sort((a,b)=>a-b),[0,1,2]);}});
 });
-
-// Original feature contract: gis-lsib-exclusion.test.mjs
 contractSuite("gis-lsib-exclusion", () => {
 const assert = __source_dep1.default;
 const test = __source_dep0.default;
@@ -76,8 +72,6 @@ test('batch classification preserves source order and rejects malformed requests
   assert.throws(()=>classifyLSIBExclusion(null,false),/properties/i);
 });
 });
-
-// Original feature contract: lsib-display-version.test.mjs
 contractSuite("lsib-display-version", () => {
 const test = __source_dep0.default;
 const assert = __source_dep1.default;

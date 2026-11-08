@@ -11,8 +11,6 @@ import "../../tools/load-spherical-core.mjs";
 import * as __country_dep8 from "../../tools/territorial-entity-sources.mjs";
 import * as __country_dep9 from "../../tools/gis/historical-display-storage.mjs";
 import * as __country_dep10 from "../../tools/gis/historical-detail-inventory.mjs";
-
-// Original feature contract: historical-display-review.test.mjs
 contractSuite("historical-display-review", () => {
 const { polygonGeometryDigest } = __country_dep0;
 const test = __country_dep1.default;
@@ -36,8 +34,6 @@ test('compiled key order, geometry array order and regenerated IDs do not create
 
 test('explicit compiled derivative coverage crosses source/project identity without a parallel publication path',()=>{const v=reviewed(version()),country={entityId:'A',identity:{properties:{metadata:{historicalTimeline:{geometryVersions:[v]}}}},sourceBindings:[{sourceVersionId:'v',validFrom:v.validFrom,validTo:v.validTo,geometryRef:{id:'g',version:1}}],geometries:[{id:'g',version:1,geojson:v.geometry}]};assert.throws(()=>assertHistoricalCompiledChanges(country,null),/review required/);v.historicalProvenance.displayDetailReview.compiledDerivatives=[receipt(v,'A')];assert.equal(assertHistoricalCompiledChanges(country,null),1);assert.equal(assertHistoricalDisplayChanges(entity([v]),entity([])),1);});
 });
-
-// Original feature contract: historical-display-authoring.test.mjs
 contractSuite("historical-display-authoring", () => {
 const test = __country_dep1.default;
 const assert = __country_dep2.default;
@@ -48,8 +44,6 @@ const { updateTerritorialSource } = __country_dep8;
 
 test('source write owner rejects an unreviewed historical geometry before changing any bytes',t=>{const root=fs.mkdtempSync(path.join(os.tmpdir(),'pando-detail-source-'));t.after(()=>fs.rmSync(root,{recursive:true,force:true}));for(const d of ['countries','lineages'])fs.mkdirSync(path.join(root,d));const source={schemaVersion:2,entityId:'state:Fixture',entityKind:'general',lineageId:'fixture',names:{ko:'Fixture'},alternateNames:[],lifetime:{validFrom:null,validTo:null},parentEntityId:'',metadata:{},sourceInfo:{},instantiation:{mode:'independent',countryUpdates:{}},geometryVersions:[{versionId:'v',validFrom:'1900',validTo:'1901',geometry:{type:'Polygon',coordinates:[[[0,0],[1,0],[1,1],[0,0]]]}}]},file=path.join(root,'countries/state-Fixture.json');fs.writeFileSync(file,JSON.stringify(source));fs.writeFileSync(path.join(root,'lineages/fixture.json'),JSON.stringify({schemaVersion:2,lineageId:'fixture',names:{ko:'Fixture'},entityRefs:['state:Fixture'],relations:[]}));const bytes=fs.readFileSync(file);assert.throws(()=>updateTerritorialSource(source.entityId,current=>{current.geometryVersions[0].geometry.coordinates[0][1][0]=2;return current;},root),/Historical display review required/);assert(fs.readFileSync(file).equals(bytes));});
 });
-
-// Original feature contract: historical-display-storage.test.mjs
 contractSuite("historical-display-storage", () => {
 const test = __country_dep1.default;
 const assert = __country_dep2.default;
@@ -65,8 +59,6 @@ test('a selected overwritten country cannot hide behind an unchanged index recei
 test('raw source and paired chunk permit identical object content in different key order',()=>{const f=fixture();f.sourceIndex=f.previousSourceIndex;f.sourceFileChanged=()=>true;f.readRawSource=()=>({geometryVersions:old.geometryVersions.map(v=>({...v,geometry:{coordinates:v.geometry.coordinates,type:v.geometry.type}})),entityId:old.entityId});f.readSource=()=>old;assert.deepEqual(assertHistoricalStorageChanges(f),{sources:0,countries:0});});
 test('builtin input identity is checked even when the paired source chunk is unchanged',()=>{const f=fixture();f.prefixes=['assets/data/builtin-world'];f.sourceIndex=f.previousSourceIndex;f.previousBuiltinIndex.inputHashes.sourceRevisions['state:A']='old';f.builtinIndex.inputHashes.sourceRevisions['state:A']='wrong';assert.throws(()=>assertHistoricalStorageChanges(f),/input identity differs/);});
 });
-
-// Original feature contract: historical-detail-inventory.test.mjs
 contractSuite("historical-detail-inventory", () => {
 const test = __country_dep1.default;
 const assert = __country_dep2.default;

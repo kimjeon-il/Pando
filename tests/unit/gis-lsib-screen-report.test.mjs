@@ -9,8 +9,6 @@ import * as __source_dep6 from "../../tools/gis/verify-lsib-screen-delta.mjs";
 import * as __source_dep7 from "../../tools/gis/lsib-source-native.mjs";
 import * as __source_dep8 from "node:crypto";
 import * as __source_dep9 from "../../tools/gis/lsib-reviewed-source.mjs";
-
-// Original feature contract: gis-lsib-screen-report.test.mjs
 contractSuite("gis-lsib-screen-report", () => {
 const assert = __source_dep0.default;
 const { spawnSync } = __source_dep1;
@@ -113,8 +111,6 @@ test('LSIB report workflow reads selected original and protects its output',{
   await assert.rejects(runLSIBScreen(args,options),/already exists/i);assert.equal(await readFile(output,'utf8'),bytes);
 });
 });
-
-// Original feature contract: gis-lsib-reviewed-source.test.mjs
 contractSuite("gis-lsib-reviewed-source", () => {
 const assert = __source_dep0.default;
 const { createHash } = __source_dep8;

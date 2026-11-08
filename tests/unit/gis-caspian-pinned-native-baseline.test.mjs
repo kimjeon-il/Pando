@@ -3,8 +3,6 @@ import {createHash} from 'node:crypto';
 import {readFileSync} from 'node:fs';
 import test from 'node:test';
 import {resolve} from 'node:path';
-
-// Original feature contract: gis-caspian-pinned-native-oracle.test.mjs
 // The retired external-interpreter comparison is not reproduced. The approved
 // source hashes, fixed Native output bytes and numerical constraints remain.
 const baseline=JSON.parse(readFileSync(resolve('tests/fixtures/gis-caspian-1922-native-baseline.json'),'utf8'));

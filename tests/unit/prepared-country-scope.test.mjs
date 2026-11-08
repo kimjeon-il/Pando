@@ -15,8 +15,6 @@ import * as __gis_dep12 from "../../tools/gis/territorial-index-entry.js";
 import * as __gis_dep13 from "../../shared/frontend/js/modules/polygon-mesh-codec.js";
 import * as __gis_dep14 from "../../shared/frontend/js/modules/prepared-polygon-mesh.js";
 import * as __gis_dep15 from "../../shared/frontend/js/modules/physical-resources.js";
-
-// Original feature contract: prepared-country-scope.test.mjs
 contractSuite("prepared-country-scope", () => {
 const { BUILTIN_SUBUNITS } = __gis_dep0;
 const test = __gis_dep1.default;
@@ -97,8 +95,6 @@ test('stale unrelated or unattributable split-country receipts block a scoped ap
  }
 });
 });
-
-// Original feature contract: prepared-physical-scope.test.mjs
 contractSuite("prepared-physical-scope", () => {
 const test = __gis_dep1.default;
 const assert = __gis_dep2.default;
@@ -183,8 +179,6 @@ test('unscoped generation retains precision-discard audit records from synthetic
   assert.ok(result.manifest.precisionDiscards.some(row=>row.discards.some(discard=>discard.operation==='union')));
 });
 });
-
-// Original feature contract: prepared-input-verification.test.mjs
 contractSuite("prepared-input-verification", () => {
 const test = __gis_dep1.default;
 const assert = __gis_dep2.default;

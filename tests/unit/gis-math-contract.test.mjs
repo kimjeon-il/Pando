@@ -11,8 +11,6 @@ import * as __gis_dep8 from "../../tools/gis/river-territory-partition.js";
 import * as __gis_dep9 from "../../tools/gis/geometry-validation.js";
 import * as __gis_dep10 from "./helpers/gis-worker-harness.mjs";
 import * as __gis_dep11 from "../helpers/spherical-core.mjs";
-
-// Original feature contract: gis-math-contract.test.mjs
 contractSuite("gis-math-contract", () => {
 const assert = __gis_dep0.default;
 const fs = __gis_dep1.default;
@@ -268,8 +266,6 @@ test('GIS contract test sources stay worker-safe and do not revive removed paths
   assert.match(read('shared/frontend/js/modules/geographic-boundary.js'), /atPole|atDateLine/);
 });
 });
-
-// Original feature contract: p5-spherical-area-delegation.test.mjs
 contractSuite("p5-spherical-area-delegation", () => {
 const assert = __gis_dep0.default;
 const { readFileSync } = __gis_dep1;
