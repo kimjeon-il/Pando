@@ -3,8 +3,6 @@ import assert from 'node:assert/strict';
 import {historicalWorldCases} from '../fixtures/historical-world-cases.mjs';
 import {compileBuiltinWorldCatalog, coalesceCoverageAdjustments} from '../../tools/builtin-world-compiler.mjs';
 import {assembleBuiltinWorld, selectBuiltinCountries} from '../../shared/frontend/js/modules/builtin-world-loader.js';
-import {createBuiltinProjectSetup} from '../../shared/frontend/js/modules/project-setup.js';
-import {PROJECT_SCHEMA_VERSION} from '../../shared/frontend/js/modules/version-contract.js';
 import {buildBuiltinWorldNamePublication} from '../../tools/build-builtin-world.mjs';
 import {gzipSync, gunzipSync} from 'node:zlib';
 import {createHash} from 'node:crypto';
@@ -12,7 +10,6 @@ import {temporalContains, temporalMonthEnd} from '../../shared/frontend/js/modul
 import {resolveWorld} from '../../shared/frontend/js/modules/timeline-resolver.js';
 import {createGeometryVersionStore} from '../../shared/frontend/js/modules/geometry-version-store.js';
 import fs from 'node:fs';
-import {builtinProject} from '../helpers/builtin-world.mjs';
 import {deviceCurrentMonth} from '../../shared/frontend/js/modules/builtin-month-clock.js';
 
 let built;

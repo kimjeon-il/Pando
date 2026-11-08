@@ -4,7 +4,7 @@ import {createHash} from 'node:crypto';
 import {buildBuiltinWorldPublication} from '../../tools/build-builtin-world.mjs';
 import {historicalWorldCases} from '../fixtures/historical-world-cases.mjs';
 import {withExplicitView} from '../helpers/builtin-world.mjs';
-import {createBuiltinWorldLoader,selectBuiltinCountries} from "../../shared/frontend/js/modules/builtin-world-loader.js";
+import {createBuiltinWorldLoader} from "../../shared/frontend/js/modules/builtin-world-loader.js";
 import {createBuiltinSession} from "../../shared/frontend/js/modules/builtin-session.js";
 import {createNodeCoreProject} from '../helpers/core-project.mjs';
 import {startupDocument} from '../helpers/core-startup.mjs';
