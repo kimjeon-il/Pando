@@ -2,10 +2,6 @@ import { test as featureTest } from '@playwright/test';
 import * as __suiteDependency0 from "@playwright/test";
 import * as __suiteDependency1 from "node:crypto";
 import * as __suiteDependency2 from "node:fs";
-import * as __suiteDependency3 from "@playwright/test";
-
-// Preserved Viewer feature contract: viewer-review-e4.spec.mjs
-featureTest.describe("viewer-review-e4", () => {
   const { test,expect } = __suiteDependency0;
   const { createHash } = __suiteDependency1;
   const { readFileSync } = __suiteDependency2;
@@ -187,9 +183,8 @@ test('E4 review remains a bounded responsive panel and never claims an unverifie
   expect(errors).toEqual([]);
 });
 });
-// Preserved Viewer feature contract: viewer-inspector.spec.mjs
 featureTest.describe("viewer-inspector", () => {
-  const { test,expect } = __suiteDependency3;
+  const { test,expect } = __suiteDependency0;
 test('inspector is absent from ordinary UI until the keyboard shortcut activates lazy review',async({page})=>{
   test.setTimeout(150000);
   const errors=[],reviewRequests=[];
@@ -260,5 +255,4 @@ test('debug URL exposes the single lazy read-only inspector without changing the
   expect(reviewRequests).toHaveLength(1,'reopening must reuse the existing panel');
   expect(await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot())).toEqual(before);
   expect(errors).toEqual([]);
-});
 });

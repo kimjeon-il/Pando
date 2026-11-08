@@ -1,20 +1,11 @@
 import { test as featureTest } from '@playwright/test';
 import * as __suiteDependency0 from "./helpers/viewing-display.mjs";
 import * as __suiteDependency1 from "@playwright/test";
-import * as __suiteDependency2 from "./helpers/viewing-display.mjs";
-import * as __suiteDependency3 from "@playwright/test";
 import * as __suiteDependency4 from "../fixtures/viewer-project-package.mjs";
-import * as __suiteDependency5 from "@playwright/test";
 import * as __suiteDependency6 from "node:url";
 import * as __suiteDependency7 from "node:fs";
 import * as __suiteDependency8 from "../../scripts/build-ui-bundle.mjs";
 import * as __suiteDependency9 from "../../scripts/lib/frontend-layout.mjs";
-import * as __suiteDependency10 from "@playwright/test";
-import * as __suiteDependency11 from "../fixtures/viewer-project-package.mjs";
-import * as __suiteDependency12 from "@playwright/test";
-
-// Preserved Viewer feature contract: web-viewer.spec.mjs
-featureTest.describe("web-viewer", () => {
   const {  openViewingDisplay, setViewingLayer, closeViewingDisplay  } = __suiteDependency0;
   const {  test, expect  } = __suiteDependency1;
 for (const viewport of [{ width: 1280, height: 800 }, { width: 640, height: 360 }]) {
@@ -68,10 +59,9 @@ test(`existing UI loads, searches and navigates without document writes at ${vie
 });
 }
 });
-// Preserved Viewer feature contract: viewer-layout.spec.mjs
 featureTest.describe("viewer-layout", () => {
-  const {  openViewingDisplay, closeViewingDisplay  } = __suiteDependency2;
-  const {  test, expect  } = __suiteDependency3;
+  const {  openViewingDisplay, closeViewingDisplay  } = __suiteDependency0;
+  const {  test, expect  } = __suiteDependency1;
   const {  createViewerProjectPackage  } = __suiteDependency4;
 test('existing surfaces preserve project and selection across portrait, tablet and landscape sizes', async ({ page }, testInfo) => {
   page.setDefaultTimeout(15000);
@@ -117,9 +107,8 @@ test('existing surfaces preserve project and selection across portrait, tablet a
   expect(errors).toEqual([]);
 });
 });
-// Preserved Viewer feature contract: phone-landscape-surface-contract.spec.mjs
 featureTest.describe("phone-landscape-surface-contract", () => {
-  const {  expect, test  } = __suiteDependency5;
+  const {  expect, test  } = __suiteDependency1;
   const { fileURLToPath } = __suiteDependency6;
   const { readFileSync } = __suiteDependency7;
   const { buildUiBundles } = __suiteDependency8;
@@ -228,10 +217,9 @@ for (const viewport of [{width: 640, height: 360}, {width: 844, height: 390}]) {
   });
 }
 });
-// Preserved Viewer feature contract: viewer-search-responsive.spec.mjs
 featureTest.describe("viewer-search-responsive", () => {
-  const {  test, expect  } = __suiteDependency10;
-  const {  createViewerProjectPackage  } = __suiteDependency11;
+  const {  test, expect  } = __suiteDependency1;
+  const {  createViewerProjectPackage  } = __suiteDependency4;
 const cases = [
   { viewport: { width: 640, height: 360 }, hasTouch: true },
   { viewport: { width: 844, height: 390 }, hasTouch: true },
@@ -318,9 +306,8 @@ for (const { viewport, hasTouch } of cases) {
   });
 }
 });
-// Preserved Viewer feature contract: viewer-globe-only.spec.mjs
 featureTest.describe("viewer-globe-only", () => {
-  const {  expect, test  } = __suiteDependency12;
+  const {  expect, test  } = __suiteDependency1;
 test('web keeps its globe through bounded file open, search, reset and mobile navigation',async({page})=>{
   const {createViewerProjectPackage}=await import(process.env.PANDOLAB_TEST_VIEWER_FIXTURE || '../fixtures/viewer-project-package.mjs');
   const fixture=await createViewerProjectPackage('지구본 범위 검사');
@@ -370,5 +357,4 @@ test('web keeps its globe through bounded file open, search, reset and mobile na
   expect(await projection()).toBe('globe');
   expect(await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentState())).toEqual(before);
   expect(errors).toEqual([]);
-});
 });

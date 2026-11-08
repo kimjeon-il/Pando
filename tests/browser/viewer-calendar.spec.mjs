@@ -3,18 +3,9 @@ import * as __suiteDependency0 from "@playwright/test";
 import * as __suiteDependency1 from "../fixtures/viewer-project-package.mjs";
 import * as __suiteDependency2 from "../../shared/frontend/js/modules/timeline-controls.js";
 import * as __suiteDependency3 from "./helpers/viewer-acceptance.mjs";
-import * as __suiteDependency4 from "@playwright/test";
-import * as __suiteDependency5 from "../fixtures/viewer-project-package.mjs";
-import * as __suiteDependency6 from "./helpers/viewer-acceptance.mjs";
-import * as __suiteDependency7 from "@playwright/test";
-import * as __suiteDependency8 from "@playwright/test";
 featureTest.use({launchOptions:{args:[
   '--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader','--disable-gpu-sandbox',
 ]}});
-
-
-// Preserved Viewer feature contract: viewer-calendar.spec.mjs
-featureTest.describe("viewer-calendar", () => {
   const {  test, expect  } = __suiteDependency0;
   const {  createViewerProjectPackage  } = __suiteDependency1;
   const {  shiftTimelineMonth, timelineMonthLabel  } = __suiteDependency2;
@@ -333,11 +324,10 @@ test('P4-4 actual country birth and extinction refresh map selection and open se
 
 });
 });
-// Preserved Viewer feature contract: viewer-temporal-regressions.spec.mjs
 featureTest.describe("viewer-temporal-regressions", () => {
-  const {  test, expect  } = __suiteDependency4;
-  const {  createViewerProjectPackage  } = __suiteDependency5;
-  const {  waitForCommittedMonth  } = __suiteDependency6;
+  const {  test, expect  } = __suiteDependency0;
+  const {  createViewerProjectPackage  } = __suiteDependency1;
+  const {  waitForCommittedMonth  } = __suiteDependency3;
 // Keep renderer-specific fixtures and failure evidence scoped to each contract family.
 
 
@@ -540,9 +530,8 @@ test('P2-4 one accepted year switch loads physical resources once and preserves 
 });
 });
 });
-// Preserved Viewer feature contract: temporal-map-presentation.spec.mjs
 featureTest.describe("temporal-map-presentation", () => {
-  const { test,expect } = __suiteDependency7;
+  const { test,expect } = __suiteDependency0;
 test.use({viewport:{width:960,height:640}});
 
 for (const mode of ['webgl','canvas','canvas-worker']) test(`temporal map holds its last complete ${mode} frame until its successor is presented`,async({page})=>{
@@ -736,9 +725,8 @@ for (const mode of ['webgl','canvas','canvas-worker']) test(`temporal map holds 
   expect(errors).toEqual([]);
 });
 });
-// Preserved Viewer feature contract: resource-dependency-reuse.spec.mjs
 featureTest.describe("resource-dependency-reuse", () => {
-  const { test,expect } = __suiteDependency8;
+  const { test,expect } = __suiteDependency0;
 const stats=page=>page.evaluate(()=>window.__PANDOLAB_VIEWER__.rendererStats());
 async function month(page,value){
   const [year,month]=value.split('-');
@@ -836,5 +824,4 @@ test.afterEach(async({page},info)=>{
       status:document.getElementById('viewerStatus')?.dataset.ready};
   }).catch(error=>({unavailable:String(error)}));
   console.error('P7_FAILED_MAP_STATE '+JSON.stringify({test:info.title,state}).slice(0,14000));
-});
 });
