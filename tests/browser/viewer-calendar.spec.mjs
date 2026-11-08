@@ -650,7 +650,10 @@ for (const mode of ['webgl','canvas','canvas-worker']) test(`temporal map holds 
   await page.mouse.move(mapBox.x+mapBox.width/2,mapBox.y+mapBox.height/2);
   await page.mouse.down();await page.mouse.move(mapBox.x+mapBox.width/2+100,mapBox.y+mapBox.height/2,{steps:5});await page.mouse.up();
   await page.mouse.wheel(0,-120);
-  expect(await page.evaluate(()=>window.__PANDOLAB_VIEWER__.rendererStats().screenScale)).toBe(camera);
+  // The in-flight date must remain unchanged, but direct user camera input
+  // is still authoritative. A blocked temporal response cannot freeze panning.
+  const movedScale=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.rendererStats().screenScale);
+  expect(movedScale).not.toBe(camera);
   expect(await page.locator('#timelineDateButtonText').textContent()).toBe(date);
   const held=await image();console.log('temporal pixel comparison',JSON.stringify({before,held}));
   // Canvas alpha round-trips may differ by one byte at antialiased edges.
