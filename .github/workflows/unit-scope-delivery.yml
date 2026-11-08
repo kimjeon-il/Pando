@@ -22,10 +22,33 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Record existing registry issues before editing
+        run: |
+          node --input-type=module <<'JS'
+          import {writeFileSync} from 'node:fs';
+          import {auditConsolidatedTestRegistry} from './scripts/check-test-consolidation.mjs';
+          const baseline=auditConsolidatedTestRegistry();
+          writeFileSync('/tmp/pando-registry-before.json',JSON.stringify(baseline));
+          console.log(JSON.stringify(baseline,null,2));
+          JS
       - name: Apply only source-hash-checked reviewed edits
         run: node .github/test-scope-delivery.mjs
-      - name: Check retained registrations and workflow references
-        run: node scripts/check-test-consolidation.mjs
+      - name: Reject new registry issues without modifying unrelated unfinished work
+        run: |
+          node --input-type=module <<'JS'
+          import {readFileSync} from 'node:fs';
+          import {auditConsolidatedTestRegistry} from './scripts/check-test-consolidation.mjs';
+          const before=JSON.parse(readFileSync('/tmp/pando-registry-before.json','utf8'));
+          const after=auditConsolidatedTestRegistry();
+          const changed=new Set(JSON.parse(readFileSync('/tmp/pando-test-scope-output.json','utf8')).map(row=>row.path));
+          const failures=[];
+          for(const [kind,issues] of Object.entries(after.issues)) {
+            const inherited=new Set(before.issues[kind].map(row=>JSON.stringify(row)));
+            for(const issue of issues) if(!inherited.has(JSON.stringify(issue))||changed.has(issue.file)||changed.has(issue.reference)) failures.push({kind,...issue});
+          }
+          console.log(JSON.stringify({before,after,newOrAffectedIssues:failures},null,2));
+          if(failures.length)throw Error('New or affected registry failures');
+          JS
       - name: Preserve exact recovery patch before publication
         if: always()
         run: git diff --binary > "$RUNNER_TEMP/unit-scope-reviewed.patch"
