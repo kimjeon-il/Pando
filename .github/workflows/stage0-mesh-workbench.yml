@@ -2,13 +2,16 @@ name: Stage 0 prepared mesh focused workbench
 on:
   push:
     branches: [work/optimization]
-    paths: ['.github/workflows/stage0-mesh-workbench.yml']
+    paths: ['.github/workflows/stage0-mesh-workbench.yml','tools/stage0-workbench-fix.mjs']
   workflow_dispatch:
 permissions:
   contents: write
 concurrency:
   group: stage0-prepared-country-scene
   cancel-in-progress: false
+defaults:
+  run:
+    shell: bash
 jobs:
   implement:
     runs-on: ubuntu-24.04
@@ -25,7 +28,7 @@ jobs:
       - uses: pnpm/action-setup@v4
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - uses: ./.github/actions/library-data
-      - name: Apply the immutable reviewed patch and correct moved test path
+      - name: Apply the reviewed source and precise task corrections
         run: |
           mkdir -p "$RUNNER_TEMP/stage0"
           git rev-parse HEAD > "$RUNNER_TEMP/stage0/starting-head"
@@ -51,6 +54,7 @@ jobs:
           text=text.replaceAll('{observations,errors,last:state}','{observations,errors,consoleErrors,last:state}');
           writeFileSync(browser,text);
           JS
+          node tools/stage0-workbench-fix.mjs
           git diff --check
       - name: Focused slot identity, loader cancellation and preparation checks
         env:
@@ -99,8 +103,8 @@ jobs:
           if(remote!==revision)throw Error('Prepared data push verification failed');
           console.log('PREPARED_REMOTE_DATA',revision);
           JS
-          rm .github/workflows/stage0-mesh-workbench.yml
-          git add src/rendering/country-mesh-codec.js src/rendering/country-mesh-preparation.js src/rendering/country-mesh-content-key.js src/data/world-bundle-manifest.js src/data/builtin-mesh-resource.js src/data/workers/data-loader-worker.js src/rendering/gpu-map-renderer.js src/app/viewer-map.js tools/build/build-prepared-country-scene.mjs tools/build/build-world-bundle.mjs tests/unit/rendering/prepared-country-scene.test.mjs tests/unit/data/builtin-mesh-resource.test.mjs tests/unit/rendering/gpu-country-mesh-variants.test.mjs tests/browser/rendering/country-prepared-scene.spec.mjs docs/superpowers/plans/2026-11-08-prepared-country-scene.md config/library-data.json .github/workflows/stage0-mesh-workbench.yml
+          rm .github/workflows/stage0-mesh-workbench.yml tools/stage0-workbench-fix.mjs
+          git add src/rendering/country-mesh-codec.js src/rendering/country-mesh-preparation.js src/rendering/country-mesh-content-key.js src/data/world-bundle-manifest.js src/data/builtin-mesh-resource.js src/data/workers/data-loader-worker.js src/rendering/gpu-map-renderer.js src/app/viewer-map.js tools/build/build-prepared-country-scene.mjs tools/build/build-world-bundle.mjs tests/unit/rendering/prepared-country-scene.test.mjs tests/unit/data/builtin-mesh-resource.test.mjs tests/unit/rendering/gpu-country-mesh-variants.test.mjs tests/browser/rendering/country-prepared-scene.spec.mjs docs/superpowers/plans/2026-11-08-prepared-country-scene.md config/library-data.json .github/workflows/stage0-mesh-workbench.yml tools/stage0-workbench-fix.mjs
           git diff --cached --check
           git -c user.name='Pando rendering workbench' -c user.email='rendering@users.noreply.github.com' commit -m 'perf(render): load verified precomputed initial country mesh and boundaries'
           git push origin HEAD:refs/heads/work/optimization
