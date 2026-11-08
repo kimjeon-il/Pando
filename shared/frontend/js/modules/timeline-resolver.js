@@ -58,7 +58,7 @@ export function resolveWorld(identities, records, geometries, month) {
     const row = {
       id: result.objectRef.id,
       objectRef: Object.freeze(result.objectRef),
-      identity: projectTimelineIdentity(freeze(structuredClone(identityById.get(timelineObjectKey(result.objectRef)))), result.properties),
+      identity: freeze(projectTimelineIdentity(structuredClone(identityById.get(timelineObjectKey(result.objectRef))), result.properties)),
       geometryRef: Object.freeze(result.geometryRef),
       geometry: geometries.get(result.geometryRef),
       parentId: result.parentId,

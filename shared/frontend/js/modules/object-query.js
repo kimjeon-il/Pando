@@ -3,6 +3,17 @@ import { temporalContains,temporalMonthEnd } from './temporal.js';
 import { effectiveTerritorialFlagUrl } from './country-flags.js';
 import { placeLabelRowsAtMonth } from './place-name-display.js';
 export function createObjectQuery(dependencies) {
+  // Cursor-only changes invalidate this small clock cache; object membership
+  // remains owned by the authoritative document and presentation domains.
+  let lastMonth = null, lastMonthEnd = null;
+  function monthEnd() {
+    const month = dependencies.projectState.state.timelineCursor;
+    if (month !== lastMonth || lastMonthEnd === null) {
+      lastMonthEnd = temporalMonthEnd(month);
+      lastMonth = month;
+    }
+    return lastMonthEnd;
+  }
   function territorialEntityForRef(ref) {
     if (ref?.domain !== 'territorial') return null;
     const entity = dependencies.territorialModel.entityRepository.get(ref.id);
@@ -52,7 +63,7 @@ export function createObjectQuery(dependencies) {
     const ref=dependencies.selectionServices.normalizeObjectRef(value);
     const object=objectForRef(value);
     if(ref?.domain==='label'&&isBuiltinPlaceId(ref.id)&&object&&!placeLabelRowsAtMonth(object,dependencies.projectState.state.timelineCursor).length)return false;
-    return !!object && temporalContains(object.properties||object,temporalMonthEnd(dependencies.projectState.state.timelineCursor));
+    return !!object && temporalContains(object.properties||object,monthEnd());
   }
 
   const visibleTerritorialCount = () => dependencies.territorialModel.entityRepository.list()

@@ -12,6 +12,18 @@ const invalid = message => { throw Object.assign(new Error(message), { code: 'PL
 const sameCoordinates = (left,right) => Array.isArray(left) && Array.isArray(right)
   ? left.length===right.length && left.every((value,index) => sameCoordinates(value,right[index]))
   : Object.is(left,right);
+// Compare immutable display values without allocating a JSON string for every
+// country on every month transition. Property insertion order is irrelevant.
+function sameDisplayValue(left, right) {
+  if (Object.is(left, right)) return true;
+  if (!left || !right || typeof left !== 'object' || typeof right !== 'object') return false;
+  if (Array.isArray(left) !== Array.isArray(right)) return false;
+  if (Array.isArray(left)) return left.length === right.length
+    && left.every((item, index) => sameDisplayValue(item, right[index]));
+  const keys = Object.keys(left);
+  return keys.length === Object.keys(right).length
+    && keys.every(key => Object.hasOwn(right, key) && sameDisplayValue(left[key], right[key]));
+}
 function freeze(value) {
   if (value && typeof value === 'object' && !Object.isFrozen(value)) {
     for (const child of Object.values(value)) freeze(child);
@@ -30,6 +42,7 @@ export function createCoreDocumentReadModel(initialProject) {
   let project = freeze({ ...initial, geometries: geometries.snapshot() });
   let provenance = null;
   let world = null;
+  let worldSourceProject = null;
   let territorialViews = Object.freeze([]);
   let hydroViews = Object.freeze([]);
   function acceptLoadedProject(value) {
@@ -46,6 +59,7 @@ export function createCoreDocumentReadModel(initialProject) {
     geometries=nextGeometries;
     provenance=null;
     world=null;
+    worldSourceProject=null;
     territorialViews=Object.freeze([]);hydroViews=Object.freeze([]);
     return project;
   }
@@ -68,6 +82,7 @@ export function createCoreDocumentReadModel(initialProject) {
       { code: 'PL-CORE-STALE', name: 'AbortError', cancelled: true });
     const identities = new Map([...sourceProject.territorialEntities.map(identity=>[timelineObjectKey({domain:'territorial',id:identity.id}),identity]),...sourceProject.hydroEdits.map(identity=>[timelineObjectKey({domain:'hydro',id:identity.id}),identity])]), byId = new Map();
     const referenceDate=temporalMonthEnd(world.month);
+    const previousWorld = !detached && worldSourceProject === sourceProject ? world : null;
     const rows = world.entities.map(row => {
       const identity = identities.get(timelineObjectKey(row.objectRef)), geometry = sourceGeometries.get(row.geometryRef);
       if (!identity || !geometry || byId.has(timelineObjectKey(row.objectRef)) || !Array.isArray(row.ancestors))
@@ -75,18 +90,29 @@ export function createCoreDocumentReadModel(initialProject) {
       for (const field of ['parentId','coverageMode','validFrom','validTo','rootId'])
         if (!Object.hasOwn(row, field)) invalid(`Required C++ world field is missing: ${field}`);
       if (!row.properties || typeof row.properties !== 'object') invalid('C++ temporal property projection is required.');
-      const temporalIdentity=projectTimelineIdentity(identity,row.properties);
-      // A complete builtin project no longer rewrites a source-version field
-      // when assembling each month. Derive it from the Core-selected geometry
-      // and the unmodified original interval on this read-only projection.
-      const bindings=temporalIdentity.properties?.metadata?.historicalTimeline?.geometryBindings;
+      // Identity and geometry are from the unchanged, immutable source snapshot.
+      // Reuse a resolved row when only the cursor changed, not its visible data.
+      const bindings=identity.properties?.metadata?.historicalTimeline?.geometryBindings;
       const sourceBinding=Array.isArray(bindings)?bindings.find(binding=>
         binding.geometryRef?.id===row.geometryRef.id
         && binding.geometryRef?.version===row.geometryRef.version
         && temporalContains(binding,referenceDate)):null;
+      const sourceVersion=sourceBinding?.sourceVersionId||'';
+      const prior=previousWorld?.byId?.getObject?.(row.objectRef);
+      if(prior && prior.geometry===geometry
+        && prior.identity?.properties?.sourceGeometryVersion === sourceVersion
+        && ['parentId','coverageMode','validFrom','validTo','rootId'].every(field=>prior[field]===row[field])
+        && sameDisplayValue(prior.geometryRef,row.geometryRef)
+        && sameDisplayValue(prior.ancestors,row.ancestors)
+        && sameDisplayValue(prior.rendering,row.rendering)
+        && sameDisplayValue(prior.properties,row.properties)) {
+        byId.set(timelineObjectKey(row.objectRef),prior);
+        return prior;
+      }
+      const temporalIdentity=projectTimelineIdentity(identity,row.properties);
       const datedIdentity=Array.isArray(bindings)&&sourceBinding
         ?freeze({...temporalIdentity,properties:{...temporalIdentity.properties,
-          sourceGeometryVersion:sourceBinding.sourceVersionId||''}}):temporalIdentity;
+          sourceGeometryVersion:sourceVersion}}):temporalIdentity;
       const effectiveIdentity=row.objectRef.domain==='hydro'
         ?freeze({...datedIdentity,properties:{...datedIdentity.properties,...row.rendering}}):datedIdentity;
       const projected = freeze({ ...structuredClone(row), id:row.objectRef.id, identity:effectiveIdentity, geometry });
@@ -106,7 +132,7 @@ export function createCoreDocumentReadModel(initialProject) {
     const previous=new Map((world?.entities || []).filter(row=>row.objectRef.domain===domain).map((row,index) => [row.id,{ row,view: oldViews[index] }]));
     const nextViews=Object.freeze(nextWorld.entities.filter(row=>row.objectRef.domain===domain).map(row => {
       const prior=previous.get(row.id);
-      if (prior && (prior.row.identity===row.identity || (prior.row.identity.id===row.identity.id && JSON.stringify(prior.row.identity.properties)===JSON.stringify(row.identity.properties))) && prior.row.geometry===row.geometry
+      if (prior && (prior.row.identity===row.identity || (prior.row.identity.id===row.identity.id && sameDisplayValue(prior.row.identity.properties,row.identity.properties))) && prior.row.geometry===row.geometry
         && ['parentId','coverageMode','validFrom','validTo'].every(field => prior.row[field]===row[field])) return prior.view;
       if(domain==='hydro')return freeze({...row.identity,geometry:row.geometry});
       return freeze({ ...row.identity,geometry: row.geometry,properties: { ...row.identity.properties,
@@ -119,6 +145,7 @@ export function createCoreDocumentReadModel(initialProject) {
     const nextViews=viewsForWorld(nextWorld);
     const nextHydroViews=viewsForWorld(nextWorld,'hydro');
     world=nextWorld;
+    worldSourceProject=project;
     territorialViews=nextViews;hydroViews=nextHydroViews;
     return nextWorld;
   }
