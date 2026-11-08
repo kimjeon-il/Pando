@@ -1,27 +1,13 @@
-import { describe as contractSuite } from 'node:test';
-import * as __source_dep0 from "node:assert/strict";
-import * as __source_dep1 from "node:fs";
-import * as __source_dep2 from "node:os";
-import * as __source_dep3 from "node:path";
-import * as __source_dep4 from "node:test";
-import * as __source_dep5 from "../../tools/gis/baikonur-official-reference.mjs";
-import * as __source_dep6 from "../../tools/gis/baikonur-2019-exclusions.mjs";
-import * as __source_dep7 from "../../tools/gis/validate-baikonur-independent-banks.mjs";
-import * as __source_dep8 from "../../tools/gis/verify-baikonur-lease-exclusions.mjs";
-import * as __source_dep9 from "../../tools/gis/baikonur-independent-lease-candidate.mjs";
-contractSuite("gis-baikonur-reference", () => {
-const assert = __source_dep0.default;
-const { mkdtempSync, readFileSync, rmSync } = __source_dep1;
-const { tmpdir } = __source_dep2;
-const { join } = __source_dep3;
-const test = __source_dep4.default;
-const { ANCHORS, UNRESOLVED_BANKS, decimalDegrees, baikonurReference, writeReference } = __source_dep5;
-
-
-
-
-
-
+import assert from 'node:assert/strict';
+import {mkdtempSync, readFileSync, rmSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import test from 'node:test';
+import {ANCHORS, UNRESOLVED_BANKS, decimalDegrees, baikonurReference, writeReference} from '../../tools/gis/baikonur-official-reference.mjs';
+import {BAIKONUR_2019_EXCLUSIONS, BAIKONUR_2019_EFFECTIVE, parseOfficialFractionalDms, baikonur2019Exclusions} from '../../tools/gis/baikonur-2019-exclusions.mjs';
+import {validateBaikonurBankCandidate} from '../../tools/gis/validate-baikonur-independent-banks.mjs';
+import {verifyBaikonurLeaseExclusionSource, EFFECTIVE_DATE} from '../../tools/gis/verify-baikonur-lease-exclusions.mjs';
+import {makeBaikonurIndependentCandidate, polygonSelfCrossings, approximatePlanarAreaKm2} from '../../tools/gis/baikonur-independent-lease-candidate.mjs';
 
 test('treaty reference preserves 31 verified anchors and 29 unambiguous straight segments',()=>{
  const result=baikonurReference(),anchors=result.features.filter(x=>x.properties.kind==='official-anchor'),
@@ -59,13 +45,6 @@ test('output is write-once and --check never modifies the original',t=>{
  assert.equal(readFileSync(file,'utf8'),before);
  assert.throws(()=>writeReference(file),/EEXIST/);
 });
-});
-contractSuite("gis-baikonur-2019-exclusions", () => {
-const assert = __source_dep0.default;
-const test = __source_dep4.default;
-const { BAIKONUR_2019_EXCLUSIONS, BAIKONUR_2019_EFFECTIVE, parseOfficialFractionalDms, baikonur2019Exclusions } = __source_dep6;
-
-
 
 test('official 2019 exclusion polygons preserve 4/21/9/7 points',()=>{
   assert.deepEqual(Object.fromEntries(Object.entries(BAIKONUR_2019_EXCLUSIONS)
@@ -101,15 +80,6 @@ test('closed polygons keep per-object provenance and effective dates',()=>{
     assert.equal(feature.properties.geometryStatus,'research-only-unvalidated-topology');
   }
 });
-});
-contractSuite("gis-baikonur-independent-bank-validator", () => {
-const test = __source_dep4.default;
-const assert = __source_dep0.default;
-const { validateBaikonurBankCandidate } = __source_dep7;
-const { ANCHORS, decimalDegrees } = __source_dep5;
-const { verifyBaikonurLeaseExclusionSource, EFFECTIVE_DATE } = __source_dep8;
-
-
 
 test('missing candidate is rejected',()=>{
   assert.throws(()=>validateBaikonurBankCandidate(null),/FeatureCollection/);
@@ -182,16 +152,6 @@ test('a declaration alone is never accepted without both independent riverbank l
   assert.throws(()=>validateBaikonurBankCandidate(c),
     /Both independently surveyed Syr Darya bank reaches/);
 });
-});
-contractSuite("gis-baikonur-independent-lease-candidate", () => {
-const assert = __source_dep0.default;
-const test = __source_dep4.default;
-const { ANCHORS, decimalDegrees } = __source_dep5;
-const { makeBaikonurIndependentCandidate, polygonSelfCrossings, approximatePlanarAreaKm2 } = __source_dep9;
-
-
-
-
 
 const anchor=n=>[decimalDegrees(ANCHORS[n-1][1]),decimalDegrees(ANCHORS[n-1][0])];
 function syntheticBank(from,to){
@@ -247,5 +207,4 @@ test('segment-crossing diagnosis distinguishes crossing from shared endpoints',(
  assert.equal(polygonSelfCrossings(v),1);
  const square=[[0,0],[0,4],[4,4],[4,0],[0,0]];
  assert.equal(polygonSelfCrossings(square),0);
-});
 });
