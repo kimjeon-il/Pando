@@ -397,15 +397,8 @@ test('transport accepts a visually identical older scheduled frame but rejects w
   channel.terminate();
 });
 
-test('renderer binds Canvas bitmap admission to its picture key and commits the latest coordinator frame',()=>{
-  const source=readFileSync(new URL('../../shared/frontend/js/modules/gpu-map-renderer.js',import.meta.url),'utf8');
-  assert.match(source,/presentationKey: currentCanvasPresentationKey\(frame\)/);
-  assert.match(source,/message\.presentationKey !== currentCanvasPresentationKey\(lastVisualFrame\)/);
-  assert.match(source,/canvasWorkerFrameMatchesPhysical\(message, getPhysicalContextState\(\)\)/);
-  assert.match(source,/frameId: Number\(presentedVisualFrame\.frameId\)/);
-  assert.doesNotMatch(source,/Number\(message\.frameId\) !== Number\(lastVisualFrame\?\.frameId\)/);
-});
-
+// Actual Canvas transport acceptance and frame-identity behavior are
+// exercised in gpu-canvas-worker and gpu-scene-staging runtime suites.
 test('Canvas admits only a pinned initial physical preview and never replaces authoritative land or temporal frames',()=>{
   const sourceRevision='b'.repeat(64),previewRevision='a'.repeat(64);
   const preview={geometry:{type:'MultiPolygon',coordinates:[]},revision:previewRevision,
@@ -449,25 +442,11 @@ test('background picture identity ignores coordinator churn but rejects changed 
     assert.notEqual(policy.canvasWorkerBackgroundPresentationKey(frame,{...input,...change}),id);
 });
 
-test('style and physical-style refresh the exact Canvas background certificate',()=>{
-  const src=readFileSync(new URL('../../shared/frontend/js/modules/gpu-map-renderer.js',import.meta.url),'utf8');
-  for(const start of ['function canvasWorkerStyleMessage()', 'function canvasWorkerPhysicalStyleMessage()']) {
-    const body=src.slice(src.indexOf(start),src.indexOf('\n    }',src.indexOf(start)));
-    assert.match(body,/backgroundPresentationKey: currentCanvasBackgroundKey\(lastVisualFrame\)/);
-  }
-});
-
-test('pending Canvas background requires no country overlays or temporal shortcut',()=>{
-  const src=readFileSync(new URL('../../shared/frontend/js/modules/gpu-map-renderer.js',import.meta.url),'utf8');
-  const start=src.indexOf('    function canvasWorkerStyleMessage() {'),end=src.indexOf('    function canvasWorkerPhysicalStyleMessage()',start);
-  const style=src.slice(start,end);
-  assert.match(style,/backgroundOnly = surfacePresentation\.quality === 'pending'/);
-  assert.match(style,/backgroundOnly \? \[\] : canvasSceneStrokes\(\)/);
-  assert.match(style,/backgroundOnly \? \[\] : renderInteractionState\.genericFillItems/);
-  assert.match(src,/function canvasBackgroundEligible\(message\)[\s\S]*?message\?\.backgroundOnly === true[\s\S]*?!temporalPending\(\)/);
-  assert.match(src,/if \(canvasBackgroundEligible\(message\)\)/);
+// Background style certificates are exercised above with the real key API;
+// exact temporal/partial background admission is covered in this suite.
 });
 });
+contractSuite("canvas-terrain-dem-core", () => {});
 });
 contractSuite("canvas-terrain-dem-core", () => {
 const test = __canvas_dep0.default;

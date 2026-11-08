@@ -253,11 +253,7 @@ const { readFileSync } = __dep7;
 const { fixture } = __dep8;
 const { auditSharedGpuPassInitialization } = __dep9;
 
-test('renderer architecture accepts current scheduled shared GPU initialization',()=>{
-  const source=readFileSync(new URL('../../shared/frontend/js/modules/gpu-map-renderer.js',import.meta.url),'utf8');
-  assert.deepEqual(auditSharedGpuPassInitialization(source),[]);
-});
-
+// The renderer's structural boundary is checked by check-renderer-v2.
 test('shared initialization architecture rejects another device, copied resources, unawaited calls and ignored failures',()=>{
   const polygon="if (await enqueue('polygon', () => polygonOverlayPass.initialize(entry.device)) !== true) throw Error('polygon');";
   const stroke="if (await strokeRenderer.initializeProgressively(entry.device, enqueue) !== true) throw Error('stroke');";

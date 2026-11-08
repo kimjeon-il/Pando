@@ -14,6 +14,7 @@ import * as __render_dep11 from "../../shared/frontend/js/modules/selection-pass
 import * as __render_dep12 from "../../shared/frontend/js/modules/gpu-interaction-pass.js";
 import "../../shared/frontend/js/workers/canvas-scene-composition-core.js";
 import { canDrawTerrainTiles } from "../../shared/frontend/js/modules/map-render-publication.js";
+import { canSubmitCountryIndices } from "../../shared/frontend/js/modules/gpu-country-ranges.js";
 const assert = __render_dep0.default;
 const test = __render_dep1.default;
 const { readFileSync } = __render_dep2;
@@ -24,15 +25,12 @@ const { createObjectPicking } = __render_dep6;
 const { normalizeObjectRef } = __render_dep7;
 const { layerObjectRank, OVERLAY_GROUPS } = __render_dep8;
 
-test('culled or empty indexed country passes issue no redundant GL state changes', () => {
-  const source=readFileSync(new URL('../../shared/frontend/js/modules/gpu-map-renderer.js',import.meta.url),'utf8');
-  const start=source.indexOf('    function drawProgram('),end=source.indexOf('    function hydroLineParts(',start);
-  assert.ok(start>0&&end>start);
-  const gl=new Proxy({}, {get(){throw Error('empty index submission touched GL state')}});
-  const draw=new Function('gl','paletteTexture',source.slice(start,end)+';return drawProgram;')(gl,null);
-  assert.equal(draw('fill',null,null,0,0,null,null,null,null,null),null);
-  assert.equal(draw('fill',null,null,30,0,null,null,null,null,[]),null);
-  assert.equal(draw('fill',null,null,30,0,null,null,null,null,[{first:0,count:0}]),null);
+test('empty country index ranges cannot submit a WebGL draw',()=>{
+  assert.equal(canSubmitCountryIndices(0),false);
+  assert.equal(canSubmitCountryIndices(30,[]),false);
+  assert.equal(canSubmitCountryIndices(30,[{first:0,count:0}]),false);
+  assert.equal(canSubmitCountryIndices(30,[{first:0,count:3}]),true);
+  assert.equal(canSubmitCountryIndices(30,null),true);
 });
 
 for (const style of ['political', 'physical']) {
