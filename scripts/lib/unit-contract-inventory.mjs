@@ -52,7 +52,7 @@ export function auditGisUnitConsolidation(repository,
   const active = new Set(repository.tests.filter(path => path.startsWith('tests/unit/')));
   const errors = [];
   for (const [retired, owner] of Object.entries(manifest.owners)) {
-    if (!/^[\\w.-]+\\.test\\.mjs$/.test(retired) || !/^[\\w.-]+\\.test\\.mjs$/.test(owner)) {
+    if (!/^[\w.-]+\.test\.mjs$/.test(retired) || !/^[\w.-]+\.test\.mjs$/.test(owner)) {
       errors.push({retired, owner, reason: 'invalid unit identity'});
       continue;
     }
