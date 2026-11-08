@@ -8,7 +8,7 @@
 Node·Git·브라우저와 검증된 Windows 실행 파일만 필요하다. Android 앱·ADB·SDK·NDK
 빌드는 중단되었고, 모바일 기능은 웹 브라우저에서 제공한다. SDK 자동 설치와 로컬 컴파일 fallback은 없다. 세부 사용법은 apps/editor/README.md를 따른다.
 
-`node tools/worktree-storage.mjs --disable-local-compiler`는 활성 빌드를 거부하고,
+`node tools/data/worktree-storage.mjs --disable-local-compiler`는 활성 빌드를 거부하고,
 소유한 sccache 서버만 확인 후 종료한다. 공통 Git의 pando-storage.json에 compilerEnabled=false를
 기록한다. 이 상태에서 --compiler-config는 active:false, --compiler-env는 빈 객체다.
 App staging·native artifact·라이브러리의 불변 blob 공유는 계속 동작하며 삭제된 wrapper를
@@ -20,10 +20,10 @@ App staging·native artifact·라이브러리의 불변 blob 공유는 계속 �
 ```powershell
 ./tools/cleanup-reference-analysis-caches.ps1 -WorktreeStorageOnly
 ./tools/cleanup-reference-analysis-caches.ps1 -WorktreeStorageOnly -Apply
-node tools/worktree-storage.mjs --prune-blobs
-node tools/worktree-storage.mjs --prune-blobs --apply
-node tools/worktree-storage.mjs --share-retired-qt
-node tools/worktree-storage.mjs --share-retired-qt --apply
+node tools/data/worktree-storage.mjs --prune-blobs
+node tools/data/worktree-storage.mjs --prune-blobs --apply
+node tools/data/worktree-storage.mjs --share-retired-qt
+node tools/data/worktree-storage.mjs --share-retired-qt --apply
 ```
 
 미리보기는 source evidence의 SHA-256/크기와 실제 stage 파일을 비교한다. 적용은 전용 storage lock과 각 App stage writer lock을 유지하고 파일 ID·hash를 재검사한다. stage 증거와 다른 파일은 private/unfinished로 보존한다. 중단 시 `migration.pending.json`을 보존하고 동일 `--apply` 또는 `--resume`으로 재개한다. 원본 바이트는 pool 검증 후에만 교체한다. 다른 작업의 잠금은 제거하지 않는다.
@@ -41,11 +41,11 @@ unreferenced App blob 정리는 알려진 pool 내부의 SHA-256과 크기를 �
 ## 종료된 생성물 삭제
 
 ```powershell
-node tools/worktree-storage.mjs --retire-generated=requests.json --output=manifest.json
-node tools/worktree-storage.mjs --retire-generated=manifest.json --apply --output=result.json
+node tools/data/worktree-storage.mjs --retire-generated=requests.json --output=manifest.json
+node tools/data/worktree-storage.mjs --retire-generated=manifest.json --apply --output=result.json
 ./tools/cleanup-reference-analysis-caches.ps1 -WorktreeStorageOnly -RetireGeneratedManifest manifest.json -Apply
-node tools/worktree-storage.mjs --retire-qt-runtimes --apply --output=retired-qt.json
-node tools/worktree-storage.mjs --compact-git --apply --output=git-compaction.json
+node tools/data/worktree-storage.mjs --retire-qt-runtimes --apply --output=retired-qt.json
+node tools/data/worktree-storage.mjs --compact-git --apply --output=git-compaction.json
 ```
 
 요청의 각 항목은 상설 worktree `root`, 허용된 생성물 `path`, 명시적인 `action` (`delete` 또는 `relocate`), 생산자/복구 근거 `reason`을 포함한다. 재배치는 승인된 공유 toolchain 또는 선택된 라이브러리 증거 범위의 `destination`을 지정한다. 적용은 요청을 다시 해석하지 않고 정확한 미리보기 명세의 해시·파일 ID를 확인한다. 소스와 미추적 WIP, junction, 실행 중 Cargo/Gradle/native/browser 작업은 보호한다. `generated-retirement.pending.json`이 남으면 동일 명세로 재개한다. 완료 cursor와 직전 작업만 journal에 보관하며 파일 전체 백업은 만들지 않는다.
@@ -61,8 +61,8 @@ CMake와 Emscripten 버전은 config/toolchain-versions.json을 기준으로 CI�
 Windows 검수기 및 공통 C++/WASM 검증 후 로컬 compiler를 비활성화한 상태에서만 다음 범위를 허용한다.
 
 ```powershell
-node tools/worktree-storage.mjs --retire-generated=requests.json --retire-compilers --output=manifest.json
-node tools/worktree-storage.mjs --retire-generated=manifest.json --retire-compilers --apply --output=result.json
+node tools/data/worktree-storage.mjs --retire-generated=requests.json --retire-compilers --output=manifest.json
+node tools/data/worktree-storage.mjs --retire-generated=manifest.json --retire-compilers --apply --output=result.json
 ```
 
 고정된 Pando toolchain과 종료된 target/CMake/Emscripten 출력만 현재 개발 범위다. 과거 Android SDK/AVD 정리 규칙은 **사용자가 별도 승인한 역사적 설치물 정리용**으로 남겨두며, R2는 실제 로컬 파일을 자동 삭제하지 않는다.

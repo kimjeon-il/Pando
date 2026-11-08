@@ -5,7 +5,7 @@ import {resolve,join} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {chromium,expect} from '@playwright/test';
 import {projectCountryBoundaryMessage} from './w2-p6-2-project-country-feature.mjs';
-import {prepareLibraryData} from './library-data.mjs';
+import {prepareLibraryData} from "./data/library-runtime.mjs";
 
 const PIN='fe8282ba32761ab9586348d1712e11cc1f4e7882';
 const DATA='5eb7be55208efaafe39bd5a65ec2f111d70b9053';

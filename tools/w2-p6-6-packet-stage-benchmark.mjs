@@ -8,7 +8,7 @@ import { pathToFileURL } from 'node:url';
 
 const mode = process.argv[2];
 const destination = resolve(process.env.PANDO_P66_OUTPUT || 'test-results/w2-p6-6');
-const cppFile = resolve('shared/wasm/boundary-bindings.cpp');
+const cppFile = resolve('src/geometry/native/bindings/boundary-bindings.cpp');
 const makeDir = () => mkdirSync(destination, {recursive:true});
 const sha256 = input => createHash('sha256').update(input).digest('hex');
 const once = (source,anchor,replacement) => {
@@ -44,7 +44,7 @@ if(mode==='patch') {
     '        return result;');
   makeDir();
   writeFileSync(destination+'/patch-provenance.json',JSON.stringify({
-    source:'shared/wasm/boundary-bindings.cpp',originalSha256:sha256(original),
+    source:'src/geometry/native/bindings/boundary-bindings.cpp',originalSha256:sha256(original),
     injectedSha256:sha256(s),testOnly:true,actualProductFileChanged:false,
     notice:'Source is modified transiently inside the CI checkout for diagnostic compilation only.'
   },null,2)+'\n',{flag:'wx'});

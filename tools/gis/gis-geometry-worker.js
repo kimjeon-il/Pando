@@ -1,10 +1,10 @@
 'use strict';
-const rpcHostUrl = new URL('../../shared/frontend/js/workers/worker-rpc-host.js', self.location.href);
+const rpcHostUrl = new URL('../../src/rendering/workers/worker-rpc-host.js', self.location.href);
 const revision = new URL(self.location.href).searchParams.get('v');
 if (revision) rpcHostUrl.searchParams.set('v', revision);
-importScripts(new URL('../../shared/frontend/js/modules/polygon-clipping-core.js', self.location.href).href, rpcHostUrl.href);
+importScripts(new URL('../../src/geometry/polygon-clipping-core.js', self.location.href).href, rpcHostUrl.href);
 let dependencies;
-const ready = () => dependencies ||= import("../../shared/frontend/js/modules/temporal.js").then(async ({ sharedCalculationCore }) => {
+const ready = () => dependencies ||= import("../../src/document/temporal.js").then(async ({ sharedCalculationCore }) => {
   self.PandoLabSphericalCore = sharedCalculationCore;
   return import('./geometry-validation.js');
 });

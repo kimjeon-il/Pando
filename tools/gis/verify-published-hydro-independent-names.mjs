@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { readHydroMetadataSection } from '../inventory-osm-hydronyms.mjs';
+import { readHydroMetadataSection } from "./inventory-osm-hydronyms.mjs";
 import { validateIndependentHydronyms } from './hydro-independent-name-policy.mjs';
 
 const hash = value => createHash('sha256').update(value).digest('hex');

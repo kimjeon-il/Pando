@@ -11,9 +11,9 @@ on:
       - 'assets/js/modules/gis-workflow-controller.js'
       - 'assets/js/modules/import-service.js'
       - 'assets/js/workers/gis-geometry-worker.js'
-      - 'tests/unit/gis-geometry-worker.test.mjs'
-      - 'tests/unit/territorial-entity-repository.test.mjs'
-      - 'tests/browser/viewer-calendar.spec.mjs'
+      - 'tests/unit/geometry/gis-geometry-worker.test.mjs'
+      - 'tests/unit/document/territorial-entity-repository.test.mjs'
+      - 'tests/browser/document/viewer-calendar.spec.mjs'
   workflow_dispatch:
 permissions:
   contents: write
@@ -39,9 +39,9 @@ jobs:
       - name: Check original GIS math, affected-region validation and atomic Undo
         run: >-
           node --test --test-concurrency=1
-          tests/unit/gis-geometry-worker.test.mjs
-          tests/unit/r4c-spatial-boundaries.test.mjs
-          tests/unit/territorial-entity-repository.test.mjs
+          tests/unit/geometry/gis-geometry-worker.test.mjs
+          tests/unit/geometry/r4c-spatial-boundaries.test.mjs
+          tests/unit/document/territorial-entity-repository.test.mjs
       - name: Stage current code-matched immutable browser Worker runtime
         run: |
           node scripts/generate-build-metadata.mjs
@@ -51,7 +51,7 @@ jobs:
       - name: Verify actual 1991 Soviet import, undo, redo, autosave and reopen
         env:
           PANDOLAB_BROWSER_CHANNEL: chromium
-        run: pnpm exec playwright test tests/browser/viewer-calendar.spec.mjs --workers=1 --retries=0 --trace off
+        run: pnpm exec playwright test tests/browser/document/viewer-calendar.spec.mjs --workers=1 --retries=0 --trace off
       - name: Publish only verified source-matched runtime on work/objects
         shell: bash
         run: |

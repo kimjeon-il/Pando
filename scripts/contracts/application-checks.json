@@ -5,27 +5,27 @@
       "id": "frontend-layout",
       "kind": "unit",
       "testPatterns": [
-        "tests/unit/frontend-*.test.mjs",
-        "tests/unit/library-runtime-prefetch.test.mjs"
+        "tests/unit/**/frontend-*.test.mjs",
+        "tests/unit/data/library-runtime-prefetch.test.mjs"
       ],
       "inputs": [
-        "apps/viewer/**",
-        "shared/frontend/**",
+        "src/**",
+        "src/**",
         "scripts/lib/frontend-*.mjs",
         "scripts/frontend-dev-server.mjs",
-        "tools/worktree-storage.mjs"
+        "tools/data/worktree-storage.mjs"
       ]
     },
     {
       "id": "place-contracts",
       "kind": "unit",
       "testPatterns": [
-        "tests/unit/place-*.test.mjs"
+        "tests/unit/**/place-*.test.mjs"
       ],
       "inputs": [
-        "shared/frontend/js/modules/place-*.js",
-        "apps/viewer/js/modules/place-*.js",
-        "shared/frontend/js/modules/territorial-labels.js",
+        "src/**/place-*.js",
+        "src/**/place-*.js",
+        "src/rendering/territorial-labels.js",
         "assets/data/places/**"
       ]
     },
@@ -33,13 +33,16 @@
       "id": "project-file-contracts",
       "kind": "unit",
       "testPatterns": [
-        "tests/unit/map-plugin-cutover.test.mjs",
-        "tests/unit/map-plugin-hydro-history.test.mjs",
-        "tests/unit/qgis-pando-exchange.test.mjs"
+        "tests/unit/data/file-access-contract.test.mjs",
+        "tests/unit/data/p6-project-persistence.test.mjs",
+        "tests/unit/document/timeline-geopackage.test.mjs",
+        "tests/unit/geometry/qgis-pando-exchange.test.mjs"
       ],
       "inputs": [
-        "shared/frontend/js/modules/generic-feature-*.js",
-        "shared/frontend/js/modules/project-domain.js"
+        "src/**/generic-feature-*.js",
+        "src/document/project-domain.js",
+        "src/document/project-state.js",
+        "src/**/workers/gpkg-*.js"
       ]
     },
     {
@@ -48,13 +51,13 @@
       "mode": "manual",
       "reason": "Controlled performance, attribution, or external remote-preview environment. Run the named spec explicitly with its existing workflow prerequisites.",
       "testPatterns": [
-        "tests/browser/soviet-*.spec.mjs",
-        "tests/browser/*-benchmark.spec.mjs",
-        "tests/browser/*-memory.spec.mjs",
-        "tests/browser/performance-*.spec.mjs",
-        "tests/browser/canvas-globe-performance.spec.mjs",
-        "tests/browser/p3-remote-preview.spec.mjs",
-        "tests/browser/codespaces-live.spec.mjs"
+        "tests/browser/**/soviet-*.spec.mjs",
+        "tests/browser/**/*-benchmark.spec.mjs",
+        "tests/browser/**/*-memory.spec.mjs",
+        "tests/browser/**/performance-*.spec.mjs",
+        "tests/browser/rendering/canvas-globe-performance.spec.mjs",
+        "tests/browser/runtime/p3-remote-preview.spec.mjs",
+        "tests/browser/document/codespaces-live.spec.mjs"
       ],
       "inputs": []
     },
@@ -62,15 +65,15 @@
       "id": "object-contracts",
       "kind": "unit",
       "testPatterns": [
-        "tests/unit/object-*.test.mjs",
-        "tests/unit/territorial-*.test.mjs",
-        "tests/unit/project-*.test.mjs",
-        "tests/unit/temporal*.test.mjs",
-        "tests/unit/timeline*.test.mjs",
-        "tests/unit/generic-*.test.mjs",
-        "tests/unit/distribution-*.test.mjs",
-        "tests/unit/core-*.test.mjs",
-        "tests/unit/web-*.test.mjs"
+        "tests/unit/**/object-*.test.mjs",
+        "tests/unit/**/territorial-*.test.mjs",
+        "tests/unit/**/project-*.test.mjs",
+        "tests/unit/**/temporal*.test.mjs",
+        "tests/unit/**/timeline*.test.mjs",
+        "tests/unit/**/generic-*.test.mjs",
+        "tests/unit/**/distribution-*.test.mjs",
+        "tests/unit/**/core-*.test.mjs",
+        "tests/unit/**/web-*.test.mjs"
       ],
       "inputs": []
     },
@@ -78,10 +81,10 @@
       "id": "ussr-partition-native",
       "kind": "command",
       "testPatterns": [
-        "tests/unit/gis-ussr-1922-partition-native.test.mjs"
+        "tests/unit/geometry/gis-ussr-1922-partition-native.test.mjs"
       ],
       "inputs": [
-        "tests/unit/gis-ussr-1922-partition-native.test.mjs",
+        "tests/unit/geometry/gis-ussr-1922-partition-native.test.mjs",
         "tools/cpp/build-territorial-recipe.cpp",
         "tools/cpp/historical-ussr-partition-audit.inc",
         "tools/cpp/CMakeLists.txt"
@@ -96,20 +99,20 @@
       "id": "gis-contracts",
       "kind": "unit",
       "testPatterns": [
-        "tests/unit/gis-*.test.mjs",
-        "tests/unit/polygon-*.test.mjs",
-        "tests/unit/hydro-*.test.mjs",
-        "tests/unit/terrain-*.test.mjs",
-        "tests/unit/physical-land*.test.mjs",
-        "tests/unit/country-*.test.mjs",
-        "tests/unit/boundary-*.test.mjs",
-        "tests/unit/lsib-*.test.mjs",
-        "tests/unit/prepared-*.test.mjs",
-        "tests/unit/river-territory-*.test.mjs",
-        "tests/unit/map-geometry-validation.test.mjs",
-        "tests/unit/historical-german-*.test.mjs",
-        "tests/unit/historical-display-review.test.mjs",
-        "tests/unit/historical-source-*.test.mjs"
+        "tests/unit/**/gis-*.test.mjs",
+        "tests/unit/**/polygon-*.test.mjs",
+        "tests/unit/**/hydro-*.test.mjs",
+        "tests/unit/**/terrain-*.test.mjs",
+        "tests/unit/**/physical-land*.test.mjs",
+        "tests/unit/**/country-*.test.mjs",
+        "tests/unit/**/boundary-*.test.mjs",
+        "tests/unit/**/lsib-*.test.mjs",
+        "tests/unit/**/prepared-*.test.mjs",
+        "tests/unit/**/river-territory-*.test.mjs",
+        "tests/unit/geometry/map-geometry-validation.test.mjs",
+        "tests/unit/**/historical-german-*.test.mjs",
+        "tests/unit/rendering/historical-display-review.test.mjs",
+        "tests/unit/**/historical-source-*.test.mjs"
       ],
       "inputs": []
     },
@@ -117,19 +120,19 @@
       "id": "shared-toolkit",
       "kind": "unit",
       "testPatterns": [
-        "tests/unit/shared-toolkit.test.mjs"
+        "tests/unit/runtime/shared-toolkit.test.mjs"
       ],
       "inputs": [
-        "tools/shared-toolkit.mjs",
-        "tools/package-shared-toolkit.mjs"
+        "tools/data/shared-toolkit.mjs",
+        "tools/build/package-shared-toolkit.mjs"
       ]
     },
     {
       "id": "shared-image-tools",
       "kind": "unit",
       "testPatterns": [
-        "tests/unit/map-native-pdf.test.mjs",
-        "tests/unit/map-native-preview.test.mjs"
+        "tests/unit/document/map-native-pdf.test.mjs",
+        "tests/unit/document/map-native-preview.test.mjs"
       ],
       "inputs": [
         "tools/map-image/**"
@@ -139,7 +142,7 @@
       "id": "units",
       "kind": "unit",
       "testPatterns": [
-        "tests/unit/*.test.mjs"
+        "tests/unit/**/*.test.mjs"
       ],
       "inputs": [],
       "requires": []
@@ -148,25 +151,25 @@
       "id": "terrain",
       "kind": "browser",
       "testPatterns": [
-        "tests/browser/terrain-*.spec.mjs"
+        "tests/browser/**/terrain-*.spec.mjs"
       ],
       "inputs": [
-        "shared/frontend/js/modules/terrain-*.js",
-        "apps/viewer/js/modules/terrain-*.js",
-        "shared/frontend/js/modules/physical-*.js",
-        "apps/viewer/js/modules/physical-*.js",
-        "shared/frontend/js/modules/gpu-terrain-*.js",
-        "apps/viewer/js/modules/gpu-terrain-*.js",
-        "shared/frontend/js/modules/gpu-base-scene-pass.js",
-        "shared/frontend/js/workers/canvas-terrain-*.js",
+        "src/**/terrain-*.js",
+        "src/**/terrain-*.js",
+        "src/**/physical-*.js",
+        "src/**/physical-*.js",
+        "src/**/gpu-terrain-*.js",
+        "src/**/gpu-terrain-*.js",
+        "src/rendering/gpu-base-scene-pass.js",
+        "src/**/workers/canvas-terrain-*.js",
         "apps/viewer/js/workers/canvas-terrain-*.js",
         "assets/data/terrain-*/**",
         "assets/data/physical-land/**",
-        "shared/frontend/js/workers/canvas-render-worker.js",
-        "shared/frontend/js/workers/canvas-scene-composition-core.js",
-        "shared/frontend/js/modules/gpu-scene.js",
-        "shared/frontend/js/modules/gpu-scene-preparation.js",
-        "shared/frontend/js/modules/gpu-map-renderer.js"
+        "src/rendering/workers/canvas-render-worker.js",
+        "src/rendering/workers/canvas-scene-composition-core.js",
+        "src/rendering/gpu-scene.js",
+        "src/rendering/gpu-scene-preparation.js",
+        "src/rendering/gpu-map-renderer.js"
       ],
       "requires": [
         "generated",
@@ -177,15 +180,15 @@
       "id": "boundaries",
       "kind": "browser",
       "testPatterns": [
-        "tests/browser/boundary-*.spec.mjs",
-        "tests/browser/territorial-boundary-*.spec.mjs"
+        "tests/browser/**/boundary-*.spec.mjs",
+        "tests/browser/**/territorial-boundary-*.spec.mjs"
       ],
       "inputs": [
-        "shared/frontend/js/modules/*boundary*.js",
-        "apps/viewer/js/modules/*boundary*.js",
-        "shared/frontend/js/modules/country-contact-core.js",
-        "shared/frontend/js/modules/country-stroke-preparation.js",
-        "shared/frontend/js/workers/*boundary*.js",
+        "src/**/*boundary*.js",
+        "src/**/*boundary*.js",
+        "src/geometry/country-contact-core.js",
+        "src/rendering/country-stroke-preparation.js",
+        "src/**/workers/*boundary*.js",
         "apps/viewer/js/workers/*boundary*.js"
       ],
       "requires": [
@@ -197,22 +200,22 @@
       "id": "rendering",
       "kind": "browser",
       "testPatterns": [
-        "tests/browser/canvas-*.spec.mjs",
-        "tests/browser/gpu-*.spec.mjs",
-        "tests/browser/country-*.spec.mjs",
-        "tests/browser/renderer-*.spec.mjs"
+        "tests/browser/**/canvas-*.spec.mjs",
+        "tests/browser/**/gpu-*.spec.mjs",
+        "tests/browser/**/country-*.spec.mjs",
+        "tests/browser/**/renderer-*.spec.mjs"
       ],
       "inputs": [
-        "shared/frontend/js/modules/gpu-*.js",
-        "apps/viewer/js/modules/gpu-*.js",
-        "shared/frontend/js/modules/map-display-*.js",
-        "apps/viewer/js/modules/map-display-*.js",
-        "shared/frontend/js/modules/render-*.js",
-        "apps/viewer/js/modules/render-*.js",
-        "shared/frontend/js/modules/map-visual-*.js",
-        "apps/viewer/js/modules/map-visual-*.js",
-        "shared/frontend/js/workers/canvas-render-worker.js",
-        "shared/frontend/js/workers/gpu-mesh-worker.js"
+        "src/**/gpu-*.js",
+        "src/**/gpu-*.js",
+        "src/**/map-display-*.js",
+        "src/**/map-display-*.js",
+        "src/**/render-*.js",
+        "src/**/render-*.js",
+        "src/**/map-visual-*.js",
+        "src/**/map-visual-*.js",
+        "src/rendering/workers/canvas-render-worker.js",
+        "src/rendering/workers/gpu-mesh-worker.js"
       ],
       "requires": [
         "generated",
@@ -223,28 +226,28 @@
       "id": "objects",
       "kind": "browser",
       "testPatterns": [
-        "tests/browser/annex-*.spec.mjs",
-        "tests/browser/generic-*.spec.mjs",
-        "tests/browser/territorial-*.spec.mjs",
-        "tests/browser/territory-*.spec.mjs",
-        "tests/browser/unified-object*.spec.mjs",
-        "tests/browser/subunit-*.spec.mjs",
-        "tests/browser/selection-*.spec.mjs",
-        "tests/browser/object-*.spec.mjs",
-        "tests/browser/temporal-*.spec.mjs",
-        "tests/browser/timeline-*.spec.mjs"
+        "tests/browser/**/annex-*.spec.mjs",
+        "tests/browser/**/generic-*.spec.mjs",
+        "tests/browser/**/territorial-*.spec.mjs",
+        "tests/browser/**/territory-*.spec.mjs",
+        "tests/browser/**/unified-object*.spec.mjs",
+        "tests/browser/**/subunit-*.spec.mjs",
+        "tests/browser/**/selection-*.spec.mjs",
+        "tests/browser/**/object-*.spec.mjs",
+        "tests/browser/**/temporal-*.spec.mjs",
+        "tests/browser/**/timeline-*.spec.mjs"
       ],
       "inputs": [
-        "shared/frontend/js/modules/object-*.js",
-        "apps/viewer/js/modules/object-*.js",
-        "shared/frontend/js/modules/territorial-*.js",
-        "apps/viewer/js/modules/territorial-*.js",
-        "shared/frontend/js/modules/generic-*.js",
-        "apps/viewer/js/modules/generic-*.js",
-        "shared/frontend/js/modules/distribution-*.js",
-        "apps/viewer/js/modules/distribution-*.js",
-        "shared/frontend/js/modules/selection-*.js",
-        "apps/viewer/js/modules/selection-*.js"
+        "src/**/object-*.js",
+        "src/**/object-*.js",
+        "src/**/territorial-*.js",
+        "src/**/territorial-*.js",
+        "src/**/generic-*.js",
+        "src/**/generic-*.js",
+        "src/**/distribution-*.js",
+        "src/**/distribution-*.js",
+        "src/**/selection-*.js",
+        "src/**/selection-*.js"
       ],
       "requires": [
         "generated",
@@ -255,18 +258,18 @@
       "id": "projects",
       "kind": "browser",
       "testPatterns": [
-        "tests/browser/project-*.spec.mjs"
+        "tests/browser/**/project-*.spec.mjs"
       ],
       "inputs": [
-        "shared/frontend/js/modules/project-*.js",
-        "apps/viewer/js/modules/project-*.js",
-        "shared/frontend/js/modules/app-file-*.js",
-        "apps/viewer/js/modules/app-file-*.js",
-        "shared/frontend/js/modules/app-project-*.js",
-        "apps/viewer/js/modules/app-project-*.js",
-        "shared/frontend/js/modules/core-document-*.js",
-        "apps/viewer/js/modules/core-document-*.js",
-        "shared/frontend/js/workers/project-*-worker.js",
+        "src/**/project-*.js",
+        "src/**/project-*.js",
+        "src/**/app-file-*.js",
+        "src/**/app-file-*.js",
+        "src/**/app-project-*.js",
+        "src/**/app-project-*.js",
+        "src/**/core-document-*.js",
+        "src/**/core-document-*.js",
+        "src/**/workers/project-*-worker.js",
         "apps/viewer/js/workers/project-*-worker.js"
       ],
       "requires": [
@@ -278,18 +281,18 @@
       "id": "viewer",
       "kind": "browser",
       "testPatterns": [
-        "tests/browser/viewer-*.spec.mjs",
-        "tests/browser/web-viewer.spec.mjs",
-        "tests/browser/shared-map-*.spec.mjs",
-        "tests/browser/shared-view*.spec.mjs"
+        "tests/browser/**/viewer-*.spec.mjs",
+        "tests/browser/document/web-viewer.spec.mjs",
+        "tests/browser/**/shared-map-*.spec.mjs",
+        "tests/browser/**/shared-view*.spec.mjs"
       ],
       "inputs": [
-        "apps/viewer/js/viewer.js",
-        "shared/frontend/js/modules/object-query.js",
-        "shared/frontend/js/modules/object-search-*.js",
-        "apps/viewer/js/modules/object-search-*.js",
-        "shared/frontend/js/modules/place-name-display.js",
-        "shared/frontend/js/modules/layer-presentation.js"
+        "src/app/viewer.js",
+        "src/document/object-query.js",
+        "src/**/object-search-*.js",
+        "src/**/object-search-*.js",
+        "src/ui/place-name-display.js",
+        "src/ui/layer-presentation.js"
       ],
       "requires": [
         "generated",
@@ -300,16 +303,16 @@
       "id": "hydro-gis",
       "kind": "browser",
       "testPatterns": [
-        "tests/browser/gis-*.spec.mjs",
-        "tests/browser/hydro-*.spec.mjs"
+        "tests/browser/**/gis-*.spec.mjs",
+        "tests/browser/**/hydro-*.spec.mjs"
       ],
       "inputs": [
         "shared/frontend/js/gis-*.js",
         "apps/viewer/js/gis-*.js",
-        "shared/frontend/js/modules/gis-*.js",
-        "apps/viewer/js/modules/gis-*.js",
-        "shared/frontend/js/modules/*hydro*.js",
-        "apps/viewer/js/modules/*hydro*.js",
+        "src/**/gis-*.js",
+        "src/**/gis-*.js",
+        "src/**/*hydro*.js",
+        "src/**/*hydro*.js",
         "assets/data/hydro/**"
       ],
       "requires": [
@@ -321,21 +324,21 @@
       "id": "ui",
       "kind": "browser",
       "testPatterns": [
-        "tests/browser/interaction-*.spec.mjs",
-        "tests/browser/mobile-*.spec.mjs",
-        "tests/browser/startup-*.spec.mjs",
-        "tests/browser/statusbar-*.spec.mjs",
-        "tests/browser/topbar-*.spec.mjs",
-        "tests/browser/ui-*.spec.mjs",
-        "tests/browser/info-*.spec.mjs"
+        "tests/browser/**/interaction-*.spec.mjs",
+        "tests/browser/**/mobile-*.spec.mjs",
+        "tests/browser/**/startup-*.spec.mjs",
+        "tests/browser/**/statusbar-*.spec.mjs",
+        "tests/browser/**/topbar-*.spec.mjs",
+        "tests/browser/**/ui-*.spec.mjs",
+        "tests/browser/**/info-*.spec.mjs"
       ],
       "inputs": [
-        "shared/frontend/css/**",
+        "src/ui/css/**",
         "apps/viewer/css/**",
-        "shared/frontend/js/modules/ui-*.js",
-        "apps/viewer/js/modules/ui-*.js",
-        "shared/frontend/js/modules/surface-*.js",
-        "apps/viewer/js/modules/surface-*.js"
+        "src/**/ui-*.js",
+        "src/**/ui-*.js",
+        "src/**/surface-*.js",
+        "src/**/surface-*.js"
       ],
       "requires": [
         "generated",
@@ -361,10 +364,10 @@
       "id": "worker-contracts",
       "kind": "command",
       "inputs": [
-        "shared/frontend/js/workers/**",
+        "src/**/workers/**",
         "apps/viewer/js/workers/**",
-        "shared/frontend/js/modules/worker-*.js",
-        "apps/viewer/js/modules/worker-*.js",
+        "src/**/worker-*.js",
+        "src/**/worker-*.js",
         "scripts/lib/worker-assets.mjs"
       ],
       "argv": [
@@ -378,10 +381,10 @@
       "id": "runtime-boundaries",
       "kind": "command",
       "inputs": [
-        "shared/frontend/js/modules/app-*.js",
-        "apps/viewer/js/modules/app-*.js",
-        "shared/frontend/js/modules/*-domain.js",
-        "apps/viewer/js/modules/*-domain.js",
+        "src/**/app-*.js",
+        "src/**/app-*.js",
+        "src/**/*-domain.js",
+        "src/**/*-domain.js",
         "scripts/check-runtime-boundaries.mjs"
       ],
       "argv": [
@@ -395,11 +398,11 @@
       "id": "ui-architecture",
       "kind": "command",
       "inputs": [
-        "shared/frontend/css/**",
+        "src/ui/css/**",
         "apps/viewer/css/**",
-        "shared/frontend/js/modules/ui-*.js",
-        "apps/viewer/js/modules/ui-*.js",
-        "apps/viewer/templates/index.html",
+        "src/**/ui-*.js",
+        "src/**/ui-*.js",
+        "src/app/index.html",
         "scripts/check-ui*.mjs"
       ],
       "argv": [
@@ -414,8 +417,8 @@
       "id": "territorial-storage",
       "kind": "command",
       "inputs": [
-        "shared/frontend/js/modules/territorial-*.js",
-        "apps/viewer/js/modules/territorial-*.js",
+        "src/**/territorial-*.js",
+        "src/**/territorial-*.js",
         "scripts/contracts/territorial-storage-access.json"
       ],
       "argv": [
@@ -434,7 +437,7 @@
         "scripts/generate-build-metadata.mjs",
         "scripts/lib/product-assets.mjs",
         "assets/data/**",
-        "shared/frontend/js/workers/**",
+        "src/**/workers/**",
         "apps/viewer/js/workers/**"
       ],
       "argv": [
@@ -466,12 +469,12 @@
       "id": "commands",
       "kind": "command",
       "inputs": [
-        "shared/frontend/js/modules/*-service.js",
-        "apps/viewer/js/modules/*-service.js",
-        "shared/frontend/js/modules/*-domain.js",
-        "apps/viewer/js/modules/*-domain.js",
-        "shared/frontend/js/modules/core-document-*.js",
-        "apps/viewer/js/modules/core-document-*.js"
+        "src/**/*-service.js",
+        "src/**/*-service.js",
+        "src/**/*-domain.js",
+        "src/**/*-domain.js",
+        "src/**/core-document-*.js",
+        "src/**/core-document-*.js"
       ],
       "argv": [
         "node",
@@ -483,11 +486,11 @@
       "id": "provenance",
       "kind": "command",
       "inputs": [
-        "shared/frontend/js/modules/source-provenance.js",
-        "shared/frontend/js/modules/generic-*.js",
-        "apps/viewer/js/modules/generic-*.js",
-        "shared/frontend/js/modules/project-*.js",
-        "apps/viewer/js/modules/project-*.js"
+        "src/document/source-provenance.js",
+        "src/**/generic-*.js",
+        "src/**/generic-*.js",
+        "src/**/project-*.js",
+        "src/**/project-*.js"
       ],
       "argv": [
         "node",
@@ -499,10 +502,10 @@
       "id": "version-contract",
       "kind": "command",
       "inputs": [
-        "shared/frontend/js/modules/project-*.js",
-        "apps/viewer/js/modules/project-*.js",
-        "shared/frontend/js/modules/*-adapter-*.js",
-        "apps/viewer/js/modules/*-adapter-*.js",
+        "src/**/project-*.js",
+        "src/**/project-*.js",
+        "src/**/*-adapter-*.js",
+        "src/**/*-adapter-*.js",
         "scripts/generate-build-metadata.mjs"
       ],
       "argv": [
@@ -515,10 +518,10 @@
       "id": "renderer-contract",
       "kind": "command",
       "inputs": [
-        "shared/frontend/js/modules/gpu-*.js",
-        "apps/viewer/js/modules/gpu-*.js",
-        "shared/frontend/js/modules/render-*.js",
-        "apps/viewer/js/modules/render-*.js"
+        "src/**/gpu-*.js",
+        "src/**/gpu-*.js",
+        "src/**/render-*.js",
+        "src/**/render-*.js"
       ],
       "argv": [
         "node",
@@ -530,7 +533,7 @@
       "id": "ui-spacing",
       "kind": "command",
       "inputs": [
-        "shared/frontend/css/**",
+        "src/ui/css/**",
         "apps/viewer/css/**"
       ],
       "argv": [
@@ -543,11 +546,11 @@
       "id": "ui-components",
       "kind": "command",
       "inputs": [
-        "shared/frontend/css/**",
+        "src/ui/css/**",
         "apps/viewer/css/**",
-        "shared/frontend/js/modules/ui-*.js",
-        "apps/viewer/js/modules/ui-*.js",
-        "apps/viewer/templates/index.html"
+        "src/**/ui-*.js",
+        "src/**/ui-*.js",
+        "src/app/index.html"
       ],
       "argv": [
         "node",
@@ -560,10 +563,10 @@
       "id": "ui-layering",
       "kind": "command",
       "inputs": [
-        "shared/frontend/css/**",
+        "src/ui/css/**",
         "apps/viewer/css/**",
-        "shared/frontend/js/modules/ui-*.js",
-        "apps/viewer/js/modules/ui-*.js"
+        "src/**/ui-*.js",
+        "src/**/ui-*.js"
       ],
       "argv": [
         "node",
@@ -576,11 +579,11 @@
       "id": "ui-ia",
       "kind": "command",
       "inputs": [
-        "shared/frontend/js/modules/ui-*.js",
-        "apps/viewer/js/modules/ui-*.js",
-        "shared/frontend/js/modules/surface-*.js",
-        "apps/viewer/js/modules/surface-*.js",
-        "apps/viewer/templates/index.html"
+        "src/**/ui-*.js",
+        "src/**/ui-*.js",
+        "src/**/surface-*.js",
+        "src/**/surface-*.js",
+        "src/app/index.html"
       ],
       "argv": [
         "node",
@@ -593,10 +596,10 @@
       "id": "object-registry",
       "kind": "command",
       "inputs": [
-        "shared/frontend/js/modules/*object*.js",
-        "apps/viewer/js/modules/*object*.js",
-        "shared/frontend/js/modules/*registry*.js",
-        "apps/viewer/js/modules/*registry*.js"
+        "src/**/*object*.js",
+        "src/**/*object*.js",
+        "src/**/*registry*.js",
+        "src/**/*registry*.js"
       ],
       "argv": [
         "node",
@@ -613,7 +616,7 @@
       ],
       "argv": [
         "node",
-        "tools/build-territorial-current-world.mjs",
+        "tools/build/build-territorial-current-world.mjs",
         "--check"
       ],
       "gisNative": true,
@@ -627,7 +630,7 @@
       ],
       "argv": [
         "node",
-        "tools/build-country-default-colors.mjs",
+        "tools/build/build-country-default-colors.mjs",
         "--check"
       ],
       "gisNative": true,
@@ -641,7 +644,7 @@
       ],
       "argv": [
         "node",
-        "tools/build-country-shared-boundaries.mjs",
+        "tools/build/build-country-shared-boundaries.mjs",
         "--check"
       ],
       "gisNative": true,
@@ -655,7 +658,7 @@
       ],
       "argv": [
         "node",
-        "tools/build-world-bundle.mjs",
+        "tools/build/build-world-bundle.mjs",
         "--check"
       ],
       "gisNative": true,
@@ -669,7 +672,7 @@
       ],
       "argv": [
         "node",
-        "tools/build-world-preview.mjs",
+        "tools/build/build-world-preview.mjs",
         "--check"
       ],
       "gisNative": true,
@@ -686,7 +689,7 @@
       ],
       "argv": [
         "node",
-        "tools/build-territorial-entity-chunks.mjs",
+        "tools/build/build-territorial-entity-chunks.mjs",
         "--check"
       ],
       "gisNative": true,
@@ -697,11 +700,11 @@
       "kind": "command",
       "inputs": [
         "assets/data/places/**",
-        "tools/build-place-runtime.mjs"
+        "tools/build/build-place-runtime.mjs"
       ],
       "argv": [
         "node",
-        "tools/build-place-runtime.mjs",
+        "tools/build/build-place-runtime.mjs",
         "--check"
       ],
       "gisNative": false,
@@ -713,15 +716,15 @@
       "inputs": [
         "shared/frontend/js/**",
         "apps/viewer/js/**",
-        "shared/frontend/css/**",
+        "src/ui/css/**",
         "apps/viewer/css/**",
         "assets/data/**",
-        "tools/stage-monorepo-pages.mjs",
+        "tools/build/stage-monorepo-pages.mjs",
         "scripts/lib/product-assets.mjs"
       ],
       "argv": [
         "node",
-        "tools/stage-monorepo-pages.mjs",
+        "tools/build/stage-monorepo-pages.mjs",
         "--root",
         ".",
         "--stage",
@@ -743,7 +746,7 @@
       ],
       "argv": [
         "node",
-        "tools/run-country-validator.mjs",
+        "tools/checks/run-country-validator.mjs",
         "--self-test"
       ],
       "gisNative": true,
@@ -758,7 +761,7 @@
       ],
       "argv": [
         "node",
-        "tools/run-country-validator.mjs",
+        "tools/checks/run-country-validator.mjs",
         "--canonical-only"
       ],
       "gisNative": true,
@@ -773,7 +776,7 @@
       ],
       "argv": [
         "node",
-        "tools/run-country-validator.mjs"
+        "tools/checks/run-country-validator.mjs"
       ],
       "gisNative": true,
       "requires": [
@@ -804,11 +807,32 @@
       "mode": "manual",
       "reason": "User-deferred unresolved cases: July 1953 transition completion and injected-failure previous-year click. Preserve both cases without automatic rerun or a passing status; execute only when explicitly resumed.",
       "testPatterns": [
-        "tests/browser/deferred-builtin-timeline.spec.mjs"
+        "tests/browser/ui/deferred-builtin-timeline.spec.mjs"
       ],
       "inputs": [],
       "requires": [
         "generated",
+        "core"
+      ]
+    },
+    {
+      "id": "wasm-domain-geometry",
+      "kind": "command",
+      "mode": "manual",
+      "reason": "Focused geometry ABI verification after a source-matched CI WASM build.",
+      "inputs": [
+        "src/**/native/**",
+        "tools/build/native/**",
+        "config/core-source-roots.json"
+      ],
+      "argv": [
+        "node",
+        "--test",
+        "tests/native/document/p5-country-contact-wasm.test.mjs",
+        "tests/native/document/p5-boundary-split-wasm.test.mjs",
+        "tests/native/document/p5-polygon-mesh-wasm.test.mjs"
+      ],
+      "requires": [
         "core"
       ]
     }
@@ -826,8 +850,8 @@
       "inputs": [
         "tools/cpp/hydro-calibration/**",
         "tools/cpp/hydro/calibration.cpp",
-        "shared/core/include/pandoeditor/losslessjson.h",
-        "shared/core/src/losslessjson.cpp",
+        "src/data/native/include/pandoeditor/losslessjson.h",
+        "src/data/native/src/losslessjson.cpp",
         "tools/gis/package-hydro-calibration.mjs",
         ".github/actions/native-test-prerequisites/action.yml"
       ]
@@ -847,8 +871,8 @@
         "tools/cpp/hydro/point-screen.cpp",
         "tools/cpp/map-image/raster-draw.h",
         "tools/cpp/map-preview/PILLOW-LICENSE",
-        "shared/core/include/pandoeditor/losslessjson.h",
-        "shared/core/src/losslessjson.cpp",
+        "src/data/native/include/pandoeditor/losslessjson.h",
+        "src/data/native/src/losslessjson.cpp",
         "tools/gis/package-hydro-point-screen.mjs",
         ".github/actions/native-test-prerequisites/action.yml"
       ]
@@ -990,18 +1014,18 @@
         "tools/cpp/build-territorial-recipe.cpp",
         "tools/cpp/historical-*.inc",
         "tools/cpp/territorial-recipe-environment.yml",
-        "shared/core/src/losslessjson.cpp",
-        "shared/core/include/pandoeditor/losslessjson.h",
-        "shared/core/src/sphericalpolygon.cpp",
-        "shared/core/include/pandoeditor/sphericalpolygon.h",
-        "shared/core/include/pandoeditor/geometry-types.h",
-        "shared/core/include/pandoeditor/geometryoperations.h",
-        "shared/core/include/pandoeditor/polygonclipping.h",
-        "shared/core/include/pandoeditor/document.h",
-        "shared/core/include/pandoeditor/geometryprovenance.h",
-        "shared/core/include/pandoeditor/presentation.h",
-        "shared/core/include/pandoeditor/temporal.h",
-        "shared/core/include/pandoeditor/timeline-records.h",
+        "src/data/native/src/losslessjson.cpp",
+        "src/data/native/include/pandoeditor/losslessjson.h",
+        "src/geometry/native/src/sphericalpolygon.cpp",
+        "src/geometry/native/include/pandoeditor/sphericalpolygon.h",
+        "src/geometry/native/include/pandoeditor/geometry-types.h",
+        "src/geometry/native/include/pandoeditor/geometryoperations.h",
+        "src/geometry/native/include/pandoeditor/polygonclipping.h",
+        "src/document/native/include/pandoeditor/document.h",
+        "src/geometry/native/include/pandoeditor/geometryprovenance.h",
+        "src/document/native/include/pandoeditor/presentation.h",
+        "src/document/native/include/pandoeditor/temporal.h",
+        "src/document/native/include/pandoeditor/timeline-records.h",
         ".github/actions/native-test-prerequisites/action.yml"
       ]
     },
@@ -1055,13 +1079,13 @@
     "tools/**",
     "contracts/**",
     "tests/**",
-    "apps/viewer/**"
+    "src/**"
   ],
   "passiveInputs": [
     "shared/frontend/js/vendor/**",
     "apps/viewer/js/vendor/**",
-    "shared/frontend/static/vendor/**",
-    "shared/frontend/static/fonts/**",
+    "assets/vendor/**",
+    "assets/fonts/**",
     "assets/icons/**",
     "assets/flags/**"
   ],
@@ -1074,27 +1098,27 @@
   "bindings": [
     {
       "tests": [
-        "tests/unit/prepared-polygon-mesh.test.mjs",
-        "tests/browser/viewer-startup-and-terrain.spec.mjs",
-        "tests/unit/prepared-country-scope.test.mjs"
+        "tests/unit/rendering/prepared-polygon-mesh.test.mjs",
+        "tests/browser/geometry/viewer-startup-and-terrain.spec.mjs",
+        "tests/unit/rendering/prepared-country-scope.test.mjs"
       ],
       "inputs": [
         "assets/data/physical-land/**",
         "assets/data/prepared-polygons/generated/v2/**",
-        "tools/build-prepared-polygon-mesh.mjs"
+        "tools/build/build-prepared-polygon-mesh.mjs"
       ]
     },
     {
       "tests": [
-        "tests/unit/*architecture*.test.mjs",
-        "tests/unit/application-*.test.mjs",
-        "tests/unit/capability-*.test.mjs",
-        "tests/unit/current-browser-contracts.test.mjs",
-        "tests/unit/check-*.test.mjs"
+        "tests/unit/**/*architecture*.test.mjs",
+        "tests/unit/**/application-*.test.mjs",
+        "tests/unit/**/capability-*.test.mjs",
+        "tests/unit/runtime/current-browser-contracts.test.mjs",
+        "tests/unit/**/check-*.test.mjs"
       ],
       "inputs": [
-        "shared/frontend/js/modules/app-capability-ports*.js",
-        "apps/viewer/js/modules/app-capability-ports*.js",
+        "src/**/app-capability-ports*.js",
+        "src/**/app-capability-ports*.js",
         "scripts/plan-application-checks.mjs",
         "scripts/run-application-checks.mjs",
         "scripts/contracts/application-checks.json",
@@ -1103,31 +1127,31 @@
     },
     {
       "tests": [
-        "tests/browser/web-viewer.spec.mjs"
+        "tests/browser/document/web-viewer.spec.mjs"
       ],
       "inputs": [
-        "shared/frontend/js/modules/**",
-        "apps/viewer/js/modules/**",
-        "apps/viewer/templates/index.html"
+        "src/**/**",
+        "src/**/**",
+        "src/app/index.html"
       ]
     },
     {
       "tests": [
-        "tests/unit/*staging*.test.mjs",
-        "tests/unit/*assets.test.mjs",
-        "tests/unit/object-search*.test.mjs"
+        "tests/unit/**/*staging*.test.mjs",
+        "tests/unit/**/*assets.test.mjs",
+        "tests/unit/**/object-search*.test.mjs"
       ],
       "inputs": [
         "scripts/lib/product-assets.mjs",
         "scripts/lib/worker-assets.mjs",
-        "shared/frontend/js/modules/project-session.js",
-        "shared/frontend/js/modules/object-query.js"
+        "src/document/project-session.js",
+        "src/document/object-query.js"
       ]
     },
     {
       "tests": [
-        "tests/unit/core-*.test.mjs",
-        "tests/unit/web-*.test.mjs"
+        "tests/unit/**/core-*.test.mjs",
+        "tests/unit/**/web-*.test.mjs"
       ],
       "inputs": [
         "shared/**"
@@ -1135,10 +1159,10 @@
     },
     {
       "tests": [
-        "tests/unit/check-*.test.mjs",
-        "tests/unit/current-browser-contracts.test.mjs",
-        "tests/unit/native-check-prerequisites.test.mjs",
-        "tests/unit/viewer-preview-plan.test.mjs"
+        "tests/unit/**/check-*.test.mjs",
+        "tests/unit/runtime/current-browser-contracts.test.mjs",
+        "tests/unit/ui/native-check-prerequisites.test.mjs",
+        "tests/unit/runtime/viewer-preview-plan.test.mjs"
       ],
       "inputs": [
         ".github/workflows/application-architecture.yml",
@@ -1149,11 +1173,11 @@
     },
     {
       "tests": [
-        "tests/unit/*version*.test.mjs",
-        "tests/unit/check-*.test.mjs",
-        "tests/unit/current-browser-contracts.test.mjs",
-        "tests/unit/native-check-prerequisites.test.mjs",
-        "tests/unit/viewer-preview-plan.test.mjs"
+        "tests/unit/**/*version*.test.mjs",
+        "tests/unit/**/check-*.test.mjs",
+        "tests/unit/runtime/current-browser-contracts.test.mjs",
+        "tests/unit/ui/native-check-prerequisites.test.mjs",
+        "tests/unit/runtime/viewer-preview-plan.test.mjs"
       ],
       "inputs": [
         "package.json",
@@ -1162,7 +1186,7 @@
     },
     {
       "tests": [
-        "tests/browser/web-viewer.spec.mjs"
+        "tests/browser/document/web-viewer.spec.mjs"
       ],
       "inputs": [
         "package.json",
@@ -1172,43 +1196,43 @@
     },
     {
       "tests": [
-        "tests/unit/country-lineage.test.mjs",
-        "tests/unit/territorial-source-parity.test.mjs"
+        "tests/unit/document/country-lineage.test.mjs",
+        "tests/unit/document/territorial-source-parity.test.mjs"
       ],
       "inputs": [
         "config/library-data.json",
         "assets/data/territorial-entities/source/**",
         "assets/data/countries-ne-5.1.1.geojson",
-        "tools/territorial-entity-sources.mjs",
+        "tools/data/territorial-entity-sources.mjs",
         "tools/gis/territorial-library.js"
       ]
     },
     {
       "tests": [
-        "tests/unit/builtin-world-catalog.test.mjs"
+        "tests/unit/document/builtin-world-catalog.test.mjs"
       ],
       "inputs": [
         "config/library-data.json",
         "assets/data/builtin-world/generated/v1/**",
-        "shared/frontend/js/modules/builtin-world-loader.js",
-        "shared/frontend/js/modules/builtin-month-clock.js"
+        "src/data/builtin-world-loader.js",
+        "src/document/builtin-month-clock.js"
       ]
     },
     {
       "tests": [
-        "tests/unit/terrain-interaction-streaming.test.mjs",
-        "tests/unit/map-presentation-readiness.test.mjs"
+        "tests/unit/rendering/terrain-interaction-streaming.test.mjs",
+        "tests/unit/rendering/map-presentation-readiness.test.mjs"
       ],
       "inputs": [
-        "shared/frontend/js/modules/startup-readiness.js",
-        "shared/frontend/js/modules/map-visual-frame.js",
-        "shared/frontend/js/modules/scene-color-cache.js",
-        "shared/frontend/js/modules/gpu-upload-scheduler.js"
+        "src/app/startup-readiness.js",
+        "src/rendering/map-visual-frame.js",
+        "src/rendering/scene-color-cache.js",
+        "src/rendering/gpu-upload-scheduler.js"
       ]
     },
     {
       "tests": [
-        "tests/unit/performance-baseline-contract.test.mjs"
+        "tests/unit/runtime/performance-baseline-contract.test.mjs"
       ],
       "inputs": [
         "config/performance-baseline-v1.json",
@@ -1218,87 +1242,87 @@
     },
     {
       "tests": [
-        "tests/browser/web-viewer.spec.mjs"
+        "tests/browser/document/web-viewer.spec.mjs"
       ],
       "inputs": [
-        "shared/frontend/css/**",
+        "src/ui/css/**",
         "apps/viewer/css/**",
-        "apps/viewer/templates/index.html"
+        "src/app/index.html"
       ]
     },
     {
       "tests": [
-        "tests/browser/web-viewer.spec.mjs"
+        "tests/browser/document/web-viewer.spec.mjs"
       ],
       "inputs": [
-        "shared/frontend/css/**",
+        "src/ui/css/**",
         "apps/viewer/css/**",
-        "apps/viewer/templates/index.html"
+        "src/app/index.html"
       ]
     },
     {
       "tests": [
-        "tests/browser/viewer-renderer-recovery.spec.mjs"
+        "tests/browser/rendering/viewer-renderer-recovery.spec.mjs"
       ],
       "inputs": [
-        "shared/frontend/js/modules/gpu-*.js",
-        "shared/frontend/js/workers/gpu-*.js",
-        "shared/frontend/js/modules/gpu-map-renderer.js"
+        "src/**/gpu-*.js",
+        "src/**/workers/gpu-*.js",
+        "src/rendering/gpu-map-renderer.js"
       ]
     },
     {
       "tests": [
-        "tests/browser/viewer-boundary-p4-5.spec.mjs"
+        "tests/browser/geometry/viewer-boundary-p4-5.spec.mjs"
       ],
       "inputs": [
-        "shared/frontend/js/modules/*boundary*.js",
-        "shared/frontend/js/workers/*boundary*.js",
-        "shared/frontend/js/modules/country-contact-core.js"
+        "src/**/*boundary*.js",
+        "src/**/workers/*boundary*.js",
+        "src/geometry/country-contact-core.js"
       ]
     },
     {
       "tests": [
-        "tests/browser/viewer-startup-and-terrain.spec.mjs"
+        "tests/browser/geometry/viewer-startup-and-terrain.spec.mjs"
       ],
       "inputs": [
-        "shared/frontend/js/modules/physical-*.js",
-        "shared/frontend/js/workers/canvas-render-worker.js",
+        "src/**/physical-*.js",
+        "src/rendering/workers/canvas-render-worker.js",
         "assets/data/physical-land/**"
       ]
     },
     {
       "tests": [
-        "tests/browser/viewer-calendar.spec.mjs"
+        "tests/browser/document/viewer-calendar.spec.mjs"
       ],
       "inputs": [
-        "shared/frontend/js/modules/builtin-month-clock.js",
-        "shared/frontend/js/modules/timeline-*.js",
-        "shared/frontend/js/modules/temporal.js",
+        "src/document/builtin-month-clock.js",
+        "src/**/timeline-*.js",
+        "src/document/temporal.js",
         "assets/data/builtin-world/**"
       ]
     },
     {
       "tests": [
-        "tests/browser/viewer-review-e4.spec.mjs"
+        "tests/browser/document/viewer-review-e4.spec.mjs"
       ],
       "inputs": [
-        "shared/frontend/js/modules/review-*.js",
-        "apps/viewer/js/modules/review-*.js"
+        "src/**/review-*.js",
+        "src/**/review-*.js"
       ]
     },
     {
       "tests": [
-        "tests/browser/viewer-project-open.spec.mjs"
+        "tests/browser/document/viewer-project-open.spec.mjs"
       ],
       "inputs": [
-        "shared/frontend/js/modules/project-*.js",
-        "apps/viewer/js/modules/project-*.js",
-        "shared/frontend/js/modules/gpkg-*.js"
+        "src/**/project-*.js",
+        "src/**/project-*.js",
+        "src/**/gpkg-*.js"
       ]
     },
     {
       "tests": [
-        "tests/unit/check-automation.test.mjs"
+        "tests/unit/runtime/check-automation.test.mjs"
       ],
       "inputs": [
         ".github/workflows/**",
@@ -1307,16 +1331,15 @@
     },
     {
       "tests": [
-        "tests/browser/viewer-calendar.spec.mjs",
-        "tests/unit/post-2000-generated-world-display.test.mjs",
-        "tests/unit/timeline-resolver.test.mjs",
-        "tests/unit/indonesia-territory-timeline.test.mjs",
-        "tests/unit/sudan-ukraine-transition.test.mjs"
+        "tests/browser/document/viewer-calendar.spec.mjs",
+        "tests/unit/document/timeline-resolver.test.mjs",
+        "tests/unit/document/builtin-world-catalog.test.mjs",
+        "tests/unit/data/builtin-world-loader.test.mjs"
       ],
       "inputs": [
         "config/library-data.json",
         "assets/data/builtin-world/**",
-        "tools/build-builtin-world.mjs"
+        "tools/build/build-builtin-world.mjs"
       ]
     },
     {
@@ -1326,7 +1349,7 @@
         "scripts/run-active-tests.mjs"
       ],
       "tests": [
-        "tests/unit/check-runner.test.mjs"
+        "tests/unit/runtime/check-runner.test.mjs"
       ]
     },
     {
@@ -1334,15 +1357,15 @@
         "tests/helpers/check-workspace-fixture.mjs"
       ],
       "tests": [
-        "tests/unit/check-runner.test.mjs",
-        "tests/unit/native-check-prerequisites.test.mjs",
-        "tests/unit/build-metadata.test.mjs"
+        "tests/unit/runtime/check-runner.test.mjs",
+        "tests/unit/ui/native-check-prerequisites.test.mjs",
+        "tests/unit/build/build-metadata.test.mjs"
       ]
     },
     {
       "tests": [
-        "tests/unit/e7-application-check-planner.test.mjs",
-        "tests/unit/check-automation.test.mjs"
+        "tests/unit/runtime/e7-application-check-planner.test.mjs",
+        "tests/unit/runtime/check-automation.test.mjs"
       ],
       "inputs": [
         "scripts/plan-application-checks.mjs",
@@ -1356,8 +1379,8 @@
   },
   "manualScopes": {
     "map-rendering": [
-      "tests/browser/viewer-project-open.spec.mjs",
-      "tests/browser/viewer-gpu-backend-cross.spec.mjs"
+      "tests/browser/document/viewer-project-open.spec.mjs",
+      "tests/browser/rendering/viewer-gpu-backend-cross.spec.mjs"
     ]
   },
   "externalChecks": [
@@ -1376,7 +1399,7 @@
         "shared/**/*.h.in",
         "shared/*.cmake",
         "shared/**/*.cmake",
-        "shared/CMakeLists.txt",
+        "tools/build/native/CMakeLists.txt",
         "shared/**/CMakeLists.txt",
         "CMakeLists.txt",
         "CMakePresets.json"
@@ -1391,7 +1414,7 @@
         "tools/gis/build-hydro.mjs",
         "tools/gis/hydro-generation-*.mjs",
         "tools/cpp/hydro/*.cpp",
-        "tests/unit/hydro-generation-*.test.mjs"
+        "tests/unit/**/hydro-generation-*.test.mjs"
       ],
       "workflow": ".github/workflows/gis-native-hydro.yml",
       "reason": "Hydro generation uses focused native and source-bound GIS checks."
@@ -1421,11 +1444,11 @@
   "unitPrerequisites": [
     {
       "tests": [
-        "tests/unit/map-native-jpeg-encode.test.mjs",
-        "tests/unit/map-native-packaging.test.mjs",
-        "tests/unit/map-native-resize.test.mjs",
-        "tests/unit/map-native-webp-encode.test.mjs",
-        "tests/unit/terrain-dem-webp.test.mjs"
+        "tests/unit/document/map-native-jpeg-encode.test.mjs",
+        "tests/unit/document/map-native-packaging.test.mjs",
+        "tests/unit/document/map-native-resize.test.mjs",
+        "tests/unit/document/map-native-webp-encode.test.mjs",
+        "tests/unit/geometry/terrain-dem-webp.test.mjs"
       ],
       "requires": [
         "native-map-image"
@@ -1433,7 +1456,7 @@
     },
     {
       "tests": [
-        "tests/unit/hydro-calibration-native.test.mjs"
+        "tests/unit/geometry/hydro-calibration-native.test.mjs"
       ],
       "requires": [
         "native-hydro-calibration"
@@ -1441,7 +1464,7 @@
     },
     {
       "tests": [
-        "tests/unit/hydro-shared-boundary.test.mjs"
+        "tests/unit/geometry/hydro-shared-boundary.test.mjs"
       ],
       "requires": [
         "native-hydro-point-screen"
@@ -1449,24 +1472,23 @@
     },
     {
       "tests": [
-        "tests/unit/gis-caspian-display-packaging.test.mjs",
-        "tests/unit/gis-caspian-generalize-native.test.mjs",
-        "tests/unit/gis-caspian-physical-native.test.mjs",
-        "tests/unit/gis-ddr-native-partition.test.mjs",
-        "tests/unit/gis-german-base-builder.test.mjs",
-        "tests/unit/gis-german-base-native.test.mjs",
-        "tests/unit/gis-german-modern-coast-native.test.mjs",
-        "tests/unit/gis-historical-linework-native.test.mjs",
-        "tests/unit/gis-historical-source-compare.test.mjs",
-        "tests/unit/gis-lsib-coast-native.test.mjs",
-        "tests/unit/gis-lsib-source-native.test.mjs",
-        "tests/unit/gis-lsib-spatial-native.test.mjs",
-        "tests/unit/gis-lsib-tripoint-native.test.mjs",
-        "tests/unit/gis-lsib-union-native.test.mjs",
-        "tests/unit/gis-lsib-untargeted.test.mjs",
-        "tests/unit/gis-ussr-1922-partition-native.test.mjs",
-        "tests/unit/territorial-boundary-supplement.test.mjs",
-        "tests/unit/territorial-recipe-cpp.test.mjs"
+        "tests/unit/geometry/gis-caspian-display-packaging.test.mjs",
+        "tests/unit/geometry/gis-caspian-generalize-native.test.mjs",
+        "tests/unit/geometry/gis-caspian-physical-native.test.mjs",
+        "tests/unit/geometry/gis-ddr-native-partition.test.mjs",
+        "tests/unit/build/gis-german-base-builder.test.mjs",
+        "tests/unit/geometry/gis-german-base-native.test.mjs",
+        "tests/unit/geometry/gis-german-modern-coast-native.test.mjs",
+        "tests/unit/geometry/gis-historical-linework-native.test.mjs",
+        "tests/unit/geometry/gis-historical-source-compare.test.mjs",
+        "tests/unit/geometry/gis-lsib-coast-native.test.mjs",
+        "tests/unit/geometry/gis-lsib-source-native.test.mjs",
+        "tests/unit/geometry/gis-lsib-spatial-native.test.mjs",
+        "tests/unit/geometry/gis-lsib-tripoint-native.test.mjs",
+        "tests/unit/geometry/gis-lsib-union-native.test.mjs",
+        "tests/unit/geometry/gis-ussr-1922-partition-native.test.mjs",
+        "tests/unit/geometry/territorial-boundary-supplement.test.mjs",
+        "tests/unit/document/territorial-recipe-cpp.test.mjs"
       ],
       "requires": [
         "native-territorial-recipe"
@@ -1474,7 +1496,7 @@
     },
     {
       "tests": [
-        "tests/unit/terrain-dem-gutters.test.mjs"
+        "tests/unit/geometry/terrain-dem-gutters.test.mjs"
       ],
       "requires": [
         "native-terrain-dem-gutters"
@@ -1482,7 +1504,7 @@
     },
     {
       "tests": [
-        "tests/unit/terrain-dem-tint.test.mjs"
+        "tests/unit/geometry/terrain-dem-tint.test.mjs"
       ],
       "requires": [
         "native-terrain-dem-tint"
@@ -1490,7 +1512,7 @@
     },
     {
       "tests": [
-        "tests/unit/gis-german-base-builder.test.mjs"
+        "tests/unit/build/gis-german-base-builder.test.mjs"
       ],
       "requires": [
         "native-german-natural-earth"
@@ -1498,15 +1520,7 @@
     },
     {
       "tests": [
-        "tests/unit/gis-caspian-pinned-native-baseline.test.mjs"
-      ],
-      "requires": [
-        "native-caspian-oracle"
-      ]
-    },
-    {
-      "tests": [
-        "tests/unit/map-native-pdf.test.mjs"
+        "tests/unit/document/map-native-pdf.test.mjs"
       ],
       "requires": [
         "native-map-pdf",
@@ -1515,7 +1529,7 @@
     },
     {
       "tests": [
-        "tests/unit/map-native-preview.test.mjs"
+        "tests/unit/document/map-native-preview.test.mjs"
       ],
       "requires": [
         "native-map-preview",
@@ -1524,8 +1538,8 @@
     },
     {
       "tests": [
-        "tests/unit/core-*.test.mjs",
-        "tests/unit/*-wasm.test.mjs"
+        "tests/unit/**/core-*.test.mjs",
+        "tests/unit/**/*-wasm.test.mjs"
       ],
       "requires": [
         "core"

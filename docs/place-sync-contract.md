@@ -104,7 +104,7 @@
 
 ```sh
 pnpm check:place-sync
-node --test tests/unit/place-codec.test.mjs tests/unit/place-names.test.mjs tests/unit/place-layout.test.mjs tests/unit/user-preferences.test.mjs
+node --test tests/unit/data/place-codec.test.mjs tests/unit/document/place-names.test.mjs tests/unit/place-layout.test.mjs tests/unit/ui/user-preferences.test.mjs
 ```
 
 `contracts/places/v3.json`의 기대 행과 바이트는 검수된 고정값이다.

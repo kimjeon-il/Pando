@@ -2,7 +2,7 @@
 
 1801년 이후의 세계 역사 지도와 국가·영토 속성을 탐색하는 PC·모바일 웹 열람기입니다. 검수 기능은 웹 Viewer에 통합되어 있습니다. Natural Earth 5.1.1의 1:10m 국가 데이터와 지형 음영, HydroRIVERS 강·Natural Earth 호수를 사용합니다.
 
-이 저장소는 PC·모바일 웹 Viewer(`apps/viewer`), [공통 C++ 코어](shared/README.md)와 배포·검수 도구를 관리합니다. 원본 GIS 자료 및 [조사·검증 보고서](https://github.com/kimjeon-il/PandoLab-library-data/blob/f4ae4d70579b8c799fba2e507e1a948b7e1e42c2/reports/README.md)는 외부 라이브러리에 보관합니다. 독립 Windows 검수기와 Android 네이티브 앱은 폐기됐습니다.
+이 저장소는 PC·모바일 웹 Viewer(`src/app`), [공통 C++ 코어](docs/core.md)와 배포·검수 도구를 관리합니다. 원본 GIS 자료 및 [조사·검증 보고서](https://github.com/kimjeon-il/PandoLab-library-data/blob/f4ae4d70579b8c799fba2e507e1a948b7e1e42c2/reports/README.md)는 외부 라이브러리에 보관합니다. 독립 Windows 검수기와 Android 네이티브 앱은 폐기됐습니다.
 
 v0.34.0부터 분포는 고정된 언어·민족·종교 분류 대신 이름·단위·숫자값으로 관리합니다. 소수·0·음수를 저장할 수 있고, 분포별 자동 또는 직접 지정한 값 범위로 색 농도를 정합니다. 보기 메뉴에서는 모든 분포를 겹쳐 보거나 한 분포만 표시할 수 있습니다.
 
@@ -171,7 +171,7 @@ v0.10.0에서는 QGIS 벡터 파일과 GeoPackage를 가져오고 저장하는 G
 
 국가 면은 원본 국경을 제거하거나 단순화하지 않고 WebGL2·WebGL1에서 렌더링합니다. 일반 영토는 날짜변경선을 해제한 경위도 평면, 극지 영토는 극 중심 방위평면에서 삼각분할과 세분화를 함께 수행해 렌더링 삼각형이 바다로 이탈하지 않게 합니다. 모든 렌더링 변의 구면 각거리는 `0.499°` 이하입니다.
 
-내장 메시를 다시 생성하려면 저장소 루트에서 `node tools/build-world-mesh.mjs`를 실행합니다. 이 과정은 배포 시 필요하지 않으며 정적 사이트는 생성된 메시를 바로 읽습니다.
+내장 메시를 다시 생성하려면 저장소 루트에서 `node tools/build/build-world-mesh.mjs`를 실행합니다. 이 과정은 배포 시 필요하지 않으며 정적 사이트는 생성된 메시를 바로 읽습니다.
 
 ## 지형 표시와 수계
 
@@ -192,7 +192,7 @@ v0.10.0에서는 QGIS 벡터 파일과 GeoPackage를 가져오고 저장하는 G
 물리 자료 생성기는 Natural Earth 원본을 읽어 별도의 새 후보 폴더에 생성합니다. 수계는 GDAL `ogr2ogr`와 Node가, 지형은 Node와 소스가 일치하는 `physical-raster`, `terrain-preview`, `map-image` C++ 도구가 처리합니다. Windows에서 GDAL DLL이 PATH에 없다면 `PANDO_PHYSICAL_RASTER_GDAL_BIN`으로 해당 절대 폴더를 지정합니다. 기존 산출물과 원본은 덮어쓰지 않습니다. 작은 고정 사례는 비교했으나 실제 TIFF 전체와 대형 입력 성능은 아직 확인하지 않았으므로 후보 결과는 별도로 검토합니다.
 
 ```powershell
-node tools/build-physical-data.mjs <Natural-Earth-원본-폴더> <새-후보-폴더> --countries assets/data/countries-ne-5.1.1.geojson
+node tools/build/build-physical-data.mjs <Natural-Earth-원본-폴더> <새-후보-폴더> --countries assets/data/countries-ne-5.1.1.geojson
 ```
 
 ### Hydro 전 세계 보충 자료 캘리브레이션
@@ -243,4 +243,4 @@ GIS 원본 자료의 조사와 생성은 저장소의 GIS 도구가 담당합니
 
 Natural Earth 자료는 [이용 조건](https://www.naturalearthdata.com/about/terms-of-use/)에 따라 퍼블릭 도메인으로 제공됩니다.
 
-각 라이선스 원문은 `shared/frontend/js/vendor`의 해당 폴더에 포함되어 있습니다. 프로젝트 파일을 읽는 데 필요한 SQL 런타임은 파일을 열 때 지연 로딩됩니다.
+각 라이선스 원문은 `assets/js-vendor`·`assets/vendor`·`assets/fonts`의 해당 폴더에 포함되어 있습니다. 프로젝트 파일을 읽는 데 필요한 SQL 런타임은 파일을 열 때 지연 로딩됩니다.

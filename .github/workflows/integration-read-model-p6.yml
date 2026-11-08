@@ -3,9 +3,9 @@ on:
   push:
     branches: [work/ui]
     paths:
-      - tests/unit/core-document-read-model.test.mjs
-      - tests/unit/country-shared-boundary-generator.test.mjs
-      - shared/frontend/js/modules/core-document-read-model.js
+      - tests/unit/document/core-document-read-model.test.mjs
+      - tests/unit/rendering/country-shared-boundary-generator.test.mjs
+      - src/document/core-document-read-model.js
       - .github/workflows/integration-read-model-p6.yml
   workflow_dispatch:
 permissions:
@@ -24,11 +24,11 @@ jobs:
       - uses: pnpm/action-setup@v4
       - run: pnpm install --frozen-lockfile
       - name: Verify committed Core identity
-        run: node tools/package-shared-core-assets.mjs --build-dir shared/frontend/static/wasm --check
+        run: node tools/build/package-shared-core-assets.mjs --build-dir assets/wasm --check
       - name: Synthetic read-model fixture contract
-        run: node --test tests/unit/core-document-read-model.test.mjs
+        run: node --test tests/unit/document/core-document-read-model.test.mjs
       - name: Focused check inventory and runner contracts
-        run: node --test tests/unit/check-automation.test.mjs tests/unit/check-runner.test.mjs
+        run: node --test tests/unit/runtime/check-automation.test.mjs tests/unit/runtime/check-runner.test.mjs
   shared-boundary-fixture:
     runs-on: ubuntu-24.04
     timeout-minutes: 8
@@ -59,6 +59,6 @@ jobs:
           NODE
       - uses: ./.github/actions/library-data
       - name: Verify committed Core identity without rebuilding
-        run: node tools/package-shared-core-assets.mjs --build-dir shared/frontend/static/wasm --check
+        run: node tools/build/package-shared-core-assets.mjs --build-dir assets/wasm --check
       - name: Verify shared-boundary archive ownership and exact content
-        run: node --test tests/unit/country-shared-boundary-generator.test.mjs
+        run: node --test tests/unit/rendering/country-shared-boundary-generator.test.mjs

@@ -4,10 +4,11 @@ import {lstat,mkdir,open,readFile} from 'node:fs/promises';
 import {dirname,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {parseArgs} from 'node:util';
-import {reportArgument} from '../report-paths.mjs';
+import {reportArgument} from "../data/report-paths.mjs";
 import {readLSIBLines} from './lsib-source-native.mjs';
 import {loadLSIBReviewedSource} from './lsib-reviewed-source.mjs';
 import {analyzeLSIBSection} from './lsib-screen-native.mjs';
+import {readTerritorialSource} from '../data/territorial-entity-sources.mjs';
 
 const defaultRoot=fileURLToPath(new URL('../../',import.meta.url));
 const step=.001,scale=2560*64/360,sourceId='dos-lsib-11.4';
@@ -84,7 +85,7 @@ export async function runLSIBScreen(values,{root=defaultRoot,binary,ogrBinary,si
     const code=entry.segments.some(segment=>segment.closedRing)?entry.segments[0].enclave:entry.countries[0];
     if(typeof code!=='string'||!/^[A-Z0-9_-]+$/.test(code))throw Error('Invalid LSIB country identifier');
     if(!Object.hasOwn(entities,code)){
-      const entity=await readJSON(resolve(root,'assets/data/territorial-entities/source/countries/state-'+code+'.json'));
+      const entity=readTerritorialSource('state:'+code,resolve(root,'assets/data/territorial-entities/source'));
       const version=entity.geometryVersions?.find(item=>item.versionId===entity.metadata?.representativeGeometryVersionId);
       if(!version?.geometry)throw Error('LSIB display geometry version missing: '+code);entities[code]=version.geometry;
     }

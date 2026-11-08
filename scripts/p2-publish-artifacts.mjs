@@ -8,7 +8,9 @@ import { fileURLToPath } from 'node:url';
 import { root, OUTPUTS, wasmStatus, assertArtifactsCurrent, assertSafeGeneratedPaths } from './p2-artifact-plan.mjs';
 import { artifactGraph, graphStatus, stageArtifacts, publishArtifacts, assertBranchState,
   artifactEvidence, verifyArtifactFamilies } from './lib/p2-artifact-graph.mjs';
-import {libraryConfig,libraryCheckout,libraryMaterializedRoot,storeLibraryData,prepareLibraryData} from '../tools/library-data.mjs';
+import {libraryConfig,libraryCheckout,libraryMaterializedRoot} from "../tools/data/library-context.mjs";
+import {storeLibraryData} from "../tools/data/library-store.mjs";
+import {prepareLibraryData} from "../tools/data/library-runtime.mjs";
 
 const git=(cwd,args)=>execFileSync('git',args,{cwd,maxBuffer:32*1024*1024,stdio:['ignore','pipe','pipe']}).toString('utf8').trim();
 const paths=(cwd,args)=>git(cwd,[...args,'-z']).split('\0').filter(Boolean);
@@ -84,7 +86,13 @@ function commitOutputs(cwd,changed,families,message) {
   const staged=paths(cwd,['diff','--cached','--name-only']);
   assertSafeGeneratedPaths(staged.filter(path=>!(archived.libraryRevision&&path==='config/library-data.json')),Object.fromEntries(families.map(id=>[id,true])),cwd);
   if(!staged.length)return false;
-  git(cwd,['commit','-m',message+' [skip ci]']);return true;
+  // A published source-matched WASM pair is the first revision whose
+  // executable backend can be verified. Run real rendering/temporal and
+  // native/WASM regression CI on that generated commit, not on the stale
+  // source-only commit. Unrelated data publications keep their narrow policy.
+  const marker=families.length===1&&families[0]==='wasm'
+    ? ' [pando-full-verify]' : ' [skip ci]';
+  git(cwd,['commit','-m',message+marker]);return true;
 }
 
 export async function publishGeneratedArtifacts(cwd=root,{

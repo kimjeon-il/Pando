@@ -105,7 +105,7 @@ Codespaces is an opt-in **manual preview**, not a required development
 or full acceptance environment. No packages, preview, browser or auto-open
 are started by the container lifecycle. `bash .devcontainer/acceptance.sh`
 runs an inexpensive real-server HTTP smoke. The heavy original
-`tests/browser/codespaces-live.spec.mjs` is retained solely for a
+`tests/browser/document/codespaces-live.spec.mjs` is retained solely for a
 deliberate `--browser` invocation. It tests actual canonical map frame
 readiness, year navigation, two source-watch reloads and file isolation.
 
@@ -142,10 +142,10 @@ storage owner offers a **preview** of unreferenced, immutable, source-hashed
 native views and an explicit, journaled operation:
 
 ```powershell
-node tools/worktree-storage.mjs --retire-native
-node tools/worktree-storage.mjs --retire-native --apply
-node tools/worktree-storage.mjs --prune-blobs
-node tools/worktree-storage.mjs --prune-blobs --apply
+node tools/data/worktree-storage.mjs --retire-native
+node tools/data/worktree-storage.mjs --retire-native --apply
+node tools/data/worktree-storage.mjs --prune-blobs
+node tools/data/worktree-storage.mjs --prune-blobs --apply
 ```
 
 Only a user/local operator with access to the storage may opt into applying

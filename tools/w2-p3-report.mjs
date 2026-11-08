@@ -1,5 +1,5 @@
 import {readFileSync,writeFileSync,readdirSync,copyFileSync,mkdirSync,existsSync} from 'node:fs';
-import {reportPath} from './report-paths.mjs';
+import {reportPath} from "./data/report-paths.mjs";
 import {gunzipSync} from 'node:zlib';
 const scope='reports/development/performance/w2-p3-windows-gpu-final-2026-11-02';
 const base=reportPath(scope,{access:'write'});if(base.replaceAll('\\','/')!==process.env.PANDOLAB_W3_EVIDENCE?.replaceAll('\\','/'))throw Error('Evidence owner mismatch');

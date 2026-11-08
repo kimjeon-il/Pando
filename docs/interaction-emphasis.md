@@ -19,7 +19,7 @@
 Node 실행 파일은 설치된 Codex Node 런타임을 사용했다. 아래는 해당 파일들을 명시한 실행 명령이다.
 
 ```text
-node --test tests/unit/interaction-roles.test.mjs tests/unit/map-interaction-style.test.mjs tests/unit/selection-domain.test.mjs tests/unit/selection-emphasis.test.mjs tests/unit/gpu-stroke-renderer.test.mjs tests/unit/editing-render-packet.test.mjs tests/unit/map-render-coordinator.test.mjs tests/unit/user-preferences.test.mjs tests/unit/render-scene.test.mjs tests/unit/territorial-highlight-boundary.test.mjs tests/unit/edit-preview-controller.test.mjs
+node --test tests/unit/interaction-roles.test.mjs tests/unit/map-interaction-style.test.mjs tests/unit/selection-domain.test.mjs tests/unit/rendering/selection-emphasis.test.mjs tests/unit/rendering/gpu-stroke-renderer.test.mjs tests/unit/editing-render-packet.test.mjs tests/unit/map-render-coordinator.test.mjs tests/unit/ui/user-preferences.test.mjs tests/unit/rendering/render-scene.test.mjs tests/unit/territorial-highlight-boundary.test.mjs tests/unit/edit-preview-controller.test.mjs
 node --test tests/unit/boundary-preparation-session.test.mjs
 node scripts/check-worker-architecture.mjs
 node scripts/check-command-architecture.mjs

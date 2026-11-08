@@ -5,8 +5,8 @@ command, never a startup hook. It uses the existing storage activation and
 generated-output retirement engine. Local compilers must already be disabled.
 
 ```powershell
-node.exe tools/worktree-storage.mjs --cleanup-c-drive=preview
-node.exe tools/worktree-storage.mjs --cleanup-c-drive=apply
+node.exe tools/data/worktree-storage.mjs --cleanup-c-drive=preview
+node.exe tools/data/worktree-storage.mjs --cleanup-c-drive=apply
 ```
 
 The fixed profile policy covers retired C GNU Cargo targets, dedicated old

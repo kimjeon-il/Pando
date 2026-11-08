@@ -1,5 +1,5 @@
 import { Worker } from 'node:worker_threads';
-import { createCoreDocumentClient } from "../../shared/frontend/js/modules/core-document-client.js";
+import { createCoreDocumentClient } from "../../src/document/core-document-client.js";
 
 function createNodeCoreWorker() {
   const worker = new Worker(new URL('./core-session-node-worker.mjs', import.meta.url), { workerData: {

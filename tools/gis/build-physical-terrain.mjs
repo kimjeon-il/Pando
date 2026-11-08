@@ -4,7 +4,7 @@ import {existsSync,mkdirSync,readFileSync,realpathSync,writeFileSync} from 'node
 import {basename,dirname,isAbsolute,relative,resolve,sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {parseArgs} from 'node:util';
-import {withLibraryOutputs} from '../library-data.mjs';
+import {withLibraryOutputs} from "../data/library-runtime.mjs";
 import {encodeNativeWebpLossless} from '../map-image/native-resample.mjs';
 import {findSources,futureRealpath} from './build-physical-hydro.mjs';
 import {readPhysicalRaster} from './physical-raster-native.mjs';

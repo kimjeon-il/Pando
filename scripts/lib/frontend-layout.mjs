@@ -3,19 +3,19 @@ import {resolve,posix} from 'node:path';
 import {createRequire} from 'node:module';
 const require=createRequire(import.meta.url);
 
-export const frontendTemplates=Object.freeze({web:'apps/viewer/templates/index.html'});
-export const frontendFragmentRoot='shared/frontend/ui/fragments';
-export const frontendWasmRoot='shared/frontend/static/wasm';
+export const frontendTemplates=Object.freeze({web:'src/app/index.html'});
+export const frontendFragmentRoot='src/ui/fragments';
+export const frontendWasmRoot='assets/wasm';
 export const frontendGeneratedOwners=Object.freeze({'assets/js/build-meta.js':'scripts/lib/frontend-build.mjs','assets/js/workers/resource-update-policy-core.js':'scripts/lib/frontend-build.mjs'});
 const generatedModulePaths=new Set(Object.keys(frontendGeneratedOwners));
 
 // Source ownership is independent of the deployed URL namespace.
 export const frontendRoots=Object.freeze([
- {sourcePath:'shared/frontend/js',publicPath:'assets/js',product:'shared'},
- {sourcePath:'shared/frontend/css',publicPath:'assets/css',product:'shared'},
- {sourcePath:'shared/frontend/static',publicPath:'assets',product:'shared'},
- {sourcePath:'apps/viewer/js',publicPath:'assets/js',product:'viewer'},
- {sourcePath:'apps/viewer/css',publicPath:'assets/css',product:'viewer'},
+ ...['app','ui','map','document','geometry','rendering','data','runtime'].map(domain=>({
+  sourcePath:'src/'+domain,publicPath:'assets/js/modules',product:'viewer',modules:true})),
+ {sourcePath:'src/ui/css',publicPath:'assets/css',product:'viewer'},
+ {sourcePath:'assets/js-vendor',publicPath:'assets/js/vendor',product:'viewer'},
+ ...['brand','fonts','vendor','wasm'].map(name=>({sourcePath:'assets/'+name,publicPath:'assets/'+name,product:'viewer'})),
 ]);
 const slash=path=>path.replaceAll('\\','/');
 function validPublicPath(path){
@@ -31,10 +31,14 @@ export function buildFrontendIndex(root){
    for(const entry of readdirSync(folder,{withFileTypes:true}).sort((a,b)=>a.name.localeCompare(b.name))){
     const relative=prefix+entry.name,file=resolve(folder,entry.name);
     if(entry.isSymbolicLink()||lstatSync(file).isSymbolicLink())throw Error('Linked frontend source or junction: '+file);
-    if(entry.isDirectory()){if(!owner.shallow)scan(file,relative+'/');continue;}
+    if(entry.isDirectory()){if(!owner.shallow&&!(owner.modules&&['native','css','fragments'].includes(entry.name)))scan(file,relative+'/');continue;}
     if(!entry.isFile())throw Error('Non-file frontend source: '+file);
-    if(owner.shallow&&!entry.name.endsWith('.js'))continue;
-    const publicPath=validPublicPath(owner.publicPath+'/'+relative),sourcePath=owner.sourcePath+'/'+relative;
+    if((owner.shallow||owner.modules)&&!entry.name.endsWith('.js'))continue;
+    const published=owner.modules
+     ? relative.includes('workers/')?'assets/js/workers/'+entry.name
+      :owner.sourcePath==='src/app'&&relative==='viewer.js'?'assets/js/viewer.js':owner.publicPath+'/'+entry.name
+     :owner.publicPath+'/'+relative;
+    const publicPath=validPublicPath(published),sourcePath=owner.sourcePath+'/'+relative;
     if(index.has(publicPath))throw Error('Duplicate frontend public ownership: '+publicPath);
     index.set(publicPath,{sourcePath,publicPath,product:owner.product});
    }
@@ -119,7 +123,7 @@ export function emitFrontendModule(source,sourcePath,index){
    publicPath=target.publicPath;
   }
   else if(generatedModulePaths.has(targetPath))publicPath=targetPath;
-  else if(targetPath==='tools/load-node-core.mjs'&&sourceEntry.publicPath==='assets/js/modules/temporal.js')publicPath=targetPath;
+  else if(targetPath==='tools/build/load-node-core.mjs'&&sourceEntry.publicPath==='assets/js/modules/temporal.js')publicPath=targetPath;
   else throw Error('Private or unmapped frontend import: '+sourcePath+' -> '+reference.specifier);
   let specifier=posix.relative(posix.dirname(sourceEntry.publicPath),publicPath);if(!specifier.startsWith('.'))specifier='./'+specifier;
   changes.push({...reference,text:reference.template?specifier:JSON.stringify(specifier+suffix)});

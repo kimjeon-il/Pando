@@ -30,13 +30,13 @@
 
 ## 3. 실제 실행 책임 구조
 
-`apps/viewer/js/modules/viewer-composition.js` (읽기 전용 웹 제품)와 `apps/editor/frontend/js/modules/app-composition.js` (현재 Windows/Android 편집 제품)가 서로 다른 진입점이다. 양쪽은 `shared/frontend/js/modules/map-owner-composition.js` 등 공통 owner, C++ 문서 read model, WebGL/Canvas 지도 렌더러를 공유한다.
+`src/app/viewer-composition.js` (읽기 전용 웹 제품)와 `apps/editor/frontend/js/modules/app-composition.js` (현재 Windows/Android 편집 제품)가 서로 다른 진입점이다. 양쪽은 `src/app/map-owner-composition.js` 등 공통 owner, C++ 문서 read model, WebGL/Canvas 지도 렌더러를 공유한다.
 
 `apps/editor/frontend/js/modules/app-domain-assembly.js`가 ProjectDomain/SelectionDomain/GisDomain/EditingDomain/RenderingDomain을 묶는다. 이 조합은 프로젝트 교체·선택 변경 때 EditingDomain을 호출한다. `apps/editor/frontend/js/modules/app-project-restore.js`도 프로젝트 초기화/불러오기에서 편집 제스처 취소 및 EditingDomain 리셋에 의존한다. `apps/editor/frontend/js/modules/app-gis-assembly.js`는 GIS import 계획의 적용 시 `editingDomain.commitImport`를 사용한다.
 
 공통 `rendering-domain.js`는 지도/선택 렌더링과 함께 선택적으로 `editingRenderResources`, `getEditingRenderPacket`, editPresentation 및 정점·드래프트·검증 오버레이를 지원한다. 편집 렌더 경계가 선택적이더라도 공통 코드에서 호출이 남으므로 무조건 파일 삭제하면 안 된다. `map-owner-composition.js`는 이미 `editing=null`을 받아 읽기 전용으로 구성할 수 있으며, viewer 모드에서 편집 훅이 전달되면 예외를 던진다.
 
-**제품 정책 위험:** `shared/frontend/js/modules/product-mode-policy.js`는 viewer를 globe, editor를 flat 투영으로 제한한다. `resource-capabilities.js`도 제품별 globe/terrain 지원이 다르다. 따라서 네이티브 app에서 `viewer` 모드만 강제하는 단순 대체는 불가하다. E1은 '읽기 전용' 권한과 '평면/지구본 및 플랫폼' 지원을 독립적으로 정의해야 하며, 현재의 정상 지도 열람 동작을 잃지 않아야 한다.
+**제품 정책 위험:** `src/app/product-mode-policy.js`는 viewer를 globe, editor를 flat 투영으로 제한한다. `resource-capabilities.js`도 제품별 globe/terrain 지원이 다르다. 따라서 네이티브 app에서 `viewer` 모드만 강제하는 단순 대체는 불가하다. E1은 '읽기 전용' 권한과 '평면/지구본 및 플랫폼' 지원을 독립적으로 정의해야 하며, 현재의 정상 지도 열람 동작을 잃지 않아야 한다.
 
 ## 4. 분류 및 인수인계 대상
 
@@ -44,12 +44,12 @@
 
 | 코드/영역 | 이유 |
 | --- | --- |
-| `shared/frontend/js/modules/map-owner-composition.js` | 웹·네이티브 공통 지도 owner |
-| `shared/frontend/js/modules/rendering-domain.js`의 읽기/선택 부분 및 GPU/Canvas 모듈 | 지도 렌더링, 렌더 캐시 및 무효화 |
-| `shared/frontend/js/modules/project-domain.js`, `selection-domain.js` | Core 문서와 canonical 선택/프로젝트 명령 |
-| `shared/frontend/js/modules/timeline-resolver.js`, `timeline-records.js`, `temporal.js` | 역사 시점별 지도 조회 및 C++ 계산 |
-| `shared/frontend/js/modules/project-state.js`, `project-file-reader.js` | 현재 지원 프로젝트 형식 검증 및 열기 |
-| `shared/frontend/js/modules/geometry-validation.js`, `source-provenance.js` | GIS 무결성 검증, 출처 메타데이터 |
+| `src/app/map-owner-composition.js` | 웹·네이티브 공통 지도 owner |
+| `src/rendering/rendering-domain.js`의 읽기/선택 부분 및 GPU/Canvas 모듈 | 지도 렌더링, 렌더 캐시 및 무효화 |
+| `src/document/project-domain.js`, `selection-domain.js` | Core 문서와 canonical 선택/프로젝트 명령 |
+| `src/document/timeline-resolver.js`, `timeline-records.js`, `temporal.js` | 역사 시점별 지도 조회 및 C++ 계산 |
+| `src/document/project-state.js`, `project-file-reader.js` | 현재 지원 프로젝트 형식 검증 및 열기 |
+| `src/geometry/geometry-validation.js`, `source-provenance.js` | GIS 무결성 검증, 출처 메타데이터 |
 | `shared/core`, `shared/wasm`에서 사용 중인 Core 모델·시간축·검증·렌더 지원 | 런타임 공유 계산과 직결; 이름이 'edit'여도 사용처 확인 전 삭제 금지 |
 | `apps/editor/native-platform-adapter.js`, `document-transfer-contract.js` 및 Rust Tauri transport | Windows/Android 파일 선택·전송, 보안 경계 |
 
@@ -62,8 +62,8 @@
 | `apps/editor/frontend/js/modules/app-project-restore.js` | import/reset에서 편집 취소·리셋 | 읽기용 프로젝트 복원 분리 |
 | `apps/editor/frontend/js/modules/app-gis-assembly.js` | GIS 계획과 `commitImport` 경로 결합 | 검사/조회/내보내기와 변이 적용 분리 |
 | `apps/editor/frontend/js/modules/app-history-assembly.js`, `app-project-snapshots.js` | 문서 Undo/Redo, autosave, view restore 혼합 | 보기 상태·프로젝트 I/O 보존 범위 파악 |
-| `shared/frontend/js/modules/project-session.js` | 보기 상태와 편집 상태 혼합 | canonical viewing state 보존, 편집 전용만 제거 |
-| `shared/frontend/js/modules/file-access-contract.js` | viewer/editor별 요구 메서드 구분 | read/검수 요구사항 재정의 시 native file picker 보존 |
+| `src/document/project-session.js` | 보기 상태와 편집 상태 혼합 | canonical viewing state 보존, 편집 전용만 제거 |
+| `src/data/file-access-contract.js` | viewer/editor별 요구 메서드 구분 | read/검수 요구사항 재정의 시 native file picker 보존 |
 | `apps/editor/frontend/js/modules/project-serializer.js` | 현재 프로젝트 형식/지문 | 지원 중인 schema 13 기준 유지, 불필요한 migration 금지 |
 | `apps/editor/templates/index.html`, `shared/frontend/css/components/editor-shell.css` | 도구/선택/상태 및 편집 전용 UI 혼재 | 화면 전환 확인 후 정리 |
 
@@ -89,7 +89,7 @@
 - 별도 이 로컬 세션에는 상설 `work/ui` 워크트리와 의존성 캐시가 없으므로 `pnpm`, Playwright, C++/Rust 및 실기기 테스트는 실행하지 않았다. GitHub 원격 코드·트리·CI 기록만 조사했다.
 - E1 필수 정적 검사: `node scripts/check-runtime-boundaries.mjs`, `pnpm check:architecture`, `pnpm check:ui`. 기존 checker는 `editing-domain.js` export, `editorSurface` 존재 등을 전제로 하므로 E6 이전 임의 수정 금지.
 - E1 집중 단위 테스트: `tests/unit/domain-split-contract.test.mjs`, `application-composition.test.mjs`, `shared-map-composition.test.mjs`, `file-access-contract.test.mjs`, `project-state.test.mjs`, `project-serializer.test.mjs`, `timeline-resolver.test.mjs`, `native-document-transfer-contract.test.mjs`.
-- E1 이상 브라우저 검사: `tests/browser/viewer-project-open.spec.mjs`, `viewer-layout.spec.mjs`, `shared-map-parity.spec.mjs`, `selection-domain-smoke.spec.mjs`, `editing-state-recovery.spec.mjs`. 이 중 편집 전용 테스트는 E4까지 이전 동작 확인용으로 유지.
+- E1 이상 브라우저 검사: `tests/browser/document/viewer-project-open.spec.mjs`, `viewer-layout.spec.mjs`, `shared-map-parity.spec.mjs`, `selection-domain-smoke.spec.mjs`, `editing-state-recovery.spec.mjs`. 이 중 편집 전용 테스트는 E4까지 이전 동작 확인용으로 유지.
 - E4/E7 실기기 확인: Windows 네이티브, Android ARM64, 평면 지도 보기, 현재 지원 프로젝트 열기, 시간축, 국명·국기·관계, GIS 검사·파일 읽기. 브라우저 에뮬레이션은 실기기 검증의 대체가 아니다.
 - `scripts/contracts/application-checks.json`의 영향 기반 테스트 계획과 `scripts/check-ui-information-architecture.mjs`, `scripts/check-runtime-boundaries.mjs`는 E6의 기존 DOM/편집 경계 제거와 **같은 변경 범위**에서 갱신해야 한다.
 

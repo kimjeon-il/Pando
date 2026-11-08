@@ -34,8 +34,8 @@ jobs:
         run: pnpm exec playwright install chromium
       - name: Check test syntax and actually run full dated Viewer on each backend
         run: |
-          node --check tests/browser/viewer-gpu-backend-cross.spec.mjs
-          pnpm exec playwright test tests/browser/viewer-gpu-backend-cross.spec.mjs --workers=1 --retries=0 --trace=off --reporter=list
+          node --check tests/browser/rendering/viewer-gpu-backend-cross.spec.mjs
+          pnpm exec playwright test tests/browser/rendering/viewer-gpu-backend-cross.spec.mjs --workers=1 --retries=0 --trace=off --reporter=list
       - name: Preserve raw backend identity and measured date-transition results
         if: always()
         uses: actions/upload-artifact@v4

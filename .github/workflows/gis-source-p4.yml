@@ -6,9 +6,9 @@ on:
       - '.github/workflows/gis-source-p4.yml'
       - 'scripts/gis/run-source.mjs'
       - 'tools/gis/build-german-1914-base.mjs'
-      - 'tests/unit/gis-source-launcher.test.mjs'
+      - 'tests/unit/geometry/gis-source-launcher.test.mjs'
       - 'tools/gis/build-hydro.mjs'
-      - 'tests/unit/gis-source-launcher.test.mjs'
+      - 'tests/unit/geometry/gis-source-launcher.test.mjs'
       - '**/*.py'
       - '**/*.pyw'
       - '**/*.pyi'
@@ -32,9 +32,9 @@ on:
       - '.github/workflows/gis-source-p4.yml'
       - 'scripts/gis/run-source.mjs'
       - 'tools/gis/build-german-1914-base.mjs'
-      - 'tests/unit/gis-source-launcher.test.mjs'
+      - 'tests/unit/geometry/gis-source-launcher.test.mjs'
       - 'tools/gis/build-hydro.mjs'
-      - 'tests/unit/gis-source-launcher.test.mjs'
+      - 'tests/unit/geometry/gis-source-launcher.test.mjs'
       - '**/*.py'
       - '**/*.pyw'
       - '**/*.pyi'
@@ -80,7 +80,7 @@ jobs:
         with:
           node-version: '24'
       - name: Verify GIS dispatcher and current source isolation
-        run: node --test tests/unit/gis-source-launcher.test.mjs
+        run: node --test tests/unit/geometry/gis-source-launcher.test.mjs
 
   historical-geometry:
     if: github.event_name == 'workflow_dispatch' && (inputs.scope == 'historical' || inputs.scope == 'all')
@@ -109,8 +109,8 @@ jobs:
           cmake --build build-native/territorial-recipe --target pando-territorial-recipe
       - name: Cross-check persisted geometry against the pinned C++ recipe
         run: |
-          node --test tests/unit/territorial-recipe-cli.test.mjs tests/unit/territorial-recipe-cpp.test.mjs
-          node tools/build-territorial-geometry.mjs --check
+          node --test tests/unit/document/territorial-recipe-cli.test.mjs tests/unit/document/territorial-recipe-cpp.test.mjs
+          node tools/build/build-territorial-geometry.mjs --check
       - name: Preserve historical recipe proof, not reprocessed data
         if: always()
         uses: actions/upload-artifact@v4

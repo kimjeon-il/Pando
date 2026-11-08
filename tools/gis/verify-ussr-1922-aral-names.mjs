@@ -7,7 +7,7 @@ import {createHash} from 'node:crypto';
 import {readFileSync,writeFileSync,existsSync,mkdirSync} from 'node:fs';
 import {join,dirname,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {readHydroMetadataSection} from '../inventory-osm-hydronyms.mjs';
+import {readHydroMetadataSection} from "./inventory-osm-hydronyms.mjs";
 
 export const ROOT=fileURLToPath(new URL('../../',import.meta.url));
 export const ARAL_NAMES=Object.freeze({

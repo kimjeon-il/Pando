@@ -5,18 +5,18 @@ on:
     branches: [work/gis]
     paths:
       - '.github/workflows/builtin-country-deployment.yml'
-      - 'tests/unit/builtin-country-publication.test.mjs'
-      - 'tests/unit/builtin-country-parts.test.mjs'
+      - 'tests/unit/data/builtin-country-publication.test.mjs'
+      - 'tests/unit/data/builtin-country-parts.test.mjs'
       - 'tests/integration/builtin-country-deployment.mjs'
-      - 'tests/browser/viewer-calendar.spec.mjs'
-      - 'tools/builtin-country-storage.mjs'
-      - 'tools/builtin-country-bytes.mjs'
-      - 'shared/frontend/js/modules/builtin-country-files.js'
+      - 'tests/browser/document/viewer-calendar.spec.mjs'
+      - 'tools/data/builtin-country-storage.mjs'
+      - 'tools/data/builtin-country-bytes.mjs'
+      - 'src/data/builtin-country-files.js'
       - 'scripts/lib/product-assets.mjs'
-      - 'apps/viewer/js/viewer.js'
-      - 'tools/stage-monorepo-pages.mjs'
-      - 'tests/unit/frontend-product-output.test.mjs'
-      - 'tests/unit/monorepo-pages-staging.test.mjs'
+      - 'src/app/viewer.js'
+      - 'tools/build/stage-monorepo-pages.mjs'
+      - 'tests/unit/build/frontend-product-output.test.mjs'
+      - 'tests/unit/document/monorepo-pages-staging.test.mjs'
       - 'docs/development/builtin-country-deployment.md'
   workflow_dispatch:
     inputs:
@@ -86,7 +86,7 @@ jobs:
           import {writeFileSync} from 'node:fs';
           import {execFileSync} from 'node:child_process';
           import assert from 'node:assert/strict';
-          import {defaultRoot,libraryConfig,libraryCheckout,withLibraryLock} from './tools/library-data.mjs';
+          import {defaultRoot,libraryConfig,libraryCheckout,withLibraryLock} from './tools/data/library-context.mjs';
           withLibraryLock(defaultRoot,()=>{
            const config=libraryConfig(),checkout=libraryCheckout();
            const git=(...args)=>execFileSync('git',args,{cwd:checkout,encoding:'utf8',stdio:'pipe'}).trim();
@@ -107,17 +107,17 @@ jobs:
            }
           },{compact:false});
           JS
-          node tools/library-data.mjs
+          node tools/data/library-data.mjs
       - name: Verify affected generation, loader, deployment and Viewer publication contracts
         if: steps.reuse.outputs.verified != 'true'
         run: |
-          node --test --test-timeout=15000 tests/unit/builtin-country-publication.test.mjs tests/unit/historical-world-publication.test.mjs tests/unit/builtin-world-catalog.test.mjs tests/unit/builtin-world-loader.test.mjs tests/unit/builtin-country-loading.test.mjs tests/unit/builtin-country-parts.test.mjs tests/unit/frontend-product-output.test.mjs tests/unit/monorepo-pages-staging.test.mjs
+          node --test --test-timeout=15000 tests/unit/data/builtin-country-publication.test.mjs tests/unit/data/historical-world-publication.test.mjs tests/unit/document/builtin-world-catalog.test.mjs tests/unit/data/builtin-world-loader.test.mjs tests/unit/data/builtin-country-loading.test.mjs tests/unit/data/builtin-country-parts.test.mjs tests/unit/build/frontend-product-output.test.mjs tests/unit/document/monorepo-pages-staging.test.mjs
       - name: Prepare independent files and a locally verified paired pin; preserve every country hash
         run: |
           node --input-type=module <<'JS'
           import {writeFileSync} from 'node:fs';
-          import {libraryConfig} from './tools/library-data.mjs';
-          import {prepareBuiltinCountryFiles,verifyBuiltinCountryFiles,storeBuiltinCountryDelta} from './tools/builtin-country-storage.mjs';
+          import {libraryConfig} from './tools/data/library-context.mjs';
+          import {prepareBuiltinCountryFiles,verifyBuiltinCountryFiles,storeBuiltinCountryDelta} from './tools/data/builtin-country-storage.mjs';
           const beforeRevision=libraryConfig().revision;
           const prepared=prepareBuiltinCountryFiles({apply:true});
           const verified=verifyBuiltinCountryFiles();
@@ -125,18 +125,18 @@ jobs:
           writeFileSync(process.env.COUNTRY_PUBLICATION_PLAN,JSON.stringify({beforeRevision,revision:stored.revision,prefixes:prepared.prefixes}));
           console.log(JSON.stringify({preparedCountries:prepared.countryCount,changedStoragePaths:prepared.prefixes.length,preservedCountryHashes:prepared.preservedCountryHashes,...verified,localDataCommit:stored.revision}));
           JS
-          node tools/library-data.mjs
+          node tools/data/library-data.mjs
       - name: Verify real Web/App closures, dated loading and preservation of unrelated archived data
         run: node tests/integration/builtin-country-deployment.mjs
       - name: Verify product asset unit contracts
         if: steps.reuse.outputs.verified != 'true'
-        run: node --test --test-timeout=30000 tests/unit/product-assets.test.mjs
+        run: node --test --test-timeout=30000 tests/unit/ui/product-assets.test.mjs
       - name: Prepare one real Chromium loading regression
         if: steps.reuse.outputs.verified != 'true'
         run: pnpm exec playwright install --with-deps chromium
       - name: Verify current month, historical selection and no aggregate network request
         if: steps.reuse.outputs.verified != 'true'
-        run: pnpm exec playwright test tests/browser/viewer-calendar.spec.mjs --grep 'follows calendar rollover' --workers=1 --retries=0 --trace off
+        run: pnpm exec playwright test tests/browser/document/viewer-calendar.spec.mjs --grep 'follows calendar rollover' --workers=1 --retries=0 --trace off
       - name: Publish only verified country files to the data work/gis branch
         if: inputs.activate == true || contains(github.event.head_commit.message, '[activate-country-files]')
         env:
@@ -147,7 +147,8 @@ jobs:
           import {readFileSync} from 'node:fs';
           import assert from 'node:assert/strict';
           import {execFileSync} from 'node:child_process';
-          import {storeLibraryData,libraryConfig,libraryCheckout,decodeArchiveEntry} from './tools/library-data.mjs';
+          import {storeLibraryData} from './tools/data/library-store.mjs';
+          import {libraryConfig,libraryCheckout,decodeArchiveEntry} from './tools/data/library-context.mjs';
           import {createHash} from 'node:crypto';
           const plan=JSON.parse(readFileSync(process.env.COUNTRY_PUBLICATION_PLAN));
           assert.equal(execFileSync('git',['branch','--show-current'],{encoding:'utf8'}).trim(),'work/gis');

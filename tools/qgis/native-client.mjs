@@ -3,7 +3,7 @@ import {connect} from 'node:net';
 
 const commands=new Set(['status','project','save-project','project-crs','canvas','canvas-screenshot','canvas-scale','canvas-extent','layers','active-layer','zoom-to-layer','transform','schema','edit-status','raster-info','raster-sample','set-visibility','remove-layer','algorithms','buffer','clip','features','select','selection','clear-selection','begin-edit','commit-edit','rollback-edit','undo-edit','redo-edit','set-attribute','set-geometry','add-field','delete-field','rename-field','delete-feature','add-feature','open','open-raster','export']);
 export const qgisNativeSourceFiles=Object.freeze(['tools/cpp/CMakeLists.txt','tools/cpp/qgis/pando-qgis-plugin.cpp',
-  'tools/cpp/qgis/qgis-export.cpp','tools/cpp/qgis/qgis-export.h','shared/core/include/pandoeditor/losslessjson.h','shared/core/src/losslessjson.cpp']);
+  'tools/cpp/qgis/qgis-export.cpp','tools/cpp/qgis/qgis-export.h','src/data/native/include/pandoeditor/losslessjson.h','src/data/native/src/losslessjson.cpp']);
 export function validateNativeQgisConfig(config){
   if(!config||config.host!=='127.0.0.1'||!Number.isInteger(config.port)||config.port<1024||config.port>65535||
     typeof config.token!=='string'||!config.token||config.token.length>4096)throw Error('Authenticated IPv4 loopback QGIS configuration is required');

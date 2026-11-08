@@ -53,9 +53,9 @@ production 3-second cold-start requirement.
 Run from the worktree root:
 
 ```powershell
-node --test tests/unit/territorial-boundary-continuity.test.mjs tests/unit/domain-split-contract.test.mjs tests/unit/empty-territorial-boundary.test.mjs tests/unit/render-channel-ownership.test.mjs
+node --test tests/unit/document/territorial-boundary-continuity.test.mjs tests/unit/domain-split-contract.test.mjs tests/unit/geometry/empty-territorial-boundary.test.mjs tests/unit/render-channel-ownership.test.mjs
 pnpm.cmd exec playwright test tests/browser/territorial-boundary-continuity.spec.mjs
-pnpm.cmd exec eslint assets/js/modules/rendering-domain.js tests/unit/territorial-boundary-continuity.test.mjs tests/unit/domain-split-contract.test.mjs tests/browser/territorial-boundary-continuity.spec.mjs
+pnpm.cmd exec eslint assets/js/modules/rendering-domain.js tests/unit/document/territorial-boundary-continuity.test.mjs tests/unit/domain-split-contract.test.mjs tests/browser/territorial-boundary-continuity.spec.mjs
 ```
 
 The existing Application Architecture workflow contains a path-scoped

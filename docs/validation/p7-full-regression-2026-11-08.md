@@ -34,7 +34,7 @@ The source Git tree at that exact pin contains both:
 
 However, its `archive/index.json` (**SHA
 `a9e46e359fdda9ab5cd319611498e3e2d782ee26`**) does not list either
-file. The application’s `tools/library-data.mjs` materializes source-pinned
+file. The application’s `tools/data/library-data.mjs` materializes source-pinned
 runtime data from archive index entries rather than a loose source checkout.
 Consequently both files are absent from mounted runtime data after successful
 library preparation. Three browser shards and many unit tests cannot proceed.

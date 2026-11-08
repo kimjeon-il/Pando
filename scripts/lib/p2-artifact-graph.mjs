@@ -7,13 +7,14 @@ import { copyFileSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSy
   renameSync, unlinkSync, writeFileSync, realpathSync, statSync } from 'node:fs';
 import { dirname, isAbsolute, relative, resolve, sep } from 'node:path';
 
-import { libraryConfig, libraryCheckout, decodeArchiveEntry, libraryReportRoot, libraryMaterializedRoot, prepareLibraryData, withLibraryOutputs } from '../../tools/library-data.mjs';
-import {reportPath} from '../../tools/report-paths.mjs';
-import {contentAddress} from '../../tools/build-world-bundle.mjs';
+import {libraryConfig,libraryCheckout,decodeArchiveEntry,libraryReportRoot,libraryMaterializedRoot} from "../../tools/data/library-context.mjs";
+import {prepareLibraryData,withLibraryOutputs} from "../../tools/data/library-runtime.mjs";
+import {reportPath} from "../../tools/data/report-paths.mjs";
+import {contentAddress} from "../../tools/build/build-world-bundle.mjs";
 
 export const GRAPH_PATH='config/generated-artifacts.json';
 export const RECEIPT_PATH='assets/data/generated-artifacts/p2-manifest.json';
-const WASM_OUTPUTS=['shared/frontend/static/wasm/pandoeditor-core.js','shared/frontend/static/wasm/pandoeditor-core.wasm','shared/frontend/static/wasm/pandoeditor-core.manifest.json'];
+const WASM_OUTPUTS=['assets/wasm/pandoeditor-core.js','assets/wasm/pandoeditor-core.wasm','assets/wasm/pandoeditor-core.manifest.json'];
 const sha=b=>createHash('sha256').update(b).digest('hex');
 const canonical=value=>JSON.stringify(value);
 const normalize=p=>p.replaceAll('\\','/');
@@ -213,6 +214,22 @@ export function assertBranchState(root,{expectedSourceSha,expectedRemoteSha,bran
   }
 }
 
+export function artifactPreparationPrefixes(graph, families) {
+  const byId = new Map(graph.map(family => [family.id, family])), selected = new Set();
+  const visit = id => {
+    if (id === 'wasm' || selected.has(id)) return;
+    assert.ok(byId.has(id), 'P2_UNKNOWN_PREPARATION_FAMILY: ' + id);
+    selected.add(id);
+    byId.get(id).dependencies.forEach(visit);
+  };
+  families.forEach(visit);
+  return [...new Set([...selected].flatMap(id => {
+    const family = byId.get(id);
+    return [...family.inputs, ...family.outputs].map(selector => typeof selector === 'string' ? selector : selector.prefix)
+      .filter(path => path.startsWith('assets/data/')).map(path => path.replace(/\/$/, ''));
+  }))].sort();
+}
+
 export async function stageArtifacts(root,{families,expectedSourceSha,stageDir,run=runCommand,prepareData=prepareLibraryData}) {
   assertBranchState(root,{expectedSourceSha});
   assert.ok(Array.isArray(families)&&families.length,'P2_FAMILIES_REQUIRED');
@@ -237,7 +254,8 @@ export async function stageArtifacts(root,{families,expectedSourceSha,stageDir,r
     assert.ok(lstatSync(source).isFile(),'P2_NON_FILE_TRACKED_INPUT: '+p);
     mkdirSync(dirname(target),{recursive:true});copyFileSync(source,target);
   }
-  if(existsSync(resolve(checkout,'config/library-data.json')))prepareData({root:checkout});
+  if(existsSync(resolve(checkout,'config/library-data.json')))prepareData({root:checkout,purpose:'gis',
+    prefixes:artifactPreparationPrefixes(initial.graph,families)});
   const before=hashes(checkout,filesInCheckout(checkout)),selected=initial.graph.filter(f=>families.includes(f.id));
   for(const family of selected) {
     for(const command of family.generate)await run(command,checkout,{PANDO_P2_SOURCE_SHA:expectedSourceSha});
@@ -351,7 +369,7 @@ export function artifactEvidence(root,{resultSha,expectedSourceSha,evidenceFile,
   const wasmAssets={};
   for(const [kind,spec] of Object.entries(wasmManifest.assets)) {
     assert.ok(['js','wasm'].includes(kind)&&spec.file==='pandoeditor-core.'+kind,'P2_WASM_ASSET_PATH');
-    const bytes=committed('shared/frontend/static/wasm/'+spec.file);assert.equal(sha(bytes),spec.sha256,'P2_RESULT_WASM_MISMATCH: '+kind);
+    const bytes=committed('assets/wasm/'+spec.file);assert.equal(sha(bytes),spec.sha256,'P2_RESULT_WASM_MISMATCH: '+kind);
     wasmAssets[kind]={sha256:spec.sha256,bytes:bytes.length};
   }
   const evidence={schema:'pandolab-p2-result-evidence',schemaVersion:1,sourceSha:expectedSourceSha,resultSha,...(config?{libraryRevision:config.revision}:{}),

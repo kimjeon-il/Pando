@@ -3,7 +3,7 @@ import {once} from 'node:events';
 import {existsSync,mkdirSync,readFileSync,statSync,writeFileSync} from 'node:fs';
 import {isAbsolute,join,resolve} from 'node:path';
 import {setTimeout as delay} from 'node:timers/promises';
-import {verifyNativeTool} from '../native-tool.mjs';
+import {verifyNativeTool} from "../build/native-tool.mjs";
 import {qgisNativeSourceFiles,requestNativeQgis,validateNativeQgisConfig} from './native-client.mjs';
 
 function safePath(value){

@@ -3,7 +3,7 @@ name: Refresh Hydro Worker and build metadata
 
 on:
   push:
-    branches: [work/gis]
+    branches: [ work/gis ]
     paths:
       - '.github/workflows/gis-hydro-metadata-refresh.yml'
   workflow_dispatch:
@@ -36,9 +36,9 @@ jobs:
           node scripts/generate-build-metadata.mjs
           node scripts/generate-build-metadata.mjs --check
       - name: Check Hydro provenance and published package identity
-        run: |
-          node --test tests/unit/gis-osm-source-inventory.test.mjs tests/unit/current-hydro-layout.test.mjs tests/unit/hydro-packfile.test.mjs
-          node tools/check-current-hydro-layout.mjs --root . --allow-retired false --out "$RUNNER_TEMP/hydro-release-proof.json"
+        run: |-
+          node --test  tests/unit/geometry/current-hydro-layout.test.mjs tests/unit/data/hydro-packfile.test.mjs
+          node tools/checks/check-current-hydro-layout.mjs --root . --allow-retired false --out "$RUNNER_TEMP/hydro-release-proof.json"
       - uses: actions/upload-artifact@v4
         with:
           name: gis-hydro-metadata-refresh-evidence

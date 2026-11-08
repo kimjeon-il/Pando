@@ -15,7 +15,7 @@ Removed 31 obsolete test-support and archive files (approximately 256 KiB of tra
 
 The current browser helpers `synthetic-dem-terrain.mjs`, `viewer-acceptance.mjs`, and `viewing-display.mjs` remain. Legacy-named but active GIS/Core support, including `legacy-project-autosave.mjs`, `map-transition-baseline.mjs`, and current `web-core-contract.mjs`, remains in place.
 
-Removed the duplicate npm script `check:startup-performance`, which only reran `e7-application-check-planner.test.mjs` already covered by `check:domains`. Deleted a redundant retired-Editor source check in the remote-only workflow; `tests/unit/remote-only-contract.test.mjs` and runtime boundary checks remain.
+Removed the duplicate npm script `check:startup-performance`, which only reran `e7-application-check-planner.test.mjs` already covered by `check:domains`. Deleted a redundant retired-Editor source check in the remote-only workflow; `tests/unit/runtime/remote-only-contract.test.mjs` and runtime boundary checks remain.
 
 Added a dynamic browser-helper reachability assertion in the existing CI inventory test to prevent obsolete Chromium diagnostic helpers from accumulating again. The assertion discovers present browser spec files and follows helper references without hardcoded helper names.
 

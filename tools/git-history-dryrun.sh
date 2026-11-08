@@ -12,7 +12,7 @@ git --git-dir="$WORKDIR/original.git" for-each-ref --format='%(refname)%09%(obje
 git --git-dir="$WORKDIR/original.git" count-objects -vH >"$WORKDIR/evidence/original-count-objects.txt"
 du -sb "$WORKDIR/original.git/objects" | cut -f1 >"$WORKDIR/evidence/original-objects-bytes.txt"
 echo "Filtering an isolated mirror; no source refs are changed."
-node tools/git-history-dryrun.mjs rewrite >"$WORKDIR/evidence/filter-repo.log" 2>&1
+node tools/data/git-history-dryrun.mjs rewrite >"$WORKDIR/evidence/filter-repo.log" 2>&1
 git --git-dir="$WORKDIR/filtered.git" repack -a -d
 rm "$WORKDIR/filtered.git/objects/info/alternates"
 git --git-dir="$WORKDIR/filtered.git" reflog expire --expire=now --all
@@ -22,5 +22,5 @@ git --git-dir="$WORKDIR/filtered.git" for-each-ref --format='%(refname)%09%(obje
 git --git-dir="$WORKDIR/filtered.git" count-objects -vH >"$WORKDIR/evidence/filtered-count-objects.txt"
 du -sb "$WORKDIR/filtered.git/objects" | cut -f1 >"$WORKDIR/evidence/filtered-objects-bytes.txt"
 echo "Comparing original and filtered refs and exact trees."
-node tools/git-history-dryrun.mjs summarize
+node tools/data/git-history-dryrun.mjs summarize
 echo "DONE: $(date -u +%FT%TZ); no remote refs altered" >>"$WORKDIR/evidence/status.txt"

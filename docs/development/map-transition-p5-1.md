@@ -34,7 +34,7 @@
 5. `core.document-prepare`의 기존 `candidateId`는 **편집 명령의 단일 미리보기 슬롯**이다. 새로운 날짜 조회 후보의 등록·폐기에 이 슬롯을 재사용하면 편집 대기 상태와 충돌할 수 있으므로 금지한다.
 6. `core-document-client`는 단일 순서 보장 큐를 사용한다. 동기 C++ 커밋이 Worker에 전달된 뒤 취소해도 acknowledgement는 소비해야 한다. C++·WASM ABI와 pinned JS/WASM 쌍 검증을 유지한다.
 
-관련 소스: `shared/core/src/document-session.cpp`, `shared/core/src/webstorage.cpp`, `shared/core/include/pandoeditor/document-session.h`, `shared/frontend/js/modules/builtin-session.js`, `shared/frontend/js/modules/project-domain.js`, `shared/frontend/js/modules/core-document-client.js`.
+관련 소스: `src/document/native/src/document-session.cpp`, `src/data/native/src/webstorage.cpp`, `src/document/native/include/pandoeditor/document-session.h`, `src/document/builtin-session.js`, `src/document/project-domain.js`, `src/document/core-document-client.js`.
 
 ## 3. P5 단계의 후보 준비 계약 (구현 전 확정)
 
@@ -86,10 +86,10 @@
 
 | 다음 단계 | 제안 RPC 또는 대상 | 실제 작업 소유자 |
 | --- | --- | --- |
-| P5-2 | `core.document-temporal-source-prepare` — immutable `sourceId`, 검증된 `sourceFingerprint`, `sourceMonth` 반환 | `shared/core/include/pandoeditor/document-session.h`, `shared/core/src/document-session.cpp`, `shared/core/src/webstorage.cpp` |
+| P5-2 | `core.document-temporal-source-prepare` — immutable `sourceId`, 검증된 `sourceFingerprint`, `sourceMonth` 반환 | `src/document/native/include/pandoeditor/document-session.h`, `src/document/native/src/document-session.cpp`, `src/data/native/src/webstorage.cpp` |
 | P5-3 | `core.document-temporal-candidate-prepare` — 별도 불변 `candidateId`, 목표 월, source pin, expected epoch 및 의미론적 영수증 | 같은 C++ `DocumentSession` 및 기존 `Project`/timeline resolver |
-| P5-4 | `core.document-temporal-candidate-adopt`, `core.document-temporal-candidate-discard` — 단일 Core 교체 캡슐의 채택/해제 | `DocumentSession`; `shared/frontend/js/modules/project-domain.js`의 기존 rollback 경계 |
-| P5-5 | 기존 worker operation manifest·typed ABI·정확한 세대/취소 결과 전달 | `shared/wasm/session-bindings.cpp`, `core-worker-runtime.js`, `core-document-client.js`, `product-mode-policy.js` |
+| P5-4 | `core.document-temporal-candidate-adopt`, `core.document-temporal-candidate-discard` — 단일 Core 교체 캡슐의 채택/해제 | `DocumentSession`; `src/document/project-domain.js`의 기존 rollback 경계 |
+| P5-5 | 기존 worker operation manifest·typed ABI·정확한 세대/취소 결과 전달 | `src/document/native/bindings/session-bindings.cpp`, `core-worker-runtime.js`, `core-document-client.js`, `product-mode-policy.js` |
 | P5-6 | 실제 Viewer 최신 요청/표시 핸드오프 및 `replaceSnapshot` 세부 원인 분류 | `builtin-session.js`, `project-domain.js`, `viewer-composition.js`와 기존 렌더·물리 지형 소유자 |
 
 제안 source 준비 입력은 기존 `WebStorageAssetSource`에 준하며, `expectedEpoch`와 세션 소유권 검사를 포함한다. Source 핸들은 최신 `storageBaselineId`나 편집 `candidateId`로 취급하지 않는다. 등록된 source는 읽기 전용이지만 원본 데이터 개정·월·fingerprint·ABI가 다르면 다른 소스다. P5-2 이전까지 API 또는 타입 이름의 세부 서명은 코드 변경으로 간주하므로 여기서 컴파일러 변경을 요구하지 않는다.

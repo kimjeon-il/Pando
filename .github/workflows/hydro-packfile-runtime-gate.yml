@@ -4,10 +4,10 @@ on:
   push:
     branches: [ work/gis ]
     paths:
-      - 'shared/frontend/js/workers/hydro-shard-store.js'
-      - 'shared/frontend/js/workers/hydro-tile-worker.js'
-      - 'tools/build-hydro-packfile.mjs'
-      - 'tests/unit/hydro-packfile.test.mjs'
+      - 'src/rendering/workers/hydro-shard-store.js'
+      - 'src/rendering/workers/hydro-tile-worker.js'
+      - 'tools/build/build-hydro-packfile.mjs'
+      - 'tests/unit/data/hydro-packfile.test.mjs'
       - '.github/workflows/hydro-packfile-runtime-gate.yml'
   workflow_dispatch:
 
@@ -25,15 +25,15 @@ jobs:
           filter: blob:none
           sparse-checkout-cone-mode: false
           sparse-checkout: |
-            /shared/frontend/js/workers/hydro-shard-store.js
-            /shared/frontend/js/workers/hydro-tile-worker.js
+            /src/rendering/workers/hydro-shard-store.js
+            /src/rendering/workers/hydro-tile-worker.js
             /assets/data/hydro/v0.13.2/
-            /tools/build-hydro-packfile.mjs
-            /tests/unit/hydro-packfile.test.mjs
-            /tools/library-*.mjs
+            /tools/build/build-hydro-packfile.mjs
+            /tests/unit/data/hydro-packfile.test.mjs
+            /tools/data/library-*.mjs
             /scripts/lib/frontend-layout.mjs
-            /tools/library-report-layout.mjs
-            /tools/library-content.mjs
+            /tools/data/library-report-layout.mjs
+            /tools/data/library-content.mjs
             /config/library-data.json
             /.github/actions/library-data/action.yml
       - name: Prepare pinned external library data
@@ -54,8 +54,8 @@ jobs:
           node-version: '24'
       - name: Verify byte-equivalent package and atomic HTTP Range behavior
         run: |
-          node tools/build-hydro-packfile.mjs --source historical-hydro/assets/data/hydro/v0.13.1 --output "$RUNNER_TEMP/hydro-pinned" 
-          node tools/build-hydro-packfile.mjs --source historical-hydro/assets/data/hydro/v0.13.1 --output "$RUNNER_TEMP/hydro-pinned" --check
-          node --test tests/unit/hydro-packfile.test.mjs
-          node --check shared/frontend/js/workers/hydro-tile-worker.js
-          node --check shared/frontend/js/workers/hydro-shard-store.js
+          node tools/build/build-hydro-packfile.mjs --source historical-hydro/assets/data/hydro/v0.13.1 --output "$RUNNER_TEMP/hydro-pinned"
+          node tools/build/build-hydro-packfile.mjs --source historical-hydro/assets/data/hydro/v0.13.1 --output "$RUNNER_TEMP/hydro-pinned" --check
+          node --test tests/unit/data/hydro-packfile.test.mjs
+          node --check src/rendering/workers/hydro-tile-worker.js
+          node --check src/rendering/workers/hydro-shard-store.js

@@ -1,7 +1,7 @@
 import {execFile} from 'node:child_process';
 import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {verifyNativeTool} from '../native-tool.mjs';
+import {verifyNativeTool} from "../build/native-tool.mjs";
 
 const rootDefault=fileURLToPath(new URL('../../',import.meta.url));
 export const terrainDemEncodeSources=Object.freeze(['tools/cpp/terrain-dem-encode/CMakeLists.txt','tools/cpp/terrain-dem-encode/encode.cpp']);

@@ -44,8 +44,8 @@ jobs:
           cmake --build build-native/territorial-recipe --target pando-territorial-recipe
       - name: Verify the stored geometry through the C++ recipe
         run: |
-          node --test tests/unit/territorial-recipe-cli.test.mjs tests/unit/territorial-recipe-cpp.test.mjs
-          node tools/build-territorial-geometry.mjs --check
+          node --test tests/unit/document/territorial-recipe-cli.test.mjs tests/unit/document/territorial-recipe-cpp.test.mjs
+          node tools/build/build-territorial-geometry.mjs --check
 
   data-contracts:
     name: Validation entrypoints and current generated assets
@@ -75,26 +75,26 @@ jobs:
       - name: Validate generated preview assets and unified territorial catalog
         run: >-
           pnpm check:preview &&
-          node tools/build-territorial-entity-chunks.mjs --check &&
+          node tools/build/build-territorial-entity-chunks.mjs --check &&
           node scripts/check-territorial-library.mjs
       - name: Validate catalog geometry parity, lazy loading and timeline storage
         run: >-
-          node --test tests/unit/territorial-library.test.mjs
-          tests/unit/territorial-library.test.mjs
-          tests/unit/territorial-source-parity.test.mjs
-          tests/unit/territorial-source-parity.test.mjs
-          tests/unit/territorial-chunks.test.mjs
-          tests/unit/territorial-canonical-parity.test.mjs
-          tests/unit/territorial-entity-repository.test.mjs
-          tests/unit/territorial-timeline-storage.test.mjs
-          tests/unit/territorial-canonical-parity.test.mjs
-          tests/unit/country-lineage.test.mjs
-          tests/unit/country-lineage.test.mjs
-          tests/unit/territorial-entity-repository.test.mjs
-          tests/unit/gis-geometry-worker.test.mjs
-          tests/unit/gpu-mesh-country-strokes.test.mjs
-          tests/unit/territorial-library.test.mjs
-          tests/unit/territorial-source-parity.test.mjs
+          node --test tests/unit/document/territorial-library.test.mjs
+          tests/unit/document/territorial-library.test.mjs
+          tests/unit/document/territorial-source-parity.test.mjs
+          tests/unit/document/territorial-source-parity.test.mjs
+          tests/unit/ui/territorial-chunks.test.mjs
+          tests/unit/document/territorial-canonical-parity.test.mjs
+          tests/unit/document/territorial-entity-repository.test.mjs
+          tests/unit/document/territorial-timeline-storage.test.mjs
+          tests/unit/document/territorial-canonical-parity.test.mjs
+          tests/unit/document/country-lineage.test.mjs
+          tests/unit/document/country-lineage.test.mjs
+          tests/unit/document/territorial-entity-repository.test.mjs
+          tests/unit/geometry/gis-geometry-worker.test.mjs
+          tests/unit/geometry/gpu-mesh-country-strokes.test.mjs
+          tests/unit/document/territorial-library.test.mjs
+          tests/unit/document/territorial-source-parity.test.mjs
 
   exact-cpp-recipe:
     if: ${{ inputs.recipe_only }}
@@ -121,6 +121,6 @@ jobs:
         env:
           PANDO_TERRITORIAL_RECIPE_BINARY: ${{ github.workspace }}/build-native/territorial-recipe/pando-territorial-recipe
         run: |
-          node --test tests/unit/territorial-recipe-cli.test.mjs tests/unit/territorial-recipe-cpp.test.mjs
-          node tools/build-territorial-geometry.mjs --check
+          node --test tests/unit/document/territorial-recipe-cli.test.mjs tests/unit/document/territorial-recipe-cpp.test.mjs
+          node tools/build/build-territorial-geometry.mjs --check
 

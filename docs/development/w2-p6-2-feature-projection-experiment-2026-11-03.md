@@ -11,7 +11,7 @@
 - 실행 환경: **Ubuntu GitHub Actions Chromium 151 Linux 소프트웨어 WebGL 경로**, 1280×800 viewport, 지도 canvas 1280×752, DPR1, ko-KR/Asia-Seoul, 2026-11→2025-12.
 - Windows GTX1650 실GPU 151/D3D11 선행 비교값과 혼합하지 않는다. GPU scheduler 256KiB를 변경하지 않았다.
 - 최종 CI: https://github.com/kimjeon-il/Pando/actions/runs/41532665763 (success), 증거 artifact `13183230994` (w2-p6-2-pinned-feature-projection-ab-a, 14일 보존).
-- 진단: `tools/w2-p6-2-project-country-feature.mjs`, `tools/w2-p6-2-projection-experiment.mjs`, `tests/unit/w2-p6-2-feature-projection.test.mjs`, `.github/workflows/w2-p6-feature-projection-experiment.yml`.
+- 진단: `tools/w2-p6-2-project-country-feature.mjs`, `tools/w2-p6-2-projection-experiment.mjs`, `tests/unit/document/w2-p6-2-feature-projection.test.mjs`, `.github/workflows/w2-p6-feature-projection-experiment.yml`.
 - 이전 P6-0/1의 254국 full snapshot 13,308,801 JSON UTF-8 bytes를 독립적으로 재검증.
 - **제품용 Worker·렌더러 JS, C++/WASM, GIS 및 배포는 이번 실험에서 수정하지 않았다.** 브라우저 페이지 초기 주입으로 Worker.postMessage에만 실험용 projection을 씌웠다. 원본 Feature 객체와 좌표 배열은 보존했다.
 

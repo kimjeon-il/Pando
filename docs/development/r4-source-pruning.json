@@ -425,11 +425,11 @@
   ],
   "r4bDataSeparation": {
     "version": 1,
-    "canonicalGenericFeatureNormalization": "shared/frontend/js/modules/generic-feature-normalization.js",
+    "canonicalGenericFeatureNormalization": "src/document/generic-feature-normalization.js",
     "historicalCommandAdapter": "tests/helpers/generic-feature-command-service.mjs",
     "retiredMixedModule": "tools/gis/generic-feature-service.js",
     "canonicalProjectTemplateCompiler": "tools/gis/project-template-compiler.js",
-    "canonicalBaselineFingerprint": "shared/frontend/js/modules/project-baseline-fingerprint.js",
+    "canonicalBaselineFingerprint": "src/document/project-baseline-fingerprint.js",
     "retiredAutosaveAdapter": "tests/helpers/legacy-project-autosave.mjs",
     "removedLegacyGisSerializer": "tools/gis/project-serializer.js",
     "territorialLibraryOwner": "tools/gis/territorial-library.js"
@@ -587,15 +587,15 @@
       "tests/helpers/core-gis-compat/import-service.mjs"
     ],
     "directCoreTestChanges": [
-      "tests/unit/core-direct-object-writers-wasm.test.mjs",
-      "tests/unit/core-delete-selection-wasm.test.mjs",
-      "tests/unit/core-generic-conversion-wasm.test.mjs",
-      "tests/unit/core-label-gesture-wasm.test.mjs"
+      "tests/unit/document/core-direct-object-writers-wasm.test.mjs",
+      "tests/unit/document/core-delete-selection-wasm.test.mjs",
+      "tests/unit/document/core-generic-conversion-wasm.test.mjs",
+      "tests/unit/document/core-label-gesture-wasm.test.mjs"
     ],
     "testOnlySourcesNotShipped": true,
     "knownActiveUiTestsDeferred": [
       "tests/unit/platform-boundaries.test.mjs",
-      "tests/unit/general-regional-contract.test.mjs",
+      "tests/unit/document/general-regional-contract.test.mjs",
       "tests/unit/territorial-command-storage.test.mjs",
       "tests/unit/territorial-metadata-command.test.mjs",
       "tests/unit/core-document-draft-wasm.test.mjs"

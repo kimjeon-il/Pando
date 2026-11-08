@@ -43,7 +43,7 @@ Reproduce from the Web repository root with Node and the bundled sql.js WASM:
 
 ```powershell
 node tests/fixtures/generate-timeline-exchange.mjs calendar-boundaries
-node --test tests/unit/timeline-geopackage.test.mjs
+node --test tests/unit/document/timeline-geopackage.test.mjs
 ```
 
 JSON content has a fixed savedAt. Binary GeoPackage housekeeping timestamps may

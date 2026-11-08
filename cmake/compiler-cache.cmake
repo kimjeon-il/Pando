@@ -1,6 +1,6 @@
 # Configure once; the launcher carries the owned environment into later builds.
 find_program(_pando_node node REQUIRED)
-execute_process(COMMAND "${_pando_node}" "${CMAKE_CURRENT_LIST_DIR}/../tools/worktree-storage.mjs" --compiler-config
+execute_process(COMMAND "${_pando_node}" "${CMAKE_CURRENT_LIST_DIR}/../tools/data/worktree-storage.mjs" --compiler-config
     RESULT_VARIABLE _pando_cache_result OUTPUT_VARIABLE _pando_cache_json ERROR_VARIABLE _pando_cache_error)
 if(NOT _pando_cache_result EQUAL 0)
     message(FATAL_ERROR "Compiler cache configuration failed: ${_pando_cache_error}")

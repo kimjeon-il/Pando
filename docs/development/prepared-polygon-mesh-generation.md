@@ -12,4 +12,4 @@ Existing meshes retain their verified bytes when the algorithm/precision contrac
 
 Omitting scope keeps the existing full generator. The existing --physical-month=YYYY-MM mode remains separate and cannot be combined with country/month options. Automatic P2 full-family generation is unchanged; do not mark a scoped append as a complete P2 rebuild or advance the runtime pin merely by generating files. Use the existing library write lease and scoped publication procedure for actual data changes.
 
-Focused synthetic regressions: tests/unit/prepared-country-scope.test.mjs and tests/unit/prepared-physical-scope.test.mjs. No full GIS regeneration or native rebuild is needed to verify this JavaScript generator change.
+Focused synthetic regressions: tests/unit/rendering/prepared-country-scope.test.mjs and tests/unit/prepared-physical-scope.test.mjs. No full GIS regeneration or native rebuild is needed to verify this JavaScript generator change.

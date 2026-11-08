@@ -1,0 +1,99 @@
+name: Unit scope reviewed delivery
+on:
+  push:
+    branches: [work/optimization]
+    paths: [.github/workflows/unit-scope-delivery.yml, .github/test-scope-delivery.json]
+permissions:
+  contents: write
+concurrency:
+  group: unit-scope-reviewed-delivery
+  cancel-in-progress: false
+jobs:
+  apply:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Record existing registry issues before editing
+        run: |
+          node --input-type=module <<'JS'
+          import {writeFileSync} from 'node:fs';
+          import {auditConsolidatedTestRegistry} from './scripts/check-test-consolidation.mjs';
+          const baseline=auditConsolidatedTestRegistry();
+          writeFileSync('/tmp/pando-registry-before.json',JSON.stringify(baseline));
+          console.log(JSON.stringify(baseline,null,2));
+          JS
+      - name: Apply only source-hash-checked reviewed edits
+        run: node .github/test-scope-delivery.mjs
+      - name: Reject new registry issues without modifying unrelated unfinished work
+        run: |
+          node --input-type=module <<'JS'
+          import {readFileSync} from 'node:fs';
+          import {auditConsolidatedTestRegistry} from './scripts/check-test-consolidation.mjs';
+          const before=JSON.parse(readFileSync('/tmp/pando-registry-before.json','utf8'));
+          const after=auditConsolidatedTestRegistry();
+          const changed=new Set(JSON.parse(readFileSync('/tmp/pando-test-scope-output.json','utf8')).map(row=>row.path));
+          const failures=[];
+          for(const [kind,issues] of Object.entries(after.issues)) {
+            const inherited=new Set(before.issues[kind].map(row=>JSON.stringify(row)));
+            for(const issue of issues) if(!inherited.has(JSON.stringify(issue))||changed.has(issue.file)||changed.has(issue.reference)) failures.push({kind,...issue});
+          }
+          console.log(JSON.stringify({before,after,newOrAffectedIssues:failures},null,2));
+          if(failures.length)throw Error('New or affected registry failures');
+          JS
+      - name: Lint only changed JavaScript
+        run: |
+          node --input-type=module <<'JS'
+          import {readFileSync,existsSync} from 'node:fs';
+          import {execFileSync} from 'node:child_process';
+          const files=JSON.parse(readFileSync('/tmp/pando-test-scope-output.json','utf8')).map(r=>r.path).filter(p=>p.endsWith('.mjs')&&existsSync(p));
+          execFileSync('pnpm',['exec','eslint',...files],{stdio:'inherit'});
+          JS
+      - name: Exercise consolidated behavior without native builds or real datasets
+        run: >-
+          node --test
+          tests/unit/document/builtin-session.test.mjs
+          tests/unit/document/distribution-model.test.mjs
+          tests/unit/ui/map-settings.test.mjs
+          tests/unit/document/core-document-runtime.test.mjs
+          tests/unit/app/viewer-bootstrap-recovery.test.mjs
+          tests/unit/runtime/check-automation.test.mjs
+          tests/unit/runtime/check-runner.test.mjs
+          tests/unit/runtime/remote-only-native-policy.test.mjs
+          tests/unit/build/p2-artifact-plan.test.mjs
+          tests/unit/rendering/prepared-country-scope.test.mjs
+          tests/unit/rendering/country-geometry-revision.test.mjs
+      - name: Preserve exact recovery patch before publication
+        if: always()
+        run: |
+          git diff --binary > "$RUNNER_TEMP/unit-scope-reviewed.patch"
+          cp .github/test-scope-patch-v2.b64 "$RUNNER_TEMP/reviewed-recipe.b64"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: unit-scope-reviewed-patch
+          path: |
+            ${{ runner.temp }}/unit-scope-reviewed.patch
+            ${{ runner.temp }}/reviewed-recipe.b64
+          retention-days: 30
+          if-no-files-found: error
+      - name: Commit only reviewed paths and fast-forward the work branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t paths < <(node -e "for(const row of require('/tmp/pando-test-scope-output.json')) console.log(row.path)")
+          test "${#paths[@]}" -gt 0
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- "${paths[@]}"
+          git diff --cached --check
+          git commit -m 'test: remove brittle and retired cases and consolidate feature suites'
+          git push origin HEAD:refs/heads/work/optimization

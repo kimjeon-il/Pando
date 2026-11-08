@@ -8,7 +8,7 @@ const index=buildFrontendIndex(root);
 const read=relative=>index.has(relative)?emitFrontendModule(frontendAsset(root,relative,{index}).bytes.toString('utf8'),index.get(relative).sourcePath,index):fs.readFileSync(path.join(root,relative),'utf8');
 const required=['assets/js/modules/core-document-client.js','assets/js/modules/core-document-read-model.js',
   'assets/js/modules/project-domain.js','assets/js/modules/territorial-entity-store.js',
-  'shared/core/include/pandoeditor/document-session.h','shared/core/src/document-session.cpp','shared/wasm/session-bindings.cpp'];
+  'src/document/native/include/pandoeditor/document-session.h','src/document/native/src/document-session.cpp','src/document/native/bindings/session-bindings.cpp'];
 for(const file of required)if(!index.has(file)&&!fs.existsSync(path.join(root,file)))failures.push(`Missing canonical document boundary: ${file}`);
 const retired=['project-command-pipeline.js','document-mutation-runner.js','history-service.js','draft-editor.js','project-transaction.js','map-edit-transaction.js'];
 for(const file of retired)if(index.has('assets/js/modules/'+file))failures.push(`Retired parallel owner remains: ${file}`);
@@ -24,18 +24,18 @@ for(const required of ['commandOwner','executeCommand'])
   if(!testAdapter.includes(required))failures.push('Generic test adapter lacks '+required);
 for(const forbidden of ['createDocumentMutationRunner','commandPipeline','recordHistory(','queueAutosave(','restoreSnapshot('])
   if(testAdapter.includes(forbidden))failures.push('Generic test adapter includes archived mutation logic: '+forbidden);
-const project=read('shared/frontend/js/modules/project-domain.js');
+const project=read('src/document/project-domain.js');
 for(const contract of ['commandQueue','commandOwner.execute(envelope)','publishCommand','expectedGeneration',
   'captureReplacement','rollbackReplacement','releaseReplacement','commandOwner[direction]()','validateImport'])
   if(!project.includes(contract))failures.push(`Application command boundary is missing ${contract}`);
 for(const forbidden of ['commitHistorySnapshot','createHistoryService','runMutation(','commandPipeline.execute'])
   if(project.includes(forbidden))failures.push(`Application boundary retains another history writer: ${forbidden}`);
-const store=read('shared/frontend/js/modules/territorial-entity-store.js');
+const store=read('src/document/territorial-entity-store.js');
 if(!store.includes('documentModel.territorialViews')||!store.includes('commandOwner.setTimelineCursor'))
   failures.push('Territorial Store must derive current-world rows from the same document session.');
 for(const method of ['setField','setLocked','transaction','restoreProject','replaceEntities','appendEntities','removeEntities','applyChanges'])
   if(new RegExp(`\\b(?:function|const)\\s+${method}\\b|\\b${method}\\s*:`).test(store))failures.push(`Read-only Store exposes a document writer: ${method}`);
-const native=read('shared/core/src/document-session.cpp');
+const native=read('src/document/native/src/document-session.cpp');
 for(const contract of ['requireEpoch','confirmCandidate','project_.historySnapshot(forward)','project_.travelHistory(forward,prospective)'])
   if(!native.includes(contract))failures.push(`Shared document session lacks ${contract}`);
 if(failures.length) {

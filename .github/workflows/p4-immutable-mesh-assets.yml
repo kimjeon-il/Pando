@@ -37,20 +37,20 @@ jobs:
         run: |
           pnpm install --frozen-lockfile --ignore-scripts
       - name: Generate next-version country, shared-boundary and prepared polygon assets
-        run: node tools/regenerate-render-mesh-assets-p4.mjs
+        run: node tools/build/regenerate-render-mesh-assets-p4.mjs
       - name: Validate generated manifests, checksums, shared boundary and selected geometry
         run: |
-          node tools/verify-render-mesh-assets-p4.mjs
-          node tools/build-country-shared-boundaries.mjs --check
+          node tools/checks/verify-render-mesh-assets-p4.mjs
+          node tools/build/build-country-shared-boundaries.mjs --check
           node scripts/check-version.mjs
-          node --test tests/unit/gpu-mesh-country-strokes.test.mjs tests/unit/prepared-polygon-mesh.test.mjs tests/unit/mesh-geometry-assets.test.mjs tests/unit/world-bundle-runtime.test.mjs tests/unit/country-shared-boundary-state.test.mjs
+          node --test tests/unit/geometry/gpu-mesh-country-strokes.test.mjs tests/unit/rendering/prepared-polygon-mesh.test.mjs tests/unit/rendering/mesh-geometry-assets.test.mjs tests/unit/data/world-bundle-runtime.test.mjs tests/unit/geometry/country-shared-boundary-state.test.mjs
       - name: Stage only newly published map assets and metadata
         shell: bash
         env:
           PANDOLAB_LIBRARY_WRITE_TOKEN: ${{ secrets.PANDOLAB_LIBRARY_WRITE_TOKEN }}
         run: |
           set -euo pipefail
-          node tools/library-data.mjs --store-and-stage --push -- \
+          node tools/data/library-data.mjs --store-and-stage --push -- \
             assets/data/world/build-input.json \
             assets/data/world/current.json \
             assets/data/world-preview-v0.36.1.json \

@@ -4,7 +4,7 @@
 import {createHash} from 'node:crypto';
 import {readFileSync} from 'node:fs';
 import {parseArgs} from 'node:util';
-import {readHydroMetadataSection} from '../inventory-osm-hydronyms.mjs';
+import {readHydroMetadataSection} from "./inventory-osm-hydronyms.mjs";
 
 export const ORIGINAL_OSM_SYSTEM_IDS=Object.freeze([
   '10521208','10526283','20071308','20075401','20282318',

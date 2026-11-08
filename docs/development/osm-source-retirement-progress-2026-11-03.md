@@ -30,7 +30,7 @@
 ## 기타 OSM 원본 및 출처 표기
 
 - `tools/gis/build-german-1914-base.mjs`의 헬골란트·뒤네섬 1914년 **연구용 임시 현대 해안선** 제작 경로에는 `helgoland-osm-preserved.geojson`, `dune-osm-way-273992076.geojson` 입력 참조가 존재한다. 본 CI 작업에서 **그 경로의 실제 운영 배포 여부와 입력 형상의 독립 교체는 검증하지 않았다.** 운영 출처 감사 완료 전 이를 무조건 폐기·OSM 무관으로 판정하지 않는다.
-- `shared/frontend/ui/fragments/map-attribution.html`의 OSM 표기는 **유지**. `tools/gis/audit-osm-credit-removal.mjs`는 운영 OSM 잔존과 바이코누르 독립 형상 증명 부재 시 표기 제거 허용을 거부한다.
+- `src/ui/fragments/map-attribution.html`의 OSM 표기는 **유지**. `tools/gis/audit-osm-credit-removal.mjs`는 운영 OSM 잔존과 바이코누르 독립 형상 증명 부재 시 표기 제거 허용을 거부한다.
 - Natural Earth 자료의 공개 영역(public domain) 여부와 별개로 정부 포털 자료는 개별 이용허락을 확인한다. 독립 출처가 '웹에서 검색된다'는 사실만으로 파생 형상의 라이선스가 해결되지는 않는다.
 
 ## 잔여 작업 체크

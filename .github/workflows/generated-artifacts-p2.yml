@@ -6,7 +6,9 @@ on:
   push:
     branches: ['work/**']
     paths:
-      - 'shared/**'
+      - 'src/**/native/**'
+      - 'tools/build/native/**'
+      - 'tests/native/**'
       - 'assets/**'
       - 'tools/**'
       - 'scripts/p2-*.mjs'
@@ -35,7 +37,7 @@ on:
       verification:
         description: Run minimal publication checks or the consolidated P9 calculation suites
         type: choice
-        options: [minimal, full, temporal]
+        options: [minimal, full, temporal, geometry-resources]
         required: false
         default: minimal
       skip_preview:
@@ -72,9 +74,9 @@ jobs:
           node-version-file: '.nvmrc'
       - name: Test source fingerprint, rebuild selection, publication guard
         if: github.event_name == 'push' || inputs.verification == 'full'
-        run: node --test tests/unit/p2-artifact-plan.test.mjs tests/unit/shared-core-assets.test.mjs tests/unit/p2-publication-paths.test.mjs tests/unit/library-data.test.mjs
+        run: node --test tests/unit/build/p2-artifact-plan.test.mjs tests/unit/document/shared-core-assets.test.mjs tests/unit/data/p2-publication-paths.test.mjs tests/unit/data/library-data.test.mjs
       - name: Read the declared place-report generation inputs
-        run: node tools/report-paths.mjs reports/places read
+        run: node tools/data/report-paths.mjs reports/places read
       - name: Select only stale source-derived assets
         id: scopes
         env:
@@ -111,15 +113,15 @@ jobs:
           node-version-file: '.nvmrc'
       - name: Install pinned package manager only for selected data-family owners
         uses: pnpm/action-setup@v4
-        if: needs.plan.outputs.selected_families != '[]' || inputs.scope == 'verify' || inputs.verification == 'full'
+        if: needs.plan.outputs.wasm == 'true' || needs.plan.outputs.selected_families != '[]' || inputs.scope == 'verify' || inputs.verification == 'full'
         with:
           version: ${{ needs.plan.outputs.pnpm_version }}
           run_install: false
       - name: Install frozen dependencies for current data generators
-        if: needs.plan.outputs.selected_families != '[]' || inputs.scope == 'verify' || inputs.verification == 'full'
+        if: needs.plan.outputs.wasm == 'true' || needs.plan.outputs.selected_families != '[]' || inputs.scope == 'verify' || inputs.verification == 'full'
         run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Read the declared place-report generation inputs
-        run: node tools/report-paths.mjs reports/places read
+        run: node tools/data/report-paths.mjs reports/places read
       - uses: jwlawson/actions-setup-cmake@v2
         if: needs.plan.outputs.wasm == 'true'
         with:
@@ -172,50 +174,65 @@ jobs:
           NODE
           emcmake cmake --preset pando-wasm
           cmake --build --preset pando-wasm
-          node tools/package-shared-core-assets.mjs --build-dir build-native/p1/pando-wasm/shared/wasm
+          node tools/build/package-shared-core-assets.mjs --build-dir build-native/p1/pando-wasm/shared/wasm
       - name: Verify published compiled identity and package hashes
-        run: node tools/package-shared-core-assets.mjs --build-dir shared/frontend/static/wasm --check
+        run: node tools/build/package-shared-core-assets.mjs --build-dir assets/wasm --check
       - name: Verify the changed geographic contact and common fill kernels
-        if: needs.plan.outputs.wasm == 'true' && inputs.verification != 'full' && inputs.verification != 'temporal'
+        if: needs.plan.outputs.wasm == 'true' && inputs.verification != 'full' && inputs.verification != 'temporal' && inputs.verification != 'geometry-resources'
         env:
-          PANDOEDITOR_WASM_MODULE: ${{ github.workspace }}/shared/frontend/static/wasm/pandoeditor-core.js
-        run: >-
-          node --test shared/tests/p5-country-contact-wasm.test.mjs
-          shared/tests/p5-boundary-split-wasm.test.mjs shared/tests/p5-polygon-mesh-wasm.test.mjs
-          tests/unit/country-shared-boundary.test.mjs
-          tests/unit/boundary-lines.test.mjs
+          PANDOEDITOR_WASM_MODULE: ${{ github.workspace }}/assets/wasm/pandoeditor-core.js
+          CHECK_SELECTION: '{"unitTests":["tests/unit/geometry/country-shared-boundary.test.mjs","tests/unit/geometry/boundary-lines.test.mjs"],"browserSpecs":[],"commands":["wasm-domain-geometry"],"prerequisites":[]}'
+        run: node scripts/run-application-checks.mjs
+      - name: Verify only immutable geometry admission and offline storage
+        if: inputs.verification == 'geometry-resources'
+        env:
+          PANDOEDITOR_WASM_MODULE: ${{ github.workspace }}/assets/wasm/pandoeditor-core.js
+          CHECK_SELECTION: '{"unitTests":["tests/unit/document/core-geometry-resources-wasm.test.mjs"],"browserSpecs":[],"commands":[],"prerequisites":[]}'
+        run: node scripts/run-application-checks.mjs
       - name: Verify changed temporal editing and place naming
         if: inputs.verification == 'temporal'
         env:
-          PANDOEDITOR_WASM_MODULE: ${{ github.workspace }}/shared/frontend/static/wasm/pandoeditor-core.js
+          PANDOEDITOR_WASM_MODULE: ${{ github.workspace }}/assets/wasm/pandoeditor-core.js
         run: >-
-          node --test shared/tests/temporal-editing.test.mjs
-          tests/unit/place-names.test.mjs tests/unit/territorial-entity-repository.test.mjs
+          node --test tests/native/document/temporal-editing.test.mjs
+          tests/unit/document/place-names.test.mjs tests/unit/document/territorial-entity-repository.test.mjs
       - uses: actions/upload-artifact@v4
         if: always() && inputs.verification == 'temporal'
         with:
           name: temporal-wasm-${{ github.sha }}
           path: |
-            shared/frontend/static/wasm/pandoeditor-core.js
-            shared/frontend/static/wasm/pandoeditor-core.wasm
-            shared/frontend/static/wasm/pandoeditor-core.manifest.json
+            assets/wasm/pandoeditor-core.js
+            assets/wasm/pandoeditor-core.wasm
+            assets/wasm/pandoeditor-core.manifest.json
           if-no-files-found: error
           retention-days: 7
       - name: Test the compiled runtime ABI and bounded document session
         if: inputs.verification == 'full'
         shell: bash
         run: |
-          node --test tests/unit/shared-core-assets.test.mjs tests/unit/core-wasm-loader.test.mjs
-          PANDOEDITOR_WASM_MODULE="$PWD/shared/frontend/static/wasm/pandoeditor-core.js" node --test shared/tests/wasm-document-session.test.mjs shared/tests/p5-spherical-area-wasm.test.mjs shared/tests/p5-temporal-wasm.test.mjs shared/tests/p5-timeline-wasm.test.mjs shared/tests/p5-boundary-chains-wasm.test.mjs shared/tests/p5-boundary-packet-wasm.test.mjs shared/tests/p5-boundary-interiors-wasm.test.mjs shared/tests/p5-boundary-overlap-wasm.test.mjs shared/tests/p5-boundary-refinement-wasm.test.mjs shared/tests/p5-boundary-split-wasm.test.mjs shared/tests/p5-country-contact-wasm.test.mjs tests/unit/boundary-lines.test.mjs
+          node --test tests/unit/document/shared-core-assets.test.mjs tests/unit/runtime/core-wasm-loader.test.mjs
+          PANDOEDITOR_WASM_MODULE="$PWD/assets/wasm/pandoeditor-core.js" node --test tests/native/document/wasm-document-session.test.mjs tests/native/document/p5-spherical-area-wasm.test.mjs tests/native/document/p5-temporal-wasm.test.mjs tests/native/document/p5-timeline-wasm.test.mjs tests/native/document/p5-boundary-chains-wasm.test.mjs tests/native/document/p5-boundary-packet-wasm.test.mjs tests/native/document/p5-boundary-interiors-wasm.test.mjs tests/native/document/p5-boundary-overlap-wasm.test.mjs tests/native/document/p5-boundary-refinement-wasm.test.mjs tests/native/document/p5-boundary-split-wasm.test.mjs tests/native/document/p5-country-contact-wasm.test.mjs tests/unit/geometry/boundary-lines.test.mjs
 
       - name: Verify P6 product calculation adapters
         if: inputs.verification == 'full'
         run: >-
-          node --test tests/unit/p6-polygon-core.test.mjs
-          tests/unit/r4c-spatial-boundaries.test.mjs
-          tests/unit/river-territory-partition.test.mjs
+          node --test tests/unit/geometry/p6-polygon-core.test.mjs
+          tests/unit/geometry/r4c-spatial-boundaries.test.mjs
+          tests/unit/document/river-territory-partition.test.mjs
+      - name: Retain verified source-matched WASM before guarded publication
+        if: needs.plan.outputs.wasm == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: source-matched-core-${{ github.sha }}
+          path: |
+            assets/wasm/pandoeditor-core.js
+            assets/wasm/pandoeditor-core.wasm
+            assets/wasm/pandoeditor-core.manifest.json
+          if-no-files-found: error
+          retention-days: 7
       - name: Commit verified phases locally, then publish one guarded result
         id: publish
+        if: inputs.verification != 'geometry-resources'
         shell: bash
         env:
           PANDOLAB_LIBRARY_WRITE_TOKEN: ${{ secrets.PANDOLAB_LIBRARY_WRITE_TOKEN }}
@@ -241,6 +258,6 @@ jobs:
           name: p2-generated-${{ steps.publish.outputs.result_sha }}
           path: |
             build-native/p2/artifact-evidence.json
-            shared/frontend/static/wasm/pandoeditor-core.manifest.json
+            assets/wasm/pandoeditor-core.manifest.json
           if-no-files-found: error
           retention-days: 14

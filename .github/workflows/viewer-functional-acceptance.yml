@@ -3,8 +3,8 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - 'apps/viewer/**'
-      - 'shared/frontend/**'
+      - 'src/**'
+      - 'src/**'
       - 'shared/core/**'
       - 'shared/wasm/**'
       - 'tests/browser/**'
@@ -57,7 +57,7 @@ jobs:
         uses: ./.github/actions/library-data
       - run: pnpm install --frozen-lockfile
       - name: Confirm actual compiled Core source identity
-        run: node tools/package-shared-core-assets.mjs --build-dir shared/frontend/static/wasm --check
+        run: node tools/build/package-shared-core-assets.mjs --build-dir assets/wasm --check
       - name: Install Chromium and system dependencies
         run: pnpm exec playwright install --with-deps chromium
       - name: Execute real desktop or mobile viewer acceptance
@@ -91,27 +91,27 @@ jobs:
       - name: Lint E1 source and focused assertions
         run: >-
           pnpm exec eslint
-          shared/frontend/js/modules/product-mode-policy.js
-          shared/frontend/js/modules/core-document-client.js
-          shared/frontend/js/modules/document-session.js
-          shared/frontend/js/modules/project-domain.js
-          shared/frontend/js/modules/project-session.js
-          shared/frontend/js/modules/map-owner-composition.js
-          shared/frontend/js/modules/map-workspace-host.js
-          shared/frontend/js/modules/rendering-domain.js
-          apps/viewer/js/modules/viewer-map.js
-          tests/unit/core-product-mode.test.mjs
-          tests/unit/map-readonly-flat-boundary.test.mjs
-          tests/unit/file-access-contract.test.mjs
-          tests/unit/viewer-initial-presentation.test.mjs
+          src/app/product-mode-policy.js
+          src/document/core-document-client.js
+          src/document/document-session.js
+          src/document/project-domain.js
+          src/document/project-session.js
+          src/app/map-owner-composition.js
+          src/ui/map-workspace-host.js
+          src/rendering/rendering-domain.js
+          src/app/viewer-map.js
+          tests/unit/ui/core-product-mode.test.mjs
+          tests/unit/ui/map-readonly-flat-boundary.test.mjs
+          tests/unit/data/file-access-contract.test.mjs
+          tests/unit/app/viewer-initial-presentation.test.mjs
       - name: Verify Core read access, project ownership and editing isolation
         run: >-
           node --test --test-concurrency=2
-          tests/unit/core-product-mode.test.mjs
-          tests/unit/file-access-contract.test.mjs
-          tests/unit/viewer-initial-presentation.test.mjs
-          tests/unit/map-readonly-flat-boundary.test.mjs
-          tests/unit/viewer-bootstrap-recovery.test.mjs
+          tests/unit/ui/core-product-mode.test.mjs
+          tests/unit/data/file-access-contract.test.mjs
+          tests/unit/app/viewer-initial-presentation.test.mjs
+          tests/unit/ui/map-readonly-flat-boundary.test.mjs
+          tests/unit/app/viewer-bootstrap-recovery.test.mjs
       - name: Verify existing runtime module boundaries
         run: node scripts/check-runtime-boundaries.mjs
 
@@ -133,8 +133,8 @@ jobs:
       - name: Verify real viewer/editor map rendering, selection and project open
         run: >-
           pnpm exec playwright test
-          tests/browser/viewer-review-e4.spec.mjs
-          tests/browser/viewer-project-open.spec.mjs
+          tests/browser/document/viewer-review-e4.spec.mjs
+          tests/browser/document/viewer-project-open.spec.mjs
           --workers=1 --retries=0 --reporter=list
       - name: Preserve failed browser evidence
         if: failure()
@@ -164,11 +164,11 @@ jobs:
       - name: Lint E2 data contracts and tests
         run: >-
           pnpm exec eslint
-          shared/frontend/js/modules/review-change-records.js
-          tests/unit/review-change-records.test.mjs
+          src/document/review-change-records.js
+          tests/unit/document/review-change-records.test.mjs
           tools/review/validate-review-bundle.mjs
       - name: Validate review proposal, immutable history, and temporal precision
-        run: node --test tests/unit/review-change-records.test.mjs
+        run: node --test tests/unit/document/review-change-records.test.mjs
       - name: Validate the synthetic external report sidecar format
         run: node tools/review/validate-review-bundle.mjs tests/fixtures/review/e2-synthetic-review.json
       - name: Verify application runtime boundaries remain unchanged
@@ -194,9 +194,9 @@ jobs:
         run: >-
           pnpm exec eslint tools/review/e3-revision-diff.mjs
           tools/review/generate-e3-review.mjs
-          tests/unit/e3-revision-diff.test.mjs
+          tests/unit/document/e3-revision-diff.test.mjs
       - name: Verify actual Git history handling, fields and fail-closed E2 handoff
-        run: node --test tests/unit/e3-revision-diff.test.mjs tests/unit/review-change-records.test.mjs
+        run: node --test tests/unit/document/e3-revision-diff.test.mjs tests/unit/document/review-change-records.test.mjs
       - name: Preserve existing application runtime boundaries
         run: node scripts/check-runtime-boundaries.mjs
 
@@ -288,26 +288,26 @@ jobs:
       - name: Lint review model, browser owner and assertions
         run: >-
           pnpm exec eslint
-          shared/frontend/js/modules/review-inspection.js
-          shared/frontend/js/modules/review-evidence-files.js
-          apps/viewer/js/modules/viewer-review-panel.js
-          apps/viewer/js/modules/viewer-composition.js
-          shared/frontend/js/modules/notification-presentation.js
-          tests/unit/notification-priority.test.mjs
-          tests/unit/review-inspection.test.mjs
-          tests/browser/viewer-review-e4.spec.mjs
+          src/document/review-inspection.js
+          src/data/review-evidence-files.js
+          src/ui/inspector/viewer-review-panel.js
+          src/app/viewer-composition.js
+          src/ui/notification-presentation.js
+          tests/unit/ui/notification-priority.test.mjs
+          tests/unit/document/review-inspection.test.mjs
+          tests/browser/document/viewer-review-e4.spec.mjs
       - name: Verify E2/E3 handoff, source mapping and hash-verified file imports
         run: >-
           node --test
-          tests/unit/review-inspection.test.mjs
-          tests/unit/review-change-records.test.mjs
-          tests/unit/e3-revision-diff.test.mjs
-          tests/unit/notification-priority.test.mjs
+          tests/unit/document/review-inspection.test.mjs
+          tests/unit/document/review-change-records.test.mjs
+          tests/unit/document/e3-revision-diff.test.mjs
+          tests/unit/ui/notification-priority.test.mjs
       - name: Check current Viewer-only source closure
         run: >-
           node --test
-          tests/unit/frontend-layout.test.mjs
-          tests/unit/frontend-build.test.mjs
+          tests/unit/build/frontend-layout.test.mjs
+          tests/unit/build/frontend-build.test.mjs
 
   e4-browser:
     if: github.event_name == 'workflow_dispatch' && inputs.scope == 'review'
@@ -328,7 +328,7 @@ jobs:
       - name: Exercise E4 panel, source SHA geometry, correction export and fixed GeoPackage project-open regression
         run: >-
           pnpm exec playwright test
-          tests/browser/viewer-review-e4.spec.mjs
+          tests/browser/document/viewer-review-e4.spec.mjs
           --workers=1 --retries=0 --reporter=list
       - name: Preserve failed E4 screenshots and traces
         if: failure()

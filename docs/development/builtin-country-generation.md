@@ -12,7 +12,7 @@ part of this phase.
 
 ## Generation contract
 
-`tools/build-builtin-world.mjs` remains the canonical publication owner.
+`tools/build/build-builtin-world.mjs` remains the canonical publication owner.
 `index.json` retains payload schema 2 and declares `storageLayout: country-files-v1`.
 Country paths are `countries/<entity>-sha256-<hash>.json.gz`, with `encoding`,
 `sha256`, `compressedBytes`, `decodedBytes` and country coverage in the index.
@@ -50,7 +50,7 @@ there is no compatibility path that rebuilds a transport file.
 Run only the directly related generation/catalog contracts:
 
 ```sh
-node --test tests/unit/builtin-country-publication.test.mjs tests/unit/historical-world-publication.test.mjs tests/unit/builtin-world-catalog.test.mjs
+node --test tests/unit/data/builtin-country-publication.test.mjs tests/unit/data/historical-world-publication.test.mjs tests/unit/document/builtin-world-catalog.test.mjs
 ```
 
 The branch-scoped, read-only `Builtin country publication contracts` workflow

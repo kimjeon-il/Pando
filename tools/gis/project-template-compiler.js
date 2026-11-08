@@ -1,11 +1,11 @@
 // Canonical GIS project template compiler. No autosave or editor mutation owner.
-import {timelineObjectCatalog} from '../../shared/frontend/js/modules/timeline-records.js';
-import { normalizeTerritorialIdentities, TERRITORIAL_ENTITY_KINDS } from '../../shared/frontend/js/modules/territorial-units.js';
-import { assertCurrentProjectSchema } from '../../shared/frontend/js/modules/project-state.js';
-import { assertProjectReferenceIntegrity } from '../../shared/frontend/js/modules/project-invariants.js';
-import { restoreTimelineStorage } from '../../shared/frontend/js/modules/timeline-storage.js';
+import {timelineObjectCatalog} from "../../src/document/timeline-records.js";
+import { normalizeTerritorialIdentities, TERRITORIAL_ENTITY_KINDS } from "../../src/document/territorial-units.js";
+import { assertCurrentProjectSchema } from "../../src/document/project-state.js";
+import { assertProjectReferenceIntegrity } from "../../src/document/project-invariants.js";
+import { restoreTimelineStorage } from "../../src/document/timeline-storage.js";
 import { PROJECT_SCHEMA_VERSION, SOURCE_PROVENANCE_SCHEMA_VERSION, GENERIC_FEATURE_SCHEMA_VERSION,
-  TERRITORIAL_MODEL_SCHEMA_VERSION, DISTRIBUTION_MODEL_SCHEMA_VERSION } from '../../shared/frontend/js/modules/version-contract.js';
+  TERRITORIAL_MODEL_SCHEMA_VERSION, DISTRIBUTION_MODEL_SCHEMA_VERSION } from "../../src/runtime/version-contract.js";
 
 function modelContracts({ genericFeatureSchemaVersion, distributionSchemaVersion, distributionModes }) {
   return {

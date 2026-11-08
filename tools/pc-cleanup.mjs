@@ -6,9 +6,9 @@ import {existsSync,lstatSync,readdirSync,readFileSync,mkdirSync,openSync,closeSy
 import {join,resolve,dirname,basename} from 'node:path';
 import {homedir} from 'node:os';
 import {execFileSync} from 'node:child_process';
-import {atomicStorageJSON,containedPath,contentHash} from './library-content.mjs';
-import {fileHash} from './library-git.mjs';
-import {previewGeneratedCleanup,applyGeneratedCleanup} from './worktree-generated.mjs';
+import {atomicStorageJSON,containedPath,contentHash} from "./data/library-content.mjs";
+import {fileHash} from "./data/library-git.mjs";
+import {previewGeneratedCleanup,applyGeneratedCleanup} from "./data/worktree-generated.mjs";
 import {auditFileAllocation} from './pc-file-allocation.mjs';
 
 const task='c-drive-cleanup-20261026';
@@ -199,7 +199,7 @@ export async function cleanupCDrive({mode,root,settings,library,cacheOnly=false}
  if(process.platform!=='win32'||settings?.compilerEnabled!==false)throw Error('C cleanup requires Windows and disabled local compilers');
  const home=homedir(),directory=join(settings.cacheRoot,cacheOnly?'cache-lifecycle-cleanup-20261104':task);mkdirSync(directory,{recursive:true});
  if(/[\r\n%&]/.test(root+process.execPath))throw Error('Unsupported external command path');
- writeFileSync(join(directory,'run-offline.cmd'),`@echo off\r\n"${process.execPath}" "${join(root,'tools/worktree-storage.mjs')}" "--root=${root}" --cleanup-${cacheOnly?'caches':'c-drive'}=offline\r\nif errorlevel 1 (echo Maintenance stopped safely. Keep receipts. & pause & exit /b 1)\r\necho Maintenance finished.\r\npause\r\n`);
+ writeFileSync(join(directory,'run-offline.cmd'),`@echo off\r\n"${process.execPath}" "${join(root,'tools/data/worktree-storage.mjs')}" "--root=${root}" --cleanup-${cacheOnly?'caches':'c-drive'}=offline\r\nif errorlevel 1 (echo Maintenance stopped safely. Keep receipts. & pause & exit /b 1)\r\necho Maintenance finished.\r\npause\r\n`);
  const processGuard=()=>assertOffline(pcProcesses());
  if(mode==='offline')processGuard();
  return withPcLock(directory,async()=>{

@@ -1,10 +1,10 @@
-import {TERRITORIAL_SCHEMA_VERSION} from "../../shared/frontend/js/modules/territorial-units.js";
+import {TERRITORIAL_SCHEMA_VERSION} from "../../src/document/territorial-units.js";
 import { timelineStorageCases } from '../fixtures/timeline-storage-cases.mjs';
-import { createTerritorialEntityStore } from "../../shared/frontend/js/modules/territorial-entity-store.js";
-import { createTerritorialEntityRepository } from "../../shared/frontend/js/modules/territorial-entity-repository.js";
+import { createTerritorialEntityStore } from "../../src/document/territorial-entity-store.js";
+import { createTerritorialEntityRepository } from "../../src/document/territorial-entity-repository.js";
 import { createNodeCoreProject } from './core-project.mjs';
 import { loadWebOracle } from './web-oracle.mjs';
-import { DISTRIBUTION_MODES } from "../../shared/frontend/js/modules/distribution-model.js";
+import { DISTRIBUTION_MODES } from "../../src/document/distribution-model.js";
 import { afterEach } from 'node:test';
 import { createProjectSerializer } from "./legacy-project-autosave.mjs";
 import {createTestViewingSession} from './viewing-project.mjs';

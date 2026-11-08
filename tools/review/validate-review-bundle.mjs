@@ -1,7 +1,7 @@
 import { readFileSync, statSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { indexReviewHistory, normalizeReviewBundle, reviewState } from '../../shared/frontend/js/modules/review-change-records.js';
+import { indexReviewHistory, normalizeReviewBundle, reviewState } from "../../src/document/review-change-records.js";
 
 /** Validate a supplied review sidecar without modifying GIS or reports. */
 export function inspectReviewFile(filename) {

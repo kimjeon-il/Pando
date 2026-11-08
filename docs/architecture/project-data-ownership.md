@@ -45,7 +45,7 @@
 ## 5. 검사 및 변경 한계
 
 - **변경하지 않는 계약:** 프로젝트 14, 타임라인 3, 영토·수계·라벨 식별자, C++/WASM 공통 정본, 외부 데이터 핀, 읽기 전용 점검기, 현재 UI/조작.
-- 현재 런타임 소유권·프로젝트 필드 분리는 `shared/frontend/js/modules/project-state.js`, `timeline-records.js`, `project-setup.js`, `initial-document.js`, `project-domain.js`, `builtin-world-loader.js`, `place-contract.js` 및 `shared/core/include/pandoeditor/project.h`를 기준으로 한다.
+- 현재 런타임 소유권·프로젝트 필드 분리는 `src/document/project-state.js`, `timeline-records.js`, `project-setup.js`, `initial-document.js`, `project-domain.js`, `builtin-world-loader.js`, `place-contract.js` 및 `src/document/native/include/pandoeditor/project.h`를 기준으로 한다.
 - 작업 시 검증할 회귀 범위: 프로젝트 문서/세션 분리, 원본 및 프로젝트 ID 분리, 타임라인 카탈로그/형상 참조, 프로젝트 간 복사 격리, 기본지도 월별 생성/캐시, 읽기 전용 및 외부 원본 비변경.
 - 원본 지명 `nameTimeline`과 프로젝트 공통 타임라인 사이의 정식 매핑, 기존 내장지도의 프로젝트 lifecycle 완전 통합, 수계 원본/수정본 합성은 **P2–P4 작업**이며 P1에서 구현되었다고 주장하지 않는다.
 
@@ -68,7 +68,7 @@
 - 기본 자료 전체를 프로젝트 안으로 복제하지 않는다. 지명은 현재 워커 조회·유지 레코드, 수계는 로딩된 타일·현재 선택된 물리 수역만 필요할 때 합성한다. 전 세계 전체 원본의 사전 로딩/재해시는 금지한다.
 
 P4 관련 회귀검사: `tests/unit/project-resource-overlay.test.mjs`,
-`tests/unit/app-hydro-settings.test.mjs`,
+`tests/unit/ui/app-hydro-settings.test.mjs`,
 `tests/unit/core-hydro-copy-history-wasm.test.mjs` 및 기존 Viewer 브라우저의 프로젝트 열기·읽기 전용 검사.
 
 ## P5: 단일 웹 Viewer · 통합 검수기 컨트롤러
@@ -80,7 +80,7 @@ P4 관련 회귀검사: `tests/unit/project-resource-overlay.test.mjs`,
 - 지도 객체 선택·초점 이동은 허용하되 **프로젝트 편집 명령, 저장, GitHub 반영, 검수 결과의 자동 승인**은 허용하지 않는다. 진단/수정 요청 JSON은 로컬로만 내보내며 GIS 위상 검증을 실행했다고 주장하지 않는다.
 - 퇴역 Windows 검수기 호환 테스트용 `nativeReview` 진입은 추후 레거시 제거 단계 전까지 기존 회귀검사 용도로만 유지한다. 별도 제품으로 확장하거나 웹에 네이티브 쓰기 권한을 제공하지 않는다.
 
-회귀검사: `tests/unit/viewer-inspector-controller.test.mjs`, `tests/unit/viewer-inspector.test.mjs`, `tests/browser/viewer-inspector.spec.mjs`, `tests/browser/viewer-review-e4.spec.mjs`, `tests/browser/viewer-project-open.spec.mjs`. 기존 브라우저 초기 국가 메시 게시 지연은 별도 미해결 문제로 추적한다.
+회귀검사: `tests/unit/ui/viewer-inspector-controller.test.mjs`, `tests/unit/viewer-inspector.test.mjs`, `tests/browser/viewer-inspector.spec.mjs`, `tests/browser/document/viewer-review-e4.spec.mjs`, `tests/browser/document/viewer-project-open.spec.mjs`. 기존 브라우저 초기 국가 메시 게시 지연은 별도 미해결 문제로 추적한다.
 
 ## P1 후속: 참조 데이터의 프로젝트 시점 통합 (2026-11-07, `work/optimization`)
 
@@ -102,6 +102,6 @@ P4 관련 회귀검사: `tests/unit/project-resource-overlay.test.mjs`,
 **자료 한계:** `nameTimeline`은 명칭 변화 자료이며 실제 도시의 물리적 존속기간이 아니다. 새 유효 시기 파일은 별도의 도시 라벨 편집 규칙이다. 완전한 도시 존속기간이나 다중 존속 에피소드까지 검증 완료한 것은 아니다.
 
 회귀검사: `tests/unit/project-resource-overlay.test.mjs`,
-`tests/unit/place-runtime.test.mjs`,
-`tests/unit/historical-physical-water.test.mjs`,
+`tests/unit/rendering/place-runtime.test.mjs`,
+`tests/unit/document/historical-physical-water.test.mjs`,
 `tests/unit/physical-water-catalog.test.mjs`.

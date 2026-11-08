@@ -1,6 +1,6 @@
 import {execFileSync} from 'node:child_process';
 import {parseArgs} from 'node:util';
-import {packageNativeTool} from '../native-tool.mjs';
+import {packageNativeTool} from "../build/native-tool.mjs";
 import {hydroEncodingSources} from './hydro-encoding-native.mjs';
 
 const {values}=parseArgs({options:{binary:{type:'string'},directory:{type:'string'}}});

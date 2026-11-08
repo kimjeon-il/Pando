@@ -10,7 +10,7 @@ Windows GTX 1650 D3D11에서 초기 공유국경 Worker가 첫 연도 이동과 
 
 ## 구현
 
-- 변경 소유자: shared/frontend/js/workers/country-shared-boundary-worker.js. 마지막으로 검증된 패킷 하나를 Worker 내부에 보관.
+- 변경 소유자: src/rendering/workers/country-shared-boundary-worker.js. 마지막으로 검증된 패킷 하나를 Worker 내부에 보관.
 - 동일성: Worker가 실제 형상에서 계산한 SHA-256 + 순서가 유지된 국가 ID·상위 관계 + 품질·외곽선 표시 상태. 복제된 JS 객체 주소·세대 번호만으로 재사용하지 않음.
 - 변경된 형상 또는 새로 적용한 외부 토폴로지 캐시가 있으면 보관본 무효화.
 - 패킷 보관 추정량 상한 96 MiB / 1개. 이는 typed-array 바이트와 segment 개수로 산출한 상한 검사용 추정량으로, 전체 JS/GPU 네이티브 메모리 실측이 아님.
@@ -32,7 +32,7 @@ Windows GTX 1650 D3D11에서 초기 공유국경 Worker가 첫 연도 이동과 
 
 현재 도구에서 실제 Windows GTX 1650에 직접 접근할 수 없어 냉시동 10회/예열 20회 이상의 W2-P3 전후 성능 비교는 수행하지 못했다. 로컬 Codex가 보존된 W2-P2 측정 환경을 동기화할 때 미커밋 및 복구 산출물과 데이터 핀을 덮어쓰지 않을 것.
 
-측정 절차: 같은 컴퓨터에서 새 browser/context 시작, Chromium 버전/실제 NVIDIA D3D11 unmasked renderer/GPU compositing 확인, 2026-11 ↔ 2025-12 연도 전환 반복, packetCacheHit·packetPreparationMs·요청→표시·요청→ready·최장 Long Task·Worker 메모리 기록, 정확한 국가·국경·지명 해시와 실패/취소/rollback 및 메모리 plateau 확인. 현재 tests/browser/viewer-gpu-backend-cross.spec.mjs는 Windows D3D11을 명시하고 cold warmup 표본을 따로 보관함.
+측정 절차: 같은 컴퓨터에서 새 browser/context 시작, Chromium 버전/실제 NVIDIA D3D11 unmasked renderer/GPU compositing 확인, 2026-11 ↔ 2025-12 연도 전환 반복, packetCacheHit·packetPreparationMs·요청→표시·요청→ready·최장 Long Task·Worker 메모리 기록, 정확한 국가·국경·지명 해시와 실패/취소/rollback 및 메모리 plateau 확인. 현재 tests/browser/rendering/viewer-gpu-backend-cross.spec.mjs는 Windows D3D11을 명시하고 cold warmup 표본을 따로 보관함.
 
 **구현·기능 회귀 완료 / Windows 실GPU에서 성능 개선 정량 검증 미완료.** W1 원본, W2-P2 기준 소스 및 현 work/ui의 자료 핀과 테스트 빌드를 혼동하거나 서로 다른 CI 지연을 근거로 개선율을 계산하지 말 것.
 

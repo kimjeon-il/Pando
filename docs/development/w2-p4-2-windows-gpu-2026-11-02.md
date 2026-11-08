@@ -58,7 +58,7 @@ main 측은 60.2/57.5/57.9ms였다. event.data 접근 전후 계측과 필드 �
    `node tools/w2-p4-2-report.mjs`, `node tools/w2-p4-2-audit.mjs` 순으로
    집계한다. 원문에 사용한 emitted source와 진단 script도 함께 보관한다.
 
-완료된 선택 범위는 `node tools/library-data.mjs --publish-reports
+완료된 선택 범위는 `node tools/data/library-data.mjs --publish-reports
 --include-prefix=reports/development/performance/w2-p4-2-windows-gpu-2026-11-02`로
 보관하고 `--check-reports`로 별도 원격 바이트 확인한다. 다른 작업자의 잠금을
 제거하지 않고 실패 상태와 원문을 보존한다. main 통합·배포는 포함하지 않는다.

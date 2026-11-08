@@ -1,0 +1,333 @@
+import { describe as contractSuite } from 'node:test';
+import * as __gis_dep0 from "node:assert/strict";
+import * as __gis_dep1 from "node:fs";
+import * as __gis_dep2 from "node:path";
+import * as __gis_dep3 from "node:test";
+import * as __gis_dep4 from "node:vm";
+import * as __gis_dep5 from "node:url";
+import * as __gis_dep6 from "../../../src/geometry/geographic-boundary.js";
+import * as __gis_dep7 from "../../../tools/gis/geometry-metrics.js";
+import * as __gis_dep8 from "../../../tools/gis/river-territory-partition.js";
+import * as __gis_dep9 from "../../../tools/gis/geometry-validation.js";
+import * as __gis_dep10 from "../helpers/gis-worker-harness.mjs";
+import * as __gis_dep11 from "../../helpers/spherical-core.mjs";
+contractSuite("gis-math-contract", () => {
+const assert = __gis_dep0.default;
+const fs = __gis_dep1.default;
+const path = __gis_dep2.default;
+const test = __gis_dep3.default;
+const vm = __gis_dep4.default;
+const { fileURLToPath } = __gis_dep5;
+const boundary = __gis_dep6;
+const { distanceKm, geometryAreaKm2, lineDistanceKm } = __gis_dep7;
+const partitions = __gis_dep8;
+const { validateCollection } = __gis_dep9;
+const { createGisWorkerHarness } = __gis_dep10;
+const { sphericalCore } = __gis_dep11;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+const read = relativePath => fs.readFileSync(path.join(root, relativePath), 'utf8');
+const clone = value => structuredClone(value);
+
+function loadClassic(relativePath, globalName, context) {
+  const filename = path.join(root, relativePath);
+  vm.runInContext(read(relativePath), context, { filename });
+  const value = context[globalName];
+  if (!value) throw new Error(`${globalName} was not initialized`);
+  return value;
+}
+
+function createBoundaryWorker() {
+  const context = vm.createContext({ console, self: null });
+  context.self = context;
+  vm.runInContext(read('src/geometry/workers/geographic-boundary-core.js'), context);
+  return context.PandoLabGeographicBoundary;
+}
+
+function ring(x0, y0, x1, y1, clockwise = true) {
+  const points = clockwise
+    ? [[x0, y0], [x0, y1], [x1, y1], [x1, y0]]
+    : [[x0, y0], [x1, y0], [x1, y1], [x0, y1]];
+  points.push(points[0].slice());
+  return points;
+}
+
+function polygonFeature(id, coordinates) {
+  return { type: 'Feature', id, properties: { name: id }, geometry: { type: 'Polygon', coordinates } };
+}
+
+function boundaryFixtures() {
+  return [
+    { type: 'Polygon', coordinates: [ring(0, 0, 2, 2)] },
+    { type: 'Polygon', coordinates: [ring(0, 0, 4, 4), ring(1, 1, 2, 2, false)] },
+    { type: 'MultiPolygon', coordinates: [[ring(0, 0, 1, 1)], [ring(10, 10, 12, 12)]] },
+    { type: 'LineString', coordinates: [[0, 0], [1, 1], [2, 1]] },
+    { type: 'MultiLineString', coordinates: [[[0, 0], [1, 1]], [[2, 2], [3, 3]]] },
+    { type: 'GeometryCollection', geometries: [{ type: 'LineString', coordinates: [[0, 0], [1, 1]] }, { type: 'Polygon', coordinates: [ring(2, 2, 3, 3)] }] },
+    { type: 'FeatureCollection', features: [{ type: 'Feature', geometry: { type: 'Polygon', coordinates: [ring(0, 0, 1, 1)] } }, { type: 'Feature', geometry: { type: 'LineString', coordinates: [[2, 2], [3, 3]] } }] },
+    { type: 'Polygon', coordinates: [[[179, 0], [-179, 0], [-179, 1], [179, 1], [179, 0]]] },
+    { type: 'Polygon', coordinates: [[[-180, 88], [0, 89], [180, 88], [-180, 88]]] },
+    { type: 'Polygon', coordinates: [[[0, 0], [0, 0], [1, 0], [1, 1], [0, 0]]] },
+    { type: 'LineString', coordinates: [[0, 0], [Number.NaN, 1], [1, 1]] },
+    { type: 'Polygon', coordinates: [[[-180, 10], [180, 10], [180, 12], [-180, 12], [-180, 10]]] },
+  ];
+}
+
+test('shared GIS geometry validation preserves rounded identity and finite-coordinate rules', () => {
+  const valid = [[[0, 0], [2, 0], [2, 2], [0, 2], [0, 0]]];
+  const bow = [[[0, 0], [2, 2], [0, 2], [2, 0], [0, 0]]];
+  const roundedDuplicate = [[[0, 0], [1e-9, 0], [0, 1], [0, 0]]];
+  const negativeZeroKey = [[[0, 0], [-1e-9, 0], [0, 1], [0, 0]]];
+  const exactHalf = [[[0.001953125, 0], [0.001953129, 0], [0, 1], [0.001953125, 0]]];
+  assert.equal(sphericalCore.validateGisGeometry([valid]), true);
+  assert.equal(sphericalCore.validateGisGeometry([bow]), false);
+  assert.equal(sphericalCore.validateGisGeometry([roundedDuplicate]), false);
+  assert.equal(sphericalCore.validateGisGeometry([negativeZeroKey]), true);
+  assert.equal(sphericalCore.validateGisGeometry([exactHalf]), false);
+  assert.equal(sphericalCore.validateGisGeometry([[[[0, 0], [1, 0], [NaN, 1], [0, 0]]]]), false);
+  assert.equal(sphericalCore.validateGisGeometry([]), false);
+});
+
+test('GIS overlap area closes open rings before subtracting holes', () => {
+  const shell = [[2, 1], [5, 1], [5, 4], [2, 4]];
+  const hole = [[3, 2], [4, 2], [4, 3], [3, 3]];
+  assert.equal(sphericalCore.gisValidationArea([[shell, hole]]), 8);
+  assert.equal(sphericalCore.gisValidationArea([]), 0);
+});
+
+test('GIS overlap candidates preserve pair order and the affected scope', () => {
+  const boxes = [[[0, 0, 2, 2]], [[1, 1, 3, 3]], [[0, 0, 1, 1]], [[20, 20, 21, 21]]];
+  const iterator = new sphericalCore.GisOverlapCandidates(boxes, [false, true, false, false], true);
+  try {
+    assert.equal(iterator.isSignificant(1e-8), false);
+    assert.equal(iterator.isSignificant(1.0001e-8), true);
+    assert.deepEqual(iterator.next(), { leftIndex: 0, rightIndex: 1, componentPairs: [[0, 0]] });
+    assert.deepEqual(iterator.next(), { leftIndex: 1, rightIndex: 2, componentPairs: [[0, 0]] });
+    assert.equal(iterator.next(), null);
+  } finally { iterator.delete(); }
+});
+
+test('browser and Worker geographic boundary contracts are exact and non-mutating', () => {
+  const worker = createBoundaryWorker();
+  for (const input of boundaryFixtures()) {
+    const snapshot = clone(input);
+    assert.deepEqual(JSON.parse(JSON.stringify(worker.buildRenderableBoundarySegments(input))), boundary.buildRenderableBoundarySegments(input));
+    assert.deepEqual(worker.normalizeLongitude(541), boundary.normalizeLongitude(541));
+    assert.equal(worker.isArtificialBoundaryEdge([180, 1], [-180, 2]), boundary.isArtificialBoundaryEdge([180, 1], [-180, 2]));
+    assert.deepEqual(JSON.parse(JSON.stringify(worker.buildRenderableBoundarySegments(input))), boundary.buildRenderableBoundarySegments(input));
+    assert.deepEqual(input, snapshot);
+  }
+});
+
+test('spherical distance and area contracts preserve dateline and holes', () => {
+  const epsilon = (expected, actual) => Math.max(1e-6, Math.max(Math.abs(expected), Math.abs(actual)) * 1e-9);
+  assert.equal(distanceKm([10, 20], [10, 20]), 0);
+  assert.ok(Math.abs(distanceKm([0, 0], [1, 0]) - 111.1950802335329) <= epsilon(distanceKm([0, 0], [1, 0]), 111.1950802335329));
+  assert.ok(distanceKm([0, 80], [1, 80]) < distanceKm([0, 0], [1, 0]));
+  assert.ok(distanceKm([179, 0], [-179, 0]) < 300);
+  const line = [[179, 0], [-179, 0], [-179, 1]];
+  assert.ok(Math.abs(lineDistanceKm(line) - (distanceKm(line[0], line[1]) + distanceKm(line[1], line[2]))) <= 1e-9);
+  const outer = { type: 'Polygon', coordinates: [ring(0, 0, 2, 2)] };
+  const withHole = { type: 'Polygon', coordinates: [ring(0, 0, 2, 2), ring(0.5, 0.5, 1, 1, false)] };
+  assert.ok(geometryAreaKm2(outer) > geometryAreaKm2(withHole));
+  assert.ok(geometryAreaKm2({ type: 'MultiPolygon', coordinates: [outer.coordinates, [ring(10, 10, 11, 11)]] }) > geometryAreaKm2(outer));
+});
+
+test('GIS Worker validates canonical geometry and reports the shared physical overlap area', async t => {
+  const worker = createGisWorkerHarness(t);
+  const left = polygonFeature('left', [ring(0, 0, 2, 2)]);
+  const right = polygonFeature('right', [ring(1, 1, 3, 3)]);
+  const collection = { type: 'FeatureCollection', features: [left, right] };
+  const snapshot = clone(collection);
+  const result = await worker.validate(collection);
+  assert.equal(result.ok, true);
+  assert.deepEqual(JSON.parse(JSON.stringify(result.firstOverlap)), ['left', 'right']);
+  const expectedOverlap = geometryAreaKm2({ type: 'Polygon', coordinates: [ring(1, 1, 2, 2)] });
+  const tolerance = Math.max(1e-6, Math.max(expectedOverlap, result.overlapAreaKm2) * 1e-9);
+  assert.ok(Math.abs(result.overlapAreaKm2 - expectedOverlap) <= tolerance, `${result.overlapAreaKm2} !== ${expectedOverlap}`);
+  assert.deepEqual(collection, snapshot);
+  const invalid = await worker.validate({ type: 'FeatureCollection', features: [polygonFeature('invalid', [ring(0, 0, 0, 0)])] });
+  assert.equal(invalid.ok, false);
+  assert.match(invalid.error, /유효하지 않습니다/);
+  assert.equal((await worker.validate({ type: 'FeatureCollection', features: [left, polygonFeature('trusted', [ring(0, 0, 0, 0)])] }, ['left'])).ok, true);
+});
+
+test('main validator and actual GIS Worker agree on normal, empty, invalid, precision and date-line fixtures', async t => {
+  const worker = createGisWorkerHarness(t);
+  const clipperContext = vm.createContext({});
+  vm.runInContext(read('assets/js-vendor/polygon-clipping.min.js'), clipperContext);
+  const fixtures = [
+    { name: 'normal', collection: { type: 'FeatureCollection', features: [polygonFeature('normal', [ring(0, 0, 2, 2)])] } },
+    { name: 'empty', collection: { type: 'FeatureCollection', features: [] } },
+    { name: 'invalid', collection: { type: 'FeatureCollection', features: [polygonFeature('invalid', [ring(0, 0, 0, 0)])] } },
+    { name: 'precision', collection: { type: 'FeatureCollection', features: [polygonFeature('precision', [ring(1.1234567891, 2.1234567891, 1.2234567891, 2.2234567891)])] } },
+    { name: 'date-line', collection: { type: 'FeatureCollection', features: [polygonFeature('date-line', [[[179, 0], [179, 1], [-179, 1], [-179, 0], [179, 0]]])] } },
+  ];
+  const mainOutcome = collection => {
+    try {
+      return { ok: true, ...validateCollection(collection, null) };
+    } catch (error) {
+      return { ok: false, error: error.message };
+    }
+  };
+  for (const fixture of fixtures) {
+    const actual = await worker.validate(fixture.collection);
+    const { id: _id, intersectionAttempts: _attempts, code, ...workerOutcome } = actual;
+    if (!actual.ok) assert.equal(code, 'PL-WORKER-RPC-OPERATION', fixture.name);
+    assert.deepEqual(workerOutcome, mainOutcome(fixture.collection), fixture.name);
+  }
+});
+
+test('country normalizer and GPU mesh preserve winding, finite packets and owner ranges', () => {
+  const classicContext = vm.createContext({ console, self: null, PandoLabSphericalCore: sphericalCore });
+  classicContext.self = classicContext;
+  const countryGeometry = loadClassic('src/geometry/polygon-geometry.js', 'PandoLabPolygonGeometry', classicContext);
+  const meshCore = loadClassic('src/rendering/workers/gpu-mesh-core.js', 'PandoLabGpuMeshCore', classicContext);
+  const fixtures = [
+    polygonFeature('normal', [ring(0, 0, 2, 2)]),
+    polygonFeature('reversed', [ring(3, 0, 5, 2, false), ring(3.5, 0.5, 4, 1, true)]),
+    polygonFeature('dateline', [[[-179, 0], [179, 0], [179, 2], [-179, 2], [-179, 0]]]),
+    { type: 'Feature', id: 'multi', properties: {}, geometry: { type: 'MultiPolygon', coordinates: [[ring(10, 0, 11, 1)], [ring(12, 0, 13, 1)]] } },
+  ];
+  const snapshot = clone(fixtures);
+  const normalized = fixtures.map(feature => ({ ...feature, geometry: countryGeometry.normalizePolygonGeometry(feature.geometry) })).filter(feature => feature.geometry);
+  assert.ok(normalized.every(feature => countryGeometry.hasCanonicalPolygonWinding(feature.geometry)));
+  const mesh = meshCore.buildGpuMeshFeatures(normalized, { validate: true });
+  assert.ok(Array.from(mesh.positions).every(Number.isFinite));
+  assert.ok(Array.from(mesh.strokeStartsEnds).every(Number.isFinite));
+  assert.ok(Array.from(mesh.triangleIndices).every(index => index >= 0 && index < mesh.positions.length / 2));
+  for (let index = 0; index < mesh.triangleIndices.length; index += 3) {
+    const points = [0, 1, 2].map(offset => [
+      mesh.positions[mesh.triangleIndices[index + offset] * 2],
+      mesh.positions[mesh.triangleIndices[index + offset] * 2 + 1],
+    ]);
+    const area = (points[1][0] - points[0][0]) * (points[2][1] - points[0][1])
+      - (points[1][1] - points[0][1]) * (points[2][0] - points[0][0]);
+    assert.notEqual(area, 0);
+  }
+  assert.deepEqual(fixtures, snapshot);
+  const repeat = meshCore.buildGpuMeshFeatures(normalized.map(clone), { validate: true });
+  assert.deepEqual(Array.from(repeat.strokeStartsEnds), Array.from(mesh.strokeStartsEnds));
+  assert.deepEqual(repeat.strokeOwnerRanges, mesh.strokeOwnerRanges);
+});
+
+test('river partition browser contract is deterministic and non-mutating', () => {
+  const clipperContext = vm.createContext({});
+  vm.runInContext(read('assets/js-vendor/polygon-clipping.min.js'), clipperContext);
+  const donors = [
+    { countryId: 'donor-a', geometryRevision: 1, geometry: { type: 'Polygon', coordinates: [ring(0, 0, 10, 10)] } },
+    { countryId: 'donor-b', geometryRevision: 1, geometry: { type: 'MultiPolygon', coordinates: [[ring(20, 0, 30, 10)], [ring(40, 0, 41, 1)]] } },
+  ];
+  const riverFeatures = [
+    { type: 'Feature', id: 'vertical', geometry: { type: 'LineString', coordinates: [[5, -1], [5, 11]] } },
+    { type: 'Feature', id: 'horizontal', geometry: { type: 'LineString', coordinates: [[-1, 5], [11, 5]] } },
+    { type: 'Feature', id: 'dangling', geometry: { type: 'LineString', coordinates: [[5, 5], [6, 6]] } },
+  ];
+  const snapshotDonors = clone(donors);
+  const snapshotRivers = clone(riverFeatures);
+  const first = partitions.buildRiverTerritoryPartitions({ donors, riverFeatures, clipper: clipperContext.polygonClipping, hydroRevision: 'contract' });
+  const second = partitions.buildRiverTerritoryPartitions({ donors: clone(donors), riverFeatures: clone(riverFeatures), clipper: clipperContext.polygonClipping, hydroRevision: 'contract' });
+  assert.equal(first.diagnostics.algorithmRevision, 'river-partitions-v2');
+  assert.deepEqual(first.donorResults, second.donorResults);
+  assert.deepEqual(first.candidates.map(candidate => candidate.key), second.candidates.map(candidate => candidate.key));
+  assert.deepEqual(first.candidates.map(candidate => candidate.geometry), second.candidates.map(candidate => candidate.geometry));
+  assert.ok(first.candidates.length >= 4);
+  assert.deepEqual(donors, snapshotDonors);
+  assert.deepEqual(riverFeatures, snapshotRivers);
+});
+
+test('GIS contract test sources stay worker-safe and do not revive removed paths', () => {
+  const workerSources = [
+    read('src/geometry/workers/geographic-boundary-core.js'),
+    read('tools/gis/gis-geometry-worker.js'),
+    read('src/rendering/workers/gpu-mesh-core.js'),
+  ].join('\n');
+  assert.doesNotMatch(workerSources, /document\.|window\.|getContext\(|activeProjection\(|state\.view/);
+  const productionSources = [
+    read('src/geometry/geographic-boundary.js'),
+    read('tools/gis/river-territory-partition.js'),
+    workerSources,
+  ].join('\n');
+  assert.doesNotMatch(productionSources, /gpu-state-scope|selection-coverage|annex-source-v1|frontier-pocket/);
+  assert.match(read('src/geometry/workers/geographic-boundary-core.js'), /180/);
+  assert.match(read('src/geometry/geographic-boundary.js'), /atPole|atDateLine/);
+});
+});
+contractSuite("p5-spherical-area-delegation", () => {
+const assert = __gis_dep0.default;
+const { readFileSync } = __gis_dep1;
+const vm = __gis_dep4.default;
+const test = __gis_dep3.default;
+
+
+
+
+
+const source=readFileSync(new URL("../../../src/geometry/polygon-geometry.js",import.meta.url),'utf8');
+const ring=[[179,-2],[179,2],[-179,2],[-179,-2],[179,-2]];
+
+function loadedCore() {
+  const calls={scalar:0,batch:0};
+  const nativeCpp={
+    sphericalRingSignedArea(value) {
+      calls.scalar++;
+      assert.deepEqual(Array.from(value),ring);
+      return 12.5;
+    },
+    sphericalRingSignedAreas(values) {
+      calls.batch++;
+      assert.equal(values.length,2);
+      return [12.5,-12.5];
+    },
+  };
+  const context=vm.createContext({PandoLabSphericalCore:{
+    ...nativeCpp, normalizePolygonGeometry(){},normalizePolygonRing(){},hasCanonicalPolygonWinding(){}
+  }});
+  vm.runInContext(source,context);
+  return {context,calls,nativeCpp,api:context.PandoLabPolygonGeometry};
+}
+test('live Web delegates scalar and multi-ring spherical areas to compiled Core',()=>{
+  const {calls,api}=loadedCore();
+  const original=structuredClone(ring);
+  assert.equal(api.sphericalSignedArea(ring),12.5);
+  assert.equal(JSON.stringify(api.sphericalSignedAreas([ring,ring])),JSON.stringify([12.5,-12.5]));
+  assert.deepEqual(ring,original);
+  assert.deepEqual(calls,{scalar:1,batch:1});
+  assert.doesNotMatch(source,/Math\.atan2\s*\(/,
+    'the legacy spherical geodesic integral must not survive in runtime JS');
+});
+test('Qt uses the explicit native C++ bridge rather than an unrelated JS fallback',()=>{
+  const {context,api,calls}=loadedCore();
+  const qtCalls=[];
+  context.PandoLabSphericalAreaCore={
+    sphericalRingSignedArea:()=>{qtCalls.push('scalar');return 5.5;},
+    sphericalRingSignedAreas:()=>{qtCalls.push('batch');return [5.5];}
+  };
+  assert.equal(api.sphericalSignedArea(ring),5.5);
+  assert.equal(api.sphericalSignedAreas([ring])[0],5.5);
+  assert.deepEqual(qtCalls,['scalar','batch']);
+  assert.equal(calls.scalar,0);
+  assert.equal(calls.batch,0);
+});
+test('missing C++ capability is a visible error; never a silent JS approximation',()=>{
+  const {context,api}=loadedCore();
+  delete context.PandoLabSphericalCore;
+  assert.throws(()=>api.sphericalSignedArea(ring),
+    error=>error.code==='PL-GEOMETRY-WASM-001');
+  assert.throws(()=>api.sphericalSignedAreas([ring]),
+    error=>error.code==='PL-GEOMETRY-WASM-001');
+});
+});

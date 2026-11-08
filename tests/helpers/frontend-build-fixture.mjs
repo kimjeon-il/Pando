@@ -9,11 +9,11 @@ export function frontendFixture(t){
  const root=isolatedTestWorkspace(t,'pando-frontend-build-');
  const put=(path,text)=>{const file=join(root,path);mkdirSync(dirname(file),{recursive:true});writeFileSync(file,text);};
  put('package.json',JSON.stringify({version:'1.0.0'}));
- for(const path of new Set([...UI_VIEWER_SOURCES,'assets/css/app.css','assets/css/viewer.css']))put(path.replace('assets/css/','shared/frontend/css/'),'.x { color: red; }');
- put('shared/frontend/js/modules/resource-update-policy.js','export const value=1;');
- put('apps/viewer/js/viewer.js','export const viewer=true;');
+ for(const path of new Set([...UI_VIEWER_SOURCES,'assets/css/app.css','assets/css/viewer.css']))put(path.replace('assets/css/','src/ui/css/'),'.x { color: red; }');
+ put('src/rendering/resource-update-policy.js','export const value=1;');
+ put('src/app/viewer.js','export const viewer=true;');
  const html=entry=>'<html data-app-version="1.0.0"><link rel="stylesheet" href="assets/css/ui-viewer.bundle.css"><script src="assets/js/build-meta.js"></script><script type="module" src="assets/js/'+entry+'"></script></html>';
- put('apps/viewer/templates/index.html',html('viewer.js'));
+ put('src/app/index.html',html('viewer.js'));
  const physicalLand=Buffer.from(JSON.stringify({type:'MultiPolygon',coordinates:[[[[0,0],[0,1],[1,1],[1,0],[0,0]]]]}));
  const storedPhysicalLand=gzipSync(physicalLand,{level:9,mtime:0});
  const physicalAsset={url:'assets/data/physical-land/land.bin',encoding:'gzip',
@@ -26,7 +26,7 @@ export function frontendFixture(t){
   'assets/data/hydro/v0.13.4/manifest.json':{container:{url:'data.bin'},shards:[]},
   'assets/data/places/manifest.json':{shards:{}},
   'assets/data/territorial-entities/generated/v2/index.json':{entities:[]},
-  'assets/data/builtin-world/generated/v1/index.json':{schema:'pandolab-builtin-world',schemaVersion:2,storageLayout:'country-files-v1',entities:[],template:{}},
+  'assets/data/builtin-world/generated/v1/index.json':{schema:'pandolab-builtin-world',schemaVersion:2,storageLayout:'descriptor-geometries-v1',geometryAssets:[],entities:[],template:{}},
   'assets/data/prepared-polygons/generated/v2/manifest.json':{meshes:{},algorithmSourceSha256:'mesh'},
   'assets/data/physical-land/land.bin':storedPhysicalLand,'assets/data/hydro/v0.13.4/data.bin':null,
  };

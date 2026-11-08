@@ -4,7 +4,7 @@ import {readFileSync,mkdirSync,writeFileSync} from 'node:fs';
 import {resolve,join} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {chromium,expect} from '@playwright/test';
-import {prepareLibraryData} from './library-data.mjs';
+import {prepareLibraryData} from "./data/library-runtime.mjs";
 import {injectBoundaryDeltaWorker} from './w2-p6-3-worker-bridge.mjs';
 import {createBoundaryDeltaSender} from './w2-p6-3-boundary-delta-sender.mjs';
 

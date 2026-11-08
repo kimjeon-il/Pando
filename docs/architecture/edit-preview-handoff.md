@@ -66,7 +66,7 @@ The focused Node command is the M2 workflow job's 14-file list. The complete
 unit suite is not part of this command.
 
 ```powershell
-node --test tests/unit/edit-preview-handoff.test.mjs tests/unit/edit-preview-presentation.test.mjs tests/unit/edit-preview-controller.test.mjs tests/unit/app-geometry-preview.test.mjs tests/unit/editing-vertex-transaction.test.mjs tests/unit/editing-interaction-events.test.mjs tests/unit/editing-render-packet.test.mjs tests/unit/map-render-coordinator.test.mjs tests/unit/map-visual-frame.test.mjs tests/unit/territorial-boundary-continuity.test.mjs tests/unit/empty-territorial-boundary.test.mjs tests/unit/render-channel-ownership.test.mjs tests/unit/domain-split-contract.test.mjs tests/unit/capability-ports-contract.test.mjs
+node --test tests/unit/edit-preview-handoff.test.mjs tests/unit/edit-preview-presentation.test.mjs tests/unit/edit-preview-controller.test.mjs tests/unit/app-geometry-preview.test.mjs tests/unit/editing-vertex-transaction.test.mjs tests/unit/editing-interaction-events.test.mjs tests/unit/editing-render-packet.test.mjs tests/unit/map-render-coordinator.test.mjs tests/unit/map-visual-frame.test.mjs tests/unit/document/territorial-boundary-continuity.test.mjs tests/unit/geometry/empty-territorial-boundary.test.mjs tests/unit/render-channel-ownership.test.mjs tests/unit/domain-split-contract.test.mjs tests/unit/capability-ports-contract.test.mjs
 ```
 
 Command to reproduce all focused browser cases:

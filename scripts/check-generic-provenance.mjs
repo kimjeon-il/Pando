@@ -6,10 +6,10 @@ import {
   GENERIC_FEATURE_CANONICAL_PROPERTY_KEYS,
   GENERIC_FEATURE_SCHEMA_VERSION,
   normalizeGenericFeatureCollection,
-} from "../shared/frontend/js/modules/generic-feature-normalization.js";
+} from "../src/document/generic-feature-normalization.js";
 import {
   SOURCE_PROVENANCE_SCHEMA_VERSION,
-} from "../shared/frontend/js/modules/source-provenance.js";
+} from "../src/document/source-provenance.js";
 
 const root = process.cwd();
 const failures = [];
@@ -42,7 +42,7 @@ for (const retired of ['genericFeatureConversionSection', 'convertGenericFeature
   if (staticUiSource.includes('id="'+retired+'"'))
     fail('Retired GIS editing UI entered the Viewer: '+retired);
 }
-const projectStateSource = read('shared/frontend/js/modules/project-state.js');
+const projectStateSource = read('src/document/project-state.js');
 for (const marker of ['validateSourceProvenance', 'GENERIC_PROPERTY_KEYS']) {
   if (!projectStateSource.includes(marker)) fail(`project schema is missing Generic/provenance validation marker: ${marker}`);
 }
@@ -50,7 +50,7 @@ const serializerSource = read('tools/gis/project-template-compiler.js');
 for (const marker of ["purpose: 'lossless-fallback'", 'directCreation: false', 'sourceProvenanceSchemaVersion']) {
   if (!serializerSource.includes(marker)) fail(`serializer is missing Generic fallback contract marker: ${marker}`);
 }
-const invariantsSource = read('shared/frontend/js/modules/project-invariants.js');
+const invariantsSource = read('src/document/project-invariants.js');
 if (!invariantsSource.includes('PL-INV-GENERIC-SOURCE')) fail('runtime project invariants do not validate Generic source provenance');
 
 if (failures.length) {

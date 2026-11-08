@@ -5,7 +5,7 @@ import {basename,dirname,isAbsolute,relative,resolve,sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {parseArgs} from 'node:util';
 import {gzipSync} from 'node:zlib';
-import {readHydroMetadataSection} from '../inventory-osm-hydronyms.mjs';
+import {readHydroMetadataSection} from "./inventory-osm-hydronyms.mjs";
 import {validateIndependentHydronyms} from './hydro-independent-name-policy.mjs';
 
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');

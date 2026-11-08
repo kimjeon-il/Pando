@@ -16,7 +16,7 @@
         ]
       },
       {
-        "survivor": "tests/unit/hydro-river-features.test.mjs",
+        "survivor": "tests/unit/data/hydro-river-features.test.mjs",
         "sources": [
           "tests/unit/hydro-lake-features.test.mjs",
           "tests/unit/hydro-river-input.test.mjs",
@@ -24,21 +24,21 @@
         ]
       },
       {
-        "survivor": "tests/unit/hydro-border-alignment.test.mjs",
+        "survivor": "tests/unit/geometry/hydro-border-alignment.test.mjs",
         "sources": [
           "tests/unit/hydro-border-partial.test.mjs",
           "tests/unit/hydro-border-whole.test.mjs"
         ]
       },
       {
-        "survivor": "tests/unit/canvas-country-geometry.test.mjs",
+        "survivor": "tests/unit/rendering/canvas-country-geometry.test.mjs",
         "sources": [
           "tests/unit/canvas-coupled-land.test.mjs",
           "tests/unit/canvas-stroke-preparation.test.mjs"
         ]
       },
       {
-        "survivor": "tests/unit/gpu-country-mesh-variants.test.mjs",
+        "survivor": "tests/unit/rendering/gpu-country-mesh-variants.test.mjs",
         "sources": [
           "tests/unit/gpu-country-patch-presentation.test.mjs",
           "tests/unit/gpu-country-culling.test.mjs"
@@ -52,14 +52,14 @@
         ]
       },
       {
-        "survivor": "tests/unit/gpu-resource-owners.test.mjs",
+        "survivor": "tests/unit/rendering/gpu-resource-owners.test.mjs",
         "sources": [
           "tests/unit/gpu-resource-budget.test.mjs",
           "tests/unit/gpu-renderer-lifecycle.test.mjs"
         ]
       },
       {
-        "survivor": "tests/unit/map-presentation-readiness.test.mjs",
+        "survivor": "tests/unit/rendering/map-presentation-readiness.test.mjs",
         "sources": [
           "tests/unit/map-visual-frame.test.mjs",
           "tests/unit/map-visual-order.test.mjs",
@@ -75,14 +75,14 @@
         ]
       },
       {
-        "survivor": "tests/unit/core-hydro-create-wasm.test.mjs",
+        "survivor": "tests/unit/document/core-hydro-create-wasm.test.mjs",
         "sources": [
           "tests/unit/core-hydro-hidden-source-wasm.test.mjs",
           "tests/unit/core-hydro-copy-history-wasm.test.mjs"
         ]
       },
       {
-        "survivor": "tests/unit/core-document-world-wasm.test.mjs",
+        "survivor": "tests/unit/document/core-document-world-wasm.test.mjs",
         "sources": [
           "tests/unit/core-document-batch-wasm.test.mjs",
           "tests/unit/core-document-field-wasm.test.mjs",
@@ -92,7 +92,7 @@
         ]
       },
       {
-        "survivor": "tests/unit/hydro-packfile.test.mjs",
+        "survivor": "tests/unit/data/hydro-packfile.test.mjs",
         "sources": [
           "tests/unit/hydro-packfile-builder.test.mjs",
           "tests/unit/hydro-pack-layout.test.mjs"
@@ -101,7 +101,7 @@
     ],
     "browserGroups": [
       {
-        "survivor": "tests/browser/web-viewer.spec.mjs",
+        "survivor": "tests/browser/document/web-viewer.spec.mjs",
         "sources": [
           "tests/browser/viewer-layout.spec.mjs",
           "tests/browser/phone-landscape-surface-contract.spec.mjs",
@@ -110,7 +110,7 @@
         ]
       },
       {
-        "survivor": "tests/browser/viewer-calendar.spec.mjs",
+        "survivor": "tests/browser/document/viewer-calendar.spec.mjs",
         "sources": [
           "tests/browser/viewer-temporal-regressions.spec.mjs",
           "tests/browser/temporal-map-presentation.spec.mjs",
@@ -118,7 +118,7 @@
         ]
       },
       {
-        "survivor": "tests/browser/terrain-zoom-continuity.spec.mjs",
+        "survivor": "tests/browser/rendering/terrain-zoom-continuity.spec.mjs",
         "sources": [
           "tests/browser/terrain-inheritance.spec.mjs",
           "tests/browser/terrain-progressive.spec.mjs",
@@ -127,21 +127,21 @@
         ]
       },
       {
-        "survivor": "tests/browser/terrain-preview.spec.mjs",
+        "survivor": "tests/browser/geometry/terrain-preview.spec.mjs",
         "sources": [
           "tests/browser/terrain-preview-quality.spec.mjs",
           "tests/browser/terrain-ocean-loading.spec.mjs"
         ]
       },
       {
-        "survivor": "tests/browser/viewer-renderer-recovery.spec.mjs",
+        "survivor": "tests/browser/rendering/viewer-renderer-recovery.spec.mjs",
         "sources": [
           "tests/browser/gpu-scene-staging.spec.mjs",
           "tests/browser/country-border-coverage.spec.mjs"
         ]
       },
       {
-        "survivor": "tests/browser/viewer-boundary-p4-5.spec.mjs",
+        "survivor": "tests/browser/geometry/viewer-boundary-p4-5.spec.mjs",
         "sources": [
           "tests/browser/korean-boundaries.spec.mjs",
           "tests/browser/viewer-temporal-boundary-worker-rollback.spec.mjs",
@@ -149,25 +149,25 @@
         ]
       },
       {
-        "survivor": "tests/browser/viewer-review-e4.spec.mjs",
+        "survivor": "tests/browser/document/viewer-review-e4.spec.mjs",
         "sources": [
           "tests/browser/viewer-inspector.spec.mjs"
         ]
       },
       {
-        "survivor": "tests/browser/hydro-sdf-webgl.spec.mjs",
+        "survivor": "tests/browser/geometry/hydro-sdf-webgl.spec.mjs",
         "sources": [
           "tests/browser/canvas-hydro-picking.spec.mjs"
         ]
       },
       {
-        "survivor": "tests/browser/viewer-startup-and-terrain.spec.mjs",
+        "survivor": "tests/browser/geometry/viewer-startup-and-terrain.spec.mjs",
         "sources": [
           "tests/browser/physical-land-time.spec.mjs"
         ]
       },
       {
-        "survivor": "tests/browser/viewer-project-open.spec.mjs",
+        "survivor": "tests/browser/document/viewer-project-open.spec.mjs",
         "sources": [
           "tests/browser/viewer-canvas.spec.mjs"
         ]
@@ -863,7 +863,7 @@
       "bytes": 5710
     },
     {
-      "path": "tests/browser/canvas-globe-performance.spec.mjs",
+      "path": "tests/browser/rendering/canvas-globe-performance.spec.mjs",
       "kind": "browser",
       "feature": "rendering",
       "disposition": "retain",
@@ -875,12 +875,12 @@
       "kind": "browser",
       "feature": "rendering",
       "disposition": "merge",
-      "destination": "tests/browser/hydro-sdf-webgl.spec.mjs",
+      "destination": "tests/browser/geometry/hydro-sdf-webgl.spec.mjs",
       "sha": "5f762ae674f3",
       "bytes": 3347
     },
     {
-      "path": "tests/browser/codespaces-live.spec.mjs",
+      "path": "tests/browser/document/codespaces-live.spec.mjs",
       "kind": "browser",
       "feature": "viewer",
       "disposition": "retain",
@@ -892,12 +892,12 @@
       "kind": "browser",
       "feature": "gis",
       "disposition": "merge",
-      "destination": "tests/browser/viewer-renderer-recovery.spec.mjs",
+      "destination": "tests/browser/rendering/viewer-renderer-recovery.spec.mjs",
       "sha": "f5e14ac25e23",
       "bytes": 8129
     },
     {
-      "path": "tests/browser/deferred-builtin-timeline.spec.mjs",
+      "path": "tests/browser/ui/deferred-builtin-timeline.spec.mjs",
       "kind": "browser",
       "feature": "viewer",
       "disposition": "retain",
@@ -909,12 +909,12 @@
       "kind": "browser",
       "feature": "rendering",
       "disposition": "merge",
-      "destination": "tests/browser/viewer-renderer-recovery.spec.mjs",
+      "destination": "tests/browser/rendering/viewer-renderer-recovery.spec.mjs",
       "sha": "c2f03d1c21c3",
       "bytes": 7392
     },
     {
-      "path": "tests/browser/hydro-sdf-webgl.spec.mjs",
+      "path": "tests/browser/geometry/hydro-sdf-webgl.spec.mjs",
       "kind": "browser",
       "feature": "hydro",
       "disposition": "retain",
@@ -926,12 +926,12 @@
       "kind": "browser",
       "feature": "viewer",
       "disposition": "merge",
-      "destination": "tests/browser/viewer-boundary-p4-5.spec.mjs",
+      "destination": "tests/browser/geometry/viewer-boundary-p4-5.spec.mjs",
       "sha": "31dcf020c519",
       "bytes": 1739
     },
     {
-      "path": "tests/browser/p3-remote-preview.spec.mjs",
+      "path": "tests/browser/runtime/p3-remote-preview.spec.mjs",
       "kind": "browser",
       "feature": "viewer",
       "disposition": "retain",
@@ -943,7 +943,7 @@
       "kind": "browser",
       "feature": "viewer",
       "disposition": "merge",
-      "destination": "tests/browser/web-viewer.spec.mjs",
+      "destination": "tests/browser/document/web-viewer.spec.mjs",
       "sha": "d0fbaddd8327",
       "bytes": 6291
     },
@@ -952,7 +952,7 @@
       "kind": "browser",
       "feature": "rendering",
       "disposition": "merge",
-      "destination": "tests/browser/viewer-startup-and-terrain.spec.mjs",
+      "destination": "tests/browser/geometry/viewer-startup-and-terrain.spec.mjs",
       "sha": "734f25805396",
       "bytes": 15474
     },
@@ -961,7 +961,7 @@
       "kind": "browser",
       "feature": "viewer",
       "disposition": "merge",
-      "destination": "tests/browser/viewer-calendar.spec.mjs",
+      "destination": "tests/browser/document/viewer-calendar.spec.mjs",
       "sha": "28390bd33b45",
       "bytes": 6981
     },
@@ -970,12 +970,12 @@
       "kind": "browser",
       "feature": "core",
       "disposition": "merge",
-      "destination": "tests/browser/viewer-calendar.spec.mjs",
+      "destination": "tests/browser/document/viewer-calendar.spec.mjs",
       "sha": "a41c08fe9666",
       "bytes": 14845
     },
     {
-      "path": "tests/browser/terrain-dem-shader.spec.mjs",
+      "path": "tests/browser/rendering/terrain-dem-shader.spec.mjs",
       "kind": "browser",
       "feature": "rendering",
       "disposition": "retain",
@@ -987,7 +987,7 @@
       "kind": "browser",
       "feature": "rendering",
       "disposition": "merge",
-      "destination": "tests/browser/terrain-zoom-continuity.spec.mjs",
+      "destination": "tests/browser/rendering/terrain-zoom-continuity.spec.mjs",
       "sha": "3f908858b7df",
       "bytes": 5610
     },
@@ -996,7 +996,7 @@
       "kind": "browser",
       "feature": "rendering",
       "disposition": "merge",
-      "destination": "tests/browser/terrain-zoom-continuity.spec.mjs",
+      "destination": "tests/browser/rendering/terrain-zoom-continuity.spec.mjs",
       "sha": "a26e3845c009",
       "bytes": 8635
     },
@@ -1005,7 +1005,7 @@
       "kind": "browser",
       "feature": "rendering",
       "disposition": "merge",
-      "destination": "tests/browser/terrain-preview.spec.mjs",
+      "destination": "tests/browser/geometry/terrain-preview.spec.mjs",
       "sha": "f48be3bba29f",
       "bytes": 3812
     },
@@ -1014,12 +1014,12 @@
       "kind": "browser",
       "feature": "rendering",
       "disposition": "merge",
-      "destination": "tests/browser/terrain-preview.spec.mjs",
+      "destination": "tests/browser/geometry/terrain-preview.spec.mjs",
       "sha": "982c37e079fa",
       "bytes": 6381
     },
     {
-      "path": "tests/browser/terrain-preview.spec.mjs",
+      "path": "tests/browser/geometry/terrain-preview.spec.mjs",
       "kind": "browser",
       "feature": "rendering",
       "disposition": "retain",
@@ -1031,7 +1031,7 @@
       "kind": "browser",
       "feature": "rendering",
       "disposition": "merge",
-      "destination": "tests/browser/terrain-zoom-continuity.spec.mjs",
+      "destination": "tests/browser/rendering/terrain-zoom-continuity.spec.mjs",
       "sha": "8a33eb166190",
       "bytes": 7476
     },
@@ -1040,12 +1040,12 @@
       "kind": "browser",
       "feature": "rendering",
       "disposition": "merge",
-      "destination": "tests/browser/terrain-zoom-continuity.spec.mjs",
+      "destination": "tests/browser/rendering/terrain-zoom-continuity.spec.mjs",
       "sha": "e42643350514",
       "bytes": 2926
     },
     {
-      "path": "tests/browser/terrain-zoom-continuity.spec.mjs",
+      "path": "tests/browser/rendering/terrain-zoom-continuity.spec.mjs",
       "kind": "browser",
       "feature": "rendering",
       "disposition": "retain",
@@ -1053,7 +1053,7 @@
       "bytes": 23259
     },
     {
-      "path": "tests/browser/viewer-boundary-p4-5.spec.mjs",
+      "path": "tests/browser/geometry/viewer-boundary-p4-5.spec.mjs",
       "kind": "browser",
       "feature": "viewer",
       "disposition": "retain",
@@ -1061,7 +1061,7 @@
       "bytes": 2142
     },
     {
-      "path": "tests/browser/viewer-calendar.spec.mjs",
+      "path": "tests/browser/document/viewer-calendar.spec.mjs",
       "kind": "browser",
       "feature": "viewer",
       "disposition": "retain",
@@ -1073,7 +1073,7 @@
       "kind": "browser",
       "feature": "viewer",
       "disposition": "merge",
-      "destination": "tests/browser/viewer-project-open.spec.mjs",
+      "destination": "tests/browser/document/viewer-project-open.spec.mjs",
       "sha": "3cb604d4748e",
       "bytes": 7182
     },
@@ -1082,12 +1082,12 @@
       "kind": "browser",
       "feature": "viewer",
       "disposition": "merge",
-      "destination": "tests/browser/web-viewer.spec.mjs",
+      "destination": "tests/browser/document/web-viewer.spec.mjs",
       "sha": "1e98a105747f",
       "bytes": 4476
     },
     {
-      "path": "tests/browser/viewer-gpu-backend-cross.spec.mjs",
+      "path": "tests/browser/rendering/viewer-gpu-backend-cross.spec.mjs",
       "kind": "browser",
       "feature": "rendering",
       "disposition": "retain",
@@ -1099,7 +1099,7 @@
       "kind": "browser",
       "feature": "viewer",
       "disposition": "merge",
-      "destination": "tests/browser/viewer-review-e4.spec.mjs",
+      "destination": "tests/browser/document/viewer-review-e4.spec.mjs",
       "sha": "b2dc7f0c2f77",
       "bytes": 4478
     },
@@ -1108,12 +1108,12 @@
       "kind": "browser",
       "feature": "viewer",
       "disposition": "merge",
-      "destination": "tests/browser/web-viewer.spec.mjs",
+      "destination": "tests/browser/document/web-viewer.spec.mjs",
       "sha": "3bb224fe9295",
       "bytes": 3576
     },
     {
-      "path": "tests/browser/viewer-project-open.spec.mjs",
+      "path": "tests/browser/document/viewer-project-open.spec.mjs",
       "kind": "browser",
       "feature": "viewer",
       "disposition": "retain",
@@ -1121,7 +1121,7 @@
       "bytes": 8908
     },
     {
-      "path": "tests/browser/viewer-renderer-recovery.spec.mjs",
+      "path": "tests/browser/rendering/viewer-renderer-recovery.spec.mjs",
       "kind": "browser",
       "feature": "rendering",
       "disposition": "retain",
@@ -1129,7 +1129,7 @@
       "bytes": 9904
     },
     {
-      "path": "tests/browser/viewer-review-e4.spec.mjs",
+      "path": "tests/browser/document/viewer-review-e4.spec.mjs",
       "kind": "browser",
       "feature": "viewer",
       "disposition": "retain",
@@ -1141,12 +1141,12 @@
       "kind": "browser",
       "feature": "viewer",
       "disposition": "merge",
-      "destination": "tests/browser/web-viewer.spec.mjs",
+      "destination": "tests/browser/document/web-viewer.spec.mjs",
       "sha": "9831ce0fec63",
       "bytes": 4595
     },
     {
-      "path": "tests/browser/viewer-startup-and-terrain.spec.mjs",
+      "path": "tests/browser/geometry/viewer-startup-and-terrain.spec.mjs",
       "kind": "browser",
       "feature": "viewer",
       "disposition": "retain",
@@ -1158,7 +1158,7 @@
       "kind": "browser",
       "feature": "viewer",
       "disposition": "merge",
-      "destination": "tests/browser/viewer-boundary-p4-5.spec.mjs",
+      "destination": "tests/browser/geometry/viewer-boundary-p4-5.spec.mjs",
       "sha": "ef9bebe9fdfd",
       "bytes": 14081
     },
@@ -1167,7 +1167,7 @@
       "kind": "browser",
       "feature": "viewer",
       "disposition": "merge",
-      "destination": "tests/browser/viewer-calendar.spec.mjs",
+      "destination": "tests/browser/document/viewer-calendar.spec.mjs",
       "sha": "b4563a79af4f",
       "bytes": 13795
     },
@@ -1176,12 +1176,12 @@
       "kind": "browser",
       "feature": "viewer",
       "disposition": "merge",
-      "destination": "tests/browser/viewer-boundary-p4-5.spec.mjs",
+      "destination": "tests/browser/geometry/viewer-boundary-p4-5.spec.mjs",
       "sha": "db18592dbf30",
       "bytes": 11800
     },
     {
-      "path": "tests/browser/web-viewer.spec.mjs",
+      "path": "tests/browser/document/web-viewer.spec.mjs",
       "kind": "browser",
       "feature": "core",
       "disposition": "retain",
@@ -1197,7 +1197,7 @@
       "bytes": 2705
     },
     {
-      "path": "tests/unit/annex-slivers.test.mjs",
+      "path": "tests/unit/geometry/annex-slivers.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -1213,7 +1213,7 @@
       "bytes": 2556
     },
     {
-      "path": "tests/unit/app-builtin-session.test.mjs",
+      "path": "tests/unit/document/app-builtin-session.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -1221,7 +1221,7 @@
       "bytes": 2516
     },
     {
-      "path": "tests/unit/app-hydro-settings.test.mjs",
+      "path": "tests/unit/ui/app-hydro-settings.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -1269,7 +1269,7 @@
       "bytes": 5103
     },
     {
-      "path": "tests/unit/background-startup-recovery.test.mjs",
+      "path": "tests/unit/runtime/background-startup-recovery.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -1293,7 +1293,7 @@
       "bytes": 2409
     },
     {
-      "path": "tests/unit/borneo-country-geometry.test.mjs",
+      "path": "tests/unit/document/borneo-country-geometry.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -1301,7 +1301,7 @@
       "bytes": 4116
     },
     {
-      "path": "tests/unit/boundary-capture-evidence.test.mjs",
+      "path": "tests/unit/geometry/boundary-capture-evidence.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -1309,7 +1309,7 @@
       "bytes": 4398
     },
     {
-      "path": "tests/unit/boundary-display-refinement.test.mjs",
+      "path": "tests/unit/geometry/boundary-display-refinement.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -1317,7 +1317,7 @@
       "bytes": 6151
     },
     {
-      "path": "tests/unit/boundary-lines.test.mjs",
+      "path": "tests/unit/geometry/boundary-lines.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -1325,7 +1325,7 @@
       "bytes": 1302
     },
     {
-      "path": "tests/unit/boundary-source-row-compact.test.mjs",
+      "path": "tests/unit/geometry/boundary-source-row-compact.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -1357,7 +1357,7 @@
       "bytes": 3955
     },
     {
-      "path": "tests/unit/build-metadata.test.mjs",
+      "path": "tests/unit/build/build-metadata.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -1382,7 +1382,7 @@
       "bytes": 2504
     },
     {
-      "path": "tests/unit/builtin-country-loading.test.mjs",
+      "path": "tests/unit/data/builtin-country-loading.test.mjs",
       "kind": "unit",
       "feature": "core",
       "disposition": "retain",
@@ -1398,7 +1398,7 @@
       "bytes": 5250
     },
     {
-      "path": "tests/unit/builtin-country-parts.test.mjs",
+      "path": "tests/unit/data/builtin-country-parts.test.mjs",
       "kind": "unit",
       "feature": "core",
       "disposition": "retain",
@@ -1406,7 +1406,7 @@
       "bytes": 4923
     },
     {
-      "path": "tests/unit/builtin-country-publication.test.mjs",
+      "path": "tests/unit/data/builtin-country-publication.test.mjs",
       "kind": "unit",
       "feature": "core",
       "disposition": "retain",
@@ -1430,7 +1430,7 @@
       "bytes": 2508
     },
     {
-      "path": "tests/unit/builtin-mesh-resource.test.mjs",
+      "path": "tests/unit/data/builtin-mesh-resource.test.mjs",
       "kind": "unit",
       "feature": "core",
       "disposition": "retain",
@@ -1446,7 +1446,7 @@
       "bytes": 6676
     },
     {
-      "path": "tests/unit/builtin-resource-admission.test.mjs",
+      "path": "tests/unit/document/builtin-resource-admission.test.mjs",
       "kind": "unit",
       "feature": "core",
       "disposition": "retain",
@@ -1454,7 +1454,7 @@
       "bytes": 5372
     },
     {
-      "path": "tests/unit/builtin-resource-core-wasm.test.mjs",
+      "path": "tests/unit/document/builtin-resource-core-wasm.test.mjs",
       "kind": "unit",
       "feature": "core",
       "disposition": "retain",
@@ -1462,7 +1462,7 @@
       "bytes": 3277
     },
     {
-      "path": "tests/unit/builtin-source-cache.test.mjs",
+      "path": "tests/unit/document/builtin-source-cache.test.mjs",
       "kind": "unit",
       "feature": "core",
       "disposition": "retain",
@@ -1470,7 +1470,7 @@
       "bytes": 14221
     },
     {
-      "path": "tests/unit/builtin-source-preparation.test.mjs",
+      "path": "tests/unit/document/builtin-source-preparation.test.mjs",
       "kind": "unit",
       "feature": "core",
       "disposition": "retain",
@@ -1486,7 +1486,7 @@
       "bytes": 4646
     },
     {
-      "path": "tests/unit/builtin-subunits.test.mjs",
+      "path": "tests/unit/document/builtin-subunits.test.mjs",
       "kind": "unit",
       "feature": "core",
       "disposition": "retain",
@@ -1494,7 +1494,7 @@
       "bytes": 3177
     },
     {
-      "path": "tests/unit/builtin-territory-policy.test.mjs",
+      "path": "tests/unit/document/builtin-territory-policy.test.mjs",
       "kind": "unit",
       "feature": "core",
       "disposition": "retain",
@@ -1510,7 +1510,7 @@
       "bytes": 4036
     },
     {
-      "path": "tests/unit/builtin-world-catalog.test.mjs",
+      "path": "tests/unit/document/builtin-world-catalog.test.mjs",
       "kind": "unit",
       "feature": "core",
       "disposition": "retain",
@@ -1526,7 +1526,7 @@
       "bytes": 3406
     },
     {
-      "path": "tests/unit/builtin-world-loader.test.mjs",
+      "path": "tests/unit/data/builtin-world-loader.test.mjs",
       "kind": "unit",
       "feature": "core",
       "disposition": "retain",
@@ -1551,7 +1551,7 @@
       "bytes": 668
     },
     {
-      "path": "tests/unit/canonical-country-packet.test.mjs",
+      "path": "tests/unit/rendering/canonical-country-packet.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -1559,7 +1559,7 @@
       "bytes": 5697
     },
     {
-      "path": "tests/unit/canvas-country-geometry.test.mjs",
+      "path": "tests/unit/rendering/canvas-country-geometry.test.mjs",
       "kind": "unit",
       "feature": "rendering",
       "disposition": "retain",
@@ -1571,7 +1571,7 @@
       "kind": "unit",
       "feature": "rendering",
       "disposition": "merge",
-      "destination": "tests/unit/canvas-country-geometry.test.mjs",
+      "destination": "tests/unit/rendering/canvas-country-geometry.test.mjs",
       "sha": "a3b63bae3d44",
       "bytes": 1616
     },
@@ -1588,7 +1588,7 @@
       "kind": "unit",
       "feature": "rendering",
       "disposition": "merge",
-      "destination": "tests/unit/canvas-country-geometry.test.mjs",
+      "destination": "tests/unit/rendering/canvas-country-geometry.test.mjs",
       "sha": "ebabd8a1ad9f",
       "bytes": 2671
     },
@@ -1601,7 +1601,7 @@
       "bytes": 5224
     },
     {
-      "path": "tests/unit/canvas-terrain-independence.test.mjs",
+      "path": "tests/unit/rendering/canvas-terrain-independence.test.mjs",
       "kind": "unit",
       "feature": "rendering",
       "disposition": "retain",
@@ -1617,7 +1617,7 @@
       "bytes": 12824
     },
     {
-      "path": "tests/unit/caribbean-reef-identity.test.mjs",
+      "path": "tests/unit/document/caribbean-reef-identity.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -1625,7 +1625,7 @@
       "bytes": 1967
     },
     {
-      "path": "tests/unit/caspian-territory-delta.test.mjs",
+      "path": "tests/unit/document/caspian-territory-delta.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -1633,7 +1633,7 @@
       "bytes": 2658
     },
     {
-      "path": "tests/unit/check-automation.test.mjs",
+      "path": "tests/unit/runtime/check-automation.test.mjs",
       "kind": "unit",
       "feature": "infrastructure",
       "disposition": "retain",
@@ -1641,7 +1641,7 @@
       "bytes": 26190
     },
     {
-      "path": "tests/unit/check-contract-architecture.test.mjs",
+      "path": "tests/unit/runtime/check-contract-architecture.test.mjs",
       "kind": "unit",
       "feature": "infrastructure",
       "disposition": "retain",
@@ -1649,7 +1649,7 @@
       "bytes": 5296
     },
     {
-      "path": "tests/unit/check-runner.test.mjs",
+      "path": "tests/unit/runtime/check-runner.test.mjs",
       "kind": "unit",
       "feature": "infrastructure",
       "disposition": "retain",
@@ -1657,7 +1657,7 @@
       "bytes": 15976
     },
     {
-      "path": "tests/unit/china-frontier-delta.test.mjs",
+      "path": "tests/unit/document/china-frontier-delta.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -1665,7 +1665,7 @@
       "bytes": 3214
     },
     {
-      "path": "tests/unit/codespaces-acceptance-contract.test.mjs",
+      "path": "tests/unit/runtime/codespaces-acceptance-contract.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -1673,7 +1673,7 @@
       "bytes": 3644
     },
     {
-      "path": "tests/unit/color-adapter.test.mjs",
+      "path": "tests/unit/rendering/color-adapter.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -1689,7 +1689,7 @@
       "bytes": 1529
     },
     {
-      "path": "tests/unit/core-candidate-projection-wasm.test.mjs",
+      "path": "tests/unit/document/core-candidate-projection-wasm.test.mjs",
       "kind": "unit",
       "feature": "core",
       "disposition": "retain",
@@ -1697,7 +1697,7 @@
       "bytes": 5462
     },
     {
-      "path": "tests/unit/core-codec-unicode-ids-wasm.test.mjs",
+      "path": "tests/unit/document/core-codec-unicode-ids-wasm.test.mjs",
       "kind": "unit",
       "feature": "core",
       "disposition": "retain",
@@ -1705,7 +1705,7 @@
       "bytes": 6744
     },
     {
-      "path": "tests/unit/core-codec-unicode-wasm.test.mjs",
+      "path": "tests/unit/document/core-codec-unicode-wasm.test.mjs",
       "kind": "unit",
       "feature": "core",
       "disposition": "retain",
@@ -1713,7 +1713,7 @@
       "bytes": 3073
     },
     {
-      "path": "tests/unit/core-delete-selection-wasm.test.mjs",
+      "path": "tests/unit/document/core-delete-selection-wasm.test.mjs",
       "kind": "unit",
       "feature": "core",
       "disposition": "retain",
@@ -1721,7 +1721,7 @@
       "bytes": 3317
     },
     {
-      "path": "tests/unit/core-direct-object-writers-wasm.test.mjs",
+      "path": "tests/unit/document/core-direct-object-writers-wasm.test.mjs",
       "kind": "unit",
       "feature": "core",
       "disposition": "retain",
@@ -1729,7 +1729,7 @@
       "bytes": 3726
     },
     {
-      "path": "tests/unit/core-distribution-array-metadata-wasm.test.mjs",
+      "path": "tests/unit/document/core-distribution-array-metadata-wasm.test.mjs",
       "kind": "unit",
       "feature": "core",
       "disposition": "retain",
@@ -1741,12 +1741,12 @@
       "kind": "unit",
       "feature": "core",
       "disposition": "merge",
-      "destination": "tests/unit/core-document-world-wasm.test.mjs",
+      "destination": "tests/unit/document/core-document-world-wasm.test.mjs",
       "sha": "10431c281629",
       "bytes": 3142
     },
     {
-      "path": "tests/unit/core-document-client.test.mjs",
+      "path": "tests/unit/document/core-document-client.test.mjs",
       "kind": "unit",
       "feature": "core",
       "disposition": "retain",
@@ -1774,7 +1774,7 @@
       "kind": "unit",
       "feature": "core",
       "disposition": "merge",
-      "destination": "tests/unit/core-document-world-wasm.test.mjs",
+      "destination": "tests/unit/document/core-document-world-wasm.test.mjs",
       "sha": "08ee7977ce38",
       "bytes": 2587
     },
@@ -1783,12 +1783,12 @@
       "kind": "unit",
       "feature": "core",
       "disposition": "merge",
-      "destination": "tests/unit/core-document-world-wasm.test.mjs",
+      "destination": "tests/unit/document/core-document-world-wasm.test.mjs",
       "sha": "3853f5679e31",
       "bytes": 2219
     },
     {
-      "path": "tests/unit/core-document-read-model.test.mjs",
+      "path": "tests/unit/document/core-document-read-model.test.mjs",
       "kind": "unit",
       "feature": "core",
       "disposition": "retain",
@@ -1796,7 +1796,7 @@
       "bytes": 14716
     },
     {
-      "path": "tests/unit/core-document-runtime.test.mjs",
+      "path": "tests/unit/document/core-document-runtime.test.mjs",
       "kind": "unit",
       "feature": "core",
       "disposition": "retain",
@@ -1804,7 +1804,7 @@
       "bytes": 14034
     },
     {
-      "path": "tests/unit/core-document-selection-wasm.test.mjs",
+      "path": "tests/unit/document/core-document-selection-wasm.test.mjs",
       "kind": "unit",
       "feature": "core",
       "disposition": "retain",
@@ -1816,12 +1816,12 @@
       "kind": "unit",
       "feature": "core",
       "disposition": "merge",
-      "destination": "tests/unit/core-document-world-wasm.test.mjs",
+      "destination": "tests/unit/document/core-document-world-wasm.test.mjs",
       "sha": "555d25fd0a05",
       "bytes": 2102
     },
     {
-      "path": "tests/unit/core-document-wasm.test.mjs",
+      "path": "tests/unit/document/core-document-wasm.test.mjs",
       "kind": "unit",
       "feature": "core",
       "disposition": "retain",
@@ -1829,7 +1829,7 @@
       "bytes": 3696
     },
     {
-      "path": "tests/unit/core-document-world-wasm.test.mjs",
+      "path": "tests/unit/document/core-document-world-wasm.test.mjs",
       "kind": "unit",
       "feature": "core",
       "disposition": "retain",
@@ -1849,12 +1849,12 @@
       "kind": "unit",
       "feature": "core",
       "disposition": "merge",
-      "destination": "tests/unit/core-document-world-wasm.test.mjs",
+      "destination": "tests/unit/document/core-document-world-wasm.test.mjs",
       "sha": "69f2cb2274db",
       "bytes": 3359
     },
     {
-      "path": "tests/unit/core-generic-conversion-wasm.test.mjs",
+      "path": "tests/unit/document/core-generic-conversion-wasm.test.mjs",
       "kind": "unit",
       "feature": "core",
       "disposition": "retain",
@@ -1874,12 +1874,12 @@
       "kind": "unit",
       "feature": "core",
       "disposition": "merge",
-      "destination": "tests/unit/core-hydro-create-wasm.test.mjs",
+      "destination": "tests/unit/document/core-hydro-create-wasm.test.mjs",
       "sha": "33514712bf84",
       "bytes": 4614
     },
     {
-      "path": "tests/unit/core-hydro-create-wasm.test.mjs",
+      "path": "tests/unit/document/core-hydro-create-wasm.test.mjs",
       "kind": "unit",
       "feature": "core",
       "disposition": "retain",
@@ -1891,12 +1891,12 @@
       "kind": "unit",
       "feature": "core",
       "disposition": "merge",
-      "destination": "tests/unit/core-hydro-create-wasm.test.mjs",
+      "destination": "tests/unit/document/core-hydro-create-wasm.test.mjs",
       "sha": "7018cc40f467",
       "bytes": 2768
     },
     {
-      "path": "tests/unit/core-label-gesture-wasm.test.mjs",
+      "path": "tests/unit/document/core-label-gesture-wasm.test.mjs",
       "kind": "unit",
       "feature": "core",
       "disposition": "retain",
@@ -1904,7 +1904,7 @@
       "bytes": 6897
     },
     {
-      "path": "tests/unit/core-map-presentation-wasm.test.mjs",
+      "path": "tests/unit/runtime/core-map-presentation-wasm.test.mjs",
       "kind": "unit",
       "feature": "core",
       "disposition": "retain",
@@ -1912,7 +1912,7 @@
       "bytes": 4256
     },
     {
-      "path": "tests/unit/core-object-catalog-wasm.test.mjs",
+      "path": "tests/unit/document/core-object-catalog-wasm.test.mjs",
       "kind": "unit",
       "feature": "core",
       "disposition": "retain",
@@ -1920,7 +1920,7 @@
       "bytes": 3011
     },
     {
-      "path": "tests/unit/core-object-ref.test.mjs",
+      "path": "tests/unit/document/core-object-ref.test.mjs",
       "kind": "unit",
       "feature": "core",
       "disposition": "retain",
@@ -1928,7 +1928,7 @@
       "bytes": 2146
     },
     {
-      "path": "tests/unit/core-prerequisite.test.mjs",
+      "path": "tests/unit/ui/core-prerequisite.test.mjs",
       "kind": "unit",
       "feature": "core",
       "disposition": "retain",
@@ -1936,7 +1936,7 @@
       "bytes": 3411
     },
     {
-      "path": "tests/unit/core-product-mode.test.mjs",
+      "path": "tests/unit/ui/core-product-mode.test.mjs",
       "kind": "unit",
       "feature": "core",
       "disposition": "retain",
@@ -1952,7 +1952,7 @@
       "bytes": 3593
     },
     {
-      "path": "tests/unit/core-project-baseline-month-wasm.test.mjs",
+      "path": "tests/unit/document/core-project-baseline-month-wasm.test.mjs",
       "kind": "unit",
       "feature": "core",
       "disposition": "retain",
@@ -1960,7 +1960,7 @@
       "bytes": 1872
     },
     {
-      "path": "tests/unit/core-project-command-wasm.test.mjs",
+      "path": "tests/unit/document/core-project-command-wasm.test.mjs",
       "kind": "unit",
       "feature": "core",
       "disposition": "retain",
@@ -1968,7 +1968,7 @@
       "bytes": 2309
     },
     {
-      "path": "tests/unit/core-project-file-save-wasm.test.mjs",
+      "path": "tests/unit/document/core-project-file-save-wasm.test.mjs",
       "kind": "unit",
       "feature": "core",
       "disposition": "retain",
@@ -1984,7 +1984,7 @@
       "bytes": 2876
     },
     {
-      "path": "tests/unit/core-save-state-projection.test.mjs",
+      "path": "tests/unit/document/core-save-state-projection.test.mjs",
       "kind": "unit",
       "feature": "core",
       "disposition": "retain",
@@ -1992,7 +1992,7 @@
       "bytes": 2486
     },
     {
-      "path": "tests/unit/core-service-writer-clock-wasm.test.mjs",
+      "path": "tests/unit/document/core-service-writer-clock-wasm.test.mjs",
       "kind": "unit",
       "feature": "core",
       "disposition": "retain",
@@ -2000,7 +2000,7 @@
       "bytes": 4530
     },
     {
-      "path": "tests/unit/core-temporal-delta.test.mjs",
+      "path": "tests/unit/document/core-temporal-delta.test.mjs",
       "kind": "unit",
       "feature": "core",
       "disposition": "retain",
@@ -2008,7 +2008,7 @@
       "bytes": 4982
     },
     {
-      "path": "tests/unit/core-temporal-transport-p5-5.test.mjs",
+      "path": "tests/unit/document/core-temporal-transport-p5-5.test.mjs",
       "kind": "unit",
       "feature": "core",
       "disposition": "retain",
@@ -2016,7 +2016,7 @@
       "bytes": 10077
     },
     {
-      "path": "tests/unit/core-temporal-viewer-p5-6.test.mjs",
+      "path": "tests/unit/document/core-temporal-viewer-p5-6.test.mjs",
       "kind": "unit",
       "feature": "core",
       "disposition": "retain",
@@ -2024,7 +2024,7 @@
       "bytes": 11149
     },
     {
-      "path": "tests/unit/core-territorial-service-wasm.test.mjs",
+      "path": "tests/unit/document/core-territorial-service-wasm.test.mjs",
       "kind": "unit",
       "feature": "core",
       "disposition": "retain",
@@ -2032,7 +2032,7 @@
       "bytes": 3955
     },
     {
-      "path": "tests/unit/core-territorial-store-wasm.test.mjs",
+      "path": "tests/unit/document/core-territorial-store-wasm.test.mjs",
       "kind": "unit",
       "feature": "core",
       "disposition": "retain",
@@ -2040,7 +2040,7 @@
       "bytes": 2808
     },
     {
-      "path": "tests/unit/core-wasm-loader.test.mjs",
+      "path": "tests/unit/runtime/core-wasm-loader.test.mjs",
       "kind": "unit",
       "feature": "core",
       "disposition": "retain",
@@ -2048,7 +2048,7 @@
       "bytes": 5573
     },
     {
-      "path": "tests/unit/core-web-history-limit-wasm.test.mjs",
+      "path": "tests/unit/document/core-web-history-limit-wasm.test.mjs",
       "kind": "unit",
       "feature": "core",
       "disposition": "retain",
@@ -2056,7 +2056,7 @@
       "bytes": 2531
     },
     {
-      "path": "tests/unit/core-worker-ownership.test.mjs",
+      "path": "tests/unit/runtime/core-worker-ownership.test.mjs",
       "kind": "unit",
       "feature": "core",
       "disposition": "retain",
@@ -2064,7 +2064,7 @@
       "bytes": 2179
     },
     {
-      "path": "tests/unit/country-boundary-geometry-transport.test.mjs",
+      "path": "tests/unit/geometry/country-boundary-geometry-transport.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -2080,7 +2080,7 @@
       "bytes": 4945
     },
     {
-      "path": "tests/unit/country-flags.test.mjs",
+      "path": "tests/unit/document/country-flags.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -2088,7 +2088,7 @@
       "bytes": 7079
     },
     {
-      "path": "tests/unit/country-geometry-revision.test.mjs",
+      "path": "tests/unit/rendering/country-geometry-revision.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -2120,7 +2120,7 @@
       "bytes": 5598
     },
     {
-      "path": "tests/unit/country-lineage.test.mjs",
+      "path": "tests/unit/document/country-lineage.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -2144,7 +2144,7 @@
       "bytes": 4670
     },
     {
-      "path": "tests/unit/country-mesh-preparation.test.mjs",
+      "path": "tests/unit/rendering/country-mesh-preparation.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -2184,7 +2184,7 @@
       "bytes": 5106
     },
     {
-      "path": "tests/unit/country-shared-boundary-generator.test.mjs",
+      "path": "tests/unit/rendering/country-shared-boundary-generator.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -2192,7 +2192,7 @@
       "bytes": 4201
     },
     {
-      "path": "tests/unit/country-shared-boundary-state.test.mjs",
+      "path": "tests/unit/geometry/country-shared-boundary-state.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -2200,7 +2200,7 @@
       "bytes": 41124
     },
     {
-      "path": "tests/unit/country-shared-boundary.test.mjs",
+      "path": "tests/unit/geometry/country-shared-boundary.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -2216,7 +2216,7 @@
       "bytes": 3052
     },
     {
-      "path": "tests/unit/country-validator-properties.test.mjs",
+      "path": "tests/unit/document/country-validator-properties.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -2232,7 +2232,7 @@
       "bytes": 1924
     },
     {
-      "path": "tests/unit/current-browser-contracts.test.mjs",
+      "path": "tests/unit/runtime/current-browser-contracts.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -2240,7 +2240,7 @@
       "bytes": 12213
     },
     {
-      "path": "tests/unit/current-hydro-layout.test.mjs",
+      "path": "tests/unit/geometry/current-hydro-layout.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -2280,7 +2280,7 @@
       "bytes": 2137
     },
     {
-      "path": "tests/unit/distribution-service.test.mjs",
+      "path": "tests/unit/document/distribution-service.test.mjs",
       "kind": "unit",
       "feature": "core",
       "disposition": "retain",
@@ -2288,7 +2288,7 @@
       "bytes": 7895
     },
     {
-      "path": "tests/unit/download-terrain-source.test.mjs",
+      "path": "tests/unit/geometry/download-terrain-source.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -2296,7 +2296,7 @@
       "bytes": 2857
     },
     {
-      "path": "tests/unit/e3-revision-diff.test.mjs",
+      "path": "tests/unit/document/e3-revision-diff.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -2304,7 +2304,7 @@
       "bytes": 14755
     },
     {
-      "path": "tests/unit/e7-application-check-planner.test.mjs",
+      "path": "tests/unit/runtime/e7-application-check-planner.test.mjs",
       "kind": "unit",
       "feature": "infrastructure",
       "disposition": "retain",
@@ -2312,7 +2312,7 @@
       "bytes": 4419
     },
     {
-      "path": "tests/unit/east-germany-source-capture.test.mjs",
+      "path": "tests/unit/document/east-germany-source-capture.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -2328,7 +2328,7 @@
       "bytes": 8485
     },
     {
-      "path": "tests/unit/empty-territorial-boundary.test.mjs",
+      "path": "tests/unit/geometry/empty-territorial-boundary.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -2336,7 +2336,7 @@
       "bytes": 6780
     },
     {
-      "path": "tests/unit/exchange-adapter-registry.test.mjs",
+      "path": "tests/unit/geometry/exchange-adapter-registry.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -2344,7 +2344,7 @@
       "bytes": 938
     },
     {
-      "path": "tests/unit/file-access-contract.test.mjs",
+      "path": "tests/unit/data/file-access-contract.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -2392,7 +2392,7 @@
       "bytes": 1322
     },
     {
-      "path": "tests/unit/frontend-build.test.mjs",
+      "path": "tests/unit/build/frontend-build.test.mjs",
       "kind": "unit",
       "feature": "infrastructure",
       "disposition": "retain",
@@ -2400,7 +2400,7 @@
       "bytes": 3239
     },
     {
-      "path": "tests/unit/frontend-dev-server.test.mjs",
+      "path": "tests/unit/build/frontend-dev-server.test.mjs",
       "kind": "unit",
       "feature": "infrastructure",
       "disposition": "retain",
@@ -2408,7 +2408,7 @@
       "bytes": 2442
     },
     {
-      "path": "tests/unit/frontend-layout.test.mjs",
+      "path": "tests/unit/build/frontend-layout.test.mjs",
       "kind": "unit",
       "feature": "infrastructure",
       "disposition": "retain",
@@ -2416,7 +2416,7 @@
       "bytes": 5733
     },
     {
-      "path": "tests/unit/frontend-library-preparation.test.mjs",
+      "path": "tests/unit/data/frontend-library-preparation.test.mjs",
       "kind": "unit",
       "feature": "infrastructure",
       "disposition": "retain",
@@ -2424,7 +2424,7 @@
       "bytes": 4085
     },
     {
-      "path": "tests/unit/frontend-native-workers.test.mjs",
+      "path": "tests/unit/build/frontend-native-workers.test.mjs",
       "kind": "unit",
       "feature": "infrastructure",
       "disposition": "retain",
@@ -2432,7 +2432,7 @@
       "bytes": 2388
     },
     {
-      "path": "tests/unit/frontend-product-output.test.mjs",
+      "path": "tests/unit/build/frontend-product-output.test.mjs",
       "kind": "unit",
       "feature": "infrastructure",
       "disposition": "retain",
@@ -2440,7 +2440,7 @@
       "bytes": 989
     },
     {
-      "path": "tests/unit/frontend-storage.test.mjs",
+      "path": "tests/unit/data/frontend-storage.test.mjs",
       "kind": "unit",
       "feature": "infrastructure",
       "disposition": "retain",
@@ -2448,7 +2448,7 @@
       "bytes": 4718
     },
     {
-      "path": "tests/unit/general-regional-contract.test.mjs",
+      "path": "tests/unit/document/general-regional-contract.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -2464,7 +2464,7 @@
       "bytes": 1381
     },
     {
-      "path": "tests/unit/generic-feature-service.test.mjs",
+      "path": "tests/unit/document/generic-feature-service.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -2480,7 +2480,7 @@
       "bytes": 7694
     },
     {
-      "path": "tests/unit/geographic-name-spacing.test.mjs",
+      "path": "tests/unit/document/geographic-name-spacing.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -2488,7 +2488,7 @@
       "bytes": 7137
     },
     {
-      "path": "tests/unit/geometry-screen-hit.test.mjs",
+      "path": "tests/unit/geometry/geometry-screen-hit.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -2512,7 +2512,7 @@
       "bytes": 3095
     },
     {
-      "path": "tests/unit/gis-2000-2026-attribute-history.test.mjs",
+      "path": "tests/unit/data/gis-2000-2026-attribute-history.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -2528,7 +2528,7 @@
       "bytes": 3404
     },
     {
-      "path": "tests/unit/gis-adapters.test.mjs",
+      "path": "tests/unit/document/gis-adapters.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -2536,7 +2536,7 @@
       "bytes": 5282
     },
     {
-      "path": "tests/unit/gis-baikonur-1994-landsat.test.mjs",
+      "path": "tests/unit/geometry/gis-baikonur-1994-landsat.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -2592,7 +2592,7 @@
       "bytes": 3085
     },
     {
-      "path": "tests/unit/gis-baikonur-reference.test.mjs",
+      "path": "tests/unit/geometry/gis-baikonur-reference.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -2600,7 +2600,7 @@
       "bytes": 2333
     },
     {
-      "path": "tests/unit/gis-caspian-display-packaging.test.mjs",
+      "path": "tests/unit/geometry/gis-caspian-display-packaging.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -2608,7 +2608,7 @@
       "bytes": 5841
     },
     {
-      "path": "tests/unit/gis-caspian-generalize-native.test.mjs",
+      "path": "tests/unit/geometry/gis-caspian-generalize-native.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -2616,7 +2616,7 @@
       "bytes": 4292
     },
     {
-      "path": "tests/unit/gis-caspian-physical-native.test.mjs",
+      "path": "tests/unit/geometry/gis-caspian-physical-native.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -2632,7 +2632,7 @@
       "bytes": 2387
     },
     {
-      "path": "tests/unit/gis-caspian-source-zip.test.mjs",
+      "path": "tests/unit/geometry/gis-caspian-source-zip.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -2640,7 +2640,7 @@
       "bytes": 3123
     },
     {
-      "path": "tests/unit/gis-ddr-native-partition.test.mjs",
+      "path": "tests/unit/geometry/gis-ddr-native-partition.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -2648,7 +2648,7 @@
       "bytes": 3936
     },
     {
-      "path": "tests/unit/gis-geometry-worker.test.mjs",
+      "path": "tests/unit/geometry/gis-geometry-worker.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -2656,7 +2656,7 @@
       "bytes": 9401
     },
     {
-      "path": "tests/unit/gis-german-1914-originals.test.mjs",
+      "path": "tests/unit/geometry/gis-german-1914-originals.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -2664,7 +2664,7 @@
       "bytes": 5449
     },
     {
-      "path": "tests/unit/gis-german-base-builder.test.mjs",
+      "path": "tests/unit/build/gis-german-base-builder.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -2672,7 +2672,7 @@
       "bytes": 5802
     },
     {
-      "path": "tests/unit/gis-german-base-native.test.mjs",
+      "path": "tests/unit/geometry/gis-german-base-native.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -2680,7 +2680,7 @@
       "bytes": 7684
     },
     {
-      "path": "tests/unit/gis-german-modern-coast-builder.test.mjs",
+      "path": "tests/unit/build/gis-german-modern-coast-builder.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -2688,7 +2688,7 @@
       "bytes": 2764
     },
     {
-      "path": "tests/unit/gis-german-modern-coast-native.test.mjs",
+      "path": "tests/unit/geometry/gis-german-modern-coast-native.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -2696,7 +2696,7 @@
       "bytes": 3073
     },
     {
-      "path": "tests/unit/gis-hgis-source.test.mjs",
+      "path": "tests/unit/geometry/gis-hgis-source.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -2704,7 +2704,7 @@
       "bytes": 3339
     },
     {
-      "path": "tests/unit/gis-historical-linework-native.test.mjs",
+      "path": "tests/unit/geometry/gis-historical-linework-native.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -2712,7 +2712,7 @@
       "bytes": 3222
     },
     {
-      "path": "tests/unit/gis-historical-source-compare.test.mjs",
+      "path": "tests/unit/geometry/gis-historical-source-compare.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -2720,7 +2720,7 @@
       "bytes": 1940
     },
     {
-      "path": "tests/unit/gis-hydro-bulk-all29.test.mjs",
+      "path": "tests/unit/geometry/gis-hydro-bulk-all29.test.mjs",
       "kind": "unit",
       "feature": "hydro",
       "disposition": "retain",
@@ -2728,7 +2728,7 @@
       "bytes": 4141
     },
     {
-      "path": "tests/unit/gis-hydro-followup-independent.test.mjs",
+      "path": "tests/unit/geometry/gis-hydro-followup-independent.test.mjs",
       "kind": "unit",
       "feature": "hydro",
       "disposition": "retain",
@@ -2736,7 +2736,7 @@
       "bytes": 3953
     },
     {
-      "path": "tests/unit/gis-lsib-archive-evidence.test.mjs",
+      "path": "tests/unit/data/gis-lsib-archive-evidence.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -2744,7 +2744,7 @@
       "bytes": 3644
     },
     {
-      "path": "tests/unit/gis-lsib-archive-reader.test.mjs",
+      "path": "tests/unit/data/gis-lsib-archive-reader.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -2752,7 +2752,7 @@
       "bytes": 3790
     },
     {
-      "path": "tests/unit/gis-lsib-chain-native.test.mjs",
+      "path": "tests/unit/geometry/gis-lsib-chain-native.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -2760,7 +2760,7 @@
       "bytes": 2941
     },
     {
-      "path": "tests/unit/gis-lsib-coast-native.test.mjs",
+      "path": "tests/unit/geometry/gis-lsib-coast-native.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -2768,7 +2768,7 @@
       "bytes": 3228
     },
     {
-      "path": "tests/unit/gis-lsib-display-native.test.mjs",
+      "path": "tests/unit/geometry/gis-lsib-display-native.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -2776,7 +2776,7 @@
       "bytes": 1516
     },
     {
-      "path": "tests/unit/gis-lsib-disputed-source.test.mjs",
+      "path": "tests/unit/geometry/gis-lsib-disputed-source.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -2784,7 +2784,7 @@
       "bytes": 2546
     },
     {
-      "path": "tests/unit/gis-lsib-enclave-native.test.mjs",
+      "path": "tests/unit/geometry/gis-lsib-enclave-native.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -2800,7 +2800,7 @@
       "bytes": 1752
     },
     {
-      "path": "tests/unit/gis-lsib-reference-native.test.mjs",
+      "path": "tests/unit/geometry/gis-lsib-reference-native.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -2808,7 +2808,7 @@
       "bytes": 2438
     },
     {
-      "path": "tests/unit/gis-lsib-repair-native.test.mjs",
+      "path": "tests/unit/geometry/gis-lsib-repair-native.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -2832,7 +2832,7 @@
       "bytes": 3614
     },
     {
-      "path": "tests/unit/gis-lsib-ring-native.test.mjs",
+      "path": "tests/unit/geometry/gis-lsib-ring-native.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -2840,7 +2840,7 @@
       "bytes": 4309
     },
     {
-      "path": "tests/unit/gis-lsib-screen-native.test.mjs",
+      "path": "tests/unit/geometry/gis-lsib-screen-native.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -2848,7 +2848,7 @@
       "bytes": 2274
     },
     {
-      "path": "tests/unit/gis-lsib-screen-report.test.mjs",
+      "path": "tests/unit/data/gis-lsib-screen-report.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -2856,7 +2856,7 @@
       "bytes": 7371
     },
     {
-      "path": "tests/unit/gis-lsib-shared-native.test.mjs",
+      "path": "tests/unit/geometry/gis-lsib-shared-native.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -2864,7 +2864,7 @@
       "bytes": 1055
     },
     {
-      "path": "tests/unit/gis-lsib-source-native.test.mjs",
+      "path": "tests/unit/geometry/gis-lsib-source-native.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -2872,7 +2872,7 @@
       "bytes": 4751
     },
     {
-      "path": "tests/unit/gis-lsib-spatial-native.test.mjs",
+      "path": "tests/unit/geometry/gis-lsib-spatial-native.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -2880,7 +2880,7 @@
       "bytes": 1419
     },
     {
-      "path": "tests/unit/gis-lsib-targeted.test.mjs",
+      "path": "tests/unit/geometry/gis-lsib-targeted.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -2888,7 +2888,7 @@
       "bytes": 11535
     },
     {
-      "path": "tests/unit/gis-lsib-tripoint-native.test.mjs",
+      "path": "tests/unit/geometry/gis-lsib-tripoint-native.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -2896,7 +2896,7 @@
       "bytes": 1749
     },
     {
-      "path": "tests/unit/gis-lsib-union-native.test.mjs",
+      "path": "tests/unit/geometry/gis-lsib-union-native.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -2904,7 +2904,7 @@
       "bytes": 609
     },
     {
-      "path": "tests/unit/gis-lsib-untargeted.test.mjs",
+      "path": "tests/unit/geometry/gis-lsib-untargeted.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -2912,7 +2912,7 @@
       "bytes": 7907
     },
     {
-      "path": "tests/unit/gis-math-contract.test.mjs",
+      "path": "tests/unit/geometry/gis-math-contract.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -2928,7 +2928,7 @@
       "bytes": 4495
     },
     {
-      "path": "tests/unit/gis-osm-source-inventory.test.mjs",
+      "path": "tests/unit/geometry/gis-osm-source-inventory.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -2944,7 +2944,7 @@
       "bytes": 3520
     },
     {
-      "path": "tests/unit/gis-source-launcher.test.mjs",
+      "path": "tests/unit/geometry/gis-source-launcher.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -2952,7 +2952,7 @@
       "bytes": 12193
     },
     {
-      "path": "tests/unit/gis-ussr-1922-partition-native.test.mjs",
+      "path": "tests/unit/geometry/gis-ussr-1922-partition-native.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -2960,7 +2960,7 @@
       "bytes": 2069
     },
     {
-      "path": "tests/unit/gpu-base-scene-order.test.mjs",
+      "path": "tests/unit/rendering/gpu-base-scene-order.test.mjs",
       "kind": "unit",
       "feature": "rendering",
       "disposition": "retain",
@@ -2976,7 +2976,7 @@
       "bytes": 3753
     },
     {
-      "path": "tests/unit/gpu-canvas-worker.test.mjs",
+      "path": "tests/unit/rendering/gpu-canvas-worker.test.mjs",
       "kind": "unit",
       "feature": "rendering",
       "disposition": "retain",
@@ -2988,12 +2988,12 @@
       "kind": "unit",
       "feature": "rendering",
       "disposition": "merge",
-      "destination": "tests/unit/gpu-country-mesh-variants.test.mjs",
+      "destination": "tests/unit/rendering/gpu-country-mesh-variants.test.mjs",
       "sha": "19b56c27815a",
       "bytes": 4959
     },
     {
-      "path": "tests/unit/gpu-country-mesh-variants.test.mjs",
+      "path": "tests/unit/rendering/gpu-country-mesh-variants.test.mjs",
       "kind": "unit",
       "feature": "rendering",
       "disposition": "retain",
@@ -3005,7 +3005,7 @@
       "kind": "unit",
       "feature": "rendering",
       "disposition": "merge",
-      "destination": "tests/unit/gpu-country-mesh-variants.test.mjs",
+      "destination": "tests/unit/rendering/gpu-country-mesh-variants.test.mjs",
       "sha": "6606df55a19e",
       "bytes": 2369
     },
@@ -3018,7 +3018,7 @@
       "bytes": 2118
     },
     {
-      "path": "tests/unit/gpu-helper-utils.test.mjs",
+      "path": "tests/unit/rendering/gpu-helper-utils.test.mjs",
       "kind": "unit",
       "feature": "rendering",
       "disposition": "retain",
@@ -3034,7 +3034,7 @@
       "bytes": 16816
     },
     {
-      "path": "tests/unit/gpu-mesh-country-strokes.test.mjs",
+      "path": "tests/unit/geometry/gpu-mesh-country-strokes.test.mjs",
       "kind": "unit",
       "feature": "rendering",
       "disposition": "retain",
@@ -3042,7 +3042,7 @@
       "bytes": 10658
     },
     {
-      "path": "tests/unit/gpu-mesh-transfer.test.mjs",
+      "path": "tests/unit/rendering/gpu-mesh-transfer.test.mjs",
       "kind": "unit",
       "feature": "rendering",
       "disposition": "retain",
@@ -3070,7 +3070,7 @@
       "kind": "unit",
       "feature": "rendering",
       "disposition": "merge",
-      "destination": "tests/unit/gpu-resource-owners.test.mjs",
+      "destination": "tests/unit/rendering/gpu-resource-owners.test.mjs",
       "sha": "b8e8c438bbd1",
       "bytes": 4634
     },
@@ -3079,12 +3079,12 @@
       "kind": "unit",
       "feature": "rendering",
       "disposition": "merge",
-      "destination": "tests/unit/gpu-resource-owners.test.mjs",
+      "destination": "tests/unit/rendering/gpu-resource-owners.test.mjs",
       "sha": "492cb9cc6840",
       "bytes": 1415
     },
     {
-      "path": "tests/unit/gpu-resource-owners.test.mjs",
+      "path": "tests/unit/rendering/gpu-resource-owners.test.mjs",
       "kind": "unit",
       "feature": "rendering",
       "disposition": "retain",
@@ -3100,7 +3100,7 @@
       "bytes": 1848
     },
     {
-      "path": "tests/unit/gpu-scene-staging.test.mjs",
+      "path": "tests/unit/rendering/gpu-scene-staging.test.mjs",
       "kind": "unit",
       "feature": "rendering",
       "disposition": "retain",
@@ -3124,7 +3124,7 @@
       "bytes": 5968
     },
     {
-      "path": "tests/unit/gpu-stroke-renderer.test.mjs",
+      "path": "tests/unit/rendering/gpu-stroke-renderer.test.mjs",
       "kind": "unit",
       "feature": "rendering",
       "disposition": "retain",
@@ -3132,7 +3132,7 @@
       "bytes": 2971
     },
     {
-      "path": "tests/unit/gpu-terrain-preparation.test.mjs",
+      "path": "tests/unit/rendering/gpu-terrain-preparation.test.mjs",
       "kind": "unit",
       "feature": "rendering",
       "disposition": "retain",
@@ -3148,7 +3148,7 @@
       "bytes": 6600
     },
     {
-      "path": "tests/unit/gzip-asset-verification.test.mjs",
+      "path": "tests/unit/document/gzip-asset-verification.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -3172,7 +3172,7 @@
       "bytes": 1518
     },
     {
-      "path": "tests/unit/historical-display-review.test.mjs",
+      "path": "tests/unit/rendering/historical-display-review.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -3188,7 +3188,7 @@
       "bytes": 3461
     },
     {
-      "path": "tests/unit/historical-german-coastline-events.test.mjs",
+      "path": "tests/unit/document/historical-german-coastline-events.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -3212,7 +3212,7 @@
       "bytes": 4123
     },
     {
-      "path": "tests/unit/historical-physical-water.test.mjs",
+      "path": "tests/unit/document/historical-physical-water.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -3220,7 +3220,7 @@
       "bytes": 16685
     },
     {
-      "path": "tests/unit/historical-source-provenance.test.mjs",
+      "path": "tests/unit/document/historical-source-provenance.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -3228,7 +3228,7 @@
       "bytes": 2626
     },
     {
-      "path": "tests/unit/historical-world-parent-relations.test.mjs",
+      "path": "tests/unit/document/historical-world-parent-relations.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -3236,7 +3236,7 @@
       "bytes": 6444
     },
     {
-      "path": "tests/unit/historical-world-publication.test.mjs",
+      "path": "tests/unit/data/historical-world-publication.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -3244,7 +3244,7 @@
       "bytes": 10908
     },
     {
-      "path": "tests/unit/historical-world-territories.test.mjs",
+      "path": "tests/unit/document/historical-world-territories.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -3252,7 +3252,7 @@
       "bytes": 19402
     },
     {
-      "path": "tests/unit/historical-world-timeline.test.mjs",
+      "path": "tests/unit/document/historical-world-timeline.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -3276,7 +3276,7 @@
       "bytes": 1678
     },
     {
-      "path": "tests/unit/hydro-border-alignment.test.mjs",
+      "path": "tests/unit/geometry/hydro-border-alignment.test.mjs",
       "kind": "unit",
       "feature": "hydro",
       "disposition": "retain",
@@ -3288,7 +3288,7 @@
       "kind": "unit",
       "feature": "hydro",
       "disposition": "merge",
-      "destination": "tests/unit/hydro-border-alignment.test.mjs",
+      "destination": "tests/unit/geometry/hydro-border-alignment.test.mjs",
       "sha": "b4194dd31180",
       "bytes": 1740
     },
@@ -3297,7 +3297,7 @@
       "kind": "unit",
       "feature": "hydro",
       "disposition": "merge",
-      "destination": "tests/unit/hydro-border-alignment.test.mjs",
+      "destination": "tests/unit/geometry/hydro-border-alignment.test.mjs",
       "sha": "2b2915f735ca",
       "bytes": 2312
     },
@@ -3310,7 +3310,7 @@
       "bytes": 2155
     },
     {
-      "path": "tests/unit/hydro-calibration-input.test.mjs",
+      "path": "tests/unit/geometry/hydro-calibration-input.test.mjs",
       "kind": "unit",
       "feature": "hydro",
       "disposition": "retain",
@@ -3326,7 +3326,7 @@
       "bytes": 3423
     },
     {
-      "path": "tests/unit/hydro-calibration-native.test.mjs",
+      "path": "tests/unit/geometry/hydro-calibration-native.test.mjs",
       "kind": "unit",
       "feature": "hydro",
       "disposition": "retain",
@@ -3334,7 +3334,7 @@
       "bytes": 4541
     },
     {
-      "path": "tests/unit/hydro-calibration-preparation.test.mjs",
+      "path": "tests/unit/build/hydro-calibration-preparation.test.mjs",
       "kind": "unit",
       "feature": "hydro",
       "disposition": "retain",
@@ -3350,7 +3350,7 @@
       "bytes": 3625
     },
     {
-      "path": "tests/unit/hydro-canonical-chains.test.mjs",
+      "path": "tests/unit/geometry/hydro-canonical-chains.test.mjs",
       "kind": "unit",
       "feature": "hydro",
       "disposition": "retain",
@@ -3366,7 +3366,7 @@
       "bytes": 1433
     },
     {
-      "path": "tests/unit/hydro-common-document.test.mjs",
+      "path": "tests/unit/document/hydro-common-document.test.mjs",
       "kind": "unit",
       "feature": "hydro",
       "disposition": "retain",
@@ -3382,7 +3382,7 @@
       "bytes": 2551
     },
     {
-      "path": "tests/unit/hydro-connectivity-native.test.mjs",
+      "path": "tests/unit/geometry/hydro-connectivity-native.test.mjs",
       "kind": "unit",
       "feature": "hydro",
       "disposition": "retain",
@@ -3390,7 +3390,7 @@
       "bytes": 37942
     },
     {
-      "path": "tests/unit/hydro-coverage-surface.test.mjs",
+      "path": "tests/unit/data/hydro-coverage-surface.test.mjs",
       "kind": "unit",
       "feature": "hydro",
       "disposition": "retain",
@@ -3398,7 +3398,7 @@
       "bytes": 5848
     },
     {
-      "path": "tests/unit/hydro-data-validation.test.mjs",
+      "path": "tests/unit/geometry/hydro-data-validation.test.mjs",
       "kind": "unit",
       "feature": "hydro",
       "disposition": "retain",
@@ -3406,7 +3406,7 @@
       "bytes": 3549
     },
     {
-      "path": "tests/unit/hydro-encoding-native.test.mjs",
+      "path": "tests/unit/geometry/hydro-encoding-native.test.mjs",
       "kind": "unit",
       "feature": "hydro",
       "disposition": "retain",
@@ -3414,7 +3414,7 @@
       "bytes": 5754
     },
     {
-      "path": "tests/unit/hydro-fingerprint.test.mjs",
+      "path": "tests/unit/geometry/hydro-fingerprint.test.mjs",
       "kind": "unit",
       "feature": "hydro",
       "disposition": "retain",
@@ -3422,7 +3422,7 @@
       "bytes": 1375
     },
     {
-      "path": "tests/unit/hydro-generation-command.test.mjs",
+      "path": "tests/unit/geometry/hydro-generation-command.test.mjs",
       "kind": "unit",
       "feature": "hydro",
       "disposition": "retain",
@@ -3446,7 +3446,7 @@
       "bytes": 3617
     },
     {
-      "path": "tests/unit/hydro-independent-evidence.test.mjs",
+      "path": "tests/unit/geometry/hydro-independent-evidence.test.mjs",
       "kind": "unit",
       "feature": "hydro",
       "disposition": "retain",
@@ -3474,7 +3474,7 @@
       "kind": "unit",
       "feature": "hydro",
       "disposition": "merge",
-      "destination": "tests/unit/hydro-river-features.test.mjs",
+      "destination": "tests/unit/data/hydro-river-features.test.mjs",
       "sha": "41f612c74bca",
       "bytes": 1145
     },
@@ -3503,7 +3503,7 @@
       "bytes": 4736
     },
     {
-      "path": "tests/unit/hydro-name-research.test.mjs",
+      "path": "tests/unit/geometry/hydro-name-research.test.mjs",
       "kind": "unit",
       "feature": "hydro",
       "disposition": "retain",
@@ -3511,7 +3511,7 @@
       "bytes": 13440
     },
     {
-      "path": "tests/unit/hydro-name.test.mjs",
+      "path": "tests/unit/geometry/hydro-name.test.mjs",
       "kind": "unit",
       "feature": "hydro",
       "disposition": "retain",
@@ -3519,7 +3519,7 @@
       "bytes": 2425
     },
     {
-      "path": "tests/unit/hydro-ne-sampling.test.mjs",
+      "path": "tests/unit/geometry/hydro-ne-sampling.test.mjs",
       "kind": "unit",
       "feature": "hydro",
       "disposition": "retain",
@@ -3535,7 +3535,7 @@
       "bytes": 2003
     },
     {
-      "path": "tests/unit/hydro-osm-batch01-screen.test.mjs",
+      "path": "tests/unit/geometry/hydro-osm-batch01-screen.test.mjs",
       "kind": "unit",
       "feature": "hydro",
       "disposition": "retain",
@@ -3559,7 +3559,7 @@
       "bytes": 3084
     },
     {
-      "path": "tests/unit/hydro-osm-waterway.test.mjs",
+      "path": "tests/unit/geometry/hydro-osm-waterway.test.mjs",
       "kind": "unit",
       "feature": "hydro",
       "disposition": "retain",
@@ -3567,7 +3567,7 @@
       "bytes": 1930
     },
     {
-      "path": "tests/unit/hydro-outlets.test.mjs",
+      "path": "tests/unit/geometry/hydro-outlets.test.mjs",
       "kind": "unit",
       "feature": "hydro",
       "disposition": "retain",
@@ -3579,7 +3579,7 @@
       "kind": "unit",
       "feature": "hydro",
       "disposition": "merge",
-      "destination": "tests/unit/hydro-packfile.test.mjs",
+      "destination": "tests/unit/data/hydro-packfile.test.mjs",
       "sha": "553899bec2f5",
       "bytes": 12331
     },
@@ -3588,12 +3588,12 @@
       "kind": "unit",
       "feature": "hydro",
       "disposition": "merge",
-      "destination": "tests/unit/hydro-packfile.test.mjs",
+      "destination": "tests/unit/data/hydro-packfile.test.mjs",
       "sha": "871132f7c674",
       "bytes": 2767
     },
     {
-      "path": "tests/unit/hydro-packfile.test.mjs",
+      "path": "tests/unit/data/hydro-packfile.test.mjs",
       "kind": "unit",
       "feature": "hydro",
       "disposition": "retain",
@@ -3605,12 +3605,12 @@
       "kind": "unit",
       "feature": "hydro",
       "disposition": "merge",
-      "destination": "tests/unit/hydro-river-features.test.mjs",
+      "destination": "tests/unit/data/hydro-river-features.test.mjs",
       "sha": "1a4e26ff69bb",
       "bytes": 1522
     },
     {
-      "path": "tests/unit/hydro-point-screen-native.test.mjs",
+      "path": "tests/unit/geometry/hydro-point-screen-native.test.mjs",
       "kind": "unit",
       "feature": "hydro",
       "disposition": "retain",
@@ -3626,7 +3626,7 @@
       "bytes": 2790
     },
     {
-      "path": "tests/unit/hydro-recovery.test.mjs",
+      "path": "tests/unit/data/hydro-recovery.test.mjs",
       "kind": "unit",
       "feature": "hydro",
       "disposition": "retain",
@@ -3634,7 +3634,7 @@
       "bytes": 5729
     },
     {
-      "path": "tests/unit/hydro-reference-guides.test.mjs",
+      "path": "tests/unit/geometry/hydro-reference-guides.test.mjs",
       "kind": "unit",
       "feature": "hydro",
       "disposition": "retain",
@@ -3658,7 +3658,7 @@
       "bytes": 3974
     },
     {
-      "path": "tests/unit/hydro-reliability-source.test.mjs",
+      "path": "tests/unit/rendering/hydro-reliability-source.test.mjs",
       "kind": "unit",
       "feature": "hydro",
       "disposition": "retain",
@@ -3666,7 +3666,7 @@
       "bytes": 13829
     },
     {
-      "path": "tests/unit/hydro-repair-cli.test.mjs",
+      "path": "tests/unit/geometry/hydro-repair-cli.test.mjs",
       "kind": "unit",
       "feature": "hydro",
       "disposition": "retain",
@@ -3682,7 +3682,7 @@
       "bytes": 2378
     },
     {
-      "path": "tests/unit/hydro-resource-history.test.mjs",
+      "path": "tests/unit/rendering/hydro-resource-history.test.mjs",
       "kind": "unit",
       "feature": "hydro",
       "disposition": "retain",
@@ -3698,7 +3698,7 @@
       "bytes": 1675
     },
     {
-      "path": "tests/unit/hydro-river-features.test.mjs",
+      "path": "tests/unit/data/hydro-river-features.test.mjs",
       "kind": "unit",
       "feature": "hydro",
       "disposition": "retain",
@@ -3706,7 +3706,7 @@
       "bytes": 1646
     },
     {
-      "path": "tests/unit/hydro-river-groups.test.mjs",
+      "path": "tests/unit/geometry/hydro-river-groups.test.mjs",
       "kind": "unit",
       "feature": "hydro",
       "disposition": "retain",
@@ -3718,12 +3718,12 @@
       "kind": "unit",
       "feature": "hydro",
       "disposition": "merge",
-      "destination": "tests/unit/hydro-river-features.test.mjs",
+      "destination": "tests/unit/data/hydro-river-features.test.mjs",
       "sha": "c000b24bd943",
       "bytes": 1652
     },
     {
-      "path": "tests/unit/hydro-sdf-rendering.test.mjs",
+      "path": "tests/unit/rendering/hydro-sdf-rendering.test.mjs",
       "kind": "unit",
       "feature": "hydro",
       "disposition": "retain",
@@ -3731,7 +3731,7 @@
       "bytes": 3800
     },
     {
-      "path": "tests/unit/hydro-shared-boundary.test.mjs",
+      "path": "tests/unit/geometry/hydro-shared-boundary.test.mjs",
       "kind": "unit",
       "feature": "hydro",
       "disposition": "retain",
@@ -3739,7 +3739,7 @@
       "bytes": 2535
     },
     {
-      "path": "tests/unit/hydro-source-reader.test.mjs",
+      "path": "tests/unit/geometry/hydro-source-reader.test.mjs",
       "kind": "unit",
       "feature": "hydro",
       "disposition": "retain",
@@ -3763,7 +3763,7 @@
       "bytes": 1307
     },
     {
-      "path": "tests/unit/hydro-system-names.test.mjs",
+      "path": "tests/unit/geometry/hydro-system-names.test.mjs",
       "kind": "unit",
       "feature": "hydro",
       "disposition": "retain",
@@ -3787,7 +3787,7 @@
       "bytes": 8516
     },
     {
-      "path": "tests/unit/hydro-usgs-official-gauges.test.mjs",
+      "path": "tests/unit/geometry/hydro-usgs-official-gauges.test.mjs",
       "kind": "unit",
       "feature": "hydro",
       "disposition": "retain",
@@ -3795,7 +3795,7 @@
       "bytes": 3131
     },
     {
-      "path": "tests/unit/hydro-yarra-vector-screen.test.mjs",
+      "path": "tests/unit/geometry/hydro-yarra-vector-screen.test.mjs",
       "kind": "unit",
       "feature": "hydro",
       "disposition": "retain",
@@ -3803,7 +3803,7 @@
       "bytes": 2819
     },
     {
-      "path": "tests/unit/import-plan.test.mjs",
+      "path": "tests/unit/document/import-plan.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -3811,7 +3811,7 @@
       "bytes": 1749
     },
     {
-      "path": "tests/unit/import-service.test.mjs",
+      "path": "tests/unit/document/import-service.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -3819,7 +3819,7 @@
       "bytes": 18248
     },
     {
-      "path": "tests/unit/indonesia-territory-timeline.test.mjs",
+      "path": "tests/unit/geometry/indonesia-territory-timeline.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -3827,7 +3827,7 @@
       "bytes": 5087
     },
     {
-      "path": "tests/unit/initial-land-preview.test.mjs",
+      "path": "tests/unit/document/initial-land-preview.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -3843,7 +3843,7 @@
       "bytes": 10654
     },
     {
-      "path": "tests/unit/korean-boundary-data.test.mjs",
+      "path": "tests/unit/geometry/korean-boundary-data.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -3875,7 +3875,7 @@
       "bytes": 2084
     },
     {
-      "path": "tests/unit/late-soviet-check.test.mjs",
+      "path": "tests/unit/geometry/late-soviet-check.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -3883,7 +3883,7 @@
       "bytes": 5715
     },
     {
-      "path": "tests/unit/layer-footer-contract.test.mjs",
+      "path": "tests/unit/runtime/layer-footer-contract.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -3891,7 +3891,7 @@
       "bytes": 1850
     },
     {
-      "path": "tests/unit/library-auto-executor.test.mjs",
+      "path": "tests/unit/data/library-auto-executor.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -3899,7 +3899,7 @@
       "bytes": 16052
     },
     {
-      "path": "tests/unit/library-auto-github.test.mjs",
+      "path": "tests/unit/data/library-auto-github.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -3907,7 +3907,7 @@
       "bytes": 4228
     },
     {
-      "path": "tests/unit/library-auto-inputs.test.mjs",
+      "path": "tests/unit/data/library-auto-inputs.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -3915,7 +3915,7 @@
       "bytes": 16701
     },
     {
-      "path": "tests/unit/library-auto-publication.test.mjs",
+      "path": "tests/unit/data/library-auto-publication.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -3931,7 +3931,7 @@
       "bytes": 1666
     },
     {
-      "path": "tests/unit/library-auto-runtime.test.mjs",
+      "path": "tests/unit/data/library-auto-runtime.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -3939,7 +3939,7 @@
       "bytes": 19853
     },
     {
-      "path": "tests/unit/library-auto-sync.test.mjs",
+      "path": "tests/unit/data/library-auto-sync.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -3955,7 +3955,7 @@
       "bytes": 6185
     },
     {
-      "path": "tests/unit/library-content.test.mjs",
+      "path": "tests/unit/document/library-content.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -3963,7 +3963,7 @@
       "bytes": 5938
     },
     {
-      "path": "tests/unit/library-data-auth.test.mjs",
+      "path": "tests/unit/data/library-data-auth.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -3979,7 +3979,7 @@
       "bytes": 2772
     },
     {
-      "path": "tests/unit/library-data-scope.test.mjs",
+      "path": "tests/unit/data/library-data-scope.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -3987,7 +3987,7 @@
       "bytes": 2361
     },
     {
-      "path": "tests/unit/library-data.test.mjs",
+      "path": "tests/unit/data/library-data.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -4027,7 +4027,7 @@
       "bytes": 1485
     },
     {
-      "path": "tests/unit/library-report-centralization.test.mjs",
+      "path": "tests/unit/data/library-report-centralization.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -4035,7 +4035,7 @@
       "bytes": 14964
     },
     {
-      "path": "tests/unit/library-report-organization.test.mjs",
+      "path": "tests/unit/data/library-report-organization.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -4043,7 +4043,7 @@
       "bytes": 17476
     },
     {
-      "path": "tests/unit/library-report-publication.test.mjs",
+      "path": "tests/unit/data/library-report-publication.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -4059,7 +4059,7 @@
       "bytes": 2278
     },
     {
-      "path": "tests/unit/library-runtime-prefetch.test.mjs",
+      "path": "tests/unit/data/library-runtime-prefetch.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -4075,7 +4075,7 @@
       "bytes": 8536
     },
     {
-      "path": "tests/unit/library-shared-border-precision.test.mjs",
+      "path": "tests/unit/document/library-shared-border-precision.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -4083,7 +4083,7 @@
       "bytes": 3608
     },
     {
-      "path": "tests/unit/library-storage.test.mjs",
+      "path": "tests/unit/data/library-storage.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -4099,7 +4099,7 @@
       "bytes": 855
     },
     {
-      "path": "tests/unit/lsib-coordinate-audit.test.mjs",
+      "path": "tests/unit/document/lsib-coordinate-audit.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -4119,12 +4119,12 @@
       "kind": "unit",
       "feature": "rendering",
       "disposition": "merge",
-      "destination": "tests/unit/map-presentation-readiness.test.mjs",
+      "destination": "tests/unit/rendering/map-presentation-readiness.test.mjs",
       "sha": "2f66c844bef2",
       "bytes": 3210
     },
     {
-      "path": "tests/unit/map-content-scene.test.mjs",
+      "path": "tests/unit/ui/map-content-scene.test.mjs",
       "kind": "unit",
       "feature": "rendering",
       "disposition": "retain",
@@ -4166,7 +4166,7 @@
       "bytes": 2121
     },
     {
-      "path": "tests/unit/map-hover-async-boundary.test.mjs",
+      "path": "tests/unit/document/map-hover-async-boundary.test.mjs",
       "kind": "unit",
       "feature": "rendering",
       "disposition": "retain",
@@ -4182,7 +4182,7 @@
       "bytes": 11538
     },
     {
-      "path": "tests/unit/map-input-controller.test.mjs",
+      "path": "tests/unit/map/map-input-controller.test.mjs",
       "kind": "unit",
       "feature": "rendering",
       "disposition": "retain",
@@ -4214,7 +4214,7 @@
       "bytes": 4388
     },
     {
-      "path": "tests/unit/map-native-jpeg-encode.test.mjs",
+      "path": "tests/unit/document/map-native-jpeg-encode.test.mjs",
       "kind": "unit",
       "feature": "rendering",
       "disposition": "retain",
@@ -4222,7 +4222,7 @@
       "bytes": 1051
     },
     {
-      "path": "tests/unit/map-native-packaging.test.mjs",
+      "path": "tests/unit/document/map-native-packaging.test.mjs",
       "kind": "unit",
       "feature": "rendering",
       "disposition": "retain",
@@ -4230,7 +4230,7 @@
       "bytes": 1866
     },
     {
-      "path": "tests/unit/map-native-pdf.test.mjs",
+      "path": "tests/unit/document/map-native-pdf.test.mjs",
       "kind": "unit",
       "feature": "rendering",
       "disposition": "retain",
@@ -4238,7 +4238,7 @@
       "bytes": 1845
     },
     {
-      "path": "tests/unit/map-native-preview.test.mjs",
+      "path": "tests/unit/document/map-native-preview.test.mjs",
       "kind": "unit",
       "feature": "rendering",
       "disposition": "retain",
@@ -4246,7 +4246,7 @@
       "bytes": 991
     },
     {
-      "path": "tests/unit/map-native-resize.test.mjs",
+      "path": "tests/unit/document/map-native-resize.test.mjs",
       "kind": "unit",
       "feature": "rendering",
       "disposition": "retain",
@@ -4254,7 +4254,7 @@
       "bytes": 3189
     },
     {
-      "path": "tests/unit/map-native-webp-encode.test.mjs",
+      "path": "tests/unit/document/map-native-webp-encode.test.mjs",
       "kind": "unit",
       "feature": "rendering",
       "disposition": "retain",
@@ -4262,7 +4262,7 @@
       "bytes": 2266
     },
     {
-      "path": "tests/unit/map-object-spatial-index.test.mjs",
+      "path": "tests/unit/map/map-object-spatial-index.test.mjs",
       "kind": "unit",
       "feature": "rendering",
       "disposition": "retain",
@@ -4270,7 +4270,7 @@
       "bytes": 4057
     },
     {
-      "path": "tests/unit/map-plugin-cutover.test.mjs",
+      "path": "tests/unit/document/map-plugin-cutover.test.mjs",
       "kind": "unit",
       "feature": "rendering",
       "disposition": "retain",
@@ -4278,7 +4278,7 @@
       "bytes": 1767
     },
     {
-      "path": "tests/unit/map-plugin-hydro-history.test.mjs",
+      "path": "tests/unit/geometry/map-plugin-hydro-history.test.mjs",
       "kind": "unit",
       "feature": "rendering",
       "disposition": "retain",
@@ -4286,7 +4286,7 @@
       "bytes": 1421
     },
     {
-      "path": "tests/unit/map-presentation-readiness.test.mjs",
+      "path": "tests/unit/rendering/map-presentation-readiness.test.mjs",
       "kind": "unit",
       "feature": "rendering",
       "disposition": "retain",
@@ -4294,7 +4294,7 @@
       "bytes": 2888
     },
     {
-      "path": "tests/unit/map-readonly-flat-boundary.test.mjs",
+      "path": "tests/unit/ui/map-readonly-flat-boundary.test.mjs",
       "kind": "unit",
       "feature": "rendering",
       "disposition": "retain",
@@ -4306,7 +4306,7 @@
       "kind": "unit",
       "feature": "rendering",
       "disposition": "merge",
-      "destination": "tests/unit/map-presentation-readiness.test.mjs",
+      "destination": "tests/unit/rendering/map-presentation-readiness.test.mjs",
       "sha": "dbd8efdd5871",
       "bytes": 20370
     },
@@ -4348,7 +4348,7 @@
       "kind": "unit",
       "feature": "rendering",
       "disposition": "merge",
-      "destination": "tests/unit/map-presentation-readiness.test.mjs",
+      "destination": "tests/unit/rendering/map-presentation-readiness.test.mjs",
       "sha": "204bdd1e1258",
       "bytes": 2313
     },
@@ -4357,12 +4357,12 @@
       "kind": "unit",
       "feature": "rendering",
       "disposition": "merge",
-      "destination": "tests/unit/map-presentation-readiness.test.mjs",
+      "destination": "tests/unit/rendering/map-presentation-readiness.test.mjs",
       "sha": "fbfb64b1ff66",
       "bytes": 2711
     },
     {
-      "path": "tests/unit/mesh-geometry-assets.test.mjs",
+      "path": "tests/unit/rendering/mesh-geometry-assets.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -4370,7 +4370,7 @@
       "bytes": 7198
     },
     {
-      "path": "tests/unit/monorepo-pages-staging.test.mjs",
+      "path": "tests/unit/document/monorepo-pages-staging.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -4402,7 +4402,7 @@
       "bytes": 7219
     },
     {
-      "path": "tests/unit/native-check-prerequisites.test.mjs",
+      "path": "tests/unit/ui/native-check-prerequisites.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -4410,7 +4410,7 @@
       "bytes": 21434
     },
     {
-      "path": "tests/unit/native-tool.test.mjs",
+      "path": "tests/unit/document/native-tool.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -4426,7 +4426,7 @@
       "bytes": 4068
     },
     {
-      "path": "tests/unit/notification-priority.test.mjs",
+      "path": "tests/unit/ui/notification-priority.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -4434,7 +4434,7 @@
       "bytes": 2489
     },
     {
-      "path": "tests/unit/object-search-availability.test.mjs",
+      "path": "tests/unit/document/object-search-availability.test.mjs",
       "kind": "unit",
       "feature": "core",
       "disposition": "retain",
@@ -4450,7 +4450,7 @@
       "bytes": 21721
     },
     {
-      "path": "tests/unit/osm-hydro-inventory.test.mjs",
+      "path": "tests/unit/geometry/osm-hydro-inventory.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -4466,7 +4466,7 @@
       "bytes": 4268
     },
     {
-      "path": "tests/unit/p1-hydro-source-receipts.test.mjs",
+      "path": "tests/unit/geometry/p1-hydro-source-receipts.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -4482,7 +4482,7 @@
       "bytes": 2931
     },
     {
-      "path": "tests/unit/p2-artifact-plan.test.mjs",
+      "path": "tests/unit/build/p2-artifact-plan.test.mjs",
       "kind": "unit",
       "feature": "infrastructure",
       "disposition": "retain",
@@ -4490,7 +4490,7 @@
       "bytes": 44890
     },
     {
-      "path": "tests/unit/p2-publication-paths.test.mjs",
+      "path": "tests/unit/data/p2-publication-paths.test.mjs",
       "kind": "unit",
       "feature": "infrastructure",
       "disposition": "retain",
@@ -4506,7 +4506,7 @@
       "bytes": 3488
     },
     {
-      "path": "tests/unit/p3-preview-server.test.mjs",
+      "path": "tests/unit/document/p3-preview-server.test.mjs",
       "kind": "unit",
       "feature": "infrastructure",
       "disposition": "retain",
@@ -4522,7 +4522,7 @@
       "bytes": 6049
     },
     {
-      "path": "tests/unit/p5-6-contribution-merge.test.mjs",
+      "path": "tests/unit/geometry/p5-6-contribution-merge.test.mjs",
       "kind": "unit",
       "feature": "infrastructure",
       "disposition": "retain",
@@ -4530,7 +4530,7 @@
       "bytes": 1735
     },
     {
-      "path": "tests/unit/p5-6-core-ownership.test.mjs",
+      "path": "tests/unit/document/p5-6-core-ownership.test.mjs",
       "kind": "unit",
       "feature": "infrastructure",
       "disposition": "retain",
@@ -4554,7 +4554,7 @@
       "bytes": 2391
     },
     {
-      "path": "tests/unit/p6-polygon-core.test.mjs",
+      "path": "tests/unit/geometry/p6-polygon-core.test.mjs",
       "kind": "unit",
       "feature": "infrastructure",
       "disposition": "retain",
@@ -4562,7 +4562,7 @@
       "bytes": 4803
     },
     {
-      "path": "tests/unit/p6-project-persistence.test.mjs",
+      "path": "tests/unit/data/p6-project-persistence.test.mjs",
       "kind": "unit",
       "feature": "infrastructure",
       "disposition": "retain",
@@ -4570,7 +4570,7 @@
       "bytes": 7136
     },
     {
-      "path": "tests/unit/p7-hydro-lookup-cache.test.mjs",
+      "path": "tests/unit/document/p7-hydro-lookup-cache.test.mjs",
       "kind": "unit",
       "feature": "infrastructure",
       "disposition": "retain",
@@ -4586,7 +4586,7 @@
       "bytes": 1869
     },
     {
-      "path": "tests/unit/pages-deployment-verification.test.mjs",
+      "path": "tests/unit/document/pages-deployment-verification.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -4594,7 +4594,7 @@
       "bytes": 2380
     },
     {
-      "path": "tests/unit/pc-cleanup.test.mjs",
+      "path": "tests/unit/document/pc-cleanup.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -4602,7 +4602,7 @@
       "bytes": 11710
     },
     {
-      "path": "tests/unit/pc-file-allocation-native.test.mjs",
+      "path": "tests/unit/data/pc-file-allocation-native.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -4610,7 +4610,7 @@
       "bytes": 3705
     },
     {
-      "path": "tests/unit/performance-baseline-contract.test.mjs",
+      "path": "tests/unit/runtime/performance-baseline-contract.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -4618,7 +4618,7 @@
       "bytes": 8112
     },
     {
-      "path": "tests/unit/period-only-world.test.mjs",
+      "path": "tests/unit/data/period-only-world.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -4626,7 +4626,7 @@
       "bytes": 1559
     },
     {
-      "path": "tests/unit/physical-hydro-native.test.mjs",
+      "path": "tests/unit/geometry/physical-hydro-native.test.mjs",
       "kind": "unit",
       "feature": "rendering",
       "disposition": "retain",
@@ -4642,7 +4642,7 @@
       "bytes": 1802
     },
     {
-      "path": "tests/unit/physical-layer-service.test.mjs",
+      "path": "tests/unit/rendering/physical-layer-service.test.mjs",
       "kind": "unit",
       "feature": "rendering",
       "disposition": "retain",
@@ -4650,7 +4650,7 @@
       "bytes": 8189
     },
     {
-      "path": "tests/unit/physical-raster-native.test.mjs",
+      "path": "tests/unit/document/physical-raster-native.test.mjs",
       "kind": "unit",
       "feature": "rendering",
       "disposition": "retain",
@@ -4658,7 +4658,7 @@
       "bytes": 2777
     },
     {
-      "path": "tests/unit/physical-terrain-builder.test.mjs",
+      "path": "tests/unit/build/physical-terrain-builder.test.mjs",
       "kind": "unit",
       "feature": "rendering",
       "disposition": "retain",
@@ -4666,7 +4666,7 @@
       "bytes": 4062
     },
     {
-      "path": "tests/unit/physical-terrain-native.test.mjs",
+      "path": "tests/unit/geometry/physical-terrain-native.test.mjs",
       "kind": "unit",
       "feature": "rendering",
       "disposition": "retain",
@@ -4698,7 +4698,7 @@
       "bytes": 4181
     },
     {
-      "path": "tests/unit/physical-webp-stream.test.mjs",
+      "path": "tests/unit/document/physical-webp-stream.test.mjs",
       "kind": "unit",
       "feature": "rendering",
       "disposition": "retain",
@@ -4706,7 +4706,7 @@
       "bytes": 2278
     },
     {
-      "path": "tests/unit/place-batch-pipeline.test.mjs",
+      "path": "tests/unit/document/place-batch-pipeline.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -4714,7 +4714,7 @@
       "bytes": 6952
     },
     {
-      "path": "tests/unit/place-candidates.test.mjs",
+      "path": "tests/unit/document/place-candidates.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -4722,7 +4722,7 @@
       "bytes": 14697
     },
     {
-      "path": "tests/unit/place-codec.test.mjs",
+      "path": "tests/unit/data/place-codec.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -4754,7 +4754,7 @@
       "bytes": 4305
     },
     {
-      "path": "tests/unit/place-names.test.mjs",
+      "path": "tests/unit/document/place-names.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -4762,7 +4762,7 @@
       "bytes": 7517
     },
     {
-      "path": "tests/unit/place-publication.test.mjs",
+      "path": "tests/unit/data/place-publication.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -4770,7 +4770,7 @@
       "bytes": 8116
     },
     {
-      "path": "tests/unit/place-runtime.test.mjs",
+      "path": "tests/unit/rendering/place-runtime.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -4778,7 +4778,7 @@
       "bytes": 6809
     },
     {
-      "path": "tests/unit/place-sync-contract.test.mjs",
+      "path": "tests/unit/document/place-sync-contract.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -4786,7 +4786,7 @@
       "bytes": 29371
     },
     {
-      "path": "tests/unit/place-worker-store.test.mjs",
+      "path": "tests/unit/data/place-worker-store.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -4802,7 +4802,7 @@
       "bytes": 552
     },
     {
-      "path": "tests/unit/polygon-geometry.test.mjs",
+      "path": "tests/unit/geometry/polygon-geometry.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -4810,7 +4810,7 @@
       "bytes": 14446
     },
     {
-      "path": "tests/unit/post-2000-generated-world-display.test.mjs",
+      "path": "tests/unit/data/post-2000-generated-world-display.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -4826,7 +4826,7 @@
       "bytes": 1989
     },
     {
-      "path": "tests/unit/prepared-country-scope.test.mjs",
+      "path": "tests/unit/rendering/prepared-country-scope.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -4850,7 +4850,7 @@
       "bytes": 6841
     },
     {
-      "path": "tests/unit/prepared-polygon-mesh.test.mjs",
+      "path": "tests/unit/rendering/prepared-polygon-mesh.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -4858,7 +4858,7 @@
       "bytes": 9827
     },
     {
-      "path": "tests/unit/preview-country-geometry.test.mjs",
+      "path": "tests/unit/geometry/preview-country-geometry.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -4866,7 +4866,7 @@
       "bytes": 5931
     },
     {
-      "path": "tests/unit/preview-display-admission.test.mjs",
+      "path": "tests/unit/document/preview-display-admission.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -4874,7 +4874,7 @@
       "bytes": 4090
     },
     {
-      "path": "tests/unit/product-assets.test.mjs",
+      "path": "tests/unit/ui/product-assets.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -4882,7 +4882,7 @@
       "bytes": 9050
     },
     {
-      "path": "tests/unit/product-html.test.mjs",
+      "path": "tests/unit/document/product-html.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -4890,7 +4890,7 @@
       "bytes": 2307
     },
     {
-      "path": "tests/unit/project-creation-contract.test.mjs",
+      "path": "tests/unit/document/project-creation-contract.test.mjs",
       "kind": "unit",
       "feature": "core",
       "disposition": "retain",
@@ -4914,7 +4914,7 @@
       "bytes": 1634
     },
     {
-      "path": "tests/unit/project-domain-core-command.test.mjs",
+      "path": "tests/unit/document/project-domain-core-command.test.mjs",
       "kind": "unit",
       "feature": "core",
       "disposition": "retain",
@@ -4930,7 +4930,7 @@
       "bytes": 5473
     },
     {
-      "path": "tests/unit/project-lifecycle.test.mjs",
+      "path": "tests/unit/document/project-lifecycle.test.mjs",
       "kind": "unit",
       "feature": "core",
       "disposition": "retain",
@@ -4946,7 +4946,7 @@
       "bytes": 2390
     },
     {
-      "path": "tests/unit/project-preview-policy.test.mjs",
+      "path": "tests/unit/document/project-preview-policy.test.mjs",
       "kind": "unit",
       "feature": "core",
       "disposition": "retain",
@@ -4986,7 +4986,7 @@
       "bytes": 5571
     },
     {
-      "path": "tests/unit/project-setup.test.mjs",
+      "path": "tests/unit/document/project-setup.test.mjs",
       "kind": "unit",
       "feature": "core",
       "disposition": "retain",
@@ -4994,7 +4994,7 @@
       "bytes": 1804
     },
     {
-      "path": "tests/unit/project-state.test.mjs",
+      "path": "tests/unit/document/project-state.test.mjs",
       "kind": "unit",
       "feature": "core",
       "disposition": "retain",
@@ -5002,7 +5002,7 @@
       "bytes": 13454
     },
     {
-      "path": "tests/unit/project-timeline-domain.test.mjs",
+      "path": "tests/unit/document/project-timeline-domain.test.mjs",
       "kind": "unit",
       "feature": "core",
       "disposition": "retain",
@@ -5042,7 +5042,7 @@
       "bytes": 543
     },
     {
-      "path": "tests/unit/publication-world-integrity.test.mjs",
+      "path": "tests/unit/data/publication-world-integrity.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -5058,7 +5058,7 @@
       "bytes": 1026
     },
     {
-      "path": "tests/unit/qgis-native-bridge.test.mjs",
+      "path": "tests/unit/geometry/qgis-native-bridge.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -5066,7 +5066,7 @@
       "bytes": 21161
     },
     {
-      "path": "tests/unit/qgis-native-client.test.mjs",
+      "path": "tests/unit/geometry/qgis-native-client.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -5074,7 +5074,7 @@
       "bytes": 4972
     },
     {
-      "path": "tests/unit/qgis-native-export.test.mjs",
+      "path": "tests/unit/geometry/qgis-native-export.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -5082,7 +5082,7 @@
       "bytes": 7291
     },
     {
-      "path": "tests/unit/qgis-native-mcp.test.mjs",
+      "path": "tests/unit/geometry/qgis-native-mcp.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -5090,7 +5090,7 @@
       "bytes": 17250
     },
     {
-      "path": "tests/unit/qgis-native-start.test.mjs",
+      "path": "tests/unit/geometry/qgis-native-start.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -5098,7 +5098,7 @@
       "bytes": 4464
     },
     {
-      "path": "tests/unit/qgis-normalize.test.mjs",
+      "path": "tests/unit/geometry/qgis-normalize.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -5106,7 +5106,7 @@
       "bytes": 3542
     },
     {
-      "path": "tests/unit/qgis-pando-exchange.test.mjs",
+      "path": "tests/unit/geometry/qgis-pando-exchange.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -5114,7 +5114,7 @@
       "bytes": 2418
     },
     {
-      "path": "tests/unit/r4b-data-module-boundaries.test.mjs",
+      "path": "tests/unit/document/r4b-data-module-boundaries.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -5122,7 +5122,7 @@
       "bytes": 5548
     },
     {
-      "path": "tests/unit/r4c-spatial-boundaries.test.mjs",
+      "path": "tests/unit/geometry/r4c-spatial-boundaries.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -5130,7 +5130,7 @@
       "bytes": 6108
     },
     {
-      "path": "tests/unit/r4e1-gis-interop-boundaries.test.mjs",
+      "path": "tests/unit/geometry/r4e1-gis-interop-boundaries.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -5146,7 +5146,7 @@
       "bytes": 3319
     },
     {
-      "path": "tests/unit/reliability-core.test.mjs",
+      "path": "tests/unit/runtime/reliability-core.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -5162,7 +5162,7 @@
       "bytes": 3906
     },
     {
-      "path": "tests/unit/remote-only-contract.test.mjs",
+      "path": "tests/unit/runtime/remote-only-contract.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -5170,7 +5170,7 @@
       "bytes": 7207
     },
     {
-      "path": "tests/unit/remote-only-native-policy.test.mjs",
+      "path": "tests/unit/runtime/remote-only-native-policy.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -5194,7 +5194,7 @@
       "bytes": 1646
     },
     {
-      "path": "tests/unit/render-scene.test.mjs",
+      "path": "tests/unit/rendering/render-scene.test.mjs",
       "kind": "unit",
       "feature": "rendering",
       "disposition": "retain",
@@ -5226,7 +5226,7 @@
       "bytes": 3605
     },
     {
-      "path": "tests/unit/report-paths.test.mjs",
+      "path": "tests/unit/data/report-paths.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -5234,7 +5234,7 @@
       "bytes": 2233
     },
     {
-      "path": "tests/unit/resource-update-policy.test.mjs",
+      "path": "tests/unit/rendering/resource-update-policy.test.mjs",
       "kind": "unit",
       "feature": "viewer",
       "disposition": "retain",
@@ -5242,7 +5242,7 @@
       "bytes": 3194
     },
     {
-      "path": "tests/unit/review-change-records.test.mjs",
+      "path": "tests/unit/document/review-change-records.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -5250,7 +5250,7 @@
       "bytes": 12124
     },
     {
-      "path": "tests/unit/review-inspection.test.mjs",
+      "path": "tests/unit/document/review-inspection.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -5266,7 +5266,7 @@
       "bytes": 1347
     },
     {
-      "path": "tests/unit/river-territory-partition-serbia.test.mjs",
+      "path": "tests/unit/geometry/river-territory-partition-serbia.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -5274,7 +5274,7 @@
       "bytes": 9754
     },
     {
-      "path": "tests/unit/river-territory-partition.test.mjs",
+      "path": "tests/unit/document/river-territory-partition.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -5282,7 +5282,7 @@
       "bytes": 10009
     },
     {
-      "path": "tests/unit/runtime-performance-contract.test.mjs",
+      "path": "tests/unit/runtime/runtime-performance-contract.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -5314,7 +5314,7 @@
       "bytes": 4731
     },
     {
-      "path": "tests/unit/selection-domain-core.test.mjs",
+      "path": "tests/unit/document/selection-domain-core.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -5330,7 +5330,7 @@
       "bytes": 3229
     },
     {
-      "path": "tests/unit/selection-emphasis.test.mjs",
+      "path": "tests/unit/rendering/selection-emphasis.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -5346,7 +5346,7 @@
       "bytes": 3268
     },
     {
-      "path": "tests/unit/selection-fallback-coverage.test.mjs",
+      "path": "tests/unit/rendering/selection-fallback-coverage.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -5354,7 +5354,7 @@
       "bytes": 5698
     },
     {
-      "path": "tests/unit/selection-fill-handoff.test.mjs",
+      "path": "tests/unit/rendering/selection-fill-handoff.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -5378,7 +5378,7 @@
       "bytes": 2141
     },
     {
-      "path": "tests/unit/service-core-command-owner.test.mjs",
+      "path": "tests/unit/document/service-core-command-owner.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -5386,7 +5386,7 @@
       "bytes": 1156
     },
     {
-      "path": "tests/unit/shared-boundary-splice.test.mjs",
+      "path": "tests/unit/geometry/shared-boundary-splice.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -5394,7 +5394,7 @@
       "bytes": 1591
     },
     {
-      "path": "tests/unit/shared-core-assets.test.mjs",
+      "path": "tests/unit/document/shared-core-assets.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -5418,7 +5418,7 @@
       "bytes": 2518
     },
     {
-      "path": "tests/unit/shared-toolkit.test.mjs",
+      "path": "tests/unit/runtime/shared-toolkit.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -5434,7 +5434,7 @@
       "bytes": 7683
     },
     {
-      "path": "tests/unit/source-analysis.test.mjs",
+      "path": "tests/unit/document/source-analysis.test.mjs",
       "kind": "unit",
       "feature": "infrastructure",
       "disposition": "retain",
@@ -5450,7 +5450,7 @@
       "bytes": 4397
     },
     {
-      "path": "tests/unit/source-provenance.test.mjs",
+      "path": "tests/unit/document/source-provenance.test.mjs",
       "kind": "unit",
       "feature": "infrastructure",
       "disposition": "retain",
@@ -5466,7 +5466,7 @@
       "bytes": 5332
     },
     {
-      "path": "tests/unit/soviet-republic-transitions.test.mjs",
+      "path": "tests/unit/document/soviet-republic-transitions.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -5474,7 +5474,7 @@
       "bytes": 6866
     },
     {
-      "path": "tests/unit/startup-performance.test.mjs",
+      "path": "tests/unit/rendering/startup-performance.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -5482,7 +5482,7 @@
       "bytes": 9461
     },
     {
-      "path": "tests/unit/storage-consumers.test.mjs",
+      "path": "tests/unit/data/storage-consumers.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -5490,7 +5490,7 @@
       "bytes": 2831
     },
     {
-      "path": "tests/unit/stored-asset-content-cache.test.mjs",
+      "path": "tests/unit/data/stored-asset-content-cache.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -5506,7 +5506,7 @@
       "bytes": 3153
     },
     {
-      "path": "tests/unit/sub500-territorial-retirement.test.mjs",
+      "path": "tests/unit/geometry/sub500-territorial-retirement.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -5514,7 +5514,7 @@
       "bytes": 3428
     },
     {
-      "path": "tests/unit/sudan-ukraine-transition.test.mjs",
+      "path": "tests/unit/geometry/sudan-ukraine-transition.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -5522,7 +5522,7 @@
       "bytes": 6094
     },
     {
-      "path": "tests/unit/surface-controller.test.mjs",
+      "path": "tests/unit/ui/surface-controller.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -5530,7 +5530,7 @@
       "bytes": 4140
     },
     {
-      "path": "tests/unit/temporal.test.mjs",
+      "path": "tests/unit/document/temporal.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -5538,7 +5538,7 @@
       "bytes": 9412
     },
     {
-      "path": "tests/unit/terrain-dem-assets.test.mjs",
+      "path": "tests/unit/geometry/terrain-dem-assets.test.mjs",
       "kind": "unit",
       "feature": "rendering",
       "disposition": "retain",
@@ -5546,7 +5546,7 @@
       "bytes": 1631
     },
     {
-      "path": "tests/unit/terrain-dem-build.test.mjs",
+      "path": "tests/unit/build/terrain-dem-build.test.mjs",
       "kind": "unit",
       "feature": "rendering",
       "disposition": "retain",
@@ -5554,7 +5554,7 @@
       "bytes": 10688
     },
     {
-      "path": "tests/unit/terrain-dem-check.test.mjs",
+      "path": "tests/unit/geometry/terrain-dem-check.test.mjs",
       "kind": "unit",
       "feature": "rendering",
       "disposition": "retain",
@@ -5570,7 +5570,7 @@
       "bytes": 2739
     },
     {
-      "path": "tests/unit/terrain-dem-encode.test.mjs",
+      "path": "tests/unit/geometry/terrain-dem-encode.test.mjs",
       "kind": "unit",
       "feature": "rendering",
       "disposition": "retain",
@@ -5586,7 +5586,7 @@
       "bytes": 1577
     },
     {
-      "path": "tests/unit/terrain-dem-fill.test.mjs",
+      "path": "tests/unit/geometry/terrain-dem-fill.test.mjs",
       "kind": "unit",
       "feature": "rendering",
       "disposition": "retain",
@@ -5594,7 +5594,7 @@
       "bytes": 2915
     },
     {
-      "path": "tests/unit/terrain-dem-gutters.test.mjs",
+      "path": "tests/unit/geometry/terrain-dem-gutters.test.mjs",
       "kind": "unit",
       "feature": "rendering",
       "disposition": "retain",
@@ -5610,7 +5610,7 @@
       "bytes": 1451
     },
     {
-      "path": "tests/unit/terrain-dem-path.test.mjs",
+      "path": "tests/unit/geometry/terrain-dem-path.test.mjs",
       "kind": "unit",
       "feature": "rendering",
       "disposition": "retain",
@@ -5618,7 +5618,7 @@
       "bytes": 1262
     },
     {
-      "path": "tests/unit/terrain-dem-raster-native.test.mjs",
+      "path": "tests/unit/geometry/terrain-dem-raster-native.test.mjs",
       "kind": "unit",
       "feature": "rendering",
       "disposition": "retain",
@@ -5626,7 +5626,7 @@
       "bytes": 4769
     },
     {
-      "path": "tests/unit/terrain-dem-source.test.mjs",
+      "path": "tests/unit/geometry/terrain-dem-source.test.mjs",
       "kind": "unit",
       "feature": "rendering",
       "disposition": "retain",
@@ -5634,7 +5634,7 @@
       "bytes": 785
     },
     {
-      "path": "tests/unit/terrain-dem-tint.test.mjs",
+      "path": "tests/unit/geometry/terrain-dem-tint.test.mjs",
       "kind": "unit",
       "feature": "rendering",
       "disposition": "retain",
@@ -5642,7 +5642,7 @@
       "bytes": 7353
     },
     {
-      "path": "tests/unit/terrain-dem-webp.test.mjs",
+      "path": "tests/unit/geometry/terrain-dem-webp.test.mjs",
       "kind": "unit",
       "feature": "rendering",
       "disposition": "retain",
@@ -5650,7 +5650,7 @@
       "bytes": 960
     },
     {
-      "path": "tests/unit/terrain-interaction-streaming.test.mjs",
+      "path": "tests/unit/rendering/terrain-interaction-streaming.test.mjs",
       "kind": "unit",
       "feature": "rendering",
       "disposition": "retain",
@@ -5666,7 +5666,7 @@
       "bytes": 5934
     },
     {
-      "path": "tests/unit/terrain-preview-audit.test.mjs",
+      "path": "tests/unit/geometry/terrain-preview-audit.test.mjs",
       "kind": "unit",
       "feature": "rendering",
       "disposition": "retain",
@@ -5674,7 +5674,7 @@
       "bytes": 2686
     },
     {
-      "path": "tests/unit/terrain-preview-builder.test.mjs",
+      "path": "tests/unit/build/terrain-preview-builder.test.mjs",
       "kind": "unit",
       "feature": "rendering",
       "disposition": "retain",
@@ -5698,7 +5698,7 @@
       "bytes": 3614
     },
     {
-      "path": "tests/unit/terrain-preview-native.test.mjs",
+      "path": "tests/unit/geometry/terrain-preview-native.test.mjs",
       "kind": "unit",
       "feature": "rendering",
       "disposition": "retain",
@@ -5714,7 +5714,7 @@
       "bytes": 2657
     },
     {
-      "path": "tests/unit/territorial-boundary-continuity.test.mjs",
+      "path": "tests/unit/document/territorial-boundary-continuity.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -5722,7 +5722,7 @@
       "bytes": 17315
     },
     {
-      "path": "tests/unit/territorial-boundary-supplement.test.mjs",
+      "path": "tests/unit/geometry/territorial-boundary-supplement.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -5730,7 +5730,7 @@
       "bytes": 2800
     },
     {
-      "path": "tests/unit/territorial-canonical-parity.test.mjs",
+      "path": "tests/unit/document/territorial-canonical-parity.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -5738,7 +5738,7 @@
       "bytes": 2065
     },
     {
-      "path": "tests/unit/territorial-chunks.test.mjs",
+      "path": "tests/unit/ui/territorial-chunks.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -5770,7 +5770,7 @@
       "bytes": 2539
     },
     {
-      "path": "tests/unit/territorial-entity-repository.test.mjs",
+      "path": "tests/unit/document/territorial-entity-repository.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -5786,7 +5786,7 @@
       "bytes": 10811
     },
     {
-      "path": "tests/unit/territorial-fill-style.test.mjs",
+      "path": "tests/unit/document/territorial-fill-style.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -5826,7 +5826,7 @@
       "bytes": 3987
     },
     {
-      "path": "tests/unit/territorial-label-position.test.mjs",
+      "path": "tests/unit/rendering/territorial-label-position.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -5850,7 +5850,7 @@
       "bytes": 3786
     },
     {
-      "path": "tests/unit/territorial-library.test.mjs",
+      "path": "tests/unit/document/territorial-library.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -5866,7 +5866,7 @@
       "bytes": 6656
     },
     {
-      "path": "tests/unit/territorial-recipe-cli.test.mjs",
+      "path": "tests/unit/document/territorial-recipe-cli.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -5874,7 +5874,7 @@
       "bytes": 5578
     },
     {
-      "path": "tests/unit/territorial-recipe-cpp.test.mjs",
+      "path": "tests/unit/document/territorial-recipe-cpp.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -5890,7 +5890,7 @@
       "bytes": 5155
     },
     {
-      "path": "tests/unit/territorial-service.test.mjs",
+      "path": "tests/unit/document/territorial-service.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -5914,7 +5914,7 @@
       "bytes": 3344
     },
     {
-      "path": "tests/unit/territorial-source-parity.test.mjs",
+      "path": "tests/unit/document/territorial-source-parity.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -5946,7 +5946,7 @@
       "bytes": 3284
     },
     {
-      "path": "tests/unit/territorial-timeline-storage.test.mjs",
+      "path": "tests/unit/document/territorial-timeline-storage.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -5954,7 +5954,7 @@
       "bytes": 5952
     },
     {
-      "path": "tests/unit/territorial-units.test.mjs",
+      "path": "tests/unit/document/territorial-units.test.mjs",
       "kind": "unit",
       "feature": "gis",
       "disposition": "retain",
@@ -5962,7 +5962,7 @@
       "bytes": 7900
     },
     {
-      "path": "tests/unit/timeline-controls.test.mjs",
+      "path": "tests/unit/document/timeline-controls.test.mjs",
       "kind": "unit",
       "feature": "core",
       "disposition": "retain",
@@ -5986,7 +5986,7 @@
       "bytes": 4838
     },
     {
-      "path": "tests/unit/timeline-geopackage.test.mjs",
+      "path": "tests/unit/document/timeline-geopackage.test.mjs",
       "kind": "unit",
       "feature": "core",
       "disposition": "retain",
@@ -6026,7 +6026,7 @@
       "bytes": 2649
     },
     {
-      "path": "tests/unit/timeline-records.test.mjs",
+      "path": "tests/unit/document/timeline-records.test.mjs",
       "kind": "unit",
       "feature": "core",
       "disposition": "retain",
@@ -6034,7 +6034,7 @@
       "bytes": 4061
     },
     {
-      "path": "tests/unit/timeline-resolver.test.mjs",
+      "path": "tests/unit/document/timeline-resolver.test.mjs",
       "kind": "unit",
       "feature": "core",
       "disposition": "retain",
@@ -6066,7 +6066,7 @@
       "bytes": 2005
     },
     {
-      "path": "tests/unit/ui-source-catalog.test.mjs",
+      "path": "tests/unit/ui/ui-source-catalog.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -6074,7 +6074,7 @@
       "bytes": 3981
     },
     {
-      "path": "tests/unit/ui-state-controllers.test.mjs",
+      "path": "tests/unit/ui/ui-state-controllers.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -6082,7 +6082,7 @@
       "bytes": 10103
     },
     {
-      "path": "tests/unit/unified-object-display.test.mjs",
+      "path": "tests/unit/ui/unified-object-display.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -6090,7 +6090,7 @@
       "bytes": 6090
     },
     {
-      "path": "tests/unit/user-preferences.test.mjs",
+      "path": "tests/unit/ui/user-preferences.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -6098,7 +6098,7 @@
       "bytes": 3475
     },
     {
-      "path": "tests/unit/ussr-1922-approved-followups.test.mjs",
+      "path": "tests/unit/document/ussr-1922-approved-followups.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -6106,7 +6106,7 @@
       "bytes": 11483
     },
     {
-      "path": "tests/unit/ussr-1922-aral-names.test.mjs",
+      "path": "tests/unit/document/ussr-1922-aral-names.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -6114,7 +6114,7 @@
       "bytes": 2930
     },
     {
-      "path": "tests/unit/ussr-1922-country-replay.test.mjs",
+      "path": "tests/unit/document/ussr-1922-country-replay.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -6122,7 +6122,7 @@
       "bytes": 5983
     },
     {
-      "path": "tests/unit/ussr-1922-physical-replay.test.mjs",
+      "path": "tests/unit/document/ussr-1922-physical-replay.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -6130,7 +6130,7 @@
       "bytes": 5203
     },
     {
-      "path": "tests/unit/ussr-1922-report-native.test.mjs",
+      "path": "tests/unit/data/ussr-1922-report-native.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -6138,7 +6138,7 @@
       "bytes": 7393
     },
     {
-      "path": "tests/unit/ussr-1922-selection.test.mjs",
+      "path": "tests/unit/data/ussr-1922-selection.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -6146,7 +6146,7 @@
       "bytes": 3820
     },
     {
-      "path": "tests/unit/ussr-partition-prerequisite.test.mjs",
+      "path": "tests/unit/ui/ussr-partition-prerequisite.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -6154,7 +6154,7 @@
       "bytes": 2060
     },
     {
-      "path": "tests/unit/versioning-source-schema.test.mjs",
+      "path": "tests/unit/document/versioning-source-schema.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -6170,7 +6170,7 @@
       "bytes": 4669
     },
     {
-      "path": "tests/unit/viewer-bootstrap-recovery.test.mjs",
+      "path": "tests/unit/app/viewer-bootstrap-recovery.test.mjs",
       "kind": "unit",
       "feature": "viewer",
       "disposition": "retain",
@@ -6202,7 +6202,7 @@
       "bytes": 5113
     },
     {
-      "path": "tests/unit/viewer-initial-composition.test.mjs",
+      "path": "tests/unit/app/viewer-initial-composition.test.mjs",
       "kind": "unit",
       "feature": "viewer",
       "disposition": "retain",
@@ -6210,7 +6210,7 @@
       "bytes": 11062
     },
     {
-      "path": "tests/unit/viewer-initial-presentation.test.mjs",
+      "path": "tests/unit/app/viewer-initial-presentation.test.mjs",
       "kind": "unit",
       "feature": "viewer",
       "disposition": "retain",
@@ -6226,7 +6226,7 @@
       "bytes": 12776
     },
     {
-      "path": "tests/unit/viewer-inspector-controller.test.mjs",
+      "path": "tests/unit/ui/viewer-inspector-controller.test.mjs",
       "kind": "unit",
       "feature": "viewer",
       "disposition": "retain",
@@ -6290,7 +6290,7 @@
       "bytes": 2125
     },
     {
-      "path": "tests/unit/w2-p5-worker-contention.test.mjs",
+      "path": "tests/unit/runtime/w2-p5-worker-contention.test.mjs",
       "kind": "unit",
       "feature": "infrastructure",
       "disposition": "retain",
@@ -6298,7 +6298,7 @@
       "bytes": 8050
     },
     {
-      "path": "tests/unit/w2-p6-2-feature-projection.test.mjs",
+      "path": "tests/unit/document/w2-p6-2-feature-projection.test.mjs",
       "kind": "unit",
       "feature": "infrastructure",
       "disposition": "retain",
@@ -6306,7 +6306,7 @@
       "bytes": 3788
     },
     {
-      "path": "tests/unit/w2-p6-3-delta-protocol.test.mjs",
+      "path": "tests/unit/geometry/w2-p6-3-delta-protocol.test.mjs",
       "kind": "unit",
       "feature": "infrastructure",
       "disposition": "retain",
@@ -6322,7 +6322,7 @@
       "bytes": 1930
     },
     {
-      "path": "tests/unit/web-core-contract.test.mjs",
+      "path": "tests/unit/runtime/web-core-contract.test.mjs",
       "kind": "unit",
       "feature": "core",
       "disposition": "retain",
@@ -6410,7 +6410,7 @@
       "bytes": 1916
     },
     {
-      "path": "tests/unit/worker-assets.test.mjs",
+      "path": "tests/unit/runtime/worker-assets.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -6426,7 +6426,7 @@
       "bytes": 3139
     },
     {
-      "path": "tests/unit/worker-rpc.test.mjs",
+      "path": "tests/unit/runtime/worker-rpc.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -6450,7 +6450,7 @@
       "bytes": 1566
     },
     {
-      "path": "tests/unit/worktree-generated.test.mjs",
+      "path": "tests/unit/document/worktree-generated.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -6458,7 +6458,7 @@
       "bytes": 24874
     },
     {
-      "path": "tests/unit/worktree-storage.test.mjs",
+      "path": "tests/unit/data/worktree-storage.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -6466,7 +6466,7 @@
       "bytes": 13584
     },
     {
-      "path": "tests/unit/world-archive-retirement-integrity.test.mjs",
+      "path": "tests/unit/rendering/world-archive-retirement-integrity.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -6474,7 +6474,7 @@
       "bytes": 10056
     },
     {
-      "path": "tests/unit/world-bundle-runtime.test.mjs",
+      "path": "tests/unit/data/world-bundle-runtime.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -6482,7 +6482,7 @@
       "bytes": 5766
     },
     {
-      "path": "tests/unit/world-bundle-versioning.test.mjs",
+      "path": "tests/unit/document/world-bundle-versioning.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",
@@ -6490,7 +6490,7 @@
       "bytes": 4816
     },
     {
-      "path": "tests/unit/world-data-inspection.test.mjs",
+      "path": "tests/unit/document/world-data-inspection.test.mjs",
       "kind": "unit",
       "feature": "other",
       "disposition": "retain",

@@ -78,9 +78,9 @@ if(PANDO_BUILD_QGIS_BRIDGE)
             list(APPEND PANDO_QT_INCLUDE_DIRS "${entry}")
         endif()
     endforeach()
-    add_library(pando-qgis-bridge MODULE qgis/pando-qgis-plugin.cpp qgis/qgis-export.cpp ../../shared/core/src/losslessjson.cpp)
+    add_library(pando-qgis-bridge MODULE qgis/pando-qgis-plugin.cpp qgis/qgis-export.cpp ../../src/data/native/src/losslessjson.cpp)
     set_target_properties(pando-qgis-bridge PROPERTIES PREFIX "" OUTPUT_NAME "pando_qgis_bridge")
-    target_include_directories(pando-qgis-bridge PRIVATE ../../shared/core/include "${PANDO_QGIS_DIR}/include" "${PANDO_QGIS_SDK_ROOT}/include"
+    target_include_directories(pando-qgis-bridge PRIVATE ../../src/document/native/include ../../src/geometry/native/include ../../src/map/native/include ../../src/rendering/native/include ../../src/data/native/include ../../src/runtime/native/include "${PANDO_QGIS_DIR}/include" "${PANDO_QGIS_SDK_ROOT}/include"
         "${PANDO_QT_DIR}/include" ${PANDO_QT_INCLUDE_DIRS})
     target_link_libraries(pando-qgis-bridge PRIVATE "${PANDO_QGIS_DIR}/lib/qgis_core.lib" "${PANDO_QGIS_DIR}/lib/qgis_gui.lib"
         "${PANDO_QT_DIR}/lib/Qt5Core.lib" "${PANDO_QT_DIR}/lib/Qt5Network.lib" "${PANDO_QT_DIR}/lib/Qt5Widgets.lib" "${PANDO_QT_DIR}/lib/Qt5Gui.lib")
@@ -93,8 +93,8 @@ if(PANDO_BUILD_PC_ALLOCATION)
     if(NOT WIN32)
         message(FATAL_ERROR "PC allocation audit requires Windows")
     endif()
-    add_executable(pando-pc-file-allocation pc-file-allocation.cpp ../../shared/core/src/losslessjson.cpp)
-    target_include_directories(pando-pc-file-allocation PRIVATE ../../shared/core/include)
+    add_executable(pando-pc-file-allocation pc-file-allocation.cpp ../../src/data/native/src/losslessjson.cpp)
+    target_include_directories(pando-pc-file-allocation PRIVATE ../../src/document/native/include ../../src/geometry/native/include ../../src/map/native/include ../../src/rendering/native/include ../../src/data/native/include ../../src/runtime/native/include)
     target_compile_definitions(pando-pc-file-allocation PRIVATE _WIN32_WINNT=0x0602)
     if(MSVC)
         target_compile_options(pando-pc-file-allocation PRIVATE /utf-8 /W4)
@@ -108,9 +108,9 @@ if(PANDO_BUILD_COUNTRY_VALIDATOR)
     find_package(ZLIB REQUIRED)
     add_executable(pando-country-geometry-check
         validate-country-geometry.cpp
-        ../../shared/core/src/losslessjson.cpp
-        ../../shared/core/src/sphericalpolygon.cpp)
-    target_include_directories(pando-country-geometry-check PRIVATE ../../shared/core/include)
+        ../../src/data/native/src/losslessjson.cpp
+        ../../src/geometry/native/src/sphericalpolygon.cpp)
+    target_include_directories(pando-country-geometry-check PRIVATE ../../src/document/native/include ../../src/geometry/native/include ../../src/map/native/include ../../src/rendering/native/include ../../src/data/native/include ../../src/runtime/native/include)
     target_link_libraries(pando-country-geometry-check PRIVATE PkgConfig::GEOS ZLIB::ZLIB)
     if(MSVC)
         target_compile_options(pando-country-geometry-check PRIVATE /utf-8)
@@ -121,8 +121,8 @@ option(PANDO_BUILD_HYDRO_CONNECTIVITY "Build the standalone native HydroRIVERS j
 if(PANDO_BUILD_HYDRO_CONNECTIVITY)
     add_executable(pando-hydro-connectivity
         hydro/connectivity-junctions.cpp
-        ../../shared/core/src/losslessjson.cpp)
-    target_include_directories(pando-hydro-connectivity PRIVATE ../../shared/core/include)
+        ../../src/data/native/src/losslessjson.cpp)
+    target_include_directories(pando-hydro-connectivity PRIVATE ../../src/document/native/include ../../src/geometry/native/include ../../src/map/native/include ../../src/rendering/native/include ../../src/data/native/include ../../src/runtime/native/include)
     if(MSVC)
         target_compile_options(pando-hydro-connectivity PRIVATE /utf-8)
     else()
@@ -134,8 +134,8 @@ endif()
 
 option(PANDO_BUILD_HYDRO_POINT_SCREEN "Build the optional independent Hydro point screening tool" OFF)
 if(PANDO_BUILD_HYDRO_POINT_SCREEN)
-    add_executable(pando-hydro-point-screen hydro/point-screen.cpp ../../shared/core/src/losslessjson.cpp)
-    target_include_directories(pando-hydro-point-screen PRIVATE ../../shared/core/include)
+    add_executable(pando-hydro-point-screen hydro/point-screen.cpp ../../src/data/native/src/losslessjson.cpp)
+    target_include_directories(pando-hydro-point-screen PRIVATE ../../src/document/native/include ../../src/geometry/native/include ../../src/map/native/include ../../src/rendering/native/include ../../src/data/native/include ../../src/runtime/native/include)
     if(WIN32)
         if(NOT PANDO_QGIS_SDK_ROOT)
             message(FATAL_ERROR "The Windows Hydro point screen needs the matching OSGeo4W SDK root")
@@ -160,9 +160,9 @@ if(PANDO_BUILD_TERRITORIAL_RECIPE)
     pkg_check_modules(PROJ REQUIRED IMPORTED_TARGET proj)
     add_executable(pando-territorial-recipe
         build-territorial-recipe.cpp
-        ../../shared/core/src/losslessjson.cpp
-        ../../shared/core/src/sphericalpolygon.cpp)
-    target_include_directories(pando-territorial-recipe PRIVATE ../../shared/core/include)
+        ../../src/data/native/src/losslessjson.cpp
+        ../../src/geometry/native/src/sphericalpolygon.cpp)
+    target_include_directories(pando-territorial-recipe PRIVATE ../../src/document/native/include ../../src/geometry/native/include ../../src/map/native/include ../../src/rendering/native/include ../../src/data/native/include ../../src/runtime/native/include)
     target_link_libraries(pando-territorial-recipe PRIVATE PkgConfig::GEOS PkgConfig::PROJ)
     if(MSVC)
         target_compile_options(pando-territorial-recipe PRIVATE /utf-8)
@@ -173,9 +173,9 @@ endif()
 # This target needs neither GEOS nor Zlib on the Windows generation runner.
 add_executable(pando-spherical-polygon-normalize
     normalize-polygon-geometry.cpp
-    ../../shared/core/src/losslessjson.cpp
-    ../../shared/core/src/sphericalpolygon.cpp)
-target_include_directories(pando-spherical-polygon-normalize PRIVATE ../../shared/core/include)
+    ../../src/data/native/src/losslessjson.cpp
+    ../../src/geometry/native/src/sphericalpolygon.cpp)
+target_include_directories(pando-spherical-polygon-normalize PRIVATE ../../src/document/native/include ../../src/geometry/native/include ../../src/map/native/include ../../src/rendering/native/include ../../src/data/native/include ../../src/runtime/native/include)
 if(MSVC)
     target_compile_options(pando-spherical-polygon-normalize PRIVATE /utf-8)
 endif()
@@ -184,8 +184,8 @@ endif()
 # it must not depend on the GEOS/PROJ CLI dependencies.
 add_executable(pando-spherical-polygon-tests
     spherical-polygon-tests.cpp
-    ../../shared/core/src/sphericalpolygon.cpp)
-target_include_directories(pando-spherical-polygon-tests PRIVATE ../../shared/core/include)
+    ../../src/geometry/native/src/sphericalpolygon.cpp)
+target_include_directories(pando-spherical-polygon-tests PRIVATE ../../src/document/native/include ../../src/geometry/native/include ../../src/map/native/include ../../src/rendering/native/include ../../src/data/native/include ../../src/runtime/native/include)
 if(MSVC)
     target_compile_options(pando-spherical-polygon-tests PRIVATE /utf-8)
     target_compile_options(pando-spherical-polygon-tests PRIVATE /UNDEBUG)

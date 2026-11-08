@@ -56,9 +56,9 @@ node scripts/gis/run-source.mjs --task hydro-tiles
 
 ## 2026-10-25 Node.js 오프라인 도구 이전 1단계
 
-- `tools/download-terrain-source.py`를 `tools/download-terrain-source.mjs`로 교체했다. HTTP 206·Content-Range·원본 변경 검사를 유지하며 실패 시 기존 부분 다운로드 파일을 보존한다.
-- `tools/build-hydro-packfile.py`를 `tools/build-hydro-packfile.mjs`로 교체했다. 원본 압축 조각의 해시·길이·offset 동등성을 검증한다. 과거 데이터 재생성 Actions는 변경된 현재 수계 명칭을 덮어쓰지 않고 임시 공간에 재현한다.
-- `tools/place-batch-pipeline.py`의 audit/plan/finalize를 `tools/place-batch-pipeline.mjs`로 전환했다. 출처 해시, 조사 여부, 중복 ID, 날짜·명칭, 신규 파일 생성 제한을 Node 회귀 검사로 유지한다.
+- `tools/download-terrain-source.py`를 `tools/gis/download-terrain-source.mjs`로 교체했다. HTTP 206·Content-Range·원본 변경 검사를 유지하며 실패 시 기존 부분 다운로드 파일을 보존한다.
+- `tools/build-hydro-packfile.py`를 `tools/build/build-hydro-packfile.mjs`로 교체했다. 원본 압축 조각의 해시·길이·offset 동등성을 검증한다. 과거 데이터 재생성 Actions는 변경된 현재 수계 명칭을 덮어쓰지 않고 임시 공간에 재현한다.
+- `tools/place-batch-pipeline.py`의 audit/plan/finalize를 `tools/gis/place-batch-pipeline.mjs`로 전환했다. 출처 해시, 조사 여부, 중복 ID, 날짜·명칭, 신규 파일 생성 제한을 Node 회귀 검사로 유지한다.
 - 기존 Python 전용 테스트 `tests/python/test_library_writers.py`, `tests/test_place_batch_pipeline.py`는 Node 테스트로 대체했다. `library_data.py`와 `report_paths.py`는 다른 Python 생성기와의 호환을 위해 유지한다.
 - 대규모 GeoNames 후보 도구는 `build-place-candidates.mjs`의 ZIP CRC/streaming·원본 해시·후보 포함 정책·ID별 review 테스트로 대체한다. 기존 Python 검사의 계약은 Node 테스트로 이관했으며 실데이터 재생성은 별도 원본 필요. 남은 GIS/DEM/AI 학습 코드도 이번 Node 전환에서 제외한다.
 
@@ -80,7 +80,7 @@ pnpm test:gis-node
 
 ## 남겨둔 테스트와 안전 규칙
 
-- `package.json`의 과거 `test:python`/새 `test:gis-python`은 **수동 실행 전용**. 기본 `pnpm test`에서 삭제했다. `check:versioning`의 프로젝트 스키마 점검은 동일 역할의 Node 단위검사 `tests/unit/versioning-source-schema.test.mjs`로 옮겼다.
+- `package.json`의 과거 `test:python`/새 `test:gis-python`은 **수동 실행 전용**. 기본 `pnpm test`에서 삭제했다. `check:versioning`의 프로젝트 스키마 점검은 동일 역할의 Node 단위검사 `tests/unit/document/versioning-source-schema.test.mjs`로 옮겼다.
 - 전용 GIS workflow는 앱·웹 Pages 배포에 종속되지 않는다. GIS/legacy Python 전수검사는 별도 manual scope에서 수행한다. 완료된 일회성 연구 스크립트·전용 워크플로는 산출물 보존을 확인한 뒤 정리한다.
 - 외부 원본 GIS 생성물의 해시/출처, 지도 로딩 시점 및 시각적 표시는 이번 P4에서 변경하지 않는다. P5/P6의 C++ 이전을 기다리지 않고 Python 의존성만 분리한다.
 - **검증 한계:** CI의 `setup-python` 제거와 CMake 옵션 검사만으로 앱 동적 화면/Windows 포괄 검증을 증명하지 못한다. 실제 CTest·브라우저·GIS syntax 실행 결과를 보고 성공 범위를 별도 구분한다.

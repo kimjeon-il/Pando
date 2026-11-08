@@ -9,7 +9,7 @@ import {renderProductHtml} from './product-html.mjs';
 import {buildUiBundles} from '../build-ui-bundle.mjs';
 import {buildWorkerAsset} from './worker-assets.mjs';
 import {collectViewerAssets} from './product-assets.mjs';
-import {decodeArchiveEntry,libraryCheckout,libraryConfig} from '../../tools/library-data.mjs';
+import {decodeArchiveEntry,libraryCheckout,libraryConfig} from "../../tools/data/library-context.mjs";
 import {createInitialLandPreviewAsset} from './initial-land-preview.mjs';
 
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');

@@ -30,7 +30,7 @@ the catalog geometry:
 micromamba create -y -f tools/cpp/territorial-recipe-environment.yml
 micromamba run -n pando-territorial-recipe cmake -S tools/cpp -B build-native/territorial-recipe -G Ninja -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_TERRITORIAL_RECIPE=ON
 micromamba run -n pando-territorial-recipe cmake --build build-native/territorial-recipe --target pando-territorial-recipe
-PANDO_TERRITORIAL_RECIPE_BINARY="$PWD/build-native/territorial-recipe/pando-territorial-recipe" micromamba run -n pando-territorial-recipe node tools/build-territorial-geometry.mjs --check
+PANDO_TERRITORIAL_RECIPE_BINARY="$PWD/build-native/territorial-recipe/pando-territorial-recipe" micromamba run -n pando-territorial-recipe node tools/build/build-territorial-geometry.mjs --check
 ```
 
 The optional `.github/workflows/gis-source-p4.yml` `historical-geometry`
@@ -55,7 +55,7 @@ The checked-in files below are the only geometry inputs used by that build:
 - PandoLab's canonical `DEU` polygon from Natural Earth Admin 0 v5.1.1, used to
   reuse the exact Baltic/coast/Poland/Czech exterior boundary.
 
-`node tools/fetch-east-germany-sources.mjs --mode full` prepares a read-only
+`node tools/gis/fetch-east-germany-sources.mjs --mode full` prepares a read-only
 candidate inventory. Add `--execute` only after reviewing the pinned BKG and
 Natural Earth source scope; it writes exclusively to previously absent files.
 `--mode vg25` captures the five eastern states, while `--mode vg25-captured`
@@ -125,7 +125,7 @@ The present German Empire 1914 working geometry still has provisional modern
 coastline sections.
 
 Validate its data contract with
-`node --test tests/unit/historical-german-coastline-events.test.mjs`.
+`node --test tests/unit/document/historical-german-coastline-events.test.mjs`.
 
 ## German Empire 1914 working base
 
@@ -143,7 +143,7 @@ Set `PANDO_TERRITORIAL_RECIPE_BINARY` to the separately built native
 have GEOS and PROJ available.
 
 ```powershell
-node tools/fetch-german-empire-1914-source.mjs
+node tools/gis/fetch-german-empire-1914-source.mjs
 node tools/gis/build-german-1914-base.mjs
 node tools/gis/build-german-1914-base.mjs --check
 ```
@@ -152,7 +152,7 @@ If Harvard/NYU WFS access is unavailable, download **Germany State Boundaries,
 1914, German Historical GIS** manually, convert it to EPSG:4326 GeoJSON, then:
 
 ```powershell
-node tools/fetch-german-empire-1914-source.mjs --from-file PATH_TO_GEOJSON
+node tools/gis/fetch-german-empire-1914-source.mjs --from-file PATH_TO_GEOJSON
 ```
 
 The build performs these steps deterministically:
@@ -234,13 +234,13 @@ curated DDR version without writing any assets:
 micromamba create -y -f tools/cpp/territorial-recipe-environment.yml
 micromamba run -n pando-territorial-recipe cmake -S tools/cpp -B build-native/territorial-recipe -G Ninja -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_TERRITORIAL_RECIPE=ON
 micromamba run -n pando-territorial-recipe cmake --build build-native/territorial-recipe --target pando-territorial-recipe
-PANDO_TERRITORIAL_RECIPE_BINARY="$PWD/build-native/territorial-recipe/pando-territorial-recipe" micromamba run -n pando-territorial-recipe node --test tests/unit/territorial-recipe-cpp.test.mjs
+PANDO_TERRITORIAL_RECIPE_BINARY="$PWD/build-native/territorial-recipe/pando-territorial-recipe" micromamba run -n pando-territorial-recipe node --test tests/unit/document/territorial-recipe-cpp.test.mjs
 ```
 
 The focused test checks all five source SHA-256 values, component/ring/vertex
 structure and coordinate values within the measured projection rounding.
 The active generation entrypoint is
-`PANDO_TERRITORIAL_RECIPE_BINARY="$PWD/build-native/territorial-recipe/pando-territorial-recipe" node tools/build-territorial-geometry.mjs --check`.
+`PANDO_TERRITORIAL_RECIPE_BINARY="$PWD/build-native/territorial-recipe/pando-territorial-recipe" node tools/build/build-territorial-geometry.mjs --check`.
 It verifies pinned inputs, invokes the C++ recipe engine and compares only the
 target geometry version while preserving curated catalog identity and metadata.
 

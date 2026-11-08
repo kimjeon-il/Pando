@@ -4,7 +4,7 @@ import {appendFileSync,existsSync,lstatSync,mkdirSync,readFileSync,statfsSync,wr
 import {dirname,join,resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {nativeTestRecipe,nativeTestRecipes} from './lib/native-test-prerequisites.mjs';
-import {verifyNativeTool} from '../tools/native-tool.mjs';
+import {verifyNativeTool} from "../tools/build/native-tool.mjs";
 import {assertRemoteOnlyNativeAllowed} from './lib/remote-only-native-policy.mjs';
 
 const hash=path=>createHash('sha256').update(readFileSync(path)).digest('hex');

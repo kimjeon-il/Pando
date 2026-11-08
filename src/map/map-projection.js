@@ -1,0 +1,202 @@
+import { isMapVisualFrame } from "../rendering/map-visual-frame.js";
+import { resourceCapabilities } from "../runtime/resource-capabilities.js";
+
+/** MapProjection: extracted application responsibility.
+ * Dependencies are explicitly wired once by the composition modules.
+ * Mutable bindings stay local; exported accessors retain live identity.
+ */
+export function createMapProjection({capabilities=resourceCapabilities('viewer')}={}) {
+  let dependencies;
+  let mapLayoutMetricsSnapshot;
+  let mapLayoutMetricsRefreshCount;
+  let globeProjection;
+  let flatProjection;
+  let path;
+  let graticule;
+  function connect(ports) {
+    if (dependencies) throw new Error('map-projection already connected');
+    dependencies = ports;
+  }
+
+  function ringRepresentativePoint(ring) {
+    if (!ring?.length) return [0, 0];
+    let x = 0, y = 0, n = Math.max(1, ring.length - 1);
+    for (let i = 0; i < n; i += 1) { x += ring[i][0]; y += ring[i][1]; }
+    return [x / n, y / n];
+  }
+
+  function activeProjection() {
+    return dependencies.projectState.state.projection === 'globe' ? globeProjection : flatProjection;
+  }
+
+  function readMapSafeInsets() {
+    const workspace = document.querySelector('.workspace');
+    if (!workspace) return dependencies.mapLayout.DEFAULT_SAFE_INSETS;
+    const styles = getComputedStyle(workspace);
+    const read = name => Math.max(0, Number.parseFloat(styles.getPropertyValue(name)) || 0);
+    return {
+      left: read('--projection-safe-left'),
+      right: read('--projection-safe-right'),
+      top: read('--projection-safe-top'),
+      bottom: Math.max(26, read('--projection-safe-bottom')),
+    };
+  }
+
+  function refreshMapLayoutMetrics(reason = 'layout') {
+    const mapElement = (0, dependencies.platform.$)('map');
+    const bounds = mapElement?.getBoundingClientRect?.();
+    const width = Math.max(1, bounds?.width || mapElement?.clientWidth || dependencies.projectState.state.size.width || 900);
+    const height = Math.max(1, bounds?.height || mapElement?.clientHeight || dependencies.projectState.state.size.height || 650);
+    const safe = readMapSafeInsets();
+    mapLayoutMetricsRefreshCount += 1;
+    mapLayoutMetricsSnapshot = (0, dependencies.mapLayout.createMapLayoutMetricsSnapshot)({
+      width,
+      height,
+      dpr: Math.max(1, Number(window.devicePixelRatio || 1)),
+      safeInsets: safe,
+      mobile: (0, dependencies.surfaces.isMobile)(),
+      revision: mapLayoutMetricsRefreshCount,
+      reason,
+    });
+    return mapLayoutMetricsSnapshot;
+  }
+
+  function projectionLayoutMetrics() {
+    if (!mapLayoutMetricsSnapshot) {
+      mapLayoutMetricsSnapshot = (0, dependencies.mapLayout.createMapLayoutMetricsSnapshot)({
+        width: dependencies.projectState.state.size.width,
+        height: dependencies.projectState.state.size.height,
+        dpr: Math.max(1, Number(window.devicePixelRatio || 1)),
+        safeInsets: dependencies.mapLayout.DEFAULT_SAFE_INSETS,
+        mobile: (0, dependencies.surfaces.isMobile)(),
+      });
+    }
+    return mapLayoutMetricsSnapshot;
+  }
+
+  function currentMapSafeInsets() {
+    return projectionLayoutMetrics().safe;
+  }
+
+  function updateProjection() {
+    const {
+      width,
+      height,
+      safe,
+      centerX,
+      centerY,
+      globeBaseScale,
+      flatBaseScale,
+    } = projectionLayoutMetrics();
+    if (dependencies.projectState.state.projection === 'globe') {
+      globeProjection
+        .translate([centerX, centerY])
+        .scale(globeBaseScale * dependencies.projectState.state.view.globeZoom)
+        .rotate(dependencies.projectState.state.view.globeRotation)
+        .clipAngle(90);
+      path.projection(globeProjection);
+    } else {
+      flatProjection
+        .translate([centerX, centerY])
+        .scale(flatBaseScale * dependencies.projectState.state.view.flatZoom)
+        .center(dependencies.projectState.state.view.flatCenter)
+        .rotate([0, 0, 0])
+        .clipExtent([[safe.left, safe.top], [width - safe.right, height - safe.bottom]]);
+      path.projection(flatProjection);
+    }
+  }
+
+  function projectVisibleCoordinate(coord, frameContext = null) {
+    if (!coord) return null;
+    if (typeof frameContext?.projectVisibleCoordinate === 'function') {
+      return frameContext.projectVisibleCoordinate(coord);
+    }
+    const p = activeProjection()(coord);
+    if (!p || !Number.isFinite(p[0]) || !Number.isFinite(p[1])) return null;
+    if (dependencies.projectState.state.projection === 'globe') {
+      const r = frameContext?.rotation || dependencies.projectState.state.view.globeRotation;
+      const center = [-r[0], -r[1]];
+      return dependencies.platform.d3.geo.distance(coord, center) <= Math.PI / 2 + 0.005 ? p : null;
+    }
+    const width = Number(frameContext?.size?.width || dependencies.projectState.state.size.width);
+    const height = Number(frameContext?.size?.height || dependencies.projectState.state.size.height);
+    return p[0] >= -30 && p[0] <= width + 30 && p[1] >= -30 && p[1] <= height + 30 ? p : null;
+  }
+
+  function isCoordVisible(coord) {
+    return !!projectVisibleCoordinate(coord);
+  }
+
+  function screenToGeo(screenPoint) {
+    const projection = activeProjection();
+    if (dependencies.projectState.state.projection === 'globe') {
+      const c = projection.translate();
+      const s = projection.scale();
+      const dx = screenPoint[0] - c[0];
+      const dy = screenPoint[1] - c[1];
+      if ((dx * dx + dy * dy) > s * s) return null;
+    }
+    const coord = projection.invert(screenPoint);
+    if (!coord || !Number.isFinite(coord[0]) || !Number.isFinite(coord[1])) return null;
+    let lon = ((coord[0] + 540) % 360) - 180;
+    let lat = (0, dependencies.platform.clamp)(coord[1], -89.999, 89.999);
+    return [lon, lat];
+  }
+
+  function updatePandoGlobeShell(frameContext) {
+    if (!isMapVisualFrame(frameContext)) throw new TypeError('Globe shell requires a MapVisualFrame.');
+    const projectionKind = frameContext.projection;
+    const globe = projectionKind === 'globe';
+    const translate = frameContext.cssTranslate;
+    const radius = frameContext.cssScale;
+    const [width, height] = frameContext.cssViewport;
+    const frameSignature = frameContext.signature;
+
+    dependencies.mapLayers.baseSvg?.classed('flat-projection', !globe)
+      .attr('data-shell-frame-signature', frameSignature);
+    dependencies.mapLayers.flatOceanLayer?.attr('display', globe ? 'none' : null)
+      .attr('x', 0).attr('y', 0).attr('width', width).attr('height', height);
+    dependencies.mapLayers.oceanLayer?.attr('display', globe ? null : 'none')
+      .attr('cx', translate[0]).attr('cy', translate[1]).attr('r', radius);
+    dependencies.mapLayers.shadowLayer?.attr('display', globe && dependencies.projectState.state.backgroundSettings?.globeShadow!==false ? null : 'none')
+      .attr('cx', translate[0]).attr('cy', translate[1]).attr('r', radius);
+  }
+
+  function initializeMapLayoutMetricsSnapshot() {
+    (mapLayoutMetricsSnapshot = null);
+
+    (mapLayoutMetricsRefreshCount = 0);
+  }
+
+  function initializeProjections() {
+    if(capabilities.globe)(globeProjection = dependencies.platform.d3.geo.orthographic().clipAngle(90).precision((0, dependencies.surfaces.isMobile)() ? 0.9 : 0.35));
+
+    (flatProjection = dependencies.platform.d3.geo.equirectangular().precision((0, dependencies.surfaces.isMobile)() ? 0.7 : 0.25));
+
+    (path = dependencies.platform.d3.geo.path().pointRadius(5));
+
+    if(capabilities.graticule)(graticule = dependencies.platform.d3.geo.graticule());
+  }
+
+  return Object.freeze({
+    connect,
+    initializeMapLayoutMetricsSnapshot,
+    initializeProjections,
+    get activeProjection() { return activeProjection; },
+    get currentMapSafeInsets() { return currentMapSafeInsets; },
+    get flatProjection() { return flatProjection; },
+    get globeProjection() { return globeProjection; },
+    get graticule() { return graticule; },
+    get isCoordVisible() { return isCoordVisible; },
+    get mapLayoutMetricsRefreshCount() { return mapLayoutMetricsRefreshCount; },
+    get mapLayoutMetricsSnapshot() { return mapLayoutMetricsSnapshot; },
+    get path() { return path; },
+    get projectVisibleCoordinate() { return projectVisibleCoordinate; },
+    get projectionLayoutMetrics() { return projectionLayoutMetrics; },
+    get refreshMapLayoutMetrics() { return refreshMapLayoutMetrics; },
+    get ringRepresentativePoint() { return ringRepresentativePoint; },
+    get screenToGeo() { return screenToGeo; },
+    get updatePandoGlobeShell() { return updatePandoGlobeShell; },
+    get updateProjection() { return updateProjection; },
+  });
+}

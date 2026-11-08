@@ -45,13 +45,13 @@ jobs:
       - name: Validate existing geometry and planned source edits
         run: |
           node tools/gis/apply-post-2000-territorial-links.mjs --plan
-          node --test tests/unit/historical-world-parent-relations.test.mjs
+          node --test tests/unit/document/historical-world-parent-relations.test.mjs
       - name: Record the unchanged baseline Soviet geometry validator defect
         shell: bash
         run: |
           set -euo pipefail
           node --input-type=module <<'NODE'
-          import {readTerritorialSource} from './tools/territorial-entity-sources.mjs';
+          import {readTerritorialSource} from './tools/data/territorial-entity-sources.mjs';
           import {createHash} from 'node:crypto';
           import {writeFileSync} from 'node:fs';
           const entity=readTerritorialSource('state:soviet-union');
@@ -77,7 +77,7 @@ jobs:
       - name: Prove unrelated Soviet geometry remained byte-identical
         run: |
           node --input-type=module <<'NODE'
-          import {readTerritorialSource} from './tools/territorial-entity-sources.mjs';
+          import {readTerritorialSource} from './tools/data/territorial-entity-sources.mjs';
           import {createHash} from 'node:crypto';
           import {readFileSync} from 'node:fs';
           const next=createHash('sha256').update(JSON.stringify(readTerritorialSource('state:soviet-union').geometryVersions)).digest('hex');
@@ -86,12 +86,12 @@ jobs:
           NODE
       - name: Verify catalog, country chunks and actual year-end project materialization
         run: |
-          node tools/build-territorial-entity-chunks.mjs --check
-          node tools/build-builtin-world.mjs --check
-          node --test tests/unit/historical-world-parent-relations.test.mjs tests/unit/historical-world-publication.test.mjs tests/unit/post-2000-generated-world-display.test.mjs tests/unit/timeline-resolver.test.mjs
+          node tools/build/build-territorial-entity-chunks.mjs --check
+          node tools/build/build-builtin-world.mjs --check
+          node --test tests/unit/document/historical-world-parent-relations.test.mjs tests/unit/data/historical-world-publication.test.mjs tests/unit/document/timeline-resolver.test.mjs
       - name: Store and push changed territorial sources and generated world as one pinned library revision
         run: |
-          node tools/library-data.mjs --store-and-stage --push \
+          node tools/data/library-data.mjs --store-and-stage --push \
             --include-prefix=assets/data/territorial-entities \
             --include-prefix=assets/data/historical-world \
             --include-prefix=assets/data/builtin-world \
@@ -100,13 +100,13 @@ jobs:
           git diff --cached --name-only
       - name: Prepare and verify the newly pinned browser assets
         run: |
-          node tools/library-data.mjs
+          node tools/data/library-data.mjs
           node scripts/generate-build-metadata.mjs
           node scripts/check-version.mjs
       - name: Install the test Chromium
         run: pnpm exec playwright install --with-deps chromium
       - name: Check actual year-end geographic display in the editor
-        run: pnpm exec playwright test tests/browser/viewer-calendar.spec.mjs --workers=1 --retries=0 --trace off
+        run: pnpm exec playwright test tests/browser/document/viewer-calendar.spec.mjs --workers=1 --retries=0 --trace off
       - name: Publish the reviewed work/gis data pin without touching main
         shell: bash
         run: |

@@ -225,7 +225,7 @@ M15의 성능 gate는 미통과 상태로 남긴다. 배포 완료와 전체 계
 - 변경된 JavaScript 파일 67개 ESLint: 종료 코드 **0**.
 - `pnpm check:territorial-library`: 종료 코드 **0**. 284개 chunk·2개 snapshot,
   기존 소련·동독·크림·바이코누르 등 실제 형상 검증 보장을 유지한다.
-- `node tools/build-territorial-current-world.mjs --check`: 종료 코드 **0**,
+- `node tools/build/build-territorial-current-world.mjs --check`: 종료 코드 **0**,
   258개 source Feature 유지.
 - `node scripts/build-ui-bundle.mjs`: 종료 코드 **0**.
 - `node scripts/check-runtime-boundaries.mjs`: 종료 코드 **0**, 304개 모듈·순환 0.
@@ -292,7 +292,7 @@ M15의 성능 gate는 미통과 상태로 남긴다. 배포 완료와 전체 계
 manifest의 입력 경로가 여전히 옛 Natural Earth 직접 입력이라고 기대하는 낡은 검사(B)였다.
 해당 파일만 실행해 실패를 재현한 뒤 실제 authoritative generated current-world를
 읽도록 갱신했다. 형상 repair 불필요·좌표 순서·ring 수·공유 topology·구멍 검증은 유지했다.
-`node --test tests/unit/preview-country-geometry.test.mjs` **5 통과·0 실패·0 skip**,
+`node --test tests/unit/geometry/preview-country-geometry.test.mjs` **5 통과·0 실패·0 skip**,
 해당 파일 ESLint 종료 코드 0. 전체 suite를 로컬에서 재실행하지 않았다.
 
 원격 `Validation entrypoints and current generated assets`의 preview gzip 재생성 byte
@@ -310,7 +310,7 @@ Linux Node 22 CI와 로컬 Windows Node 24 사이의 정확한 재생성 차이 
 1. `build-territorial-entity-chunks.mjs` → `build-territorial-current-world.mjs` → `build-builtin-world.mjs`
 
 국명·존속기간 등 일부 정본만 바꿀 때 기본 지도의 부분 생성은
-`node tools/build-builtin-world.mjs --entities=state:KHM,state:VNM`으로 실행한다.
+`node tools/build/build-builtin-world.mjs --entities=state:KHM,state:VNM`으로 실행한다.
 먼저 `--plan`을 붙이면 원본을 읽거나 산출물을 쓰지 않고 연결 범위를 볼 수 있다.
 부모·자식, 과거 형상 겹침, 명시적 대체 규칙으로 연결된 부분만 기존 컴파일러로
 생성하며 무관한 국가 파일은 저장된 바이트를 재사용한다. 합본 전송 파일과
@@ -327,4 +327,4 @@ Linux Node 22 CI와 로컬 Windows Node 24 사이의 정확한 재생성 차이 
 3. `build-country-shared-boundaries.mjs` → `build-prepared-polygon-mesh.mjs`
 4. `scripts/generate-build-metadata.mjs`
 
-각 빌더는 `node tools/<파일명>`으로 실행한다. 이미 현재 canonical 공유 경계를 생성했다면 새 preview 생성 후 `node tools/build-country-shared-boundaries.mjs --quality=preview`만 실행해 같은 canonical 계산을 반복하지 않는다. 생성과 별도 검사·벤치마크를 구분하며, 외부 자료 저장소 안에서는 실행하지 않는다.
+각 빌더는 `node tools/<파일명>`으로 실행한다. 이미 현재 canonical 공유 경계를 생성했다면 새 preview 생성 후 `node tools/build/build-country-shared-boundaries.mjs --quality=preview`만 실행해 같은 canonical 계산을 반복하지 않는다. 생성과 별도 검사·벤치마크를 구분하며, 외부 자료 저장소 안에서는 실행하지 않는다.

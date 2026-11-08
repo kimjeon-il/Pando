@@ -1,12 +1,12 @@
-import "../../shared/frontend/js/vendor/polygon-clipping.min.js";
+import "../../assets/js-vendor/polygon-clipping.min.js";
 import {initializeTestTerritorialState,testCoreProject} from './timeline-project.mjs';
 import {createGisImportTransactionCommitter} from "./core-gis-compat/gis-import-transaction.mjs";
 import {createLandRelations} from "./core-gis-compat/land-relations.mjs";
-import {territorialRootId,TERRITORIAL_COVERAGE_MODES} from "../../shared/frontend/js/modules/territorial-units.js";
-import {DISTRIBUTION_MODES} from "../../shared/frontend/js/modules/distribution-model.js";
-import {applyImportedPackageAssets} from "../../shared/frontend/js/modules/project-package-assets.js";
+import {territorialRootId,TERRITORIAL_COVERAGE_MODES} from "../../src/document/territorial-units.js";
+import {DISTRIBUTION_MODES} from "../../src/document/distribution-model.js";
+import {applyImportedPackageAssets} from "../../src/data/project-package-assets.js";
 import {createGenericFeatureService} from './generic-feature-command-service.mjs';
-import {normalizeGenericFeatureSemantics,GENERIC_FEATURE_SCHEMA_VERSION} from '../../shared/frontend/js/modules/generic-feature-normalization.js';
+import {normalizeGenericFeatureSemantics,GENERIC_FEATURE_SCHEMA_VERSION} from "../../src/document/generic-feature-normalization.js";
 
 /** Real C++ command/preview owner; only platform I/O, prompts and display hooks are test doubles. */
 export async function createGisCoreFixture(territorialEntities=[],{fields={},runtime={},platformPorts={}}={}) {

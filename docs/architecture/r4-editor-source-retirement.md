@@ -12,8 +12,8 @@ The Viewer and Windows reviewer do not ship the archived `app.js`, `bootstrap.js
 
 ## Active dependencies requiring migration before bulk removal
 
-- `project-serializer.js`: `tests/helpers/core-startup.mjs`, `tools/builtin-world-compiler.mjs`, provenance and timeline tests. R3 still includes it in native verification hashes.
-- `territorial-library.js`: multiple `tools/gis/**` scripts, `tools/build-builtin-world.mjs`, `scripts/lib/library-auto-inputs.mjs`, `tools/review/e3-revision-diff.mjs`, and geographic tests.
+- `project-serializer.js`: `tests/helpers/core-startup.mjs`, `tools/build/builtin-world-compiler.mjs`, provenance and timeline tests. R3 still includes it in native verification hashes.
+- `territorial-library.js`: multiple `tools/gis/**` scripts, `tools/build/build-builtin-world.mjs`, `scripts/lib/library-auto-inputs.mjs`, `tools/review/e3-revision-diff.mjs`, and geographic tests.
 - `app-environment.js`: GIS/hydro fixture and world-dataset checks.
 - `editing-domain.js`: historic draft/WASM tests and `scripts/p2-artifact-plan.mjs`.
 - UI modules such as `app-tool-bindings.js`, `app-file-bindings.js`, `app-task-presentation.js`, `editor-workspace-presentation.js`, `mobile-sheet-controller.js`, and `confirm-modal-controller.js` remain referenced by older tests. Classify each test as retired versus still-active before removing its imported module.

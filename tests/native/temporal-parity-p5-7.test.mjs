@@ -142,7 +142,7 @@ function scenario(name, callback) {
 
 scenario('P5-7 same-source native/WASM month endpoints, geometry, attributes and full-path oracle', async t => {
   const candidate = await pair(t), oracle = await pair(t);
-  const manifest = JSON.parse(await readFile('shared/frontend/static/wasm/pandoeditor-core.manifest.json', 'utf8'));
+  const manifest = JSON.parse(await readFile('assets/wasm/pandoeditor-core.manifest.json', 'utf8'));
   assert.equal(evidence.identity.sourceSha256, manifest.sourceSha256);
   assert.equal(evidence.identity.abiVersion, 1);
   assert.equal(evidence.identity.compilerVersion, '6.0.3');

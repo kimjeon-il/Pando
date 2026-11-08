@@ -1,6 +1,6 @@
 // GIS country identity and overlay planning delegated to the shared C++ Core.
 // No Worker, DOM, editor state, or project mutation owner.
-import {sharedCalculationCore} from '../../shared/frontend/js/modules/temporal.js';
+import {sharedCalculationCore} from "../../src/document/temporal.js";
 
 const text = value => String(value ?? '');
 

@@ -1,6 +1,6 @@
 import {execFileSync} from 'node:child_process';
 import {parseArgs} from 'node:util';
-import {packageNativeTool} from '../native-tool.mjs';
+import {packageNativeTool} from "../build/native-tool.mjs";
 import {terrainDemCheckSources} from './terrain-dem-check.mjs';
 
 const {values}=parseArgs({options:{binary:{type:'string'},directory:{type:'string'}}});

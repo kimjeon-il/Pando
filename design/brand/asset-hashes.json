@@ -1,5 +1,5 @@
 {
-  "shared/frontend/static/brand/favicon.svg": "773886eecbffaa74c9a8bdcf711209699f91b7270ac6eb33c1507cc1787eee14",
-  "shared/frontend/static/brand/favicon.ico": "17f1a19bebd25581e61be41a56f9797791524bc4d8250429479c6f411bcac4d8",
-  "shared/frontend/static/brand/apple-touch-icon.png": "240b23c30aa30a91c5d54f0110058d90da94c93b7d4ad3e222091cf542066399"
+  "assets/brand/favicon.svg": "773886eecbffaa74c9a8bdcf711209699f91b7270ac6eb33c1507cc1787eee14",
+  "assets/brand/favicon.ico": "17f1a19bebd25581e61be41a56f9797791524bc4d8250429479c6f411bcac4d8",
+  "assets/brand/apple-touch-icon.png": "240b23c30aa30a91c5d54f0110058d90da94c93b7d4ad3e222091cf542066399"
 }

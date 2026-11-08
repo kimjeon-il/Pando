@@ -38,7 +38,7 @@ automatic skipping does not override explicit verification requests.
 
 ## Cleanup and remaining limits
 
-- `node tools/worktree-storage.mjs --retire-native` is a **dry-run**.
+- `node tools/data/worktree-storage.mjs --retire-native` is a **dry-run**.
   `--retire-native --apply` retires only unreferenced, immutable,
   manifest-verified native views and requires a separate opt-in.
   `--prune-blobs` has its own independent dry-run/apply and digest guards.
