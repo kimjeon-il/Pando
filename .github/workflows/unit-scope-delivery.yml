@@ -96,9 +96,10 @@ jobs:
           # The guarded recovery script already stages additions, modifications,
           # renames, and deletions. Re-adding deleted paths is an invalid pathspec.
           mapfile -t staged < <(git diff --cached --name-only)
+          echo "Reviewed staged paths: ${#staged[@]} / declared: ${#paths[@]}"
           test "${#staged[@]}" -eq "${#paths[@]}"
           for path in "${paths[@]}"; do
-            printf '%s\\n' "${staged[@]}" | grep -Fqx -- "$path"
+            printf '%s\n' "${staged[@]}" | grep -Fqx -- "$path"
           done
           git diff --cached --check
           git commit -m 'test: remove brittle and retired cases and consolidate feature suites'
