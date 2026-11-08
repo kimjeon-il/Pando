@@ -1,47 +1,19 @@
-import { describe as contractSuite } from 'node:test';
-import * as __country_dep0 from "node:test";
-import * as __country_dep1 from "node:assert/strict";
-import * as __country_dep2 from "../fixtures/historical-world-cases.mjs";
-import * as __country_dep3 from "../../tools/builtin-world-compiler.mjs";
-import * as __country_dep4 from "../../shared/frontend/js/modules/builtin-world-loader.js";
-import * as __country_dep5 from "../../shared/frontend/js/modules/project-setup.js";
-import * as __country_dep6 from "../../shared/frontend/js/modules/version-contract.js";
-import * as __country_dep7 from "../../tools/build-builtin-world.mjs";
-import * as __country_dep8 from "node:zlib";
-import * as __country_dep9 from "node:crypto";
-import * as __country_dep10 from "../../shared/frontend/js/modules/temporal.js";
-import * as __country_dep11 from "../../shared/frontend/js/modules/timeline-resolver.js";
-import * as __country_dep12 from "../../shared/frontend/js/modules/geometry-version-store.js";
-import * as __country_dep13 from "node:fs";
-import * as __country_dep14 from "../helpers/builtin-world.mjs";
-import * as __country_dep15 from "../../shared/frontend/js/modules/builtin-month-clock.js";
-contractSuite("builtin-world-catalog", () => {
-const test = __country_dep0.default;
-const assert = __country_dep1.default;
-const { historicalWorldCases } = __country_dep2;
-const { compileBuiltinWorldCatalog, coalesceCoverageAdjustments } = __country_dep3;
-const { assembleBuiltinWorld, selectBuiltinCountries } = __country_dep4;
-const { createBuiltinProjectSetup } = __country_dep5;
-const { PROJECT_SCHEMA_VERSION } = __country_dep6;
-const { buildBuiltinWorldNamePublication } = __country_dep7;
-const { gzipSync, gunzipSync } = __country_dep8;
-const { createHash } = __country_dep9;
-const { temporalContains, temporalMonthEnd } = __country_dep10;
-const { resolveWorld } = __country_dep11;
-const { createGeometryVersionStore } = __country_dep12;
-
-
-
-
-
-
-
-
-
-
-
-
-
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {historicalWorldCases} from '../fixtures/historical-world-cases.mjs';
+import {compileBuiltinWorldCatalog, coalesceCoverageAdjustments} from '../../tools/builtin-world-compiler.mjs';
+import {assembleBuiltinWorld, selectBuiltinCountries} from '../../shared/frontend/js/modules/builtin-world-loader.js';
+import {createBuiltinProjectSetup} from '../../shared/frontend/js/modules/project-setup.js';
+import {PROJECT_SCHEMA_VERSION} from '../../shared/frontend/js/modules/version-contract.js';
+import {buildBuiltinWorldNamePublication} from '../../tools/build-builtin-world.mjs';
+import {gzipSync, gunzipSync} from 'node:zlib';
+import {createHash} from 'node:crypto';
+import {temporalContains, temporalMonthEnd} from '../../shared/frontend/js/modules/temporal.js';
+import {resolveWorld} from '../../shared/frontend/js/modules/timeline-resolver.js';
+import {createGeometryVersionStore} from '../../shared/frontend/js/modules/geometry-version-store.js';
+import fs from 'node:fs';
+import {builtinProject} from '../helpers/builtin-world.mjs';
+import {deviceCurrentMonth} from '../../shared/frontend/js/modules/builtin-month-clock.js';
 
 let built;
 function fixture(){
@@ -189,14 +161,6 @@ test('one immutable project resolves every historical month through the native t
  assert.deepEqual(index,source,'source catalog must not be mutated');
  assert.throws(()=>selectBuiltinCountries(index,'1914-07-01'),/query month/i);
 });
-});
-contractSuite("builtin-world-coverage-adjustments", () => {
-const test = __country_dep0.default;
-const assert = __country_dep1.default;
-const { coalesceCoverageAdjustments } = __country_dep3;
-
-
-
 
 const row=(validFrom,validTo,change={})=>({entityId:'state:target',kind:'explicit-replacement',relatedIds:['state:priority'],...change,validFrom,validTo});
 
@@ -252,26 +216,6 @@ test('empty and single coverage records keep their original shape',()=>{
  assert.deepEqual(coalesceCoverageAdjustments([]),[]);
  assert.deepEqual(coalesceCoverageAdjustments([row(null,null)]),[row(null,null)]);
 });
-});
-contractSuite("builtin-world-baseline", () => {
-const test = __country_dep0.default;
-const assert = __country_dep1.default;
-const fs = __country_dep13.default;
-const { builtinProject } = __country_dep14;
-const { deviceCurrentMonth } = __country_dep15;
-const { assembleBuiltinWorld, selectBuiltinCountries } = __country_dep4;
-const { createGeometryVersionStore } = __country_dep12;
-const { resolveWorld } = __country_dep11;
-const { temporalContains, temporalMonthEnd } = __country_dep10;
-
-
-
-
-
-
-
-
-
 
 const catalogPath = new URL('../../assets/data/builtin-world/generated/v1/index.json', import.meta.url);
 const catalog = () => JSON.parse(fs.readFileSync(catalogPath, 'utf8'));
@@ -328,5 +272,4 @@ test('a missing selected country fails instead of substituting an unrelated past
   assert.ok(selectBuiltinCountries(index, month).length > 0);
   assert.throws(() => assembleBuiltinWorld(index, [], month), /Incomplete builtin country selection/);
   assert.deepEqual(catalog(), index, 'negative selection cannot mutate the index');
-});
 });
