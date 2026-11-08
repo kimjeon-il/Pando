@@ -5,7 +5,7 @@ import {fileURLToPath} from 'node:url';
 import {readFileSync,existsSync} from 'node:fs';
 import {frontendGeneratedOwners} from '../../scripts/lib/frontend-layout.mjs';
 import {loadRepository,planApplicationChecks} from '../../scripts/plan-application-checks.mjs';
-import {auditUnitContractIdentities} from '../../scripts/lib/unit-contract-inventory.mjs';
+import {auditUnitContractIdentities,auditGisUnitConsolidation} from '../../scripts/lib/unit-contract-inventory.mjs';
 
 test('E7 validates all active test registrations without obsolete exception rules',()=>{
   const repository=loadRepository();
@@ -114,4 +114,29 @@ test('P7 specialized unit groups retain their owners and native prerequisites', 
     assert.equal(repo.owners.get('tests/unit/' + name + '.test.mjs')?.id, 'shared-image-tools');
   assert.ok(repo.unitRequirements.get('tests/unit/map-native-pdf.test.mjs').has('native-map-pdf'));
   assert.ok(repo.unitRequirements.get('tests/unit/map-native-preview.test.mjs').has('native-map-preview'));
+});
+
+test('P7 GIS consolidation map has live owners and inherits independent native prerequisites', () => {
+  const repository = loadRepository();
+  const inventory = auditGisUnitConsolidation(repository);
+  assert.equal(inventory.mapped, 65);
+  assert.deepEqual(inventory.errors, []);
+  const manifest = JSON.parse(readFileSync(new URL('../../scripts/contracts/gis-unit-consolidation-map.json', import.meta.url)));
+  for (const [contract, prerequisite] of [
+    ['gis-lsib-reviewed-native.test.mjs', 'native-territorial-recipe'],
+    ['hydro-calibration-metrics.test.mjs', 'native-hydro-calibration'],
+    ['gis-caspian-pinned-native-oracle.test.mjs', 'native-caspian-oracle'],
+  ]) {
+    const owner = 'tests/unit/' + manifest.owners[contract];
+    assert.ok(repository.unitRequirements.get(owner)?.has(prerequisite), contract + ' -> ' + owner);
+  }
+});
+
+test('P7 GIS ownership audit rejects a moved or missing historical contract', () => {
+  const repository = loadRepository();
+  const manifest = JSON.parse(readFileSync(new URL('../../scripts/contracts/gis-unit-consolidation-map.json', import.meta.url)));
+  manifest.owners['gis-lsib-reviewed-native.test.mjs'] = 'gis-lsib-screen-report.test.mjs';
+  const result = auditGisUnitConsolidation(repository, manifest);
+  assert.ok(result.errors.some(row => row.retired === 'gis-lsib-reviewed-native.test.mjs'
+    && row.reason === 'original contract not owned by mapped suite'));
 });

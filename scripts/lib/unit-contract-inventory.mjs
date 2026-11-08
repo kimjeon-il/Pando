@@ -38,3 +38,32 @@ export function auditUnitContractIdentities(repository, baseline = JSON.parse(re
   return {unitFileCount: unitFiles.length, originalContractCount: baseline.unitFiles.length,
     registeredContractCount: owners.size, missing, duplicates, staleReferences};
 }
+
+const gisConsolidationMapURL = new URL('../contracts/gis-unit-consolidation-map.json', import.meta.url);
+
+// The GIS migration map is an auditable contract, not a list of stale runnable
+// entrypoints. An old name must resolve to exactly the current unit owner.
+export function auditGisUnitConsolidation(repository,
+    manifest = JSON.parse(readFileSync(gisConsolidationMapURL, 'utf8'))) {
+  if (manifest.schema !== 'pando-gis-unit-consolidation-map-v1'
+      || !manifest.owners || typeof manifest.owners !== 'object'
+      || Array.isArray(manifest.owners))
+    throw Error('Invalid GIS unit consolidation manifest');
+  const active = new Set(repository.tests.filter(path => path.startsWith('tests/unit/')));
+  const errors = [];
+  for (const [retired, owner] of Object.entries(manifest.owners)) {
+    if (!/^[\\w.-]+\\.test\\.mjs$/.test(retired) || !/^[\\w.-]+\\.test\\.mjs$/.test(owner)) {
+      errors.push({retired, owner, reason: 'invalid unit identity'});
+      continue;
+    }
+    const oldPath = 'tests/unit/' + retired, ownerPath = 'tests/unit/' + owner;
+    if (active.has(oldPath)) errors.push({retired, owner, reason: 'retired entrypoint still active'});
+    if (!active.has(ownerPath)) errors.push({retired, owner, reason: 'missing owner suite'});
+    if (repository.contractOwners?.get(oldPath) !== ownerPath)
+      errors.push({retired, owner, reason: 'original contract not owned by mapped suite'});
+    const registration = repository.owners?.get(ownerPath);
+    if (!registration || registration.kind !== 'unit' || registration.mode === 'manual')
+      errors.push({retired, owner, reason: 'owner has no runnable unit registration'});
+  }
+  return {mapped: Object.keys(manifest.owners).length, errors};
+}
