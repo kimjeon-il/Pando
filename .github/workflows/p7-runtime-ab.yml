@@ -34,7 +34,10 @@ jobs:
       - name: Measure main and candidate sequentially on one Chromium runner
         shell: bash
         env:
-          BASE_SHA: 7da2765dcb335eb613595f4b1d0f7d5eb80072ca
+          # Previous pinned-revision candidate that completed all three
+          # Chromium measurements. The earlier baseline cannot start the
+          # Viewer (duplicate declaration), so it is not a valid A/B sample.
+          BASE_SHA: e8422121b18bf700ed46f1851f3bbfbfdc9f3663
           HEAD_SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
