@@ -1,0 +1,57 @@
+name: Stage 0 prepared mesh focused workbench
+on:
+  push:
+    branches: [work/optimization]
+    paths: ['.github/workflows/stage0-mesh-workbench.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Snapshot only the mesh delivery source graph for remote editing
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/stage0"
+          git ls-files > "$RUNNER_TEMP/stage0/files.txt"
+          python3 - <<'PY'
+          import os,subprocess,tarfile
+          files=subprocess.check_output(['git','ls-files'],text=True).splitlines()
+          chosen=[p for p in files if p.endswith(('AGENTS.md','AGENTS.override.md')) or p in ['package.json','pnpm-lock.yaml','playwright.config.js','.github/actions/library-data/action.yml','.github/workflows/application-architecture.yml'] or p.startswith(('src/rendering/','src/geometry/','src/data/','src/runtime/','src/app/','src/document/','src/map/','scripts/','config/')) and not '/native/' in p or p.startswith('tools/') and any(w in p for w in ['mesh','world','library-data','frontend','runtime-asset','render-asset']) or p.startswith('tests/') and any(w in p for w in ['mesh','builtin','render-quality','country-packet','server.mjs','startup','stage0'])]
+          with tarfile.open(os.path.join(os.environ['RUNNER_TEMP'],'stage0/sources.tar.gz'),'w:gz') as t:
+            for p in chosen:
+              if os.path.isfile(p):t.add(p,arcname=p,recursive=False)
+          print('SCOPED_SOURCES',len(chosen))
+          PY
+          git rev-parse HEAD > "$RUNNER_TEMP/stage0/source-commit.txt"
+      - uses: ./.github/actions/library-data
+      - name: Inspect manifest and mesh files without regenerating GIS
+        shell: bash
+        run: |
+          node --input-type=module <<'JS'
+          import {readdirSync,readFileSync,statSync,writeFileSync} from 'node:fs';
+          import {join} from 'node:path';
+          const paths=[];
+          function scan(root,depth=0){if(depth>3)return;for(const e of readdirSync(root,{withFileTypes:true})){const p=join(root,e.name);if(e.isDirectory())scan(p,depth+1);else if(/mesh|bundle|manifest|world|prepared|country/.test(p))paths.push({path:p,bytes:statSync(p).size});}}
+          scan('assets/data');
+          writeFileSync(process.env.RUNNER_TEMP+'/stage0/assets.json',JSON.stringify(paths,null,2));
+          for(const p of paths.filter(x=>x.path.endsWith('.json')&&x.bytes<300000&&/mesh|world.*manifest|world.*bundle|prepared/.test(x.path))){
+            const name=p.path.replaceAll('/','__');writeFileSync(process.env.RUNNER_TEMP+'/stage0/'+name,readFileSync(p.path));
+          }
+          console.log('MESH_ASSETS',JSON.stringify(paths.filter(x=>/mesh|bundle|prepared/.test(x.path))));
+          JS
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: stage0-mesh-inspection-${{ github.sha }}
+          path: ${{ runner.temp }}/stage0/
+          retention-days: 7
+          if-no-files-found: error
