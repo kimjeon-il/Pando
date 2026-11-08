@@ -33,6 +33,7 @@ export async function fixture({override=false, version=2, shared=false, holdStro
     disposed:false, gl,glVersion:version,webGlContextKind:version===2?'webgl2':'webgl',canvas:{getContext:()=>gl},
     renderDevice:{},renderDeviceContextRevision:10,projectGeneration:7,webglContextLost:false,
     rendererMode:version===2?'webgl2':'webgl1',webglRecoveryTimer:0,stagingSequence:0,
+    terrainFallbackRequest:null,
     mesh:base,meshVariants:new Map([['canonical',{quality:'canonical',mesh:base,countryIds:['a'],resources:null,dependencies:{context:[gl,10]}}]]),
     activeMeshQuality:'canonical',overrideMesh:override?makeMesh('old-override'):null,builtinMeshBaseline:null,
     positionBuffer:null,countryBuffer:null,fillIndexBuffer:null,fillVao:null,

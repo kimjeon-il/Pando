@@ -97,7 +97,7 @@ export function createCoreDocumentReadModel(initialProject) {
         binding.geometryRef?.id===row.geometryRef.id
         && binding.geometryRef?.version===row.geometryRef.version
         && temporalContains(binding,referenceDate)):null;
-      const sourceVersion=sourceBinding?.sourceVersionId||'';
+      const sourceVersion=sourceBinding?.sourceVersionId ?? String(identity.properties?.sourceGeometryVersion ?? '');
       const prior=previousWorld?.byId?.getObject?.(row.objectRef);
       if(prior && prior.geometry===geometry
         && String(prior.identity?.properties?.sourceGeometryVersion ?? '') === sourceVersion

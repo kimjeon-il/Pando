@@ -193,13 +193,14 @@ test('failed polygon preparation clears pending identity and retries the current
   assert.equal(attempts,2);
   assert.ok(presented>=1);
   renderer='canvas-worker';ready=false;
+  const previousBaseInvalidations=baseInvalidations;
   scene.replaceGpuSceneDomain('generic-features',{polygons:[{key:'A',geometryRevision:'v2',
     geometry:{type:'Polygon',coordinates:[]},style:{color:'#ffffff'}}]});
   scene.syncGpuRenderScene();
   await Promise.resolve();await Promise.resolve();await Promise.resolve();
   assert.equal(attempts,3);
   assert.equal(canvasRequests,1,'prepared Canvas resources must submit a real bitmap');
-  assert.equal(baseInvalidations,1,'Canvas path must invalidate base rather than interaction only');
+  assert.equal(baseInvalidations-previousBaseInvalidations,1,'Canvas path must invalidate base once for the new scene');
   assert.ok(presented>=1);
 });
 

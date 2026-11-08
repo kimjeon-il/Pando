@@ -182,7 +182,6 @@ test('E4 review remains a bounded responsive panel and never claims an unverifie
   await expect(page.locator('#reviewPanel')).toBeHidden();
   expect(errors).toEqual([]);
 });
-});
 featureTest.describe("viewer-inspector", () => {
   const { test,expect } = __suiteDependency0;
 test('inspector is absent from ordinary UI until the keyboard shortcut activates lazy review',async({page})=>{
@@ -255,4 +254,6 @@ test('debug URL exposes the single lazy read-only inspector without changing the
   expect(reviewRequests).toHaveLength(1,'reopening must reuse the existing panel');
   expect(await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot())).toEqual(before);
   expect(errors).toEqual([]);
+});
+
 });
