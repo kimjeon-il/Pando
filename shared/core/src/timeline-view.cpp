@@ -77,7 +77,7 @@ TimelineDocumentView timelineDocumentView(const ProjectDocument& source,const st
     result.document.timelineRecords={};
     std::map<ObjectRef,const TimelineGeometryBinding*> firstBindings;
     bool fallbackIndexed=false;
-    const fallbackBinding=[&](const ObjectRef& ref)->const TimelineGeometryBinding& {
+    const auto fallbackBinding=[&](const ObjectRef& ref)->const TimelineGeometryBinding& {
         if(!fallbackIndexed) {
             for(const auto& binding:source.timelineRecords.geometryBindings)
                 firstBindings.emplace(binding.objectRef,&binding);

@@ -24,8 +24,8 @@ std::string nextInstanceId()
     return "project-session-" + std::to_string(value + 1);
 }
 bool sameTimelineRecords(const TimelineRecords& a,const TimelineRecords& b) {
-    const validity=[](const Validity& x,const Validity& y){return x.from==y.from&&x.to==y.to;};
-    const rows=[](const auto& x,const auto& y,const auto& equal){
+    const auto validity=[](const Validity& x,const Validity& y){return x.from==y.from&&x.to==y.to;};
+    const auto rows=[](const auto& x,const auto& y,const auto& equal){
         return x.size()==y.size()&&std::equal(x.begin(),x.end(),y.begin(),equal);
     };
     return a.schemaVersion==b.schemaVersion
@@ -42,7 +42,7 @@ bool sameTimelineRecords(const TimelineRecords& a,const TimelineRecords& b) {
                 &&x.property==y.property&&x.value==y.value;});
 }
 bool sameTimelineCatalog(const ProjectDocument& a,const ProjectDocument& b) {
-    const x=timelineEntityCatalog(a),y=timelineEntityCatalog(b);
+    const auto x=timelineEntityCatalog(a),y=timelineEntityCatalog(b);
     return x.size()==y.size()&&std::equal(x.begin(),x.end(),y.begin(),[](const auto& left,const auto& right){
         return left.objectRef==right.objectRef&&left.entityKind==right.entityKind;
     });
