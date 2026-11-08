@@ -1,27 +1,13 @@
-import { describe as contractSuite } from 'node:test';
-import * as __project_dep0 from "node:test";
-import * as __project_dep1 from "node:assert/strict";
-import * as __project_dep2 from "node:fs";
-import * as __project_dep3 from "../../shared/frontend/js/modules/initial-document.js";
-import * as __project_dep4 from "../helpers/core-project.mjs";
-import * as __project_dep5 from "../../shared/frontend/js/modules/territorial-units.js";
-import * as __project_dep6 from "../helpers/timeline-project.mjs";
-import * as __project_dep7 from "../helpers/legacy-project-autosave.mjs";
-import * as __project_dep8 from "../../shared/frontend/js/modules/project-state.js";
-import * as __project_dep9 from "../../shared/frontend/js/modules/version-contract.js";
-contractSuite("project-creation-contract", () => {
-const { describe : contractSuite } = __project_dep0;
-const __dep0 = __project_dep0;
-const __dep1 = __project_dep1;
-const __dep2 = __project_dep2;
-const __dep3 = __project_dep3;
-const __dep4 = __project_dep4;
-contractSuite("project-creation-contract", () => {
-const test = __dep0.default;
-const assert = __dep1.default;
-const { readFileSync } = __dep2;
-const { createInitialDocument } = __dep3;
-const { createNodeCoreProject } = __dep4;
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {createInitialDocument} from '../../shared/frontend/js/modules/initial-document.js';
+import {createNodeCoreProject} from '../helpers/core-project.mjs';
+import {createTerritorialFeature} from '../../shared/frontend/js/modules/territorial-units.js';
+import {staticTerritorialInput, staticSerializerSnapshot} from '../helpers/timeline-project.mjs';
+import {createProjectSerializer} from '../helpers/legacy-project-autosave.mjs';
+import {restoreEntitiesFromDelta} from '../../shared/frontend/js/modules/project-state.js';
+import {PROJECT_SCHEMA_VERSION} from '../../shared/frontend/js/modules/version-contract.js';
 
 const viewing=['defaultView','layerVisibility','itemVisibility'];
 test('new projects carry one initial setup and no authored viewing defaults',()=>{
@@ -51,13 +37,6 @@ test('Core file and autosave serialization exclude device viewing while preservi
   try{assert.equal(reopened.client.state().timelineCursor,project.projectSetup.initialMonth);}finally{reopened.dispose();}
  }finally{owner.dispose();}
 });
-});
-contractSuite("project-creation-storage", () => {
-const test = __dep0.default;
-const assert = __dep1.default;
-const { readFileSync } = __dep2;
-const { createInitialDocument } = __dep3;
-const { createNodeCoreProject } = __dep4;
 
 test('new documents have independent identity and only one creation setup',()=>{
  const a=createInitialDocument({appVersion:'test'}),b=createInitialDocument({appVersion:'test'});
@@ -78,17 +57,7 @@ test('retired settings commands and old saves cannot change the active document'
   try{assert.equal(reopened.client.state().timelineCursor,seed.projectSetup.initialMonth);assert.deepEqual(reopened.documentModel.snapshot().labels,before.labels);assert.deepEqual(reopened.documentModel.snapshot().geometries,before.geometries);}finally{reopened.dispose();}
  }finally{owner.dispose();}
 });
-});
-});
-contractSuite("project-serializer", () => {
-const test = __project_dep0.default;
-const assert = __project_dep1.default;
-const { createTerritorialFeature } = __project_dep5;
-const { staticTerritorialInput } = __project_dep6;
-const { createProjectSerializer } = __project_dep7;
-const { restoreEntitiesFromDelta } = __project_dep8;
-const { PROJECT_SCHEMA_VERSION } = __project_dep9;
-const { staticSerializerSnapshot } = __project_dep6;
+
 const geometry={type:'Polygon',coordinates:[[[0,0],[0,1],[1,1],[1,0],[0,0]]]};
 const entity=(id,entityKind='general',options={})=>createTerritorialFeature({id,entityKind,geometry,name:id,...options});
 const serializer=snapshot=>createProjectSerializer({appVersion:'0.34.0',baseDataset:'base',baseDatasetFingerprint:'1'.repeat(64),distributionModes:['territorial','geometry'],terrainDataset:'terrain',hydroDataset:'hydro',readSnapshot:()=>snapshot,now:()=>new Date('2026-10-03T00:00:00Z')});
@@ -137,5 +106,4 @@ test('external full projects remain independent from the builtin delta baseline 
   assert.equal(reopened.format,'pandolab-autosave-full');assert.deepEqual(reopened.territorialEntities,project.territorialEntities);
   assert.deepEqual(reopened.timelineRecords,project.timelineRecords);assert.deepEqual(reopened.geometries,project.geometries);
   assert.equal('entityDelta' in reopened,false);
-});
 });
