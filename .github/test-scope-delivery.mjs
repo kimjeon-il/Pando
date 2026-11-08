@@ -80,6 +80,7 @@ for(const row of plan.files){
           bytes=readFileSync(ours);
           console.log('Merged using context-checked independent hunks: '+path);
         } catch(applyError) {
+          console.error('Reviewed difference (first 5500 characters): '+path+'\n'+patch.slice(0,5500));
           throw Error('Merge conflict requires manual review: '+path+' (merge '+error.status+', hunk '+applyError.status+')');
         }
       }
