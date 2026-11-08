@@ -1,21 +1,11 @@
-import { describe as contractSuite } from 'node:test';
-import * as __country_dep0 from "node:assert/strict";
-import * as __country_dep1 from "node:test";
-import * as __country_dep2 from "../../tools/gis/territorial-library.js";
-import * as __country_dep3 from "../../shared/frontend/js/modules/timeline-resolver.js";
-import * as __country_dep4 from "node:crypto";
-import * as __country_dep5 from "node:fs";
-import * as __country_dep6 from "../../tools/territorial-entity-sources.mjs";
-import * as __country_dep7 from "../../tools/gis/territorial-library-provenance.js";
-contractSuite("territorial-library", () => {
-const assert = __country_dep0.default;
-const test = __country_dep1.default;
-const { normalizeTerritorialLibraryEntity, selectGeometryVersion, instantiateLibraryEntity, TERRITORIAL_LIBRARY_SCHEMA_VERSION } = __country_dep2;
-const { projectTimelineIdentity } = __country_dep3;
-
-
-
-
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import {normalizeTerritorialLibraryEntity, selectGeometryVersion, instantiateLibraryEntity, TERRITORIAL_LIBRARY_SCHEMA_VERSION, LIBRARY_ENTITY_TYPES} from '../../tools/gis/territorial-library.js';
+import {projectTimelineIdentity} from '../../shared/frontend/js/modules/timeline-resolver.js';
+import {createHash} from 'node:crypto';
+import {readFileSync} from 'node:fs';
+import {readTerritorialSources} from '../../tools/territorial-entity-sources.mjs';
+import {markEditedLibrarySource} from '../../tools/gis/territorial-library-provenance.js';
 
 const geometry = { type: 'Polygon', coordinates: [[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]] };
 const entity = () => ({ schemaVersion: 2, entityId: 'state:sample', entityKind: 'general', names: {ko:'Sample',en:'Sample'}, lifetime: {validFrom: null, validTo: null}, geometryVersions: [{versionId: 'sample:current', validFrom: null, validTo: null, geometry, certainty: 'high', sourceId: 'test'}], metadata: { note: 'preserved' }, sourceInfo: { license: 'test' } });
@@ -120,19 +110,6 @@ test('a single country identity selects historic replacement and modern independ
   assert.equal(latest.instantiation.mode,'independent');
   assert.equal(latest.metadata.historicalProvenance,undefined);
 });
-});
-contractSuite("territorial-library-data", () => {
-const assert = __country_dep0.default;
-const test = __country_dep1.default;
-const { createHash } = __country_dep4;
-const { readFileSync } = __country_dep5;
-const { readTerritorialSources } = __country_dep6;
-const { LIBRARY_ENTITY_TYPES } = __country_dep2;
-
-
-
-
-
 
 const historicalData={entities:readTerritorialSources().filter(e=>e.sourceInfo.importProvenance)};
 test('East Prussia r3 library preserves the reviewed geometry and reports its limitations', () => {
@@ -295,17 +272,9 @@ test('Soviet constituent republics remain flagged political entities, not admini
     }
   }
 });
-});
-contractSuite("territorial-library-provenance", () => {
-const test = __country_dep1.default;
-const assert = __country_dep0.default;
-const { markEditedLibrarySource } = __country_dep7;
-
-
-
 
 const polygon=right=>({type:'Polygon',coordinates:[[[0,0],[right,0],[right,1],[0,1],[0,0]]]});
-const entity=()=>({entityId:'state:Test',metadata:{geometrySha256:'metadata-old'},
+const editedEntity=()=>({entityId:'state:Test',metadata:{geometrySha256:'metadata-old'},
   sourceInfo:{geometrySha256:'source-old',archive:'survey'},geometryVersions:[{
     versionId:'v1',validFrom:'1900-01-01',validTo:'1900-12-31',geometry:polygon(1),
     historicalProvenance:{evidenceStatus:'verified',verifiedHistoricalGeometry:true,
@@ -313,12 +282,12 @@ const entity=()=>({entityId:'state:Test',metadata:{geometrySha256:'metadata-old'
   }]});
 
 test('unchanged library source keeps its verification and hashes',()=>{
-  const previous=entity();
+  const previous=editedEntity();
   assert.deepEqual(markEditedLibrarySource(structuredClone(previous),previous),previous);
 });
 
 test('changed geometry downgrades verification and retains original source evidence',()=>{
-  const previous=entity(),draft=structuredClone(previous);
+  const previous=editedEntity(),draft=structuredClone(previous);
   draft.geometryVersions[0].geometry=polygon(1.1);
   const edited=markEditedLibrarySource(draft,previous,'user-map-editor');
   assert.equal(edited.geometryVersions[0].historicalProvenance.evidenceStatus,'provisional');
@@ -335,7 +304,7 @@ test('changed geometry downgrades verification and retains original source evide
 });
 
 test('period edits and new versions are provisional while unchanged versions stay verified',()=>{
-  const previous=entity();
+  const previous=editedEntity();
   previous.geometryVersions.push({...structuredClone(previous.geometryVersions[0]),versionId:'v3',
     validFrom:'1901-01-01',validTo:'1901-12-31'});
   const draft=structuredClone(previous);
@@ -349,5 +318,4 @@ test('period edits and new versions are provisional while unchanged versions sta
   assert.equal(edited.geometryVersions.find(row=>row.versionId==='v3').historicalProvenance.evidenceStatus,'verified');
 });
 
-test('editing invalidates an inherited detail approval without discarding its evidence',()=>{const previous=entity();previous.geometryVersions[0].historicalProvenance.displayDetailReview={status:'passed',geometrySha256:'original',master:{reference:'preserved-master'}};const draft=structuredClone(previous);draft.geometryVersions[0].geometry=polygon(2);const result=markEditedLibrarySource(draft,previous);assert.equal(result.geometryVersions[0].historicalProvenance.displayDetailReview.status,'stale');assert.equal(result.geometryVersions[0].historicalProvenance.displayDetailReview.geometrySha256,'original');assert.deepEqual(result.geometryVersions[0].historicalProvenance.displayDetailReview.master,{reference:'preserved-master'});assert.equal(previous.geometryVersions[0].historicalProvenance.displayDetailReview.status,'passed');});
-});
+test('editing invalidates an inherited detail approval without discarding its evidence',()=>{const previous=editedEntity();previous.geometryVersions[0].historicalProvenance.displayDetailReview={status:'passed',geometrySha256:'original',master:{reference:'preserved-master'}};const draft=structuredClone(previous);draft.geometryVersions[0].geometry=polygon(2);const result=markEditedLibrarySource(draft,previous);assert.equal(result.geometryVersions[0].historicalProvenance.displayDetailReview.status,'stale');assert.equal(result.geometryVersions[0].historicalProvenance.displayDetailReview.geometrySha256,'original');assert.deepEqual(result.geometryVersions[0].historicalProvenance.displayDetailReview.master,{reference:'preserved-master'});assert.equal(previous.geometryVersions[0].historicalProvenance.displayDetailReview.status,'passed');});
