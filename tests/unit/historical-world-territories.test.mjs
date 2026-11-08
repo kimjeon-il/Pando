@@ -8,6 +8,15 @@ const module = await import('../../tools/historical-world-territories.mjs').catc
 const box = (left, right) => ({ type: 'Polygon', coordinates: [[[left, 0], [right, 0], [right, 2], [left, 2], [left, 0]]] });
 const candidate = (entityId, left, right, parentId = '') => ({ entityId, parentId, geometry: box(left, right), validFrom: '1991-09-02', validTo: '1991-12-25', currentSnapshot: false });
 const policy = { schemaVersion: 1, unknownPeerOverlap: 'exclude-from-all', replacements: [] };
+test('native difference terminates for a shared near-collinear historical triangle', () => {
+  const a = [[[[9.758080569987348,47.03701035412004],[9.857982,47.015478],[9.856328,47.004083],[9.758080569987348,47.03701035412004]]]];
+  const b = [[[[9.84987981578944,47.01722431233553],[9.838242,47.0120742],[9.807049969632736,47.026455685842755],[9.84987981578944,47.01722431233553]]]];
+  const original = structuredClone([a, b]);
+  const expected = globalThis.polygonClipping.difference(a, b);
+  const actual = module.historicalWorldClipper.difference(a, b);
+  assert.deepEqual([a, b], original, 'source coordinates must remain unchanged');
+  assert.deepEqual(globalThis.polygonClipping.xor(actual, expected), []);
+});
 function adjust(rows, rules = policy, clipper = globalThis.polygonClipping) {
   assert.equal(typeof module.adjustHistoricalTerritories, 'function');
   return module.adjustHistoricalTerritories(rows, rules, clipper);

@@ -184,6 +184,11 @@ jobs:
           shared/tests/p5-boundary-split-wasm.test.mjs shared/tests/p5-polygon-mesh-wasm.test.mjs
           tests/unit/country-shared-boundary.test.mjs
           tests/unit/boundary-lines.test.mjs
+      - name: Verify near-coincident historical polygon difference
+        if: needs.plan.outputs.wasm == 'true'
+        run: >-
+          node --test --test-name-pattern='native difference terminates for a shared near-collinear historical triangle'
+          tests/unit/historical-world-territories.test.mjs
       - name: Verify changed temporal editing and place naming
         if: inputs.verification == 'temporal'
         env:
