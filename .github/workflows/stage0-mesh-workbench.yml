@@ -5,59 +5,114 @@ on:
     paths: ['.github/workflows/stage0-mesh-workbench.yml']
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
+concurrency:
+  group: stage0-prepared-country-scene
+  cancel-in-progress: false
 jobs:
-  inspect:
+  implement:
     runs-on: ubuntu-24.04
-    timeout-minutes: 12
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
         with:
-          persist-credentials: false
+          ref: work/optimization
+          fetch-depth: 0
+          persist-credentials: true
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
       - uses: pnpm/action-setup@v4
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - uses: ./.github/actions/library-data
-      - name: Audit exact geometry and slot identities from runtime assets
-        shell: bash
+      - name: Apply the immutable reviewed patch and correct moved test path
         run: |
           mkdir -p "$RUNNER_TEMP/stage0"
+          git rev-parse HEAD > "$RUNNER_TEMP/stage0/starting-head"
           node --input-type=module <<'JS'
-          import {readFileSync,writeFileSync} from 'node:fs';
+          import {parse} from 'yaml';
           import {gunzipSync} from 'node:zlib';
           import {createHash} from 'node:crypto';
-          import {createCanonicalCountryStore} from './src/rendering/canonical-country-packet.js';
-          import {readBuiltinCountry} from './tools/data/builtin-country-bytes.mjs';
-          const out=process.env.RUNNER_TEMP+'/stage0/',root='assets/data/';
-          const read=p=>JSON.parse(readFileSync(p,'utf8'));
-          const digest=g=>createHash('sha256').update(JSON.stringify([g.type,g.coordinates])).digest('hex');
-          const world=read(root+'world/current.json'),asset=world.assets.canonicalCountryPacket;
-          const bytes=gunzipSync(readFileSync(root+asset.url));
-          const store=createCanonicalCountryStore(bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength));
-          const source=store.materializeCollectionSync(),slots=source.features.map((f,slot)=>({slot,id:f.id,properties:f.properties,digest:digest(f.geometry)}));
-          writeFileSync(out+'world-slots.json',JSON.stringify(slots,null,2));
-          const index=read(root+'builtin-world/generated/v1/index.json'),rows=[];
-          for(const entry of index.entities){
-            const country=readBuiltinCountry(entry,index,relative=>readFileSync(root+'builtin-world/generated/v1/'+relative));
-            rows.push({id:entry.entityId,identity:country.identity,timelineRecords:country.timelineRecords,geometries:country.geometries.map(g=>({id:g.id,version:g.version,digest:digest(g.geojson)}))});
-          }
-          writeFileSync(out+'builtin-identity.json',JSON.stringify(rows,null,2));
-          const known=new Map(slots.map(x=>[x.digest,x.id]));
-          console.log('MESH_IDENTITY_AUDIT',JSON.stringify({slots:slots.length,countries:rows.length,matchingGeometryVersions:rows.flatMap(x=>x.geometries).filter(x=>known.has(x.digest)).length}));
+          import {execFileSync} from 'node:child_process';
+          import {readFileSync,writeFileSync} from 'node:fs';
+          const old=parse(execFileSync('git',['show','678c7ab5387b33aeea345c47b64bfb1dfa1480af:.github/workflows/stage0-mesh-workbench.yml'],{encoding:'utf8'}));
+          const patch=gunzipSync(Buffer.from(old.jobs.implement.steps.find(s=>s.env?.PATCH).env.PATCH,'base64'));
+          if(createHash('sha256').update(patch).digest('hex')!=='4532c371e41e635ba2000295bae6bec2cc485248cf64f6d57f5ec6d0167eb5c1')throw Error('Task patch identity mismatch');
+          const path=process.env.RUNNER_TEMP+'/stage0/implementation.patch';writeFileSync(path,patch);
+          execFileSync('git',['apply','--check',path]);execFileSync('git',['apply',path]);
+          const test='tests/unit/rendering/gpu-country-mesh-variants.test.mjs';
+          const source=readFileSync(test,'utf8'),before="path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..')";
+          if(!source.includes(before))throw Error('Moved test path no longer matches; review concurrent change');
+          writeFileSync(test,source.replace(before,"path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..')"));
+          const browser='tests/browser/rendering/country-prepared-scene.spec.mjs';
+          let text=readFileSync(browser,'utf8');
+          text=text.replace("const errors=[],observations=[];","const errors=[],observations=[],consoleErrors=[];\n  page.on('console',message=>{if(message.type()==='error')consoleErrors.push(message.text());});");
+          text=text.replace('boundaryWorker:s?.countrySharedBoundaryWorkerActive','boundaryWorker:s?.countrySharedBoundaryWorkerActive,diagnostics:api?.diagnostics?.(),statusText:document.getElementById(\'viewerStatus\')?.textContent');
+          text=text.replaceAll('{observations,errors,last:state}','{observations,errors,consoleErrors,last:state}');
+          writeFileSync(browser,text);
           JS
-      - name: Retain exact source dependencies for focused implementation
-        if: always()
-        shell: bash
+          git diff --check
+      - name: Focused slot identity, loader cancellation and preparation checks
+        env:
+          CHECK_SELECTION: '{"unitTests":["tests/unit/rendering/prepared-country-scene.test.mjs","tests/unit/data/builtin-mesh-resource.test.mjs","tests/unit/rendering/country-mesh-preparation.test.mjs","tests/unit/rendering/gpu-country-mesh-variants.test.mjs"],"browserSpecs":[],"commands":[],"prerequisites":[]}'
+        run: node scripts/run-application-checks.mjs --phase non-browser
+      - name: Build only the current scene derivative from pinned runtime geometry
         run: |
-          mkdir -p "$RUNNER_TEMP/stage0"
-          tar -czf "$RUNNER_TEMP/stage0/tool-sources.tar.gz" tools/build tools/data tests/helpers
-          git rev-parse HEAD > "$RUNNER_TEMP/stage0/source-commit.txt"
-      - uses: actions/upload-artifact@v4
+          node scripts/check-core-prerequisite.mjs
+          node tools/build/build-prepared-country-scene.mjs --month=2026-11 | tee "$RUNNER_TEMP/stage0/generation.txt"
+      - name: Store local paired data for browser verification
+        env:
+          PANDOLAB_LIBRARY_WRITE_TOKEN: ${{ secrets.PANDOLAB_LIBRARY_WRITE_TOKEN }}
+        run: |
+          node --input-type=module <<'JS'
+          import {execFileSync} from 'node:child_process';
+          import {readFileSync,writeFileSync} from 'node:fs';
+          import {storeLibraryData,libraryWriteGitEnvironment} from './tools/data/library-store.mjs';
+          import {libraryCheckout} from './tools/data/library-context.mjs';
+          const root=process.cwd(),data=libraryCheckout(root),pin=JSON.parse(readFileSync('config/library-data.json','utf8')).revision;
+          const env=libraryWriteGitEnvironment(process.env.PANDOLAB_LIBRARY_WRITE_TOKEN);
+          const remote=execFileSync('git',['ls-remote','origin','refs/heads/work/optimization'],{cwd:data,env,encoding:'utf8'}).trim().split(/\s+/)[0];
+          if(remote!==pin)throw Error('Data branch advanced; preserve it and regenerate against its paired pin');
+          const revision=storeLibraryData({root,prefixes:['assets/data/world'],push:false});
+          writeFileSync(process.env.RUNNER_TEMP+'/stage0/data-revision',revision+'\n');
+          console.log('PREPARED_LOCAL_DATA',revision);
+          JS
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Verify actual cold load, cached reload and date return
+        env:
+          CHECK_SELECTION: '{"unitTests":[],"browserSpecs":["tests/browser/rendering/country-prepared-scene.spec.mjs"],"commands":[],"prerequisites":["generated","core"]}'
+        run: node scripts/run-application-checks.mjs --phase browser
+      - name: Commit verified changes to existing work branches only
+        env:
+          PANDOLAB_LIBRARY_WRITE_TOKEN: ${{ secrets.PANDOLAB_LIBRARY_WRITE_TOKEN }}
+        run: |
+          test "$(git ls-remote origin refs/heads/work/optimization | cut -f1)" = "$(cat "$RUNNER_TEMP/stage0/starting-head")"
+          node --input-type=module <<'JS'
+          import {execFileSync} from 'node:child_process';
+          import {readFileSync} from 'node:fs';
+          import {libraryCheckout} from './tools/data/library-context.mjs';
+          import {libraryWriteGitEnvironment} from './tools/data/library-store.mjs';
+          const cwd=libraryCheckout(process.cwd()),env=libraryWriteGitEnvironment(process.env.PANDOLAB_LIBRARY_WRITE_TOKEN);
+          const revision=readFileSync(process.env.RUNNER_TEMP+'/stage0/data-revision','utf8').trim();
+          execFileSync('git',['push','origin','HEAD:refs/heads/work/optimization'],{cwd,env,stdio:'pipe'});
+          const remote=execFileSync('git',['ls-remote','origin','refs/heads/work/optimization'],{cwd,env,encoding:'utf8'}).trim().split(/\s+/)[0];
+          if(remote!==revision)throw Error('Prepared data push verification failed');
+          console.log('PREPARED_REMOTE_DATA',revision);
+          JS
+          rm .github/workflows/stage0-mesh-workbench.yml
+          git add src/rendering/country-mesh-codec.js src/rendering/country-mesh-preparation.js src/rendering/country-mesh-content-key.js src/data/world-bundle-manifest.js src/data/builtin-mesh-resource.js src/data/workers/data-loader-worker.js src/rendering/gpu-map-renderer.js src/app/viewer-map.js tools/build/build-prepared-country-scene.mjs tools/build/build-world-bundle.mjs tests/unit/rendering/prepared-country-scene.test.mjs tests/unit/data/builtin-mesh-resource.test.mjs tests/unit/rendering/gpu-country-mesh-variants.test.mjs tests/browser/rendering/country-prepared-scene.spec.mjs docs/superpowers/plans/2026-11-08-prepared-country-scene.md config/library-data.json .github/workflows/stage0-mesh-workbench.yml
+          git diff --cached --check
+          git -c user.name='Pando rendering workbench' -c user.email='rendering@users.noreply.github.com' commit -m 'perf(render): load verified precomputed initial country mesh and boundaries'
+          git push origin HEAD:refs/heads/work/optimization
+          test "$(git ls-remote origin refs/heads/work/optimization | cut -f1)" = "$(git rev-parse HEAD)"
+          git rev-parse HEAD | tee "$RUNNER_TEMP/stage0/committed-source"
+      - name: Preserve scoped outcomes including failures
         if: always()
+        uses: actions/upload-artifact@v4
         with:
-          name: stage0-mesh-inspection-${{ github.sha }}
-          path: ${{ runner.temp }}/stage0/
+          name: stage0-prepared-scene-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/stage0/
+            test-results/
           retention-days: 7
           if-no-files-found: warn

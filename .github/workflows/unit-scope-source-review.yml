@@ -21,13 +21,15 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Archive review dependencies without credentials or runtime datasets
         run: |
+          git rev-parse HEAD > "$RUNNER_TEMP/pando-source-revision.txt"
           tar -czf "$RUNNER_TEMP/pando-review-deps.tar.gz" node_modules
           git archive --format=tar.gz --output="$RUNNER_TEMP/pando-source.tar.gz" HEAD
       - uses: actions/upload-artifact@v4
         with:
           name: pando-unit-scope-review
           path: |
+            ${{ runner.temp }}/pando-source-revision.txt
             ${{ runner.temp }}/pando-source.tar.gz
             ${{ runner.temp }}/pando-review-deps.tar.gz
-          retention-days: 3
+          retention-days: 7
           if-no-files-found: error
