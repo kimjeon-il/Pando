@@ -214,6 +214,22 @@ export function assertBranchState(root,{expectedSourceSha,expectedRemoteSha,bran
   }
 }
 
+export function artifactPreparationPrefixes(graph, families) {
+  const byId = new Map(graph.map(family => [family.id, family])), selected = new Set();
+  const visit = id => {
+    if (id === 'wasm' || selected.has(id)) return;
+    assert.ok(byId.has(id), 'P2_UNKNOWN_PREPARATION_FAMILY: ' + id);
+    selected.add(id);
+    byId.get(id).dependencies.forEach(visit);
+  };
+  families.forEach(visit);
+  return [...new Set([...selected].flatMap(id => {
+    const family = byId.get(id);
+    return [...family.inputs, ...family.outputs].map(selector => typeof selector === 'string' ? selector : selector.prefix)
+      .filter(path => path.startsWith('assets/data/')).map(path => path.replace(/\/$/, ''));
+  }))].sort();
+}
+
 export async function stageArtifacts(root,{families,expectedSourceSha,stageDir,run=runCommand,prepareData=prepareLibraryData}) {
   assertBranchState(root,{expectedSourceSha});
   assert.ok(Array.isArray(families)&&families.length,'P2_FAMILIES_REQUIRED');
@@ -238,7 +254,8 @@ export async function stageArtifacts(root,{families,expectedSourceSha,stageDir,r
     assert.ok(lstatSync(source).isFile(),'P2_NON_FILE_TRACKED_INPUT: '+p);
     mkdirSync(dirname(target),{recursive:true});copyFileSync(source,target);
   }
-  if(existsSync(resolve(checkout,'config/library-data.json')))prepareData({root:checkout});
+  if(existsSync(resolve(checkout,'config/library-data.json')))prepareData({root:checkout,purpose:'gis',
+    prefixes:artifactPreparationPrefixes(initial.graph,families)});
   const before=hashes(checkout,filesInCheckout(checkout)),selected=initial.graph.filter(f=>families.includes(f.id));
   for(const family of selected) {
     for(const command of family.generate)await run(command,checkout,{PANDO_P2_SOURCE_SHA:expectedSourceSha});

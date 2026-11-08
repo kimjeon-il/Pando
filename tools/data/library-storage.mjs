@@ -105,11 +105,16 @@ function preserveSources(shared,journal,save) {
   journal.phase='shared';save();
 }
 function switchViews(root,shared,journal,save){
-  const views=new Map(journal.roots.map(owner=>[owner.root,resolve(shared,'.pando-cache/materialized',owner.owner,owner.config.revision)]));
+  const views=new Map();
   for(const owner of journal.roots){
     if(fileHash(resolve(owner.root,'config/library-data.json'))!==owner.configHash)throw Error('A runtime pin changed during migration');
     if(libraryOwnerId(owner.root)!==owner.owner)throw Error('A worktree branch changed during migration');
-    prepareOwnedLibraryData({root:owner.root,fetch:false});
+    const current=libraryMaterializedRoot(owner.root);
+    const legacy=journal.legacy.find(old=>old.revision===owner.config.revision);
+    const source=existsSync(resolve(current,'.complete'))?current:legacy?resolve(shared,'.pando-cache/materialized',legacy.revision):null;
+    const prepared=prepareOwnedLibraryData({root:owner.root,fetch:false,purpose:'gis',
+      prefixes:owner.config.mounts.filter(path=>path!=='reports'),source});
+    views.set(owner.root,prepared.materialized);
     synchronizeRuntimeManifest(shared,views.get(owner.root));
   }
   // Every old source must have an exact retained destination before deletion.

@@ -58,7 +58,7 @@ test('scoped native storage uses the pinned native index when checkout metadata 
   put(data,'library.json',JSON.stringify({schemaVersion:1,indexHash:'missing-other-edition',entities:{}}));git(data,'add','.');git(data,'commit','-qm','other metadata edition');
   put(root,'config/library-data.json',JSON.stringify({repository:'fixture/data',revision:pin,mounts:['assets/data','reports']}));
   put(root,'.gitignore','.library-data/\nassets/data/\nreports/\n');git(root,'add','.');git(root,'commit','-qm','app');
-  prepareLibraryData({root,fetch:false});
+  prepareLibraryData({purpose:'gis',prefixes:['assets/data'],root,fetch:false});
   const next=gzipSync(after);
   withLibraryWrite({root,prefixes:[source,chunk,indexPath]},()=>{
     put(root,source,after);put(root,chunk,next);
@@ -80,11 +80,37 @@ test('public release paths remain directly archivable from the storage Git tree'
   git(checkout,'add','.');git(checkout,'commit','-qm','source');
   put(root,'config/library-data.json',JSON.stringify({repository:'fixture/data',revision:git(checkout,'rev-parse','HEAD'),mounts:['assets/data','reports']}));
   put(root,'.gitignore','.library-data/\nassets/data/\nreports/\n');git(root,'add','.');git(root,'commit','-qm','app');
-  prepareLibraryData({root,fetch:false});
+  prepareLibraryData({purpose:'gis',prefixes:['assets/data'],root,fetch:false});
   const paths=['assets/data/library-channel/current.json',`assets/data/library-releases/${'a'.repeat(64)}/manifest.json`];
   withLibraryWrite({root,prefixes:paths},()=>{for(const path of paths)put(root,path,'{"release":"'+'x'.repeat(200)+'"}');});
   storeLibraryData({root,prefixes:paths});
   for(const path of paths){const entry=JSON.parse(git(checkout,'show','HEAD:archive/index.json')).files[path];assert.equal(entry.stored,path);assert.equal(entry.encoding,'identity');assert.equal(git(checkout,'show',`HEAD:${path}`),readFileSync(join(root,path),'utf8'));}
+});
+
+test('partial preparation never archives missing inputs as deletions and reports prepare no runtime', t => {
+  const parent=mkdtempSync(join(tmpdir(),'pando-partial-store-')),root=join(parent,'app'),checkout=join(root,'.library-data/repository');
+  t.after(()=>rmSync(parent,{recursive:true,force:true}));
+  const put=(base,path,bytes)=>{mkdirSync(dirname(join(base,path)),{recursive:true});writeFileSync(join(base,path),bytes);};
+  const git=(base,...args)=>execFileSync('git',['-c','core.autocrlf=false',...args],{cwd:base,encoding:'utf8',stdio:'pipe'}).trim();
+  for(const base of [root,checkout]){mkdirSync(base,{recursive:true});git(base,'init','-q');git(base,'config','user.name','Fixture');git(base,'config','user.email','fixture@example.invalid');}
+  const selected='assets/data/scoped/selected.bin',unprepared='assets/data/scoped/unprepared.bin',files={};
+  for(const path of [selected,unprepared]){const bytes=Buffer.from(path);put(checkout,path,bytes);files[path]={stored:path,encoding:'identity',bytes:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex')};}
+  put(checkout,'archive/index.json',JSON.stringify({files}));git(checkout,'add','.');git(checkout,'commit','-qm','inputs');
+  put(root,'config/library-data.json',JSON.stringify({repository:'fixture/data',revision:git(checkout,'rev-parse','HEAD'),mounts:['assets/data','reports']}));
+  put(root,'.gitignore','.library-data/\nassets/data/\nreports/\n');git(root,'add','.');git(root,'commit','-qm','app');
+  const reports=prepareLibraryData({root,fetch:false,purpose:'reports'});
+  assert.equal(reports.materialized,null);assert.equal(existsSync(join(root,'assets/data')),false);
+  prepareLibraryData({root,fetch:false,purpose:'gis',prefixes:[selected]});
+  assert.equal(existsSync(join(root,unprepared)),false);
+  withLibraryWrite({root,prefixes:[selected]},()=>put(root,selected,'edited'));
+  storeLibraryData({root,prefixes:['assets/data/scoped']});
+  let archived=JSON.parse(git(checkout,'show','HEAD:archive/index.json'));
+  assert.deepEqual(archived.files[unprepared],files[unprepared]);
+  assert.equal(archived.files[selected].sha256,createHash('sha256').update('edited').digest('hex'));
+  assert.equal(existsSync(join(root,unprepared)),false,'store must not hydrate the absent input');
+  storeLibraryData({root,prefixes:[unprepared],removePaths:[unprepared]});
+  archived=JSON.parse(git(checkout,'show','HEAD:archive/index.json'));
+  assert.equal(Object.hasOwn(archived.files,unprepared),false,'explicit deletion remains supported');
 });
 
 test('external materialization restores exact gzip bytes and rejects corrupt transfers', t => {
@@ -118,7 +144,7 @@ test('runtime storage advances the pin only after a remotely confirmed push and 
   git(data,'add','.');git(data,'commit','-qm','initial');git(data,'remote','add','origin',remote);git(data,'push','origin','HEAD:main');
   put(root,'config/library-data.json',JSON.stringify({repository:'fixture/data',revision:git(data,'rev-parse','HEAD'),mounts:['assets/data','reports']}));
   put(root,'.gitignore','.library-data/\nassets/data/\nreports/\n');git(root,'add','.');git(root,'commit','-qm','app');
-  prepareLibraryData({root,fetch:false});
+  prepareLibraryData({purpose:'gis',prefixes:['assets/data'],root,fetch:false});
   withLibraryWrite({root,prefixes:[path]},()=>put(root,path,'second'));
   const revision=storeLibraryData({root,prefixes:[path],push:true});
   assert.equal(JSON.parse(readFileSync(join(root,'config/library-data.json'))).revision,revision);
@@ -195,7 +221,7 @@ test('runtime preparation is report-lazy and scoped report stores preserve pins,
   const legacy = join(checkout, 'reports/.edits/main');
   put(legacy, 'unsaved.md', '# local original');
   symlinkSync(join(checkout, 'reports'), join(root, 'reports'), process.platform === 'win32' ? 'junction' : 'dir');
-  prepareLibraryData({ root, fetch: false });
+  prepareLibraryData({purpose:'gis',prefixes:['assets/data'], root, fetch: false });
   assert.equal(existsSync(join(checkout, 'assets/data/obsolete.json')), false, 'runtime checkout copies are evicted after offline verification');
   assert.equal(readFileSync(join(checkout, 'reports/obsolete.md'), 'utf8'), '# original', 'central originals remain visible');
   for (const directory of ['assets/data', 'objects']) assert.deepEqual(readdirSync(join(checkout, directory)), [], 'canonical storage directories remain available without payload copies');
@@ -209,13 +235,13 @@ test('runtime preparation is report-lazy and scoped report stores preserve pins,
   assert.equal(readFileSync(join(edits, 'unsaved.md'), 'utf8'), '# local original');
   const lockPath = join(root, '.library-data/prepare.lock');
   writeFileSync(lockPath, 'another preparation');
-  assert.throws(() => prepareLibraryData({ root, fetch: false }), /already running/);
+  assert.throws(() => prepareLibraryData({purpose:'gis',prefixes:['assets/data'], root, fetch: false }), /already running/);
   assert.equal(readFileSync(lockPath, 'utf8'), 'another preparation');
   unlinkSync(lockPath);
   const sharedLock = join(checkout, '.git/pando-library.lock');
   writeFileSync(sharedLock, 'another worktree is storing');
   assert.throws(() => hydrateReports({ root, path: 'obsolete.md', access: 'read' }), /already running/);
-  assert.throws(() => prepareLibraryData({ root, fetch: false }), /already running/);
+  assert.throws(() => prepareLibraryData({purpose:'gis',prefixes:['assets/data'], root, fetch: false }), /already running/);
   unlinkSync(sharedLock);
   assert.equal(existsSync(join(root, 'reports/obsolete.md')), true);
   hydrateReports({ root, path: 'obsolete.md', access: 'read' });
@@ -249,7 +275,7 @@ test('runtime preparation is report-lazy and scoped report stores preserve pins,
   // A new runtime pin reuses this worktree's original report owner.
   const config = JSON.parse(pin); config.revision = git(checkout, 'rev-parse', 'HEAD');
   put(root, 'config/library-data.json', JSON.stringify(config));
-  prepareLibraryData({ root, fetch: false });
+  prepareLibraryData({purpose:'gis',prefixes:['assets/data'], root, fetch: false });
   assert.equal(libraryReportRoot(root), reportRoot);
   assert.equal(readFileSync(hydrateReports({ root, path: 'obsolete.md', access: 'read' }), 'utf8'), '# unfinished');
   assert.throws(() => storeLibraryData({ root, prefixes: ['reports/new.md'], removePaths: ['reports/new.md'] }), /working original/i);
@@ -264,7 +290,7 @@ test('runtime preparation is report-lazy and scoped report stores preserve pins,
   put(checkout, 'assets/data/bad.bin', 'bad'); put(checkout, 'archive/index.json', JSON.stringify(archive));
   git(checkout, 'add', '--sparse', '.'); git(checkout, 'commit', '-qm', 'corrupt transfer fixture');
   config.revision = git(checkout, 'rev-parse', 'HEAD'); put(root, 'config/library-data.json', JSON.stringify(config));
-  assert.throws(() => prepareLibraryData({ root, fetch: false }), /corrupt/);
+  assert.throws(() => prepareLibraryData({purpose:'gis',prefixes:['assets/data'], root, fetch: false }), /corrupt/);
   assert.deepEqual(readFileSync(unrelated), mountedBeforeFailure);
   assert.equal(existsSync(libraryMaterializedRoot(root) + '.pending'), false);
 });
@@ -286,7 +312,7 @@ test('a fresh no-checkout clone is populated before the local edit guard', t => 
   const keys = ['GIT_CONFIG_COUNT', 'GIT_CONFIG_KEY_0', 'GIT_CONFIG_VALUE_0'], previous = keys.map(key => process.env[key]);
   try {
     process.env.GIT_CONFIG_COUNT = '1'; process.env.GIT_CONFIG_KEY_0 = `url.${pathToFileURL(remote).href}.insteadOf`; process.env.GIT_CONFIG_VALUE_0 = 'https://github.com/example/data.git';
-    prepareLibraryData({ root });
+    prepareLibraryData({purpose:'gis',prefixes:['assets/data'], root });
     assert.deepEqual(readFileSync(join(root, path)), bytes);
     assert.equal(existsSync(join(root, '.library-data/repository', path)), false);
     assert.equal(existsSync(join(root,'.library-data/repository/reports/unrequested.md')),false);
@@ -307,7 +333,7 @@ test('runtime storage targets the app branch and keeps the pinned unselected inp
  put(data,path,'first');put(data,other,'pinned');put(data,'library.json','{}');put(data,'archive/index.json',JSON.stringify(index));
  git(data,'add','.');git(data,'commit','-qm','initial');git(data,'remote','add','origin',remote);git(data,'push','origin','HEAD:main');const baseline=git(data,'rev-parse','HEAD');
  put(root,'config/library-data.json',JSON.stringify({repository:'fixture/data',revision:baseline,mounts:['assets/data','reports']}));put(root,'.gitignore','.library-data/\nassets/data/\nreports/\n');git(root,'add','.');git(root,'commit','-qm','app');
- prepareLibraryData({root,fetch:false});
+ prepareLibraryData({purpose:'gis',prefixes:['assets/data'],root,fetch:false});
  // An archive checkout can own later work independently of its selected runtime pin.
  index.files[other]={...spec(other,'archive-head'),stored:'archive/blobs/unselected-head.bin'};put(data,'archive/blobs/unselected-head.bin','archive-head');put(data,'archive/index.json',JSON.stringify(index));git(data,'add','--sparse','archive/index.json','archive/blobs/unselected-head.bin');git(data,'commit','-qm','separate stored work');
  withLibraryWrite({root,prefixes:[path]},()=>put(root,path,'second'));

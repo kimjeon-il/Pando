@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { dirname, relative, resolve } from 'node:path';
 import { build } from 'esbuild';
-import {builtinCountryAssets} from "../../src/data/builtin-country-files.js";
+import {collectRuntimeDataAssets} from "../../src/data/runtime-manifest-assets.js";
 
 // Dependencies selected through URLs or classic Worker APIs are reviewed here;
 // static ESM edges are discovered by the same parser used by the build tooling.
@@ -22,6 +22,8 @@ export const runtimeDependencies = Object.freeze({
     'assets/js/workers/canvas-scene-composition-core.js', 'assets/js/workers/canvas-terrain-dem-core.js', 'assets/js/modules/terrain-manifest.js'],
   'assets/js/workers/project-read-worker.js': ['assets/js/vendor/sql/sql-wasm.js', 'assets/js/vendor/sql/sql-wasm.wasm'],
 });
+export const viewerDataEntryPaths = Object.freeze([...new Set(Object.values(runtimeDependencies).flat()
+  .filter(path => path.startsWith('assets/data/')))]);
 export const dynamicExpressions = Object.freeze({
   'assets/js/modules/core-wasm-loader.js': ['url'],
   'assets/js/workers/canvas-render-worker.js': ['validationUrl.href'],
@@ -29,26 +31,6 @@ export const dynamicExpressions = Object.freeze({
 });
 const editorOnly = /^(?:assets\/js\/(?:app|bootstrap|gis-io|gis-adapters)\.js|assets\/js\/modules\/(?:app-(?:composition|runtime-dependencies|domain-assembly|lifecycle-assembly|project-restore|project-snapshots|country-commits|generic-commands|object-commands|global-input-bindings|file-bindings|tool-bindings|editor-bindings|territorial-drafts|territory-selection-workflow|geometry-preview|history-assembly|gis-assembly|library-assembly)|editing-|editor-map-click|spatial-edit-registration|project-setup-dialog|project-file-service|import-service|export-service)|assets\/js\/workers\/(?:core-session-worker|map-edit-worker|gis-gpkg-worker|gis-geometry-worker|geometry-validation-worker|river-territory-partition-worker)\.js)/;
 const slash = path => path.replaceAll('\\', '/');
-
-/** All independently source-verified name receipts that belong with a Hydro release.
- * Prehistoric/old production manifests may only have the 42-system receipt.
- */
-export function hydroSourceReceiptFiles(manifest){
-  const kinds=['independentHydronymReplacements','independentHydronymFollowup',
-    'independentHydronymBulk'];
-  return kinds.flatMap(key=>{
-    const value=manifest.sources?.[key];
-    if(!value) return [];
-    if(value.file==null){
-      if(value.replacedSystems>0)throw Error('Nonzero independent count without receipt: '+key);
-      return [];
-    }
-    if(typeof value.file!=='string'||!/^[\w.-]+\.json$/.test(value.file)
-      ||!/^[0-9a-f]{64}$/.test(value.sha256||''))
-      throw Error('Invalid independent source receipt: '+key);
-    return [value.file];
-  });
-}
 
 const stripQuery = path => path.split(/[?#]/, 1)[0];
 
@@ -74,48 +56,9 @@ export async function collectViewerAssets({ root, availablePaths, readSource = p
   for (const path of available) {
     if (/^assets\/(?:fonts|vendor|wasm)\//.test(path) && !path.endsWith('.map') && !isEditorOnlyAsset(path)) include(path);
   }
-  // Current runtime manifests own data dependencies. Source/provenance fields
-  // describe how data was built and must not publish the original GIS inputs.
-  const manifests=[
-    'assets/data/world/current.json',
-    'assets/data/builtin-world/generated/v1/index.json',
-    'assets/data/prepared-polygons/generated/v2/manifest.json',
-    'assets/data/hydro/v0.13.4/manifest.json',
-    'assets/data/places/manifest.json',
-    'assets/data/terrain-preview/v0.13.3-p2/manifest.json',
-    'assets/data/physical-land/v1/manifest.json',
-  ];
-  const dataAsset=(url,base)=>{
-    if(typeof url!=='string'||!url||/[?#\\]/.test(url))throw Error(`Invalid manifest resource: ${url}`);
-    return include(url.startsWith('assets/')?url:base+url);
-  };
-  for(const path of manifests){
-    if(!available.has(path))continue;
-    include(path);
-    const manifest=JSON.parse(readSource(path)),base=path.slice(0,path.lastIndexOf('/')+1);
-    if(path==='assets/data/world/current.json'){
-      for(const item of Object.values(manifest.assets||{}))dataAsset(item.url,'assets/data/');
-      for(const url of Object.values(manifest.compatibility?.sharedBoundaries||{}))dataAsset(url,'assets/data/');
-    }else if(path.includes('/builtin-world/')){
-      for(const item of builtinCountryAssets(manifest))dataAsset(item.file,base);
-    }
-    else if(path.includes('/prepared-polygons/')){
-      for(const item of Object.values(manifest.meshes))dataAsset(item.url,base);
-    }else if(path.includes('/hydro/')){
-      dataAsset(manifest.container.url,base);
-      for(const item of [manifest.index,manifest.metadata?.core,manifest.metadata?.detail,...manifest.shards])if(item?.url)dataAsset(item.url,base);
-      for(const receipt of hydroSourceReceiptFiles(manifest))dataAsset(receipt,base);
-    }else if(path.includes('/places/')){
-      for(const item of Object.values(manifest.shards))dataAsset(item.url,base);
-    }else if(path.includes('/physical-land/')){
-      dataAsset(manifest.asset.url,base);
-      for(const context of manifest.waterObjects?.geometries||[])
-        for(const item of [context.land,context.asset])dataAsset(item.url,'assets/data/');
-    }
-    else if(path.includes('/terrain-preview/')){
-      for(const key of Object.keys(manifest.tiles))dataAsset(key,base);
-    }
-  }
+  for(const path of collectRuntimeDataAssets({availablePaths:available,entryPaths:viewerDataEntryPaths,
+    readManifest:path=>JSON.parse(readSource(path))}))include(path);
+  const dataAsset=(url,base)=>include(url.startsWith('assets/')?url:base+url);
   const previewMetadataSource=readSource('assets/js/build-meta.js');
   const previewMetadata=/Object\.freeze\(([\s\S]*)\);\s*$/.exec(previewMetadataSource);
   if(!previewMetadata)throw Error('Viewer build metadata must be immutable.');

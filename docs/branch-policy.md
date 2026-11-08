@@ -1,6 +1,6 @@
 # 브랜치 및 상설 워크트리 운영 정책
 
-`kimjeon-il/Pando`는 `apps/viewer/` 웹 Viewer, `shared/` 공통 코드와 웹 검증 보조 도구를 보관한다. 독립 Windows 검수기·Android 앱·그래픽 편집기는 폐기되었으며 `apps/editor/` 디렉터리도 삭제됐다. Viewer의 테스트·스테이징 도구는 `tests/`, `tools/`, `scripts/`에 있다. 실제 배포·개발 진입점은 Viewer를 기준으로 검증한다. 이전 `kimjeon-il/PandoEditor` 저장소는 복구용 원본으로 보존하며 자동 동기화하지 않는다.
+`kimjeon-il/Pando`는 `src/app/` 웹 Viewer 진입점, `src/`의 책임 분야별 코드와 `src/<분야>/native/` C++ 구현와 웹 검증 보조 도구를 보관한다. 독립 Windows 검수기·Android 앱·그래픽 편집기는 폐기되었으며 `apps/editor/` 디렉터리도 삭제됐다. Viewer의 테스트·스테이징 도구는 `tests/`, `tools/`, `scripts/`에 있다. 실제 배포·개발 진입점은 Viewer를 기준으로 검증한다. 이전 `kimjeon-il/PandoEditor` 저장소는 복구용 원본으로 보존하며 자동 동기화하지 않는다.
 
 ## 유지할 브랜치
 

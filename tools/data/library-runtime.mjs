@@ -34,7 +34,7 @@ function retireOwnedCaches(root, current) {
   // reviewed cleanup. Never infer ownership from an ignored directory alone.
   const base = dirname(current), active = new Set([current]);
   let roots;
-  try { roots = git(root, ['worktree', 'list', '--porcelain']).split('\n').filter(line => line.startsWith('worktree ')).map(line => line.slice(9)); }
+  try { roots = git(root, ['worktree', 'list', '--porcelain']).split('\n').filter(line => line.startsWith('worktree ')).map(line => resolve(line.slice(9))); }
   catch { return; }
   for (const worktree of roots) {
     if (!existsSync(resolve(worktree, 'config/library-data.json'))) continue;
@@ -62,11 +62,12 @@ function retireOwnedCaches(root, current) {
   const signature = JSON.stringify({ base, active: [...active].sort(), directories: directories.map(item => item.name).sort() });
   if (signature === lastRetirementSignature) return;
   for (const item of directories) {
-    if (!item.isDirectory() || !/^[a-f0-9]{40}$/.test(item.name)) continue;
+    if (!item.isDirectory() || !/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(item.name)) continue;
     const directory = safeChild(base, item.name), owner = resolve(directory, '.cache-owner.json');
     if (active.has(directory) || !existsSync(owner)) continue;
     const record = JSON.parse(readFileSync(owner, 'utf8'));
-    if (record.revision !== item.name || record.schema !== 'pando-shared-runtime-v1') continue;
+    const expected = item.name.length === 64 ? record.preparation?.scopeId : record.revision;
+    if (expected !== item.name || record.schema !== 'pando-shared-runtime-v1' || record.owner !== libraryOwnerId(root)) continue;
     // Private WIP is never eligible for retirement. Do not hash its entire
     // runtime dataset merely to reach that already-known preservation result.
     if (Object.values(record.files).some(entry => entry.storage !== 'shared')) continue;
@@ -76,8 +77,8 @@ function retireOwnedCaches(root, current) {
   lastRetirementSignature = signature;
 }
 
-export function prepareLibraryData({ root = defaultRoot, fetch = true } = {}) {
-  return withLibraryLock(root, () => prepareOwnedLibraryData({ root, fetch }));
+export function prepareLibraryData({ root = defaultRoot, fetch = true, purpose = 'viewer', prefixes = [] } = {}) {
+  return withLibraryLock(root, () => prepareOwnedLibraryData({ root, fetch, purpose, prefixes }));
 }
 
 export function mountLibraryInputs({ source, root }) {
@@ -217,19 +218,61 @@ export function runtimeMaterializationPeak(index, sourceFiles, presentHashes) {
   return {poolBytes,privateBytes,totalBytes:poolBytes+privateBytes};
 }
 
-export function materializeRuntimeView({ root, index, source = null, fetch=false }) {
-  const shared = librarySharedCheckout(root), config = libraryConfig(root), owner = libraryOwnerId(root), view = libraryMaterializedRoot(root);
-  const marker = resolve(view, '.complete'), manifest = resolve(view, '.cache-owner.json');
-  if (existsSync(marker)) {
-    const record = JSON.parse(readFileSync(manifest, 'utf8'));
-    if (record.schema !== 'pando-shared-runtime-v1' || record.owner !== owner || record.revision !== config.revision) throw Error('Unexpected runtime view ownership');
-    return view;
+export function materializeRuntimeView({ root, index, source = null, fetch=false,purpose='viewer',prefixes=[] }) {
+  const shared = librarySharedCheckout(root), config = libraryConfig(root), owner = libraryOwnerId(root);
+  index=runtimeArchiveIndex(index,entry=>decodeArchiveEntry(libraryCheckout(root),entry,config.revision,{fetch}),{purpose,prefixes});
+  source ||= libraryMaterializedRoot(root);
+  const selectedPaths = new Set(Object.keys(index.files));
+  // New, unarchived GIS outputs belong to the explicitly selected write scope.
+  // Never enumerate unrelated originals or another task's private work.
+  if (purpose === 'gis') for (const prefix of prefixes) {
+    const path = containedPath(source, prefix);
+    for (const file of contentFiles(path)) selectedPaths.add(relative(source, file.path).replaceAll('\\', '/'));
+  }
+  const sourceFiles = [...selectedPaths].sort().flatMap(logical => {
+    const path = containedPath(source, logical);
+    if (!existsSync(path)) return [];
+    const stamp = lstatSync(path);
+    if (!stamp.isFile() || stamp.isSymbolicLink()) throw Error('Linked or non-file preparation input: ' + path);
+    return [{ logical, path, bytes: stamp.size, sha256: contentHash(readFileSync(path)) }];
+  });
+  const overrides = sourceFiles.filter(file => file.sha256 !== index.files[file.logical]?.sha256
+    || file.bytes !== index.files[file.logical]?.bytes).map(({ logical, sha256, bytes }) => [logical, sha256, bytes]);
+  if (overrides.length) index.preparation = { ...index.preparation,
+    archiveScopeId: index.preparation.scopeId,
+    scopeId: contentHash(Buffer.from(JSON.stringify({ archiveScopeId: index.preparation.scopeId, overrides }))) };
+  const sourceByPath = new Map(sourceFiles.map(file => [file.logical, file]));
+  const expected = Object.fromEntries([...selectedPaths].sort().map(path => {
+    const spec = sourceByPath.get(path) || index.files[path];
+    return [path, [spec.sha256, spec.bytes]];
+  }));
+  const requestedScopeId = index.preparation.scopeId;
+  let view=libraryMaterializedRoot(root,{scopeId:requestedScopeId});
+  while (existsSync(resolve(view, '.complete'))) {
+    const record = JSON.parse(readFileSync(resolve(view, '.cache-owner.json'), 'utf8'));
+    if (record.schema !== 'pando-shared-runtime-v1' || record.owner !== owner || record.revision !== config.revision
+      ||record.preparation?.scopeId!==index.preparation.scopeId) throw Error('Unexpected runtime view ownership');
+    const observed = Object.fromEntries(contentFiles(view).filter(file => !['.complete','.cache-owner.json'].includes(file.logical))
+      .sort((a,b)=>a.logical<b.logical?-1:a.logical>b.logical?1:0).map(file => {
+        const prior=record.files[file.logical],stamp=lstatSync(file.path,{bigint:true});
+        let sha256;
+        if (prior?.storage==='shared') {
+          const blob=lstatSync(contentPath(shared,prior.sha256),{bigint:true});
+          if (stamp.ino!==blob.ino||stamp.dev!==blob.dev||Number(stamp.mode)&0o200||file.bytes!==prior.bytes)
+            throw Error('Modified shared runtime must be repaired before preparation: '+file.path);
+          sha256=prior.sha256;
+        } else sha256=contentHash(readFileSync(file.path));
+        return [file.logical,[sha256,file.bytes]];
+      }));
+    if (JSON.stringify(observed)===JSON.stringify(expected)) return view;
+    // A completed view can subsequently become the owner's mutable working
+    // edition. Preserve it and give the requested bytes their own scoped view.
+    index.preparation={...index.preparation,archiveScopeId:index.preparation.archiveScopeId||requestedScopeId,
+      scopeId:contentHash(Buffer.from(JSON.stringify({requestedScopeId,occupied:index.preparation.scopeId,observed})))};
+    view=libraryMaterializedRoot(root,{scopeId:index.preparation.scopeId});
   }
   // Archive retention is not a runtime download requirement.
-  index = runtimeArchiveIndex(index, entry => decodeArchiveEntry(libraryCheckout(root), entry, config.revision, {fetch}));
   if (existsSync(view)) throw Error(`Incomplete runtime view must be preserved: ${view}`);
-  source ||= resolve(shared, '.pando-cache/materialized', config.revision);
-  const sourceFiles=contentFiles(source).map(file=>({...file,sha256:contentHash(readFileSync(file.path))}));
   const pending = view + '.pending';
   if (existsSync(pending)) {
     // Preparation only copied bytes. Recover an interrupted view from its still
@@ -270,18 +313,21 @@ export function materializeRuntimeView({ root, index, source = null, fetch=false
     const previous = containedPath(source, logical);
     if (existsSync(previous)) {
       if (!lstatSync(previous).isFile() || lstatSync(previous).isSymbolicLink()) throw Error(`Unexpected old runtime source: ${previous}`);
-      write(logical, readFileSync(previous), entry);
+      const bytes = readFileSync(previous);
+      if (contentHash(bytes) !== sourceByPath.get(logical)?.sha256) throw Error('Preparation input changed: ' + logical);
+      write(logical, bytes, entry);
     } else if(present.has(entry.sha256)) {
       const bytes=readFileSync(contentPath(shared,entry.sha256));
       if(bytes.length!==entry.bytes||contentHash(bytes)!==entry.sha256)throw Error('Existing immutable runtime blob changed: '+logical);
       write(logical,bytes,entry);
     } else write(logical, decodeArchiveEntry(libraryCheckout(root), entry, config.revision,{fetch}), entry);
   }
-  if (existsSync(source)) for (const file of sourceFiles) {
-    if (['.complete', '.cache-owner.json'].includes(file.logical) || files[file.logical]) continue;
-    write(file.logical, readFileSync(file.path));
+  for (const file of sourceFiles) if (!Object.hasOwn(index.files, file.logical)) {
+    const bytes = readFileSync(file.path);
+    if (contentHash(bytes) !== file.sha256) throw Error('Preparation input changed: ' + file.logical);
+    write(file.logical, bytes);
   }
-  atomicStorageJSON(resolve(pending, '.cache-owner.json'), { schema: 'pando-shared-runtime-v1', owner, revision: config.revision, files });
+  atomicStorageJSON(resolve(pending, '.cache-owner.json'), { schema: 'pando-shared-runtime-v1', owner, revision: config.revision,preparation:index.preparation, files });
   writeFileSync(resolve(pending, '.complete'), config.revision + '\n');
   renameSync(pending, view); return view;
   } catch (error) {
@@ -351,8 +397,8 @@ export function beginLibraryWrite({ root = defaultRoot, prefixes, pid = process.
   return withLibraryLock(root, () => {
     const config = libraryConfig(root), shared = librarySharedCheckout(root), owner = libraryOwnerId(root);
     if (!Number.isInteger(pid) || pid <= 0 || !Array.isArray(prefixes) || !prefixes.length || prefixes.some(path => typeof path !== 'string' || !/^[\w.-]+(?:\/[\w.-]+)*$/.test(path) || path.split('/').some(p => p === '.' || p === '..' || p.startsWith('.')) || !config.mounts.some(mount => mount !== 'reports' && (path === mount || path.startsWith(mount + '/'))))) throw Error('Explicit valid runtime write prefixes are required');
-    const view = libraryMaterializedRoot(root);
-    if (!existsSync(resolve(view, '.complete'))) prepareOwnedLibraryData({ root, fetch: false });
+    let view = libraryMaterializedRoot(root);
+    if (!existsSync(resolve(view, '.complete'))) view = prepareOwnedLibraryData({ root, fetch: false, purpose: 'gis', prefixes }).materialized;
     if (libraryWriteLeases(shared).some(lease => lease.alive && lease.owner === owner && lease.prefixes.some(a => prefixes.some(b => scopesOverlap(a, b))))) throw Error('An overlapping library write lease is running');
     const manifest = resolve(view, '.cache-owner.json'), record = JSON.parse(readFileSync(manifest, 'utf8'));
     const selected = [...new Map(prefixes.flatMap(prefix => contentFiles(safeChild(view, prefix))).map(file => [file.path,file])).values()];
@@ -422,7 +468,7 @@ export function writeLibraryOutput(path, bytes, options) {
   return withLibraryOutputs({ paths: [path] }, () => writeFileSync(path, bytes, options));
 }
 
-export function prepareOwnedLibraryData({ root, fetch }) {
+export function prepareOwnedLibraryData({ root, fetch, purpose = 'viewer', prefixes = [], source = null }) {
   root = resolve(root); const checkout = libraryCheckout(root);
   const config = libraryConfig(root);
   if (!existsSync(resolve(checkout, '.git'))) {
@@ -448,11 +494,13 @@ export function prepareOwnedLibraryData({ root, fetch }) {
   // pinned Git tree, not by moving that checkout back over later reports/WIP.
   if (!current || !existsSync(resolve(checkout, 'archive/index.json'))) throw Error('Library archive checkout is incomplete; preserve its work before repairing it.');
   excludeReportStorage(librarySharedCheckout(root));
-  const materialized = materializeRuntimeView({ root, index, fetch });
   const reportRoot = libraryReportRoot(root);
   if (existsSync(resolve(checkout, '.working/report-owner.json'))) throw Error('Centralize existing report originals with --centralize-reports --apply before preparing data.');
   mkdirSync(reportRoot, { recursive: true });
   reportContext(root); // Metadata only; report editions stay independent of the runtime pin.
+  if (purpose === 'reports') return { repository: config.repository, revision: config.revision,
+    checkout, materialized: null, files: {}, archiveFiles: index.files };
+  const materialized = materializeRuntimeView({ root, index, fetch, purpose, prefixes, source });
   const excludePath = resolve(checkout, git(checkout, ['rev-parse', '--git-path', 'info/exclude']));
   const exclude = existsSync(excludePath) ? readFileSync(excludePath, 'utf8') : '';
   if (!exclude.split(/\r?\n/).includes('/.working/')) { mkdirSync(dirname(excludePath), { recursive: true }); writeFileSync(excludePath, exclude + '\n/.working/\n'); }
@@ -475,5 +523,7 @@ export function prepareOwnedLibraryData({ root, fetch }) {
   }
   const cacheRetirement = retireOwnedCaches(root, materialized);
   const compaction = compactOwnedCheckout(checkout, true);
-  return { repository: config.repository, revision: config.revision, checkout, materialized, files: index.files, compaction, cacheRetirement };
+  const prepared = JSON.parse(readFileSync(resolve(materialized, '.cache-owner.json'), 'utf8'));
+  return { repository: config.repository, revision: config.revision, checkout, materialized,
+    files: prepared.files, archiveFiles: index.files, preparation: prepared.preparation, compaction, cacheRetirement };
 }

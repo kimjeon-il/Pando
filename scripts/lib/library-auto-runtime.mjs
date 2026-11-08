@@ -140,8 +140,8 @@ export async function deriveAutomaticRuntime({root,inputProjection,inputDataSha,
    if(command.length===2&&command[0]==='node'&&command[1]==='tools/build/build-builtin-world.mjs'){
     pruneObsoleteCountryCopies(cwd,baselineAssets,d.withLibraryOutputs);builtinPruned=true;
    }
-  },prepareData:({root:target})=>{
-   const result=d.prepareLibraryData({root:target,fetch:false});if(result?.then)fail('ASYNC_PREPARE_UNSUPPORTED');
+  },prepareData:({root:target,purpose,prefixes})=>{
+   const result=d.prepareLibraryData({root:target,fetch:false,purpose,prefixes});if(result?.then)fail('ASYNC_PREPARE_UNSUPPORTED');
    // Official stage prepares the pinned baseline; reapply verified edits BEFORE owners run.
    for(const w of writes){const b=readFileSync(safePath(target,w.path)),p=pinned[w.path];if(b.length!==p.bytes||hash(b)!==p.sha256)fail('STAGE_ORIGINAL_SOURCE: '+w.path);}inject(target);
   }});

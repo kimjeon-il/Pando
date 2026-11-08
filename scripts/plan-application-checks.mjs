@@ -5,6 +5,7 @@ import { createCheckImpactIndex } from './lib/check-impact.mjs';
 import { fileURLToPath } from 'node:url';
 import { parseJavaScript, walkJavaScript } from './lib/source-analysis.mjs';
 import { runtimeDependencies, dynamicExpressions } from './lib/product-assets.mjs';
+import {git,libraryConfig,libraryCheckout} from '../tools/data/library-context.mjs';
 
 export const catalogPath = 'scripts/contracts/application-checks.json';
 
@@ -17,9 +18,17 @@ const matches = (file, patterns = []) => patterns.some(pattern => matchesPattern
 const executable = file => /\.[cm]?js$/.test(file) && !/\/(?:vendor|worker-runtime|fixtures|gen|target|dist)\//.test(file);
 const product = file => /^src\//.test(file);
 
-export function loadRepository(root = process.cwd(), { catalog } = {}) {
+export function loadRepository(root = process.cwd(), { catalog, libraryFiles } = {}) {
   if (root instanceof URL) root = fileURLToPath(root);
-  const exists = file => existsSync(resolve(root, file));
+  const archived = file => {
+    if (!file.startsWith('assets/data/')) return false;
+    if (libraryFiles === undefined) {
+      libraryFiles = existsSync(resolve(root,'config/library-data.json'))
+        ? JSON.parse(git(libraryCheckout(root),['show',libraryConfig(root).revision+':archive/index.json'])).files : {};
+    }
+    return Object.hasOwn(libraryFiles,file);
+  };
+  const exists = file => existsSync(resolve(root, file)) || archived(file);
   const read = file => readFileSync(resolve(root, file), 'utf8');
   catalog ||= JSON.parse(read(catalogPath));
   if (catalog.schema !== 'pando-application-checks-v1') throw Error('Invalid application check catalog');
@@ -109,7 +118,7 @@ export function loadRepository(root = process.cwd(), { catalog } = {}) {
     const found = new Set([...(runtimeDependencies[publicFile] || []).map(sourcePath),
       ...[...(unitRequirements.get(file) || [])].flatMap(prerequisiteInputs)]);
     dependencyCache.set(file, found);
-    if (!executable(file) || !exists(file)) return [...found];
+    if (file.startsWith('assets/data/') || !executable(file) || !exists(file)) return [...found];
     const text=publicBySource.has(file)?emitFrontendModule(read(file),file,frontendIndex):read(file);
     const source = parseJavaScript(text, { filePath: file });
     const output = publicFile;

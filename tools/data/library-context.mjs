@@ -27,8 +27,21 @@ export function libraryCheckout(root = defaultRoot) {
   return existsSync(checkout) ? realpathSync(checkout) : checkout;
 }
 
-export function libraryMaterializedRoot(root = defaultRoot) {
-  return resolve(librarySharedCheckout(root), '.pando-cache/materialized', libraryOwnerId(root), libraryConfig(root).revision);
+export function libraryMaterializedRoot(root = defaultRoot,{scopeId}={}) {
+  const ownerBase=resolve(librarySharedCheckout(root), '.pando-cache/materialized', libraryOwnerId(root));
+  const base=resolve(ownerBase, libraryConfig(root).revision);
+  if(scopeId!==undefined){
+    if(!/^[a-f0-9]{64}$/.test(scopeId))throw Error('Invalid preparation scope identity');
+    return resolve(base,'scopes',scopeId);
+  }
+  const mount=resolve(root,'assets/data');
+  if(existsSync(mount)&&lstatSync(mount).isSymbolicLink()){
+    const target=realpathSync(mount),view=dirname(dirname(target));
+    const parts=relative(ownerBase,view).split(sep);
+    if(parts.length===3&&/^[a-f0-9]{40}$/.test(parts[0])&&parts[1]==='scopes'
+      &&/^[a-f0-9]{64}$/.test(parts[2])&&target===resolve(view,'assets/data'))return view;
+  }
+  return base;
 }
 
 export function libraryRuntimeLeasePath(root,product,pid=process.pid){

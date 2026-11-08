@@ -86,7 +86,7 @@ jobs:
           import {writeFileSync} from 'node:fs';
           import {execFileSync} from 'node:child_process';
           import assert from 'node:assert/strict';
-          import {defaultRoot,libraryConfig,libraryCheckout,withLibraryLock} from './tools/data/library-data.mjs';
+          import {defaultRoot,libraryConfig,libraryCheckout,withLibraryLock} from './tools/data/library-context.mjs';
           withLibraryLock(defaultRoot,()=>{
            const config=libraryConfig(),checkout=libraryCheckout();
            const git=(...args)=>execFileSync('git',args,{cwd:checkout,encoding:'utf8',stdio:'pipe'}).trim();
@@ -116,7 +116,7 @@ jobs:
         run: |
           node --input-type=module <<'JS'
           import {writeFileSync} from 'node:fs';
-          import {libraryConfig} from './tools/data/library-data.mjs';
+          import {libraryConfig} from './tools/data/library-context.mjs';
           import {prepareBuiltinCountryFiles,verifyBuiltinCountryFiles,storeBuiltinCountryDelta} from './tools/data/builtin-country-storage.mjs';
           const beforeRevision=libraryConfig().revision;
           const prepared=prepareBuiltinCountryFiles({apply:true});
@@ -147,7 +147,8 @@ jobs:
           import {readFileSync} from 'node:fs';
           import assert from 'node:assert/strict';
           import {execFileSync} from 'node:child_process';
-          import {storeLibraryData,libraryConfig,libraryCheckout,decodeArchiveEntry} from './tools/data/library-data.mjs';
+          import {storeLibraryData} from './tools/data/library-store.mjs';
+          import {libraryConfig,libraryCheckout,decodeArchiveEntry} from './tools/data/library-context.mjs';
           import {createHash} from 'node:crypto';
           const plan=JSON.parse(readFileSync(process.env.COUNTRY_PUBLICATION_PLAN));
           assert.equal(execFileSync('git',['branch','--show-current'],{encoding:'utf8'}).trim(),'work/gis');

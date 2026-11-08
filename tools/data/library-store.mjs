@@ -6,8 +6,7 @@ import {gunzipSync,gzipSync} from "node:zlib";
 import {contentHash,removeContentLink,replaceLibraryFile,shareContentFile} from "./library-content.mjs";
 import {assertHistoricalStorageChanges} from "../gis/historical-display-storage.mjs";
 import {readBuiltinCountryStoredBytes} from "./builtin-country-bytes.mjs";
-import {runtimeArchiveIndex} from "./library-runtime-index.mjs";
-import {defaultRoot,gitOptions,git,libraryConfig,libraryReportRoot,librarySharedCheckout,libraryOwnerId,safeChild,decodeArchiveEntry,withLibraryLock,organizationTree} from "./library-context.mjs";
+import {defaultRoot,gitOptions,git,libraryConfig,libraryCheckout,libraryMaterializedRoot,libraryReportRoot,librarySharedCheckout,libraryOwnerId,safeChild,decodeArchiveEntry,withLibraryLock,organizationTree} from "./library-context.mjs";
 import {reportRegistry,writeReportRegistry,checkedReportPath,assertReportSubject} from "./library-reports.mjs";
 import {compactOwnedCheckout,libraryWriteLeases,scopesOverlap,prepareOwnedLibraryData} from "./library-runtime.mjs";
 
@@ -148,7 +147,17 @@ export function runtimeStoreIndex(pinned, current) {
 }
 
 export function storeOwnedLibraryData({ root, push, prefixes, removePaths, reportData, expectedRevision, expectedBranch }) {
-  const data = reportData || prepareOwnedLibraryData({ root, fetch: true });
+  // Store the owner's current write view. Preparing a different view here can
+  // hide unpublished outputs, and absence from a view never means deletion.
+  const materialized = libraryMaterializedRoot(root);
+  let data = reportData;
+  if (!data && existsSync(resolve(materialized, '.complete'))) {
+    const record = JSON.parse(readFileSync(resolve(materialized, '.cache-owner.json'), 'utf8'));
+    if (record.schema !== 'pando-shared-runtime-v1' || record.owner !== libraryOwnerId(root)) throw Error('Unexpected library storage view ownership');
+    data = { checkout: libraryCheckout(root), materialized };
+  }
+  data ||= prepareOwnedLibraryData({ root, fetch: true,
+    purpose: prefixes.every(path => path.startsWith('reports/')) ? 'reports' : 'gis', prefixes });
   if (expectedRevision !== undefined) {
     // Check after preparation/fetch and before mutating archived data. A later
     // concurrent publication is still rejected by the normal non-force push.
@@ -195,7 +204,6 @@ export function storeOwnedLibraryData({ root, push, prefixes, removePaths, repor
   const reportOnly = prefixes.every(path => path === 'reports' || path.startsWith('reports/'));
   const currentIndex = JSON.parse(readFileSync(indexPath,'utf8'));
   const index = reportData || reportOnly ? currentIndex : runtimeStoreIndex(JSON.parse(git(data.checkout,['show',`${libraryConfig(root).revision}:archive/index.json`],{allowFetch:true})), currentIndex);
-  const runtimeFiles = reportData || reportOnly ? index.files : runtimeArchiveIndex(index, entry => decodeArchiveEntry(data.checkout, entry, libraryConfig(root).revision, {fetch:true})).files;
   const publicationBranch=reportData?'main':git(root,['symbolic-ref','--short','HEAD']);
   if(!publicationBranch)throw Error('Runtime publication requires an explicit application branch.');
   if (expectedBranch !== undefined && publicationBranch !== expectedBranch) throw Error('Application publication branch differs from expected branch.');
@@ -250,14 +258,15 @@ export function storeOwnedLibraryData({ root, push, prefixes, removePaths, repor
     }
   };
   const managedMounts = libraryConfig(root).mounts.filter(path => path !== 'reports');
-  if (!reportData) for (const path of managedMounts) visit(safeChild(data.materialized, path), path);
+  if (!reportData && data.materialized) for (const path of managedMounts) visit(safeChild(data.materialized, path), path);
   // Store only this branch's mutable scope. Shared originals from another
   // branch must never be implicitly imported into a branch publication.
   visit(editRoot, 'reports');
   for (const [path, entry] of Object.entries(index.files)) {
     if (path.startsWith('reports/')) continue;
-    // A filtered archived asset is not a user deletion.
-    if (!Object.hasOwn(runtimeFiles, path) && !removed.has(path)) continue;
+    // Both unprepared paths and absent generated files stay in the archive
+    // until a caller explicitly requests a scoped removal.
+    if (!removed.has(path)) continue;
     if (!included(path) || !(path.startsWith('reports/') || managedMounts.some(mount => path.startsWith(mount + '/'))) || seen.has(path)) continue;
     delete index.files[path];
     if (entry.stored === path || path.startsWith('reports/')) {

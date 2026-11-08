@@ -63,7 +63,12 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     });
     git(root, ['add', '--', 'config/library-data.json', ...paths]);
   } else if (process.argv.includes('--store')) console.log(`Library stored: ${storeLibraryData(storeOptions)}`);
-  else { const result = prepareLibraryData(); console.log(`Library mounted: ${result.repository}@${result.revision}`); }
+  else {
+    const root = process.argv.find(arg => arg.startsWith('--root='))?.slice(7) || defaultRoot;
+    const purpose = process.argv.find(arg => arg.startsWith('--purpose='))?.slice(10) || 'viewer';
+    const result = prepareLibraryData({ root, purpose, prefixes });
+    console.log(`Library prepared (${purpose}): ${result.repository}@${result.revision}`);
+  }
   }
   }
 }

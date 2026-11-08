@@ -56,7 +56,7 @@ jobs:
           import assert from 'node:assert/strict';
           import {readFileSync} from 'node:fs';
           import {execFileSync} from 'node:child_process';
-          import {libraryConfig,libraryCheckout,safeChild} from './tools/data/library-data.mjs';
+          import {libraryConfig,libraryCheckout,safeChild} from './tools/data/library-context.mjs';
           import {decodeLibraryArchiveBytes} from './tools/data/library-archive.mjs';
           import {assertDataPath,publishWorldBundle} from './tools/build/build-world-bundle.mjs';
           import {HYDRO_DATA_VERSION} from './src/rendering/physical-layer-service.js';

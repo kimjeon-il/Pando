@@ -113,7 +113,7 @@ test('migration resumes, retains dirty bytes independently, compacts all local o
   const protectedRefs=git(f.data,['show-ref']);
   assert.equal(protectedRefs.split('\n').filter(row=>!row.includes(' refs/pando/reports/')).join('\n'),refs);
   for(const owner of ['main','ui'])assert.equal(git(f.data,['rev-parse',`refs/pando/reports/${owner}`]),head);
-  assert.throws(()=>prepareLibraryData({root:f.app,fetch:false}),/migration must resume/);
+  assert.throws(()=>prepareLibraryData({purpose:'gis',prefixes:['assets/data'],root:f.app,fetch:false}),/migration must resume/);
   const deadPid=Number(execFileSync(process.execPath,['-e','process.stdout.write(String(process.pid))'],{encoding:'utf8'}));
   put(join(f.ui,'.library-data/prepare.lock'),JSON.stringify({pid:deadPid,root:f.ui}));
   put(join(f.data,'.git/pando-library.lock'),JSON.stringify({pid:deadPid,checkout:f.data}));
@@ -129,11 +129,11 @@ test('migration resumes, retains dirty bytes independently, compacts all local o
   assert.equal(result.evidence,join(f.data,'private-evidence/storage-migrations',result.id));
   const installed=JSON.parse(readFileSync(join(result.evidence,'source-records.json'),'utf8'));installed.phase='packs-installed';
   assert.doesNotThrow(()=>repackLocalObjects(f.data,installed)); // Crash after staging removal, before final journal write.
-  prepareLibraryData({root:f.app,fetch:false});assert.equal(readFileSync(a,'utf8'),'immutable runtime');
+  prepareLibraryData({purpose:'gis',prefixes:['assets/data'],root:f.app,fetch:false});assert.equal(readFileSync(a,'utf8'),'immutable runtime');
 });
 
 test('migration keeps a newer owner edit and preserves a different legacy edition',t=>{
-  const f=fixture(t);prepareLibraryData({root:f.ui,fetch:false});
+  const f=fixture(t);prepareLibraryData({purpose:'gis',prefixes:['assets/data'],root:f.ui,fetch:false});
   withLibraryWrite({root:f.ui,prefixes:['assets/data/current.bin']},()=>writeFileSync(join(f.ui,f.logical),'ui edit'));
   writeFileSync(join(f.ui,f.logical),'ui newest edit'); // Deliberately stale private manifest.
   writeFileSync(join(f.ui,'assets/data/unfinished.bin'),'newer unarchived ui work');
@@ -230,7 +230,7 @@ function fixture(t) {
 }
 
 test('same-pin runtime views share readonly bytes but scoped writes stay branch-private', t => {
-  const f=fixture(t);library.prepareLibraryData({root:f.app,fetch:false});library.prepareLibraryData({root:f.ui,fetch:false});
+  const f=fixture(t);library.prepareLibraryData({purpose:'gis',prefixes:['assets/data'],root:f.app,fetch:false});library.prepareLibraryData({purpose:'gis',prefixes:['assets/data'],root:f.ui,fetch:false});
   const a=join(f.app,f.logical),b=join(f.ui,f.logical);
   assert.notEqual(library.libraryMaterializedRoot(f.app),library.libraryMaterializedRoot(f.ui));
   assert.equal(statSync(a,{bigint:true}).ino,statSync(b,{bigint:true}).ino);
@@ -242,13 +242,13 @@ test('same-pin runtime views share readonly bytes but scoped writes stay branch-
   assert.equal(library.libraryWriteLeases(f.data).filter(lease=>lease.alive).length,0);
   assert.equal(readFileSync(a,'utf8'),'runtime original');assert.equal(readFileSync(b,'utf8'),'ui edit');
   assert.notEqual(statSync(a,{bigint:true}).ino,statSync(b,{bigint:true}).ino);
-  library.prepareLibraryData({root:f.ui,fetch:false});assert.equal(readFileSync(b,'utf8'),'ui edit');
+  library.prepareLibraryData({purpose:'gis',prefixes:['assets/data'],root:f.ui,fetch:false});assert.equal(readFileSync(b,'utf8'),'ui edit');
 });
 
-test('dirty legacy cache bytes and extra files are independently retained for every old consumer', t => {
+test('explicit scope migration retains dirty legacy bytes and extra files independently for every old consumer', t => {
   const f=fixture(t),legacy=join(f.data,'.pando-cache/materialized',f.revision);
   put(join(legacy,f.logical),'unfinished');put(join(legacy,'assets/data/local.json'),'unarchived');
-  for(const root of [f.app,f.ui])library.prepareLibraryData({root,fetch:false});
+  for(const root of [f.app,f.ui])library.withLibraryLock(root,()=>library.prepareOwnedLibraryData({purpose:'gis',prefixes:['assets/data'],root,fetch:false,source:legacy}));
   const a=join(f.app,f.logical),b=join(f.ui,f.logical);assert.equal(readFileSync(a,'utf8'),'unfinished');assert.equal(readFileSync(b,'utf8'),'unfinished');
   assert.notEqual(statSync(a,{bigint:true}).ino,statSync(b,{bigint:true}).ino);
   writeFileSync(b,'ui edit');assert.equal(readFileSync(a,'utf8'),'unfinished');
@@ -262,7 +262,7 @@ test('an unregistered read-only peer defers cache retirement without blocking th
   put(join(stale,f.logical),bytes);
   put(join(stale,'.cache-owner.json'),JSON.stringify({schema:'pando-shared-runtime-v1',revision:staleRevision,files:{[f.logical]:{sha256:createHash('sha256').update(bytes).digest('hex'),bytes:bytes.length,storage:'shared'}}}));
   git(f.app,'worktree','add','--detach',audit);
-  const result=library.prepareLibraryData({root:f.ui,fetch:false});
+  const result=library.prepareLibraryData({purpose:'gis',prefixes:['assets/data'],root:f.ui,fetch:false});
   assert.equal(readFileSync(join(f.ui,f.logical),'utf8'),'runtime original');
   assert.equal(result.cacheRetirement.status,'skipped');
   assert.equal(result.cacheRetirement.reason,'unrecognized-peer-owner');
@@ -277,11 +277,11 @@ test('unrelated peer configuration failures still abort runtime preparation',t=>
   const f=fixture(t),audit=join(f.parent,'audit');
   git(f.app,'worktree','add','--detach',audit);
   put(join(audit,'config/library-data.json'),'{invalid');
-  assert.throws(()=>library.prepareLibraryData({root:f.ui,fetch:false}),SyntaxError);
+  assert.throws(()=>library.prepareLibraryData({purpose:'gis',prefixes:['assets/data'],root:f.ui,fetch:false}),SyntaxError);
 });
 
 test('async write leases persist until completion and reject overlapping writes', async t => {
-  const f=fixture(t);library.prepareLibraryData({root:f.app,fetch:false});
+  const f=fixture(t);library.prepareLibraryData({purpose:'gis',prefixes:['assets/data'],root:f.app,fetch:false});
   let release;const waiting=new Promise(resolve=>{release=resolve;});
   const operation=library.withLibraryWrite({root:f.app,prefixes:['assets/data']},async()=>{await waiting;writeFileSync(join(f.app,f.logical),'finished');});
   assert.throws(()=>library.withLibraryWrite({root:f.app,prefixes:['assets/data/current.bin']},()=>{}),/write|lease|running/i);
@@ -312,18 +312,18 @@ test('offline archive restoration never starts a promisor lazy-fetch child',t=>{
 });
 
 test('scoped producer output stores and rehydrates without changing a peer pin or bytes',t=>{
-  const f=fixture(t);for(const root of [f.app,f.ui])library.prepareLibraryData({root,fetch:false});
+  const f=fixture(t);for(const root of [f.app,f.ui])library.prepareLibraryData({purpose:'gis',prefixes:['assets/data'],root,fetch:false});
   const peerPin=readFileSync(join(f.app,'config/library-data.json'));
   library.withLibraryOutputs({root:f.ui,paths:[join(f.ui,f.logical)]},()=>writeFileSync(join(f.ui,f.logical),'published ui bytes'));
   library.storeLibraryData({root:f.ui,prefixes:[f.logical]});
-  for(const root of [f.app,f.ui])library.prepareLibraryData({root,fetch:false});
+  for(const root of [f.app,f.ui])library.prepareLibraryData({purpose:'gis',prefixes:['assets/data'],root,fetch:false});
   assert.equal(readFileSync(join(f.ui,f.logical),'utf8'),'published ui bytes');
   assert.equal(readFileSync(join(f.app,f.logical),'utf8'),'runtime original');
   assert.deepEqual(readFileSync(join(f.app,'config/library-data.json')),peerPin);
 });
 
 test('Web preview serves only the configured owner runtime mount outside its code root',async t=>{
-  const f=fixture(t);library.prepareLibraryData({root:f.app,fetch:false});
+  const f=fixture(t);library.prepareLibraryData({purpose:'gis',prefixes:['assets/data'],root:f.app,fetch:false});
   const secret=join(f.parent,'unrelated');put(join(secret,'secret.txt'),'private');
   symlinkSync(secret,join(f.app,'assets/unrelated'),process.platform==='win32'?'junction':'dir');
   const server=createP3PreviewServer(f.app);await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));

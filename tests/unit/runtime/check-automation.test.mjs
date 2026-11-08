@@ -3,7 +3,7 @@ import test from 'node:test';
 import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, readdirSync, rmSync, existsSync } from 'node:fs';
 import { parse } from 'yaml';
 import { tmpdir } from 'node:os';
-import { dirname, join, resolve } from 'node:path';
+import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { runInNewContext } from 'node:vm';
 import { loadRepository, planApplicationChecks, matchesPattern } from "../../../scripts/plan-application-checks.mjs";
@@ -170,6 +170,17 @@ test('exact check selection does not build the unrelated dependency graph', t =>
   } });
   assert.deepEqual(plan.browserSpecs, ['tests/browser/terrain-time.spec.mjs']);
   assert.deepEqual(plan.browserPrerequisites, ['generated']);
+});
+
+test('dependency planning treats archived unprepared data as leaves without reading payloads', t => {
+  const f=fixture();t.after(()=>rmSync(f.root,{recursive:true,force:true}));
+  const data='assets/data/selected/original.geojson';
+  f.put('tests/unit/input.test.mjs',`import {readFileSync} from 'node:fs'; readFileSync('${data}');`);
+  const repo=loadRepository(f.root,{catalog:f.catalog,libraryFiles:{[data]:{sha256:'a'.repeat(64),bytes:100}}});
+  assert.ok(repo.dependencies('tests/unit/input.test.mjs').includes(data));
+  assert.deepEqual(repo.dependencies(data),[]);
+  assert.equal(existsSync(join(f.root,data)),false);
+  assert.throws(()=>f.repository().dependencies('tests/unit/input.test.mjs'),/Missing dependency/);
 });
 
 test('shared tooling documentation is a passive CI input', t => {
