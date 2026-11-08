@@ -133,13 +133,13 @@ const { createHash }=__dep6;
 const vm=__dep5.default;
 const resourceUpdatePolicy=__dep7;
 
-const root = new URL("../../../shared/frontend/js/", import.meta.url);
+const root = new URL("../../../src/rendering/", import.meta.url);
 function runtime() {
   const scope = { URL, location: { href: 'https://example.test/assets/js/workers/canvas-render-worker.js' }, importScripts() {} };
   scope.self = scope;
   scope.PandoLabResourceUpdatePolicy = resourceUpdatePolicy;
   vm.createContext(scope);
-  vm.runInContext(readFileSync(new URL('vendor/d3.min.js', root), 'utf8'), scope);
+  vm.runInContext(readFileSync(new URL('../../../assets/js-vendor/d3.min.js', import.meta.url), 'utf8'), scope);
   vm.runInContext(readFileSync(new URL('workers/terrain-tile-selection-core.js', root), 'utf8'), scope);
   const source = readFileSync(new URL('workers/canvas-render-worker.js', root), 'utf8');
   const anchor = 'self.onmessage = event => {';

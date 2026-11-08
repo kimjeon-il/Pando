@@ -927,7 +927,12 @@ function canvasFallbackWorkerMain() {
     }
 
     function scheduleHydroRender() {
-      if (!hasRenderedView || !lastRenderMessage) return;
+      // Resource/style updates can cancel the first cooperative paint before
+      // hasRenderedView becomes true. Its current view still needs a bitmap:
+      // otherwise the worker has no frame to present and no later camera
+      // input is guaranteed to arrive. Never revive a superseded project.
+      if (!lastRenderMessage
+        || Number(lastRenderMessage.projectGeneration ?? projectGeneration) !== projectGeneration) return;
       if (activePaint) { repaintAfterPaint = true; return; }
       if (hydroRenderTimer) return;
       // A hydro/terrain-adjacent update must not monopolize this worker with
