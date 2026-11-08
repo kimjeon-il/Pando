@@ -11,7 +11,6 @@ import * as __dep8 from "../../scripts/lib/css-analysis.mjs";
 import * as __dep9 from "../../scripts/lib/source-analysis.mjs";
 import * as __dep10 from "../../shared/frontend/js/modules/render-device.js";
 import * as __dep11 from "../../shared/frontend/js/modules/selection-packet.js";
-contractSuite("selection-domain-core", () => {
 const assert = __dep0.default;
 const test = __dep1.default;
 const { createSelectionDomain } = __dep2;
@@ -276,5 +275,4 @@ test('main renderer creates the RenderDevice while selection consumes an injecte
     assert.equal(createsDevice, ownsDevice, file);
     if (!ownsDevice) assert.equal(createsContext, false, file);
   }
-});
 });

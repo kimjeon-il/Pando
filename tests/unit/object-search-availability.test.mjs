@@ -17,23 +17,12 @@ import * as __dep13 from "../../shared/frontend/js/modules/selection-ui-controll
 import * as __dep14 from "../../shared/frontend/js/modules/place-contract.js";
 import * as __dep15 from "../helpers/core-selection.mjs";
 contractSuite("object-search-availability", () => {
-const { describe : contractSuite } = __dep0;
-const __contract_dep0 = __dep0;
-const __contract_dep1 = __dep1;
-const __contract_dep2 = __dep2;
-const __contract_dep3 = __dep3;
-const __contract_dep4 = __dep4;
-const __contract_dep5 = __dep5;
-const __contract_dep6 = __dep0;
-const __contract_dep7 = __dep1;
-const __contract_dep8 = __dep6;
-contractSuite("object-search-availability", () => {
-const test = __contract_dep0.default;
-const assert = __contract_dep1.default;
-const { createObjectCatalog } = __contract_dep2;
-const { createObjectQuery } = __contract_dep3;
-const { normalizeObjectRef } = __contract_dep4;
-const { createTerritorialEntityRepository } = __contract_dep5;
+const test = __dep0.default;
+const assert = __dep1.default;
+const { createObjectCatalog } = __dep2;
+const { createObjectQuery } = __dep3;
+const { normalizeObjectRef } = __dep4;
+const { createTerritorialEntityRepository } = __dep5;
 
 test('search uses current existence and display visibility without truncating literal IDs',()=>{
  const entities=[{type:'Feature',id:'alpha:one',properties:{name:'기간 객체',entityKind:'general',parentId:'',validFrom:'1900-01-01',validTo:'1914-12-31'},geometry:{type:'Point',coordinates:[0,0]}}];
@@ -68,9 +57,9 @@ test('built-in selection and hover descriptions use the same active period name 
 });
 });
 contractSuite("flat-object-search", () => {
-const test = __contract_dep6.default;
-const assert = __contract_dep7.default;
-const { createObjectSearchModel, visibleObjectSearchRows } = __contract_dep8;
+const test = __dep0.default;
+const assert = __dep1.default;
+const { createObjectSearchModel, visibleObjectSearchRows } = __dep6;
 const model = data => createObjectSearchModel({items:group=>data[group]||[],groups:Object.keys(data),
   itemRef:(group,id)=>({key:`${group}:${id}`}),compare:(a,b)=>a.name.localeCompare(b.name)});
 test('flat search preserves explicit object identity, name ordering, parent text and type matching without folder state',()=>{
@@ -139,6 +128,7 @@ function element() {
     replaceChildren(...nodes) { this.children = nodes; },
     setAttribute(name, value) { this.attributes[name] = value; },
     addEventListener(name, listener) { listeners.set(name, listener); },
+    removeEventListener(name, listener) { if (listeners.get(name) === listener) listeners.delete(name); },
     querySelectorAll() { return this.children.filter(node => node.dataset.objectKey); },
     closest(selector) {
       return selector === '[data-object-search-select]' && this.dataset.objectSearchSelect ? this : null;
@@ -186,6 +176,40 @@ async function setup(t, { builtinSearch, cancelBuiltinSearch, builtinRecordVisib
   };
   return { controller, selectionDomain, results, snapshot, click, settle: tracked.settle };
 }
+
+test('a search click waits for Core selection approval and releases its listener on dispose', async () => {
+  const results=element();
+  const ref=normalizeObjectRef({domain:'territorial',type:'entity',id:'A'});
+  let approve,closed=0;
+  const pending=new Promise(resolve=>{approve=resolve;});
+  const controller=createObjectSearchController({
+    window:{setTimeout,clearTimeout},
+    document:{createElement:element},
+    elements:{searchResults:results},
+    groups:{search:['objects']},
+    createEmptyState:element,
+    model:{
+      snapshot:()=>({search:'A',searchActive:true}),
+      items:()=>[{id:'A',name:'A'}],
+      itemRef:()=>ref,
+      compare:(a,b)=>a.name.localeCompare(b.name),
+      selectionSnapshot:()=>({selection:{primaryKey:null,items:[]}}),
+    },
+    commands:{selectItem:()=>pending,closeAfterSingleSelection:()=>{closed++;}},
+  });
+  controller.bind();controller.render();
+  const button=results.children[0].children[0];
+  results.listeners.get('click')({
+    target:button,shiftKey:false,ctrlKey:false,metaKey:false,
+    preventDefault(){},
+  });
+  assert.equal(closed,0,'pending Core selection must not close the search');
+  approve(true);
+  await tick();
+  assert.equal(closed,1,'only a confirmed selection closes the search');
+  controller.dispose();
+  assert.equal(results.listeners.has('click'),false,'disposed controller must release listeners');
+});
 
 test('search Shift range follows displayed sorting across object groups and sets clicked primary', async t => {
   const { results, click, selectionDomain } = await setup(t);
@@ -435,5 +459,4 @@ test('cached builtin results follow current month and visibility and restore the
  state.layerVisibility.labels=true;controller.render();await tick();assert.equal(rows().length,1);assert.equal(calls,2);
  state.timelineCursor='1915-01';controller.render();await tick();assert.equal(calls,3);
  state.itemVisibility.labels={'builtin:place:synthetic:seoul':false};controller.render();await tick();assert.equal(rows().length,0);controller.dispose();
-});
 });

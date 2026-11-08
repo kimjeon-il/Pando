@@ -3,11 +3,8 @@ import * as __contract_dep0 from "node:assert/strict";
 import * as __contract_dep1 from "node:test";
 import * as __contract_dep2 from "../../apps/viewer/js/modules/viewer-inspector-controller.js";
 import * as __contract_dep3 from "../../apps/viewer/js/modules/viewer-review-panel.js";
-import * as __contract_dep4 from "node:assert/strict";
-import * as __contract_dep5 from "node:test";
 import * as __contract_dep6 from "../../apps/viewer/js/modules/viewer-inspector-state.js";
 import * as __contract_dep7 from "node:fs";
-contractSuite("viewer-inspector-controller", () => {
 const assert = __contract_dep0.default;
 const test = __contract_dep1.default;
 const { createViewerInspectorController } = __contract_dep2;
@@ -183,8 +180,8 @@ test('P5 inspector and review panel both reject a mutable document owner',()=>{
 });
 });
 contractSuite("viewer-inspector", () => {
-const assert = __contract_dep4.default;
-const test = __contract_dep5.default;
+const assert = __contract_dep0.default;
+const test = __contract_dep1.default;
 const { collectViewerInspection } = __contract_dep6;
 const { readFileSync } = __contract_dep7;
 
@@ -236,5 +233,4 @@ test('inspection does not copy entire documents, sensitive stacks or unbounded e
   assert.equal(info.performance.domInteractiveMs,421);
   assert.equal(info.performance.memorySamples,2);
   assert.doesNotMatch(JSON.stringify(info),/SECRET_STACK|SECRET_TOKEN|NEVER_EXPORT|SECRET_DOCUMENT/);
-});
 });

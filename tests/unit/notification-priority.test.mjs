@@ -2,10 +2,7 @@ import { describe as contractSuite } from 'node:test';
 import * as __contract_dep0 from "node:test";
 import * as __contract_dep1 from "node:assert/strict";
 import * as __contract_dep2 from "../../shared/frontend/js/modules/notification-presentation.js";
-import * as __contract_dep3 from "node:assert/strict";
-import * as __contract_dep4 from "node:test";
 import * as __contract_dep5 from "../../shared/frontend/js/modules/notification-copy.js";
-contractSuite("notification-priority", () => {
 const test = __contract_dep0.default;
 const assert = __contract_dep1.default;
 const { createNotificationPresentation } = __contract_dep2;
@@ -52,8 +49,8 @@ test('forced user-facing success can explicitly replace a pending viewer error',
 });
 });
 contractSuite("notification-copy", () => {
-const assert = __contract_dep3.default;
-const test = __contract_dep4.default;
+const assert = __contract_dep1.default;
+const test = __contract_dep0.default;
 const { compactNotificationMessage } = __contract_dep5;
 
 
@@ -135,5 +132,4 @@ test('working copy reports progress rather than completion', () => {
   );
   assert.equal(result, '저장 중…');
   assert.doesNotMatch(result, /했습니다/u);
-});
 });

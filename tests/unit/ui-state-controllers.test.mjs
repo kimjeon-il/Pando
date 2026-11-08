@@ -18,7 +18,6 @@ import * as __unit_dep14 from "../../shared/frontend/js/modules/interaction-role
 import * as __unit_dep15 from "../../shared/frontend/js/modules/territorial-entity-repository.js";
 import * as __unit_dep16 from "../../shared/frontend/js/modules/map-display-preparation.js";
 import * as __unit_dep17 from "../../shared/frontend/js/modules/selection-pass.js";
-contractSuite("ui-state-controllers", () => {
 const test = __unit_dep0.default;
 const assert = __unit_dep1.default;
 const { normalizeObjectRef } = __unit_dep2;
@@ -630,5 +629,4 @@ test('physical land substrate is filled once and excludes political hierarchy an
   assert.deepEqual(calls, ['begin', 'fill']);
   assert.equal(drawn.length, 2);
   assert.deepEqual(drawn, [land, secondLand].map(globalThis.PandoLabCanvasSceneComposition.geometryFor));
-});
 });
