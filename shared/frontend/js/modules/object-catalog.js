@@ -1,7 +1,6 @@
 import { effectiveTerritorialFlagUrl } from './country-flags.js';
-import {BUILTIN_SUBUNITS} from './builtin-subunits.js';
+import {builtinSubunitSourceId} from './builtin-subunits.js';
 import {projectResourceOverlay} from './project-resource-overlay.js';
-const builtinSubunitSources=Object.freeze(Object.fromEntries(BUILTIN_SUBUNITS.map(row=>[row.id,row.sourceCountryId])));
 
 /** ObjectCatalog: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
@@ -110,6 +109,11 @@ export function createObjectCatalog({ isObjectVisible } = {}) {
   function presentationCatalog() {
     const hydroLayers=Object.fromEntries(Object.entries(dependencies.hydroPresentation.HYDRO_LAYER_META)
       .map(([id,meta]) => [id,(0,dependencies.hydroPresentation.hydroCategoryKey)(meta.category)]));
+    const builtinSubunitSources=Object.fromEntries(
+      dependencies.territorialModel.entityRepository.list().flatMap(feature=>{
+        const sourceId=builtinSubunitSourceId(feature);
+        return sourceId?[[String(feature.id),sourceId]]:[];
+      }));
     return { hydroLayers,builtinSubunitSources,
       countryLabelIds:[...(0,dependencies.countries.builtinTerritorialScene)().labelById.keys()] };
   }

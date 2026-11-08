@@ -58,10 +58,11 @@ test('the whole document Worker preserves every semantic world field and distinc
       }
       assert.deepEqual(client.state(),state, 'Queries cannot create dirty/history/revision changes.');
     }
-    // Queries accept source precision; navigation still requires a month.
-    // The fixture's July 1914 state remains unchanged through the year end.
-    const year = model.projectWorld(await client.resolveWorld('1914'),state.epoch);
-    assert.equal(year.month,'1914');assert.equal(year.sourceEpoch,state.epoch);
+    // The Core query and navigation APIs now require canonical months.
+    // The fixture's July 1914 state remains unchanged through December.
+    const year = model.projectWorld(await client.resolveWorld('1914-12'),state.epoch);
+    assert.equal(year.month,'1914-12');assert.equal(year.sourceEpoch,state.epoch);
+    await assert.rejects(client.resolveWorld('1914'), { code: 'PL-TEMPORAL-001' });
     assert.deepEqual(year.entities,corpus.cases.find(row=>row.month==='1914-07').expected.map(entity=>({
       ...entity,objectRef:{domain:'territorial',id:entity.id},rendering:{},
     })));
