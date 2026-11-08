@@ -1,40 +1,20 @@
-import { describe as contractSuite } from 'node:test';
 import "../helpers/spherical-core.mjs";
-import * as __country_dep0 from "node:assert/strict";
-import * as __country_dep1 from "node:fs";
-import * as __country_dep2 from "node:zlib";
-import * as __country_dep3 from "node:test";
-import * as __country_dep4 from "../../tools/territorial-current-world.mjs";
-import * as __country_dep5 from "../../tools/canonical-country-packet-encoder.mjs";
-import * as __country_dep6 from "../../shared/frontend/js/modules/boundary-topology.js";
-import * as __country_dep7 from "../../shared/frontend/js/modules/country-shared-boundary-cache.js";
-import * as __country_dep8 from "../../shared/frontend/js/modules/builtin-subunits.js";
-import * as __country_dep9 from "../../tools/territorial-entity-sources.mjs";
-import * as __country_dep10 from "../../tools/gis/territorial-library.js";
-import * as __country_dep11 from "node:path";
-import * as __country_dep12 from "../helpers/timeline-project.mjs";
-import * as __country_dep13 from "../helpers/gis-core-fixture.mjs";
-import * as __country_dep14 from "node:vm";
-import * as __country_dep15 from "../../shared/frontend/js/modules/territorial-units.js";
-contractSuite("territorial-canonical-parity", () => {
-const assert = __country_dep0.default;
-const fs = __country_dep1.default;
-const { gunzipSync } = __country_dep2;
-const test = __country_dep3.default;
-const { buildCurrentWorld } = __country_dep4;
-const { encodeCanonicalCountryPacket } = __country_dep5;
-const { buildCountrySharedBoundarySegments, serializeCountrySharedBoundarySegments } = __country_dep6;
-const { countryGeometrySignature } = __country_dep7;
-const { classifyBuiltinCountries } = __country_dep8;
-
-
-
-
-
-
-
-
-
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import {gunzipSync} from 'node:zlib';
+import test from 'node:test';
+import {buildCurrentWorld} from '../../tools/territorial-current-world.mjs';
+import {encodeCanonicalCountryPacket} from '../../tools/canonical-country-packet-encoder.mjs';
+import {buildCountrySharedBoundarySegments, serializeCountrySharedBoundarySegments} from '../../shared/frontend/js/modules/boundary-topology.js';
+import {countryGeometrySignature} from '../../shared/frontend/js/modules/country-shared-boundary-cache.js';
+import {classifyBuiltinCountries} from '../../shared/frontend/js/modules/builtin-subunits.js';
+import {readTerritorialSources, territorialDataRoot} from '../../tools/territorial-entity-sources.mjs';
+import {normalizeTerritorialLibraryIndex, selectGeometryVersion} from '../../tools/gis/territorial-library.js';
+import path from 'node:path';
+import {executeTerritorialTestCommand} from '../helpers/timeline-project.mjs';
+import {createGisCoreFixture} from '../helpers/gis-core-fixture.mjs';
+import vm from 'node:vm';
+import {createTerritorialFeature} from '../../shared/frontend/js/modules/territorial-units.js';
 
 const root=new URL('../../',import.meta.url);
 const worldBundle=JSON.parse(fs.readFileSync(new URL('assets/data/world/current.json',root),'utf8'));
@@ -52,19 +32,6 @@ test('explicit world view reproduces canonical shared-boundary signatures and ev
  assert.deepEqual(Object.fromEntries(countries.map(f=>[String(f.id),countryGeometrySignature(f)])),packet.signatures);
  assert.deepEqual(serializeCountrySharedBoundarySegments(buildCountrySharedBoundarySegments(countries)),packet.segments);
 });
-});
-contractSuite("territorial-snapshots", () => {
-const assert = __country_dep0.default;
-const fs = __country_dep1.default;
-const test = __country_dep3.default;
-const { readTerritorialSources, territorialDataRoot } = __country_dep9;
-const { normalizeTerritorialLibraryIndex, selectGeometryVersion } = __country_dep10;
-const path = __country_dep11.default;
-
-
-
-
-
 
 test('current and dated snapshots use identical reference-only storage and covered versions',()=>{
   const sources=new Map(readTerritorialSources().map(e=>[e.entityId,e]));
@@ -86,22 +53,6 @@ test('snapshot input cannot mutate the normalized reference list',()=>{
   assert.deepEqual(index.snapshots[0].entityRefs,before);
   assert.throws(()=>index.snapshots[0].entityRefs.push('unrelated'),TypeError);
 });
-});
-contractSuite("territorial-gis-current", () => {
-const { executeTerritorialTestCommand } = __country_dep12;
-const { createGisCoreFixture } = __country_dep13;
-const assert = __country_dep0.default;
-const test = __country_dep3.default;
-const fs = __country_dep1.default;
-const vm = __country_dep14.default;
-const { createTerritorialFeature } = __country_dep15;
-
-
-
-
-
-
-
 
 const context = vm.createContext({});
 vm.runInContext(fs.readFileSync(new URL("../../shared/frontend/js/vendor/polygon-clipping.min.js", import.meta.url), 'utf8'), context);
@@ -174,5 +125,4 @@ test('edits during a coast decision cancel the detached import before any public
   assert.notStrictEqual(accepted,stored);assert.strictEqual(h.state.territorialEntities,accepted);
   assert.deepEqual(h.repository.list().map(row=>row.id),before.map(row=>row.id));assert.equal(h.repository.get('R'),null);
   assert.deepEqual(h.calls,calls,'late import adds no commit or autosave after the independent edit');
-});
 });
