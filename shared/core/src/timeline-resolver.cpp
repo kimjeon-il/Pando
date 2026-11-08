@@ -132,6 +132,9 @@ ResolvedWorld PreparedTimelineWorld::resolve(const std::string& month) const {
     const auto& index=*data_;
     ResolvedWorld result;result.month=cursor.canonical;
     result.entities.reserve(index.entities.size());
+    for(const auto& [ref,properties]:index.properties)
+        for(const auto& property:properties)if(active(property.validity,atEnd))
+            result.activeProperties[ref][property.value->property]=property.value->value;
     for(const auto& identity:index.entities) {
         const auto* lifetime=selected(index.lifetimes,identity.objectRef,atEnd);
         if(!lifetime)continue;
@@ -142,9 +145,8 @@ ResolvedWorld PreparedTimelineWorld::resolve(const std::string& month) const {
         auto& entity=result.entities.back();
         entity.validity=lifetime->validity;
         result.offsets.emplace(identity.objectRef,result.entities.size()-1);
-        const auto found=index.properties.find(identity.objectRef);
-        if(found!=index.properties.end())for(const auto& property:found->second)
-            if(active(property.validity,atEnd))entity.properties[property.value->property]=property.value->value;
+        const auto found=result.activeProperties.find(identity.objectRef);
+        if(found!=result.activeProperties.end())entity.properties=found->second;
     }
     std::map<std::string,std::size_t> resolvedById;
     for(std::size_t i=0;i<result.entities.size();++i)

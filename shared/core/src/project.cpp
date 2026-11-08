@@ -23,6 +23,30 @@ std::string nextInstanceId()
     } while (!counter.compare_exchange_weak(value, value + 1, std::memory_order_relaxed));
     return "project-session-" + std::to_string(value + 1);
 }
+bool sameTimelineRecords(const TimelineRecords& a,const TimelineRecords& b) {
+    const validity=[](const Validity& x,const Validity& y){return x.from==y.from&&x.to==y.to;};
+    const rows=[](const auto& x,const auto& y,const auto& equal){
+        return x.size()==y.size()&&std::equal(x.begin(),x.end(),y.begin(),equal);
+    };
+    return a.schemaVersion==b.schemaVersion
+        &&rows(a.lifetimes,b.lifetimes,[&](const auto& x,const auto& y){
+            return x.id==y.id&&x.objectRef==y.objectRef&&validity(x.validity,y.validity);})
+        &&rows(a.geometryBindings,b.geometryBindings,[&](const auto& x,const auto& y){
+            return x.id==y.id&&x.objectRef==y.objectRef&&validity(x.validity,y.validity)
+                &&x.geometryRef==y.geometryRef&&x.rendering==y.rendering;})
+        &&rows(a.parentRelations,b.parentRelations,[&](const auto& x,const auto& y){
+            return x.id==y.id&&x.objectRef==y.objectRef&&validity(x.validity,y.validity)
+                &&x.parentId==y.parentId&&x.coverageMode==y.coverageMode;})
+        &&rows(a.propertyBindings,b.propertyBindings,[&](const auto& x,const auto& y){
+            return x.id==y.id&&x.objectRef==y.objectRef&&validity(x.validity,y.validity)
+                &&x.property==y.property&&x.value==y.value;});
+}
+bool sameTimelineCatalog(const ProjectDocument& a,const ProjectDocument& b) {
+    const x=timelineEntityCatalog(a),y=timelineEntityCatalog(b);
+    return x.size()==y.size()&&std::equal(x.begin(),x.end(),y.begin(),[](const auto& left,const auto& right){
+        return left.objectRef==right.objectRef&&left.entityKind==right.entityKind;
+    });
+}
 bool boundaryHistoryAction(const CommandAction& action) {
     const auto* mutation=std::get_if<ApplyTerritorialMutation>(&action);
     return mutation&&mutation->plan.kind==TerritorialMutationKind::ReconcileSharedBoundary&&std::holds_alternative<SharedBoundaryIntent>(mutation->plan.intent);
@@ -170,8 +194,17 @@ void Project::admitTerritorialSource(ProjectDocument document,const std::functio
 }
 void Project::admitPresentation(ProjectDocument document,bool advanceRevision) {
     if(advanceRevision&&presentationRevision_==std::numeric_limits<std::uint64_t>::max())throw std::overflow_error("PROJECT_REVISION_OVERFLOW");
-    auto next=std::make_shared<const detail::DocumentState>(std::move(document));auto view=projectedState(next->document,timelineCursor_);
-    state_=std::move(next);viewState_=std::move(view);if(advanceRevision)++presentationRevision_;
+    auto next=std::make_shared<const detail::DocumentState>(std::move(document));
+    const bool reuse=preparedTimeline_&&preparedTimelineSource_.lock()==state_
+        &&sameTimelineRecords(state_->document.timelineRecords,next->document.timelineRecords)
+        &&sameTimelineCatalog(state_->document,next->document);
+    std::optional<ResolvedWorld> resolved;
+    if(reuse&&!timelineCursor_.empty()&&!isStaticTimeline(next->document))
+        resolved.emplace(preparedTimeline_->resolve(timelineCursor_));
+    auto view=projectedState(next->document,timelineCursor_,resolved?&*resolved:nullptr);
+    state_=std::move(next);viewState_=std::move(view);
+    if(reuse)preparedTimelineSource_=state_;
+    if(advanceRevision)++presentationRevision_;
 }
 void Project::admitTerritorialDirtyIds(const std::function<std::vector<std::string>(const ProjectDocument&)>& read) {
     std::map<const detail::DocumentState*,std::shared_ptr<const detail::DocumentState>> rebuilt;

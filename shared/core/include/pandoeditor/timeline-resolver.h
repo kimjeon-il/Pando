@@ -19,6 +19,8 @@ struct ResolvedWorld {
     std::vector<ResolvedEntity> entities;
     // Stable index positions survive copies of the resolved world.
     std::map<ObjectRef,std::size_t> offsets;
+    // Active values include identities without currently visible geometry.
+    std::map<ObjectRef,std::map<std::string,std::string>> activeProperties;
     const ResolvedEntity* find(const ObjectRef&) const;
 };
 
