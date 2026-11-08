@@ -1,12 +1,12 @@
-import {mkdtempSync,mkdirSync,writeFileSync,rmSync} from 'node:fs';
-import {tmpdir} from 'node:os';
+import {mkdirSync,writeFileSync} from 'node:fs';
+import {isolatedTestWorkspace} from './check-workspace-fixture.mjs';
 import {createHash} from 'node:crypto';
 import {gzipSync} from 'node:zlib';
 import {join,dirname} from 'node:path';
 import {UI_VIEWER_SOURCES} from '../../scripts/lib/ui-source-catalog.mjs';
 
 export function frontendFixture(t){
- const root=mkdtempSync(join(tmpdir(),'pando-frontend-build-'));t.after(()=>rmSync(root,{recursive:true,force:true}));
+ const root=isolatedTestWorkspace(t,'pando-frontend-build-');
  const put=(path,text)=>{const file=join(root,path);mkdirSync(dirname(file),{recursive:true});writeFileSync(file,text);};
  put('package.json',JSON.stringify({version:'1.0.0'}));
  for(const path of new Set([...UI_VIEWER_SOURCES,'assets/css/app.css','assets/css/viewer.css']))put(path.replace('assets/css/','shared/frontend/css/'),'.x { color: red; }');

@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { writeFileSync } from 'node:fs';
+import { isolatedTestWorkspace } from '../helpers/check-workspace-fixture.mjs';
 import { join } from 'node:path';
 import { collectChanges } from '../../scripts/lib/check-changes.mjs';
 import { executePlan as executeCiPlan, executionOutputs, selectionRequest } from '../../scripts/run-application-checks.mjs';
@@ -34,8 +34,7 @@ test('explicit native-only requests produce a non-browser CI job and execute the
 });
 
 test('local comparison includes commits, index, working tree, untracked and both rename paths', t => {
-  const root = mkdtempSync(join(tmpdir(), 'pando-check-diff-'));
-  t.after(() => rmSync(root, { recursive: true, force: true }));
+  const root = isolatedTestWorkspace(t, 'pando-check-diff-');
   const git = (...args) => execFileSync('git', args, { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
   git('init', '-q'); git('config', 'user.name', 'Test'); git('config', 'user.email', 'test@example.invalid');
   writeFileSync(join(root, 'old.txt'), 'base'); writeFileSync(join(root, 'cancel.txt'), 'base'); writeFileSync(join(root, '.gitignore'), 'ignored.txt\n');

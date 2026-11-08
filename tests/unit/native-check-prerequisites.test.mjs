@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {mkdtempSync,mkdirSync,writeFileSync,readFileSync,readdirSync,rmSync} from 'node:fs';
-import {tmpdir} from 'node:os';
+import {mkdirSync,writeFileSync,readFileSync,readdirSync} from 'node:fs';
+import {isolatedTestWorkspace} from '../helpers/check-workspace-fixture.mjs';
 import {dirname,join,posix,resolve} from 'node:path';
 import {loadRepository,matchesPattern,planApplicationChecks} from '../../scripts/plan-application-checks.mjs';
 import {executePlan as executeCiPlan,exactCheckPlan} from '../../scripts/run-application-checks.mjs';
@@ -14,8 +14,7 @@ const ciNativeTestCapacity=(ids,options)=>nativeTestCapacity(ids,{...options,env
 const ciPrepareNativeTestTool=(id,options)=>prepareNativeTestTool(id,{...options,environment:{GITHUB_ACTIONS:'true'}});
 
 function fixture(t) {
-  const root=mkdtempSync(join(tmpdir(),'pando-native-checks-'));
-  t.after(()=>rmSync(root,{recursive:true,force:true}));
+  const root=isolatedTestWorkspace(t,'pando-native-checks-');
   const put=(path,source='')=>{mkdirSync(dirname(join(root,path)),{recursive:true});writeFileSync(join(root,path),source);};
   put('tests/unit/image.test.mjs');put('tests/unit/plain.test.mjs');put('scripts/prepare.mjs');
   const catalog={schema:'pando-application-checks-v1',groups:[{id:'unit',kind:'unit',testPatterns:['tests/unit/*.test.mjs']}],
