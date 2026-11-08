@@ -180,8 +180,8 @@ export function createMapRenderCoordinator({
         ? viewState
         : { frameId: renderRevision });
 
-      // The legacy Pando host and its renderer share the coordinator frame.
-      // There is no second custom-layer render cycle.
+      // One coordinator frame is used by the map host and all render passes.
+      // No second custom-layer rendering cycle may publish another view.
       const sceneGpuMask = MAP_RENDER_DIRTY.OVERLAY_DATA
         | MAP_RENDER_DIRTY.OVERLAY_GEOMETRY | MAP_RENDER_DIRTY.OVERLAY_STYLE
         | MAP_RENDER_DIRTY.COUNTRY_PATCH | MAP_RENDER_DIRTY.GENERIC_PATCH

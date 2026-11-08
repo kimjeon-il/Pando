@@ -22,6 +22,7 @@ export function createGpuScene({getPhysicalLand=()=>null}={}) {
   let gpuSceneResourceObjectKeys;
   let hoverRequestSequence = 0;
   let pendingPreparation = null;
+  let lastOverlayOrderSignature = null, lastQualitySignature = null;
   function connect(ports) {
     if (dependencies) throw new Error('gpu-scene already connected');
     dependencies = ports;
@@ -85,6 +86,11 @@ export function createGpuScene({getPhysicalLand=()=>null}={}) {
     if (previous?.geometrySignature === geometrySignature && previous?.styleSignature === styleSignature) return false;
     if (previous?.geometrySignature !== geometrySignature) renderSceneGeometryRevision += 1;
     if (previous?.styleSignature !== styleSignature) renderSceneStyleRevision += 1;
+    // Remove superseded packet-to-object links. These are presentation
+    // indexes and must not retain keys from deleted scenes indefinitely.
+    if(previous)for(const item of [...previous.polygons,...previous.strokes])
+      if(gpuSceneResourceObjectKeys.get(String(item.key))===String(item.objectKey||''))
+        gpuSceneResourceObjectKeys.delete(String(item.key));
     gpuSceneDomains.set(domain, {
       geometrySignature,
       styleSignature,
@@ -106,15 +112,15 @@ export function createGpuScene({getPhysicalLand=()=>null}={}) {
     replaceGpuSceneDomain('physical-water',{polygons:land?.water?[{key:'physical-water',role:'physical-water',geometryRevision:land.waterRevision,
       geometry:land.water,protected:true,order:-19000,style:{color:'#ffffff',fillAlpha:1}}]:[]});
     const overlayOrderSignature = JSON.stringify(dependencies.projectState.state.layerPresentation?.overlayOrder || dependencies.renderScene.OVERLAY_GROUPS);
-    if (syncGpuRenderScene.overlayOrderSignature !== overlayOrderSignature) {
-      syncGpuRenderScene.overlayOrderSignature = overlayOrderSignature;
+    if (lastOverlayOrderSignature !== overlayOrderSignature) {
+      lastOverlayOrderSignature = overlayOrderSignature;
       renderSceneOrderRevision += 1;
     }
     currentSelectionPacket = selectionPacket || null;
     dependencies.interactionStateCommands.replaceGpuInteractionFillItems(interactionFillItems || []);
     const qualitySignature = `${dependencies.renderScene.currentRenderQuality.revision}:${dependencies.renderScene.currentRenderQuality.backgroundLod}:${dependencies.projectState.state.projection}`;
-    if (syncGpuRenderScene.qualitySignature !== qualitySignature) {
-      syncGpuRenderScene.qualitySignature = qualitySignature;
+    if (lastQualitySignature !== qualitySignature) {
+      lastQualitySignature = qualitySignature;
       renderSceneGeometryRevision += 1;
       for (const domainName of ['base-graticule', 'generic-features', 'distributions']) {
         if (gpuSceneDomains.has(domainName)) gpuSceneDirtyDomains.add(domainName);
@@ -343,6 +349,8 @@ export function createGpuScene({getPhysicalLand=()=>null}={}) {
     (renderSceneOrderRevision = 0);
 
     (currentSelectionPacket = null);
+    lastOverlayOrderSignature = null;
+    lastQualitySignature = null;
   }
 
   function initializeGpuSceneResourceObjectKeys() {

@@ -5760,7 +5760,6 @@ export function createGpuMapRenderer(deps) {
       target.sceneCacheValid = sceneColorCache.isValid();
       target.projectGeneration = projectGeneration;
       target.projectRenderBlocked = projectRenderBlocked;
-      target.mapHost = 'legacy';
       if (rendererMode === 'canvas-worker' || rendererMode === 'canvas2d') Object.assign(target, canvasTerrainStats);
     }
 
@@ -5822,7 +5821,6 @@ export function createGpuMapRenderer(deps) {
         ...(rendererMode === 'canvas-worker' && window.location?.search?.includes('debug=1')
           ? { canvasExpectedBackgroundKey: currentCanvasBackgroundKey(),
               canvasExpectedPhysicalContext: currentCanvasPhysical().context } : {}),
-        mapHost: 'legacy',
         assetRevision: ASSET_REVISION,
         dataRevision: DATA_REVISION,
         dataCacheName: 'pandolab-world-content-v1',
@@ -5857,7 +5855,6 @@ export function createGpuMapRenderer(deps) {
         canonicalMeshReady,
         availableMeshQualities: [...meshVariants.keys()],
         meshVariantBytes: Object.fromEntries([...meshVariants.entries()].map(([quality, entry]) => [quality, Number(entry.resources?.byteLength || 0)])),
-        meshRestorePending: false,
         qualityPhase,
         previewAllowed,
         previewActivationCount,
