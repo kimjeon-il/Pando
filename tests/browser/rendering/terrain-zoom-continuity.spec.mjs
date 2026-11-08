@@ -210,7 +210,9 @@ test(`Canvas keeps land and ocean terrain through ${phase} zoom while new detail
   await page.route('**/workers/canvas-render-worker.js*', async route => {
     const response = await route.fetch(), source = await response.text();
     const anchor = 'const sourceLevel = demLevel || targetLevel;';
-    const painted = 'return terrainComplete && demSpecs.every(spec => demTiles.has(spec.key));';
+    // Sample the completed Canvas picture, not the political-only branch
+    // of the terrain generator.
+    const painted = 'const bitmap = canvas.transferToImageBitmap();';
     expect(source.split(anchor)).toHaveLength(2);
     expect(source.split(painted)).toHaveLength(2);
     await route.fulfill({response, body:source.replace(anchor, `
@@ -232,10 +234,13 @@ test(`Canvas keeps land and ocean terrain through ${phase} zoom while new detail
         failures:[...demFailures.entries()],cacheBytes:demCacheBytes,cacheLimit:demCacheLimit});
       if(self.__captureTerrainCoverage)(self.__terrainFrames??=[]).push(self.__terrainLast);
       ` + anchor).replace(painted, `
-      if(self.__captureTerrainCoverage)self.__terrainLast.pixels=[[32,39],[20,35]].map(coordinate=>{
-        const point=projection(coordinate);
-        return [...context.getImageData(Math.round(point[0]*dpr),Math.round(point[1]*dpr),1,1).data];
-      });
+      if(self.__captureTerrainCoverage && self.__terrainLast) {
+        const pictureProjection=createProjection(message,width,height);
+        self.__terrainLast.pixels=[[32,39],[20,35]].map(coordinate=>{
+          const point=pictureProjection(coordinate);
+          return [...context.getImageData(Math.round(point[0]*dpr),Math.round(point[1]*dpr),1,1).data];
+        });
+      }
       ` + painted)});
   });
   try {
