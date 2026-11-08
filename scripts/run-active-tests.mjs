@@ -27,26 +27,26 @@ if (!['unit','browser'].includes(kind)) {
       const result=executePlan(plan,{repository,phase:'non-browser',unitTestArgs:forwarded});
       process.exitCode=result.ok?0:1;
     } else {
-    const batches=kind==='unit' ? planUnitTestBatches(files, {requirements: repository.unitRequirements})
-      : [{files}];
-    let failed=false;
-    for (const batch of batches) {
-      // Native tests are never silently counted as passing on a local host
-      // without the dedicated, source-pinned CI prerequisites.
-      if (kind==='unit' && batch.required.some(id=>id.startsWith('native-'))
-          && process.env.GITHUB_ACTIONS!=='true') {
-        console.error('Native unit checks require the selected GitHub Actions prerequisites: '
-          +batch.files.join(', '));
-        failed=true;
-        continue;
+      const batches=kind==='unit' ? planUnitTestBatches(files, {requirements: repository.unitRequirements})
+        : (files.length ? [{files}] : []);
+      let failed=false;
+      for (const batch of batches) {
+        // Native tests are never silently counted as passing on a local host
+        // without the dedicated, source-pinned CI prerequisites.
+        if (kind==='unit' && batch.required.some(id=>id.startsWith('native-'))
+            && process.env.GITHUB_ACTIONS!=='true') {
+          console.error('Native unit checks require the selected GitHub Actions prerequisites: '
+            +batch.files.join(', '));
+          failed=true;
+          continue;
+        }
+        const args=kind==='unit' ? ['--test','--test-concurrency=2',...batch.files,...forwarded]
+          : ['node_modules/@playwright/test/cli.js','test',...batch.files,'--workers=1',...forwarded];
+        const result=spawnSync(process.execPath,args,{cwd:repository.root,stdio:'inherit',shell:false});
+        if (result.error) throw result.error;
+        if (result.status!==0) failed=true;
       }
-      const args=kind==='unit' ? ['--test','--test-concurrency=2',...batch.files,...forwarded]
-        : ['node_modules/@playwright/test/cli.js','test',...batch.files,'--workers=1',...forwarded];
-      const result=spawnSync(process.execPath,args,{cwd:repository.root,stdio:'inherit',shell:false});
-      if (result.error) throw result.error;
-      if (result.status!==0) failed=true;
-    }
-    process.exitCode=failed?1:0;
+      process.exitCode=failed?1:0;
     }
   }
 }
