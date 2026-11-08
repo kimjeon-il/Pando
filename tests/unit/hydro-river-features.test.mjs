@@ -1,44 +1,22 @@
-import { describe as contractSuite } from 'node:test';
-import * as __hydro_dep0 from "node:test";
-import * as __hydro_dep1 from "node:assert/strict";
-import * as __hydro_dep2 from "../../tools/gis/hydro-river-features.mjs";
-import * as __hydro_dep3 from "../../tools/gis/hydro-lake-features.mjs";
-import * as __hydro_dep4 from "node:fs/promises";
-import * as __hydro_dep5 from "node:os";
-import * as __hydro_dep6 from "node:path";
-import * as __hydro_dep7 from "../../tools/gis/hydro-calibration-input.mjs";
-import * as __hydro_dep8 from "../../shared/frontend/js/modules/physical-resources.js";
-import * as __hydro_dep9 from "../../shared/frontend/js/modules/geometry-version-store.js";
 import "../../shared/frontend/js/vendor/polygon-clipping.min.js";
-import * as __hydro_dep10 from "node:crypto";
-import * as __hydro_dep11 from "../../tools/gis/hydro-region-pipeline.mjs";
-import * as __hydro_dep12 from "../../tools/gis/hydro-connectivity-native.mjs";
-import * as __hydro_dep13 from "../../tools/gis/hydro-source-reader.mjs";
-import * as __hydro_dep14 from "../../tools/gis/hydro-encoding-native.mjs";
-import * as __hydro_dep15 from "../../tools/gis/hydro-pack-layout.mjs";
-import * as __hydro_dep16 from "../../tools/gis/hydro-pack-decoder.mjs";
-contractSuite("hydro-river-features", () => {
-const { describe : featureDescribe } = __hydro_dep0;
-const __suiteDependency0 = __hydro_dep1;
-const __suiteDependency1 = __hydro_dep0;
-const __suiteDependency2 = __hydro_dep2;
-const __suiteDependency3 = __hydro_dep1;
-const __suiteDependency4 = __hydro_dep0;
-const __suiteDependency5 = __hydro_dep3;
-const __suiteDependency6 = __hydro_dep1;
-const __suiteDependency7 = __hydro_dep4;
-const __suiteDependency8 = __hydro_dep5;
-const __suiteDependency9 = __hydro_dep6;
-const __suiteDependency10 = __hydro_dep0;
-const __suiteDependency11 = __hydro_dep7;
-const __suiteDependency12 = __hydro_dep0;
-const __suiteDependency13 = __hydro_dep1;
-const __suiteDependency14 = __hydro_dep8;
-const __suiteDependency15 = __hydro_dep9;
-featureDescribe("hydro-river-features", () => {
-  const assert = __suiteDependency0.default;
-  const test = __suiteDependency1.default;
-  const { buildHydroRiverFeatures } = __suiteDependency2;
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import {buildHydroRiverFeatures} from '../../tools/gis/hydro-river-features.mjs';
+import {buildHydroLakeFeatures} from '../../tools/gis/hydro-lake-features.mjs';
+import {copyFile, mkdtemp, mkdir, rm, writeFile, readFile} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join, resolve} from 'node:path';
+import {prepareHydroRiverSources} from '../../tools/gis/hydro-calibration-input.mjs';
+import {createPhysicalWaterPresentation} from '../../shared/frontend/js/modules/physical-resources.js';
+import {createGeometryVersionStore} from '../../shared/frontend/js/modules/geometry-version-store.js';
+import {createHash} from 'node:crypto';
+import {prepareHydroRegion} from '../../tools/gis/hydro-region-pipeline.mjs';
+import {withHydroSourceSelection} from '../../tools/gis/hydro-connectivity-native.mjs';
+import {openHydroRiverShapeReader} from '../../tools/gis/hydro-source-reader.mjs';
+import {encodeHydroRepairPlan} from '../../tools/gis/hydro-encoding-native.mjs';
+import {buildHydroPack} from '../../tools/gis/hydro-pack-layout.mjs';
+import {decodeHydroGeneratedPack} from '../../tools/gis/hydro-pack-decoder.mjs';
+
 test('river feature assembly preserves split source IDs, stage fragments and terminal metadata',
   {skip:!process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY},async()=>{
     const reach=(parts,borderPair,terminalClass='')=>({id:10,next:0,mainRiver:10,upstreamArea:100,flow:1,stage:3,
@@ -54,11 +32,7 @@ test('river feature assembly preserves split source IDs, stage fragments and ter
     assert.equal(result.features[0].metadata.name,'Test');assert.equal(result.features[1].metadata.source,'HydroRIVERS 1.0 · Natural Earth border AAA/BBB');
     assert.deepEqual(result.features[2].metadata.terminal,{class:'sea',sourceEndpoint:[3,0],renderEndpoint:[3,0]});
   });
-});
-featureDescribe("hydro-lake-features", () => {
-  const assert = __suiteDependency3.default;
-  const test = __suiteDependency4.default;
-  const { buildHydroLakeFeatures } = __suiteDependency5;
+
 test('Natural Earth lake features preserve names, stages and source identity',
   {skip:!process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY},async()=>{
     const polygon={type:'Polygon',coordinates:[[[0,0],[1,0],[1,1],[0,1],[0,0]]]},lakes=[
@@ -71,14 +45,7 @@ test('Natural Earth lake features preserve names, stages and source identity',
     assert.deepEqual(result.features.map(row=>[row.metadata.fid,row.metadata.logicalFid,row.metadata.name,row.metadata.stage,row.metadata.sourceId]),
       [[4,8,'테스트호수',0,'A'],[5,9,'Blue',2,'lake-b']]);
   });
-});
-featureDescribe("hydro-river-input", () => {
-  const assert = __suiteDependency6.default;
-  const { copyFile,mkdtemp,mkdir,rm,writeFile } = __suiteDependency7;
-  const { tmpdir } = __suiteDependency8;
-  const { join } = __suiteDependency9;
-  const test = __suiteDependency10.default;
-  const { prepareHydroRiverSources } = __suiteDependency11;
+
 test('river source discovery fingerprints requested original members and rejects duplicates',async t=>{
   const root=await mkdtemp(join(tmpdir(),'pando-hydro-input-'));t.after(()=>rm(root,{recursive:true}));
   const source=join(root,'source');await mkdir(source);
@@ -95,12 +62,7 @@ test('river source discovery fingerprints requested original members and rejects
   const controller=new AbortController();controller.abort();
   await assert.rejects(prepareHydroRiverSources({riverRoots:[root],codes:['eu'],signal:controller.signal}),{name:'AbortError'});
 });
-});
-featureDescribe("hydro-physical-replacement", () => {
-  const test = __suiteDependency12.default;
-  const assert = __suiteDependency13.default;
-  const { createPhysicalWaterPresentation } = __suiteDependency14;
-  const { createGeometryVersionStore } = __suiteDependency15;
+
 const box=(x,y,size)=>({type:'Polygon',coordinates:[[[x,y],[x+size,y],[x+size,y+size],[x,y+size],[x,y]]]});
 test('physical water follows the effective copied object geometry, reuses its mask and honors visibility',()=>{
  const source=box(2,2,2),land={type:'MultiPolygon',coordinates:[[box(0,0,10).coordinates[0],source.coordinates[0]]]};
@@ -115,35 +77,6 @@ test('physical water follows the effective copied object geometry, reuses its ma
  assert.deepEqual(globalThis.polygonClipping.xor(next.geometry.coordinates,globalThis.polygonClipping.difference([box(0,0,10).coordinates],copy.geometry.coordinates)),[]);
  assert.notEqual(next.revision,context.revision);
 });
-});
-});
-contractSuite("hydro-region-pipeline", () => {
-const assert = __hydro_dep1.default;
-const { createHash } = __hydro_dep10;
-const { readFile } = __hydro_dep4;
-const { resolve } = __hydro_dep6;
-const test = __hydro_dep0.default;
-const { prepareHydroRegion } = __hydro_dep11;
-const { withHydroSourceSelection } = __hydro_dep12;
-const { openHydroRiverShapeReader } = __hydro_dep13;
-const { buildHydroRiverFeatures } = __hydro_dep2;
-const { buildHydroLakeFeatures } = __hydro_dep3;
-const { encodeHydroRepairPlan } = __hydro_dep14;
-const { buildHydroPack } = __hydro_dep15;
-const { decodeHydroGeneratedPack } = __hydro_dep16;
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 test('regional Hydro pipeline preserves source selection, chains and reference names',
   {skip:!process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY||!process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY},async()=>{
@@ -172,4 +105,3 @@ test('regional Hydro pipeline preserves source selection, chains and reference n
         assert.deepEqual(decoded.map(row=>row.metadata.fid),ids);assert.equal(decoded.at(-1).metadata.name,'시험호');}
     },options.connectivity);}finally{await reader.close();}
   });
-});
