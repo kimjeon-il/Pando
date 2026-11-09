@@ -1,0 +1,8 @@
+{
+  "schema": "pando-stage2-core-validation-v1",
+  "sourceCommit": "1b67a90724f89207427dc2cc05796de4ab44e872",
+  "install": "success",
+  "prerequisite": "success",
+  "regression": "failure",
+  "verified": false
+}
