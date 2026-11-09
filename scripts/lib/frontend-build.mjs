@@ -78,7 +78,8 @@ export async function buildFrontendSnapshot({root=process.cwd(),sourceCommit,rea
  };
  const bundles=buildUiBundles(root,{readSource:read});
  generated('assets/css/ui-viewer.bundle.css',bundles.viewer,'viewer');
- const policy=await transform(read('assets/js/modules/resource-update-policy.js'),{format:'iife',globalName:'PandoLabResourceUpdatePolicy',target:'es2022',legalComments:'none'});
+ // Workers require a standalone executable policy, not a re-exporting UI compatibility facade.
+ const policy=await transform(read('assets/js/modules/resource-dependency-policy.js'),{format:'iife',globalName:'PandoLabResourceUpdatePolicy',target:'es2022',legalComments:'none'});
  generated('assets/js/workers/resource-update-policy-core.js','// Generated from the canonical resource policy.\n'+policy.code+'\nself.PandoLabResourceUpdatePolicy = PandoLabResourceUpdatePolicy;\n');
  const workerAssets={};
  for(const entry of [...assets.keys()].filter(p=>/^assets\/js\/workers\/.*-worker\.js$/.test(p)).sort()){

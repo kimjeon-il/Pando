@@ -11,6 +11,7 @@ export function frontendFixture(t){
  put('package.json',JSON.stringify({version:'1.0.0'}));
  put('projects/default-world/manifest.json',readFileSync(new URL('../../projects/default-world/manifest.json',import.meta.url)));
  for(const path of new Set([...UI_VIEWER_SOURCES,'assets/css/app.css','assets/css/viewer.css']))put(path.replace('assets/css/','src/ui/css/'),'.x { color: red; }');
+ put('src/runtime/resource-dependency-policy.js',readFileSync(new URL('../../src/runtime/resource-dependency-policy.js',import.meta.url)));
  put('src/rendering/resource-update-policy.js','export const value=1;');
  put('src/app/viewer.js','export const viewer=true;');
  const html=entry=>'<html data-app-version="1.0.0"><link rel="stylesheet" href="assets/css/ui-viewer.bundle.css"><script src="assets/js/build-meta.js"></script><script type="module" src="assets/js/'+entry+'"></script></html>';

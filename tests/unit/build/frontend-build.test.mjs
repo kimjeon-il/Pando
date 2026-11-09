@@ -11,6 +11,12 @@ test('one source build emits only the Viewer runtime shared with Windows reviewe
  assert.ok(snapshot.html.viewer.includes('assets/js/viewer.js'));
  assert.equal(Object.hasOwn(snapshot.html,'editor'),false);
  assert.ok(snapshot.assets.has('assets/js/build-meta.js'));
+ const policy=snapshot.assets.get('assets/js/workers/resource-update-policy-core.js').bytes.toString('utf8');
+ assert.match(policy,/PandoLabResourceUpdatePolicy/);
+ assert.match(policy,/resourceUpdate/);
+ assert.match(policy,/resourceKey/);
+ assert.doesNotMatch(policy,/\b(?:import|export)\s+(?:\{|\*|[A-Za-z])/);
+
  assert.equal(snapshot.buildMeta.worldBundle.url,'assets/data/world/current.json');
  assert.equal(snapshot.buildMeta.mapProject.projectId,'default-world');
  assert.equal(snapshot.buildMeta.builtinWorld.url,snapshot.buildMeta.mapProject.resources.territorial.catalog);
