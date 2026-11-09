@@ -3,9 +3,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
 import {selectTerritorialChunkBytes} from '../data/territorial-chunk-compression.mjs';
+import {metadataOnlyTerritorialProjection} from '../data/territorial-metadata-projection.mjs';
 import {encodeTerritorialSource} from '../data/territorial-source-codec.mjs';
 import {territorialSourceLayout} from '../../src/data/territorial-source-format.js';
-import {readTerritorialSources,readTerritorialSource,readTerritorialLineages,entityFileName,territorialDataRoot,territorialSourceRoot} from '../data/territorial-entity-sources.mjs';
+import {readTerritorialSources,readTerritorialSource,readTerritorialSourceDescriptors,readTerritorialLineages,entityFileName,territorialDataRoot,territorialSourceRoot} from '../data/territorial-entity-sources.mjs';
 import {parseTemporal} from "../../src/document/temporal.js";
 import {territorialIndexEntry} from "../gis/territorial-index-entry.js";
 import {fileURLToPath} from 'node:url';
@@ -41,15 +42,31 @@ if(retirementFile){
 }else{
 const selected=scope?scope.slice('--entities='.length).split(','):null;
 if(selected&&(!selected.length||new Set(selected).size!==selected.length))throw new Error('Unique entity IDs required');
-const previous=selected?JSON.parse(fs.readFileSync(path.join(output,'index.json'),'utf8')):null;
-const entities=selected?selected.map(id=>readTerritorialSource(id)):readTerritorialSources();
+const existingIndexPath=path.join(output,'index.json');
+const priorIndex=fs.existsSync(existingIndexPath)?JSON.parse(fs.readFileSync(existingIndexPath,'utf8')):null;
+const previous=selected?priorIndex:null;
+if(selected&&!previous)throw new Error('Scoped chunk publication requires a prior index');
+const descriptors=readTerritorialSourceDescriptors();
+const indexedDescriptors=new Map(descriptors.map(entity=>[entity.entityId,entity]));
+const entities=selected?selected.map(id=>{
+ const entity=indexedDescriptors.get(id);
+ if(!entity)throw new Error('Unknown territorial source descriptor: '+id);
+ return entity;
+}):descriptors;
+const priorRows=new Map((priorIndex?.entities||[]).map(row=>[row.entityId,row]));
 if(selected&&selected.some(id=>!previous.entities.some(row=>row.entityId===id)))throw new Error('Scoped publication cannot add catalog identities');
 const expectedFiles=new Set(['index.json']);
 fs.mkdirSync(output,{recursive:true});
 const index={schemaVersion:2,lineages:previous?.lineages||readTerritorialLineages(),entities:entities.map(entity=>{
  // The intermediate catalog stores metadata only. Immutable coordinates are
  // referenced by verified content digest and never repacked for name edits.
- const {descriptor}=encodeTerritorialSource(entity);
+ const prior=priorRows.get(entity.entityId);
+ const metadata=metadataOnlyTerritorialProjection(entity,prior);
+ // Only a new/changed coordinate resource must enter the full source decoder.
+ // Existing, pinned geometry and its bbox remain byte-identical for a name,
+ // date, flag, relation or other metadata edit.
+ const compiled=metadata?null:readTerritorialSource(entity.entityId);
+ const descriptor=metadata?entity:encodeTerritorialSource(compiled).descriptor;
  const bytes=Buffer.from(`${JSON.stringify(descriptor,null,2)}\n`);
  const file=`${entityFileName(entity.entityId)}.gz`;expectedFiles.add(file);
  const destination=path.join(output,file);
@@ -57,7 +74,7 @@ const index={schemaVersion:2,lineages:previous?.lineages||readTerritorialLineage
  const {stored,changed}=selectTerritorialChunkBytes(bytes,previous);
  if(check&&changed)throw new Error(`Stale territorial chunk: ${file}`);
  if(!check&&changed)writeLibraryOutput(destination,stored);
- return territorialIndexEntry(entity,{sha256:sha(stored),compressedBytes:stored.length,decodedBytes:bytes.length,storageLayout:territorialSourceLayout});
+ return territorialIndexEntry(metadata?metadata.entity:compiled,{sha256:sha(stored),compressedBytes:stored.length,decodedBytes:bytes.length,storageLayout:territorialSourceLayout,...(metadata?{verifiedGeometryBounds:metadata.bbox}:{})});
  }),snapshots:previous?.snapshots||fs.readdirSync(path.join(territorialSourceRoot,'snapshots')).filter(f=>f.endsWith('.json')).sort().map(file=>{
  const snapshot=JSON.parse(fs.readFileSync(path.join(territorialSourceRoot,'snapshots',file),'utf8'));
  parseTemporal(snapshot.referenceDate,{nullable:false});
