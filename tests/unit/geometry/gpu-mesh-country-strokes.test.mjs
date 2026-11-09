@@ -1,3 +1,4 @@
+import { readBuiltinCountry } from '../../../tools/data/builtin-country-bytes.mjs';
 import { describe as contractSuite } from 'node:test';
 import * as __gpu_dep0 from "node:assert/strict";
 import * as __gpu_dep1 from "node:fs";
@@ -18,7 +19,7 @@ const test = __gpu_dep3.default;
 const vm = __gpu_dep4.default;
 const { fileURLToPath } = __gpu_dep5;
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 
 function loadClassic(relativePath, globalName) {
   const filePath = path.join(root, relativePath);
@@ -162,9 +163,15 @@ test('holes and dateline outlines follow fill while artificial polar edges remai
 });
 
 test('Argentina outlines follow the surviving fill after packed sliver removal', () => {
-  const countries = JSON.parse(fs.readFileSync(path.join(root,
-    'assets/data/territorial-entities/generated/current-world.geojson'), 'utf8'));
-  const feature = countries.features.find(row => row.id === 'ARG');
+  // Read the current canonical runtime owner, not a whole-world GIS projection.
+  // The index is metadata only; the reader verifies only ARG's descriptor and geometry.
+  const directory = path.join(root, 'assets/data/builtin-world/generated/v1');
+  const index = JSON.parse(fs.readFileSync(path.join(directory, 'index.json'), 'utf8'));
+  const entry = index.entities.find(row => row.entityId === 'ARG');
+  assert.ok(entry, 'the pinned builtin catalog must contain Argentina');
+  const country = readBuiltinCountry(entry, index, file => fs.readFileSync(path.join(directory, file)));
+  assert.equal(country.geometries.length, 1, 'Argentina regression requires its single canonical source geometry');
+  const feature = { ...country.identity, geometry: country.geometries[0].geojson };
   const before = structuredClone(feature.geometry);
   const mesh = meshCore.buildGpuMeshFeatures([feature], { validate: true });
   assert.ok(mesh.stats.removedDegenerateTriangleCount > 0, 'exercise packed triangle removal');

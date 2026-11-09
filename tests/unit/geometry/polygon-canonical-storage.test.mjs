@@ -82,6 +82,14 @@ test('builtin compiler stores real clipped output from valid five-point source o
  const view={schemaVersion:1,id:'world:canonical-storage',sourceInfo:{collectionMetadata:{type:'FeatureCollection'}},selections:entities.map(row=>({entityId:row.entityId,geometryVersionId:'v1'}))};
  const input={entities,view,policy:{schemaVersion:1,unknownPeerOverlap:'exclude-from-all',replacements:[]},
   displayPolicy:{schema:'pandolab-builtin-display-policy',schemaVersion:1,subunits:[],territoryMerges:[],sourceAttributions:{}}};
+ // Current/current source snapshots intentionally bypass historical peer clipping.
+ // Keep that behavior as a control, then make only BBB historical through the
+ // actual selection contract. The source ID prefix and coordinates do not change.
+ const currentBefore=JSON.stringify(input),current=compileBuiltinWorldCatalog(input);
+ assert.deepEqual(current.coverageReport.adjustments,[]);
+ assert.deepEqual(current.countries.find(row=>row.entityId==='AAA').geometries[0].geojson,shapes[0]);
+ assert.equal(JSON.stringify(input),currentBefore);
+ input.view={...view,selections:view.selections.slice(0,1)};
  const before=JSON.stringify(input);
  const compiled=compileBuiltinWorldCatalog(input),country=compiled.countries.find(row=>row.entityId==='AAA');
  assert.ok(country);
@@ -91,6 +99,10 @@ test('builtin compiler stores real clipped output from valid five-point source o
  assert.ok(polygons.some(polygon=>JSON.stringify(vertices(polygon[0]))===JSON.stringify(vertices(pair.exactTarget[0]))),
   'the same positive native fragment must reach real archive.insert, not a fake clipper result');
  assert.ok(polygons.some(polygon=>JSON.stringify(vertices(polygon[0]))===JSON.stringify(vertices(ordinary[0]))));
+ assert.ok(compiled.coverageReport.adjustments.some(row=>row.entityId==='AAA'&&row.kind==='unknown-peer-overlap'&&row.relatedIds.includes('current:BBB')),
+  'the real compiler must perform the historical subtraction before archive insertion');
+ assert.throws(()=>stores.createGeometryVersionStore(country.geometries),{code:'INVALID_GEOMETRY'},
+  'the generated archive must require canonical admission, rather than pass source admission accidentally');
  assert.deepEqual(canonical(JSON.parse(JSON.stringify(country.geometries))).snapshot(),country.geometries);
  assert.equal(compiled.coverageReport.adjustments.some(row=>row.kind==='certified-clipping-precision-artifact'),false);
  assert.equal(JSON.stringify(input),before);

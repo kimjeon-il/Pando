@@ -45,7 +45,8 @@ void checkExactClipped() {
         assert(vertices(normalized.polygons[0][0])==snapshot);
         assert(normalized.polygons[0][0].size()==ring.size());
         assert(hasCanonicalSphericalWinding(normalized,true));
-        assert(!hasCanonicalSphericalWinding(normalized));
+        // Winding inspection is not source admission: normalization has its own strict gate.
+        rejected(normalized);
         const auto again=normalizeClippedSphericalPolygonGeometry(normalized);
         for(std::size_t i=0;i<ring.size();++i)
             assert(exactplanar::equal(again.polygons[0][0][i],normalized.polygons[0][0][i]));

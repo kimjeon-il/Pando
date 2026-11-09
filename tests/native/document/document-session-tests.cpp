@@ -242,7 +242,9 @@ void canonicalStoredSessionContracts(const std::string& seed) {
     const auto mixed=ordinaryAndCurrentClipped();auto root=canonicalStoredInput(seed,mixed);
     // A distinct inline geometry forces the real project codec's retain boundary.
     auto inlineGeometry=mixed;for(auto& polygon:inlineGeometry.polygons)for(auto& ring:polygon)std::reverse(ring.begin(),ring.end());
-    auto generic=codecjson::parse(R"({"type":"Feature","id":"22000000-0000-4000-8000-000000000019","properties":{"schemaVersion":2,"name":"Canonical inline","notes":"","color":"#8c68d8","locked":false,"source":{"kind":"drawn","license":"","details":{}}}})");
+    auto generic=codecjson::parse(R"({"type":"Feature","id":"22000000-0000-4000-8000-000000000019","properties":{"schemaVersion":2,"name":"Canonical inline","notes":"","color":"#8c68d8","locked":false,"source":{}}})");
+    // A persisted row uses the same canonical provenance owner as web content creation.
+    generic.object.at("properties").object["source"]=projectcodec::normalizeWebSourceProvenance(codecjson::parse(R"({"kind":"user"})"));
     generic.object["geometry"]=projectcodec::webGeometryValue(inlineGeometry);root.object["genericFeatures"].array.push_back(generic);
     const auto original=root.encode();const GeometryRef ref{"clipped",1};
     const auto decoded=projectcodec::decodeWeb(original,ports);
