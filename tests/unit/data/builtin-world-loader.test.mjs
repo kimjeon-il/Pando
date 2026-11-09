@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
+import {readFileSync} from 'node:fs';
 import {buildBuiltinWorldPublication} from "../../../tools/build/build-builtin-world.mjs";
 import {historicalWorldCases} from "../../fixtures/historical-world-cases.mjs";
 import {withExplicitView} from "../../helpers/builtin-world.mjs";
@@ -106,4 +107,86 @@ test('one Core project retains identity and historical records across month chan
  assert.equal(visible(),true,'return must resolve original historical geometry');
  assert.equal(owner.documentModel.snapshot().documentId,documentId);
  assert.equal(owner.client.state().documentDirty,false,'navigation must not edit project content');
+});
+
+const defaultProjectManifest=JSON.parse(readFileSync(
+  new URL('../../../projects/default-world/manifest.json',import.meta.url),'utf8'));
+const territorialCatalog=defaultProjectManifest.resources.territorial.catalog;
+
+test('selected content project verifies the canonical country catalog before any fetch',async()=>{
+ const bytes=files.get('index.json'),digest=sha(bytes),spec={url:territorialCatalog,sha256:digest,
+  encoding:'identity',compressedBytes:bytes.length,decodedBytes:bytes.length};
+ const expected={catalog:territorialCatalog,sha256:digest};
+ assert.throws(()=>createBuiltinWorldLoader({
+  manifestUrl:'https://test.local/data/index.json',manifestSpec:spec,dataRevision:'fixture',
+  projectManifest:defaultProjectManifest,catalogReceipt:{...expected,sha256:'b'.repeat(64)},
+ }),/verified builtin resource/);
+ assert.throws(()=>createBuiltinWorldLoader({
+  manifestUrl:'https://test.local/data/index.json',manifestSpec:{...spec,url:'assets/data/not-selected.json'},
+  dataRevision:'fixture',projectManifest:defaultProjectManifest,catalogReceipt:expected,
+ }),/verified builtin resource/);
+ const calls=[];
+ const loader=createBuiltinWorldLoader({
+  manifestUrl:'https://test.local/data/index.json',manifestSpec:spec,dataRevision:'fixture',
+  projectManifest:defaultProjectManifest,catalogReceipt:expected,cacheStorage:null,
+  fetchFn:async url=>{const file=new URL(url).pathname.slice('/data/'.length);calls.push(file);
+   const data=files.get(file);return new Response(data,{status:data?200:404});},
+ });
+ const {project,contentProject}=await loader.loadProject('2014-02');
+ assert.equal(contentProject.manifest.projectId,'default-world');
+ assert.equal(contentProject.catalogSha256,digest);
+ assert.equal(contentProject.dataRevision,'fixture');
+ assert.equal(project.format,'pandolab-project-state');
+ assert.notEqual(project.documentId,contentProject.manifest.projectId,
+  'the project source ID is never substituted for documentId');
+ assert.ok(project.timelineRecords.geometryBindings.some(row=>row.validTo!==null));
+ assert.ok(calls.includes('index.json'));
+});
+
+test('the default map and imported file use identical accepted C++ territorial lookup without leaking project identity',async t=>{
+ const seed=startupDocument([]),digest=sha(files.get('index.json'));
+ let failLoad=false;
+ const owner=await createNodeCoreProject(seed,{productMode:'viewer',
+  replaceSnapshot:async(_document,{reason}={})=>{
+   if(failLoad&&reason==='load')throw new Error('simulated project presentation failure');
+   return true;},
+  restoreReplacement:async()=>{},
+ });t.after(()=>owner.dispose());
+ const session=createBuiltinSession({builtinWorldLoader:fixture().loader,buildMeta:{
+  dataRevision:'fixture',builtinWorld:{url:territorialCatalog,sha256:digest},
+  mapProject:defaultProjectManifest,mapProjectManifest:{sha256:'c'.repeat(64)},
+  mapProjectCatalogs:{territorial:{catalog:territorialCatalog,sha256:digest}},
+ }});
+ session.connect({platformConfigurationA:{BASE_DATASET:seed.baseDataset},
+  domains:{projectDomain:owner.project}});
+ const read=month=>async()=>({...await session.prepareProjectBaseline(month),
+  setup:{initialMonth:month,timelineRange:null,initialMapBounds:null,sourceMode:'builtin'}});
+ assert.equal(await owner.project.open(read('2014-02'),{source:'builtin'}),true);
+ const admitted=owner.project.snapshot(),association=owner.project.activeContentProject();
+ assert.equal(association.projectId,'default-world');
+ assert.equal(association.documentId,admitted.documentId);
+ assert.equal(association.catalog,territorialCatalog);
+ assert.equal(association.catalogSha256,digest);
+ assert.equal(owner.project.territorial.list(),owner.documentModel.territorialViews());
+ assert.equal(owner.project.territorial.world(),owner.documentModel.world());
+ assert.equal(owner.project.territorial.get('state:test-ukraine').id,'state:test-ukraine');
+ assert.equal(owner.project.territorial.identities().length,admitted.territorialEntities.length);
+ const history=JSON.stringify(admitted.timelineRecords),id=admitted.documentId;
+ await owner.client.setTimelineCursor('2026-10');
+ assert.equal(owner.project.territorial.get('state:test-ukraine'),null);
+ assert.equal(owner.project.snapshot().documentId,id);
+ assert.equal(JSON.stringify(owner.project.snapshot().timelineRecords),history);
+ await owner.client.setTimelineCursor('2014-02');
+ assert.ok(owner.project.territorial.get('state:test-ukraine'));
+ // Failed file adoption must restore the former content binding and native world.
+ failLoad=true;
+ await assert.rejects(owner.project.open(async()=>seed,{source:'project'}),/simulated project presentation failure/);
+ assert.equal(owner.project.activeContentProject().documentId,id);
+ assert.ok(owner.project.territorial.get('state:test-ukraine'));
+ failLoad=false;
+ assert.equal(await owner.project.open(async()=>seed,{source:'project'}),true);
+ assert.equal(owner.project.activeContentProject(),null);
+ assert.deepEqual(owner.project.territorial.list(),owner.documentModel.territorialViews());
+ assert.equal(owner.project.territorial.list().length,0);
+ assert.equal(owner.project.territorial.get('state:test-ukraine'),null);
 });
