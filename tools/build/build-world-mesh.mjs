@@ -17,8 +17,13 @@ const sourcePath = path.resolve(projectRoot,context.source('territorialCurrentWo
 const pinnedManifest = JSON.parse(fs.readFileSync(
   path.resolve(projectRoot,'assets/data',context.worldRecipe.legacyPreviewManifest),'utf8'));
 const outputOverride = process.argv.slice(2).find(value=>!value.startsWith('--'));
+if(projectId!=='default-world'&&!pinnedManifest.assets.canonicalMesh.url.startsWith(projectId+'/'))
+  throw new TypeError('Nondefault project canonical mesh must use a project-owned output path');
 const outputPath = path.resolve(projectRoot,
   outputOverride || path.join('assets','data',pinnedManifest.assets.canonicalMesh.url));
+if(projectId!=='default-world'
+  &&!path.relative(path.resolve(projectRoot,'assets/data',projectId),outputPath).match(/^(?!\.\.)(?:$|[^/\\])/))
+  throw new TypeError('Nondefault project canonical mesh cannot escape its output namespace');
 const MESH_FORMAT_VERSION = 2;
 const MESH_HEADER_WORDS = 12;
 const frontend = buildFrontendIndex(projectRoot);

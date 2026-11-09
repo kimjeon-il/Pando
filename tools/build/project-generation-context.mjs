@@ -54,9 +54,13 @@ export function readProjectWorldGenerationContext(options = {}) {
   if(worldRecipe?.schema!=='pandolab-world-build-input'||worldRecipe.schemaVersion!==1
     ||worldRecipe.canonicalSource!==canonicalSource)
     throw new TypeError('Selected project world recipe differs from its territorial source');
+  if(typeof worldRecipe.legacyPreviewManifest!=='string'
+    ||!worldRecipe.legacyPreviewManifest
+    ||worldRecipe.legacyPreviewManifest.split('/').some(part=>!part||part==='.'||part==='..')
+    ||!/^[-a-zA-Z0-9_./]+$/.test(worldRecipe.legacyPreviewManifest))
+    throw new TypeError('Unsafe selected project world preview path');
   if(selection.projectId!=='default-world'
-    &&(typeof worldRecipe.legacyPreviewManifest!=='string'
-      ||!worldRecipe.legacyPreviewManifest.startsWith(selection.projectId+'/')))
+    &&!worldRecipe.legacyPreviewManifest.startsWith(selection.projectId+'/'))
     throw new TypeError('Nondefault project world preview must have a project-owned output path');
   return Object.freeze({...selection,worldRecipePath,worldRecipe});
 }

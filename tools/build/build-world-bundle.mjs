@@ -86,7 +86,12 @@ export function publishWorldBundle({ root, check = false, manifestOverride = nul
   const seedPath=selected?resolve(root,selected.worldRecipePath):resolve(data,'world/build-input.json');
   const seed=selected?structuredClone(selected.worldRecipe):JSON.parse(readFileSync(seedPath,'utf8'));
   if (manifestOverride && check) throw new Error('Cannot override build input in --check mode');
-  if (manifestOverride) seed.legacyPreviewManifest = assertDataPath(manifestOverride);
+  if (manifestOverride) {
+    if(selected?.projectId!=='default-world' && selected
+      && !manifestOverride.startsWith(selected.projectId+'/'))
+      throw new TypeError('Nondefault project cannot publish a shared legacy preview manifest');
+    seed.legacyPreviewManifest = assertDataPath(manifestOverride);
+  }
   const legacy = JSON.parse(readData(seed.legacyPreviewManifest));
   const sourceBytes = Buffer.from(readData(seed.canonicalSource).toString('utf8').replaceAll('\r\n', '\n'));
   const source = JSON.parse(sourceBytes);

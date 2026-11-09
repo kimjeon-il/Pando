@@ -102,4 +102,7 @@ test('world generators select the same project source recipe and reject cross-pr
  inputs.set(altGeneration.inputs.worldBuildRecipe,JSON.stringify({...recipe,
    legacyPreviewManifest:'world-preview-v0.36.1.json'}));
  assert.throws(()=>readProjectWorldGenerationContext(opts),/project-owned/);
+ inputs.set(altGeneration.inputs.worldBuildRecipe,JSON.stringify({...recipe,
+   legacyPreviewManifest:'../unsafe-preview-v0.36.1.json'}));
+ assert.throws(()=>readProjectWorldGenerationContext(opts),/Unsafe/);
 });

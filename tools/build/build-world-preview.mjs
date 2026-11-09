@@ -23,7 +23,7 @@ const projectRoot = path.resolve(toolDirectory, '..', '..');
 const projectId = process.argv.find(value=>value.startsWith('--project='))?.slice('--project='.length) || 'default-world';
 const context = readProjectWorldGenerationContext({root:projectRoot,projectId});
 const bundleSeed = context.worldRecipe;
-const legacyTag = /^world-preview-v(\d+\.\d+\.\d+)\.json$/.exec(bundleSeed.legacyPreviewManifest || '');
+const legacyTag = /(?:^|\/)(?:world-)?preview-v(\d+\.\d+\.\d+)\.json$/.exec(bundleSeed.legacyPreviewManifest || '');
 if (!legacyTag) throw new Error('Invalid pinned world dataset output revision');
 const LEGACY_DATA_VERSION = legacyTag[1];
 const dataDirectory = path.join(projectRoot, 'assets', 'data');
