@@ -795,6 +795,22 @@
       "requires": [
         "native-document-session-tests"
       ]
+    },
+    {
+      "id": "workflow-ownership",
+      "kind": "command",
+      "inputs": [
+        ".github/workflows/**",
+        "tools/checks/audit-workflow-check-owners.mjs",
+        "scripts/contracts/application-checks.json"
+      ],
+      "argv": [
+        "node",
+        "tools/checks/audit-workflow-check-owners.mjs",
+        "--summary"
+      ],
+      "requires": [],
+      "testPatterns": []
     }
   ],
   "prerequisites": {

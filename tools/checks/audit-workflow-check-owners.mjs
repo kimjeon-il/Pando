@@ -57,6 +57,9 @@ export function auditWorkflowCheckOwners(directory){
 if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href){
  const root=resolve(process.argv[2]||'.github/workflows');
  const report=auditWorkflowCheckOwners(root);
- console.log(JSON.stringify(report,null,2));
+ if(process.argv.includes('--summary'))console.log(JSON.stringify({workflowCount:report.workflowCount,jobCount:report.jobCount,
+   automatic:report.automatic,manualOnly:report.manualOnly,multiOwnerTestCount:report.multiOwnerTestCount,
+   duplicateJobs:report.duplicateJobs,issues:report.issues}));
+ else console.log(JSON.stringify(report,null,2));
  if(report.issues.length||report.duplicateJobs.length)process.exitCode=1;
 }
