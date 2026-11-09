@@ -41,22 +41,27 @@ import {createProjectMonthClock} from "../document/project-month-clock.js";
 import {territorialMembershipDelta} from "../document/territorial-entity-store.js";
 
 export async function composeViewer({ productMode, meta }) {
-  // Catalog contents are no longer embedded into generated global metadata.
-  // Hydrate only the physical source required by the first map presentation;
-  // Worker country/mesh catalogs remain lazy and independently SHA verified.
+  if(productMode!=='viewer')throw new Error('실행 설정이 올바르지 않습니다.');
+  const get=id=>document.getElementById(id),status=get('viewerStatus');
+  get('viewer').dataset.initialLoading='true';
+  // Resolve the selected physical catalog once, using its published SHA.
+  // Keep a visible startup status if the pinned source is missing or damaged.
   const assetBaseUrl=new URL('../',import.meta.url);
   const projectRuntime=createMapProjectRuntime({meta,assetBaseUrl});
-  const physical=await projectRuntime.hydratePhysicalMetadata();
+  let physical;
+  try{physical=await projectRuntime.hydratePhysicalMetadata();}
+  catch(error){
+    status.dataset.ready='false';
+    presentViewerLoadStatus(status,'프로젝트 자료 카탈로그를 확인하지 못했습니다.',{error:true});
+    throw error;
+  }
   const runtimeMeta=Object.freeze({...meta,...physical});
   const runtimeContext=createRuntimeContext({productMode,meta:runtimeMeta,assetBaseUrl,platform:createPlatformPorts({kind:'browser'})});
-  if(productMode!=='viewer')throw new Error('실행 설정이 올바르지 않습니다.');
   const projection='globe';
-  const get=id=>document.getElementById(id),status=get('viewerStatus');
   let map,previousView,display,projectClock,syncStatus,presentedMonth=null;
   const inspectParams=new URLSearchParams(window.location.search);
   let inspectorController=null;
   const initialPresentation=createViewerInitialPresentation({onPresented:()=>{get('viewer').dataset.initialLoading='false';map.finishInitialPreview();}});
-  get('viewer').dataset.initialLoading='true';
   const preferencePresentation=createPreferencePresentation({document,window,productMode,onChange:change=>{if(map)map.refreshAppearance(change);}});
   const diagnostics=createDiagnosticLog({limit:250});
   const tooltipController=createTooltipController({document,window,tooltip:get('uiTooltip'),clamp:(value,min,max)=>Math.max(min,Math.min(max,value))});
