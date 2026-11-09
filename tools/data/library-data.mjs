@@ -68,7 +68,9 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   else {
     const root = process.argv.find(arg => arg.startsWith('--root='))?.slice(7) || defaultRoot;
     const purpose = process.argv.find(arg => arg.startsWith('--purpose='))?.slice(10) || 'viewer';
-    const result = prepareLibraryData({ root, purpose, prefixes });
+    const projectId=process.argv.find(arg=>arg.startsWith('--project='))?.slice('--project='.length)
+      ??(purpose==='viewer'?'default-world':null);
+    const result = prepareLibraryData({ root, purpose, prefixes, projectId });
     console.log(`Library prepared (${purpose}): ${result.repository}@${result.revision}`);
   }
   }
