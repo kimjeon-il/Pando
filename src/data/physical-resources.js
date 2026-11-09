@@ -251,6 +251,7 @@ export function createPhysicalResources({ buildMeta,projectResources=null,
   let builtinTimelineView=null;
   function isHydroObjectActive(feature) {
     if(feature.properties?.pandolab_domain==='hydro')return true;
+    if(!hasResources())return false;
     const state=dependencies.projectState.state,date=state.timelineCursor;
     if(!date)return false;
     const selection=selectedPhysicalWater(),entry=waterContexts.get(selection.key);
@@ -280,15 +281,20 @@ export function createPhysicalResources({ buildMeta,projectResources=null,
           sourceRevision:spec.sourceSha256,certified:true});
         return initialPreview;
       });
-      initialPreviewLoading=initialPreviewLoading.catch(error=>{initialPreviewLoading=null;throw error;});
+      initialPreviewLoading=initialPreviewLoading.catch(error=>{
+        if(sourceGeneration===generation)initialPreviewLoading=null;
+        throw error;
+      });
     }
     return initialPreviewLoading;
   }
   function loadPhysicalLandMask({notify=true}={}) {
     if(!hasResources())return Promise.resolve(null);
     if (physicalLand) return Promise.resolve(physicalLand);
-    if (!landLoading) landLoading = (async () => {
-      const generation=sourceGeneration,spec=currentLandSpec();
+    if (!landLoading) {
+      const generation=sourceGeneration;
+      landLoading = (async () => {
+      const spec=currentLandSpec();
       if (!spec) throw new Error('Missing pinned physical land asset.');
       const loader = storedPhysicalAssets();
       const result = await loader.loadAsset(spec, 'background', 'physical-land', '육지 배경', buffer => {
@@ -300,7 +306,11 @@ export function createPhysicalResources({ buildMeta,projectResources=null,
       physicalLand = Object.freeze({ geometry: result.value, revision: spec.sha256 });
       if(notify)dependencies.domains.renderingDomain.invalidateProject('physical-land-ready');
       return physicalLand;
-    })().catch(error => { landLoading = null; throw error; });
+    })().catch(error => {
+      if(sourceGeneration===generation)landLoading=null;
+      throw error;
+    });
+    }
     return landLoading;
   }
   function connect(ports) {
