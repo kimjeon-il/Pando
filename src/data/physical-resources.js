@@ -149,6 +149,7 @@ export function createPhysicalResources({ buildMeta,projectResources=null,
   }
   function ensurePhysicalContext({rows:selected,key}) {
     if(waterContexts.has(key))return waterContexts.get(key);
+    const requestGeneration=sourceGeneration;
     const landAsset=selected[0].assets.land;
     const entry={status:'loading',value:null,promise:null,activation:null,presentation:null,presentationKey:null};
     waterContexts.set(key,entry);
@@ -161,6 +162,8 @@ export function createPhysicalResources({ buildMeta,projectResources=null,
       }).then(value=>({value})),
       ...selected.map(row=>loader.loadAsset(row.assets.asset,'background',JSON.stringify(row.geometryRef)+'-water','수역 형상',decode)),
     ]).then(([land,...waters])=>{
+      if(!isCurrentSource(requestGeneration))throw Object.assign(
+        new Error('Physical context belongs to another project'),{name:'AbortError',cancelled:true});
       if(land.value.type!=='MultiPolygon'||waters.some(water=>!['Polygon','MultiPolygon'].includes(water.value.type)))throw new Error('Invalid physical-water geometry.');
       entry.value=Object.freeze({geometry:land.value,revision:landAsset.sha256,
         waters:selected.map((row,index)=>({row,water:waters[index].value,waterRevision:row.assets.asset.sha256}))});
@@ -169,7 +172,9 @@ export function createPhysicalResources({ buildMeta,projectResources=null,
     return entry;
   }
   async function preparePhysicalContext(month,{isCurrent=()=>true}={}) {
-    const assertCurrent=()=>{if(!isCurrent())throw Object.assign(new Error('Physical preparation superseded'),{name:'AbortError',cancelled:true});};
+    if(!hasResources())return null;
+    const generation=sourceGeneration;
+    const assertCurrent=()=>{if(!isCurrent()||!isCurrentSource(generation))throw Object.assign(new Error('Physical preparation superseded'),{name:'AbortError',cancelled:true});};
     assertCurrent();
     const selection=physicalSelectionFor(month),entry=waterContexts.get(selection.key);
     if(entry?.status==='error')waterContexts.delete(selection.key);
@@ -177,16 +182,18 @@ export function createPhysicalResources({ buildMeta,projectResources=null,
     assertCurrent();return result;
   }
   function activatePhysicalContext(entry,key) {
-    const cache=dependencies.projectState.state.hydroFeatureCache;
+    const generation=sourceGeneration,cache=dependencies.projectState.state.hydroFeatureCache;
     if(entry.activation&&entry.activation.cache===cache)return;
     const activation={cache};entry.activation=activation;
     activation.promise=entry.promise.then(async()=>{
       for(const value of entry.value.waters){
-        if(requestedWaterKey!==key||selectedPhysicalWater().key!==key||dependencies.projectState.state.hydroFeatureCache!==cache)break;
+        if(!isCurrentSource(generation)||requestedWaterKey!==key||selectedPhysicalWater().key!==key
+          ||dependencies.projectState.state.hydroFeatureCache!==cache)break;
         await admitSelectedWater(value.row,value);
       }
-      dependencies.domains.renderingDomain.invalidateProject('physical-water-ready');
+      if(isCurrentSource(generation))dependencies.domains.renderingDomain.invalidateProject('physical-water-ready');
     }).catch(error=>{
+      if(!isCurrentSource(generation)||error.cancelled)return;
       dependencies.feedback.reportOperationError(error,'수역 형상을 준비하지 못했습니다. 시점을 바꿨다가 돌아오면 다시 불러옵니다.','PL-PHYSICAL-HISTORY-001',4200);
     });
   }
@@ -257,8 +264,9 @@ export function createPhysicalResources({ buildMeta,projectResources=null,
     return builtinTimelineView.reference.isActive(feature.properties?.pandolab_id||feature.id);
   }
   function loadInitialLandPreview(){
+    if(!hasResources())return Promise.resolve(null);
     if(!initialPreviewLoading){
-      const source=buildMeta.physicalLand,spec=buildMeta.initialLandPreview;
+      const generation=sourceGeneration,source=currentLandSpec(),spec=buildMeta.initialLandPreview;
       if(!spec?.url||spec.sourceSha256!==source?.sha256)
         return Promise.reject(new Error('Initial land preview does not match the pinned physical source.'));
       initialPreviewLoading=storedPhysicalAssets().loadAsset(spec,'background','initial-land-preview','초기 지도 윤곽',buffer=>{
@@ -267,6 +275,7 @@ export function createPhysicalResources({ buildMeta,projectResources=null,
           ||geometry.coordinates.length!==spec.polygonCount)throw new Error('Invalid initial land preview geometry.');
         return geometry;
       }).then(result=>{
+        if(!isCurrentSource(generation))return null;
         initialPreview=Object.freeze({geometry:result.value,revision:spec.sha256,
           sourceRevision:spec.sourceSha256,certified:true});
         return initialPreview;
@@ -276,17 +285,19 @@ export function createPhysicalResources({ buildMeta,projectResources=null,
     return initialPreviewLoading;
   }
   function loadPhysicalLandMask({notify=true}={}) {
+    if(!hasResources())return Promise.resolve(null);
     if (physicalLand) return Promise.resolve(physicalLand);
     if (!landLoading) landLoading = (async () => {
-      const meta = buildMeta;
-      if (!meta?.physicalLand) throw new Error('Missing pinned physical land asset.');
+      const generation=sourceGeneration,spec=currentLandSpec();
+      if (!spec) throw new Error('Missing pinned physical land asset.');
       const loader = storedPhysicalAssets();
-      const result = await loader.loadAsset(meta.physicalLand, 'background', 'physical-land', '육지 배경', buffer => {
+      const result = await loader.loadAsset(spec, 'background', 'physical-land', '육지 배경', buffer => {
         const geometry = JSON.parse(new TextDecoder().decode(buffer));
         if (geometry.type !== 'MultiPolygon' || !Array.isArray(geometry.coordinates)) throw new Error('Invalid physical land geometry.');
         return geometry;
       });
-      physicalLand = Object.freeze({ geometry: result.value, revision: meta.physicalLand.sha256 });
+      if(!isCurrentSource(generation))return null;
+      physicalLand = Object.freeze({ geometry: result.value, revision: spec.sha256 });
       if(notify)dependencies.domains.renderingDomain.invalidateProject('physical-land-ready');
       return physicalLand;
     })().catch(error => { landLoading = null; throw error; });
@@ -295,6 +306,31 @@ export function createPhysicalResources({ buildMeta,projectResources=null,
   function connect(ports) {
     if (dependencies) throw new Error('physical-resources already connected');
     dependencies = ports;
+  }
+  function selectProjectResources(){
+    if(!projectResources?.managed)return false;
+    sourceGeneration++;
+    // Immutable downloaded bytes remain in Cache Storage, while every dated
+    // overlay, live Worker, land-mask presentation and resource map is retired.
+    physicalLand=null;landLoading=null;physicalAssetLoader=null;
+    initialPreview=null;initialPreviewLoading=null;
+    waterContexts.clear();physicalSelection=null;requestedWaterKey=null;builtinTimelineView=null;
+    const state=dependencies?.projectState?.state;
+    if(state){
+      state.hydroManifest=null;state.terrainManifest=null;
+      state.hydroFeatureCache=new Map();
+      state.hydroFeatureByFid=new Map();
+      state.hydroFragmentsByLogicalId=new Map();
+      Object.assign(state.physicalLoadState,{terrain:'idle',hydro:'idle',terrainManifest:'idle',
+        hydroManifest:'idle',hydroWorker:'idle',hydroCache:'idle',hydroCachePercent:0});
+      const renderer=dependencies.rendering?.gpuMapRenderer;
+      renderer?.setTerrainManifest?.(null);
+      // A null Hydro manifest retires the old worker generation and its tiles.
+      void Promise.resolve(renderer?.setHydroManifest?.(null,null)).catch(()=>{});
+      terrainService=null;hydroService=null;
+      if(hasResources())initializeTerrainService();
+    }
+    return true;
   }
 
   function prepareHydroFeature(feature) {
@@ -307,12 +343,13 @@ export function createPhysicalResources({ buildMeta,projectResources=null,
   }
 
   async function loadTerrainManifest(force = false) {
-    if (!capabilities.terrain) return false;
+    if (!hasResources()||!capabilities.terrain||!terrainService)return false;
     return terrainService.load(force);
   }
 
   async function loadHydroData(force = false) {
-    if (!capabilities.builtinHydro || (!capabilities.eagerBuiltinHydro && !force)) return false;
+    if(!hasResources()||!hydroService||!capabilities.builtinHydro
+      ||(!capabilities.eagerBuiltinHydro&&!force))return false;
     return hydroService.load(force);
   }
 
@@ -342,6 +379,7 @@ export function createPhysicalResources({ buildMeta,projectResources=null,
   }
 
   async function loadPhysicalData({includeHydro=true}={}){
+    if(!hasResources())return false;
     try{return await Promise.all([loadPhysicalLandMask(),loadTerrainManifest(),includeHydro ? loadHydroData() : false]);}
     catch(error){dependencies.feedback.reportOperationError(error,'지도 배경 자료를 준비하지 못했습니다.','PL-PHYSICAL-LOAD-001',4200);return false;}
   }
@@ -509,14 +547,15 @@ export function createPhysicalResources({ buildMeta,projectResources=null,
 
   return Object.freeze({
     connect,
-    initializeTerrainService,
+    initializeTerrainService,selectProjectResources,
     loadPhysicalLandMask,
     loadInitialLandPreview,
     preparePhysicalContext,
     get physicalLand() { return currentPhysicalContext(); },
     get initialLandPreview() { return initialPreview; },
-    get physicalLandSourceRevision() { return buildMeta.physicalLand?.sha256 || null; },
+    get physicalLandSourceRevision() { return currentLandSpec()?.sha256||null; },
     get physicalContextState() {
+      if(!hasResources())return {ready:false,error:null,landRevision:null,waterRevision:null};
       const context=currentPhysicalContext(),selection=selectedPhysicalWater(),entry=waterContexts.get(selection.key);
       const ready=selection.rows.length?entry?.status==='ready':!!physicalLand;
       return {ready,error:entry?.error||null,
