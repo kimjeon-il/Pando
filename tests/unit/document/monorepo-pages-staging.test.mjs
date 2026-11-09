@@ -73,7 +73,7 @@ test('storage HEAD and a stale publication channel cannot replace the committed 
   const result = run(process.execPath, [script, '--root', root, '--stage', stage, '--manifest', manifest], root);
   assert.equal(result.status, 0, result.stderr);
   assert.equal(JSON.parse(readFileSync(manifest)).dataCommit, pin);
-  assert.deepEqual(JSON.parse(readFileSync(join(stage, 'assets/data/world/current.json'))), { assets: {} });
+  assert.deepEqual(JSON.parse(readFileSync(join(stage, 'assets/data/world/current.json'))), {schema:'pandolab-world-bundle',schemaVersion:1,assets:{}});
   assert.equal(existsSync(join(stage, 'assets/data/library-channel')), false);
 });
 
