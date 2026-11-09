@@ -21,7 +21,9 @@ function fixture({catalog=land,alteredCatalogPath=null,corrupt=false}={}){
  const calls=[];
  const fetchFn=async url=>{
   calls.push(new URL(url).pathname);
-  return new Response(corrupt?encoded({...catalog,schema:'unverified'}):bytes,{status:200});
+  const delivered=Buffer.from(bytes);
+  if(corrupt)delivered[delivered.length-2]^=1; // Same length, different SHA-256.
+  return new Response(delivered,{status:200});
  };
  return {meta,fetchFn,calls,bytes};
 }
