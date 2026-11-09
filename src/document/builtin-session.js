@@ -6,6 +6,7 @@ import {createBuiltinWorldLoader} from "../data/builtin-world-loader.js";
 import {deviceCurrentMonth} from "./builtin-month-clock.js";
 import {createBuiltinProjectSetup} from "./project-setup.js";
 import {mapProjectResourcePath} from "../data/map-project-manifest.js";
+import {mapProjectDocumentIdentity} from '../data/map-project-identity.js';
 /** BuiltinSession: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -82,6 +83,7 @@ export function createBuiltinSession({ builtinWorldLoader = null,buildMeta } = {
       });
     }
     const {project}=await builtinWorldLoader.loadProject(month,{isCurrent});
+    if(buildMeta?.mapProject)project.mapProjectIdentity=mapProjectDocumentIdentity(buildMeta);
     const active=()=>!disposed&&isCurrent()&&domain.getGeneration()===expectedGeneration
       &&currentSourceIdentity()===identity;
     if(!active())throw staleBuiltin();

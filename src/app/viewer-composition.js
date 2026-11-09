@@ -23,6 +23,7 @@ import { createSelectionDomain } from "../document/selection-domain.js";
 import { coreSelectionRefToWeb,webSelectionRefToCore } from "../document/core-object-ref.js";
 import { createDocumentSession } from "../document/document-session.js";
 import { createProjectDomain } from "../document/project-domain.js";
+import {bindProjectDocumentIdentity} from '../data/map-project-identity.js';
 import { createInitialDocument } from "../document/initial-document.js";
 import { createViewerMap } from "./viewer-map.js";
 import {createViewerInitialPresentation} from "./viewer-initial-presentation.js";
@@ -63,6 +64,7 @@ export async function composeViewer({ productMode, meta }) {
   async function composeMap() {
   let openingPreserved=null;
   const projectDomain=createProjectDomain({productMode,readOnly:true,commandOwner:documentSession.commandOwner,documentModel:documentSession.documentModel,
+    admitImportedProject:project=>bindProjectDocumentIdentity(project,runtimeContext.meta),
     readBuiltinSelectionCatalogs:()=>map?[{domain:'placeBuiltin',refs:map.placeSelectionReferences()},{domain:'hydroBuiltin',refs:map.hydroSelectionReferences()}]:[],publishCommand:()=>map.refreshSelection(),
     onProjectReset:async event=>{postPresentation.invalidate();searchController.cancelSearch();previousView=map.capturePresentation();await selectionDomain.resetProject(event.generation);selectionUiController.resetProject();map.renderingDomain.resetProjectGeneration(event.generation,{presentation:event.presentation,isCurrent:event.isCurrent,onPresented:event.onPresented});},
     replaceSnapshot:async()=>{await map.setSession(activeSession,{prepareView:async()=>{

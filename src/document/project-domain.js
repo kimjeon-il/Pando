@@ -28,6 +28,7 @@ export function createProjectDomain({
   saveState = null,
   createProjectFile = null,
   prepareNewProject = async () => null,
+  admitImportedProject = project => project,
   restoreReplacement = null,
   invalidateProject = () => {},
   invalidateCommand = () => {},
@@ -58,7 +59,7 @@ export function createProjectDomain({
   const preparedIntents=new Map();
   function currentProject(project) {
     if (project && Object.hasOwn(project,'packageAssets')) throw Object.assign(new TypeError('Unsupported retired project attachments.'),{code:'PL-PROJECT-RETIRED-ASSETS'});
-    return project;
+    return admitImportedProject(project);
   }
 
   const snapshot = () => {
