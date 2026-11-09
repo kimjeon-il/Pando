@@ -17,6 +17,10 @@ export const PHYSICAL_DATASET='HydroRIVERS 1.0 · Natural Earth 5.0.0 호수 · 
 export function createPhysicalSourceConfiguration({assetBaseUrl,dataRevision,resourceProfile,terrainCatalog=null,
   search=location.search,devManifest=globalThis.PANDOLAB_DEV_DEM_MANIFEST_URL}){
  const params=new URLSearchParams(search),dataBase=new URL('../data/',assetBaseUrl);
+ if(terrainCatalog&&(typeof terrainCatalog!=='string'
+   ||!/^assets\/data\/[a-zA-Z0-9][a-zA-Z0-9._/-]*$/.test(terrainCatalog)
+   ||terrainCatalog.split('/').some(part=>part==='.'||part==='..')))
+   throw new TypeError('Invalid selected project terrain catalog');
  const raster=terrainCatalog
   ?new URL(terrainCatalog.replace(/^assets\/data\//,''),dataBase):terrainRasterManifestUrl(dataBase,dataRevision);
  if(terrainCatalog)raster.searchParams.set('v',dataRevision);
