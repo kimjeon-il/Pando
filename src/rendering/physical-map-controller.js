@@ -86,16 +86,20 @@ export function createPhysicalResources({ buildMeta,capabilities = {terrain:true
   }
   function activatePhysicalContext(entry,key) {
     const cache=dependencies.projectState.state.hydroFeatureCache;
-    if(entry.activation&&entry.activation.cache===cache)return;
-    const activation={cache};entry.activation=activation;
+    const epoch=projectSourceEpoch;
+    if(entry.activation&&entry.activation.cache===cache&&entry.activation.epoch===epoch)return;
+    const activation={cache,epoch};entry.activation=activation;
+    const isCurrent=()=>activeSource==='builtin'&&projectSourceEpoch===epoch
+      &&requestedWaterKey===key&&selectedPhysicalWater().key===key
+      &&dependencies.projectState.state.hydroFeatureCache===cache;
     activation.promise=entry.promise.then(async()=>{
       for(const value of entry.value.waters){
-        if(requestedWaterKey!==key||selectedPhysicalWater().key!==key||dependencies.projectState.state.hydroFeatureCache!==cache)break;
+        if(!isCurrent())break;
         await admitSelectedWater(value.row,value);
       }
-      dependencies.domains.renderingDomain.invalidateProject('physical-water-ready');
+      if(isCurrent())dependencies.domains.renderingDomain.invalidateProject('physical-water-ready');
     }).catch(error=>{
-      if(activeSource==='builtin'&&selectedPhysicalWater().key===key)
+      if(isCurrent())
         dependencies.feedback.reportOperationError(error,'수역 형상을 준비하지 못했습니다. 시점을 바꿨다가 돌아오면 다시 불러옵니다.','PL-PHYSICAL-HISTORY-001',4200);
     });
   }
