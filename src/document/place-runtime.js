@@ -7,14 +7,14 @@ import { indexPlaceUrbanLifetimes,placeUrbanLabelActiveAtMonth } from "./place-l
 const EMPTY = Object.freeze({ revision: 0, signature: 'empty', records: Object.freeze([]) });
 
 /** Canonical owner of the builtin label snapshot and Worker lifecycle. */
-export function createPlaceRuntime({ manifestUrl = new URL('../../data/places/manifest.json', import.meta.url).href, createWorker = null, rpc = null, onSnapshot = () => {}, onError = () => {}, onSettled = () => {}, getProtectedIds = () => [],getPresentation=()=>null,admitReferences,urbanLifetimes=null,loadUrbanLifetimes=null } = {}) {
+export function createPlaceRuntime({ manifestUrl = new URL('../../data/places/manifest.json', import.meta.url).href, createWorker = null, rpc = null, onSnapshot = () => {}, onError = () => {}, onSettled = () => {}, getProtectedIds = () => [],getPresentation=()=>null,admitReferences,urbanLifetimes=null,loadUrbanLifetimes=null,urbanLifetimesUrl=new URL('../../data/places/urban-lifetimes-v1.json',import.meta.url).href } = {}) {
   if (typeof manifestUrl !== 'string' || !manifestUrl) throw new TypeError('Place manifest URL must be a nonempty string');
   if(typeof admitReferences!=='function')throw new TypeError('Place publication requires its accepted identity admission boundary.');
   let snapshot=EMPTY, revision=0, moving=false, closed=false, desired=null, requestedDependencies=null, snapshotDependencies=null, referenceSequence=0;
   let admittedReferenceKey=null;
   let lifetimeIndex=urbanLifetimes?indexPlaceUrbanLifetimes(urbanLifetimes):null;
   let lifetimeTask=null;
-  const lifetimeUrl=new URL('../../data/places/urban-lifetimes-v1.json',import.meta.url).href;
+  const lifetimeUrl=urbanLifetimesUrl;
   async function ensureUrbanLifetimes(){
     if(lifetimeIndex)return lifetimeIndex;
     // Synthetic RPCs run without a mounted external library; tests injecting

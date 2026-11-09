@@ -16,6 +16,7 @@ import {createPhysicalResources} from "../data/physical-resources.js";
 import {createGpuScene} from "../rendering/gpu-scene.js";
 import {createMapHost} from "../ui/map-workspace-host.js";
 import {createObjectPicking} from "../map/object-picking.js";
+import {mapProjectResourcePath} from "../data/map-project-manifest.js";
 
 // Phases retain late-bound dependencies without changing product startup policy.
 const READ_INITIALIZATION=Object.freeze({
@@ -48,7 +49,9 @@ export function createMapOwners({productMode,readOnly=productMode==='viewer',pro
   const objectPresentation=createObjectPresentation();
   const hydroSettings=createHydroSettings();
   const objectCatalog=createObjectCatalog({isObjectVisible});
-  const territorialLabels=createTerritorialLabels({capabilities});
+  const territorialLabels=createTerritorialLabels({capabilities,
+    placeCatalog:buildMeta?.mapProject?mapProjectResourcePath(buildMeta.mapProject,'places'):null,
+    placeLifetimesCatalog:buildMeta?.mapProject?mapProjectResourcePath(buildMeta.mapProject,'placeLifetimes'):null});
   const physicalResources=createPhysicalResources({capabilities,buildMeta});
   const gpuScene=createGpuScene({getPhysicalLand:()=>physicalResources.physicalLand});
   const mapHost=createMapHost({productMode,readOnly,projection});

@@ -53,3 +53,18 @@ test('clean LF and CRLF checkouts share identical immutable frontend bytes while
  assert.deepEqual([...crlf.assets].map(([path,row])=>[path,row.bytes]),[...lf.assets].map(([path,row])=>[path,row.bytes]));
  assert.deepEqual(crlf.assets.get('assets/img/proof.png').bytes,binary);
 });
+
+
+test('changing project content changes the selected Viewer data closure without changing engine code',async t=>{
+ const f=fixture(t);
+ const current=JSON.parse(readFileSync(join(f.root,'projects/default-world/manifest.json'),'utf8'));
+ const alternate='assets/data/places/alternate.json';
+ f.put('projects/default-world/manifest.json',JSON.stringify({...current,resources:{
+   ...current.resources,places:{catalog:alternate}}}));
+ f.metadata[alternate]={shards:{}};
+ const result=await buildFrontendSnapshot({...f.options,dataPaths:Object.keys(f.metadata)});
+ assert.equal(result.buildMeta.mapProject.resources.places.catalog,alternate);
+ assert.ok(result.viewerPaths.has(alternate));
+ assert.equal(result.viewerPaths.has('assets/data/places/manifest.json'),false);
+ assert.ok(result.viewerPaths.has(result.buildMeta.mapProjectManifest.url));
+});
