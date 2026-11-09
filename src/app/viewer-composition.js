@@ -1,5 +1,6 @@
 import {presentViewerLoadStatus} from "./viewer-load-status.js";
 import {createRuntimeContext} from "../runtime/runtime-context.js";
+import {createMapProjectRuntime} from "../data/map-project-runtime.js";
 import {createPlatformPorts} from "../runtime/platform-ports.js";
 import {createBrowserFileAccess} from "../data/browser-file-access.js";
 import {connectMapOwner} from "./map-owner-ports.js";
@@ -40,7 +41,14 @@ import {createProjectMonthClock} from "../document/project-month-clock.js";
 import {territorialMembershipDelta} from "../document/territorial-entity-store.js";
 
 export async function composeViewer({ productMode, meta }) {
-  const runtimeContext=createRuntimeContext({productMode,meta,assetBaseUrl:new URL('../',import.meta.url),platform:createPlatformPorts({kind:'browser'})});
+  // Catalog contents are no longer embedded into generated global metadata.
+  // Hydrate only the physical source required by the first map presentation;
+  // Worker country/mesh catalogs remain lazy and independently SHA verified.
+  const assetBaseUrl=new URL('../',import.meta.url);
+  const projectRuntime=createMapProjectRuntime({meta,assetBaseUrl});
+  const physical=await projectRuntime.hydratePhysicalMetadata();
+  const runtimeMeta=Object.freeze({...meta,...physical});
+  const runtimeContext=createRuntimeContext({productMode,meta:runtimeMeta,assetBaseUrl,platform:createPlatformPorts({kind:'browser'})});
   if(productMode!=='viewer')throw new Error('실행 설정이 올바르지 않습니다.');
   const projection='globe';
   const get=id=>document.getElementById(id),status=get('viewerStatus');
