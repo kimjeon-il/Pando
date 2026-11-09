@@ -131,6 +131,8 @@ export async function composeViewer({ productMode, meta }) {
   const searchController=createAppObjectSearchController({window,document,getElement:get,state:map.viewState,
     objectSearchGroupKeys:map.objectPresentation.LAYER_SEARCH_GROUP_KEYS,listObjectSearchItems:map.objectCatalog.listObjectSearchItems,
     layerItemObjectRef:map.objectQuery.layerItemObjectRef,selectionDomain,
+    getProjectScope:()=>projectDomain.activeProjectScope(),
+    libraryAvailable:()=>projectDomain.activeProject()?.source==='builtin',
     isSearchOpen:()=>surfaces.surfaceController.isOpen('search')&&map.searchActive(),isSearchSurfaceOpen:()=>surfaces.surfaceController.isOpen('search'),
     createIcon:(name,className)=>createSemanticIcon(document,name,className),createEmptyState:createEmptyState.bind(null,document),
     onSearchError:report,cancelBuiltinSearch:()=>map.cancelSearch(),builtinSearch:value=>map.searchPlaces(value),
@@ -162,6 +164,7 @@ export async function composeViewer({ productMode, meta }) {
   disposables.push(postPresentation);
   // Both imported files and the builtin map use the same C++ time cursor.
   const applyDocumentMonth=async(month,{isCurrent=()=>true,waitForFrame=false,onCursorAccepted=null}={})=>{
+    projectDomain.requireTimelineMonth(month);
     const before=map.features(),generation=projectDomain.getGeneration();
     await activeSession.commandOwner.setTimelineCursor(month,{isCurrent});
     if(!isCurrent()||projectDomain.getGeneration()!==generation)return false;
