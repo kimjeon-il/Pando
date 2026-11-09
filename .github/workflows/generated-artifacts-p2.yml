@@ -176,6 +176,7 @@ jobs:
           cmake --build --preset pando-wasm
           node tools/build/package-shared-core-assets.mjs --build-dir build-native/p1/pando-wasm/shared/wasm
       - name: Verify published compiled identity and package hashes
+        id: verified_core
         run: node tools/build/package-shared-core-assets.mjs --build-dir assets/wasm --check
       - name: Verify the changed geographic contact and common fill kernels
         if: needs.plan.outputs.wasm == 'true' && inputs.verification != 'full' && inputs.verification != 'temporal' && inputs.verification != 'geometry-resources'
@@ -220,7 +221,7 @@ jobs:
           tests/unit/geometry/gis-math-contract.test.mjs tests/unit/geometry/annex-slivers.test.mjs
           tests/unit/document/river-territory-partition.test.mjs
       - name: Retain verified source-matched WASM before guarded publication
-        if: needs.plan.outputs.wasm == 'true'
+        if: always() && needs.plan.outputs.wasm == 'true' && steps.verified_core.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
           name: source-matched-core-${{ github.sha }}

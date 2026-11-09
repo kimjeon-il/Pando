@@ -7,7 +7,7 @@ import {gunzipSync,gzipSync} from "node:zlib";
 import {contentFiles,contentHash,removeContentLink,replaceLibraryFile,shareContentFile} from "./library-content.mjs";
 import {assertHistoricalStorageChanges} from "../gis/historical-display-storage.mjs";
 import {assertHistoricalDisplayChanges} from "../gis/historical-display-review.mjs";
-import {readBuiltinCountry} from "./builtin-country-bytes.mjs";
+import {readBuiltinCountry,readBuiltinCountryStoredBytes} from "./builtin-country-bytes.mjs";
 import {decodeTerritorialSource} from './territorial-source-codec.mjs';
 import {defaultRoot,gitOptions,git,libraryConfig,libraryCheckout,libraryMaterializedRoot,libraryReportRoot,librarySharedCheckout,libraryOwnerId,safeChild,decodeArchiveEntry,withLibraryLock,organizationTree} from "./library-context.mjs";
 import {reportRegistry,writeReportRegistry,checkedReportPath,assertReportSubject} from "./library-reports.mjs";
@@ -224,7 +224,8 @@ export function storeOwnedLibraryData({ root, push, prefixes, removePaths, repor
      for(const [p,receipt] of retirementPlan.recoveryReceipts)if(archived.files[p]?.sha256!==receipt.sha256)throw Error('Territorial retirement: recovery differs from pinned archive: '+p);
      assertBuiltinRetirement({plan:retirementPlan,previousSourceIndex,sourceIndex,previousIndex:previousBuiltinIndex,index:builtinIndex,
       previousCoverage:JSON.parse(oldBytes(countryBase+'coverage-report.json')),coverage:JSON.parse(newBytes(countryBase+'coverage-report.json')),
-      policy:JSON.parse(newBytes('assets/data/historical-world/policy.json'))});
+      policy:JSON.parse(newBytes('assets/data/historical-world/policy.json')),
+      readDescriptor:entry=>JSON.parse(gunzipSync(readBuiltinCountryStoredBytes(entry,file=>newBytes(countryBase+file))))});
      const world=JSON.parse(newBytes(retirementWorldPath)),expected=builtinIndex.sourceIdentities.flatMap(row=>row.sourceFeatureIds),actual=world.features?.map(row=>row.id);
      if(world.type!=='FeatureCollection'||!actual||new Set(actual).size!==actual.length||actual.length!==expected.length||expected.some(id=>!actual.includes(id)))throw Error('Territorial retirement: unpaired current-world identities');
     }

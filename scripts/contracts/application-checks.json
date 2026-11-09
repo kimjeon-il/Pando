@@ -5,8 +5,7 @@
       "id": "frontend-layout",
       "kind": "unit",
       "testPatterns": [
-        "tests/unit/**/frontend-*.test.mjs",
-        "tests/unit/data/library-runtime-prefetch.test.mjs"
+        "tests/unit/**/frontend-*.test.mjs"
       ],
       "inputs": [
         "src/**",

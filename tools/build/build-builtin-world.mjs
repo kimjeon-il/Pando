@@ -82,13 +82,16 @@ export function buildBuiltinWorldRetirementPublication({retirement,sourceIndex,p
  const retired=new Set([...plan.featureIds].map(builtinSubunitId));
  const index=structuredClone(previousIndex),coverage=structuredClone(previousCoverage);
  index.entities=index.entities.filter(row=>!retired.has(row.entityId));
+ const retainedGeometry=new Set(index.entities.flatMap(row=>row.geometryRefs.map(ref=>JSON.stringify([ref.id,ref.version]))));
+ index.geometryAssets=index.geometryAssets.filter(asset=>retainedGeometry.has(JSON.stringify([asset.id,asset.version])));
  index.sourceIdentities=index.sourceIdentities.filter(row=>!retired.has(row.projectEntityId));
  coverage.entities=coverage.entities.filter(row=>!retired.has(row.entityId));
  const revisions={...previousIndex.inputHashes.sourceRevisions};for(const id of plan.sourceIds)delete revisions[id];
  recordBuiltinWorldInputs(index,revisions,view,policy);
- assertBuiltinRetirement({plan,previousSourceIndex,sourceIndex,previousIndex,index,previousCoverage,coverage,policy});
  const files=new Map([['coverage-report.json',Buffer.from(JSON.stringify(coverage)+'\n')]]);
- return rememberRetirementPublication(finalizeBuiltinWorldFiles(index,files,{previousIndex}),{retirement,sourceIndex,previousSourceIndex,view,policy,displayPolicy});
+ finalizeBuiltinWorldFiles(index,files,{previousIndex});
+ assertBuiltinRetirement({plan,previousSourceIndex,sourceIndex,previousIndex,index,previousCoverage,coverage,policy});
+ return rememberRetirementPublication(files,{retirement,sourceIndex,previousSourceIndex,view,policy,displayPolicy});
 }
 
 /** The retirement baseline stays internal until all requested changes compile. */
@@ -230,7 +233,8 @@ export function writeBuiltinWorldPublication(files,directory=output,{check=false
    const activePolicy=fs.readFileSync(displayPolicyTarget);
    if(!activePolicy.equals(isDeepStrictEqual(prior,plan.previousBuiltinIndex)?readRetirementReceipt(retirement.displayPolicy,readRecovery):policyBytes))throw Error('Territorial retirement: active display-policy baseline changed');
    assertBuiltinRetirement({plan,previousSourceIndex,sourceIndex,previousIndex:plan.previousBuiltinIndex,index:next,
-    previousCoverage:plan.previousCoverage,coverage:JSON.parse(files.get('coverage-report.json')),policy});
+    previousCoverage:plan.previousCoverage,coverage:JSON.parse(files.get('coverage-report.json')),policy,
+    readDescriptor:entry=>JSON.parse(gunzipSync(readBuiltinCountryStoredBytes(entry,file=>files.get(file)||fs.readFileSync(path.join(directory,file)))))});
    const sources=new Map(sourceIndex.entities.map(row=>[row.entityId,row]));
    for(const row of view.selections)if(next.inputHashes.sourceRevisions[row.entityId]!==sources.get(row.entityId)?.sha256)throw Error('Territorial retirement: current-world input remains uncompiled: '+row.entityId);
    const read=retirementInputs.readSource|| (id=>readTerritorialSource(id,territorialSourceRoot,{sourceIndex}));

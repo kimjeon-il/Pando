@@ -75,6 +75,20 @@ test('metadata retirement removes the false identity without rewriting unrelated
  const full=publication.buildBuiltinWorldPublication({input:{entities:f.entities.filter(e=>e.entityId!=='state:PGA'),view:f.next.views[0],policy:f.policy,sourceIndex:f.next,displayPolicy:f.nextDisplay}});
  assert.deepEqual(index.entities,JSON.parse(full.get('index.json')).entities);
 });
+test('retirement updates the temporal read index and removes only unreferenced coordinate assets',()=>{
+ const f=fixture(),input={retirement:f.manifest,sourceIndex:f.next,previousSourceIndex:f.index,
+  previousIndex:f.previousIndex,previousCoverage:f.previousCoverage,view:f.next.views[0],policy:f.policy,displayPolicy:f.nextDisplay,readRecovery:f.readRecovery};
+ const files=publication.buildBuiltinWorldRetirementPublication(input),index=JSON.parse(files.get('index.json'));
+ const required=new Set(index.entities.flatMap(row=>row.geometryRefs.map(ref=>JSON.stringify([ref.id,ref.version]))));
+ assert.deepEqual(new Set(index.geometryAssets.map(ref=>JSON.stringify([ref.id,ref.version]))),required);
+ for(const asset of index.geometryAssets)assert.deepEqual(asset,f.previousIndex.geometryAssets.find(old=>old.id===asset.id&&old.version===asset.version));
+ assert.equal(index.readIndex.identities.some(row=>row.id===builtinSubunitId('PGA')),false);
+ index.readIndex.identities[0].properties.name='forged cached metadata';
+ const plan=retirement.assertTerritorialRetirement(options(f));
+ assert.throws(()=>retirement.assertBuiltinRetirement({plan,sourceIndex:f.next,previousSourceIndex:f.index,
+  previousIndex:f.previousIndex,index,previousCoverage:f.previousCoverage,coverage:JSON.parse(files.get('coverage-report.json')),policy:f.policy}),/temporal read index/);
+});
+
 test('retirement publication rejects incoming policy/coverage links and stale compiled attribution',()=>{
  for(const change of [f=>{f.policy.replacements.push({targetEntityId:'state:PGA',priorityEntityId:'state:USA'});},
   f=>{f.previousCoverage.adjustments.push({entityId:'USA',relatedIds:[builtinSubunitId('PGA')]});},

@@ -5,6 +5,7 @@ import {isDeepStrictEqual} from 'node:util';
 import {territorialIndexEntry} from './territorial-index-entry.js';
 import {validateBuiltinDisplayPolicy} from './builtin-display-policy.mjs';
 import {builtinSubunitId} from '../../src/document/builtin-subunits.js';
+import {compileBuiltinReadIndex,builtinGeometryAssets} from '../../src/data/builtin-country-files.js';
 
 const base='assets/data/territorial-entities';
 export const retirementDisplayPath='assets/data/builtin-world/display-policy-v1.json';
@@ -97,7 +98,7 @@ export function assertTerritorialRetirement({manifest,previousIndex,index,displa
 /** Both the metadata producer and archive owner enforce the same paired cleanup.
  * Surviving countries may have separately reviewed updates; no extra identity
  * removal or retirement of uncompiled source changes is admitted here. */
-export function assertBuiltinRetirement({plan,previousSourceIndex,sourceIndex,previousIndex,index,previousCoverage,coverage,policy}){
+export function assertBuiltinRetirement({plan,previousSourceIndex,sourceIndex,previousIndex,index,previousCoverage,coverage,policy,readDescriptor}){
  equal(previousIndex,plan.previousBuiltinIndex,'stale previous compiled index');
  equal(previousCoverage,plan.previousCoverage,'stale previous coverage');
  if(previousIndex.inputHashes.view!==sha(JSON.stringify(previousSourceIndex.views[0]))
@@ -116,7 +117,12 @@ export function assertBuiltinRetirement({plan,previousSourceIndex,sourceIndex,pr
  equal(index.sourceIdentities,previousIndex.sourceIdentities.filter(row=>!retired.has(row.projectEntityId)),'unrelated compiled source identities changed');
  equal(new Set(coverage.entities.map(row=>row.entityId)),new Set(next.keys()),'unpaired coverage membership');
  const prior=new Map(previousIndex.entities.map(row=>[row.entityId,row])),sources=new Map(sourceIndex.entities.map(row=>[row.entityId,row]));
- equal({...index,entities:[],sourceIdentities:[],inputHashes:{}},{...previousIndex,entities:[],sourceIdentities:[],inputHashes:{}},'unrelated compiled index metadata changed');
+ equal({...index,entities:[],sourceIdentities:[],inputHashes:{},readIndex:null,geometryAssets:null},{...previousIndex,entities:[],sourceIdentities:[],inputHashes:{},readIndex:null,geometryAssets:null},'unrelated compiled index metadata changed');
+ const key=ref=>JSON.stringify([ref.id,ref.version]),requiredGeometry=new Set(index.entities.flatMap(row=>row.geometryRefs.map(key)));
+ const priorGeometry=new Map(builtinGeometryAssets(previousIndex).map(asset=>[key(asset),asset]));
+ const nextGeometry=builtinGeometryAssets(index);
+ equal(new Set(nextGeometry.map(key)),requiredGeometry,'unpaired geometry asset membership');
+ for(const asset of nextGeometry)if(priorGeometry.has(key(asset)))equal(asset,priorGeometry.get(key(asset)),'immutable geometry asset changed');
  for(const row of index.entities)if(prior.get(row.entityId)?.sha256===row.sha256){
   equal(row,prior.get(row.entityId),'unchanged country hash has changed metadata');
   equal(coverage.entities.find(e=>e.entityId===row.entityId),previousCoverage.entities.find(e=>e.entityId===row.entityId),'unchanged country has changed coverage');
@@ -127,6 +133,9 @@ export function assertBuiltinRetirement({plan,previousSourceIndex,sourceIndex,pr
  }
  const references=new Set([...plan.sourceIds,...plan.featureIds,...retired]);
  assertNoRetiredReferences(policy,references);assertNoRetiredReferences(previousCoverage.adjustments,references);
+ const changed=index.entities.filter(row=>prior.get(row.entityId)?.sha256!==row.sha256);
+ if(changed.length&&typeof readDescriptor!=='function')fail('changed country descriptors are required for temporal-index verification');
+ equal(index.readIndex,compileBuiltinReadIndex(index,changed.map(row=>readDescriptor(row)),previousIndex),'unpaired compiled temporal read index');
  assertNoRetiredReferences(index,references);assertNoRetiredReferences(coverage,references);
  if(index.inputHashes.view!==sha(JSON.stringify(plan.index.views[0]))||index.inputHashes.policy!==previousIndex.inputHashes.policy
   ||index.inputHashes.entities!==sha(JSON.stringify(index.inputHashes.sourceRevisions)))fail('unpaired compiled input hashes');
