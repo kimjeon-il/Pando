@@ -78,7 +78,7 @@ export function auditWorkflowCheckOwners(directory){
   workflows,duplicateJobs,issues};
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href){
- const root=resolve(process.argv[2]||'.github/workflows');
+ const root=resolve(process.argv.slice(2).find(arg=>!arg.startsWith('--'))||'.github/workflows');
  const report=auditWorkflowCheckOwners(root);
  if(process.argv.includes('--summary'))console.log(JSON.stringify({workflowCount:report.workflowCount,jobCount:report.jobCount,
    automatic:report.automatic,manualOnly:report.manualOnly,multiOwnerTestCount:report.multiOwnerTestCount,
