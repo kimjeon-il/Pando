@@ -1,6 +1,5 @@
 #include <pandoeditor/sphericalpolygon.h>
 #include <pandoeditor/exactplanar.h>
-#include <pandoeditor/geometrypredicates.h>
 #include "../../tests/native/geometry/fixtures/clipped-positive-rings.h"
 #include <limits>
 #include <set>
@@ -27,13 +26,13 @@ void checkExactClipped() {
     // Zero-length steps do not change a boundary. Keep the stored coordinates,
     // but use cyclic adjacency of nonzero edges for generated topology checks.
     const Ring repeated{{0,0},{0,0},{0,2},{0,2},{2,2},{2,0},{0,0},{0,0}};
-    assert(!validateTerritorialRing(repeated).empty()); // source remains strict
+    assert(!hasCanonicalSphericalWinding(polygon({repeated}))); // source remains strict
     for(std::size_t rotation=0;rotation+1<repeated.size();++rotation) {
         Ring ring(repeated.begin(),repeated.end()-1);
         std::rotate(ring.begin(),ring.begin()+rotation,ring.end());ring.push_back(ring.front());
         const auto input=polygon({ring});
-        assert(validateClippedTerritorialRing(ring).empty());
-        assert(validateClippedGisGeometry(input.polygons));
+        assert(!exactplanar::ringIssue(ring));
+        assert(hasCanonicalSphericalWinding(input,true));
         const auto normalized=normalizeClippedSphericalPolygonGeometry(input);
         assert(normalized.polygons[0][0].size()==ring.size());
         for(std::size_t i=0;i<ring.size();++i)assert(exactplanar::equal(normalized.polygons[0][0][i],ring[i]));
@@ -49,7 +48,7 @@ void checkExactClipped() {
         {{0,0},{0,0},{1,0},{1,0},{0,0}},
         {{0,0},{2,0},{2,0},{0,0},{0,2},{2,2},{0,0}},
         {{0,0},{0,0},{3,2},{0,2},{2,0},{0,0}}
-    })assert(!validateClippedTerritorialRing(ring).empty());
+    })assert(exactplanar::ringIssue(ring));
     // Diagnostics still name the original outgoing segment after a zero step.
     const auto issue=exactplanar::ringIssue({{0,0},{0,0},{2,0},{1,0},{1,1},{0,0}});
     assert(issue&&issue->coordinateIndex==2&&issue->segmentIndex==1);
