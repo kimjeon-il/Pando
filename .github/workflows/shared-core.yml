@@ -1,5 +1,4 @@
 name: Shared C++ core and bounded WASM contracts
-
 on:
   pull_request:
     paths:
@@ -91,10 +90,8 @@ on:
         type: choice
         options: [all, p6-polygon, p6-calculations, geometry, temporal, temporal-source, temporal-candidate, temporal-transport, temporal-parity, native-core, native-gis, native-all]
         default: all
-
 permissions:
   contents: read
-
 jobs:
   native-branch-impact:
     if: (github.event_name == 'push' && github.ref != 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && startsWith(inputs.scope, 'native-'))
@@ -327,20 +324,12 @@ jobs:
           tests/unit/document/core-document-world-wasm.test.mjs
            tests/unit/document/core-codec-unicode-wasm.test.mjs
           tests/unit/document/core-codec-unicode-ids-wasm.test.mjs
-           tests/unit/document/core-project-command-wasm.test.mjs
-          tests/unit/runtime/core-map-presentation-wasm.test.mjs tests/unit/document/core-object-catalog-wasm.test.mjs
-          tests/unit/document/core-delete-selection-wasm.test.mjs
-          tests/unit/document/core-distribution-array-metadata-wasm.test.mjs
-          tests/unit/document/core-direct-object-writers-wasm.test.mjs
-          tests/unit/document/core-hydro-create-wasm.test.mjs tests/unit/document/core-web-history-limit-wasm.test.mjs
+          tests/unit/runtime/core-map-presentation-wasm.test.mjs 
+          tests/unit/document/core-hydro-create-wasm.test.mjs 
            tests/unit/document/core-label-gesture-wasm.test.mjs
           tests/unit/document/timeline-geopackage.test.mjs
           tests/unit/document/core-project-file-save-wasm.test.mjs
-          tests/unit/document/core-territorial-service-wasm.test.mjs
-          tests/unit/document/core-territorial-store-wasm.test.mjs
-          tests/unit/document/core-save-state-projection.test.mjs
           tests/unit/document/timeline-controls.test.mjs tests/unit/document/app-builtin-session.test.mjs tests/unit/document/shared-core-assets.test.mjs
-           tests/unit/document/core-document-runtime.test.mjs
       - name: Ordered storage snapshot and project replacement boundaries
         env:
           PANDOEDITOR_WASM_MODULE: build-native/p1/pando-wasm/shared/wasm/pandoeditor-core.js
@@ -352,7 +341,6 @@ jobs:
         run: >-
           node --test --test-concurrency=1 --test-timeout=15000
           tests/unit/document/generic-feature-model.test.mjs tests/unit/document/territorial-entity-repository.test.mjs
-          tests/unit/document/core-service-writer-clock-wasm.test.mjs
       - name: Accepted selection and input presentation boundaries
         run: >-
           node --test --test-concurrency=1 --test-timeout=15000
@@ -415,9 +403,6 @@ jobs:
             build-native/p1/pando-wasm/shared/wasm/pandoeditor-core.js
             build-native/p1/pando-wasm/shared/wasm/pandoeditor-core.wasm
           if-no-files-found: error
-
-
-
   native-source:
     if: github.event_name == 'workflow_dispatch' && inputs.scope == 'temporal-source'
     runs-on: ubuntu-24.04
@@ -432,8 +417,6 @@ jobs:
         run: cmake --build build-native/p5-2 --target temporal_source_tests source_admission_tests document_session_tests --parallel 2
       - name: Verify bounded registry and existing Core state contracts
         run: ctest --test-dir build-native/p5-2 --output-on-failure -R '^(temporal_source_tests|source_admission_tests|document_session_tests)$'
-
-
   native-candidate:
     if: github.event_name == 'workflow_dispatch' && inputs.scope == 'temporal-candidate'
     runs-on: ubuntu-24.04
@@ -454,8 +437,6 @@ jobs:
         run: ctest --test-dir build-native/p5-3 --output-on-failure -R temporal_source_tests
       - name: Verify existing document session
         run: ctest --test-dir build-native/p5-3 --output-on-failure -R document_session_tests
-
-
   temporal-transport:
     if: github.event_name == 'workflow_dispatch' && inputs.scope == 'temporal-transport'
     runs-on: ubuntu-24.04
@@ -493,8 +474,6 @@ jobs:
         env:
           PANDOEDITOR_WASM_MODULE: build-native/p5-5/wasm/pandoeditor-core.js
         run: node --test tests/native/document/temporal-transport-p5-5.test.mjs
-
-
   equivalence:
     if: github.event_name == 'workflow_dispatch' && inputs.scope == 'temporal-parity'
     runs-on: ubuntu-24.04

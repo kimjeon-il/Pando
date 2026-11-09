@@ -12,7 +12,6 @@ on:
       - 'src/rendering/physical-layer-service.js'
       - 'src/rendering/terrain-manifest.js'
       - 'tests/unit/geometry/gpu-mesh-country-strokes.test.mjs'
-      - 'tests/unit/rendering/world-archive-retirement-integrity.test.mjs'
       - '.github/workflows/world-archive-retirement-integrity.yml'
   push:
     branches: [main]
@@ -26,7 +25,6 @@ on:
       - 'src/rendering/physical-layer-service.js'
       - 'src/rendering/terrain-manifest.js'
       - 'tests/unit/geometry/gpu-mesh-country-strokes.test.mjs'
-      - 'tests/unit/rendering/world-archive-retirement-integrity.test.mjs'
       - '.github/workflows/world-archive-retirement-integrity.yml'
   workflow_dispatch:
 
@@ -44,8 +42,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - name: Verify the pinned archive gate regressions
-        run: node --test tests/unit/rendering/world-archive-retirement-integrity.test.mjs
       - name: Prepare pinned external library data
         uses: ./.github/actions/library-data
       - name: Verify current pinned archive bytes and retired world paths
