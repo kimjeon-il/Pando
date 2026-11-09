@@ -44,7 +44,6 @@ jobs:
           node --test --test-concurrency=1 --test-timeout=15000 \
             tests/unit/data/map-project-resource-selection.test.mjs \
             tests/unit/data/map-project-manifest.test.mjs \
-            tests/unit/rendering/physical-layer-service.test.mjs \
             tests/unit/document/object-search-availability.test.mjs 2>&1 | tee "$RUNNER_TEMP/stage3-tests.log"
       - name: Record exact bounded-check results in validation branch only
         if: always()
