@@ -30,6 +30,7 @@ try{
     const started=performance.now(),firstRequest=requests.length;
     if(visit==='cold')await page.goto('http://127.0.0.1:4173/?debug=1&renderer=webgl2',{waitUntil:'domcontentloaded'});
     else await page.reload({waitUntil:'domcontentloaded'});
+    const navigationWaitMs=performance.now()-started;
     await page.waitForFunction(()=>{
       const api=globalThis.__PANDOLAB_VIEWER__,s=api?.rendererStats();
       return api?.initialMapPresented()&&s.canonicalMeshReady&&s.countrySharedBoundaryReady
@@ -50,12 +51,19 @@ try{
     });
     const network=requests.slice(firstRequest);
     if(row.visible<=0||row.month!==row.cursor||row.mesh?.builtCount!==0||row.mesh?.source!=='prepared-country-scene')throw Error('Measurement did not present the exact prepared country scene');
-    const sample={visit,elapsedMs:Math.round(elapsedMs*10)/10,...row,
+    const rounded=value=>Number.isFinite(value)?Math.round(value*10)/10:null;
+    const domContentLoadedMs=row.metrics?.browser?.navigation?.domContentLoadedMs??null;
+    const firstCountryAfterDomMs=Number.isFinite(domContentLoadedMs)&&Number.isFinite(row.firstCountryPresentedNavigationMs)
+      ?Math.max(0,row.firstCountryPresentedNavigationMs-domContentLoadedMs):null;
+    const sample={visit,elapsedMs:rounded(elapsedMs),
+      navigationWaitMs:rounded(navigationWaitMs),
+      appAfterDomMs:rounded(elapsedMs-navigationWaitMs),
+      firstCountryAfterDomMs:rounded(firstCountryAfterDomMs),...row,
       wasmRequests:network.filter(path=>path.endsWith('/pandoeditor-core.wasm')).length,
       countryDescriptorRequests:network.filter(path=>/builtin-world\/generated\/v1\/(countries|country-parts)\//.test(path)).length};
     report.samples.push(sample);
     console.log('VIEWER_STARTUP_PAIR '+JSON.stringify({label:options.label,commit,visit,elapsedMs:sample.elapsedMs,wasmRequests:sample.wasmRequests,
-      countryDescriptorRequests:sample.countryDescriptorRequests,upload:sample.firstMeshUploadTiming,mesh:sample.mesh}));
+      countryDescriptorRequests:sample.countryDescriptorRequests,domWaitMs:sample.navigationWaitMs,appMs:sample.appAfterDomMs,firstCountryAfterDomMs:sample.firstCountryAfterDomMs,upload:sample.firstMeshUploadTiming,mesh:sample.mesh}));
   }
   if(report.errors.length)throw Error('Page errors: '+report.errors.join('; '));
   report.status='passed';

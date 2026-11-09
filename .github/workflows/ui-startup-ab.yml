@@ -21,7 +21,7 @@ jobs:
         shell: bash
         env:
           BASE: b89b20cd6263e9e311e9333aab19b4d82f06b637
-          CANDIDATE: c866380c4cb7bf3ffacfc70f85a5ef61d387b77b
+          CANDIDATE: ${{ github.sha }}
         run: |
           set -euo pipefail
           git diff --exit-code
@@ -52,11 +52,22 @@ jobs:
           const rows=['cold','warm'].map(visit=>{
             const values=Object.fromEntries(Object.entries(groups).map(([label,group])=>[label,group.map(row=>row.samples.find(s=>s.visit===visit).elapsedMs)]));
             const base=median(values.base),optimized=median(values.optimized);
-            return {visit,baseMedianMs:base,optimizedMedianMs:optimized,changePercent:Math.round((optimized/base-1)*1000)/10,samples:values};
+            const breakdown=Object.fromEntries(['navigationWaitMs','appAfterDomMs','firstCountryAfterDomMs'].map(field=>{
+              const valuesByRevision=Object.fromEntries(Object.entries(groups).map(([label,group])=>
+                [label,group.map(row=>row.samples.find(s=>s.visit===visit)[field])]));
+              const valid=Object.values(valuesByRevision).flat().every(Number.isFinite);
+              if(!valid)return [field,{status:'unavailable',values:valuesByRevision}];
+              const baseValue=median(valuesByRevision.base),candidateValue=median(valuesByRevision.optimized);
+              return [field,{baseMedianMs:baseValue,optimizedMedianMs:candidateValue,
+                changePercent:baseValue>0?Math.round((candidateValue/baseValue-1)*1000)/10:null,
+                samples:valuesByRevision}];
+            }));
+            return {visit,baseMedianMs:base,optimizedMedianMs:optimized,changePercent:Math.round((optimized/base-1)*1000)/10,
+              samples:values,breakdown};
           });
           const report={schema:'pando-ui-startup-ab-v1',base:groups.base[0].commit,optimized:groups.optimized[0].commit,
             data:reference.data,browser:reference.browser,gpu:reference.samples[0].gpu,environment:reference.environment,rows,
-            limitations:['One Linux runner and software GPU; not user hardware or public network','Three pairs per revision, not a confidence interval','GPU command fence completion is not physical monitor presentation']};
+            limitations:['One Linux runner and software GPU; not user hardware or public network','Three pairs per revision, not a confidence interval','Reload DOM wait can include old-page renderer teardown and browser scheduling; do not attribute it to application data preparation','GPU command fence completion is not physical monitor presentation']};
           writeFileSync(root+'comparison.json',JSON.stringify(report,null,2)+'\n');
           console.log('UI_STARTUP_COMPARISON '+JSON.stringify(report));
           JS
