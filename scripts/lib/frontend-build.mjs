@@ -103,11 +103,13 @@ export async function buildFrontendSnapshot({root=process.cwd(),sourceCommit,rea
  }));
  const metadata=Object.fromEntries(metadataPaths.map(path=>[path,catalogInputs[path].value]));
  const land=metadata[resource('physicalLand')];
- const {hydroVersion}=validateMapCatalogCoherence(mapProject,metadata,path=>catalogInputs[path].sha256);
+ const {hydroVersion,preparedMeshesCurrent}=validateMapCatalogCoherence(
+   mapProject,metadata,path=>catalogInputs[path].sha256);
  const projectCatalogs=Object.fromEntries(MAP_PROJECT_ROLES.map(role=>{
    const path=resource(role),receipt=catalogInputs[path];
    return [role,{catalog:path,sha256:receipt.sha256,bytes:receipt.bytes,
-     ...(role==='rivers'||role==='lakes'?{version:hydroVersion}:{})}];
+     ...(role==='rivers'||role==='lakes'?{version:hydroVersion}:{}),
+     ...(role==='preparedMeshes'?{current:preparedMeshesCurrent}:{})}];
  }));
  const dataRevision='data-'+hash(JSON.stringify([mapProject.projectId,mapProject.resources,
    metadataPaths.map(path=>[path,catalogInputs[path].sha256])])).slice(0,32);
