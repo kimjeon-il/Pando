@@ -99,3 +99,97 @@ test('out-of-order project cursor completions cannot publish an earlier date', a
     assert.deepEqual(commits,['1951-12']);
   } finally { clock.dispose(); }
 });
+
+test('calendar rollover uses one common cursor while manual file navigation disables follow-now', async () => {
+  let now=new Date(2026,9,31,23,59),inFile=false;
+  const accepted=[],clock=createProjectMonthClock({
+    now:()=>now,canFollow:()=>!inFile,
+    applyMonth:async(month,{mode,commit})=>{accepted.push([mode,month]);return commit();},
+  });
+  try {
+    assert.equal(await clock.followNow(),true);
+    assert.equal(clock.month(),'2026-10');
+    now=new Date(2026,10,1);
+    assert.equal(await clock.refresh(),true);
+    assert.equal(clock.month(),'2026-11');
+    inFile=true;
+    assert.equal(await clock.refresh(),false);
+    assert.equal(await clock.selectMonth('1953-07'),true);
+    now=new Date(2027,0,1);
+    assert.equal(await clock.refresh(),false);
+    assert.equal(clock.month(),'1953-07');
+    inFile=false;
+    assert.equal(await clock.followNow(),true);
+    assert.equal(clock.month(),'2027-01');
+    assert.deepEqual(accepted.map(([,month])=>month),['2026-10','2026-11','1953-07','2027-01']);
+  } finally {clock.dispose();}
+});
+
+test('concurrent follow-now refresh consumers await the same committed source request', async () => {
+  let resolve,loads=0;
+  const clock=createProjectMonthClock({
+    now:()=>new Date(2026,9,31),
+    applyMonth:()=>{loads++;return new Promise(done=>{resolve=done;});},
+  });
+  try {
+    const first=clock.followNow();
+    await Promise.resolve();
+    const second=clock.refresh(),third=clock.refresh();
+    assert.equal(loads,1);
+    resolve(true);
+    assert.deepEqual(await Promise.all([first,second,third]),[true,true,true]);
+    assert.equal(clock.month(),'2026-10');
+  } finally {clock.dispose();}
+});
+
+test('file project replacement cancels pending date publication and all late callbacks', async () => {
+  let inFile=false,current;
+  const clock=createProjectMonthClock({
+    now:()=>new Date(2026,9,31),canFollow:()=>!inFile,
+    coalesceRequests:false,
+    applyMonth:(month,{commit,isCurrent})=>new Promise(resolve=>{
+      current={month,commit,isCurrent,resolve};
+    }),
+  });
+  try {
+    const previous=clock.followNow(),obsolete=current;
+    inFile=true;clock.cancelPending();
+    assert.equal(obsolete.isCurrent(),false);
+    assert.equal(obsolete.commit(),false);
+    obsolete.resolve(true);
+    assert.equal(await previous,false);
+    assert.equal(await clock.refresh(),false);
+    const user=clock.selectMonth('1953-07');
+    const manual=current;
+    assert.equal(manual.month,'1953-07');
+    assert.equal(manual.commit(),true);
+    manual.resolve(true);
+    assert.equal(await user,true);
+    assert.equal(clock.month(),'1953-07');
+    assert.equal(clock.isAutomatic(),false);
+  } finally {clock.dispose();}
+});
+
+test('focus and visibility changes refresh only the active default project', async () => {
+  const window=new EventTarget(),document=new EventTarget();
+  window.setTimeout=()=>1;window.clearTimeout=()=>{};
+  document.visibilityState='visible';
+  let now=new Date(2026,9,31),inFile=false;
+  const visited=[];
+  const clock=createProjectMonthClock({
+    window,document,now:()=>now,canFollow:()=>!inFile,
+    applyMonth:async(month,{commit})=>{visited.push(month);return commit();},
+  });
+  try {
+    await clock.followNow();
+    now=new Date(2026,10,1);
+    window.dispatchEvent(new Event('focus'));
+    await new Promise(resolve=>setTimeout(resolve,0));
+    assert.equal(clock.month(),'2026-11');
+    assert.deepEqual(visited,['2026-10','2026-11']);
+    inFile=true;now=new Date(2026,11,1);
+    document.dispatchEvent(new Event('visibilitychange'));
+    await new Promise(resolve=>setTimeout(resolve,0));
+    assert.deepEqual(visited,['2026-10','2026-11']);
+  } finally {clock.dispose();}
+});
