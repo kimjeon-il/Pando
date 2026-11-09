@@ -1,4 +1,5 @@
 name: Focused browser project replacement diagnostics
+# Retry using the shipping renderer rather than a forced Canvas backend.
 on:
   push:
     branches: [work/optimization-main-merge-20261110]
