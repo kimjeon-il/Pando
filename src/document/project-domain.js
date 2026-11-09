@@ -2,6 +2,7 @@ import {normalizeProjectSetup} from "./project-setup.js";
 import { getRuntimePerformanceMetrics,PERFORMANCE_METRIC_NAMES } from "../runtime/runtime-performance-metrics.js";
 import { createCoreDocumentReadModel } from "./core-document-read-model.js";
 import { createProductModePolicy } from "../app/product-mode-policy.js";
+import {createProjectOpenAdapter} from "./project-open-adapter.js";
 
 const metricNow=() => typeof performance==='undefined' ? Date.now():performance.now();
 const cloneValue = value => {
@@ -524,33 +525,29 @@ export function createProjectDomain({
   const load = (project,options) => replace(project, 'load',options);
   const open = async (read,{source='project',presentation='default',isCurrent:requestCurrent=()=>true,onPresented}={}) => {
     assertActive();
-    if(!['project','builtin'].includes(source))throw new TypeError('Unknown project source.');
-    if(typeof read!=='function')throw new TypeError('Project opening requires its asynchronous source reader.');
+    const adapter=createProjectOpenAdapter({source,read});
     const ticket=++openRequest,isCurrent=()=>!disposed&&ticket===openRequest&&requestCurrent();
     opening=true;
     try {
-      // Builtin readers admit a Core baseline. Run them after an earlier
-      // replacement/rollback has settled, so they observe its final generation.
-      const project=source==='builtin'?null:await read();
-      if((source!=='builtin'&&!project)||!isCurrent())return false;
+      // GeoPackage decoding may overlap the previous presentation. Builtin
+      // candidate preparation must wait for the preceding Core rollback.
+      const early=adapter.requiresSettledReplacement?null:await adapter.prepare({isCurrent});
+      if(!isCurrent())return false;
       const operation=openQueue.then(async()=>{
         if(!isCurrent())return false;
-        if(source==='builtin') {
-          let baseline;
-          try {
-            baseline=await read();
-            if(!baseline||!isCurrent())return false;
-            await replace(baseline,'builtin',{isCurrent,presentation,onPresented});
-          } finally {
-            // A superseded read may have prepared Core source handles but
-            // never entered replacement. Both handles are invalidated by
-            // adoption/rollback; this also cleans up the uncommitted case.
-            if(baseline?.kind==='temporal-candidate')
-              await discardTemporalBuiltin(baseline);
-          }
+        let prepared=early;
+        try {
+          prepared??=await adapter.prepare({isCurrent});
+          if(!isCurrent())return false;
+          // Both source adapters now enter the exact same C++ replacement,
+          // generation, Viewer presentation and rollback transaction.
+          await replace(prepared.value,prepared.reason,{isCurrent,presentation,onPresented});
+          return isCurrent();
+        } finally {
+          // Candidate cleanup is independent of successful adoption. It also
+          // covers superseded reads that never entered the transaction.
+          if(prepared?.releaseCandidate)await discardTemporalBuiltin(prepared.releaseCandidate);
         }
-        else await load(project,{isCurrent});
-        return isCurrent();
       });
       openQueue=operation.catch(()=>{});
       return await operation;
