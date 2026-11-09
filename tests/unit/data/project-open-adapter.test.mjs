@@ -36,6 +36,8 @@ test('builtin and GeoPackage readers adapt to the same immutable admission contr
   documentId:completed.documentId,generation:completed.generation},
   {accepted:true,source:'project',reason:'load',documentId:'file-1',generation:2});
  const canceled=projectOpenCancelledReceipt(builtin);
+ assert.equal(completed.format,'pandolab-project-open-receipt');
+ assert.equal(canceled.format,completed.format);
  assert.equal(canceled.accepted,false);assert.equal(canceled.documentId,null);
 });
 
