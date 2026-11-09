@@ -209,7 +209,7 @@ function scanNative(path, source) {
   scanTextPaths(path, source, false);
 }
 function scanCMake(path, source) {
-  for (const match of source.matchAll(/(?:src|tests|tools|config|cmake)\/[A-Za-z0-9_.\/-]+\.(?:cpp|hpp|cmake|json|inc|h|c|in))(?![A-Za-z0-9_.])/g))
+  for (const match of source.matchAll(/(?:src|tests|tools|config|cmake)\/[A-Za-z0-9_.\/-]+\.(?:cpp|hpp|cmake|json|inc|h|c|in)(?![A-Za-z0-9_.])/g))
     add(path, match[0], 'cmake-source', lineOf(source, match.index));
   // Native tools use both repository-root and CMake-file-relative sources.
   // Scan every explicit source file token; preserve optional CMake targets.
