@@ -6,7 +6,7 @@ import {installFrontendSnapshot,storageSettings,finishArtifactMaintenance} from 
 import {prepareLibraryData} from "../tools/data/library-runtime.mjs";
 import {contentHash} from "../tools/data/library-content.mjs";
 const root=fileURLToPath(new URL('../',import.meta.url));
-const projectId=process.argv.find(arg=>arg.startsWith('--project='))?.slice('--project='.length)||'default-world';
+const projectId=process.argv.find(arg=>arg.startsWith('--project='))?.slice('--project='.length)??'default-world';
 let snapshot=await buildFrontendSnapshot({root,projectId});
 const product=process.argv.find(arg=>arg.startsWith('--product='))?.slice(10);
 if(product){const library=prepareLibraryData({root,projectId});snapshot=selectFrontendProduct(snapshot,product,{readRuntimeAsset(path){const spec=library.files[path],bytes=readFileSync(resolve(library.materialized,path));if(!spec||bytes.length!==spec.bytes||contentHash(bytes)!==spec.sha256)throw Error('Pinned runtime asset changed: '+path);return bytes;}});}
