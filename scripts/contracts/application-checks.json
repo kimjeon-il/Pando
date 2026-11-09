@@ -1064,7 +1064,8 @@
     "tools/**",
     "contracts/**",
     "tests/**",
-    "src/**"
+    "src/**",
+    "projects/**"
   ],
   "passiveInputs": [
     "assets/vendor/**",
@@ -1080,6 +1081,17 @@
     "config/toolchain-versions.json"
   ],
   "bindings": [
+    {
+      "tests": [
+        "tests/unit/data/map-project-manifest.test.mjs",
+        "tests/unit/build/frontend-build.test.mjs",
+        "tests/unit/data/frontend-runtime-closure.test.mjs",
+        "tests/unit/document/monorepo-pages-staging.test.mjs"
+      ],
+      "inputs": [
+        "projects/**/manifest.json"
+      ]
+    },
     {
       "tests": [
         "tests/unit/rendering/prepared-polygon-mesh.test.mjs",
