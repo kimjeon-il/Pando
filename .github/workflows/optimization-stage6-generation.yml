@@ -1,0 +1,32 @@
+name: Optimization stage 6 generation and immutable reuse contracts
+on:
+  push:
+    branches: [work/optimization]
+    paths: ['.github/workflows/optimization-stage6-generation.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  generation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Immutable coordinate metadata and private project input contracts
+        run: >-
+          node --test --test-timeout=30000
+          tests/unit/data/territorial-metadata-projection.test.mjs
+          tests/unit/build/project-generation-context.test.mjs
+      - name: Only the changed generator sources must parse
+        run: |
+          node --check tools/build/build-territorial-entity-chunks.mjs
+          node --check tools/gis/territorial-index-entry.js
+          node --check tools/build/project-generation-context.mjs
