@@ -14,8 +14,15 @@ import { createTerritorialFillResolver } from "./territorial-fill-style.js";
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
+const EMPTY_PLACES=Object.freeze({
+  snapshot:()=>({revision:0,signature:'no-project',records:[]}),
+  prepare:async()=>false,settle:async()=>false,search:async()=>({records:[]}),
+  selectionReferences:()=>[],isActive:()=>false,resolve:()=>null,retain:()=>{},
+  beginInteraction:()=>{},cancelViewport:()=>{},cancelSearch:()=>{},
+  isSearchOpen:()=>true,dispose:()=>{},
+});
 export function createTerritorialLabels({ capabilities = {builtinPlaces:true,eagerBuiltinPlaces:true},
-  placeCatalog=null,placeLifetimesCatalog=null } = {}) {
+  placeCatalog=null,placeLifetimesCatalog=null,projectResources=null } = {}) {
   let dependencies;
   let countryOutlineCache;
   let labelLayoutMetrics;
@@ -279,11 +286,16 @@ export function createTerritorialLabels({ capabilities = {builtinPlaces:true,eag
     (countryOutlineCache = new WeakMap());
   }
 
-  function initializeLabelLayoutMetrics() {
-    (labelLayoutMetrics = {});
-    const placeManifestRef='../'+(placeCatalog||'assets/data/places/manifest.json').slice('assets/'.length);
-    const placeLifetimeRef='../'+(placeLifetimesCatalog||'assets/data/places/urban-lifetimes-v1.json').slice('assets/'.length);
-    builtinPlaces = createPlaceRuntime({
+  function createSelectedPlaceRuntime(){
+    // An imported document without an external place package must never
+    // query the default world's immutable place worker or lifetime catalog.
+    if(projectResources?.managed&&!projectResources.current())return EMPTY_PLACES;
+    const currentPlace=projectResources?.resource('places')?.catalog||placeCatalog||'assets/data/places/manifest.json';
+    const currentLifetimes=projectResources?.resource('placeLifetimes')?.catalog
+      ||placeLifetimesCatalog||'assets/data/places/urban-lifetimes-v1.json';
+    const placeManifestRef='../'+currentPlace.slice('assets/'.length);
+    const placeLifetimeRef='../'+currentLifetimes.slice('assets/'.length);
+    return createPlaceRuntime({
       getPresentation:()=>({month:dependencies.projectState.state.timelineCursor,languages:dependencies.preferences.userPreferences.labels.place.languages}),
       admitReferences:refs=>dependencies.domains.projectDomain.admitSelectionCatalog('placeBuiltin',refs),
       manifestUrl: dependencies.platform.runtimeAssetUrl(placeManifestRef).href,
@@ -299,6 +311,20 @@ export function createTerritorialLabels({ capabilities = {builtinPlaces:true,eag
       onError: error => dependencies.feedback.reportOperationError(error, '내장 지명을 불러오지 못했습니다.', 'PL-PLACE-LOAD-001'),
     });
   }
+  function initializeLabelLayoutMetrics(){
+    labelLayoutMetrics={};
+    builtinPlaces=createSelectedPlaceRuntime();
+  }
+  function selectProjectResources(){
+    if(!projectResources?.managed)return false;
+    const previous=builtinPlaces;
+    previous?.dispose();
+    builtinPlaces=createSelectedPlaceRuntime();
+    // The previous project's retained places, Worker and lifetime index have
+    // no authority in the next C++ document's reference presentation.
+    dependencies?.domains?.objectSearchController?.render?.();
+    return true;
+  }
 
   function initializeTerritorialLabelScreenAreas() {
     (territorialLabelScreenAreas = new Map());
@@ -306,7 +332,7 @@ export function createTerritorialLabels({ capabilities = {builtinPlaces:true,eag
   }
 
   return Object.freeze({
-    connect,
+    connect,selectProjectResources,
     preparePlaces,
     labelById,
     get builtinPlaces() { return builtinPlaces; },
