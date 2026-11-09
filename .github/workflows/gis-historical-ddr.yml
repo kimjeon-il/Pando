@@ -8,7 +8,7 @@ on:
       - 'tools/cpp/historical-linework-audit.inc'
       - 'tools/historical-library/east-germany-1989.recipe.json'
       - 'tools/gis/verify-east-germany-partition.mjs'
-      - 'tests/unit/geometry/gis-ddr-native-partition.test.mjs'
+      - 'tests/unit/document/historical-world-timeline.test.mjs'
       - '.github/workflows/gis-historical-ddr.yml'
   workflow_dispatch:
 
@@ -43,7 +43,7 @@ jobs:
           export PANDO_TERRITORIAL_RECIPE_BINARY="$PWD/build-native/territorial-recipe/pando-territorial-recipe"
           node --test tests/unit/document/territorial-recipe-cli.test.mjs tests/unit/document/territorial-recipe-cpp.test.mjs
           node tools/build/build-territorial-geometry.mjs --check
-          node --test tests/unit/geometry/gis-ddr-native-partition.test.mjs
+          node --test tests/unit/document/historical-world-timeline.test.mjs
           node tools/gis/verify-east-germany-partition.mjs
       - name: Prove no tracked source data was modified
         run: |
