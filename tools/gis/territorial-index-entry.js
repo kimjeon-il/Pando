@@ -1,3 +1,4 @@
+/* global TextEncoder, Blob, crypto */
 import {territorialSourceLayout} from '../../src/data/territorial-source-format.js';
 // Preserved GIS data/core calculation contract after retired editor source removal.
 // One catalog projection for both runtime source edits and publication tooling.
