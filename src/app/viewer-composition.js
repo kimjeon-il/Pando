@@ -15,7 +15,7 @@ import {createNavigationBindings} from "../ui/navigation-bindings.js";
 import {createSelectController} from "../ui/select-controller.js";
 import { createSelectionUiController } from "../ui/selection-ui-controller.js";
 import { createTooltipController } from "../ui/tooltip-controller.js";
-import { installTimelineControls } from "../document/timeline-controls.js";
+import { installTimelineControls } from "../ui/timeline-controls.js";
 import { createAppObjectSearchController } from "../ui/object-search-controller.js";
 import { createSemanticIcon } from "../ui/icon-utils.js";
 import { createEmptyState } from "../ui/empty-state.js";

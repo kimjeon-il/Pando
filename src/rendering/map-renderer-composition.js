@@ -1,5 +1,5 @@
 import {layerStyle} from "../ui/layer-presentation.js";
-import {normalizeObjectRef} from "../ui/object-selection-controller.js";
+import {normalizeObjectRef} from "../document/object-ref-identity.js";
 import {automaticLabelSettings,labelKey} from "./label-layout.js";
 import {buildRenderableStrokeFeature} from "../geometry/geographic-boundary.js";
 import {buildSelectionBoundarySegments} from "./selection-stroke-geometry.js";

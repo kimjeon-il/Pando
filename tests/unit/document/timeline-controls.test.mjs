@@ -3,7 +3,7 @@ import { describe as contractSuite } from 'node:test';
 import * as __merge_dep0 from "../../helpers/virtual-clock.mjs";
 import * as __merge_dep1 from "node:assert/strict";
 import * as __merge_dep2 from "node:test";
-import * as __merge_dep3 from "../../../src/document/timeline-controls.js";
+import * as __merge_dep3 from "../../../src/ui/timeline-controls.js";
 import * as __merge_dep4 from "../../../src/document/builtin-month-clock.js";
 import * as __merge_dep5 from "node:fs";
 import * as __merge_dep6 from "node:vm";

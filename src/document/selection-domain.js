@@ -1,4 +1,4 @@
-import { normalizeObjectRef, objectRefKey } from "../ui/object-selection-controller.js";
+import { normalizeObjectRef, objectRefKey } from "./object-ref-identity.js";
 import { createSelectionPacket } from "../rendering/selection-packet.js";
 
 const empty = Object.freeze({ primaryKey: null, keys: Object.freeze([]), items: Object.freeze([]) });

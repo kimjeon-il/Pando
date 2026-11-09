@@ -1,4 +1,4 @@
-import "../../rendering/workers/worker-rpc-host.js";
+import "../../runtime/workers/worker-rpc-host.js";
 import { createCoreWorkerRuntime } from "../../runtime/core-worker-runtime.js";
 import { loadVerifiedCore } from "../../runtime/core-wasm-loader.js";
 import { validateWebFlagDataUrl } from "../../ui/country-flags.js";

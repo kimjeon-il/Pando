@@ -1,5 +1,5 @@
 import { resolveInteractionEntries } from "../map/map-interaction-style.js";
-import { normalizeObjectRef } from "./object-selection-controller.js";
+import { normalizeObjectRef } from "../document/object-ref-identity.js";
 
 /** A read-only projection of the existing selection and tool session. */
 export function mapInteractionEntries(snapshot, {
