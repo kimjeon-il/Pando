@@ -168,6 +168,21 @@ test('world manifest and real prepared scene packet accept the same current mesh
   assert.deepEqual(read.preparedStroke,scene.preparedStroke);
 });
 
+test('runtime skips a verified obsolete optional prepared scene but rejects forged metadata',()=>{
+  const scene=packageFixture(),raw=codec.encodePreparedCountryScene(scene),{bundle}=pairedWorldBundle(scene,raw);
+  bundle.assets.preparedCountryScene.algorithmVersion=codec.MESH_ALGORITHM_REVISION-1;
+  assert.throws(()=>validateWorldBundle(bundle),/Invalid prepared country scene descriptor/);
+  const accepted=validateWorldBundle(bundle,{allowObsoletePreparedScene:true});
+  assert.equal(accepted.assets.preparedCountryScene,undefined);
+  assert.ok(accepted.assets.canonicalCountryPacket);
+  const forged=structuredClone(bundle);
+  forged.assets.preparedCountryScene.sha256='b'.repeat(64);
+  assert.throws(()=>validateWorldBundle(forged,{allowObsoletePreparedScene:true}),/descriptor/);
+  const future=structuredClone(bundle);
+  future.assets.preparedCountryScene.algorithmVersion=codec.MESH_ALGORITHM_REVISION+1;
+  assert.throws(()=>validateWorldBundle(future,{allowObsoletePreparedScene:true}),/descriptor/);
+});
+
 test('prepared scene rejects mesh5 and unknown revisions even behind a current descriptor',()=>{
   for(const rejectedRevision of [5,codec.MESH_ALGORITHM_REVISION+1]) {
     const scene=packageFixture(),raw=codec.encodePreparedCountryScene(scene);
