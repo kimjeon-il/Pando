@@ -110,6 +110,11 @@ jobs:
       - name: One-off stage 1 reverse dependency census
         if: github.event_name == 'push' && github.ref == 'refs/heads/work/optimization' && contains(github.event.head_commit.message, '[stage1-inventory]')
         run: node tools/checks/audit-repository-usage.mjs --output="$RUNNER_TEMP/pando-stage1-usage.json"
+      - name: Verify published Worker closure and focused transport contracts
+        if: github.event_name == 'push' && github.ref == 'refs/heads/work/optimization' && contains(github.event.head_commit.message, '[stage1-inventory]')
+        run: |
+          node scripts/generate-build-metadata.mjs --check --product=viewer
+          node --test tests/unit/runtime/worker-assets.test.mjs tests/unit/runtime/worker-rpc.test.mjs tests/unit/data/frontend-runtime-closure.test.mjs tests/unit/rendering/gpu-canvas-worker.test.mjs
       - name: Preserve one-off stage 1 reverse dependency evidence
         if: always() && github.event_name == 'push' && github.ref == 'refs/heads/work/optimization' && contains(github.event.head_commit.message, '[stage1-inventory]')
         uses: actions/upload-artifact@v4
