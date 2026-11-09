@@ -294,7 +294,9 @@ if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.ur
  if(namesOnly&&process.argv.includes('--plan'))throw Error('--plan is only supported for geometry generation');
  if(process.argv.includes('--plan')&&!selected)throw new Error('--plan requires --entities');
  const sourceIndex=JSON.parse(fs.readFileSync(sourceIndexAbsolute));
- const index=selected||retirementFile?JSON.parse(fs.readFileSync(path.join(output,'index.json'))):null;
+ const priorCatalogPath=path.join(output,'index.json');
+ const index=(selected||retirementFile||fs.existsSync(priorCatalogPath))
+   ?JSON.parse(fs.readFileSync(priorCatalogPath)):null;
  let files,retirementInputs=null;
  if(retirementFile){
   if(namesOnly||process.argv.includes('--plan'))throw Error('Retirement publication requires source-paired geometry generation');
