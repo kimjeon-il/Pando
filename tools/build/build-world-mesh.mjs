@@ -21,8 +21,11 @@ if(projectId!=='default-world'&&!pinnedManifest.assets.canonicalMesh.url.startsW
   throw new TypeError('Nondefault project canonical mesh must use a project-owned output path');
 const outputPath = path.resolve(projectRoot,
   outputOverride || path.join('assets','data',pinnedManifest.assets.canonicalMesh.url));
+const outputScope=path.resolve(projectRoot,'assets/data',projectId);
+const outputRelative=path.relative(outputScope,outputPath);
 if(projectId!=='default-world'
-  &&!path.relative(path.resolve(projectRoot,'assets/data',projectId),outputPath).match(/^(?!\.\.)(?:$|[^/\\])/))
+  &&(!outputRelative||outputRelative==='..'||outputRelative.startsWith('..'+path.sep)
+    ||path.isAbsolute(outputRelative)))
   throw new TypeError('Nondefault project canonical mesh cannot escape its output namespace');
 const MESH_FORMAT_VERSION = 2;
 const MESH_HEADER_WORDS = 12;
