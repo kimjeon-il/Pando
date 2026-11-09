@@ -21,7 +21,7 @@ export function auditWorkflowCheckOwners(directory){
    // Exact execution equivalence only. Matching an individual test name is NOT
    // grounds to remove a native, publication, browser or GIS source gate.
    const checkSignature=stable({run,uses});
-   rows.push({file,job:jobName,events:on,automatic,tests:selectedTests,
+   rows.push({file,job:jobName,events:on,trigger: wf.on, condition:job.if??null, automatic,tests:selectedTests,
      commands:run.length,externalActions:uses.length,checkSignature});
   }
  }
@@ -39,9 +39,19 @@ export function auditWorkflowCheckOwners(directory){
   jobs:jobs.length,tests:[...new Set(jobs.flatMap(row=>row.tests))].sort(),
   commands:jobs.reduce((n,row)=>n+row.commands,0),
  }));
+ const testOwners=new Map();
+ for(const row of rows)for(const test of row.tests){
+  if(!testOwners.has(test))testOwners.set(test,new Map());
+  testOwners.get(test).set(row.file,{file:row.file,automatic:row.automatic,events:row.events});
+ }
+ const multiOwnerTests=[...testOwners].filter(([,owners])=>owners.size>1)
+  .map(([test,owners])=>({test,owners:[...owners.values()]}));
+
+
  return {schema:'pando-workflow-check-ownership-v1',workflowCount:workflows.length,
   jobCount:rows.length,automatic:workflows.filter(w=>w.mode==='automatic').length,
   manualOnly:workflows.filter(w=>w.mode==='manual-only').length,
+  multiOwnerTestCount:multiOwnerTests.length,multiOwnerTests,
   workflows,duplicateJobs,issues};
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href){

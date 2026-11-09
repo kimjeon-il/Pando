@@ -14,6 +14,8 @@ test('workflow ownership audit preserves independent specialized jobs and detect
  const first=auditWorkflowCheckOwners(dir);
  assert.equal(first.workflowCount,2);assert.equal(first.automatic,1);
  assert.equal(first.manualOnly,1);assert.deepEqual(first.duplicateJobs,[]);
+ assert.equal(first.multiOwnerTestCount,1);
+ assert.ok(first.multiOwnerTests[0].owners.some(x=>!x.automatic));
  put('duplicate',`on:\n  push:\n    branches: [main]\njobs:\n  checks:\n    steps:\n      - run: node --test tests/unit/data/example.test.mjs\n`);
  const second=auditWorkflowCheckOwners(dir);
  assert.equal(second.duplicateJobs.length,1);
