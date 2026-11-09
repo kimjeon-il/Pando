@@ -1,7 +1,7 @@
 import { timelineObjectCatalog } from "./timeline-records.js";
 import {normalizeProjectSetup} from "./project-setup.js";
 import { normalizeTerritorialIdentities, TERRITORIAL_IDENTITY_FIELDS, TERRITORIAL_SCHEMA_VERSION, TERRITORIAL_ENTITY_KINDS } from "./territorial-units.js";
-import { createGeometryVersionStore } from "../geometry/geometry-version-store.js";
+import { createCanonicalGeometryVersionStore as createGeometryVersionStore } from "../geometry/geometry-version-store.js";
 import { restoreTimelineStorage } from "./timeline-storage.js";
 import { initialTimelineMonth, resolvedTimelineViews } from "./timeline-resolver.js";
 import { assertProjectReferenceIntegrity } from "./project-invariants.js";

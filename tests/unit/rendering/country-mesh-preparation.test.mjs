@@ -129,15 +129,15 @@ function emptyMeshWithRevision(revision) {
   ]);
   return buffer;
 }
-test('the same v2 mesh decoder accepts the current shared fill revision 5',()=>{
-  for(const revision of [5]) {
+test('the same v2 mesh decoder accepts the current shared fill revision 6',()=>{
+  for(const revision of [6]) {
     const mesh=decodeCountryMesh(emptyMeshWithRevision(revision));
     assert.equal(mesh.mesh.countryBoundsFlags.length,countryCount);
     assert.equal(mesh.sourceCoordinateCount,1);
   }
 });
 test('unknown future algorithm revisions fail closed before buffer interpretation',()=>{
-  for(const revision of [0,2,3,4,6,255])
+  for(const revision of [0,2,3,4,5,7,255])
     assert.throws(()=>decodeCountryMesh(emptyMeshWithRevision(revision)),/알고리즘 리비전/);
 });
 });

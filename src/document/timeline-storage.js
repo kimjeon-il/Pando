@@ -1,4 +1,4 @@
-import { createGeometryVersionStore } from "../geometry/geometry-version-store.js";
+import { createCanonicalGeometryVersionStore as createGeometryVersionStore } from "../geometry/geometry-version-store.js";
 import { normalizeTimelineRecords } from "./timeline-records.js";
 
 export const TIMELINE_STORAGE_SCHEMA_VERSION = 1;

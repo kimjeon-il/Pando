@@ -1,4 +1,7 @@
 #include <pandoeditor/polygonmesh.h>
+#include <pandoeditor/sphericalpolygon.h>
+#include <pandoeditor/exactplanar.h>
+#include "fixtures/clipped-positive-rings.h"
 #include <algorithm>
 #include <cassert>
 #include <cmath>
@@ -40,6 +43,35 @@ void check(const PolygonFillMesh& mesh,double expectedArea=0) {
 }
 }
 int main() {
+    for(const auto& captured:allClippedPositiveRings())for(unsigned reversed=0;reversed<2;++reversed)
+    for(std::size_t rotation=0;rotation+1<captured.size();++rotation) {
+        Ring variant(captured.begin(),captured.end()-1);
+        if(reversed)std::reverse(variant.begin(),variant.end());
+        std::rotate(variant.begin(),variant.begin()+rotation,variant.end());
+        variant.push_back(variant.front());
+        Geometry input;input.type="Polygon";input.polygons={{variant}};
+        const auto normalized=normalizeClippedSphericalPolygonGeometry(input);
+        const auto& ring=normalized.polygons[0][0];
+        const auto snapshot=ring;
+        const auto mesh=buildPolygonFillMesh({ring});
+        assert(mesh.sourceRingOffsets==std::vector<std::uint32_t>({0,std::uint32_t(ring.size()-1)}));
+        assert(mesh.geographic.size()==ring.size()-1);
+        assert(!mesh.triangles.empty()&&mesh.removedTriangles.empty());
+        exactplanar::ProductSum area;
+        area.ring(ring,-exactplanar::areaSign(ring));
+        for(const auto& triangle:mesh.triangles) {
+            Ring points;
+            for(const auto index:triangle)points.push_back({mesh.geographic.at(index)[0],mesh.geographic.at(index)[1]});
+            assert(exactplanar::areaSign(points)!=0);
+            area.ring(points,exactplanar::areaSign(points));
+        }
+        assert(area.sign()==0);
+        assert(mesh.boundaryChains[0].vertices.size()==ring.size()-1);
+        for(std::size_t i=0;i+1<ring.size();++i) {
+            assert(mesh.geographic[i][0]==ring[i].x&&mesh.geographic[i][1]==ring[i].y);
+            assert(exactplanar::equal(snapshot[i],ring[i]));
+        }
+    }
     const Polygon source{rectangle(0,0,4,4),rectangle(1,1,3,3)};
     const auto snapshot=source;
     const auto holes=buildPolygonFillMesh(source);check(holes,12);

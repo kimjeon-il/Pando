@@ -101,7 +101,10 @@ export function loadRepository(root = process.cwd(), { catalog, libraryFiles } =
       throw Error('Missing registered unit prerequisite test: ' + pattern);
     for (const id of binding.requires) if (!catalog.prerequisites?.[id]?.argv)
       throw Error('Missing prerequisite: ' + id);
-    for (const [file, required] of unitRequirements) if (matches(file, binding.tests))
+    if (binding.excludeTests !== undefined && (!Array.isArray(binding.excludeTests)
+      || binding.excludeTests.some(file => typeof file !== 'string' || !unitRequirements.has(file) || !matches(file, binding.tests))))
+      throw Error('Invalid unit prerequisite exclusion');
+    for (const [file, required] of unitRequirements) if (matches(file, binding.tests) && !binding.excludeTests?.includes(file))
       binding.requires.forEach(id => required.add(id));
   }
   function prerequisiteInputs(id) {

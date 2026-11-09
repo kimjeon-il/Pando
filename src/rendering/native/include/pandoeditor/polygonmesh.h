@@ -7,7 +7,7 @@
 #include <vector>
 
 namespace pandoeditor {
-inline constexpr std::uint32_t kPolygonMeshAlgorithmRevision=5;
+inline constexpr std::uint32_t kPolygonMeshAlgorithmRevision=6;
 using MeshPosition=std::array<double,2>;
 using MeshTriangle=std::array<std::uint32_t,3>;
 struct MeshParameterSpace {

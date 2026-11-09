@@ -1,5 +1,5 @@
 import { timelineObjectKey } from "./timeline-records.js";
-import { createGeometryVersionStore } from "../geometry/geometry-version-store.js";
+import { createCanonicalGeometryVersionStore as createGeometryVersionStore } from "../geometry/geometry-version-store.js";
 import { projectTimelineIdentity } from "./timeline-resolver.js";
 import { temporalContains, temporalMonthEnd } from "./temporal.js";
 

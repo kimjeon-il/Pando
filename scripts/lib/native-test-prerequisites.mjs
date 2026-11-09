@@ -8,6 +8,20 @@ const native=(target,directory,sourceModule,sourceExport,packageScript,commands,
 });
 
 export const nativeTestRecipes=Object.freeze({
+  // Reuse fixed CMake owners; CTest runs as its separate registered check.
+  // No artifact packaging is needed for these in-job test executables.
+  'spherical-polygon-tests':{commands:[
+    ['cmake','--preset','pando-gis-tools'],
+    build('build-native/p1/pando-gis-tools',['pando-spherical-polygon-tests']),
+  ]},
+  'polygon-mesh-tests':{commands:[
+    configure('tools/build/native','build-native/geometry-core','-DCMAKE_BUILD_TYPE=Release','-DBUILD_TESTING=ON'),
+    build('build-native/geometry-core',['polygon_mesh_tests']),
+  ]},
+  'document-session-tests':{commands:[
+    configure('tools/build/native','build-native/geometry-core','-DCMAKE_BUILD_TYPE=Release','-DBUILD_TESTING=ON'),
+    build('build-native/geometry-core',['document_session_tests']),
+  ]},
   'hydro-calibration':native('hydro-calibration','build-native/hydro-calibration/artifact','tools/gis/hydro-calibration-native.mjs','hydroCalibrationSources','tools/gis/package-hydro-calibration.mjs',[
     configure('tools/cpp/hydro-calibration','build-native/hydro-calibration/native','-DCMAKE_BUILD_TYPE=Release'),
     build('build-native/hydro-calibration/native',['pando-hydro-calibration']),

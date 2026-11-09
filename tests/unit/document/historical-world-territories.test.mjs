@@ -18,7 +18,7 @@ function subtractionWitnessFixture({external=null,precision=false,error='Unable 
  const range=value=>{const xs=value.flat(2).map(point=>point[0]);return [Math.min(...xs),Math.max(...xs)];};
  const has=(operands,bounds)=>operands.some(value=>JSON.stringify(range(value))===JSON.stringify(bounds));
  const calls={failures:0,witnesses:0,differences:0};
- const artifact=[[46.798053,39.097382],[46.803617228283514,39.10088708625098],[46.80361722811995,39.10088708614795],[46.798053,39.097382]];
+ const artifact=[[46,39],[46.125,39],[46.125,39.125],[46.125,39],[46,39]];
  const clipper={...module.historicalWorldClipper,
   difference:(...args)=>{
    calls.differences++;
@@ -75,13 +75,13 @@ test('subtraction witness cannot cross a precision-discard difference or recover
  }
 });
 
-test('subtraction witness keeps cached positive precision evidence ineligible on later date cuts',()=>{
+test('subtraction witness keeps cached nonempty precision evidence ineligible on later date cuts',()=>{
  const {rows,rules,clipper,calls}=subtractionWitnessFixture({precision:true});
  const cache=module.createHistoricalTerritoryCache(clipper);
  assert.throws(()=>module.adjustHistoricalTerritories(rows,rules,clipper,cache),/Unable to complete output ring/);
  const differences=calls.differences;
  const evidence=[...cache.operations.values()].flatMap(value=>value.precision);
- assert.equal(evidence.length,1);assert.ok(evidence[0].areaM2>0);
+ assert.equal(evidence.length,1);assert.equal(evidence[0].areaM2,0);
  const later=rows.map(r=>({...r,validFrom:'1991-10-01',validTo:'1991-10-31'}));
  assert.throws(()=>module.adjustHistoricalTerritories(later,rules,clipper,cache),/Unable to complete output ring/);
  assert.equal(calls.differences,differences,'this rejection must exercise the cached difference');
@@ -147,7 +147,7 @@ test('subtraction witness audit is identical after unrelated cache warmup',()=>{
 
 test('subtraction witness audit does not spend the ten-artifact precision budget on cached replay',()=>{
  const {rows,rules,clipper}=subtractionWitnessFixture(),intersection=clipper.intersection;
- const artifact=[[46.798053,39.097382],[46.803617228283514,39.10088708625098],[46.80361722811995,39.10088708614795],[46.798053,39.097382]];
+ const artifact=[[46,39],[46.125,39],[46.125,39.125],[46.125,39],[46,39]];
  let emitted=false;
  clipper.intersection=(...args)=>{
   const raw=intersection(...args);
@@ -416,8 +416,7 @@ test('large historical multi-polygon differences partition independent component
 });
 
 test('reused Boolean results replay precision evidence and retain each interval discard budget',()=>{
- const artifact=[[46.798053,39.097382],[46.803617228283514,39.10088708625098],
-  [46.80361722811995,39.10088708614795],[46.798053,39.097382]];
+ const artifact=[[46,39],[46.125,39],[46.125,39.125],[46.125,39],[46,39]];
  const clipper={...globalThis.polygonClipping,intersection:(...args)=>[...globalThis.polygonClipping.intersection(...args),[artifact]]};
  const cache=module.createHistoricalTerritoryCache(clipper),rows=[candidate('east',0,6),candidate('west',4,10)];
  const first=module.adjustHistoricalTerritories(rows,policy,clipper,cache);
@@ -590,8 +589,7 @@ test('original peer operands avoid generated-edge ring failures without changing
 });
 
 test('a failed peer subtraction cannot erase precision evidence or retry another path',()=>{
- const artifact=[[46.798053,39.097382],[46.803617228283514,39.10088708625098],
-  [46.80361722811995,39.10088708614795],[46.798053,39.097382]];
+ const artifact=[[46,39],[46.125,39],[46.125,39.125],[46.125,39],[46,39]];
  const rows=[candidate('a',0,20),{...candidate('b',0,1),geometry:{type:'MultiPolygon',coordinates:[box(3,5).coordinates,box(10,12).coordinates]}}];
  let calls=0;
  const clipper={...module.historicalWorldClipper,difference:(...args)=>{
@@ -637,8 +635,7 @@ test('explicit replacements never retry a failed Boolean operation',()=>{
 });
 
 test('cached original peer subtraction replays precision evidence across later intervals',()=>{
- const artifact=[[46.798053,39.097382],[46.803617228283514,39.10088708625098],
-  [46.80361722811995,39.10088708614795],[46.798053,39.097382]];
+ const artifact=[[46,39],[46.125,39],[46.125,39.125],[46.125,39],[46,39]];
  const rows=[candidate('a',0,12),candidate('b',3,15),candidate('c',6,18)];
  const xs=value=>value.flat(2).map(point=>point[0]);
  let failures=0,nativeCalls=0;
@@ -698,7 +695,7 @@ test('component bounds preserve exact ordered native split results and precision
  const {run,clipper,calls,precision}=await componentBoundsFixture();
  const left=[box(0,10).coordinates,box(20,22).coordinates,box(40,45).coordinates];
  const right=[box(3,4).coordinates,box(6,7).coordinates,box(20,22).coordinates,box(100,101).coordinates];
- const artifact=[[46.798053,39.097382],[46.803617228283514,39.10088708625098],[46.80361722811995,39.10088708614795],[46.798053,39.097382]];
+ const artifact=[[46,39],[46.125,39],[46.125,39.125],[46.125,39],[46,39]];
  const difference=clipper.difference;
  clipper.difference=(a,b)=>[...difference(a,b),[artifact]];
  const expected=[],expectedCalls=[],expectedPrecision=[];
@@ -736,4 +733,30 @@ test('component bounds preserve lazy malformed input and direct clipping errors'
  assert.throws(()=>run([null],[box(0,1).coordinates],'difference subject / cutter'),TypeError);
  const failure=new Error('native ring failure');clipper.difference=()=>{throw failure;};
  assert.throws(()=>run([box(0,10).coordinates],[box(1,2).coordinates],'difference subject / cutter'),error=>error===failure);
+});
+
+test('eleven certified exact-zero artifacts still exceed the unchanged precision count budget',()=>{
+ const rows=[candidate('left',0,4),candidate('right',2,6)];
+ const clipper={...module.historicalWorldClipper,difference:(...args)=>[
+  ...module.historicalWorldClipper.difference(...args),
+  ...Array.from({length:11},(_,i)=>[[[40+i,30],[40.125+i,30],[40.125+i,30.125],[40.125+i,30],[40+i,30]]]),
+ ]};
+ assert.throws(()=>module.adjustHistoricalTerritories(rows,policy,clipper),error=>{
+  assert.equal(error.code,'HISTORICAL_CLIP_PRECISION_BUDGET_EXCEEDED');
+  assert.match(error.message,/count=11, areaM2=0/);return true;
+ });
+});
+
+test('caller-visible positive cached precision evidence cannot become an exact recovery certificate',()=>{
+ const {rows,rules,clipper}=subtractionWitnessFixture({precision:true});
+ const cache=module.createHistoricalTerritoryCache(clipper);
+ assert.throws(()=>module.adjustHistoricalTerritories(rows,rules,clipper,cache),/Unable to complete output ring/);
+ const rowsWithEvidence=[...cache.operations.values()].flatMap(value=>value.precision);
+ assert.equal(rowsWithEvidence.length,1);
+ // Deliberately poison only this public test cache. This is not a native
+ // discard receipt and is never written to source or runtime data.
+ rowsWithEvidence[0].areaM2=0.0625;
+ const before=structuredClone(rowsWithEvidence);
+ assert.throws(()=>module.adjustHistoricalTerritories(rows,rules,clipper,cache),/Unable to complete output ring/);
+ assert.deepEqual([...cache.operations.values()].flatMap(value=>value.precision),before);
 });

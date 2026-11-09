@@ -1,4 +1,5 @@
 #include <pandoeditor/polygonmesh.h>
+#include <pandoeditor/exactplanar.h>
 #include <earcut.hpp>
 #include <algorithm>
 #include <cmath>
@@ -12,9 +13,16 @@ using Position=MeshPosition;
 constexpr double radians=3.141592653589793238462643383279502884/180.;
 constexpr double parameterEpsilon=1e-12;
 bool samePoint(const Position& a,const Position& b) {
-    return std::abs(a[0]-b[0])<=parameterEpsilon&&std::abs(a[1]-b[1])<=parameterEpsilon;
+    return a[0]==b[0]&&a[1]==b[1];
 }
-constexpr double AREA_EPSILON=1e-20;
+int triangleSign(const Position& a,const Position& b,const Position& c) {
+    return exactplanar::orientation({a[0],a[1]},{b[0],b[1]},{c[0],c[1]});
+}
+Ring predicateRing(const std::vector<Position>& points) {
+    Ring ring;ring.reserve(points.size());
+    for(const auto& point:points)ring.push_back({point[0],point[1]});
+    return ring;
+}
 using Triangle=MeshTriangle;
 std::uint64_t edgeKey(std::uint32_t a,std::uint32_t b) {
     if(a>b)std::swap(a,b);
@@ -65,7 +73,7 @@ std::vector<Triangle> refinePolygon(
     std::vector<Triangle> triangles;
     for(std::size_t i=0;i+2<triangulation.size();i+=3){
         const Triangle tri{triangulation[i],triangulation[i+1],triangulation[i+2]};
-        if(std::abs(triangleArea(parameter[tri[0]],parameter[tri[1]],parameter[tri[2]]))>AREA_EPSILON)
+        if(triangleSign(parameter[tri[0]],parameter[tri[1]],parameter[tri[2]])!=0)
             triangles.push_back(tri);
         else removed.push_back(tri);
     }
@@ -130,7 +138,7 @@ std::vector<Triangle> refinePolygon(
         std::vector<Triangle> next;
         next.reserve(triangles.size()*4);
         const auto add=[&](std::uint32_t a,std::uint32_t b,std::uint32_t c) {
-            if(std::abs(triangleArea(parameter[a],parameter[b],parameter[c]))>AREA_EPSILON)
+            if(triangleSign(parameter[a],parameter[b],parameter[c])!=0)
                 next.push_back({a,b,c});
             else removed.push_back({a,b,c});
         };
@@ -239,17 +247,41 @@ PolygonFillMesh buildPolygonFillMesh(const Polygon& polygon,double maxEdgeDegree
         mesh.sourceRingOffsets.push_back(static_cast<std::uint32_t>(mesh.geographic.size()));
         mesh.boundaryChains.push_back(std::move(chain));rings.push_back(std::move(parameter));
     }
-    const auto original=mapbox::earcut<std::uint32_t>(rings);
+    // A common local frame avoids Earcut's winding cancellation near a large
+    // longitude/latitude origin. Use it only when every subtraction is exact
+    // for the input doubles. This changes neither geographic/parameter data
+    // nor vertex indices, and holes use the same origin as their shell.
+    auto triangulationRings=rings;
+    const auto origin=rings.front().front();
+    bool exactTranslation=true;
+    for(auto& ring:triangulationRings)for(auto& point:ring)for(unsigned axis=0;axis<2;++axis) {
+        const double translated=point[axis]-origin[axis];
+        exactplanar::ProductSum residual;
+        residual.add(translated,1);residual.add(point[axis],1,-1);residual.add(origin[axis],1);
+        if(residual.sign()!=0)exactTranslation=false;
+        point[axis]=translated;
+    }
+    const auto original=mapbox::earcut<std::uint32_t>(exactTranslation?triangulationRings:rings);
     double expected=ringArea(rings.front());for(std::size_t i=1;i<rings.size();++i)expected-=ringArea(rings[i]);
-    if(original.empty()||original.size()%3||expected<=AREA_EPSILON)
+    exactplanar::ProductSum exactExpected;
+    for(std::size_t i=0;i<rings.size();++i) {
+        const auto ring=predicateRing(rings[i]);
+        const auto sign=exactplanar::areaSign(ring);
+        if(!sign)throw std::invalid_argument("polygon projected ring has zero exact area");
+        exactExpected.ring(ring,(i?-1:1)*sign);
+    }
+    if(original.empty()||original.size()%3||exactExpected.sign()<=0)
         throw std::invalid_argument("polygon triangulation has empty or degenerate area");
     double actual=0;
+    auto exactRemainder=exactExpected;
     for(std::size_t i=0;i<original.size();i+=3){
         for(std::size_t j=0;j<3;++j)if(original[i+j]>=mesh.parameter.size())
             throw std::invalid_argument("polygon triangulation vertex out of range");
         actual+=std::abs(triangleArea(mesh.parameter[original[i]],mesh.parameter[original[i+1]],mesh.parameter[original[i+2]]));
+        const auto triangle=predicateRing({mesh.parameter[original[i]],mesh.parameter[original[i+1]],mesh.parameter[original[i+2]]});
+        exactRemainder.ring(triangle,-exactplanar::areaSign(triangle));
     }
-    if(std::abs(actual-expected)>std::max(1e-9,expected*1e-8))
+    if(exactRemainder.sign()!=0||std::abs(actual-expected)>std::max(1e-9,expected*1e-8))
         throw std::invalid_argument("polygon triangulation does not preserve shell/hole area");
     const double limit=std::isfinite(maxEdgeDegrees)?std::max(kDefaultBoundaryEdgeDegrees,maxEdgeDegrees):kDefaultBoundaryEdgeDegrees;
     mesh.triangles=refinePolygon(mesh.geographic,mesh.parameter,original,mesh.space,mesh.boundaryChains,

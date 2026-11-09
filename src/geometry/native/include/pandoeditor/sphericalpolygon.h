@@ -16,8 +16,8 @@ struct DisplayMetricRing { Ring points; bool closed=false; };
 double displayGeometryAreaKm2(const std::vector<std::vector<DisplayMetricRing>>& polygons);
 double displayLineDistanceKm(const std::vector<std::optional<Point>>& points);
 Ring normalizeSphericalRing(const Ring& ring, bool shell);
-void requireCanonicalSphericalWinding(const Geometry& geometry);
-bool hasCanonicalSphericalWinding(const Geometry& geometry) noexcept;
+void requireCanonicalSphericalWinding(const Geometry& geometry,bool clipped=false);
+bool hasCanonicalSphericalWinding(const Geometry& geometry,bool clipped=false) noexcept;
 Geometry normalizeSphericalPolygonGeometry(const Geometry& geometry);
 Geometry normalizeClippedSphericalPolygonGeometry(const Geometry& geometry);
 } // namespace pandoeditor

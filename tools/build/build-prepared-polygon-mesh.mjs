@@ -11,7 +11,7 @@ import "../../src/rendering/workers/gpu-mesh-core.js";
 import { decodePolygonMesh, encodePolygonMesh, POLYGON_MESH_FORMAT_VERSION } from "../../src/rendering/polygon-mesh-codec.js";
 import "./load-spherical-core.mjs";
 import "../../assets/js-vendor/polygon-clipping.min.js";
-import { createGeometryVersionStore } from "../../src/geometry/geometry-version-store.js";
+import { createCanonicalGeometryVersionStore as createGeometryVersionStore } from "../../src/geometry/geometry-version-store.js";
 import {parseTemporal,temporalContains,temporalMonthEnd,shiftTemporalMonth} from "../../src/document/temporal.js";
 import { resolveWorld } from "../../src/document/timeline-resolver.js";
 import { createTerritorialScopeResolver } from "../../src/document/territorial-scope.js";

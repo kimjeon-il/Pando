@@ -1,4 +1,5 @@
 #include <pandoeditor/document.h>
+#include <pandoeditor/geometrypredicates.h>
 #include "documentstate.h"
 #include <algorithm>
 #include <cmath>
@@ -10,7 +11,7 @@ namespace {
 void require(bool ok,const std::string& code) { if(!ok) throw std::invalid_argument(code); }
 bool opacity(double x) { return std::isfinite(x) && x>=0 && x<=1; }
 void point(Point p) { require(std::isfinite(p.x)&&std::isfinite(p.y)&&std::abs(p.x)<=180&&std::abs(p.y)<=90,"INVALID_GEOMETRY: coordinate"); }
-void validateGeometry(const Geometry& g) {
+void validateGeometry(const Geometry& g,bool canonical) {
     if(g.type=="Point" || g.type=="MultiPoint") {
         require(!g.points.empty() && (g.type!="Point" || g.points.size()==1) && g.lines.empty() && g.polygons.empty(),"INVALID_GEOMETRY: points");
         for(auto p:g.points) point(p);
@@ -23,9 +24,14 @@ void validateGeometry(const Geometry& g) {
             require(!poly.empty(),"INVALID_GEOMETRY: empty polygon");
             for(const auto& ring:poly) {
                 require(ring.size()>=4 && ring.front().x==ring.back().x && ring.front().y==ring.back().y,"INVALID_GEOMETRY: open ring");
-                double area=0;
-                for(std::size_t i=0;i<ring.size();++i) { point(ring[i]); auto a=ring[i],b=ring[(i+1)%ring.size()]; area+=a.x*b.y-b.x*a.y; }
-                require(std::abs(area)>=1e-14,"INVALID_GEOMETRY: degenerate ring");
+                if(canonical) {
+                    for(const auto p:ring)point(p);
+                    require(validateClippedTerritorialRing(ring).empty(),"INVALID_GEOMETRY: invalid canonical ring");
+                } else {
+                    double area=0;
+                    for(std::size_t i=0;i<ring.size();++i) { point(ring[i]); auto a=ring[i],b=ring[(i+1)%ring.size()]; area+=a.x*b.y-b.x*a.y; }
+                    require(std::abs(area)>=1e-14,"INVALID_GEOMETRY: degenerate ring");
+                }
             }
         }
     }
@@ -49,13 +55,19 @@ void GeometryStore::requireReady(const std::vector<GeometryRef>& refs) const {
 }
 void GeometryStore::insert(GeometryRef ref,Geometry geometry) {
     require(!ref.id.empty() && ref.version>0,"INVALID_GEOMETRY: version");
-    validateGeometry(geometry);
+    validateGeometry(geometry,false);
+    require(!resources_.count(ref)||resources_.at(ref).type==geometry.type,"INVALID_GEOMETRY_RESOURCE: type mismatch");
+    require(versions_.emplace(std::move(ref),std::make_shared<const Geometry>(std::move(geometry))).second,"DUPLICATE_ID: geometry version");
+}
+void GeometryStore::insertCanonical(GeometryRef ref,Geometry geometry) {
+    require(!ref.id.empty() && ref.version>0,"INVALID_GEOMETRY: version");
+    validateGeometry(geometry,true);
     require(!resources_.count(ref)||resources_.at(ref).type==geometry.type,"INVALID_GEOMETRY_RESOURCE: type mismatch");
     require(versions_.emplace(std::move(ref),std::make_shared<const Geometry>(std::move(geometry))).second,"DUPLICATE_ID: geometry version");
 }
 void GeometryStore::retain(GeometryRef ref,std::shared_ptr<const Geometry> geometry) {
     require(!ref.id.empty()&&ref.version>0&&bool(geometry),"INVALID_GEOMETRY: retained version");
-    validateGeometry(*geometry);
+    validateGeometry(*geometry,true);
     require(versions_.emplace(std::move(ref),std::move(geometry)).second,"DUPLICATE_ID: geometry version");
 }
 void GeometryStore::retainFrom(const GeometryStore& source,const GeometryRef& sourceRef,GeometryRef destination) {

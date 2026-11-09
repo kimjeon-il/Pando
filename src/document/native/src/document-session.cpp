@@ -622,7 +622,7 @@ std::string DocumentSession::admitGeometryResources(const std::vector<std::pair<
         if(found==candidate.geometries.resources().end())throw std::invalid_argument("INVALID_GEOMETRY_RESOURCE: undeclared reference");
         auto geometry=projectcodec::decodeGeometryResource(found->second,bytes);
         admitted.declareResource(ref,found->second);
-        admitted.insert(ref,std::move(geometry));
+        admitted.insertCanonical(ref,std::move(geometry));
         if(!candidate.geometries.get(ref)){candidate.geometries.retainFrom(admitted,ref,ref);impact.changedGeometries.push_back(ref);}
     }
     const auto delta=projectcodec::encodeWebDelta(project_.document(),candidate,impact);

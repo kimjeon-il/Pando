@@ -142,65 +142,34 @@ test('wrapping is idempotent when strip clipping creates a long planar edge', as
   assert.deepEqual(pc.xor(polygons(first), polygons(second)), []);
 });
 
-test('numerical clipping artifacts require explicit bounded audit; non-numerical degeneracies remain errors', () => {
-  const { normalizeClippedPolygonGeometry } = globalThis.PandoLabPolygonGeometry;
-  const valid = [[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]];
-  const artifact = [
-    [46.798053, 39.097382],
-    [46.803617228283514, 39.10088708625098],
-    [46.80361722811995, 39.10088708614795],
-    [46.798053, 39.097382],
-  ];
-  const input = [[valid], [artifact]];
-  assert.throws(() => normalizeClippedPolygonGeometry(input), /INVALID_POLYGON_RING/);
-  const repairs = [];
-  const normalized = normalizeClippedPolygonGeometry(input, { onPrecisionDiscard: repair => repairs.push(repair) });
-  assert.equal(normalized.type, 'Polygon');
-  assert.equal(normalized.coordinates.length, 1);
-  assert.deepEqual(normalized.coordinates[0], valid);
-  assert.equal(repairs.length, 1);
-  assert.equal(repairs[0].polygonIndex, 1);
-  assert.ok(repairs[0].areaM2 >= 0 && repairs[0].areaM2 < 0.1);
-  assert.deepEqual(input[1][0], artifact, 'the raw clipping result is never mutated');
-  const unsupported = [[0, 0], [1, 1], [2, 2], [0, 0]];
-  assert.throws(() => normalizeClippedPolygonGeometry([[valid], [unsupported]],
-    { onPrecisionDiscard() { assert.fail('larger malformed rings may not be discarded'); } }), /INVALID_POLYGON_RING/);
-});
-
-test('audited shared-border clipping omits only submicroscopic-width triangular roundoff',()=>{
-  const {normalizeClippedPolygonGeometry,normalizePolygonGeometry}=globalThis.PandoLabPolygonGeometry;
+const exactPositiveFormerDiscardFixtures = [[[46.798053,39.097382],[46.803617228283514,39.10088708625098],[46.80361722811995,39.10088708614795],[46.798053,39.097382]],[[14.077778600000045,50.81575200000003],[14.078463700000043,50.81248050000005],[14.077918587444104,50.81508352981577],[14.077778600000045,50.81575200000003]],[[18.62310395972329,52.865064843259695],[18.62310395972331,52.86506484325972],[18.65694287507342,52.88613406982571],[18.69982606372881,52.89817847593115],[18.718115696644393,52.896766975148424],[18.69982606372883,52.89817847593119],[18.65694287507341,52.88613406982573],[18.6231039597233,52.86506484325975],[18.62310395972329,52.865064843259695]]];
+for(const [index,original] of exactPositiveFormerDiscardFixtures.entries())
+test(`clipped positive fixture ${index} is retained instead of using the precision budget`,()=>{
+  const {normalizePolygonGeometry,normalizeClippedPolygonGeometry,hasCanonicalClippedPolygonWinding}=globalThis.PandoLabPolygonGeometry;
   const valid=[[0,0],[0,1],[1,1],[1,0],[0,0]];
-  const artifact=[[14.077778600000045,50.81575200000003],[14.078463700000043,50.81248050000005],
-    [14.077918587444104,50.81508352981577],[14.077778600000045,50.81575200000003]];
-  assert.throws(()=>normalizePolygonGeometry([[artifact]]),/INVALID_POLYGON_RING/,'source admission stays strict');
-  assert.throws(()=>normalizeClippedPolygonGeometry([[artifact]]),/INVALID_POLYGON_RING/,'audit is required');
-  const audit=[],input=[[valid],[artifact]],before=structuredClone(input);
-  const geometry=normalizeClippedPolygonGeometry(input,{onPrecisionDiscard:item=>audit.push(item)});
-  assert.deepEqual(geometry.coordinates,[valid]);assert.deepEqual(input,before);
-  assert.equal(audit.length,1);assert.ok(audit[0].areaM2<0.1);
-  const finiteWidth=[[14,50],[14.001,50.001],[14.0005,50.00050001],[14,50]];
-  assert.ok(normalizeClippedPolygonGeometry([[finiteWidth]],{onPrecisionDiscard(){assert.fail('non-roundoff geometry must not be discarded');}}));
-});
-
-test('audited shared-boundary zero-area retrace is not promoted to a historical island',()=>{
-  const {normalizePolygonGeometry,normalizeClippedPolygonGeometry}=globalThis.PandoLabPolygonGeometry;
-  const original=[[18.62310395972329,52.865064843259695],[18.62310395972331,52.86506484325972],
-    [18.65694287507342,52.88613406982571],[18.69982606372881,52.89817847593115],
-    [18.718115696644393,52.896766975148424],[18.69982606372883,52.89817847593119],
-    [18.65694287507341,52.88613406982573],[18.6231039597233,52.86506484325975],
-    [18.62310395972329,52.865064843259695]];
-  const valid=[[0,0],[0,1],[1,1],[1,0],[0,0]];
-  const input=[[valid],[original]],unchanged=structuredClone(input);
+  const input=[[valid],[original]],before=structuredClone(input),audit=[];
   assert.throws(()=>normalizePolygonGeometry([[original]]),/INVALID_POLYGON_RING/);
-  assert.throws(()=>normalizeClippedPolygonGeometry([[original]]),/INVALID_POLYGON_RING/);
-  const audit=[],result=normalizeClippedPolygonGeometry(input,{onPrecisionDiscard:entry=>audit.push(entry)});
-  assert.deepEqual(result.coordinates,[valid]);assert.deepEqual(input,unchanged);
-  assert.equal(audit.length,1);assert.equal(audit[0].polygonIndex,1);
-  assert.ok(audit[0].areaM2>=0&&audit[0].areaM2<=0.1);
-  const wrong=[[0,0],[0.01,0.01],[0.02,0],[0,0.01],[0,0]];
-  assert.throws(()=>normalizeClippedPolygonGeometry([[wrong]],{
-    onPrecisionDiscard(){assert.fail('a non-retraced self-crossing boundary cannot be deleted');}
-  }),/INVALID_POLYGON_RING|INVALID_SPHERICAL_WINDING|AMBIGUOUS_SPHERICAL_RING/);
+  const result=normalizeClippedPolygonGeometry(input,{onPrecisionDiscard:entry=>audit.push(entry)});
+  assert.equal(result.type,'MultiPolygon');
+  assert.equal(result.coordinates.length,2);
+  const points=ring=>ring.slice(0,-1).map(point=>JSON.stringify(point)).sort();
+  assert.deepEqual(points(result.coordinates[1][0]),points(original));
+  assert.deepEqual(audit,[]);assert.deepEqual(input,before);
+  assert.equal(hasCanonicalClippedPolygonWinding(result),true);
+});
+
+test('exact-zero retraces still require an explicit bounded precision audit',()=>{
+  const {normalizeClippedPolygonGeometry}=globalThis.PandoLabPolygonGeometry;
+  const valid=[[0,0],[0,1],[1,1],[1,0],[0,0]];
+  const retrace=[[40,30],[40.125,30],[40.125,30.125],[40.125,30],[40,30]];
+  assert.throws(()=>normalizeClippedPolygonGeometry([[retrace]]),/INVALID_POLYGON_RING/);
+  const audit=[],result=normalizeClippedPolygonGeometry([[valid],[retrace]],{onPrecisionDiscard:entry=>audit.push(entry)});
+  assert.deepEqual(result.coordinates,[valid]);
+  assert.equal(audit.length,1);assert.equal(audit[0].polygonIndex,1);assert.equal(audit[0].areaM2,0);
+  const unsupported=[[0,0],[1,1],[2,2],[0,0]];
+  assert.throws(()=>normalizeClippedPolygonGeometry([[unsupported]],{
+    onPrecisionDiscard(){assert.fail('unsupported malformed geometry must not be omitted');}
+  }),/INVALID_POLYGON_RING/);
 });
 
 // polygon native contracts share this owner suite.

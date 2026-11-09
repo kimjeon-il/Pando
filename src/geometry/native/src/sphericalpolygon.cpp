@@ -1,4 +1,5 @@
 #include <pandoeditor/sphericalpolygon.h>
+#include <pandoeditor/exactplanar.h>
 #include <pandoeditor/polygonclipping.h>
 #include <algorithm>
 #include <cmath>
@@ -58,7 +59,14 @@ bool onSegment(Point p, Point a, Point b) {
     return position>=-tolerance && position<=1+tolerance &&
            std::abs(ox*dy-oy*dx)<=tolerance*std::sqrt(length);
 }
-Ring cleanRing(const Ring& original) {
+Ring cleanRing(const Ring& original,bool clipped=false) {
+    if(clipped) {
+        for(const auto point:original)coordinate(point);
+        auto ring=original;
+        if(!ring.empty()&&!exactplanar::equal(ring.front(),ring.back()))ring.push_back(ring.front());
+        exactplanar::requireSimpleRing(ring);
+        return ring; // Exact distinct output vertices are data, not noise.
+    }
     if(original.size()<3)throw std::invalid_argument("INVALID_POLYGON_RING: short ring");
     Ring ring;
     ring.reserve(original.size()+1);
@@ -90,7 +98,12 @@ Ring cleanRing(const Ring& original) {
     vertices.push_back(vertices.front());
     return vertices;
 }
-void checkRing(const Ring& ring) {
+void checkRing(const Ring& ring,bool clipped=false) {
+    if(clipped) {
+        for(const auto point:ring)coordinate(point);
+        exactplanar::requireSimpleRing(ring);
+        return;
+    }
     if(ring.size()<4)throw std::invalid_argument("INVALID_POLYGON_RING: short ring");
     for(const auto point:ring)coordinate(point);
     if(ring.front().x!=ring.back().x||ring.front().y!=ring.back().y)
@@ -135,16 +148,27 @@ double interiorArea(const Ring& ring) {
         throw std::invalid_argument("AMBIGUOUS_SPHERICAL_RING: invalid interior");
     return area;
 }
-bool canonical(const Ring& ring,bool shell) {
+bool canonical(const Ring& ring,bool shell,bool clipped=false) {
     if(worldSeam(ring)) {
         if(!shell)throw std::invalid_argument("INVALID_POLYGON_HOLE: global seam");
         return true;
+    }
+    // Keep the existing spherical/seam/pole decision. Only the established
+    // tiny-area fallback uses an exact planar sign for generated geometry.
+    // Do not form sphere-minus-tiny: that subtraction can round back to sphere.
+    if(clipped&&std::abs(sphericalRingSignedArea(ring))<=1e-15) {
+        for(std::size_t i=0;i<ring.size();++i)
+            if(std::abs(ring[i].y)==90||(i&&std::abs(ring[i].x-ring[i-1].x)>=180))
+                throw std::invalid_argument("AMBIGUOUS_SPHERICAL_RING: seam or pole");
+        const auto sign=exactplanar::areaSign(ring);
+        if(!sign)throw std::invalid_argument("INVALID_POLYGON_RING: zero area");
+        return shell?sign<0:sign>0;
     }
     const auto area=interiorArea(ring);
     return shell?area<hemisphere:area>hemisphere;
 }
 Ring oriented(const Ring& original,bool shell,bool clipped=false) {
-    auto ring=cleanRing(original);
+    auto ring=cleanRing(original,clipped);
     // Clipping uses planar longitude edges. Split those edges before deciding
     // the spherical interior: inserting a midpoint can change that interior.
     // The explicit world seam is already a canonical full-sphere shell.
@@ -164,11 +188,11 @@ Ring oriented(const Ring& original,bool shell,bool clipped=false) {
         }
         ring=std::move(segmented);
     }
-    if(!canonical(ring,shell)) {
+    if(!canonical(ring,shell,clipped)) {
         std::reverse(ring.begin(),ring.end()-1);
         ring.back()=ring.front();
     }
-    if(!canonical(ring,shell))
+    if(!canonical(ring,shell,clipped))
         throw std::invalid_argument("AMBIGUOUS_SPHERICAL_RING: winding unresolved");
     return ring;
 }
@@ -269,7 +293,7 @@ double sphericalPolygonArea(const Geometry& geometry,const GeometryCancellation&
 Ring normalizeSphericalRing(const Ring& ring,bool shell) {
     return oriented(ring,shell);
 }
-void requireCanonicalSphericalWinding(const Geometry& geometry) {
+void requireCanonicalSphericalWinding(const Geometry& geometry,bool clipped) {
     typeCheck(geometry);
     if(geometry.polygons.empty())
         throw std::invalid_argument("INVALID_POLYGON: empty MultiPolygon");
@@ -279,8 +303,8 @@ void requireCanonicalSphericalWinding(const Geometry& geometry) {
         for(std::size_t r=0;r<polygon.size();++r) {
             const auto& ring=polygon[r];
             try {
-                checkRing(ring);
-                if(!canonical(ring,r==0))
+                checkRing(ring,clipped);
+                if(!canonical(ring,r==0,clipped))
                     throw std::invalid_argument("INVALID_SPHERICAL_WINDING");
             }catch(const std::exception& error) {
                 throw std::invalid_argument("INVALID_POLYGON: component "+std::to_string(p)+
@@ -289,8 +313,8 @@ void requireCanonicalSphericalWinding(const Geometry& geometry) {
         }
     }
 }
-bool hasCanonicalSphericalWinding(const Geometry& geometry) noexcept {
-    try {requireCanonicalSphericalWinding(geometry);return true;}
+bool hasCanonicalSphericalWinding(const Geometry& geometry,bool clipped) noexcept {
+    try {requireCanonicalSphericalWinding(geometry,clipped);return true;}
     catch(...) {return false;}
 }
 namespace {
@@ -314,7 +338,7 @@ Geometry normalizeGeometry(const Geometry& source,bool clipped) {
         }
         result.polygons.push_back(std::move(output));
     }
-    requireCanonicalSphericalWinding(result);
+    requireCanonicalSphericalWinding(result,clipped);
     return result;
 }
 }

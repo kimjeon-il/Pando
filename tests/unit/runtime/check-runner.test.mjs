@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { execFileSync } from 'node:child_process';
-import { writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { isolatedTestWorkspace } from "../../helpers/check-workspace-fixture.mjs";
 import { join } from 'node:path';
 import { collectChanges } from "../../../scripts/lib/check-changes.mjs";
@@ -267,4 +267,187 @@ test('P5 CI unit test arguments are forwarded without dropping prerequisites', (
   assert.ok(calls.some(row=>row.argv.includes('core.mjs')));
   assert.ok(calls.some(row=>row.argv.includes('--test-name-pattern=contract')));
   assert.throws(()=>executePlan(plan,{repository,unitTestArgs:'invalid'}),/Invalid unit test arguments/);
+});
+
+
+// Contract-only checks: execution is injected, so these tests never launch a compiler or CI.
+async function clippedVerificationFixture() {
+  const {matchesPattern} = await import('../../../scripts/plan-application-checks.mjs');
+  const catalog = JSON.parse(readFileSync(new URL('../../../scripts/contracts/application-checks.json', import.meta.url), 'utf8'));
+  const unitTests = [
+    'tests/unit/geometry/polygon-clipped-positive-ring.test.mjs',
+    'tests/unit/geometry/polygon-geometry.test.mjs',
+    'tests/unit/document/historical-world-territories.test.mjs',
+    'tests/unit/geometry/gpu-mesh-country-strokes.test.mjs',
+    'tests/unit/geometry/map-geometry-validation.test.mjs',
+    'tests/unit/rendering/country-mesh-preparation.test.mjs',
+  ];
+  const owners = new Map(unitTests.map(file => [file, catalog.groups.find(group =>
+    group.testPatterns?.some(pattern => matchesPattern(file, pattern)))]));
+  for (const [file, owner] of owners) assert.ok(owner, 'Registered owner for ' + file);
+  const unitRequirements = new Map(unitTests.map(file => [file, new Set([
+    ...(owners.get(file).requires || []), ...catalog.unitPrerequisites.filter(binding =>
+      binding.tests.some(pattern => matchesPattern(file, pattern)) && !binding.excludeTests?.includes(file)).flatMap(binding => binding.requires),
+  ])]));
+  const repository = {root:'/fixture', catalog, tests:unitTests, owners, unitRequirements};
+  const selection = {unitTests, browserSpecs:[], commands:[
+    'spherical-polygon-native', 'polygon-mesh-native', 'wasm-domain-geometry',
+  ], prerequisites:[]};
+  return {repository, selection, plan:runner.exactCheckPlan(repository, selection)};
+}
+
+test('clipped verification registers only two native targets and the exact matching-WASM fixture checks', async () => {
+  const {repository, selection, plan} = await clippedVerificationFixture();
+  assert.deepEqual(plan.commands, [...selection.commands].sort());
+  assert.deepEqual(plan.unitTests, [...selection.unitTests].sort());
+  assert.deepEqual(plan.prerequisites, ['core-assets','native-polygon-mesh-tests','native-spherical-polygon-tests']);
+  assert.deepEqual(plan.unitTestPrerequisites['tests/unit/geometry/polygon-clipped-positive-ring.test.mjs'], ['core-assets']);
+  assert.deepEqual(executionOutputs(plan,{repository,phase:'non-browser'}).native_requirements,
+    ['polygon-mesh-tests','spherical-polygon-tests']);
+  assert.equal(executionOutputs(plan,{repository}).browser, false);
+  assert.equal(repository.catalog.prerequisites.core.env,undefined, 'General Core override semantics stay unchanged');
+  assert.throws(() => runner.exactCheckPlan(repository,{...selection,commands:['native-gis']}), /Unknown selected command/);
+  assert.throws(() => runner.exactCheckPlan(repository,{...selection,prerequisites:['native-all']}), /Unknown selected native tool/);
+});
+
+test('clipped verification local selection dispatches the exact checks without executing local native work', async () => {
+  const {repository, selection, plan} = await clippedVerificationFixture();
+  const requests=[];
+  const result=executeCiPlan(plan,{repository,environment:{},phase:'non-browser',
+    run:()=>assert.fail('No local compiler, WASM process, or CI command may execute in this test'),
+    remote:request=>{requests.push(request.selection);return{ok:true,results:[]};}});
+  assert.equal(result.ok,true);
+  assert.deepEqual(requests,[{...selection,unitTests:[...selection.unitTests].sort(),commands:[...selection.commands].sort()}]);
+});
+
+test('clipped verification recipes build existing targets only, with no packaging or full matrix', async () => {
+  const {nativeTestRecipe}=await import('../../../scripts/lib/native-test-prerequisites.mjs');
+  const options={platform:'linux',architecture:'x64'};
+  assert.deepEqual(nativeTestRecipe('spherical-polygon-tests',options),{commands:[
+    ['cmake','--preset','pando-gis-tools'],
+    ['cmake','--build','build-native/p1/pando-gis-tools','--config','Release','--target','pando-spherical-polygon-tests','--parallel','2'],
+  ]});
+  assert.deepEqual(nativeTestRecipe('polygon-mesh-tests',options),{commands:[
+    ['cmake','-S','tools/build/native','-B','build-native/geometry-core','-DCMAKE_BUILD_TYPE=Release','-DBUILD_TESTING=ON'],
+    ['cmake','--build','build-native/geometry-core','--config','Release','--target','polygon_mesh_tests','--parallel','2'],
+  ]});
+  assert.throws(()=>nativeTestRecipe('polygon-mesh-tests',{platform:'win32',architecture:'x64'}),/Linux x64/);
+  const {repository}=await clippedVerificationFixture();
+  for(const [id,directory,pattern] of [
+    ['spherical-polygon-native','build-native/p1/pando-gis-tools','^spherical-polygon-normalization$'],
+    ['polygon-mesh-native','build-native/geometry-core','^polygon_mesh_tests$'],
+  ])assert.deepEqual(repository.catalog.groups.find(row=>row.id===id).argv,
+    ['ctest','--test-dir',directory,'-C','Release','--output-on-failure','--no-tests=error','-R',pattern]);
+});
+
+test('clipped verification checks paired Core before fixture and WASM consumers, overrides stale module paths', async () => {
+  const {repository, plan}=await clippedVerificationFixture(), calls=[];
+  const result=executeCiPlan(plan,{repository,phase:'non-browser',environment:{GITHUB_ACTIONS:'true',PANDOEDITOR_WASM_MODULE:'/stale/core.js'},
+    run:(argv,options)=>{calls.push({argv,env:options.env});return{status:0};}});
+  assert.equal(result.ok,true);
+  const core=calls.findIndex(row=>row.argv.includes('scripts/check-core-prerequisite.mjs'));
+  const wasm=calls.findIndex(row=>row.argv.includes('tests/native/document/p5-polygon-mesh-wasm.test.mjs'));
+  const fixtures=calls.findIndex(row=>row.argv.includes('tests/unit/geometry/polygon-clipped-positive-ring.test.mjs'));
+  assert.ok(core>=0 && wasm>core && fixtures>core);
+  assert.equal(calls[wasm].env.PANDOEDITOR_WASM_MODULE,'/fixture/assets/wasm/pandoeditor-core.js');
+  assert.equal(calls[core].env.PANDOEDITOR_WASM_MODULE,'/fixture/assets/wasm/pandoeditor-core.js');
+  for(const row of calls.filter(row=>row.argv.some(file=>plan.unitTests.includes(file))))
+    assert.equal(row.env.PANDOEDITOR_WASM_MODULE,'/fixture/assets/wasm/pandoeditor-core.js');
+  assert.deepEqual(calls.filter(row=>row.argv[0]==='ctest').map(row=>row.argv.at(-1)).sort(),
+    ['^polygon_mesh_tests$','^spherical-polygon-normalization$']);
+  assert.equal(calls.filter(row=>row.argv.includes('scripts/check-core-prerequisite.mjs')).length,1);
+});
+
+test('clipped verification source-WASM mismatch blocks fixture and WASM consumers without a skipped pass', async () => {
+  const {repository, plan}=await clippedVerificationFixture(), calls=[];
+  const result=executeCiPlan(plan,{repository,phase:'non-browser',environment:{GITHUB_ACTIONS:'true'},
+    run:argv=>{calls.push(argv);return{status:argv.includes('scripts/check-core-prerequisite.mjs')?1:0};}});
+  assert.equal(result.ok,false);
+  assert.ok(result.results.some(row=>row.id==='core-assets' && row.status==='failed'));
+  assert.ok(result.results.some(row=>row.id==='wasm-domain-geometry' && row.status==='blocked'));
+  for(const file of plan.unitTests)assert.ok(result.results.some(row=>
+    row.id==='unit' && row.status==='blocked' && row.files?.includes(file)),file);
+  assert.equal(calls.some(argv=>argv.includes('tests/unit/geometry/polygon-clipped-positive-ring.test.mjs')),false);
+  assert.equal(calls.some(argv=>argv.includes('tests/native/document/p5-polygon-mesh-wasm.test.mjs')),false);
+});
+
+test('clipped verification installs Zlib only for selected native Core targets', () => {
+  const action=readFileSync(new URL('../../../.github/actions/native-test-prerequisites/action.yml',import.meta.url),'utf8');
+  assert.match(action,/if: contains\(fromJSON\(inputs.requirements\), 'polygon-mesh-tests'\)/);
+  assert.match(action,/\|\| contains\(fromJSON\(inputs.requirements\), 'document-session-tests'\)/);
+  assert.match(action,/run: sudo apt-get install -y zlib1g-dev/);
+});
+
+
+async function canonicalStorageVerificationFixture() {
+  const {repository,selection}=await clippedVerificationFixture();
+  const {matchesPattern}=await import('../../../scripts/plan-application-checks.mjs');
+  for(const file of ['tests/unit/geometry/polygon-canonical-storage.test.mjs','tests/unit/document/core-geometry-resources-wasm.test.mjs']) {
+    selection.unitTests.push(file);
+    const owner=repository.catalog.groups.find(group=>group.testPatterns?.some(pattern=>matchesPattern(file,pattern)));
+    assert.ok(owner);repository.owners.set(file,owner);
+    repository.unitRequirements.set(file,new Set([...(owner.requires||[]),...repository.catalog.unitPrerequisites.filter(binding=>
+      binding.tests.some(pattern=>matchesPattern(file,pattern)) && !binding.excludeTests?.includes(file)).flatMap(binding=>binding.requires)]));
+  }
+  selection.commands.push('document-session-native');
+  return {repository,selection,plan:runner.exactCheckPlan(repository,selection)};
+}
+
+test('canonical storage verification adds only the existing document session native target and its two JS consumers',async()=>{
+  const {repository,selection,plan}=await canonicalStorageVerificationFixture();
+  assert.deepEqual(plan.commands,[...selection.commands].sort());
+  assert.deepEqual(plan.unitTests,[...selection.unitTests].sort());
+  assert.deepEqual(plan.prerequisites,['core-assets','native-document-session-tests','native-polygon-mesh-tests','native-spherical-polygon-tests']);
+  assert.deepEqual(executionOutputs(plan,{repository,phase:'non-browser'}).native_requirements,
+    ['document-session-tests','polygon-mesh-tests','spherical-polygon-tests']);
+  assert.deepEqual(plan.unitTestPrerequisites['tests/unit/geometry/polygon-canonical-storage.test.mjs'],['core-assets']);
+  assert.deepEqual(plan.unitTestPrerequisites['tests/unit/document/core-geometry-resources-wasm.test.mjs'],['core-assets']);
+  const {nativeTestRecipe}=await import('../../../scripts/lib/native-test-prerequisites.mjs');
+  assert.deepEqual(nativeTestRecipe('document-session-tests',{platform:'linux',architecture:'x64'}),{commands:[
+    ['cmake','-S','tools/build/native','-B','build-native/geometry-core','-DCMAKE_BUILD_TYPE=Release','-DBUILD_TESTING=ON'],
+    ['cmake','--build','build-native/geometry-core','--config','Release','--target','document_session_tests','--parallel','2'],
+  ]});
+  assert.deepEqual(repository.catalog.groups.find(row=>row.id==='document-session-native').argv,
+    ['ctest','--test-dir','build-native/geometry-core','-C','Release','--output-on-failure','--no-tests=error','-R','^document_session_tests$']);
+  const requests=[];assert.equal(executeCiPlan(plan,{repository,environment:{},phase:'non-browser',
+    run:()=>assert.fail('No real native/CI command in this contract test'),remote:request=>{requests.push(request.selection);return{ok:true,results:[]};}}).ok,true);
+  assert.deepEqual(requests,[{...selection,unitTests:[...selection.unitTests].sort(),commands:[...selection.commands].sort()}]);
+});
+
+test('canonical storage consumers require matching Core and fail closed on source-WASM mismatch',async()=>{
+  const {repository,plan}=await canonicalStorageVerificationFixture();
+  for(const mismatch of [false,true]) {
+    const calls=[];const result=executeCiPlan(plan,{repository,environment:{GITHUB_ACTIONS:'true',PANDOEDITOR_WASM_MODULE:'/stale/core.js'},phase:'non-browser',
+      run:(argv,options)=>{calls.push({argv,env:options.env});return {status:mismatch&&argv.includes('scripts/check-core-prerequisite.mjs')?1:0};}});
+    assert.equal(result.ok,!mismatch);
+    const checkers=calls.filter(row=>row.argv.includes('scripts/check-core-prerequisite.mjs'));
+    assert.equal(checkers.length,1);
+    assert.ok(checkers.every(row=>row.env.PANDOEDITOR_WASM_MODULE==='/fixture/assets/wasm/pandoeditor-core.js'));
+    for(const file of ['tests/unit/geometry/polygon-canonical-storage.test.mjs','tests/unit/document/core-geometry-resources-wasm.test.mjs']) {
+      const execution=calls.find(row=>row.argv.includes(file));
+      if(mismatch){assert.equal(execution,undefined);assert.ok(result.results.some(row=>row.id==='unit'&&row.status==='blocked'&&row.files?.includes(file)));}
+      else {assert.ok(execution);assert.equal(execution.env.PANDOEDITOR_WASM_MODULE,'/fixture/assets/wasm/pandoeditor-core.js');
+        assert.ok(calls.findIndex(row=>row.argv.includes('scripts/check-core-prerequisite.mjs'))<calls.indexOf(execution));}
+    }
+  }
+});
+
+
+test('exact unit prerequisite exclusion moves only the canonical resource check to paired assets',async t=>{
+ const {loadRepository}=await import('../../../scripts/plan-application-checks.mjs');
+ const root=isolatedTestWorkspace(t,'pando-check-exclusion-');
+ mkdirSync(join(root,'tests/unit/document'),{recursive:true});
+ const resource='tests/unit/document/core-geometry-resources-wasm.test.mjs',other='tests/unit/document/core-other-wasm.test.mjs';
+ for(const file of [resource,other])writeFileSync(join(root,file),'export {};');
+ const catalog={schema:'pando-application-checks-v1',groups:[{id:'units',kind:'unit',testPatterns:['tests/unit/**/*.test.mjs']}],
+  prerequisites:{core:{argv:['node','-v']},'core-assets':{argv:['node','-v'],env:{PANDOEDITOR_WASM_MODULE:'{root}/assets/wasm/pandoeditor-core.js'}}},
+  unitPrerequisites:[{tests:['tests/unit/**/core-*.test.mjs','tests/unit/**/*-wasm.test.mjs'],requires:['core'],excludeTests:[resource]},
+   {tests:[resource],requires:['core-assets']}]};
+ const repository=loadRepository(root,{catalog,libraryFiles:{}});
+ assert.deepEqual([...repository.unitRequirements.get(resource)],['core-assets']);
+ assert.deepEqual([...repository.unitRequirements.get(other)],['core']);
+ for(const excluded of [null,'wrong',[3],['tests/unit/document/missing.test.mjs'],['tests/unit/**/core-*.test.mjs']]) {
+  const invalid=structuredClone(catalog);invalid.unitPrerequisites[0].excludeTests=excluded;
+  assert.throws(()=>loadRepository(root,{catalog:invalid,libraryFiles:{}}),/Invalid unit prerequisite exclusion/);
+ }
 });

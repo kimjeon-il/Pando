@@ -446,7 +446,7 @@ void applyGeometryPatch(ProjectDocument& d,const TerritorialMutationPlan& plan,c
         if(sameGeometry(*d.geometries.get(staticGeometryBinding(d,territorialRef(unit->id)).geometryRef),replacement.geometry))continue;
         auto& binding=staticGeometryBinding(d,territorialRef(unit->id)); GeometryRef next=binding.geometryRef;
         do {require(next.version<std::numeric_limits<std::uint32_t>::max(),CommandError::RevisionOverflow,"geometry version overflow");++next.version;}while(d.geometries.get(next));
-        d.geometries.insert(next,replacement.geometry); binding.geometryRef=next;
+        d.geometries.insertCanonical(next,replacement.geometry); binding.geometryRef=next;
     }
     for(const auto& ref:patch.removedGeometryOwners) {
         d.presentation.objectStyles.erase(ref);
@@ -540,7 +540,7 @@ void applyTerritorial(ProjectDocument& d,const ApplyTerritorialMutation& action)
                 for(const auto& label:d.labels)require(!label.territory||!(*label.territory==removed),CommandError::ValidationFailed,"DANGLING_REF: label territory");
                 require(!d.presentation.webPresentation.labelSettings.count(removed),CommandError::ValidationFailed,"DANGLING_REF: territorial label settings");
             }
-            patch();GeometryRef geometry{"geometry-"+in.createdId,1};unsigned suffix=1;while(d.geometries.get(geometry))geometry={"geometry-"+in.createdId+"-"+std::to_string(suffix++),1};d.geometries.insert(geometry,createdGeometry);
+            patch();GeometryRef geometry{"geometry-"+in.createdId,1};unsigned suffix=1;while(d.geometries.get(geometry))geometry={"geometry-"+in.createdId+"-"+std::to_string(suffix++),1};d.geometries.insertCanonical(geometry,createdGeometry);
             TerritorialUnit createdUnit;createdUnit.id=in.createdId;createdUnit.name=trimWebText(in.createdName);createdUnit.nameExplicit=true;createdUnit.kind=sourceKind;d.units.push_back(std::move(createdUnit));
             addStaticTerritorialRecords(d,in.createdId,geometry,parent.parentId,parent.parentId.empty()?"explicit":"partition");const auto createdRef=territorialRef(in.createdId);
             d.presentation.objectStyles.emplace(createdRef,ObjectStyle{0,1,false});
@@ -1440,7 +1440,7 @@ PrepareResult CommandProcessor::prepareRequest(const ProjectSnapshot& project,co
             candidate.geometryProvenance=project.document().geometryProvenance;
             candidate.presentation=project.document().presentation;
             for(const auto& [ref,shape]:afterView.geometries.versions())
-                if(!candidate.geometries.get(ref))candidate.geometries.insert(ref,*shape);
+                if(!candidate.geometries.get(ref))candidate.geometries.insertCanonical(ref,*shape);
             const auto findUnit=[](const ProjectDocument& d,const std::string& id) {
                 return std::find_if(d.units.begin(),d.units.end(),[&](const auto& unit){return unit.id==id;});
             };

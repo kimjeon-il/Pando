@@ -16,12 +16,14 @@ struct TerritorialRingIssue {
     std::optional<std::size_t> coordinateIndex, vertexIndex, segmentIndex;
 };
 std::vector<TerritorialRingIssue> validateTerritorialRing(const Ring& ring);
+std::vector<TerritorialRingIssue> validateClippedTerritorialRing(const Ring& ring);
 // Sum each polygon's nonnegative shell-minus-holes area without closing rings.
 double territorialValidationArea(const MultiPolygon& polygons) noexcept;
 enum class TerritorialAreaUse { Overlap, Gap, Verification, Containment };
 bool territorialAreaDecision(double area,TerritorialAreaUse use) noexcept;
 std::vector<std::size_t> territorialSampleIndices(std::size_t length,std::size_t maximum);
 bool validateGisGeometry(const MultiPolygon& polygons);
+bool validateClippedGisGeometry(const MultiPolygon& polygons);
 double gisValidationArea(const MultiPolygon& polygons) noexcept;
 using GisComponentBounds = std::array<double,4>;
 struct GisOverlapCandidate {

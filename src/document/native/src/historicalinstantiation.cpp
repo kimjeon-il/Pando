@@ -209,7 +209,7 @@ void applyHistoricalInstantiation(ProjectDocument& document,const HistoricalInst
             if(ref.version==std::numeric_limits<std::uint32_t>::max())throw std::invalid_argument("INVALID_LIBRARY: geometry version overflow");
             ++ref.version;
         }while(document.geometries.get(ref));
-        document.geometries.insert(ref,patch.geometry);binding.geometryRef=ref;
+        document.geometries.insertCanonical(ref,patch.geometry);binding.geometryRef=ref;
     }
     for(const auto& entry:plan.countryNameUpdates) {
         const auto& id=entry.first;const auto& name=entry.second;
