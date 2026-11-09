@@ -7,11 +7,14 @@
 1. `map-visual-frame.js`: 하나의 카메라·DPR·투영 스냅샷. UI/Worker/GPU는 해당 프레임을 소비한다.
 2. `map-render-coordinator.js`: 무효화 마스크와 프레임 순서의 단일 조정자. `rendering-domain.js`는 화면 계층별 의도만 전달한다.
 3. `gpu-map-renderer.js`: GPU Device와 WebGL Context의 유일한 소유자. 폴리곤/스트로크/선택 패스는 공유 Device를 빌려 사용한다.
+   날짜·프로젝트별 게시 승인과 게시 완료 대기자는 `map-presentation-session.js`에서 관리한다. GPU별 메시·지형 준비 판정과 실제 GL 제출은 이 렌더러에 유지한다.
 4. `render-scene.js` / `gpu-scene.js`: 읽기 전용 형상 패킷과 도메인별 변경 판정. 실측 카메라 이동만으로 삼각분할 또는 형상 해시를 다시 계산하지 않는다.
 5. `gpu-upload-scheduler.js`: GPU 업로드의 프레임별 예산을 최종 집행한다. 준비 완료만으로 그리기·게시 성공을 인정하지 않는다.
 6. `gpu-context-recovery.js`: Context Loss, 취소, 준비, 커밋, Canvas 복구 결과에 대한 세대별 승인과 실패 처리.
 7. `gpu-canvas-worker.js` / `canvas-render-worker.js`: 별도의 상태 유지 렌더러이지만 새로운 문서 정본은 소유하지 않는다. 최신 프로젝트/뷰/스타일 리비전이 실제 그려진 bitmap에 부착된다.
+   `canvas-visual-frame-queue.js`는 렌더링 도메인이 실제 bitmap 승인까지 보류할 시각 프레임만 소유한다. Worker의 in-flight 전송 요청 큐와 합치지 않는다.
 8. `gpu-terrain-preparation.js`, Canvas DEM, `gpu-hydro-preparation.js`: 지형·수계 자료, 타일/pack 캐시와 가시 영역 준비 소유자. 선택적 DEM 준비는 첫 국가 지도 게시의 선행 조건이 아니다.
+   `workers/terrain-tile-selection-core.js`는 공유 LOD 선택과 per-backend 가시 타일 캐시 팩터리를 제공한다. 프레임과 자료의 수명은 각 렌더러가 독립적으로 관리한다.
 
 ## 책임 분리 기준
 
