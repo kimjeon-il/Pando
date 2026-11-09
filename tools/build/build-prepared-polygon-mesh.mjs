@@ -20,6 +20,8 @@ import {resolvePhysicalWaterObjects,composePhysicalWaterGeometry} from "../../sr
 import {applyPhysicalLandPatch,regionalLandLayout} from '../../src/data/physical-land-patch.js';
 import {applyPreparedMeshDelta,preparedMeshDeltaLayout} from '../../src/data/prepared-mesh-delta.js';
 import {builtinSubunitId} from "../../src/document/builtin-subunits.js";
+import {decodeTerritorialSource} from '../data/territorial-source-codec.mjs';
+import {territorialSourceLayout} from '../../src/data/territorial-source-format.js';
 import {loadBuiltinDisplayPolicy} from "../gis/builtin-display-policy.mjs";
 import {timelineObjectKey} from "../../src/document/timeline-records.js";
 
@@ -42,9 +44,17 @@ function collect(value) {
   }
   Object.values(value).forEach(collect);
 }
-function source(file) {
+function source(file,entry=null) {
   if (inputHashes[file]) return;
-  inputHashes[file] = sha256(readFileSync(resolve(root, file))); collect(readJson(file));
+  inputHashes[file] = sha256(readFileSync(resolve(root,file)));
+  const payload=readJson(file);
+  if(entry?.storageLayout===territorialSourceLayout){
+    collect(decodeTerritorialSource(payload,relative=>{
+      const target='assets/data/territorial-entities/source/'+relative;
+      const bytes=readFileSync(resolve(root,target));inputHashes[target]=sha256(bytes);
+      return bytes;
+    }));
+  }else collect(payload);
 }
 const physicalInputs=new Map();
 function readPhysicalAsset(spec){
@@ -121,7 +131,7 @@ if(!selectedIds){
  for(const context of readJson(physicalManifestPath).waterObjects?.geometries||[]){
   collect(readPhysicalLand(context.land));collect(readPhysicalAsset(context.asset));
  }
- for(const entity of sourceIndex.entities)source('assets/data/territorial-entities/generated/v2/'+entity.file);
+ for(const entity of sourceIndex.entities)source('assets/data/territorial-entities/generated/v2/'+entity.file,entity);
 }
 const months=new Set(countryMonths||[]);
 if(!selectedIds)for(const country of countries)for(const row of [...country.timelineRecords.geometryBindings,...country.timelineRecords.parentRelations])

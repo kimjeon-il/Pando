@@ -13,6 +13,7 @@ import {historicalWorldCases} from '../../fixtures/historical-world-cases.mjs';
 import {withExplicitView} from '../../helpers/builtin-world.mjs';
 import {readTerritorialSource} from '../../../tools/data/territorial-entity-sources.mjs';
 import {encodeTerritorialSource} from '../../../tools/data/territorial-source-codec.mjs';
+import {territorialSourceLayout} from '../../../src/data/territorial-source-format.js';
 import {normalizeTerritorialLibraryEntity} from '../../../tools/gis/territorial-library.js';
 
 const fixture=()=>withExplicitView(historicalWorldCases());
@@ -108,6 +109,26 @@ function pairedSourceFixture(t){
 
 test('indexed source read preserves valid stored gzip identity without recompression',t=>{
  const f=pairedSourceFixture(t);assert.deepEqual(f.load(),f.entity);assert.deepEqual(fs.readFileSync(f.chunkFile),f.stored);
+});
+
+test('split indexed metadata preserves geometry identity without embedding coordinates',t=>{
+ const f=pairedSourceFixture(t),sha=bytes=>createHash('sha256').update(bytes).digest('hex');
+ const {descriptor}=encodeTerritorialSource(f.entity),geometryRef=descriptor.geometryVersions[0].geometryResource;
+ const decoded=Buffer.from(JSON.stringify(descriptor)+'\\n'),stored=gzipSync(decoded);
+ f.sourceIndex.entities[0]=territorialIndexEntry(f.entity,{sha256:sha(stored),compressedBytes:stored.length,
+  decodedBytes:decoded.length,storageLayout:territorialSourceLayout});
+ fs.writeFileSync(f.chunkFile,stored);
+ assert.deepEqual(f.load(),f.entity);
+ assert.equal(Object.hasOwn(JSON.parse(decoded).geometryVersions[0],'geometry'),false);
+ f.raw.names.en='Changed metadata';f.writeSource();
+ assert.throws(f.load,/Territorial source index mismatch: state:test/);
+ const updated=normalizeTerritorialLibraryEntity(f.raw),next=encodeTerritorialSource(updated).descriptor;
+ assert.equal(next.geometryVersions[0].geometryResource.sha256,geometryRef.sha256,'metadata edit does not replace immutable geometry');
+ const changed=Buffer.from(JSON.stringify(next)+'\\n'),compressed=gzipSync(changed);
+ f.sourceIndex.entities[0]=territorialIndexEntry(updated,{sha256:sha(compressed),compressedBytes:compressed.length,
+  decodedBytes:changed.length,storageLayout:territorialSourceLayout});
+ fs.writeFileSync(f.chunkFile,compressed);
+ assert.deepEqual(f.load(),updated);
 });
 
 test('indexed source read requires exactly one row for the consumed entity only',t=>{

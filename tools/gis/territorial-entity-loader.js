@@ -1,5 +1,6 @@
 // Canonical lazy verified historical-territory catalog loader.
 import {createStoredAssetLoader} from "../../src/data/stored-asset-loader.js";
+import {territorialSourceLayout,validateTerritorialSourceGeometry} from "../../src/data/territorial-source-format.js";
 import {normalizeTerritorialLibraryEntity,normalizeTerritorialLibraryIndex,selectGeometryVersion,assertTerritorialIndexEntity} from "./territorial-library.js";
 
 export function createTerritorialEntityLoader({indexUrl,indexSpec,dataRevision,fetchFn=globalThis.fetch,cacheStorage=globalThis.caches}) {
@@ -16,12 +17,31 @@ export function createTerritorialEntityLoader({indexUrl,indexSpec,dataRevision,f
     }).catch(error=>{indexPromise=null;throw error;});
     return indexPromise;
   }
+  async function hydrateSplitDescriptor(descriptor,entityId){
+    if(descriptor?.storageLayout!==territorialSourceLayout||descriptor.entityId!==entityId)
+      throw Error('Indexed territorial descriptor identity mismatch: '+entityId);
+    const versions=await Promise.all(descriptor.geometryVersions.map(async version=>{
+      const resource=validateTerritorialSourceGeometry(version,entityId);
+      const spec={url:'../../source/'+resource.file,sha256:resource.sha256,
+        encoding:'identity',compressedBytes:resource.bytes,decodedBytes:resource.bytes};
+      const {value:geometry}=await assets.loadAsset(spec,'catalog',resource.sha256,'Territorial geometry',parse);
+      if(geometry?.type!==resource.type)throw Error('Indexed territorial geometry type mismatch');
+      return Object.fromEntries(Object.entries(version).map(([key,value])=>key==='geometryResource'
+        ?['geometry',geometry]:[key,value]));
+    }));
+    const {storageLayout,...rest}=descriptor;
+    return {...rest,geometryVersions:versions};
+  }
   async function loadEntity(entityId){
     if(entities.has(entityId))return entities.get(entityId);
     if(!pending.has(entityId))pending.set(entityId,(async()=>{
       const catalog=await loadIndex();const entry=catalog.entities.find(e=>e.entityId===entityId);
       if(!entry)throw new Error(`Unknown territorial entity: ${entityId}`);
-      const {value}=await assets.loadAsset({...entry,url:entry.file,encoding:'gzip'},'catalog',entityId,entityId,bytes=>normalizeTerritorialLibraryEntity(parse(bytes)));
+      const {value}=await assets.loadAsset({...entry,url:entry.file,encoding:'gzip'},'catalog',entityId,entityId,async bytes=>{
+        const stored=parse(bytes);
+        return normalizeTerritorialLibraryEntity(entry.storageLayout===territorialSourceLayout
+          ?await hydrateSplitDescriptor(stored,entityId):stored);
+      });
       assertTerritorialIndexEntity(entry,value);
       entities.set(entityId,value);return value;
     })().finally(()=>pending.delete(entityId)));

@@ -1,6 +1,8 @@
+import {territorialSourceLayout} from '../../src/data/territorial-source-format.js';
 // Preserved GIS data/core calculation contract after retired editor source removal.
 // One catalog projection for both runtime source edits and publication tooling.
-export function territorialIndexEntry(entity,{sha256,compressedBytes,decodedBytes}) {
+export function territorialIndexEntry(entity,{sha256,compressedBytes,decodedBytes,storageLayout=null}) {
+ if(storageLayout!==null&&storageLayout!==territorialSourceLayout)throw Error('Unsupported territorial chunk layout');
  const bbox=[Infinity,Infinity,-Infinity,-Infinity];
  function visit(value){
   if(typeof value[0]==='number'){
@@ -13,7 +15,8 @@ export function territorialIndexEntry(entity,{sha256,compressedBytes,decodedByte
  return {...entity,geometryVersions:entity.geometryVersions.map(({geometry,...version})=>version),
   sourceInfo:{title:entity.sourceInfo?.title||'',license:entity.sourceInfo?.license||'',sourceId:entity.sourceInfo?.sourceId||''},
   file:`${entity.entityId.replace(':','-')}.json.gz`,validFrom:entity.lifetime.validFrom,validTo:entity.lifetime.validTo,
-  compressedBytes,decodedBytes,sha256,bbox,geometryVersionCount:entity.geometryVersions.length};
+  compressedBytes,decodedBytes,sha256,bbox,geometryVersionCount:entity.geometryVersions.length,
+  ...(storageLayout?{storageLayout}:{})};
 }
 
 export async function encodeTerritorialIndexEntry(entity) {

@@ -80,7 +80,7 @@ function validateMembership(lineages,byId){
     }
   }
 }
-function assertIndexedSource(entity,{sourceIndex=null,chunkRoot=path.join(territorialDataRoot,'generated/v2')}={}){
+function assertIndexedSource(entity,{sourceIndex=null,chunkRoot=path.join(territorialDataRoot,'generated/v2'),sourceRoot=territorialSourceRoot}={}){
   if(!sourceIndex)return;
   const entries=sourceIndex.entities.filter(row=>row.entityId===entity.entityId);
   if(!entries.length)throw new Error(`Missing indexed territorial source: ${entity.entityId}`);
@@ -96,13 +96,15 @@ function assertIndexedSource(entity,{sourceIndex=null,chunkRoot=path.join(territ
   if(createHash('sha256').update(stored).digest('hex')!==entry.sha256)throw new Error(`Territorial source chunk hash mismatch: ${entity.entityId}`);
   const decoded=gunzipSync(stored);
   if(stored.length!==entry.compressedBytes||decoded.length!==entry.decodedBytes
-    ||!isDeepStrictEqual(JSON.parse(decoded),entity))throw new Error(`Territorial source/chunk mismatch: ${entity.entityId}`);
+    ||!isDeepStrictEqual(entry.storageLayout===territorialSourceLayout
+     ?normalizeTerritorialLibraryEntity(decodeTerritorialSource(JSON.parse(decoded),file=>fs.readFileSync(path.join(sourceRoot,file))))
+     :JSON.parse(decoded),entity))throw new Error(`Territorial source/chunk mismatch: ${entity.entityId}`);
 }
 export function readTerritorialSource(entityId,root=territorialSourceRoot,options={}){
   const descriptor=read(path.join(root,'countries',entityFileName(entityId)));
   const entity=normalizeTerritorialLibraryEntity(decodeTerritorialSource(descriptor,file=>fs.readFileSync(path.join(root,file))));
   if(entity.entityId!==entityId)throw new Error(`Country filename mismatch: ${entityId}`);
-  assertIndexedSource(entity,options);
+  assertIndexedSource(entity,{...options,sourceRoot:root});
   return entity;
 }
 export function readTerritorialSources(root=territorialSourceRoot,options={}){
