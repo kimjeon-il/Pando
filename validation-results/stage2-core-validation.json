@@ -1,11 +1,11 @@
 {
   "schema": "pando-stage2-core-validation-v1",
-  "output": "test did not execute",
-  "dataOutput": "warning: core.fsyncObjectFiles is deprecated; use core.fsync instead\nCloning into '/home/runner/work/Pando/Pando/.library-data/repository'...\nwarning: core.fsyncObjectFiles is deprecated; use core.fsync instead\nwarning: core.fsyncObjectFiles is deprecated; use core.fsync instead\nwarning: core.fsyncObjectFiles is deprecated; use core.fsync instead\nfile:///home/runner/work/Pando/Pando/tools/data/library-runtime.mjs:529\n      if (!lstatSync(output).isSymbolicLink()) throw Error(`Existing data directory must be preserved before mounting: ${output}`);\n                                                     ^\n\nError: Existing data directory must be preserved before mounting: /home/runner/work/Pando/Pando/reports\n    at prepareOwnedLibraryData (file:///home/runner/work/Pando/Pando/tools/data/library-runtime.mjs:529:54)\n    at file:///home/runner/work/Pando/Pando/tools/data/library-runtime.mjs:82:38\n    at withCheckoutLock (file:///home/runner/work/Pando/Pando/tools/data/library-context.mjs:202:54)\n    at withLibraryLock (file:///home/runner/work/Pando/Pando/tools/data/library-context.mjs:197:81)\n    at prepareLibraryData (file:///home/runner/work/Pando/Pando/tools/data/library-runtime.mjs:82:10)\n    at file:///home/runner/work/Pando/Pando/tools/data/library-data.mjs:71:20\n    at ModuleJob.run (node:internal/modules/esm/module_job:561:25)\n    at async node:internal/modules/esm/loader:647:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)\n\nNode.js v24.22.2\n",
-  "sourceCommit": "c49a7dc748544a196ec77ef3bcec9d9696e18f02",
+  "output": "✔ complete project history loads only the selected geometry and reuses verified bytes across dates (150.12132ms)\n✔ a fresh loader reuses the verified catalog and selected geometry bytes from Cache Storage (128.180626ms)\n✔ a retired packed offset is rejected before downloading countries (1520.661506ms)\n✔ country integrity failure rejects the whole query and the same loader can retry (1591.872303ms)\n✔ latest builtin reader admits its baseline after a superseded replacement finishes rollback (390.999668ms)\n✔ one Core project retains identity and historical records across month changes and gaps (286.061427ms)\n✔ selected content project verifies the canonical country catalog before any fetch (45.694547ms)\n✔ the default map and imported file use identical accepted C++ territorial lookup without leaking project identity (307.304627ms)\n✔ actual C++ catalogs keep independent live place and hydro identities across source admission (207.735808ms)\nℹ tests 9\nℹ suites 0\nℹ pass 9\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 5264.333324\n",
+  "dataOutput": "warning: core.fsyncObjectFiles is deprecated; use core.fsync instead\nCloning into '/home/runner/work/Pando/Pando/.library-data/repository'...\nwarning: core.fsyncObjectFiles is deprecated; use core.fsync instead\nwarning: core.fsyncObjectFiles is deprecated; use core.fsync instead\nwarning: core.fsyncObjectFiles is deprecated; use core.fsync instead\nLibrary prepared (gis): kimjeon-il/PandoLab-library-data@a53f9b319b23678e82c4b9ffdb9f824a040ca5f3\n",
+  "sourceCommit": "dc2ef94cd4bb516c2266265d777a22ac436e727b",
   "install": "success",
-  "library": "failure",
-  "prerequisite": "skipped",
-  "regression": "skipped",
-  "verified": false
+  "library": "success",
+  "prerequisite": "success",
+  "regression": "success",
+  "verified": true
 }
