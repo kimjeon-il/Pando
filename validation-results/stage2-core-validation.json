@@ -1,0 +1,11 @@
+{
+  "schema": "pando-stage2-core-validation-v1",
+  "output": "test did not execute",
+  "dataOutput": "warning: core.fsyncObjectFiles is deprecated; use core.fsync instead\nCloning into '/home/runner/work/Pando/Pando/.library-data/repository'...\nwarning: core.fsyncObjectFiles is deprecated; use core.fsync instead\nwarning: core.fsyncObjectFiles is deprecated; use core.fsync instead\nwarning: core.fsyncObjectFiles is deprecated; use core.fsync instead\nfile:///home/runner/work/Pando/Pando/tools/data/library-runtime.mjs:529\n      if (!lstatSync(output).isSymbolicLink()) throw Error(`Existing data directory must be preserved before mounting: ${output}`);\n                                                     ^\n\nError: Existing data directory must be preserved before mounting: /home/runner/work/Pando/Pando/reports\n    at prepareOwnedLibraryData (file:///home/runner/work/Pando/Pando/tools/data/library-runtime.mjs:529:54)\n    at file:///home/runner/work/Pando/Pando/tools/data/library-runtime.mjs:82:38\n    at withCheckoutLock (file:///home/runner/work/Pando/Pando/tools/data/library-context.mjs:202:54)\n    at withLibraryLock (file:///home/runner/work/Pando/Pando/tools/data/library-context.mjs:197:81)\n    at prepareLibraryData (file:///home/runner/work/Pando/Pando/tools/data/library-runtime.mjs:82:10)\n    at file:///home/runner/work/Pando/Pando/tools/data/library-data.mjs:71:20\n    at ModuleJob.run (node:internal/modules/esm/module_job:561:25)\n    at async node:internal/modules/esm/loader:647:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)\n\nNode.js v24.22.2\n",
+  "sourceCommit": "c49a7dc748544a196ec77ef3bcec9d9696e18f02",
+  "install": "success",
+  "library": "failure",
+  "prerequisite": "skipped",
+  "regression": "skipped",
+  "verified": false
+}
