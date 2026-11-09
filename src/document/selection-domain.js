@@ -34,7 +34,7 @@ export function createSelectionDomain({
   };
   function acceptCoreSnapshot(native, { reason = 'selection-change', projectGeneration = generation(),
     projectScope = activeScope(), reset = false } = {}) {
-    if (disposed||projectScope!==activeScope()||projectGeneration!==generation()) return current;
+    if (disposed||projectScope!==activeScope()||(!reset&&projectGeneration!==generation())) return current;
     if (native === lastNative && projectGeneration === current.projectGeneration
       && projectScope === current.projectScope) return current;
     if (!Number.isSafeInteger(native?.selectionRevision) || native.selectionRevision < 0
@@ -120,9 +120,11 @@ export function createSelectionDomain({
     contexts.set(request, context);
     // Preserve intent order in the Core queue. Its epoch is resolved when the
     // request reaches Core, after any earlier document commands complete.
-    return commandOwner.selectionApply(request, { isCurrent: () => !disposed && generation() === projectGeneration
+    return commandOwner.selectionApply(request, { isCurrent: () => !disposed
+      && (context.reset||generation() === projectGeneration)
       && activeScope()===projectScope && isCurrent() }).then(ack => {
-      if (disposed||activeScope()!==projectScope||generation()!==projectGeneration) return current;
+      if (disposed||activeScope()!==projectScope
+        ||(!context.reset&&generation()!==projectGeneration)) return current;
       if (typeof ack?.countNoOp !== 'boolean' || !ack.selection) invalid('A complete C++ selection acknowledgement is required.');
       const native = ack.selection;
       if (!context.observed) { acceptCoreSnapshot(native, context); context.changed = lastChanged; }
