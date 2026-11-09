@@ -35,7 +35,7 @@ export function recordBuiltinWorldInputs(index,sourceRevisions,view,policy){
  index.inputHashes={entities:sha(JSON.stringify(ordered)),sourceRevisions:ordered,view:sha(JSON.stringify(view)),policy:sha(JSON.stringify(policy))};
  return index;
 }
-export function buildBuiltinWorldPublication({input=null,policyFile=new URL("../../assets/data/historical-world/policy.json",import.meta.url)}={}){
+export function buildBuiltinWorldPublication({input=null,previousIndex=null,policyFile=new URL("../../assets/data/historical-world/policy.json",import.meta.url)}={}){
  const policy=input?.policy||JSON.parse(fs.readFileSync(policyFile));
  // Explicit entities/readSource are caller-verified inputs (for example, an
  // already verified scoped authoring batch). Default readers verify stored chunks.
@@ -43,10 +43,18 @@ export function buildBuiltinWorldPublication({input=null,policyFile=new URL("../
  const view=input?.view||JSON.parse(fs.readFileSync(path.join(territorialSourceRoot,'views/world.json')));
  const currentWorld=input?.currentWorld;
  const {index,countries,coverageReport}=compileBuiltinWorldCatalog({entities,view,currentWorld,policy,displayPolicy:input?.displayPolicy||loadBuiltinDisplayPolicy()});
+ // In the full compiler, previously verified geometry resources are a
+ // content-addressed cache. Name/flag/property changes may replace the small
+ // country descriptor but cannot re-gzip the unchanged source coordinates.
+ if(previousIndex?.geometryAssets?.length){
+   const known=new Map(previousIndex.geometryAssets.map(asset=>[JSON.stringify([asset.id,asset.version]),asset]));
+   for(const asset of index.geometryAssets||[])known.set(JSON.stringify([asset.id,asset.version]),asset);
+   index.geometryAssets=[...known.values()];
+ }
  const files=encodeBuiltinCountries(index,countries,new Map());
  recordBuiltinWorldInputs(index,input?.sourceIndex?Object.fromEntries(input.sourceIndex.entities.filter(row=>!['river','lake'].includes(row.entityType)).map(row=>[row.entityId,row.sha256])):
   Object.fromEntries(entities.map(row=>[row.entityId,sha(JSON.stringify(row))])),view,policy);
- finalizeBuiltinWorldFiles(index,files);
+ finalizeBuiltinWorldFiles(index,files,{previousIndex});
  files.set('coverage-report.json',Buffer.from(JSON.stringify(coverageReport)+'\n'));
  return files;
 }
@@ -315,7 +323,7 @@ if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.ur
    onScope:planned=>{console.log(`Scoped generation: ${planned.requested} requested; ${planned.sourceIds.length} connected source inputs in ${planned.components.length} components; other source and country payload files are not read.`);}});
   if(process.argv.includes('--plan')){console.log(JSON.stringify(files,null,2));process.exit(0);}
   }
- }else files=buildBuiltinWorldPublication({input:{sourceIndex,entities:readTerritorialSources(sourceRoot,{sourceIndex,chunkRoot:path.dirname(sourceIndexAbsolute)}),
+ }else files=buildBuiltinWorldPublication({previousIndex:index,input:{sourceIndex,entities:readTerritorialSources(sourceRoot,{sourceIndex,chunkRoot:path.dirname(sourceIndexAbsolute)}),
    view:selectedView,policy:selectedPolicy,displayPolicy:selectedDisplayPolicy}});
  writeBuiltinWorldPublication(files,output,{check:process.argv.includes('--check'),retirementInputs});
  console.log(`Builtin world: ${JSON.parse(files.get('index.json')).entities.length} country references; ${[...files.keys()].filter(file=>file.startsWith('countries/')||file.startsWith('country-parts/')).length} bounded files emitted; ${[...files.values()].reduce((n,b)=>n+b.length,0)} output bytes; no aggregate transport`);
