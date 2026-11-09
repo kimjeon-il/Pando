@@ -1,10 +1,6 @@
 name: P1 Hydro original source availability and EU mirrored source verification
+# Full source reconstruction is an explicit reproducibility audit, not routine CI.
 on:
-  push:
-    branches: [work/gis]
-    paths:
-      - '.github/workflows/gis-p1-hydro-recovery.yml'
-      - 'tools/gis/verify-p1-hydro-europe-mirror.mjs'
   workflow_dispatch:
 permissions:
   contents: read
