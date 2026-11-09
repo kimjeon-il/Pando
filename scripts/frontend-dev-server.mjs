@@ -9,6 +9,7 @@ import {frontendRoots,frontendTemplates,frontendFragmentRoot} from './lib/fronte
 import {prepareLibraryData} from "../tools/data/library-runtime.mjs";
 import {libraryMaterializedRoot,libraryRuntimeLeasePath} from "../tools/data/library-context.mjs";
 import {prepareLibraryWhenAvailable} from './lib/library-preparation-wait.mjs';
+import {mapProjectManifestSourcePath} from '../src/data/map-project-manifest.js';
 
 const root=fileURLToPath(new URL('../',import.meta.url));
 export const developmentOrigin='http://127.0.0.1:4173';
@@ -29,7 +30,7 @@ export async function startDevelopmentServer({repository=root,product='viewer',p
  if(profile!=='map-data')throw Error('A development frontend cannot use verification fixtures');
  let preparedPin=null,prepared,current,revision=0,error=null,pending=null,dirty=false,timer;
  const watchers=[],lease=libraryRuntimeLeasePath(repository,product);
- const prepare=async()=>{const next=readFileSync(resolve(repository,'config/library-data.json'),'utf8');if(next!==preparedPin){prepared=await prepareLibraryWhenAvailable(()=>prepareLibrary({root:repository,projectId}));preparedPin=next;}};
+ const prepare=async()=>{const projectPath=resolve(repository,mapProjectManifestSourcePath(projectId));const next=readFileSync(resolve(repository,'config/library-data.json'),'utf8')+'\n'+(existsSync(projectPath)?readFileSync(projectPath,'utf8'):'');if(next!==preparedPin){prepared=await prepareLibraryWhenAvailable(()=>prepareLibrary({root:repository,projectId}));preparedPin=next;}};
  await prepare();current=await buildAssets({repository,product,prepared,profile,projectId});
  const reloadSource=Buffer.from(`let revision;async function check(){try{const state=await fetch('/__shell/health',{cache:'no-store'}).then(r=>r.json());if(revision!==undefined&&revision!==state.revision){location.reload();return;}revision=state.revision;}catch{}setTimeout(check,1000);}check();`);
  const decorate=()=>{const html=current.assets.get('index.html').bytes;current.assets.set('index.html',{bytes:Buffer.concat([html,Buffer.from('<script type="module" src="/__frontend/reload.js"></script>')])});current.assets.set('__frontend/reload.js',{bytes:reloadSource});};
