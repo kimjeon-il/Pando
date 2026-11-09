@@ -33,6 +33,10 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Prepare pinned external GIS library assets
+        uses: ./.github/actions/library-data
+      - name: Verify actual project-selected Viewer build with pinned GIS metadata
+        run: node scripts/generate-build-metadata.mjs --check
       - name: Lint changed contract and Viewer resource owners
         run: >-
           pnpm exec eslint
