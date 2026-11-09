@@ -41,7 +41,7 @@ export async function pagesRepositoryFixture(t) {
   for(const path of new Set([...UI_VIEWER_SOURCES,'assets/css/app.css','assets/css/viewer.css']))put(root,path.replace('assets/css/','src/ui/css/'),'.fixture { color:red; }');
   put(root, '.nojekyll', '');
   put(root, 'assets/data/terrain-preview/v0.13.3-p2/manifest.json', '{"tiles":{}}');
-  put(root, 'assets/data/hydro/v0.13.4/manifest.json', '{"container":{"url":"hydro.bin"},"shards":[]}');
+  put(root, 'assets/data/hydro/v0.13.4/manifest.json', '{"schema":"pandolab-water-shards-v5","version":"0.13.4","container":{"url":"hydro.bin"},"shards":[]}');
   put(root, 'assets/data/hydro/v0.13.4/hydro.bin', 'fixture packfile');
   put(root, 'reports/a.md', 'report');
   put(root, 'native/CMakeLists.txt', 'project(native)');
