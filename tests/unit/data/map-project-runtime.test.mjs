@@ -60,3 +60,28 @@ test('published catalogs use no old Viewer-wide resource spec fields',()=>{
  assert.ok(!Object.hasOwn(f.meta,'worldBundle'));
  assert.equal(mapProjectCatalogSpec(f.meta,'physicalLand').decodedBytes,f.bytes.length);
 });
+
+test('published project manifest is authenticated before any catalog is selected',async()=>{
+ const f=fixture(),manifestBytes=encoded(f.meta.mapProject);
+ f.meta.mapProjectManifest={url:'assets/data/projects/default-world/manifest.json',
+  encoding:'identity',compressedBytes:manifestBytes.length,decodedBytes:manifestBytes.length,
+  sha256:sha(manifestBytes)};
+ const calls=[];
+ const runtime=createMapProjectRuntime({meta:f.meta,
+  assetBaseUrl:new URL('https://example.test/assets/js/'),cacheStorage:null,
+  fetchFn:async url=>{
+   const path=new URL(url).pathname;calls.push(path);
+   return new Response(path.endsWith('/projects/default-world/manifest.json')
+     ?manifestBytes:f.bytes,{status:200});
+  }});
+ await runtime.hydratePhysicalMetadata();
+ assert.deepEqual(calls,['/assets/data/projects/default-world/manifest.json',
+  '/assets/data/physical-land/v1/manifest.json']);
+ assert.equal(runtime.project.projectId,'default-world');
+ const corrupted=createMapProjectRuntime({meta:f.meta,
+  assetBaseUrl:new URL('https://example.test/assets/js/'),cacheStorage:null,
+  fetchFn:async url=>new Response(new URL(url).pathname.includes('/projects/')
+    ?Buffer.from(manifestBytes.toString().replace('default-world','altered-world')):f.bytes,
+    {status:200})});
+ await assert.rejects(corrupted.hydratePhysicalMetadata(),/무결성|hash|SHA|integrity/i);
+});
