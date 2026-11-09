@@ -82,7 +82,18 @@ export async function buildPreparedCountryScene({root=defaultRoot,month,write=tr
         writeFileSync(worldPath,JSON.stringify(world,null,2)+'\n');
       });
     }
-    return {spec,summary,packet:null};
+    let verifiedPacket=null;
+    return {spec,summary,get packet(){
+      // Existing callers can still request a decoded packet. A metadata-only
+      // CLI/catalog build never touches this optional large payload.
+      if(!verifiedPacket){
+        const stored=readFileSync(resolve(data,spec.url));
+        const bytes=gunzipSync(stored);
+        if(bytes.length!==spec.decodedBytes)throw new Error('Prepared scene decoded size mismatch');
+        verifiedPacket=decodePreparedCountryScene(asBuffer(bytes),identity);
+      }
+      return verifiedPacket;
+    }};
   }
   const baseline=decodeCountryMesh(readAsset(world.assets.canonicalMesh),sourceIds).mesh;
   const preparation=createCountryMeshPreparation({engine,loadPreparedPart:async (_key,feature)=>{
