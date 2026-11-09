@@ -56,6 +56,18 @@ export function createSpatialIndex() {
   function replaceSpatialDomain(domain, sourceParts, buildRecords) {
     const previous = mapObjectSpatialIndexSources.get(domain);
     if (previous && sameSourceParts(previous, sourceParts)) return false;
+    // Repository.list() can allocate a new array for each query. The accepted
+    // territorial geometry revision, not that array allocation, invalidates
+    // the spatial records. Property-only changes keep IDs/bounds unchanged.
+    if (previous && domain === 'territorial' && previous[1] === sourceParts[1]) {
+      mapObjectSpatialIndexSources.set(domain, sourceParts.slice());
+      return false;
+    }
+    if (previous && domain === 'distribution' && previous[0]?.length === 0
+      && sourceParts[0]?.length === 0) {
+      mapObjectSpatialIndexSources.set(domain, sourceParts.slice());
+      return false;
+    }
     mapObjectSpatialIndex.clearDomain(domain);
     for (const record of buildRecords()) mapObjectSpatialIndex.upsert(record);
     mapObjectSpatialIndexSources.set(domain, sourceParts.slice());
@@ -141,7 +153,10 @@ export function createSpatialIndex() {
         bounds: geometryBounds(feature.geometry),
       }] : [])) || changed;
     const distributionRows = dependencies.domains.renderingDomain?.getDistributionRenderRows?.() || [];
-    if (force || mapObjectSpatialIndexSources.get('distribution')?.[0] !== distributionRows) mapObjectDistributionRowCache.clear();
+    const oldDistribution = mapObjectSpatialIndexSources.get('distribution')?.[0];
+    if (force || (oldDistribution !== distributionRows
+      && !(oldDistribution?.length === 0 && distributionRows.length === 0)))
+      mapObjectDistributionRowCache.clear();
     changed = replaceSpatialDomain('distribution', [distributionRows], () => distributionRows.map(row => {
       mapObjectDistributionRowCache.set(String(row.id), row);
       return {
