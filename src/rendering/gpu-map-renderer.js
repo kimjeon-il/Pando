@@ -186,6 +186,29 @@ export function createGpuMapRenderer(deps) {
       canPresentVisualFrame, failTemporalPresentation, waitForTemporalPresentation,
       waitForMapPresentation, rejectMapPresentationWaiters,
     } = presentationSession;
+    function temporalFrameReady(resourcesDrawn, terrain = currentTerrainReadiness()) {
+      if (!temporalPending()) return true;
+      if (presentationSession.ticket.error || presentationSession.ticket.sourceAdmitted === false) return false;
+      if(presentationSession.ticket.kind==='view'&&(!presentationSession.ticket.countryContent
+        ||countryMeshDependencies?.content!==presentationSession.ticket.countryContent))return false;
+      if (!presentationSession.ticket.isCurrent() || presentationSession.ticket.generation !== projectGeneration
+        || presentationSession.ticket.context !== renderDeviceContextRevision) {
+        failTemporalPresentation(Object.assign(new Error('Temporal presentation superseded'), {name:'AbortError',cancelled:true}));
+        return false;
+      }
+      const physicalContext=getPhysicalContextState();
+      if (canonicalPromotionError || terrain.terrainFailed || physicalContext.error) {
+        failTemporalPresentation(physicalContext.error || new Error(canonicalPromotionError || '다음 시점 지형을 준비하지 못했습니다.'));
+        return false;
+      }
+      const terrainNeeded = state.physicalSettings.terrainVisible && (isWebGlRenderer() ? !!terrainPreparation : true);
+      const boundariesReady = !state.layerVisibility.objects || (!countryBoundaryTask&&!pendingCountrySharedBoundary
+        &&countrySharedBoundary?.sourceQuality === surfacePresentation.quality
+        && countrySharedBoundary.sourceProjectGeneration === projectGeneration);
+      return !!resourcesDrawn && canonicalMeshReady && boundariesReady && surfacePresentation.quality !== 'pending'
+        && physicalSceneMatchesContext(renderScene,physicalContext) && (!terrainNeeded || terrain.terrainReady);
+    }
+
     let projectGeneration = 0;
     let projectRenderBlocked = false;
     let builtinMeshBaseline = null;
