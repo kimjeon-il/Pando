@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {encodeBuiltinCountries,finalizeBuiltinWorldFiles} from '../../../tools/data/builtin-country-bytes.mjs';
+import {encodeBuiltinCountries} from '../../../tools/data/builtin-country-bytes.mjs';
 
 const geometry={type:'Polygon',coordinates:[[[0,0],[2,0],[2,2],[0,0]]]};
 const country=name=>({schemaVersion:2,entityId:'state:A',identity:{id:'state:A'},
