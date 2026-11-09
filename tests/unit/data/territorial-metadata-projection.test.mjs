@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {gzipSync,gunzipSync} from 'node:zlib';
-import {metadataOnlyTerritorialProjection} from '../../../tools/data/territorial-metadata-projection.mjs';
+import {metadataOnlyTerritorialProjection,selectTerritorialChunkSource} from '../../../tools/data/territorial-metadata-projection.mjs';
 import {selectTerritorialChunkBytes} from '../../../tools/data/territorial-chunk-compression.mjs';
 import {territorialIndexEntry} from '../../../tools/gis/territorial-index-entry.js';
 
@@ -44,4 +44,23 @@ test('changed resource identity refuses metadata-only path and requires ordinary
    file:'geometries/sha256-'+'f'.repeat(64)+'.json'}),old),null);
  assert.equal(metadataOnlyTerritorialProjection({...descriptor('New'),geometryVersions:[]},old),null);
  assert.equal(metadataOnlyTerritorialProjection(descriptor('New'),{...old,bbox:[NaN,0,1,1]}),null);
+});
+
+test('production chunk selector never decodes coordinates on metadata-only changes',()=>{
+ let reads=0;
+ const selected=selectTerritorialChunkSource(descriptor('New'),previous(),()=>{
+  reads++;throw Error('No geometry source can be read for a metadata-only edit');
+ });
+ assert.equal(reads,0);assert.equal(selected.readsGeometry,false);
+ assert.equal(selected.descriptor.names.ko,'New');
+ assert.deepEqual(selected.verifiedGeometryBounds,[1,2,3,4]);
+ const moved=descriptor('New',{...resource,sha256:'e'.repeat(64),
+   file:'geometries/sha256-'+'e'.repeat(64)+'.json'});
+ const rebuilt=selectTerritorialChunkSource(moved,previous(),()=>{
+  reads++;return {entity:{...moved,geometryVersions:[{versionId:'2026',
+   geometry:{type:'Polygon',coordinates:[[[0,0],[1,1],[0,0]]]}}]},
+   descriptor:moved};
+ });
+ assert.equal(reads,1);assert.equal(rebuilt.readsGeometry,true);
+ assert.equal(rebuilt.verifiedGeometryBounds,null);
 });

@@ -27,3 +27,17 @@ export function metadataOnlyTerritorialProjection(descriptor,previous){
  const {storageLayout,...model}=descriptor;
  return Object.freeze({entity:model,bbox:Object.freeze([...previous.bbox])});
 }
+
+/** The build plan's only gate into full coordinate materialization.
+ * Consumers can count readFull() calls to prove zero source-geometry reads
+ * for metadata-only changes. */
+export function selectTerritorialChunkSource(descriptor,previous,readFull){
+ const metadata=metadataOnlyTerritorialProjection(descriptor,previous);
+ if(metadata)return Object.freeze({descriptor,entity:metadata.entity,
+   verifiedGeometryBounds:metadata.bbox,readsGeometry:false});
+ if(typeof readFull!=='function')throw new TypeError('Changed geometry requires a source reader');
+ const rebuilt=readFull();
+ if(!rebuilt?.descriptor||!rebuilt.entity||!Array.isArray(rebuilt.entity.geometryVersions))
+   throw new TypeError('Full source reader must return a complete geometry owner');
+ return Object.freeze({...rebuilt,verifiedGeometryBounds:null,readsGeometry:true});
+}

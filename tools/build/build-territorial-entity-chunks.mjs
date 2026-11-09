@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
 import {selectTerritorialChunkBytes} from '../data/territorial-chunk-compression.mjs';
-import {metadataOnlyTerritorialProjection} from '../data/territorial-metadata-projection.mjs';
+import {selectTerritorialChunkSource} from '../data/territorial-metadata-projection.mjs';
 import {encodeTerritorialSource} from '../data/territorial-source-codec.mjs';
 import {territorialSourceLayout} from '../../src/data/territorial-source-format.js';
 import {readTerritorialSource,readTerritorialSourceDescriptors,readTerritorialLineages,entityFileName,territorialDataRoot,territorialSourceRoot} from '../data/territorial-entity-sources.mjs';
@@ -60,21 +60,18 @@ fs.mkdirSync(output,{recursive:true});
 const index={schemaVersion:2,lineages:previous?.lineages||readTerritorialLineages(),entities:entities.map(entity=>{
  // The intermediate catalog stores metadata only. Immutable coordinates are
  // referenced by verified content digest and never repacked for name edits.
- const prior=priorRows.get(entity.entityId);
- const metadata=metadataOnlyTerritorialProjection(entity,prior);
- // Only a new/changed coordinate resource must enter the full source decoder.
- // Existing, pinned geometry and its bbox remain byte-identical for a name,
- // date, flag, relation or other metadata edit.
- const compiled=metadata?null:readTerritorialSource(entity.entityId);
- const descriptor=metadata?entity:encodeTerritorialSource(compiled).descriptor;
- const bytes=Buffer.from(`${JSON.stringify(descriptor,null,2)}\n`);
+ const projection=selectTerritorialChunkSource(entity,priorRows.get(entity.entityId),()=>{
+  const full=readTerritorialSource(entity.entityId);
+  return {entity:full,descriptor:encodeTerritorialSource(full).descriptor};
+ });
+ const bytes=Buffer.from(`${JSON.stringify(projection.descriptor,null,2)}\n`);
  const file=`${entityFileName(entity.entityId)}.gz`;expectedFiles.add(file);
  const destination=path.join(output,file);
  const previous=fs.existsSync(destination)?fs.readFileSync(destination):null;
  const {stored,changed}=selectTerritorialChunkBytes(bytes,previous);
  if(check&&changed)throw new Error(`Stale territorial chunk: ${file}`);
  if(!check&&changed)writeLibraryOutput(destination,stored);
- return territorialIndexEntry(metadata?metadata.entity:compiled,{sha256:sha(stored),compressedBytes:stored.length,decodedBytes:bytes.length,storageLayout:territorialSourceLayout,...(metadata?{verifiedGeometryBounds:metadata.bbox}:{})});
+ return territorialIndexEntry(projection.entity,{sha256:sha(stored),compressedBytes:stored.length,decodedBytes:bytes.length,storageLayout:territorialSourceLayout,...(projection.verifiedGeometryBounds?{verifiedGeometryBounds:projection.verifiedGeometryBounds}:{})});
  }),snapshots:previous?.snapshots||fs.readdirSync(path.join(territorialSourceRoot,'snapshots')).filter(f=>f.endsWith('.json')).sort().map(file=>{
  const snapshot=JSON.parse(fs.readFileSync(path.join(territorialSourceRoot,'snapshots',file),'utf8'));
  parseTemporal(snapshot.referenceDate,{nullable:false});
