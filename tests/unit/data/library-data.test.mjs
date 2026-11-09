@@ -14,6 +14,32 @@ import {storeLibraryData,libraryPublicationRef} from "../../../tools/data/librar
 import { reportPath } from "../../../tools/data/report-paths.mjs";
 import {encodeTerritorialSource} from '../../../tools/data/territorial-source-codec.mjs';
 
+test('a new pin refreshes unchanged shared inputs while preserving private working edits',t=>{
+ const parent=mkdtempSync(join(tmpdir(),'pando-pin-refresh-')),root=join(parent,'app'),checkout=join(root,'.library-data/repository');
+ t.after(()=>rmSync(parent,{recursive:true,force:true}));
+ const put=(base,p,value)=>{mkdirSync(dirname(join(base,p)),{recursive:true});writeFileSync(join(base,p),value);};
+ const git=(base,...args)=>execFileSync('git',['-c','core.autocrlf=false',...args],{cwd:base,encoding:'utf8',stdio:'pipe'}).trim();
+ for(const base of [root,checkout]){mkdirSync(base,{recursive:true});git(base,'init','-q');git(base,'config','user.name','Fixture');git(base,'config','user.email','fixture@example.invalid');}
+ const changed='assets/data/pin/changed.txt',draft='assets/data/pin/draft.txt';
+ const publish=values=>{
+  const files={};for(const [p,value]of Object.entries(values)){
+   const bytes=Buffer.from(value);put(checkout,p,bytes);files[p]={stored:p,encoding:'identity',sha256:createHash('sha256').update(bytes).digest('hex'),bytes:bytes.length};
+  }
+  put(checkout,'archive/index.json',JSON.stringify({schema:'pando-library-archive-v1',files}));
+  git(checkout,'add','--sparse','archive/index.json',...Object.keys(values));git(checkout,'commit','-qm','pinned input');
+  put(root,'config/library-data.json',JSON.stringify({repository:'fixture/data',revision:git(checkout,'rev-parse','HEAD'),mounts:['assets/data','reports']}));
+ };
+ publish({[changed]:'original shared input',[draft]:'original draft base'});
+ put(root,'.gitignore','.library-data/\nassets/data/\nreports/\n');git(root,'add','.');git(root,'commit','-qm','app');
+ const before=prepareLibraryData({root,fetch:false,purpose:'gis',prefixes:['assets/data/pin']});
+ withLibraryWrite({root,prefixes:[draft]},()=>put(root,draft,'unfinished private edit'));
+ publish({[changed]:'new pinned input',[draft]:'new draft base'});
+ prepareLibraryData({root,fetch:false,purpose:'gis',prefixes:['assets/data/pin']});
+ assert.equal(readFileSync(join(root,changed),'utf8'),'new pinned input');
+ assert.equal(readFileSync(join(root,draft),'utf8'),'unfinished private edit');
+ assert.equal(readFileSync(join(before.materialized,changed),'utf8'),'original shared input');
+});
+
 test('scoped native storage requires every changed source chunk and shared index together',async()=>{
   const {assertTerritorialStorageScope}=await import("../../../tools/data/library-store.mjs");
   const base='assets/data/territorial-entities',old={entities:[{entityId:'state:edited',file:'state-edited.json.gz',sha256:'old'},{entityId:'state:kept',file:'state-kept.json.gz',sha256:'same'}]};

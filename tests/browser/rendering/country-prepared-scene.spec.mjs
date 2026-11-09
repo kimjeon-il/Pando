@@ -12,7 +12,7 @@ test('prepared initial scene publishes country triangles and borders on cold and
     const api=window.__PANDOLAB_VIEWER__,s=api?.rendererStats();
     return {ready:document.getElementById('viewerStatus')?.dataset.ready,
       presented:api?.initialMapPresented(),visible:api?.visibleTerritorialCount(),
-      month:api?.builtinMonth().month,cursor:api?.documentState().timelineCursor,
+      month:api?.builtinMonth()?.month,cursor:api?.documentState()?.timelineCursor,
       renderer:s?.renderer,canonical:s?.canonicalMeshReady,blocked:s?.projectRenderBlocked,
       generation:s?.projectGeneration,published:s?.countriesPublishedGeneration,
       countryTriangles:s?.surfaceDraw?.countryIndexCount,boundaries:s?.countrySharedBoundaryReady,
@@ -37,6 +37,7 @@ test('prepared initial scene publishes country triangles and borders on cold and
       expect(state.preparation.strokeMs).toBe(0);expect(state.preparation.spatialMs).toBe(0);
       expect(state.rebuilds).toBe(0);expect(state.boundaryWorker).toBe(false);
       expect(state.preparedHits).toBeGreaterThan(0);expect(state.boundaryHits).toBeGreaterThan(0);
+      expect(state.month).toMatch(/^-?\d{4,}-\d{2}$/);
       expect(state.month).toBe(state.cursor);expect(state.visible).toBeGreaterThan(0);
     }
     const original=(await read()).month;
