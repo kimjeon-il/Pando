@@ -85,3 +85,10 @@ GIS-prefix 워크플로 34개, hydro-prefix 3개, Viewer-prefix 4개 등은 단�
 - 아직 실행하지 않음: 로컬 git worktree 상태 조사, 전체 import/Worker/CMake/CI 의존성 도달성 스캐너, Node unit, 브라우저 Playwright, 실제 GPU·WASM·GPKG·DEM 실행, 성능 실측. 실행환경이 없는 상태에서 통과로 표기하지 않는다.
 - 삭제/이동/정본 변경: 없음. 모든 후보는 소비자와 불변 원자료를 확인한 뒤 후속 단계에서만 처리한다.
 - main 병합/배포: 1단계 조사에서 수행하지 않는다.
+
+## 전수 의존성 조사 실행 기록 (추가 조사, 2026-11-09)
+
+- 전수 조사 도구: `tools/checks/audit-repository-usage.mjs`. 실행 코드의 역방향 참조, 자료·빌드·CI 선언, 동적 import/Worker 위치, 동일 Git blob을 검사하는 수동 실행 도구다.
+- 첫 CI 실행: [GitHub Actions #42578632600](https://github.com/kimjeon-il/Pando/actions/runs/42578632600). 전체 2,384개 추적 파일을 열거해 8,261개 참조, Worker 생성/래퍼 20곳, 동적 표현식 39건을 수집했다.
+- 첫 실행의 `./.github/actions`, 게시 URL로부터 Worker 소스를 변환하는 방식, CMake의 상대 경로, 역사적 자료 검토표는 false positive 원인이어서 보정했다. 이 실행의 누락 건수를 실제 제거된 파일 수로 취급하지 않는다.
+- 보정 후 실행을 통해 고정된 정적 사용 관계와 실행 표현식의 해소 여부를 다시 집계한다. 사용처 불명과 사용하지 않음은 구별하고, 동적/조건부 호출의 소비자가 확인되지 않으면 **확정 삭제하지 않는다**.
