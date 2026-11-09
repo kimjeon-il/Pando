@@ -24,6 +24,22 @@ test('accepted default-world and GeoPackage share the same Viewer scene and reco
  });
  await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot().documentId),
   {timeout:90000}).toBe(fixture.project.documentId);
+ try { await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:12000}); }
+ catch {
+   const diagnostic=await page.evaluate(()=>{
+     const api=window.__PANDOLAB_VIEWER__,r=api?.rendererStats?.()||{};
+     const core=api?.documentState?.()||{};
+     return {
+       status:document.getElementById('viewerStatus')?.outerHTML,
+       pageError:document.getElementById('actionStatus')?.textContent,
+       documentId:api?.documentSnapshot?.().documentId,
+       core:{epoch:core.epoch,timelineCursor:core.timelineCursor,storageBaselineId:core.storageBaselineId},
+       renderer:r,
+       diagnostics:api?.diagnostics?.()?.slice(-16),
+     };
+   });
+   console.log('FILE_REPLACEMENT_STALL_DIAGNOSTIC '+JSON.stringify(diagnostic).slice(0,20000));
+ }
  await ready();
  await expect.poll(()=>page.evaluate(()=>{
   const r=window.__PANDOLAB_VIEWER__.rendererStats();
