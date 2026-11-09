@@ -34,7 +34,7 @@ test('builtin country loading follows calendar rollover, retains manual dates an
  const requests=[],errors=[];page.on('request',request=>requests.push(request.url()));page.on('pageerror',error=>errors.push(error.message));
  await page.clock.install({time:new Date(2026,9,31,23,59)});
  await openReadyViewer(page,{url:'/?debug=1&demTerrain=raster'});
- expect(await page.evaluate(()=>window.PANDOLAB_BUILD_META.builtinWorld?.url)).toContain('builtin-world/generated/v1/index.json');
+ expect(await page.evaluate(()=>window.PANDOLAB_BUILD_META.projectCatalogs.territorial.catalog)).toContain('builtin-world/generated/v1/index.json');
  await expect(page.locator('#timelineDateButtonText')).toHaveText('2026년');
  const initialProject=await page.evaluate(()=>{
   const project=window.__PANDOLAB_VIEWER__.documentSnapshot();
