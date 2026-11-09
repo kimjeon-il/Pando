@@ -1,4 +1,5 @@
 name: Focused final project search regression lint
+# Latest normalized test source is checked without rerunning the C++ suite.
 on:
   push:
     branches: [work/phase5-final-test-lint-20261109]
