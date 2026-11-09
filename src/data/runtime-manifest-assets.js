@@ -42,6 +42,7 @@ export function collectRuntimeDataAssets({availablePaths,readManifest,entryPaths
     ['preparedMeshes','assets/data/prepared-polygons/generated/v2/manifest.json'],
     ['rivers','assets/data/hydro/v0.13.4/manifest.json'],
     ['places','assets/data/places/manifest.json'],
+    ['placeLifetimes','assets/data/places/urban-lifetimes-v1.json'],
     ['terrain','assets/data/terrain-preview/v0.13.3-p2/manifest.json'],
     ['physicalLand','assets/data/physical-land/v1/manifest.json'],
   ];
