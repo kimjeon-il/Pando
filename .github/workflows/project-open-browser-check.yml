@@ -1,5 +1,5 @@
 name: Focused browser project-open integration
-# Diagnose initial document presentation before a GeoPackage roundtrip
+# Recheck pinned obsolete optional scene behavior on actual Viewer startup
 # Retest after canonical dependency policy worker closure correction
 on:
   push:
@@ -29,6 +29,10 @@ jobs:
         run: |
           set -o pipefail
           node tools/data/library-data.mjs 2>&1 | tee "$RUNNER_TEMP/project-open-library.log"
+      - id: prepared-schema
+        if: steps.library.outcome == 'success'
+        continue-on-error: true
+        run: node --test tests/unit/rendering/prepared-country-scene.test.mjs
       - id: browser-setup
         if: steps.library.outcome == 'success'
         continue-on-error: true
@@ -61,6 +65,7 @@ jobs:
               install:'${{ steps.install.outcome }}',library:'${{ steps.library.outcome }}',
               browserSetup:'${{ steps.browser-setup.outcome }}',
               browser:'${{ steps.browser.outcome }}',
+              preparedSchema:'${{ steps.prepared-schema.outcome }}',
               logs:{library:read('library'),setup:read('browser-setup'),browser:read('browser')},
             };
             const path='validation-results/project-open-browser.json',
@@ -78,4 +83,6 @@ jobs:
             });
       - name: Fail unless the one requested browser regression passes
         if: always()
-        run: test '${{ steps.browser.outcome }}' = success
+        run: |
+          test '${{ steps.prepared-schema.outcome }}' = success
+          test '${{ steps.browser.outcome }}' = success
