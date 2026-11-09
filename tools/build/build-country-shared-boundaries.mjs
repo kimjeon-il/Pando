@@ -24,7 +24,7 @@ function verifySharedBorderChains(segments, quality) {
   if (checked !== segments.length)
     throw new Error('Shared-border generator dropped source edges: ' + quality);
 }
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const data = path.join(root, 'assets', 'data');
 const bundle = JSON.parse(fs.readFileSync(path.join(data, 'world/current.json'), 'utf8'));
 if (bundle.schema !== 'pandolab-world-bundle' || bundle.schemaVersion !== 1) throw new Error('World bundle manifest missing');

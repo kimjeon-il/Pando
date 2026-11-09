@@ -18,7 +18,7 @@ import { verifyGzipAssetBytes } from "../../scripts/lib/gzip-asset-verification.
 import "./load-spherical-core.mjs";
 
 const toolDirectory = path.dirname(fileURLToPath(import.meta.url));
-const projectRoot = path.resolve(toolDirectory, '..');
+const projectRoot = path.resolve(toolDirectory, '..', '..');
 const bundleSeed = JSON.parse(fs.readFileSync(path.join(projectRoot, 'assets/data/world/build-input.json'), 'utf8'));
 const legacyTag = /^world-preview-v(\d+\.\d+\.\d+)\.json$/.exec(bundleSeed.legacyPreviewManifest || '');
 if (!legacyTag) throw new Error('Invalid pinned world dataset output revision');
