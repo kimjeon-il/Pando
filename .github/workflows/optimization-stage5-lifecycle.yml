@@ -32,6 +32,13 @@ jobs:
         run: >-
           node --test --test-timeout=30000
           tests/unit/data/hydro-project-generation.test.mjs
+      - name: Changed lifecycle modules parse without a native build
+        run: |
+          node --check src/data/place-runtime.js
+          node --check src/rendering/territorial-labels.js
+          node --check src/app/viewer-map.js
+          node --check src/rendering/physical-map-controller.js
+          node --check src/document/project-domain.js
       - name: Project-owned Viewer publication and Pages staging
         run: >-
           node --test --test-timeout=30000
