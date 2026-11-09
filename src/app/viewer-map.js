@@ -137,7 +137,7 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
   connectMapOwner('objectCatalog',objectCatalog,mergeCapabilityPorts(commonPorts,readPorts));
   const runtimeAssetUrl = path => {const url=runtimeContext.assetUrl(path);return /\/workers\/[\w-]+-worker\.js$/.test(url.pathname)?workerAssetUrl(url,meta):url;};
   const physicalConfig={...createPhysicalSourceConfiguration({assetBaseUrl:runtimeContext.assetBaseUrl,dataRevision:meta.dataRevision,
-    resourceProfile:meta.resourceProfile,terrainCatalog:projectResources.resource('terrain')?.catalog||null}),
+    resourceProfile:meta.resourceProfile,terrainCatalog:projectResources?.resource?.('terrain')?.catalog||null}),
     DATA_REVISION:meta.dataRevision,HYDRO_DATA_VERSION,TERRAIN_OCEAN_REPRESENTATIVE,PHYSICAL_DATASET};
   const territorialScope=objectPresentation.territorialScope;
   connectMapOwner('builtinSession',builtinSession,mergeCapabilityPorts(commonPorts,{territorialModel:{entityRepository:repository},objectModelB:{territorialScope},
@@ -329,7 +329,7 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
       if(next!==documentSession)throw new Error('Map output requires its single document session.');
       // Select references before composing the accepted C++ world. An imported
       // file has no implicit builtin countries, places, terrain or water.
-      if(contentProject!==undefined&&projectResources.select(contentProject)){
+      if(contentProject!==undefined&&projectResources?.select?.(contentProject)){
         physicalResources.selectProjectResources();
         labelOwner.selectProjectResources();
       }
