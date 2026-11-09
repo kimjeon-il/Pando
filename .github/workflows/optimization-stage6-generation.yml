@@ -1,5 +1,6 @@
 name: Optimization stage 6 generation and immutable reuse contracts
 # Verify only immutable source reuse, project-specific generator mapping and Viewer closure.
+# Synthetic catalogs are validated against the production descriptor layout.
 on:
   push:
     branches: [work/optimization]
