@@ -53,6 +53,7 @@ function classifyTarget(from, raw) {
       if (published) {
         const translated = posix.normalize(posix.join(posix.dirname(published), value));
         if (outputOwners.has(translated)) path = outputOwners.get(translated);
+        else if (translated === 'assets/js/build-meta.js') path = translated;
       }
     }
   }
@@ -90,6 +91,10 @@ function stringsOf(node) {
     const beforeQuery = prefix.split('?', 1)[0];
     return /\.(?:[cm]?js|json|css|wasm)$/.test(beforeQuery) ? [beforeQuery] : [];
   }
+  if (node.type === 'SpreadElement') return stringsOf(node.argument);
+  if (node.type === 'ArrayExpression') return node.elements.flatMap(stringsOf);
+  if (node.type === 'CallExpression' && node.callee?.type === 'MemberExpression' &&
+      node.callee.property?.name === 'map') return stringsOf(node.callee.object);
   if (node.type === 'ConditionalExpression') return [...stringsOf(node.consequent), ...stringsOf(node.alternate)];
   if (node.type === 'LogicalExpression') return [...stringsOf(node.left), ...stringsOf(node.right)];
   return [];
@@ -178,6 +183,10 @@ function scanNative(path, source) {
     } else {
       const relative = posix.normalize(posix.join(posix.dirname(path), spec));
       if (trackedSet.has(relative)) add(path, relative, 'native-include', lineOf(source, match.index));
+      else {
+        const candidates = tracked.filter(p => p.endsWith('/' + spec) && p.includes('/native/'));
+        if (candidates.length === 1) add(path, candidates[0], 'native-include-search', lineOf(source, match.index));
+      }
     }
   }
   scanTextPaths(path, source, false);
@@ -334,15 +343,18 @@ const counts = entries.reduce((acc, r) => { acc[r.scope] = (acc[r.scope] || 0) +
 const unresolved = entries.filter(r => r.scope === 'no-confirmed-executable-consumer' &&
   /^(?:src|scripts|tools)\//.test(r.path)).map(r => r.path);
 const summary = {
-  commit: git('rev-parse', 'HEAD').trim(), branch: git('branch', '--show-current').trim(),
+  commit: git('rev-parse', 'HEAD').trim(),
+  branch: git('branch', '--show-current').trim() || process.env.GITHUB_REF_NAME || '',
   tracked: tracked.length, edges: imports.length, externalReferences: external.length,
-  missingSourceReferences: missing.length, parseFailures: parseFailures.length,
+  missingExactReferences: missing.filter(e => e.certainty === 'exact').length,
+  historicalOrTextMissingReferences: missing.filter(e => e.certainty !== 'exact').length,
+  parseFailures: parseFailures.length,
   dynamicExpressions: dynamic.length, workerConstructorSites: workerSites.length,
   uniqueWorkerSiteFiles: new Set(workerSites.map(x => x.path)).size,
   duplicateBlobGroups: duplicates.length, scopeCounts: counts,
   unknownExecutableConsumerCandidates: unresolved.length,
   unresolvedCandidates: unresolved.slice(0, 90),
-  missingRefs: missing.filter(m => m.kind !== 'path-reference').slice(0, 70),
+  missingRefs: missing.filter(m => m.certainty === 'exact').slice(0, 100),
   dynamicSamples: dynamic.slice(0, 50),
   workerSites: workerSites.slice(0, 75),
   duplicateExamples: duplicates.filter(x => x.files.some(p=>p.startsWith('src/'))).slice(0, 15)
