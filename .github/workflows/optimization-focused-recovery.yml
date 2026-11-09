@@ -1,4 +1,5 @@
 name: Optimization focused recovery contracts
+# Exact recovery suites only; never run the full test catalog.
 on:
   push:
     branches: [work/optimization]
