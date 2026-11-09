@@ -11,7 +11,7 @@ import {buildWorkerAsset} from './worker-assets.mjs';
 import {collectViewerAssets} from './product-assets.mjs';
 import {decodeArchiveEntry,libraryCheckout,libraryConfig} from "../../tools/data/library-context.mjs";
 import {createInitialLandPreviewAsset} from './initial-land-preview.mjs';
-import {validateMapProjectManifest,mapProjectResourcePath,mapProjectResourcePaths,mapProjectManifestSourcePath}
+import {MAP_PROJECT_ROLES,validateMapProjectManifest,mapProjectResourcePath,mapProjectResourcePaths,mapProjectManifestSourcePath}
   from '../../src/data/map-project-manifest.js';
 
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -93,11 +93,29 @@ export async function buildFrontendSnapshot({root=process.cwd(),sourceCommit,rea
  if(mapProject.projectId!==projectId)throw new TypeError('Map project source identity mismatch');
  const resource=role=>mapProjectResourcePath(mapProject,role);
  const metadataPaths=mapProjectResourcePaths(mapProject);
- const metadata=Object.fromEntries(metadataPaths.map(path=>[path,JSON.parse(readPinnedData(path))]));
+ // Verify every selected catalog once against its pinned bytes. Build receipts
+ // keep resource versions/identities without duplicating source member lists.
+ const catalogInputs=Object.fromEntries(metadataPaths.map(path=>{
+   const bytes=readPinnedData(path);
+   let value;
+   try{value=JSON.parse(bytes.toString('utf8'));}catch(error){throw new Error('Invalid pinned map project catalog: '+path,{cause:error});}
+   if(!value||typeof value!=='object'||Array.isArray(value))
+     throw new TypeError('Invalid pinned map project catalog object: '+path);
+   return [path,{bytes,value,sha256:hash(bytes)}];
+ }));
+ const metadata=Object.fromEntries(metadataPaths.map(path=>[path,catalogInputs[path].value]));
+ const mapProjectCatalogs=Object.fromEntries(MAP_PROJECT_ROLES.map(role=>{
+   const definition=mapProject.resources[role],entry=catalogInputs[definition.catalog],catalog=entry.value;
+   return [role,{catalog:definition.catalog,sha256:entry.sha256,bytes:entry.bytes.length,
+     required:definition.required,dependsOn:definition.dependsOn,
+     schema:typeof catalog.schema==='string'?catalog.schema:typeof catalog.format==='string'?catalog.format:null,
+     schemaVersion:Number.isSafeInteger(catalog.schemaVersion)?catalog.schemaVersion:null,
+     version:typeof catalog.version==='string'||typeof catalog.version==='number'?String(catalog.version):null}];
+ }));
  const land=metadata[resource('physicalLand')],terrain=metadata[resource('terrain')];
  assert.equal(land.sourceSha256,terrain.sourceDem.landMaskSha256,'Land derivative must match pinned terrain');
- const dataRevision='data-'+hash(JSON.stringify([mapProject.projectId,mapProject.resources,
-   metadataPaths.map(path=>[path,stable(metadata[path])])])).slice(0,32);
+ const dataRevision='data-'+hash(JSON.stringify([mapProject.projectId,mapProject.document,mapProject.timeline,
+   mapProject.resources,metadataPaths.map(path=>[path,catalogInputs[path].sha256,stable(metadata[path])])])).slice(0,32);
  const initialLandPreview=createInitialLandPreviewAsset(readPinnedData(land.asset.url),land.asset);
  generated(initialLandPreview.spec.url,initialLandPreview.bytes,'viewer');
  const dataIdentity=path=>{const bytes=readPinnedData(path);return{encoding:'identity',compressedBytes:bytes.length,decodedBytes:bytes.length,sha256:hash(bytes)};};
@@ -108,7 +126,7 @@ export async function buildFrontendSnapshot({root=process.cwd(),sourceCommit,rea
    compressedBytes:projectBytes.length,decodedBytes:projectBytes.length,sha256:hash(projectBytes)};
  const builtinPath=resource('territorial'),preparedPath=resource('preparedMeshes');
  const buildMeta={appVersion,buildId,assetRevision,dataRevision,sourceCommit,dataCommit:pinned?.revision||null,...resourceProfile?{resourceProfile}:{},
-   mapProject,mapProjectManifest,
+   mapProject,mapProjectManifest,mapProjectCatalogs,
    worldBundle:{url:resource('world'),...dataIdentity(resource('world'))},
    builtinWorld:{url:builtinPath,...dataIdentity(builtinPath)},
    preparedPolygonMeshes:{url:preparedPath,...dataIdentity(preparedPath),
