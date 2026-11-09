@@ -39,10 +39,23 @@ function classifyTarget(from, raw) {
   const value = slash(raw.trim()).split(/[?#]/, 1)[0];
   if (!value || /^(?:node:|data:|blob:|https?:|npm:|file:|\/\/)/.test(value)) return null;
   let path;
-  if (value.startsWith('assets/js/')) path = outputOwners.get(value) || value;
+  if (value.startsWith('./.github/')) path = value.slice(2);
+  else if (value.startsWith('workers/')) path = outputOwners.get('assets/js/' + value) || value;
+  else if (value.startsWith('assets/js/')) path = outputOwners.get(value) || value;
   else if (value.startsWith('/assets/')) path = outputOwners.get(value.slice(1)) || value.slice(1);
   else if (/^(?:src|tools|scripts|tests|assets|config|contracts|projects|docs|\.github|cmake|design)\//.test(value)) path = value;
-  else if (value.startsWith('./') || value.startsWith('../')) path = posix.normalize(posix.join(posix.dirname(from), value));
+  else if (value.startsWith('./') || value.startsWith('../')) {
+    path = posix.normalize(posix.join(posix.dirname(from), value));
+    // new URL(relative, import.meta.url) is sometimes authored for the
+    // published frontend directory, not its source domain directory.
+    if (!trackedSet.has(path)) {
+      const published = [...frontend].find(([, item]) => item.sourcePath === from)?.[0];
+      if (published) {
+        const translated = posix.normalize(posix.join(posix.dirname(published), value));
+        if (outputOwners.has(translated)) path = outputOwners.get(translated);
+      }
+    }
+  }
   else return null;
   if (path.startsWith('assets/js/')) path = outputOwners.get(path) || path;
   if (!trackedSet.has(path) && trackedSet.has(path + '.js')) path += '.js';
@@ -62,6 +75,10 @@ function add(from, raw, kind, line = 0, certainty = 'exact') {
   if (trackedSet.has(to)) imports.push(edge);
   else if (/^(?:assets\/data\/|assets\/worker-runtime\/|assets\/js\/build-meta\.js$)/.test(to))
     external.push({ from, raw: to, kind, line });
+  else if (existsSync(resolve(root, to)) && statSync(resolve(root, to)).isDirectory())
+    external.push({ from, raw: to, kind: kind + '-directory', line });
+  else if (/^\w+\/\.[\w.-]+\.tmp\.[cm]?js$/.test(to))
+    external.push({ from, raw: to, kind: kind + '-generated-temporary', line });
   else missing.push(edge);
 }
 function stringsOf(node) {
@@ -111,7 +128,10 @@ function scanJavaScript(path, source) {
           source.slice(node.source?.range?.[0] || node.range[0], node.source?.range?.[1] || node.range[1]).trim() === value) });
     }
     if (node.type === 'NewExpression' && node.callee?.name === 'URL') {
-      for (const value of stringsOf(node.arguments?.[0])) add(path, value, 'new-url', line);
+      for (const value of stringsOf(node.arguments?.[0])) {
+        // Directory-base URLs are not dependency files.
+        if (/\.[a-z0-9]{1,8}(?:\?|$)/i.test(value)) add(path, value, 'new-url', line);
+      }
     }
     if (node.type === 'NewExpression' && ['Worker', 'SharedWorker', 'WorkerClass'].includes(node.callee?.name)) {
       const expr = source.slice(node.range[0], Math.min(node.range[1], node.range[0] + 220));
@@ -140,7 +160,7 @@ function frontendPath(path) {
   for (const [publicPath, source] of outputOwners) if (source === path) return publicPath;
   return path;
 }
-const PATH_REF = /(?:^|[^A-Za-z0-9_./-])((?:src|tools|scripts|tests|assets|config|contracts|projects|docs|\.github|cmake)\/[A-Za-z0-9_.\/-]+\.(?:js|mjs|cjs|json|yml|yaml|cpp|h|hpp|inc|css|html|sh|ps1|md|wasm|gpkg|geojson|tif|svg|png|webp|txt|patch|b64))/gm;
+const PATH_REF = /(?:^|[^A-Za-z0-9_./-])((?:src|tools|scripts|tests|assets|config|contracts|projects|docs|\.github|cmake)\/[A-Za-z0-9_.\/-]+\.(?:geojson|json|yaml|cpp|hpp|cjs|mjs|wasm|webp|gpkg|patch|html|woff2|yml|css|svg|png|txt|b64|tif|ps1|inc|md|sh|js|h))(?![A-Za-z0-9_.])/gm;
 function scanTextPaths(path, source, includeDocs) {
   // Exact-root path strings supply evidence; they do not imply executable invocation.
   for (const match of source.matchAll(PATH_REF)) {
@@ -163,8 +183,16 @@ function scanNative(path, source) {
   scanTextPaths(path, source, false);
 }
 function scanCMake(path, source) {
-  for (const match of source.matchAll(/(?:src|tests|tools|config|cmake)\/[A-Za-z0-9_.\/-]+\.(?:cpp|h|hpp|inc|cmake|json)/g))
+  for (const match of source.matchAll(/(?:src|tests|tools|config|cmake)\/[A-Za-z0-9_.\/-]+\.(?:cpp|c|h|hpp|inc|cmake|json)/g))
     add(path, match[0], 'cmake-source', lineOf(source, match.index));
+  // Native tools use both repository-root and CMake-file-relative sources.
+  // Scan every explicit source file token; preserve optional CMake targets.
+  for (const match of source.matchAll(/(?:^|[\s("'=])((?:\.\.\/|\.\/)?[A-Za-z0-9_.\/-]+\.(?:cpp|cc|c|h|hpp|inc))(?![A-Za-z0-9_.])/gm)) {
+    const raw = match[1];
+    const relative = raw.startsWith('src/') || raw.startsWith('tests/') || raw.startsWith('tools/')
+      ? raw : './' + raw;
+    add(path, relative, 'cmake-explicit-source', lineOf(source, match.index));
+  }
   for (const match of source.matchAll(/add_subdirectory\(\s*([A-Za-z0-9_.\/-]+)/gmi))
     add(path, posix.normalize(posix.join(posix.dirname(path), match[1], 'CMakeLists.txt')), 'cmake-subdirectory', lineOf(source, match.index));
   for (const match of source.matchAll(/include\(\s*["']?([A-Za-z0-9_.\/-]+\.cmake)/gmi))
@@ -213,7 +241,8 @@ function scanJson(path, source) {
     } else if (Array.isArray(value)) for (const v of value) visit(v);
     else if (value && typeof value === 'object') for (const v of Object.values(value)) visit(v);
   };
-  if (/^(?:config\/|projects\/|scripts\/contracts\/|contracts\/)/.test(path)) visit(obj);
+  if (/^(?:config\/|projects\/|scripts\/contracts\/|contracts\/)/.test(path) &&
+      !/(?:baseline|evidence|historical)/.test(path)) visit(obj);
   scanTextPaths(path, source, false);
 }
 function scanHtmlCss(path, source) {
