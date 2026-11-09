@@ -38,6 +38,10 @@ jobs:
         if: steps.install.outcome == 'success'
         continue-on-error: true
         uses: ./.github/actions/library-data
+      - id: gis-input
+        if: steps.library.outcome == 'success'
+        continue-on-error: true
+        run: node tools/data/library-data.mjs --purpose=gis --include-prefix=assets/data/builtin-world/display-policy-v1.json
       - uses: jwlawson/actions-setup-cmake@v2
         with:
           cmake-version: 3.31.6
@@ -48,7 +52,7 @@ jobs:
           path: build-native/emsdk
           persist-credentials: false
       - id: core-build
-        if: steps.install.outcome == 'success' && steps.library.outcome == 'success'
+        if: steps.install.outcome == 'success' && steps.library.outcome == 'success' && steps.gis-input.outcome == 'success'
         continue-on-error: true
         shell: bash
         run: |
@@ -87,7 +91,7 @@ jobs:
             tests/unit/document/project-domain-active-timeline.test.mjs \
             2>&1 | tee "$RUNNER_TEMP/phase7-core-tests.log"
       - id: browser-install
-        if: steps.core-build.outcome == 'success' && steps.core-tests.outcome == 'success'
+        if: steps.core-build.outcome == 'success'
         continue-on-error: true
         run: pnpm exec playwright install --with-deps chromium
       - id: browser
@@ -117,7 +121,7 @@ jobs:
             };
             const result={
               schema:'pando-phase7-focused-actual-browser-v1',sourceCommit:context.sha,
-              static:'${{ steps.static.outcome }}',library:'${{ steps.library.outcome }}',
+              static:'${{ steps.static.outcome }}',library:'${{ steps.library.outcome }}',gisInput:'${{ steps.gis-input.outcome }}',
               wasm:'${{ steps.core-build.outcome }}',coreTests:'${{ steps.core-tests.outcome }}',
               browserInstall:'${{ steps.browser-install.outcome }}',browser:'${{ steps.browser.outcome }}',
               logs:{core:read('core-tests'),browser:read('browser')},
@@ -133,6 +137,7 @@ jobs:
         run: |
           test '${{ steps.static.outcome }}' = success
           test '${{ steps.library.outcome }}' = success
+          test '${{ steps.gis-input.outcome }}' = success
           test '${{ steps.core-build.outcome }}' = success
           test '${{ steps.core-tests.outcome }}' = success
           test '${{ steps.browser.outcome }}' = success
