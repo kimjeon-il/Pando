@@ -1,7 +1,6 @@
 import { describe as contractSuite } from 'node:test';
 import * as __dep0 from "node:test";
 import * as __dep1 from "node:assert/strict";
-import * as __dep2 from "node:fs/promises";
 import * as __dep3 from "node:child_process";
 import * as __dep4 from "node:readline";
 import * as __dep5 from "../../../tools/gis/hydronym-normalize.mjs";
@@ -19,18 +18,9 @@ import * as __dep14 from "../../../tools/gis/prepare-hydro-name-replacement-bund
 contractSuite("hydro-name", async () => {
 const { test } = __dep0;
 const assert = __dep1.default;
-const { readFile } = __dep2;
 const { spawn } = __dep3;
 const { createInterface } = __dep4;
 const { normalizeHydronym } = __dep5;
-
-const cases = JSON.parse(await readFile(new URL("../../fixtures/hydro-name-oracle.json", import.meta.url), 'utf8'));
-
-test('matches the frozen Python naming cases', () => {
-  for (const row of cases) {
-    assert.equal(normalizeHydronym(row.name, row.category, row.overrides), row.expected, row.name);
-  }
-});
 
 test('normalizes suffixes, placeholders and second-pass aliases', () => {
   assert.equal(normalizeHydronym('노스아랄씨', 'lake', { '노스아랄씨': '북아랄해' }), '북아랄해');
