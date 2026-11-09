@@ -11,6 +11,11 @@ test('one source build emits only the Viewer runtime shared with Windows reviewe
  assert.equal(Object.hasOwn(snapshot.html,'editor'),false);
  assert.ok(snapshot.assets.has('assets/js/build-meta.js'));
  assert.equal(snapshot.buildMeta.worldBundle.url,'assets/data/world/current.json');
+ assert.equal(snapshot.buildMeta.mapProject.projectId,'default-world');
+ assert.equal(snapshot.buildMeta.builtinWorld.url,snapshot.buildMeta.mapProject.resources.territorial.catalog);
+ assert.equal(snapshot.buildMeta.mapProject.resources.rivers.catalog,snapshot.buildMeta.mapProject.resources.lakes.catalog);
+ assert.equal(snapshot.buildMeta.mapProject.resources.places.catalog,'assets/data/places/manifest.json');
+ assert.ok(snapshot.viewerPaths.has(snapshot.buildMeta.mapProjectManifest.url));
  assert.match(snapshot.buildMeta.initialLandPreview.sha256,/^[a-f0-9]{64}$/);
  assert.equal(snapshot.buildMeta.initialLandPreview.sourceSha256,snapshot.buildMeta.physicalLand.sha256);
  assert.ok(snapshot.assets.has(snapshot.buildMeta.initialLandPreview.url));
