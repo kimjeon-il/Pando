@@ -101,11 +101,25 @@ export function physicalWaterContextKey(rows){
     return [row.objectRef,row.geometryRef,land,water,row.identity];
   }));
 }
-export function createPhysicalResources({ buildMeta,capabilities = {terrain:true,builtinHydro:true,eagerBuiltinHydro:true} } = {}) {
-  // The same Hydro reader currently serves both river and lake layers.
-  const projectHydro=buildMeta?.mapProject?mapProjectResourcePath(buildMeta.mapProject,'rivers'):null;
-  if(buildMeta?.mapProject&&mapProjectResourcePath(buildMeta.mapProject,'lakes')!==projectHydro)
+const EMPTY_PHYSICAL_WATER=Object.freeze({
+  identities:Object.freeze([]),geometries:Object.freeze([]),
+  timelineRecords:Object.freeze({schemaVersion:3,lifetimes:[],geometryBindings:[],
+    parentRelations:[],propertyBindings:[]}),
+});
+export function createPhysicalResources({ buildMeta,projectResources=null,
+  capabilities = {terrain:true,builtinHydro:true,eagerBuiltinHydro:true} } = {}) {
+  // Both physical-water roles currently use one native Hydro shard service.
+  const pinnedHydro=buildMeta?.mapProject?mapProjectResourcePath(buildMeta.mapProject,'rivers'):null;
+  if(buildMeta?.mapProject&&mapProjectResourcePath(buildMeta.mapProject,'lakes')!==pinnedHydro)
     throw new TypeError('Current Hydro service requires a shared river/lake project catalog');
+  const selected=()=>!projectResources?.managed||!!projectResources.current();
+  const roleCatalog=role=>projectResources?.managed
+    ?projectResources.resource(role)?.catalog||null
+    :buildMeta?.mapProject?mapProjectResourcePath(buildMeta.mapProject,role):null;
+  const currentWaterCatalog=()=>selected()?buildMeta?.physicalWaterObjects:EMPTY_PHYSICAL_WATER;
+  const currentLandSpec=()=>selected()?buildMeta?.physicalLand:null;
+  let sourceGeneration=0;
+  const isCurrentSource=generation=>generation===sourceGeneration&&selected();
   let dependencies;
   let terrainService;
   let hydroService;
@@ -120,14 +134,14 @@ export function createPhysicalResources({ buildMeta,capabilities = {terrain:true
   let requestedWaterKey=null;
   let physicalSelection=null;
   function physicalSelectionFor(date) {
-    const catalog=buildMeta.physicalWaterObjects;
+    const catalog=currentWaterCatalog()||EMPTY_PHYSICAL_WATER;
     const rows=resolvePhysicalWaterObjects(catalog,date)
       .sort((a,b)=>timelineObjectKey(a.objectRef).localeCompare(timelineObjectKey(b.objectRef)));
     if(rows.some(row=>row.assets.land.sha256!==rows[0].assets.land.sha256))throw new Error('Selected water objects require one coherent physical land derivative.');
     return {catalog,date,rows,key:physicalWaterContextKey(rows)};
   }
   function selectedPhysicalWater() {
-    const catalog=buildMeta.physicalWaterObjects,date=dependencies.projectState.state.timelineCursor;
+    const catalog=currentWaterCatalog()||EMPTY_PHYSICAL_WATER,date=dependencies.projectState.state.timelineCursor;
     if(!physicalSelection||physicalSelection.catalog!==catalog||physicalSelection.date!==date){
       physicalSelection=physicalSelectionFor(date);
     }
@@ -141,7 +155,7 @@ export function createPhysicalResources({ buildMeta,capabilities = {terrain:true
     const loader=storedPhysicalAssets(),decode=buffer=>JSON.parse(new TextDecoder().decode(buffer));
     entry.promise=Promise.all([
       loadPhysicalLandGeometry(landAsset,{
-        loadGeometry:spec=>spec.sha256===buildMeta.physicalLand.sha256?loadPhysicalLandMask({notify:false}).then(value=>value.geometry)
+        loadGeometry:spec=>spec.sha256===currentLandSpec()?.sha256?loadPhysicalLandMask({notify:false}).then(value=>value.geometry)
           :loader.loadAsset(spec,'background',key+'-land','육지 배경',decode).then(result=>result.value),
         loadPatch:spec=>loader.loadAsset(spec,'background',key+'-land-replacement','지역 육지 변경',decode).then(result=>result.value),
       }).then(value=>({value})),
@@ -178,6 +192,7 @@ export function createPhysicalResources({ buildMeta,capabilities = {terrain:true
   }
   const presentPhysicalWater=createPhysicalWaterPresentation();
   function currentPhysicalContext() {
+    if(!selected())return null;
     const {rows:selected,key}=selectedPhysicalWater();
     if(!selected.length){requestedWaterKey=null;return physicalLand;}
     if(key!==requestedWaterKey){
