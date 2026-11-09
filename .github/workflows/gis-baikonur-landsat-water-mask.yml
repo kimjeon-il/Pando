@@ -1,11 +1,7 @@
 name: GIS Baikonur independent Landsat riverbank reconstruction — stage 1
 
+# Historical/research-only source audit; manually selected, not a standing CI gate.
 on:
-  push:
-    branches: [ work/gis ]
-    paths:
-      - '.github/workflows/gis-baikonur-landsat-water-mask.yml'
-      - 'tools/gis/baikonur-landsat-water-mask.mjs'
   workflow_dispatch:
 
 permissions:

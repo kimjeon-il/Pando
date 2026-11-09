@@ -1,54 +1,7 @@
 name: P5 Shared border calculation and generator verification
 # P5-6 verification receipt: rerun scoped Web + native CI against the integrated main source tree 691ec5d; comment-only change.
+# Historical task acceptance or one-time publication: explicitly dispatched, not default CI.
 on:
-  push:
-    branches: [ work/objects ]
-    paths:
-      - '.github/workflows/p5-shared-border-verification.yml'
-      - 'src/geometry/native/include/pandoeditor/boundarychain.h'
-      - 'src/geometry/native/src/boundarychain.cpp'
-      - 'src/geometry/native/include/pandoeditor/boundarypacket.h'
-      - 'src/geometry/native/src/boundarypacket.cpp'
-      - 'tests/native/geometry/boundary-packet-tests.cpp'
-      - 'tests/native/document/p5-boundary-packet-wasm.test.mjs'
-      - 'src/geometry/native/include/pandoeditor/boundarycontact.h'
-      - 'src/geometry/native/src/boundarycontact.cpp'
-      - 'src/geometry/native/include/pandoeditor/boundaryoverlap.h'
-      - 'src/geometry/native/src/boundaryoverlap.cpp'
-      - 'src/geometry/native/include/pandoeditor/boundaryrefinement.h'
-      - 'src/geometry/native/src/boundaryrefinement.cpp'
-      - 'src/geometry/native/include/pandoeditor/boundarysplit.h'
-      - 'src/geometry/native/src/boundarysplit.cpp'
-      - 'src/geometry/native/include/pandoeditor/countrycontact.h'
-      - 'src/geometry/native/src/countrycontact.cpp'
-      - 'tools/build/native/core/CMakeLists.txt'
-      - 'tests/native/geometry/boundary-chain-tests.cpp'
-      - 'tests/native/geometry/boundary-interior-tests.cpp'
-      - 'tests/native/geometry/boundary-overlap-tests.cpp'
-      - 'tests/native/geometry/boundary-refinement-tests.cpp'
-      - 'tests/native/geometry/boundary-split-tests.cpp'
-      - 'tests/native/document/country-contact-tests.cpp'
-      - 'tools/build/native/tests/CMakeLists.txt'
-      - 'assets/wasm/pandoeditor-core.manifest.json'
-      - 'assets/js/modules/boundary-lines.js'
-      - 'assets/js/modules/geographic-boundary.js'
-      - 'tests/unit/geometry/boundary-display-refinement.test.mjs'
-      - 'assets/js/modules/boundary-topology.js'
-      - 'assets/js/modules/country-contact-core.js'
-      - 'tests/unit/geometry/country-shared-boundary.test.mjs'
-      - 'assets/js/modules/country-shared-boundary-packet.js'
-      - 'tests/unit/geometry/country-shared-boundary-state.test.mjs'
-      - 'tools/p5-6-core-ownership.mjs'
-      - 'tools/p5-6-review-performance.mjs'
-      - 'tests/browser/geometry/viewer-boundary-p4-5.spec.mjs'
-      - 'assets/js/build-meta.js'
-      - 'assets/data/prepared-polygons/generated/v2/manifest.json'
-      - 'scripts/check-version.mjs'
-      - 'tools/build/build-country-shared-boundaries.mjs'
-      - 'tools/benchmark-shared-border-p5.mjs'
-      - 'tests/unit/geometry/boundary-lines.test.mjs'
-      - 'tests/unit/rendering/country-shared-boundary-generator.test.mjs'
-      - 'CMakePresets.json'
   workflow_dispatch:
 permissions:
   contents: read

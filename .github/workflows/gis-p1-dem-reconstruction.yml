@@ -1,12 +1,6 @@
 name: P1 DEM re-generate all 1280 raster tiles from NOAA original (no publication)
+# Full source reconstruction is an explicit reproducibility audit, not routine CI.
 on:
-  push:
-    branches: [work/gis]
-    paths:
-      - '.github/workflows/gis-p1-dem-reconstruction.yml'
-      - 'tools/gis/verify-p1-dem-full-recreation.mjs'
-      - 'tools/gis/terrain-dem-build.mjs'
-      - 'tools/gis/terrain-dem-gutters.mjs'
   workflow_dispatch:
 permissions:
   contents: read

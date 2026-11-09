@@ -2,21 +2,20 @@ import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { dirname, relative, resolve } from 'node:path';
 import {collectRuntimeDataAssets} from "../../src/data/runtime-manifest-assets.js";
+import {validateMapProjectManifest} from "../../src/data/map-project-manifest.js";
 
 // Dependencies selected through URLs or classic Worker APIs are reviewed here;
 // static ESM edges are discovered by the same parser used by the build tooling.
 export const runtimeDependencies = Object.freeze({
   'assets/js/modules/map-display-client.js':['assets/js/workers/map-display-worker.js'],
   'assets/js/modules/gpu-scene.js':['assets/js/workers/gpu-mesh-worker.js'],
-  'assets/js/modules/territorial-labels.js':['assets/data/places/manifest.json','assets/data/places/urban-lifetimes-v1.json','assets/js/workers/place-worker.js'],
+  'assets/js/modules/territorial-labels.js':['assets/js/workers/place-worker.js'],
   'assets/js/modules/country-index.js':['assets/js/workers/label-anchor-worker.js'],
   'assets/js/modules/core-document-client.js': ['assets/js/workers/core-viewer-session-worker.js'],
   'assets/js/modules/core-wasm-loader.js': ['assets/wasm/pandoeditor-core.js', 'assets/wasm/pandoeditor-core.wasm', 'assets/wasm/pandoeditor-core.manifest.json'],
   'assets/js/modules/gpu-map-renderer.js': ['assets/js/workers/hydro-tile-worker.js', 'assets/js/workers/gpu-mesh-worker.js',
     'assets/js/workers/country-shared-boundary-worker.js', 'assets/js/workers/canvas-render-worker.js'],
-  'assets/js/modules/builtin-mesh-resource.js': ['assets/js/workers/data-loader-worker.js','assets/data/world/current.json'],
-  'assets/js/modules/builtin-world-loader.js': ['assets/data/builtin-world/generated/v1/index.json'],
-  'assets/js/modules/physical-source-configuration.js': ['assets/data/terrain-preview/v0.13.3-p2/manifest.json'],
+  'assets/js/modules/builtin-mesh-resource.js': ['assets/js/workers/data-loader-worker.js'],
   'assets/js/workers/canvas-render-worker.js': ['assets/js/vendor/d3.min.js', 'assets/js/workers/geographic-boundary-core.js',
     'assets/js/workers/canvas-scene-composition-core.js', 'assets/js/workers/canvas-terrain-dem-core.js', 'assets/js/modules/terrain-manifest.js'],
   'assets/js/workers/project-read-worker.js': ['assets/js/vendor/sql/sql-wasm.js', 'assets/js/vendor/sql/sql-wasm.wasm'],
@@ -56,13 +55,27 @@ export async function collectViewerAssets({ root, availablePaths, readSource = p
   for (const path of available) {
     if (/^assets\/(?:fonts|vendor|wasm)\//.test(path) && !path.endsWith('.map') && !isEditorOnlyAsset(path)) include(path);
   }
-  for(const path of collectRuntimeDataAssets({availablePaths:available,entryPaths:viewerDataEntryPaths,
-    readManifest:path=>JSON.parse(readSource(path))}))include(path);
-  const dataAsset=(url,base)=>include(url.startsWith('assets/')?url:base+url);
   const previewMetadataSource=readSource('assets/js/build-meta.js');
   const previewMetadata=/Object\.freeze\(([\s\S]*)\);\s*$/.exec(previewMetadataSource);
   if(!previewMetadata)throw Error('Viewer build metadata must be immutable.');
-  const previewSpec=JSON.parse(previewMetadata[1]).initialLandPreview;
+  const meta=JSON.parse(previewMetadata[1]);
+  const project=meta.mapProject?validateMapProjectManifest(meta.mapProject):null;
+  if(project){
+    const spec=meta.mapProjectManifest;
+    if(!spec?.url||!/^assets\/data\/projects\/[a-z0-9-]+\/manifest\.json$/.test(spec.url))
+      throw Error('Missing map project manifest publication');
+    include(spec.url);
+    const bytes=Buffer.from(readSource(spec.url),'utf8');
+    if(bytes.length!==spec.compressedBytes||createHash('sha256').update(bytes).digest('hex')!==spec.sha256)
+      throw Error('Map project manifest bytes differ from the build identity');
+    if(JSON.stringify(validateMapProjectManifest(JSON.parse(bytes)))!==JSON.stringify(project))
+      throw Error('Map project manifest disagrees with runtime selection');
+  }
+  for(const path of collectRuntimeDataAssets({availablePaths:available,
+    entryPaths:viewerDataEntryPaths,projectManifest:project,
+    readManifest:path=>JSON.parse(readSource(path))}))include(path);
+  const dataAsset=(url,base)=>include(url.startsWith('assets/')?url:base+url);
+  const previewSpec=meta.initialLandPreview;
   if(!previewSpec?.url)throw Error('Missing immutable first-map land preview.');
   dataAsset(previewSpec.url,'assets/data/');
   const html = readSource('index.html');

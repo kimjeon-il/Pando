@@ -1,11 +1,8 @@
 name: GIS publish Hydro v0.13.4 immutable library edition
 # Single-purpose user-approved publication. This updates ONLY the library
 # work/gis branch, never Pando main/Pages, other data families or OSM credits.
+# Historical task acceptance or one-time publication: explicitly dispatched, not default CI.
 on:
-  push:
-    branches: [ work/gis ]
-    paths:
-      - '.github/workflows/gis-hydro-v0134-library-publish.yml'
   workflow_dispatch:
 
 permissions:

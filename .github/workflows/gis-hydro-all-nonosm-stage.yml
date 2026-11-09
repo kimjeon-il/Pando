@@ -1,20 +1,7 @@
 name: GIS Hydro full OSM replacement — all 31 in one build, no deployment
 
+# Past source migration or repository-history audit: manual, not a release gate.
 on:
-  push:
-    branches: [ work/gis ]
-    paths:
-      - 'tools/gis/stage-hydro-all-nonosm.mjs'
-      - 'src/rendering/workers/hydro-tile-worker.js'
-      - 'tools/checks/check-current-hydro-layout.mjs'
-      - 'scripts/lib/product-assets.mjs'
-      - 'tools/gis/hydro-bulk-independent-remaining29.json'
-      - 'tools/gis/hydro-followup-independent-name-replacements.json'
-      - 'tools/gis/osm-independent-river-source-inventory.json'
-      - 'tools/gis/prepare-hydro-name-replacement-bundle.mjs'
-      - 'tools/gis/hydro-independent-name-policy.mjs'
-      - 'tools/gis/audit-osm-credit-removal.mjs'
-      - '.github/workflows/gis-hydro-all-nonosm-stage.yml'
   workflow_dispatch:
 
 permissions:

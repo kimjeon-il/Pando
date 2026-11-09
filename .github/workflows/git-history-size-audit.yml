@@ -1,13 +1,7 @@
 name: Read-only Git history size audit
 
+# Past source migration or repository-history audit: manual, not a release gate.
 on:
-  push:
-    branches: [maintenance/git-history-dryrun-20261013]
-    paths:
-      - '.github/workflows/git-history-size-audit.yml'
-      - 'tools/git-history-dryrun.sh'
-      - 'tools/data/git-history-dryrun.mjs'
-      - 'tools/data/library-history*.mjs'
   workflow_dispatch:
 
 permissions:

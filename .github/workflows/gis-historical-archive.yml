@@ -1,12 +1,7 @@
 name: Historical Germany 1914 HGIS source readiness
 
+# Historical/research-only source audit; manually selected, not a standing CI gate.
 on:
-  push:
-    branches: [work/gis]
-    paths:
-      - '.github/workflows/gis-historical-archive.yml'
-      - 'config/library-data.json'
-      - 'tools/historical-library/german-empire-1914-base.recipe.json'
   workflow_dispatch:
 
 permissions:

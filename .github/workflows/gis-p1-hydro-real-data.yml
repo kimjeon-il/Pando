@@ -1,14 +1,7 @@
 name: P1 Hydro complete real-data verification (no publication)
 
+# Full source reconstruction is an explicit reproducibility audit, not routine CI.
 on:
-  push:
-    branches: [ work/gis ]
-    paths:
-      - '.github/workflows/gis-p1-hydro-real-data.yml'
-      - 'tools/gis/verify-p1-hydro-publication.mjs'
-      - 'tools/gis/verify-p1-hydro-originals.mjs'
-      - 'tools/gis/hydro-selected-data.mjs'
-      - 'tools/gis/hydro-pack-decoder.mjs'
   workflow_dispatch:
 
 permissions:

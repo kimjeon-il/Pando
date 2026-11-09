@@ -14,7 +14,8 @@ import { createTerritorialFillResolver } from "./territorial-fill-style.js";
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
-export function createTerritorialLabels({ capabilities = {builtinPlaces:true,eagerBuiltinPlaces:true} } = {}) {
+export function createTerritorialLabels({ capabilities = {builtinPlaces:true,eagerBuiltinPlaces:true},
+  placeCatalog=null,placeLifetimesCatalog=null } = {}) {
   let dependencies;
   let countryOutlineCache;
   let labelLayoutMetrics;
@@ -280,10 +281,13 @@ export function createTerritorialLabels({ capabilities = {builtinPlaces:true,eag
 
   function initializeLabelLayoutMetrics() {
     (labelLayoutMetrics = {});
+    const placeManifestRef='../'+(placeCatalog||'assets/data/places/manifest.json').slice('assets/'.length);
+    const placeLifetimeRef='../'+(placeLifetimesCatalog||'assets/data/places/urban-lifetimes-v1.json').slice('assets/'.length);
     builtinPlaces = createPlaceRuntime({
       getPresentation:()=>({month:dependencies.projectState.state.timelineCursor,languages:dependencies.preferences.userPreferences.labels.place.languages}),
       admitReferences:refs=>dependencies.domains.projectDomain.admitSelectionCatalog('placeBuiltin',refs),
-      manifestUrl: dependencies.platform.runtimeAssetUrl('../data/places/manifest.json').href,
+      manifestUrl: dependencies.platform.runtimeAssetUrl(placeManifestRef).href,
+      urbanLifetimesUrl: dependencies.platform.runtimeAssetUrl(placeLifetimeRef).href,
       createWorker: () => new Worker(dependencies.platform.runtimeAssetUrl('workers/place-worker.js'), { type: 'module', name: 'pandolab-places' }),
       getProtectedIds: () => {
         const selection = dependencies.domains.selectionDomain.snapshot().selection;

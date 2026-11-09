@@ -11,6 +11,11 @@ test('one source build emits only the Viewer runtime shared with Windows reviewe
  assert.equal(Object.hasOwn(snapshot.html,'editor'),false);
  assert.ok(snapshot.assets.has('assets/js/build-meta.js'));
  assert.equal(snapshot.buildMeta.worldBundle.url,'assets/data/world/current.json');
+ assert.equal(snapshot.buildMeta.mapProject.projectId,'default-world');
+ assert.equal(snapshot.buildMeta.builtinWorld.url,snapshot.buildMeta.mapProject.resources.territorial.catalog);
+ assert.equal(snapshot.buildMeta.mapProject.resources.rivers.catalog,snapshot.buildMeta.mapProject.resources.lakes.catalog);
+ assert.equal(snapshot.buildMeta.mapProject.resources.places.catalog,'assets/data/places/manifest.json');
+ assert.ok(snapshot.viewerPaths.has(snapshot.buildMeta.mapProjectManifest.url));
  assert.match(snapshot.buildMeta.initialLandPreview.sha256,/^[a-f0-9]{64}$/);
  assert.equal(snapshot.buildMeta.initialLandPreview.sourceSha256,snapshot.buildMeta.physicalLand.sha256);
  assert.ok(snapshot.assets.has(snapshot.buildMeta.initialLandPreview.url));
@@ -38,7 +43,7 @@ test('clean LF and CRLF checkouts share identical immutable frontend bytes while
  f.put('src/app/viewer.js','export const viewer=true;\n');
  f.put('assets/vendor/NOTICE','Copyright fixture\nTerms remain unchanged.\n');
  const binary=Buffer.from([137,80,78,71,13,10,26,10,255]);
- f.put('assets/img/proof.png',binary);
+ f.put('assets/vendor/proof.png',binary);
  const lf=await buildFrontendSnapshot(f.options);
  const crlf=await buildFrontendSnapshot({...f.options,readSourceBytes:path=>{
   const bytes=readFileSync(join(f.root,path));
@@ -46,5 +51,20 @@ test('clean LF and CRLF checkouts share identical immutable frontend bytes while
  }});
  assert.equal(crlf.sourceSha256,lf.sourceSha256);
  assert.deepEqual([...crlf.assets].map(([path,row])=>[path,row.bytes]),[...lf.assets].map(([path,row])=>[path,row.bytes]));
- assert.deepEqual(crlf.assets.get('assets/img/proof.png').bytes,binary);
+ assert.deepEqual(crlf.assets.get('assets/vendor/proof.png').bytes,binary);
+});
+
+
+test('changing project content changes the selected Viewer data closure without changing engine code',async t=>{
+ const f=fixture(t);
+ const current=JSON.parse(readFileSync(join(f.root,'projects/default-world/manifest.json'),'utf8'));
+ const alternate='assets/data/places/alternate.json';
+ f.put('projects/default-world/manifest.json',JSON.stringify({...current,resources:{
+   ...current.resources,places:{catalog:alternate}}}));
+ f.metadata[alternate]={shards:{}};
+ const result=await buildFrontendSnapshot({...f.options,dataPaths:Object.keys(f.metadata)});
+ assert.equal(result.buildMeta.mapProject.resources.places.catalog,alternate);
+ assert.ok(result.viewerPaths.has(alternate));
+ assert.equal(result.viewerPaths.has('assets/data/places/manifest.json'),false);
+ assert.ok(result.viewerPaths.has(result.buildMeta.mapProjectManifest.url));
 });

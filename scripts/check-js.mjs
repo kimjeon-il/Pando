@@ -1,4 +1,4 @@
-import { readdirSync } from 'node:fs';
+import { existsSync, readdirSync } from 'node:fs';
 import { extname, join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 
@@ -9,11 +9,11 @@ function collect(path) {
   for (const entry of readdirSync(path, { withFileTypes: true })) {
     const item = join(path, entry.name);
     if (entry.isDirectory()) collect(item);
-    else if (['.js', '.mjs'].includes(extname(entry.name)) && !item.includes(`${join('shared', 'frontend', 'js', 'vendor')}`)) files.push(item);
+    else if (['.js', '.mjs'].includes(extname(entry.name))) files.push(item);
   }
 }
 
-for (const root of roots) collect(root);
+for (const root of roots) if (existsSync(root)) collect(root);
 files.push('eslint.config.js', 'playwright.config.js');
 
 for (const file of files) {

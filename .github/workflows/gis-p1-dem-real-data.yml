@@ -1,13 +1,7 @@
 name: P1 DEM full actual data and official ETOPO verification (no deployment)
 
+# Full source reconstruction is an explicit reproducibility audit, not routine CI.
 on:
-  push:
-    branches: [work/gis]
-    paths:
-      - '.github/workflows/gis-p1-dem-real-data.yml'
-      - 'tools/gis/verify-p1-dem-publication.mjs'
-      - 'tools/checks/verify-terrain-dem.mjs'
-      - 'tools/gis/terrain-dem-check.mjs'
   workflow_dispatch:
 
 permissions:

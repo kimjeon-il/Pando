@@ -1,10 +1,7 @@
 name: Optimization same-run Viewer CPU/GPU/FPS/memory A/B
 
+# Historical task acceptance or one-time publication: explicitly dispatched, not default CI.
 on:
-  push:
-    branches: [work/optimization]
-    paths:
-      - '.github/workflows/p7-runtime-ab.yml'
   workflow_dispatch:
 
 permissions:

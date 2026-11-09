@@ -1,14 +1,7 @@
 name: Hydro v0.13.2 Legacy Consumer Migration
 
+# Past source migration or repository-history audit: manual, not a release gate.
 on:
-  push:
-    branches: [ work/gis ]
-    paths:
-      - 'tools/gis/decode-hydro-connectivity.mjs'
-      - 'tools/gis/research-hydro-names.mjs'
-      - 'tools/gis/promote-hydro-names.mjs'
-      - '.github/workflows/hydro-retirement-consumers-gate.yml'
-      - 'assets/data/hydro/v0.13.2/**'
   workflow_dispatch:
 
 permissions:

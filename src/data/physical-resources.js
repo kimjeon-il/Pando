@@ -5,6 +5,7 @@ import { sharedCalculationCore } from "../document/temporal.js";
 import { timelineObjectKey } from "../document/timeline-records.js";
 import {projectResourceOverlay} from "../document/project-resource-overlay.js";
 import {loadPhysicalLandGeometry} from './physical-land-patch.js';
+import {mapProjectResourcePath} from './map-project-manifest.js';
 // Hydro v0.13.4 preserves its published 6.0/6.7/7.0/7.5 stage metadata.
 // Gate those existing stages by actual map zoom; no geometry, names, or basin
 // selection data need to be rewritten.
@@ -101,6 +102,10 @@ export function physicalWaterContextKey(rows){
   }));
 }
 export function createPhysicalResources({ buildMeta,capabilities = {terrain:true,builtinHydro:true,eagerBuiltinHydro:true} } = {}) {
+  // The same Hydro reader currently serves both river and lake layers.
+  const projectHydro=buildMeta?.mapProject?mapProjectResourcePath(buildMeta.mapProject,'rivers'):null;
+  if(buildMeta?.mapProject&&mapProjectResourcePath(buildMeta.mapProject,'lakes')!==projectHydro)
+    throw new TypeError('Current Hydro service requires a shared river/lake project catalog');
   let dependencies;
   let terrainService;
   let hydroService;
@@ -434,7 +439,8 @@ export function createPhysicalResources({ buildMeta,capabilities = {terrain:true
       fetchWithRetry: dependencies.physicalServices.fetchWithRetry,
       dataVersion: dependencies.physicalConfig.HYDRO_DATA_VERSION,
       manifestUrl: () => {
-        const manifestUrl = new URL(`hydro/v${dependencies.physicalConfig.HYDRO_DATA_VERSION}/manifest.json`, dependencies.physicalConfig.PHYSICAL_DATA_BASE_URL);
+        const manifestUrl = new URL(projectHydro?projectHydro.slice('assets/data/'.length):
+          `hydro/v${dependencies.physicalConfig.HYDRO_DATA_VERSION}/manifest.json`, dependencies.physicalConfig.PHYSICAL_DATA_BASE_URL);
         manifestUrl.searchParams.set('v', dependencies.physicalConfig.DATA_REVISION);
         return manifestUrl;
       },

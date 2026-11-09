@@ -5,6 +5,7 @@ import { territorialRootId } from "./territorial-units.js";
 import {createBuiltinWorldLoader} from "../data/builtin-world-loader.js";
 import {deviceCurrentMonth} from "./builtin-month-clock.js";
 import {createBuiltinProjectSetup} from "./project-setup.js";
+import {mapProjectResourcePath} from "../data/map-project-manifest.js";
 /** BuiltinSession: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -32,7 +33,7 @@ export function createBuiltinSession({ builtinWorldLoader = null,buildMeta } = {
     const meta=buildMeta;
     if(!meta?.dataRevision||!/^[a-f0-9]{64}$/.test(meta?.builtinWorld?.sha256||''))return null;
     return JSON.stringify([meta.dataRevision,meta.builtinWorld.sha256,
-      dependencies.platformConfigurationA.BASE_DATASET]);
+      meta.mapProjectManifest?.sha256||null,dependencies.platformConfigurationA.BASE_DATASET]);
   }
   function refreshSourceIdentity(){
     if(disposed)throw staleBuiltin();
@@ -72,8 +73,11 @@ export function createBuiltinSession({ builtinWorldLoader = null,buildMeta } = {
     const identity=refreshSourceIdentity();
     if(!builtinWorldLoader){
       const meta=buildMeta,spec=meta.builtinWorld;
+      const selected=meta.mapProject
+        ?mapProjectResourcePath(meta.mapProject,'territorial'):spec.url;
+      if(spec.url!==selected)throw new TypeError('Project territorial catalog differs from the pinned builtin resource');
       builtinWorldLoader=createBuiltinWorldLoader({
-        manifestUrl:new URL(spec.url,new URL('../../../',import.meta.url)).href,
+        manifestUrl:new URL(selected,new URL('../../../',import.meta.url)).href,
         manifestSpec:spec,dataRevision:meta.dataRevision,
       });
     }

@@ -1,19 +1,7 @@
 name: GIS OSM replacement research batch 01
 
+# Research-source evidence is an explicit, scoped audit rather than default CI.
 on:
-  push:
-    branches: [work/gis]
-    paths:
-      - 'tools/gis/verify-osm-hydro-batch01-anchors.mjs'
-      - 'tools/gis/hydro-osm-batch01-anchors.mjs'
-      - 'tools/gis/hydro-point-screen-native.mjs'
-      - 'tools/gis/hydro-numeric.mjs'
-      - 'tools/cpp/hydro/point-screen.cpp'
-      - 'tools/cpp/CMakeLists.txt'
-      - 'tools/gis/probe-finnish-hydro.mjs'
-      - 'tools/gis/bounded-source-json.mjs'
-      - 'tests/unit/geometry/hydro-source-selection.test.mjs'
-      - '.github/workflows/gis-hydro-osm-batch01-research.yml'
   workflow_dispatch:
 
 permissions:

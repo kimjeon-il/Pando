@@ -1,84 +1,85 @@
+// Generic historical geometry recipe invariants: no country/year/source pin is a unit oracle.
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import {createHash} from 'node:crypto';
+import {mkdtempSync,rmSync,writeFileSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
 import test from 'node:test';
-import { replaceRecipeGeometry, sameRecipeGeometryWithinProjectionRounding, verifySourceHashes }
-  from "../../../tools/build/build-territorial-geometry.mjs";
+import {replaceRecipeGeometry,sameRecipeGeometryWithinProjectionRounding,verifySourceHashes}
+  from '../../../tools/build/build-territorial-geometry.mjs';
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const recipe = JSON.parse(readFileSync(path.join(root, 'tools/historical-library/east-germany-1989.recipe.json'), 'utf8'));
-const lineage = JSON.parse(readFileSync(path.join(root, recipe.output), 'utf8'));
+const oldGeometry={type:'MultiPolygon',coordinates:[[[[0,0],[0,1],[1,0],[0,0]]]]};
+const newGeometry={type:'MultiPolygon',coordinates:[[[[0,0],[0,2],[2,0],[0,0]]]]};
+const referenceDate='2001-02-03';
+const id='fixture-version';
+const recipe={entityId:'state:fixture',id,referenceDate};
+const entity={
+  entityId:'state:fixture',
+  geometryVersions:[
+    {versionId:id,validFrom:referenceDate,validTo:referenceDate,geometry:oldGeometry,
+      sourceId:'original'},
+    {versionId:'earlier',validFrom:'1999-01-01',validTo:'2000-12-31',
+      geometry:oldGeometry,sourceId:'original'},
+  ],
+  sourceInfo:{title:'Original entity',license:'fixture',notes:'Original',
+    sources:[{url:'https://example.invalid/source-original',title:'Original'}],
+    importProvenance:{versionIds:{[id]:'imported-record'}},
+    geometryRecipes:[{id:'imported-record',sourceId:'original',notes:'Original'}]},
+};
+const candidateSource={id:'source:reviewed',title:'Approved candidate',license:'fixture',
+  notes:'New review',sources:[{url:'https://example.invalid/source-reviewed',title:'Review'}]};
 
-test('native recipe launcher checks every pinned source before generation', () => {
-  assert.doesNotThrow(() => verifySourceHashes(recipe, root));
-  assert.throws(() => verifySourceHashes({ sources: { changed: {
-    ...recipe.sources.amtNeuhaus, sha256: '0'.repeat(64),
-  } } }, root), /Source SHA-256 mismatch for changed/);
+test('recipe input checks selected original bytes and rejects source drift',t=>{
+  const dir=mkdtempSync(join(tmpdir(),'pando-recipe-unit-'));
+  t.after(()=>rmSync(dir,{recursive:true,force:true}));
+  const raw='{"value":"original"}\n';
+  writeFileSync(join(dir,'original.json'),raw);
+  const sources={reference:{path:'original.json',
+    sha256:createHash('sha256').update(raw).digest('hex')}};
+  assert.doesNotThrow(()=>verifySourceHashes({sources},dir));
+  assert.throws(()=>verifySourceHashes({sources:{reference:{...sources.reference,
+    sha256:'0'.repeat(64)}}},dir),/SHA-256 mismatch/);
 });
-
-test('native recipe launcher changes only the selected geometry version', () => {
-  const geometry = { type: 'MultiPolygon', coordinates: [[[[0, 0], [0, 1], [1, 0], [0, 0]]]] };
-  const before = structuredClone(lineage);
-  const result = replaceRecipeGeometry(lineage, recipe, geometry);
-  const version = result.geometryVersions.find((item) => item.versionId === recipe.id);
-  assert.deepEqual(version.geometry, geometry);
-  assert.deepEqual(lineage, before, 'candidate generation must not mutate the source');
-  version.geometry = before.geometryVersions.find((item) => item.versionId === recipe.id).geometry;
-  assert.deepEqual(result, before, 'all curated identities, metadata, other versions and relations must survive');
+test('recipe changes only the selected version and never mutates accepted source',()=>{
+  const before=structuredClone(entity),result=replaceRecipeGeometry(entity,recipe,newGeometry);
+  assert.deepEqual(entity,before);
+  assert.deepEqual(result.geometryVersions[0].geometry,newGeometry);
+  assert.deepEqual(result.geometryVersions[1],before.geometryVersions[1]);
+  result.geometryVersions[0].geometry=before.geometryVersions[0].geometry;
+  assert.deepEqual(result,before);
+  assert.throws(()=>replaceRecipeGeometry(entity,{...recipe,entityId:'state:wrong'},
+    newGeometry),/identity mismatch/);
+  assert.throws(()=>replaceRecipeGeometry(entity,{...recipe,referenceDate:'2001-02-04'},
+    newGeometry),/date mismatch/);
 });
-
-test('projection rounding accepts submicroscopic drift while rejecting changed geometry', () => {
-  const stored = lineage.geometryVersions.find((version) => version.versionId === recipe.id).geometry;
-  const rounded = structuredClone(stored);
-  rounded.coordinates[0][0][0][0] += 1e-12;
-  assert.equal(sameRecipeGeometryWithinProjectionRounding(rounded, stored), true);
-  rounded.coordinates[0][0][0][0] += 1e-8;
-  assert.equal(sameRecipeGeometryWithinProjectionRounding(rounded, stored), false);
-  rounded.coordinates[0][0].pop();
-  assert.equal(sameRecipeGeometryWithinProjectionRounding(rounded, stored), false);
+test('projection tolerance permits only finite, unchanged polygon structures',()=>{
+  const almost=structuredClone(oldGeometry);
+  almost.coordinates[0][0][0][0]+=1e-12;
+  assert.equal(sameRecipeGeometryWithinProjectionRounding(almost,oldGeometry),true);
+  almost.coordinates[0][0][0][0]+=1e-8;
+  assert.equal(sameRecipeGeometryWithinProjectionRounding(almost,oldGeometry),false);
+  almost.coordinates[0][0].pop();
+  assert.equal(sameRecipeGeometryWithinProjectionRounding(almost,oldGeometry),false);
+  assert.equal(sameRecipeGeometryWithinProjectionRounding(
+    {type:'Polygon',coordinates:oldGeometry.coordinates},oldGeometry),false);
 });
-
-// The approved rollback must survive a later explicit recipe regeneration.
-test('DDR recipe retains the original baseline and excludes rejected precision supplements', () => {
-  assert.deepEqual(recipe.operations.map(operation => operation.id), [
-    'east-five-states-and-berlin', 'west-berlin-mask',
-    'modern-east-with-amt-neuhaus', 'gdr-candidate', 'gdr-final',
-  ]);
-  assert.deepEqual(Object.keys(recipe.sources).sort(), [
-    'amtNeuhaus', 'berlinLand', 'berlinWall', 'canonicalCountries', 'naturalEarthAdmin1',
-  ]);
-  assert.equal(Object.hasOwn(recipe, 'boundarySupplement'), false);
-  assert.equal(Object.hasOwn(recipe, 'resultSource'), false);
-  assert.equal(recipe.output, 'assets/data/territorial-entities/source/countries/state-deutsche-demokratische-republik.json');
+test('recipe provenance updates only the reviewed version and replaces matching source URLs',()=>{
+  const withSource={...recipe,resultSource:candidateSource,boundarySupplement:{kind:'reviewed'}};
+  const before=structuredClone(entity),result=replaceRecipeGeometry(entity,withSource,newGeometry);
+  assert.deepEqual(entity,before);
+  assert.equal(result.geometryVersions[0].sourceId,candidateSource.id);
+  assert.deepEqual(result.geometryVersions[0].boundarySupplement,withSource.boundarySupplement);
+  assert.deepEqual(result.geometryVersions[1],before.geometryVersions[1]);
+  assert.equal(result.sourceInfo.title,candidateSource.title);
+  assert.equal(result.sourceInfo.geometryRecipes[0].sourceId,candidateSource.id);
+  assert.deepEqual(result.sourceInfo.sources,[...before.sourceInfo.sources,...candidateSource.sources]);
+  assert.deepEqual(replaceRecipeGeometry(result,withSource,newGeometry),result);
 });
-
-test('native recipe launcher preserves identity and curated fields while recording the selected geometry provenance', () => {
-  const recipe = {
-    ...JSON.parse(readFileSync(path.join(root, 'tools/historical-library/east-germany-1989.recipe.json'), 'utf8')),
-    boundarySupplement: { testOnly: true },
-    resultSource: {
-      id: 'test-only-provenance', title: 'Test fixture', license: 'Test fixture', notes: 'Test-only source update',
-      sources: [{ url: 'https://example.invalid/test-only-provenance', title: 'Test fixture' }],
-    },
-  };
-  const geometry = { type: 'MultiPolygon', coordinates: [[[[0, 0], [0, 1], [1, 0], [0, 0]]]] };
-  const before = structuredClone(lineage);
-  const result = replaceRecipeGeometry(lineage, recipe, geometry);
-  const version = result.geometryVersions.find((item) => item.versionId === recipe.id);
-  assert.deepEqual(version.geometry, geometry);
-  assert.deepEqual(lineage, before, 'candidate generation must not mutate the source');
-  assert.equal(version.sourceId, recipe.resultSource.id);
-  assert.deepEqual(version.boundarySupplement, recipe.boundarySupplement);
-  assert.equal(result.sourceInfo.sources.filter(source=>source.url===recipe.resultSource.sources[0].url).length,1);
-  assert.deepEqual(replaceRecipeGeometry(result,recipe,geometry),result,'provenance generation must be idempotent');
-  for(const key of ['sourceId','notes','boundarySupplement']) {
-    const original=before.geometryVersions.find((item)=>item.versionId===recipe.id);
-    if(Object.hasOwn(original,key))version[key]=original[key];else delete version[key];
-  }
-  result.sourceInfo=before.sourceInfo;
-  version.geometry = before.geometryVersions.find((item) => item.versionId === recipe.id).geometry;
-  assert.deepEqual(result, before, 'all curated identities, metadata, other versions and relations must survive');
+test('review evidence is attached without changing geometry identity or the source master',()=>{
+  const review={schemaVersion:1,status:'passed',geometrySha256:'fixture-digest'};
+  const before=structuredClone(entity);
+  const result=replaceRecipeGeometry(entity,{...recipe,displayDetailReview:review},newGeometry);
+  assert.deepEqual(entity,before);
+  assert.deepEqual(result.geometryVersions[0].historicalProvenance.displayDetailReview,review);
+  assert.deepEqual(result.sourceInfo,before.sourceInfo);
 });
-
-test('a recipe can attach its reviewed derivative receipt without altering the preserved source master',()=>{const geometry={type:'MultiPolygon',coordinates:[[[[0,0],[0,1],[1,0],[0,0]]]]},review={schemaVersion:1,status:'passed',geometrySha256:'fixture-output-digest'},withReceipt={...recipe,displayDetailReview:review},before=structuredClone(lineage),candidate=replaceRecipeGeometry(lineage,withReceipt,geometry);assert.deepEqual(candidate.geometryVersions.find(v=>v.versionId===recipe.id).historicalProvenance.displayDetailReview,review);assert.deepEqual(lineage,before);assert.deepEqual(candidate.sourceInfo,lineage.sourceInfo);});

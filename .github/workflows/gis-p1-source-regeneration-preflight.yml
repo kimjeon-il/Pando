@@ -1,12 +1,7 @@
 name: P1 source-to-output regeneration prerequisites (read-only)
 
+# Full source reconstruction is an explicit reproducibility audit, not routine CI.
 on:
-  push:
-    branches: [work/gis]
-    paths:
-      - '.github/workflows/gis-p1-source-regeneration-preflight.yml'
-      - 'tools/gis/build-hydro.mjs'
-      - 'tools/gis/terrain-dem-build.mjs'
   workflow_dispatch:
 
 permissions:

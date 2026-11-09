@@ -1,4 +1,4 @@
-import {mkdirSync,writeFileSync} from 'node:fs';
+import {mkdirSync,writeFileSync,readFileSync} from 'node:fs';
 import {isolatedTestWorkspace} from './check-workspace-fixture.mjs';
 import {createHash} from 'node:crypto';
 import {gzipSync} from 'node:zlib';
@@ -9,6 +9,7 @@ export function frontendFixture(t){
  const root=isolatedTestWorkspace(t,'pando-frontend-build-');
  const put=(path,text)=>{const file=join(root,path);mkdirSync(dirname(file),{recursive:true});writeFileSync(file,text);};
  put('package.json',JSON.stringify({version:'1.0.0'}));
+ put('projects/default-world/manifest.json',readFileSync(new URL('../../projects/default-world/manifest.json',import.meta.url)));
  for(const path of new Set([...UI_VIEWER_SOURCES,'assets/css/app.css','assets/css/viewer.css']))put(path.replace('assets/css/','src/ui/css/'),'.x { color: red; }');
  put('src/rendering/resource-update-policy.js','export const value=1;');
  put('src/app/viewer.js','export const viewer=true;');
@@ -25,6 +26,7 @@ export function frontendFixture(t){
   'assets/data/physical-land/v1/manifest.json':{sourceSha256:'land',asset:physicalAsset},
   'assets/data/hydro/v0.13.4/manifest.json':{container:{url:'data.bin'},shards:[]},
   'assets/data/places/manifest.json':{shards:{}},
+  'assets/data/places/urban-lifetimes-v1.json':{entries:[]},
   'assets/data/territorial-entities/generated/v2/index.json':{entities:[]},
   'assets/data/builtin-world/generated/v1/index.json':{schema:'pandolab-builtin-world',schemaVersion:2,storageLayout:'descriptor-geometries-v1',geometryAssets:[],entities:[],template:{}},
   'assets/data/prepared-polygons/generated/v2/manifest.json':{meshes:{},algorithmSourceSha256:'mesh'},

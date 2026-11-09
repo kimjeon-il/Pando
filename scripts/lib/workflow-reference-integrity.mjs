@@ -5,11 +5,11 @@ import { parse } from 'yaml';
 
 // Source entrypoints, not generated runtime assets or arbitrary data files.
 // A path must end in an executable-source extension (never .json, .js.map, etc.).
-const ENTRYPOINT = /(?<![\w./\\-])(?:\.\/)?(?:apps|scripts|tools|tests|shared|contracts|\.github)\/[\w.*\/-]+\.(?:mjs|cjs|js|jsx|ts|tsx|py|sh|bash|ps1)(?![\w.])/g;
+const ENTRYPOINT = /(?<![\w./\\-])(?:\.\/)?(?:src|apps|scripts|tools|tests|shared|contracts|\.github)\/[\w.*\/-]+\.(?:mjs|cjs|js|jsx|ts|tsx|py|sh|bash|ps1)(?![\w.])/g;
 const DIRECT_ASSET_EXEC = /(?:^|[;&|\n])\s*(?:node|python3?|bash|sh|pwsh)\s+(?:--[\w=-]+\s+)*((?:\.\/)?assets\/[\w./-]+\.(?:mjs|cjs|js|py|sh|ps1))(?![\w.])/g;
 const RETIRED_PRODUCT = /(?:^|[^a-zA-Z0-9_])apps\/(?:editor|android|windows)\//g;
 const MATRIX = /\x24\{\{\s*matrix\.([a-zA-Z_]\w*)\s*\}\}/g;
-const COPY = /\bcp\s+((?:\.\/)?(?:apps|scripts|tools|tests|shared|contracts)\/[\w./-]+)\s+((?:\.\/)?(?:apps|scripts|tools|tests|shared|contracts)\/[\w./-]+)/g;
+const COPY = /\bcp\s+((?:\.\/)?(?:src|apps|scripts|tools|tests|shared|contracts)\/[\w./-]+)\s+((?:\.\/)?(?:src|apps|scripts|tools|tests|shared|contracts)\/[\w./-]+)/g;
 const SOURCE_EXT = /\.(?:mjs|cjs|js|jsx|ts|tsx|py|sh|bash|ps1)$/;
 
 const pathInRoot = (root, path) => {
@@ -43,7 +43,7 @@ function sourceLines(run) {
 
 // Expand only matrix substitutions inside an executable *path*. A matrix
 // argument such as --shard current/total belongs to the runner, not a file.
-const EXECUTABLE_MATRIX_PATH = /(?:\.\/)?(?:apps|scripts|tools|tests|shared|contracts|\.github)\/(?:[\w./-]|\$\{\{\s*matrix\.[a-zA-Z_]\w*\s*\}\})+\.(?:mjs|cjs|js|jsx|ts|tsx|py|sh|bash|ps1)\b/g;
+const EXECUTABLE_MATRIX_PATH = /(?:\.\/)?(?:src|apps|scripts|tools|tests|shared|contracts|\.github)\/(?:[\w./-]|\$\{\{\s*matrix\.[a-zA-Z_]\w*\s*\}\})+\.(?:mjs|cjs|js|jsx|ts|tsx|py|sh|bash|ps1)\b/g;
 
 function matrixVariants(command, job, errors, file, location) {
   const executablePaths = [...command.matchAll(EXECUTABLE_MATRIX_PATH)].map(match => match[0]);

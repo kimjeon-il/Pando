@@ -1,6 +1,7 @@
 import {builtinCountryAssets} from './builtin-country-files.js';
 import {regionalLandLayout} from './physical-land-patch.js';
 import {preparedMeshDeltaLayout} from './prepared-mesh-delta.js';
+import {MAP_PROJECT_ROLES,validateMapProjectManifest} from './map-project-manifest.js';
 
 /** All independently source-verified name receipts that belong with a Hydro release.
  * Prehistoric/old production manifests may only have the 42-system receipt.
@@ -23,7 +24,7 @@ function hydroSourceReceiptFiles(manifest){
 }
 
 
-export function collectRuntimeDataAssets({availablePaths,readManifest,entryPaths=[],verifyAsset=()=>{}}){
+export function collectRuntimeDataAssets({availablePaths,readManifest,entryPaths=[],projectManifest=null,verifyAsset=()=>{}}){
  const available=new Set(availablePaths),selected=new Set();
  const include=(path,spec)=>{
   if(typeof path!=='string'||!path.startsWith('assets/data/')||!/^[-A-Za-z0-9_./]+$/.test(path)||path.split('/').some(part=>!part||part==='.'||part==='..'))throw Error('Invalid runtime data dependency: '+path);
@@ -33,15 +34,20 @@ export function collectRuntimeDataAssets({availablePaths,readManifest,entryPaths
  };
   // Current runtime manifests own data dependencies. Source/provenance fields
   // describe how data was built and must not publish the original GIS inputs.
-  const manifests=[
-    'assets/data/world/current.json',
-    'assets/data/builtin-world/generated/v1/index.json',
-    'assets/data/prepared-polygons/generated/v2/manifest.json',
-    'assets/data/hydro/v0.13.4/manifest.json',
-    'assets/data/places/manifest.json',
-    'assets/data/terrain-preview/v0.13.3-p2/manifest.json',
-    'assets/data/physical-land/v1/manifest.json',
+  // Product builds use the project selection. Legacy archive queries without
+  // one keep their existing scope until the publishing tools are migrated.
+  const legacy=[
+    ['world','assets/data/world/current.json'],
+    ['territorial','assets/data/builtin-world/generated/v1/index.json'],
+    ['preparedMeshes','assets/data/prepared-polygons/generated/v2/manifest.json'],
+    ['rivers','assets/data/hydro/v0.13.4/manifest.json'],
+    ['places','assets/data/places/manifest.json'],
+    ['placeLifetimes','assets/data/places/urban-lifetimes-v1.json'],
+    ['terrain','assets/data/terrain-preview/v0.13.3-p2/manifest.json'],
+    ['physicalLand','assets/data/physical-land/v1/manifest.json'],
   ];
+  const project=projectManifest?validateMapProjectManifest(projectManifest):null;
+  const catalogs=project?MAP_PROJECT_ROLES.map(role=>[role,project.resources[role].catalog]):legacy;
   const dataAsset=(url,base,spec)=>{
     if(spec?.storageLayout!==undefined){
       if(![regionalLandLayout,preparedMeshDeltaLayout].includes(spec.storageLayout)||spec.base?.storageLayout!==undefined||!spec.base||!spec.replacement)throw Error('Invalid composed resource dependencies');
@@ -51,30 +57,37 @@ export function collectRuntimeDataAssets({availablePaths,readManifest,entryPaths
     return include(url.startsWith('assets/')?url:base+url,spec);
   };
   for (const path of entryPaths) if (available.has(path)) include(path);
-  for(const path of manifests){
-    if(!available.has(path))continue;
+  const visited=new Set();
+  for(const [role,path] of catalogs){
+    if(visited.has(path))continue;
+    visited.add(path);
+    if(!available.has(path)){
+      if(project)throw Error('Missing project-owned catalog: '+role+' '+path);
+      continue;
+    }
     include(path);
+    if(role==='placeLifetimes')continue;
     const manifest=readManifest(path),base=path.slice(0,path.lastIndexOf('/')+1);
-    if(path==='assets/data/world/current.json'){
+    if(role==='world'){
       for(const item of Object.values(manifest.assets||{}))dataAsset(item.url,'assets/data/',item);
       for(const url of Object.values(manifest.compatibility?.sharedBoundaries||{}))dataAsset(url,'assets/data/');
-    }else if(path.includes('/builtin-world/')){
+    }else if(role==='territorial'){
       for(const item of builtinCountryAssets(manifest))dataAsset(item.file,base,item);
     }
-    else if(path.includes('/prepared-polygons/')){
+    else if(role==='preparedMeshes'){
       for(const item of Object.values(manifest.meshes))dataAsset(item.url,base,item);
-    }else if(path.includes('/hydro/')){
+    }else if(role==='rivers'||role==='lakes'){
       dataAsset(manifest.container.url,base,manifest.container);
       for(const item of [manifest.index,manifest.metadata?.core,manifest.metadata?.detail,...manifest.shards])if(item?.url)dataAsset(item.url,base,item);
       for(const receipt of hydroSourceReceiptFiles(manifest))dataAsset(receipt,base);
-    }else if(path.includes('/places/')){
+    }else if(role==='places'){
       for(const item of Object.values(manifest.shards))dataAsset(item.url,base,item);
-    }else if(path.includes('/physical-land/')){
+    }else if(role==='physicalLand'){
       dataAsset(manifest.asset.url,base,manifest.asset);
       for(const context of manifest.waterObjects?.geometries||[])
         for(const item of [context.land,context.asset])dataAsset(item.url,'assets/data/',item);
     }
-    else if(path.includes('/terrain-preview/')){
+    else if(role==='terrain'){
       for(const key of Object.keys(manifest.tiles))dataAsset(key,base);
     }
   }

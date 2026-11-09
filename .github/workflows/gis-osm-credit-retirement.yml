@@ -1,13 +1,7 @@
 name: GIS OSM credit retirement proof (read-only)
 
+# Research-source evidence is an explicit, scoped audit rather than default CI.
 on:
-  push:
-    branches: [ work/gis ]
-    paths:
-      - 'tools/gis/audit-osm-credit-removal.mjs'
-      - 'tools/gis/baikonur-2019-exclusions.mjs'
-      - 'tools/gis/osm-independent-river-source-inventory.json'
-      - '.github/workflows/gis-osm-credit-retirement.yml'
   workflow_dispatch:
 
 permissions:
