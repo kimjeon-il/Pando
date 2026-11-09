@@ -360,3 +360,13 @@ test('Canvas Worker packets omit equivalent immutable geometry but resend change
   assert.ok(packets.delta([packet('revision:two', [0, 0, 2, 0, 2, 2, 0, 0])], 'scene')[0].ringCoordinates,
     'a new Worker generation must receive complete packet bytes');
 });
+
+test('GPU upload completion classifies an indexed immutable scene without rescanning packets', () => {
+  const scene = { get polygons() { throw new Error('unnecessary polygon rescan'); },
+    get strokes() { throw new Error('unnecessary stroke rescan'); } };
+  const indexed = new Set(['overlay:one', 'scene-stroke:two']);
+  assert.equal(classifyGpuResourceReady('overlay:one', scene, undefined, indexed), 'scene');
+  assert.equal(classifyGpuResourceReady('scene-stroke:two', scene, undefined, indexed), 'scene');
+  assert.equal(classifyGpuResourceReady('selection:one', scene, undefined, indexed), 'interaction');
+  assert.equal(classifyGpuResourceReady('country-boundary:one', scene, undefined, indexed), 'country-boundary');
+});
