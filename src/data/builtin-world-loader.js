@@ -3,6 +3,7 @@ import {parseTemporal,temporalContains,temporalMonthEnd,normalizeTemporalInterva
 import {builtinCountryAssets,validateBuiltinReadIndex} from "./builtin-country-files.js";
 import {createBuiltinProjectSetup} from "../document/project-setup.js";
 import {PROJECT_SCHEMA_VERSION} from "../runtime/version-contract.js";
+import {validateMapProjectManifest,mapProjectResourcePath} from "./map-project-manifest.js";
 
 // The verified country catalog provides source coverage. The project retains
 // every original temporal interval; C++ owns month-end selection.
@@ -55,8 +56,21 @@ export function assembleBuiltinWorld(index,countries,month){
  project.projectSetup=createBuiltinProjectSetup(month);
  return project;
 }
-export function createBuiltinWorldLoader({manifestUrl,manifestSpec,dataRevision,fetchFn=globalThis.fetch,cacheStorage=globalThis.caches}){
- if(!manifestUrl||!manifestSpec?.sha256||!dataRevision)throw new Error('Builtin country catalog integrity metadata is required');
+export function createBuiltinWorldLoader({manifestUrl,manifestSpec,dataRevision,projectManifest=null,catalogReceipt=null,
+  fetchFn=globalThis.fetch,cacheStorage=globalThis.caches}){
+  if(!manifestUrl||!manifestSpec?.sha256||!dataRevision)throw new Error('Builtin country catalog integrity metadata is required');
+  const selectedProject=projectManifest===null?null:validateMapProjectManifest(projectManifest);
+  if(selectedProject){
+    const catalog=mapProjectResourcePath(selectedProject,selectedProject.document.sourceRole);
+    if(manifestSpec.url!==catalog||catalogReceipt?.catalog!==catalog
+      ||catalogReceipt?.sha256!==manifestSpec.sha256)
+      throw new TypeError('Project territorial catalog differs from the verified builtin resource');
+  }
+  // This describes immutable content, not the runtime document. C++ retains
+  // the sole authority to admit an actual documentId and dated world.
+  const contentProject=selectedProject?Object.freeze({
+    manifest:selectedProject,dataRevision,catalogSha256:manifestSpec.sha256,
+  }):null;
  const base=new URL(manifestUrl,globalThis.location?.href),parse=bytes=>JSON.parse(new TextDecoder().decode(bytes));
  const assetOptions={dataRevision,fetchFn,cacheStorage,resolveUrl:spec=>new URL(spec.url,base).href};
  // The mutable catalog belongs to a revision. Content-hashed countries do not:
@@ -166,7 +180,7 @@ export function createBuiltinWorldLoader({manifestUrl,manifestSpec,dataRevision,
   project.geometries=await loadAll([...required.values()],async asset=>({id:asset.id,version:asset.version,source:await loadGeometry(asset)}));
   if(waitForIdle)await waitForIdle();
   assertCurrent();
-  return {project,fingerprint:`${manifestSpec.sha256}:complete-timeline`};
+  return {project,fingerprint:`${manifestSpec.sha256}:complete-timeline`,contentProject};
  }
  return Object.freeze({loadIndex,loadProject,loadGeometryResources,geometryState});
 }
