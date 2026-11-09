@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import { normalizeTemporalInterval, parseTemporal } from "../../src/document/temporal.js";
 import { normalizeCountryCollection } from "../../src/document/country-feature.js";
 import {classifyBuiltinCountries} from '../gis/builtin-country-classification.mjs';
-import { builtinSubunitSourceId } from "../../src/document/builtin-subunits.js";
+import { builtinSubunitSourceId } from "../../src/document/territorial-display-identity.js";
 import {loadBuiltinDisplayPolicy} from "../gis/builtin-display-policy.mjs";
 import { createTerritorialFeature, normalizeTerritorialIdentities, TERRITORIAL_IDENTITY_FIELDS } from "../../src/document/territorial-units.js";
 import { createCanonicalGeometryVersionStore as createGeometryVersionStore } from "../../src/geometry/geometry-version-store.js";
