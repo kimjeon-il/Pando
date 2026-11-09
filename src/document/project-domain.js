@@ -242,6 +242,11 @@ export function createProjectDomain({
       const stale=()=>Object.assign(new Error('Temporal candidate belongs to an older project request.'),
         {code:'PL-CORE-STALE',name:'AbortError',cancelled:true});
       if(!current())throw stale();
+      // A date change never rebuilds or re-identifies the active document.
+      // Legacy transition requests must use the common C++ cursor instead.
+      if(transition)throw Object.assign(
+        new TypeError('Project date changes must reuse the accepted C++ timeline cursor.'),
+        {code:'PL-TIMELINE-REPLACE-RETIRED'});
       if(typeof commandOwner?.temporalSourcePrepare!=='function'
         ||typeof commandOwner?.temporalCandidatePrepare!=='function')
         throw new TypeError('Core temporal source/candidate owner is required.');
@@ -250,13 +255,9 @@ export function createProjectDomain({
       try {
         source=await commandOwner.temporalSourcePrepare(facts,{dataRevision,manifestSha256,isCurrent:current});
         if(!current())throw stale();
-        // Only an explicit builtin Viewer date change retains the document ID.
-        // Native preparation validates the clean builtin owner and immutable
-        // geometry versions before constructing its delta; file/editor loads
-        // keep their existing independent-document admission.
-        if(transition&&(!readOnly||snapshot().projectSetup?.sourceMode!=='builtin'))
-          throw new TypeError('Temporal identity reuse requires the active builtin Viewer.');
-        const documentId=transition?snapshot().documentId:globalThis.crypto.randomUUID();
+        // Only independent-document opening allocates another document identity.
+        // Existing projects navigate dates by commandOwner.setTimelineCursor.
+        const documentId=globalThis.crypto.randomUUID();
         const candidate=await commandOwner.temporalCandidatePrepare({
           sourceId:source.sourceId,targetMonth:facts.sourceMonth,
           sourceFingerprint:source.fingerprint,setup,documentId,

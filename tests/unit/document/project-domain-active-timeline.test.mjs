@@ -60,3 +60,22 @@ test('file and manifest project adoption share a C++ document scope and expose t
  assert.deepEqual(views,['load','builtin','load','restore']);
  project.dispose();
 });
+
+
+test('legacy sourceMode cannot re-enable whole-project reload for a dated C++ cursor',async()=>{
+ let preparations=0;
+ const domain=createProjectDomain({productMode:'viewer',
+  commandOwner:{state:()=>({epoch:1,timelineCursor:'2026-11'}),
+   temporalSourcePrepare:async()=>{preparations++;throw Error('must not prepare');},
+   temporalCandidatePrepare:async()=>{preparations++;throw Error('must not build');}},
+  documentModel:{snapshot:()=>({documentId:'accepted-document',
+   projectSetup:{sourceMode:'builtin',initialMonth:'2026-11',timelineRange:null}})},
+  readBuiltinSelectionCatalogs:()=>[],
+ });
+ try{
+  await assert.rejects(domain.prepareTemporalBuiltin({sourceMonth:'2025-11'},
+   {sourceMode:'builtin'},{transition:true}),{code:'PL-TIMELINE-REPLACE-RETIRED'});
+  assert.equal(preparations,0,'the rejected date path never starts a native source rebuild');
+  assert.equal(domain.snapshot().documentId,'accepted-document');
+ }finally{domain.dispose();}
+});

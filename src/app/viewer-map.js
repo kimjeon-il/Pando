@@ -270,7 +270,9 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
     if(!await renderer.prepareTemporalCountrySource(rootFeatures)||generation!==updateGeneration)return;
     let preparedMesh = null;
     const needsMesh = rootGeometryDirty || renderer.getRuntimeState().projectRenderBlocked;
-    if (needsMesh && session.documentModel.snapshot().projectSetup?.sourceMode === 'builtin') {
+    // Prepared scene admission validates geometry, hierarchy and immutable hashes.
+    // A project without a matching prepared asset uses the same Core-backed mesh path.
+    if (needsMesh) {
       preparedMesh = await renderer.loadBuiltinMeshForScene(rootFeatures, {isCurrent: () => generation === updateGeneration});
       if (generation !== updateGeneration) return;
     }
