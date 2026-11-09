@@ -1,19 +1,6 @@
 name: Objects Soviet library acceptance
+# Historical task acceptance or one-time publication: explicitly dispatched, not default CI.
 on:
-  push:
-    branches: [work/objects]
-    paths:
-      - '.github/workflows/objects-soviet-library-acceptance.yml'
-      - 'tools/gis/geometry-validation.js'
-      - 'tools/gis/territorial-batch-calculation.js'
-      - 'assets/js/modules/app-library-assembly.js'
-      - 'assets/js/modules/gis-import-transaction.js'
-      - 'assets/js/modules/gis-workflow-controller.js'
-      - 'assets/js/modules/import-service.js'
-      - 'assets/js/workers/gis-geometry-worker.js'
-      - 'tests/unit/geometry/gis-geometry-worker.test.mjs'
-      - 'tests/unit/document/territorial-entity-repository.test.mjs'
-      - 'tests/browser/document/viewer-calendar.spec.mjs'
   workflow_dispatch:
 permissions:
   contents: write

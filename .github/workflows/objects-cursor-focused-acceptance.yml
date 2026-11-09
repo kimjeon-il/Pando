@@ -1,17 +1,6 @@
 name: Objects cursor focused acceptance
+# Historical task acceptance or one-time publication: explicitly dispatched, not default CI.
 on:
-  push:
-    branches: [work/objects, work/integration-objects-20261017]
-    paths:
-      - '.github/workflows/objects-cursor-focused-acceptance.yml'
-      - 'shared/core/**'
-      - 'src/document/native/bindings/session-bindings.cpp'
-      - 'assets/wasm/pandoeditor-core.manifest.json'
-      - 'src/document/core-document-runtime.js'
-      - 'tests/browser/document/viewer-calendar.spec.mjs'
-      - 'tests/browser/document/viewer-review-e4.spec.mjs'
-      - 'tests/unit/document/core-document-runtime.test.mjs'
-      - 'tests/unit/document/core-document-client.test.mjs'
   workflow_dispatch:
 permissions:
   contents: read

@@ -1,11 +1,8 @@
 name: Apply verified dated country names and flags with preserved historical polygons
 # Follow-up: use the already published name/flag library revision; assert the dated editor snapshot has committed before checking formal names.
 
+# Historical task acceptance or one-time publication: explicitly dispatched, not default CI.
 on:
-  push:
-    branches: [work/gis]
-    paths:
-      - '.github/workflows/gis-2000-2026-attribute-history.yml'
   workflow_dispatch:
 
 permissions:

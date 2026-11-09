@@ -1,18 +1,7 @@
 name: Hydro v0.13.4 live-cutover integration gate
 
+# Historical task acceptance or one-time publication: explicitly dispatched, not default CI.
 on:
-  push:
-    branches: [work/gis]
-    paths:
-      - '.github/workflows/gis-hydro-v0134-integration-gate.yml'
-      - 'scripts/lib/product-assets.mjs'
-      - 'scripts/lib/frontend-build.mjs'
-      - 'tools/build/stage-monorepo-pages.mjs'
-      - 'tests/unit/document/monorepo-pages-staging.test.mjs'
-      - 'tools/checks/check-current-hydro-layout.mjs'
-      - 'src/app/viewer.js'
-      - 'tests/unit/build/frontend-build.test.mjs'
-      - 'config/library-data.json'
   workflow_dispatch:
 
 permissions:

@@ -1,10 +1,7 @@
 name: Apply 2000–2026 territorial reuse to GIS working data
 
+# Historical task acceptance or one-time publication: explicitly dispatched, not default CI.
 on:
-  push:
-    branches: [work/gis]
-    paths:
-      - '.github/workflows/gis-post-2000-territorial-links.yml'
   workflow_dispatch:
 
 permissions:
