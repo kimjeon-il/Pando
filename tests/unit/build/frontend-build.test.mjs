@@ -88,3 +88,18 @@ test('a separately selected project owns the complete published map and place re
  f.put('projects/wrong-name/manifest.json',JSON.stringify(primary));
  await assert.rejects(buildFrontendSnapshot({...f.options,projectId:'wrong-name'}),/source identity mismatch/);
 });
+
+
+test('selected Hydro source version and land/terrain pairing are validated before publication',async t=>{
+ const f=fixture(t);
+ const hydro='assets/data/hydro/v0.13.4/manifest.json';
+ f.metadata[hydro]={...f.metadata[hydro],version:'alternate-release'};
+ const other=await buildFrontendSnapshot(f.options);
+ assert.equal(other.buildMeta.hydroCatalogVersion,'alternate-release');
+ f.metadata[hydro]={...f.metadata[hydro],schema:'invalid'};
+ await assert.rejects(buildFrontendSnapshot(f.options),/Hydro catalog/);
+ f.metadata[hydro]={...f.metadata[hydro],schema:'pandolab-water-shards-v5'};
+ const terrain='assets/data/terrain-preview/v0.13.3-p2/manifest.json';
+ f.metadata[terrain]={...f.metadata[terrain],sourceDem:{landMaskSha256:'other-land'}};
+ await assert.rejects(buildFrontendSnapshot(f.options),/Land derivative must match pinned terrain/);
+});

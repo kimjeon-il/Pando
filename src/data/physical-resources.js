@@ -435,7 +435,7 @@ export function createPhysicalResources({ buildMeta,capabilities = {terrain:true
 
     if(capabilities.builtinHydro)(hydroService = (0, dependencies.physicalServices.createHydroService)({
       fetchWithRetry: dependencies.physicalServices.fetchWithRetry,
-      dataVersion: dependencies.physicalConfig.HYDRO_DATA_VERSION,
+      dataVersion: buildMeta?.hydroCatalogVersion||dependencies.physicalConfig.HYDRO_DATA_VERSION,
       manifestUrl: () => {
         const manifestUrl = new URL(projectHydro?projectHydro.slice('assets/data/'.length):
           `hydro/v${dependencies.physicalConfig.HYDRO_DATA_VERSION}/manifest.json`, dependencies.physicalConfig.PHYSICAL_DATA_BASE_URL);

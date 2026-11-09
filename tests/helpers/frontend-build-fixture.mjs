@@ -24,7 +24,7 @@ export function frontendFixture(t){
   'assets/data/world/current.json':{assets:{}},
   'assets/data/terrain-preview/v0.13.3-p2/manifest.json':{sourceDem:{landMaskSha256:'land'},tiles:{}},
   'assets/data/physical-land/v1/manifest.json':{sourceSha256:'land',asset:physicalAsset},
-  'assets/data/hydro/v0.13.4/manifest.json':{container:{url:'data.bin'},shards:[]},
+  'assets/data/hydro/v0.13.4/manifest.json':{schema:'pandolab-water-shards-v5',version:'0.13.4',container:{url:'data.bin'},shards:[]},
   'assets/data/places/manifest.json':{shards:{}},
   'assets/data/places/urban-lifetimes-v1.json':{entries:[]},
   'assets/data/territorial-entities/generated/v2/index.json':{entities:[]},

@@ -96,6 +96,10 @@ export async function buildFrontendSnapshot({root=process.cwd(),sourceCommit,rea
  const metadata=Object.fromEntries(metadataPaths.map(path=>[path,JSON.parse(readPinnedData(path))]));
  const land=metadata[resource('physicalLand')],terrain=metadata[resource('terrain')];
  assert.equal(land.sourceSha256,terrain.sourceDem.landMaskSha256,'Land derivative must match pinned terrain');
+ const hydro=metadata[resource('rivers')];
+ if(hydro?.schema!=='pandolab-water-shards-v5'||typeof hydro.version!=='string'||!hydro.version||
+   !hydro.container?.url||!Array.isArray(hydro.shards))
+   throw new TypeError('Selected project Hydro catalog is not a supported immutable shard manifest');
  const dataRevision='data-'+hash(JSON.stringify([mapProject.projectId,mapProject.resources,
    metadataPaths.map(path=>[path,stable(metadata[path])])])).slice(0,32);
  const initialLandPreview=createInitialLandPreviewAsset(readPinnedData(land.asset.url),land.asset);
@@ -108,7 +112,7 @@ export async function buildFrontendSnapshot({root=process.cwd(),sourceCommit,rea
    compressedBytes:projectBytes.length,decodedBytes:projectBytes.length,sha256:hash(projectBytes)};
  const builtinPath=resource('territorial'),preparedPath=resource('preparedMeshes');
  const buildMeta={appVersion,buildId,assetRevision,dataRevision,sourceCommit,dataCommit:pinned?.revision||null,...resourceProfile?{resourceProfile}:{},
-   mapProject,mapProjectManifest,
+   mapProject,mapProjectManifest,hydroCatalogVersion:hydro.version,
    worldBundle:{url:resource('world'),...dataIdentity(resource('world'))},
    builtinWorld:{url:builtinPath,...dataIdentity(builtinPath)},
    preparedPolygonMeshes:{url:preparedPath,...dataIdentity(preparedPath),
