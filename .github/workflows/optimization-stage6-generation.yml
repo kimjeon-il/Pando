@@ -25,8 +25,13 @@ jobs:
           node --test --test-timeout=30000
           tests/unit/data/territorial-metadata-projection.test.mjs
           tests/unit/build/project-generation-context.test.mjs
+          tests/unit/build/prepared-scene-reuse.test.mjs
       - name: Only the changed generator sources must parse
         run: |
           node --check tools/build/build-territorial-entity-chunks.mjs
           node --check tools/gis/territorial-index-entry.js
           node --check tools/build/project-generation-context.mjs
+          node --check tools/build/build-builtin-world.mjs
+          node --check tools/build/build-prepared-country-scene.mjs
+          node --check tools/build/build-prepared-polygon-mesh.mjs
+          node --check tools/build/prepared-scene-reuse.mjs
