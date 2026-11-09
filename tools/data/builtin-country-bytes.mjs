@@ -1,6 +1,6 @@
 import {createHash} from 'node:crypto';
 import {gzipSync,gunzipSync} from 'node:zlib';
-import {BUILTIN_COUNTRY_MAX_STORED_BYTES,builtinCountryFileSpecs,builtinCountryAssets,builtinGeometryAssets,materializeBuiltinCountry} from "../../src/data/builtin-country-files.js";
+import {BUILTIN_COUNTRY_MAX_STORED_BYTES,builtinCountryFileSpecs,builtinCountryAssets,builtinGeometryAssets,materializeBuiltinCountry,compileBuiltinReadIndex} from "../../src/data/builtin-country-files.js";
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 const fields=['entityId','file','encoding','sha256','compressedBytes','decodedBytes'];
 const same=(a,b)=>a&&b&&['encoding','sha256','compressedBytes','decodedBytes'].every(key=>a[key]===b[key]);
@@ -84,6 +84,15 @@ export function finalizeBuiltinWorldFiles(index,files,{previousIndex=null}={}){
  const priorFiles=new Map();
  for(const row of previous.values())for(const spec of row.parts||[row])priorFiles.set(spec.file,spec);
  for(const spec of previousIndex?.geometryAssets||[])priorFiles.set(spec.file,spec);
+ const descriptors=[];
+ for(const entry of index.entities)if(files.has(entry.file)){
+  const stored=files.get(entry.file);
+  if(!Buffer.isBuffer(stored)||stored.length!==entry.compressedBytes||hash(stored)!==entry.sha256)throw Error('Invalid country bytes: '+entry.entityId);
+  const decoded=gunzipSync(stored,{maxOutputLength:entry.decodedBytes+1});
+  if(decoded.length!==entry.decodedBytes)throw Error('Invalid country decoded size: '+entry.entityId);
+  descriptors.push(JSON.parse(decoded));
+ }
+ index.readIndex=compileBuiltinReadIndex(index,descriptors,previousIndex);
  const ids=new Set();
  for(const entry of index.entities){
   if(!entry||ids.has(entry.entityId))throw Error('Invalid builtin country descriptor');ids.add(entry.entityId);

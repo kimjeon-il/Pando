@@ -1,3 +1,4 @@
+import { preparedCountrySceneKey } from '../rendering/country-mesh-codec.js';
 // Pure schema and URL contract for immutable built-in world geometry assets.
 export const WORLD_BUNDLE_SCHEMA = 'pandolab-world-bundle';
 const WORLD_BUNDLE_FORMAT = 1;
@@ -47,6 +48,15 @@ export function validateWorldBundle(bundle) {
       }
     }
     assets[role] = Object.freeze({ ...asset });
+  }
+  if (bundle.assets?.preparedCountryScene) {
+    const asset=bundle.assets.preparedCountryScene;
+    if(!HEX_256.test(asset.sha256)||asset.url!==`world/objects/country-scene-sha256-${asset.sha256}.bin.gz`
+      ||asset.encoding!=='gzip'||!Number.isSafeInteger(asset.compressedBytes)||asset.compressedBytes<=0
+      ||!Number.isSafeInteger(asset.decodedBytes)||asset.decodedBytes<=0||asset.algorithmVersion!==5)
+      throw new Error('Invalid prepared country scene descriptor');
+    preparedCountrySceneKey(asset.identity);
+    assets.preparedCountryScene=Object.freeze({...asset});
   }
   const shared = {};
   for (const quality of ['preview', 'canonical']) {

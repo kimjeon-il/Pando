@@ -349,12 +349,12 @@ function fixture(t) {
   const oldCancel = globalThis.cancelAnimationFrame;
   globalThis.window = { devicePixelRatio: 1 };
   const workers=[];
-  globalThis.Worker = class { constructor(){this.sent=[];workers.push(this);} postMessage(message) {this.sent.push(message);} terminate() {} };
+  globalThis.Worker = class extends EventTarget { constructor(){super();this.sent=[];workers.push(this);} postMessage(message) {this.sent.push(message);} terminate() {} };
   globalThis.requestAnimationFrame = () => 1;
   globalThis.cancelAnimationFrame = () => {};
   const state = { projection: 'globe', view: { globeZoom: 1, flatZoom: 1 }, physicalSettings: {}, pendingCountryRenderIds: new Set() };
   const retries = [];
-  const renderer = createGpuMapRenderer({ state, runtimeAssetUrl: path => path, scheduleGpuFrame: () => {}, scheduleGpuMeshRebuild: (...args) => retries.push(args),
+  const renderer = createGpuMapRenderer({ state, runtimeAssetUrl: path => new URL(path,'https://test.local/assets/js/'), scheduleGpuFrame: () => {}, scheduleGpuMeshRebuild: (...args) => retries.push(args),
     renderCountryBoundaryFeatures: () => [], countryBoundaryStyleById: () => null,
     mapWorkScheduler: { cancel: () => {} }, isMobile: () => false, rendererUi: { setMapPreparationStatus() {} }, renderViewFrame: () => {} });
   t.after(() => { renderer.dispose(); globalThis.window = oldWindow; globalThis.Worker = oldWorker;

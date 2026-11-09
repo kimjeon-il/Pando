@@ -1,6 +1,6 @@
 import {createStoredAssetLoader} from "./stored-asset-loader.js";
 import {parseTemporal,temporalContains,temporalMonthEnd,normalizeTemporalInterval,sharedCalculationCore} from "../document/temporal.js";
-import {builtinCountryAssets,builtinCountryFileSpecs} from "./builtin-country-files.js";
+import {builtinCountryAssets,validateBuiltinReadIndex} from "./builtin-country-files.js";
 import {createBuiltinProjectSetup} from "../document/project-setup.js";
 import {PROJECT_SCHEMA_VERSION} from "../runtime/version-contract.js";
 
@@ -20,7 +20,7 @@ export function selectBuiltinCountries(index,month){
  validateBuiltinCatalog(index);
  return countriesAt(index,queryMonthEnd(month));
 }
-function assembleWorld(index,countries,month,descriptors){
+export function assembleBuiltinWorld(index,countries,month){
  validateBuiltinCatalog(index);
  queryMonthEnd(month);
  const expected=index.entities;
@@ -35,7 +35,7 @@ function assembleWorld(index,countries,month,descriptors){
  project.timelineRecords={schemaVersion:3,lifetimes:[],geometryBindings:[],parentRelations:[],propertyBindings:[]};
  for(const entry of expected){
   const country=byId.get(entry.entityId);
-  if(country?.schemaVersion!==(descriptors?3:2)||country.identity?.id!==entry.entityId)throw new Error('Builtin country identity mismatch');
+  if(country?.schemaVersion!==2||country.identity?.id!==entry.entityId)throw new Error('Builtin country identity mismatch');
   const identity=structuredClone(country.identity);
   if(identity.properties.metadata?.historicalTimeline)
    identity.properties.metadata.historicalTimeline.geometryBindings=structuredClone(country.sourceBindings);
@@ -44,7 +44,7 @@ function assembleWorld(index,countries,month,descriptors){
   // Only the canonical C++ cursor selects an effective month.
   for(const name of ['lifetimes','geometryBindings','parentRelations','propertyBindings'])
    project.timelineRecords[name].push(...structuredClone(country.timelineRecords[name]));
-  for(const geometry of descriptors?[]:country.geometries){
+  for(const geometry of country.geometries){
    const key=JSON.stringify([geometry.id,geometry.version]),existing=geometries.get(key);
    if(existing&&JSON.stringify(existing)!==JSON.stringify(geometry))throw new Error('Conflicting builtin geometry');
    geometries.set(key,geometry);
@@ -52,12 +52,9 @@ function assembleWorld(index,countries,month,descriptors){
  }
  const used=new Set(project.timelineRecords.geometryBindings.map(row=>JSON.stringify([row.geometryRef.id,row.geometryRef.version])));
  project.geometries=[...geometries].filter(([key])=>used.has(key)).map(([,value])=>value);
- if(descriptors)project.geometryResources=index.geometryAssets.filter(asset=>used.has(JSON.stringify([asset.id,asset.version])))
-  .map(({id,version,type,contentSha256,decodedBytes})=>({id,version,type,contentSha256,decodedBytes}));
  project.projectSetup=createBuiltinProjectSetup(month);
  return project;
 }
-export function assembleBuiltinWorld(index,countries,month){return assembleWorld(index,countries,month,false);}
 export function createBuiltinWorldLoader({manifestUrl,manifestSpec,dataRevision,fetchFn=globalThis.fetch,cacheStorage=globalThis.caches}){
  if(!manifestUrl||!manifestSpec?.sha256||!dataRevision)throw new Error('Builtin country catalog integrity metadata is required');
  const base=new URL(manifestUrl,globalThis.location?.href),parse=bytes=>JSON.parse(new TextDecoder().decode(bytes));
@@ -66,8 +63,8 @@ export function createBuiltinWorldLoader({manifestUrl,manifestSpec,dataRevision,
  // unchanged files must survive a newer catalog/data revision without refetching.
  const catalogs=createStoredAssetLoader(assetOptions);
  const assets=createStoredAssetLoader({...assetOptions,cachePolicy:'immutable'});
- let indexPromise;
- const countries=new Map(),geometries=new Map(),pending=new Map(),geometryStates=new Map();
+ let indexPromise,readMetadata;
+ const geometries=new Map(),pending=new Map(),geometryStates=new Map();
  let activeReads=0;
  const readQueue=[];
  async function limitedRead(operation){
@@ -76,7 +73,13 @@ export function createBuiltinWorldLoader({manifestUrl,manifestSpec,dataRevision,
  }
  function parseIndex(bytes){
   const value=parse(bytes);builtinCountryAssets(value);
-  if(!value.template||typeof value.template!=='object'||Array.isArray(value.template))throw new Error('Invalid builtin world index');
+  if(value.template?.schemaVersion!==PROJECT_SCHEMA_VERSION||value.template?.format!=='pandolab-project-state'
+    ||Object.hasOwn(value.template,'projectSetup'))throw new Error('Invalid builtin world index');
+  const read=validateBuiltinReadIndex(value);
+  const freeze=value=>{if(value&&typeof value==='object'&&!Object.isFrozen(value)){for(const child of Object.values(value))freeze(child);Object.freeze(value);}return value;};
+  freeze(read);freeze(value.template);
+  readMetadata={...value.template,territorialEntities:read.identities,timelineRecords:read.records,
+    geometryResources:freeze(value.geometryAssets.map(({id,version,type,contentSha256,decodedBytes})=>({id,version,type,contentSha256,decodedBytes})))};
   for(const row of value.entities){
    if(!Array.isArray(row.coverage))throw new Error('Invalid builtin country coverage descriptor');
    for(const interval of row.coverage){
@@ -86,41 +89,10 @@ export function createBuiltinWorldLoader({manifestUrl,manifestSpec,dataRevision,
   }
   return value;
  }
- function parseCountry(bytes,entry){
-  const value=parse(bytes);
-  if(value?.schemaVersion!==3||value.entityId!==entry.entityId||value.identity?.id!==entry.entityId
-   ||!value.identity.properties||typeof value.identity.properties!=='object'||Array.isArray(value.identity.properties)
-   ||!Array.isArray(value.sourceBindings)||Object.hasOwn(value,'geometries')||!Array.isArray(value.geometryRefs)
-   ||JSON.stringify(value.geometryRefs)!==JSON.stringify(entry.geometryRefs)||value.timelineRecords?.schemaVersion!==3
-   ||!['lifetimes','geometryBindings','parentRelations','propertyBindings'].every(key=>Array.isArray(value.timelineRecords[key])))throw new Error('Invalid builtin country payload or identity: '+entry.entityId);
-  const refs=new Set(value.geometryRefs.map(ref=>JSON.stringify([ref.id,ref.version])));
-  if(value.timelineRecords.geometryBindings.some(row=>!refs.has(JSON.stringify([row.geometryRef.id,row.geometryRef.version]))))throw Error('Builtin country binding is missing its geometry descriptor');
-  return value;
- }
  async function loadIndex(){
   if(!indexPromise)indexPromise=catalogs.loadAsset({...manifestSpec,url:base.href},'builtin-world','index','국가 자료 목록',parseIndex)
    .then(({value})=>value).catch(error=>{indexPromise=null;throw error;});
   return indexPromise;
- }
- async function readCountry(entry){
-  if(!entry.parts)return assets.loadAsset({...entry,url:entry.file},'builtin-world',entry.entityId,entry.entityId,bytes=>parseCountry(bytes,entry));
-  // Reassemble only this country's original compressed stream. Parts are read
-  // sequentially within one slot, so total network concurrency stays at six.
-  const bytes=new Uint8Array(entry.compressedBytes);let position=0;
-  for(const part of builtinCountryFileSpecs(entry)){
-   const result=await assets.loadStoredAsset({...part,url:part.file},'builtin-world',part.sha256,entry.entityId,stored=>stored);
-   bytes.set(new Uint8Array(result.value),position);position+=part.compressedBytes;
-  }
-  return assets.decodeStoredAsset(bytes.buffer,entry,'builtin-world',entry.entityId,entry.entityId,stored=>parseCountry(stored,entry));
- }
- async function loadCountry(entry){
-  const key=entry.file;
-  if(countries.has(key))return countries.get(key);
-  // A shared file request is independent of any one month query's cancellation.
-  if(!pending.has(key))pending.set(key,limitedRead(()=>readCountry(entry))
-   .then(({value})=>{countries.set(key,value);return value;})
-   .finally(()=>pending.delete(key)));
-  return pending.get(key);
  }
  async function loadGeometry(asset){
   const key=asset.file;
@@ -181,9 +153,11 @@ export function createBuiltinWorldLoader({manifestUrl,manifestSpec,dataRevision,
   }
   return loaded;
   }
-  // Descriptors retain every era independently of immutable coordinate files.
-  const descriptors=await loadAll(index.entities,loadCountry);
-  const project=assembleWorld(index,descriptors,month,true),catalog=new Map(index.geometryAssets.map(asset=>[JSON.stringify([asset.id,asset.version]),asset]));
+  // Published metadata is immutable. Only active geometry is loaded; no
+  // country-document reconstruction or parallel runtime model is retained.
+  queryMonthEnd(month);
+  const project={...readMetadata,projectSetup:createBuiltinProjectSetup(month),geometries:[]};
+  const catalog=new Map(index.geometryAssets.map(asset=>[JSON.stringify([asset.id,asset.version]),asset]));
   const world=sharedCalculationCore.timelineResolveWorld(project.timelineRecords,{
    entities:project.territorialEntities.map(row=>({objectRef:{domain:'territorial',id:row.id},entityKind:row.properties.entityKind})),
    geometryExists:ref=>catalog.has(JSON.stringify([ref.id,ref.version])),

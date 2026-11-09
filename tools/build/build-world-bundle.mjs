@@ -93,8 +93,20 @@ export function publishWorldBundle({ root, check = false, manifestOverride = nul
   const original = {};
   for (const role of Object.keys(ROLES)) original[role] = readData(legacy.assets?.[role]?.url);
   const bundle = bundleDescriptor({ seed, legacy, assets: original, sourceBytes });
-  const expected = `${JSON.stringify(bundle, null, 2)}\n`;
   const currentPath = resolve(data, 'world/current.json');
+  // A metadata-only world publication must not discard the prepared Viewer
+  // derivative. Its exact geometry/hierarchy identity is checked by its loader.
+  const previous = existsSync(currentPath) ? JSON.parse(readFileSync(currentPath, 'utf8')) : null;
+  const prepared = previous?.assets?.preparedCountryScene;
+  if (prepared && prepared.source?.canonicalMesh === bundle.assets.canonicalMesh.sha256
+    && prepared.source?.countryPacket === bundle.assets.canonicalCountryPacket.sha256) {
+    assertDataPath(prepared.url);
+    const bytes = readData(prepared.url);
+    if (sha256(bytes) !== prepared.sha256 || bytes.length !== prepared.compressedBytes)
+      throw new Error('Corrupt prepared country scene publication');
+    bundle.assets.preparedCountryScene = prepared;
+  }
+  const expected = `${JSON.stringify(bundle, null, 2)}\n`;
   if (check) {
     if (!existsSync(currentPath) || readFileSync(currentPath, 'utf8') !== expected) throw new Error('Stale world/current.json');
   }
