@@ -40,7 +40,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for name in hydro-name-oracle.json reduce-unit-duplicates-phase3.mjs web-9300609-oracle; do
+          for name in hydro-name-oracle.json reduce-unit-duplicates-phase3.mjs web-9300609-oracle unit-prune-consolidate.yml unit-scope-source-review.yml stage0-workbench-fix.mjs check-ussr-partition-native.mjs; do
             echo "AUDIT_REFERENCE=$name"
             git grep -n -F "$name" -- ':!tests/fixtures/**' ':!scripts/maintenance/reduce-unit-duplicates-phase3.mjs' || true
           done
