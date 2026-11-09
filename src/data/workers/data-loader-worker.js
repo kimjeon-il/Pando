@@ -275,8 +275,11 @@ async function loadMesh() {
 async function loadBuiltinMeshOnly(sceneIdentity) {
   const key=preparedCountrySceneKey(sceneIdentity),spec=manifest.assets.preparedCountryScene;
   if(!spec){
-    if(buildMeta.resourceProfile==='test-fixture'){self.postMessage({type:'builtin-mesh-miss'});return;}
-    throw new Error('The pinned world has no prepared country scene');
+    // A prepared scene is optional. Missing or obsolete immutable packets are
+    // recomputed from the already accepted C++ country geometries. Required
+    // world/catalog integrity remains enforced by loadManifest().
+    self.postMessage({type:'builtin-mesh-miss'});
+    return;
   }
   if(key!==preparedCountrySceneKey(spec.identity)){self.postMessage({type:'builtin-mesh-miss'});return;}
   let result;
