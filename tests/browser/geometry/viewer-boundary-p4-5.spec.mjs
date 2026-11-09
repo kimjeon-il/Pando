@@ -1,4 +1,5 @@
 import { test as featureTest } from '@playwright/test';
+featureTest.use({trace:'off'});
 import * as __suiteDependency0 from "@playwright/test";
 import * as __suiteDependency1 from "@playwright/test";
 import * as __suiteDependency2 from "@playwright/test";
@@ -9,7 +10,7 @@ import * as __suiteDependency5 from "node:path";
 // Preserved Viewer feature contract: viewer-boundary-p4-5.spec.mjs
 featureTest.describe("viewer-boundary-p4-5", () => {
   const { test,expect } = __suiteDependency0;
-test.use({viewport:{width:1280,height:800},trace:'off'});
+test.use({viewport:{width:1280,height:800}});
 test('P4-5 real viewer WebGL boundary Worker presents prepared shared borders',async({page})=>{
   test.setTimeout(130000);
   const errors=[];
@@ -51,7 +52,7 @@ test('P4-5 real viewer WebGL boundary Worker presents prepared shared borders',a
 // Preserved Viewer feature contract: korean-boundaries.spec.mjs
 featureTest.describe("korean-boundaries", () => {
   const { expect,test } = __suiteDependency1;
-test.use({viewport:{width:1440,height:900},trace:'off'});
+test.use({viewport:{width:1440,height:900}});
 test('public Viewer opens pinned Korean map data without invalid historical records',async({page})=>{
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.goto('/?debug=1&demTerrain=raster');
@@ -89,7 +90,7 @@ featureTest.describe("viewer-temporal-boundary-worker-rollback", () => {
 // injects a real Worker-protocol error at the owned channel boundary, rather
 // than polling __w2Current (overwritten by unrelated Worker messages).
 // Shipping Viewer/Worker files remain unchanged; routes affect this page only.
-test.use({viewport:{width:1280,height:800},deviceScaleFactor:1,trace:'off'});
+test.use({viewport:{width:1280,height:800},deviceScaleFactor:1});
 
 async function currentMap(page) {
   return page.evaluate(async()=>{
@@ -334,7 +335,7 @@ featureTest.describe("viewer-w2-p3-packet-reuse", () => {
   const { test,expect } = __suiteDependency3;
   const { writeFile } = __suiteDependency4;
   const { join } = __suiteDependency5;
-test.use({viewport:{width:1280,height:800},trace:'off'});
+test.use({viewport:{width:1280,height:800}});
 
 test('W2-P3 real Viewer reuses attached Worker packet copies for identical dated boundaries',async({page},info)=>{
   test.setTimeout(240000);
