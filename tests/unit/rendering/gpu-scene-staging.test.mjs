@@ -337,6 +337,11 @@ test('unchanged renderer inputs do not rebuild scene packets or resource object 
   mapLayout.viewRevision++;
   renderer.syncGpuRenderScene();
   assert.equal(calls.patch, 2, 'changed view metadata still reaches the scene');
+  renderer.syncGpuRenderScene();
+  assert.equal(calls.patch, 2, 'settled frame does not create another scene');
+  state.physicalSettings.terrainVisible = true;
+  renderer.syncGpuRenderScene();
+  assert.equal(calls.patch, 3, 'physical presentation changes still reach the scene');
 });
 
 test('Canvas Worker packets omit equivalent immutable geometry but resend changed identities', () => {
