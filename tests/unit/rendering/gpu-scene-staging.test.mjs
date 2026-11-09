@@ -1,6 +1,7 @@
 import { describe as contractSuite } from 'node:test';
 import { createGpuScene } from "../../../src/rendering/gpu-scene.js";
 import { createGpuCanvasWorker } from "../../../src/rendering/gpu-canvas-worker.js";
+import { createCanvasScenePackets } from "../../../src/rendering/gpu-canvas-scene-packets.js";
 import { classifyGpuResourceReady, classifyCanvasWorkerFrame } from "../../../src/rendering/map-render-publication.js";
 import * as __contract_dep0 from "node:assert/strict";
 import * as __contract_dep1 from "node:test";
@@ -336,4 +337,26 @@ test('unchanged renderer inputs do not rebuild scene packets or resource object 
   mapLayout.viewRevision++;
   renderer.syncGpuRenderScene();
   assert.equal(calls.patch, 2, 'changed view metadata still reaches the scene');
+});
+
+test('Canvas Worker packets omit equivalent immutable geometry but resend changed identities', () => {
+  const packets = createCanvasScenePackets();
+  const packet = (sourceKey, coordinates) => ({
+    key: 'land', sourceKey, ringCoordinates: Float64Array.from(coordinates),
+    ringOffsets: Uint32Array.from([0, 4]), polygonOffsets: Uint32Array.from([0, 1]),
+  });
+  const first = packets.delta([packet('revision:one', [0, 0, 1, 0, 1, 1, 0, 0])], 'scene');
+  assert.ok(first[0].ringCoordinates instanceof Float64Array);
+  const repeated = packets.delta([packet('revision:one', [0, 0, 1, 0, 1, 1, 0, 0])], 'scene');
+  assert.equal(Object.hasOwn(repeated[0], 'ringCoordinates'), false,
+    'new typed arrays with certified unchanged source do not cross the Worker boundary');
+  const changed = packets.delta([packet('revision:two', [0, 0, 2, 0, 2, 2, 0, 0])], 'scene');
+  assert.ok(changed[0].ringCoordinates instanceof Float64Array);
+  const anonymous = () => ({ key: 'unversioned', startsEnds: new Float32Array([0, 0, 1, 1]) });
+  packets.delta([anonymous()], 'strokes');
+  assert.ok(packets.delta([anonymous()], 'strokes')[0].startsEnds instanceof Float32Array,
+    'unversioned geometry cannot be omitted merely because its values look similar');
+  packets.clear();
+  assert.ok(packets.delta([packet('revision:two', [0, 0, 2, 0, 2, 2, 0, 0])], 'scene')[0].ringCoordinates,
+    'a new Worker generation must receive complete packet bytes');
 });
