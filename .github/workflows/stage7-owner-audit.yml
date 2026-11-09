@@ -1,0 +1,43 @@
+name: Stage 7 legacy consumer audit
+on:
+  push:
+    branches: [work/stage7-owner-audit-20261109]
+    paths: [.github/workflows/stage7-owner-audit.yml]
+permissions:
+  contents: write
+jobs:
+  references:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - id: scan
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            echo '## builtin month clock and source branches'
+            git grep -n -E 'createBuiltinMonthClock|builtin-month-clock[.]js|builtinActive' -- src tests scripts || true
+            echo '## old expanded build meta references'
+            git grep -n -E '(buildMeta|meta)[.](worldBundle|builtinWorld|preparedPolygonMeshes|hydroCatalogVersion|physicalWaterObjects)' -- src scripts || true
+            echo '## active builtin session consumers'
+            git grep -n 'createBuiltinSession' -- src tests scripts || true
+            echo '## pinned Data URLs, legacy project resource fallback'
+            git grep -n -E 'assets/data/(places/manifest.json|builtin-world/generated/v1/index.json|terrain-preview/v0.13.3-p2/manifest.json)' -- src | head -60 || true
+          } | tee "$RUNNER_TEMP/project-owners.txt"
+      - name: Record reference list only
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs=require('fs'),path='validation-results/stage7-owner-audit.json';
+            const file=process.env.RUNNER_TEMP+'/project-owners.txt';
+            const result={sourceCommit:context.sha,scan:'${{ steps.scan.outcome }}',
+              references:fs.existsSync(file)?fs.readFileSync(file,'utf8').slice(-27000):'not executed'};
+            const branch=context.ref.replace('refs/heads/','');
+            let sha;try{sha=(await github.rest.repos.getContent({owner:context.repo.owner,repo:context.repo.repo,path,ref:branch})).data.sha}
+            catch(e){if(e.status!==404)throw e;}
+            await github.rest.repos.createOrUpdateFileContents({owner:context.repo.owner,repo:context.repo.repo,
+              path,branch,...(sha?{sha}:{}),message:'audit: record remaining built-in project consumers',
+              content:Buffer.from(JSON.stringify(result,null,2)+'\n').toString('base64')});
