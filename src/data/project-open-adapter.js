@@ -44,7 +44,8 @@ export function projectOpenReceipt({readResult,accepted,document=null,generation
   if(accepted&&(!isRecord(document)||typeof document.documentId!=='string'||!document.documentId
     ||!Number.isSafeInteger(generation)||generation<1))
     throw new TypeError('Accepted project completion requires a C++ document and generation.');
-  return Object.freeze({accepted,source:readResult.source,admission:readResult.admission,
+  return Object.freeze({format:'pandolab-project-open-receipt',accepted,
+    source:readResult.source,admission:readResult.admission,
     reason:readResult.reason,documentId:accepted?document.documentId:null,
     generation:accepted?generation:null,contentProject:accepted?contentProject:null});
 }
@@ -52,6 +53,7 @@ export function projectOpenReceipt({readResult,accepted,document=null,generation
 export function projectOpenCancelledReceipt(reader){
   const description=OPEN_SOURCES[reader?.source];
   if(!description)throw new TypeError('Cancelled project opening requires a registered reader.');
-  return Object.freeze({accepted:false,source:reader.source,admission:description.admission,
+  return Object.freeze({format:'pandolab-project-open-receipt',accepted:false,
+    source:reader.source,admission:description.admission,
     reason:description.reason,documentId:null,generation:null,contentProject:null});
 }
