@@ -79,7 +79,7 @@ test('project replacement admits presentation catalog inside its ordered Core tr
 test('temporal builtin opening carries its presentation boundary through rollback and retry',async()=>{
   const resets=[],effects=[],failure=new Error('candidate frame failed');let failed=true,presented=0,current=true;
   const domain=createProjectDomain({productMode:'viewer',readBuiltinSelectionCatalogs:()=>[],
-    documentModel:{snapshot:()=>({current:true})},
+    documentModel:{snapshot:()=>({current:true,documentId:'fixture-temporal-doc'})},
     commandOwner:{captureReplacement:async()=>7,loadBaseline:async()=>effects.push('load'),
       rollbackReplacement:async()=>effects.push('rollback'),releaseReplacement:async()=>effects.push('release')},
     onProjectReset:event=>resets.push(event),replaceSnapshot:()=>{if(failed)throw failure;resets.at(-1).onPresented();},
