@@ -37,6 +37,10 @@ export function validateMapProjectManifest(input){
       throw new TypeError('Unsafe map project resource path: '+role);
     resources[role]=Object.freeze({catalog:path});
   }
+  // One immutable Hydro shard catalog owns both river and lake identities.
+  // Do not advertise separate catalogs until the rendering and cache owners support them.
+  if(resources.rivers.catalog!==resources.lakes.catalog)
+    throw new TypeError('River and lake roles must share one Hydro catalog');
   return Object.freeze({format:input.format,schemaVersion:input.schemaVersion,
     projectId:input.projectId,documentFormat:input.documentFormat,
     resources:Object.freeze(resources)});

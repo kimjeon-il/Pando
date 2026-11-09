@@ -43,3 +43,8 @@ test('project source path is determined by validated project identity only',()=>
  for(const id of ['', '../other','default/../world','UPPER','local?rev=1'])
   assert.throws(()=>mapProjectManifestSourcePath(id),/project ID/);
 });
+
+test('river and lake catalogs cannot silently diverge from the shared Hydro renderer',()=>{
+ assert.throws(()=>validateMapProjectManifest({...current,resources:{...current.resources,
+  lakes:{catalog:'assets/data/alternate/lakes.json'}}}),/share one Hydro catalog/);
+});

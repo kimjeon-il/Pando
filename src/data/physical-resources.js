@@ -104,8 +104,6 @@ export function physicalWaterContextKey(rows){
 export function createPhysicalResources({ buildMeta,capabilities = {terrain:true,builtinHydro:true,eagerBuiltinHydro:true} } = {}) {
   // The same Hydro reader currently serves both river and lake layers.
   const projectHydro=buildMeta?.mapProject?mapProjectResourcePath(buildMeta.mapProject,'rivers'):null;
-  if(buildMeta?.mapProject&&mapProjectResourcePath(buildMeta.mapProject,'lakes')!==projectHydro)
-    throw new TypeError('Current Hydro service requires a shared river/lake project catalog');
   let dependencies;
   let terrainService;
   let hydroService;
