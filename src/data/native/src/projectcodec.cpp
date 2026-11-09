@@ -781,7 +781,10 @@ ProjectDocument readWebDocumentValue(const V& root,const PlatformPorts& ports,bo
     const auto format=str(field(root,"format"));require(format!="pandolab-autosave-delta","BASE_DATA_REQUIRED: web delta requires its matching baseline");require(format=="pandolab-project-state"||format=="pandolab-autosave-full","UNSUPPORTED_FORMAT");
     for(const auto* key:{"defaultView","layerVisibility","itemVisibility"})require(!root.object.count(key),"PL-SCHEMA-FIELD: viewing state is device-only");
     unknown(d,10,root,"",{"format","schemaVersion","version","savedAt","baseDataset","landObjectModel","territorialModel","distributionModel","sourceInfo","physicalSourceInfo","documentId","territorialEntities","timelineRecords","geometries","geometryResources","labels","hydroEdits","genericFeatures","distributionLayers","distributionEntries","labelSettings","distributionSettings","layerPresentation","projectSetup","mapProjectIdentity"});
-    auto header=currentWebHeader();for(const auto& [key,value]:currentWebHeader().object)if(root.object.count(key))header.object[key]=field(root,key);validateHeader(header,d);d.exchangeMetadata=header.encode();
+    auto header=V::obj();for(const auto& [key,value]:currentWebHeader().object){
+        if(key=="mapProjectIdentity"&&!root.object.count(key))header.object[key]=V{};
+        else header.object[key]=field(root,key);
+    }validateHeader(header,d);d.exchangeMetadata=header.encode();
     d.documentId=str(field(root,"documentId"));require(!d.documentId.empty(),"INVALID_DOCUMENT_ID");
     for(const auto& row:array(field(root,"territorialEntities")))readWebTerritorialIdentity(row,d,ports);
     for(const auto& row:array(field(root,"hydroEdits"))) {
