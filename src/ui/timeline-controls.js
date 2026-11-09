@@ -1,5 +1,5 @@
 import { parseTemporal, shiftTemporalMonth,compareTemporal } from "../document/temporal.js";
-import { deviceCurrentMonth } from "../document/builtin-month-clock.js";
+import { deviceCurrentMonth } from "../document/calendar-month.js";
 
 export function shiftTimelineMonth(value, delta) {
   return shiftTemporalMonth(value, delta);
