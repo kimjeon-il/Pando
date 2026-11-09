@@ -512,7 +512,7 @@ export function createProjectDomain({
         try {
           const rollbackGeneration = await bumpGeneration('project-rollback',presentation==='temporal'?{presentation}:null);
           await commandOwner.rollbackReplacement(checkpoint.replacementId);
-          if(restoreReplacement)await restoreReplacement(documentModel.snapshot(),rollbackGeneration);
+          if(restoreReplacement)await restoreReplacement(documentModel.snapshot(),rollbackGeneration,previousActiveProject);
           await restoreEditorSession(checkpoint.editor,rollbackGeneration);
           if(saveState && checkpoint.io)saveState.restore(checkpoint.io);
         }

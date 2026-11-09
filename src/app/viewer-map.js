@@ -326,8 +326,11 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
   inputPresentation.bindSvg(d3.select(element));
   mapHost.startMapResizeObserver();
   return Object.freeze({
-    async setSession(next,{view=null,prepareView=null}={}){
+    async setSession(next,{view=null,prepareView=null,source='project'}={}){
       if(next!==documentSession)throw new Error('Map output requires its single document session.');
+      // The admitted reader origin is an in-memory session property, not an
+      // interpretation of the backward-compatible projectSetup.sourceMode.
+      physicalResources.setProjectSource(source);
       session=next;
       projectSession.setViewingPresentation(view||{},{reset:true});
       if(prepareView)await prepareView();

@@ -27,6 +27,15 @@ export function createPhysicalResources({ buildMeta,capabilities = {terrain:true
   const waterContexts=new Map();
   let requestedWaterKey=null;
   let physicalSelection=null;
+  // The active document, not the serialized sourceMode field, selects
+  // optional project-owned Hydro/physical-water catalogs.
+  let activeSource='unbound',projectSourceEpoch=0;
+  function setProjectSource(source){
+    if(!['builtin','project','new'].includes(source))throw new TypeError('Unknown active map source');
+    activeSource=source==='builtin'?'builtin':'project';
+    projectSourceEpoch++;
+    requestedWaterKey=null;physicalSelection=null;builtinTimelineView=null;
+  }
   function physicalSelectionFor(date) {
     const catalog=buildMeta.physicalWaterObjects;
     const rows=resolvePhysicalWaterObjects(catalog,date)
@@ -35,6 +44,8 @@ export function createPhysicalResources({ buildMeta,capabilities = {terrain:true
     return {catalog,date,rows,key:physicalWaterContextKey(rows)};
   }
   function selectedPhysicalWater() {
+    if(activeSource!=='builtin')
+      return {catalog:null,date:null,rows:[],key:'inactive-project-water'};
     const catalog=buildMeta.physicalWaterObjects,date=dependencies.projectState.state.timelineCursor;
     if(!physicalSelection||physicalSelection.catalog!==catalog||physicalSelection.date!==date){
       physicalSelection=physicalSelectionFor(date);
@@ -84,7 +95,8 @@ export function createPhysicalResources({ buildMeta,capabilities = {terrain:true
       }
       dependencies.domains.renderingDomain.invalidateProject('physical-water-ready');
     }).catch(error=>{
-      dependencies.feedback.reportOperationError(error,'수역 형상을 준비하지 못했습니다. 시점을 바꿨다가 돌아오면 다시 불러옵니다.','PL-PHYSICAL-HISTORY-001',4200);
+      if(activeSource==='builtin'&&selectedPhysicalWater().key===key)
+        dependencies.feedback.reportOperationError(error,'수역 형상을 준비하지 못했습니다. 시점을 바꿨다가 돌아오면 다시 불러옵니다.','PL-PHYSICAL-HISTORY-001',4200);
     });
   }
   const presentPhysicalWater=createPhysicalWaterPresentation();
@@ -129,7 +141,7 @@ export function createPhysicalResources({ buildMeta,capabilities = {terrain:true
 
   async function admitSelectedWater(row,value) {
     const state=dependencies.projectState.state;
-    if(!capabilities.builtinHydro)return;
+    if(!capabilities.builtinHydro||activeSource!=='builtin')return;
     if(!(state.hydroFeatureCache instanceof Map))throw new TypeError("The canonical hydro resource cache is required.");
     const feature=prepareHydroFeature({type:'Feature',id:row.objectRef.id,geometry:value.water,
       properties:{pandolab_id:row.objectRef.id,category:row.identity.entityKind,layer_id:row.identity.layerId,
@@ -140,6 +152,7 @@ export function createPhysicalResources({ buildMeta,capabilities = {terrain:true
   let builtinTimelineView=null;
   function isHydroObjectActive(feature) {
     if(feature.properties?.pandolab_domain==='hydro')return true;
+    if(activeSource!=='builtin')return false;
     const state=dependencies.projectState.state,date=state.timelineCursor;
     if(!date)return false;
     const selection=selectedPhysicalWater(),entry=waterContexts.get(selection.key);
@@ -172,11 +185,13 @@ export function createPhysicalResources({ buildMeta,capabilities = {terrain:true
   }
 
   async function loadHydroData(force = false) {
-    if (!capabilities.builtinHydro || (!capabilities.eagerBuiltinHydro && !force)) return false;
+    if(activeSource!=='builtin'||!capabilities.builtinHydro || (!capabilities.eagerBuiltinHydro && !force)) return false;
     return hydroService.load(force);
   }
 
-  function builtinHydroSelectionReferences(features=(0,dependencies.hydroPresentation.allBuiltInHydroFeatures)()) {
+  function builtinHydroSelectionReferences(features=null) {
+    if(activeSource!=='builtin')return [];
+    features??=(0,dependencies.hydroPresentation.allBuiltInHydroFeatures)();
     return [...new Map(features.map(feature=>{
       const id=String(feature.properties?.pandolab_id || feature.id);
       const category=dependencies.hydroPresentation.HYDRO_LAYER_META[feature.properties?.layer_id]?.category || feature.properties?.category;
@@ -186,6 +201,7 @@ export function createPhysicalResources({ buildMeta,capabilities = {terrain:true
   }
 
   async function admitHydroFeatures(features=[]) {
+    if(activeSource!=='builtin')return false;
     if(typeof dependencies.domains.projectDomain?.admitSelectionCatalog!=='function')
       throw new TypeError('Hydro source identities require the canonical Core admission boundary.');
     const cache=dependencies.projectState.state.hydroFeatureCache;
@@ -211,7 +227,7 @@ export function createPhysicalResources({ buildMeta,capabilities = {terrain:true
   }
 
   function hydroFeatureInView(feature) {
-    if (!(0, dependencies.physicalServices.isHydroFeatureVisible)(feature)) return false;
+    if(activeSource!=='builtin'||!(0, dependencies.physicalServices.isHydroFeatureVisible)(feature)) return false;
     const minZoom = Number(feature.properties?.min_zoom ?? feature.properties?.scale_rank ?? 10);
     if (minZoom > hydroVisibilityThreshold()) return false;
     const bounds = feature.__awBounds || [-180, -90, 180, 90];
@@ -231,6 +247,7 @@ export function createPhysicalResources({ buildMeta,capabilities = {terrain:true
   }
 
   function hydroRenderGroups(category) {
+    if(activeSource!=='builtin')return [];
     const groups = new Map();
     const addFeature = (layerId, width, feature) => {
       const widthBucket = category === 'river' ? Math.round(width * 10) / 10 : 1;
@@ -369,6 +386,7 @@ export function createPhysicalResources({ buildMeta,capabilities = {terrain:true
 
   return Object.freeze({
     connect,
+    setProjectSource,
     initializeTerrainService,
     loadPhysicalLandMask,
     loadInitialLandPreview,

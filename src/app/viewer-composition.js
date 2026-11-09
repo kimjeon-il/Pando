@@ -67,7 +67,7 @@ export async function composeViewer({ productMode, meta }) {
     admitImportedProject:project=>bindProjectDocumentIdentity(project,runtimeContext.meta),
     readBuiltinSelectionCatalogs:()=>map?[{domain:'placeBuiltin',refs:map.placeSelectionReferences()},{domain:'hydroBuiltin',refs:map.hydroSelectionReferences()}]:[],publishCommand:()=>map.refreshSelection(),
     onProjectReset:async event=>{postPresentation.invalidate();searchController.cancelSearch();previousView=map.capturePresentation();await selectionDomain.resetProject(event.generation);selectionUiController.resetProject();map.renderingDomain.resetProjectGeneration(event.generation,{presentation:event.presentation,isCurrent:event.isCurrent,onPresented:event.onPresented});},
-    replaceSnapshot:async()=>{await map.setSession(activeSession,{prepareView:async()=>{
+    replaceSnapshot:async(_project,{reason})=>{await map.setSession(activeSession,{source:reason==='builtin'?'builtin':'project',prepareView:async()=>{
       const project=activeSession.documentModel.snapshot(),bounds=project.projectSetup.initialMapBounds;
       if(openingPreserved)map.projectSession.restoreViewingPresentation({documentId:project.documentId,viewingPresentation:openingPreserved});
       else {
@@ -78,10 +78,12 @@ export async function composeViewer({ productMode, meta }) {
         map.projectSession.restoreViewingPresentation(workspace);
       }
       await map.loadPhysicalLandMask();
-      map.loadPhysicalResources();
+      map.loadPhysicalResources({includeHydro:reason==='builtin'});
       if(!openingPreserved&&!bounds&&map.features().length)map.navigation.fitMapToFeature({type:'FeatureCollection',features:map.features()});
     }});await map.renderer.waitForTemporalPresentation();return true;},
-    restoreReplacement:async()=>{await map.setSession(activeSession,{view:previousView});await map.renderer.waitForTemporalPresentation();}});
+    restoreReplacement:async(_project,_generation,previousActive)=>{await map.setSession(activeSession,{
+      source:previousActive?.source==='builtin'?'builtin':'project',view:previousView});
+      await map.renderer.waitForTemporalPresentation();}});
   disposables.push(projectDomain);
   let selectionUiController;
   const selectionDomain=createSelectionDomain({commandOwner:documentSession.commandOwner,projectDomain,
