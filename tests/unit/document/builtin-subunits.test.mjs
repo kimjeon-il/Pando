@@ -4,7 +4,6 @@ import * as __country_dep0 from "../../../tools/gis/builtin-display-policy.mjs";
 import * as __country_dep1 from "../../../src/document/country-feature.js";
 import * as __country_dep2 from "node:test";
 import * as __country_dep3 from "node:assert/strict";
-import * as __country_dep5 from "../../../src/document/builtin-subunits.js";
 import * as __country_dep6 from "../../../src/document/territorial-units.js";
 import * as __country_dep8 from "../../../src/rendering/territorial-scene-runtime.js";
 import * as __country_dep9 from "../../../src/geometry/geometry-versions.js";
@@ -13,7 +12,7 @@ contractSuite("builtin-subunits", () => {
 const {validateBuiltinDisplayPolicy}=__country_dep0;
 const {normalizeCountryCollection}=__country_dep1;
 const test=__country_dep2.default,assert=__country_dep3.default;
-const {builtinSubunitId,builtinSubunitSourceId}=__country_dep5;
+const {builtinSubunitId,builtinSubunitSourceId}=__country_dep6;
 const square=x=>({type:'Polygon',coordinates:[[[x,0],[x,1],[x+1,1],[x+1,0],[x,0]]]});
 const source=()=>({type:'FeatureCollection',features:['AAA','BBB','CCC'].map((id,i)=>({
   type:'Feature',id,properties:{name:id},geometry:square(i*3),
@@ -50,12 +49,28 @@ test('display policy rejects ambiguous, duplicate and self-parent mappings',()=>
   ]){const value=policy();mutate(value);assert.throws(()=>validateBuiltinDisplayPolicy(value));}
   assert.doesNotThrow(()=>validateBuiltinDisplayPolicy(policy()));
 });
+test('display-policy territory merges retain shape provenance and reject missing controllers', () => {
+  const first=source(),before=structuredClone(first);
+  const rule=[{sourceId:'BBB',controller:'AAA'}];
+  const merged=classifyBuiltinCountries(normalizeCountryCollection(first), {
+    displayPolicy:{...policy(),subunits:[],territoryMerges:rule},
+  }).countries;
+  assert.deepEqual(merged.features.map(feature=>feature.id), ['AAA','CCC']);
+  assert.equal(merged.features[0].geometry.type,'MultiPolygon');
+  assert.equal(merged.features[0].geometry.coordinates.length,2);
+  assert.deepEqual(first,before,'source geometry is never mutated by a display derivative');
+  assert.equal(merged.features[0].properties.metadata.builtinTerritoryDisplay.mergedSources[0].sourceId,'BBB');
+  assert.throws(()=>classifyBuiltinCountries(normalizeCountryCollection(first),{
+    displayPolicy:{...policy(),subunits:[],territoryMerges:[{sourceId:'BBB',controller:'missing'}]},
+  }), /대상 누락/);
+});
+
 });
 contractSuite("builtin-subunit-geometry-revision", () => {
 const assert = __country_dep3.default;
 const test = __country_dep2.default;
 const { createTerritorialSceneRuntime } = __country_dep8;
-const { builtinSubunitId, builtinSubunitSourceId } = __country_dep5;
+const { builtinSubunitId, builtinSubunitSourceId } = __country_dep6;
 const { createTerritorialFeature } = __country_dep6;
 const { geometryRevision, touchGeometry } = __country_dep9;
 const { layerStyle } = __country_dep10;
@@ -118,19 +133,3 @@ test('boundary projection keeps non-native children and resolves independent set
 });
 });
 
-
-test('display-policy territory merges retain shape provenance and reject missing controllers', () => {
-  const first=source(),before=structuredClone(first);
-  const rule=[{sourceId:'BBB',controller:'AAA'}];
-  const merged=classifyBuiltinCountries(normalizeCountryCollection(first), {
-    displayPolicy:{...policy(),subunits:[],territoryMerges:rule},
-  }).countries;
-  assert.deepEqual(merged.features.map(feature=>feature.id), ['AAA','CCC']);
-  assert.equal(merged.features[0].geometry.type,'MultiPolygon');
-  assert.equal(merged.features[0].geometry.coordinates.length,2);
-  assert.deepEqual(first,before,'source geometry is never mutated by a display derivative');
-  assert.equal(merged.features[0].properties.metadata.builtinTerritoryDisplay.mergedSources[0].sourceId,'BBB');
-  assert.throws(()=>classifyBuiltinCountries(normalizeCountryCollection(first),{
-    displayPolicy:{...policy(),subunits:[],territoryMerges:[{sourceId:'BBB',controller:'missing'}]},
-  }), /대상 누락/);
-});

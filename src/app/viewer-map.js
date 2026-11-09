@@ -26,7 +26,7 @@ import {createAdaptiveRenderQualityController} from "../rendering/adaptive-rende
 import {createMapDisplayClient} from "../ui/map-display-client.js";
 import {OVERLAY_GROUPS} from "../ui/layer-presentation.js";
 import {initializeMapReadOwners} from "./map-owner-composition.js";
-import {builtinSubunitSourceId} from "../document/builtin-subunits.js";
+import {builtinSubunitSourceId} from "../document/territorial-units.js";
 import {buildRenderableStrokeFeature} from "../geometry/geographic-boundary.js";
 import { ZOOM_LIMITS,FLAT_LATITUDE_LIMIT } from "../map/camera-navigation.js";
 import { createMapLayoutMetricsSnapshot, equirectangularCenterForAnchor, DEFAULT_SAFE_INSETS } from "../map/map-layout-metrics.js";
