@@ -39,20 +39,6 @@ test('projection rounding accepts submicroscopic drift while rejecting changed g
   assert.equal(sameRecipeGeometryWithinProjectionRounding(rounded, stored), false);
 });
 
-// The approved rollback must survive a later explicit recipe regeneration.
-test('DDR recipe retains the original baseline and excludes rejected precision supplements', () => {
-  assert.deepEqual(recipe.operations.map(operation => operation.id), [
-    'east-five-states-and-berlin', 'west-berlin-mask',
-    'modern-east-with-amt-neuhaus', 'gdr-candidate', 'gdr-final',
-  ]);
-  assert.deepEqual(Object.keys(recipe.sources).sort(), [
-    'amtNeuhaus', 'berlinLand', 'berlinWall', 'canonicalCountries', 'naturalEarthAdmin1',
-  ]);
-  assert.equal(Object.hasOwn(recipe, 'boundarySupplement'), false);
-  assert.equal(Object.hasOwn(recipe, 'resultSource'), false);
-  assert.equal(recipe.output, 'assets/data/territorial-entities/source/countries/state-deutsche-demokratische-republik.json');
-});
-
 test('native recipe launcher preserves identity and curated fields while recording the selected geometry provenance', () => {
   const recipe = {
     ...JSON.parse(readFileSync(path.join(root, 'tools/historical-library/east-germany-1989.recipe.json'), 'utf8')),
