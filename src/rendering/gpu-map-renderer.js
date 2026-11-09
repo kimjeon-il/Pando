@@ -214,6 +214,8 @@ export function createGpuMapRenderer(deps) {
     let builtinMeshBaseline = null;
     const builtinMeshResourceLoader = createBuiltinMeshResourceLoader({ runtimeAssetUrl, WorkerClass: workerChannels.WorkerClass });
     let renderScene = null;
+    // Derived lookup for resource-ready notifications; scoped by immutable scene and project.
+    let indexedSceneResources = { scene: null, generation: -1, keys: new Set() };
     let renderInteractionState = Object.freeze({
       selectionPacket: null,
       genericFillItems: Object.freeze([]),
@@ -3908,8 +3910,14 @@ export function createGpuMapRenderer(deps) {
     }
 
     function overlayResourceReady(key) {
+      if (indexedSceneResources.scene !== renderScene || indexedSceneResources.generation !== projectGeneration) {
+        const keys = new Set((renderScene?.polygons || []).map(packet => String(packet.key)));
+        for (const packet of renderScene?.strokes || [])
+          keys.add(String(sceneStrokeResourcePacket(packet, projectGeneration).key));
+        indexedSceneResources = { scene: renderScene, generation: projectGeneration, keys };
+      }
       const source = classifyGpuResourceReady(key, renderScene,
-        packet => sceneStrokeResourcePacket(packet, projectGeneration).key);
+        packet => sceneStrokeResourcePacket(packet, projectGeneration).key, indexedSceneResources.keys);
       if (source === 'country-boundary') {
         promotePreparedCountryBoundary();
         sceneColorCache.invalidate('country-boundary-resource-ready');
