@@ -29,7 +29,8 @@ test('accepted default-world and GeoPackage share the same Viewer scene and reco
   const r=window.__PANDOLAB_VIEWER__.rendererStats();
   return r.mapReadiness.mapReady&&r.countriesPublishedGeneration===r.projectGeneration;
  }),{timeout:90000}).toBe(true);
- await page.locator('#objectSearchBtn').click().catch(()=>{});
+ if(!(await page.getByLabel('지도에서 찾기',{exact:true}).isVisible()))
+  await page.locator('#objectSearchBtn').click();
  await page.getByLabel('지도에서 찾기',{exact:true}).fill('프로젝트 전환 회귀');
  await expect(page.locator('#objectSearchResults button').filter({hasText:'프로젝트 전환 회귀'}).first()).toBeVisible();
  await page.locator('#timelineDateButton').click();
