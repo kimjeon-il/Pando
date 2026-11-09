@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {existsSync,readFileSync} from 'node:fs';
 import {join} from 'node:path';
+import {createHash} from 'node:crypto';
 import {buildFrontendSnapshot} from "../../../scripts/lib/frontend-build.mjs";
 import {frontendFixture as fixture} from "../../helpers/frontend-build-fixture.mjs";
 
@@ -102,4 +103,18 @@ test('selected Hydro source version and land/terrain pairing are validated befor
  const terrain='assets/data/terrain-preview/v0.13.3-p2/manifest.json';
  f.metadata[terrain]={...f.metadata[terrain],sourceDem:{landMaskSha256:'other-land'}};
  await assert.rejects(buildFrontendSnapshot(f.options),/Land derivative must match pinned terrain/);
+});
+
+
+test('prepared mesh input fingerprints reject cross-project territories or physical land',async t=>{
+ const f=fixture(t),before=await buildFrontendSnapshot(f.options);
+ assert.equal(before.buildMeta.mapProject.projectId,'default-world');
+ const mesh='assets/data/prepared-polygons/generated/v2/manifest.json';
+ const builtin='assets/data/builtin-world/generated/v1/index.json';
+ f.metadata[mesh].inputHashes[builtin]='0'.repeat(64);
+ await assert.rejects(buildFrontendSnapshot(f.options),/prepared meshes do not match selected territorial/);
+ f.metadata[mesh].inputHashes[builtin]=createHash('sha256').update(JSON.stringify(f.metadata[builtin])).digest('hex');
+ const land='assets/data/physical-land/v1/manifest.json';
+ f.metadata[mesh].inputHashes[land]='0'.repeat(64);
+ await assert.rejects(buildFrontendSnapshot(f.options),/prepared meshes do not match selected physicalLand/);
 });

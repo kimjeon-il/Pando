@@ -65,20 +65,25 @@ export async function pagesRepositoryFixture(t) {
     'assets/js/workers/core-viewer-session-worker.js': { url: worker.url, files: [...worker.files.keys()],
       sha256: Object.fromEntries([...worker.files].map(([path, source]) => [path, createHash('sha256').update(source).digest('hex')])) }
   } }) + ');');
-  put(root,'assets/data/world/current.json','{"assets":{}}');
-  put(root,'assets/data/terrain-preview/v0.13.3-p2/manifest.json','{"sourceDem":{"landMaskSha256":"land"},"tiles":{}}');
+  put(root,'assets/data/world/current.json',JSON.stringify({schema:'pandolab-world-bundle',schemaVersion:1,assets:{}}));
+  put(root,'assets/data/terrain-preview/v0.13.3-p2/manifest.json',JSON.stringify({sourceDem:{landMaskSha256:'a'.repeat(64)},tiles:{}}));
   const landSource=Buffer.from(JSON.stringify({type:'MultiPolygon',coordinates:[[[[0,0],[0,1],[1,1],[1,0],[0,0]]]]}));
   const landCompressed=gzipSync(landSource,{level:9,mtime:0});
   const landAsset={url:'assets/data/physical-land/land.bin',encoding:'gzip',
     compressedBytes:landCompressed.length,decodedBytes:landSource.length,
     sha256:createHash('sha256').update(landCompressed).digest('hex')};
-  put(root,'assets/data/physical-land/v1/manifest.json',JSON.stringify({sourceSha256:'land',asset:landAsset}));
+  put(root,'assets/data/physical-land/v1/manifest.json',JSON.stringify({schema:'pando-physical-land-v3',sourceSha256:'a'.repeat(64),asset:landAsset}));
   put(root,'assets/data/physical-land/land.bin',landCompressed);
   put(root,'assets/data/places/manifest.json','{"shards":{}}');
-  put(root,'assets/data/places/urban-lifetimes-v1.json','{"entries":[]}');
+  put(root,'assets/data/places/urban-lifetimes-v1.json',JSON.stringify({schema:'pando-place-urban-lifetimes-v1',schemaVersion:1,entries:[]}));
   put(root,'assets/data/territorial-entities/generated/v2/index.json','{"entities":[]}');
   put(root,'assets/data/builtin-world/generated/v1/index.json','{"schema":"pandolab-builtin-world","schemaVersion":2,"storageLayout":"descriptor-geometries-v1","geometryAssets":[],"entities":[]}');
-  put(root,'assets/data/prepared-polygons/generated/v2/manifest.json','{"meshes":{}}');
+  const identityPath='assets/data/builtin-world/generated/v1/index.json';
+  const landPath='assets/data/physical-land/v1/manifest.json';
+  const inputHashes=Object.fromEntries([identityPath,landPath].map(path=>[path,
+    createHash('sha256').update(readFileSync(join(root,path))).digest('hex')]));
+  put(root,'assets/data/prepared-polygons/generated/v2/manifest.json',JSON.stringify({
+    schema:'pandolab-prepared-polygon-meshes',schemaVersion:2,meshes:{},inputHashes}));
   const data = join(root, '.library-data/repository');
   mkdirSync(data, { recursive: true });
   run('git', ['init', '-q'], data);
