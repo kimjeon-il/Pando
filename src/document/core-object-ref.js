@@ -1,4 +1,4 @@
-import { normalizeObjectRef } from "../ui/object-selection-controller.js";
+import { normalizeObjectRef } from "./object-ref-identity.js";
 import { isBuiltinPlaceId } from "./place-contract.js";
 
 const invalid = () => { throw Object.assign(new Error('Object reference is not in the supported command identity domain.'), { code: 'PL-CORE-REF' }); };

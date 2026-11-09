@@ -9,7 +9,7 @@ import * as __dep6 from "../../../src/map/map-interaction-style.js";
 import * as __dep7 from "../../../src/rendering/selection-pass.js";
 import * as __dep8 from "../../../src/rendering/gpu-polygon-overlay-pass.js";
 import * as __dep9 from "../../../src/ui/selection-ui-controller.js";
-import * as __dep10 from "../../../src/ui/object-selection-controller.js";
+import * as __dep10 from "../../../src/document/object-ref-identity.js";
 contractSuite("selection-emphasis", () => {
 
 const assert = __dep1.default;

@@ -19,7 +19,7 @@ import {DISTRIBUTION_MODES,DISTRIBUTION_RENDER_MODES,distributionEntriesForLayer
 import {BASE_DATASET} from "../document/initial-document.js";
 import {createMapObjectSpatialIndex} from "../map/map-object-spatial-index.js";
 import { createObjectQuery } from "../document/object-query.js";
-import { normalizeObjectRef } from "../ui/object-selection-controller.js";
+import { normalizeObjectRef } from "../document/object-ref-identity.js";
 import { COLOR_DOMAINS,readDomainColor,countryDefaultColor,DEFAULT_GENERIC_FEATURE_COLOR } from "../ui/color-adapter.js";
 import {createRenderingDomain} from "../rendering/rendering-domain.js";
 import {createAdaptiveRenderQualityController} from "../rendering/adaptive-render-quality.js";

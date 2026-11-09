@@ -1,6 +1,7 @@
 // Preserved GIS data/core calculation contract after retired editor source removal.
 import { normalizeTemporalInterval, parseTemporal, temporalIntervalsOverlap, sharedCalculationCore } from "../../src/document/temporal.js";
 import {createGeometryVersionStore} from "../../src/geometry/geometry-version-store.js";
+import {territorialSourceLayout} from "../../src/data/territorial-source-format.js";
 
 export const TERRITORIAL_LIBRARY_SCHEMA_VERSION = 2;
 export const LIBRARY_ENTITY_TYPES = Object.freeze({ GENERAL: 'general', REGIONAL: 'regional', RIVER:'river', LAKE:'lake' });
@@ -67,7 +68,7 @@ export function normalizeTerritorialLibraryIndex(raw) {
   const ids=new Set();
   for(const entity of raw.entities){
     if(entity.schemaVersion!==2 || !/^[a-z][a-z0-9_-]*:[A-Za-z0-9_-]+$/.test(entity.entityId) || ids.has(entity.entityId) || !Object.values(LIBRARY_ENTITY_TYPES).includes(entity.entityKind)
-      || entity.file!==`${entity.entityId.replace(':','-')}.json.gz` || !/^[a-f0-9]{64}$/.test(entity.sha256) || !(entity.compressedBytes>0 && entity.decodedBytes>0)
+      || entity.file!==`${entity.entityId.replace(':','-')}.json.gz` || (entity.storageLayout!==undefined&&entity.storageLayout!==territorialSourceLayout) || !/^[a-f0-9]{64}$/.test(entity.sha256) || !(entity.compressedBytes>0 && entity.decodedBytes>0)
       || !entity.geometryVersions?.length || entity.geometryVersionCount!==entity.geometryVersions.length || !Array.isArray(entity.bbox) || entity.bbox.length!==4 || entity.bbox.some(v=>!Number.isFinite(v)))throw new Error('Invalid territorial index entry');
     names(entity.names);
     territorialNameData(entity);

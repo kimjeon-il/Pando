@@ -143,7 +143,8 @@
         "src/rendering/workers/canvas-scene-composition-core.js",
         "src/rendering/gpu-scene.js",
         "src/rendering/gpu-scene-preparation.js",
-        "src/rendering/gpu-map-renderer.js"
+        "src/rendering/gpu-map-renderer.js",
+        "src/workers/canvas-terrain-*.js"
       ],
       "requires": [
         "generated",
@@ -203,7 +204,8 @@
       "inputs": [
         "src/**/*hydro*.js",
         "assets/data/hydro/**",
-        "src/**/gis-*.js"
+        "src/**/gis-*.js",
+        "src/gis-*.js"
       ],
       "requires": [
         "generated",
@@ -231,7 +233,8 @@
       "inputs": [
         "src/**/workers/**",
         "src/**/worker-*.js",
-        "scripts/lib/worker-assets.mjs"
+        "scripts/lib/worker-assets.mjs",
+        "src/workers/**"
       ],
       "argv": [
         "node",
@@ -296,7 +299,8 @@
         "scripts/generate-build-metadata.mjs",
         "scripts/lib/product-assets.mjs",
         "assets/data/**",
-        "src/**/workers/**"
+        "src/**/workers/**",
+        "src/workers/**"
       ],
       "argv": [
         "node",
@@ -316,7 +320,8 @@
         "tools/*.mjs",
         "tools/**",
         "playwright.config.js",
-        "eslint.config.js"
+        "eslint.config.js",
+        "tools/**/*.mjs"
       ],
       "argv": [
         "node",

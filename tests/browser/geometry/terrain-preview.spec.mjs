@@ -1,4 +1,8 @@
 import { test as featureTest } from '@playwright/test';
+// Playwright 1.62 requires worker-scoped trace and launch options at file level.
+featureTest.use({trace:'off',launchOptions:{args:process.platform==='win32'
+  ? ['--use-angle=d3d11']
+  : ['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader','--disable-gpu-sandbox']}});
 import * as __suiteDependency0 from "@playwright/test";
 import * as __suiteDependency1 from "node:fs";
 import * as __suiteDependency2 from "node:path";
@@ -13,10 +17,7 @@ featureTest.describe("terrain-preview", () => {
 const sourceCache = resolve(process.env.PANDOLAB_TERRAIN_SOURCE_CACHE || '.terrain-preview-cache/source');
 const demManifest = resolve('contracts/terrain/preview-dem-source.json');
 const demOrigin = 'https://kimjeon-il.github.io/PandoLab-library-data';
-test.use({ viewport: { width: 960, height: 720 }, launchOptions: {
-  args: process.platform==='win32' ? ['--use-angle=d3d11']
-    : ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu-sandbox'],
-} });
+test.use({ viewport: { width: 960, height: 720 } });
 
 async function terrainStyle(page, style) {
   // This suite exercises renderer transitions through the canonical style input.
@@ -203,8 +204,7 @@ test('Canvas without OffscreenCanvas displays the bundled preview', async ({ pag
 // Preserved Viewer feature contract: terrain-preview-quality.spec.mjs
 featureTest.describe("terrain-preview-quality", () => {
   const { expect,test } = __suiteDependency3;
-test.use({viewport:{width:1000,height:760},deviceScaleFactor:1,trace:'off',
-  launchOptions:{args:process.platform==='win32'?['--use-angle=d3d11']:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader','--disable-gpu-sandbox']}});
+test.use({viewport:{width:1000,height:760},deviceScaleFactor:1});
 
 // Decode the actual screenshot rather than a discarded WebGL backbuffer.
 async function samples(page,buffer){
@@ -305,8 +305,7 @@ test.afterEach(async({page},info)=>{
 // Preserved Viewer feature contract: terrain-ocean-loading.spec.mjs
 featureTest.describe("terrain-ocean-loading", () => {
   const {  expect, test  } = __suiteDependency4;
-test.use({ viewport: { width: 1100, height: 760 }, trace: 'off',
-  launchOptions: { args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu-sandbox'] } });
+test.use({ viewport: { width: 1100, height: 760 } });
 
 test('western Pacific keeps the ocean substrate while DEM colors are still loading', async ({ page, baseURL }) => {
   test.setTimeout(150_000);

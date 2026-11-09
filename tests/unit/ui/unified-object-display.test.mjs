@@ -8,7 +8,7 @@ import * as __merge_dep5 from "node:assert/strict";
 import * as __merge_dep6 from "../../../src/ui/map-display-catalog.js";
 import * as __merge_dep7 from "../../../src/ui/layer-presentation.js";
 import * as __merge_dep8 from "../../../src/document/object-query.js";
-import * as __merge_dep9 from "../../../src/ui/object-selection-controller.js";
+import * as __merge_dep9 from "../../../src/document/object-ref-identity.js";
 import * as __merge_dep10 from "../../../src/document/territorial-units.js";
 import * as __merge_dep11 from "../../../src/document/territorial-entity-repository.js";
 import * as __merge_dep12 from "../../../src/ui/country-flags.js";

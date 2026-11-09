@@ -9,7 +9,7 @@ import * as __dep5 from "../../../src/rendering/territorial-fill-style.js";
 import * as __dep6 from "../../../src/ui/layer-presentation.js";
 import * as __dep7 from "../../../src/document/territorial-entity-repository.js";
 import * as __dep8 from "../../../src/map/object-picking.js";
-import * as __dep9 from "../../../src/ui/object-selection-controller.js";
+import * as __dep9 from "../../../src/document/object-ref-identity.js";
 import * as __dep10 from "../../../src/document/territorial-scope.js";
 import * as __dep11 from "../../../src/rendering/territorial-highlight-boundary.js";
 import * as __dep12 from "../../../src/rendering/map-display-preparation.js";

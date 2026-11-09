@@ -1,7 +1,7 @@
 import { test as featureTest } from '@playwright/test';
 import * as __suiteDependency0 from "@playwright/test";
 import * as __suiteDependency1 from "../../fixtures/viewer-project-package.mjs";
-import * as __suiteDependency2 from "../../../src/document/timeline-controls.js";
+import * as __suiteDependency2 from "../../../src/ui/timeline-controls.js";
 import * as __suiteDependency3 from "../helpers/viewer-acceptance.mjs";
 featureTest.use({launchOptions:{args:[
   '--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader','--disable-gpu-sandbox',

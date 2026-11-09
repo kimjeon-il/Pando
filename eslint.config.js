@@ -67,7 +67,6 @@ export default [
       'src/data/workers/place-worker.js',
       'src/rendering/workers/map-display-worker.js',
       'src/document/workers/core-viewer-session-worker.js',
-      'src/rendering/workers/gpkg-read-core.js',
     ],
     languageOptions: { sourceType: 'module' },
   },

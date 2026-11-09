@@ -105,22 +105,42 @@ export function artifactGraph(root,{readGeneratedJson=p=>json(root,p)}={}) {
     const f=structuredClone(input);
     f.inputs??=[];f.outputs??=[];f.dependencies??=[];f.generate??=[];f.validate??=[];
     if(f.resolve?.startsWith('world-')||f.resolve==='shared-boundaries') {
-      const seed=json(root,'assets/data/world/build-input.json');
-      const manifest='assets/data/'+seed.legacyPreviewManifest;
-      const legacy=readGeneratedJson(manifest);
-      if(f.resolve==='world-mesh') {
-        f.outputs.push('assets/data/'+legacy.assets.canonicalMesh.url);
-        // The manifest is also written by preview generation. Only its path
-        // selection affects this owner, avoiding an output->input cycle.
-        f.layout={canonicalMesh:legacy.assets.canonicalMesh.url};
-      } else if(f.resolve==='world-preview') {
-        f.outputs.push(manifest,...['canonicalCountryPacket','previewCountries','previewMesh'].map(k=>'assets/data/'+legacy.assets[k].url));
-        f.inputs.push('assets/data/'+legacy.assets.labelAnchors.url);
-        f.layout={manifest,assets:Object.fromEntries(Object.entries(legacy.assets).map(([k,v])=>[k,v.url]))};
-      } else if(f.resolve==='world-bundle') {
-        const current=readGeneratedJson('assets/data/world/current.json');
-        f.outputs.push(...Object.values(current.assets).map(asset=>'assets/data/'+asset.url));
-      } else f.outputs.push(...Object.values(seed.sharedBoundaries).map(p=>'assets/data/'+p));
+      // Source-only GIS build inputs were retired from the published viewer
+      // dataset. Planning and validating already-pinned output must not
+      // require those unpublished generation sources.
+      const seed=optionalJson(root,'assets/data/world/build-input.json');
+      const current=readGeneratedJson('assets/data/world/current.json');
+      if(seed){
+        const manifest='assets/data/'+seed.legacyPreviewManifest;
+        const legacy=readGeneratedJson(manifest);
+        if(f.resolve==='world-mesh'){
+          f.outputs.push('assets/data/'+legacy.assets.canonicalMesh.url);
+          f.layout={canonicalMesh:legacy.assets.canonicalMesh.url};
+        }else if(f.resolve==='world-preview'){
+          f.outputs.push(manifest,...['canonicalCountryPacket','previewCountries','previewMesh'].map(k=>'assets/data/'+legacy.assets[k].url));
+          f.inputs.push('assets/data/'+legacy.assets.labelAnchors.url);
+          f.layout={manifest,assets:Object.fromEntries(Object.entries(legacy.assets).map(([k,v])=>[k,v.url]))};
+        }else if(f.resolve==='world-bundle'){
+          f.outputs.push(...Object.values(current.assets).map(asset=>'assets/data/'+asset.url));
+        }else f.outputs.push(...Object.values(seed.sharedBoundaries).map(p=>'assets/data/'+p));
+      }else{
+        // The archived source manifest cannot be reconstructed from a runtime
+        // bundle; only derive known output ownership from its pinned manifest.
+        if(current?.schema!=='pandolab-world-bundle')throw Error('Missing pinned world output for source-free planning');
+        if(f.resolve==='world-mesh'){
+          f.outputs.push('assets/data/'+current.assets.canonicalMesh.url);
+          f.layout={canonicalMesh:current.assets.canonicalMesh.url};
+        }else if(f.resolve==='world-preview'){
+          const roles=['canonicalCountryPacket','previewCountries','previewMesh','labelAnchors'];
+          f.outputs.push(...roles.slice(0,3).map(k=>'assets/data/'+current.assets[k].url));
+          f.inputs.push('assets/data/'+current.assets.labelAnchors.url);
+          f.layout={assets:Object.fromEntries(roles.map(k=>[k,current.assets[k].url]))};
+        }else if(f.resolve==='world-bundle'){
+          f.outputs.push(...Object.values(current.assets).map(asset=>'assets/data/'+asset.url));
+        }else{
+          f.outputs.push(...Object.values(current.compatibility?.sharedBoundaries||{}).map(p=>'assets/data/'+p));
+        }
+      }
     }
     if(f.resolve==='hydro'||f.resolve==='terrain') {
       const manifest=f.resolve==='hydro'?'assets/data/hydro/v0.13.4/manifest.json':'assets/data/terrain-preview/v0.13.3-p2/manifest.json';
@@ -128,6 +148,19 @@ export function artifactGraph(root,{readGeneratedJson=p=>json(root,p)}={}) {
       f.provenance=provenance(json(root,manifest).sources);
     }
 
+    // A pinned Viewer release intentionally excludes GIS authoring inputs.
+    // Preserve and validate its immutable outputs; only an explicit request
+    // may attempt regeneration, where the missing source is a hard failure.
+    const retiredSourcePaths=new Set([
+      'assets/data/world/build-input.json',
+      'assets/data/builtin-world/display-policy-v1.json',
+      'assets/data/historical-world/policy.json',
+    ]);
+    if(existsSync(safePath(root,'assets/data/world/current.json'))&&
+      f.inputs.some(value=>typeof value==='string'&&retiredSourcePaths.has(value)&&!existsSync(inputPath(root,value)))){
+      f.manual=true;
+      f.blockedReason='GIS authoring inputs are absent from the pinned Viewer data snapshot; regenerate from a source-enabled GIS checkout';
+    }
     f.outputs=[...new Set(f.outputs)].sort();
     f.sources=moduleClosure(root,[...f.generate,...f.validate].filter(c=>c[0]==='node').map(c=>c[1]));
     return f;

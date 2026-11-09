@@ -6,7 +6,7 @@ import * as __unit_dep3 from "node:fs";
 import * as __unit_dep4 from "../../../scripts/lib/product-html.mjs";
 import * as __unit_dep5 from "../../../src/runtime/resource-capabilities.js";
 import * as __unit_dep6 from "../../../src/document/object-query.js";
-import * as __unit_dep7 from "../../../src/ui/object-selection-controller.js";
+import * as __unit_dep7 from "../../../src/document/object-ref-identity.js";
 import * as __unit_dep8 from "../../../src/document/place-contract.js";
 import * as __unit_dep9 from "../../../src/ui/workspace-layout.js";
 contractSuite("surface-controller", () => {

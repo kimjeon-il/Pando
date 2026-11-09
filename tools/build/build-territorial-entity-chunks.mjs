@@ -3,6 +3,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
 import {selectTerritorialChunkBytes} from '../data/territorial-chunk-compression.mjs';
+import {encodeTerritorialSource} from '../data/territorial-source-codec.mjs';
+import {territorialSourceLayout} from '../../src/data/territorial-source-format.js';
 import {readTerritorialSources,readTerritorialSource,readTerritorialLineages,entityFileName,territorialDataRoot,territorialSourceRoot} from '../data/territorial-entity-sources.mjs';
 import {parseTemporal} from "../../src/document/temporal.js";
 import {territorialIndexEntry} from "../gis/territorial-index-entry.js";
@@ -45,14 +47,17 @@ if(selected&&selected.some(id=>!previous.entities.some(row=>row.entityId===id)))
 const expectedFiles=new Set(['index.json']);
 fs.mkdirSync(output,{recursive:true});
 const index={schemaVersion:2,lineages:previous?.lineages||readTerritorialLineages(),entities:entities.map(entity=>{
- const bytes=Buffer.from(`${JSON.stringify(entity,null,2)}\n`);
+ // The intermediate catalog stores metadata only. Immutable coordinates are
+ // referenced by verified content digest and never repacked for name edits.
+ const {descriptor}=encodeTerritorialSource(entity);
+ const bytes=Buffer.from(`${JSON.stringify(descriptor,null,2)}\n`);
  const file=`${entityFileName(entity.entityId)}.gz`;expectedFiles.add(file);
  const destination=path.join(output,file);
  const previous=fs.existsSync(destination)?fs.readFileSync(destination):null;
  const {stored,changed}=selectTerritorialChunkBytes(bytes,previous);
  if(check&&changed)throw new Error(`Stale territorial chunk: ${file}`);
  if(!check&&changed)writeLibraryOutput(destination,stored);
- return territorialIndexEntry(entity,{sha256:sha(stored),compressedBytes:stored.length,decodedBytes:bytes.length});
+ return territorialIndexEntry(entity,{sha256:sha(stored),compressedBytes:stored.length,decodedBytes:bytes.length,storageLayout:territorialSourceLayout});
  }),snapshots:previous?.snapshots||fs.readdirSync(path.join(territorialSourceRoot,'snapshots')).filter(f=>f.endsWith('.json')).sort().map(file=>{
  const snapshot=JSON.parse(fs.readFileSync(path.join(territorialSourceRoot,'snapshots',file),'utf8'));
  parseTemporal(snapshot.referenceDate,{nullable:false});

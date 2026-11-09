@@ -10,7 +10,7 @@ import * as __dep7 from "../../../src/ui/map-theme.js";
 import * as __dep8 from "../../../src/document/generic-feature-normalization.js";
 import * as __dep9 from "../../../src/ui/color-adapter.js";
 import * as __dep10 from "../../../src/ui/map-content-presentation.js";
-import * as __dep11 from "../../../src/ui/object-selection-controller.js";
+import * as __dep11 from "../../../src/document/object-ref-identity.js";
 import * as __dep12 from "node:worker_threads";
 import * as __dep13 from "../../../src/ui/map-display-client.js";
 import * as __dep14 from "../../../src/runtime/worker-rpc.js";
