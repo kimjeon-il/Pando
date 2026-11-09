@@ -21,8 +21,12 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile --ignore-scripts
-      - name: P1-3 and P1-5 project-specific build and Pages admission
+      - name: P1-3 and P1-5 project catalog and Pages admission
         run: node --test --test-timeout=30000 tests/unit/build/frontend-build.test.mjs tests/unit/document/monorepo-pages-staging.test.mjs
+      - name: P1-4 project identity and shared reader adapter (JS-only)
+        run: node --test --test-timeout=30000 tests/unit/document/map-project-identity.test.mjs tests/unit/document/project-open-adapter-contract.test.mjs
+      - name: P2-1 same self-contained resource policy in browser and classic Worker
+        run: node --test --test-timeout=30000 tests/unit/rendering/resource-update-policy.test.mjs
       - name: P1-5 reject legacy fallback from product Viewer
         run: node --test --test-timeout=30000 tests/unit/data/library-data-scope.test.mjs
       - name: P2-2 check owners and deterministic selection only
