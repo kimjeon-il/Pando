@@ -78,24 +78,6 @@
       "inputs": []
     },
     {
-      "id": "ussr-partition-native",
-      "kind": "command",
-      "testPatterns": [
-        "tests/unit/geometry/gis-ussr-1922-partition-native.test.mjs"
-      ],
-      "inputs": [
-        "tests/unit/geometry/gis-ussr-1922-partition-native.test.mjs",
-        "tools/cpp/build-territorial-recipe.cpp",
-        "tools/cpp/historical-ussr-partition-audit.inc",
-        "tools/cpp/CMakeLists.txt"
-      ],
-      "argv": [
-        "node",
-        "scripts/check-ussr-partition-native.mjs"
-      ],
-      "gisNative": true
-    },
-    {
       "id": "gis-contracts",
       "kind": "unit",
       "testPatterns": [
@@ -111,7 +93,6 @@
         "tests/unit/**/river-territory-*.test.mjs",
         "tests/unit/geometry/map-geometry-validation.test.mjs",
         "tests/unit/**/historical-german-*.test.mjs",
-        "tests/unit/rendering/historical-display-review.test.mjs",
         "tests/unit/**/historical-source-*.test.mjs"
       ],
       "inputs": []
@@ -838,24 +819,6 @@
     }
   ],
   "prerequisites": {
-    "native-hydro-calibration": {
-      "argv": [
-        "node",
-        "scripts/prepare-native-test-tools.mjs",
-        "hydro-calibration"
-      ],
-      "env": {
-        "PANDO_HYDRO_CALIBRATION_ARTIFACT": "{root}/build-native/hydro-calibration/artifact"
-      },
-      "inputs": [
-        "tools/cpp/hydro-calibration/**",
-        "tools/cpp/hydro/calibration.cpp",
-        "src/data/native/include/pandoeditor/losslessjson.h",
-        "src/data/native/src/losslessjson.cpp",
-        "tools/gis/package-hydro-calibration.mjs",
-        ".github/actions/native-test-prerequisites/action.yml"
-      ]
-    },
     "native-hydro-point-screen": {
       "argv": [
         "node",
@@ -1039,21 +1002,6 @@
         ".github/actions/native-test-prerequisites/action.yml"
       ]
     },
-    "native-german-natural-earth": {
-      "argv": [
-        "node",
-        "scripts/prepare-native-test-tools.mjs",
-        "german-natural-earth"
-      ],
-      "env": {
-        "PANDO_GERMAN_CANONICAL_NE": "{root}/build-native/german-base/canonical-ne.json"
-      },
-      "inputs": [
-        "tools/gis/verify-german-1914-originals.mjs",
-        "config/library-data.json",
-        ".github/actions/native-test-prerequisites/action.yml"
-      ]
-    },
     "native-caspian-oracle": {
       "argv": [
         "node",
@@ -1158,9 +1106,7 @@
     },
     {
       "tests": [
-        "tests/unit/**/check-*.test.mjs",
-        "tests/unit/ui/native-check-prerequisites.test.mjs",
-        "tests/unit/runtime/viewer-preview-plan.test.mjs"
+        "tests/unit/**/check-*.test.mjs"
       ],
       "inputs": [
         ".github/workflows/application-architecture.yml",
@@ -1172,9 +1118,7 @@
     {
       "tests": [
         "tests/unit/**/*version*.test.mjs",
-        "tests/unit/**/check-*.test.mjs",
-        "tests/unit/ui/native-check-prerequisites.test.mjs",
-        "tests/unit/runtime/viewer-preview-plan.test.mjs"
+        "tests/unit/**/check-*.test.mjs"
       ],
       "inputs": [
         "package.json",
@@ -1318,9 +1262,7 @@
       ]
     },
     {
-      "tests": [
-        "tests/unit/runtime/check-automation.test.mjs"
-      ],
+      "tests": [],
       "inputs": [
         ".github/workflows/**",
         ".github/actions/**"
@@ -1355,14 +1297,11 @@
       ],
       "tests": [
         "tests/unit/runtime/check-runner.test.mjs",
-        "tests/unit/ui/native-check-prerequisites.test.mjs",
         "tests/unit/build/build-metadata.test.mjs"
       ]
     },
     {
-      "tests": [
-        "tests/unit/runtime/check-automation.test.mjs"
-      ],
+      "tests": [],
       "inputs": [
         "scripts/plan-application-checks.mjs",
         "scripts/check-test-consolidation.mjs"
@@ -1452,14 +1391,6 @@
     },
     {
       "tests": [
-        "tests/unit/geometry/hydro-calibration-native.test.mjs"
-      ],
-      "requires": [
-        "native-hydro-calibration"
-      ]
-    },
-    {
-      "tests": [
         "tests/unit/geometry/hydro-shared-boundary.test.mjs"
       ],
       "requires": [
@@ -1468,21 +1399,6 @@
     },
     {
       "tests": [
-        "tests/unit/geometry/gis-caspian-display-packaging.test.mjs",
-        "tests/unit/geometry/gis-caspian-generalize-native.test.mjs",
-        "tests/unit/geometry/gis-caspian-physical-native.test.mjs",
-        "tests/unit/geometry/gis-ddr-native-partition.test.mjs",
-        "tests/unit/build/gis-german-base-builder.test.mjs",
-        "tests/unit/geometry/gis-german-base-native.test.mjs",
-        "tests/unit/geometry/gis-german-modern-coast-native.test.mjs",
-        "tests/unit/geometry/gis-historical-linework-native.test.mjs",
-        "tests/unit/geometry/gis-historical-source-compare.test.mjs",
-        "tests/unit/geometry/gis-lsib-coast-native.test.mjs",
-        "tests/unit/geometry/gis-lsib-source-native.test.mjs",
-        "tests/unit/geometry/gis-lsib-spatial-native.test.mjs",
-        "tests/unit/geometry/gis-lsib-tripoint-native.test.mjs",
-        "tests/unit/geometry/gis-lsib-union-native.test.mjs",
-        "tests/unit/geometry/gis-ussr-1922-partition-native.test.mjs",
         "tests/unit/geometry/territorial-boundary-supplement.test.mjs",
         "tests/unit/document/territorial-recipe-cpp.test.mjs"
       ],
@@ -1504,14 +1420,6 @@
       ],
       "requires": [
         "native-terrain-dem-tint"
-      ]
-    },
-    {
-      "tests": [
-        "tests/unit/build/gis-german-base-builder.test.mjs"
-      ],
-      "requires": [
-        "native-german-natural-earth"
       ]
     },
     {

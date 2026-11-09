@@ -60,7 +60,7 @@
     "package:shared-core": "node tools/build/package-shared-core-assets.mjs --build-dir build-native/wasm/wasm",
     "check:shared-core-assets": "node tools/build/package-shared-core-assets.mjs --build-dir build-native/wasm/wasm --check",
     "check:geometry-runtime": "node --test tests/unit/geometry/polygon-geometry.test.mjs tests/unit/geometry/gis-math-contract.test.mjs tests/unit/geometry/annex-slivers.test.mjs",
-    "check:ci-inventory": "node scripts/check-test-consolidation.mjs && node --test  tests/unit/runtime/check-automation.test.mjs tests/unit/runtime/check-runner.test.mjs tests/unit/ui/native-check-prerequisites.test.mjs",
+    "check:ci-inventory": "node scripts/check-test-consolidation.mjs && node --test tests/unit/runtime/check-runner.test.mjs tests/unit/runtime/check-contract-architecture.test.mjs",
     "check:affected": "node scripts/run-application-checks.mjs",
     "test:gis-node": "node --test tests/unit/data/hydro-packfile.test.mjs tests/unit/geometry/download-terrain-source.test.mjs tests/unit/document/place-batch-pipeline.test.mjs tests/unit/document/place-candidates.test.mjs tests/unit/geometry/gis-source-launcher.test.mjs tests/unit/data/report-paths.test.mjs",
     "dev:web": "node scripts/frontend-dev-server.mjs --product=viewer",
