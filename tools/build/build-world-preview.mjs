@@ -37,7 +37,10 @@ const previewCountriesPath = path.join(dataDirectory, legacySourceManifest.asset
 const previewMeshPath = path.join(dataDirectory, legacySourceManifest.assets.previewMesh.url);
 const previewManifestPath = path.join(dataDirectory, bundleSeed.legacyPreviewManifest);
 if(projectId!=='default-world'&&Object.values(legacySourceManifest.assets)
-  .some(asset=>typeof asset?.url!=='string'||!asset.url.startsWith(projectId+'/')))
+  .some(asset=>typeof asset?.url!=='string'
+    ||!/^[-a-zA-Z0-9_./]+$/.test(asset.url)
+    ||asset.url.split('/').some(part=>!part||part==='.'||part==='..')
+    ||!asset.url.startsWith(projectId+'/')))
   throw new TypeError('Nondefault project world assets must use a project-owned immutable output namespace');
 const checkOnly = process.argv.includes('--check');
 

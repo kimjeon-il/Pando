@@ -59,8 +59,12 @@ export function readProjectWorldGenerationContext(options = {}) {
     ||worldRecipe.legacyPreviewManifest.split('/').some(part=>!part||part==='.'||part==='..')
     ||!/^[-a-zA-Z0-9_./]+$/.test(worldRecipe.legacyPreviewManifest))
     throw new TypeError('Unsafe selected project world preview path');
-  if(selection.projectId!=='default-world'
-    &&!worldRecipe.legacyPreviewManifest.startsWith(selection.projectId+'/'))
-    throw new TypeError('Nondefault project world preview must have a project-owned output path');
+  if(selection.projectId!=='default-world') {
+    const prefix='assets/data/'+selection.projectId+'/';
+    if(!selection.catalogs.world.startsWith(prefix))
+      throw new TypeError('Nondefault project world catalog must have a project-owned output path');
+    if(!worldRecipe.legacyPreviewManifest.startsWith(selection.projectId+'/'))
+      throw new TypeError('Nondefault project world preview must have a project-owned output path');
+  }
   return Object.freeze({...selection,worldRecipePath,worldRecipe});
 }

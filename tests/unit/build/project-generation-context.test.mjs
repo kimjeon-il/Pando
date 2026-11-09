@@ -96,6 +96,12 @@ test('world generators select the same project source recipe and reject cross-pr
  assert.equal(selected.catalogs.world,altManifest.resources.world.catalog);
  assert.equal(selected.worldRecipe.canonicalSource,'alternate-world/current-world.geojson');
  assert.equal(selected.worldRecipePath,altGeneration.inputs.worldBuildRecipe);
+ inputs.set('projects/alternate-world/manifest.json',JSON.stringify({
+   ...altManifest,resources:{...altManifest.resources,
+     world:manifest.resources.world},
+ }));
+ assert.throws(()=>readProjectWorldGenerationContext(opts),/project-owned/);
+ inputs.set('projects/alternate-world/manifest.json',JSON.stringify(altManifest));
  inputs.set(altGeneration.inputs.worldBuildRecipe,JSON.stringify({...recipe,
    canonicalSource:'territorial-entities/generated/current-world.geojson'}));
  assert.throws(()=>readProjectWorldGenerationContext(opts),/differs/);
