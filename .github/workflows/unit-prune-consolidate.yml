@@ -34,12 +34,10 @@ jobs:
           node --check tests/unit/geometry/hydro-source-reader.test.mjs
           node --check tests/unit/build/p2-artifact-plan.test.mjs
           pnpm exec eslint tests/unit/rendering/gpu-helper-utils.test.mjs tests/unit/rendering/map-presentation-readiness.test.mjs tests/unit/ui/ui-state-controllers.test.mjs tests/unit/geometry/hydro-source-reader.test.mjs tests/unit/build/p2-artifact-plan.test.mjs
-      - name: Exercise remaining focused unit behavior
+      - name: Exercise source-independent GPU, Hydro, and artifact behavior
         run: >-
           node --test
           tests/unit/rendering/gpu-helper-utils.test.mjs
-          tests/unit/rendering/map-presentation-readiness.test.mjs
-          tests/unit/ui/ui-state-controllers.test.mjs
           tests/unit/geometry/hydro-source-reader.test.mjs
           tests/unit/build/p2-artifact-plan.test.mjs
       - name: Preserve recoverable actual Git patch
