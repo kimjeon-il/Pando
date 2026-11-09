@@ -20,7 +20,7 @@ export function checkUSSRPartition({root=resolve(fileURLToPath(new URL('../',imp
       join(build,'Release/pando-territorial-recipe.exe')].find(exists);
   }
   if(!binary||!exists(binary))throw Error('USSR partition native executable is missing');
-  execute([process.execPath,'--test','tests/unit/geometry/gis-ussr-1922-partition-native.test.mjs'],
+  execute([process.execPath,'--test','tests/unit/document/historical-world-territories.test.mjs'],
     {...env,PANDO_TERRITORIAL_RECIPE_BINARY:binary});
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
