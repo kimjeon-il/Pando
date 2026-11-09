@@ -116,17 +116,23 @@ test('selected Hydro source version and land/terrain pairing are validated befor
 });
 
 
-test('prepared mesh input fingerprints reject cross-project territories or physical land',async t=>{
+test('obsolete prepared meshes are cache misses, not a source change or deployment failure',async t=>{
  const f=fixture(t),before=await buildFrontendSnapshot(f.options);
  assert.equal(before.buildMeta.mapProject.projectId,'default-world');
+ assert.equal(before.buildMeta.projectCatalogs.preparedMeshes.current,true);
  const mesh='assets/data/prepared-polygons/generated/v2/manifest.json';
  const builtin='assets/data/builtin-world/generated/v1/index.json';
  f.metadata[mesh].inputHashes[builtin]='0'.repeat(64);
- await assert.rejects(buildFrontendSnapshot(f.options),/prepared meshes do not match selected territorial/);
+ const oldTerritory=await buildFrontendSnapshot(f.options);
+ assert.equal(oldTerritory.buildMeta.projectCatalogs.preparedMeshes.current,false);
+ assert.ok(oldTerritory.viewerPaths.has(mesh),'pinned cache manifest remains published and hash checked');
  f.metadata[mesh].inputHashes[builtin]=createHash('sha256').update(JSON.stringify(f.metadata[builtin])).digest('hex');
  const land='assets/data/physical-land/v1/manifest.json';
  f.metadata[mesh].inputHashes[land]='0'.repeat(64);
- await assert.rejects(buildFrontendSnapshot(f.options),/prepared meshes do not match selected physicalLand/);
+ const oldLand=await buildFrontendSnapshot(f.options);
+ assert.equal(oldLand.buildMeta.projectCatalogs.preparedMeshes.current,false);
+ f.metadata[mesh].inputHashes[land]=createHash('sha256').update(JSON.stringify(f.metadata[land])).digest('hex');
+ assert.equal((await buildFrontendSnapshot(f.options)).buildMeta.projectCatalogs.preparedMeshes.current,true);
 });
 
 
@@ -160,4 +166,6 @@ test('changing default-world geography, terrain and mesh catalogs requires no Vi
  assert.equal(Object.hasOwn(output.buildMeta,'preparedPolygonMeshes'),false);
  assert.equal(Object.hasOwn(output.buildMeta,'worldBundle'),false);
  assert.equal(Object.hasOwn(output.buildMeta,'physicalWaterObjects'),false);
+ assert.equal(output.buildMeta.projectCatalogs.preparedMeshes.current,true,
+   'a new source-matched mesh cache remains eligible');
 });
