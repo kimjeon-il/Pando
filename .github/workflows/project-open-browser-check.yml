@@ -1,4 +1,5 @@
 name: Focused browser project-open integration
+# Diagnose initial document presentation before a GeoPackage roundtrip
 # Retest after canonical dependency policy worker closure correction
 on:
   push:
@@ -42,8 +43,8 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          pnpm exec playwright test tests/browser/document/viewer-project-open.spec.mjs \
-            --grep 'viewer opens the real editor GeoPackage' --workers=1 \
+          pnpm exec playwright test tests/browser/document/project-open-probe.spec.mjs \
+            --workers=1 \
             2>&1 | tee "$RUNNER_TEMP/project-open-browser.log"
       - name: Preserve narrow browser evidence outside external library mounts
         if: always()
