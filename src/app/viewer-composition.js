@@ -30,6 +30,7 @@ import {createViewerPostPresentation} from "./viewer-post-presentation.js";
 import {createViewerInspectorController} from "../ui/inspector/viewer-inspector-controller.js";
 import { createFileController } from "../ui/file-controller.js";
 import { readProjectFile } from "../data/project-file-reader.js";
+import {createProjectReader} from "../data/project-open-adapter.js";
 import { createMapSettings } from "../ui/app-map-settings.js";
 import { layerStyle } from "../ui/layer-presentation.js";
 import { DISTRIBUTION_RENDER_MODES } from "../document/distribution-model.js";
@@ -205,13 +206,14 @@ export async function composeViewer({ productMode, meta }) {
     presentViewerLoadStatus(status,options?.presentation==='temporal'?'다음 시점 준비 중…':'지도 불러오는 중…');
     status.dataset.ready='false';
     try {
-    if(!await projectDomain.open(reader,options)){
+    const outcome=await projectDomain.openProject(reader,options);
+    if(!outcome.accepted){
       firstMap.cancel();
       if(request===projectDomain.getOpenRevision())status.dataset.ready=String(previouslyReady);
       return false;
     }
     if(request!==projectDomain.getOpenRevision()){firstMap.cancel();return false;}
-    const presentedGeneration=projectDomain.getGeneration();
+    const presentedGeneration=outcome.generation;
     firstMap.accept(presentedGeneration);
     // setSession already built the scene with the pruned viewing state.
     // Admit remaining Core/selection catalogs after the replacement transaction.
@@ -294,13 +296,14 @@ export async function composeViewer({ productMode, meta }) {
       return changeBuiltinCursor(month,{isCurrent,commit});
     // Startup/return-from-file admits the full project once. Subsequent
     // months do not create C++ candidates or replace the active document.
-    return open(()=>map.prepareBuiltinProject(month,{isCurrent,transition:false}),{
-      source:'builtin',isCurrent,presentation:'default'});
+    return open(createProjectReader({source:'builtin',
+      read:()=>map.prepareBuiltinProject(month,{isCurrent,transition:false})}),{
+      isCurrent,presentation:'default'});
   },onCommitted:month=>{builtinActive=true;syncStatus();window.dispatchEvent(new CustomEvent('pandolab:project-changed'));},onError:report});
   disposables.push(builtinClock);
   const openUserProject=async(reader,options)=>{
     const previous=builtinActive,resume=builtinClock.suspend();builtinActive=false;
-    try {const result=await open(reader,options);
+    try {const result=await open(createProjectReader({source:'project',read:reader}),options);
       if(!result&&resume())builtinActive=previous;return result;}
     catch(error){if(resume())builtinActive=previous;throw error;}
   };
