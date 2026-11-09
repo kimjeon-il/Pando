@@ -1,0 +1,144 @@
+name: Phase 7 focused common runtime and real Chromium regression
+on:
+  push:
+    branches: [work/phase7-common-runtime-final-check-20261110]
+    paths: [.github/workflows/phase7-focused-browser.yml]
+permissions:
+  contents: write
+jobs:
+  focused:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - id: install
+        continue-on-error: true
+        run: pnpm install --frozen-lockfile --ignore-scripts
+      - id: static
+        if: steps.install.outcome == 'success'
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check src/document/project-source-runtime.js
+          node --check src/document/builtin-session.js
+          node --check src/rendering/territorial-scene-runtime.js
+          node --check tests/unit/document/project-source-runtime.test.mjs
+          node --check tests/browser/runtime/project-runtime-roundtrip.spec.mjs
+          pnpm exec eslint src/document/project-source-runtime.js src/document/builtin-session.js src/rendering/territorial-scene-runtime.js \
+            tests/unit/document/project-source-runtime.test.mjs \
+            tests/browser/runtime/project-runtime-roundtrip.spec.mjs src/app/viewer-map.js
+      - id: library
+        if: steps.install.outcome == 'success'
+        continue-on-error: true
+        uses: ./.github/actions/library-data
+      - id: gis-input
+        if: steps.library.outcome == 'success'
+        continue-on-error: true
+        run: node tools/data/library-data.mjs --purpose=gis --include-prefix=assets/data/builtin-world/display-policy-v1.json
+      - uses: jwlawson/actions-setup-cmake@v2
+        with:
+          cmake-version: 3.31.6
+      - uses: actions/checkout@v4
+        with:
+          repository: emscripten-core/emsdk
+          ref: db04e88298d9916fc51fcd3743045ca3eb695127
+          path: build-native/emsdk
+          persist-credentials: false
+      - id: core-build
+        if: steps.install.outcome == 'success' && steps.library.outcome == 'success' && steps.gis-input.outcome == 'success'
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          build-native/emsdk/emsdk install 6.0.3
+          build-native/emsdk/emsdk activate 6.0.3
+          source build-native/emsdk/emsdk_env.sh
+          emcc --version | sed -n '1p' | grep -F '6.0.3'
+          port_file=build-native/emsdk/upstream/emscripten/tools/ports/zlib.py
+          original='https://github.com/madler/zlib/archive/refs/tags/v{VERSION}.tar.gz'
+          canonical='https://codeload.github.com/madler/zlib/tar.gz/refs/tags/v{VERSION}'
+          grep -Fq "$original" "$port_file"
+          sed -i "s|$original|$canonical|" "$port_file"
+          node --input-type=module <<'NODE'
+          import {readFileSync,writeFileSync} from 'node:fs';
+          const file='build-native/emsdk/upstream/emscripten/tools/ports/__init__.py';
+          const input=readFileSync(file,'utf8');
+          const old="    ext = url_filename.split('.', 1)[1]";
+          if(input.split(old).length!==2)throw Error('Unexpected pinned Emscripten port loader');
+          const next="    ext = 'tar.gz' if name == 'zlib' and url.startswith('https://codeload.github.com/madler/zlib/tar.gz/refs/tags/v') else url_filename.split('.', 1)[1]";
+          writeFileSync(file,input.replace(old,next));
+          NODE
+          emcmake cmake --preset pando-wasm
+          cmake --build --preset pando-wasm --parallel 2
+          node tools/build/package-shared-core-assets.mjs --build-dir build-native/p1/pando-wasm/shared/wasm
+          node scripts/check-core-prerequisite.mjs
+      - id: core-tests
+        if: steps.core-build.outcome == 'success'
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          node --test --test-concurrency=1 --test-timeout=15000 \
+            tests/unit/document/project-source-runtime.test.mjs \
+            tests/unit/data/builtin-world-loader.test.mjs \
+            tests/unit/document/project-domain-active-timeline.test.mjs \
+            2>&1 | tee "$RUNNER_TEMP/phase7-core-tests.log"
+      - id: browser-install
+        if: steps.core-build.outcome == 'success'
+        continue-on-error: true
+        run: pnpm exec playwright install --with-deps chromium
+      - id: browser
+        if: steps.browser-install.outcome == 'success'
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm exec playwright test tests/browser/runtime/project-runtime-roundtrip.spec.mjs \
+            --workers=1 --retries=0 --output=test-results/project-runtime 2>&1 | tee "$RUNNER_TEMP/phase7-browser.log"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase7-browser-proof
+          path: test-results/project-runtime/
+          if-no-files-found: warn
+          retention-days: 5
+      - name: Record bounded native and actual Chromium evidence
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs=require('fs'),branch=context.ref.replace('refs/heads/','');
+            const read=name=>{
+              const file=process.env.RUNNER_TEMP+'/phase7-'+name+'.log';
+              return fs.existsSync(file)?fs.readFileSync(file,'utf8').slice(-24000):'not executed';
+            };
+            const result={
+              schema:'pando-phase7-focused-actual-browser-v1',sourceCommit:context.sha,
+              static:'${{ steps.static.outcome }}',library:'${{ steps.library.outcome }}',gisInput:'${{ steps.gis-input.outcome }}',
+              wasm:'${{ steps.core-build.outcome }}',coreTests:'${{ steps.core-tests.outcome }}',
+              browserInstall:'${{ steps.browser-install.outcome }}',browser:'${{ steps.browser.outcome }}',
+              logs:{core:read('core-tests'),browser:read('browser')},
+            };
+            const path='validation-results/phase7-actual-browser.json';
+            let sha;try{sha=(await github.rest.repos.getContent({owner:context.repo.owner,repo:context.repo.repo,path,ref:branch})).data.sha}
+            catch(e){if(e.status!==404)throw e;}
+            await github.rest.repos.createOrUpdateFileContents({owner:context.repo.owner,repo:context.repo.repo,
+              path,branch,...(sha?{sha}:{}),message:'test: record actual common runtime Chromium regression',
+              content:Buffer.from(JSON.stringify(result,null,2)+'\n').toString('base64')});
+      - name: Require every focused check to pass
+        if: always()
+        run: |
+          test '${{ steps.static.outcome }}' = success
+          test '${{ steps.library.outcome }}' = success
+          test '${{ steps.gis-input.outcome }}' = success
+          test '${{ steps.core-build.outcome }}' = success
+          test '${{ steps.core-tests.outcome }}' = success
+          test '${{ steps.browser.outcome }}' = success
