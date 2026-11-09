@@ -102,7 +102,7 @@ mustContain('assets/js/modules/viewer-composition.js',/createProjectDomain\(\{pr
   'Viewer must create a read-only project domain');
 mustContain('assets/js/modules/product-mode-policy.js',/PL-PRODUCT-READONLY/,
   'Core product mode must reject mutation operations');
-mustContain('assets/js/modules/viewer-composition.js',/await import\('\.\/viewer-review-panel\.js'\)/,
+mustContain('assets/js/modules/viewer-composition.js',/await\s+import\(['\"](?:\.\.\/ui\/inspector\/|\.\/)viewer-review-panel\.js['\"]\)/,
   'Viewer review panel must remain a lazy dynamic import');
 mustContain('assets/js/modules/viewer-inspector-controller.js',/readOnly!==true/,
   'Viewer inspector controller must fail closed for mutable document sessions');
@@ -110,7 +110,7 @@ mustContain('assets/js/modules/viewer-inspector-controller.js',/requestRevision/
   'Inspector async opens must use one cancellation sequence');
 mustContain('assets/js/modules/viewer-review-panel.js',/documentSession\.readOnly!==true/,
   'Review panel must independently enforce a read-only document');
-if(/^import\s+[^\n]*from\s+['"]\.\/viewer-review-panel\.js['"]/m.test(source('assets/js/modules/viewer-composition.js')))
+if(/^import\s+[^\n]*from\s+['\"](?:\.\.\/ui\/inspector\/|\.\/)viewer-review-panel\.js['\"]/m.test(source('assets/js/modules/viewer-composition.js')))
   fail('The review module must not be eagerly imported at Viewer boot');
 mustContain('assets/js/modules/core-document-client.js',/policy\.assertOperation\(operation\)/,
   'Core document client must check the product policy');
