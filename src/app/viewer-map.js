@@ -209,7 +209,7 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
     feedback:{reportOperationError:onError},domains:{get renderingDomain(){return renderingDomain;},get projectDomain(){return projectDomain;},
       get selectionDomain(){return documentSession.selectionDomain;},objectSearchController:{cancelSearch:()=>onPlacesSettled('cancel'),render:()=>onPlacesSettled('render')}}};
   connectMapOwner('territorialLabels',labelOwner,mergeCapabilityPorts(commonPorts,labelPorts));initializeMapReadOwners(owners,'labels');
-  const places=labelOwner.builtinPlaces;
+  const places=()=>labelOwner.builtinPlaces;
   const svg=d3.select(labelLayer).attr('class','map-svg map-overlay-svg');
   const {interactionSvg,territorialLabelLayer,labelLayer:userLabelLayer,hydroLakeLayer,hydroRiverLayer,hydroEditLayer,territorialUnitLayer,genericFeatureLayer,distributionLayer,territorialBoundaryLayer,selectionLayer,hoverLayer}=createMapOverlayLayers({map:d3.select(element),svg,productMode:'viewer'});
 
@@ -344,8 +344,8 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
     },
     finishInitialPreview:initialPreview.finish,
     cancelInitialReveal:initialPreview.dispose,
-    cancelSearch:()=>places.cancelSearch(),update,features:entityStore.snapshot,searchPlaces:query=>places.search(query),renderer,
-    loadPhysicalResources:physicalResources.loadPhysicalData,loadPhysicalLandMask:physicalResources.loadPhysicalLandMask,viewState:state,objectPresentation,searchActive:()=>places.isSearchOpen(),
+    cancelSearch:()=>places().cancelSearch(),update,features:entityStore.snapshot,searchPlaces:query=>places().search(query),renderer,
+    loadPhysicalResources:physicalResources.loadPhysicalData,loadPhysicalLandMask:physicalResources.loadPhysicalLandMask,viewState:state,objectPresentation,searchActive:()=>places().isSearchOpen(),
     prepareBuiltinProject:async(month,options)=>{
       // Parallel country/physical preparation must not orphan a native
       // candidate when only the physical half fails or is superseded.
