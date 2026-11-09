@@ -200,7 +200,7 @@ test('hydro admission joins the replacement renderer generation after its old Wo
   hydroPresentation:{allBuiltInHydroFeatures:()=>[]},domains:{projectDomain:{admitSelectionCatalog:async()=>true},renderingDomain:{invalidateOverlayGeometry(){}}},
   rendering:{gpuMapRenderer:{getProjectGeneration:()=>generation,setHydroManifest:async()=>{if(++calls===1){await gate;return false;}return true;}}},
   feedback:{reportOperationError:error=>errors.push(error)}});
- resources.initializeTerrainService();const pending=resources.loadHydroData();
+ resources.setProjectSource('builtin');resources.initializeTerrainService();const pending=resources.loadHydroData();
  while(!calls)await new Promise(resolve=>setImmediate(resolve));generation=2;release();
  assert.equal(await pending,true);assert.equal(calls,2);assert.equal(state.physicalLoadState.hydro,'ready');assert.deepEqual(errors,[]);
 });
@@ -301,6 +301,7 @@ test('P4-5 unchanged historical lake versions reuse the exact physical result wh
     domains:{renderingDomain:{invalidateProject:()=>{}}},
     feedback:{reportOperationError:err=>{throw err;}}
   });
+  resources.setProjectSource('builtin');
   await resources.loadPhysicalLandMask();
   await resources.preparePhysicalContext('1922-12');
   state.timelineCursor='1922-12';
@@ -369,6 +370,7 @@ for(const requestModern of [true,false])test(requestModern
     }},renderingDomain:{invalidateProject:reason=>{
       if(reason==='physical-water-ready'){ready++;(ready===1?modernReady:lateReady).resolve();}
     }}},feedback:{reportOperationError:error=>{throw error;}}});
+  resource.setProjectSource('builtin');
   await resource.loadPhysicalData({includeHydro:false});
   state.timelineCursor='1922';void resource.physicalLand;
   await firstAdmission.promise;
