@@ -23,8 +23,12 @@ const read=page=>page.evaluate(()=>{
     countryIndices:render.surfaceDraw?.countryIndexCount??null,
   };
 });
-async function assertMapReady(page){
+async function assertMapReady(page,{empty=false}={}){
   await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:120_000});
+  if(empty){
+    await expect.poll(async()=>(await read(page))?.ready,{timeout:30_000}).toBe('true');
+    return;
+  }
   await expect.poll(async()=>{
     const state=await read(page);
     return !!state&&state.ready==='true'&&state.countries>0
@@ -33,13 +37,13 @@ async function assertMapReady(page){
       &&['ready','limited'].includes(state.readiness);
   },{timeout:100_000,message:'accepted C++ country source must be painted on a current browser frame'}).toBe(true);
 }
-async function chooseYear(page,year){
+async function chooseYear(page,year,{empty=false}={}){
   await page.locator('#timelineDateButton').click();
   await page.locator('#timelineYearInput').fill(String(year));
   await page.locator('#timelineGoBtn').click();
   await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__?.documentState()?.timelineCursor),
     {timeout:65_000}).toBe(year+'-12');
-  await assertMapReady(page);
+  await assertMapReady(page,{empty});
 }
 test('real Viewer keeps source cache, C++ time, country selection, GeoPackage switch and return in one session',async({page},info)=>{
   test.setTimeout(300_000);
@@ -86,9 +90,15 @@ test('real Viewer keeps source cache, C++ time, country selection, GeoPackage sw
   await page.addScriptTag({url:'/assets/js/vendor/sql/sql-wasm.js'});
   const opened=await page.evaluate(async()=>{
     const viewer=window.__PANDOLAB_VIEWER__;
-    const source=structuredClone(viewer.documentSnapshot());
-    source.documentId=crypto.randomUUID();
-    source.projectSetup={...source.projectSetup,sourceMode:'empty'};
+    const {createInitialDocument}=await import('/assets/js/modules/initial-document.js');
+    // A real file must be self-contained. Do not serialize the builtin lazy
+    // C++ timeline snapshot: it references geometry versions not admitted yet.
+    const source=createInitialDocument({
+      appVersion:window.PANDOLAB_BUILD_META.appVersion,
+      state:{projectSetup:{initialMonth:'2024-12',timelineRange:null,
+        initialMapBounds:null,sourceMode:'empty'}},
+    });
+    source.mapProjectIdentity=structuredClone(viewer.documentSnapshot().mapProjectIdentity);
     const SQL=await window.initSqlJs({locateFile:file=>'/assets/js/vendor/sql/'+file});
     const db=new SQL.Database();
     db.run('CREATE TABLE pandolab_project_settings (setting_key TEXT PRIMARY KEY, json_value TEXT NOT NULL)');
@@ -100,7 +110,7 @@ test('real Viewer keeps source cache, C++ time, country selection, GeoPackage sw
     return {accepted:await viewer.openFile(file),documentId:source.documentId,bytes:bytes.length};
   });
   expect(opened.accepted).toBe(true);
-  await assertMapReady(page);
+  await assertMapReady(page,{empty:true});
   const imported=await read(page);
   observations.push({stage:'imported',...imported});
   expect(imported.documentId).toBe(opened.documentId);
@@ -108,7 +118,8 @@ test('real Viewer keeps source cache, C++ time, country selection, GeoPackage sw
   expect(imported.generation).toBeGreaterThan(dated.generation);
   expect(imported.selection).toBe(0);
   expect(imported.sourceMode).toBe('empty');
-  await chooseYear(page,2023);
+  expect(imported.countries).toBe(0,'self-contained empty file has no inherited builtin countries');
+  await chooseYear(page,2023,{empty:true});
   const importedDated=await read(page);
   observations.push({stage:'imported-date',...importedDated});
   expect(importedDated.documentId).toBe(opened.documentId);
