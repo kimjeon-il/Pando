@@ -262,26 +262,29 @@ export async function composeViewer({ productMode, meta }) {
     actionsDisposed=true;
     for(const unsubscribe of actionSubscriptions.splice(0))unsubscribe();
   }});
-  const changeBuiltinCursor=async(month,{isCurrent,commit})=>{
+  const changeProjectCursor=async(month,{isCurrent,commit})=>{
+    projectDomain.requireTimelineMonth(month);
     const previous=activeSession.commandOwner.state().timelineCursor;
+    const scope=projectDomain.activeProjectScope(),current=()=>isCurrent()
+      &&scope===projectDomain.activeProjectScope()&&!projectDomain.isOpening();
     const previouslyReady=status.dataset.ready==='true';
-    const temporalTicket=map.renderer.beginTemporalViewTransition(isCurrent);
+    const temporalTicket=map.renderer.beginTemporalViewTransition(current);
     status.dataset.loadingKind='temporal';status.dataset.ready='false';
     presentViewerLoadStatus(status,'다음 시점 준비 중…');
     try{
-      // Date-dependent physical reference data stays outside the project.
-      await owners.physicalResources.preparePhysicalContext(month,{isCurrent});
-      if(!isCurrent())return false;
-      if(!await applyDocumentMonth(month,{isCurrent,waitForFrame:true,
+      // Physical resources are scoped to this document; one C++ cursor owns
+      // the date for both builtin and GeoPackage projects.
+      await owners.physicalResources.preparePhysicalContext(month,{isCurrent:current});
+      if(!current())return false;
+      if(!await applyDocumentMonth(month,{isCurrent:current,waitForFrame:true,
         onCursorAccepted:()=>map.renderer.admitTemporalViewTransition(temporalTicket)}))return false;
-      if(!isCurrent()||!commit())return false;
+      if(!current()||!commit())return false;
       status.dataset.ready='true';presentViewerLoadStatus(status,'지도 준비 완료.');
-      postPresentation.schedule(isCurrent);
+      postPresentation.schedule(current);
       return true;
     }catch(error){
       map.renderer.finishTemporalViewTransition(temporalTicket);
-      if(isCurrent()){
-        // Restore the previous view of the *same* document after a render error.
+      if(current()){
         if(previous&&previous!==month&&activeSession.commandOwner.state().timelineCursor===month)
           try{await applyDocumentMonth(previous);}catch(restoreError){error.restoreError=restoreError;}
         status.dataset.ready=String(previouslyReady&&!error.restoreError);
@@ -291,27 +294,44 @@ export async function composeViewer({ productMode, meta }) {
       map.renderer.finishTemporalViewTransition(temporalTicket);
     }
   };
-  builtinClock=createBuiltinMonthClock({coalesceRequests:true,window,document,applyMonth:async(month,{isCurrent,commit})=>{
-    if(builtinActive&&builtinClock.month()!==null
-      &&activeSession.documentModel.snapshot().projectSetup?.sourceMode==='builtin')
-      return changeBuiltinCursor(month,{isCurrent,commit});
-    // Startup/return-from-file admits the full project once. Subsequent
-    // months do not create C++ candidates or replace the active document.
-    return open(()=>map.prepareBuiltinProject(month,{isCurrent,transition:false}),{
-      source:'builtin',isCurrent,presentation:'default'});
-  },onCommitted:month=>{builtinActive=true;syncStatus();window.dispatchEvent(new CustomEvent('pandolab:project-changed'));},onError:report});
-  disposables.push(builtinClock);
+  projectClock=createProjectMonthClock({
+    coalesceRequests:true,window,document,
+    initialAutomatic:preferencePresentation.current.timeline.defaultWorldFollowCurrentMonth,
+    canFollow:()=>!projectDomain.isOpening()
+      &&(!projectDomain.activeProject()||projectDomain.activeProject().source==='builtin'),
+    onFollowChange:(automatic,{mode})=>{
+      // A file project's manual date does not alter default-world preferences.
+      if(mode==='follow'||projectDomain.activeProject()?.source==='builtin'){
+        const current=preferencePresentation.current;
+        preferencePresentation.apply({...current,
+          timeline:{...current.timeline,defaultWorldFollowCurrentMonth:automatic}},
+          {rerender:false,reason:'default-world-follow'});
+      }
+    },
+    applyMonth:async(month,{isCurrent,commit,mode})=>{
+      const active=projectDomain.activeProject();
+      if(mode==='startup'||(mode==='follow'&&active?.source!=='builtin')){
+        // Returning from a GeoPackage reopens the manifest-backed project.
+        const opened=await open(()=>map.prepareBuiltinProject(month,{isCurrent,transition:false}),{
+          source:'builtin',isCurrent,presentation:'default'});
+        return opened&&commit();
+      }
+      if(!active)return false;
+      return changeProjectCursor(month,{isCurrent,commit});
+    },
+    onCommitted:()=>{syncStatus();window.dispatchEvent(new CustomEvent('pandolab:project-changed'));},
+    onError:report,
+  });
+  disposables.push(projectClock);
   const openUserProject=async(reader,options)=>{
-    const previous=builtinActive,resume=builtinClock.suspend();builtinActive=false;
-    try {const result=await open(reader,options);
-      if(!result&&resume())builtinActive=previous;return result;}
-    catch(error){if(resume())builtinActive=previous;throw error;}
+    projectClock.cancelPending();
+    return open(reader,options);
   };
   const fileElements={projectOpen:get('openProjectBtn'),projectInput:get('projectFileInput')};
   const files=createFileController({productMode,elements:fileElements,fileAccess:createBrowserFileAccess({productMode,elements:fileElements,window,document}),projectDomain,openProject:openUserProject,reportOperationError:report,window,document});
   disposables.push(files);
   files.bind();action(get('openProjectBtn'),'click',()=>files.openProjectPicker());
-  action(get('builtinMapBtn'),'click',()=>builtinClock.followNow());
+  action(get('builtinMapBtn'),'click',()=>projectClock.followNow());
   display=createMapSettings({capabilities:owners.capabilities,viewPresentation:map});
   display.connect({
     layerResources:{loadHydroData:owners.physicalResources.loadHydroData,preparePlaces:owners.territorialLabels.preparePlaces},
@@ -344,12 +364,14 @@ export async function composeViewer({ productMode, meta }) {
     documentSnapshot:()=>activeSession?.documentModel.snapshot(),resolvedWorld:()=>activeSession?.documentModel.world(),selectionSnapshot:()=>activeSession?.selectionDomain.snapshot().selection,
     diagnostics:diagnostics.snapshot,rendererStats:()=>map.renderer.getStats(),visibleTerritorialCount:()=>map.objectQuery.visibleTerritorialCount(),
     mapProjection:()=>map.viewState.projection,readOnly:documentSession.readOnly,
-    openFile:file=>openUserProject(()=>readProjectFile(file)),builtinMonth:()=>({month:builtinClock.month(),automatic:builtinClock.isAutomatic()})});
+    openFile:file=>openUserProject(()=>readProjectFile(file)),builtinMonth:()=>({
+      month:activeSession.commandOwner.state().timelineCursor,
+      automatic:projectClock.isAutomatic()&&projectDomain.activeProject()?.source==='builtin'})});
   }
   const lifecycle=createApplicationLifecycle({window,document,
     // Only initial engine admission is safe to repeat. DOM/map composition is not.
     compose:[()=>documentSession.commandOwner.load(JSON.stringify(documentSession.documentModel.snapshot())),composeMap],
-    startup:()=>builtinClock.refresh(),
+    startup:()=>projectClock.initialize(),
     shouldRetryCompose:(error,index)=>index===0&&isRecoverableLoadError(error),
     shouldRetryStartup:isRecoverableLoadError,
     getDisposables:()=>[...disposables].reverse(),
