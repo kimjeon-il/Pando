@@ -64,6 +64,26 @@ export async function buildPreparedCountryScene({root=defaultRoot,month,write=tr
   const engine=globalThis.PandoLabGpuMeshCore;
   engine.setSharedCore(globalThis.PandoLabSphericalCore);
   if(world.derivation.meshAlgorithmRevision!==engine.MESH_ALGORITHM_REVISION)throw new Error('Canonical mesh algorithm identity mismatch');
+  const sourceReceipt={countryPacket:world.assets.canonicalCountryPacket.sha256,
+    canonicalMesh:world.assets.canonicalMesh.sha256,builtinIndex:sha(indexBytes)};
+  const existing=world.assets.preparedCountryScene;
+  const hit=reusePreparedSceneReceipt({spec:existing,identity,source:sourceReceipt,
+    referenceMonth:month,algorithmVersion:engine.MESH_ALGORITHM_REVISION,
+    readStored:url=>readFileSync(resolve(data,url))});
+  if(hit){
+    const spec=hit.spec;
+    const summary={month,fillCount:roots.length,boundaryCount:boundaries.length,
+      reused:roots.map(feature=>({id:String(feature.id),source:'immutable-prepared-scene'})),
+      built:[],reusedImmutable:true,compressedBytes:spec.compressedBytes,
+      decodedBytes:spec.decodedBytes,assetSha256:spec.sha256};
+    if(write&&JSON.stringify(existing)!==JSON.stringify(spec)){
+      withLibraryOutputs({root,paths:[worldPath]},()=>{
+        world.assets.preparedCountryScene=spec;
+        writeFileSync(worldPath,JSON.stringify(world,null,2)+'\n');
+      });
+    }
+    return {spec,summary,packet:null};
+  }
   const baseline=decodeCountryMesh(readAsset(world.assets.canonicalMesh),sourceIds).mesh;
   const preparation=createCountryMeshPreparation({engine,loadPreparedPart:async (_key,feature)=>{
     const slot=byDigest.get(hashes.get(feature.geometry));
