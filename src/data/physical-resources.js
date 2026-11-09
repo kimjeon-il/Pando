@@ -112,14 +112,14 @@ export function createPhysicalResources({ buildMeta,projectResources=null,
   const pinnedHydro=buildMeta?.mapProject?mapProjectResourcePath(buildMeta.mapProject,'rivers'):null;
   if(buildMeta?.mapProject&&mapProjectResourcePath(buildMeta.mapProject,'lakes')!==pinnedHydro)
     throw new TypeError('Current Hydro service requires a shared river/lake project catalog');
-  const selected=()=>!projectResources?.managed||!!projectResources.current();
+  const hasResources=()=>!projectResources?.managed||!!projectResources.current();
   const roleCatalog=role=>projectResources?.managed
     ?projectResources.resource(role)?.catalog||null
     :buildMeta?.mapProject?mapProjectResourcePath(buildMeta.mapProject,role):null;
-  const currentWaterCatalog=()=>selected()?buildMeta?.physicalWaterObjects:EMPTY_PHYSICAL_WATER;
-  const currentLandSpec=()=>selected()?buildMeta?.physicalLand:null;
+  const currentWaterCatalog=()=>hasResources()?buildMeta?.physicalWaterObjects:EMPTY_PHYSICAL_WATER;
+  const currentLandSpec=()=>hasResources()?buildMeta?.physicalLand:null;
   let sourceGeneration=0;
-  const isCurrentSource=generation=>generation===sourceGeneration&&selected();
+  const isCurrentSource=generation=>generation===sourceGeneration&&hasResources();
   let dependencies;
   let terrainService;
   let hydroService;
@@ -192,7 +192,7 @@ export function createPhysicalResources({ buildMeta,projectResources=null,
   }
   const presentPhysicalWater=createPhysicalWaterPresentation();
   function currentPhysicalContext() {
-    if(!selected())return null;
+    if(!hasResources())return null;
     const {rows:selected,key}=selectedPhysicalWater();
     if(!selected.length){requestedWaterKey=null;return physicalLand;}
     if(key!==requestedWaterKey){
