@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {existsSync,readFileSync} from 'node:fs';
 import {join} from 'node:path';
+import {createHash} from 'node:crypto';
 import {buildFrontendSnapshot} from "../../../scripts/lib/frontend-build.mjs";
 import {frontendFixture as fixture} from "../../helpers/frontend-build-fixture.mjs";
 
@@ -87,4 +88,29 @@ test('a separately selected project owns the complete published map and place re
  await assert.rejects(buildFrontendSnapshot({...f.options,projectId:'../outside'}),/project ID/);
  f.put('projects/wrong-name/manifest.json',JSON.stringify(primary));
  await assert.rejects(buildFrontendSnapshot({...f.options,projectId:'wrong-name'}),/source identity mismatch/);
+});
+
+test('project catalog receipts carry pinned content SHA, version and loading criticality',async t=>{
+ const f=fixture(t),result=await buildFrontendSnapshot(f.options),receipts=result.buildMeta.mapProjectCatalogs;
+ const path='assets/data/builtin-world/generated/v1/index.json';
+ const expected=createHash('sha256').update(Buffer.from(JSON.stringify(f.metadata[path]))).digest('hex');
+ assert.equal(receipts.territorial.catalog,path);
+ assert.equal(receipts.territorial.sha256,expected);
+ assert.equal(receipts.territorial.schema,'pandolab-builtin-world');
+ assert.equal(receipts.territorial.schemaVersion,2);
+ assert.equal(receipts.rivers.sha256,receipts.lakes.sha256,'one shared Hydro catalog has one byte identity');
+ assert.deepEqual(receipts.physicalLand.dependsOn,['terrain']);
+ assert.equal(receipts.preparedMeshes.required,false,'prepared geometry is optional for display');
+ assert.equal(result.buildMeta.mapProject.document.identityPolicy,'runtime-instance');
+ assert.equal(result.buildMeta.mapProject.timeline.precision,'month');
+ // Content revision must incorporate the selected bytes, not merely their paths.
+ f.metadata['assets/data/places/manifest.json']={shards:{},revisionMarker:'changed'};
+ const changed=await buildFrontendSnapshot(f.options);
+ assert.notEqual(changed.dataRevision,result.dataRevision);
+ assert.notEqual(changed.buildMeta.mapProjectCatalogs.places.sha256,receipts.places.sha256);
+});
+test('map build rejects malformed pinned catalogs instead of treating them as absent',async t=>{
+ const f=fixture(t);
+ f.metadata['assets/data/places/manifest.json']=['invalid catalog'];
+ await assert.rejects(buildFrontendSnapshot(f.options),/Invalid pinned map project catalog object/);
 });
