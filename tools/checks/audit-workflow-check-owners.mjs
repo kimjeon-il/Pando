@@ -8,8 +8,9 @@ const triggers=on=>typeof on==='string'?[on]:Array.isArray(on)?on:Object.keys(on
 const stable=value=>Array.isArray(value)?'['+value.map(stable).join(',')+']':
   value&&typeof value==='object'?'{'+Object.keys(value).sort().map(k=>JSON.stringify(k)+':'+stable(value[k])).join(',')+'}':
   JSON.stringify(value);
+const globSyntax=new Set(['*','?','!','[',']','{','}']);
 const literalFilter=value=>Array.isArray(value)&&value.length>0&&
-  value.every(x=>typeof x==='string'&&!/[!*?\\[\\]{}]/.test(x));
+  value.every(x=>typeof x==='string'&&![...x].some(char=>globSyntax.has(char)));
 const filterOverlap=(left,right)=>{
   if(!literalFilter(left)||!literalFilter(right))return true;
   return left.some(item=>right.includes(item));
