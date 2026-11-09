@@ -337,6 +337,8 @@ export function createPhysicalResources({ buildMeta,capabilities = {terrain:true
         return manifestUrl;
       },
       getLoadState: () => dependencies.projectState.state.physicalLoadState.hydro,
+      loadKey:()=>projectSourceEpoch,
+      isLoadCurrent:key=>activeSource==='builtin'&&key===projectSourceEpoch,
       onLoading: () => {
         dependencies.projectState.state.physicalLoadState.hydro = 'loading';
         dependencies.projectState.state.physicalLoadState.hydroManifest = 'loading';
@@ -348,7 +350,9 @@ export function createPhysicalResources({ buildMeta,capabilities = {terrain:true
       onRetry: (_operation, attempt) => dependencies.operationFeedback.reliabilityDiagnostic.push({
         category: 'asset', operation: 'hydro-manifest', result: `retry-${attempt}`,
       }),
-      acceptManifest: async (manifest, manifestUrl) => {
+      acceptManifest: async (manifest, manifestUrl,context) => {
+        const isCurrent=context?.isCurrent||(()=>activeSource==='builtin');
+        if(!isCurrent())return false;
         dependencies.projectState.state.hydroManifest = manifest;
         dependencies.projectState.state.hydroFeatureCache = new Map();
         dependencies.projectState.state.hydroFeatureByFid = new Map();
@@ -359,11 +363,14 @@ export function createPhysicalResources({ buildMeta,capabilities = {terrain:true
         const renderer=dependencies.rendering.gpuMapRenderer;
         let generation,workerReady;
         do {
+          if(!isCurrent())return false;
           generation=renderer.getProjectGeneration();
           workerReady=await renderer.setHydroManifest(manifest,manifestUrl);
+          if(!isCurrent())return false;
         } while(generation!==renderer.getProjectGeneration());
         if (!workerReady) return false;
         await admitHydroFeatures();
+        if(!isCurrent())return false;
         dependencies.projectState.state.physicalLoadState.hydroWorker = 'ready';
         dependencies.projectState.state.physicalLoadState.hydro = 'ready';
         (0, dependencies.layerPresentation.invalidateObjectPresentation)();
