@@ -107,21 +107,6 @@ jobs:
         uses: ./.github/actions/library-data
       - name: Reject retired workflow executables before selecting checks
         run: node scripts/check-test-consolidation.mjs
-      - name: One-off stage 1 reverse dependency census
-        if: github.event_name == 'push' && github.ref == 'refs/heads/work/optimization' && contains(github.event.head_commit.message, '[stage1-inventory]')
-        run: node tools/checks/audit-repository-usage.mjs --output="$RUNNER_TEMP/pando-stage1-usage.json"
-      - name: Verify published Worker closure and focused transport contracts
-        if: github.event_name == 'push' && github.ref == 'refs/heads/work/optimization' && contains(github.event.head_commit.message, '[stage1-inventory]')
-        run: |
-          node scripts/generate-build-metadata.mjs --check --product=viewer
-          node --test tests/unit/runtime/worker-assets.test.mjs tests/unit/runtime/worker-rpc.test.mjs tests/unit/data/frontend-runtime-closure.test.mjs tests/unit/rendering/gpu-canvas-worker.test.mjs
-      - name: Preserve one-off stage 1 reverse dependency evidence
-        if: always() && github.event_name == 'push' && github.ref == 'refs/heads/work/optimization' && contains(github.event.head_commit.message, '[stage1-inventory]')
-        uses: actions/upload-artifact@v4
-        with:
-          name: pando-stage1-reverse-usage-${{ github.run_id }}
-          path: ${{ runner.temp }}/pando-stage1-usage.json
-          if-no-files-found: warn
       - name: Select current application checks
         id: plan
         env: &a5
