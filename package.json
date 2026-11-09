@@ -25,7 +25,7 @@
     "generate:build-meta": "node scripts/generate-build-metadata.mjs",
     "check:version": "node scripts/check-version.mjs",
     "check:preview": "node tools/checks/run-country-validator.mjs --canonical-only && node tools/build/build-world-preview.mjs --check && node tools/checks/run-country-validator.mjs && pnpm check:world-bundle",
-    "lint": "eslint shared/frontend/js apps/viewer/js tests/browser tests/unit tests/helpers scripts tools playwright.config.js eslint.config.js",
+    "lint": "eslint src/app src/ui src/map src/document src/geometry src/rendering src/data src/runtime tests/browser tests/unit tests/helpers scripts tools playwright.config.js eslint.config.js",
     "check:js": "node scripts/check-js.mjs",
     "check:ui-spacing": "node scripts/check-ui-spacing.mjs",
     "check:ui-components": "node scripts/check-ui.mjs components",
