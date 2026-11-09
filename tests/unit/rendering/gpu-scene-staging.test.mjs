@@ -285,3 +285,55 @@ test('normal country pass still synchronizes geometry and draws before presentin
   assert.deepEqual(f.actions.coverage,[result]);
 });
 });
+
+test('unchanged renderer inputs do not rebuild scene packets or resource object indexes', () => {
+  const calls = { build: 0, patch: 0, submit: 0 };
+  const makeScene = (input, previous = {}) => ({
+    revision: input.revision,
+    revisions: { ...input.revisions },
+    country: { ...(previous.country || {}), ...input.country },
+    physical: { ...(previous.physical || {}), ...input.physical },
+    quality: { ...(previous.quality || {}), ...input.renderQuality },
+    interaction: { selectionPacket: input.interaction.selectionPacket,
+      genericFillItems: [...input.interaction.genericFillItems] },
+    polygons: previous.polygons || [], strokes: previous.strokes || [],
+  });
+  const builder = {
+    setCacheByteBudget() {}, missingPolygons() { return []; }, releasePrepared() {}, clear() {},
+    build(input) { calls.build++; return makeScene(input); },
+    patch(previous, input) { calls.patch++; return makeScene(input, previous); },
+  };
+  const state = {
+    layerPresentation: { overlayOrder: [] }, projection: 'flat', stateRevision: 0,
+    layerVisibility: { objects: true, rivers: true, lakes: true },
+    physicalSettings: { terrainVisible: false, terrainStyle: 'physical', hiddenHydroIds: {} },
+    pendingCountryRenderIds: new Set(),
+  };
+  const mapLayout = { viewRevision: 1 };
+  const renderer = createGpuScene();
+  renderer.connect({
+    projectState: { state, mapWorkScheduler: { cancel() {} } },
+    renderScene: {
+      createRenderSceneBuilder: () => builder,
+      currentRenderQuality: { backgroundLod: 'high', renderPacketCacheBudgetBytes: 1024 },
+      OVERLAY_GROUPS: [],
+    },
+    countries: { countryLandRevision: 1 }, mapLayout,
+    interactionPresentation: { currentGpuInteractionFillItems: [] },
+    interactionStateCommands: { replaceGpuInteractionFillItems() {} },
+    rendering: { gpuMapRenderer: { setRenderScene() { calls.submit++; } } },
+    platform: { runtimeAssetUrl: value => value },
+  });
+  renderer.initializeGpuSceneDomains();
+  renderer.initializeGpuSceneResourceObjectKeys();
+  renderer.initializeRenderSceneBuilder();
+  const first = renderer.syncGpuRenderScene();
+  assert.equal(renderer.syncGpuRenderScene(), first);
+  assert.deepEqual(calls, { build: 1, patch: 0, submit: 1 });
+  state.layerVisibility.objects = false;
+  renderer.syncGpuRenderScene();
+  assert.equal(calls.patch, 1, 'changed presentation still patches existing packets');
+  mapLayout.viewRevision++;
+  renderer.syncGpuRenderScene();
+  assert.equal(calls.patch, 2, 'changed view metadata still reaches the scene');
+});
