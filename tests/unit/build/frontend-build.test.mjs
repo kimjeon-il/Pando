@@ -17,17 +17,21 @@ test('one source build emits only the Viewer runtime shared with Windows reviewe
  assert.match(policy,/resourceKey/);
  assert.doesNotMatch(policy,/\b(?:import|export)\s+(?:\{|\*|[A-Za-z])/);
 
- assert.equal(snapshot.buildMeta.worldBundle.url,'assets/data/world/current.json');
+ assert.equal(snapshot.buildMeta.projectCatalogs.world.catalog,'assets/data/world/current.json');
  assert.equal(snapshot.buildMeta.mapProject.projectId,'default-world');
- assert.equal(snapshot.buildMeta.builtinWorld.url,snapshot.buildMeta.mapProject.resources.territorial.catalog);
+ assert.equal(snapshot.buildMeta.projectCatalogs.territorial.catalog,snapshot.buildMeta.mapProject.resources.territorial.catalog);
  assert.equal(snapshot.buildMeta.mapProject.resources.rivers.catalog,snapshot.buildMeta.mapProject.resources.lakes.catalog);
  assert.equal(snapshot.buildMeta.mapProject.resources.places.catalog,'assets/data/places/manifest.json');
  assert.ok(snapshot.viewerPaths.has(snapshot.buildMeta.mapProjectManifest.url));
  assert.match(snapshot.buildMeta.initialLandPreview.sha256,/^[a-f0-9]{64}$/);
- assert.equal(snapshot.buildMeta.initialLandPreview.sourceSha256,snapshot.buildMeta.physicalLand.sha256);
+ assert.equal(snapshot.buildMeta.initialLandPreview.sourceSha256,f.metadata['assets/data/physical-land/v1/manifest.json'].asset.sha256);
  assert.ok(snapshot.assets.has(snapshot.buildMeta.initialLandPreview.url));
  assert.ok(snapshot.viewerPaths.has(snapshot.buildMeta.initialLandPreview.url));
- assert.match(snapshot.buildMeta.worldBundle.sha256,/^[a-f0-9]{64}$/);
+ assert.match(snapshot.buildMeta.projectCatalogs.world.sha256,/^[a-f0-9]{64}$/);
+ for(const field of ['worldBundle','builtinWorld','preparedPolygonMeshes','physicalLand','physicalWaterObjects','hydroCatalogVersion'])
+   assert.equal(Object.hasOwn(snapshot.buildMeta,field),false,'No duplicated global '+field);
+ for(const [role,{catalog}] of Object.entries(snapshot.buildMeta.mapProject.resources))
+   assert.equal(snapshot.buildMeta.projectCatalogs[role].catalog,catalog);
  assert.ok(snapshot.assets.has('assets/css/ui-viewer.bundle.css'));
  assert.equal(snapshot.assets.has('assets/css/ui.bundle.css'),false);
  assert.ok(snapshot.viewerPaths.has('assets/js/viewer.js'));
@@ -102,7 +106,7 @@ test('selected Hydro source version and land/terrain pairing are validated befor
  const hydro='assets/data/hydro/v0.13.4/manifest.json';
  f.metadata[hydro]={...f.metadata[hydro],version:'alternate-release'};
  const other=await buildFrontendSnapshot(f.options);
- assert.equal(other.buildMeta.hydroCatalogVersion,'alternate-release');
+ assert.equal(other.buildMeta.projectCatalogs.rivers.version,'alternate-release');
  f.metadata[hydro]={...f.metadata[hydro],schema:'invalid'};
  await assert.rejects(buildFrontendSnapshot(f.options),/Hydro catalog/);
  f.metadata[hydro]={...f.metadata[hydro],schema:'pandolab-water-shards-v5'};
