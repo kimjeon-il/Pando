@@ -29,9 +29,10 @@ jobs:
           tests/unit/runtime/worker-assets.test.mjs
           tests/unit/rendering/resource-update-policy.test.mjs
           tests/unit/data/stored-asset-content-cache.test.mjs
-          tests/unit/document/place-names.test.mjs
+          tests/unit/document/source-provenance.test.mjs
           tests/unit/build/frontend-layout.test.mjs
       - name: Report exact AST-based reductions
+        if: always()
         run: |
           node --input-type=module <<'JS'
           import {readdirSync,readFileSync} from 'node:fs';

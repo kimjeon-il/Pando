@@ -2,7 +2,6 @@
 // In-memory state and bounded per-test temporary directories are not global locks.
 const isolatedResources = new Map([
   ['tests/unit/data/place-publication.test.mjs', 'shared-report-worktree'],
-  ['tests/unit/document/place-sync-contract.test.mjs', 'shared-report-worktree'],
 ]);
 
 export const unitIsolationResource = file => isolatedResources.get(file) || null;

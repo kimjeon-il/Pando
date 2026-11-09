@@ -74,15 +74,13 @@ test('missing tools and test process failures are failures, never skipped passes
 
 test('shared report worktree suites run in dedicated processes after ordinary units', () => {
   const repository = { root: '/fixture', catalog: { prerequisites: {}, groups: [] } };
-  const files = ['tests/unit/data/place-publication.test.mjs','tests/unit/other.test.mjs',
-    'tests/unit/document/place-sync-contract.test.mjs'];
+  const files = ['tests/unit/data/place-publication.test.mjs','tests/unit/other.test.mjs'];
   const calls=[];
   const result=executePlan({prerequisites:[],commands:[],unitTests:files,browserSpecs:[]},
     {repository,phase:'non-browser',run:argv=>{calls.push(argv);return {status:0};}});
   assert.equal(result.ok,true);
   assert.deepEqual(calls.map(args=>args.filter(arg=>arg.startsWith('tests/unit/'))),[
     ['tests/unit/other.test.mjs'], ['tests/unit/data/place-publication.test.mjs'],
-    ['tests/unit/document/place-sync-contract.test.mjs'],
   ]);
 });
 
@@ -250,7 +248,7 @@ test('P3 full and affected unit entrypoints share stable prerequisite-bounded ba
 
 
 test('P4 isolation policy binds active shared report owners, never an untracked dummy suite', () => {
-  for (const file of ['tests/unit/data/place-publication.test.mjs','tests/unit/document/place-sync-contract.test.mjs']) {
+  for (const file of ['tests/unit/data/place-publication.test.mjs']) {
     assert.equal(unitIsolationResource(file), 'shared-report-worktree');
     assert.equal(requiresUnitIsolation(file), true);
   }
