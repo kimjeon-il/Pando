@@ -7,9 +7,14 @@ export function createCanvasScenePackets() {
       const key = `${channel}:${packet.key}`;
       next.add(key);
       const geometry = packet.ringCoordinates || packet.startsEnds;
+      const sourceKey = typeof packet.sourceKey === 'string' && packet.sourceKey ? packet.sourceKey : null;
       const previous = sentGeometry.get(key);
-      sentGeometry.set(key, geometry);
-      if (previous !== geometry) return packet;
+      // Immutable packet identity survives an equivalent typed-array copy.
+      // Unversioned packets still need exact allocation identity.
+      const unchanged = previous && previous.sourceKey === sourceKey
+        && (sourceKey !== null || previous.geometry === geometry);
+      sentGeometry.set(key, { geometry, sourceKey });
+      if (!unchanged) return packet;
       const { ringCoordinates: _coordinates, ringOffsets: _rings, polygonOffsets: _polygons, startsEnds: _segments, ...metadata } = packet;
       return metadata;
     });
@@ -78,7 +83,7 @@ export function createCanvasScenePackets() {
 
   function sceneStrokes(scene) {
     return (scene?.strokes || []).map(packet => ({
-      key: packet.key, startsEnds: packet.startsEnds, ownerRanges: packet.ownerRanges, ownerIds: packet.ownerIds,
+      key: packet.key, sourceKey: packet.sourceKey, startsEnds: packet.startsEnds, ownerRanges: packet.ownerRanges, ownerIds: packet.ownerIds,
       order: packet.order, style: packet.style, blendMode: packet.blendMode,
     }));
   }
