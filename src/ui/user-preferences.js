@@ -15,6 +15,7 @@ const DEFAULTS = Object.freeze({
     place: Object.freeze({ font: 'default', color: null, pointColor: null, languages: DEFAULT_PLACE_LANGUAGES }),
   }),
   selection: Object.freeze({ color: null, outlineVisible: true, fillStrength: 0.35 }),
+  timeline: Object.freeze({defaultWorldFollowCurrentMonth:true}),
 });
 
 function normalizeColor(value, fallback = null) {
@@ -46,6 +47,7 @@ export function defaultUserPreferences() {
         languages: { ...DEFAULTS.labels.place.languages },
       },
     },
+    timeline: {defaultWorldFollowCurrentMonth:DEFAULTS.timeline.defaultWorldFollowCurrentMonth},
     selection: {
       color: DEFAULTS.selection.color,
       outlineVisible: DEFAULTS.selection.outlineVisible,
@@ -63,6 +65,7 @@ export function normalizeUserPreferences(value) {
   return {
     backgrounds:{viewer:Object.fromEntries(Object.entries(defaults.backgrounds.viewer).map(([key,value])=>[key,key==='terrainStyle'?(['political','physical'].includes(source.backgrounds?.viewer?.[key])?source.backgrounds.viewer[key]:value):typeof source.backgrounds?.viewer?.[key]==='boolean'?source.backgrounds.viewer[key]:value]))},
     version: DEFAULTS.version,
+    timeline: {defaultWorldFollowCurrentMonth:source.timeline?.defaultWorldFollowCurrentMonth!==false},
     appearance: {
       theme,
       accentPreset: ACCENT_PRESET_IDS.includes(source.appearance?.accentPreset)
