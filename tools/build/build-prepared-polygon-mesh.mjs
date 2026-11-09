@@ -131,7 +131,8 @@ const countries=index.entities.filter(entry=>!effectiveIds||effectiveIds.has(ent
 });
 if(!selectedIds){
  source(generationInput('territorialCurrentWorld','assets/data/territorial-entities/generated/current-world.geojson'));
- source(project?readJson(physicalManifestPath).asset.url:'assets/data/physical-land/v1/geometry.json.gz');
+ if(project)collect(readPhysicalLand(readJson(physicalManifestPath).asset));
+ else source('assets/data/physical-land/v1/geometry.json.gz');
  inputHashes[physicalManifestPath]=sha256(readFileSync(resolve(root,physicalManifestPath)));
  for(const context of readJson(physicalManifestPath).waterObjects?.geometries||[]){
   collect(readPhysicalLand(context.land));collect(readPhysicalAsset(context.asset));
