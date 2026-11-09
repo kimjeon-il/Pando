@@ -1,5 +1,6 @@
 import {resourceCapabilities} from "../runtime/resource-capabilities.js";
-import {createBuiltinSession} from "../document/builtin-session.js";
+import {createProjectSourceRuntime} from "../document/project-source-runtime.js";
+import {createTerritorialSceneRuntime} from "../rendering/territorial-scene-runtime.js";
 import {createWorkspaceSurfaces} from "../ui/workspace-surfaces.js";
 import {createProjectSession} from "../document/project-session.js";
 import {createRenderQuality} from "../rendering/render-quality.js";
@@ -37,7 +38,18 @@ export function createMapOwners({productMode,readOnly=productMode==='viewer',pro
   if(productMode!=='viewer')throw new TypeError('Map composition requires viewer product mode.');
   if(readOnly!==true||editing)throw new TypeError('Read-only map composition cannot register editing hooks.');
   const capabilities=resourceCapabilities(productMode,platform,{projection});
-  const builtinSession=createBuiltinSession({builtinWorldLoader:platform?.world?.builtinLoader,buildMeta});
+  // One read-port admission, two existing responsibility owners. No combined
+  // builtin session, second document model or duplicated mutable cache.
+  let projectResourceDependencies=null;
+  const projectResourcePorts=Object.freeze({connect(ports){
+    if(projectResourceDependencies)throw new Error('Project resource ports already connected');
+    projectResourceDependencies=ports;
+  }});
+  const getDependencies=()=>projectResourceDependencies;
+  const projectSourceRuntime=createProjectSourceRuntime({
+    builtinWorldLoader:platform?.world?.builtinLoader,buildMeta,getDependencies,
+  });
+  const territorialSceneRuntime=createTerritorialSceneRuntime({getDependencies});
   const workspaceSurfaces=createWorkspaceSurfaces();
   const projectSession=createProjectSession({productMode,readOnly,projection,capabilities,resolveVisibilityGroup,onViewingChange});
   const renderQuality=createRenderQuality();
@@ -56,5 +68,5 @@ export function createMapOwners({productMode,readOnly=productMode==='viewer',pro
   const gpuScene=createGpuScene({getPhysicalLand:()=>physicalResources.physicalLand});
   const mapHost=createMapHost({productMode,readOnly,projection});
   const objectPicking=createObjectPicking({closeActiveOverlay});
-  return Object.freeze({capabilities,builtinSession,workspaceSurfaces,projectSession,renderQuality,pointerTargets,cameraNavigation,countryIndex,spatialIndex,mapProjection,objectPresentation,hydroSettings,objectCatalog,territorialLabels,physicalResources,gpuScene,mapHost,objectPicking});
+  return Object.freeze({capabilities,projectResourcePorts,projectSourceRuntime,territorialSceneRuntime,workspaceSurfaces,projectSession,renderQuality,pointerTargets,cameraNavigation,countryIndex,spatialIndex,mapProjection,objectPresentation,hydroSettings,objectCatalog,territorialLabels,physicalResources,gpuScene,mapHost,objectPicking});
 }
