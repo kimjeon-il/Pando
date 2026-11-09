@@ -30,3 +30,7 @@ Branch: `work/optimization`. This report records actual changes and *focused* CI
 5. **Deployment gate**: no `main` merge or live deployment; browser and native replacement regressions still require separately selected checks before release.
 
 The correct status is **P0-1–P0-3 and P1-1–P1-3 source repairs with passing focused checks; P1-5 and P2-1 partial normalization; P2-2 deduplication verified but full consolidation outstanding; P1-4 outstanding**.
+
+## Follow-up publication ownership correction
+
+The shared Application CI on `16bf4b9945` found a **duplicate published module name** for `src/runtime/resource-update-policy.js` and the retained rendering compatibility facade. `78bb2f076a` renamed the runtime source to `src/runtime/resource-dependency-policy.js` and updated the facade and place consumer; the immutable module namespace is now distinct. The preceding focused suite success did not catch this publication-index collision. This correction requires a successful current-head source-layout check before the branch can be considered CI-clean.
