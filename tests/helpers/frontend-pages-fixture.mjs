@@ -12,6 +12,7 @@ import {buildFrontendIndex,emitFrontendModule} from '../../scripts/lib/frontend-
 export const put = (root, path, value) => {
   if(path==='index.html')path='src/app/index.html';
   else if(path==='assets/js/viewer.js')path='src/app/viewer.js';
+  else if(path==='assets/js/workers/core-viewer-session-worker.js')path='src/document/workers/core-viewer-session-worker.js';
   else if(path.startsWith('assets/js/')&&!path.endsWith('build-meta.js'))path='src/runtime/'+path.slice(10);
   else if(path.startsWith('assets/wasm/')||path.startsWith('assets/fonts/'))path='assets/'+path.slice(7);
   const target = join(root, path);
@@ -29,10 +30,12 @@ export async function pagesRepositoryFixture(t) {
   assert.equal(run('git', ['config', 'user.name', 'Test'], root).status, 0);
   assert.equal(run('git', ['config', 'user.email', 'test@example.invalid'], root).status, 0);
   put(root, 'index.html', '<h1>Viewer</h1><script src="assets/js/build-meta.js"></script><script type="module" src="assets/js/viewer.js"></script>');
-  put(root, 'assets/js/viewer.js', "import './workers/core-viewer-session-worker.js';");
+  put(root, 'assets/js/viewer.js', "import '../document/core-document-client.js';");
+  put(root,'src/document/core-document-client.js','export const viewerCore = true;');
   put(root, 'assets/js/workers/core-viewer-session-worker.js', '// fixed viewer worker');
   put(root, 'assets/js/app.js', '// editor only');
   put(root,'package.json','{"version":"1.0.0"}');
+  put(root,'projects/default-world/manifest.json',readFileSync(new URL('../../projects/default-world/manifest.json',import.meta.url)));
   put(root,'apps/editor/templates/index.html','<h1>Editor</h1><script type="module" src="assets/js/app.js"></script>');
   put(root,'src/rendering/resource-update-policy.js','export const policy=true;');
   for(const path of new Set([...UI_VIEWER_SOURCES,'assets/css/app.css','assets/css/viewer.css']))put(root,path.replace('assets/css/','src/ui/css/'),'.fixture { color:red; }');
@@ -72,6 +75,7 @@ export async function pagesRepositoryFixture(t) {
   put(root,'assets/data/physical-land/v1/manifest.json',JSON.stringify({sourceSha256:'land',asset:landAsset}));
   put(root,'assets/data/physical-land/land.bin',landCompressed);
   put(root,'assets/data/places/manifest.json','{"shards":{}}');
+  put(root,'assets/data/places/urban-lifetimes-v1.json','{"entries":[]}');
   put(root,'assets/data/territorial-entities/generated/v2/index.json','{"entities":[]}');
   put(root,'assets/data/builtin-world/generated/v1/index.json','{"schema":"pandolab-builtin-world","schemaVersion":2,"storageLayout":"descriptor-geometries-v1","geometryAssets":[],"entities":[]}');
   put(root,'assets/data/prepared-polygons/generated/v2/manifest.json','{"meshes":{}}');

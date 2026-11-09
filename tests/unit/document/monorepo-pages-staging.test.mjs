@@ -38,7 +38,7 @@ test('stages committed viewer assets while excluding editor and repository sourc
   assert.equal(evidence.fileCount,evidence.files.length);
   assert.equal(evidence.bytes, evidence.files.reduce((total, file) => total + file.bytes, 0));
   assert.equal(evidence.excludedNativeFiles, 1);
-  assert.ok(evidence.excludedSharedFiles > 2);
+  assert.equal(evidence.excludedSharedFiles, 0, 'retired shared/ source is absent in current fixtures');
   assert.ok(evidence.excludedAppFiles >= 2);
   assert.equal(evidence.files.some(file => file.path.startsWith('native/')), false);
 });
