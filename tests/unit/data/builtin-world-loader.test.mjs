@@ -7,6 +7,7 @@ import {historicalWorldCases} from "../../fixtures/historical-world-cases.mjs";
 import {withExplicitView} from "../../helpers/builtin-world.mjs";
 import {createBuiltinWorldLoader} from "../../../src/data/builtin-world-loader.js";
 import {createBuiltinSession} from "../../../src/document/builtin-session.js";
+import {createProjectReader} from "../../../src/data/project-open-adapter.js";
 import {createNodeCoreProject} from "../../helpers/core-project.mjs";
 import {startupDocument} from "../../helpers/core-startup.mjs";
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -163,8 +164,15 @@ test('the default map and imported file use identical accepted C++ territorial l
   domains:{projectDomain:owner.project}});
  const read=month=>async()=>({...await session.prepareProjectBaseline(month),
   setup:{initialMonth:month,timelineRange:null,initialMapBounds:null,sourceMode:'builtin'}});
- assert.equal(await owner.project.open(read('2014-02'),{source:'builtin'}),true);
+ const builtinReceipt=await owner.project.openProject(
+  createProjectReader({source:'builtin',read:read('2014-02')}));
+ assert.equal(builtinReceipt.accepted,true);
+ assert.equal(builtinReceipt.source,'builtin');
+ assert.equal(builtinReceipt.reason,'builtin');
  const admitted=owner.project.snapshot(),association=owner.project.activeContentProject();
+ assert.equal(builtinReceipt.documentId,admitted.documentId);
+ assert.equal(builtinReceipt.generation,owner.project.getGeneration());
+ assert.equal(builtinReceipt.contentProject?.projectId,'default-world');
  assert.equal(association.projectId,'default-world');
  assert.equal(association.documentId,admitted.documentId);
  assert.equal(association.catalog,territorialCatalog);
@@ -190,7 +198,14 @@ test('the default map and imported file use identical accepted C++ territorial l
  assert.equal(owner.project.activeContentProject().documentId,id);
  assert.ok(owner.project.territorial.get('state:test-ukraine'));
  failLoad=false;
- assert.equal(await owner.project.open(async()=>seed,{source:'project'}),true);
+ const importedReceipt=await owner.project.openProject(
+  createProjectReader({source:'project',read:async()=>seed}));
+ assert.equal(importedReceipt.accepted,true);
+ assert.equal(importedReceipt.source,'project');
+ assert.equal(importedReceipt.reason,'load');
+ assert.equal(importedReceipt.documentId,owner.project.snapshot().documentId);
+ assert.equal(importedReceipt.generation,owner.project.getGeneration());
+ assert.equal(importedReceipt.contentProject,null);
  assert.equal(owner.project.activeContentProject(),null);
  assert.equal(presentedSources.at(-1),null,'file project never acquires a builtin resource source');
  assert.deepEqual(owner.project.territorial.list(),owner.documentModel.territorialViews());
