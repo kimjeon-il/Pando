@@ -179,11 +179,14 @@ export function createProjectDomain({
     commandQueue=operation.catch(() => {});
     return operation;
   };
-  const readmitBuiltinSelectionCatalogs = async () => {
+  const readmitBuiltinSelectionCatalogs = async ({replacingProject=false}={}) => {
     if(typeof readBuiltinSelectionCatalogs!=='function')throw new TypeError('The immutable platform builtin identity catalogs are required for document admission.');
     const catalogs=readBuiltinSelectionCatalogs();
     if(!Array.isArray(catalogs))throw new TypeError('Builtin selection catalogs must be explicit domain/ref records.');
-    for(const { domain,refs } of catalogs)await commandOwner.selectionCatalogLoad(domain,refs);
+    // A replacement may not inherit the previous project's transient water
+    // and place references. Its own providers re-admit them after acceptance.
+    for(const {domain,refs} of catalogs)
+      await commandOwner.selectionCatalogLoad(domain,replacingProject?[]:refs);
   };
 
   // Startup promotion replaces data inside the current render generation. It
@@ -471,7 +474,7 @@ export function createProjectDomain({
         if(!Number.isSafeInteger(prepared.baselineId)||prepared.baselineId<=0)throw new TypeError('A previously admitted Core builtin source handle is required.');
         await commandOwner.loadBaseline(prepared.baselineId,prepared.setup);
       } else await commandOwner.load(JSON.stringify(prepared));
-      await readmitBuiltinSelectionCatalogs();
+      await readmitBuiltinSelectionCatalogs({replacingProject:true});
       if (readPresentationCatalog) {
         if (typeof readPresentationCatalog !== 'function' || typeof commandOwner?.presentationCatalogLoad !== 'function'
           || typeof publishCommand !== 'function')
