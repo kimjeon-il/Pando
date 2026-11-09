@@ -277,6 +277,38 @@
       "testPatterns": []
     },
     {
+      "id": "current-hydro-layout",
+      "kind": "command",
+      "argv": [
+        "node",
+        "tools/checks/check-current-hydro-layout.mjs",
+        "--root",
+        ".",
+        "--allow-retired",
+        "false"
+      ],
+      "inputs": [
+        "tools/checks/check-current-hydro-layout.mjs",
+        "src/rendering/workers/hydro-tile-worker.js",
+        "src/rendering/workers/hydro-shard-store.js",
+        "src/data/physical-layer-service.js",
+        "config/library-data.json",
+        "assets/data/hydro/**"
+      ]
+    },
+    {
+      "id": "p2-source-syntax",
+      "kind": "command",
+      "argv": [
+        "node",
+        "--check",
+        "scripts/p2-validate-artifacts.mjs"
+      ],
+      "inputs": [
+        "scripts/p2-validate-artifacts.mjs"
+      ]
+    },
+    {
       "id": "territorial-storage",
       "kind": "command",
       "inputs": [
