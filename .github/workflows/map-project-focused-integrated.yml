@@ -1,0 +1,114 @@
+name: Focused map project 2-3 integration checks
+on:
+  push:
+    branches: [work/map-project-stage3-integrated-check-20261109]
+    paths: [.github/workflows/map-project-focused-integrated.yml]
+permissions:
+  contents: write
+jobs:
+  focused:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: pnpm/action-setup@v4
+      - id: install
+        continue-on-error: true
+        run: pnpm install --frozen-lockfile --ignore-scripts
+      - id: library
+        if: steps.install.outcome == 'success'
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          node tools/data/library-data.mjs --purpose=gis --include-prefix=assets/data/builtin-world/display-policy-v1.json 2>&1 | tee "$RUNNER_TEMP/project-library.log"
+      - id: core
+        if: steps.install.outcome == 'success' && steps.library.outcome == 'success'
+        continue-on-error: true
+        run: node scripts/check-core-prerequisite.mjs
+      - id: scoped-lint
+        if: steps.install.outcome == 'success'
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm exec eslint \
+            src/app/map-owner-composition.js src/app/viewer-composition.js src/app/viewer-map.js \
+            src/data/builtin-world-loader.js src/data/map-project-manifest.js \
+            src/data/map-project-resource-selection.js src/data/physical-resources.js \
+            src/data/physical-source-configuration.js src/document/builtin-session.js \
+            src/document/project-domain.js src/rendering/territorial-labels.js \
+            tests/unit/data/map-project-resource-selection.test.mjs tests/unit/data/builtin-world-loader.test.mjs \
+            tests/unit/data/physical-source-project.test.mjs \
+            tests/unit/data/map-project-manifest.test.mjs tests/unit/build/frontend-build.test.mjs \
+            2>&1 | tee "$RUNNER_TEMP/project-lint.log"
+      - id: core-tests
+        if: steps.core.outcome == 'success'
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          node --test --test-concurrency=1 --test-timeout=15000 \
+            tests/unit/data/builtin-world-loader.test.mjs \
+            tests/unit/document/builtin-resource-core-wasm.test.mjs \
+            2>&1 | tee "$RUNNER_TEMP/project-core.log"
+      - id: resource-tests
+        if: steps.install.outcome == 'success'
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          node --test --test-concurrency=1 --test-timeout=15000 \
+            tests/unit/data/map-project-resource-selection.test.mjs \
+            tests/unit/data/physical-source-project.test.mjs \
+            tests/unit/data/map-project-manifest.test.mjs \
+            tests/unit/document/object-search-availability.test.mjs \
+            tests/unit/build/frontend-build.test.mjs \
+            2>&1 | tee "$RUNNER_TEMP/project-resources.log"
+      - name: Persist narrow integration results outside external data mounts
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs=require('fs');
+            const read=name=>{
+              const path=process.env.RUNNER_TEMP+'/project-'+name+'.log';
+              return fs.existsSync(path)?fs.readFileSync(path,'utf8').slice(-18000):'not executed';
+            };
+            const result={
+              schema:'pando-map-project-focused-integration-v1',
+              sourceCommit:context.sha,
+              install:'${{ steps.install.outcome }}',
+              library:'${{ steps.library.outcome }}',
+              core:'${{ steps.core.outcome }}',
+              lint:'${{ steps.scoped-lint.outcome }}',
+              coreTests:'${{ steps.core-tests.outcome }}',
+              resourceTests:'${{ steps.resource-tests.outcome }}',
+              logs:{library:read('library'),lint:read('lint'),core:read('core'),resources:read('resources')},
+            };
+            const branch=context.ref.replace('refs/heads/','');
+            const path='validation-results/map-project-focused-integration.json';
+            let sha;
+            try{
+              const old=await github.rest.repos.getContent({owner:context.repo.owner,repo:context.repo.repo,path,ref:branch});
+              sha=old.data.sha;
+            }catch(error){if(error.status!==404)throw error;}
+            await github.rest.repos.createOrUpdateFileContents({
+              owner:context.repo.owner,repo:context.repo.repo,
+              path,branch,...(sha?{sha}:{}),
+              message:'test: record focused project integration run',
+              content:Buffer.from(JSON.stringify(result,null,2)+'\n').toString('base64'),
+            });
+      - name: Require every focused check
+        if: always()
+        run: |
+          test '${{ steps.library.outcome }}' = success
+          test '${{ steps.core.outcome }}' = success
+          test '${{ steps.scoped-lint.outcome }}' = success
+          test '${{ steps.core-tests.outcome }}' = success
+          test '${{ steps.resource-tests.outcome }}' = success
