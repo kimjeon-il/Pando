@@ -1,7 +1,7 @@
 import {geometryReferenceFor} from '../geometry/geometry-version-store.js';
 import {timelineObjectKey} from '../document/timeline-records.js';
 import {projectResourceOverlay} from '../document/project-resource-overlay.js';
-import {createStoredAssetLoader} from '../data/stored-asset-loader.js';
+import {createPhysicalAssetReader} from '../data/physical-asset-reader.js';
 import {loadPhysicalLandGeometry} from '../data/physical-land-patch.js';
 import {mapProjectResourcePath} from '../data/map-project-manifest.js';
 import {resolvePhysicalWaterObjects,physicalWaterContextKey,physicalWaterReferenceView,composePhysicalWaterGeometry} from '../data/physical-water-model.js';
@@ -16,13 +16,14 @@ export function createPhysicalResources({ buildMeta,capabilities = {terrain:true
   let dependencies;
   let terrainService;
   let hydroService;
-  let physicalLand = null, landLoading = null,physicalAssetLoader=null;
-  let initialPreviewLoading=null, initialPreview=null;
-  function storedPhysicalAssets() {
-    if(!physicalAssetLoader)physicalAssetLoader=createStoredAssetLoader({dataRevision:buildMeta.dataRevision,
-      resolveUrl:spec=>new URL(spec.url.replace(/^assets\/data\//,''),dependencies.physicalConfig.PHYSICAL_DATA_BASE_URL).href});
-    return physicalAssetLoader;
-  }
+  // Data-layer reader owns immutable asset loading and retries; rendering only
+  // coordinates accepted source selection, Core admission and visual readiness.
+  const assetReader=createPhysicalAssetReader({buildMeta,
+    resolveBaseUrl:()=>dependencies.physicalConfig.PHYSICAL_DATA_BASE_URL,
+    onLandReady:()=>dependencies.domains.renderingDomain.invalidateProject('physical-land-ready')});
+  const storedPhysicalAssets=()=>assetReader.storedPhysicalAssets();
+  const loadPhysicalLandMask=options=>assetReader.loadPhysicalLandMask(options);
+  const loadInitialLandPreview=()=>assetReader.loadInitialLandPreview();
   const waterContexts=new Map();
   let requestedWaterKey=null;
   let physicalSelection=null;
@@ -86,7 +87,7 @@ export function createPhysicalResources({ buildMeta,capabilities = {terrain:true
   const presentPhysicalWater=createPhysicalWaterPresentation();
   function currentPhysicalContext() {
     const {rows:selected,key}=selectedPhysicalWater();
-    if(!selected.length){requestedWaterKey=null;return physicalLand;}
+    if(!selected.length){requestedWaterKey=null;return assetReader.physicalLand;}
     if(key!==requestedWaterKey){
       requestedWaterKey=key;
       if(waterContexts.get(key)?.status==='error')waterContexts.delete(key);
@@ -98,7 +99,7 @@ export function createPhysicalResources({ buildMeta,capabilities = {terrain:true
     activatePhysicalContext(entry,key);
     // Core catalog admission can be queued behind the current project
     // replacement. Immutable mask readiness cannot wait for that queue.
-    if(entry.status!=='ready')return physicalLand;
+    if(entry.status!=='ready')return assetReader.physicalLand;
     const edits=projectResourceOverlay('hydro',state.hydroEdits||[]);
     const presentations=entry.value.waters.map(value=>{
       const id=value.row.objectRef.id,replacement=edits.sourceReplacement(id);
@@ -147,42 +148,6 @@ export function createPhysicalResources({ buildMeta,capabilities = {terrain:true
         reference:physicalWaterReferenceView(selection.catalog,selection.rows,ready)};
     }
     return builtinTimelineView.reference.isActive(feature.properties?.pandolab_id||feature.id);
-  }
-  function loadInitialLandPreview(){
-    if(!initialPreviewLoading){
-      const source=buildMeta.physicalLand,spec=buildMeta.initialLandPreview;
-      if(!spec?.url||spec.sourceSha256!==source?.sha256)
-        return Promise.reject(new Error('Initial land preview does not match the pinned physical source.'));
-      initialPreviewLoading=storedPhysicalAssets().loadAsset(spec,'background','initial-land-preview','초기 지도 윤곽',buffer=>{
-        const geometry=JSON.parse(new TextDecoder().decode(buffer));
-        if(geometry?.type!=='MultiPolygon'||!Array.isArray(geometry.coordinates)
-          ||geometry.coordinates.length!==spec.polygonCount)throw new Error('Invalid initial land preview geometry.');
-        return geometry;
-      }).then(result=>{
-        initialPreview=Object.freeze({geometry:result.value,revision:spec.sha256,
-          sourceRevision:spec.sourceSha256,certified:true});
-        return initialPreview;
-      });
-      initialPreviewLoading=initialPreviewLoading.catch(error=>{initialPreviewLoading=null;throw error;});
-    }
-    return initialPreviewLoading;
-  }
-  function loadPhysicalLandMask({notify=true}={}) {
-    if (physicalLand) return Promise.resolve(physicalLand);
-    if (!landLoading) landLoading = (async () => {
-      const meta = buildMeta;
-      if (!meta?.physicalLand) throw new Error('Missing pinned physical land asset.');
-      const loader = storedPhysicalAssets();
-      const result = await loader.loadAsset(meta.physicalLand, 'background', 'physical-land', '육지 배경', buffer => {
-        const geometry = JSON.parse(new TextDecoder().decode(buffer));
-        if (geometry.type !== 'MultiPolygon' || !Array.isArray(geometry.coordinates)) throw new Error('Invalid physical land geometry.');
-        return geometry;
-      });
-      physicalLand = Object.freeze({ geometry: result.value, revision: meta.physicalLand.sha256 });
-      if(notify)dependencies.domains.renderingDomain.invalidateProject('physical-land-ready');
-      return physicalLand;
-    })().catch(error => { landLoading = null; throw error; });
-    return landLoading;
   }
   function connect(ports) {
     if (dependencies) throw new Error('physical-resources already connected');
@@ -406,11 +371,11 @@ export function createPhysicalResources({ buildMeta,capabilities = {terrain:true
     loadInitialLandPreview,
     preparePhysicalContext,
     get physicalLand() { return currentPhysicalContext(); },
-    get initialLandPreview() { return initialPreview; },
+    get initialLandPreview() { return assetReader.initialLandPreview; },
     get physicalLandSourceRevision() { return buildMeta.physicalLand?.sha256 || null; },
     get physicalContextState() {
       const context=currentPhysicalContext(),selection=selectedPhysicalWater(),entry=waterContexts.get(selection.key);
-      const ready=selection.rows.length?entry?.status==='ready':!!physicalLand;
+      const ready=selection.rows.length?entry?.status==='ready':!!assetReader.physicalLand;
       return {ready,error:entry?.error||null,
         landRevision:ready?context.revision:null,waterRevision:ready&&context.water?context.waterRevision:null};
     },
