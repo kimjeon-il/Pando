@@ -102,16 +102,36 @@ mustContain('assets/js/modules/viewer-composition.js',/createProjectDomain\(\{pr
   'Viewer must create a read-only project domain');
 mustContain('assets/js/modules/product-mode-policy.js',/PL-PRODUCT-READONLY/,
   'Core product mode must reject mutation operations');
-mustContain('assets/js/modules/viewer-composition.js',/await import\('\.\/viewer-review-panel\.js'\)/,
-  'Viewer review panel must remain a lazy dynamic import');
+// Verify the actual source import relation rather than an obsolete bundle-relative string.
+const viewerComposition='assets/js/modules/viewer-composition.js';
+const reviewPanel='assets/js/modules/viewer-review-panel.js';
+const compositionSource=index.get(viewerComposition)?.sourcePath;
+const panelSource=index.get(reviewPanel)?.sourcePath;
+if(!compositionSource||!panelSource)fail('Missing Viewer review module ownership');
+const resolvesReview=specifier=>typeof specifier==='string'&&specifier.startsWith('.')&&
+  posix.normalize(posix.join(posix.dirname(compositionSource),specifier.split(/[?#]/,1)[0]))===panelSource;
+const {Linter}=await import('eslint');
+const parser=new Linter();
+parser.verify(source(viewerComposition),{languageOptions:{ecmaVersion:'latest',sourceType:'module'}});
+const parsed=parser.getSourceCode();
+if(!parsed?.ast)fail('Unable to parse Viewer composition');
+let lazilyImported=false,eagerlyImported=false;
+function checkReviewImports(node){
+  if(!node||typeof node!=='object')return;
+  if(node.type==='ImportExpression'&&resolvesReview(node.source?.value))lazilyImported=true;
+  if(['ImportDeclaration','ExportNamedDeclaration','ExportAllDeclaration'].includes(node.type)
+    &&resolvesReview(node.source?.value))eagerlyImported=true;
+  for(const key of parsed.visitorKeys[node.type]||[])
+    for(const child of Array.isArray(node[key])?node[key]:[node[key]])checkReviewImports(child);
+}
+checkReviewImports(parsed.ast);
+if(!lazilyImported||eagerlyImported)fail('Viewer review panel must remain a lazy dynamic import');
 mustContain('assets/js/modules/viewer-inspector-controller.js',/readOnly!==true/,
   'Viewer inspector controller must fail closed for mutable document sessions');
 mustContain('assets/js/modules/viewer-inspector-controller.js',/requestRevision/,
   'Inspector async opens must use one cancellation sequence');
 mustContain('assets/js/modules/viewer-review-panel.js',/documentSession\.readOnly!==true/,
   'Review panel must independently enforce a read-only document');
-if(/^import\s+[^\n]*from\s+['"]\.\/viewer-review-panel\.js['"]/m.test(source('assets/js/modules/viewer-composition.js')))
-  fail('The review module must not be eagerly imported at Viewer boot');
 mustContain('assets/js/modules/core-document-client.js',/policy\.assertOperation\(operation\)/,
   'Core document client must check the product policy');
 for(const token of ['editPreviewController','editingRenderResources','getEditingRenderPacket','emitEditingInteraction','createEditingPresentation'])

@@ -9,7 +9,6 @@
       ],
       "inputs": [
         "src/**",
-        "src/**",
         "scripts/lib/frontend-*.mjs",
         "scripts/frontend-dev-server.mjs",
         "tools/data/worktree-storage.mjs"
@@ -22,7 +21,6 @@
         "tests/unit/**/place-*.test.mjs"
       ],
       "inputs": [
-        "src/**/place-*.js",
         "src/**/place-*.js",
         "src/rendering/territorial-labels.js",
         "assets/data/places/**"
@@ -135,14 +133,11 @@
       ],
       "inputs": [
         "src/**/terrain-*.js",
-        "src/**/terrain-*.js",
         "src/**/physical-*.js",
-        "src/**/physical-*.js",
-        "src/**/gpu-terrain-*.js",
         "src/**/gpu-terrain-*.js",
         "src/rendering/gpu-base-scene-pass.js",
         "src/**/workers/canvas-terrain-*.js",
-        "apps/viewer/js/workers/canvas-terrain-*.js",
+        "src/workers/canvas-terrain-*.js",
         "assets/data/terrain-*/**",
         "assets/data/physical-land/**",
         "src/rendering/workers/canvas-render-worker.js",
@@ -165,11 +160,10 @@
       ],
       "inputs": [
         "src/**/*boundary*.js",
-        "src/**/*boundary*.js",
         "src/geometry/country-contact-core.js",
         "src/rendering/country-stroke-preparation.js",
         "src/**/workers/*boundary*.js",
-        "apps/viewer/js/workers/*boundary*.js"
+        "src/workers/*boundary*.js"
       ],
       "requires": [
         "generated",
@@ -187,12 +181,8 @@
       ],
       "inputs": [
         "src/**/gpu-*.js",
-        "src/**/gpu-*.js",
-        "src/**/map-display-*.js",
         "src/**/map-display-*.js",
         "src/**/render-*.js",
-        "src/**/render-*.js",
-        "src/**/map-visual-*.js",
         "src/**/map-visual-*.js",
         "src/rendering/workers/canvas-render-worker.js",
         "src/rendering/workers/gpu-mesh-worker.js"
@@ -219,14 +209,9 @@
       ],
       "inputs": [
         "src/**/object-*.js",
-        "src/**/object-*.js",
-        "src/**/territorial-*.js",
         "src/**/territorial-*.js",
         "src/**/generic-*.js",
-        "src/**/generic-*.js",
         "src/**/distribution-*.js",
-        "src/**/distribution-*.js",
-        "src/**/selection-*.js",
         "src/**/selection-*.js"
       ],
       "requires": [
@@ -242,15 +227,11 @@
       ],
       "inputs": [
         "src/**/project-*.js",
-        "src/**/project-*.js",
-        "src/**/app-file-*.js",
         "src/**/app-file-*.js",
         "src/**/app-project-*.js",
-        "src/**/app-project-*.js",
-        "src/**/core-document-*.js",
         "src/**/core-document-*.js",
         "src/**/workers/project-*-worker.js",
-        "apps/viewer/js/workers/project-*-worker.js"
+        "src/workers/project-*-worker.js"
       ],
       "requires": [
         "generated",
@@ -270,7 +251,6 @@
         "src/app/viewer.js",
         "src/document/object-query.js",
         "src/**/object-search-*.js",
-        "src/**/object-search-*.js",
         "src/ui/place-name-display.js",
         "src/ui/layer-presentation.js"
       ],
@@ -287,11 +267,8 @@
         "tests/browser/**/hydro-*.spec.mjs"
       ],
       "inputs": [
-        "shared/frontend/js/gis-*.js",
-        "apps/viewer/js/gis-*.js",
+        "src/gis-*.js",
         "src/**/gis-*.js",
-        "src/**/gis-*.js",
-        "src/**/*hydro*.js",
         "src/**/*hydro*.js",
         "assets/data/hydro/**"
       ],
@@ -314,10 +291,7 @@
       ],
       "inputs": [
         "src/ui/css/**",
-        "apps/viewer/css/**",
         "src/**/ui-*.js",
-        "src/**/ui-*.js",
-        "src/**/surface-*.js",
         "src/**/surface-*.js"
       ],
       "requires": [
@@ -345,8 +319,7 @@
       "kind": "command",
       "inputs": [
         "src/**/workers/**",
-        "apps/viewer/js/workers/**",
-        "src/**/worker-*.js",
+        "src/workers/**",
         "src/**/worker-*.js",
         "scripts/lib/worker-assets.mjs"
       ],
@@ -362,8 +335,6 @@
       "kind": "command",
       "inputs": [
         "src/**/app-*.js",
-        "src/**/app-*.js",
-        "src/**/*-domain.js",
         "src/**/*-domain.js",
         "scripts/check-runtime-boundaries.mjs"
       ],
@@ -379,8 +350,6 @@
       "kind": "command",
       "inputs": [
         "src/ui/css/**",
-        "apps/viewer/css/**",
-        "src/**/ui-*.js",
         "src/**/ui-*.js",
         "src/app/index.html",
         "scripts/check-ui*.mjs"
@@ -397,7 +366,6 @@
       "id": "territorial-storage",
       "kind": "command",
       "inputs": [
-        "src/**/territorial-*.js",
         "src/**/territorial-*.js",
         "scripts/contracts/territorial-storage-access.json"
       ],
@@ -418,7 +386,7 @@
         "scripts/lib/product-assets.mjs",
         "assets/data/**",
         "src/**/workers/**",
-        "apps/viewer/js/workers/**"
+        "src/workers/**"
       ],
       "argv": [
         "node",
@@ -432,11 +400,12 @@
       "id": "lint",
       "kind": "command",
       "inputs": [
-        "shared/frontend/js/**",
-        "apps/viewer/js/**",
+        "src/**",
         "scripts/**",
         "tests/**",
-        "tools/*.mjs"
+        "tools/**/*.mjs",
+        "tools/**",
+        "eslint.config.js"
       ],
       "argv": [
         "node",
@@ -450,10 +419,7 @@
       "kind": "command",
       "inputs": [
         "src/**/*-service.js",
-        "src/**/*-service.js",
         "src/**/*-domain.js",
-        "src/**/*-domain.js",
-        "src/**/core-document-*.js",
         "src/**/core-document-*.js"
       ],
       "argv": [
@@ -468,8 +434,6 @@
       "inputs": [
         "src/document/source-provenance.js",
         "src/**/generic-*.js",
-        "src/**/generic-*.js",
-        "src/**/project-*.js",
         "src/**/project-*.js"
       ],
       "argv": [
@@ -483,8 +447,6 @@
       "kind": "command",
       "inputs": [
         "src/**/project-*.js",
-        "src/**/project-*.js",
-        "src/**/*-adapter-*.js",
         "src/**/*-adapter-*.js",
         "scripts/generate-build-metadata.mjs"
       ],
@@ -499,8 +461,6 @@
       "kind": "command",
       "inputs": [
         "src/**/gpu-*.js",
-        "src/**/gpu-*.js",
-        "src/**/render-*.js",
         "src/**/render-*.js"
       ],
       "argv": [
@@ -513,8 +473,7 @@
       "id": "ui-spacing",
       "kind": "command",
       "inputs": [
-        "src/ui/css/**",
-        "apps/viewer/css/**"
+        "src/ui/css/**"
       ],
       "argv": [
         "node",
@@ -527,8 +486,6 @@
       "kind": "command",
       "inputs": [
         "src/ui/css/**",
-        "apps/viewer/css/**",
-        "src/**/ui-*.js",
         "src/**/ui-*.js",
         "src/app/index.html"
       ],
@@ -544,8 +501,6 @@
       "kind": "command",
       "inputs": [
         "src/ui/css/**",
-        "apps/viewer/css/**",
-        "src/**/ui-*.js",
         "src/**/ui-*.js"
       ],
       "argv": [
@@ -560,8 +515,6 @@
       "kind": "command",
       "inputs": [
         "src/**/ui-*.js",
-        "src/**/ui-*.js",
-        "src/**/surface-*.js",
         "src/**/surface-*.js",
         "src/app/index.html"
       ],
@@ -577,8 +530,6 @@
       "kind": "command",
       "inputs": [
         "src/**/*object*.js",
-        "src/**/*object*.js",
-        "src/**/*registry*.js",
         "src/**/*registry*.js"
       ],
       "argv": [
@@ -694,10 +645,8 @@
       "id": "web-stage",
       "kind": "command",
       "inputs": [
-        "shared/frontend/js/**",
-        "apps/viewer/js/**",
+        "src/**",
         "src/ui/css/**",
-        "apps/viewer/css/**",
         "assets/data/**",
         "tools/build/stage-monorepo-pages.mjs",
         "scripts/lib/product-assets.mjs"
@@ -1021,7 +970,6 @@
   },
   "productRoots": [
     "assets/**",
-    "shared/**",
     "scripts/**",
     "tools/**",
     "contracts/**",
@@ -1029,8 +977,7 @@
     "src/**"
   ],
   "passiveInputs": [
-    "shared/frontend/js/vendor/**",
-    "apps/viewer/js/vendor/**",
+    "assets/js-vendor/**",
     "assets/vendor/**",
     "assets/fonts/**",
     "assets/icons/**",
@@ -1064,7 +1011,6 @@
       ],
       "inputs": [
         "src/**/app-capability-ports*.js",
-        "src/**/app-capability-ports*.js",
         "scripts/plan-application-checks.mjs",
         "scripts/run-application-checks.mjs",
         "scripts/contracts/application-checks.json",
@@ -1076,7 +1022,6 @@
         "tests/browser/document/web-viewer.spec.mjs"
       ],
       "inputs": [
-        "src/**/**",
         "src/**/**",
         "src/app/index.html"
       ]
@@ -1186,7 +1131,6 @@
       ],
       "inputs": [
         "src/ui/css/**",
-        "apps/viewer/css/**",
         "src/app/index.html"
       ]
     },
@@ -1196,7 +1140,6 @@
       ],
       "inputs": [
         "src/ui/css/**",
-        "apps/viewer/css/**",
         "src/app/index.html"
       ]
     },
@@ -1246,7 +1189,6 @@
         "tests/browser/document/viewer-review-e4.spec.mjs"
       ],
       "inputs": [
-        "src/**/review-*.js",
         "src/**/review-*.js"
       ]
     },
@@ -1255,7 +1197,6 @@
         "tests/browser/document/viewer-project-open.spec.mjs"
       ],
       "inputs": [
-        "src/**/project-*.js",
         "src/**/project-*.js",
         "src/**/gpkg-*.js"
       ]
@@ -1320,20 +1261,9 @@
     {
       "id": "native-core",
       "inputs": [
-        "shared/*.cpp",
-        "shared/**/*.cpp",
-        "shared/*.h",
-        "shared/**/*.h",
-        "shared/*.hpp",
-        "shared/**/*.hpp",
-        "shared/*.cpp.in",
-        "shared/**/*.cpp.in",
-        "shared/*.h.in",
-        "shared/**/*.h.in",
-        "shared/*.cmake",
-        "shared/**/*.cmake",
-        "tools/build/native/CMakeLists.txt",
-        "shared/**/CMakeLists.txt",
+        "src/**/native/**",
+        "tools/build/native/**",
+        "config/core-source-roots.json",
         "CMakeLists.txt",
         "CMakePresets.json"
       ],

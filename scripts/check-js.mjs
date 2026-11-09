@@ -9,7 +9,7 @@ function collect(path) {
   for (const entry of readdirSync(path, { withFileTypes: true })) {
     const item = join(path, entry.name);
     if (entry.isDirectory()) collect(item);
-    else if (['.js', '.mjs'].includes(extname(entry.name)) && !item.includes(`${join('shared', 'frontend', 'js', 'vendor')}`)) files.push(item);
+    else if (['.js', '.mjs'].includes(extname(entry.name))) files.push(item);
   }
 }
 
