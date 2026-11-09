@@ -207,9 +207,18 @@
     return core().hasCanonicalPolygonWinding(value);
   }
 
+  function hasCanonicalClippedPolygonWinding(value) {
+    if (!multiPolygonCoordinates(value).length) return false;
+    if (typeof core().hasCanonicalClippedPolygonWinding !== 'function') {
+      throw new Error('Canonical clipped winding validator is unavailable');
+    }
+    return core().hasCanonicalClippedPolygonWinding(value);
+  }
+
   root.PandoLabPolygonGeometry = Object.freeze({
     ensureClosedRing,
     hasCanonicalPolygonWinding,
+    hasCanonicalClippedPolygonWinding,
     normalizePolygonGeometry,
     normalizeClippedPolygonGeometry,
     wrapPolygonGeometry,

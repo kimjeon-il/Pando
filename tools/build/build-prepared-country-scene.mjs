@@ -21,7 +21,7 @@ export async function buildPreparedCountryScene({root=defaultRoot,month,write=tr
   if(!/^\d{4}-\d{2}$/.test(month||''))throw new Error('An explicit reference month is required');
   await import('./load-spherical-core.mjs');
   await import('../../src/rendering/workers/gpu-mesh-core.js');
-  const [{assembleBuiltinWorld},{createGeometryVersionStore},{resolveWorld},
+  const [{assembleBuiltinWorld},{createCanonicalGeometryVersionStore:createGeometryVersionStore},{resolveWorld},
     {territorialSceneDisplayId},{territorialRootId},{createCountrySharedBoundaryState,prepareCountrySharedBoundaryPacket}]=await Promise.all([
     import('../../src/data/builtin-world-loader.js'),import('../../src/geometry/geometry-version-store.js'),
     import('../../src/document/timeline-resolver.js'),import('../../src/document/builtin-subunits.js'),

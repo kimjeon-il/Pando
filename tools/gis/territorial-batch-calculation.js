@@ -26,8 +26,11 @@ export async function calculateLibraryBatch(payload, originals, existingUnits, c
   // pre-existing country; their structural geometry is still validated below.
   const gainedTerritoryIds = new Set();
   let deleted = 0;
-  const merge = async (feature, geometry = feature.geometry) => {
-    normalizePolygonGeometry(feature.geometry); // Strictly admit the source before auditing Boolean results.
+  // Incoming data is admitted once as source, before any generated result.
+  for(const feature of [...payload.countries,...payload.units])normalizePolygonGeometry(feature.geometry);
+  const merge = async (feature, geometry = feature.geometry, generated = false) => {
+    if(generated)feature={...feature,geometry:normalizeClippingResult(feature.geometry)};
+    else normalizePolygonGeometry(feature.geometry);
     gainedTerritoryIds.add(featureId(feature));
     const plan = await planner(draft, { type: 'FeatureCollection', features: [feature] }, 'territory-replacement');
     for (const id of plan.affectedIds) {
@@ -60,10 +63,10 @@ export async function calculateLibraryBatch(payload, originals, existingUnits, c
   for (const [id, geometries] of groups) {
     const owner = draft.features.find(feature => featureId(feature) === id);
     if (!owner) throw new Error('소속 국가가 영토 변경으로 사라집니다. 소속을 다시 선택하세요.');
-    const geometry = normalizePolygonGeometry(clipper.union(...geometries.map(multiCoordinates)));
+    const geometry = normalizeClippingResult(clipper.union(...geometries.map(multiCoordinates)));
     if (!clipper.difference(multiCoordinates(geometry), multiCoordinates(owner.geometry)).length) continue;
     impacts.push({ id, name: owner.properties?.name || id, expansion: true });
-    await merge({ ...owner, geometry: normalizePolygonGeometry(clipper.union(multiCoordinates(owner.geometry), multiCoordinates(geometry))) }, geometry);
+    await merge({ ...owner, geometry: normalizeClippingResult(clipper.union(multiCoordinates(owner.geometry), multiCoordinates(geometry))) }, geometry, true);
   }
   const byId = new Map([...draft.features, ...existingUnits, ...units].map(feature => [featureId(feature), feature]));
   for (const unit of units.filter(unit => (unit.properties.entityKind === 'general' && !!unit.properties.parentId))) {
@@ -72,7 +75,7 @@ export async function calculateLibraryBatch(payload, originals, existingUnits, c
       || clipper.difference(multiCoordinates(unit.geometry), multiCoordinates(parent.geometry)).length) throw new Error(`${unit.properties.name}: 상위 단위에 포함되지 않습니다.`);
   }
   if (validateCollection(draft, [...affected], {
-    overlapAffectedIds: [...gainedTerritoryIds],
+    overlapAffectedIds: [...gainedTerritoryIds], clipped: true,
   }).overlapAreaKm2 > 0.001) throw new Error('영토 변경 후 국가 간 중첩이 남아 추가할 수 없습니다.');
   const kept = new Set(draft.features.map(featureId));
   return { features: draft.features.filter(feature => affected.has(featureId(feature))), removedIds: originals.filter(feature => !kept.has(featureId(feature))).map(featureId),

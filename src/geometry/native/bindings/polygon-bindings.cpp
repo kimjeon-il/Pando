@@ -122,6 +122,7 @@ MultiPolygon readGisGeometry(val input) {
     return polygons;
 }
 bool gisGeometry(val input) {return validateGisGeometry(readGisGeometry(input));}
+bool clippedGisGeometry(val input) {return validateClippedGisGeometry(readGisGeometry(input));}
 std::string selectionParentKey(val value) {
     std::string result;const auto length=value["length"].as<unsigned>();result.reserve(length*2);
     for(unsigned i=0;i<length;++i){const auto unit=value.call<unsigned>("charCodeAt",i);result.push_back(char(unit&255));result.push_back(char(unit>>8));}
@@ -331,6 +332,7 @@ EMSCRIPTEN_BINDINGS(pando_polygon_calculation){
     emscripten::function("territorialAreaDecision",&territorialAreaForWeb);
     emscripten::function("territorialSampleIndices",&territorialSampleForWeb);
     emscripten::function("validateGisGeometry",&gisGeometry);
+    emscripten::function("validateClippedGisGeometry",&clippedGisGeometry);
     emscripten::function("gisValidationArea",&gisArea);
     emscripten::class_<GisCandidatePort>("GisOverlapCandidates").constructor<val,val,bool>().function("next",&GisCandidatePort::next).function("isSignificant",&GisCandidatePort::isSignificant);
     emscripten::class_<TerritorialCandidatePort>("TerritorialOverlapCandidates").constructor<val,val,val,bool,val>().function("next",&TerritorialCandidatePort::next).function("components",&TerritorialCandidatePort::components).function("diagnostics",&TerritorialCandidatePort::diagnostics);

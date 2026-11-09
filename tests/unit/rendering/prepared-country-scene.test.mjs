@@ -1,4 +1,8 @@
 import test from 'node:test';
+import {createHash} from 'node:crypto';
+import {gzipSync,gunzipSync} from 'node:zlib';
+import {validateWorldBundle} from '../../../src/data/world-bundle-manifest.js';
+import {encodeCanonicalCountryPacket} from '../../../tools/build/canonical-country-packet-encoder.mjs';
 import assert from 'node:assert/strict';
 import * as codec from '../../../src/rendering/country-mesh-codec.js';
 import { prepareCountryStroke } from '../../../src/rendering/country-stroke-preparation.js';
@@ -116,4 +120,71 @@ test('prepared scene fill identity equals canonical mesh content key', async () 
   assert.equal(resourceKey(baked.fills),await countryMeshContentKey(features));
   assert.notEqual(resourceKey(baked.fills),await countryMeshContentKey([...features].reverse()));
   assert.notEqual(resourceKey(baked.fills),await countryMeshContentKey([features[0],{id:'B',geometry:triangle(11)}]));
+});
+
+
+// Real packet encoders and manifest parser share the same revision contract.
+function pairedWorldBundle(scene,sceneBuffer) {
+  const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
+  const source={type:'FeatureCollection',features:ids.map((id,i)=>({type:'Feature',id,properties:{name:id},
+    geometry:{type:'Polygon',coordinates:[[[i*10,0],[i*10+1,0],[i*10,1],[i*10,0]]]}}))};
+  const sourceBytes=Buffer.from(JSON.stringify(source)),canonical=encodeCanonicalCountryPacket(source);
+  const assets={};
+  for(const [role,name,ext,raw,headerWords] of [
+    ['previewCountries','countries-preview','.geojson.gz',sourceBytes,0],
+    ['previewMesh','world-mesh-preview','.bin.gz',scene.meshBuffer,12],
+    ['canonicalCountryPacket','countries-canonical','.pcg.gz',canonical,20],
+    ['canonicalMesh','world-mesh','.bin.gz',scene.meshBuffer,12],
+    ['labelAnchors','country-label-anchors','.json',Buffer.from('{}'),0],
+  ]) {
+    const bytes=Buffer.from(raw),encoding=role==='labelAnchors'?'identity':'gzip';
+    const stored=encoding==='gzip'?gzipSync(bytes):bytes,digest=hash(stored);
+    assets[role]={url:'world/objects/'+name+'-sha256-'+digest+ext,encoding,sha256:digest,
+      compressedBytes:stored.length,decodedBytes:bytes.length,
+      ...(headerWords?{header:Array.from({length:headerWords},(_,i)=>bytes.readUInt32LE(i*4))}:{})};
+  }
+  const stored=gzipSync(Buffer.from(sceneBuffer)),digest=hash(stored);
+  assets.preparedCountryScene={url:'world/objects/country-scene-sha256-'+digest+'.bin.gz',encoding:'gzip',
+    sha256:digest,compressedBytes:stored.length,decodedBytes:sceneBuffer.byteLength,
+    algorithmVersion:codec.MESH_ALGORITHM_REVISION,identity:scene.identity};
+  return {stored,bundle:{schema:'pandolab-world-bundle',schemaVersion:1,
+    source:{url:'territorial-entities/generated/current-world.geojson',sha256:hash(sourceBytes),countryCount:ids.length},
+    derivation:{preview:'canonical-topology-simplified',coordinateCount:8,meshAlgorithmRevision:codec.MESH_ALGORITHM_REVISION},
+    defaultClassification:{countries:Object.fromEntries(identity.fills)},assets}};
+}
+
+test('world manifest and real prepared scene packet accept the same current mesh revision',()=>{
+  const scene=packageFixture(),raw=codec.encodePreparedCountryScene(scene);
+  assert.equal(codec.MESH_ALGORITHM_REVISION,6,'this regression targets the exact-clipped mesh contract');
+  const {bundle,stored}=pairedWorldBundle(scene,raw),manifest=validateWorldBundle(bundle);
+  const spec=manifest.assets.preparedCountryScene;
+  assert.equal(spec.algorithmVersion,new Uint32Array(scene.meshBuffer,0,8)[7]);
+  assert.equal(stored.length,spec.compressedBytes);
+  assert.equal(createHash('sha256').update(stored).digest('hex'),spec.sha256);
+  const bytes=gunzipSync(stored);assert.equal(bytes.length,spec.decodedBytes);
+  const read=codec.decodePreparedCountryScene(bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.length),spec.identity);
+  assert.deepEqual(read.meshBuffer,scene.meshBuffer);
+  assert.deepEqual(read.boundaryPacket,scene.boundaryPacket);
+  assert.deepEqual(read.preparedStroke,scene.preparedStroke);
+});
+
+test('prepared scene rejects mesh5 and unknown revisions even behind a current descriptor',()=>{
+  for(const rejectedRevision of [5,codec.MESH_ALGORITHM_REVISION+1]) {
+    const scene=packageFixture(),raw=codec.encodePreparedCountryScene(scene);
+    const {bundle}=pairedWorldBundle(scene,raw);
+    bundle.assets.preparedCountryScene.algorithmVersion=rejectedRevision;
+    assert.throws(()=>validateWorldBundle(bundle),/prepared country scene descriptor/);
+    const legacyMesh=scene.meshBuffer.slice(0);new Uint32Array(legacyMesh,0,8)[7]=rejectedRevision;
+    assert.throws(()=>codec.decodeCountryMesh(legacyMesh,ids),Error);
+    assert.throws(()=>codec.encodePreparedCountryScene({...scene,meshBuffer:legacyMesh}),Error);
+    // Corrupt only a test packet's embedded revision, then give it matching transfer
+    // hashes and a current descriptor. Relabeling cannot admit an old/mixed payload.
+    const header=new Uint32Array(raw,0,4),metadata=JSON.parse(new TextDecoder().decode(new Uint8Array(raw,16,header[2])));
+    const meshSection=metadata.arrays[metadata.payload.meshBuffer.$array],base=Math.ceil((16+header[2])/8)*8;
+    new Uint32Array(raw,base+meshSection.offset,8)[7]=rejectedRevision;
+    const disguised=pairedWorldBundle(scene,raw),spec=validateWorldBundle(disguised.bundle).assets.preparedCountryScene;
+    const bytes=gunzipSync(disguised.stored);
+    assert.equal(createHash('sha256').update(disguised.stored).digest('hex'),spec.sha256);
+    assert.throws(()=>codec.decodePreparedCountryScene(bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.length),spec.identity),Error);
+  }
 });

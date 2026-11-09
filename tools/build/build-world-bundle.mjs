@@ -138,7 +138,7 @@ export function publishWorldBundle({ root, check = false, manifestOverride = nul
 
 const invoked = process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (invoked) {
-  const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+  const root = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
   const check = process.argv.includes('--check');
   const arg = process.argv.find(value => value.startsWith('--source-manifest='));
   try {

@@ -1,3 +1,4 @@
+#include <pandoeditor/exactplanar.h>
 #include <pandoeditor/geometrypredicates.h>
 #include <cmath>
 #include <algorithm>
@@ -333,6 +334,19 @@ bool geographicOverlap(const Geometry& left,const Geometry& right) {
 }
 
 }
+// Generated geometry is checked against the original binary64 coordinates.
+// Source admission retains its existing validator below.
+std::vector<TerritorialRingIssue> validateClippedTerritorialRing(const Ring& ring) {
+    if(const auto failure=exactplanar::ringIssue(ring)) {
+        TerritorialRingIssue issue;issue.kind=failure->kind;
+        issue.coordinateIndex=failure->coordinateIndex;
+        if(failure->coordinateIndex<ring.size())issue.coordinate=ring[failure->coordinateIndex];
+        if(issue.kind=="self-intersection")issue.segmentIndex=failure->segmentIndex;
+        else if(issue.kind=="duplicate-vertex"||issue.kind=="invalid-geometry")issue.vertexIndex=failure->coordinateIndex;
+        return {issue};
+    }
+    return {};
+}
 std::vector<TerritorialRingIssue> validateTerritorialRing(const Ring& ring) {
     std::vector<TerritorialRingIssue> issues;
     const auto original = [&](const char* kind, std::size_t index) {
@@ -444,6 +458,18 @@ bool gisRingSelfIntersects(Ring ring) {
     }
     return false;
 }
+}
+bool validateClippedGisGeometry(const MultiPolygon& polygons) {
+    if(polygons.empty())return false;
+    for(const auto& polygon:polygons) {
+        if(polygon.empty())return false;
+        for(const auto& ring:polygon) {
+            for(const auto& p:ring)if(!std::isfinite(p.x)||!std::isfinite(p.y)
+                ||p.x< -180.000001||p.x>180.000001||p.y< -90.000001||p.y>90.000001)return false;
+            if(exactplanar::ringIssue(ring))return false;
+        }
+    }
+    return true;
 }
 bool validateGisGeometry(const MultiPolygon& polygons) {
     if(polygons.empty())return false;

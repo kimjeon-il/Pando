@@ -44,7 +44,10 @@ public:
     std::string type(const GeometryRef&) const;
     const auto& resources() const {return resources_;}
     void requireReady(const std::vector<GeometryRef>&) const;
+    // Raw source ingress keeps its existing admission contract.
     void insert(GeometryRef ref, Geometry geometry);
+    // Persisted/generated geometry is validated exactly without moving coordinates.
+    void insertCanonical(GeometryRef ref, Geometry geometry);
     void retain(GeometryRef,std::shared_ptr<const Geometry>);
     void retainFrom(const GeometryStore& validatedSource,const GeometryRef& sourceRef,GeometryRef destinationRef);
     bool retainReadyFrom(const GeometryStore& verifiedSource);

@@ -33,7 +33,7 @@ TimelineStorage restoreTimelineStorage(const TimelineStorageSnapshot& input,
         if(!value.geometry) throw std::invalid_argument("INVALID_GEOMETRY: missing geometry allocation");
         // Reuse the canonical geometry owner's validation and duplicate-version rules.
         // Copy input coordinates so even an external mutable alias cannot alter the result.
-        candidate.geometries.insert(value.ref,*value.geometry);
+        candidate.geometries.insertCanonical(value.ref,*value.geometry);
     }
     candidate.records=validated(input.records,candidate.geometries,entities);
     return candidate;

@@ -379,15 +379,18 @@ export function artifactEvidence(root,{resultSha,expectedSourceSha,evidenceFile,
   execFileSync('git',['merge-base','--is-ancestor',expectedSourceSha,resultSha],{cwd:root});
   const appCommitted=p=>execFileSync('git',['show',resultSha+':'+p],{cwd:root,maxBuffer:256*1024*1024});
   const config=git(root,['ls-tree','--name-only',resultSha,'--','config/library-data.json'])?JSON.parse(appCommitted('config/library-data.json')):null;
-  const checkout=config?libraryCheckout(root):null;
-  const archive=config?JSON.parse(execFileSync('git',['show',config.revision+':archive/index.json'],{cwd:checkout,maxBuffer:32*1024*1024})):null;
+  // An explicitly empty data selection has no data receipt/output to attest.
+  // Keep the committed pin as provenance, without hydrating unrelated archives.
+  const wasmOnly=Array.isArray(families)&&families.length===0;
+  const checkout=config&&!wasmOnly?libraryCheckout(root):null;
+  const archive=config&&!wasmOnly?JSON.parse(execFileSync('git',['show',config.revision+':archive/index.json'],{cwd:checkout,maxBuffer:32*1024*1024})):null;
   const mounted=p=>config?.mounts.some(mount=>mount!=='reports'&&(p===mount||p.startsWith(mount+'/')));
   const committed=p=>{
     if(!mounted(p))return appCommitted(p);
     assert.ok(archive.files[p],'P2_RESULT_LIBRARY_PATH_MISSING: '+p);
     return decodeArchiveEntry(checkout,archive.files[p],config.revision);
   };
-  const listed=mounted(RECEIPT_PATH)?archive.files[RECEIPT_PATH]:git(root,['ls-tree','--name-only',resultSha,'--',RECEIPT_PATH]);
+  const listed=wasmOnly?false:(mounted(RECEIPT_PATH)?archive.files[RECEIPT_PATH]:git(root,['ls-tree','--name-only',resultSha,'--',RECEIPT_PATH]));
   const receipt=listed?JSON.parse(committed(RECEIPT_PATH)):{families:{}};
   if(families!==null) {
     for(const id of families)assert.ok(receipt.families[id],'P2_MISSING_RESULT_FAMILY: '+id);

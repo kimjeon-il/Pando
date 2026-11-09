@@ -1,4 +1,8 @@
 #include <pandoeditor/sphericalpolygon.h>
+#include <pandoeditor/exactplanar.h>
+#include "../../tests/native/geometry/fixtures/clipped-positive-rings.h"
+#include <limits>
+#include <set>
 #include <cassert>
 #include <cmath>
 #include <stdexcept>
@@ -17,6 +21,47 @@ void rejected(const Geometry& geometry) {
     try {(void)normalizeSphericalPolygonGeometry(geometry);}
     catch(const std::invalid_argument&) {caught=true;}
     assert(caught);
+}
+void checkExactClipped() {
+    // Predicate sign must not underflow, overflow, or depend on long double.
+    exactplanar::ProductSum tiny;tiny.add(std::numeric_limits<double>::denorm_min(),std::numeric_limits<double>::denorm_min());
+    assert(tiny.sign()==1);
+    tiny.add(std::numeric_limits<double>::denorm_min(),std::numeric_limits<double>::denorm_min(),-1);
+    assert(tiny.sign()==0);
+    const double huge=std::numeric_limits<double>::max()/2;
+    assert(exactplanar::orientation({0,0},{huge,0},{0,huge})==1);
+    const auto vertices=[](const Ring& ring) {
+        std::multiset<std::pair<double,double>> points;
+        for(std::size_t i=0;i+1<ring.size();++i)points.insert({ring[i].x,ring[i].y});
+        return points;
+    };
+    for(const auto& ring:allClippedPositiveRings()) {
+        const auto source=polygon({ring});
+        const auto snapshot=vertices(ring);
+        assert(exactplanar::areaSign(ring)>0);
+        assert(!exactplanar::ringIssue(ring));
+        rejected(source); // The separate source admission contract is unchanged.
+        const auto normalized=normalizeClippedSphericalPolygonGeometry(source);
+        assert(vertices(normalized.polygons[0][0])==snapshot);
+        assert(normalized.polygons[0][0].size()==ring.size());
+        assert(hasCanonicalSphericalWinding(normalized,true));
+        assert(!hasCanonicalSphericalWinding(normalized));
+        const auto again=normalizeClippedSphericalPolygonGeometry(normalized);
+        for(std::size_t i=0;i<ring.size();++i)
+            assert(exactplanar::equal(again.polygons[0][0][i],normalized.polygons[0][0][i]));
+        assert(vertices(source.polygons[0][0])==snapshot);
+    }
+    for(const auto& ring:std::vector<Ring>{
+        {{0,0},{1,1},{2,2},{0,0}},
+        {{0,0},{2,2},{0,2},{2,0},{0,0}},
+        {{0,0},{3,2},{0,2},{2,0},{0,0}},
+        {{0,0},{2,0},{1,0},{1,1},{0,0}}
+    }) {
+        bool caught=false;
+        try {(void)normalizeClippedSphericalPolygonGeometry(polygon({ring}));}
+        catch(const std::invalid_argument&){caught=true;}
+        assert(caught);
+    }
 }
 void checkCore() {
     // The raw source is never rewritten. A counterclockwise planar shell
@@ -86,5 +131,6 @@ void checkCore() {
 }
 int main() {
     checkCore();
+    checkExactClipped();
     std::cout<<"Shared C++ spherical polygon tests passed\n";
 }

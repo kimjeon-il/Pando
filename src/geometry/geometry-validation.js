@@ -26,14 +26,15 @@ const ringMessages = Object.freeze({
   'self-intersection': '경계가 자기 자신과 교차합니다.',
 });
 
-function validateRing(ring, entityRefs, polygonIndex, ringIndex) {
+function validateRing(ring, entityRefs, polygonIndex, ringIndex, clipped) {
   if (!Array.isArray(ring)) return [issue('invalid-geometry', ringMessages['invalid-geometry'], {
     entityRefs, coordinate: ring?.[0], polygonIndex, ringIndex,
   })];
-  if (typeof sharedCalculationCore.validateTerritorialRing !== 'function') {
+  const validator = clipped ? sharedCalculationCore.validateClippedTerritorialRing : sharedCalculationCore.validateTerritorialRing;
+  if (typeof validator !== 'function') {
     throw Object.assign(new Error('Canonical C++ ring validator is unavailable.'), { code: 'PL-CORE-WASM-CAPABILITY' });
   }
-  return sharedCalculationCore.validateTerritorialRing(ring).map(result => issue(result.kind,
+  return validator(ring).map(result => issue(result.kind,
     result.kind === 'invalid-geometry' && result.vertexIndex != null ? '유효하지 않은 좌표가 있습니다.' : ringMessages[result.kind], {
     entityRefs, coordinate: result.coordinate, polygonIndex, ringIndex,
     ...(result.vertexIndex == null ? {} : { vertexIndex: result.vertexIndex }),
@@ -41,7 +42,7 @@ function validateRing(ring, entityRefs, polygonIndex, ringIndex) {
   }));
 }
 
-export function validateGeometry(feature) {
+export function validateGeometry(feature, { clipped = false } = {}) {
   const id = featureId(feature, 'unknown');
   const geometry = feature?.geometry;
   if (!geometry || !['Polygon', 'MultiPolygon'].includes(geometry.type)) {
@@ -50,7 +51,9 @@ export function validateGeometry(feature) {
   const issues = [];
   polygons(geometry).forEach((polygon, polygonIndex) => {
     if (!polygon?.length) issues.push(issue('invalid-geometry', '빈 Polygon component가 있습니다.', { entityRefs: [id], polygonIndex }));
-    (polygon || []).forEach((ring, ringIndex) => issues.push(...validateRing(ring, [id], polygonIndex, ringIndex)));
+    (polygon || []).forEach((ring, ringIndex) => issues.push(...validateRing(ring, [id], polygonIndex, ringIndex, clipped)));
   });
   return issues;
 }
+
+export const validateClippedGeometry = feature => validateGeometry(feature, { clipped: true });

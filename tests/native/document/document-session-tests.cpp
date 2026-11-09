@@ -1,4 +1,8 @@
 #include <pandoeditor/document-session.h>
+#include <pandoeditor/timeline-storage.h>
+#include "../geometry/fixtures/clipped-positive-rings.h"
+#include <limits>
+#include <cmath>
 #include <pandoeditor/webcommands.h>
 #include <pandoeditor/timeline-edit.h>
 #include <pandoeditor/webcontentcommands.h>
@@ -138,7 +142,165 @@ void pureTimelineContracts() {
     assert(resolveWorld(edited,context,"1914-07").find(territorialRef("child"))->geometryRef.version==2);
     assert(resolveWorld(records,context,"1914-07").find(territorialRef("child"))->geometryRef.version==1);
 }
+
+namespace {
+Geometry clippedPolygon(const Ring& ring) {
+    Geometry geometry;geometry.type="Polygon";geometry.polygons={{ring}};return geometry;
+}
+Geometry ordinaryAndCurrentClipped() {
+    Geometry geometry;geometry.polygons={{{{-10,0},{-9,0},{-9,1},{-10,1},{-10,0}}}};
+    for(const auto& ring:currentClippedPositiveRings())geometry.polygons.push_back({ring});
+    assert(geometry.polygons.size()==15);return geometry;
+}
+template<class Action> void rejectsGeometry(Action action,const std::string& code="INVALID_GEOMETRY") {
+    bool rejected=false;
+    try{action();}catch(const std::invalid_argument& error){
+        rejected=true;assert(std::string(error.what()).find(code)!=std::string::npos);
+    }
+    assert(rejected);
+}
+std::vector<Geometry> invalidCanonicalGeometries() {
+    std::vector<Geometry> result{
+        clippedPolygon({{0,0},{1,0},{2,0},{0,0}}), // exact zero
+        clippedPolygon({{0,0},{4,3},{0,3},{3,0},{0,0}}), // crossing, nonzero signed area
+        clippedPolygon({{0,0},{3,0},{3,3},{3,0},{0,3},{0,0}}), // retraced edge
+        clippedPolygon({{0,0},{3,0},{3,0},{0,3},{0,0}}), // adjacent duplicate
+        clippedPolygon({{0,0},{3,0},{0,3},{1,1}}) // open
+    };
+    auto invalid=clippedPolygon({{0,0},{3,0},{0,3},{0,0}});
+    invalid.polygons[0][0][1].x=181;result.push_back(invalid);
+    invalid.polygons[0][0][1].x=std::numeric_limits<double>::quiet_NaN();result.push_back(invalid);
+    invalid=clippedPolygon({{0,0},{3,0},{0,3},{0,0}});invalid.points={{1,1}};result.push_back(invalid);
+    invalid.type="GeometryCollection";result.push_back(invalid);
+    return result;
+}
+void canonicalGeometryStoreContracts() {
+    const auto rings=currentClippedPositiveRings();assert(rings.size()==14);
+    // Positions correspond to captured componentIndex 3,6,9,24,26,40.
+    const std::vector<std::size_t> oldSourceRejected{1,2,5,8,9,11};
+    GeometryStore store;
+    for(std::size_t i=0;i<rings.size();++i) {
+        const auto geometry=clippedPolygon(rings[i]);const auto before=geometry;
+        const GeometryRef ref{"clipped-"+std::to_string(i),1};
+        store.insertCanonical(ref,geometry);
+        assert(sameGeometryValue(*store.get(ref),before)&&sameGeometryValue(geometry,before));
+        auto reversed=geometry;std::reverse(reversed.polygons[0][0].begin(),reversed.polygons[0][0].end());
+        store.insertCanonical({ref.id,2},reversed);assert(sameGeometryValue(*store.get({ref.id,2}),reversed));
+        if(std::find(oldSourceRejected.begin(),oldSourceRejected.end(),i)!=oldSourceRejected.end()) {
+            GeometryStore strict;
+            rejectsGeometry([&]{strict.insert(ref,geometry);});assert(strict.versions().empty());
+        }
+    }
+    const auto mixed=ordinaryAndCurrentClipped(),before=mixed;
+    const GeometryRef mixedRef{"mixed",1};store.insertCanonical(mixedRef,mixed);
+    assert(sameGeometryValue(mixed,before)&&sameGeometryValue(*store.get(mixedRef),before));
+    GeometryStore strict;strict.insert({"ordinary",1},clippedPolygon(mixed.polygons.front().front()));
+    assert(strict.versions().size()==1);
+    GeometryStore retained;const auto allocation=std::make_shared<const Geometry>(mixed);
+    retained.retain(mixedRef,allocation);assert(retained.get(mixedRef)==allocation);
+    rejectsGeometry([&]{retained.retain({"null",1},nullptr);});
+    rejectsGeometry([&]{retained.insertCanonical({"",1},mixed);});
+    rejectsGeometry([&]{retained.insertCanonical({"version",0},mixed);});
+    rejectsGeometry([&]{retained.retain(mixedRef,allocation);},"DUPLICATE_ID");
+    rejectsGeometry([&]{retained.insertCanonical(mixedRef,mixed);},"DUPLICATE_ID");
+    for(const auto& invalid:invalidCanonicalGeometries()) {
+        const auto count=retained.versions().size();
+        rejectsGeometry([&]{retained.insertCanonical({"invalid",1},invalid);});
+        rejectsGeometry([&]{retained.retain({"invalid",1},std::make_shared<const Geometry>(invalid));});
+        assert(retained.versions().size()==count&&retained.get(mixedRef)==allocation);
+    }
+    const auto snapshot=snapshotTimelineStorage({},store,{});
+    const auto restored=restoreTimelineStorage(snapshot,{});
+    assert(restored.geometries.versions().size()==store.versions().size());
+    for(const auto& [ref,geometry]:store.versions())assert(sameGeometryValue(*restored.geometries.get(ref),*geometry));
+    // Restoration copies an externally owned allocation, rather than trusting its pointer.
+    auto mutableGeometry=std::make_shared<Geometry>(mixed);auto external=snapshot;
+    external.geometries.push_back({{"external",1},mutableGeometry});
+    const auto independent=restoreTimelineStorage(external,{});
+    mutableGeometry->polygons[0][0][0].x=-20;
+    assert(sameGeometryValue(*independent.geometries.get({"external",1}),mixed));
+    auto invalidSnapshot=snapshot;
+    invalidSnapshot.geometries.push_back({{"invalid",1},std::make_shared<const Geometry>(invalidCanonicalGeometries().front())});
+    rejectsGeometry([&]{restoreTimelineStorage(invalidSnapshot,{});});
+    assert(sameGeometryValue(*store.get(mixedRef),before));
+}
+codecjson::Value canonicalStoredInput(const std::string& seed,const Geometry& geometry) {
+    using V=codecjson::Value;auto root=codecjson::parse(seed);
+    root.object.at("territorialEntities").array.resize(1);
+    assert(root.object.at("territorialEntities").array.front().object.at("id").string=="A");
+    for(const auto* key:{"labels","hydroEdits","genericFeatures","distributionLayers","distributionEntries"})root.object[key]=V::arr();
+    root.object["labelSettings"]=V::obj();
+    root.object["distributionSettings"]=codecjson::parse(R"({"renderMode":"single","activeLayerId":"","boundaryVisible":false})");
+    root.object["projectSetup"]=codecjson::parse(R"({"initialMonth":"2000-01","timelineRange":null,"initialMapBounds":null,"sourceMode":"empty"})");
+    root.object["timelineRecords"]=codecjson::parse(R"({"schemaVersion":3,"lifetimes":[{"id":"life:A","objectRef":{"domain":"territorial","id":"A"},"validFrom":null,"validTo":null}],"geometryBindings":[{"id":"shape:A","objectRef":{"domain":"territorial","id":"A"},"validFrom":null,"validTo":null,"geometryRef":{"id":"clipped","version":1}}],"parentRelations":[{"id":"parent:A","objectRef":{"domain":"territorial","id":"A"},"validFrom":null,"validTo":null,"parentId":"","coverageMode":"explicit"}],"propertyBindings":[]})");
+    auto row=V::obj();row.object["id"]=V::str("clipped");row.object["version"]=V::num(1);row.object["geojson"]=projectcodec::webGeometryValue(geometry);
+    root.object["geometries"]=V::arr();root.object["geometries"].array.push_back(row);return root;
+}
+void canonicalStoredSessionContracts(const std::string& seed) {
+    using V=codecjson::Value;
+    const projectcodec::PlatformPorts ports{[](const std::string&){},true,codecjson::ParsedTextPolicy::PreserveUtf16};
+    const auto mixed=ordinaryAndCurrentClipped();auto root=canonicalStoredInput(seed,mixed);
+    // A distinct inline geometry forces the real project codec's retain boundary.
+    auto inlineGeometry=mixed;for(auto& polygon:inlineGeometry.polygons)for(auto& ring:polygon)std::reverse(ring.begin(),ring.end());
+    auto generic=codecjson::parse(R"({"type":"Feature","id":"22000000-0000-4000-8000-000000000019","properties":{"schemaVersion":2,"name":"Canonical inline","notes":"","color":"#8c68d8","locked":false,"source":{"kind":"drawn","license":"","details":{}}}})");
+    generic.object["geometry"]=projectcodec::webGeometryValue(inlineGeometry);root.object["genericFeatures"].array.push_back(generic);
+    const auto original=root.encode();const GeometryRef ref{"clipped",1};
+    const auto decoded=projectcodec::decodeWeb(original,ports);
+    assert(sameGeometryValue(*decoded.geometries.get(ref),mixed));
+    assert(sameGeometryValue(*decoded.geometries.get(decoded.genericFeatures.front().geometry),inlineGeometry));
+    DocumentSession session(ports);session.documentLoad(original,"2000-01");
+    const auto read=projectcodec::readWebSnapshot(session.documentSnapshot(),ports);
+    assert(sameGeometryValue(*read.geometries.get(ref),mixed));
+    const auto saved=session.storageSnapshot();DocumentSession reopened(ports);reopened.documentLoad(saved,"2000-01");
+    assert(sameGeometryValue(*reopened.project().document().geometries.get(ref),mixed));
+    assert(sameGeometryValue(*reopened.project().document().geometries.get(reopened.project().document().genericFeatures.front().geometry),inlineGeometry));
+    assert(reopened.storageSnapshot()==saved&&root.encode()==original);
+    for(const auto& invalid:invalidCanonicalGeometries()) {
+        // Nonfinite values and malformed native containers are covered at the store boundary.
+        if(!std::isfinite(invalid.polygons[0][0][1].x)||!invalid.points.empty())continue;
+        auto poisoned=root;poisoned.object.at("geometries").array[0].object["geojson"]=projectcodec::webGeometryValue(invalid);
+        const auto before=session.documentSnapshot();const auto epoch=session.projectState().epoch;
+        rejectsGeometry([&]{session.documentLoad(poisoned.encode(),"2000-01");});
+        assert(session.documentSnapshot()==before&&session.projectState().epoch==epoch);
+    }
+    const auto ordinary=clippedPolygon(mixed.polygons.front().front());auto lazy=canonicalStoredInput(seed,ordinary);
+    lazy.object.at("projectSetup").object["sourceMode"]=V::str("builtin");
+    auto& bindings=lazy.object.at("timelineRecords").object.at("geometryBindings").array;
+    auto later=bindings.front();bindings.front().object["validTo"]=V::str("2009");
+    later.object["id"]=V::str("shape:later");later.object["validFrom"]=V::str("2010");later.object.at("geometryRef").object["version"]=V::num(2);bindings.push_back(later);
+    const std::vector<Geometry> shapes{ordinary,mixed};std::vector<std::string> payloads;
+    lazy.object["geometries"]=V::arr();lazy.object["geometryResources"]=V::arr();
+    for(std::size_t i=0;i<shapes.size();++i) {
+        payloads.push_back(projectcodec::webGeometryValue(shapes[i]).encode()+"\n");
+        auto descriptor=V::obj();descriptor.object["id"]=V::str("clipped");descriptor.object["version"]=V::num(i+1);
+        descriptor.object["type"]=V::str(shapes[i].type);descriptor.object["contentSha256"]=V::str(projectcodec::sha256Bytes(payloads.back()));descriptor.object["decodedBytes"]=V::num(payloads.back().size());
+        lazy.object["geometryResources"].array.push_back(descriptor);
+        if(i==0){auto row=V::obj();row.object["id"]=V::str("clipped");row.object["version"]=V::num(1);row.object["source"]=V::str(payloads.back());lazy.object["geometries"].array.push_back(row);}
+    }
+    const auto lazyBytes=lazy.encode();projectcodec::WebStorageAssetSource asset;
+    asset.sourceBytes.assign(lazyBytes.begin(),lazyBytes.end());asset.encoding="identity";asset.compressedBytes=asset.decodedBytes=lazyBytes.size();
+    asset.baseDataset=lazy.object.at("baseDataset").string;asset.sourceMonth="2000-01";asset.fingerprint=projectcodec::sha256Bytes(lazyBytes);
+    DocumentSession resources(ports);resources.documentLoad(canonicalStoredInput(seed,ordinary).encode(),"2000-01");
+    const auto admitted=resources.storageBaselineLoad(asset,resources.projectState().epoch);
+    resources.documentLoadBaseline(admitted.storageBaselineId,lazy.object.at("projectSetup"),"clipped-offline");
+    const GeometryRef future{"clipped",2};assert(resources.geometryRequirements("2015-01",resources.projectState().epoch)==std::vector<GeometryRef>{future});
+    const auto before=resources.documentSnapshot();const auto state=resources.projectState();
+    rejectsGeometry([&]{resources.admitGeometryResources({{future,payloads[1]+" "}},state.epoch);},"INVALID_GEOMETRY_RESOURCE");
+    assert(resources.documentSnapshot()==before&&!resources.project().document().geometries.get(future));
+    resources.admitGeometryResources({{future,payloads[1]}},state.epoch);
+    assert(resources.projectState().epoch==state.epoch&&resources.projectState().checkpoint==state.checkpoint&&!resources.projectState().dirty&&!resources.projectState().canUndo);
+    assert(sameGeometryValue(*resources.project().document().geometries.get(future),mixed));
+    const auto resourceRead=projectcodec::readWebSnapshot(resources.documentSnapshot(),ports);
+    assert(sameGeometryValue(*resourceRead.geometries.get(future),mixed));
+    const auto offline=resources.storageSnapshot();DocumentSession offlineSession(ports);offlineSession.documentLoad(offline,"2000-01");
+    assert(offlineSession.geometryRequirements("2015-01",offlineSession.projectState().epoch).empty());
+    assert(sameGeometryValue(*offlineSession.project().document().geometries.get(future),mixed));
+    assert(lazy.encode()==lazyBytes&&root.encode()==original);
+}
+} // namespace
+
 int main() {
+    canonicalGeometryStoreContracts();
     pureTimelineContracts();
     std::ifstream file(DOCUMENT_SESSION_FIXTURE,std::ios::binary);assert(file);
     const std::string rawSeed{std::istreambuf_iterator<char>(file),std::istreambuf_iterator<char>()};
@@ -150,6 +312,7 @@ int main() {
     });
     const auto seed=canonicalSeed.encode();
     ownedCommandBoundaries(seed);
+    canonicalStoredSessionContracts(seed);
     auto blank=codecjson::parse(seed);for(auto& row:blank.object.at("territorialEntities").array) {
         auto& properties=row.object.at("properties");properties.object["name"]=codecjson::Value::str("");
         properties.object["metadata"]=codecjson::Value::obj();

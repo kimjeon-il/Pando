@@ -5,7 +5,7 @@ import {classifyBuiltinCountries} from '../gis/builtin-country-classification.mj
 import { builtinSubunitSourceId } from "../../src/document/builtin-subunits.js";
 import {loadBuiltinDisplayPolicy} from "../gis/builtin-display-policy.mjs";
 import { createTerritorialFeature, normalizeTerritorialIdentities, TERRITORIAL_IDENTITY_FIELDS } from "../../src/document/territorial-units.js";
-import { createGeometryVersionStore } from "../../src/geometry/geometry-version-store.js";
+import { createCanonicalGeometryVersionStore as createGeometryVersionStore } from "../../src/geometry/geometry-version-store.js";
 import { normalizeTimelineRecords } from "../../src/document/timeline-records.js";
 import { createProjectTemplateCompiler } from "../gis/project-template-compiler.js";
 import { DISTRIBUTION_MODES } from "../../src/document/distribution-model.js";

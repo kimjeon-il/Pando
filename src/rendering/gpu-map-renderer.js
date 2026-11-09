@@ -33,7 +33,7 @@ import { decideCountryPatchPresentation } from "./country-mesh-quality-gate.js";
 import { resolveCountryMeshQuality, resolveMapSurfacePresentation, canAdmitCanvasWorkerPartialBackground, canAdmitWebGlPartialBackground, canvasWorkerFrameMatchesPhysical, canvasWorkerPresentationKey, canvasWorkerBackgroundPresentationKey, selectCanvasPhysicalSource } from "./country-mesh-zoom-policy.js";
 import { validateMapSurfacePreview } from "../document/project-preview-policy.js";
 import { inspectTopologyPreviewFeatures } from "../document/project-preview-topology.js";
-import { validateGeometry } from "../geometry/geometry-validation.js";
+import { validateClippedGeometry as validateGeometry } from "../geometry/geometry-validation.js";
 import { mapPresentationReadiness } from "../app/startup-readiness.js";
 import { shouldShowSharedCountryBorders } from "./country-shared-boundary-packet.js";
 import { geometryRevisionKey } from "../geometry/geometry-versions.js";

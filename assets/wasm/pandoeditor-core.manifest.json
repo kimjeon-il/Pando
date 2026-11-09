@@ -1,7 +1,7 @@
 {
   "schema": "pandoeditor-core-wasm",
   "abiVersion": 1,
-  "sourceSha256": "d1cd16694d392c709614a34c6fea7ecc89071a1fea317d32d93491ae454d6969",
+  "sourceSha256": "97f9077a623983f7a63375ba663da9699db106f15bc9c3678acb431c2c2d2906",
   "compiler": {
     "name": "emscripten",
     "version": "6.0.3"
@@ -73,7 +73,7 @@
     },
     {
       "path": "src/document/native/bindings/session-bindings.cpp",
-      "sha256": "c067c18dc2ed621d7eee0f339d5776055e04a693a4a570e607935786d9107bb4"
+      "sha256": "ad63ef2f9600662bc396f9e93c73a04a729dabac094bc1afbb87a72efa75a7dd"
     },
     {
       "path": "src/document/native/bindings/timeline-bindings.cpp",
@@ -193,7 +193,7 @@
     },
     {
       "path": "src/document/native/src/commands.cpp",
-      "sha256": "25b47a01afb4a76335a08b4ff1b81deb42bdbdb2591e09638e795526a0678117"
+      "sha256": "8911f1ce28aaa1f2f9a0ad510efdaaf994829830e34d1cdd7dee81ed3fdc8c45"
     },
     {
       "path": "src/document/native/src/content.cpp",
@@ -201,11 +201,11 @@
     },
     {
       "path": "src/document/native/src/document-session.cpp",
-      "sha256": "5dcfc47a18ccfa0d546df3442a15f2c4d90e8c954d67e0306c4020999e62af6d"
+      "sha256": "f4ac1280b1c91ae966c581d7e87306808a3810f74f9103e3fee6ae70cc5b5773"
     },
     {
       "path": "src/document/native/src/document.cpp",
-      "sha256": "fe9c6fea0ef15992275fd85ef159c1f5af1c318c461ae618b348ebf552418616"
+      "sha256": "1777b98e6a919282626758317f9ace450a457894c13e6671669681f8ddc02ed6"
     },
     {
       "path": "src/document/native/src/documentstate.h",
@@ -217,7 +217,7 @@
     },
     {
       "path": "src/document/native/src/historicalinstantiation.cpp",
-      "sha256": "5adbefbd2a97e630dc2905258b260fb63b0c36ee104d2d7c9deaa6c28822f147"
+      "sha256": "2a8365427c7e92e15d861ac1eb919dedd63fafe5498b2bf3195632bceff8a4db"
     },
     {
       "path": "src/document/native/src/historicallibrary.cpp",
@@ -277,7 +277,7 @@
     },
     {
       "path": "src/document/native/src/timeline-storage.cpp",
-      "sha256": "3badc49bca6157b00a037e3837afc70fef25b0023ba596ecafa0af0e2be190dd"
+      "sha256": "9c42b73f841ae86bf1990a620a7ff780bcf7c2648345d7ac21cbcc08c7dc0643"
     },
     {
       "path": "src/document/native/src/timeline-view.cpp",
@@ -317,7 +317,7 @@
     },
     {
       "path": "src/geometry/native/bindings/polygon-bindings.cpp",
-      "sha256": "21941be704145da5e072a96679dd1ffe465263536199bfc61385579d19cddac2"
+      "sha256": "ff8c00911ca8d68e203a085cef5cd2384202f7b46a77a775536c5add90b3101d"
     },
     {
       "path": "src/geometry/native/bindings/reference-bindings.cpp",
@@ -360,8 +360,12 @@
       "sha256": "31678a8a1165ac3e58d7209c8eb7473f90b3d1aa4e2c01a48e41c564879f3844"
     },
     {
+      "path": "src/geometry/native/include/pandoeditor/exactplanar.h",
+      "sha256": "183a6496fe246c0ec3e5e171db9d75cb3216a0123cdfbbc1d0b9d73c0bc6f7e5"
+    },
+    {
       "path": "src/geometry/native/include/pandoeditor/geometry-types.h",
-      "sha256": "2208b021fab8b406321c4bd2f8646cfb846de6d688aff4404dfbee8cc21ac3ae"
+      "sha256": "8cda90d6569a21fef91e96930d1d44512f35be25fffee13a4fbb4bae2d9c08cc"
     },
     {
       "path": "src/geometry/native/include/pandoeditor/geometrydraft.h",
@@ -373,7 +377,7 @@
     },
     {
       "path": "src/geometry/native/include/pandoeditor/geometrypredicates.h",
-      "sha256": "d7e6f5b4cbab678a7c73bc5722df1a3d8e48ec5188a6d4e930f5bd8c30f49efa"
+      "sha256": "1da2c6d4a42625b488f8fe38455487b86aa6b68e69fa10e95fbf9835066d9dd8"
     },
     {
       "path": "src/geometry/native/include/pandoeditor/geometryprovenance.h",
@@ -405,7 +409,7 @@
     },
     {
       "path": "src/geometry/native/include/pandoeditor/sphericalpolygon.h",
-      "sha256": "dc4ace861fec1cb87da7a8ea8b9f719ec851ce54fbc341a1d9a4fa5bc5267d38"
+      "sha256": "bead9636f19e4fd0cde313fdfc946e96fda5b33b825080b2acac126d74dc26c7"
     },
     {
       "path": "src/geometry/native/src/boundarychain.cpp",
@@ -445,7 +449,7 @@
     },
     {
       "path": "src/geometry/native/src/geometrypredicates.cpp",
-      "sha256": "b92964509187ce53e04a236dc0d3676926fadadc7f538a761e6c93e039b69774"
+      "sha256": "5dcc0344fe5861ef9bb13f9e7f668b9f2ae31c4b144a79ac5de377eeb5a37509"
     },
     {
       "path": "src/geometry/native/src/geometryprovenance.cpp",
@@ -477,7 +481,7 @@
     },
     {
       "path": "src/geometry/native/src/sphericalpolygon.cpp",
-      "sha256": "77e868810fc3f0c27a9496812aed1925abe35421ab9a1d538c4e245392fc85f6"
+      "sha256": "35fb1cf4ddb1e2b25ca9dca51817c0b1b30c019b47e9174a2adae3c4d21536cb"
     },
     {
       "path": "src/geometry/native/vendor/earcut/earcut.hpp",
@@ -497,11 +501,11 @@
     },
     {
       "path": "src/rendering/native/include/pandoeditor/polygonmesh.h",
-      "sha256": "4a06e0b5ae72dafee79c5416f6cce01e9c06deaa755f02596e353c9b1808fa3e"
+      "sha256": "d2b3997b7af04e0629b8009abf309f9d75063f936288be6c3b9444f4b72c9551"
     },
     {
       "path": "src/rendering/native/src/polygonmesh.cpp",
-      "sha256": "a8b70721f78b82f14bb7ad5519202cf6346890945e44f0bc5ae4dad9cda83e0b"
+      "sha256": "f95ab2dff880e3b9c4377b05a954ad6f327f457edfdd068cf423ccdb9c0b8653"
     },
     {
       "path": "src/runtime/native/include/pandoeditor/version.h",
@@ -517,7 +521,7 @@
     },
     {
       "path": "tests/native/document/document-session-tests.cpp",
-      "sha256": "bc170523eee0e2a75afb028fa9dcb679ed2592ce435dae0fa538cf44a49079d2"
+      "sha256": "99c018d5110b74373a676f4471d06ac2c72f18b0e30651fba1923219d22093ef"
     },
     {
       "path": "tests/native/document/hydro-timeline-tests.cpp",
@@ -604,6 +608,10 @@
       "sha256": "2222e9a20b9ac77a8ceb9aff93debe050f9315a5c69cf3ae53c4cf1c0e8638f8"
     },
     {
+      "path": "tests/native/geometry/fixtures/clipped-positive-rings.h",
+      "sha256": "804cecc7762ffd8f7487ceceff59286231795aff278e83c31f9425ba9d1287a7"
+    },
+    {
       "path": "tests/native/geometry/geometry-draft-tests.cpp",
       "sha256": "08e73d24edc54cb3529764c7b416ecaedc90a4886deaca76cd33e95d33f7d13d"
     },
@@ -613,7 +621,7 @@
     },
     {
       "path": "tests/native/geometry/polygon-mesh-tests.cpp",
-      "sha256": "1027459c14839f5da4bab3d22ecaa377cd6297e6900170bc71dead21797238dc"
+      "sha256": "48330d06d52c9d92d48fb3bca74fb3e114afcb9907e55796aa463ddbf9365a8a"
     },
     {
       "path": "tests/native/geometry/river-partition-probe.cpp",
@@ -643,11 +651,11 @@
   "assets": {
     "js": {
       "file": "pandoeditor-core.js",
-      "sha256": "96c184815104456b0ff78f433aac1048878ea59de98e0f5eb575bdbfb63ee096"
+      "sha256": "8ecbed2d64a9fa3bea6d5f6c59982a78958a5a073d2134ea67fd314809db9d0d"
     },
     "wasm": {
       "file": "pandoeditor-core.wasm",
-      "sha256": "a1a1ff6172e950f670b96f477125761f884006b16491d23bd51026ed373c77f3"
+      "sha256": "2d7cb4548ab687f8bc0aaddcb3789a1bfe697d216c163ce443bf8cf75f5c9b85"
     }
   }
 }

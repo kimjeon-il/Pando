@@ -9,7 +9,7 @@ import zlib from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 
 const toolDirectory = path.dirname(fileURLToPath(import.meta.url));
-const projectRoot = path.resolve(toolDirectory, '..');
+const projectRoot = path.resolve(toolDirectory, '..', '..');
 const sourcePath = path.join(projectRoot, 'assets', 'data', 'territorial-entities', 'generated', 'current-world.geojson');
 const bundleSeed = JSON.parse(fs.readFileSync(path.join(projectRoot, 'assets/data/world/build-input.json'), 'utf8'));
 const pinnedManifest = JSON.parse(fs.readFileSync(path.join(projectRoot, 'assets/data', bundleSeed.legacyPreviewManifest), 'utf8'));

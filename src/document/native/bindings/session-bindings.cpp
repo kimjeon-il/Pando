@@ -219,7 +219,7 @@ EM_JS(emscripten::EM_VAL, packTerritorialRing, (emscripten::EM_VAL handle), {
     for(let i=0;i<ring.length;++i){if(ring.length<4&&!Array.isArray(ring[i]))continue;points[i*2]=Number(ring[i][0]);points[i*2+1]=Number(ring[i][1]);}
     return Emval.toHandle(points);
 });
-val territorialRingValidationForWeb(const val& input) {
+val territorialRingValidation(const val& input,bool clipped) {
     return boundary([&] {
         array(input,"INVALID_GEOMETRY");
         const auto count=input["length"].as<unsigned>();
@@ -229,7 +229,7 @@ val territorialRingValidationForWeb(const val& input) {
         Ring ring;ring.reserve(count);
         for(unsigned i=0;i<count;++i)ring.push_back({points[i*2],points[i*2+1]});
         auto output=val::array();unsigned index=0;
-        for(const auto& issue:validateTerritorialRing(ring)){
+        for(const auto& issue:clipped?validateClippedTerritorialRing(ring):validateTerritorialRing(ring)){
             auto row=val::object();row.set("kind",issue.kind);
             if(issue.coordinateIndex)row.set("coordinate",input[static_cast<unsigned>(*issue.coordinateIndex)]);
             else if(issue.kind=="self-intersection") {auto coordinate=val::array();coordinate.set(0,issue.coordinate.x);coordinate.set(1,issue.coordinate.y);row.set("coordinate",coordinate);}
@@ -240,6 +240,8 @@ val territorialRingValidationForWeb(const val& input) {
         return output;
     });
 }
+val territorialRingValidationForWeb(const val& input) {return territorialRingValidation(input,false);}
+val clippedTerritorialRingValidationForWeb(const val& input) {return territorialRingValidation(input,true);}
 val polygonGeometry(const val& input,bool clipped) {
     return boundary([&] {
         const auto encoded=val::global("JSON").call<val>("stringify",input).as<std::string>();
@@ -379,6 +381,12 @@ bool canonicalPolygonGeometry(const val& input) {
     try {
         const auto encoded=val::global("JSON").call<val>("stringify",input).as<std::string>();
         return hasCanonicalSphericalWinding(projectcodec::readWebGeometry(codecjson::parse(encoded)));
+    }catch(...) {return false;}
+}
+bool canonicalClippedPolygonGeometry(const val& input) {
+    try {
+        const auto encoded=val::global("JSON").call<val>("stringify",input).as<std::string>();
+        return hasCanonicalSphericalWinding(projectcodec::readWebGeometry(codecjson::parse(encoded)),true);
     }catch(...) {return false;}
 }
 val documentState(const DocumentSessionState& state) {
@@ -1040,6 +1048,7 @@ EMSCRIPTEN_BINDINGS(pandoeditor_document_session) {
     emscripten::constant("coreCompilerVersion",compilerVersion);
     emscripten::function("sphericalRingSignedArea",&sphericalRingAreaForWeb);
     emscripten::function("validateTerritorialRing",&territorialRingValidationForWeb);
+    emscripten::function("validateClippedTerritorialRing",&clippedTerritorialRingValidationForWeb);
     emscripten::function("referenceGraphDiagnostics",&referenceGraphForWeb);
     emscripten::function("planGisCountryMerge",&gisCountryMergeForWeb);
     emscripten::function("planGisCountryGeometry",&gisCountryGeometryForWeb);
@@ -1059,6 +1068,7 @@ EMSCRIPTEN_BINDINGS(pandoeditor_document_session) {
     emscripten::function("normalizePolygonGeometry",&polygonGeometry);
     emscripten::function("normalizePolygonRing",&polygonRing);
     emscripten::function("hasCanonicalPolygonWinding",&canonicalPolygonGeometry);
+    emscripten::function("hasCanonicalClippedPolygonWinding",&canonicalClippedPolygonGeometry);
     emscripten::class_<WasmDocumentSession>("DocumentSession").constructor<val>()
         .function("documentLoad",&WasmDocumentSession::documentLoad).function("storageSnapshot",&WasmDocumentSession::storageSnapshot)
         .function("storageBaselineLoad",&WasmDocumentSession::storageBaselineLoad).function("validateImport",&WasmDocumentSession::validateImport)

@@ -279,7 +279,7 @@ if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.ur
   const retirement=JSON.parse(fs.readFileSync(retirementFile.slice('--retirement-manifest='.length)));
   retirementInputs={retirement,sourceIndex,previousSourceIndex:JSON.parse(fs.readFileSync(retirement.previousIndex.path)),
    view:JSON.parse(fs.readFileSync(path.join(territorialSourceRoot,'views/world.json'))),
-   policy:JSON.parse(fs.readFileSync(new URL('../assets/data/historical-world/policy.json',import.meta.url))),displayPolicy:planTerritorialRetirement(retirement,JSON.parse(readRetirementReceipt(retirement.previousIndex))).displayPolicy};
+   policy:JSON.parse(fs.readFileSync(new URL('../../assets/data/historical-world/policy.json',import.meta.url))),displayPolicy:planTerritorialRetirement(retirement,JSON.parse(readRetirementReceipt(retirement.previousIndex))).displayPolicy};
   const input={...retirementInputs,previousIndex:JSON.parse(readRetirementReceipt(retirement.previousBuiltinIndex)),previousCoverage:JSON.parse(readRetirementReceipt(retirement.previousCoverage))};
   files=selected?buildBuiltinWorldRetiredPartialPublication({...input,entityIds:selected.slice('--entities='.length).split(',').filter(Boolean)}):buildBuiltinWorldRetirementPublication(input);
  }else if(selected){

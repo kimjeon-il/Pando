@@ -20,10 +20,10 @@ const prepared = readJson('assets/data/prepared-polygons/generated/v2/manifest.j
 const oldPrepared = readJson('assets/data/prepared-polygons/generated/v1/manifest.json');
 const algorithmSourceSha256 = sharedSourceManifest(root).sourceSha256;
 
-assert.equal(engine.MESH_ALGORITHM_REVISION, 5);
+assert.equal(engine.MESH_ALGORITHM_REVISION, 6);
 assert.equal(legacy.version, '0.36.1');
-assert.equal(legacy.meshAlgorithmRevision, 5);
-assert.equal(bundle.derivation.meshAlgorithmRevision, 5);
+assert.equal(legacy.meshAlgorithmRevision, engine.MESH_ALGORITHM_REVISION);
+assert.equal(bundle.derivation.meshAlgorithmRevision, engine.MESH_ALGORITHM_REVISION);
 assert.equal(seed.legacyPreviewManifest, 'world-preview-v0.36.1.json');
 assert.equal(prepared.schemaVersion, 2);
 assert.equal(prepared.meshFormatVersion, POLYGON_MESH_FORMAT_VERSION);
@@ -105,6 +105,6 @@ for (const [hash, entry] of [assets[0], assets[Math.floor(assets.length / 2)], m
       + ' removedPolygonsNeedReview=true');
   }
 }
-console.log(JSON.stringify({ version: legacy.version, algorithmRevision: 5, fixedMeshCount: assets.length,
+console.log(JSON.stringify({ version: legacy.version, algorithmRevision: engine.MESH_ALGORITHM_REVISION, fixedMeshCount: assets.length,
   fixedGzipBytes: totalCompressedBytes, largestMeshGzipBytes: maxAsset[1].compressedBytes,
   verifiedWorldAssets: Object.keys(bundle.assets).length, sharedCaches: 2 }, null, 2));

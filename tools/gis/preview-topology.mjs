@@ -4,7 +4,7 @@ import { presimplify, quantile } from 'topojson-simplify';
 import { validateGeometry } from "../../src/geometry/geometry-validation.js";
 import { buildTopologyPreview as buildSharedTopologyPreview, inspectTopologyPreviewFeatures } from "../../src/document/project-preview-topology.js";
 
-function inspectCandidate(candidate) {
+function inspectCandidate(candidate, validateGeometry) {
   const core=globalThis.PandoLabSphericalCore;
   if(typeof core?.polygonOperation!=='function')throw Object.assign(new Error('Shared C++ polygon calculation is required for preview generation'),{code:'PREVIEW_VALIDATOR_UNAVAILABLE'});
   const clipper={intersection:(...inputs)=>core.polygonOperation('intersection',inputs,false)};
@@ -12,6 +12,8 @@ function inspectCandidate(candidate) {
 }
 export function buildTopologyPreview(canonicalFeatures, options) {
   return buildSharedTopologyPreview(canonicalFeatures, {
-    ...options, topology, presimplify, quantile, topologyFeature, validateGeometry, inspectCandidate,
+    ...options, topology, presimplify, quantile, topologyFeature,
+    validateGeometry: options.validateGeometry || validateGeometry,
+    inspectCandidate: candidate => inspectCandidate(candidate, options.validateGeometry || validateGeometry),
   });
 }

@@ -1,4 +1,4 @@
-import { preparedCountrySceneKey } from '../rendering/country-mesh-codec.js';
+import { MESH_ALGORITHM_REVISION, preparedCountrySceneKey } from '../rendering/country-mesh-codec.js';
 // Pure schema and URL contract for immutable built-in world geometry assets.
 export const WORLD_BUNDLE_SCHEMA = 'pandolab-world-bundle';
 const WORLD_BUNDLE_FORMAT = 1;
@@ -53,7 +53,7 @@ export function validateWorldBundle(bundle) {
     const asset=bundle.assets.preparedCountryScene;
     if(!HEX_256.test(asset.sha256)||asset.url!==`world/objects/country-scene-sha256-${asset.sha256}.bin.gz`
       ||asset.encoding!=='gzip'||!Number.isSafeInteger(asset.compressedBytes)||asset.compressedBytes<=0
-      ||!Number.isSafeInteger(asset.decodedBytes)||asset.decodedBytes<=0||asset.algorithmVersion!==5)
+      ||!Number.isSafeInteger(asset.decodedBytes)||asset.decodedBytes<=0||asset.algorithmVersion!==MESH_ALGORITHM_REVISION)
       throw new Error('Invalid prepared country scene descriptor');
     preparedCountrySceneKey(asset.identity);
     assets.preparedCountryScene=Object.freeze({...asset});

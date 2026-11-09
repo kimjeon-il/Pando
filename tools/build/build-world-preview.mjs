@@ -7,7 +7,7 @@ import vm from 'node:vm';
 import zlib from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 
-import { validateGeometry } from "../../src/geometry/geometry-validation.js";
+import { validateClippedGeometry as validateGeometry } from "../../src/geometry/geometry-validation.js";
 import { inspectCanonicalCountryPacket } from "../../src/rendering/canonical-country-packet.js";
 import { encodeCanonicalCountryPacket } from "./canonical-country-packet-encoder.mjs";
 import { buildTopologyPreview } from "../gis/preview-topology.mjs";
@@ -18,7 +18,7 @@ import { verifyGzipAssetBytes } from "../../scripts/lib/gzip-asset-verification.
 import "./load-spherical-core.mjs";
 
 const toolDirectory = path.dirname(fileURLToPath(import.meta.url));
-const projectRoot = path.resolve(toolDirectory, '..');
+const projectRoot = path.resolve(toolDirectory, '..', '..');
 const bundleSeed = JSON.parse(fs.readFileSync(path.join(projectRoot, 'assets/data/world/build-input.json'), 'utf8'));
 const legacyTag = /^world-preview-v(\d+\.\d+\.\d+)\.json$/.exec(bundleSeed.legacyPreviewManifest || '');
 if (!legacyTag) throw new Error('Invalid pinned world dataset output revision');
@@ -78,7 +78,7 @@ function minimalFeature(featureValue, index) {
 
 function canonicalFeatureIssues(featureValue) {
   const issues = validateGeometry(featureValue);
-  if (!countryGeometry.hasCanonicalPolygonWinding(featureValue?.geometry)) {
+  if (!countryGeometry.hasCanonicalClippedPolygonWinding(featureValue?.geometry)) {
     issues.push({ kind: 'noncanonical-winding', message: '국가 고리 방향 또는 구조가 canonical 규격과 다릅니다.' });
   }
   return issues;
@@ -90,8 +90,9 @@ function buildPreview(canonicalSource) {
   if (!canonicalFeatures.length || new Set(canonicalIds).size !== canonicalFeatures.length) throw new Error('canonical 국가 목록은 비어 있거나 중복되었습니다.');
   const { features, coordinateCount, simplificationQuantile } = buildTopologyPreview(canonicalFeatures, {
     maxCoordinates: MAX_COORDINATES,
-    normalizeGeometry: countryGeometry.normalizePolygonGeometry,
-    hasCanonicalWinding: countryGeometry.hasCanonicalPolygonWinding,
+    normalizeGeometry: countryGeometry.normalizeClippedPolygonGeometry,
+    validateGeometry,
+    hasCanonicalWinding: countryGeometry.hasCanonicalClippedPolygonWinding,
   });
   for (const featureValue of features) {
     const issues = canonicalFeatureIssues(featureValue);

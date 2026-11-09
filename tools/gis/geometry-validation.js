@@ -9,11 +9,12 @@ function polygonSets(geometry) {
   return [];
 }
 
-function validGeometry(geometry) {
-  if (typeof sharedCalculationCore.validateGisGeometry !== 'function') {
+function validGeometry(geometry, clipped) {
+  const validator = clipped ? sharedCalculationCore.validateClippedGisGeometry : sharedCalculationCore.validateGisGeometry;
+  if (typeof validator !== 'function') {
     throw Object.assign(new Error('Canonical C++ GIS geometry validator is unavailable.'), { code: 'PL-CORE-WASM-CAPABILITY' });
   }
-  return sharedCalculationCore.validateGisGeometry(polygonSets(geometry));
+  return validator(polygonSets(geometry));
 }
 
 function ringBounds(ring) {
@@ -56,7 +57,7 @@ function featureId(feature, index) {
 // only directly added/expanded roots when other modified roots are guaranteed
 // subsets of their previously valid shapes (clipping by difference).
 // All affected geometries still undergo complete structural validation.
-export function validateCollection(collection, affectedIds = null, { overlapAffectedIds = null } = {}) {
+export function validateCollection(collection, affectedIds = null, { overlapAffectedIds = null, clipped = false } = {}) {
   const features = collection?.features || [];
   const ids = features.map(featureId);
   if (ids.some(id => !id) || new Set(ids).size !== ids.length) throw new Error('국가 ID가 비어 있거나 중복되었습니다.');
@@ -67,7 +68,7 @@ export function validateCollection(collection, affectedIds = null, { overlapAffe
     throw new Error('Overlap pair scope must be part of the validated affected countries.');
   const componentBounds = [];
   for (let index = 0; index < features.length; index += 1) {
-    if ((!affected || affected.has(ids[index])) && !validGeometry(features[index].geometry)) {
+    if ((!affected || affected.has(ids[index])) && !validGeometry(features[index].geometry, clipped)) {
       throw new Error(`${featureName(features[index])}의 Polygon 경계가 유효하지 않습니다.`);
     }
     componentBounds.push(polygonBounds(features[index].geometry));

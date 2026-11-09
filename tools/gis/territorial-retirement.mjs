@@ -2,6 +2,7 @@ import {readFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 import {gunzipSync} from 'node:zlib';
 import {isDeepStrictEqual} from 'node:util';
+import {decodeTerritorialSource} from '../data/territorial-source-codec.mjs';
 import {territorialIndexEntry} from './territorial-index-entry.js';
 import {validateBuiltinDisplayPolicy} from './builtin-display-policy.mjs';
 import {builtinSubunitId} from '../../src/document/builtin-subunits.js';
@@ -53,7 +54,17 @@ export function planTerritorialRetirement(manifest,previousIndex,{readRecovery=r
   if(!/^[a-z]+:[A-Za-z0-9_-]+$/.test(row.entityId)||sourceIds.has(row.entityId))fail('unique explicit source IDs required');
   const entry=entities.get(row.entityId);if(!entry)fail('missing old source: '+row.entityId);
   equal(stagedIndex.entities.find(entry=>entry.entityId===row.entityId),entry,'retired source was modified after the pinned baseline');
-  const source=JSON.parse(recover(row.source)),chunk=recover(row.chunk),decoded=gunzipSync(chunk);
+  if(!Array.isArray(row.geometryResources)||row.geometryResources.some(resource=>!resource||typeof resource.file!=='string'))fail('explicit geometry recovery receipts required');
+  const resources=unique(row.geometryResources,'file'),usedResources=new Set();
+  const source=decodeTerritorialSource(JSON.parse(recover(row.source)),(file,resource)=>{
+   const receipt=resources.get(file)?.receipt;
+   if(!receipt||receipt.sha256!==resource.sha256)fail('missing or mismatched geometry recovery receipt: '+file);
+   const data=recover(receipt);
+   usedResources.add(file);recoveryReceipts.set(base+'/source/'+file,receipt);
+   return data;
+  });
+  if(usedResources.size!==resources.size)fail('unreferenced geometry recovery receipt');
+  const chunk=recover(row.chunk),decoded=gunzipSync(chunk);
   if(source.entityId!==row.entityId||sha(chunk)!==entry.sha256||chunk.length!==entry.compressedBytes||decoded.length!==entry.decodedBytes)fail('old source/chunk identity mismatch: '+row.entityId);
   equal(JSON.parse(decoded),source,'recovery source differs from indexed chunk');
   equal(territorialIndexEntry(source,entry),entry,'old source/index metadata mismatch');

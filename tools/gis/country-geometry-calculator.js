@@ -1,7 +1,7 @@
 // R4-C: canonical detached country geometry calculation; the shared C++ Core
 // remains the only clipping precision and topology authority.
 import { normalizeClippedPolygonGeometry as normalizePolygonGeometry, wrapPolygonGeometry, multiCoordinates, area, geometryBounds, boundsOverlap, polygonBounds, featureId, clone } from "../../src/geometry/map-edit-geometry.js";
-import { ringSignedArea, hasCanonicalPolygonWinding } from "../../src/geometry/map-edit-geometry.js";
+import { hasCanonicalClippedPolygonWinding } from "../../src/geometry/map-edit-geometry.js";
 import { clippingOperationWithPrecisionRetry } from './polygon-clipping-calculation.js';
 
 /** Calculation kernel; every command owns a private working map. */
@@ -160,14 +160,11 @@ export function createCountryCommandCalculator() {
 
   function geometryValid(geometry) {
     const polygons = multiCoordinates(geometry);
-    if (!polygons.length || !hasCanonicalPolygonWinding(geometry)) return false;
-    return polygons.every(polygon => polygon?.length && polygon.every(ring => {
-      if (!Array.isArray(ring) || ring.length < 4) return false;
-      const first = ring[0], last = ring[ring.length - 1];
-      if (!first || !last || Math.abs(first[0] - last[0]) > 1e-7 || Math.abs(first[1] - last[1]) > 1e-7) return false;
-      return new Set(ring.slice(0, -1).map(coord => `${Number(coord[0]).toFixed(8)},${Number(coord[1]).toFixed(8)}`)).size >= 3
-        && Math.abs(ringSignedArea(ring)) > 1e-14;
-    }));
+    if (!polygons.length || !hasCanonicalClippedPolygonWinding(geometry)) return false;
+    // Canonical Core winding admission also performs exact generated-ring
+    // structure, nonzero-area and simplicity checks. Do not reintroduce a
+    // decimal-quantized JavaScript structural validator here.
+    return true;
   }
 
   function unionFeatures(map, ids) {
