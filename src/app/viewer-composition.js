@@ -55,7 +55,7 @@ export async function composeViewer({ productMode, meta }) {
     presentViewerLoadStatus(status,'프로젝트 자료 카탈로그를 확인하지 못했습니다.',{error:true});
     throw error;
   }
-  const runtimeMeta=Object.freeze({...meta,...physical});
+  const runtimeMeta=Object.freeze({...meta,mapProject:projectRuntime.project,...physical});
   const runtimeContext=createRuntimeContext({productMode,meta:runtimeMeta,assetBaseUrl,platform:createPlatformPorts({kind:'browser'})});
   const projection='globe';
   let map,previousView,display,projectClock,syncStatus,presentedMonth=null;
