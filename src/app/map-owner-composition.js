@@ -12,7 +12,7 @@ import {createObjectPresentation} from "../ui/object-presentation.js";
 import {createHydroSettings} from "../ui/physical-settings.js";
 import {createObjectCatalog} from "../document/object-catalog.js";
 import {createTerritorialLabels} from "../rendering/territorial-labels.js";
-import {createPhysicalResources} from "../data/physical-resources.js";
+import {createPhysicalResources} from "../rendering/physical-map-controller.js";
 import {createGpuScene} from "../rendering/gpu-scene.js";
 import {createMapHost} from "../ui/map-workspace-host.js";
 import {createObjectPicking} from "../map/object-picking.js";
