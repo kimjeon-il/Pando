@@ -114,7 +114,7 @@ test('indexed source read preserves valid stored gzip identity without recompres
 test('split indexed metadata preserves geometry identity without embedding coordinates',t=>{
  const f=pairedSourceFixture(t),sha=bytes=>createHash('sha256').update(bytes).digest('hex');
  const {descriptor}=encodeTerritorialSource(f.entity),geometryRef=descriptor.geometryVersions[0].geometryResource;
- const decoded=Buffer.from(JSON.stringify(descriptor)+'\\n'),stored=gzipSync(decoded);
+ const decoded=Buffer.from(JSON.stringify(descriptor)+'\n'),stored=gzipSync(decoded);
  f.sourceIndex.entities[0]=territorialIndexEntry(f.entity,{sha256:sha(stored),compressedBytes:stored.length,
   decodedBytes:decoded.length,storageLayout:territorialSourceLayout});
  fs.writeFileSync(f.chunkFile,stored);
@@ -124,7 +124,7 @@ test('split indexed metadata preserves geometry identity without embedding coord
  assert.throws(f.load,/Territorial source index mismatch: state:test/);
  const updated=normalizeTerritorialLibraryEntity(f.raw),next=encodeTerritorialSource(updated).descriptor;
  assert.equal(next.geometryVersions[0].geometryResource.sha256,geometryRef.sha256,'metadata edit does not replace immutable geometry');
- const changed=Buffer.from(JSON.stringify(next)+'\\n'),compressed=gzipSync(changed);
+ const changed=Buffer.from(JSON.stringify(next)+'\n'),compressed=gzipSync(changed);
  f.sourceIndex.entities[0]=territorialIndexEntry(updated,{sha256:sha(compressed),compressedBytes:compressed.length,
   decodedBytes:changed.length,storageLayout:territorialSourceLayout});
  fs.writeFileSync(f.chunkFile,compressed);
