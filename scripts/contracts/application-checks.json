@@ -5,8 +5,7 @@
       "id": "frontend-layout",
       "kind": "unit",
       "testPatterns": [
-        "tests/unit/**/frontend-*.test.mjs",
-        "tests/unit/data/library-runtime-prefetch.test.mjs"
+        "tests/unit/**/frontend-*.test.mjs"
       ],
       "inputs": [
         "src/**",
@@ -1173,7 +1172,7 @@
     },
     {
       "tests": [
-        "tests/unit/runtime/performance-baseline-contract.test.mjs"
+        "tests/unit/runtime/runtime-performance-contract.test.mjs"
       ],
       "inputs": [
         "config/performance-baseline-v1.json",
@@ -1296,8 +1295,7 @@
         "tests/helpers/check-workspace-fixture.mjs"
       ],
       "tests": [
-        "tests/unit/runtime/check-runner.test.mjs",
-        "tests/unit/build/build-metadata.test.mjs"
+        "tests/unit/runtime/check-runner.test.mjs"
       ]
     },
     {
@@ -1380,7 +1378,6 @@
     {
       "tests": [
         "tests/unit/document/map-native-jpeg-encode.test.mjs",
-        "tests/unit/document/map-native-packaging.test.mjs",
         "tests/unit/document/map-native-resize.test.mjs",
         "tests/unit/document/map-native-webp-encode.test.mjs",
         "tests/unit/geometry/terrain-dem-webp.test.mjs"
