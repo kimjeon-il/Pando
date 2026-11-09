@@ -17,6 +17,7 @@ import {createGpuScene} from "../rendering/gpu-scene.js";
 import {createMapHost} from "../ui/map-workspace-host.js";
 import {createObjectPicking} from "../map/object-picking.js";
 import {mapProjectResourcePath} from "../data/map-project-manifest.js";
+import {createMapProjectResourceSelection} from "../data/map-project-resource-selection.js";
 
 // Phases retain late-bound dependencies without changing product startup policy.
 const READ_INITIALIZATION=Object.freeze({
@@ -37,6 +38,7 @@ export function createMapOwners({productMode,readOnly=productMode==='viewer',pro
   if(productMode!=='viewer')throw new TypeError('Map composition requires viewer product mode.');
   if(readOnly!==true||editing)throw new TypeError('Read-only map composition cannot register editing hooks.');
   const capabilities=resourceCapabilities(productMode,platform,{projection});
+  const projectResources=createMapProjectResourceSelection({buildMeta});
   const builtinSession=createBuiltinSession({builtinWorldLoader:platform?.world?.builtinLoader,buildMeta});
   const workspaceSurfaces=createWorkspaceSurfaces();
   const projectSession=createProjectSession({productMode,readOnly,projection,capabilities,resolveVisibilityGroup,onViewingChange});
@@ -51,10 +53,11 @@ export function createMapOwners({productMode,readOnly=productMode==='viewer',pro
   const objectCatalog=createObjectCatalog({isObjectVisible});
   const territorialLabels=createTerritorialLabels({capabilities,
     placeCatalog:buildMeta?.mapProject?mapProjectResourcePath(buildMeta.mapProject,'places'):null,
-    placeLifetimesCatalog:buildMeta?.mapProject?mapProjectResourcePath(buildMeta.mapProject,'placeLifetimes'):null});
-  const physicalResources=createPhysicalResources({capabilities,buildMeta});
+    placeLifetimesCatalog:buildMeta?.mapProject?mapProjectResourcePath(buildMeta.mapProject,'placeLifetimes'):null,
+    projectResources});
+  const physicalResources=createPhysicalResources({capabilities,buildMeta,projectResources});
   const gpuScene=createGpuScene({getPhysicalLand:()=>physicalResources.physicalLand});
   const mapHost=createMapHost({productMode,readOnly,projection});
   const objectPicking=createObjectPicking({closeActiveOverlay});
-  return Object.freeze({capabilities,builtinSession,workspaceSurfaces,projectSession,renderQuality,pointerTargets,cameraNavigation,countryIndex,spatialIndex,mapProjection,objectPresentation,hydroSettings,objectCatalog,territorialLabels,physicalResources,gpuScene,mapHost,objectPicking});
+  return Object.freeze({capabilities,projectResources,builtinSession,workspaceSurfaces,projectSession,renderQuality,pointerTargets,cameraNavigation,countryIndex,spatialIndex,mapProjection,objectPresentation,hydroSettings,objectCatalog,territorialLabels,physicalResources,gpuScene,mapHost,objectPicking});
 }
