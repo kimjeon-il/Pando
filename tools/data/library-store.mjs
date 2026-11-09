@@ -1,3 +1,4 @@
+import {assertTerritorialRetirement,assertBuiltinRetirement,retirementDisplayPath,retirementWorldPath} from '../gis/territorial-retirement.mjs';
 import {execFileSync} from "node:child_process";
 import {createHash} from "node:crypto";
 import {existsSync,lstatSync,mkdirSync,readFileSync,readdirSync,unlinkSync,writeFileSync} from "node:fs";
@@ -39,12 +40,12 @@ export function assertExpectedLibraryRevision({ expectedRevision, expectedBranch
   if (remote !== expectedRevision) throw Error(`Library remote ${expectedBranch || 'work/gis'} differs from the expected revision; regenerate against the latest data before storing.`);
 }
 
-export function storeLibraryData({ root = defaultRoot, push = false, prefixes = null, removePaths = [], expectedRevision, expectedBranch, readPreviousCountry,readPreviousSource } = {}) {
+export function storeLibraryData({ root = defaultRoot, push = false, prefixes = null, removePaths = [], expectedRevision, expectedBranch, readPreviousCountry,readPreviousSource,retirement=null } = {}) {
   validateExpectedLibraryRevision(expectedRevision);
   validateExpectedBranch(expectedBranch);
   if (!prefixes?.length) throw Error("Storage requires explicit library prefixes.");
   for (const path of prefixes) if (path === 'reports' || path.startsWith('reports/')) assertReportSubject(root, path);
-  return withLibraryLock(root, () => storeOwnedLibraryData({ root, push, prefixes, removePaths, expectedRevision, expectedBranch, readPreviousCountry,readPreviousSource }));
+  return withLibraryLock(root, () => storeOwnedLibraryData({ root, push, prefixes, removePaths, expectedRevision, expectedBranch, readPreviousCountry,readPreviousSource,retirement }));
 }
 
 function recordReportOwner(root, source, paths) {
@@ -75,9 +76,24 @@ function recordReportOwner(root, source, paths) {
   registry.owners[owner] = { revision }; writeReportRegistry(root, registry);
 }
 
-export function assertTerritorialStorageScope(prefixes,libraryIndex,previousIndex,{readLineage,readSourceDescriptor}={}) {
+export function assertTerritorialStorageScope(prefixes,libraryIndex,previousIndex,{readLineage,readSourceDescriptor,retirement=null,displayPolicy,worldView,readRecovery,removePaths=[],pathExists}={}) {
+  let retirementPlan=null;
+  if(retirement){
+    const plan=assertTerritorialRetirement({manifest:retirement,previousIndex,index:libraryIndex,displayPolicy,readRecovery});
+    if(JSON.stringify(worldView)!==JSON.stringify(plan.index.views[0]))throw Error('Territorial retirement requires the exact paired world view source');
+    const paired=[...plan.removePaths,'assets/data/territorial-entities/generated/v2/index.json','assets/data/territorial-entities/source/views/world.json',retirementDisplayPath,retirementWorldPath,
+      'assets/data/builtin-world/generated/v1/index.json','assets/data/builtin-world/generated/v1/coverage-report.json'];
+    if(paired.some(path=>!prefixes.includes(path))||plan.removePaths.some(path=>!removePaths.includes(path))
+      ||removePaths.some(path=>path.startsWith('assets/data/territorial-entities/')&&!plan.removePaths.includes(path)))
+      throw Error('Territorial retirement requires exact paired paths and explicit removals');
+    if(typeof pathExists!=='function'||plan.removePaths.some(path=>pathExists(path)))throw Error('Territorial retirement requires removed active source, lineage and chunk files');
+    prefixes=prefixes.filter(path=>!plan.removePaths.includes(path));
+    // Authored-but-unpublished source changes are still changes against storage's
+    // pin, even though the retirement producer preserves their staged hashes.
+    previousIndex={...plan.index,entities:previousIndex.entities.filter(row=>!plan.sourceIds.has(row.entityId))};retirementPlan=plan;
+  }
   const base='assets/data/territorial-entities',included=path=>prefixes.some(prefix=>path===prefix||path.startsWith(prefix+'/'));
-  if(included(base))return;
+  if(included(base)){if(retirement)throw Error("Territorial retirement requires bounded file scopes");return;}
   if(!included(base+'/generated/v2/index.json'))throw Error('Scoped territorial storage requires the paired index');
   const previous=new Map(previousIndex.entities.map(row=>[row.entityId,row])),next=new Map(libraryIndex.entities.map(row=>[row.entityId,row]));
   if(next.size!==libraryIndex.entities.length||[...previous.keys()].some(id=>!next.has(id)))throw Error('Scoped territorial storage cannot remove or duplicate catalog membership');
@@ -125,6 +141,7 @@ export function assertTerritorialStorageScope(prefixes,libraryIndex,previousInde
     const entry=libraryIndex.entities.find(row=>prefix===base+'/source/countries/'+row.entityId.replace(':','-')+'.json');
     if(!entry||!included(base+'/generated/v2/'+entry.file))throw Error('Scoped territorial storage requires explicit paired source files');
   }
+  return retirementPlan;
 }
 
 export function libraryWriteGitEnvironment(token, base = process.env) {
@@ -145,7 +162,7 @@ export function runtimeStoreIndex(pinned, current) {
   } };
 }
 
-export function storeOwnedLibraryData({ root, push, prefixes, removePaths, reportData, expectedRevision, expectedBranch, readPreviousCountry,readPreviousSource }) {
+export function storeOwnedLibraryData({ root, push, prefixes, removePaths, reportData, expectedRevision, expectedBranch, readPreviousCountry,readPreviousSource,retirement }) {
   // Store the owner's current write view. Preparing a different view here can
   // hide unpublished outputs, and absence from a view never means deletion.
   const materialized = libraryMaterializedRoot(root);
@@ -180,9 +197,11 @@ export function storeOwnedLibraryData({ root, push, prefixes, removePaths, repor
   const sourceEntity=(p,read)=>decodeTerritorialSource(JSON.parse(read(p)),file=>read(territorial+'/source/'+file));
   const previousSource=p=>readPreviousSource?readPreviousSource(p,oldBytes):sourceEntity(p,oldBytes);
   const generatedSelected=prefixes.some(p=>p===territorial||p.startsWith(generated)||generated.startsWith(p+'/'));
+  let retirementPlan=null;
   if(generatedSelected){
     const libraryIndex=JSON.parse(newBytes(generated+'index.json')),previousIndex=JSON.parse(oldBytes(generated+'index.json'));
-    assertTerritorialStorageScope(prefixes,libraryIndex,previousIndex,{readLineage:id=>JSON.parse(newBytes(territorial+'/source/lineages/'+id+'.json')),readSourceDescriptor:p=>JSON.parse(newBytes(p))});
+    retirementPlan=assertTerritorialStorageScope(prefixes,libraryIndex,previousIndex,{readLineage:id=>JSON.parse(newBytes(territorial+'/source/lineages/'+id+'.json')),readSourceDescriptor:p=>JSON.parse(newBytes(p)),retirement,removePaths,pathExists:p=>existsSync(resolve(data.materialized,p)),
+      ...(retirement?{displayPolicy:JSON.parse(newBytes(retirementDisplayPath)),worldView:JSON.parse(newBytes(territorial+"/source/views/world.json"))}:{})});
   }
   // Editable source may be stored before its derived chunks are regenerated.
   // Validate the selected source itself, without recreating a second authority.
@@ -201,6 +220,14 @@ export function storeOwnedLibraryData({ root, push, prefixes, removePaths, repor
     const sourceIndex=JSON.parse(newBytes(sourceBase+'index.json')),previousSourceIndex=JSON.parse(oldBytes(sourceBase+'index.json'));
     const builtinSelected=prefixes.some(p=>p==='assets/data/builtin-world'||p.startsWith('assets/data/builtin-world/')||'assets/data/builtin-world'.startsWith(p+'/'));
     const builtinIndex=builtinSelected?JSON.parse(newBytes(countryBase+'index.json')):{entities:[]},previousBuiltinIndex=builtinSelected?JSON.parse(oldBytes(countryBase+'index.json')):{entities:[]};
+    if(retirement){
+     for(const [p,receipt] of retirementPlan.recoveryReceipts)if(archived.files[p]?.sha256!==receipt.sha256)throw Error('Territorial retirement: recovery differs from pinned archive: '+p);
+     assertBuiltinRetirement({plan:retirementPlan,previousSourceIndex,sourceIndex,previousIndex:previousBuiltinIndex,index:builtinIndex,
+      previousCoverage:JSON.parse(oldBytes(countryBase+'coverage-report.json')),coverage:JSON.parse(newBytes(countryBase+'coverage-report.json')),
+      policy:JSON.parse(newBytes('assets/data/historical-world/policy.json'))});
+     const world=JSON.parse(newBytes(retirementWorldPath)),expected=builtinIndex.sourceIdentities.flatMap(row=>row.sourceFeatureIds),actual=world.features?.map(row=>row.id);
+     if(world.type!=='FeatureCollection'||!actual||new Set(actual).size!==actual.length||actual.length!==expected.length||expected.some(id=>!actual.includes(id)))throw Error('Territorial retirement: unpaired current-world identities');
+    }
     const source=(entry,read)=>{const bytes=read(sourceBase+entry.file);if(contentHash(bytes)!==entry.sha256)throw Error('Historical source chunk hash mismatch: '+entry.entityId);const entity=JSON.parse(gunzipSync(bytes));if(entity.entityId!==entry.entityId)throw Error('Historical source identity mismatch');return entity;};
     const country=(entry,index,read)=>readBuiltinCountry(entry,index,file=>read(countryBase+file));
     const previousCountry=readPreviousCountry?entry=>readPreviousCountry(entry,previousBuiltinIndex,file=>oldBytes(countryBase+file))

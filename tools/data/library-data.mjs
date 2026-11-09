@@ -1,4 +1,5 @@
 import {execFileSync} from "node:child_process";
+import {readFileSync} from 'node:fs';
 import {isAbsolute,relative,resolve} from "node:path";
 import {fileURLToPath} from "node:url";
 import {defaultRoot,git,libraryConfig,libraryReportRoot,libraryReportEditRoot} from "./library-context.mjs";
@@ -53,7 +54,8 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     if (libraryConfig().mounts.some(mount => logical === mount || logical.startsWith(mount + '/'))) prefixes.push(logical);
   }
   const storeOptions = { push: process.argv.includes('--push'), prefixes: prefixes.length ? prefixes : null,
-    removePaths: process.argv.filter(arg => arg.startsWith('--remove-path=')).map(arg => arg.slice(14)) };
+    removePaths: process.argv.filter(arg => arg.startsWith('--remove-path=')).map(arg => arg.slice(14)),
+    retirement: process.argv.some(arg=>arg.startsWith("--retirement-manifest="))?JSON.parse(readFileSync(resolve(process.argv.find(arg=>arg.startsWith("--retirement-manifest=")).slice("--retirement-manifest=".length)))):null };
   if (process.argv.includes('--store-and-stage')) {
     if (prefixes.length) storeLibraryData(storeOptions);
     const root = defaultRoot, mounts = libraryConfig(root).mounts;

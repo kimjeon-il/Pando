@@ -2,14 +2,41 @@ import {writeLibraryOutput} from "../data/library-runtime.mjs";
 import fs from 'node:fs';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
-import {selectTerritorialChunkBytes} from "../data/territorial-chunk-compression.mjs";
-import {readTerritorialSources,readTerritorialSource,readTerritorialLineages,entityFileName,territorialDataRoot,territorialSourceRoot} from "../data/territorial-entity-sources.mjs";
+import {selectTerritorialChunkBytes} from '../data/territorial-chunk-compression.mjs';
+import {readTerritorialSources,readTerritorialSource,readTerritorialLineages,entityFileName,territorialDataRoot,territorialSourceRoot} from '../data/territorial-entity-sources.mjs';
 import {parseTemporal} from "../../src/document/temporal.js";
 import {territorialIndexEntry} from "../gis/territorial-index-entry.js";
+import {fileURLToPath} from 'node:url';
+import {isDeepStrictEqual} from 'node:util';
+import {planTerritorialRetirement,readRetirementReceipt} from '../gis/territorial-retirement.mjs';
+
+export function buildTerritorialRetirementIndex({previousIndex,retirement,view,displayPolicy,readRecovery,pathExists}){
+ const pinned=JSON.parse(readRetirementReceipt(retirement.previousIndex,readRecovery));
+ const plan=planTerritorialRetirement(retirement,pinned,{readRecovery});
+ if(!isDeepStrictEqual(previousIndex,plan.stagedIndex))throw Error('Territorial retirement: stale staged source index');
+ if(!isDeepStrictEqual(view,plan.index.views[0])||!isDeepStrictEqual(displayPolicy,plan.displayPolicy))throw Error('Territorial retirement: unpaired active view or display policy');
+ if(typeof pathExists!=='function'||plan.removePaths.some(path=>pathExists(path)))throw Error('Territorial retirement: remove only the preserved source, lineage and chunk before index publication');
+ return plan.index;
+}
+
+if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url)){
 const output=path.join(territorialDataRoot,'generated/v2');
 const check=process.argv.includes('--check');
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 const scope=process.argv.find(arg=>arg.startsWith('--entities='));
+const retirementFile=process.argv.find(arg=>arg.startsWith('--retirement-manifest='));
+if(retirementFile){
+ if(scope)throw Error('Publish the explicit retirement baseline before ordinary entity chunk updates');
+ const retirement=JSON.parse(fs.readFileSync(retirementFile.slice('--retirement-manifest='.length)));
+ const previousIndex=JSON.parse(check?readRetirementReceipt(retirement.stagedIndex):fs.readFileSync(path.join(output,'index.json')));
+ const index=buildTerritorialRetirementIndex({previousIndex,retirement,
+  view:JSON.parse(fs.readFileSync(path.join(territorialSourceRoot,'views/world.json'))),displayPolicy:planTerritorialRetirement(retirement,JSON.parse(readRetirementReceipt(retirement.previousIndex))).displayPolicy,
+  pathExists:logical=>fs.existsSync(fileURLToPath(new URL('../'+logical,import.meta.url)))});
+ const bytes=`${JSON.stringify(index,null,2)}\n`;
+ if(check){if(fs.readFileSync(path.join(output,'index.json'),'utf8')!==bytes)throw Error('Stale territorial retirement index');}
+ else writeLibraryOutput(path.join(output,'index.json'),bytes);
+ console.log('Published explicit territorial retirement index; surviving chunks reused unchanged');
+}else{
 const selected=scope?scope.slice('--entities='.length).split(','):null;
 if(selected&&(!selected.length||new Set(selected).size!==selected.length))throw new Error('Unique entity IDs required');
 const previous=selected?JSON.parse(fs.readFileSync(path.join(output,'index.json'),'utf8')):null;
@@ -42,3 +69,5 @@ const indexBytes=`${JSON.stringify(index,null,2)}\n`;
 if(check){if(fs.readFileSync(path.join(output,'index.json'),'utf8').replaceAll('\r\n','\n')!==indexBytes)throw new Error('Stale territorial index');}
 else writeLibraryOutput(path.join(output,'index.json'),indexBytes);
 console.log(`${check?'Checked':'Built'} ${entities.length} territorial chunks and ${index.snapshots.length} reference snapshots`);
+}
+}

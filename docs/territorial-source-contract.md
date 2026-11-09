@@ -32,6 +32,62 @@ source chunks and their shared catalog index. `build-builtin-world.mjs
 geometry validity, relationships and coverage. It rejects any non-name source
 change against the pinned original.
 
+## Explicit correction of an invalid current identity
+
+Ordinary entity scopes cannot retire a catalog identity. A confirmed false current
+identity uses `--retirement-manifest=<file>` in the existing territorial chunk,
+builtin publication and library storage owners. This is a metadata correction,
+not a historical dissolution: no retirement date or reassigned past geometry is
+created. The contract only admits a single selected geometry version per retired
+source, a sole-member lineage without relations, and a paired display subunit.
+Incoming source, snapshot, lineage, policy or coverage references block retirement.
+
+The JSON execution manifest has `schemaVersion: 1`,
+`kind: "invalid-current-identity"`, `previousIndex`, `stagedIndex`, `worldView`, `displayPolicy`,
+`previousBuiltinIndex`, `previousCoverage`, `previousCurrentWorld`,
+and a nonempty `sources` array. Every top-level input is a `{path, sha256}` receipt
+for preserved original bytes. Each source row contains `entityId` and three such
+receipts: `source`, `chunk`, `lineage`. Capture these under the same scoped writer
+lease, before changing active files. `previousIndex` is the pinned archival index;
+`stagedIndex` is the active generated index, including separately authored source
+updates not yet compiled. Their catalog membership, view and lineage metadata
+must agree; the retired source entry itself must be unchanged. Chunk retirement
+verifies the actual active index against `stagedIndex` and preserves its surviving
+descriptors. Storage verifies `previousIndex` against the pinned archive. The indexed gzip hash, decoded source,
+projected metadata and lineage must all agree with their recovery copies.
+
+Within the existing write lease, preserve originals, remove only the declared
+source/lineage/chunk files, and apply the exact world-selection removal. The
+territorial chunk retirement command publishes only the authoring index, using
+the planned display policy without activating it. Ordinary selected source
+chunk generation can follow. The builtin metadata retirement producer emits only
+an in-memory index/coverage baseline; surviving country files and nonretired
+compiled source revisions stay unchanged. `buildBuiltinWorldRetiredPartialPublication`
+then runs ordinary scoped compilation against this baseline. The equivalent CLI
+is `build-builtin-world.mjs --retirement-manifest=<file> --entities=<ids>`.
+
+`writeBuiltinWorldPublication` accepts the same `retirementInputs` and the exact
+producer-returned file Map, not a copied or modified map. It verifies the current
+runtime baselines, complete current-source compilation, source-derived world
+projection and original recovery receipts before writing. Display policy,
+current-world, coverage and emitted countries are written under one existing
+library write lease, with index last. On a write failure, changed targets are
+restored from their exact in-memory old bytes; a restoration failure is reported
+as incomplete recovery. A compile failure performs no runtime writes. Authored
+source/chunk changes can remain WIP. Old content-addressed payloads remain intact.
+This is rollback-safe activation, not a cross-file atomic filesystem operation.
+The display-policy loader reads the current file for each publication; a partial
+publication shares one policy snapshot across its components.
+
+Final scoped storage supplies the same retirement manifest, exact file prefixes
+for all removed and paired files, and explicit `--remove-path` entries for the
+three files per retired source. Its guards verify both the source and compiled
+cleanup, the original archive receipts, and ordinary historical review gates for
+other edits. An advanced source input revision cannot hide behind an unchanged
+compiled payload. A whole-prefix scope, extra deletion, changed snapshot, unrelated
+view/display change or missing recovery copy does not authorize this correction.
+Raw reference datasets and original evidence remain outside the removal scope.
+
 - Web project schemaVersion: **10**; native project version: **10**.
 - Territorial identity/model schemaVersion: **6**; timelineRecords: **1**.
 - Project `id` identifies an independently editable instance. It is never the

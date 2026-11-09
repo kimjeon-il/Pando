@@ -24,13 +24,9 @@ export function validateBuiltinDisplayPolicy(value){
   }
   return value;
 }
-let cached;
 export function loadBuiltinDisplayPolicy(){
-  if(!cached){
-    const value=validateBuiltinDisplayPolicy(JSON.parse(readLibraryDataFile('assets/data/builtin-world/display-policy-v1.json')));
-    cached=Object.freeze({...value,
-      subunits:Object.freeze(value.subunits.map(row=>Object.freeze(row))),
-      territoryMerges:Object.freeze(value.territoryMerges.map(row=>Object.freeze(row)))});
-  }
-  return cached;
+ const value=validateBuiltinDisplayPolicy(JSON.parse(readLibraryDataFile('assets/data/builtin-world/display-policy-v1.json')));
+ return Object.freeze({...value,
+  subunits:Object.freeze(value.subunits.map(row=>Object.freeze(row))),
+  territoryMerges:Object.freeze(value.territoryMerges.map(row=>Object.freeze(row)))});
 }

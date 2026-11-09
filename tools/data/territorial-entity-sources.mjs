@@ -1,3 +1,8 @@
+import {createHash} from 'node:crypto';
+import {gunzipSync} from 'node:zlib';
+import {isDeepStrictEqual} from 'node:util';
+import {assertTerritorialIndexEntity} from '../gis/territorial-library.js';
+import {territorialIndexEntry} from '../gis/territorial-index-entry.js';
 import fs from 'node:fs';
 import {assertHistoricalDisplayChanges} from "../gis/historical-display-review.mjs";
 import {withLibraryOutputs} from "./library-runtime.mjs";
@@ -75,14 +80,33 @@ function validateMembership(lineages,byId){
     }
   }
 }
-export function readTerritorialSource(entityId,root=territorialSourceRoot){
+function assertIndexedSource(entity,{sourceIndex=null,chunkRoot=path.join(territorialDataRoot,'generated/v2')}={}){
+  if(!sourceIndex)return;
+  const entries=sourceIndex.entities.filter(row=>row.entityId===entity.entityId);
+  if(!entries.length)throw new Error(`Missing indexed territorial source: ${entity.entityId}`);
+  if(entries.length!==1)throw new Error(`Duplicate indexed territorial source: ${entity.entityId}`);
+  const [entry]=entries;
+  try{
+    assertTerritorialIndexEntity(entry,entity);
+    if(!isDeepStrictEqual(territorialIndexEntry(entity,entry),entry))throw new Error('Catalog projection differs');
+  }catch(cause){throw new Error(`Territorial source index mismatch: ${entity.entityId}`,{cause});}
+  // Preserve and verify the actual stored gzip identity. Recompression is not a
+  // valid identity check: unchanged chunks may retain older valid gzip bytes.
+  const stored=fs.readFileSync(path.join(chunkRoot,entry.file));
+  if(createHash('sha256').update(stored).digest('hex')!==entry.sha256)throw new Error(`Territorial source chunk hash mismatch: ${entity.entityId}`);
+  const decoded=gunzipSync(stored);
+  if(stored.length!==entry.compressedBytes||decoded.length!==entry.decodedBytes
+    ||!isDeepStrictEqual(JSON.parse(decoded),entity))throw new Error(`Territorial source/chunk mismatch: ${entity.entityId}`);
+}
+export function readTerritorialSource(entityId,root=territorialSourceRoot,options={}){
   const descriptor=read(path.join(root,'countries',entityFileName(entityId)));
   const entity=normalizeTerritorialLibraryEntity(decodeTerritorialSource(descriptor,file=>fs.readFileSync(path.join(root,file))));
   if(entity.entityId!==entityId)throw new Error(`Country filename mismatch: ${entityId}`);
+  assertIndexedSource(entity,options);
   return entity;
 }
-export function readTerritorialSources(root=territorialSourceRoot){
-  return readTerritorialSourceDescriptors(root).map(entity=>readTerritorialSource(entity.entityId,root));
+export function readTerritorialSources(root=territorialSourceRoot,options={}){
+  return readTerritorialSourceDescriptors(root).map(entity=>readTerritorialSource(entity.entityId,root,options));
 }
 /** Cross-object membership needs descriptors, never every coordinate payload. */
 export function readTerritorialSourceDescriptors(root=territorialSourceRoot){
