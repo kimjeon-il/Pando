@@ -28,7 +28,7 @@ jobs:
       - name: Synthetic read-model fixture contract
         run: node --test tests/unit/document/core-document-read-model.test.mjs
       - name: Focused check inventory and runner contracts
-        run: node --test tests/unit/runtime/check-runner.test.mjs 
+        run: node --test tests/unit/runtime/check-runner.test.mjs
   shared-boundary-fixture:
     runs-on: ubuntu-24.04
     timeout-minutes: 8

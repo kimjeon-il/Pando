@@ -14,4 +14,3 @@ export function territorialSceneDisplayId(feature,countryIds) {
   const sourceId=builtinSubunitSourceId(feature);
   return sourceId&&!countryIds.has(sourceId)?sourceId:`territorial:entity:${feature.id}`;
 }
-

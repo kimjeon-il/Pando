@@ -54,7 +54,7 @@ jobs:
         shell: pwsh
         run: |
           $env:PANDO_HYDRO_CALIBRATION_ARTIFACT = "$env:GITHUB_WORKSPACE/build-native/hydro-calibration/artifact"
-          node --test tests/unit/geometry/hydro-source-selection.test.mjs tests/unit/geometry/hydro-name.test.mjs  
+          node --test tests/unit/geometry/hydro-source-selection.test.mjs tests/unit/geometry/hydro-name.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Calibration oracle differs' }
       - uses: actions/upload-artifact@v4
         with:

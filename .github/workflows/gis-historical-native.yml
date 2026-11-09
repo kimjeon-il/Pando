@@ -111,7 +111,7 @@ jobs:
           cmake --build build-native/territorial-recipe --target pando-territorial-recipe
           if [[ "$RUNNER_OS" == 'Windows' ]]; then suffix='.exe'; else suffix=''; fi
           export PANDO_TERRITORIAL_RECIPE_BINARY="$PWD/build-native/territorial-recipe/pando-territorial-recipe$suffix"
-          node --test tests/unit/geometry/gis-math-contract.test.mjs 
+          node --test tests/unit/geometry/gis-math-contract.test.mjs
       - name: Collect the matching Windows compiler runtime
         if: runner.os == 'Windows'
         run: |
@@ -160,7 +160,7 @@ jobs:
           cmake --build build-native/territorial-recipe --target pando-territorial-recipe
           if [[ "$RUNNER_OS" == 'Windows' ]]; then suffix='.exe'; else suffix=''; fi
           export PANDO_TERRITORIAL_RECIPE_BINARY="$PWD/build-native/territorial-recipe/pando-territorial-recipe$suffix"
-          node --test tests/unit/geometry/gis-source-launcher.test.mjs                   
+          node --test tests/unit/geometry/gis-source-launcher.test.mjs
       - name: Collect the matching Windows compiler runtime
         if: runner.os == 'Windows'
         run: |
@@ -207,7 +207,7 @@ jobs:
       - name: Run the frozen synthetic generator and engine contracts
         env:
           PANDO_TERRITORIAL_RECIPE_BINARY: ${{ github.workspace }}/build-native/territorial-recipe/pando-territorial-recipe.exe
-        run: node --test tests/unit/geometry/gis-math-contract.test.mjs 
+        run: node --test tests/unit/geometry/gis-math-contract.test.mjs
   german-base-migration:
     if: github.event_name == 'workflow_dispatch' && inputs.target == 'german-base'
     runs-on: ubuntu-24.04
@@ -245,7 +245,7 @@ jobs:
         env:
           PANDO_TERRITORIAL_RECIPE_BINARY: ${{ github.workspace }}/build-native/territorial-recipe/pando-territorial-recipe
           PANDO_GERMAN_CANONICAL_NE: ${{ github.workspace }}/build-native/german-base/canonical-ne.json
-        run: node --test tests/unit/geometry/gis-math-contract.test.mjs 
+        run: node --test tests/unit/geometry/gis-math-contract.test.mjs
   native-hgis:
     if: github.event_name != 'workflow_dispatch' || inputs.target == 'all'
     runs-on: ubuntu-24.04

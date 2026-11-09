@@ -324,8 +324,8 @@ jobs:
           tests/unit/document/core-document-world-wasm.test.mjs
            tests/unit/document/core-codec-unicode-wasm.test.mjs
           tests/unit/document/core-codec-unicode-ids-wasm.test.mjs
-          tests/unit/runtime/core-map-presentation-wasm.test.mjs 
-          tests/unit/document/core-hydro-create-wasm.test.mjs 
+          tests/unit/runtime/core-map-presentation-wasm.test.mjs
+          tests/unit/document/core-hydro-create-wasm.test.mjs
            tests/unit/document/core-label-gesture-wasm.test.mjs
           tests/unit/document/timeline-geopackage.test.mjs
           tests/unit/document/core-project-file-save-wasm.test.mjs
@@ -335,7 +335,7 @@ jobs:
           PANDOEDITOR_WASM_MODULE: build-native/p1/pando-wasm/shared/wasm/pandoeditor-core.js
         run: >-
           node --test --test-concurrency=1 --test-timeout=15000
-          tests/unit/document/project-creation-contract.test.mjs 
+          tests/unit/document/project-creation-contract.test.mjs
           tests/unit/document/project-preview-policy.test.mjs
       - name: Core-owned generic and distribution service contracts
         run: >-
