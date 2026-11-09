@@ -6,7 +6,7 @@ import * as __render_dep3 from "../../../src/rendering/gpu-scene-preparation.js"
 import * as __render_dep4 from "../../../src/rendering/gpu-base-scene-pass.js";
 import * as __render_dep5 from "../../../src/rendering/gpu-scene.js";
 import * as __render_dep6 from "../../../src/map/object-picking.js";
-import * as __render_dep7 from "../../../src/ui/object-selection-controller.js";
+import * as __render_dep7 from "../../../src/document/object-ref-identity.js";
 import * as __render_dep8 from "../../../src/ui/layer-presentation.js";
 import * as __render_dep9 from "../../../src/rendering/gpu-polygon-overlay-pass.js";
 import * as __render_dep10 from "../../../src/rendering/gpu-stroke-renderer.js";

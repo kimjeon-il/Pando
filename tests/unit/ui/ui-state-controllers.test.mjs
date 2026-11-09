@@ -2,7 +2,7 @@ import "../../../src/rendering/workers/canvas-scene-composition-core.js";
 import { describe as contractSuite } from 'node:test';
 import * as __unit_dep0 from "node:test";
 import * as __unit_dep1 from "node:assert/strict";
-import * as __unit_dep2 from "../../../src/ui/object-selection-controller.js";
+import * as __unit_dep2 from "../../../src/document/object-ref-identity.js";
 import * as __unit_dep3 from "../../helpers/core-selection.mjs";
 import * as __unit_dep4 from "../../helpers/core-project.mjs";
 import * as __unit_dep5 from "../../helpers/core-startup.mjs";

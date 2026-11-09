@@ -3,7 +3,7 @@ import * as __dep0 from "node:assert/strict";
 import * as __dep1 from "node:test";
 import * as __dep3 from "../../../src/document/generic-feature-normalization.js";
 import * as __dep4 from "../../../src/rendering/gpu-scene.js";
-import * as __dep5 from "../../../src/ui/object-selection-controller.js";
+import * as __dep5 from "../../../src/document/object-ref-identity.js";
 import {readPortabilityProjectSeed} from '../../helpers/portability-project-seed.mjs';
 import {createEmptyTerritorialState} from '../../../src/document/territorial-entity-store.js';
 import {pickProjectFields} from '../../../src/document/project-state.js';

@@ -4,7 +4,7 @@ import * as __dep0 from "node:test";
 import * as __dep1 from "node:assert/strict";
 import * as __dep2 from "../../../src/document/object-catalog.js";
 import * as __dep3 from "../../../src/document/object-query.js";
-import * as __dep4 from "../../../src/ui/object-selection-controller.js";
+import * as __dep4 from "../../../src/document/object-ref-identity.js";
 import * as __dep5 from "../../../src/document/territorial-entity-repository.js";
 import * as __dep6 from "../../../src/document/object-search-model.js";
 import * as __dep7 from "node:timers";

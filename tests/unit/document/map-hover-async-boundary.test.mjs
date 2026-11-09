@@ -5,7 +5,7 @@ import * as __merge_dep2 from "node:fs";
 import * as __merge_dep3 from "node:vm";
 import * as __merge_dep4 from "../../../src/map/pointer-targets.js";
 import * as __merge_dep5 from "../../../src/rendering/gpu-scene.js";
-import * as __merge_dep6 from "../../../src/ui/object-selection-controller.js";
+import * as __merge_dep6 from "../../../src/document/object-ref-identity.js";
 import * as __merge_dep7 from "../../../src/map/map-input-presentation.js";
 import * as __merge_dep8 from "../../../src/ui/tooltip-controller.js";
 import * as __merge_dep9 from "../../helpers/core-selection.mjs";
