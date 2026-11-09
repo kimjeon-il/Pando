@@ -538,3 +538,76 @@ test('P2 never disguises a remote history rewrite as superseded success',async t
   );
   assert.equal(f.git('rev-parse','HEAD'),source);
 });
+
+
+function unhydratedWasmPublicationFixture(t) {
+  const f=remoteFixture(t),pin='b'.repeat(40);
+  f.families.push({id:'unhydrated-world',resolve:'world-bundle',outputs:['assets/data/world/current.json']});
+  f.config();
+  f.put('config/library-data.json',JSON.stringify({repository:'example/unhydrated',revision:pin,mounts:['assets/data','reports']}));
+  // This unselected receipt is deliberately unreadable. WASM evidence owns no data families.
+  f.put(RECEIPT_PATH,'not selected JSON');
+  f.source=f.commit();f.git('push','-q','origin','HEAD:refs/heads/work/objects');
+  const stageWasm=()=>{
+    f.put('assets/wasm/pandoeditor-core.js','export default()=>({regenerated:true});\n');
+    const manifest=JSON.parse(f.get('assets/wasm/pandoeditor-core.manifest.json'));
+    manifest.assets.js.sha256=digest(f.get('assets/wasm/pandoeditor-core.js'));
+    f.put('assets/wasm/pandoeditor-core.manifest.json',JSON.stringify(manifest));
+  };
+  return {...f,pin,stageWasm};
+}
+
+test('wasm-only scope does not read the unresolved data graph for its exact output allowlist',t=>{
+  const f=unhydratedWasmPublicationFixture(t);
+  assert.doesNotThrow(()=>assertSafeGeneratedPaths(['assets/wasm/pandoeditor-core.js','assets/wasm/pandoeditor-core.wasm','assets/wasm/pandoeditor-core.manifest.json'],{wasm:true},f.root));
+  for(const p of ['assets/data/world/current.json','assets/wasm/extra.js','src/geometry/native/src/changed.cpp'])
+    assert.throws(()=>assertSafeGeneratedPaths([p],{wasm:true},f.root),/P2_UNEXPECTED_GENERATED_FILE/);
+  assert.throws(()=>artifactGraph(f.root),/ENOENT/,'the data graph remains unavailable, not silently repaired');
+});
+
+test('wasm-only scope publishes paired assets without world input, library checkout or unrelated receipt',async t=>{
+  const f=unhydratedWasmPublicationFixture(t);f.stageWasm();
+  const pin=f.get('config/library-data.json'),receipt=f.get(RECEIPT_PATH),old=f.get('out/a.txt');
+  const result=await publishGeneratedArtifacts(f.root,{scope:'wasm',expectedSourceSha:f.source,branch:'work/objects',wasmBuilt:true,
+    beforeFinalGuard:()=>assert.equal(f.remoteHead(),f.source)});
+  assert.equal(result.pushed,true);assert.deepEqual(result.commits.map(c=>c.phase),['wasm']);assert.equal(f.remoteHead(),result.resultSha);
+  assert.deepEqual(f.git('diff','--name-only',f.source,result.resultSha).split('\n').sort(),['assets/wasm/pandoeditor-core.js','assets/wasm/pandoeditor-core.manifest.json']);
+  assert.deepEqual(f.get('config/library-data.json'),pin);assert.deepEqual(f.get(RECEIPT_PATH),receipt);assert.deepEqual(f.get('out/a.txt'),old);
+  assert.throws(()=>f.get('assets/data/world/build-input.json'),/ENOENT/);
+  assert.throws(()=>f.get('.library-data/repository/archive/index.json'),/ENOENT/);
+  const evidence=JSON.parse(f.get(result.evidenceFile));assert.deepEqual(evidence.verifiedScope,['wasm']);assert.deepEqual(evidence.families,{});
+  assert.equal(evidence.libraryRevision,f.pin);assert.equal(evidence.wasm.sourceSha256,sharedSourceManifest(f.root).sourceSha256);
+});
+
+test('wasm-only scope keeps source and byte identity failures blocking before publication',async t=>{
+  for(const what of ['source','bytes']) {
+    const f=unhydratedWasmPublicationFixture(t);
+    f.put(what==='source'?'src/runtime/native/src/calc.cpp':'assets/wasm/pandoeditor-core.wasm','mismatch');
+    await assert.rejects(publishGeneratedArtifacts(f.root,{scope:'wasm',expectedSourceSha:f.source,branch:'work/objects',wasmBuilt:true}),/P2_GENERATED_ARTIFACT_STALE/);
+    assert.equal(f.remoteHead(),f.source);assert.equal(f.git('rev-parse','HEAD'),f.source);
+  }
+});
+
+test('wasm-only scope rejects unselected dirty outputs instead of adding data scope',async t=>{
+  const f=unhydratedWasmPublicationFixture(t);f.stageWasm();f.put('out/a.txt','unselected data WIP');
+  await assert.rejects(publishGeneratedArtifacts(f.root,{scope:'wasm',expectedSourceSha:f.source,branch:'work/objects',wasmBuilt:true}),/P2_UNEXPECTED_GENERATED_FILE/);
+  assert.equal(f.remoteHead(),f.source);assert.equal(f.git('rev-parse','HEAD'),f.source);assert.equal(f.get('out/a.txt').toString(),'unselected data WIP');
+});
+
+test('wasm-only scope still stops at the final remote race guard with no force push',async t=>{
+  const f=unhydratedWasmPublicationFixture(t);f.stageWasm();let concurrent;
+  await assert.rejects(publishGeneratedArtifacts(f.root,{scope:'wasm',expectedSourceSha:f.source,branch:'work/objects',wasmBuilt:true,
+    beforeFinalGuard:()=>{concurrent=f.git('commit-tree',f.git('rev-parse',f.source+'^{tree}'),'-p',f.source,'-m','concurrent');
+      f.git('push','-q','origin',concurrent+':refs/heads/work/objects');}}),/P2_REMOTE_BRANCH_CHANGED/);
+  assert.equal(f.remoteHead(),concurrent);assert.notEqual(f.remoteHead(),f.git('rev-parse','HEAD'));
+});
+
+test('wasm-only scope exception never removes selected data graph or receipt requirements',async t=>{
+  const missing=unhydratedWasmPublicationFixture(t);
+  assert.throws(()=>assertSafeGeneratedPaths(['assets/data/world/current.json'],{'unhydrated-world':true},missing.root),/ENOENT/);
+  await assert.rejects(publishGeneratedArtifacts(missing.root,{scope:'auto',expectedSourceSha:missing.source,branch:'work/objects'}),/ENOENT/);
+  assert.equal(missing.remoteHead(),missing.source);assert.equal(missing.git('rev-parse','HEAD'),missing.source);
+  const declared=remoteFixture(t);
+  assert.throws(()=>artifactEvidence(declared.root,{resultSha:declared.source,expectedSourceSha:declared.source,
+    evidenceFile:'build-native/p2/required-data-evidence.json',families:['a']}),/P2_MISSING_RESULT_FAMILY/);
+});

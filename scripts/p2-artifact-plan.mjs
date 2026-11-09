@@ -81,7 +81,8 @@ export function selectJobs({wasm},changed=[],manual='auto') {
 // Fail closed on unexpected generator output, even when no Python, C++ or JS
 // application files were edited by the workflow.
 export function assertSafeGeneratedPaths(changed, enabled, rootDir=null) {
-  const families=rootDir?artifactGraph(rootDir).filter(f=>enabled[f.id]):[];
+  const dataEnabled=Object.keys(enabled).some(id=>enabled[id]&&!Object.hasOwn(OUTPUTS,id));
+  const families=rootDir&&dataEnabled?artifactGraph(rootDir).filter(f=>enabled[f.id]):[];
   for(const path of changed) {
     const allowed=Object.entries(OUTPUTS).some(([kind,patterns])=>
       enabled[kind]&&patterns.some(p=>p.endsWith('/')?path.startsWith(p):path===p));

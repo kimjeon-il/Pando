@@ -109,7 +109,8 @@ export async function publishGeneratedArtifacts(cwd=root,{
     catch {baseSha=expectedSourceSha;}
   }
   assertArtifactsCurrent({wasm:wasmStatus(cwd)});
-  const dataFamilies=artifactGraph(cwd).filter(f=>!f.manual).map(f=>f.id);
+  // WASM owns only its three compiled assets; it needs no materialized data graph.
+  const dataFamilies=scope==='wasm'?[]:artifactGraph(cwd).filter(f=>!f.manual).map(f=>f.id);
   const commits=[];
   if(scope==='verify') {
     assert.equal(git(cwd,['status','--porcelain=v1','--untracked-files=all']),'','P2_DIRTY_VERIFICATION_CHECKOUT');
