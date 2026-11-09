@@ -119,6 +119,7 @@ export function createGpuPolygonOverlayPass({ onError = null, onResourceReady = 
       pendingUploads.set(key, job);
       void uploadScheduler.enqueueUpload({
         key: 'polygon:' + key, priority: 50,
+        allowDuringInteraction:packet.role==='physical-land'||packet.role==='physical-water',
         dispose: () => { for (const buffer of job.buffers) uploadGl.deleteBuffer(buffer); if (pendingUploads.get(key) === job) pendingUploads.delete(key); },
         step: ({ byteBudget }) => {
           if (gl !== uploadGl || contextLost || pendingUploads.get(key) !== job) throw Object.assign(new Error('Stale polygon upload'), { name: 'AbortError' });

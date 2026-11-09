@@ -104,3 +104,16 @@ test('boundary coordinates and repeated ownership are binary without changing ex
   part.segments[0].start[0]=NaN;
   assert.throws(()=>codec.encodePreparedCountryScene(scene),/boundary segment|coordinate/i);
 });
+
+// Baked and dynamic country meshes must use the same slot-ordered source
+// content identity, or returning to a previous date could admit stale pixels.
+test('prepared scene fill identity equals canonical mesh content key', async () => {
+  const { countrySceneIdentity, countryMeshContentKey } = await import('../../../src/rendering/country-mesh-content-key.js');
+  const {resourceKey} = await import('../../../src/rendering/resource-update-policy.js');
+  const triangle=offset=>({type:'Polygon',coordinates:[[[offset,0],[offset+1,0],[offset,1],[offset,0]]]});
+  const features=[{id:'A',geometry:triangle(0)},{id:'B',geometry:triangle(10)}];
+  const baked=await countrySceneIdentity(features,features);
+  assert.equal(resourceKey(baked.fills),await countryMeshContentKey(features));
+  assert.notEqual(resourceKey(baked.fills),await countryMeshContentKey([...features].reverse()));
+  assert.notEqual(resourceKey(baked.fills),await countryMeshContentKey([features[0],{id:'B',geometry:triangle(11)}]));
+});

@@ -266,6 +266,8 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
     state.countryIndex=new Map(entityStore.snapshot().map(feature=>[String(feature.id),feature]));
     const rootFeatures=builtinSession.builtinTerritorialScene().collection.features;
     await initialized;if(generation!==updateGeneration)return;
+    // A dated frame may not be accepted until its newly resolved country mesh is ready.
+    if(!await renderer.prepareTemporalCountrySource(rootFeatures)||generation!==updateGeneration)return;
     let preparedMesh = null;
     const needsMesh = rootGeometryDirty || renderer.getRuntimeState().projectRenderBlocked;
     if (needsMesh && session.documentModel.snapshot().projectSetup?.sourceMode === 'builtin') {
