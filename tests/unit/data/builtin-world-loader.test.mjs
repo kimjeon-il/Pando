@@ -146,8 +146,10 @@ test('selected content project verifies the canonical country catalog before any
 test('the default map and imported file use identical accepted C++ territorial lookup without leaking project identity',async t=>{
  const seed=startupDocument([]),digest=sha(files.get('index.json'));
  let failLoad=false;
+ const presentedSources=[];
  const owner=await createNodeCoreProject(seed,{productMode:'viewer',
-  replaceSnapshot:async(_document,{reason}={})=>{
+  replaceSnapshot:async(_document,{reason,contentProject=null}={})=>{
+   presentedSources.push(contentProject);
    if(failLoad&&reason==='load')throw new Error('simulated project presentation failure');
    return true;},
   restoreReplacement:async()=>{},
@@ -167,6 +169,8 @@ test('the default map and imported file use identical accepted C++ territorial l
  assert.equal(association.documentId,admitted.documentId);
  assert.equal(association.catalog,territorialCatalog);
  assert.equal(association.catalogSha256,digest);
+ assert.equal(presentedSources[0]?.documentId,admitted.documentId,
+  'candidate project identity is available to the replacement adapter');
  assert.equal(owner.project.territorial.list(),owner.documentModel.territorialViews());
  assert.equal(owner.project.territorial.world(),owner.documentModel.world());
  assert.equal(owner.project.territorial.get('state:test-ukraine').id,'state:test-ukraine');
@@ -186,6 +190,7 @@ test('the default map and imported file use identical accepted C++ territorial l
  failLoad=false;
  assert.equal(await owner.project.open(async()=>seed,{source:'project'}),true);
  assert.equal(owner.project.activeContentProject(),null);
+ assert.equal(presentedSources.at(-1),null,'file project never acquires a builtin resource source');
  assert.deepEqual(owner.project.territorial.list(),owner.documentModel.territorialViews());
  assert.equal(owner.project.territorial.list().length,0);
  assert.equal(owner.project.territorial.get('state:test-ukraine'),null);
