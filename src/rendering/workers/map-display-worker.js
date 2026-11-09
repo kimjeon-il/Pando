@@ -1,4 +1,4 @@
-import "./worker-rpc-host.js";
+import "../../runtime/workers/worker-rpc-host.js";
 import "../../geometry/polygon-clipping-core.js";
 // Install request reception before the compiled calculation module finishes loading.
 const displayReady=import("../map-display-preparation.js").then(module=>module.createMapDisplayPreparation());

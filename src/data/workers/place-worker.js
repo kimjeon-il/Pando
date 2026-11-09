@@ -1,4 +1,4 @@
-import "../../rendering/workers/worker-rpc-host.js";
+import "../../runtime/workers/worker-rpc-host.js";
 const storeModuleUrl=new URL("../place-worker-store.js",import.meta.url);
 const revision=new URL(import.meta.url).searchParams.get('v');
 if (!revision) throw new TypeError('Place Worker requires its deployment revision');
