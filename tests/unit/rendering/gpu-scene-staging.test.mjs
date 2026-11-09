@@ -7,7 +7,6 @@ import * as __contract_dep0 from "node:assert/strict";
 import * as __contract_dep1 from "node:test";
 import * as __contract_dep2 from "../../../src/rendering/gpu-scene-preparation.js";
 import * as __contract_dep3 from "../../../src/rendering/gpu-base-scene-pass.js";
-import * as __contract_dep4 from "node:fs";
 import * as __contract_dep5 from "../../../src/ui/map-content-presentation.js";
 const assert = __contract_dep0.default;
 const test = __contract_dep1.default;
@@ -153,7 +152,6 @@ test('failure of both B and eligible A is a failed presentation with no promotio
 contractSuite("gpu-scene-worker-presentation", () => {
 const test = __contract_dep1.default;
 const assert = __contract_dep0.default;
-const { readFileSync } = __contract_dep4;
 
 test('failed polygon preparation clears pending identity and retries the current input',async()=>{
   let attempts=0, ready=false, scheduled=null, presented=0, errorReports=0,renderer='webgl2',canvasRequests=0,baseInvalidations=0;
