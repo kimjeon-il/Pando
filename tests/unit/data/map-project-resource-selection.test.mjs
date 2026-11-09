@@ -101,3 +101,12 @@ test('place references and retained worker scope are retired when no project sou
  assert.deepEqual(labels.builtinPlaceSelectionReferences(),[]);
  labels.builtinPlaces.dispose();
 });
+
+test('Viewer map search resolves the live place worker after a project switch',()=>{
+ const source=readFileSync(new URL('../../../src/app/viewer-map.js',import.meta.url),'utf8');
+ assert.match(source,/const places=\(\)=>labelOwner\.builtinPlaces;/);
+ assert.match(source,/cancelSearch:\(\)=>places\(\)\.cancelSearch\(\)/);
+ assert.match(source,/searchPlaces:query=>places\(\)\.search\(query\)/);
+ assert.match(source,/searchActive:\(\)=>places\(\)\.isSearchOpen\(\)/);
+ assert.doesNotMatch(source,/const places=labelOwner\.builtinPlaces;/);
+});
