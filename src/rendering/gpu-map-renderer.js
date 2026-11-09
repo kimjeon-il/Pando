@@ -40,6 +40,7 @@ import { geometryRevisionKey } from "../geometry/geometry-versions.js";
 import { countryMeshContentKey, countrySceneIdentity } from "./country-mesh-content-key.js";
 import { resourceKey, resourceUpdate } from "./resource-update-policy.js";
 import { physicalSceneMatchesContext, mapPresentationTargetKey, mapBackgroundTargetKey, canDrawTerrainTiles, classifyGpuResourceReady, classifyCanvasWorkerFrame } from "./map-render-publication.js";
+import { createMapPresentationSession } from "./map-presentation-session.js";
 export { physicalSceneMatchesContext };
 
 
@@ -155,132 +156,36 @@ export function createGpuMapRenderer(deps) {
     let hydroUploadScheduler = null;
     let stagingSequence = 0;
     let pendingCanonicalCommit = null;
-    // One generation-scoped map publication gate, resolved only by the existing
-    // rendering-domain's accepted visual-frame commit.
-    const mapPresentationWaiters = new Set();
-    let committedMapGeneration = -1;
-    const staleMapPresentation = reason => Object.assign(new Error(reason), { name:'AbortError',cancelled:true });
-    function rejectMapPresentationWaiters(error) {
-      for (const waiter of mapPresentationWaiters) waiter.reject(error);
-      mapPresentationWaiters.clear();
-    }
-    function settleMapPresentationWaiters() {
-      if (temporalPending() || !mapReadiness().mapReady) return false;
-      committedMapGeneration = projectGeneration;
-      for (const waiter of mapPresentationWaiters) {
-        if (waiter.generation !== projectGeneration) continue;
-        mapPresentationWaiters.delete(waiter);
-        waiter.resolve(true);
-      }
-      return true;
-    }
-    function waitForMapPresentation(generation) {
-      if (disposed || Number(generation) !== projectGeneration)
-        return Promise.reject(staleMapPresentation('Project map presentation was superseded.'));
-      if (!temporalPending() && committedMapGeneration === projectGeneration && mapReadiness().mapReady) return Promise.resolve(true);
-      return new Promise((resolve,reject) => {
-        mapPresentationWaiters.add({generation,resolve,reject});
-        invalidateGpuFrame('await-current-map-frame');
-      });
-    }
-    let temporalPresentation = null;
     let temporalCanvas = null;
-    let temporalViewSequence = 0;
-
-    const temporalPending = () => !!temporalPresentation && !temporalPresentation.presented;
-    // A same-project month query has a preparation interval before the C++
-    // cursor and new mesh are admitted. Freeze only its pixels, not the camera
-    // input state. Once admitted, reuse the existing complete-frame gate.
-    function beginTemporalViewTransition(isCurrent = () => true) {
-      const token = ++temporalViewSequence;
-      temporalPresentation = { kind:'view',countryContent:null,token, generation: projectGeneration,
-        context: renderDeviceContextRevision, isCurrent: () => !disposed
-          && token === temporalViewSequence && isCurrent(),
-        onPresented: () => {}, presented: false, sourceAdmitted: false,
-        error: null, frameId: null };
-      return token;
-    }
-    function admitTemporalViewTransition(token) {
-      if (!temporalPending() || temporalPresentation.token !== token
-        || !temporalPresentation.isCurrent()) return false;
-      temporalPresentation.sourceAdmitted = true;
-      invalidateGpuFrame('temporal-source-admitted');
-      return true;
-    }
-    async function prepareTemporalCountrySource(features) {
-      const ticket=temporalPresentation;
-      if(!temporalPending()||ticket.kind!=='view'||ticket.countryContent!==null)return true;
-      const isCurrent=()=>ticket===temporalPresentation&&ticket.isCurrent();
-      // The same content key owns both a generated mesh and a Worker rebuild.
-      // A different date's frame cannot satisfy this ticket merely because
-      // the project generation and mesh quality still match.
-      const content=isWebGlRenderer()?await countryMeshContentKey(features,{isCurrent})
-        :resourceKey(features.map(feature=>[String(feature.id),geometryRevisionKey(feature.geometry)]));
-      if(content===null||!isCurrent())return false;
-      ticket.countryContent=content;
-      return true;
-    }
-    function finishTemporalViewTransition(token) {
-      if (temporalPresentation?.token !== token) return false;
-      if (!temporalPresentation.presented) {
-        temporalPresentation = null;
-        temporalCanvas = null;
-        invalidateGpuFrame('temporal-source-rejected');
-      }
-      return true;
-    }
-    function canPresentVisualFrame(frame, result = null, { canvasPresented = false } = {}) {
-      if (projectRenderBlocked || temporalPresentation?.sourceAdmitted === false
-        || result?.preserved || result?.succeeded === false) return false;
-      // Do not commit a partial framebuffer as a recovered map. Recovery
-      // ownership is released only by its actual source-matched GL submission.
-      if (gpuRecovery.snapshot().active && (!gpuRecoveryFrameEvidence
-        || gpuRecoveryFrameEvidence.frame !== frame)) return false;
-      if (!temporalPending()) return true;
-      if (result?.deferred && !canvasPresented) return false;
-      return !temporalPresentation.error && temporalPresentation.isCurrent()
-        && temporalPresentation.generation === projectGeneration
-        && frame?.projectGeneration === projectGeneration
-        && temporalPresentation.context === renderDeviceContextRevision
-        && temporalPresentation.frameId != null && temporalPresentation.frameId === frame?.frameId;
-    }
-    function failTemporalPresentation(error) {
-      if (!temporalPending()) return;
-      temporalPresentation.error = error;
-      if (pendingCanonicalCommit?.generation === projectGeneration) {
-        pendingCanonicalCommit.reject(error);
-        pendingCanonicalCommit = null;
-      }
-    }
-    function temporalFrameReady(resourcesDrawn, terrain = currentTerrainReadiness()) {
-      if (!temporalPending()) return true;
-      if (temporalPresentation.error || temporalPresentation.sourceAdmitted === false) return false;
-      if(temporalPresentation.kind==='view'&&(!temporalPresentation.countryContent
-        ||countryMeshDependencies?.content!==temporalPresentation.countryContent))return false;
-      if (!temporalPresentation.isCurrent() || temporalPresentation.generation !== projectGeneration
-        || temporalPresentation.context !== renderDeviceContextRevision) {
-        failTemporalPresentation(Object.assign(new Error('Temporal presentation superseded'), {name:'AbortError',cancelled:true}));
-        return false;
-      }
-      const physicalContext=getPhysicalContextState();
-      if (canonicalPromotionError || terrain.terrainFailed || physicalContext.error) {
-        failTemporalPresentation(physicalContext.error || new Error(canonicalPromotionError || '다음 시점 지형을 준비하지 못했습니다.'));
-        return false;
-      }
-      const terrainNeeded = state.physicalSettings.terrainVisible && (isWebGlRenderer() ? !!terrainPreparation : true);
-      const boundariesReady = !state.layerVisibility.objects || (!countryBoundaryTask&&!pendingCountrySharedBoundary
-        &&countrySharedBoundary?.sourceQuality === surfacePresentation.quality
-        && countrySharedBoundary.sourceProjectGeneration === projectGeneration);
-      return !!resourcesDrawn && canonicalMeshReady && boundariesReady && surfacePresentation.quality !== 'pending'
-        && physicalSceneMatchesContext(renderScene,physicalContext) && (!terrainNeeded || terrain.terrainReady);
-    }
-
-    function waitForTemporalPresentation() {
-      if (!temporalPending()) return Promise.resolve(true);
-      if (temporalPresentation.error) return Promise.reject(temporalPresentation.error);
-      if (!temporalPresentation.isCurrent()) return Promise.reject(Object.assign(new Error('Temporal presentation superseded'), {name:'AbortError',cancelled:true}));
-      return waitForCanonicalVisualFrame();
-    }
+    // Date/source admission and accepted-frame waiters have one owner; GPU
+    // device resources and physical readiness remain with this renderer.
+    const presentationSession = createMapPresentationSession({
+      getGeneration: () => projectGeneration,
+      getContextRevision: () => renderDeviceContextRevision,
+      isDisposed: () => disposed,
+      getReadiness: () => mapReadiness(),
+      invalidateFrame: reason => invalidateGpuFrame(reason),
+      prepareContentKey: (features, isCurrent) => isWebGlRenderer()
+        ? countryMeshContentKey(features, { isCurrent })
+        : resourceKey(features.map(feature => [String(feature.id), geometryRevisionKey(feature.geometry)])),
+      isProjectBlocked: () => projectRenderBlocked,
+      isRecoveryFrameAdmissible: frame => !gpuRecovery.snapshot().active
+        || (!!gpuRecoveryFrameEvidence && gpuRecoveryFrameEvidence.frame === frame),
+      onTemporalFailure: error => {
+        if (pendingCanonicalCommit?.generation === projectGeneration) {
+          pendingCanonicalCommit.reject(error);
+          pendingCanonicalCommit = null;
+        }
+      },
+      onTemporalRetired: () => { temporalCanvas = null; },
+      waitForCanonicalFrame: () => waitForCanonicalVisualFrame(),
+    });
+    const {
+      temporalPending, beginTemporalViewTransition, admitTemporalViewTransition,
+      prepareTemporalCountrySource, finishTemporalViewTransition,
+      canPresentVisualFrame, failTemporalPresentation, waitForTemporalPresentation,
+      waitForMapPresentation, rejectMapPresentationWaiters,
+    } = presentationSession;
     let projectGeneration = 0;
     let projectRenderBlocked = false;
     let builtinMeshBaseline = null;
@@ -524,7 +429,7 @@ export function createGpuMapRenderer(deps) {
           physicalSceneMatched: resourcesDrawn, temporalPending: temporalPending(),
         });
       presentedMapKey = resourcesDrawn && terrainDrawn ? mapTargetKey(frame, terrain) : '';
-      if (temporalPending() && temporalFrameReady(resourcesDrawn, terrain)) temporalPresentation.frameId = frame.frameId;
+      if (temporalPending() && temporalFrameReady(resourcesDrawn, terrain)) presentationSession.markTemporalFrame(frame);
       if (resourcesDrawn && (terrainDrawn || terrain.terrainFailed)) {
         if (surfacePresentation.quality !== 'pending') {
           if (submittedWebGlBaseFrame && lastBaseSceneResult?.surface?.quality === surfacePresentation.quality)
@@ -1087,7 +992,7 @@ export function createGpuMapRenderer(deps) {
       if (disposed) return;
       // Recovery or a pending map open requires the coordinator's actual
       // visual-frame commit. Steady-state resource updates remain GPU-only.
-      if ((gpuRecovery.snapshot().active || gpuRecovery.fallbackTicket() || mapPresentationWaiters.size)
+      if ((gpuRecovery.snapshot().active || gpuRecovery.fallbackTicket() || presentationSession.pendingMapWaiterCount)
         && typeof renderViewFrame === 'function') return renderViewFrame(reason);
       if (typeof scheduleGpuFrame === 'function') return scheduleGpuFrame(reason);
       return renderViewFrame?.(reason);
@@ -2828,17 +2733,13 @@ export function createGpuMapRenderer(deps) {
       previewFrameWaiters.clear();
       pendingCanonicalCommit?.reject(Object.assign(new Error('Project replaced during canonical commit'), { name: 'AbortError' }));
       pendingCanonicalCommit = null;
-      rejectMapPresentationWaiters(staleMapPresentation('Project replaced before its map was presented.'));
-      committedMapGeneration = -1;
       uploadScheduler?.cancelAll();
       const requested = Number(generation);
       projectGeneration = Number.isFinite(requested) && requested > projectGeneration
         ? requested
         : projectGeneration + 1;
       temporalCanvas = null;
-      temporalPresentation = presentation === 'temporal'
-        ? {kind:'replacement',generation:projectGeneration,context:renderDeviceContextRevision,isCurrent,onPresented,presented:false,error:null,frameId:null}
-        : null;
+      presentationSession.resetForProject({ presentation, isCurrent, onPresented });
       projectRenderBlocked = true;
       if (canvasWorker) {
         canvasWorker.resetGeneration(projectGeneration);
@@ -4966,7 +4867,7 @@ export function createGpuMapRenderer(deps) {
       if (!isMapVisualFrame(visualFrame)) throw new TypeError('renderFrame() requires a MapVisualFrame.');
       currentRenderRevision = Math.max(currentRenderRevision, Number(visualFrame.viewRevision || 0));
       lastVisualFrame = visualFrame;
-      if (temporalPresentation?.sourceAdmitted === false)
+      if (presentationSession.ticket?.sourceAdmitted === false)
         return { deferred: true, preserved: true, frameId: visualFrame.frameId, viewRevision: visualFrame.viewRevision };
       syncCountryMeshQuality({ cssScale: visualFrame.cssScale, projection: visualFrame.projection });
       publishMapReadiness();
@@ -4990,7 +4891,7 @@ export function createGpuMapRenderer(deps) {
     function renderInteraction(visualFrame = lastVisualFrame) {
       if (!isMapVisualFrame(visualFrame)) return null;
       currentRenderRevision = Math.max(currentRenderRevision, Number(visualFrame.viewRevision || 0));
-      if (temporalPresentation?.sourceAdmitted === false) {
+      if (presentationSession.ticket?.sourceAdmitted === false) {
         lastVisualFrame = visualFrame;
         return { deferred: true, preserved: true };
       }
@@ -6129,11 +6030,9 @@ export function createGpuMapRenderer(deps) {
       cancelSharedGpuInitialization('renderer-disposed');
       projectGeneration += 1; renderDeviceContextRevision += 1;
       temporalCanvas = null;
-      temporalPresentation = null;
+      presentationSession.dispose();
       pendingCanonicalCommit?.reject(Object.assign(new Error('Renderer disposed'), { name: 'AbortError' }));
       pendingCanonicalCommit = null;
-      rejectMapPresentationWaiters(staleMapPresentation('Renderer disposed before map publication.'));
-      committedMapGeneration = -1;
       // The rendering domain owns the scheduler; the renderer only cancels its jobs.
       uploadScheduler?.cancelAll();
       stopPatchWorkerJobs('renderer-disposed');
@@ -6204,13 +6103,7 @@ export function createGpuMapRenderer(deps) {
         if (renderDevice && gl && !gl.isContextLost()) initializeSharedGpuPasses();
       },
       commitVisualFrame: frame => {
-        if (!canPresentVisualFrame(frame)) return;
-        if (temporalPending()) {
-          temporalPresentation.presented = true;
-          temporalCanvas = null;
-          temporalPresentation.onPresented();
-        }
-        if (frame?.projectGeneration === projectGeneration) settleMapPresentationWaiters();
+        if (!presentationSession.commitVisualFrame(frame)) return;
         commitGpuRecoveryFrame(frame);
         // Focus owns a camera session. Only explicit navigation, projection
         // change or project replacement releases it; publishing frames does not.
