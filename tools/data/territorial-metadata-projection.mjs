@@ -24,7 +24,7 @@ export function metadataOnlyTerritorialProjection(descriptor,previous){
     source.file!==verified.file||source.type!==verified.type||
     JSON.stringify(source.logicalRef)!==JSON.stringify(verified.logicalRef))return null;
  }
- const {storageLayout,...model}=descriptor;
+ const model={...descriptor};delete model.storageLayout;
  return Object.freeze({entity:model,bbox:Object.freeze([...previous.bbox])});
 }
 
