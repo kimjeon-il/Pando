@@ -118,3 +118,40 @@ test('prepared mesh input fingerprints reject cross-project territories or physi
  f.metadata[mesh].inputHashes[land]='0'.repeat(64);
  await assert.rejects(buildFrontendSnapshot(f.options),/prepared meshes do not match selected physicalLand/);
 });
+
+test('project catalog receipts carry pinned content SHA, version and loading criticality',async t=>{
+ const f=fixture(t),result=await buildFrontendSnapshot(f.options),receipts=result.buildMeta.mapProjectCatalogs;
+ const path='assets/data/builtin-world/generated/v1/index.json';
+ const expected=createHash('sha256').update(Buffer.from(JSON.stringify(f.metadata[path]))).digest('hex');
+ assert.equal(receipts.territorial.catalog,path);
+ assert.equal(receipts.territorial.sha256,expected);
+ assert.equal(receipts.territorial.schema,'pandolab-builtin-world');
+ assert.equal(receipts.territorial.schemaVersion,2);
+ assert.equal(receipts.rivers.sha256,receipts.lakes.sha256,'one shared Hydro catalog has one byte identity');
+ assert.deepEqual(receipts.physicalLand.dependsOn,['terrain']);
+ assert.equal(receipts.preparedMeshes.required,false,'prepared geometry is optional for display');
+ assert.equal(result.buildMeta.mapProject.document.identityPolicy,'runtime-instance');
+ assert.equal(result.buildMeta.mapProject.timeline.precision,'month');
+ // Content revision must incorporate the selected bytes, not merely their paths.
+ f.metadata['assets/data/places/manifest.json']={shards:{},revisionMarker:'changed'};
+ const changed=await buildFrontendSnapshot(f.options);
+ assert.notEqual(changed.dataRevision,result.dataRevision);
+ assert.notEqual(changed.buildMeta.mapProjectCatalogs.places.sha256,receipts.places.sha256);
+});
+
+test('map build rejects malformed pinned catalogs instead of treating them as absent',async t=>{
+ const f=fixture(t);
+ f.metadata['assets/data/places/manifest.json']=['invalid catalog'];
+ await assert.rejects(buildFrontendSnapshot(f.options),/Invalid pinned map project catalog object/);
+});
+
+test('classic Canvas Worker dependency policy is self-contained after runtime facade migration',async t=>{
+ const f=fixture(t),snapshot=await buildFrontendSnapshot(f.options);
+ const bundled=snapshot.assets.get('assets/js/workers/resource-update-policy-core.js')?.bytes.toString('utf8');
+ assert.ok(bundled,'a generated classic Worker policy must be present');
+ assert.match(bundled,/PandoLabResourceUpdatePolicy/);
+ assert.match(bundled,/resourceUpdate/);
+ assert.match(bundled,/resourceKey/);
+ assert.doesNotMatch(bundled,/import\s*(?:\(|['"{*])/);
+ assert.doesNotMatch(bundled,/resource-dependency-policy\.js/);
+});
