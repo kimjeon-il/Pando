@@ -1,5 +1,5 @@
 name: Optimization focused recovery contracts
-# Exact recovery suites only; never run the full test catalog.
+# JS-only recovery suites. Source-matched C++/WASM suites have a separate focused owner.
 on:
   push:
     branches: [work/optimization]
@@ -38,22 +38,11 @@ jobs:
         id: scope4
         continue-on-error: true
         run: node --test --test-timeout=30000 tests/unit/build/frontend-build.test.mjs
-      - name: P2-1 place data policy and presentation compatibility
-        id: scope5
-        continue-on-error: true
-        run: node --test --test-timeout=30000 tests/unit/rendering/place-runtime.test.mjs
-      - name: P1-4 import identity and replacement rollback
-        id: scope6
-        continue-on-error: true
-        run: node --test --test-timeout=30000 tests/unit/document/map-project-identity.test.mjs tests/unit/document/project-domain-core-command.test.mjs
       - name: P1-5 archive compatibility contracts
         id: scope7
         continue-on-error: true
         run: node --test --test-timeout=30000 tests/unit/data/library-data-scope.test.mjs
-      - name: P2-1 physical water model and presentation contracts
-        id: scope8
-        continue-on-error: true
-        run: node --test --test-timeout=30000 tests/unit/document/historical-physical-water.test.mjs
+      # Native-backed place/history/import suites are verified by optimization-source-matched-core.yml.
       - name: P2-2 workflow ownership and check deduplication
         id: scope9
         continue-on-error: true
@@ -73,21 +62,6 @@ jobs:
         if: always()
         shell: bash
         run: |
-          for result in "${{ steps.scope1.outcome }}" "${{ steps.scope2.outcome }}" "${{ steps.scope3.outcome }}" "${{ steps.scope4.outcome }}" "${{ steps.scope5.outcome }}" "${{ steps.scope6.outcome }}" "${{ steps.scope7.outcome }}" "${{ steps.scope8.outcome }}" "${{ steps.scope9.outcome }}" "${{ steps.scope10.outcome }}"; do
+          for result in "${{ steps.scope1.outcome }}" "${{ steps.scope2.outcome }}" "${{ steps.scope3.outcome }}" "${{ steps.scope4.outcome }}" "${{ steps.scope7.outcome }}" "${{ steps.scope9.outcome }}" "${{ steps.scope10.outcome }}"; do
             if [ "$result" != success ]; then exit 1; fi
           done
-  project-codec:
-    if: github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-24.04
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - name: Build and run only C++ project codec contract
-        shell: bash
-        run: |
-          set -euo pipefail
-          cmake -S tools/build/native -B build-native/optimization-project-codec -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
-          cmake --build build-native/optimization-project-codec --target project_codec_tests --parallel 2
-          ctest --test-dir build-native/optimization-project-codec -R '^project_codec_tests --output-on-failure
