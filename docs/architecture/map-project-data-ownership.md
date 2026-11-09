@@ -48,3 +48,29 @@ GIS 원본, 정밀 좌표, 아카이브는 `PandoLab-library-data`에 보존한�
 
 이 단계는 **기본 세계지도의 콘텐츠 소유권 분리**까지이며, 프로젝트 여러 개를 고르는 UI,
 사용자 프로젝트용 별도 외부 자료 패키지 발행, C++ 문서 스키마 확장은 후속 단계다.
+
+## 0~2단계 구현 결과 (2026-11-09, work/optimization)
+
+- 프로젝트가 실제 콘텐츠를 선택하는 파일은 `projects/default-world/manifest.json`. `src/data/map-project-manifest.js`는 종류/경로/스키마를 검증하지만 실제 국가·강·호수·지명을 열거하지 않는다.
+- `world`, `territorial`, `rivers`, `lakes`, `places`, `placeLifetimes`, `terrain`, `physicalLand`, `preparedMeshes`는 9개의 범용 자료 역할이다. 기본 세계지도에서는 강과 호수가 하나의 Hydro 카탈로그를 공유하므로 총 8개의 다른 카탈로그를 참조한다.
+- `scripts/lib/frontend-build.mjs`는 위 콘텐츠 설정에서 필요한 자료 경로를 도출하고, 원본 경로·바이트 SHA 및 자료 리비전을 검증해 빌드한다. 게시 Viewer에는 `assets/data/projects/default-world/manifest.json`과 해당 해시가 포함된다.
+- `src/data/runtime-manifest-assets.js`와 `scripts/lib/product-assets.mjs`는 **실제 Viewer 빌드에서 프로젝트 참조를 우선**하며, 선언되지 않은 옛 지명 카탈로그를 함께 배포하지 않는다. 자료 저장소의 구형 비프로젝트 뷰를 위한 fallback은 후속 마이그레이션까지 유지한다.
+- `src/document/builtin-session.js`, `src/rendering/territorial-labels.js`, `src/data/physical-resources.js`는 국가 카탈로그, 지명/도시 유효기간 카탈로그, 강·호수 카탈로그를 프로젝트 선택에서 가져온다.
+- 과거 국가별 형상·타임라인 목록은 `builtin-world` 인덱스와 별도 원본 국가 파일에, 강/호수는 Hydro 카탈로그에, 지명은 Places 카탈로그에 한 번만 존재한다. 프로젝트 선언에 중복된 객체/좌표를 넣지 않는다.
+- `pandolab-project-state` 스키마 14, `timelineRecords` 스키마 3, C++/WASM 프로젝트 정본, 원본 GIS 파일·핀, 현행 날짜 전환과 원본 좌표는 변경하지 않았다.
+
+### 확인된 실행 결과
+
+검증용 임시 CI의 `node scripts/generate-build-metadata.mjs --check` 및
+`node scripts/generate-build-metadata.mjs --check --product=viewer`는
+실제 외부 라이브러리 고정 리비전 `a53f9b319b23678e82c4b9ffdb9f824a040ca5f3`과 함께 성공했다.
+Viewer 전용 파일 집합은 1,902개 자산을 선택했고, ESLint 및 프로젝트/프런트엔드/배포 관련 단위 검사 23개가 성공했다.
+GitHub Actions 실행 기록: https://github.com/kimjeon-il/Pando/actions/runs/42563192764
+
+### 이 범위에 포함되지 않는 후속 작업
+
+- 프로젝트 선택 UI·다중 프로젝트 lifecycle 통합, 사용자 프로젝트에 별도 원본 집합을 할당하고 활성 프로젝트가 바뀔 때 참조를 전환하는 기능은 3단계 이후다.
+- 현재 Hydro 서비스는 강·호수에 하나의 카탈로그를 사용한다. 서로 다른 카탈로그를 강/호수에 지정하는 경우 명시적으로 거부한다.
+- 고정 DEM 버전으로 외부 지형을 선택하는 정책과 이전 빌드/자료 저장소의 비프로젝트 fallback은 아직 남아 있다.
+- 내장 지도 `sourceMode: 'builtin'`은 기존 C++/WASM 파일 스키마 호환을 위해 유지하며, 콘텐츠 프로젝트 ID와 혼용하지 않는다.
+- 이 단계의 검증은 선택된 자료 빌드·검사 범위에 한정되며, 전체 GIS·브라우저·C++/WASM 검사 또는 라이브 배포는 수행하지 않는다.
