@@ -98,3 +98,47 @@ GIS-prefix 워크플로 34개, hydro-prefix 3개, Viewer-prefix 4개 등은 단�
 - 검사 등록표의 glob 패턴은 파일 존재 경로가 아니라 변경 영향 선택자이므로, 해당 패턴의 소비자 관계를 실행 호출과 별도 기록하도록 조정했다. 이 정규화와 CMake 소스 해석을 적용한 최종 인벤토리 실행을 진행한다.
 
 - 선택형 Worker 검증은 실제 게시 자료를 만드는 `scripts/generate-build-metadata.mjs --check --product=viewer`와 RPC·Worker 번들·프런트엔드 폐포·Canvas Worker의 범용 단위 검사로 한정한다. 전체 GIS 재생성이나 전체 회귀 검사는 포함하지 않는다.
+
+## 1단계 잔여 조사 — 원격 전체 파일 역방향 참조 결과 (2026-11-09)
+
+### 실측 근거와 한계
+
+- `tools/checks/audit-repository-usage.mjs`를 `application-architecture.yml`의 1회성 `[stage1-inventory]` 경로에서 실행했다. 기준 커밋 `cf1dc1149e6899814f1f77236294d65a6b33fc6b`, Actions 실행 `42580321604`의 `changes` 작업에서 **조사 단계 성공** 및 JSON 증거 아티팩트 업로드를 확인했다.
+- 결과: 추적 파일 2,384개, 의존성 edge 11,007건, 외부/파생 참조 437건, 동적 표현식 36건, Worker 생성 20곳(17개 파일), 동일 Blob 18그룹, 소스 구문 파싱 실패 0건.
+- 정확 경로로 표시된 미해결 51건은 모두 실제 오류가 아니다. 생성 CSS 3개, Worker 게시 경로, 외부 GIS 마운트, 역사 fixture의 불완전한 독립 스냅샷, 생성 CMake 파일 및 이전 경로가 섞여 있다. 항목별 게시 매핑/실행을 검증하기 전에는 실제 오류 수를 확정하지 않는다.
+- `src/`, `scripts/`, `tools/` 범위의 **실행 소비자 미확정 후보 71개**가 발견되었다. 여기에는 라이선스·문서·네이티브 보조 프로젝트와 수동 실행 도구가 포함된다. **71개는 삭제 가능 파일 수가 아니다.**
+- 동적 import 표현식 36건 중 `src/data/workers/place-worker.js`, `src/rendering/workers/canvas-render-worker.js`, `src/runtime/core-wasm-loader.js`의 게시 빌드 선언 경로는 확인되었다. C++/WASM의 실행 시 전달되는 모듈 경로, GIS worker의 계산식 `importScripts`, 테스트의 `data:` Worker 등은 정적 문자열만으로 모든 실제 런타임 대상을 열거할 수 없다.
+- 검사 선택 패턴 179개 중 현재 Git 추적 트리와 직접 매칭되지 않은 패턴 53개가 검출되었다. `assets/data/**`처럼 **외부 라이브러리 마운트의 파일**을 선택하는 정상 패턴이 포함되므로 53개 모두 퇴역 패턴으로 볼 수 없다.
+
+### 미확인 소비자 분류 확정: 삭제가 아니라 처분 카테고리 확정
+
+| 분류 | 확인한 파일 또는 집합 | 판정 | 후속 처리 |
+| --- | --- | --- | --- |
+| 유지 — 실제 Viewer 실행 | `src/app/viewer.js`, `viewer-composition.js`, `viewer-map.js`, C++ 문서·RPC·WASM, GPU/Canvas 렌더러, 지도/지명/수계 처리기 | 실행 진입점·정적/게시 경로 확인 | 3~7단계에서 책임만 정상화 |
+| 유지 — 생성·CI 진입 | `scripts/lib/frontend-build.mjs`, `product-assets.mjs`, `worker-assets.mjs`, `tools/build/native/**`, `scripts/run-application-checks.mjs` 및 등록된 생성기 | 등록된 빌드·테스트·배포 호출이 있음 | 2·6단계 |
+| 유지 — 원본/법적 고지 | `src/geometry/native/vendor/**`, `tools/cpp/**/LICENSE*`, `tools/cpp/**/COPYING*`, `tools/historical-library/**.recipe.json` | 코드 역참조 부재만으로 폐기 불가 | 보존 및 관련 패키지/원본 소비 확인 |
+| 통합 후보 | `src/data/gpkg-read-core.js`와 `src/data/workers/gpkg-read-core.js` | **Blob SHA 동일**. 두 파일의 import/게시 소유자가 다른지 확인 필요 | 3단계에서 단일 원본·출력 경로 검토 |
+| 통합 후보 | `builtinActive`, `sourceMode` 조건, 기본 세계지도 자료 fallback, 검사 카탈로그 중복 그룹 | 제품/검사 실행 분기의 중복 가능성 확인 | 2·4·5단계에서 계약 기준 통합 |
+| 이동/소유권 확인 | `src/runtime/workers/worker-rpc-host.js`, `src/data/workers/gpkg-read-core.js` | 이전 P4 이동 반영. Worker 번들 URL과 실제 소스 경로를 분리 | 기존 이동 유지 |
+| 감사 전환 후보 | `tools/gis/**`의 개별 역사·국경·Hydro 연구 스크립트, 국가별 GIS 워크플로 | 연구·검증·생성·공개를 구분해야 함 | 2·8단계에서 공통 감사/수동 연구로 재분류 |
+| 퇴역 후보 — 보류 | `scripts/research/instrument-*.mjs`, `scripts/r4e3-retirement-inventory.mjs`, `tools/benchmark-helpers/legacy-label-layout.mjs`, `tools/build/build-builtin-read-index.mjs` 등 | 정적 실행 소비자가 확인되지 않음. 수동/간접 실행 가능성 남음 | 명령·문서·워크플로 및 결과물 재현성을 확인한 뒤 8단계 |
+| 미확정 — 삭제 금지 | `tools/cpp/**`의 보조 CMake/소스, `tools/qgis/native-mcp.mjs`, `tools/cleanup-reference-analysis-caches.ps1`, `tools/checks/check-platform-portability.mjs` 등 | 별도 도구/수동 진입·외부 환경 소비 여부 미검증 | 별도 도구 소유권 확인 후 분류 |
+| 테스트 지원 — 유지/감사 후보 | `tests/fixtures/portability/**`, 기타 Oracle·fixture | 불완전한 과거 스냅샷이 현재 코드의 깨진 import를 뜻하지 않을 수 있음 | 검사 소비자/고유 검증 조건 대조 후 2단계 |
+
+### Worker 호출 20곳의 판정
+
+- 제품 쪽에서 정적 게시 대상이 확인된 호출: `builtin-mesh-resource.js` → data-loader, `project-file-reader.js` → project-read, `country-index.js` → label-anchor, `gpu-scene.js` → gpu-mesh, `territorial-labels.js` → place, `map-display-client.js` → map-display.
+- `core-document-client.js`는 읽기 전용 Worker와 기존 대체 경로를 조건부 선택한다. 게시 빌드가 어떤 파일을 내보내는지와 현재 readOnly 조건을 함께 확인해야 하며, 조건부 문자열을 무조건 두 개의 현재 제품 Worker로 집계하지 않는다.
+- `core-wasm-loader.js`의 WorkerClass 2곳 및 `gpu-worker-channels.js`의 래퍼는 Worker 생성 소유자다. 전달받는 URL은 호출자가 정하므로 함수 본문만으로 대상 미확정이라도 미사용이 아니다.
+- 테스트의 Worker(data URL, Node worker_threads, mock Worker)는 제품 Worker와 분리해서 계산한다. 테스트 목적의 독립 런타임이므로 제품에서 생성하지 않는다고 퇴역 처리하지 않는다.
+- `canvas-render-worker.js`의 classic `importScripts`는 빌드 변환 전후의 경로가 다를 수 있다. 정적 분석에서 표시된 `resource-update-policy-core.js`는 생성 출력 소유자를 확인해야 한다.
+
+### 실행 검증 상태
+
+- `cf1dc1149e`의 census 실행과 JSON 증거 업로드는 성공. 이어진 Worker 게시/집중 테스트 단계는 실패했다. 로그에서는 `tests/unit/rendering/gpu-canvas-worker.test.mjs`가 이전 `src/rendering/workers/geographic-boundary-core.js` 경로를 읽으려다 실패한 사례를 확인했다.
+- 후속 `050fef27fa` 커밋에서 해당 테스트 경로가 현재 geometry 소유자로 수정되었다. 같은 커밋의 Application CI `changes`는 성공했지만 `non-browser`는 실패했으므로 전체 검증 성공이라고 볼 수 없다.
+- 이 문서는 **정적 전수 조사 및 처분 분류의 완료**를 뜻하며, 동적 Worker의 모든 실제 실행, C++ 빌드, 전체 CI, 실브라우저 픽셀·DEM/GPKG를 전수 실행했다는 의미가 아니다. 남은 미확정 소비자·실행 차단을 숨기거나 삭제하지 않는다.
+
+### 1단계 최종 인계
+
+1단계의 **전 파일 정적 역참조 인벤토리와 5종 분류 정책은 확정**한다. 실행 소비자 미확정 71개는 별도의 '삭제 금지/소비자 검증 대기'로 관리한다. 2단계에서는 검사 카탈로그와 fixture/Workflow의 실질적 중복을 확인하고, 3~8단계에서는 실제 호출자와 게시 산출물을 확인한 파일만 이동·통합·퇴역한다. 위 미해결 51건과 71개 후보를 실제 오류 또는 삭제 대상으로 일괄 전환하지 않는다.
