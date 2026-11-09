@@ -27,3 +27,7 @@ jobs:
         run: node --test --test-timeout=30000 tests/unit/runtime/project-manifest-change-plan.test.mjs
       - name: P1-1 project terrain and P1-2 shared Hydro contract
         run: node --test --test-timeout=30000 tests/unit/data/physical-source-project.test.mjs tests/unit/data/map-project-manifest.test.mjs
+      - name: P1-3 project catalog coherence and P1-5 publishing closure
+        run: node --test --test-timeout=30000 tests/unit/build/frontend-build.test.mjs
+      - name: P2-1 place data policy and presentation compatibility
+        run: node --test --test-timeout=30000 tests/unit/rendering/place-runtime.test.mjs tests/unit/document/place-candidates.test.mjs
