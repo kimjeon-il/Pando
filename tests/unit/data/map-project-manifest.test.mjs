@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {validateMapProjectManifest,mapProjectResourcePaths,mapProjectResourcePath,mapProjectManifestSourcePath,MAP_PROJECT_ROLES}
+import {validateMapProjectManifest,mapProjectResourcePaths,mapProjectResourcePath,mapProjectManifestSourcePath,MAP_PROJECT_ROLES,mapProjectDocumentIdentity,mapProjectResourceScope}
   from '../../../src/data/map-project-manifest.js';
 const current=JSON.parse(readFileSync(new URL('../../../projects/default-world/manifest.json',import.meta.url),'utf8'));
 
@@ -42,6 +42,54 @@ test('project source path is determined by validated project identity only',()=>
  assert.equal(mapProjectManifestSourcePath('alternate-world'),'projects/alternate-world/manifest.json');
  for(const id of ['', '../other','default/../world','UPPER','local?rev=1'])
   assert.throws(()=>mapProjectManifestSourcePath(id),/project ID/);
+});
+
+test('default world binds its stable project ID to runtime document identity and catalog time',()=>{
+ const project=validateMapProjectManifest(current);
+ assert.deepEqual(project.document,{sourceRole:'territorial',identityPolicy:'runtime-instance'});
+ assert.deepEqual(project.timeline,{sourceRole:'territorial',precision:'month',bounds:'catalog'});
+ assert.deepEqual(project.resources.physicalLand.dependsOn,['terrain']);
+ assert.deepEqual(project.resources.placeLifetimes.dependsOn,['places']);
+ assert.deepEqual(project.resources.preparedMeshes.dependsOn,['territorial']);
+ assert.equal(project.resources.preparedMeshes.required,false);
+ assert.equal(project.resources.territorial.required,true);
+ const identity=mapProjectDocumentIdentity(project,{format:'pandolab-project-state',documentId:'live-document-1'});
+ assert.deepEqual(identity,{projectId:'default-world',documentId:'live-document-1',
+  documentFormat:'pandolab-project-state',sourceRole:'territorial'});
+ assert.throws(()=>mapProjectDocumentIdentity(project,{format:'other',documentId:'live-document-1'}),/format mismatch/);
+ assert.throws(()=>mapProjectDocumentIdentity(project,{format:'pandolab-project-state',documentId:''}),/runtime document ID/);
+});
+test('a resource graph is cycle-free and required roles cannot depend on optional ones',()=>{
+ assert.throws(()=>validateMapProjectManifest({...current,resources:{...current.resources,
+  terrain:{...current.resources.terrain,dependsOn:['physicalLand']}}}),/Cyclic/);
+ assert.throws(()=>validateMapProjectManifest({...current,resources:{...current.resources,
+  territorial:{...current.resources.territorial,dependsOn:['preparedMeshes']}}}),/optional role/);
+ assert.throws(()=>validateMapProjectManifest({...current,resources:{...current.resources,
+  places:{...current.resources.places,dependsOn:['places']}}}),/dependencies/);
+ assert.throws(()=>validateMapProjectManifest({...current,document:{sourceRole:'world',identityPolicy:'runtime-instance'}}),/document identity/);
+ assert.throws(()=>validateMapProjectManifest({...current,timeline:{sourceRole:'territorial',precision:'day',bounds:'catalog'}}),/timeline/);
+});
+test('document-scoped resources invalidate on project, instance or pinned release change',()=>{
+ const a=mapProjectResourceScope(current,{documentId:'doc-a',dataRevision:'rev-1'});
+ const b=mapProjectResourceScope(current,{documentId:'doc-b',dataRevision:'rev-1'});
+ const newer=mapProjectResourceScope(current,{documentId:'doc-a',dataRevision:'rev-2'});
+ const alternate=mapProjectResourceScope({...current,projectId:'alternate-world'},{
+  documentId:'doc-a',dataRevision:'rev-1'});
+ assert.equal(a.catalogKey,b.catalogKey,'immutable catalog bytes may be reused for one revision');
+ assert.notEqual(a.documentKey,b.documentKey,'per-document derived state must be isolated');
+ assert.notEqual(a.documentKey,newer.documentKey,'a new release cannot reuse document state');
+ assert.notEqual(a.catalogKey,newer.catalogKey,'a new release cannot reuse catalog contents');
+ assert.notEqual(a.catalogKey,alternate.catalogKey,'a different project has its own catalog scope');
+ assert.throws(()=>mapProjectResourceScope(current,{documentId:'',dataRevision:'rev-1'}),/scope identity/);
+});
+test('legacy v1 role-only declarations normalize without changing existing GIS paths',()=>{
+ const oldManifest={...current};delete oldManifest.document;delete oldManifest.timeline;
+ oldManifest.resources=Object.fromEntries(Object.entries(current.resources).map(([role,entry])=>[role,{catalog:entry.catalog}]));
+ const normalized=validateMapProjectManifest(oldManifest);
+ assert.deepEqual(normalized.document,validateMapProjectManifest(current).document);
+ assert.deepEqual(normalized.timeline,validateMapProjectManifest(current).timeline);
+ assert.deepEqual(mapProjectResourcePaths(normalized),mapProjectResourcePaths(current));
+ assert.equal(normalized.resources.preparedMeshes.required,false);
 });
 
 test('river and lake catalogs cannot silently diverge from the shared Hydro renderer',()=>{
