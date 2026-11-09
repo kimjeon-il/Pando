@@ -1,4 +1,5 @@
 name: Phase 7 focused common runtime and real Chromium regression
+# Preserve page-level diagnostics for the initial Viewer admission.
 on:
   push:
     branches: [work/phase7-common-runtime-final-check-20261110]
