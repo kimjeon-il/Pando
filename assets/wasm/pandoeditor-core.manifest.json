@@ -1,7 +1,7 @@
 {
   "schema": "pandoeditor-core-wasm",
   "abiVersion": 1,
-  "sourceSha256": "a86db4a2fea5c4830a8d74f9ac50da670fcfed93be4cba3d9d8e6c7de4b4a3f6",
+  "sourceSha256": "5ecd7d4772a50d9e8684333956841d96b3d570b58f807393074c72a97a9b7ca4",
   "compiler": {
     "name": "emscripten",
     "version": "6.0.3"
@@ -457,7 +457,7 @@
     },
     {
       "path": "src/geometry/native/src/polygonclipping.cpp",
-      "sha256": "dafab9dd229fec885f42b4ee2c2ee7f055fa7075589b30d725dbfcadd14464ce"
+      "sha256": "c154d4340eb1d1faeb264cf5e30ff8537b81851218680c37ce3cc93db83bbe35"
     },
     {
       "path": "src/geometry/native/src/polygonwrapping.cpp",
@@ -647,7 +647,7 @@
     },
     "wasm": {
       "file": "pandoeditor-core.wasm",
-      "sha256": "9767767386a18e7d3661c175347877ea10ffa326de060b541bb5a2d6dfdd38a0"
+      "sha256": "06e0e90ebbd773d9ea5da9f204af25fb7872dd1fd57706a8aaaeec4663a76167"
     }
   }
 }
