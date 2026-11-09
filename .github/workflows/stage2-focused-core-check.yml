@@ -50,11 +50,22 @@ jobs:
               verified: '${{ steps.test.outcome }}' === 'success',
             };
             const content = Buffer.from(JSON.stringify(result, null, 2) + '\n').toString('base64');
+            const branch = context.ref.replace('refs/heads/', '');
+            let sha;
+            try {
+              const previous = await github.rest.repos.getContent({
+                owner: context.repo.owner, repo: context.repo.repo,
+                path: 'reports/stage2-core-validation.json', ref: branch,
+              });
+              sha = previous.data.sha;
+            } catch (error) {
+              if (error.status !== 404) throw error;
+            }
             await github.rest.repos.createOrUpdateFileContents({
               owner: context.repo.owner, repo: context.repo.repo,
               path: 'reports/stage2-core-validation.json',
               message: 'test: record focused C++ country project validation result',
-              content, branch: context.ref.replace('refs/heads/', ''),
+              content, branch, ...(sha ? {sha} : {}),
             });
       - name: Fail if the focused C++ regression did not pass
         if: always()
