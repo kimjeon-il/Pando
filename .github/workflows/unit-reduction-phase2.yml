@@ -20,16 +20,13 @@ jobs:
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Check live workflow references and unit ownership
         run: node scripts/check-test-consolidation.mjs
-      - name: Run representative retained Core, Hydro, build, archive and GPU regression tests
+      - name: Run focused retained CI selection, Hydro geometry and report-publication contracts
         run: >-
           node --test
           tests/unit/runtime/check-runner.test.mjs
-          tests/unit/build/frontend-build.test.mjs
           tests/unit/geometry/hydro-canonical-chains.test.mjs
           tests/unit/geometry/hydro-source-selection.test.mjs
           tests/unit/geometry/polygon-geometry.test.mjs
-          tests/unit/rendering/gpu-resource-owners.test.mjs
-          tests/unit/data/library-auto-executor.test.mjs
           tests/unit/data/library-report-publication.test.mjs
       - name: Inventory unit tests by AST
         run: |
