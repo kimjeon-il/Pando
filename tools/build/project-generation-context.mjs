@@ -42,3 +42,21 @@ export function readProjectGenerationContext({root=process.cwd(),projectId='defa
   source:path=>generation.inputs[path],
  });
 }
+
+// Validate one project's own world source recipe before any generator writes
+// immutable data. The Viewer release manifest never publishes this receipt.
+export function readProjectWorldGenerationContext(options = {}) {
+  const selection = readProjectGenerationContext(options);
+  const {root = process.cwd(),readSource = path=>readFileSync(resolve(root,path),'utf8')} = options;
+  const worldRecipePath = selection.source('worldBuildRecipe');
+  const worldRecipe = JSON.parse(readSource(worldRecipePath));
+  const canonicalSource = selection.source('territorialCurrentWorld').slice('assets/data/'.length);
+  if(worldRecipe?.schema!=='pandolab-world-build-input'||worldRecipe.schemaVersion!==1
+    ||worldRecipe.canonicalSource!==canonicalSource)
+    throw new TypeError('Selected project world recipe differs from its territorial source');
+  if(selection.projectId!=='default-world'
+    &&(typeof worldRecipe.legacyPreviewManifest!=='string'
+      ||!worldRecipe.legacyPreviewManifest.startsWith(selection.projectId+'/')))
+    throw new TypeError('Nondefault project world preview must have a project-owned output path');
+  return Object.freeze({...selection,worldRecipePath,worldRecipe});
+}

@@ -3,6 +3,7 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync, renameSync, unlinkS
 import {withLibraryOutputs} from "../data/library-runtime.mjs";
 import { resolve, dirname, posix } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { readProjectWorldGenerationContext } from './project-generation-context.mjs';
 import { gunzipSync } from 'node:zlib';
 
 export const WORLD_BUNDLE_SCHEMA = 'pandolab-world-bundle';
@@ -77,12 +78,13 @@ export function bundleDescriptor({ seed, legacy, assets, sourceBytes }) {
   };
 }
 
-export function publishWorldBundle({ root, check = false, manifestOverride = null } = {}) {
+export function publishWorldBundle({ root, check = false, manifestOverride = null, projectId = null } = {}) {
   if (!root) throw new Error('Repository root required');
   const data = resolve(root, 'assets/data');
   const readData = name => readFileSync(resolve(data, assertDataPath(name)));
-  const seedPath = resolve(data, 'world/build-input.json');
-  const seed = JSON.parse(readFileSync(seedPath, 'utf8'));
+  const selected=projectId?readProjectWorldGenerationContext({root,projectId}):null;
+  const seedPath=selected?resolve(root,selected.worldRecipePath):resolve(data,'world/build-input.json');
+  const seed=selected?structuredClone(selected.worldRecipe):JSON.parse(readFileSync(seedPath,'utf8'));
   if (manifestOverride && check) throw new Error('Cannot override build input in --check mode');
   if (manifestOverride) seed.legacyPreviewManifest = assertDataPath(manifestOverride);
   const legacy = JSON.parse(readData(seed.legacyPreviewManifest));
@@ -93,7 +95,7 @@ export function publishWorldBundle({ root, check = false, manifestOverride = nul
   const original = {};
   for (const role of Object.keys(ROLES)) original[role] = readData(legacy.assets?.[role]?.url);
   const bundle = bundleDescriptor({ seed, legacy, assets: original, sourceBytes });
-  const currentPath = resolve(data, 'world/current.json');
+  const currentPath = selected ? resolve(root,selected.catalogs.world) : resolve(data,'world/current.json');
   // A metadata-only world publication must not discard the prepared Viewer
   // derivative. Its exact geometry/hierarchy identity is checked by its loader.
   const previous = existsSync(currentPath) ? JSON.parse(readFileSync(currentPath, 'utf8')) : null;
@@ -142,7 +144,8 @@ if (invoked) {
   const check = process.argv.includes('--check');
   const arg = process.argv.find(value => value.startsWith('--source-manifest='));
   try {
-    const result = publishWorldBundle({ root, check, manifestOverride: arg?.slice('--source-manifest='.length) || null });
+    const projectId=process.argv.find(value=>value.startsWith('--project='))?.slice('--project='.length)||'default-world';
+    const result = publishWorldBundle({ root, projectId, check, manifestOverride: arg?.slice('--source-manifest='.length) || null });
     console.log(JSON.stringify({ mode: check ? 'check' : 'build', worldDataVersion: result.bundle.source.sha256,
       assets: result.validatedAssets, programVersionDependency: false }));
   } catch (error) {

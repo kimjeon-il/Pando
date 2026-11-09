@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {readProjectGenerationContext,validateProjectGenerationInputs}
+import {readProjectGenerationContext,readProjectWorldGenerationContext,validateProjectGenerationInputs}
  from '../../../tools/build/project-generation-context.mjs';
 import {collectRuntimeDataAssets} from '../../../src/data/runtime-manifest-assets.js';
 import {mapProjectResourcePaths} from '../../../src/data/map-project-manifest.js';
@@ -68,4 +68,38 @@ test('project Viewer closure excludes private authoring inputs and retains pinne
  assert.equal(selected.has(context.catalogs.preparedMeshes),true);
  assert.equal(selected.has(hydroPayload),true);
  assert.equal(selected.has(landPayload),true);
+});
+
+test('world generators select the same project source recipe and reject cross-project output aliases',()=>{
+ const manifest=JSON.parse(readFileSync(new URL('../../../projects/default-world/manifest.json',import.meta.url)));
+ const generation=JSON.parse(readFileSync(new URL('../../../projects/default-world/generation-inputs.json',import.meta.url)));
+ const projectId='alternate-world';
+ const altManifest={...manifest,projectId,resources:{...manifest.resources,
+   world:{catalog:'assets/data/alternate-world/current.json'}}};
+ const altGeneration={...generation,projectId,inputs:{...generation.inputs,
+   territorialCurrentWorld:'assets/data/alternate-world/current-world.geojson',
+   worldBuildRecipe:'assets/data/alternate-world/build-input.json'}};
+ const recipe={schema:'pandolab-world-build-input',schemaVersion:1,
+   canonicalSource:'alternate-world/current-world.geojson',
+   legacyPreviewManifest:'alternate-world/preview-v0.36.1.json'};
+ const inputs=new Map([
+  ['projects/alternate-world/manifest.json',JSON.stringify(altManifest)],
+  ['projects/alternate-world/generation-inputs.json',JSON.stringify(altGeneration)],
+  ['assets/data/alternate-world/build-input.json',JSON.stringify(recipe)],
+ ]);
+ const opts={projectId,readSource:path=>{
+   if(!inputs.has(path))throw Error('Unapproved generation input '+path);
+   return inputs.get(path);
+ }};
+ const selected=readProjectWorldGenerationContext(opts);
+ assert.equal(selected.projectId,projectId);
+ assert.equal(selected.catalogs.world,altManifest.resources.world.catalog);
+ assert.equal(selected.worldRecipe.canonicalSource,'alternate-world/current-world.geojson');
+ assert.equal(selected.worldRecipePath,altGeneration.inputs.worldBuildRecipe);
+ inputs.set(altGeneration.inputs.worldBuildRecipe,JSON.stringify({...recipe,
+   canonicalSource:'territorial-entities/generated/current-world.geojson'}));
+ assert.throws(()=>readProjectWorldGenerationContext(opts),/differs/);
+ inputs.set(altGeneration.inputs.worldBuildRecipe,JSON.stringify({...recipe,
+   legacyPreviewManifest:'world-preview-v0.36.1.json'}));
+ assert.throws(()=>readProjectWorldGenerationContext(opts),/project-owned/);
 });

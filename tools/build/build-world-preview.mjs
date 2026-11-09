@@ -6,6 +6,7 @@ import path from 'node:path';
 import vm from 'node:vm';
 import zlib from 'node:zlib';
 import { fileURLToPath } from 'node:url';
+import { readProjectWorldGenerationContext } from './project-generation-context.mjs';
 
 import { validateClippedGeometry as validateGeometry } from "../../src/geometry/geometry-validation.js";
 import { inspectCanonicalCountryPacket } from "../../src/rendering/canonical-country-packet.js";
@@ -19,20 +20,25 @@ import "./load-spherical-core.mjs";
 
 const toolDirectory = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(toolDirectory, '..', '..');
-const bundleSeed = JSON.parse(fs.readFileSync(path.join(projectRoot, 'assets/data/world/build-input.json'), 'utf8'));
+const projectId = process.argv.find(value=>value.startsWith('--project='))?.slice('--project='.length) || 'default-world';
+const context = readProjectWorldGenerationContext({root:projectRoot,projectId});
+const bundleSeed = context.worldRecipe;
 const legacyTag = /^world-preview-v(\d+\.\d+\.\d+)\.json$/.exec(bundleSeed.legacyPreviewManifest || '');
 if (!legacyTag) throw new Error('Invalid pinned world dataset output revision');
 const LEGACY_DATA_VERSION = legacyTag[1];
 const dataDirectory = path.join(projectRoot, 'assets', 'data');
 const legacySourceManifest = JSON.parse(fs.readFileSync(path.join(dataDirectory, bundleSeed.legacyPreviewManifest), 'utf8'));
 if (legacySourceManifest.version !== LEGACY_DATA_VERSION) throw new Error('Inconsistent pinned legacy world data revision');
-const sourcePath = path.join(dataDirectory, bundleSeed.canonicalSource);
+const sourcePath = path.resolve(projectRoot,context.source('territorialCurrentWorld'));
 const canonicalCountryPacketPath = path.join(dataDirectory, legacySourceManifest.assets.canonicalCountryPacket.url);
 const canonicalMeshPath = path.join(dataDirectory, legacySourceManifest.assets.canonicalMesh.url);
 const labelAnchorsPath = path.join(dataDirectory, legacySourceManifest.assets.labelAnchors.url);
 const previewCountriesPath = path.join(dataDirectory, legacySourceManifest.assets.previewCountries.url);
 const previewMeshPath = path.join(dataDirectory, legacySourceManifest.assets.previewMesh.url);
 const previewManifestPath = path.join(dataDirectory, bundleSeed.legacyPreviewManifest);
+if(projectId!=='default-world'&&Object.values(legacySourceManifest.assets)
+  .some(asset=>typeof asset?.url!=='string'||!asset.url.startsWith(projectId+'/')))
+  throw new TypeError('Nondefault project world assets must use a project-owned immutable output namespace');
 const checkOnly = process.argv.includes('--check');
 
 const MAX_COORDINATES = 120_000;
@@ -203,7 +209,7 @@ if (canonicalSource?.type !== 'FeatureCollection' || !canonicalSource.features?.
 
 const startedAt = performance.now();
 const preview = buildPreview(canonicalSource);
-const classified = classifyBuiltinCountries({ ...canonicalSource, features: canonicalSource.features.map(minimalFeature) }, { displayPolicy: loadBuiltinDisplayPolicy() });
+const classified = classifyBuiltinCountries({ ...canonicalSource, features: canonicalSource.features.map(minimalFeature) }, { displayPolicy: loadBuiltinDisplayPolicy(context.source('displayPolicy')) });
 const canonicalById = new Map(canonicalSource.features.map((feature, index) => [countryId(feature, String(index)), feature]));
 const classifiedById = new Map(classified.countries.features.map(feature => [String(feature.id), feature]));
 const defaultClassification = {
@@ -234,7 +240,7 @@ if (combinedCompressedBytes > MAX_COMPRESSED_BYTES) throw new Error(`미리보�
 
 const manifest = {
   version: LEGACY_DATA_VERSION,
-  source: 'territorial-entities/generated/current-world.geojson',
+  source: bundleSeed.canonicalSource,
   sourceSha256: sha256(canonicalBytes),
   defaultClassification,
   previewDerivation: 'canonical-topology-simplified',
@@ -253,11 +259,11 @@ const manifest = {
   countriesSha256: sha256(previewCountries),
   meshSha256: sha256(packedMesh.compressed),
   assets: {
-    previewCountries: { url: `countries-preview-v${LEGACY_DATA_VERSION}.geojson.gz`, encoding: 'gzip', compressedBytes: previewCountries.length, decodedBytes: previewJson.length, sha256: sha256(previewCountries) },
-    previewMesh: { url: `world-mesh-preview-v${LEGACY_DATA_VERSION}.bin.gz`, encoding: 'gzip', compressedBytes: packedMesh.compressed.length, decodedBytes: packedMesh.raw.length, sha256: sha256(packedMesh.compressed), header: meshHeader(packedMesh.raw) },
-    labelAnchors: { url: 'country-label-anchors-v0.10.1.json', encoding: 'identity', compressedBytes: labelAnchorBytes.length, decodedBytes: labelAnchorBytes.length, sha256: sha256(labelAnchorBytes) },
+    previewCountries: { url: legacySourceManifest.assets.previewCountries.url, encoding: 'gzip', compressedBytes: previewCountries.length, decodedBytes: previewJson.length, sha256: sha256(previewCountries) },
+    previewMesh: { url: legacySourceManifest.assets.previewMesh.url, encoding: 'gzip', compressedBytes: packedMesh.compressed.length, decodedBytes: packedMesh.raw.length, sha256: sha256(packedMesh.compressed), header: meshHeader(packedMesh.raw) },
+    labelAnchors: { url: legacySourceManifest.assets.labelAnchors.url, encoding: 'identity', compressedBytes: labelAnchorBytes.length, decodedBytes: labelAnchorBytes.length, sha256: sha256(labelAnchorBytes) },
     canonicalCountryPacket: {
-      url: `countries-canonical-v${LEGACY_DATA_VERSION}.pcg.gz`,
+      url: legacySourceManifest.assets.canonicalCountryPacket.url,
       encoding: 'gzip',
       compressedBytes: canonicalCountryPacket.length,
       decodedBytes: canonicalCountryPacketBuffer.byteLength,
