@@ -51,7 +51,7 @@ export async function startDevelopmentServer({repository=root,product='viewer',p
 
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
  const product=process.argv.find(a=>a.startsWith('--product='))?.slice(10);if(!product)throw Error('Specify --product=viewer');
- const projectId=process.argv.find(a=>a.startsWith('--project='))?.slice('--project='.length)||'default-world';
+ const projectId=process.argv.find(a=>a.startsWith('--project='))?.slice('--project='.length)??'default-world';
  const app=await startDevelopmentServer({product,projectId});
  for(const signal of ['SIGINT','SIGTERM'])process.once(signal,()=>app.close().then(()=>process.exit(0),error=>{console.error(error);process.exit(1);}));
  console.log('Frontend ready: '+product+' http://127.0.0.1:'+app.server.address().port);
