@@ -4,7 +4,7 @@ import {createTerritorialEntityStore} from "../../src/document/territorial-entit
 import {normalizeLayerPresentation} from "../../src/ui/layer-presentation.js";
 import {DISTRIBUTION_RENDER_MODES} from "../../src/document/distribution-model.js";
 import {createObjectQuery} from "../../src/document/object-query.js";
-import {normalizeObjectRef} from "../../src/ui/object-selection-controller.js";
+import {normalizeObjectRef} from "../../src/document/object-ref-identity.js";
 
 /** Real shared viewing owner over an accepted Core document; no model implementation in tests. */
 export function createTestViewingSession(owner){
