@@ -11,6 +11,7 @@ import {buildWorkerAsset} from './worker-assets.mjs';
 import {collectViewerAssets} from './product-assets.mjs';
 import {decodeArchiveEntry,libraryCheckout,libraryConfig} from "../../tools/data/library-context.mjs";
 import {createInitialLandPreviewAsset} from './initial-land-preview.mjs';
+import {validateMapCatalogCoherence} from './map-catalog-coherence.mjs';
 import {validateMapProjectManifest,mapProjectResourcePath,mapProjectResourcePaths,mapProjectManifestSourcePath}
   from '../../src/data/map-project-manifest.js';
 
@@ -94,12 +95,8 @@ export async function buildFrontendSnapshot({root=process.cwd(),sourceCommit,rea
  const resource=role=>mapProjectResourcePath(mapProject,role);
  const metadataPaths=mapProjectResourcePaths(mapProject);
  const metadata=Object.fromEntries(metadataPaths.map(path=>[path,JSON.parse(readPinnedData(path))]));
- const land=metadata[resource('physicalLand')],terrain=metadata[resource('terrain')];
- assert.equal(land.sourceSha256,terrain.sourceDem.landMaskSha256,'Land derivative must match pinned terrain');
- const hydro=metadata[resource('rivers')];
- if(hydro?.schema!=='pandolab-water-shards-v5'||typeof hydro.version!=='string'||!hydro.version||
-   !hydro.container?.url||!Array.isArray(hydro.shards))
-   throw new TypeError('Selected project Hydro catalog is not a supported immutable shard manifest');
+ const land=metadata[resource('physicalLand')];
+ const {hydroVersion}=validateMapCatalogCoherence(mapProject,metadata,path=>hash(readPinnedData(path)));
  const dataRevision='data-'+hash(JSON.stringify([mapProject.projectId,mapProject.resources,
    metadataPaths.map(path=>[path,stable(metadata[path])])])).slice(0,32);
  const initialLandPreview=createInitialLandPreviewAsset(readPinnedData(land.asset.url),land.asset);
@@ -112,7 +109,7 @@ export async function buildFrontendSnapshot({root=process.cwd(),sourceCommit,rea
    compressedBytes:projectBytes.length,decodedBytes:projectBytes.length,sha256:hash(projectBytes)};
  const builtinPath=resource('territorial'),preparedPath=resource('preparedMeshes');
  const buildMeta={appVersion,buildId,assetRevision,dataRevision,sourceCommit,dataCommit:pinned?.revision||null,...resourceProfile?{resourceProfile}:{},
-   mapProject,mapProjectManifest,hydroCatalogVersion:hydro.version,
+   mapProject,mapProjectManifest,hydroCatalogVersion:hydroVersion,
    worldBundle:{url:resource('world'),...dataIdentity(resource('world'))},
    builtinWorld:{url:builtinPath,...dataIdentity(builtinPath)},
    preparedPolygonMeshes:{url:preparedPath,...dataIdentity(preparedPath),
