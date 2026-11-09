@@ -1,0 +1,25 @@
+name: Focused stage 2 C++ country project regression
+on:
+  push:
+    branches: [work/map-project-stage2-core-check-20261109]
+    paths: [.github/workflows/stage2-focused-core-check.yml]
+permissions:
+  contents: read
+jobs:
+  core-project:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Confirm the existing actual C++/WASM artifact matches this checkout
+        run: node scripts/check-core-prerequisite.mjs
+      - name: Run only country project C++ admission, timeline and rollback regressions
+        run: node --test --test-concurrency=1 --test-timeout=15000 tests/unit/data/builtin-world-loader.test.mjs tests/unit/document/builtin-resource-core-wasm.test.mjs
