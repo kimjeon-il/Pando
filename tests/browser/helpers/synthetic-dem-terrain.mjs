@@ -1,5 +1,5 @@
 import {deflateSync} from 'node:zlib';
-import {TERRAIN_DEM_VERSION} from "../../../src/rendering/terrain-manifest.js";
+import {TERRAIN_DEM_VERSION} from "../../../src/data/terrain-manifest.js";
 
 const crc32=bytes=>{
   let value=0xffffffff;

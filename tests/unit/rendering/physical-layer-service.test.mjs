@@ -11,7 +11,7 @@ import * as __terrain_dep7 from "node:crypto";
 import * as __terrain_dep8 from "node:zlib";
 import * as __terrain_dep9 from "node:module";
 import * as __terrain_dep10 from "../../../tools/build/build-physical-land-mask.mjs";
-import * as __terrain_dep11 from "../../../src/rendering/terrain-manifest.js";
+import * as __terrain_dep11 from "../../../src/data/terrain-manifest.js";
 
 // Original feature contract: physical-layer-service.test.mjs
 contractSuite("physical-layer-service", () => {

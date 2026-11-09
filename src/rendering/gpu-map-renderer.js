@@ -64,7 +64,7 @@ const [{ drawGpuBaseScene }, { prepareGpuBaseScene, prepareGpuInteractionPlan, s
   import(`./gpu-scene-preparation.js?v=${encodeURIComponent(rendererAssetRevision)}`),
   import(`./gpu-stroke-renderer.js?v=${encodeURIComponent(rendererAssetRevision)}`),
   import(`./gpu-terrain-preparation.js?v=${encodeURIComponent(rendererAssetRevision)}`),
-  import(`./terrain-manifest.js?v=${encodeURIComponent(rendererAssetRevision)}`),
+  import(`../data/terrain-manifest.js?v=${encodeURIComponent(rendererAssetRevision)}`),
   import(`./workers/canvas-scene-composition-core.js?v=${encodeURIComponent(rendererAssetRevision)}`),
 ]);
 
