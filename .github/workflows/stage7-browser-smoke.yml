@@ -1,0 +1,100 @@
+name: Focused stage 7 Viewer browser resource regression (optional mesh cache)
+on:
+  push:
+    branches: [work/stage7-browser-smoke-recheck-20261109]
+    paths: [.github/workflows/stage7-browser-smoke.yml]
+permissions:
+  contents: write
+jobs:
+  browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 48
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '24'}
+      - id: install
+        continue-on-error: true
+        run: pnpm install --frozen-lockfile --ignore-scripts
+      - id: library
+        if: steps.install.outcome == 'success'
+        continue-on-error: true
+        uses: ./.github/actions/library-data
+      - id: core-check
+        if: steps.install.outcome == 'success'
+        continue-on-error: true
+        run: node scripts/check-core-prerequisite.mjs
+      - uses: jwlawson/actions-setup-cmake@v2
+        if: steps.core-check.outcome == 'failure'
+        with: {cmake-version: 3.31.6}
+      - uses: actions/checkout@v4
+        if: steps.core-check.outcome == 'failure'
+        with:
+          repository: emscripten-core/emsdk
+          ref: db04e88298d9916fc51fcd3743045ca3eb695127
+          path: build-native/emsdk
+          persist-credentials: false
+      - id: core-rebuild
+        if: steps.core-check.outcome == 'failure'
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          build-native/emsdk/emsdk install 6.0.3
+          build-native/emsdk/emsdk activate 6.0.3
+          source build-native/emsdk/emsdk_env.sh
+          port_file=build-native/emsdk/upstream/emscripten/tools/ports/zlib.py
+          original='https://github.com/madler/zlib/archive/refs/tags/v{VERSION}.tar.gz'
+          canonical='https://codeload.github.com/madler/zlib/tar.gz/refs/tags/v{VERSION}'
+          grep -Fq "$original" "$port_file"
+          sed -i "s|$original|$canonical|" "$port_file"
+          node --input-type=module <<'NODE'
+          import {readFileSync,writeFileSync} from 'node:fs';
+          const file='build-native/emsdk/upstream/emscripten/tools/ports/__init__.py';
+          const input=readFileSync(file,'utf8');
+          const old="    ext = url_filename.split('.', 1)[1]";
+          if(input.split(old).length!==2)throw Error('Unexpected pinned Emscripten port loader');
+          const next="    ext = 'tar.gz' if name == 'zlib' and url.startswith('https://codeload.github.com/madler/zlib/tar.gz/refs/tags/v') else url_filename.split('.', 1)[1]";
+          writeFileSync(file,input.replace(old,next));
+          NODE
+          emcmake cmake --preset pando-wasm
+          cmake --build --preset pando-wasm --parallel 2
+          node tools/build/package-shared-core-assets.mjs --build-dir build-native/p1/pando-wasm/shared/wasm
+          node scripts/check-core-prerequisite.mjs
+      - id: browser-install
+        if: steps.library.outcome == 'success' && (steps.core-check.outcome == 'success' || steps.core-rebuild.outcome == 'success')
+        continue-on-error: true
+        run: pnpm exec playwright install --with-deps chromium
+      - id: browser
+        if: steps.browser-install.outcome == 'success'
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm exec playwright test \
+            tests/browser/document/viewer-calendar.spec.mjs \
+            tests/browser/document/viewer-project-open.spec.mjs \
+            --workers=1 --grep 'builtin country loading follows calendar rollover|P4-4 actual country birth and extinction|viewer opens the real editor GeoPackage' \
+            2>&1 | tee "$RUNNER_TEMP/stage7-browser.log"
+      - name: Record selected browser outcomes outside data mounts
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs=require('fs'),filename=process.env.RUNNER_TEMP+'/stage7-browser.log';
+            const result={sourceCommit:context.sha,install:'${{ steps.install.outcome }}',
+              library:'${{ steps.library.outcome }}',coreCheck:'${{ steps.core-check.outcome }}',
+              rebuilt:'${{ steps.core-rebuild.outcome }}',browserInstall:'${{ steps.browser-install.outcome }}',
+              browser:'${{ steps.browser.outcome }}',
+              output:fs.existsSync(filename)?fs.readFileSync(filename,'utf8').slice(-30000):'not executed'};
+            const path='validation-results/stage7-browser-smoke.json',branch=context.ref.replace('refs/heads/','');
+            let sha;try{sha=(await github.rest.repos.getContent({owner:context.repo.owner,repo:context.repo.repo,path,ref:branch})).data.sha}
+            catch(e){if(e.status!==404)throw e;}
+            await github.rest.repos.createOrUpdateFileContents({owner:context.repo.owner,repo:context.repo.repo,
+              path,branch,...(sha?{sha}:{}),content:Buffer.from(JSON.stringify(result,null,2)+'\n').toString('base64'),
+              message:'test: retain bounded browser loading and project transition evidence'});
+      - name: Require actual Viewer browser verification
+        if: always()
+        run: test '${{ steps.browser.outcome }}' = success
