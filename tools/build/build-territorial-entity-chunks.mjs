@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
 import {selectTerritorialChunkBytes} from '../data/territorial-chunk-compression.mjs';
-import {selectTerritorialChunkSource} from '../data/territorial-metadata-projection.mjs';
+import {selectTerritorialChunkSource,assertIndexedTerritorialChunk} from '../data/territorial-metadata-projection.mjs';
 import {readProjectGenerationContext} from './project-generation-context.mjs';
 import {encodeTerritorialSource} from '../data/territorial-source-codec.mjs';
 import {territorialSourceLayout} from '../../src/data/territorial-source-format.js';
@@ -76,6 +76,7 @@ const index={schemaVersion:2,lineages:previous?.lineages||readTerritorialLineage
  const file=`${entityFileName(entity.entityId)}.gz`;expectedFiles.add(file);
  const destination=path.join(output,file);
  const previous=fs.existsSync(destination)?fs.readFileSync(destination):null;
+ assertIndexedTerritorialChunk(priorRows.get(entity.entityId),previous);
  const {stored,changed}=selectTerritorialChunkBytes(bytes,previous);
  if(check&&changed)throw new Error(`Stale territorial chunk: ${file}`);
  if(!check&&changed)writeLibraryOutput(destination,stored);

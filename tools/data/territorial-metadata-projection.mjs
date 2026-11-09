@@ -1,3 +1,4 @@
+import {createHash} from 'node:crypto';
 import {validateTerritorialSourceGeometry,territorialSourceLayout}
   from '../../src/data/territorial-source-format.js';
 
@@ -40,4 +41,13 @@ export function selectTerritorialChunkSource(descriptor,previous,readFull){
  if(!rebuilt?.descriptor||!rebuilt.entity||!Array.isArray(rebuilt.entity.geometryVersions))
    throw new TypeError('Full source reader must return a complete geometry owner');
  return Object.freeze({...rebuilt,verifiedGeometryBounds:null,readsGeometry:true});
+}
+
+/** A metadata-only rebuild must have a verified previous descriptor receipt.
+ * The large immutable geometry remains referenced by its prior content hash. */
+export function assertIndexedTerritorialChunk(previous,stored){
+ if(previous==null)return;
+ if(!Buffer.isBuffer(stored)||stored.length!==previous.compressedBytes
+   ||createHash('sha256').update(stored).digest('hex')!==previous.sha256)
+   throw new Error('Previous territorial descriptor does not match its pinned index');
 }

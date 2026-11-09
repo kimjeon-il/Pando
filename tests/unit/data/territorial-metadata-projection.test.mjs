@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {gzipSync,gunzipSync} from 'node:zlib';
-import {metadataOnlyTerritorialProjection,selectTerritorialChunkSource} from '../../../tools/data/territorial-metadata-projection.mjs';
+import {metadataOnlyTerritorialProjection,selectTerritorialChunkSource,assertIndexedTerritorialChunk} from '../../../tools/data/territorial-metadata-projection.mjs';
 import {selectTerritorialChunkBytes} from '../../../tools/data/territorial-chunk-compression.mjs';
 import {territorialIndexEntry} from '../../../tools/gis/territorial-index-entry.js';
 
@@ -63,4 +63,12 @@ test('production chunk selector never decodes coordinates on metadata-only chang
  });
  assert.equal(reads,1);assert.equal(rebuilt.readsGeometry,true);
  assert.equal(rebuilt.verifiedGeometryBounds,null);
+});
+
+test('previous descriptor hash must be verified before reusing geometry projection',()=>{
+ const bytes=Buffer.from('pinned compressed metadata'),prior={
+  ...previous(),compressedBytes:bytes.length,sha256:sha(bytes)};
+ assert.doesNotThrow(()=>assertIndexedTerritorialChunk(prior,bytes));
+ assert.throws(()=>assertIndexedTerritorialChunk(prior,Buffer.from('tampered metadata')),/pinned index/);
+ assert.throws(()=>assertIndexedTerritorialChunk(prior,null),/pinned index/);
 });
