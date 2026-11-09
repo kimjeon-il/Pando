@@ -1597,7 +1597,8 @@
         "tests/unit/geometry/map-geometry-validation.test.mjs",
         "tests/unit/rendering/country-mesh-preparation.test.mjs",
         "tests/unit/geometry/polygon-canonical-storage.test.mjs",
-        "tests/unit/document/core-geometry-resources-wasm.test.mjs"
+        "tests/unit/document/core-geometry-resources-wasm.test.mjs",
+        "tests/unit/rendering/prepared-country-scene.test.mjs"
       ],
       "requires": [
         "core-assets"

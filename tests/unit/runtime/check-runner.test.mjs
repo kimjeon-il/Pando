@@ -451,3 +451,37 @@ test('exact unit prerequisite exclusion moves only the canonical resource check 
   assert.throws(()=>loadRepository(root,{catalog:invalid,libraryFiles:{}}),/Invalid unit prerequisite exclusion/);
  }
 });
+
+
+test('prepared scene verification pins only its exact Core assets and blocks a source-WASM mismatch',async()=>{
+  const {repository}=await canonicalStorageVerificationFixture();
+  const {matchesPattern}=await import('../../../scripts/plan-application-checks.mjs');
+  const file='tests/unit/rendering/prepared-country-scene.test.mjs';
+  const owner=repository.catalog.groups.find(group=>group.testPatterns?.some(pattern=>matchesPattern(file,pattern)));
+  assert.ok(owner);repository.tests.push(file);repository.owners.set(file,owner);
+  repository.unitRequirements.set(file,new Set([...(owner.requires||[]),...repository.catalog.unitPrerequisites.filter(binding=>
+    binding.tests.some(pattern=>matchesPattern(file,pattern))&&!binding.excludeTests?.includes(file)).flatMap(binding=>binding.requires)]));
+  const plan=runner.exactCheckPlan(repository,{unitTests:[file],browserSpecs:[],commands:[],prerequisites:[]});
+  assert.deepEqual(plan.unitTests,[file]);assert.deepEqual(plan.commands,[]);
+  assert.deepEqual(plan.prerequisites,['core-assets']);
+  assert.deepEqual(plan.unitTestPrerequisites[file],['core-assets']);
+  assert.deepEqual(executionOutputs(plan,{repository,phase:'non-browser'}).native_requirements,[]);
+  assert.equal(repository.catalog.prerequisites.core.env,undefined);
+  for(const mismatch of [false,true]) {
+    const calls=[];const result=executeCiPlan(plan,{repository,phase:'non-browser',
+      environment:{GITHUB_ACTIONS:'true',PANDOEDITOR_WASM_MODULE:'/stale/core.js'},
+      run:(argv,options)=>{calls.push({argv,env:options.env});return{status:mismatch&&argv.includes('scripts/check-core-prerequisite.mjs')?1:0};}});
+    assert.equal(result.ok,!mismatch);
+    const checker=calls.filter(row=>row.argv.includes('scripts/check-core-prerequisite.mjs'));
+    assert.equal(checker.length,1);assert.equal(checker[0].env.PANDOEDITOR_WASM_MODULE,'/fixture/assets/wasm/pandoeditor-core.js');
+    const execution=calls.find(row=>row.argv.includes(file));
+    if(mismatch) {
+      assert.equal(execution,undefined);
+      assert.ok(result.results.some(row=>row.id==='core-assets'&&row.status==='failed'));
+      assert.ok(result.results.some(row=>row.id==='unit'&&row.status==='blocked'&&row.files?.includes(file)));
+    } else {
+      assert.ok(execution);assert.equal(execution.env.PANDOEDITOR_WASM_MODULE,'/fixture/assets/wasm/pandoeditor-core.js');
+      assert.ok(calls.indexOf(checker[0])<calls.indexOf(execution));
+    }
+  }
+});

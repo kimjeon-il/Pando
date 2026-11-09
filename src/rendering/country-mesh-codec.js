@@ -1,5 +1,5 @@
 // Revision 6 preserves exact nonzero native fill; the packed v2 layout is unchanged.
-const MESH_ALGORITHM_REVISION = 6;
+export const MESH_ALGORITHM_REVISION = 6;
 
 export function decodeCountryMesh(buffer, ids = []) {
   if (!(buffer instanceof ArrayBuffer) || buffer.byteLength < 32) throw new Error("Invalid country mesh buffer");
