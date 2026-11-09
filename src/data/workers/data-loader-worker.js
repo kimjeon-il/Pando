@@ -278,7 +278,19 @@ async function loadBuiltinMeshOnly(sceneIdentity) {
     throw new Error('The pinned world has no prepared country scene');
   }
   if(key!==preparedCountrySceneKey(spec.identity)){self.postMessage({type:'builtin-mesh-miss'});return;}
-  const result=await loadAsset(spec,'mesh','builtin-scene','사전 계산 지도',buffer=>decodePreparedCountryScene(buffer,sceneIdentity));
+  let result;
+  try {
+    result=await loadAsset(spec,'mesh','builtin-scene','사전 계산 지도',
+      buffer=>decodePreparedCountryScene(buffer,sceneIdentity));
+  } catch(error) {
+    // Only a source-verified but obsolete *descriptor* may miss the cache.
+    // Load-time hash failures and other invalid assets still fail closed.
+    if(error?.message==='Invalid prepared country scene descriptor'){
+      self.postMessage({type:'builtin-mesh-miss',reason:'incompatible-prepared-descriptor'});
+      return;
+    }
+    throw error;
+  }
   const scene=result.value, buffers=new Set();
   const collect=value=>{
     if(value instanceof ArrayBuffer)buffers.add(value);
