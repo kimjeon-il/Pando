@@ -12,6 +12,7 @@ import {territorialIndexEntry} from '../../../tools/gis/territorial-index-entry.
 import {historicalWorldCases} from '../../fixtures/historical-world-cases.mjs';
 import {withExplicitView} from '../../helpers/builtin-world.mjs';
 import {readTerritorialSource} from '../../../tools/data/territorial-entity-sources.mjs';
+import {encodeTerritorialSource} from '../../../tools/data/territorial-source-codec.mjs';
 import {normalizeTerritorialLibraryEntity} from '../../../tools/gis/territorial-library.js';
 
 const fixture=()=>withExplicitView(historicalWorldCases());
@@ -93,8 +94,16 @@ function pairedSourceFixture(t){
  const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
  const sourceIndex={entities:[territorialIndexEntry(entity,{sha256:sha(stored),compressedBytes:stored.length,decodedBytes:decoded.length})]};
  const sourceFile=path.join(sourceRoot,'countries/state-test.json'),chunkFile=path.join(chunkRoot,sourceIndex.entities[0].file);
- fs.writeFileSync(sourceFile,JSON.stringify(raw));fs.writeFileSync(chunkFile,stored);
- return {raw,entity,sourceIndex,sourceFile,chunkFile,stored,load:()=>readTerritorialSource('state:test',sourceRoot,{sourceIndex,chunkRoot})};
+ const writeSource=()=>{
+  const {descriptor,geometries}=encodeTerritorialSource(raw);
+  for(const [file,bytes]of geometries){
+   const destination=path.join(sourceRoot,file);
+   fs.mkdirSync(path.dirname(destination),{recursive:true});fs.writeFileSync(destination,bytes);
+  }
+  fs.writeFileSync(sourceFile,JSON.stringify(descriptor));
+ };
+ writeSource();fs.writeFileSync(chunkFile,stored);
+ return {raw,entity,sourceIndex,writeSource,chunkFile,stored,load:()=>readTerritorialSource('state:test',sourceRoot,{sourceIndex,chunkRoot})};
 }
 
 test('indexed source read preserves valid stored gzip identity without recompression',t=>{
@@ -115,7 +124,7 @@ test('indexed source read rejects corrupted stored bytes and raw source changes 
  const f=pairedSourceFixture(t);fs.appendFileSync(f.chunkFile,'corrupt');
  assert.throws(f.load,/Territorial source chunk hash mismatch: state:test/);
  fs.writeFileSync(f.chunkFile,f.stored);f.raw.geometryVersions[0].geometry.coordinates[0][1][0]=0.75;
- fs.writeFileSync(f.sourceFile,JSON.stringify(f.raw));
+ f.writeSource();
  assert.throws(f.load,/Territorial source\/chunk mismatch: state:test/);
 });
 

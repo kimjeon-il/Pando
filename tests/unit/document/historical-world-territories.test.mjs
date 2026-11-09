@@ -395,10 +395,11 @@ test('large component differences use disjoint-subject sweeps and preserve repea
 
 test('large historical multi-polygon differences partition independent components without changing topology',()=>{
   const boxAt=(left,right,y=0)=>({type:'Polygon',coordinates:[[[left,y],[right,y],[right,y+2],[left,y+2],[left,y]]]});
+  // Keep the planar baseline in the same longitude strip as wrapped inputs.
   const root={entityId:'root',geometry:{type:'MultiPolygon',
-    coordinates:Array.from({length:20},(_,i)=>boxAt(i*10,i*10+6).coordinates)},
+    coordinates:Array.from({length:20},(_,i)=>boxAt(i*10-100,i*10-94).coordinates)},
     parentId:'',validFrom:'1990-01-01',validTo:'1999-12-31',currentSnapshot:false};
-  const peer={...candidate('peer',5,12),validFrom:'1990-01-01',validTo:'1999-12-31'};
+  const peer={...candidate('peer',-95,-88),validFrom:'1990-01-01',validTo:'1999-12-31'};
   const wrap=(geometry)=>geometry.type==='Polygon'?[geometry.coordinates]:geometry.coordinates;
   const baseline=globalThis.polygonClipping.difference(wrap(root.geometry),wrap(peer.geometry));
   const operations=[],clipper={
@@ -493,7 +494,8 @@ test('native historical subtraction retains exact near-collinear source vertices
 });
 
 test('disjoint historical islands bypass the Boolean engine without any coordinate copy',()=>{
-  const boxAt=(west,east)=>[[[west,0],[east,0],[east,2],[west,2],[west,0]]];
+  // Untouched components already have the canonical spherical shell winding.
+  const boxAt=(west,east)=>[[[west,0],[west,2],[east,2],[east,0],[west,0]]];
   const pieces=Array.from({length:18},(_,i)=>boxAt(i*10,i*10+5));
   const subject={...candidate('subject',0,1),geometry:{type:'MultiPolygon',coordinates:pieces}};
   const cutter={...candidate('cutter',0,1),geometry:{type:'Polygon',coordinates:boxAt(0.5,1.5)}};
