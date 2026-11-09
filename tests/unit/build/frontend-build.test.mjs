@@ -128,3 +128,36 @@ test('prepared mesh input fingerprints reject cross-project territories or physi
  f.metadata[mesh].inputHashes[land]='0'.repeat(64);
  await assert.rejects(buildFrontendSnapshot(f.options),/prepared meshes do not match selected physicalLand/);
 });
+
+
+test('changing default-world geography, terrain and mesh catalogs requires no Viewer source changes',async t=>{
+ const f=fixture(t),source=JSON.parse(readFileSync(join(f.root,'projects/default-world/manifest.json'),'utf8'));
+ const redirected={
+  world:'assets/data/world/alternate.json',
+  territorial:'assets/data/builtin-world/alternate/index.json',
+  physicalLand:'assets/data/physical-land/alternate/manifest.json',
+  terrain:'assets/data/terrain-preview/alternate/manifest.json',
+  preparedMeshes:'assets/data/prepared-polygons/alternate/manifest.json',
+ };
+ const meta=f.metadata;
+ for(const [role,path] of Object.entries(redirected))
+   meta[path]=structuredClone(meta[source.resources[role].catalog]);
+ const mesh=meta[redirected.preparedMeshes];
+ mesh.inputHashes={
+  [redirected.territorial]:createHash('sha256').update(JSON.stringify(meta[redirected.territorial])).digest('hex'),
+  [redirected.physicalLand]:createHash('sha256').update(JSON.stringify(meta[redirected.physicalLand])).digest('hex'),
+ };
+ f.put('projects/default-world/manifest.json',JSON.stringify({
+  ...source,resources:Object.fromEntries(Object.entries(source.resources).map(([role,entry])=>
+   [role,{catalog:redirected[role]||entry.catalog}])),
+ }));
+ const output=await buildFrontendSnapshot({...f.options,dataPaths:Object.keys(meta)});
+ for(const [role,path] of Object.entries(redirected)){
+  assert.equal(output.buildMeta.projectCatalogs[role].catalog,path);
+  assert.ok(output.viewerPaths.has(path));
+  assert.equal(output.viewerPaths.has(source.resources[role].catalog),false);
+ }
+ assert.equal(Object.hasOwn(output.buildMeta,'preparedPolygonMeshes'),false);
+ assert.equal(Object.hasOwn(output.buildMeta,'worldBundle'),false);
+ assert.equal(Object.hasOwn(output.buildMeta,'physicalWaterObjects'),false);
+});
