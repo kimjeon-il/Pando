@@ -1,5 +1,6 @@
 #include <pandoeditor/sphericalpolygon.h>
 #include <pandoeditor/exactplanar.h>
+#include <pandoeditor/geometrypredicates.h>
 #include "../../tests/native/geometry/fixtures/clipped-positive-rings.h"
 #include <limits>
 #include <set>
@@ -23,6 +24,36 @@ void rejected(const Geometry& geometry) {
     assert(caught);
 }
 void checkExactClipped() {
+    // Zero-length steps do not change a boundary. Keep the stored coordinates,
+    // but use cyclic adjacency of nonzero edges for generated topology checks.
+    const Ring repeated{{0,0},{0,0},{0,2},{0,2},{2,2},{2,0},{0,0},{0,0}};
+    assert(!validateTerritorialRing(repeated).empty()); // source remains strict
+    for(std::size_t rotation=0;rotation+1<repeated.size();++rotation) {
+        Ring ring(repeated.begin(),repeated.end()-1);
+        std::rotate(ring.begin(),ring.begin()+rotation,ring.end());ring.push_back(ring.front());
+        const auto input=polygon({ring});
+        assert(validateClippedTerritorialRing(ring).empty());
+        assert(validateClippedGisGeometry(input.polygons));
+        const auto normalized=normalizeClippedSphericalPolygonGeometry(input);
+        assert(normalized.polygons[0][0].size()==ring.size());
+        for(std::size_t i=0;i<ring.size();++i)assert(exactplanar::equal(normalized.polygons[0][0][i],ring[i]));
+    }
+    // A distinct collinear point must survive, even one representable step away.
+    const auto next=std::nextafter(1.,2.);
+    const Ring near{{0,0},{0,2},{2,2},{2,0},{next,0},{1,0},{0,0}};
+    const auto normalizedNear=normalizeClippedSphericalPolygonGeometry(polygon({near}));
+    assert(normalizedNear.polygons[0][0].size()==near.size());
+    for(std::size_t i=0;i<near.size();++i)assert(exactplanar::equal(normalizedNear.polygons[0][0][i],near[i]));
+    for(const auto& ring:std::vector<Ring>{
+        {{0,0},{0,0},{0,0},{0,0}},
+        {{0,0},{0,0},{1,0},{1,0},{0,0}},
+        {{0,0},{2,0},{2,0},{0,0},{0,2},{2,2},{0,0}},
+        {{0,0},{0,0},{3,2},{0,2},{2,0},{0,0}}
+    })assert(!validateClippedTerritorialRing(ring).empty());
+    // Diagnostics still name the original outgoing segment after a zero step.
+    const auto issue=exactplanar::ringIssue({{0,0},{0,0},{2,0},{1,0},{1,1},{0,0}});
+    assert(issue&&issue->coordinateIndex==2&&issue->segmentIndex==1);
+
     // Predicate sign must not underflow, overflow, or depend on long double.
     exactplanar::ProductSum tiny;tiny.add(std::numeric_limits<double>::denorm_min(),std::numeric_limits<double>::denorm_min());
     assert(tiny.sign()==1);

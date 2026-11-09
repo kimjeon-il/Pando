@@ -164,7 +164,7 @@ std::vector<Geometry> invalidCanonicalGeometries() {
         clippedPolygon({{0,0},{1,0},{2,0},{0,0}}), // exact zero
         clippedPolygon({{0,0},{4,3},{0,3},{3,0},{0,0}}), // crossing, nonzero signed area
         clippedPolygon({{0,0},{3,0},{3,3},{3,0},{0,3},{0,0}}), // retraced edge
-        clippedPolygon({{0,0},{3,0},{3,0},{0,3},{0,0}}), // adjacent duplicate
+        clippedPolygon({{0,0},{0,0},{0,0},{0,0}}), // no nonzero boundary
         clippedPolygon({{0,0},{3,0},{0,3},{1,1}}) // open
     };
     auto invalid=clippedPolygon({{0,0},{3,0},{0,3},{0,0}});
@@ -175,6 +175,10 @@ std::vector<Geometry> invalidCanonicalGeometries() {
     return result;
 }
 void canonicalGeometryStoreContracts() {
+    const auto repeated=clippedPolygon({{0,0},{0,0},{0,3},{3,3},{3,3},{3,0},{0,0},{0,0}});
+    GeometryStore zeroEdges;zeroEdges.insertCanonical({"zero-edges",1},repeated);
+    assert(sameGeometryValue(*zeroEdges.get({"zero-edges",1}),repeated));
+
     const auto rings=currentClippedPositiveRings();assert(rings.size()==14);
     // Positions correspond to captured componentIndex 3,6,9,24,26,40.
     const std::vector<std::size_t> oldSourceRejected{1,2,5,8,9,11};
@@ -239,7 +243,8 @@ codecjson::Value canonicalStoredInput(const std::string& seed,const Geometry& ge
 void canonicalStoredSessionContracts(const std::string& seed) {
     using V=codecjson::Value;
     const projectcodec::PlatformPorts ports{[](const std::string&){},true,codecjson::ParsedTextPolicy::PreserveUtf16};
-    const auto mixed=ordinaryAndCurrentClipped();auto root=canonicalStoredInput(seed,mixed);
+    auto mixed=ordinaryAndCurrentClipped();
+    mixed.polygons.front().front().insert(mixed.polygons.front().front().begin()+1,mixed.polygons.front().front().front());auto root=canonicalStoredInput(seed,mixed);
     // A distinct inline geometry forces the real project codec's retain boundary.
     auto inlineGeometry=mixed;for(auto& polygon:inlineGeometry.polygons)for(auto& ring:polygon)std::reverse(ring.begin(),ring.end());
     auto generic=codecjson::parse(R"({"type":"Feature","id":"22000000-0000-4000-8000-000000000019","properties":{"schemaVersion":2,"name":"Canonical inline","notes":"","color":"#8c68d8","locked":false,"source":{}}})");

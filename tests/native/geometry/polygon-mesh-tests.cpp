@@ -43,6 +43,21 @@ void check(const PolygonFillMesh& mesh,double expectedArea=0) {
 }
 }
 int main() {
+    const Polygon ordinary{{{0,0},{0,2},{2,2},{2,0},{0,0}},{{.5,.5},{1.5,.5},{1.5,1.5},{.5,1.5},{.5,.5}}};
+    auto repeated=ordinary;
+    for(auto& ring:repeated) {ring.insert(ring.begin()+1,ring.front());ring.push_back(ring.back());}
+    const auto before=repeated;
+    const auto plainMesh=buildPolygonFillMesh(ordinary),repeatedMesh=buildPolygonFillMesh(repeated);
+    assert(plainMesh.geographic==repeatedMesh.geographic&&plainMesh.parameter==repeatedMesh.parameter);
+    assert(plainMesh.triangles==repeatedMesh.triangles&&plainMesh.sourceRingOffsets==repeatedMesh.sourceRingOffsets);
+    assert(plainMesh.boundaryChains.size()==repeatedMesh.boundaryChains.size());
+    for(std::size_t i=0;i<plainMesh.boundaryChains.size();++i) {
+        assert(plainMesh.boundaryChains[i].vertices==repeatedMesh.boundaryChains[i].vertices);
+        assert(plainMesh.boundaryChains[i].visible==repeatedMesh.boundaryChains[i].visible);
+    }
+    for(std::size_t r=0;r<repeated.size();++r)for(std::size_t i=0;i<repeated[r].size();++i)
+        assert(exactplanar::equal(before[r][i],repeated[r][i]));
+
     for(const auto& captured:allClippedPositiveRings())for(unsigned reversed=0;reversed<2;++reversed)
     for(std::size_t rotation=0;rotation+1<captured.size();++rotation) {
         Ring variant(captured.begin(),captured.end()-1);

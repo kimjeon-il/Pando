@@ -117,3 +117,17 @@ test('storage reuse cannot substitute a caller-owned mutable geometry for the ad
   mutable.coordinates[0][0][0]=99;assert.deepEqual(store.get(ref),value);
  }
 });
+
+test('canonical store preserves exact zero-edge JSON, reference, digest and restored identity',()=>{
+  const repeated=[[0,0],[0,0],[0,2],[2,2],[2,2],[2,0],[0,0],[0,0]];
+  const hole=[[.5,.5],[1.5,.5],[1.5,1.5],[.5,1.5],[.5,.5],[.5,.5]];
+  const value={type:'MultiPolygon',coordinates:[[repeated,hole],[...ordinary]]},before=JSON.stringify(value);
+  const store=canonical([{...ref,geojson:value}]);assert.equal(JSON.stringify(store.get(ref)),before);
+  assert.deepEqual(stores.geometryReferenceFor(store.get(ref)),ref);
+  const restored=canonical(JSON.parse(JSON.stringify(store.snapshot())));
+  assert.equal(JSON.stringify(restored.get(ref)),before);
+  assert.deepEqual(stores.geometryReferenceFor(restored.get(ref)),ref);
+  const records={schemaVersion:3,lifetimes:[],geometryBindings:[],parentRelations:[],propertyBindings:[]};
+  const roundtrip=restoreTimelineStorage(JSON.parse(JSON.stringify(snapshotTimelineStorage(records,store,[]))),[]);
+  assert.equal(JSON.stringify(roundtrip.geometries.get(ref)),before);assert.equal(JSON.stringify(value),before);
+});

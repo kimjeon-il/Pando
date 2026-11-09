@@ -92,16 +92,23 @@ inline std::optional<RingIssue> ringIssue(const Ring& ring) {
         if(!std::isfinite(ring[i].x)||!std::isfinite(ring[i].y))return RingIssue{"invalid-geometry",i,i};
     if(ring.size()<4)return RingIssue{"invalid-geometry",0,0};
     if(!equal(ring.front(),ring.back()))return RingIssue{"open-ring",ring.size()-1,ring.size()-2};
-    const auto n=ring.size()-1;
+    // A repeated consecutive coordinate contributes only a zero-length step.
+    // Validate the cyclic boundary of nonzero edges without rewriting its data.
+    // Keep original indices for diagnostics, including runs across ring closure.
+    std::vector<std::size_t> vertices;vertices.reserve(ring.size()-1);
+    for(std::size_t i=0;i+1<ring.size();++i)
+        if(!equal(ring[i],ring[i+1]))vertices.push_back(i);
+    const auto n=vertices.size();
+    if(n<3)return RingIssue{"invalid-geometry",0,0};
     for(std::size_t i=0;i<n;++i) {
-        if(equal(ring[i],ring[i+1]))return RingIssue{"duplicate-vertex",i+1,i};
-        const auto a=ring[(i+n-1)%n],b=ring[i],c=ring[(i+1)%n];
-        if(onSegment(c,a,b)||onSegment(a,b,c))return RingIssue{"self-intersection",i,(i+n-1)%n};
+        const auto previous=vertices[(i+n-1)%n],current=vertices[i],next=vertices[(i+1)%n];
+        const auto a=ring[previous],b=ring[current],c=ring[next];
+        if(onSegment(c,a,b)||onSegment(a,b,c))return RingIssue{"self-intersection",current,previous};
     }
     if(areaSign(ring)==0)return RingIssue{"zero-area",0,0};
     struct Segment {std::size_t index;Point a,b;double minX,maxX,minY,maxY;};
     std::vector<Segment> segments;segments.reserve(n);
-    for(std::size_t i=0;i<n;++i) {const auto a=ring[i],b=ring[i+1];
+    for(std::size_t i=0;i<n;++i) {const auto a=ring[vertices[i]],b=ring[vertices[(i+1)%n]];
         segments.push_back({i,a,b,std::min(a.x,b.x),std::max(a.x,b.x),std::min(a.y,b.y),std::max(a.y,b.y)});
     }
     std::stable_sort(segments.begin(),segments.end(),[](const auto& a,const auto& b){return a.minX<b.minX;});
@@ -112,7 +119,7 @@ inline std::optional<RingIssue> ringIssue(const Ring& ring) {
             const auto a=item.index,b=current.index;
             if((a>b?a-b:b-a)==1||(a==0&&b==n-1)||(b==0&&a==n-1)
                 ||item.maxY<current.minY||item.minY>current.maxY)continue;
-            if(intersects(item.a,item.b,current.a,current.b))return RingIssue{"self-intersection",a,a};
+            if(intersects(item.a,item.b,current.a,current.b))return RingIssue{"self-intersection",vertices[a],vertices[a]};
         }
         active.push_back(current);
     }
