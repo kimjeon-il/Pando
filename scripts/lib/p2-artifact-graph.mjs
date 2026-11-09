@@ -148,6 +148,19 @@ export function artifactGraph(root,{readGeneratedJson=p=>json(root,p)}={}) {
       f.provenance=provenance(json(root,manifest).sources);
     }
 
+    // A pinned Viewer release intentionally excludes GIS authoring inputs.
+    // Preserve and validate its immutable outputs; only an explicit request
+    // may attempt regeneration, where the missing source is a hard failure.
+    const retiredSourcePaths=new Set([
+      'assets/data/world/build-input.json',
+      'assets/data/builtin-world/display-policy-v1.json',
+      'assets/data/historical-world/policy.json',
+    ]);
+    if(existsSync(safePath(root,'assets/data/world/current.json'))&&
+      f.inputs.some(value=>typeof value==='string'&&retiredSourcePaths.has(value)&&!existsSync(inputPath(root,value)))){
+      f.manual=true;
+      f.blockedReason='GIS authoring inputs are absent from the pinned Viewer data snapshot; regenerate from a source-enabled GIS checkout';
+    }
     f.outputs=[...new Set(f.outputs)].sort();
     f.sources=moduleClosure(root,[...f.generate,...f.validate].filter(c=>c[0]==='node').map(c=>c[1]));
     return f;
