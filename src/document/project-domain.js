@@ -73,7 +73,8 @@ export function createProjectDomain({
     const identity=mapProjectDocumentIdentity(content.manifest,acceptedDocument);
     const scope=mapProjectResourceScope(content.manifest,{
       documentId:identity.documentId,dataRevision:content.dataRevision});
-    return Object.freeze({...identity,catalog:mapProjectResourcePath(content.manifest,content.manifest.document.sourceRole),
+    return Object.freeze({...identity,manifest:content.manifest,dataRevision:content.dataRevision,
+      catalog:mapProjectResourcePath(content.manifest,content.manifest.document.sourceRole),
       catalogSha256:content.catalogSha256,scope});
   };
   // The Viewer and imported files both query the accepted C++ temporal views.
