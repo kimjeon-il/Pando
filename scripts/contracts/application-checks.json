@@ -1333,6 +1333,48 @@
       "tests": [
         "tests/unit/runtime/check-runner.test.mjs"
       ]
+    },
+    {
+      "tests": [
+        "tests/unit/build/frontend-build.test.mjs"
+      ],
+      "inputs": [
+        "scripts/lib/map-catalog-coherence.mjs",
+        "src/data/map-project-manifest.js"
+      ]
+    },
+    {
+      "tests": [
+        "tests/unit/document/map-project-identity.test.mjs"
+      ],
+      "inputs": [
+        "src/data/map-project-identity.js",
+        "src/document/builtin-session.js",
+        "src/document/project-domain.js",
+        "src/data/native/src/projectcodec.cpp"
+      ]
+    },
+    {
+      "tests": [
+        "tests/unit/rendering/physical-layer-service.test.mjs",
+        "tests/unit/document/historical-physical-water.test.mjs"
+      ],
+      "inputs": [
+        "src/data/physical-water-model.js",
+        "src/data/physical-resources.js",
+        "src/rendering/physical-map-controller.js",
+        "src/rendering/physical-water-presentation.js",
+        "src/rendering/hydro-view-presentation.js"
+      ]
+    },
+    {
+      "tests": [
+        "tests/unit/runtime/workflow-check-ownership.test.mjs"
+      ],
+      "inputs": [
+        ".github/workflows/**",
+        "tools/checks/audit-workflow-check-owners.mjs"
+      ]
     }
   ],
   "runtimeBases": {},
