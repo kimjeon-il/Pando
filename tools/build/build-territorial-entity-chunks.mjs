@@ -86,7 +86,7 @@ const index={schemaVersion:2,lineages:previous?.lineages||readTerritorialLineage
  if(snapshot.schemaVersion!==1 || new Set(snapshot.entityRefs).size!==snapshot.entityRefs.length || snapshot.entityRefs.some(id=>!entities.some(e=>e.entityId===id)))throw new Error(`Invalid territorial snapshot: ${file}`);
  return snapshot;
  }),views:previous?.views||fs.readdirSync(path.join(sourceRoot,'views')).filter(f=>f.endsWith('.json')).sort()
-   .map(file=>JSON.parse(fs.readFileSync(path.join(territorialSourceRoot,'views',file),'utf8')))};
+   .map(file=>JSON.parse(fs.readFileSync(path.join(sourceRoot,'views',file),'utf8')))};
 if(previous){const updates=new Map(index.entities.map(row=>[row.entityId,row]));index.entities=previous.entities.map(row=>updates.get(row.entityId)||row);}
 if(!selected)for(const file of fs.readdirSync(output)) if(!expectedFiles.has(file) && !process.env.PANDOLAB_LIBRARY_SOURCE_ROOT)throw new Error(`Obsolete territorial output must be explicitly removed: ${file}`);
 // Regenerate the full index when a source geometry version changes. The index
