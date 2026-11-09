@@ -6,6 +6,7 @@ import {createBuiltinWorldLoader} from "../data/builtin-world-loader.js";
 import {deviceCurrentMonth} from "./builtin-month-clock.js";
 import {createBuiltinProjectSetup} from "./project-setup.js";
 import {mapProjectResourcePath} from "../data/map-project-manifest.js";
+import {mapProjectCatalogSpec} from "../data/map-project-runtime.js";
 import {mapProjectDocumentIdentity} from '../data/map-project-identity.js';
 /** BuiltinSession: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
@@ -30,10 +31,12 @@ export function createBuiltinSession({ builtinWorldLoader = null,buildMeta } = {
   const preparedSources=new WeakSet(),candidateIdentities=new WeakMap();
   const staleBuiltin=()=>Object.assign(new Error('Builtin source request was superseded'),
     {name:'AbortError',cancelled:true,code:'PL-CORE-STALE'});
+  const territorialSpec=()=>buildMeta?.projectCatalogs
+    ?mapProjectCatalogSpec(buildMeta,'territorial'):buildMeta?.builtinWorld||null;
   function currentSourceIdentity(){
-    const meta=buildMeta;
-    if(!meta?.dataRevision||!/^[a-f0-9]{64}$/.test(meta?.builtinWorld?.sha256||''))return null;
-    return JSON.stringify([meta.dataRevision,meta.builtinWorld.sha256,
+    const meta=buildMeta,spec=territorialSpec();
+    if(!meta?.dataRevision||!/^[a-f0-9]{64}$/.test(spec?.sha256||''))return null;
+    return JSON.stringify([meta.dataRevision,spec.sha256,
       meta.mapProjectManifest?.sha256||null,dependencies.platformConfigurationA.BASE_DATASET]);
   }
   function refreshSourceIdentity(){
@@ -73,10 +76,10 @@ export function createBuiltinSession({ builtinWorldLoader = null,buildMeta } = {
     if(disposed||!isCurrent())throw staleBuiltin();
     const identity=refreshSourceIdentity();
     if(!builtinWorldLoader){
-      const meta=buildMeta,spec=meta.builtinWorld;
+      const meta=buildMeta,spec=territorialSpec();
       const selected=meta.mapProject
-        ?mapProjectResourcePath(meta.mapProject,'territorial'):spec.url;
-      if(spec.url!==selected)throw new TypeError('Project territorial catalog differs from the pinned builtin resource');
+        ?mapProjectResourcePath(meta.mapProject,'territorial'):spec?.url;
+      if(spec?.url!==selected)throw new TypeError('Project territorial catalog differs from the pinned source receipt');
       builtinWorldLoader=createBuiltinWorldLoader({
         manifestUrl:new URL(selected,new URL('../../../',import.meta.url)).href,
         manifestSpec:spec,dataRevision:meta.dataRevision,
@@ -144,7 +147,7 @@ export function createBuiltinSession({ builtinWorldLoader = null,buildMeta } = {
       baseDataset:prepared.baseDataset,fingerprint:prepared.fingerprint};
     if(!isCurrent())throw staleBuiltin();
     const candidate=await domain.prepareTemporalBuiltin(facts,createBuiltinProjectSetup(month),{
-      dataRevision:buildMeta.dataRevision,manifestSha256:buildMeta.builtinWorld.sha256,
+      dataRevision:buildMeta.dataRevision,manifestSha256:territorialSpec().sha256,
       expectedGeneration:prepared.expectedGeneration,isCurrent,transition:false});
     if(!candidate||!isCurrent()){
       if(candidate?.kind==='temporal-candidate')await domain.discardTemporalBuiltin(candidate);
