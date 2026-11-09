@@ -115,3 +115,20 @@ test('boundary projection keeps non-native children and resolves independent set
   assert.equal(owner.renderCountryBoundaryStyle('HKG'), null);
 });
 });
+
+
+test('display-policy territory merges retain shape provenance and reject missing controllers', () => {
+  const first=source(),before=structuredClone(first);
+  const rule=[{sourceId:'BBB',controller:'AAA'}];
+  const merged=classifyBuiltinCountries(normalizeCountryCollection(first), {
+    displayPolicy:{...policy(),subunits:[],territoryMerges:rule},
+  }).countries;
+  assert.deepEqual(merged.features.map(feature=>feature.id), ['AAA','CCC']);
+  assert.equal(merged.features[0].geometry.type,'MultiPolygon');
+  assert.equal(merged.features[0].geometry.coordinates.length,2);
+  assert.deepEqual(first,before,'source geometry is never mutated by a display derivative');
+  assert.equal(merged.features[0].properties.metadata.builtinTerritoryDisplay.mergedSources[0].sourceId,'BBB');
+  assert.throws(()=>classifyBuiltinCountries(normalizeCountryCollection(first),{
+    displayPolicy:{...policy(),subunits:[],territoryMerges:[{sourceId:'BBB',controller:'missing'}]},
+  }), /대상 누락/);
+});
