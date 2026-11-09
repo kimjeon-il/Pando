@@ -1,0 +1,6 @@
+{
+  "sourceCommit": "d736e60818cff55522c4ef3e318eff21a34d8237",
+  "install": "success",
+  "syntax": "success",
+  "lint": "failure"
+}
