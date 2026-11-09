@@ -541,7 +541,12 @@ export function createProjectDomain({
           await restoreEditorSession(checkpoint.editor,rollbackGeneration);
           if(saveState && checkpoint.io)saveState.restore(checkpoint.io);
         }
-        catch (restoreError) { error.restoreError = restoreError; }
+        catch (restoreError) {
+          error.restoreError = restoreError;
+          // An irrecoverable rollback must not expose the prior content
+          // identity as though the C++ document had been restored.
+          activeContentProject = null;
+        }
       }
       if (replacementStarted) onReplacementError(error, reason);
     } finally {
