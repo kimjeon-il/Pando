@@ -1,4 +1,5 @@
 name: Focused map project 2-3 integration checks
+# Project switch search regression and preserved optimization terrain policy
 on:
   push:
     branches: [work/map-project-stage3-integrated-check-20261109]
