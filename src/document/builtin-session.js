@@ -3,7 +3,7 @@ import { geometryRevision } from "../geometry/geometry-versions.js";
 import { territorialSceneDisplayId } from "./builtin-subunits.js";
 import { territorialRootId } from "./territorial-units.js";
 import {createBuiltinWorldLoader} from "../data/builtin-world-loader.js";
-import {deviceCurrentMonth} from "./builtin-month-clock.js";
+import {deviceCurrentMonth} from "./calendar-month.js";
 import {createBuiltinProjectSetup} from "./project-setup.js";
 import {mapProjectResourcePath} from "../data/map-project-manifest.js";
 import {mapProjectCatalogSpec} from "../data/map-project-runtime.js";
