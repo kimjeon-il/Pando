@@ -2,6 +2,7 @@ name: Optimization stage 6 generation and immutable reuse contracts
 # Verify only immutable source reuse, project-specific generator mapping and Viewer closure.
 # Synthetic catalogs are validated against the production descriptor layout.
 # Only selected generator tests and lint; no complete GIS or mesh build.
+# Final source-level rerun includes previous-index reuse in full builtin compilation.
 on:
   push:
     branches: [work/optimization]
