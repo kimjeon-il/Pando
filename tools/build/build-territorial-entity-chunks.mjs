@@ -6,7 +6,7 @@ import {selectTerritorialChunkBytes} from '../data/territorial-chunk-compression
 import {metadataOnlyTerritorialProjection} from '../data/territorial-metadata-projection.mjs';
 import {encodeTerritorialSource} from '../data/territorial-source-codec.mjs';
 import {territorialSourceLayout} from '../../src/data/territorial-source-format.js';
-import {readTerritorialSources,readTerritorialSource,readTerritorialSourceDescriptors,readTerritorialLineages,entityFileName,territorialDataRoot,territorialSourceRoot} from '../data/territorial-entity-sources.mjs';
+import {readTerritorialSource,readTerritorialSourceDescriptors,readTerritorialLineages,entityFileName,territorialDataRoot,territorialSourceRoot} from '../data/territorial-entity-sources.mjs';
 import {parseTemporal} from "../../src/document/temporal.js";
 import {territorialIndexEntry} from "../gis/territorial-index-entry.js";
 import {fileURLToPath} from 'node:url';

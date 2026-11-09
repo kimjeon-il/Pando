@@ -240,7 +240,7 @@ if(serialized!==oldManifestText)write(oldManifestPath,serialized);
 return {manifest,count,bytes,reused,selectedDigests:[...geometries.keys()]};
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
- const args=process.argv.slice(2),physical=args.find(a=>a.startsWith('--physical-month=')),countries=args.find(a=>a.startsWith('--countries=')),months=args.find(a=>a.startsWith('--months=')),project=args.find(a=>a.startsWith('--project='));if(args.some(arg=>!['--physical-month=','--countries=','--months=','--project='].some(p=>arg.startsWith(p)))||args.length!==[physical,countries,months].filter(Boolean).length||!!countries!==!!months)throw Error('Use --physical-month=YYYY-MM or --countries=<ids> --months=<YYYY-MM,...>');
+ const args=process.argv.slice(2),physical=args.find(a=>a.startsWith('--physical-month=')),countries=args.find(a=>a.startsWith('--countries=')),months=args.find(a=>a.startsWith('--months=')),project=args.find(a=>a.startsWith('--project='));if(args.some(arg=>!['--physical-month=','--countries=','--months=','--project='].some(p=>arg.startsWith(p)))||args.length!==[physical,countries,months,project].filter(Boolean).length||!!countries!==!!months)throw Error('Use --physical-month=YYYY-MM or --countries=<ids> --months=<YYYY-MM,...>');
  const result=buildPreparedPolygonMeshes({projectId:project?project.slice(10):null,physicalMonth:physical?physical.slice(17):null,countryIds:countries?countries.slice(12).split(','):null,countryMonths:months?months.slice(9).split(','):null});
  console.log(JSON.stringify({selected:result.count,compressedBytes:result.bytes,reused:result.reused,digests:result.selectedDigests}));
 }

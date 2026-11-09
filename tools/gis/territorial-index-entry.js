@@ -15,7 +15,7 @@ export function territorialIndexEntry(entity,{sha256,compressedBytes,decodedByte
   }else for(const child of value)visit(child);
  }
  if(verifiedGeometryBounds===null)for(const v of entity.geometryVersions)visit(v.geometry.coordinates);
- const {storageLayout:sourceStorageLayout,...sourceFields}=entity;
+ const sourceFields={...entity};delete sourceFields.storageLayout;
  return {...sourceFields,geometryVersions:entity.geometryVersions.map(({geometry,...version})=>version),
   sourceInfo:{title:entity.sourceInfo?.title||'',license:entity.sourceInfo?.license||'',sourceId:entity.sourceInfo?.sourceId||''},
   file:`${entity.entityId.replace(':','-')}.json.gz`,validFrom:entity.lifetime.validFrom,validTo:entity.lifetime.validTo,

@@ -281,6 +281,7 @@ if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.ur
  const selected=process.argv.find(arg=>arg.startsWith('--entities='));
  const retirementFile=process.argv.find(arg=>arg.startsWith('--retirement-manifest='));
  const namesOnly=process.argv.includes('--names-only');
+ if(projectId!=='default-world'&&retirementFile)throw Error('Territorial retirement requires a project-paired archive and source retirement manifest');
  if(namesOnly&&!selected)throw Error('--names-only requires --entities');
  if(namesOnly&&process.argv.includes('--plan'))throw Error('--plan is only supported for geometry generation');
  if(process.argv.includes('--plan')&&!selected)throw new Error('--plan requires --entities');
