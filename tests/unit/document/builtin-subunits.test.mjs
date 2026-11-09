@@ -1,3 +1,4 @@
+import {classifyBuiltinCountries} from '../../../tools/gis/builtin-country-classification.mjs';
 import { describe as contractSuite } from 'node:test';
 import * as __country_dep0 from "../../../tools/gis/builtin-display-policy.mjs";
 import * as __country_dep1 from "../../../src/document/country-feature.js";
@@ -12,7 +13,7 @@ contractSuite("builtin-subunits", () => {
 const {validateBuiltinDisplayPolicy}=__country_dep0;
 const {normalizeCountryCollection}=__country_dep1;
 const test=__country_dep2.default,assert=__country_dep3.default;
-const {classifyBuiltinCountries,builtinSubunitId,builtinSubunitSourceId}=__country_dep5;
+const {builtinSubunitId,builtinSubunitSourceId}=__country_dep5;
 const square=x=>({type:'Polygon',coordinates:[[[x,0],[x,1],[x+1,1],[x+1,0],[x,0]]]});
 const source=()=>({type:'FeatureCollection',features:['AAA','BBB','CCC'].map((id,i)=>({
   type:'Feature',id,properties:{name:id},geometry:square(i*3),

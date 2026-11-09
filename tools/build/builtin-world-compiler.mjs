@@ -1,7 +1,8 @@
 import { createHash } from 'node:crypto';
 import { normalizeTemporalInterval, parseTemporal } from "../../src/document/temporal.js";
 import { normalizeCountryCollection } from "../../src/document/country-feature.js";
-import { classifyBuiltinCountries, builtinSubunitSourceId } from "../../src/document/builtin-subunits.js";
+import {classifyBuiltinCountries} from '../gis/builtin-country-classification.mjs';
+import { builtinSubunitSourceId } from "../../src/document/builtin-subunits.js";
 import {loadBuiltinDisplayPolicy} from "../gis/builtin-display-policy.mjs";
 import { createTerritorialFeature, normalizeTerritorialIdentities, TERRITORIAL_IDENTITY_FIELDS } from "../../src/document/territorial-units.js";
 import { createGeometryVersionStore } from "../../src/geometry/geometry-version-store.js";
