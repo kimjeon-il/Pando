@@ -36,7 +36,7 @@ import { layerStyle } from "../ui/layer-presentation.js";
 import { DISTRIBUTION_RENDER_MODES } from "../document/distribution-model.js";
 import { createSurfaceController } from "../ui/surface-controller.js";
 import { createPreferencesDialog } from "../ui/preferences-dialog.js";
-import {createBuiltinMonthClock} from "../document/builtin-month-clock.js";
+import {createProjectMonthClock} from "../document/project-month-clock.js";
 import {territorialMembershipDelta} from "../document/territorial-entity-store.js";
 
 export async function composeViewer({ productMode, meta }) {
@@ -44,7 +44,7 @@ export async function composeViewer({ productMode, meta }) {
   if(productMode!=='viewer')throw new Error('실행 설정이 올바르지 않습니다.');
   const projection='globe';
   const get=id=>document.getElementById(id),status=get('viewerStatus');
-  let map,previousView,display,builtinClock,syncStatus,builtinActive=true;
+  let map,previousView,display,projectClock,syncStatus;
   const inspectParams=new URLSearchParams(window.location.search);
   let inspectorController=null;
   const initialPresentation=createViewerInitialPresentation({onPresented:()=>{get('viewer').dataset.initialLoading='false';map.finishInitialPreview();}});
@@ -116,9 +116,8 @@ export async function composeViewer({ productMode, meta }) {
     createPanel:async()=>{
       const {createViewerReviewPanel}=await import("../ui/inspector/viewer-review-panel.js");
       return createViewerReviewPanel({document,window,map,documentSession:activeSession,
-        isBuiltinMap:()=>builtinActive,meta:runtimeContext.meta,
-        readMonth:()=>builtinActive?(builtinClock?.month()||activeSession.commandOwner.state().timelineCursor)
-          :activeSession.commandOwner.state().timelineCursor,
+        isBuiltinMap:()=>projectDomain.activeProject()?.source==='builtin',meta:runtimeContext.meta,
+        readMonth:()=>activeSession.commandOwner.state().timelineCursor,
         readDiagnostics:()=>diagnostics.snapshot(),
         readPerformance:()=>typeof window.__PANDOLAB_PERFORMANCE_REPORT__==='function'
           ?window.__PANDOLAB_PERFORMANCE_REPORT__():null,
@@ -178,11 +177,13 @@ export async function composeViewer({ productMode, meta }) {
     search();syncStatus();
     return true;
   };
-  const disposeTimeline=installTimelineControls({document,window,getMonth:()=>builtinActive&&builtinClock?.month() ? builtinClock.month() : activeSession?.commandOwner.state().timelineCursor,
+  const disposeTimeline=installTimelineControls({
+    document,window,
+    getMonth:()=>activeSession?.commandOwner.state().timelineCursor||null,
+    getRange:()=>projectDomain.timelineNavigation().range,
     setMonth:async month=>{
-      if(builtinActive)return builtinClock.selectMonth(month);
       if(projectDomain.isOpening())throw new Error('지도를 여는 중입니다.');
-      await applyDocumentMonth(month);
+      return projectClock.selectMonth(month);
     },
   });
   disposables.push({dispose:disposeTimeline});
@@ -201,7 +202,7 @@ export async function composeViewer({ productMode, meta }) {
     // The prior dated map remains visible, but the requested new frame is
     // not ready until its generation has actually been presented. Keep the
     // existing presentation-commit and benchmark ordering intact.
-    const retainingDatedFrame=options?.presentation==='temporal' && builtinClock.month()!==null;
+    const retainingDatedFrame=options?.presentation==='temporal' && !!activeSession.commandOwner.state().timelineCursor;
     const firstMap=initialPresentation.track(()=>request===projectDomain.getOpenRevision()&&(options?.isCurrent?.()??true));
     status.dataset.loadingKind=initialPresentation.hasPresented()?(options?.presentation==='temporal'?'temporal':'project'):'initial';
     presentViewerLoadStatus(status,options?.presentation==='temporal'?'다음 시점 준비 중…':'지도 불러오는 중…');
