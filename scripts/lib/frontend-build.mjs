@@ -77,7 +77,10 @@ export async function buildFrontendSnapshot({root=process.cwd(),sourceCommit,rea
  };
  const bundles=buildUiBundles(root,{readSource:read});
  generated('assets/css/ui-viewer.bundle.css',bundles.viewer,'viewer');
- const policy=await transform(read('assets/js/modules/resource-update-policy.js'),{format:'iife',globalName:'PandoLabResourceUpdatePolicy',target:'es2022',legalComments:'none'});
+ // The public resource-update-policy module is a re-export facade. Classic
+ // Canvas Workers need a self-contained IIFE from the canonical dependency
+ // source, not an unresolved relative re-export in their immutable closure.
+ const policy=await transform(read('assets/js/modules/resource-dependency-policy.js'),{format:'iife',globalName:'PandoLabResourceUpdatePolicy',target:'es2022',legalComments:'none'});
  generated('assets/js/workers/resource-update-policy-core.js','// Generated from the canonical resource policy.\n'+policy.code+'\nself.PandoLabResourceUpdatePolicy = PandoLabResourceUpdatePolicy;\n');
  const workerAssets={};
  for(const entry of [...assets.keys()].filter(p=>/^assets\/js\/workers\/.*-worker\.js$/.test(p)).sort()){
