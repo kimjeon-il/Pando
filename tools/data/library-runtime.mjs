@@ -480,7 +480,7 @@ export function writeLibraryOutput(path, bytes, options) {
   return withLibraryOutputs({ paths: [path] }, () => writeFileSync(path, bytes, options));
 }
 
-export function prepareOwnedLibraryData({ root, fetch, purpose = 'viewer', prefixes = [], source = null, projectId = null }) {
+export function prepareOwnedLibraryData({ root, fetch, purpose = 'viewer', prefixes = [], source = null, projectId = 'default-world' }) {
   root = resolve(root); const checkout = libraryCheckout(root);
   const config = libraryConfig(root);
   if (!existsSync(resolve(checkout, '.git'))) {
@@ -513,6 +513,7 @@ export function prepareOwnedLibraryData({ root, fetch, purpose = 'viewer', prefi
   if (purpose === 'reports') return { repository: config.repository, revision: config.revision,
     checkout, materialized: null, files: {}, archiveFiles: index.files };
   let projectManifest=null;
+  if(purpose==='viewer'&&projectId===null)throw new TypeError('Viewer library preparation requires an explicit map project');
   if(purpose==='viewer'&&projectId!==null){
     const file=resolve(root,mapProjectManifestSourcePath(projectId));
     projectManifest=validateMapProjectManifest(JSON.parse(readFileSync(file,'utf8')));
