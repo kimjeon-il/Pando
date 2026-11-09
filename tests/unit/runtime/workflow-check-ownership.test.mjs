@@ -16,8 +16,8 @@ test('workflow ownership audit preserves independent specialized jobs and detect
  assert.equal(first.manualOnly,1);assert.deepEqual(first.duplicateJobs,[]);
  assert.equal(first.multiOwnerTestCount,1);
  assert.ok(first.multiOwnerTests[0].owners.some(x=>!x.automatic));
- put('different-branch',`on:\\n  push:\\n    branches: [work/gis]\\njobs:\\n  checks:\\n    steps:\\n      - run: node --test tests/unit/data/example.test.mjs\\n`);
- put('different-env',`on:\\n  push:\\n    branches: [main]\\njobs:\\n  checks:\\n    env:\\n      PANDO_CHECK_PROFILE: territory\\n    steps:\\n      - run: node --test tests/unit/data/example.test.mjs\\n`);
+ put('different-branch',`on:\n  push:\n    branches: [work/gis]\njobs:\n  checks:\n    steps:\n      - run: node --test tests/unit/data/example.test.mjs\n`);
+ put('different-env',`on:\n  push:\n    branches: [main]\njobs:\n  checks:\n    env:\n      PANDO_CHECK_PROFILE: territory\n    steps:\n      - run: node --test tests/unit/data/example.test.mjs\n`);
  assert.deepEqual(auditWorkflowCheckOwners(dir).duplicateJobs,[],
    'different branch selectors or execution env must remain separate checks');
  put('duplicate',`on:\n  push:\n    branches: [main]\njobs:\n  checks:\n    steps:\n      - run: node --test tests/unit/data/example.test.mjs\n`);
