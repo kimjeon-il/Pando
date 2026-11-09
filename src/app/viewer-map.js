@@ -331,6 +331,7 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
       // The admitted reader origin is an in-memory session property, not an
       // interpretation of the backward-compatible projectSetup.sourceMode.
       physicalResources.setProjectSource(source);
+      labelOwner.setProjectSource(source);
       session=next;
       projectSession.setViewingPresentation(view||{},{reset:true});
       if(prepareView)await prepareView();
@@ -342,7 +343,7 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
     },
     finishInitialPreview:initialPreview.finish,
     cancelInitialReveal:initialPreview.dispose,
-    cancelSearch:()=>places.cancelSearch(),update,features:entityStore.snapshot,searchPlaces:query=>places.search(query),renderer,
+    cancelSearch:()=>places.cancelSearch(),update,features:entityStore.snapshot,searchPlaces:query=>labelOwner.searchPlaces(query),renderer,
     loadPhysicalResources:physicalResources.loadPhysicalData,loadPhysicalLandMask:physicalResources.loadPhysicalLandMask,viewState:state,objectPresentation,searchActive:()=>places.isSearchOpen(),
     prepareBuiltinProject:async(month,options)=>{
       // Parallel country/physical preparation must not orphan a native
