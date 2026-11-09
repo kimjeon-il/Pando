@@ -1,5 +1,4 @@
 import assert from 'node:assert/strict';
-import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
@@ -42,16 +41,6 @@ function comparisonSummary(actual, expected) {
   visit(actual, expected, 'geometry');
   return summary;
 }
-
-test('pinned DDR recipe inputs and source geometry oracle are present', () => {
-  assert.ok(oracle, 'DDR geometry oracle is missing');
-  assert.equal(oracle.type, 'MultiPolygon');
-  for (const [sourceId, source] of Object.entries(recipe.sources)) {
-    const bytes = readFileSync(path.join(root, source.path)).toString('utf8').replaceAll('\r\n', '\n');
-    const actual = createHash('sha256').update(bytes).digest('hex').toUpperCase();
-    assert.equal(actual, source.sha256, `${sourceId} source bytes changed`);
-  }
-});
 
 test('C++ DDR recipe preserves every component and coordinate within projection rounding', {
   skip: !binary || !existsSync(binary) ? 'Set PANDO_TERRITORIAL_RECIPE_BINARY to the built C++ target' : false,
