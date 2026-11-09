@@ -4,6 +4,7 @@ import { createCoreDocumentReadModel } from "./core-document-read-model.js";
 import { createProductModePolicy } from "../app/product-mode-policy.js";
 import {createTerritorialEntityRepository} from "./territorial-entity-repository.js";
 import {validateMapProjectManifest,mapProjectDocumentIdentity,mapProjectResourcePath,mapProjectResourceScope} from "../data/map-project-manifest.js";
+import {normalizeProjectReader,adaptProjectReadResult,projectOpenReceipt,projectOpenCancelledReceipt} from "../data/project-open-adapter.js";
 
 const metricNow=() => typeof performance==='undefined' ? Date.now():performance.now();
 const cloneValue = value => {
@@ -585,43 +586,52 @@ export function createProjectDomain({
     } catch(error) { replacing=false;throw error; }
   };
   const load = (project,options) => replace(project, 'load',options);
-  const open = async (read,{source='project',presentation='default',isCurrent:requestCurrent=()=>true,onPresented}={}) => {
+  // Every reader produces the same admission result and completion receipt.
+  // GeoPackage decoding may run while a prior replacement settles; a builtin
+  // C++ source must wait for that replacement/rollback to release its handles.
+  const openProject = async (input,{source=null,presentation='default',
+    isCurrent:requestCurrent=()=>true,onPresented}={}) => {
     assertActive();
-    if(!['project','builtin'].includes(source))throw new TypeError('Unknown project source.');
-    if(typeof read!=='function')throw new TypeError('Project opening requires its asynchronous source reader.');
+    const reader=normalizeProjectReader(input,{source});
     const ticket=++openRequest,isCurrent=()=>!disposed&&ticket===openRequest&&requestCurrent();
+    const cancelled=()=>projectOpenCancelledReceipt(reader);
     opening=true;
     try {
-      // Builtin readers admit a Core baseline. Run them after an earlier
-      // replacement/rollback has settled, so they observe its final generation.
-      const project=source==='builtin'?null:await read();
-      if((source!=='builtin'&&!project)||!isCurrent())return false;
+      let eagerResult=null;
+      if(reader.readPhase==='eager'){
+        const raw=await reader.read();
+        if(!isCurrent())return cancelled();
+        eagerResult=adaptProjectReadResult(reader,raw);
+        if(!eagerResult)return cancelled();
+      }
       const operation=openQueue.then(async()=>{
-        if(!isCurrent())return false;
-        if(source==='builtin') {
-          let baseline;
-          try {
-            baseline=await read();
-            if(!baseline||!isCurrent())return false;
-            await replace(baseline,'builtin',{isCurrent,presentation,onPresented});
-          } finally {
-            // A superseded read may have prepared Core source handles but
-            // never entered replacement. Both handles are invalidated by
-            // adoption/rollback; this also cleans up the uncommitted case.
-            if(baseline?.kind==='temporal-candidate')
-              await discardTemporalBuiltin(baseline);
-          }
+        if(!isCurrent())return cancelled();
+        let raw=null;
+        try {
+          raw=reader.readPhase==='queued'?await reader.read():null;
+          const prepared=reader.readPhase==='queued'
+            ?adaptProjectReadResult(reader,raw):eagerResult;
+          if(!prepared||!isCurrent())return cancelled();
+          await replace(prepared.payload,prepared.reason,{isCurrent,presentation,onPresented});
+          if(!isCurrent())return cancelled();
+          return projectOpenReceipt({readResult:prepared,accepted:true,
+            document:snapshot(),generation,contentProject:activeContentProject});
+        } finally {
+          // A stale or rejected candidate never retains an unadopted Core
+          // handle. Native release remains idempotent after adoption/rollback.
+          if(reader.source==='builtin'&&raw?.kind==='temporal-candidate')
+            await discardTemporalBuiltin(raw);
         }
-        else await load(project,{isCurrent});
-        return isCurrent();
       });
       openQueue=operation.catch(()=>{});
       return await operation;
-    } catch(error) {
-      if(!isCurrent()&&!error.restoreError)return false;
+    } catch(error){
+      if(!isCurrent()&&!error.restoreError)return cancelled();
       throw error;
     } finally {if(isCurrent())opening=false;}
   };
+  // Backward-compatible boolean API for older command and Viewer consumers.
+  const open = async(input,options)=>(await openProject(input,options)).accepted;
   const createProject = async options => replace(normalizeProjectSetup(options), 'new');
   const travelHistory = (direction, metadata) => {
     const operation=commandQueue.then(async () => {
@@ -701,7 +711,7 @@ export function createProjectDomain({
     prepareTemporalBuiltin,
     discardTemporalBuiltin,
     inspectImport,
-    load,open,
+    load,open,openProject,
     getOpenRevision:()=>openRequest,
     isOpening:()=>opening,
     baselineCoverage:(baselineId,month)=>commandOwner.baselineCoverage(baselineId,month),
