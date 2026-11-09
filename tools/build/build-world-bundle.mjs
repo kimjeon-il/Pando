@@ -3,7 +3,7 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync, renameSync, unlinkS
 import {withLibraryOutputs} from "../data/library-runtime.mjs";
 import { resolve, dirname, posix } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { readProjectWorldGenerationContext } from './project-generation-context.mjs';
+import { readProjectGenerationContext, readProjectWorldGenerationContext } from './project-generation-context.mjs';
 import { gunzipSync } from 'node:zlib';
 
 export const WORLD_BUNDLE_SCHEMA = 'pandolab-world-bundle';
@@ -78,10 +78,63 @@ export function bundleDescriptor({ seed, legacy, assets, sourceBytes }) {
   };
 }
 
+
+/** Published Viewer verification never loads the private GIS generation recipe.
+ * This verifies only the exact signed runtime byte closure, not source derivation. */
+export function verifyPublishedWorldBundle({root,catalogPath='assets/data/world/current.json'}={}) {
+  if(!root)throw new TypeError('Repository root required');
+  const data=resolve(root,'assets/data');
+  const catalogue=JSON.parse(readFileSync(resolve(root,catalogPath),'utf8'));
+  if(catalogue?.schema!==WORLD_BUNDLE_SCHEMA||catalogue.schemaVersion!==WORLD_BUNDLE_FORMAT
+    ||!/^[a-f0-9]{64}$/.test(catalogue.source?.sha256||'')
+    ||!Number.isSafeInteger(catalogue.source?.countryCount)||catalogue.source.countryCount<=0
+    ||!catalogue.defaultClassification?.countries)
+    throw new TypeError('Invalid published world catalogue');
+  assertDataPath(catalogue.source.url);
+  function verified(asset,role,immutable=true) {
+    if(!asset||!/^[a-f0-9]{64}$/.test(asset.sha256||'')
+      ||!['gzip','identity'].includes(asset.encoding)
+      ||!Number.isSafeInteger(asset.compressedBytes)||asset.compressedBytes<=0
+      ||!Number.isSafeInteger(asset.decodedBytes)||asset.decodedBytes<=0)
+      throw new TypeError('Invalid published world resource: '+role);
+    assertDataPath(asset.url);
+    if(immutable && asset.url!==contentAddress(role,asset.sha256))
+      throw new Error('Published world content address mismatch: '+role);
+    const stored=readFileSync(resolve(data,asset.url));
+    if(stored.byteLength!==asset.compressedBytes||sha256(stored)!==asset.sha256)
+      throw new Error('Published world asset integrity mismatch: '+role);
+    const decoded=asset.encoding==='gzip'?gunzipSync(stored):stored;
+    if(decoded.length!==asset.decodedBytes)
+      throw new Error('Published world decoded length mismatch: '+role);
+    if(asset.header) {
+      if(!Array.isArray(asset.header)||decoded.byteLength<asset.header.length*4)
+        throw new Error('Published world packet header truncated: '+role);
+      const view=new DataView(decoded.buffer,decoded.byteOffset,decoded.byteLength);
+      if(asset.header.some((word,index)=>word!==view.getUint32(index*4,true)))
+        throw new Error('Published world packet header mismatch: '+role);
+    }
+  }
+  for(const role of Object.keys(ROLES))verified(catalogue.assets?.[role],role);
+  const prepared=catalogue.assets?.preparedCountryScene;
+  if(prepared)verified(prepared,'prepared-country-scene',false);
+  for(const role of ['preview','canonical']) {
+    const reference=assertDataPath(catalogue.compatibility?.sharedBoundaries?.[role]);
+    if(!existsSync(resolve(data,reference)))
+      throw new Error('Missing published shared boundary: '+role);
+  }
+  return {bundle:catalogue,validatedAssets:Object.keys(ROLES).length+(prepared?1:0),
+    check:true,sourceFree:true};
+}
+
 export function publishWorldBundle({ root, check = false, manifestOverride = null, projectId = null } = {}) {
   if (!root) throw new Error('Repository root required');
   const data = resolve(root, 'assets/data');
   const readData = name => readFileSync(resolve(data, assertDataPath(name)));
+  const project=projectId?readProjectGenerationContext({root,projectId}):null;
+  const recipePath=project?project.source('worldBuildRecipe'):'assets/data/world/build-input.json';
+  if(check&&!manifestOverride&&!existsSync(resolve(root,recipePath)))
+    return verifyPublishedWorldBundle({root,
+      catalogPath:project?.catalogs.world||'assets/data/world/current.json'});
   const selected=projectId?readProjectWorldGenerationContext({root,projectId}):null;
   const seedPath=selected?resolve(root,selected.worldRecipePath):resolve(data,'world/build-input.json');
   const seed=selected?structuredClone(selected.worldRecipe):JSON.parse(readFileSync(seedPath,'utf8'));
@@ -151,7 +204,7 @@ if (invoked) {
   try {
     const projectId=process.argv.find(value=>value.startsWith('--project='))?.slice('--project='.length)||'default-world';
     const result = publishWorldBundle({ root, projectId, check, manifestOverride: arg?.slice('--source-manifest='.length) || null });
-    console.log(JSON.stringify({ mode: check ? 'check' : 'build', worldDataVersion: result.bundle.source.sha256,
+    console.log(JSON.stringify({ mode: result.sourceFree ? 'check-published' : check ? 'check' : 'build', worldDataVersion: result.bundle.source.sha256,
       assets: result.validatedAssets, programVersionDependency: false }));
   } catch (error) {
     console.error(error.stack || error.message || String(error));
