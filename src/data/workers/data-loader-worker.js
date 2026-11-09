@@ -54,8 +54,9 @@ function report(phase, key, message, loaded = 0, total = 0, done = false, extra 
 
 const { createStoredAssetLoader } = await import(`../stored-asset-loader.js?v=${encodeURIComponent(ASSET_REVISION)}`);
 const { parseVerifiedWorldBundle, worldAssetUrl } = await import(`../world-bundle-manifest.js?v=${encodeURIComponent(ASSET_REVISION)}`);
+const {mapProjectCatalogSpec}=await import(`../map-project-runtime.js?v=${encodeURIComponent(ASSET_REVISION)}`);
 const worldDataRoot = new URL('assets/data/', runtimeDataRoot(self.location.href));
-if (!buildMeta.worldBundle) throw new Error('Required pinned world manifest is missing');
+const worldSpec=mapProjectCatalogSpec(buildMeta,'world');
 const manifestLoader = createStoredAssetLoader({ dataRevision: DATA_REVISION,
   resolveUrl: spec => new URL(spec.url, runtimeDataRoot(self.location.href)) });
 const { loadAsset, cleanupOldCoreCaches } = createStoredAssetLoader({
@@ -120,8 +121,8 @@ function assetMetrics(result, parseMilliseconds = 0) {
 }
 
 async function loadManifest() {
-  const { value } = await manifestLoader.loadAsset(buildMeta.worldBundle,
-    'preview', 'world-manifest', '세계지도 목록', bytes => parseVerifiedWorldBundle(bytes, buildMeta.worldBundle));
+  const { value } = await manifestLoader.loadAsset(worldSpec,
+    'preview', 'world-manifest', '세계지도 목록', bytes => parseVerifiedWorldBundle(bytes, worldSpec));
   return value;
 }
 
