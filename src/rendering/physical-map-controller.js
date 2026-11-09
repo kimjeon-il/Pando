@@ -62,7 +62,10 @@ export function createPhysicalResources({ buildMeta,capabilities = {terrain:true
     }).catch(error=>{entry.status='error';entry.error=error;throw error;});
     return entry;
   }
-  async function preparePhysicalContext(month,{isCurrent=()=>true}={}) {
+  async function preparePhysicalContext(month,{isCurrent=()=>true,activeProject=null}={}) {
+    // Imported projects change their C++ cursor identically, but they must not
+    // prepare default-world's external historical lake/land references.
+    if(activeProject&&activeProject.source!=='builtin')return null;
     const assertCurrent=()=>{if(!isCurrent())throw Object.assign(new Error('Physical preparation superseded'),{name:'AbortError',cancelled:true});};
     assertCurrent();
     const selection=physicalSelectionFor(month),entry=waterContexts.get(selection.key);
