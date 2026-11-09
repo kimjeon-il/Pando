@@ -36,4 +36,7 @@ test('a project replacement retires Places Worker work and rejects foreign sourc
  assert.match(viewer,/labelOwner\.setProjectSource\(source\)/);
  assert.match(viewer,/physicalResources\.setProjectSource\(source\)/);
  assert.match(hydro,/isLoadCurrent:key=>activeSource==='builtin'&&key===projectSourceEpoch/);
+ assert.match(hydro,/entry\.activation\.epoch===epoch/);
+ assert.match(hydro,/projectSourceEpoch===epoch/);
+ assert.match(hydro,/if\(isCurrent\(\)\)dependencies\.domains\.renderingDomain\.invalidateProject/);
 });
