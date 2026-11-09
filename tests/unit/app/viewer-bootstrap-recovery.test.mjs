@@ -1,6 +1,4 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
-import {existsSync, readFileSync} from 'node:fs';
+import {installRuntimePerformanceMetrics} from '../../../src/runtime/runtime-performance-metrics.js';
 import { nextEventTurn } from "../../helpers/async-test-ports.mjs";
 import { describe as contractSuite } from 'node:test';
 import * as __merge_dep0 from "node:test";
@@ -45,13 +43,14 @@ class Element extends EventTarget {
 function fixture({failures=0,hold=false,fatal=false}={}){
   const status=new Element(),document=new EventTarget(),window=new EventTarget();
   document.visibilityState='visible';document.getElementById=()=>status;document.createElement=()=>new Element();
-  window.navigator={onLine:true};window.document=document;
+  window.navigator={onLine:true};window.document=document;window.performance=performance;
   let reads=0,imports=0,compositions=0,release,signal;
   const core={verified:true},errors=[];
   const context=vm.createContext({presentViewerLoadStatus,window,document,navigator:window.navigator,AbortController,URL,
     console:{error:(...args)=>errors.push(args),warn:(...args)=>errors.push(args)},
     PANDOLAB_BUILD_META:{appVersion:'fixture'},isRecoverableLoadError,
-    loadVerifiedCore:async options=>{reads++;signal=options.signal;
+    installRuntimePerformanceMetrics:()=>installRuntimePerformanceMetrics({globalObject:window,documentRef:document}),
+    loadVerifiedCore:async options=>{assert.equal(typeof window.__PANDOLAB_PERFORMANCE_REPORT__,'function','metrics must be installed before engine preparation');reads++;signal=options.signal;
       if(fatal)throw Object.assign(new Error('bad engine digest'),{code:'PL-CORE-WASM-INTEGRITY'});
       if(failures-->0)throw Object.assign(new Error('offline'),{code:'PL-NETWORK-001',retryable:true});
       if(hold)await new Promise(resolve=>{release=resolve;});return core;},
@@ -62,7 +61,7 @@ function fixture({failures=0,hold=false,fatal=false}={}){
   const source=readFileSync(new URL("../../../src/app/viewer.js",import.meta.url),'utf8')
     .replace(/^import .*;\r?$/gm,'')
     .replaceAll('import.meta.url',JSON.stringify('https://test.local/assets/js/viewer.js'))
-    .replace("import('./modules/viewer-composition.js')",'importViewer()');
+    .replace('import("./viewer-composition.js")','importViewer()');
   vm.runInContext(source,context);
   return {status,document,window,errors,release:()=>release(),signal:()=>signal,
     stats:()=>({reads,imports,compositions}),wake:()=>window.dispatchEvent(new Event('focus'))};
@@ -291,12 +290,4 @@ test('an asset-free platform suppresses automatic place preparation', async () =
   const labels = createTerritorialLabels({ capabilities: {builtinPlaces:false} });
   assert.equal(await labels.preparePlaces({ force: true }), false);
 });
-});
-contractSuite('retired adjacent-month prefetch', () => {
-  test('the single-project Viewer has no obsolete neighbouring-month prefetch owner', () => {
-    const retired = new URL("../../../src/runtime/viewer-adjacent-prefetch.js", import.meta.url);
-    const composition = new URL("../../../src/app/viewer-composition.js", import.meta.url);
-    assert.equal(existsSync(retired), false);
-    assert.doesNotMatch(readFileSync(composition, 'utf8'), /viewer-adjacent-prefetch|createViewerAdjacentPrefetch|adjacentViewerYears/);
-  });
 });

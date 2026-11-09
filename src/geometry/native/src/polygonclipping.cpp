@@ -111,10 +111,15 @@ struct Segment {
     bool endpoint(Point p)const{return equal(p,left->point->p)||equal(p,right->point->p);}
     int comparePoint(Point p)const {
         if(endpoint(p))return 0;
-        // Splay-tree order must not depend on rounded line interpolation:
-        // a 1e-13-degree border discrepancy can flip the approximate sign,
-        // lose a live segment and corrupt the sweep. Use the exact expansion
-        // determinant already owned by the polygon kernel for every axis.
+        // Preserve the pinned kernel's exact representable-line equality.
+        // A computed intersection can otherwise split an already shared edge
+        // into tiny displaced fragments. For nonzero cases the exact
+        // determinant still prevents a rounded interpolation sign reversal.
+        const Point origin=left->point->p,delta=vector();
+        if(delta.x!=0){
+            if(delta.y!=0&&p.x==origin.x+(p.y-origin.y)/delta.y*delta.x)return 0;
+            if(p.y==origin.y+(p.x-origin.x)/delta.x*delta.y)return 0;
+        }
         return orientation(left->point->p,right->point->p,p);
     }
 };
@@ -292,7 +297,25 @@ struct Operation {
             const double y1=al->p.y+d2*av.y,y2=bl->p.y+d1*bv.y;
             p={(x1+x2)/2,(y1+y2)/2};
         }
-        return both->contains(p)?vertex(p):nullptr;
+        if(!both->contains(p))return nullptr;
+        // The intersection calculation combines several rounded operations.
+        // When its result is within four representable-coordinate error units
+        // of an existing endpoint, reuse that endpoint rather than repeatedly
+        // splitting out progressively displaced floating-point fragments.
+        // Input vertices are never moved or rounded by this decision.
+        const auto close=[](double x,double y){
+            return std::abs(x-y)<=4*epsilon*std::max({1.0,std::abs(x),std::abs(y)});
+        };
+        Vertex* nearest=nullptr;double distance=INFINITY;
+        for(auto* candidate:{al,ar,bl,br}){
+            const Point q=candidate->p;
+            if(!both->contains(q)||!close(p.x,q.x)||!close(p.y,q.y))continue;
+            const double d=std::hypot(p.x-q.x,p.y-q.y);
+            if(d<distance||(d==distance&&nearest&&comparePoints(q,nearest->p)<0)){
+                nearest=candidate;distance=d;
+            }
+        }
+        return nearest?nearest:vertex(p);
     }
     std::vector<Event*> splitSafely(Segment* s,Vertex* p){
         tree.remove(s);auto* right=s->right;queue.remove(right);auto added=split(s,p);added.push_back(right);

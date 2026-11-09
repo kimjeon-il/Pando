@@ -15,7 +15,7 @@ on:
       - 'scripts/lib/product-assets.mjs'
       - 'src/app/viewer.js'
       - 'tools/build/stage-monorepo-pages.mjs'
-      - 'tests/unit/build/frontend-product-output.test.mjs'
+      - 'tests/unit/build/frontend-build.test.mjs'
       - 'tests/unit/document/monorepo-pages-staging.test.mjs'
       - 'docs/development/builtin-country-deployment.md'
   workflow_dispatch:
@@ -111,7 +111,7 @@ jobs:
       - name: Verify affected generation, loader, deployment and Viewer publication contracts
         if: steps.reuse.outputs.verified != 'true'
         run: |
-          node --test --test-timeout=15000 tests/unit/data/builtin-country-publication.test.mjs tests/unit/data/historical-world-publication.test.mjs tests/unit/document/builtin-world-catalog.test.mjs tests/unit/data/builtin-world-loader.test.mjs tests/unit/data/builtin-country-loading.test.mjs tests/unit/data/builtin-country-parts.test.mjs tests/unit/build/frontend-product-output.test.mjs tests/unit/document/monorepo-pages-staging.test.mjs
+          node --test --test-timeout=15000 tests/unit/data/builtin-country-publication.test.mjs tests/unit/data/historical-world-publication.test.mjs tests/unit/document/builtin-world-catalog.test.mjs tests/unit/data/builtin-world-loader.test.mjs tests/unit/data/builtin-country-loading.test.mjs tests/unit/data/builtin-country-parts.test.mjs tests/unit/build/frontend-build.test.mjs tests/unit/document/monorepo-pages-staging.test.mjs
       - name: Prepare independent files and a locally verified paired pin; preserve every country hash
         run: |
           node --input-type=module <<'JS'

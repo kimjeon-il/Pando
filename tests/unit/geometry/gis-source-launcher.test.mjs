@@ -28,19 +28,6 @@ const { terrainDemGutterSources } = __source_dep10;
 const { terrainDemTintSources } = __source_dep11;
 const { mapImageSourceFiles } = __source_dep12;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 test('GIS launcher uses an allowlist and dry-run never launches source commands',()=>{
  const calls=[],logs=[];
  const code=runSource({argv:['--task','terrain-dem','--','--etopo','/not-mounted/source.tif'],
@@ -188,10 +175,6 @@ const { readFileSync, existsSync } = __source_dep2;
 const test = __source_dep1.default;
 const { selectNativeBuilds } = __source_dep13;
 
-
-
-
-
 const read=path=>readFileSync(new URL("../../../"+path,import.meta.url),'utf8');
 const exists=path=>existsSync(new URL("../../../"+path,import.meta.url));
 
@@ -216,13 +199,4 @@ test('unrelated GIS JavaScript edits do not trigger a native or WASM build',()=>
  assert.deepEqual(selectNativeBuilds(['src/document/native/src/project.cpp']),{core:true,gis:false,wasm:false});
 });
 
-test('application and native Core contracts do not install GIS Python test suites',()=>{
- const scripts=JSON.parse(read('package.json')).scripts;
- for(const name of ['test','check:versioning','check:architecture'])
-  assert.doesNotMatch(scripts[name],/\bpython(?:3)?\b|test:python|test:gis-python/);
- for(const workflow of ['shared-core.yml','application-architecture.yml']){
-  const body=read('.github/workflows/'+workflow);
-  assert.doesNotMatch(body,/setup-python|python -m pip|python -m unittest|python -m compileall/);
- }
-});
 });

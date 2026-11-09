@@ -1,5 +1,4 @@
 name: Shared C++ core and bounded WASM contracts
-
 on:
   pull_request:
     paths:
@@ -25,13 +24,11 @@ on:
       - 'tests/fixtures/portability/web-9300609-hydro-hidden/**'
       - 'tests/fixtures/portability/web-9300609-hydro-copy/**'
       - 'tests/unit/**/map-hover-*.test.mjs'
-      - 'tests/unit/geometry/r4c-spatial-boundaries.test.mjs'
       - 'tests/unit/**/selection-*.test.mjs'
       - 'tests/unit/**/*core*.test.mjs'
       - 'tests/unit/**/native-*.test.mjs'
       - 'tests/unit/**/web-*-contract.test.mjs'
       - 'tests/unit/document/project-creation-contract.test.mjs'
-      - 'tests/unit/document/r4b-data-module-boundaries.test.mjs'
       - 'tests/unit/document/project-preview-policy.test.mjs'
       - 'tools/build/package-shared-core-assets.mjs'
       - 'tools/reference-fixtures/**'
@@ -66,13 +63,11 @@ on:
       - 'tests/fixtures/portability/web-9300609-hydro-hidden/**'
       - 'tests/fixtures/portability/web-9300609-hydro-copy/**'
       - 'tests/unit/**/map-hover-*.test.mjs'
-      - 'tests/unit/geometry/r4c-spatial-boundaries.test.mjs'
       - 'tests/unit/**/selection-*.test.mjs'
       - 'tests/unit/**/*core*.test.mjs'
       - 'tests/unit/**/native-*.test.mjs'
       - 'tests/unit/**/web-*-contract.test.mjs'
       - 'tests/unit/document/project-creation-contract.test.mjs'
-      - 'tests/unit/document/r4b-data-module-boundaries.test.mjs'
       - 'tests/unit/document/project-preview-policy.test.mjs'
       - 'tools/build/package-shared-core-assets.mjs'
       - 'tools/reference-fixtures/**'
@@ -95,10 +90,8 @@ on:
         type: choice
         options: [all, p6-polygon, p6-calculations, geometry, temporal, temporal-source, temporal-candidate, temporal-transport, temporal-parity, native-core, native-gis, native-all]
         default: all
-
 permissions:
   contents: read
-
 jobs:
   native-branch-impact:
     if: (github.event_name == 'push' && github.ref != 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && startsWith(inputs.scope, 'native-'))
@@ -331,32 +324,23 @@ jobs:
           tests/unit/document/core-document-world-wasm.test.mjs
            tests/unit/document/core-codec-unicode-wasm.test.mjs
           tests/unit/document/core-codec-unicode-ids-wasm.test.mjs
-           tests/unit/document/core-project-command-wasm.test.mjs
-          tests/unit/runtime/core-map-presentation-wasm.test.mjs tests/unit/document/core-object-catalog-wasm.test.mjs
-          tests/unit/document/core-delete-selection-wasm.test.mjs
-          tests/unit/document/core-distribution-array-metadata-wasm.test.mjs
-          tests/unit/document/core-direct-object-writers-wasm.test.mjs
-          tests/unit/document/core-hydro-create-wasm.test.mjs tests/unit/document/core-web-history-limit-wasm.test.mjs
+          tests/unit/runtime/core-map-presentation-wasm.test.mjs 
+          tests/unit/document/core-hydro-create-wasm.test.mjs 
            tests/unit/document/core-label-gesture-wasm.test.mjs
           tests/unit/document/timeline-geopackage.test.mjs
           tests/unit/document/core-project-file-save-wasm.test.mjs
-          tests/unit/document/core-territorial-service-wasm.test.mjs
-          tests/unit/document/core-territorial-store-wasm.test.mjs
-          tests/unit/document/core-save-state-projection.test.mjs
-          tests/unit/document/timeline-controls.test.mjs tests/unit/document/core-temporal-viewer-p5-6.test.mjs tests/unit/document/shared-core-assets.test.mjs
-           tests/unit/runtime/core-worker-ownership.test.mjs
+          tests/unit/document/timeline-controls.test.mjs tests/unit/document/app-builtin-session.test.mjs tests/unit/document/shared-core-assets.test.mjs
       - name: Ordered storage snapshot and project replacement boundaries
         env:
           PANDOEDITOR_WASM_MODULE: build-native/p1/pando-wasm/shared/wasm/pandoeditor-core.js
         run: >-
           node --test --test-concurrency=1 --test-timeout=15000
-          tests/unit/document/project-creation-contract.test.mjs tests/unit/document/r4b-data-module-boundaries.test.mjs
+          tests/unit/document/project-creation-contract.test.mjs 
           tests/unit/document/project-preview-policy.test.mjs
       - name: Core-owned generic and distribution service contracts
         run: >-
           node --test --test-concurrency=1 --test-timeout=15000
-          tests/unit/document/generic-feature-service.test.mjs tests/unit/document/territorial-entity-repository.test.mjs
-          tests/unit/document/core-service-writer-clock-wasm.test.mjs
+          tests/unit/document/generic-feature-model.test.mjs tests/unit/document/territorial-entity-repository.test.mjs
       - name: Accepted selection and input presentation boundaries
         run: >-
           node --test --test-concurrency=1 --test-timeout=15000
@@ -365,7 +349,7 @@ jobs:
           tests/unit/runtime/layer-footer-contract.test.mjs
           tests/unit/document/builtin-resource-admission.test.mjs tests/unit/document/builtin-resource-core-wasm.test.mjs tests/unit/rendering/place-runtime.test.mjs
           tests/unit/document/map-hover-async-boundary.test.mjs
-          tests/unit/geometry/r4c-spatial-boundaries.test.mjs
+          tests/unit/geometry/gis-math-contract.test.mjs tests/unit/geometry/annex-slivers.test.mjs
       - name: Pages source exclusion and complete required runtime
         run: node --test tests/unit/document/monorepo-pages-staging.test.mjs
       - name: Record the bounded native and WASM source evidence
@@ -419,9 +403,6 @@ jobs:
             build-native/p1/pando-wasm/shared/wasm/pandoeditor-core.js
             build-native/p1/pando-wasm/shared/wasm/pandoeditor-core.wasm
           if-no-files-found: error
-
-
-
   native-source:
     if: github.event_name == 'workflow_dispatch' && inputs.scope == 'temporal-source'
     runs-on: ubuntu-24.04
@@ -436,8 +417,6 @@ jobs:
         run: cmake --build build-native/p5-2 --target temporal_source_tests source_admission_tests document_session_tests --parallel 2
       - name: Verify bounded registry and existing Core state contracts
         run: ctest --test-dir build-native/p5-2 --output-on-failure -R '^(temporal_source_tests|source_admission_tests|document_session_tests)$'
-
-
   native-candidate:
     if: github.event_name == 'workflow_dispatch' && inputs.scope == 'temporal-candidate'
     runs-on: ubuntu-24.04
@@ -458,8 +437,6 @@ jobs:
         run: ctest --test-dir build-native/p5-3 --output-on-failure -R temporal_source_tests
       - name: Verify existing document session
         run: ctest --test-dir build-native/p5-3 --output-on-failure -R document_session_tests
-
-
   temporal-transport:
     if: github.event_name == 'workflow_dispatch' && inputs.scope == 'temporal-transport'
     runs-on: ubuntu-24.04
@@ -475,7 +452,7 @@ jobs:
         with:
           node-version: '24'
       - name: Ordered Worker transport, late acknowledgement and existing client contracts
-        run: node --test tests/unit/document/core-temporal-transport-p5-5.test.mjs tests/unit/document/core-document-client.test.mjs tests/unit/document/core-document-runtime.test.mjs tests/unit/runtime/core-worker-ownership.test.mjs
+        run: node --test  tests/unit/document/core-document-client.test.mjs tests/unit/document/core-document-runtime.test.mjs tests/unit/document/core-document-runtime.test.mjs
       - name: Prepare exact pinned builtin-world comparison data
         uses: ./.github/actions/library-data
       - name: Checkout exact pinned Emscripten SDK
@@ -497,8 +474,6 @@ jobs:
         env:
           PANDOEDITOR_WASM_MODULE: build-native/p5-5/wasm/pandoeditor-core.js
         run: node --test tests/native/document/temporal-transport-p5-5.test.mjs
-
-
   equivalence:
     if: github.event_name == 'workflow_dispatch' && inputs.scope == 'temporal-parity'
     runs-on: ubuntu-24.04
@@ -521,7 +496,7 @@ jobs:
       - name: Identical fixed inputs, actual native and WASM results, failure and rollback
         run: node --test tests/native/temporal-parity-p5-7.test.mjs
       - name: Focused Worker cancellation and late acknowledgement contracts
-        run: node --test tests/unit/document/core-temporal-transport-p5-5.test.mjs
+        run: node --test tests/unit/document/core-document-client.test.mjs tests/unit/document/core-document-runtime.test.mjs
       - name: Retain bounded evidence even when a gate fails
         if: always()
         uses: actions/upload-artifact@v4

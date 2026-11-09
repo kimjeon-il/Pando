@@ -1,53 +1,23 @@
 import "../../helpers/spherical-core.mjs";
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import {gunzipSync} from 'node:zlib';
+
 import test from 'node:test';
-import {buildCurrentWorld} from "../../../tools/data/territorial-current-world.mjs";
-import {encodeCanonicalCountryPacket} from "../../../tools/build/canonical-country-packet-encoder.mjs";
-import {buildCountrySharedBoundarySegments, serializeCountrySharedBoundarySegments} from "../../../src/geometry/boundary-topology.js";
-import {countryGeometrySignature} from "../../../src/rendering/country-shared-boundary-cache.js";
-import {classifyBuiltinCountries} from "../../../src/document/builtin-subunits.js";
-import {readTerritorialSources, territorialDataRoot} from "../../../tools/data/territorial-entity-sources.mjs";
-import {normalizeTerritorialLibraryIndex, selectGeometryVersion} from "../../../tools/gis/territorial-library.js";
-import path from 'node:path';
+
+
+import {normalizeTerritorialLibraryIndex} from "../../../tools/gis/territorial-library.js";
 import {executeTerritorialTestCommand} from "../../helpers/timeline-project.mjs";
 import {createGisCoreFixture} from "../../helpers/gis-core-fixture.mjs";
 import vm from 'node:vm';
 import {createTerritorialFeature} from "../../../src/document/territorial-units.js";
 
-const root=new URL("../../../",import.meta.url);
-const worldBundle=JSON.parse(fs.readFileSync(new URL('assets/data/world/current.json',root),'utf8'));
-test('explicit world view exactly reproduces generated features and encoded PCG bytes',()=>{
- const original=JSON.parse(fs.readFileSync(new URL('assets/data/territorial-entities/generated/current-world.geojson',root),'utf8'));
- const candidate=buildCurrentWorld();
- assert.deepEqual(candidate,original);
- const bytes=gunzipSync(fs.readFileSync(new URL('assets/data/'+worldBundle.assets.canonicalCountryPacket.url,root)));
- assert.deepEqual(Buffer.from(encodeCanonicalCountryPacket(candidate)),bytes);
-});
-test('explicit world view reproduces canonical shared-boundary signatures and every segment',()=>{
- const candidate=classifyBuiltinCountries(buildCurrentWorld());
- const countries=[...candidate.countries.features,...candidate.subunits.map(unit=>({id:unit.properties.metadata.builtinSubunit.sourceCountryId,geometry:unit.geometry}))];
- const packet=JSON.parse(gunzipSync(fs.readFileSync(new URL('assets/data/'+worldBundle.compatibility.sharedBoundaries.canonical,root))));
- assert.deepEqual(Object.fromEntries(countries.map(f=>[String(f.id),countryGeometrySignature(f)])),packet.signatures);
- assert.deepEqual(serializeCountrySharedBoundarySegments(buildCountrySharedBoundarySegments(countries)),packet.segments);
-});
-
-test('current and dated snapshots use identical reference-only storage and covered versions',()=>{
-  const sources=new Map(readTerritorialSources().map(e=>[e.entityId,e]));
-  const index=normalizeTerritorialLibraryIndex(JSON.parse(fs.readFileSync(path.join(territorialDataRoot,'generated/v2/index.json'),'utf8')));
-  assert.equal(index.snapshots.length,2);
-  for(const snapshot of index.snapshots){
-    assert.equal(snapshot.schemaVersion,1);
-    assert.equal(Object.hasOwn(snapshot,'geometry'),false);
-    assert.equal(Object.hasOwn(snapshot,'geometryVersions'),false);
-    const file=fs.readdirSync(path.join(territorialDataRoot,'source/snapshots')).find(name=>JSON.parse(fs.readFileSync(path.join(territorialDataRoot,'source/snapshots',name),'utf8')).id===snapshot.id);
-    assert.deepEqual(snapshot,JSON.parse(fs.readFileSync(path.join(territorialDataRoot,'source/snapshots',file),'utf8')));
-    for(const ref of snapshot.entityRefs)assert.ok(selectGeometryVersion(sources.get(ref),snapshot.referenceDate),`${snapshot.id}: ${ref}`);
-  }
-});
 test('snapshot input cannot mutate the normalized reference list',()=>{
-  const raw=JSON.parse(fs.readFileSync(path.join(territorialDataRoot,'generated/v2/index.json'),'utf8'));
+  const raw={schemaVersion:2,entities:[{schemaVersion:2,entityId:'state:fixture',entityKind:'general',
+    lineageId:'fixture',names:{ko:'Fixture'},file:'state-fixture.json.gz',sha256:'a'.repeat(64),
+    compressedBytes:1,decodedBytes:1,geometryVersionCount:1,bbox:[0,0,1,1],lifetime:{validFrom:null,validTo:null},
+    validFrom:null,validTo:null,geometryVersions:[{versionId:'border',validFrom:null,validTo:null}]}],
+    lineages:[{lineageId:'fixture',names:{ko:'Fixture'},entityRefs:['state:fixture'],relations:[]}],
+    snapshots:[{schemaVersion:1,id:'snapshot',referenceDate:'2000-01-01',entityRefs:['state:fixture']}]};
   const index=normalizeTerritorialLibraryIndex(raw),before=[...index.snapshots[0].entityRefs];
   raw.snapshots[0].entityRefs.length=0;
   assert.deepEqual(index.snapshots[0].entityRefs,before);

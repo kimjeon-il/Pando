@@ -55,9 +55,9 @@ test('lifecycle releases each GL resource once using the context that allocated 
 
 test('terminated Worker channels close late bitmaps and never dispatch late errors', () => {
   const workers = [];
-  class NativeWorker { constructor() { workers.push(this); } postMessage() {} terminate() {} }
+  class NativeWorker extends EventTarget { constructor() { super();workers.push(this); } postMessage() {} terminate() {} }
   const owner = createGpuWorkerChannels({ WorkerClass: NativeWorker });
-  const first = owner.create('url');
+  const first = owner.create('https://test.local/worker.js');
   let delivered = 0, closed = 0;
   first.onmessage = first.onerror = () => delivered++;
   first.terminate();
@@ -285,7 +285,8 @@ test('upload keys deduplicate and only complete after all chunks', async () => {
   const job = { key: 'mesh', step: ({ byteBudget }) => { assert.ok(byteBudget <= 256 * 1024); return { bytes: byteBudget, done: ++chunks === 3 }; } };
   const promise = c.scheduler.enqueueUpload(job);
   assert.equal(c.scheduler.enqueueUpload(job), promise);
-  c.tick(16); assert.equal(chunks, 1); c.tick(16); c.tick(16); await promise;
+  c.tick(16); assert.equal(chunks, 3); await promise;
+  assert.equal(c.scheduler.getStats().frames, 1);
   assert.equal(c.scheduler.getStats().completed, 1);
 });
 test('input holds uploads until 500ms after release', async () => {

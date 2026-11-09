@@ -222,6 +222,10 @@ export function materializeRuntimeView({ root, index, source = null, fetch=false
   const shared = librarySharedCheckout(root), config = libraryConfig(root), owner = libraryOwnerId(root);
   index=runtimeArchiveIndex(index,entry=>decodeArchiveEntry(libraryCheckout(root),entry,config.revision,{fetch}),{purpose,prefixes});
   source ||= libraryMaterializedRoot(root);
+  const sourceOwnerPath=resolve(source,'.cache-owner.json');
+  const sourceOwner=existsSync(sourceOwnerPath)?JSON.parse(readFileSync(sourceOwnerPath,'utf8')):null;
+  const priorPinnedView=sourceOwner?.schema==='pando-shared-runtime-v1'&&sourceOwner.owner===owner
+    &&sourceOwner.revision!==config.revision;
   const selectedPaths = new Set(Object.keys(index.files));
   // New, unarchived GIS outputs belong to the explicitly selected write scope.
   // Never enumerate unrelated originals or another task's private work.
@@ -234,7 +238,12 @@ export function materializeRuntimeView({ root, index, source = null, fetch=false
     if (!existsSync(path)) return [];
     const stamp = lstatSync(path);
     if (!stamp.isFile() || stamp.isSymbolicLink()) throw Error('Linked or non-file preparation input: ' + path);
-    return [{ logical, path, bytes: stamp.size, sha256: contentHash(readFileSync(path)) }];
+    const sha256=contentHash(readFileSync(path)),prior=sourceOwner?.files?.[logical];
+    // A pin change refreshes proven, untouched archive inputs. Only actual
+    // private work is carried into the new view; the previous view remains.
+    if(priorPinnedView&&prior?.storage==='shared'&&prior.baseSha256===prior.sha256
+      &&prior.sha256===sha256&&prior.bytes===stamp.size)return [];
+    return [{ logical, path, bytes: stamp.size, sha256 }];
   });
   const overrides = sourceFiles.filter(file => file.sha256 !== index.files[file.logical]?.sha256
     || file.bytes !== index.files[file.logical]?.bytes).map(({ logical, sha256, bytes }) => [logical, sha256, bytes]);
@@ -311,7 +320,7 @@ export function materializeRuntimeView({ root, index, source = null, fetch=false
   try {
   for (const [logical, entry] of incoming) {
     const previous = containedPath(source, logical);
-    if (existsSync(previous)) {
+    if (sourceByPath.has(logical)) {
       if (!lstatSync(previous).isFile() || lstatSync(previous).isSymbolicLink()) throw Error(`Unexpected old runtime source: ${previous}`);
       const bytes = readFileSync(previous);
       if (contentHash(bytes) !== sourceByPath.get(logical)?.sha256) throw Error('Preparation input changed: ' + logical);

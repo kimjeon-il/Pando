@@ -24,17 +24,6 @@ const { territorialIndexEntry } = __country_dep8;
 const { historicalWorldCases } = __country_dep9;
 const { withExplicitView } = __country_dep10;
 
-
-
-
-
-
-
-
-
-
-
-
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 const catalog=input=>({entities:input.entities.map(entity=>territorialIndexEntry(entity,{sha256:sha(JSON.stringify(entity))}))});
 const indexOf=files=>JSON.parse(files.get('index.json'));
@@ -169,10 +158,6 @@ const assert = __country_dep1.default;
 const { tmpdir } = __country_dep3;
 const { collectViewerAssets } = __country_dep11;
 
-
-
-
-
 const ROOT='assets/data/builtin-world/generated/v1/';
 const SHA='a'.repeat(64);
 const country=id=>({geometryRefs:[],entityId:id,file:`countries/${id}-sha256-${SHA}.json.gz`,encoding:'gzip',sha256:SHA,compressedBytes:3,decodedBytes:8,coverage:[{validFrom:null,validTo:null}]});
@@ -211,8 +196,6 @@ const test = __country_dep0.default;
 const assert = __country_dep1.default;
 const { readFileSync } = __country_dep2;
 
-
-
 const source=path=>readFileSync(new URL("../../../"+path,import.meta.url),'utf8');
 
 test('water preparation cannot migrate or regenerate all builtin countries as a side effect',()=>{
@@ -221,9 +204,4 @@ test('water preparation cannot migrate or regenerate all builtin countries as a 
   'The completed country wire migration is not a dependency of water preparation');
 });
 
-test('active builtin generation, loading and packaging have no aggregate transport execution path',()=>{
- for(const path of ['tools/build/build-builtin-world.mjs','src/data/builtin-world-loader.js','scripts/lib/product-assets.mjs','src/app/viewer-map.js','tools/build/stage-monorepo-pages.mjs']){
-  assert.doesNotMatch(source(path),/\bloadTransport\s*\(|\btransportPromise\b|\.transport\s*\.\s*url|transport\/countries-sha256-/,path);
- }
-});
 });

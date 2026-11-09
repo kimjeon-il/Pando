@@ -1,3 +1,4 @@
+import {compileBuiltinReadIndex} from '../../../src/data/builtin-country-files.js';
 import { describe as contractSuite } from 'node:test';
 import * as __country_dep0 from "node:test";
 import * as __country_dep1 from "node:assert/strict";
@@ -34,17 +35,26 @@ const json=value=>Buffer.from(JSON.stringify(value));
 const base='https://test.local/data/';
 const deferred=()=>{let resolve;const promise=new Promise(done=>{resolve=done;});return {promise,resolve};};
 function country(id){
- return {schemaVersion:3,entityId:id,identity:{id,properties:{name:id,metadata:{}}},sourceBindings:[],geometryRefs:[],
-  timelineRecords:{schemaVersion:3,lifetimes:[],geometryBindings:[],parentRelations:[],propertyBindings:[]}};
+ const geometryRef={id:'geometry:'+id,version:1},objectRef={domain:'territorial',id};
+ const interval={objectRef,validFrom:null,validTo:null};
+ return {schemaVersion:3,entityId:id,identity:{id,properties:{name:id,entityKind:'general',metadata:{}}},sourceBindings:[],geometryRefs:[geometryRef],
+  timelineRecords:{schemaVersion:3,lifetimes:[{id:'life:'+id,...interval}],geometryBindings:[{id:'shape:'+id,...interval,geometryRef}],
+    parentRelations:[{id:'parent:'+id,...interval,parentId:'',coverageMode:'explicit'}],propertyBindings:[]}};
 }
 function publication(rows){
- const files=new Map(),entities=[];
+ const files=new Map(),entities=[],descriptors=[],geometryAssets=[];
  for(const {id,coverage=[{validFrom:null,validTo:null}],value=country(id)} of rows){
+  for(const name of ['lifetimes','geometryBindings','parentRelations'])value.timelineRecords[name]?.forEach(row=>Object.assign(row,coverage[0]));
   const decoded=json(value),stored=gzipSync(decoded),hash=sha(stored);
-  const file=`countries/${id.replaceAll(':','-')}-sha256-${hash}.json.gz`;
-  files.set(file,stored);entities.push({geometryRefs:[],entityId:id,coverage,file,encoding:'gzip',sha256:hash,compressedBytes:stored.length,decodedBytes:decoded.length});
+  const file='countries/'+id.replaceAll(':','-')+'-sha256-'+hash+'.json.gz';
+  files.set(file,stored);entities.push({geometryRefs:value.geometryRefs,entityId:id,coverage,file,encoding:'gzip',sha256:hash,compressedBytes:stored.length,decodedBytes:decoded.length});
+  descriptors.push(value);
+  const x=rows.findIndex(row=>row.id===id),shape={type:'Polygon',coordinates:[[[x,0],[x+0.5,0],[x+0.5,0.5],[x,0]]]},bytes=json(shape),compressed=gzipSync(bytes),digest=sha(compressed);
+  const asset={...value.geometryRefs[0],type:'Polygon',file:'geometries/sha256-'+digest+'.json.gz',sha256:digest,contentSha256:sha(bytes),encoding:'gzip',compressedBytes:compressed.length,decodedBytes:bytes.length};
+  files.set(asset.file,compressed);geometryAssets.push(asset);
  }
- const index={schema:'pandolab-builtin-world',schemaVersion:2,storageLayout:'descriptor-geometries-v1',geometryAssets:[],template:{format:'pandolab-project-state',schemaVersion:14},entities};
+ const index={schema:'pandolab-builtin-world',schemaVersion:2,storageLayout:'descriptor-geometries-v1',geometryAssets,template:{format:'pandolab-project-state',schemaVersion:14},entities};
+ index.readIndex=compileBuiltinReadIndex(index,descriptors);
  files.set('index.json',json(index));return {files,index};
 }
 function memoryCache(){
@@ -64,47 +74,47 @@ function reader(pub,{cacheStorage=null,dataRevision='first',beforeFetch=async()=
   }});
  return {loader,calls,peak:()=>peak};
 }
-const countryCalls=f=>f.calls.filter(row=>row.file.startsWith('countries/')).map(row=>row.file);
+const countryCalls=f=>f.calls.filter(row=>row.file.startsWith('geometries/')).map(row=>row.file);
 
-test('a complete logical timeline downloads every country once and limits concurrent reads to six',async()=>{
+test('a complete temporal index loads only active geometry once and limits concurrent reads to six',async()=>{
  const pub=publication([...Array.from({length:9},(_,i)=>({id:'state:'+i})),
   {id:'future',coverage:[{validFrom:'2030',validTo:null}]}]);
  const f=reader(pub,{beforeFetch:()=>new Promise(resolve=>setTimeout(resolve,3))});
  const [one,two]=await Promise.all([f.loader.loadProject('2026-10'),f.loader.loadProject('2026-11')]);
  assert.equal(one.project.territorialEntities.length,10);assert.equal(two.project.territorialEntities.length,10);
- assert.equal(countryCalls(f).length,10);assert.equal(new Set(countryCalls(f)).size,10);
+ assert.equal(countryCalls(f).length,9);assert.equal(new Set(countryCalls(f)).size,9);
  assert.ok(f.peak()<=6);assert.ok(f.peak()>1);
  assert.equal(f.calls.filter(row=>row.file==='index.json').length,1);
  assert.equal(f.calls.some(row=>/transport|world-project/.test(row.file)),false);
  const prior=f.calls.length;await f.loader.loadProject('2026-12');assert.equal(f.calls.length,prior);
  const later=await f.loader.loadProject('2030-01');assert.equal(later.project.territorialEntities.length,10);
- assert.equal(f.calls.length,prior,'a month change never fetches another country');
+ assert.equal(f.calls.length,prior+1,'a future identity loads only its newly active geometry');
 });
 
-test('a changed revision reuses unchanged country cache entries and fetches only the changed country',async()=>{
+test('a name-only revision fetches only the temporal index and reuses every geometry',async()=>{
  const cacheStorage=memoryCache(),first=publication([{id:'A'},{id:'B'}]);
  await reader(first,{cacheStorage}).loader.loadProject('2026-10');
  const edited=country('B');edited.identity.properties.name='changed';
  const next=publication([{id:'A'},{id:'B',value:edited}]),f=reader(next,{cacheStorage,dataRevision:'second'});
  const result=await f.loader.loadProject('2026-10');
- assert.deepEqual(f.calls.map(row=>row.file),['index.json',next.index.entities[1].file]);
+ assert.deepEqual(f.calls.map(row=>row.file),['index.json']);
  assert.equal(result.project.territorialEntities.find(row=>row.id==='B').properties.name,'changed');
  assert.equal(first.index.entities[0].file,next.index.entities[0].file);
  assert.ok(cacheStorage.stores.has('pandolab-world-content-v1'));
  const again=reader(next,{cacheStorage,dataRevision:'second'});await again.loader.loadProject('2026-10');assert.equal(again.calls.length,0);
 });
 
-test('corrupt cached country bytes are repaired without redownloading other countries',async()=>{
+test('corrupt cached geometry bytes are repaired without redownloading other countries',async()=>{
  const cacheStorage=memoryCache(),pub=publication([{id:'A'},{id:'B'}]);
  await reader(pub,{cacheStorage}).loader.loadProject('2026-10');
- const target=pub.index.entities[0].file;
+ const target=pub.index.geometryAssets[0].file;
  for(const values of cacheStorage.stores.values())if(values.has(base+target))values.set(base+target,new Response('corrupt'));
  const f=reader(pub,{cacheStorage});assert.equal((await f.loader.loadProject('2026-10')).project.territorialEntities.length,2);
  assert.deepEqual(f.calls.map(row=>row.file),[target]);
 });
 
-test('a missing country rejects the complete query, retries only that file and can recover',async()=>{
- const pub=publication([{id:'A'},{id:'B'}]),target=pub.index.entities[1].file;let missing=true;
+test('a missing geometry rejects the complete query, retries only that file and can recover',async()=>{
+ const pub=publication([{id:'A'},{id:'B'}]),target=pub.index.geometryAssets[1].file;let missing=true;
  const f=reader(pub,{response:file=>file===target&&missing?new Response(null,{status:404}):null});
  await assert.rejects(f.loader.loadProject('2026-10'),/404/);
  assert.equal(countryCalls(f).filter(file=>file===target).length,1,'404 is not a transient download failure');
@@ -113,12 +123,11 @@ test('a missing country rejects the complete query, retries only that file and c
  assert.equal(countryCalls(f).filter(file=>file!==target).length,1);
 });
 
-test('invalid country schema or identity is not accepted even with a correct byte hash',async()=>{
+test('the compiler rejects invalid country schema or identity before publishing the temporal index',async()=>{
  await Promise.all([
   value=>{value.identity.id='wrong';},value=>{value.schemaVersion=99;},value=>{delete value.timelineRecords.propertyBindings;}
  ].map(async change=>{
-  const value=country('A');change(value);const pub=publication([{id:'A',value}]),f=reader(pub);
-  await assert.rejects(f.loader.loadProject('2026-10'),/country|schema|identity/i);
+  const value=country('A');change(value);assert.throws(()=>publication([{id:'A',value}]),/read index|descriptor|country|schema|identity/i);
  }));
 });
 
@@ -161,8 +170,8 @@ test('an already superseded query makes no request',async()=>{
  assert.equal(f.calls.length,0);
 });
 
-test('a correct stored hash with an incorrect decoded size rejects the country',async()=>{
- const pub=publication([{id:'A'}]);pub.index.entities[0].decodedBytes++;
+test('a correct stored hash with an incorrect decoded size rejects the geometry',async()=>{
+ const pub=publication([{id:'A'}]);pub.index.geometryAssets[0].decodedBytes++;
  pub.files.set('index.json',json(pub.index));const f=reader(pub);
  await assert.rejects(f.loader.loadProject('2026-10'),/크기|size/i);
 });
@@ -174,14 +183,14 @@ test('loading still works when persistent cache access is unavailable',async()=>
 });
 
 
-test('background direct country reads retain the main concurrency limit and idle admission',async()=>{
+test('background selected geometry reads retain the main concurrency limit and idle admission',async()=>{
  const pub=publication([{id:'A'},{id:'B'},{id:'C'}]);let yields=0;
  const f=reader(pub,{beforeFetch:()=>new Promise(resolve=>setTimeout(resolve,1))});
  const result=await f.loader.loadProject('2026-10',{concurrency:1,waitForIdle:async()=>{yields++;}});
  assert.equal(result.project.territorialEntities.length,3);
  assert.equal(f.peak(),1);
  assert.equal(yields,4); // Each country and the final publication wait for idle.
- assert.deepEqual(countryCalls(f),pub.index.entities.map(row=>row.file));
+ assert.deepEqual(countryCalls(f),pub.index.geometryAssets.map(row=>row.file));
 });
 
 test('cancellation during idle prevents country requests and scene publication',async()=>{
@@ -219,10 +228,17 @@ const { createBuiltinWorldLoader } = __country_dep4;
 const deferred=()=>{let resolve;const promise=new Promise(done=>{resolve=done;});return {promise,resolve};};
 test('a failed query settles its outstanding failed reads before an immediate clean retry',async t=>{
  const files=buildBuiltinWorldPublication({input:withExplicitView(historicalWorldCases())});
- const index=JSON.parse(files.get('index.json'));index.entities=index.entities.filter(row=>['AUS','CHN'].includes(row.entityId));
- assert.equal(index.entities.length,2);
+ const index=JSON.parse(files.get('index.json')),wanted=new Set(['AUS','CHN']);
+ const positions=index.entities.map((entry,i)=>wanted.has(entry.entityId)?i:-1).filter(i=>i>=0);
+ index.readIndex.identities=positions.map(i=>index.readIndex.identities[i]);
+ index.readIndex.sourceHashes=positions.map(i=>index.readIndex.sourceHashes[i]);
+ for(const key of ['lifetimes','geometryBindings','parentRelations','propertyBindings'])index.readIndex.records[key]=index.readIndex.records[key].filter(row=>wanted.has(row.objectRef.id));
+ index.entities=index.entities.filter(row=>wanted.has(row.entityId));
+ const refs=new Set(index.entities.flatMap(entry=>entry.geometryRefs.map(ref=>JSON.stringify([ref.id,ref.version]))));
+ index.geometryAssets=index.geometryAssets.filter(asset=>refs.has(JSON.stringify([asset.id,asset.version])));
+ assert.equal(index.geometryAssets.length,2);
  const bytes=Buffer.from(JSON.stringify(index));files.set('index.json',bytes);
- const slow=index.entities[1].file,entered=deferred(),release=deferred();t.after(()=>release.resolve());
+ const slow=index.geometryAssets[1].file,entered=deferred(),release=deferred();t.after(()=>release.resolve());
  const calls=[];let successful=false,slowAttempts=0,settled=false;
  const loader=createBuiltinWorldLoader({manifestUrl:'https://retry.test/data/index.json',
   manifestSpec:{sha256:createHash('sha256').update(bytes).digest('hex'),encoding:'identity',compressedBytes:bytes.length,decodedBytes:bytes.length},
@@ -241,7 +257,7 @@ test('a failed query settles its outstanding failed reads before an immediate cl
  release.resolve();assert.match((await first).message,/503/);
  successful=true;
  assert.equal((await loader.loadProject('2026-10')).project.territorialEntities.length,2);
- for(const entry of index.entities)assert.equal(calls.filter(file=>file===entry.file).length,4);
+ for(const entry of index.geometryAssets)assert.equal(calls.filter(file=>file===entry.file).length,4);
 });
 });
 contractSuite("builtin-country-materialization", () => {

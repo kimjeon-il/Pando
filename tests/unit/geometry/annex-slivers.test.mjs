@@ -1,3 +1,11 @@
+import * as __territory_components_0 from "node:test";
+import * as __territory_components_1 from "node:assert/strict";
+import "../../helpers/spherical-core.mjs";
+import "../../../assets/js-vendor/polygon-clipping.min.js";
+
+
+import * as __territory_components_4 from "../../../tools/gis/territory-component-plan.js";
+import * as __territory_components_5 from "../../../src/geometry/map-edit-geometry.js";
 import "../../helpers/spherical-core.mjs";
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -109,3 +117,24 @@ test('point contact is not boundary ownership and ambiguous shared boundaries st
   const result = annex({ leftovers: [piece, next], unselected: [next] });
   assert.equal(result.autoIncludedSlivers.count, 0);
 });
+
+// territory components contracts share this owner suite.
+{
+const test = __territory_components_0.default;
+const assert = __territory_components_1.default;
+
+const createTerritoryComponentPlan = __territory_components_4["createTerritoryComponentPlan"];
+const normalizePolygonGeometry = __territory_components_5["normalizePolygonGeometry"];
+const box=(a,b,c,d)=>({type:'Polygon',coordinates:[[[a,b],[a,d],[c,d],[c,b],[a,b]]]});
+const feature=(id,geometry)=>({type:'Feature',id,properties:{name:id},geometry});
+
+test('detached territory component plan preserves untouched polygon coordinates',async()=>{
+ const source=feature('A',box(0,0,1,1));
+ const snapshot=structuredClone(source);
+ const planner=createTerritoryComponentPlan({clipper:globalThis.polygonClipping,
+   normalize:normalizePolygonGeometry});
+ const result=await planner.prepare({features:[source]});
+ assert.deepEqual(result.componentFeatures[0].geometry.coordinates,[source.geometry.coordinates]);
+ assert.deepEqual(source,snapshot);
+});
+}

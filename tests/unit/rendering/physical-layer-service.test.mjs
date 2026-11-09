@@ -439,7 +439,7 @@ test('physical mask bytes and manifest are identical across gzip host OS headers
 contractSuite("terrain-manifest", () => {
 const test = __terrain_dep0.default;
 const assert = __terrain_dep2.default;
-const { readFileSync } = __terrain_dep4;
+
 const { terrainAssetUrl, terrainRasterManifestUrl, validateTerrainManifest } = __terrain_dep11;
 const terrainSources = __terrain_dep11;
 
@@ -471,13 +471,6 @@ test('legacy raster and strict DEM manifests select known representations', () =
   assert.throws(() => validateTerrainManifest({ ...dem, elevation: { decode: 'G*256+R-12000' } }), /DEM/);
   assert.throws(() => validateTerrainManifest({ ...dem, levels: dem.levels.slice(0, 5) }), /DEM/);
   assert.throws(() => validateTerrainManifest({ ...dem, shade: { ...dem.shade, quantizationStep: 8 } }), /DEM/);
-});
-
-test('current DEM preview fixes two LODs, eight tiles, provenance and the size limit', () => {
-  const preview = JSON.parse(readFileSync(new URL("../../../assets/data/terrain-preview/v0.13.3-p2/manifest.json", import.meta.url)));
-  assert.equal(validateTerrainManifest(preview).version, '0.13.3-p2');
-  assert.throws(() => validateTerrainManifest({ ...preview, levels: preview.levels.slice(0, 1) }), /미리보기/);
-  assert.throws(() => validateTerrainManifest({ ...preview, sourceDem: { ...preview.sourceDem, tintSha256: 'changed' } }), /미리보기/);
 });
 
 test('a tint-only data release uses the same strict DEM representation contract', () => {

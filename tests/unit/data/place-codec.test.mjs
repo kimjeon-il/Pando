@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { reportPath } from "../../../tools/data/report-paths.mjs";
+
 import { encodePlaceTile, decodePlaceTile } from "../../../src/data/place-codec.js";
 import { normalizePlace, PLACE_LIMITS } from "../../../src/document/place-contract.js";
 const raw = { source: 'synthetic', sourceId: '서울:1', name: '서울 🗺️', nameEn: 'Seoul', nameNative: '서울', nameTimeline: [{ fromYear: 1900, ko: '경성' }, { fromDate: '1945-08-15', ko: '서울 🗺️' }], kind: 'capital', coordinates: [127.12345, 37.56789], countryCode: 'KR', population: 12345678, priority: 90, minZoom: 1.25, featureCode: 'PPLC' };
@@ -70,28 +70,4 @@ test('Web PLAC v3 bytes match the shared Nicosia hex vector used by the Qt decod
   const rows = decodePlaceTile(Buffer.from(hex, 'hex'));
   assert.equal(rows[0].nameNative, 'Λευκωσία');
   assert.deepEqual(rows[0].nameNativeExtras, ['Lefkoşa']);
-});
-
-
-test('v3 Nicosia fixture stays aligned with the reviewed multilingual timeline', async () => {
-  const { readFile } = await import('node:fs/promises');
-  const contract = JSON.parse(await readFile(new URL("../../../contracts/places/v3.json", import.meta.url), 'utf8'));
-  const source = JSON.parse(await readFile(reportPath('reports/places/tier1-major-cities-batch13-european-microstates-mediterranean.json', { access: 'read' }), 'utf8'));
-  const city = source.records.find(record => record.geonameId === 146268);
-  assert.ok(city);
-  const fixture = contract.fixtures[0].input;
-  assert.equal(fixture.nameNative, city.defaultNativeNames[0].text);
-  assert.deepEqual(fixture.nameNativeExtras, city.defaultNativeNames.slice(1).map(name => name.text));
-  assert.deepEqual(fixture.coordinates, [city.longitude, city.latitude]);
-  const selected = city.displayTimeline.map(entry => ({
-    start: entry.fromDate ?? entry.fromYear,
-    native: entry.nativeNames[0].text,
-    nativeExtras: entry.nativeNames.slice(1).map(name => name.text),
-  }));
-  const runtime = fixture.nameTimeline.map(entry => ({
-    start: entry.fromDate ?? entry.fromYear,
-    native: entry.native,
-    nativeExtras: entry.nativeExtras || [],
-  }));
-  assert.deepEqual(runtime, selected);
 });

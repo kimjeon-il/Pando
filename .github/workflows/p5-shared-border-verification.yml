@@ -37,8 +37,7 @@ on:
       - 'assets/js/modules/country-contact-core.js'
       - 'tests/unit/geometry/country-shared-boundary.test.mjs'
       - 'assets/js/modules/country-shared-boundary-packet.js'
-      - 'tests/unit/geometry/p5-6-contribution-merge.test.mjs'
-      - 'tests/unit/document/p5-6-core-ownership.test.mjs'
+      - 'tests/unit/geometry/country-shared-boundary-state.test.mjs'
       - 'tools/p5-6-core-ownership.mjs'
       - 'tools/p5-6-review-performance.mjs'
       - 'tests/browser/geometry/viewer-boundary-p4-5.spec.mjs'
@@ -49,7 +48,6 @@ on:
       - 'tools/benchmark-shared-border-p5.mjs'
       - 'tests/unit/geometry/boundary-lines.test.mjs'
       - 'tests/unit/rendering/country-shared-boundary-generator.test.mjs'
-      - 'tests/unit/geometry/boundary-lines.test.mjs'
       - 'CMakePresets.json'
   workflow_dispatch:
 permissions:
@@ -87,7 +85,7 @@ jobs:
         run: node scripts/check-version.mjs
       - name: Assert shared C++ ownership of migrated Web rules
         run: |
-          node --test tests/unit/document/p5-6-core-ownership.test.mjs tests/unit/geometry/p5-6-contribution-merge.test.mjs
+          node --test tests/unit/geometry/country-shared-boundary-state.test.mjs
           node tools/p5-6-core-ownership.mjs --output build-native/p5-6-ownership.json
       - name: Preserve ownership audit even when a later generator check fails
         if: always()
@@ -111,7 +109,7 @@ jobs:
       - name: Run Web chain and immutable shared-cache generator regression
         if: steps.core.outputs.ready == 'true'
         run: |
-          node --test tests/unit/geometry/boundary-lines.test.mjs tests/unit/rendering/country-shared-boundary-generator.test.mjs tests/unit/geometry/p5-6-contribution-merge.test.mjs tests/unit/geometry/country-shared-boundary-state.test.mjs tests/unit/geometry/boundary-display-refinement.test.mjs tests/unit/geometry/country-shared-boundary.test.mjs
+          node --test tests/unit/geometry/boundary-lines.test.mjs tests/unit/rendering/country-shared-boundary-generator.test.mjs tests/unit/geometry/country-shared-boundary-state.test.mjs  tests/unit/geometry/boundary-display-refinement.test.mjs tests/unit/geometry/country-shared-boundary.test.mjs
 
   performance:
     runs-on: ubuntu-24.04

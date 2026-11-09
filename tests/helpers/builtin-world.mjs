@@ -47,7 +47,7 @@ export async function scopedBuiltinProject(month,entityIds){
  return assembleBuiltinWorld(scopedCatalog,countries,month);
 }
 export function withExplicitView(input){
- return {...input,view:{schemaVersion:1,id:'world:catalog',selections:input.currentSnapshot.entityRefs.map(entityId=>{
+ return {...input,view:{schemaVersion:1,id:'world:catalog',sourceInfo:{collectionMetadata:{type:'FeatureCollection'}},selections:input.currentSnapshot.entityRefs.map(entityId=>{
   const source=input.entities.find(row=>row.entityId===entityId);
   return {entityId,geometryVersionId:source.geometryVersions.at(-1).versionId};
  })}};

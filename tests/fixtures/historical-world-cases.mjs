@@ -13,7 +13,7 @@ export function historicalWorldCases() {
   // Include those identities as the same tiny squares, without reading assets.
   const ids = [...new Set(['RUS', 'KOR', 'PRK', ...loadBuiltinDisplayPolicy().subunits.flatMap(row => [row.sourceCountryId, row.parentId])])];
   const sources = ids.map((id, index) => ({ ...entity(`current:${id}`, null, null,
-    [{...version(`${id}:current`, null, null, index * 2 - 150),}]), sourceInfo: { featureId: id } }));
+    [{...version(`${id}:current`, null, null, index * 2 - 150),}]), sourceInfo: { featureId: id, featureProperties: { name: id } } }));
   const snapshot = { schemaVersion: 1, referenceDate: '2026-10-01', entityRefs: sources.map(row => row.entityId) };
   const currentWorld = { type: 'FeatureCollection', features: ids.map((id, index) => ({
     type: 'Feature', id, geometry: square(index * 2 - 150), properties: { name: id },

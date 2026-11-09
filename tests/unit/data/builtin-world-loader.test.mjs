@@ -5,7 +5,6 @@ import {buildBuiltinWorldPublication} from "../../../tools/build/build-builtin-w
 import {historicalWorldCases} from "../../fixtures/historical-world-cases.mjs";
 import {withExplicitView} from "../../helpers/builtin-world.mjs";
 import {createBuiltinWorldLoader} from "../../../src/data/builtin-world-loader.js";
-import {builtinCountryFileSpecs} from '../../../src/data/builtin-country-files.js';
 import {createBuiltinSession} from "../../../src/document/builtin-session.js";
 import {createNodeCoreProject} from "../../helpers/core-project.mjs";
 import {startupDocument} from "../../helpers/core-startup.mjs";
@@ -25,7 +24,7 @@ test('complete project history loads only the selected geometry and reuses verif
  assert.ok(historical.project.timelineRecords.geometryBindings.some(row=>row.validTo!==null),'historical intervals must not be flattened');
  const index=JSON.parse(files.get('index.json'));
  const loaded=new Set(historical.project.geometries.map(row=>JSON.stringify([row.id,row.version])));
- const expected=new Set(['index.json',...index.entities.flatMap(entry=>builtinCountryFileSpecs(entry).map(asset=>asset.file)),
+ const expected=new Set(['index.json',
   ...index.geometryAssets.filter(asset=>loaded.has(JSON.stringify([asset.id,asset.version]))).map(asset=>asset.file)]);
  assert.equal(historical.project.territorialEntities.length,index.entities.length);
  assert.equal(historical.project.geometryResources.length,index.geometryAssets.length);
@@ -44,7 +43,7 @@ test('complete project history loads only the selected geometry and reuses verif
  assert.equal(await f.loader.geometryState(selected[0]),'ready');
  assert.equal(f.calls.length,count+1);
 });
-test('a fresh loader reuses the verified catalog and individual country bytes from Cache Storage',async()=>{
+test('a fresh loader reuses the verified catalog and selected geometry bytes from Cache Storage',async()=>{
  const stores=new Map();
  const cacheStorage={open:async name=>{
   if(!stores.has(name))stores.set(name,new Map());const values=stores.get(name);

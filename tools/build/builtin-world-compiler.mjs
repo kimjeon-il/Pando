@@ -1,7 +1,8 @@
 import { createHash } from 'node:crypto';
 import { normalizeTemporalInterval, parseTemporal } from "../../src/document/temporal.js";
 import { normalizeCountryCollection } from "../../src/document/country-feature.js";
-import { classifyBuiltinCountries, builtinSubunitSourceId } from "../../src/document/builtin-subunits.js";
+import {classifyBuiltinCountries} from '../gis/builtin-country-classification.mjs';
+import { builtinSubunitSourceId } from "../../src/document/builtin-subunits.js";
 import {loadBuiltinDisplayPolicy} from "../gis/builtin-display-policy.mjs";
 import { createTerritorialFeature, normalizeTerritorialIdentities, TERRITORIAL_IDENTITY_FIELDS } from "../../src/document/territorial-units.js";
 import { createGeometryVersionStore } from "../../src/geometry/geometry-version-store.js";
@@ -10,6 +11,7 @@ import { createProjectTemplateCompiler } from "../gis/project-template-compiler.
 import { DISTRIBUTION_MODES } from "../../src/document/distribution-model.js";
 import {territorialNameData} from "../gis/territorial-library.js";
 import { adjustHistoricalTerritories, historicalWorldClipper,createHistoricalTerritoryCache } from "../gis/historical-world-territories.mjs";
+import {buildCurrentWorld} from '../data/territorial-current-world.mjs';
 
 const compare = (a, b) => {
   for (let i = 0; i < 3; i++) if (a[i] !== b[i]) return a[i] < b[i] ? -1 : 1;
@@ -106,7 +108,7 @@ export function replaceBuiltinWorldCountryNames(country,entity) {
 }
 
 /** Build an ordinary editable project; library inputs and raw intervals stay immutable. */
-export function compileBuiltinWorldCatalog({ entities, view, currentWorld, policy, clipper = historicalWorldClipper, availableSourceIds = null,displayPolicy=loadBuiltinDisplayPolicy() }) {
+export function compileBuiltinWorldCatalog({ entities, view, currentWorld = null, policy, clipper = historicalWorldClipper, availableSourceIds = null,displayPolicy=loadBuiltinDisplayPolicy() }) {
   entities=entities.filter(entity=>['general','regional'].includes(entity.entityKind));
   if(view?.schemaVersion!==1 || !Array.isArray(view.selections) || Object.hasOwn(view,'referenceDate'))throw new Error('Invalid world view');
   if (!policy || policy.schemaVersion !== 1) throw new Error('Missing historical world policy');
@@ -116,6 +118,7 @@ export function compileBuiltinWorldCatalog({ entities, view, currentWorld, polic
   if (bySource.size !== entities.length) throw new Error('Duplicate source entity');
   const currentIds = new Set(selection.keys());
   for (const id of currentIds) if (!bySource.has(id)) throw new Error(`Missing current source: ${id}`);
+  currentWorld=buildCurrentWorld({entities,view,currentWorld});
   const classified = classifyBuiltinCountries(normalizeCountryCollection(currentWorld), { availableSourceIds,displayPolicy });
   const definitions = new Map(), sourceToProject = new Map(), sourceIdentities = [];
   for (const feature of [...classified.countries.features, ...classified.subunits]) {

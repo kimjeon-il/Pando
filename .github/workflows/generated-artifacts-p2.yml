@@ -47,8 +47,8 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: pando-generated-artifacts-${{ github.ref }}
-  cancel-in-progress: true
+  group: pando-generated-artifacts-${{ github.ref }}-${{ github.event_name == 'workflow_dispatch' && github.run_id || 'publication' }}
+  cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' }}
 
 jobs:
   plan:
@@ -176,6 +176,7 @@ jobs:
           cmake --build --preset pando-wasm
           node tools/build/package-shared-core-assets.mjs --build-dir build-native/p1/pando-wasm/shared/wasm
       - name: Verify published compiled identity and package hashes
+        id: verified_core
         run: node tools/build/package-shared-core-assets.mjs --build-dir assets/wasm --check
       - name: Verify the changed geographic contact and common fill kernels
         if: needs.plan.outputs.wasm == 'true' && inputs.verification != 'full' && inputs.verification != 'temporal' && inputs.verification != 'geometry-resources'
@@ -183,11 +184,14 @@ jobs:
           PANDOEDITOR_WASM_MODULE: ${{ github.workspace }}/assets/wasm/pandoeditor-core.js
           CHECK_SELECTION: '{"unitTests":["tests/unit/geometry/country-shared-boundary.test.mjs","tests/unit/geometry/boundary-lines.test.mjs"],"browserSpecs":[],"commands":["wasm-domain-geometry"],"prerequisites":[]}'
         run: node scripts/run-application-checks.mjs
-      - name: Verify only immutable geometry admission and offline storage
+      - name: Prepare only the display policy used by synthetic source fixtures
+        if: inputs.verification == 'geometry-resources'
+        run: node --input-type=module -e "import {readLibraryDataFile} from './tools/data/library-context.mjs';readLibraryDataFile('assets/data/builtin-world/display-policy-v1.json',{fetch:true});"
+      - name: Verify immutable admission and affected synthetic GIS contracts
         if: inputs.verification == 'geometry-resources'
         env:
           PANDOEDITOR_WASM_MODULE: ${{ github.workspace }}/assets/wasm/pandoeditor-core.js
-          CHECK_SELECTION: '{"unitTests":["tests/unit/document/core-geometry-resources-wasm.test.mjs"],"browserSpecs":[],"commands":[],"prerequisites":[]}'
+          CHECK_SELECTION: '{"unitTests":["tests/unit/document/core-geometry-resources-wasm.test.mjs","tests/unit/document/historical-world-territories.test.mjs","tests/unit/data/current-world-source-pairing.test.mjs","tests/unit/data/territorial-retirement.test.mjs"],"browserSpecs":[],"commands":[],"prerequisites":[]}'
         run: node scripts/run-application-checks.mjs
       - name: Verify changed temporal editing and place naming
         if: inputs.verification == 'temporal'
@@ -216,11 +220,11 @@ jobs:
       - name: Verify P6 product calculation adapters
         if: inputs.verification == 'full'
         run: >-
-          node --test tests/unit/geometry/p6-polygon-core.test.mjs
-          tests/unit/geometry/r4c-spatial-boundaries.test.mjs
+          node --test tests/unit/geometry/polygon-geometry.test.mjs
+          tests/unit/geometry/gis-math-contract.test.mjs tests/unit/geometry/annex-slivers.test.mjs
           tests/unit/document/river-territory-partition.test.mjs
       - name: Retain verified source-matched WASM before guarded publication
-        if: needs.plan.outputs.wasm == 'true'
+        if: always() && needs.plan.outputs.wasm == 'true' && steps.verified_core.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
           name: source-matched-core-${{ github.sha }}

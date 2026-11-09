@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { buildCountrySharedBoundarySegments, serializeCountrySharedBoundarySegments } from "../../src/geometry/boundary-topology.js";
 import { sharedCalculationCore } from "../../src/document/temporal.js";
 import { countryGeometrySignature } from "../../src/rendering/country-shared-boundary-cache.js";
-import { classifyBuiltinCountries } from "../../src/document/builtin-subunits.js";
+import { classifyBuiltinCountries } from "../gis/builtin-country-classification.mjs";
 import { loadBuiltinDisplayPolicy } from "../gis/builtin-display-policy.mjs";
 
 // The source contact topology and grouped chain-conservation check both use

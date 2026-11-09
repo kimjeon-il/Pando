@@ -16,7 +16,7 @@ let built;
 function fixture(){
  if(built)return built;
  const input=historicalWorldCases();
- const view={schemaVersion:1,id:'world:catalog',selections:input.currentSnapshot.entityRefs.map(entityId=>({entityId,
+ const view={schemaVersion:1,id:'world:catalog',sourceInfo:{collectionMetadata:{type:'FeatureCollection'}},selections:input.currentSnapshot.entityRefs.map(entityId=>({entityId,
   geometryVersionId:input.entities.find(e=>e.entityId===entityId).geometryVersions[0].versionId}))};
  return built=compileBuiltinWorldCatalog({...input,view});
 }
@@ -45,7 +45,7 @@ test('country names compile as independent property bindings while geometry stay
  const source=input.entities.find(row=>row.sourceInfo?.featureId==='RUS');
  source.nameVersions=[{validFrom:null,validTo:'1999',names:{ko:{common:'옛 이름',formal:'옛 정식명'}}},
   {validFrom:'2000',validTo:null,names:{ko:{common:'새 이름'},native:[{language:'ru',common:'Россия'}]}}];
- const view={schemaVersion:1,id:'world:names',selections:input.currentSnapshot.entityRefs.map(entityId=>({entityId,
+ const view={schemaVersion:1,id:'world:names',sourceInfo:{collectionMetadata:{type:'FeatureCollection'}},selections:input.currentSnapshot.entityRefs.map(entityId=>({entityId,
   geometryVersionId:input.entities.find(e=>e.entityId===entityId).geometryVersions[0].versionId}))};
  const compiled=compileBuiltinWorldCatalog({...input,view}),country=compiled.countries.find(row=>row.entityId==='RUS');
  assert.equal(country.timelineRecords.geometryBindings.length,1);
@@ -58,7 +58,7 @@ test('explicit name-history gaps cannot inherit the latest country name or its d
  const input=historicalWorldCases(),source=input.entities.find(row=>row.sourceInfo?.featureId==='RUS');
  source.nameVersions=[{validFrom:null,validTo:'1999',names:{ko:{common:'Old',formal:'Old formal'}}},
   {validFrom:'2001',validTo:null,names:{ko:{common:'New',formal:'New formal'}}}];
- const view={schemaVersion:1,id:'world:gap',selections:input.currentSnapshot.entityRefs.map(entityId=>({entityId,
+ const view={schemaVersion:1,id:'world:gap',sourceInfo:{collectionMetadata:{type:'FeatureCollection'}},selections:input.currentSnapshot.entityRefs.map(entityId=>({entityId,
   geometryVersionId:input.entities.find(e=>e.entityId===entityId).geometryVersions[0].versionId}))};
  const {index,countries}=compileBuiltinWorldCatalog({...input,view});
  const project=assembleBuiltinWorld(index,countries,'2000-06');

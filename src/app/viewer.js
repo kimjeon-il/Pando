@@ -2,6 +2,9 @@ import { presentViewerLoadStatus } from "./viewer-load-status.js";
 import { loadVerifiedCore } from "../runtime/core-wasm-loader.js";
 import { isRecoverableLoadError } from "../runtime/reliability-core.js";
 
+import {installRuntimePerformanceMetrics} from '../runtime/runtime-performance-metrics.js';
+installRuntimePerformanceMetrics();
+
 // Preflight owns no map/document. Only after a verified engine exists may the
 // application graph evaluate temporal.js and hand startup to its lifecycle.
 const status = document.getElementById('viewerStatus');

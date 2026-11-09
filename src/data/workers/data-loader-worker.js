@@ -12,7 +12,7 @@ const {
   canonicalCountryPacketTransferables,
   inspectCanonicalCountryPacket,
 } = await import(`../../rendering/canonical-country-packet.js?v=${encodeURIComponent(ASSET_REVISION)}`);
-const { decodeCountryMesh } = await import(`../../rendering/country-mesh-codec.js?v=${encodeURIComponent(ASSET_REVISION)}`);
+const { decodeCountryMesh, decodePreparedCountryScene, preparedCountrySceneKey } = await import(`../../rendering/country-mesh-codec.js?v=${encodeURIComponent(ASSET_REVISION)}`);
 const { prepareCountryStroke, countryStrokeTransferables } = await import(`../../rendering/country-stroke-preparation.js?v=${encodeURIComponent(ASSET_REVISION)}`);
 const { prepareMeshSpatialBlocks, spatialBlockTransferables } = await import(`../../rendering/mesh-spatial-blocks.js?v=${encodeURIComponent(ASSET_REVISION)}`);
 let canonicalCountryIds = [];
@@ -271,31 +271,31 @@ async function loadMesh() {
   }
 }
 
-async function loadBuiltinMeshOnly(countryIds) {
-  const ids = [...(countryIds || [])].map(String).filter(Boolean);
-  if (ids.length !== manifest.countryCount || new Set(ids).size !== ids.length) throw new Error('내장 기본 메시 국가 ID가 올바르지 않습니다.');
-  const result = await loadMeshAsset(manifest.assets.canonicalMesh, 'mesh', 'builtin-mesh', '내장 기본 GPU 메시');
-  const meshBuffer = result.buffer;
-  const decodedMesh = decodeCountryMesh(meshBuffer, ids).mesh;
-  const preparedStroke = prepareCountryStroke(decodedMesh, ids);
-  const originalTriangles = decodedMesh.triangleIndices, originalLines = decodedMesh.lineIndices;
-  prepareMeshSpatialBlocks(decodedMesh);
-  originalTriangles.set(decodedMesh.triangleIndices); originalLines.set(decodedMesh.lineIndices);
-  const identity = Object.freeze({
-    hash: String(manifest.assets.canonicalMesh?.sha256 || ''),
-    header: [...(manifest.assets.canonicalMesh?.header || [])].map(Number),
-    dataRevision: DATA_REVISION,
-    countryIds: ids,
-  });
-  self.postMessage({
-    type: 'builtin-mesh-ready', meshBuffer, preparedStroke, spatialBlocks: decodedMesh.spatialBlocks, identity,
-  }, [meshBuffer, ...countryStrokeTransferables(preparedStroke), ...spatialBlockTransferables(decodedMesh)]);
+async function loadBuiltinMeshOnly(sceneIdentity) {
+  const key=preparedCountrySceneKey(sceneIdentity),spec=manifest.assets.preparedCountryScene;
+  if(!spec){
+    if(buildMeta.resourceProfile==='test-fixture'){self.postMessage({type:'builtin-mesh-miss'});return;}
+    throw new Error('The pinned world has no prepared country scene');
+  }
+  if(key!==preparedCountrySceneKey(spec.identity)){self.postMessage({type:'builtin-mesh-miss'});return;}
+  const result=await loadAsset(spec,'mesh','builtin-scene','사전 계산 지도',buffer=>decodePreparedCountryScene(buffer,sceneIdentity));
+  const scene=result.value, buffers=new Set();
+  const collect=value=>{
+    if(value instanceof ArrayBuffer)buffers.add(value);
+    else if(ArrayBuffer.isView(value))buffers.add(value.buffer);
+    else if(value&&typeof value==='object')for(const item of Object.values(value))collect(item);
+  };
+  collect(scene);
+  self.postMessage({type:'builtin-mesh-ready',meshBuffer:scene.meshBuffer,
+    preparedStroke:scene.preparedStroke,spatialBlocks:scene.spatialBlocks,boundaryPacket:scene.boundaryPacket,
+    identity:{hash:spec.sha256,sceneKey:key,dataRevision:DATA_REVISION,
+      countryIds:scene.countryIds,header:[...new Uint32Array(scene.meshBuffer,0,12)]}},[...buffers]);
 }
 
 self.onmessage = event => {
   const type = event.data?.type;
   if (builtinMeshOnly && type === 'load-builtin-mesh') {
-    loadBuiltinMeshOnly(event.data?.countryIds).catch(error => {
+    loadBuiltinMeshOnly(event.data?.sceneIdentity).catch(error => {
       self.postMessage({ type: 'builtin-mesh-error', message: error?.message || String(error) });
     });
     return;

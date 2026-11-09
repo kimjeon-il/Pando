@@ -1,4 +1,5 @@
 import { createWorkerRpcClient } from "../runtime/worker-rpc.js";
+import {createVerifiedCoreWorker} from '../runtime/core-wasm-loader.js';
 import {workerAssetUrl} from "../runtime/worker-asset-url.js";
 import { createProductModePolicy } from "../app/product-mode-policy.js";
 
@@ -9,7 +10,7 @@ const stateResponses = new Set(['core.document-state', 'core.document-mark-saved
 export function createCoreDocumentClient({
   productMode = 'editor',
   readOnly = productMode === 'viewer',
-  createWorker = () => new Worker(workerAssetUrl(new URL(readOnly
+  createWorker = () => createVerifiedCoreWorker(workerAssetUrl(new URL(readOnly
     ? '../workers/core-viewer-session-worker.js' : '../workers/core-session-worker.js', import.meta.url)), { type: 'module' }),
   onTransition = () => {},
 } = {}) {

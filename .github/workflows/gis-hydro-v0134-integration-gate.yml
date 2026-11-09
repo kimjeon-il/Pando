@@ -11,7 +11,7 @@ on:
       - 'tests/unit/document/monorepo-pages-staging.test.mjs'
       - 'tools/checks/check-current-hydro-layout.mjs'
       - 'src/app/viewer.js'
-      - 'tests/unit/build/frontend-product-output.test.mjs'
+      - 'tests/unit/build/frontend-build.test.mjs'
       - 'config/library-data.json'
   workflow_dispatch:
 
@@ -80,8 +80,8 @@ jobs:
             tests/unit/geometry/current-hydro-layout.test.mjs \
             tests/unit/data/hydro-packfile.test.mjs \
             tests/unit/rendering/physical-layer-service.test.mjs \
-            tests/unit/document/geographic-name-spacing.test.mjs \
-            tests/unit/build/frontend-product-output.test.mjs \
+            tests/unit/document/place-names.test.mjs \
+            tests/unit/build/frontend-build.test.mjs \
             tests/unit/ui/product-assets.test.mjs \
             tests/unit/document/monorepo-pages-staging.test.mjs
       - name: Build the complete current public Viewer dependency closure without deploying

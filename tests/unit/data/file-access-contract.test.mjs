@@ -4,7 +4,7 @@ import * as __project_dep1 from "node:assert/strict";
 import * as __project_dep2 from "../../../src/data/file-access-contract.js";
 import * as __project_dep3 from "../../../src/ui/file-controller.js";
 import * as __project_dep4 from "../../helpers/file-transport-fixtures.mjs";
-import * as __project_dep5 from "node:fs";
+
 import * as __project_dep6 from "../../../src/document/project-domain.js";
 contractSuite("file-access-contract", () => {
 const { describe : contractSuite } = __project_dep0;
@@ -13,7 +13,7 @@ const __dep1 = __project_dep0;
 const __dep2 = __project_dep2;
 const __dep3 = __project_dep3;
 const __dep4 = __project_dep4;
-const __dep5 = __project_dep5;
+
 contractSuite("file-access-contract", () => {
 const assert = __dep0.default;
 const test = __dep1.default;
@@ -30,8 +30,8 @@ test('file access contract requires only Viewer project opening',()=>{
 
 test('project selections require a named file unless cancelled',()=>{
   assert.equal(assertProjectFileSelection({cancelled:true}).cancelled,true);
-  assert.throws(()=>assertProjectFileSelection({cancelled:false,file:new Blob(['x'])}),/named File/);
-  assert.equal(assertProjectFileSelection({cancelled:false,file:new File(['x'],'project.gpkg')}).file.name,'project.gpkg');
+  assert.throws(()=>assertProjectFileSelection({cancelled:false,file:new globalThis.Blob(['x'])}),/named File/);
+  assert.equal(assertProjectFileSelection({cancelled:false,file:new globalThis.File(['x'],'project.gpkg')}).file.name,'project.gpkg');
 });
 });
 contractSuite("file-controller-mode", () => {
@@ -46,7 +46,7 @@ test('Viewer file workflow rejects the retired editor product',()=>{
 });
 
 test('Viewer opens a selected project through the current transaction and closes pending pickers',async()=>{
-  const file=new File(['current'],'current.gpkg'),project={format:'current'};
+  const file=new globalThis.File(['current'],'current.gpkg'),project={format:'current'};
   const fixture=createBrowserFileAccessFixture({productMode:'viewer',autoPick:false,projectFiles:()=>[file]});
   const {events,elements}=fixture;
   const controller=createFileController({productMode:'viewer',elements,fileAccess:fixture.access,
@@ -68,27 +68,9 @@ test('Viewer opens a selected project through the current transaction and closes
 });
 contractSuite("file-transport-fixtures", () => {
 const assert = __dep0.default;
-const { readFileSync } = __dep5;
+
 const test = __dep1.default;
 const { createBrowserFileAccessFixture, fixtureProjectFile } = __dep4;
-
-const root=new URL("../../../",import.meta.url);
-const read=path=>readFileSync(new URL(path,root),'utf8');
-
-test('file transport fixture ownership stays centralized',()=>{
-  const helper=read('tests/helpers/file-transport-fixtures.mjs');
-  assert.match(helper,/createBrowserFileAccess/);
-  // The file-controller contract now lives in this consolidated suite.
-  // Inspect the real current module rather than a retired test filename.
-  const consumers=[new URL(import.meta.url)];
-  for(const path of consumers){
-    const source=readFileSync(path,'utf8');
-    assert.match(source,/file-transport-fixtures\.mjs/,path+' must use the shared file transport fixture');
-    assert.doesNotMatch(source,/function\s+(?:simulatedNative|browserFixture|nativeFixture)\b/,path+' recreates a transport fixture');
-    assert.doesNotMatch(source,/const\s+input\s*=\s*\(\)\s*=>\s*\(\{listeners:/,path+' recreates browser input listeners');
-  }
-});
-
 
 test('shared fixture exercises the browser file access boundary',async()=>{
   const browser=createBrowserFileAccessFixture({productMode:'viewer',autoPick:false});

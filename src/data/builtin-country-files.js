@@ -75,3 +75,60 @@ export function materializeBuiltinCountry(descriptor,geometries){
  return Object.fromEntries(Object.entries(descriptor).map(([key,value])=>key==='geometryRefs'?['geometries',resolved]
   :[key,key==='schemaVersion'?2:structuredClone(value)]));
 }
+
+const timelineTables=['lifetimes','geometryBindings','parentRelations','propertyBindings'];
+const geometryKey=ref=>JSON.stringify([ref?.id,ref?.version]);
+/** The compiler creates this coordinate-free projection. Viewer reads the same
+ * dated tables without fetching or assembling authoring country descriptors. */
+export function compileBuiltinReadIndex(index,descriptors,previousIndex=null){
+ const current=new Map(descriptors.map(country=>[country.entityId,country]));
+ if(current.size!==descriptors.length)throw Error('Duplicate builtin read index country');
+ const previous=previousIndex?.readIndex,priorIds=new Map((previousIndex?.entities||[]).map((entry,i)=>[entry.entityId,i]));
+ if(previous)validateBuiltinReadIndex(previousIndex);
+ const readIndex={schemaVersion:1,sourceHashes:[],identities:[],records:{schemaVersion:3,lifetimes:[],geometryBindings:[],parentRelations:[],propertyBindings:[]}};
+ const previousRows=new Map();
+ if(previous)for(const name of timelineTables){const grouped=new Map();for(const row of previous.records[name]){
+  const id=row.objectRef.id;if(!grouped.has(id))grouped.set(id,[]);grouped.get(id).push(row);
+ }previousRows.set(name,grouped);}
+ for(const entry of index.entities){
+  const country=current.get(entry.entityId),prior=priorIds.get(entry.entityId);let identity,records;
+  if(country){
+   if(country.schemaVersion!==3||country.identity?.id!==entry.entityId||Object.hasOwn(country,'geometries')
+    ||!Array.isArray(country.sourceBindings)||JSON.stringify(country.geometryRefs)!==JSON.stringify(entry.geometryRefs)
+    ||country.timelineRecords?.schemaVersion!==3||!timelineTables.every(name=>Array.isArray(country.timelineRecords[name])))
+    throw Error('Invalid builtin read index descriptor: '+entry.entityId);
+   identity=structuredClone(country.identity);
+   if(identity.properties?.metadata?.historicalTimeline)identity.properties.metadata.historicalTimeline.geometryBindings=structuredClone(country.sourceBindings);
+   records=country.timelineRecords;
+  }else{
+   if(!previous||prior===undefined||previous.sourceHashes[prior]!==entry.sha256)throw Error('Missing exact descriptor for builtin read index: '+entry.entityId);
+   identity=structuredClone(previous.identities[prior]);
+   records=Object.fromEntries(timelineTables.map(name=>[name,previousRows.get(name).get(entry.entityId)||[]]));
+  }
+  readIndex.sourceHashes.push(entry.sha256);readIndex.identities.push(identity);
+  for(const name of timelineTables)readIndex.records[name].push(...structuredClone(records[name]));
+ }
+ validateBuiltinReadIndex({...index,readIndex});return readIndex;
+}
+/** Validate only at hash-verified catalog admission, not per frame. */
+export function validateBuiltinReadIndex(index){
+ const read=index?.readIndex,entries=index?.entities,fail=()=>{throw Error('Invalid or stale builtin temporal read index');};
+ if(!Array.isArray(entries)||read?.schemaVersion!==1||!Array.isArray(read.sourceHashes)||!Array.isArray(read.identities)
+  ||read.sourceHashes.length!==entries.length||read.identities.length!==entries.length||Object.hasOwn(read,'geometries')
+  ||read.records?.schemaVersion!==3||!timelineTables.every(name=>Array.isArray(read.records[name])))fail();
+ const owners=new Map();
+ for(let i=0;i<entries.length;i++){
+  const entry=entries[i],identity=read.identities[i];
+  if(!identity||identity.id!==entry.entityId||owners.has(entry.entityId)||read.sourceHashes[i]!==entry.sha256
+   ||!hash.test(entry.sha256)||!identity.properties||typeof identity.properties!=='object'
+   ||Array.isArray(identity.properties)||identity.geometry!=null)fail();
+  owners.set(entry.entityId,new Set(entry.geometryRefs.map(geometryKey)));
+ }
+ for(const name of timelineTables){const ids=new Set();for(const row of read.records[name]){
+  if(!row||typeof row.id!=='string'||!row.id||ids.has(row.id)||row.objectRef?.domain!=='territorial'||!owners.has(row.objectRef.id))fail();
+  ids.add(row.id);
+  if(name==='geometryBindings'&&!owners.get(row.objectRef.id).has(geometryKey(row.geometryRef)))fail();
+  if(name==='parentRelations'&&row.parentId&&!owners.has(row.parentId))fail();
+ }}
+ return read;
+}

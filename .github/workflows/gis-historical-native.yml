@@ -12,15 +12,13 @@ on:
       - 'tools/cpp/historical-ussr-partition-audit.inc'
       - 'tools/cpp/historical-lsib-source-audit.inc'
       - 'tools/gis/verify-lsib-country-sources.mjs'
-      - 'tests/unit/geometry/gis-lsib-source-native.test.mjs'
-      - 'tests/unit/geometry/gis-historical-source-compare.test.mjs'
-      - 'tests/unit/geometry/gis-caspian-physical-native.test.mjs'
-      - 'tests/unit/geometry/gis-caspian-generalize-native.test.mjs'
+      - 'tests/unit/geometry/gis-source-launcher.test.mjs'
+      - 'tests/unit/geometry/polygon-geometry.test.mjs'
       - 'tools/gis/generalize-approved-caspian-display.mjs'
-      - 'tests/unit/geometry/gis-caspian-display-packaging.test.mjs'
+      - 'tests/unit/geometry/polygon-geometry.test.mjs'
       - 'tools/gis/replay-ussr-1922-countries.mjs'
       - 'tools/gis/audit-ussr-1922-approved-followups.mjs'
-      - 'tests/unit/geometry/gis-ussr-1922-partition-native.test.mjs'
+      - 'tests/unit/document/historical-world-territories.test.mjs'
       - 'tools/gis/diagnose-ussr-1922-source-drift.mjs'
       - 'tools/gis/stage-ussr-1922-library-originals.mjs'
       - 'tools/gis/replay-ussr-1922-physical.mjs'
@@ -28,12 +26,11 @@ on:
       - 'tools/gis/report-ussr-1922-caspian.mjs'
       - 'tests/fixtures/gis-caspian-1922-native-baseline.json'
       - 'tools/gis/verify-historical-linework.mjs'
-      - 'tests/unit/geometry/gis-historical-linework-native.test.mjs'
+      - 'tests/unit/geometry/polygon-geometry.test.mjs'
       - 'tools/gis/verify-approved-caspian-network.mjs'
-      - 'tests/unit/geometry/gis-caspian-source-zip.test.mjs'
+      - 'tests/unit/geometry/polygon-geometry.test.mjs'
       - 'tools/historical-library/german-empire-1914-base.recipe.json'
-      - 'tests/unit/geometry/gis-german-base-native.test.mjs'
-      - 'tests/unit/build/gis-german-base-builder.test.mjs'
+      - 'tests/unit/geometry/gis-math-contract.test.mjs'
       - 'tools/gis/build-german-1914-base.mjs'
       - 'tools/gis/verify-german-1914-originals.mjs'
       - 'tools/gis/fetch-german-empire-1914-source.mjs'
@@ -114,7 +111,7 @@ jobs:
           cmake --build build-native/territorial-recipe --target pando-territorial-recipe
           if [[ "$RUNNER_OS" == 'Windows' ]]; then suffix='.exe'; else suffix=''; fi
           export PANDO_TERRITORIAL_RECIPE_BINARY="$PWD/build-native/territorial-recipe/pando-territorial-recipe$suffix"
-          node --test tests/unit/geometry/gis-german-modern-coast-native.test.mjs tests/unit/build/gis-german-modern-coast-builder.test.mjs
+          node --test tests/unit/geometry/gis-math-contract.test.mjs 
       - name: Collect the matching Windows compiler runtime
         if: runner.os == 'Windows'
         run: |
@@ -163,7 +160,7 @@ jobs:
           cmake --build build-native/territorial-recipe --target pando-territorial-recipe
           if [[ "$RUNNER_OS" == 'Windows' ]]; then suffix='.exe'; else suffix=''; fi
           export PANDO_TERRITORIAL_RECIPE_BINARY="$PWD/build-native/territorial-recipe/pando-territorial-recipe$suffix"
-          node --test tests/unit/geometry/gis-lsib-screen-native.test.mjs tests/unit/geometry/gis-lsib-display-native.test.mjs tests/unit/data/gis-lsib-archive-reader.test.mjs   tests/unit/geometry/gis-lsib-reference-native.test.mjs tests/unit/geometry/gis-lsib-source-native.test.mjs  tests/unit/document/lsib-coordinate-audit.test.mjs tests/unit/geometry/gis-lsib-chain-native.test.mjs tests/unit/geometry/gis-lsib-ring-native.test.mjs tests/unit/geometry/gis-lsib-repair-native.test.mjs tests/unit/geometry/gis-lsib-shared-native.test.mjs tests/unit/geometry/gis-lsib-enclave-native.test.mjs tests/unit/geometry/gis-lsib-tripoint-native.test.mjs tests/unit/geometry/gis-lsib-coast-native.test.mjs tests/unit/geometry/gis-lsib-union-native.test.mjs   tests/unit/geometry/gis-lsib-spatial-native.test.mjs
+          node --test tests/unit/geometry/gis-source-launcher.test.mjs                   
       - name: Collect the matching Windows compiler runtime
         if: runner.os == 'Windows'
         run: |
@@ -210,7 +207,7 @@ jobs:
       - name: Run the frozen synthetic generator and engine contracts
         env:
           PANDO_TERRITORIAL_RECIPE_BINARY: ${{ github.workspace }}/build-native/territorial-recipe/pando-territorial-recipe.exe
-        run: node --test tests/unit/build/gis-german-base-builder.test.mjs tests/unit/geometry/gis-german-base-native.test.mjs
+        run: node --test tests/unit/geometry/gis-math-contract.test.mjs 
   german-base-migration:
     if: github.event_name == 'workflow_dispatch' && inputs.target == 'german-base'
     runs-on: ubuntu-24.04
@@ -248,7 +245,7 @@ jobs:
         env:
           PANDO_TERRITORIAL_RECIPE_BINARY: ${{ github.workspace }}/build-native/territorial-recipe/pando-territorial-recipe
           PANDO_GERMAN_CANONICAL_NE: ${{ github.workspace }}/build-native/german-base/canonical-ne.json
-        run: node --test tests/unit/build/gis-german-base-builder.test.mjs tests/unit/geometry/gis-german-base-native.test.mjs
+        run: node --test tests/unit/geometry/gis-math-contract.test.mjs 
   native-hgis:
     if: github.event_name != 'workflow_dispatch' || inputs.target == 'all'
     runs-on: ubuntu-24.04
@@ -273,14 +270,14 @@ jobs:
       - name: Test native axis correction, island selection and protected recipe status
         run: |-
           export PANDO_TERRITORIAL_RECIPE_BINARY="$PWD/build-native/territorial-recipe/pando-territorial-recipe"
-          node --test tests/unit/geometry/gis-german-base-native.test.mjs tests/unit/geometry/gis-historical-linework-native.test.mjs
-          node --test tests/unit/geometry/gis-caspian-source-zip.test.mjs
-          node --test tests/unit/geometry/gis-caspian-generalize-native.test.mjs
-          node --test tests/unit/geometry/gis-caspian-display-packaging.test.mjs
-          node --test tests/unit/geometry/gis-caspian-physical-native.test.mjs
-          node --test tests/unit/geometry/gis-historical-source-compare.test.mjs
-          node --test tests/unit/geometry/gis-ussr-1922-partition-native.test.mjs
-          node --test tests/unit/geometry/gis-lsib-source-native.test.mjs
+          node --test tests/unit/geometry/gis-math-contract.test.mjs tests/unit/geometry/polygon-geometry.test.mjs
+          node --test tests/unit/geometry/polygon-geometry.test.mjs
+          node --test tests/unit/geometry/polygon-geometry.test.mjs
+          node --test tests/unit/geometry/polygon-geometry.test.mjs
+          node --test tests/unit/geometry/polygon-geometry.test.mjs
+          node --test tests/unit/geometry/polygon-geometry.test.mjs
+          node --test tests/unit/document/historical-world-territories.test.mjs
+          node --test tests/unit/geometry/gis-source-launcher.test.mjs
 
       - name: Verify immutable 1914 Germany source inventory and native Heligoland donor
         run: |

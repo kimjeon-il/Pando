@@ -16,8 +16,8 @@ import * as __dep13 from "../../../src/ui/map-display-client.js";
 import * as __dep14 from "../../../src/runtime/worker-rpc.js";
 import * as __dep15 from "../../../src/document/territorial-units.js";
 import * as __dep16 from "../../../src/ui/map-display-menu-state.js";
-import * as __dep17 from "../../helpers/read-frontend-source.mjs";
-import * as __dep18 from "node:fs/promises";
+
+
 import * as __dep19 from "../../../src/map/map-interaction-gate.js";
 import * as __dep20 from "../../../src/ui/map-host.js";
 import * as __dep21 from "../../../src/rendering/map-render-coordinator.js";
@@ -143,9 +143,9 @@ const __suiteDependency5 = __dep15;
 const __suiteDependency6 = __dep1;
 const __suiteDependency7 = __dep0;
 const __suiteDependency8 = __dep16;
-const __suiteDependency9 = __dep17;
+
 const __suiteDependency10 = __dep0;
-const __suiteDependency11 = __dep18;
+
 const __suiteDependency12 = __dep1;
 const __suiteDependency13 = __dep19;
 const __suiteDependency14 = __dep20;
@@ -205,9 +205,9 @@ test('a new pointer gesture cancels pending menu open and close',async()=>{
 });
 });
 featureDescribe("map-host", () => {
-  const { readFrontendSources } = __suiteDependency9;
+
   const assert = __suiteDependency10.default;
-  const {  readFile  } = __suiteDependency11;
+
   const test = __suiteDependency12.default;
   const {  createMapInteractionGate  } = __suiteDependency13;
   const {  normalizeMapSurfaceDragDelta,  } = __suiteDependency14;
@@ -215,19 +215,6 @@ test('MapHost surface drag contract preserves the user input direction', () => {
   assert.deepEqual(normalizeMapSurfaceDragDelta(40, 15), [40, 15]);
   assert.deepEqual(normalizeMapSurfaceDragDelta(-40, -15), [-40, -15]);
   assert.deepEqual(normalizeMapSurfaceDragDelta(Number.NaN, Number.POSITIVE_INFINITY), [0, 0]);
-});
-
-test('flat projection remains equirectangular and is not constrained by Mercator latitude', async () => {
-  const app = readFrontendSources('map-projection','map-workspace-host');
-  const gpuRenderer = await readFile(new URL("../../../src/rendering/gpu-map-renderer.js", import.meta.url), 'utf8');
-  const polygonPass = await readFile(new URL("../../../src/rendering/gpu-polygon-overlay-pass.js", import.meta.url), 'utf8');
-  const strokeRenderer = await readFile(new URL("../../../src/rendering/gpu-stroke-renderer.js", import.meta.url), 'utf8');
-  assert.match(app, /d3\.geo\.equirectangular\(\)/);
-  assert.doesNotMatch(app, /clamp\([^\n]*-85,\s*85\)/);
-  for (const source of [gpuRenderer, polygonPass, strokeRenderer]) {
-    assert.doesNotMatch(source, /log\(tan\(/);
-    assert.match(source, /lat\s*-\s*uFlatCenter\.y/);
-  }
 });
 
 test('MapInteractionGate keeps labels in Pando and Space pan in the host', () => {

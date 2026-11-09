@@ -11,7 +11,7 @@ import { validateGeometry } from "../../src/geometry/geometry-validation.js";
 import { inspectCanonicalCountryPacket } from "../../src/rendering/canonical-country-packet.js";
 import { encodeCanonicalCountryPacket } from "./canonical-country-packet-encoder.mjs";
 import { buildTopologyPreview } from "../gis/preview-topology.mjs";
-import { classifyBuiltinCountries } from "../../src/document/builtin-subunits.js";
+import { classifyBuiltinCountries } from "../gis/builtin-country-classification.mjs";
 import { loadBuiltinDisplayPolicy } from "../gis/builtin-display-policy.mjs";
 import { geometryFingerprint } from "../../src/document/project-preview-policy.js";
 import { verifyGzipAssetBytes } from "../../scripts/lib/gzip-asset-verification.mjs";

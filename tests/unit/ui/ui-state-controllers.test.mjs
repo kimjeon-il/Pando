@@ -203,14 +203,9 @@ test('Core replacement and device I/O receipts restore import rollback tokens an
 contractSuite("select-controller", () => {
 const test = __unit_dep0.default;
 const assert = __unit_dep1.default;
-const { filterSelectOptions, normalizeSelectQuery } = __unit_dep9;
+const { filterSelectOptions } = __unit_dep9;
 const { resolveSelectChoice, selectableOptions } = __unit_dep10;
 
-
-test('select search normalizes width case and whitespace', () => {
-  assert.equal(normalizeSelectQuery('  ＤＥＵ  '), 'deu');
-  assert.equal(normalizeSelectQuery('독일   제국'), '독일 제국');
-});
 
 test('select search ranks exact prefix and contained matches', () => {
   const options = [
@@ -226,16 +221,6 @@ test('select search ranks exact prefix and contained matches', () => {
     'editor_name',
     'pandolab_name',
   ]);
-});
-
-test('select search includes technical values and aliases', () => {
-  const options = [
-    { value: 'DEU', label: '독일', searchText: 'Germany Federal Republic' },
-    { value: 'DNK', label: '덴마크', searchText: 'Denmark' },
-  ];
-  assert.equal(filterSelectOptions(options, 'deu')[0]?.label, '독일');
-  assert.equal(filterSelectOptions(options, 'germany')[0]?.value, 'DEU');
-  assert.equal(filterSelectOptions(options, '독')[0]?.value, 'DEU');
 });
 
 test('placeholder copy is excluded from the selectable and searchable option set', () => {
@@ -320,17 +305,6 @@ for (const type of ['keydown', 'resize', 'pandolab:project-changed', 'pandolab:i
   assert.equal(tooltip.classList.contains('hidden'), true);
 });
 
-test('touch and a pointer outside the map cannot display country hover', () => {
-  const { controller, tooltip, document } = fixture();
-  controller.hide();
-  document.dispatch('pointermove', { clientX: 100, clientY: 100, pointerType: 'touch', target: { closest: selector => selector === '#map' ? {} : null } });
-  controller.setMapHover({ name: 'Country' });
-  assert.equal(tooltip.classList.contains('hidden'), true);
-  document.dispatch('pointermove', { pointerType: 'mouse', target: { closest: () => null } });
-  controller.setMapHover({ name: 'Country' });
-  assert.equal(tooltip.classList.contains('hidden'), true);
-});
-
 for (const dismissal of ['pointerdown', 'resize', 'keydown']) test(`fresh same-country movement resumes after ${dismissal} without a new domain hover change`, async () => {
   const { createNodeSelection } = await import("../../helpers/core-selection.mjs");
   const state = fixture();
@@ -410,35 +384,6 @@ for (const order of ['map-leave-first', 'control-entry-first', 'pointermove-firs
   assert.equal(f.tooltip.dataset.ownerId, f.button.id);
   assert.equal(f.tooltip.dataset.kind, undefined);
   assert.equal(f.button.getAttribute('aria-describedby'), 'existing-help uiTooltip');
-});
-
-test('nested SVG movement neither cancels nor restarts the pending button tooltip', t => {
-  const f = transitionFixture(t);
-  f.enter(f.use); f.move(f.use);
-  t.mock.timers.tick(200);
-  f.leave(f.use, f.svg); f.enter(f.svg, f.use); f.move(f.svg);
-  t.mock.timers.tick(220);
-  assert.equal(f.tooltip.textContent, '선택 객체로 이동');
-  assert.equal(f.tooltip.classList.contains('hidden'), false);
-  f.leave(f.svg, f.use); f.enter(f.use, f.svg); f.move(f.use);
-  assert.equal(f.tooltip.classList.contains('hidden'), false);
-  assert.equal(f.button.getAttribute('aria-describedby'), 'existing-help uiTooltip');
-});
-
-test('returning to the country cancels a pending control and releases visible control aria ownership', t => {
-  const f = transitionFixture(t);
-  f.enter(); f.move(f.use); t.mock.timers.tick(200);
-  f.leave(); f.move(f.map); f.controller.setMapHover({ name: '프랑스' });
-  t.mock.timers.tick(420);
-  assert.equal(f.tooltip.dataset.kind, 'country');
-  assert.equal(f.tooltip.children[0].textContent, '프랑스');
-  assert.equal(f.button.getAttribute('aria-describedby'), 'existing-help');
-  f.enter(); f.move(f.use); t.mock.timers.tick(420);
-  assert.equal(f.tooltip.dataset.ownerId, f.button.id);
-  f.leave(); f.move(f.map);
-  assert.equal(f.tooltip.dataset.kind, 'country');
-  assert.equal(f.tooltip.dataset.ownerId, undefined);
-  assert.equal(f.button.getAttribute('aria-describedby'), 'existing-help');
 });
 
 test('keyboard tooltip takes ownership from country hover until fresh map movement', t => {

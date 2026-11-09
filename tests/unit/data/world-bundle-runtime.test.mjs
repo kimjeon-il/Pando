@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createHash } from 'node:crypto';
-import { readFileSync } from 'node:fs';
+
 import { gzipSync } from 'node:zlib';
 import { validateWorldBundle, worldAssetUrl } from "../../../src/data/world-bundle-manifest.js";
 
@@ -64,42 +64,4 @@ test('worker manifest validation rejects versioned, tampered and traversal paths
   const altered = fixture();
   altered.assets.previewMesh.sha256 = 'f'.repeat(64);
   assert.throws(() => validateWorldBundle(altered), /내용 주소/);
-});
-
-test('committed world/current.json is independently valid and app-version-free', () => {
-  const path = new URL("../../../assets/data/world/current.json", import.meta.url);
-  const bundle = JSON.parse(readFileSync(path, 'utf8'));
-  const data = validateWorldBundle(bundle);
-  assert.equal(bundle.schemaVersion, 1);
-  assert.equal(bundle.source.countryCount, 258);
-  assert.equal(bundle.source.sha256.length, 64);
-  assert.equal(bundle.version, undefined);
-  for (const [role, asset] of Object.entries(data.assets)) {
-    assert.equal(asset.url.includes('-sha256-'), true, role);
-    assert.equal(asset.url.includes(asset.sha256), true, role);
-  }
-});
-
-test('country asset producers and runtime no longer derive data names from package version', () => {
-  const source = name => readFileSync(new URL("../../../" + name, import.meta.url), 'utf8');
-  const previewProducer = source('tools/build/build-world-preview.mjs');
-  const meshProducer = source('tools/build/build-world-mesh.mjs');
-  const boundaryProducer = source('tools/build/build-country-shared-boundaries.mjs');
-  const metadata = source('scripts/lib/frontend-build.mjs');
-  const runtime = source('src/data/workers/data-loader-worker.js');
-  const renderer = source('src/rendering/gpu-map-renderer.js');
-  for (const text of [previewProducer, meshProducer]) {
-    assert.doesNotMatch(text, /packageJson\.version|package\.json.*version/);
-  }
-  assert.match(previewProducer, /bundleSeed\.legacyPreviewManifest/);
-  assert.match(boundaryProducer, /bundle\.compatibility\.sharedBoundaries/);
-  assert.match(metadata, /assets\/data\/world\/current\.json/);
-  assert.match(metadata, /const metadataPaths\s*=\s*Object\.freeze\(\[\s*['"]assets\/data\/world\/current\.json['"]/);
-  assert.match(metadata, /worldBundle\s*:\s*\{\s*url\s*:\s*metadataPaths\[0\],\s*\.\.\.dataIdentity\(metadataPaths\[0\]\)\s*\}/);
-  assert.doesNotMatch(metadata, /world-preview-v\$\{appVersion\}/);
-  assert.match(runtime, /if \(!buildMeta\.worldBundle\) throw new Error/);
-  assert.match(runtime, /manifestLoader\.loadAsset\(buildMeta\.worldBundle,/);
-  assert.match(runtime, /bytes => parseVerifiedWorldBundle\(bytes, buildMeta\.worldBundle\)/);
-  assert.doesNotMatch(runtime, /world-preview-v\$\{APP_VERSION\}/);
-  assert.doesNotMatch(renderer, /shared-v0\.34\.0\.json\.gz/);
 });

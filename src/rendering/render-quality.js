@@ -70,7 +70,7 @@ export function createRenderQuality() {
     if(!current())return false;
     try {
     const applied=mesh?await renderer.replaceBuiltInMesh({meshBuffer:mesh.meshBuffer,preparedStroke:mesh.preparedStroke,spatialBlocks:mesh.spatialBlocks,
-      builtinIdentity:mesh.identity,features:slotIds.map(id=>({id})),quality:'canonical',countryPatchIds:[...dirtyIds],projectGeneration,
+      builtinIdentity:mesh.identity,contentKey:mesh.contentKey,features:slotIds.map(id=>({id})),quality:'canonical',countryPatchIds:[...dirtyIds],projectGeneration,
       onStaged:()=>{if(current()){renderer.syncCountryMeshQuality();dependencies.domains.renderingDomain.invalidateProject('canonical-staging-ready');}}}):
       await renderer.rebuildFromCountries(features||dependencies.countries.builtinTerritorialScene({canonical:true}).collection.features,{projectGeneration,reason});
     if(!current()||applied===false)return false;

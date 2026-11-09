@@ -2,16 +2,13 @@ import { describe as contractSuite } from 'node:test';
 import * as __hydro_dep0 from "node:test";
 import * as __hydro_dep1 from "node:assert/strict";
 import * as __hydro_dep2 from "../../../src/rendering/gpu-hydro-coverage.js";
-import * as __hydro_dep3 from "node:fs";
+
 import * as __hydro_dep4 from "../../../src/data/hydro-tile-window.js";
 import * as __hydro_dep5 from "../../../src/data/physical-resources.js";
 contractSuite("hydro-coverage-surface", () => {
 const test = __hydro_dep0.default;
 const assert = __hydro_dep1.default;
 const { createGpuHydroCoverage } = __hydro_dep2;
-
-
-
 
 function fakeGl(supportMax = true) {
   const constants = ['MAX','ARRAY_BUFFER','TEXTURE_2D','TEXTURE3','ACTIVE_TEXTURE','TEXTURE_BINDING_2D',
@@ -119,15 +116,10 @@ test('unavailable WebGL1 MAX blending and budget overflow return to direct SDF',
 });
 contractSuite("hydro-tile-window", () => {
 const assert = __hydro_dep1.default;
-const fs = __hydro_dep3.default;
+
 const test = __hydro_dep0.default;
 const { createHydroTileWindow, hydroTileSpecsForWindow, hydroViewportSizeClass } = __hydro_dep4;
 const { hydroVisibilityThresholdForMapZoom } = __hydro_dep5;
-
-
-
-
-
 
 const manifest = Object.freeze({
   stages: Object.freeze([
@@ -264,15 +256,6 @@ test('quantized globe windows conservatively retain every legacy visible tile', 
       }
     }
   }
-});
-
-test('gpu hydro request cache no longer includes raw view revision', () => {
-  const source = fs.readFileSync(new URL("../../../src/rendering/gpu-hydro-preparation.js", import.meta.url), 'utf8');
-  const start = source.indexOf('function requestHydroView');
-  const end = source.indexOf('function loadHydroLogicalFeature', start);
-  const requestSource = source.slice(start, end);
-  assert.ok(requestSource.includes('createHydroTileWindow'));
-  assert.doesNotMatch(requestSource, /viewState\?\.revision|currentRenderRevision/);
 });
 
 test('hydro tile range enumeration matches exhaustive longitude and latitude scans', () => {

@@ -1,7 +1,7 @@
 import { polygonGeometryDigest } from "./prepared-polygon-mesh.js";
 
 // The mesh Worker owns prepared geometry. Returned arrays never share its cache.
-export function createCountryMeshPreparation({ engine, byteBudget = 128 * 1024 * 1024,
+export function createCountryMeshPreparation({ engine, loadPreparedPart = null, byteBudget = 128 * 1024 * 1024,
   yieldTask = () => new Promise(resolve => setTimeout(resolve, 0)) }) {
   const cache = new Map();
   let cacheBytes = 0;
@@ -22,10 +22,16 @@ export function createCountryMeshPreparation({ engine, byteBudget = 128 * 1024 *
         cache.delete(key); cache.set(key, part); preparation.reusedCount++;
       } else {
         const begin = performance.now();
-        part = engine.buildGpuMeshFeatures([feature], { validate: false,
-          throwIfCancelled: () => context.throwIfCancelled() });
+        part = loadPreparedPart ? await loadPreparedPart(key, feature) : null;
+        context.throwIfCancelled();
+        if (part) preparation.reusedCount++;
+        else {
+          part = engine.buildGpuMeshFeatures([feature], { validate: false,
+            throwIfCancelled: () => context.throwIfCancelled() });
+          preparation.triangulationMs += performance.now() - begin;
+          preparation.builtCount++;
+        }
         const duration = performance.now() - begin;
-        preparation.triangulationMs += duration; preparation.builtCount++;
         if (!preparation.slowestFeature || duration > preparation.slowestFeature.ms)
           preparation.slowestFeature = { id: String(feature.id || index), ms: duration };
         const bytes = Object.values(part).filter(ArrayBuffer.isView).reduce((sum, value) => sum + value.byteLength, 0);

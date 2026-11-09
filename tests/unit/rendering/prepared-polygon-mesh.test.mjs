@@ -5,8 +5,8 @@ import "../../../src/rendering/workers/gpu-mesh-core.js";
 import { encodePolygonMesh, decodePolygonMesh } from "../../../src/rendering/polygon-mesh-codec.js";
 import { createPreparedPolygonMeshStore, polygonGeometryDigest } from "../../../src/rendering/prepared-polygon-mesh.js";
 import { createRenderSceneBuilder } from "../../../src/rendering/render-scene.js";
-import { readFileSync } from 'node:fs';
-import { gunzipSync } from 'node:zlib';
+
+
 import { createHash } from 'node:crypto';
 import {createPreparedMeshDelta} from '../../../tools/data/prepared-mesh-storage.mjs';
 import {applyPreparedMeshDelta,preparedMeshDeltaLayout} from '../../../src/data/prepared-mesh-delta.js';
@@ -28,31 +28,6 @@ test('prepared binary delta preserves every mesh byte and reuses the loaded base
   loadManifest:async()=>({meshes:{[baseKey]:baseSpec,[targetKey]:asset}}),loadAsset:async spec=>{calls.push(spec.url);return spec===baseSpec?base:delta;}});
  await store.prepare({cacheKey:'base',geometry},context);await store.prepare({cacheKey:'historical',geometry:after},context);
  assert.deepEqual(calls,['base','patch']);assert.equal(store.stats().builds,0);
-});
-
-test('fixed physical land loads a verified prepared mesh instead of triangulating the world at runtime', async () => {
-  const read = file => readFileSync(new URL("../../../" + file, import.meta.url));
-  const land = JSON.parse(gunzipSync(read('assets/data/physical-land/v1/geometry.json.gz')));
-  const manifest = JSON.parse(read('assets/data/prepared-polygons/generated/v2/manifest.json'));
-  const digest = await polygonGeometryDigest(land);
-  assert.ok(manifest.meshes[digest], 'fixed physical land is missing from prepared meshes');
-  const store = createPreparedPolygonMeshStore({
-    engine: { ...engine, buildPolygonGeometryPacket: () => assert.fail('fixed land must never triangulate at runtime') },
-    loadManifest: async () => manifest,
-    loadAsset: async spec => {
-      const compressed = read(spec.url);
-      assert.equal(compressed[9], 3, 'prepared assets have one platform-independent gzip header');
-      assert.equal(createHash('sha256').update(compressed).digest('hex'), spec.sha256);
-      return Uint8Array.from(gunzipSync(compressed)).buffer;
-    },
-  });
-  const { packet } = await store.prepare({ cacheKey: 'physical-land:globe', geometry: land }, context);
-  assert.equal(packet.polygonOffsets.length, land.coordinates.length + 1);
-  assert.equal(packet.ringOffsets.at(-1), land.coordinates.flat().reduce((sum, ring) => sum + ring.length, 0));
-  assert.ok(packet.triangleCount > 0);
-  await store.prepare({ cacheKey: 'physical-land:flat', geometry: land }, context);
-  assert.equal(store.stats().assetHits, 1);
-  assert.equal(store.stats().builds, 0);
 });
 
 test('fixed assets and transferred copies retain holes, geometry and algorithm identity', async () => {

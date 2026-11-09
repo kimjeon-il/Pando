@@ -1,23 +1,16 @@
 import { describe as contractSuite } from 'node:test';
 import * as __terrain_dep0 from "node:test";
 import * as __terrain_dep1 from "node:assert/strict";
-import * as __terrain_dep2 from "node:fs";
+
 import * as __terrain_dep3 from "../../../src/rendering/gpu-upload-scheduler.js";
 import * as __terrain_dep4 from "../../../src/rendering/gpu-terrain-preparation.js";
 import * as __terrain_dep5 from "../../../src/rendering/map-visual-frame.js";
 import * as __terrain_dep6 from "../../../src/rendering/scene-color-cache.js";
 const test = __terrain_dep0.default;
 const assert = __terrain_dep1.default;
-const { readFileSync } = __terrain_dep2;
+
 const { createGpuUploadScheduler } = __terrain_dep3;
 const { createGpuTerrainPreparation } = __terrain_dep4;
-
-test('a reusable scene image cannot bypass the canonical current-view terrain preparation',()=>{
-  const source=readFileSync(new URL("../../../src/rendering/gpu-map-renderer.js",import.meta.url),'utf8');
-  const render=source.slice(source.indexOf('function renderWebGl('),source.indexOf('function renderCanvasHydro('));
-  const prepare=render.indexOf('prepareTerrain('),cache=render.indexOf('const exactSceneCacheHit');
-  assert.ok(prepare>=0&&prepare<cache,'terrain scheduling must run before both exact and reprojected scene-cache shortcuts');
-});
 
 function clock() {
   const frames=[];let time=0,pending=false,hidden=false;

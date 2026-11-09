@@ -35,3 +35,20 @@ export async function countryMeshContentKey(features,{isCurrent=()=>true}={}){
   if(!isCurrent())return null;
   return resourceKey(rows);
 }
+
+// Reuse the verified immutable digest owner; scene slots belong to the artifact.
+export async function countrySceneIdentity(features, boundaries, {isCurrent=()=>true}={}) {
+  const fills=[], rows=[];
+  for(const feature of features) {
+    if(!isCurrent())return null;
+    if(!feature?.geometry)return null;
+    fills.push([String(feature.id),await verifiedGeometryDigest(feature.geometry)]);
+  }
+  for(const feature of boundaries) {
+    if(!isCurrent())return null;
+    if(!feature?.geometry)return null;
+    rows.push([String(feature.id),await verifiedGeometryDigest(feature.geometry),
+      String(feature.boundaryRootId||feature.id),String(feature.properties?.parentId||''),String(feature.properties?.entityKind||'')]);
+  }
+  return isCurrent()?{fills,boundaries:rows}:null;
+}
