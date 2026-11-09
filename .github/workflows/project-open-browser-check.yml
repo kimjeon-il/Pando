@@ -1,4 +1,5 @@
 name: Focused browser project-open integration
+# Retest after canonical dependency policy worker closure correction
 on:
   push:
     branches: [work/map-project-open-browser-20261109]
