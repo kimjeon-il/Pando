@@ -39,11 +39,14 @@ export function canDrawTerrainTiles(tiles,representation,style,tintReady,demForm
   return tiles.length>0&&(representation!==demFormat||style!=='physical'||tintReady===true);
 }
 
-export function classifyGpuResourceReady(key, scene, strokeResourceKey = packet => packet.key) {
+export function classifyGpuResourceReady(key, scene, strokeResourceKey = packet => packet.key, sceneKeys = null) {
   const value=String(key);
   if(value.startsWith('country-boundary:')
     ||value.startsWith('country-shared-boundary:')
     ||value.startsWith('country-outline-overrides:'))return 'country-boundary';
+  // The owning renderer may supply an index of an accepted immutable scene.
+  // Avoid rescanning every packet for each asynchronous upload completion.
+  if(sceneKeys) return sceneKeys.has(value) ? 'scene' : 'interaction';
   if((scene?.polygons||[]).some(packet=>packet.key===key)
     ||(scene?.strokes||[]).some(packet=>strokeResourceKey(packet)===key))return 'scene';
   return 'interaction';

@@ -178,6 +178,7 @@
       "kind": "browser",
       "testPatterns": [
         "tests/browser/**/viewer-*.spec.mjs",
+        "tests/browser/runtime/project-runtime-roundtrip.spec.mjs",
         "tests/browser/document/web-viewer.spec.mjs",
         "tests/browser/**/shared-map-*.spec.mjs",
         "tests/browser/**/shared-view*.spec.mjs"
