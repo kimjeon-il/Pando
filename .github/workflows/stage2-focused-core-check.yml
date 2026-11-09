@@ -1,4 +1,5 @@
 name: Focused stage 2 C++ country project regression
+# This validation-only workflow reads the pinned external display policy.
 on:
   push:
     branches: [work/map-project-stage2-core-check-20261109]
