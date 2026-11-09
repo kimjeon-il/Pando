@@ -26,7 +26,7 @@ export async function buildPreparedCountryScene({root=defaultRoot,month,write=tr
   const [{assembleBuiltinWorld},{createCanonicalGeometryVersionStore:createGeometryVersionStore},{resolveWorld},
     {territorialSceneDisplayId},{territorialRootId},{createCountrySharedBoundaryState,prepareCountrySharedBoundaryPacket}]=await Promise.all([
     import('../../src/data/builtin-world-loader.js'),import('../../src/geometry/geometry-version-store.js'),
-    import('../../src/document/timeline-resolver.js'),import('../../src/document/builtin-subunits.js'),
+    import('../../src/document/timeline-resolver.js'),import('../../src/document/territorial-display-identity.js'),
     import('../../src/document/territorial-units.js'),import('../../src/rendering/country-shared-boundary-packet.js')]);
   const context=readProjectGenerationContext({root,projectId});
   const data=resolve(root,'assets/data'),worldPath=resolve(root,context.catalogs.world);
