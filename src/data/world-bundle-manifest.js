@@ -18,7 +18,8 @@ function validRelativePath(path) {
     && path.split('/').every(part => part && part !== '.' && part !== '..');
 }
 
-export function validateWorldBundle(bundle) {
+export function validateWorldBundle(bundle,{allowObsoletePreparedScene=false}={}) {
+  if(typeof allowObsoletePreparedScene!=='boolean')throw new TypeError('Invalid optional prepared scene policy');
   if (bundle?.schema !== WORLD_BUNDLE_SCHEMA || bundle.schemaVersion !== WORLD_BUNDLE_FORMAT) {
     throw new Error('지원하지 않는 세계지도 데이터 매니페스트입니다.');
   }
@@ -53,10 +54,18 @@ export function validateWorldBundle(bundle) {
     const asset=bundle.assets.preparedCountryScene;
     if(!HEX_256.test(asset.sha256)||asset.url!==`world/objects/country-scene-sha256-${asset.sha256}.bin.gz`
       ||asset.encoding!=='gzip'||!Number.isSafeInteger(asset.compressedBytes)||asset.compressedBytes<=0
-      ||!Number.isSafeInteger(asset.decodedBytes)||asset.decodedBytes<=0||asset.algorithmVersion!==MESH_ALGORITHM_REVISION)
+      ||!Number.isSafeInteger(asset.decodedBytes)||asset.decodedBytes<=0
+      ||!Number.isSafeInteger(asset.algorithmVersion)||asset.algorithmVersion<1)
       throw new Error('Invalid prepared country scene descriptor');
     preparedCountrySceneKey(asset.identity);
-    assets.preparedCountryScene=Object.freeze({...asset});
+    // A source-verified older *optional* precomputed scene cannot be read by
+    // the current mesh ABI. Treat it as an absent acceleration artifact, not
+    // as a broken world/country catalog. Mismatched or malformed asset
+    // addresses, hashes, sizes and identities still fail closed.
+    if(asset.algorithmVersion===MESH_ALGORITHM_REVISION)
+      assets.preparedCountryScene=Object.freeze({...asset});
+    else if(!allowObsoletePreparedScene||asset.algorithmVersion>MESH_ALGORITHM_REVISION)
+      throw new Error('Invalid prepared country scene descriptor');
   }
   const shared = {};
   for (const quality of ['preview', 'canonical']) {
@@ -86,7 +95,7 @@ export function worldAssetUrl(asset, dataRootUrl) {
   return new URL(asset.url, dataRootUrl);
 }
 
-export async function parseVerifiedWorldBundle(bytes, spec = null) {
+export async function parseVerifiedWorldBundle(bytes, spec = null, options = {}) {
   const stored = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
   if (spec) {
     if (spec.encoding !== 'identity' || !HEX_256.test(spec.sha256)
@@ -98,5 +107,5 @@ export async function parseVerifiedWorldBundle(bytes, spec = null) {
     const actual = [...new Uint8Array(digest)].map(byte => byte.toString(16).padStart(2, '0')).join('');
     if (actual !== spec.sha256) throw new Error('게시된 세계지도 매니페스트 무결성이 올바르지 않습니다.');
   }
-  return validateWorldBundle(JSON.parse(new TextDecoder().decode(stored)));
+  return validateWorldBundle(JSON.parse(new TextDecoder().decode(stored)),options);
 }
