@@ -1,5 +1,5 @@
 import {parseTemporal} from "./temporal.js";
-import {deviceCurrentMonth} from "./builtin-month-clock.js";
+import {deviceCurrentMonth} from "./calendar-month.js";
 
 // UI intent and optional default-project auto-follow. All actual date changes
 // are submitted to the same C++ document cursor by applyMonth; this controller
