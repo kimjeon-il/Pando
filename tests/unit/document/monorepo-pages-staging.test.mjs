@@ -28,6 +28,10 @@ test('stages committed viewer assets while excluding editor and repository sourc
   assert.equal(evidence.dataRepository, 'example/library-data');
   assert.match(evidence.dataCommit, /^[0-9a-f]{40}$/);
   assert.equal(meta.sourceCommit, evidence.sourceCommit);
+  assert.equal(evidence.projectId,'default-world');
+  assert.ok(evidence.files.some(file=>file.path===meta.mapProjectManifest.url));
+  for(const role of Object.values(meta.mapProject.resources))
+    assert.ok(evidence.files.some(file=>file.path===role.catalog),'Required project catalog: '+role.catalog);
   assert.equal(meta.dataCommit, evidence.dataCommit);
   assert.equal(existsSync(join(stage, 'assets/data/library-channel')), false);
   assert.equal(existsSync(join(stage, 'assets/data/library-releases')), false);

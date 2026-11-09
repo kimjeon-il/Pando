@@ -68,3 +68,23 @@ test('changing project content changes the selected Viewer data closure without 
  assert.equal(result.viewerPaths.has('assets/data/places/manifest.json'),false);
  assert.ok(result.viewerPaths.has(result.buildMeta.mapProjectManifest.url));
 });
+
+test('a separately selected project owns the complete published map and place resource closure',async t=>{
+ const f=fixture(t);
+ const primary=JSON.parse(readFileSync(join(f.root,'projects/default-world/manifest.json'),'utf8'));
+ const replacement='assets/data/places/alternate-project.json';
+ f.metadata[replacement]={shards:{}};
+ f.put('projects/alternate-world/manifest.json',JSON.stringify({...primary,projectId:'alternate-world',resources:{
+   ...primary.resources,places:{catalog:replacement}}}));
+ const alternate=await buildFrontendSnapshot({...f.options,projectId:'alternate-world',dataPaths:Object.keys(f.metadata)});
+ const standard=await buildFrontendSnapshot({...f.options,dataPaths:Object.keys(f.metadata)});
+ assert.equal(alternate.buildMeta.mapProject.projectId,'alternate-world');
+ assert.equal(alternate.buildMeta.mapProjectManifest.url,'assets/data/projects/alternate-world/manifest.json');
+ assert.equal(alternate.viewerPaths.has('assets/data/projects/default-world/manifest.json'),false);
+ assert.equal(alternate.viewerPaths.has('assets/data/places/manifest.json'),false);
+ assert.ok(alternate.viewerPaths.has(replacement));
+ assert.notEqual(alternate.dataRevision,standard.dataRevision);
+ await assert.rejects(buildFrontendSnapshot({...f.options,projectId:'../outside'}),/project ID/);
+ f.put('projects/wrong-name/manifest.json',JSON.stringify(primary));
+ await assert.rejects(buildFrontendSnapshot({...f.options,projectId:'wrong-name'}),/source identity mismatch/);
+});

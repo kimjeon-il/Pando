@@ -11,6 +11,11 @@ function requireOnly(value,allowed,label){
   if(!isRecord(value)||Object.keys(value).some(key=>!allowed.includes(key)))
     throw new TypeError('Invalid '+label+' fields');
 }
+export function mapProjectManifestSourcePath(projectId){
+  if(typeof projectId!=='string'||!/^[a-z][a-z0-9-]{0,63}$/.test(projectId))
+    throw new TypeError('Invalid map project ID');
+  return 'projects/'+projectId+'/manifest.json';
+}
 export function validateMapProjectManifest(input){
   requireOnly(input,['format','schemaVersion','projectId','documentFormat','resources'],
     'map project manifest');

@@ -11,7 +11,7 @@ import {buildWorkerAsset} from './worker-assets.mjs';
 import {collectViewerAssets} from './product-assets.mjs';
 import {decodeArchiveEntry,libraryCheckout,libraryConfig} from "../../tools/data/library-context.mjs";
 import {createInitialLandPreviewAsset} from './initial-land-preview.mjs';
-import {validateMapProjectManifest,mapProjectResourcePath,mapProjectResourcePaths}
+import {validateMapProjectManifest,mapProjectResourcePath,mapProjectResourcePaths,mapProjectManifestSourcePath}
   from '../../src/data/map-project-manifest.js';
 
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -47,7 +47,7 @@ function pinnedContext(root){
 const stable=value=>Array.isArray(value)?'['+value.map(stable).join(',')+']':value&&typeof value==='object'?'{'+Object.keys(value).sort().map(k=>JSON.stringify(k)+':'+stable(value[k])).join(',')+'}':JSON.stringify(value);
 
 /** Build the one Viewer runtime shared by browser and Windows review, without output mutations. */
-export async function buildFrontendSnapshot({root=process.cwd(),sourceCommit,readPinnedData,dataPaths,readSourceBytes,resourceProfile,workerSourceTransform=(_path,source)=>source}={}){
+export async function buildFrontendSnapshot({root=process.cwd(),sourceCommit,readPinnedData,dataPaths,readSourceBytes,resourceProfile,projectId='default-world',workerSourceTransform=(_path,source)=>source}={}){
  if(resourceProfile!==undefined&&!['map-data','test-fixture'].includes(resourceProfile))throw Error('Invalid frontend resource profile');
  root=resolve(root);const pinned=readPinnedData?null:pinnedContext(root);
  readPinnedData??=pinned.read;dataPaths??=pinned.dataPaths;
@@ -88,8 +88,9 @@ export async function buildFrontendSnapshot({root=process.cwd(),sourceCommit,rea
  }
  // The selected project owns its catalog references. Pinned library assets
  // supply immutable bytes, not another viewer-maintained membership list.
- const projectSource=sourceText('projects/default-world/manifest.json');
+ const projectSource=sourceText(mapProjectManifestSourcePath(projectId));
  const mapProject=validateMapProjectManifest(JSON.parse(projectSource));
+ if(mapProject.projectId!==projectId)throw new TypeError('Map project source identity mismatch');
  const resource=role=>mapProjectResourcePath(mapProject,role);
  const metadataPaths=mapProjectResourcePaths(mapProject);
  const metadata=Object.fromEntries(metadataPaths.map(path=>[path,JSON.parse(readPinnedData(path))]));
