@@ -18,9 +18,17 @@ export function createSelectionDomain({
   }
   const activeScope=()=>projectDomain?.activeProjectScope?.()??null;
   const activeProjectId=()=>projectDomain?.activeProject?.()?.projectId??null;
-  let current = Object.freeze({ revision: 0, hoverRevision: 0,
-    projectGeneration: Number(projectDomain?.getGeneration?.() || 0),
-    projectId:activeProjectId(),projectScope:activeScope(),selection: empty, hover: null });
+  // Keep the pre-existing public snapshot shape; the project gate is readable
+  // but non-enumerable so consumers and persistence never acquire new fields.
+  const scopedSnapshot=(value,projectId=activeProjectId(),projectScope=activeScope())=>{
+    Object.defineProperties(value,{
+      projectId:{value:projectId,enumerable:false},
+      projectScope:{value:projectScope,enumerable:false},
+    });
+    return Object.freeze(value);
+  };
+  let current = scopedSnapshot({ revision: 0, hoverRevision: 0,
+    projectGeneration: Number(projectDomain?.getGeneration?.() || 0),selection: empty, hover: null });
   let disposed = false, lastNative = null, lastChanged = false;
   const contexts = new WeakMap();
   const metrics = { mutationCount: 0, noOpCount: 0, renderInvalidationCount: 0 };
@@ -60,9 +68,10 @@ export function createSelectionDomain({
     lastNative = native; lastChanged = selectionChanged || hoverChanged || generationChanged;
     if (!lastChanged) return current;
     const previous = current.selection;
-    current = Object.freeze({ revision: native.selectionRevision, hoverRevision: native.hoverRevision,
-      projectGeneration,projectId:activeProjectId(),projectScope,
-      selection: selectionChanged ? Object.freeze({ primaryKey: preferred?.key || null, keys, items }) : current.selection, hover });
+    current = scopedSnapshot({ revision: native.selectionRevision, hoverRevision: native.hoverRevision,
+      projectGeneration,
+      selection: selectionChanged ? Object.freeze({ primaryKey: preferred?.key || null, keys, items }) : current.selection, hover },
+      activeProjectId(),projectScope);
     if (reset || reason === 'project-reset' || generationChanged) {
       metrics.mutationCount += 1;
       onSelectionChanged(current, reason, previous);
@@ -153,9 +162,8 @@ export function createSelectionDomain({
   };
   function dispose() { if (disposed) return; disposed = true; unsubscribe(); }
   return Object.freeze({ replace, toggle, selectRange, setMany, remove, prune, clear, setHover, resetProject, refresh, acceptCoreSnapshot,
-    snapshot: () => current.projectScope===activeScope()?current:Object.freeze({...current,
-      projectGeneration:generation(),projectId:activeProjectId(),projectScope:activeScope(),
-      selection:empty,hover:null}),
+    snapshot: () => current.projectScope===activeScope()?current:scopedSnapshot({...current,
+      projectGeneration:generation(),selection:empty,hover:null}),
     primary: () => current.projectScope===activeScope()
       ?current.selection.items.find(ref => ref.key === current.selection.primaryKey)||null:null,
     has: value => current.projectScope===activeScope()&&current.selection.keys.includes(
