@@ -1,7 +1,7 @@
 {
   "schema": "pandoeditor-core-wasm",
   "abiVersion": 1,
-  "sourceSha256": "f4138927ea2044814f11cf60daadfb7a0a7b8ef11860ddaab57f081ed365a16c",
+  "sourceSha256": "124e8a38ce8f67bf6062ef07f2ae6b1c8588c97f1e64e060a9c774f05dcd2abc",
   "compiler": {
     "name": "emscripten",
     "version": "6.0.3"
@@ -361,7 +361,7 @@
     },
     {
       "path": "src/geometry/native/include/pandoeditor/exactplanar.h",
-      "sha256": "183a6496fe246c0ec3e5e171db9d75cb3216a0123cdfbbc1d0b9d73c0bc6f7e5"
+      "sha256": "1f746f75c80f5d443bd49a0eb4d16535fa7ca08114c128f7bbf49165e7ff11c6"
     },
     {
       "path": "src/geometry/native/include/pandoeditor/geometry-types.h",
@@ -521,7 +521,7 @@
     },
     {
       "path": "tests/native/document/document-session-tests.cpp",
-      "sha256": "4d4a79d278e88347a9bbd3625f33c9798c64cbaacf2e5e1c0c30056ebf68923f"
+      "sha256": "540c54f2b321f5ed2837848d56e024ca1376778a0aeba7b3078387a5f1e2f189"
     },
     {
       "path": "tests/native/document/hydro-timeline-tests.cpp",
@@ -621,7 +621,7 @@
     },
     {
       "path": "tests/native/geometry/polygon-mesh-tests.cpp",
-      "sha256": "48330d06d52c9d92d48fb3bca74fb3e114afcb9907e55796aa463ddbf9365a8a"
+      "sha256": "87b6e411e6f6b9b3e0338e830b8f5cfe0ec11d2395ae6c76298839b3ca677294"
     },
     {
       "path": "tests/native/geometry/river-partition-probe.cpp",
@@ -655,7 +655,7 @@
     },
     "wasm": {
       "file": "pandoeditor-core.wasm",
-      "sha256": "68eabd47e6cce3d9d8a4ba7b941a6ffb8425786abee0985dd34c51dcad0ebd69"
+      "sha256": "48cefabaeab52e1c560a1f3db58c768a18ba3b3e4e1026c7826c1e5e5d92c6bc"
     }
   }
 }
