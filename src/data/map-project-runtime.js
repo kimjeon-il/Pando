@@ -25,13 +25,34 @@ export function mapProjectCatalogSpec(meta,role){
 export function createMapProjectRuntime({meta,assetBaseUrl,fetchFn=globalThis.fetch,
   cacheStorage=globalThis.caches}={}){
   if(!meta?.dataRevision||!assetBaseUrl)throw new TypeError('Project runtime needs a data revision and asset base');
-  const project=validateMapProjectManifest(meta.mapProject);
+  const publishedProject=validateMapProjectManifest(meta.mapProject);
+  let activeProject=publishedProject,verifiedManifest=null;
   const dataRoot=new URL('../../',assetBaseUrl);
   const store=createStoredAssetLoader({dataRevision:meta.dataRevision,fetchFn,cacheStorage,
     resolveUrl:spec=>new URL(spec.url,dataRoot).href});
   const catalogs=new Map();
-  const catalogSpec=role=>mapProjectCatalogSpec(meta,role);
+  async function verifyManifest(){
+    if(!meta.mapProjectManifest)return activeProject; // injected fixture / older package
+    if(!verifiedManifest){
+      const spec=meta.mapProjectManifest;
+      if(!/^assets\/data\/projects\/[a-z0-9-]+\/manifest\.json$/.test(spec.url||'')
+        ||spec.url!=='assets/data/projects/'+publishedProject.projectId+'/manifest.json'
+        ||!/^[a-f0-9]{64}$/.test(spec.sha256||''))
+        throw new TypeError('Invalid published project manifest receipt');
+      verifiedManifest=store.loadAsset(spec,'background','project-manifest:'+spec.sha256,
+        '프로젝트 매니페스트',buffer=>{
+          const selected=validateMapProjectManifest(JSON.parse(new TextDecoder().decode(buffer)));
+          if(JSON.stringify(selected)!==JSON.stringify(publishedProject))
+            throw new TypeError('Published project manifest differs from selected build identity');
+          return selected;
+        }).then(result=>result.value).catch(error=>{verifiedManifest=null;throw error;});
+    }
+    activeProject=await verifiedManifest;
+    return activeProject;
+  }
+  const catalogSpec=role=>mapProjectCatalogSpec({...meta,mapProject:activeProject},role);
   async function loadCatalog(role){
+    await verifyManifest();
     const spec=catalogSpec(role),key=spec.url+':'+spec.sha256;
     if(!catalogs.has(key)){
       const pending=store.loadAsset(spec,'background',key,'프로젝트 자료 카탈로그',buffer=>{
@@ -46,6 +67,7 @@ export function createMapProjectRuntime({meta,assetBaseUrl,fetchFn=globalThis.fe
     return catalogs.get(key);
   }
   async function hydratePhysicalMetadata(){
+    await verifyManifest();
     const catalog=await loadCatalog('physicalLand');
     if(catalog.schema!=='pando-physical-land-v3'
       ||!HEX.test(catalog.sourceSha256||'')||!HEX.test(catalog.asset?.sha256||''))
@@ -53,5 +75,6 @@ export function createMapProjectRuntime({meta,assetBaseUrl,fetchFn=globalThis.fe
     return Object.freeze({physicalLand:catalog.asset,
       physicalWaterObjects:catalog.waterObjects||WATER_EMPTY});
   }
-  return Object.freeze({project,catalogSpec,loadCatalog,hydratePhysicalMetadata});
+  return Object.freeze({get project(){return activeProject;},verifyManifest,
+    catalogSpec,loadCatalog,hydratePhysicalMetadata});
 }
