@@ -2,6 +2,9 @@ import {normalizeProjectSetup} from "./project-setup.js";
 import { getRuntimePerformanceMetrics,PERFORMANCE_METRIC_NAMES } from "../runtime/runtime-performance-metrics.js";
 import { createCoreDocumentReadModel } from "./core-document-read-model.js";
 import { createProductModePolicy } from "../app/product-mode-policy.js";
+import {createTerritorialEntityRepository} from "./territorial-entity-repository.js";
+import {validateMapProjectManifest,mapProjectDocumentIdentity,mapProjectResourcePath,mapProjectResourceScope} from "../data/map-project-manifest.js";
+import {normalizeProjectReader,adaptProjectReadResult,projectOpenReceipt,projectOpenCancelledReceipt} from "../data/project-open-adapter.js";
 
 const metricNow=() => typeof performance==='undefined' ? Date.now():performance.now();
 const cloneValue = value => {
@@ -55,6 +58,43 @@ export function createProjectDomain({
   let disposed = false;
   let replacing = false;
   let saving = false;
+  // A content project is a source binding, not a second C++ document/store.
+  // Only an explicitly selected builtin candidate may acquire this identity.
+  let activeContentProject = null;
+  const normalizeContentProject = source => {
+    if(source==null)return null;
+    const manifest=validateMapProjectManifest(source.manifest);
+    if(typeof source.dataRevision!=='string'||!source.dataRevision.trim()
+      ||!/^[a-f0-9]{64}$/.test(source.catalogSha256||''))
+      throw new TypeError('Invalid content project catalog revision');
+    return Object.freeze({manifest,dataRevision:source.dataRevision,catalogSha256:source.catalogSha256});
+  };
+  const contentIdentityFor = (source,acceptedDocument) => {
+    const content=normalizeContentProject(source);
+    if(!content)return null;
+    const identity=mapProjectDocumentIdentity(content.manifest,acceptedDocument);
+    const scope=mapProjectResourceScope(content.manifest,{
+      documentId:identity.documentId,dataRevision:content.dataRevision});
+    return Object.freeze({...identity,manifest:content.manifest,dataRevision:content.dataRevision,
+      catalog:mapProjectResourcePath(content.manifest,content.manifest.document.sourceRole),
+      catalogSha256:content.catalogSha256,scope});
+  };
+  // The Viewer and imported files both query the accepted C++ temporal views.
+  // Reuse the existing repository indexing logic; no copied country records.
+  let territorialRepository;
+  const territory=()=> {
+    if(typeof documentModel?.territorialViews!=='function')
+      throw new TypeError('The accepted C++ territorial query is required.');
+    if(!territorialRepository)territorialRepository=createTerritorialEntityRepository({
+      getEntities:()=>documentModel.territorialViews()});
+    return territorialRepository;
+  };
+  const territorial=Object.freeze({
+    list:options=>territory().list(options),
+    get:id=>territory().get(id),
+    identities:()=>documentModel.list('territorial'),
+    world:()=>documentModel.world(),
+  });
   let commandQueue = Promise.resolve();
   const preparedIntents=new Map();
   function currentProject(project) {
@@ -166,11 +206,13 @@ export function createProjectDomain({
     commandQueue=operation.catch(() => {});
     return operation;
   };
-  const readmitBuiltinSelectionCatalogs = async () => {
+  const readmitBuiltinSelectionCatalogs = async ({replaceProject=false}={}) => {
     if(typeof readBuiltinSelectionCatalogs!=='function')throw new TypeError('The immutable platform builtin identity catalogs are required for document admission.');
     const catalogs=readBuiltinSelectionCatalogs();
     if(!Array.isArray(catalogs))throw new TypeError('Builtin selection catalogs must be explicit domain/ref records.');
-    for(const { domain,refs } of catalogs)await commandOwner.selectionCatalogLoad(domain,refs);
+    // For a replaced C++ document, previous project's transient place/water
+    // references are not its property. Fresh workers re-admit current refs.
+    for(const { domain,refs } of catalogs)await commandOwner.selectionCatalogLoad(domain,replaceProject?[]:refs);
   };
 
   // Startup promotion replaces data inside the current render generation. It
@@ -193,6 +235,8 @@ export function createProjectDomain({
       if(generation!==expectedGeneration || replacing)
         throw Object.assign(new Error('Document admission completed after project replacement.'),{ code: 'PL-CORE-STALE' });
       await publishCommand(outcome,{ expectedGeneration,reason });
+      // An untagged direct admission must not inherit an earlier content source.
+      activeContentProject=null;
       return documentModel.snapshot();
     });
     commandQueue=operation.catch(() => {});
@@ -219,7 +263,10 @@ export function createProjectDomain({
   // No baseline admission occurs until the existing replacement transaction
   // has captured a reversible Core capsule.
   const prepareTemporalBuiltin = (facts,setup,{dataRevision,manifestSha256,transition=false,
-    expectedGeneration = generation,isCurrent = () => true} = {}) => {
+    expectedGeneration = generation,isCurrent = () => true,contentProject=null} = {}) => {
+    const selectedContent=normalizeContentProject(contentProject);
+    if(selectedContent&&selectedContent.catalogSha256!==manifestSha256)
+      throw new TypeError('Temporal source differs from project territorial catalog');
     const operation=commandQueue.then(async()=>{
       assertActive();
       const current=()=>!disposed&&!replacing&&generation===expectedGeneration&&isCurrent();
@@ -256,7 +303,8 @@ export function createProjectDomain({
           expectedGeneration,expectedEpoch:candidate.expectedEpoch,
           sourceId:source.sourceId,candidateId:candidate.candidateId,
           targetMonth:candidate.targetMonth,sourceFingerprint:candidate.sourceFingerprint,
-          worldSha256:candidate.worldSha256});
+          worldSha256:candidate.worldSha256,
+          ...(selectedContent?{contentProject:selectedContent}:{})});
       } catch(error) {
         if(source&&commandOwner.state()?.epoch===sourceEpoch)
           try {await commandOwner.temporalSourceRelease(source.sourceId);}
@@ -428,6 +476,7 @@ export function createProjectDomain({
     const requireCurrent=()=>{if(!isCurrent())throw Object.assign(new Error('Project opening was superseded.'),{code:'PL-CORE-STALE',name:'AbortError',cancelled:true});};
     requireCurrent();
     let checkpoint;
+    const previousContentProject=activeContentProject;
     let replacementStarted = false;
     let failure;
     let replacementResult;
@@ -457,7 +506,7 @@ export function createProjectDomain({
         if(!Number.isSafeInteger(prepared.baselineId)||prepared.baselineId<=0)throw new TypeError('A previously admitted Core builtin source handle is required.');
         await commandOwner.loadBaseline(prepared.baselineId,prepared.setup);
       } else await commandOwner.load(JSON.stringify(prepared));
-      await readmitBuiltinSelectionCatalogs();
+      await readmitBuiltinSelectionCatalogs({replaceProject:true});
       if (readPresentationCatalog) {
         if (typeof readPresentationCatalog !== 'function' || typeof commandOwner?.presentationCatalogLoad !== 'function'
           || typeof publishCommand !== 'function')
@@ -465,14 +514,24 @@ export function createProjectDomain({
         const outcome = await commandOwner.presentationCatalogLoad(readPresentationCatalog());
         await publishCommand(outcome, { expectedGeneration: nextGeneration, reason: 'presentation-catalog' });
       }
-      const result = await replaceSnapshot(reason === 'new' ? null : documentModel.snapshot(), {
+      const acceptedDocument=documentModel.snapshot();
+      // Candidate content identity is derived from the *accepted* C++ document
+      // and made available to replacement adapters. It is published as active
+      // only after the map presentation/replacement succeeds.
+      const candidateContentProject=reason==='builtin'
+        ?contentIdentityFor(prepared.contentProject,acceptedDocument):null;
+      const result = await replaceSnapshot(reason === 'new' ? null : acceptedDocument, {
         reason, generation: nextGeneration, skipRenderReset: true,
+        ...(candidateContentProject?{contentProject:candidateContentProject}:{}),
         ...(reason === 'new' ? {
-          prepared: { ...prepared,project: documentModel.snapshot() },
+          prepared: { ...prepared,project: acceptedDocument },
         } : {}),
       });
       if (result === false) throw new Error('Project replacement was rejected.');
       requireCurrent();
+      // An imported GeoPackage, even when sourceMode is builtin, never
+      // implicitly inherits the default content project.
+      activeContentProject=candidateContentProject;
       // Unsupported/read-error recovery retains its original slots and write hold.
       if (reason === 'new' && !persistence?.getRecovery?.()) await persistence?.clear?.();
       if (reason === 'new') saveState?.markNewProject();
@@ -482,6 +541,7 @@ export function createProjectDomain({
       replacementResult=result;
     } catch (error) {
       failure=error;
+      activeContentProject=previousContentProject;
       if (replacementStarted && checkpoint !== undefined) {
         // Generations stay monotonic so failed replacement workers remain stale.
         try {
@@ -491,7 +551,12 @@ export function createProjectDomain({
           await restoreEditorSession(checkpoint.editor,rollbackGeneration);
           if(saveState && checkpoint.io)saveState.restore(checkpoint.io);
         }
-        catch (restoreError) { error.restoreError = restoreError; }
+        catch (restoreError) {
+          error.restoreError = restoreError;
+          // An irrecoverable rollback must not expose the prior content
+          // identity as though the C++ document had been restored.
+          activeContentProject = null;
+        }
       }
       if (replacementStarted) onReplacementError(error, reason);
     } finally {
@@ -522,43 +587,52 @@ export function createProjectDomain({
     } catch(error) { replacing=false;throw error; }
   };
   const load = (project,options) => replace(project, 'load',options);
-  const open = async (read,{source='project',presentation='default',isCurrent:requestCurrent=()=>true,onPresented}={}) => {
+  // Every reader produces the same admission result and completion receipt.
+  // GeoPackage decoding may run while a prior replacement settles; a builtin
+  // C++ source must wait for that replacement/rollback to release its handles.
+  const openProject = async (input,{source=null,presentation='default',
+    isCurrent:requestCurrent=()=>true,onPresented}={}) => {
     assertActive();
-    if(!['project','builtin'].includes(source))throw new TypeError('Unknown project source.');
-    if(typeof read!=='function')throw new TypeError('Project opening requires its asynchronous source reader.');
+    const reader=normalizeProjectReader(input,{source});
     const ticket=++openRequest,isCurrent=()=>!disposed&&ticket===openRequest&&requestCurrent();
+    const cancelled=()=>projectOpenCancelledReceipt(reader);
     opening=true;
     try {
-      // Builtin readers admit a Core baseline. Run them after an earlier
-      // replacement/rollback has settled, so they observe its final generation.
-      const project=source==='builtin'?null:await read();
-      if((source!=='builtin'&&!project)||!isCurrent())return false;
+      let eagerResult=null;
+      if(reader.readPhase==='eager'){
+        const raw=await reader.read();
+        if(!isCurrent())return cancelled();
+        eagerResult=adaptProjectReadResult(reader,raw);
+        if(!eagerResult)return cancelled();
+      }
       const operation=openQueue.then(async()=>{
-        if(!isCurrent())return false;
-        if(source==='builtin') {
-          let baseline;
-          try {
-            baseline=await read();
-            if(!baseline||!isCurrent())return false;
-            await replace(baseline,'builtin',{isCurrent,presentation,onPresented});
-          } finally {
-            // A superseded read may have prepared Core source handles but
-            // never entered replacement. Both handles are invalidated by
-            // adoption/rollback; this also cleans up the uncommitted case.
-            if(baseline?.kind==='temporal-candidate')
-              await discardTemporalBuiltin(baseline);
-          }
+        if(!isCurrent())return cancelled();
+        let raw=null;
+        try {
+          raw=reader.readPhase==='queued'?await reader.read():null;
+          const prepared=reader.readPhase==='queued'
+            ?adaptProjectReadResult(reader,raw):eagerResult;
+          if(!prepared||!isCurrent())return cancelled();
+          await replace(prepared.payload,prepared.reason,{isCurrent,presentation,onPresented});
+          if(!isCurrent())return cancelled();
+          return projectOpenReceipt({readResult:prepared,accepted:true,
+            document:snapshot(),generation,contentProject:activeContentProject});
+        } finally {
+          // A stale or rejected candidate never retains an unadopted Core
+          // handle. Native release remains idempotent after adoption/rollback.
+          if(reader.source==='builtin'&&raw?.kind==='temporal-candidate')
+            await discardTemporalBuiltin(raw);
         }
-        else await load(project,{isCurrent});
-        return isCurrent();
       });
       openQueue=operation.catch(()=>{});
       return await operation;
-    } catch(error) {
-      if(!isCurrent()&&!error.restoreError)return false;
+    } catch(error){
+      if(!isCurrent()&&!error.restoreError)return cancelled();
       throw error;
     } finally {if(isCurrent())opening=false;}
   };
+  // Backward-compatible boolean API for older command and Viewer consumers.
+  const open = async(input,options)=>(await openProject(input,options)).accepted;
   const createProject = async options => replace(normalizeProjectSetup(options), 'new');
   const travelHistory = (direction, metadata) => {
     const operation=commandQueue.then(async () => {
@@ -626,6 +700,8 @@ export function createProjectDomain({
   return Object.freeze({
     snapshot,
     state: () => commandOwner.state(),
+    territorial,
+    activeContentProject:()=>activeContentProject,
     resolveWorld,
     getGeneration: () => generation,
     isReplacing: () => replacing,
@@ -636,7 +712,7 @@ export function createProjectDomain({
     prepareTemporalBuiltin,
     discardTemporalBuiltin,
     inspectImport,
-    load,open,
+    load,open,openProject,
     getOpenRevision:()=>openRequest,
     isOpening:()=>opening,
     baselineCoverage:(baselineId,month)=>commandOwner.baselineCoverage(baselineId,month),
