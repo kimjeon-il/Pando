@@ -43,6 +43,7 @@ export function createProjectMonthClock({
     return result;
   }
   const setFollow=(value,mode)=>{
+    if(automatic===value)return;
     automatic=value;
     onFollowChange(value,{mode});
   };
