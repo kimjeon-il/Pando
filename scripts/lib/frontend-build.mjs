@@ -12,7 +12,7 @@ import {collectViewerAssets} from './product-assets.mjs';
 import {decodeArchiveEntry,libraryCheckout,libraryConfig} from "../../tools/data/library-context.mjs";
 import {createInitialLandPreviewAsset} from './initial-land-preview.mjs';
 import {validateMapCatalogCoherence} from './map-catalog-coherence.mjs';
-import {validateMapProjectManifest,mapProjectResourcePath,mapProjectResourcePaths,mapProjectManifestSourcePath}
+import {MAP_PROJECT_ROLES,validateMapProjectManifest,mapProjectResourcePath,mapProjectResourcePaths,mapProjectManifestSourcePath}
   from '../../src/data/map-project-manifest.js';
 
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -45,8 +45,6 @@ function pinnedContext(root){
  }
  return pinnedContexts.get(key);
 }
-const stable=value=>Array.isArray(value)?'['+value.map(stable).join(',')+']':value&&typeof value==='object'?'{'+Object.keys(value).sort().map(k=>JSON.stringify(k)+':'+stable(value[k])).join(',')+'}':JSON.stringify(value);
-
 /** Build the one Viewer runtime shared by browser and Windows review, without output mutations. */
 export async function buildFrontendSnapshot({root=process.cwd(),sourceCommit,readPinnedData,dataPaths,readSourceBytes,resourceProfile,projectId='default-world',workerSourceTransform=(_path,source)=>source}={}){
  if(resourceProfile!==undefined&&!['map-data','test-fixture'].includes(resourceProfile))throw Error('Invalid frontend resource profile');
@@ -95,28 +93,37 @@ export async function buildFrontendSnapshot({root=process.cwd(),sourceCommit,rea
  if(mapProject.projectId!==projectId)throw new TypeError('Map project source identity mismatch');
  const resource=role=>mapProjectResourcePath(mapProject,role);
  const metadataPaths=mapProjectResourcePaths(mapProject);
- const metadata=Object.fromEntries(metadataPaths.map(path=>[path,JSON.parse(readPinnedData(path))]));
+ // Build validates pinned existence, catalog digest and cross-role compatibility.
+ // The Viewer chooses and loads catalog contents from its project at runtime.
+ const catalogInputs=Object.fromEntries(metadataPaths.map(path=>{
+   const bytes=readPinnedData(path),value=JSON.parse(bytes.toString('utf8'));
+   if(!value||typeof value!=='object'||Array.isArray(value))
+     throw new TypeError('Invalid pinned project catalog: '+path);
+   return [path,{value,sha256:hash(bytes),bytes:bytes.length}];
+ }));
+ const metadata=Object.fromEntries(metadataPaths.map(path=>[path,catalogInputs[path].value]));
  const land=metadata[resource('physicalLand')];
- const {hydroVersion}=validateMapCatalogCoherence(mapProject,metadata,path=>hash(readPinnedData(path)));
+ const {hydroVersion}=validateMapCatalogCoherence(mapProject,metadata,path=>catalogInputs[path].sha256);
+ const projectCatalogs=Object.fromEntries(MAP_PROJECT_ROLES.map(role=>{
+   const path=resource(role),receipt=catalogInputs[path];
+   return [role,{catalog:path,sha256:receipt.sha256,bytes:receipt.bytes,
+     ...(role==='rivers'||role==='lakes'?{version:hydroVersion}:{})}];
+ }));
  const dataRevision='data-'+hash(JSON.stringify([mapProject.projectId,mapProject.resources,
-   metadataPaths.map(path=>[path,stable(metadata[path])])])).slice(0,32);
+   metadataPaths.map(path=>[path,catalogInputs[path].sha256])])).slice(0,32);
  const initialLandPreview=createInitialLandPreviewAsset(readPinnedData(land.asset.url),land.asset);
  generated(initialLandPreview.spec.url,initialLandPreview.bytes,'viewer');
- const dataIdentity=path=>{const bytes=readPinnedData(path);return{encoding:'identity',compressedBytes:bytes.length,decodedBytes:bytes.length,sha256:hash(bytes)};};
  const projectBytes=Buffer.from(projectSource);
  const projectManifestPath='assets/data/projects/'+mapProject.projectId+'/manifest.json';
  generated(projectManifestPath,projectBytes,'viewer');
  const mapProjectManifest={url:projectManifestPath,encoding:'identity',
    compressedBytes:projectBytes.length,decodedBytes:projectBytes.length,sha256:hash(projectBytes)};
- const builtinPath=resource('territorial'),preparedPath=resource('preparedMeshes');
+ // The generated metadata carries one project manifest and one compact
+ // integrity receipt per role. No duplicate world/terrain/water catalog is
+ // expanded into process-global build metadata.
  const buildMeta={appVersion,buildId,assetRevision,dataRevision,sourceCommit,dataCommit:pinned?.revision||null,...resourceProfile?{resourceProfile}:{},
-   mapProject,mapProjectManifest,hydroCatalogVersion:hydroVersion,
-   worldBundle:{url:resource('world'),...dataIdentity(resource('world'))},
-   builtinWorld:{url:builtinPath,...dataIdentity(builtinPath)},
-   preparedPolygonMeshes:{url:preparedPath,...dataIdentity(preparedPath),
-     algorithmSourceSha256:metadata[preparedPath].algorithmSourceSha256},
-   workerAssets,physicalLand:land.asset,initialLandPreview:initialLandPreview.spec,
-   physicalWaterObjects:land.waterObjects||{identities:[],geometries:[],timelineRecords:{schemaVersion:3,lifetimes:[],geometryBindings:[],parentRelations:[],propertyBindings:[]}}};
+   mapProject,mapProjectManifest,projectCatalogs,
+   workerAssets,initialLandPreview:initialLandPreview.spec};
  generated('assets/js/build-meta.js','// Generated product identity.\nglobalThis.PANDOLAB_BUILD_META = Object.freeze('+JSON.stringify(buildMeta,null,2)+');\n');
  const templates=renderProductHtml(sourceText),moduleImports=Object.fromEntries([...assets.keys()].filter(p=>p.startsWith('assets/js/')&&p.endsWith('.js')).map(p=>['./'+p,'./'+p+'?v='+encodeURIComponent(assetRevision)]));
  const render=(template,imports)=>{
