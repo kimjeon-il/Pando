@@ -47,6 +47,7 @@ export function loadRepository(root = process.cwd(), { catalog, libraryFiles } =
   const ids = new Set();
   for (const group of catalog.groups) {
     if (!group.id || ids.has(group.id)) throw Error('Duplicate check group: ' + group.id);
+    if ((group.inputs || []).length !== new Set(group.inputs || []).size) throw Error('Duplicate check input: ' + group.id);
     ids.add(group.id);
     if (!['unit', 'browser', 'command'].includes(group.kind)) throw Error('Invalid check kind: ' + group.id);
     if (group.kind === 'command' && !Array.isArray(group.argv)) throw Error('Missing check command: ' + group.id);
@@ -86,6 +87,9 @@ export function loadRepository(root = process.cwd(), { catalog, libraryFiles } =
     const group = catalog.groups.find(group => matches(file, group.testPatterns));
     if (!group) throw Error('Unregistered test: ' + file);
     owners.set(file, group);
+  }
+  for (const group of catalog.groups.filter(group => group.kind !== 'command')) {
+    if (!tests.some(file => matches(file, group.testPatterns))) throw Error('Empty feature test group: ' + group.id);
   }
   // Executable suites alone own checks. Removed legacy filenames are never aliases.
   for (const group of catalog.groups) for (const pattern of group.testPatterns || []) {

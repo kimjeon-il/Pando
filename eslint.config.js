@@ -80,14 +80,4 @@ export default [
     files: ['tests/browser/**/*.mjs', 'tests/integration/**/*.mjs'],
     languageOptions: { globals: { ...nodeGlobals, ...browserGlobals } },
   },
-  {
-    // These Node runners execute the callbacks in the inspected browser page.
-    files: ['tools/w2-p2-run.mjs', 'tools/w2-p3-run.mjs', 'tools/w2-p3-browser-regression.mjs'],
-    languageOptions: { globals: { ...nodeGlobals, ...browserGlobals,
-      PerformanceObserver: 'readonly', devicePixelRatio: 'readonly',
-      __PANDOLAB_VIEWER__: 'readonly', PANDOLAB_BUILD_META: 'readonly',
-      __w2Long: 'readonly', __w2ReplayStale: 'readonly', __w3Long: 'writable',
-      __w3ContextLost: 'writable', __w3ContextRestored: 'writable', __w3Loss: 'readonly', __W3_FORCE: 'readonly',
-    } },
-  },
 ];
