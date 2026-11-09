@@ -1,15 +1,7 @@
 name: GIS Victorian official Yarra river identity
 
+# Research-source evidence is an explicit, scoped audit rather than default CI.
 on:
-  push:
-    branches: [work/gis]
-    paths:
-      - tools/gis/verify-victorian-yarra-source.mjs
-      - tools/gis/hydro-point-screen-native.mjs
-      - tools/gis/hydro-numeric.mjs
-      - tools/cpp/hydro/point-screen.cpp
-      - tools/cpp/CMakeLists.txt
-      - .github/workflows/gis-victoria-yarra-official.yml
   workflow_dispatch:
 
 permissions:

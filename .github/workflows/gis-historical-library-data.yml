@@ -1,11 +1,7 @@
 name: Historical library source data invariants (Node)
 
+# Research-source evidence is an explicit, scoped audit rather than default CI.
 on:
-  push:
-    branches: [ work/gis ]
-    paths:
-      - tests/unit/document/territorial-library.test.mjs
-      - '.github/workflows/gis-historical-library-data.yml'
   workflow_dispatch:
 
 permissions:
