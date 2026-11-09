@@ -5,31 +5,64 @@
   "documentFormat": "pandolab-project-state",
   "resources": {
     "world": {
-      "catalog": "assets/data/world/current.json"
+      "catalog": "assets/data/world/current.json",
+      "required": true,
+      "dependsOn": []
     },
     "territorial": {
-      "catalog": "assets/data/builtin-world/generated/v1/index.json"
+      "catalog": "assets/data/builtin-world/generated/v1/index.json",
+      "required": true,
+      "dependsOn": []
     },
     "rivers": {
-      "catalog": "assets/data/hydro/v0.13.4/manifest.json"
+      "catalog": "assets/data/hydro/v0.13.4/manifest.json",
+      "required": true,
+      "dependsOn": []
     },
     "lakes": {
-      "catalog": "assets/data/hydro/v0.13.4/manifest.json"
+      "catalog": "assets/data/hydro/v0.13.4/manifest.json",
+      "required": true,
+      "dependsOn": []
     },
     "places": {
-      "catalog": "assets/data/places/manifest.json"
+      "catalog": "assets/data/places/manifest.json",
+      "required": true,
+      "dependsOn": []
     },
     "placeLifetimes": {
-      "catalog": "assets/data/places/urban-lifetimes-v1.json"
+      "catalog": "assets/data/places/urban-lifetimes-v1.json",
+      "required": true,
+      "dependsOn": [
+        "places"
+      ]
     },
     "terrain": {
-      "catalog": "assets/data/terrain-preview/v0.13.3-p2/manifest.json"
+      "catalog": "assets/data/terrain-preview/v0.13.3-p2/manifest.json",
+      "required": true,
+      "dependsOn": []
     },
     "physicalLand": {
-      "catalog": "assets/data/physical-land/v1/manifest.json"
+      "catalog": "assets/data/physical-land/v1/manifest.json",
+      "required": true,
+      "dependsOn": [
+        "terrain"
+      ]
     },
     "preparedMeshes": {
-      "catalog": "assets/data/prepared-polygons/generated/v2/manifest.json"
+      "catalog": "assets/data/prepared-polygons/generated/v2/manifest.json",
+      "required": false,
+      "dependsOn": [
+        "territorial"
+      ]
     }
+  },
+  "document": {
+    "sourceRole": "territorial",
+    "identityPolicy": "runtime-instance"
+  },
+  "timeline": {
+    "sourceRole": "territorial",
+    "precision": "month",
+    "bounds": "catalog"
   }
 }
