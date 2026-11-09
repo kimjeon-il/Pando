@@ -4828,7 +4828,18 @@ export function createGpuMapRenderer(deps) {
             ...(!complete || change.prepare ? {geometry} : {})};
         }) };
       const sent = canvasWorker?.postMessage(message) || false;
-      if (sent && next) canvasLastCountryDependencies = next;
+      if (!sent) {
+        // Scene deltas were computed before the transport attempt. A failed
+        // synchronous send cannot certify them as accepted Worker geometry.
+        // Re-admit complete source and styles on the next live Worker.
+        canvasScenePackets.clear();
+        canvasLastCountryDependencies = null;
+        canvasLastSentGeometryRevision = -1;
+        canvasLastStyleSignature = '';
+        canvasLastPhysicalStyleSignature = '';
+        return false;
+      }
+      if (next) canvasLastCountryDependencies = next;
       if (sent && ['init', 'data', 'replace-data', 'patch'].includes(message.type))
         canvasLastSentGeometryRevision = Number(message.geometryRevision || 0);
       if (sent && message.type==='patch') canvasLastCountryDependencies=canvasCountryDependencies(canvasCountryInputs());

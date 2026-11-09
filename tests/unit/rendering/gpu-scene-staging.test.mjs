@@ -379,3 +379,22 @@ test('GPU upload completion classifies an indexed immutable scene without rescan
   assert.equal(classifyGpuResourceReady('selection:one', scene, undefined, indexed), 'interaction');
   assert.equal(classifyGpuResourceReady('country-boundary:one', scene, undefined, indexed), 'country-boundary');
 });
+
+test('Canvas physical packets refresh mutated in-place land when its admitted revision advances', () => {
+  const packets = createCanvasScenePackets();
+  const land = { type: 'Polygon', coordinates: [[[0,0],[2,0],[2,2],[0,0]]] };
+  const context = { geometry: land, revision: 'land:1' };
+  const first = packets.physicalPolygons(context)[0];
+  assert.deepEqual(Array.from(first.ringCoordinates), [0,0,2,0,2,2,0,0]);
+  assert.strictEqual(packets.physicalPolygons(context)[0].ringCoordinates, first.ringCoordinates,
+    'same accepted version must keep the packed packet');
+  land.coordinates[0][1][0] = 9;
+  const revised = packets.physicalPolygons({ ...context, revision: 'land:2' })[0];
+  assert.notStrictEqual(revised.ringCoordinates, first.ringCoordinates);
+  assert.equal(revised.ringCoordinates[2],9,
+    'a changed revision cannot reuse coordinates packed for the previous physical source');
+  const wire = packets.delta([first], 'physical');
+  assert.ok(wire[0].ringCoordinates);
+  const next = packets.delta([revised], 'physical');
+  assert.ok(next[0].ringCoordinates, 'changed physical source must be resent to Worker');
+});

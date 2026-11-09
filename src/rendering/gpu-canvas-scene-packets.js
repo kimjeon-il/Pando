@@ -28,10 +28,10 @@ export function createCanvasScenePackets() {
   // the Worker to paint a certified physical mask while the optional GPU mesh
   // remains under preparation.
   const physicalGeometryCache = new WeakMap();
-  function physicalGeometryPacket(geometry) {
+  function physicalGeometryPacket(geometry, revision) {
     if (!geometry || (geometry.type !== 'MultiPolygon' && geometry.type !== 'Polygon')) return null;
-    let cached = physicalGeometryCache.get(geometry);
-    if (cached) return cached;
+    const cached = physicalGeometryCache.get(geometry);
+    if (cached?.revision === revision) return cached.packet;
     const coordinates = [], ringOffsets = [0], polygonOffsets = [0];
     const polygons = geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates;
     for (const polygon of polygons) {
@@ -46,13 +46,13 @@ export function createCanvasScenePackets() {
       }
       polygonOffsets.push(ringOffsets.length - 1);
     }
-    cached = Object.freeze({
+    const packed = Object.freeze({
       ringCoordinates: Float64Array.from(coordinates),
       ringOffsets: Uint32Array.from(ringOffsets),
       polygonOffsets: Uint32Array.from(polygonOffsets),
     });
-    physicalGeometryCache.set(geometry, cached);
-    return cached;
+    physicalGeometryCache.set(geometry, { revision, packet: packed });
+    return packed;
   }
   function physicalPolygons(context) {
     if (!context?.geometry || !context.revision) return [];
@@ -65,7 +65,7 @@ export function createCanvasScenePackets() {
       revision: context.waterRevision, order: -19000,
     });
     return packets.map(({key,role,geometry,revision,order}) => ({
-      ...physicalGeometryPacket(geometry),
+      ...physicalGeometryPacket(geometry, revision),
       key, role, geometryRevision: revision,
       sourceKey: 'canvas-physical:'+key+':'+revision,
       order, style: {color:'#ffffff',fillAlpha:1}, blendMode:'normal',
