@@ -92,3 +92,5 @@ GIS-prefix 워크플로 34개, hydro-prefix 3개, Viewer-prefix 4개 등은 단�
 - 첫 CI 실행: [GitHub Actions #42578632600](https://github.com/kimjeon-il/Pando/actions/runs/42578632600). 전체 2,384개 추적 파일을 열거해 8,261개 참조, Worker 생성/래퍼 20곳, 동적 표현식 39건을 수집했다.
 - 첫 실행의 `./.github/actions`, 게시 URL로부터 Worker 소스를 변환하는 방식, CMake의 상대 경로, 역사적 자료 검토표는 false positive 원인이어서 보정했다. 이 실행의 누락 건수를 실제 제거된 파일 수로 취급하지 않는다.
 - 보정 후 실행을 통해 고정된 정적 사용 관계와 실행 표현식의 해소 여부를 다시 집계한다. 사용처 불명과 사용하지 않음은 구별하고, 동적/조건부 호출의 소비자가 확인되지 않으면 **확정 삭제하지 않는다**.
+
+- 2차 실행 [GitHub Actions #42579223591](https://github.com/kimjeon-il/Pando/actions/runs/42579223591): 2,384개 전체 파일, AST 오류 0개. 정확 경로와 문자열/기록 참조를 분리했으며 검사 등록표의 glob 패턴을 다음 실행에서 선택자로 인식해 오검출을 제거한다. 이는 동적 Worker의 런타임 실행 완료를 의미하지 않는다.
