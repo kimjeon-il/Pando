@@ -106,3 +106,16 @@ test('world generators select the same project source recipe and reject cross-pr
    legacyPreviewManifest:'../unsafe-preview-v0.36.1.json'}));
  assert.throws(()=>readProjectWorldGenerationContext(opts),/Unsafe/);
 });
+
+test('P2 generation graph fingerprints the selected project input mapping and catalog identity',()=>{
+ const graph=JSON.parse(readFileSync(new URL('../../../config/generated-artifacts.json',import.meta.url)));
+ const families=new Map(graph.families.map(f=>[f.id,f]));
+ for(const id of ['builtin-world','world-mesh','world-preview','world-bundle','prepared-mesh']){
+  const inputs=families.get(id)?.inputs;
+  assert.ok(inputs?.includes('projects/default-world/generation-inputs.json'),id+' missing authored source mapping');
+  assert.ok(inputs?.includes('projects/default-world/manifest.json'),id+' missing Viewer catalog ownership');
+ }
+ const world=families.get('world-mesh');
+ assert.ok(world.dependencies.includes('current-world'), 'country source remains a versioned dependency');
+ assert.ok(families.get('world-preview').dependencies.includes('world-mesh'), 'preview cannot bypass its mesh');
+});
