@@ -15,6 +15,7 @@ import {
 import { createGpuUploadScheduler } from "./gpu-upload-scheduler.js";
 import { commitSelectionFallbackCoverage } from "../ui/selection-fallback-coverage.js";
 import { isMapVisualFrame } from "./map-visual-frame.js";
+import { createCanvasVisualFrameQueue } from "./canvas-visual-frame-queue.js";
 
 export function createRenderingDomain({
   prepareMapDisplay = null,
@@ -94,7 +95,7 @@ export function createRenderingDomain({
   let resourceFrameToken = null;
   const active = () => { if (disposed) throw new Error('Rendering domain is disposed.'); };
   const labels = labelResources || {};
-  const pendingVisualFrames = new Map();
+  const pendingVisualFrames = createCanvasVisualFrameQueue();
   const countries = countryResources || {};
   const hydro = hydroResources || {};
   const territorial = territorialResources || {};
@@ -865,15 +866,9 @@ export function createRenderingDomain({
       return false;
     }
     if (!canvasPresented && gpuMapRenderer?.getRuntimeState().renderer === 'canvas-worker'
-      && (gpuResult?.deferred || pendingVisualFrames.has(Number(frame.frameId)))) {
-      pendingVisualFrames.set(Number(frame.frameId), frame);
-      // A current Worker frame can be displayed while a later same-view frame
-      // waits behind it. Keep its identity until presentation accepts it.
-      for (const [key, pending] of pendingVisualFrames) {
-        if (pending.projectGeneration !== frame.projectGeneration
-          || pending.viewRevision !== frame.viewRevision
-          || pending.projectionRevision !== frame.projectionRevision) pendingVisualFrames.delete(key);
-      }
+      && (gpuResult?.deferred || pendingVisualFrames.has(frame))) {
+      // A pending bitmap may still be admitted while a newer same-view frame waits.
+      pendingVisualFrames.stage(frame);
       return false;
     }
     if (!canPresentFrame(frame, gpuResult, { canvasPresented })) return false;
@@ -904,20 +899,13 @@ export function createRenderingDomain({
     stats.graticuleCommittedFrameId = Number(frame.frameId || 0);
     stats.labelCommittedFrameId = Number(frame.frameId || 0);
     stats.overlayCommittedFrameId = Number(frame.frameId || 0);
-    if (canvasPresented) {
-      for (const key of pendingVisualFrames.keys()) {
-        if (key <= Number(frame.frameId)) pendingVisualFrames.delete(key);
-      }
-    } else pendingVisualFrames.delete(Number(frame.frameId));
+    pendingVisualFrames.retire(frame, { canvasPresented });
     gpuMapRenderer?.commitVisualFrame?.(frame);
     return true;
   };
   const presentCanvasVisualFrame = result => {
-    const frame = pendingVisualFrames.get(Number(result?.frameId || 0));
-    if (!frame
-      || Number(result?.viewRevision || 0) !== Number(frame.viewRevision || 0)
-      || Number(result?.projectionRevision || 0) !== Number(frame.projectionRevision || 0)
-      || Number(result?.projectGeneration || 0) !== Number(frame.projectGeneration || 0)) {
+    const frame = pendingVisualFrames.matchingFrame(result);
+    if (!frame) {
       stats.visualFrameRejectedCount += 1;
       return false;
     }
