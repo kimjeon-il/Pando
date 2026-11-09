@@ -1,4 +1,5 @@
 name: Focused project open route validation
+# Verify canonical classic Canvas policy packaging after opt source migration
 on:
   push:
     branches: [work/map-project-open-optimized-check-20261109]
