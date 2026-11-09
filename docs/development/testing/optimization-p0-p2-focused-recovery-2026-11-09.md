@@ -1,6 +1,6 @@
 # P0–P2 focused recovery evidence — 2026-11-09
 
-Branch: `work/optimization`. This report records actual changes and *focused* CI; it does not claim a full test run, full GIS regeneration, native C++ regression, browser pixel comparison, or production deployment.
+> Historical recovery snapshot. **Its incomplete-work section is superseded** by [P1-3–P2-2 focused closure](./optimization-p1-p2-closure-2026-11-09.md), including final source changes and targeted CI evidence.\n\nBranch: `work/optimization`. This report records actual changes and *focused* CI; it does not claim a full test run, full GIS regeneration, native C++ regression, browser pixel comparison, or production deployment.
 
 ## Completed source changes
 
