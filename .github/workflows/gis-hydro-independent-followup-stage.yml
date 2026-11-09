@@ -1,14 +1,6 @@
 name: GIS Hydro independent source followup staging (never deploy)
+# Past source migration or repository-history audit: manual, not a release gate.
 on:
-  push:
-    branches: [ work/gis ]
-    paths:
-      - 'tools/gis/stage-hydro-independent-followup.mjs'
-      - 'tools/gis/hydro-followup-independent-name-replacements.json'
-      - 'tools/gis/osm-independent-river-source-inventory.json'
-      - 'tools/gis/prepare-hydro-name-replacement-bundle.mjs'
-      - 'tools/gis/hydro-independent-name-policy.mjs'
-      - '.github/workflows/gis-hydro-independent-followup-stage.yml'
   workflow_dispatch:
 
 permissions:

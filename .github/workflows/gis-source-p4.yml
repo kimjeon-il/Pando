@@ -1,57 +1,6 @@
 name: P4 Isolated GIS source checks
+# Past source migration or repository-history audit: manual, not a release gate.
 on:
-  push:
-    branches: [main, work/ui, work/objects, work/gis, work/places]
-    paths:
-      - '.github/workflows/gis-source-p4.yml'
-      - 'scripts/gis/run-source.mjs'
-      - 'tools/gis/build-german-1914-base.mjs'
-      - 'tests/unit/geometry/gis-source-launcher.test.mjs'
-      - 'tools/gis/build-hydro.mjs'
-      - 'tests/unit/geometry/gis-source-launcher.test.mjs'
-      - '**/*.py'
-      - '**/*.pyw'
-      - '**/*.pyi'
-      - '**/*.ipynb'
-      - '**/*.mjs'
-      - '**/*.js'
-      - '**/*.ps1'
-      - '**/*.psm1'
-      - '**/*.sh'
-      - '**/*.bat'
-      - '**/*.cmd'
-      - '**/*.cmake'
-      - '**/CMakeLists.txt'
-      - 'CMakeLists.txt'
-      - '.github/actions/**'
-      - '.github/workflows/**'
-      - 'package.json'
-  pull_request:
-    branches: [main]
-    paths:
-      - '.github/workflows/gis-source-p4.yml'
-      - 'scripts/gis/run-source.mjs'
-      - 'tools/gis/build-german-1914-base.mjs'
-      - 'tests/unit/geometry/gis-source-launcher.test.mjs'
-      - 'tools/gis/build-hydro.mjs'
-      - 'tests/unit/geometry/gis-source-launcher.test.mjs'
-      - '**/*.py'
-      - '**/*.pyw'
-      - '**/*.pyi'
-      - '**/*.ipynb'
-      - '**/*.mjs'
-      - '**/*.js'
-      - '**/*.ps1'
-      - '**/*.psm1'
-      - '**/*.sh'
-      - '**/*.bat'
-      - '**/*.cmd'
-      - '**/*.cmake'
-      - '**/CMakeLists.txt'
-      - 'CMakeLists.txt'
-      - '.github/actions/**'
-      - '.github/workflows/**'
-      - 'package.json'
   workflow_dispatch:
     inputs:
       scope:
