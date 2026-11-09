@@ -21,11 +21,13 @@ export function validateMapCatalogCoherence(project,metadata,sha256ForPath){
  if(mesh?.schema!=='pandolab-prepared-polygon-meshes'||mesh.schemaVersion!==2||
    !record(mesh.meshes)||!record(mesh.inputHashes))
    invalid('unsupported prepared mesh index');
- for(const role of ['territorial','physicalLand']){
+ // Prepared polygon meshes are an optional acceleration cache. A pinned
+ // previous release remains byte-integrity checked but cannot be admitted
+ // against a different territory/land source; the C++ renderer recomputes.
+ const preparedMeshesCurrent=['territorial','physicalLand'].every(role=>{
    const catalog=path(role),expected=mesh.inputHashes[catalog];
-   if(!sha(expected)||sha256ForPath(catalog)!==expected)
-     invalid('prepared meshes do not match selected '+role+' catalog');
- }
+   return sha(expected)&&sha256ForPath(catalog)===expected;
+ });
  if(land?.schema!=='pando-physical-land-v3'||!sha(land.sourceSha256)||
    !record(land.asset)||!sha(land.asset.sha256))invalid('unsupported physical land index');
  if(!terrain?.sourceDem||terrain.sourceDem.landMaskSha256!==land.sourceSha256)
@@ -36,5 +38,5 @@ export function validateMapCatalogCoherence(project,metadata,sha256ForPath){
  if(!record(places?.shards)||!Array.isArray(lifetimes?.entries)||
    lifetimes.schema!=='pando-place-urban-lifetimes-v1'||lifetimes.schemaVersion!==1)
    invalid('unsupported place and lifetime catalogs');
- return Object.freeze({hydroVersion:hydro.version});
+ return Object.freeze({hydroVersion:hydro.version,preparedMeshesCurrent});
 }
