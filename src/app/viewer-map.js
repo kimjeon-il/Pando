@@ -37,7 +37,7 @@ import { createRenderSceneBuilder } from "../rendering/render-scene.js";
 import { resolveMapTheme } from "../ui/map-theme.js";
 import { createTerritorialEntityRepository } from "../document/territorial-entity-repository.js";
 import { normalizeLayerPresentation } from "../ui/layer-presentation.js";
-import { createHydroService, createTerrainService, HYDRO_DATA_VERSION } from "../rendering/physical-layer-service.js";
+import { createHydroService, createTerrainService, HYDRO_DATA_VERSION } from "../data/physical-layer-service.js";
 import { fetchWithRetry } from "../runtime/reliability-core.js";
 import { layoutLabels, automaticLabelSettings, labelKey, LABEL_PRIORITIES } from "../rendering/label-layout.js";
 import { layerStyle } from "../ui/layer-presentation.js";

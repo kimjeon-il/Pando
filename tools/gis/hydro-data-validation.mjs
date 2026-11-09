@@ -6,7 +6,7 @@ import {parseArgs} from 'node:util';
 import {loadCompleteHydroFeatures,loadSelectedHydroFeatures} from './hydro-selected-data.mjs';
 import {hydroGeometryCoordinates,verifyHydroCoreDelivery,verifyHydroKoreaCoverage,verifyHydroManifestPolicy,verifyHydroRiverGroups,verifyHydroSelectedLakes} from './hydro-pack-decoder.mjs';
 import {lineParts,verifyHydroBorderFragments} from './hydro-point-screen-native.mjs';
-import {HYDRO_DATA_VERSION} from "../../src/rendering/physical-layer-service.js";
+import {HYDRO_DATA_VERSION} from "../../src/data/physical-layer-service.js";
 
 const korea=[124,33,131,43];
 function inKorea(row){const b=row?.metadata?.bounds;if(!Array.isArray(b)||b.length!==4||b.some(value=>!Number.isFinite(value)))

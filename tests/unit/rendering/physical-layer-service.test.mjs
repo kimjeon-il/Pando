@@ -5,7 +5,7 @@ import * as __terrain_dep1 from "../../../src/data/physical-resources.js";
 import * as __terrain_dep2 from "node:assert/strict";
 import * as __terrain_dep3 from "node:timers";
 import * as __terrain_dep4 from "node:fs";
-import * as __terrain_dep5 from "../../../src/rendering/physical-layer-service.js";
+import * as __terrain_dep5 from "../../../src/data/physical-layer-service.js";
 import * as __terrain_dep6 from "../../../tools/data/physical-water-catalog.mjs";
 import * as __terrain_dep7 from "node:crypto";
 import * as __terrain_dep8 from "node:zlib";

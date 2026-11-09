@@ -1,5 +1,5 @@
 const terrainAssetRevision = new URL(import.meta.url).searchParams.get('v') || '';
-const { validateTerrainManifest } = await import(`../data/terrain-manifest.js?v=${encodeURIComponent(terrainAssetRevision)}`);
+const { validateTerrainManifest } = await import(`./terrain-manifest.js?v=${encodeURIComponent(terrainAssetRevision)}`);
 export const HYDRO_DATA_VERSION = '0.13.4';
 export const HYDRO_DATASET = 'HydroRIVERS 1.0 · Natural Earth 5.0.0 1:10m lakes';
 
