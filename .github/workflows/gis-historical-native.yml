@@ -1,40 +1,7 @@
 name: Historical GIS native recipe contracts
 
+# Historical/research-only source audit; manually selected, not a standing CI gate.
 on:
-  push:
-    branches: [ work/gis ]
-    paths:
-      - 'tools/cpp/build-territorial-recipe.cpp'
-      - 'tools/cpp/historical-linework-audit.inc'
-      - 'tools/cpp/historical-caspian-generalization.inc'
-      - 'tools/cpp/historical-caspian-physical.inc'
-      - 'tools/cpp/historical-source-geometry-compare.inc'
-      - 'tools/cpp/historical-ussr-partition-audit.inc'
-      - 'tools/cpp/historical-lsib-source-audit.inc'
-      - 'tools/gis/verify-lsib-country-sources.mjs'
-      - 'tests/unit/geometry/gis-source-launcher.test.mjs'
-      - 'tests/unit/geometry/polygon-geometry.test.mjs'
-      - 'tools/gis/generalize-approved-caspian-display.mjs'
-      - 'tests/unit/geometry/polygon-geometry.test.mjs'
-      - 'tools/gis/replay-ussr-1922-countries.mjs'
-      - 'tools/gis/audit-ussr-1922-approved-followups.mjs'
-      - 'tests/unit/document/historical-world-territories.test.mjs'
-      - 'tools/gis/diagnose-ussr-1922-source-drift.mjs'
-      - 'tools/gis/stage-ussr-1922-library-originals.mjs'
-      - 'tools/gis/replay-ussr-1922-physical.mjs'
-      - 'tools/gis/verify-ussr-1922-aral-names.mjs'
-      - 'tools/gis/report-ussr-1922-caspian.mjs'
-      - 'tests/fixtures/gis-caspian-1922-native-baseline.json'
-      - 'tools/gis/verify-historical-linework.mjs'
-      - 'tests/unit/geometry/polygon-geometry.test.mjs'
-      - 'tools/gis/verify-approved-caspian-network.mjs'
-      - 'tests/unit/geometry/polygon-geometry.test.mjs'
-      - 'tools/historical-library/german-empire-1914-base.recipe.json'
-      - 'tests/unit/geometry/gis-math-contract.test.mjs'
-      - 'tools/gis/build-german-1914-base.mjs'
-      - 'tools/gis/verify-german-1914-originals.mjs'
-      - 'tools/gis/fetch-german-empire-1914-source.mjs'
-      - '.github/workflows/gis-historical-native.yml'
   workflow_dispatch:
     inputs:
       target:

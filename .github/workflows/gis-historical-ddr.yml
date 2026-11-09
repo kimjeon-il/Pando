@@ -1,15 +1,7 @@
 name: Historical DDR 1989 approved native source parity
 
+# Historical/research-only source audit; manually selected, not a standing CI gate.
 on:
-  push:
-    branches: [work/gis]
-    paths:
-      - 'tools/cpp/build-territorial-recipe.cpp'
-      - 'tools/cpp/historical-linework-audit.inc'
-      - 'tools/historical-library/east-germany-1989.recipe.json'
-      - 'tools/gis/verify-east-germany-partition.mjs'
-      - 'tests/unit/document/historical-world-timeline.test.mjs'
-      - '.github/workflows/gis-historical-ddr.yml'
   workflow_dispatch:
 
 permissions:

@@ -1,9 +1,6 @@
 name: GIS Baikonur current shared-edge source snapshot (read-only)
+# Historical/research-only source audit; manually selected, not a standing CI gate.
 on:
-  push:
-    branches: [work/gis]
-    paths:
-      - '.github/workflows/gis-baikonur-runtime-shape-audit.yml'
   workflow_dispatch:
 permissions:
   contents: read

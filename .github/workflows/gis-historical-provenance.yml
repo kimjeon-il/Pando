@@ -1,12 +1,7 @@
 name: Historical Prussian original SHA provenance
 
+# Historical/research-only source audit; manually selected, not a standing CI gate.
 on:
-  push:
-    branches: [work/gis]
-    paths:
-      - tools/gis/check-historical-source-provenance.mjs
-      - tests/unit/document/source-provenance.test.mjs
-      - .github/workflows/gis-historical-provenance.yml
   workflow_dispatch:
 
 permissions:
