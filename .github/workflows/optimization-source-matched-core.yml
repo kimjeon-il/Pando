@@ -10,8 +10,7 @@ permissions:
   contents: read
 jobs:
   project-codec:
-    # Already passed on the previous source-matched C++ build; manual recheck only.
-    if: github.event_name == 'workflow_dispatch'
+    # Only project_codec_tests is built on this validation push; no whole native suite.
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
@@ -26,6 +25,8 @@ jobs:
           cmake --build build-native/optimization-codec --target project_codec_tests --parallel 2
           ctest --test-dir build-native/optimization-codec -R project_codec_tests --output-on-failure
   source-matched-wasm:
+    # Rebuilding the entire WASM toolchain is opt-in, not a prerequisite for the bounded C++ codec test.
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-24.04
     timeout-minutes: 35
     steps:
