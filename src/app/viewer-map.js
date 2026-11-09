@@ -136,7 +136,7 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
   const objectQuery=createObjectQuery(readPorts);
   connectMapOwner('objectCatalog',objectCatalog,mergeCapabilityPorts(commonPorts,readPorts));
   const runtimeAssetUrl = path => {const url=runtimeContext.assetUrl(path);return /\/workers\/[\w-]+-worker\.js$/.test(url.pathname)?workerAssetUrl(url,meta):url;};
-  const physicalConfig={...createPhysicalSourceConfiguration({assetBaseUrl:runtimeContext.assetBaseUrl,dataRevision:meta.dataRevision,resourceProfile:meta.resourceProfile}),
+  const physicalConfig={...createPhysicalSourceConfiguration({assetBaseUrl:runtimeContext.assetBaseUrl,dataRevision:meta.dataRevision,resourceProfile:meta.resourceProfile,mapProject:meta.mapProject}),
     DATA_REVISION:meta.dataRevision,HYDRO_DATA_VERSION,TERRAIN_OCEAN_REPRESENTATIVE,PHYSICAL_DATASET};
   const territorialScope=objectPresentation.territorialScope;
   connectMapOwner('builtinSession',builtinSession,mergeCapabilityPorts(commonPorts,{territorialModel:{entityRepository:repository},objectModelB:{territorialScope},
