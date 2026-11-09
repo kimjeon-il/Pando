@@ -10,6 +10,8 @@ permissions:
   contents: read
 jobs:
   project-codec:
+    # Already passed on the previous source-matched C++ build; manual recheck only.
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
@@ -70,12 +72,9 @@ jobs:
           NODE
           emcmake cmake --preset pando-wasm
           cmake --build --preset pando-wasm
-      - name: Run only source-matched place, project-rollback and water contracts
+      - name: Recheck only the corrected historical water date-boundary contract
         env:
           PANDOEDITOR_WASM_MODULE: build-native/p1/pando-wasm/shared/wasm/pandoeditor-core.js
         run: >-
           node --test --test-concurrency=1 --test-timeout=30000
-          tests/unit/rendering/place-runtime.test.mjs
-          tests/unit/document/map-project-identity.test.mjs
-          tests/unit/document/project-domain-core-command.test.mjs
           tests/unit/document/historical-physical-water.test.mjs

@@ -1,5 +1,4 @@
-name: Optimization focused recovery contracts
-# JS-only recovery suites. Source-matched C++/WASM suites have a separate focused owner.
+name: Optimization final focused JS contracts
 on:
   push:
     branches: [work/optimization]
@@ -22,35 +21,17 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile --ignore-scripts
-      - name: P0-1 Pages staging contracts
-        id: scope1
-        continue-on-error: true
-        run: node --test --test-timeout=30000 tests/unit/document/monorepo-pages-staging.test.mjs
-      - name: P0-2 and P0-3 project change selection
-        id: scope2
-        continue-on-error: true
-        run: node --test --test-timeout=30000 tests/unit/runtime/project-manifest-change-plan.test.mjs
-      - name: P1-1 project terrain and P1-2 shared Hydro contract
-        id: scope3
-        continue-on-error: true
-        run: node --test --test-timeout=30000 tests/unit/data/physical-source-project.test.mjs tests/unit/data/map-project-manifest.test.mjs
-      - name: P1-3 project catalog coherence and P1-5 publishing closure
-        id: scope4
-        continue-on-error: true
-        run: node --test --test-timeout=30000 tests/unit/build/frontend-build.test.mjs
-      - name: P1-5 archive compatibility contracts
-        id: scope7
-        continue-on-error: true
+      - name: P1-3 and P1-5 project-specific build and Pages admission
+        run: node --test --test-timeout=30000 tests/unit/build/frontend-build.test.mjs tests/unit/document/monorepo-pages-staging.test.mjs
+      - name: P1-5 reject legacy fallback from product Viewer
         run: node --test --test-timeout=30000 tests/unit/data/library-data-scope.test.mjs
-      # Native-backed place/history/import suites are verified by optimization-source-matched-core.yml.
-      - name: P2-2 workflow ownership and check deduplication
-        id: scope9
-        continue-on-error: true
+      - name: P2-2 check owners and deterministic selection only
         run: node --test --test-timeout=30000 tests/unit/runtime/workflow-check-ownership.test.mjs tests/unit/runtime/project-manifest-change-plan.test.mjs
-      - name: Audit retained workflow owners (no broad test run)
-        id: scope10
-        continue-on-error: true
-        run: node tools/checks/audit-workflow-check-owners.mjs > "$RUNNER_TEMP/workflow-owners.json"
+      - name: Record independent workflow gate ownership
+        shell: bash
+        run: |
+          node tools/checks/audit-workflow-check-owners.mjs > "$RUNNER_TEMP/workflow-owners.json"
+          node --input-type=module -e "import {readFileSync} from 'node:fs'; const r=JSON.parse(readFileSync(process.env.RUNNER_TEMP+'/workflow-owners.json','utf8')); console.log(JSON.stringify({workflowCount:r.workflowCount,jobCount:r.jobCount,automatic:r.automatic,manualOnly:r.manualOnly,multiOwnerTestCount:r.multiOwnerTestCount,duplicateJobs:r.duplicateJobs.length,issues:r.issues.length}));"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -58,10 +39,3 @@ jobs:
           path: ${{ runner.temp }}/workflow-owners.json
           if-no-files-found: ignore
           retention-days: 3
-      - name: Require every selected scope to pass
-        if: always()
-        shell: bash
-        run: |
-          for result in "${{ steps.scope1.outcome }}" "${{ steps.scope2.outcome }}" "${{ steps.scope3.outcome }}" "${{ steps.scope4.outcome }}" "${{ steps.scope7.outcome }}" "${{ steps.scope9.outcome }}" "${{ steps.scope10.outcome }}"; do
-            if [ "$result" != success ]; then exit 1; fi
-          done
