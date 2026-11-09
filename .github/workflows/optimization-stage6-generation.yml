@@ -29,6 +29,7 @@ jobs:
           tests/unit/data/territorial-metadata-projection.test.mjs
           tests/unit/build/project-generation-context.test.mjs
           tests/unit/build/prepared-scene-reuse.test.mjs
+          tests/unit/data/builtin-geometry-reuse.test.mjs
       - name: Only the changed generator sources must parse
         run: |
           node --check tools/build/build-territorial-entity-chunks.mjs
@@ -52,5 +53,6 @@ jobs:
           tests/unit/data/territorial-metadata-projection.test.mjs
           tests/unit/build/project-generation-context.test.mjs
           tests/unit/build/prepared-scene-reuse.test.mjs
+          tests/unit/data/builtin-geometry-reuse.test.mjs
       - name: Confirm workflow owner summary accepts a flag without a path
         run: node tools/checks/audit-workflow-check-owners.mjs --summary
