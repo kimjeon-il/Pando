@@ -5,7 +5,7 @@ import { territorialRootId } from "./territorial-units.js";
 import {createBuiltinWorldLoader} from "../data/builtin-world-loader.js";
 import {deviceCurrentMonth} from "./builtin-month-clock.js";
 import {createBuiltinProjectSetup} from "./project-setup.js";
-import {mapProjectResourcePath} from "../data/map-project-manifest.js";
+import {mapProjectResourcePath,validateMapProjectManifest} from "../data/map-project-manifest.js";
 /** BuiltinSession: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -29,11 +29,23 @@ export function createBuiltinSession({ builtinWorldLoader = null,buildMeta } = {
   const preparedSources=new WeakSet(),candidateIdentities=new WeakMap();
   const staleBuiltin=()=>Object.assign(new Error('Builtin source request was superseded'),
     {name:'AbortError',cancelled:true,code:'PL-CORE-STALE'});
+  function selectedProjectSource(){
+    if(!buildMeta?.mapProject)return null;
+    const manifest=validateMapProjectManifest(buildMeta.mapProject);
+    const role=manifest.document.sourceRole,catalog=mapProjectResourcePath(manifest,role);
+    const spec=buildMeta.builtinWorld,receipt=buildMeta.mapProjectCatalogs?.[role];
+    if(spec?.url!==catalog||!/^[a-f0-9]{64}$/.test(spec?.sha256||'')
+      ||receipt?.catalog!==catalog||receipt?.sha256!==spec.sha256)
+      throw new TypeError('Project territorial source does not match the pinned catalog receipt');
+    return Object.freeze({manifest,dataRevision:buildMeta.dataRevision,catalogSha256:spec.sha256});
+  }
   function currentSourceIdentity(){
     const meta=buildMeta;
     if(!meta?.dataRevision||!/^[a-f0-9]{64}$/.test(meta?.builtinWorld?.sha256||''))return null;
+    const selected=selectedProjectSource();
     return JSON.stringify([meta.dataRevision,meta.builtinWorld.sha256,
-      meta.mapProjectManifest?.sha256||null,dependencies.platformConfigurationA.BASE_DATASET]);
+      selected?.manifest.projectId||null,meta.mapProjectManifest?.sha256||null,
+      dependencies.platformConfigurationA.BASE_DATASET]);
   }
   function refreshSourceIdentity(){
     if(disposed)throw staleBuiltin();
@@ -70,18 +82,23 @@ export function createBuiltinSession({ builtinWorldLoader = null,buildMeta } = {
   async function prepareProjectSource(month=deviceCurrentMonth(),{isCurrent=()=>true}={}){
     const domain=dependencies.domains.projectDomain,expectedGeneration=domain.getGeneration();
     if(disposed||!isCurrent())throw staleBuiltin();
-    const identity=refreshSourceIdentity();
+    const identity=refreshSourceIdentity(),contentProject=selectedProjectSource();
     if(!builtinWorldLoader){
       const meta=buildMeta,spec=meta.builtinWorld;
-      const selected=meta.mapProject
-        ?mapProjectResourcePath(meta.mapProject,'territorial'):spec.url;
-      if(spec.url!==selected)throw new TypeError('Project territorial catalog differs from the pinned builtin resource');
+      const selected=contentProject
+        ?mapProjectResourcePath(contentProject.manifest,contentProject.manifest.document.sourceRole):spec.url;
       builtinWorldLoader=createBuiltinWorldLoader({
         manifestUrl:new URL(selected,new URL('../../../',import.meta.url)).href,
         manifestSpec:spec,dataRevision:meta.dataRevision,
+        projectManifest:contentProject?.manifest||null,
+        catalogReceipt:contentProject?{catalog:selected,sha256:contentProject.catalogSha256}:null,
       });
     }
-    const {project}=await builtinWorldLoader.loadProject(month,{isCurrent});
+    const loaded=await builtinWorldLoader.loadProject(month,{isCurrent});
+    const {project}=loaded;
+    const selectedContent=contentProject||loaded.contentProject||null;
+    if(contentProject&&!injectedWorldLoader&&loaded.contentProject?.manifest.projectId!==contentProject.manifest.projectId)
+      throw new TypeError('Loaded country source is not bound to the selected map project');
     const active=()=>!disposed&&isCurrent()&&domain.getGeneration()===expectedGeneration
       &&currentSourceIdentity()===identity;
     if(!active())throw staleBuiltin();
@@ -93,7 +110,8 @@ export function createBuiltinSession({ builtinWorldLoader = null,buildMeta } = {
     const prepared=Object.freeze({kind:'stored-asset',encoding:'identity',
       compressedBytes:bytes.byteLength,decodedBytes:bytes.byteLength,
       sourceMonth:month,baseDataset:dependencies.platformConfigurationA.BASE_DATASET,
-      fingerprint,expectedGeneration,get sourceBytes(){return bytes.slice();}});
+      fingerprint,expectedGeneration,contentProject:selectedContent,
+      get sourceBytes(){return bytes.slice();}});
     preparedSources.add(prepared);candidateIdentities.set(prepared,identity);
     return prepared;
   }
@@ -123,7 +141,8 @@ export function createBuiltinSession({ builtinWorldLoader = null,buildMeta } = {
     projectBaseline=Object.freeze({kind:facts.kind,encoding:facts.encoding,
       compressedBytes:facts.compressedBytes,decodedBytes:facts.decodedBytes,
       sourceMonth:facts.sourceMonth,baseDataset:facts.baseDataset,fingerprint:facts.fingerprint,
-      baselineId:accepted.storageBaselineId,queryKey:prepared.sourceMonth});
+      baselineId:accepted.storageBaselineId,queryKey:prepared.sourceMonth,
+      contentProject:prepared.contentProject});
     return projectBaseline;
   }
 
@@ -143,6 +162,7 @@ export function createBuiltinSession({ builtinWorldLoader = null,buildMeta } = {
     if(!isCurrent())throw staleBuiltin();
     const candidate=await domain.prepareTemporalBuiltin(facts,createBuiltinProjectSetup(month),{
       dataRevision:buildMeta.dataRevision,manifestSha256:buildMeta.builtinWorld.sha256,
+      contentProject:prepared.contentProject,
       expectedGeneration:prepared.expectedGeneration,isCurrent,transition:false});
     if(!candidate||!isCurrent()){
       if(candidate?.kind==='temporal-candidate')await domain.discardTemporalBuiltin(candidate);
@@ -189,7 +209,10 @@ export function createBuiltinSession({ builtinWorldLoader = null,buildMeta } = {
       builtinGeometryCache = new WeakMap();
       builtinRenderCache = null;
     }
-    const entities = canonical ? dependencies.territorialModel.entityRepository.list()
+    // Both imported files and the default world resolve canonical territorial
+    // entities through the same accepted C++ project query. This scene is only
+    // a render/presentation adapter; it never owns a second country registry.
+    const entities = canonical ? dependencies.domains.projectDomain.territorial.list()
       : dependencies.objectModelB.territorialScope.displayEntities();
     const nativeGeometryRevision = entities.reduce((revision, entity) => revision + geometryRevision(
       entity.properties.entityKind === 'general' && entity.properties.parentId
