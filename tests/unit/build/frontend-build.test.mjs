@@ -128,3 +128,14 @@ test('selected Hydro source version and land/terrain pairing are validated befor
  f.metadata[terrain]={...f.metadata[terrain],sourceDem:{landMaskSha256:'other-land'}};
  await assert.rejects(buildFrontendSnapshot(f.options),/Land derivative must match pinned terrain/);
 });
+
+test('classic Canvas Worker dependency policy is self-contained after runtime facade migration',async t=>{
+ const f=fixture(t),snapshot=await buildFrontendSnapshot(f.options);
+ const bundled=snapshot.assets.get('assets/js/workers/resource-update-policy-core.js')?.bytes.toString('utf8');
+ assert.ok(bundled,'a generated classic Worker policy must be present');
+ assert.match(bundled,/PandoLabResourceUpdatePolicy/);
+ assert.match(bundled,/resourceUpdate/);
+ assert.match(bundled,/resourceKey/);
+ assert.doesNotMatch(bundled,/import\s*(?:\(|['"{*])/);
+ assert.doesNotMatch(bundled,/resource-dependency-policy\.js/);
+});
