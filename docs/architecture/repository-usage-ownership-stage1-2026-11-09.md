@@ -96,3 +96,5 @@ GIS-prefix 워크플로 34개, hydro-prefix 3개, Viewer-prefix 4개 등은 단�
 - 2차 실행 [GitHub Actions #42579223591](https://github.com/kimjeon-il/Pando/actions/runs/42579223591): 2,384개 전체 파일, AST 오류 0개. 정확 경로와 문자열/기록 참조를 분리했으며 검사 등록표의 glob 패턴을 다음 실행에서 선택자로 인식해 오검출을 제거한다. 이는 동적 Worker의 런타임 실행 완료를 의미하지 않는다.
 
 - 검사 등록표의 glob 패턴은 파일 존재 경로가 아니라 변경 영향 선택자이므로, 해당 패턴의 소비자 관계를 실행 호출과 별도 기록하도록 조정했다. 이 정규화와 CMake 소스 해석을 적용한 최종 인벤토리 실행을 진행한다.
+
+- 선택형 Worker 검증은 실제 게시 자료를 만드는 `scripts/generate-build-metadata.mjs --check --product=viewer`와 RPC·Worker 번들·프런트엔드 폐포·Canvas Worker의 범용 단위 검사로 한정한다. 전체 GIS 재생성이나 전체 회귀 검사는 포함하지 않는다.
