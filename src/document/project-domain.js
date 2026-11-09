@@ -1,4 +1,4 @@
-import {normalizeProjectSetup} from "./project-setup.js";
+import {normalizeProjectSetup,requireProjectMonth} from "./project-setup.js";
 import { getRuntimePerformanceMetrics,PERFORMANCE_METRIC_NAMES } from "../runtime/runtime-performance-metrics.js";
 import { createCoreDocumentReadModel } from "./core-document-read-model.js";
 import { createProductModePolicy } from "../app/product-mode-policy.js";
@@ -57,6 +57,18 @@ export function createProjectDomain({
   let replacing = false;
   let saving = false;
   let commandQueue = Promise.resolve();
+  // One admitted C++ document is active irrespective of its input reader.
+  // projectId identifies content; documentId and generation isolate a session.
+  let activeProject=null;
+  const currentActiveProject=()=>activeProject?Object.freeze({...activeProject,generation}):null;
+  const activeProjectScope=()=>JSON.stringify([
+    activeProject?.projectId||null,activeProject?.documentId||null,generation]);
+  const timelineNavigation=()=>Object.freeze({
+    ...currentActiveProject(),
+    month:commandOwner?.state?.()?.timelineCursor||null,
+    range:snapshot().projectSetup?.timelineRange||null,
+    scope:activeProjectScope(),
+  });
   const preparedIntents=new Map();
   function currentProject(project) {
     if (project && Object.hasOwn(project,'packageAssets')) throw Object.assign(new TypeError('Unsupported retired project attachments.'),{code:'PL-PROJECT-RETIRED-ASSETS'});
@@ -429,6 +441,7 @@ export function createProjectDomain({
     const requireCurrent=()=>{if(!isCurrent())throw Object.assign(new Error('Project opening was superseded.'),{code:'PL-CORE-STALE',name:'AbortError',cancelled:true});};
     requireCurrent();
     let checkpoint;
+    const previousActiveProject=activeProject;
     let replacementStarted = false;
     let failure;
     let replacementResult;
@@ -474,6 +487,12 @@ export function createProjectDomain({
       });
       if (result === false) throw new Error('Project replacement was rejected.');
       requireCurrent();
+      const accepted=documentModel.snapshot();
+      activeProject=Object.freeze({
+        projectId:accepted.mapProjectIdentity?.projectId||null,
+        documentId:typeof accepted.documentId==='string'?accepted.documentId:null,
+        source:reason==='builtin'?'builtin':reason==='load'?'project':'new',
+      });
       // Unsupported/read-error recovery retains its original slots and write hold.
       if (reason === 'new' && !persistence?.getRecovery?.()) await persistence?.clear?.();
       if (reason === 'new') saveState?.markNewProject();
@@ -483,6 +502,7 @@ export function createProjectDomain({
       replacementResult=result;
     } catch (error) {
       failure=error;
+      activeProject=previousActiveProject;
       if (replacementStarted && checkpoint !== undefined) {
         // Generations stay monotonic so failed replacement workers remain stale.
         try {
@@ -492,7 +512,10 @@ export function createProjectDomain({
           await restoreEditorSession(checkpoint.editor,rollbackGeneration);
           if(saveState && checkpoint.io)saveState.restore(checkpoint.io);
         }
-        catch (restoreError) { error.restoreError = restoreError; }
+        catch (restoreError) {
+          activeProject=null;
+          error.restoreError = restoreError;
+        }
       }
       if (replacementStarted) onReplacementError(error, reason);
     } finally {
@@ -623,6 +646,10 @@ export function createProjectDomain({
   return Object.freeze({
     snapshot,
     state: () => commandOwner.state(),
+    activeProject:currentActiveProject,
+    activeProjectScope,
+    timelineNavigation,
+    requireTimelineMonth:month=>requireProjectMonth(snapshot().projectSetup,month),
     resolveWorld,
     getGeneration: () => generation,
     isReplacing: () => replacing,
