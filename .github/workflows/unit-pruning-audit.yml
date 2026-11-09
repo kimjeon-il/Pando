@@ -31,12 +31,11 @@ jobs:
           tests/unit/data/stored-asset-content-cache.test.mjs
           tests/unit/document/source-provenance.test.mjs
           tests/unit/build/frontend-layout.test.mjs
-      - name: Verify generic source, historical recipe, and Hydro naming behavior
+      - name: Verify generic source and historical recipe behavior
         run: >-
           node --test
           tests/unit/data/source-evidence-audit.test.mjs
           tests/unit/document/territorial-recipe-cli.test.mjs
-          tests/unit/geometry/hydro-name.test.mjs
       - name: Inspect stale one-shot fixture references
         shell: bash
         run: |
