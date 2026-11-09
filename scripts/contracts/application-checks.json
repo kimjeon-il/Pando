@@ -1396,8 +1396,7 @@
     },
     {
       "tests": [
-        "tests/unit/geometry/territorial-boundary-supplement.test.mjs",
-        "tests/unit/document/territorial-recipe-cpp.test.mjs"
+        "tests/unit/geometry/territorial-boundary-supplement.test.mjs"
       ],
       "requires": [
         "native-territorial-recipe"

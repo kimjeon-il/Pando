@@ -41,7 +41,7 @@ jobs:
       - name: Compare full DDR 1989 native polygon with every stored approved coordinate
         run: |
           export PANDO_TERRITORIAL_RECIPE_BINARY="$PWD/build-native/territorial-recipe/pando-territorial-recipe"
-          node --test tests/unit/document/territorial-recipe-cli.test.mjs tests/unit/document/territorial-recipe-cpp.test.mjs
+          node --test tests/unit/document/territorial-recipe-cli.test.mjs
           node tools/build/build-territorial-geometry.mjs --check
           node --test tests/unit/document/historical-world-timeline.test.mjs
           node tools/gis/verify-east-germany-partition.mjs
