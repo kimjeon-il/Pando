@@ -234,7 +234,9 @@
         "wasm"
       ],
       "inputs": [
-        "src/rendering/workers/gpu-mesh-core.js"
+        "src/rendering/workers/gpu-mesh-core.js",
+        "src/rendering/workers/polygon-raster-contract.js",
+        "src/rendering/polygon-mesh-codec.js"
       ],
       "outputs": [
         "assets/data/prepared-polygons/generated/v2/"

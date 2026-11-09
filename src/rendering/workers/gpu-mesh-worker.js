@@ -5,12 +5,14 @@ buildMetaUrl.searchParams.set('v', new URL(self.location.href).searchParams.get(
 importScripts(buildMetaUrl.href);
 const assetRevision = globalThis.PANDOLAB_BUILD_META?.assetRevision || '';
 const meshCoreUrl = new URL('./gpu-mesh-core.js', self.location.href);
+const rasterContractUrl = new URL('./polygon-raster-contract.js', self.location.href);
 const rpcHostUrl = new URL('./worker-rpc-host.js', self.location.href);
 if (assetRevision) {
   meshCoreUrl.searchParams.set('v', assetRevision);
+  rasterContractUrl.searchParams.set('v', assetRevision);
   rpcHostUrl.searchParams.set('v', assetRevision);
 }
-importScripts('./geographic-boundary-core.js', meshCoreUrl.href, rpcHostUrl.href);
+importScripts('./geographic-boundary-core.js', rasterContractUrl.href, meshCoreUrl.href, rpcHostUrl.href);
 
 const meshCoreReady = import("../../document/temporal.js")
   .then(({ sharedCalculationCore }) => self.PandoLabGpuMeshCore.setSharedCore(sharedCalculationCore));

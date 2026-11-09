@@ -41,7 +41,7 @@ function submitGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWidth, 
       overrideMesh.triangleIndices.length, gl.TRIANGLES, dynamicResources, overridePaletteTexture,
       null, null, overrideTriangleDraw.ranges, baseLand);
   };
-      const overlayRenderedKeys = [];
+      const overlayRenderedKeys = [], overlayGridCollapsedKeys = [];
       const overlayMissingKeys = [];
       const overlayFailures = [];
       const drawOverlay = item => {
@@ -58,6 +58,7 @@ function submitGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWidth, 
           : strokeRenderer.drawBatches([resourcePacket], activeFrameContext, { preparedOnly: true });
         const visualKey = key => key === resourcePacket.key ? item.packet.key : key;
         overlayRenderedKeys.push(...(result?.renderedKeys || []).map(visualKey));
+        overlayGridCollapsedKeys.push(...(result?.gridCollapsedKeys || []).map(visualKey));
         overlayMissingKeys.push(...(result?.missingKeys || []).map(visualKey));
         overlayFailures.push(...(result?.failures || []).map(failure => ({ ...failure, key: visualKey(failure.key) })));
       };
@@ -167,7 +168,7 @@ function submitGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWidth, 
         else drawHydro(role);
       }
 
-  return { overlayRenderedKeys, overlayMissingKeys, overlayFailures, countryStrokeResult,
+  return { overlayRenderedKeys, overlayGridCollapsedKeys, overlayMissingKeys, overlayFailures, countryStrokeResult,
     surface: { quality: surfacePresentation.quality, landSource: surfaceReady ? `physical-${surfacePresentation.quality}` : 'physical-background',
       countryIndexCount: surfaceReady && countriesVisible && mesh ? mesh.triangleIndices.length + (overrideMesh?.triangleIndices?.length || 0) : 0 },
     frameId: activeFrameContext.frameId, projectGeneration: activeFrameContext.projectGeneration,

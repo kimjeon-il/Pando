@@ -159,7 +159,7 @@
   function removePackedDegenerateTriangles(points, triangles, parameterSpace) {
     const output = [];
     const removedTriangles = [];
-    let removed = 0;
+    let removed = 0, exactGridCollapses = 0;
     const triangleKeys = new Set();
     for (let index = 0; index < triangles.length; index += 3) {
       const indices = [triangles[index], triangles[index + 1], triangles[index + 2]];
@@ -170,6 +170,7 @@
       ]);
       const packedKeys = packedInteger.map(point => `${point[0]},${point[1]}`);
       if (new Set(packedKeys).size < 3) {
+        exactGridCollapses += 1;
         removed += 1;
         removedTriangles.push(indices);
         continue;
@@ -186,6 +187,10 @@
         ? packedArea === 0
         : Math.abs(packedArea) <= AREA_EPSILON;
       if (packedAreaIsZero || sourceArea * packedArea <= 0) {
+        if (parameterSpace.kind === 'unwrapped-lonlat' && packedArea === 0) {
+          const [a, b, c] = packedInteger.map(point => point.map(BigInt));
+          if ((b[0] - a[0]) * (c[1] - a[1]) === (b[1] - a[1]) * (c[0] - a[0])) exactGridCollapses += 1;
+        }
         removed += 1;
         removedTriangles.push(indices);
         continue;
@@ -199,7 +204,7 @@
       triangleKeys.add(triangleKey);
       output.push(...indices);
     }
-    return { triangles: output, removed, removedTriangles };
+    return { triangles: output, removed, removedTriangles, exactGridCollapses };
   }
 
   function finalTriangleBoundaryEdges(points, triangles, chains, removedTriangles) {
@@ -319,6 +324,7 @@
     const countryBounds = [];
     const countryBoundsFlags = [];
     const countryIds = [];
+    let gridCollapsedPolygons = 0;
     const stats = {
       algorithmRevision: MESH_ALGORITHM_REVISION,
       polygonCount: 0,
@@ -351,6 +357,7 @@
         let localTriangles = refined.triangles;
         localTriangles = unwrapTriangleLongitudes(geoPoints, localTriangles);
         const packedTriangles = removePackedDegenerateTriangles(geoPoints, localTriangles, parameterSpace);
+        if (localTriangles.length > 0 && packedTriangles.exactGridCollapses * 3 === localTriangles.length) gridCollapsedPolygons += 1;
         localTriangles = packedTriangles.triangles;
         stats.removedDegenerateTriangleCount += packedTriangles.removed;
 
@@ -404,6 +411,8 @@
 
     return {
       countryIds,
+      ...(stats.polygonCount > 0 && gridCollapsedPolygons === stats.polygonCount
+        && triangleIndices.length === 0 && lineIndices.length === 0 ? { rasterState: 'grid-collapsed' } : {}),
       positions: new Int32Array(positions),
       countryIndices: new Uint16Array(countryIndices),
       triangleIndices: new Uint32Array(triangleIndices),
@@ -421,7 +430,7 @@
   function buildPolygonGeometryPacket(geometry, options = {}) {
     const mesh = buildGpuMeshFeatures([{ id: options.ownerId || 'overlay', geometry }],
       { validate: true, maxEdgeDegrees: MAX_RENDER_EDGE_DEGREES, throwIfCancelled: options.throwIfCancelled });
-    if (!mesh.triangleIndices.length) throw Object.assign(new Error('GPU 삼각분할 실패: empty polygon'), { code: 'PL-MESH-TRIANGULATION' });
+    if (!mesh.triangleIndices.length && mesh.rasterState !== 'grid-collapsed') throw Object.assign(new Error('GPU 삼각분할 실패: empty polygon'), { code: 'PL-MESH-TRIANGULATION' });
     const ringCoordinates = [], ringOffsets = [0], polygonOffsets = [0];
     for (const polygon of polygonsFor(geometry)) {
       for (const ring of polygon) {
@@ -442,14 +451,22 @@
       if (ax === bx && ay === by) continue;
       boundaryIndices.push(a, b); startsEnds.push(ax, ay, bx, by);
     }
-    return Object.freeze({ positions: displayPositions,
+    const packet = { ...(mesh.rasterState ? { rasterState: mesh.rasterState } : {}), positions: displayPositions,
       indices: mesh.triangleIndices, boundaryIndices: new Uint32Array(boundaryIndices),
       startsEnds: new Float32Array(startsEnds), segmentCount: boundaryIndices.length / 2,
       featureIds: Uint32Array.from(mesh.countryIndices),
       vertexCount: mesh.positions.length / 2, triangleCount: mesh.triangleIndices.length / 3,
       ringCoordinates: new Float64Array(ringCoordinates), ringOffsets: new Uint32Array(ringOffsets),
       polygonOffsets: new Uint32Array(polygonOffsets), algorithmVersion: MESH_ALGORITHM_REVISION,
-      maxEdgeDegrees: mesh.stats.maxEdgeDegrees });
+      maxEdgeDegrees: mesh.stats.maxEdgeDegrees };
+    if (packet.rasterState) {
+      const contract = scope.PandoLabPolygonRasterContract;
+      if (typeof contract?.isGridCollapsedPolygonPacket !== 'function')
+        throw Object.assign(new Error('Polygon raster contract is unavailable.'), { code: 'PL-MESH-CAPABILITY' });
+      if (!contract.isGridCollapsedPolygonPacket(packet))
+        throw Object.assign(new Error('GPU triangulation has an uncertified grid collapse.'), { code: 'PL-MESH-TRIANGULATION' });
+    }
+    return Object.freeze(packet);
   }
 
   const api = {

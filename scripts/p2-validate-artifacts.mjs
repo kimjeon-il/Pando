@@ -25,6 +25,7 @@ if(family==='world-mesh') {
   for(const index of mesh.triangleIndices)assert.ok(index<vertices,'triangle index');
   for(const index of mesh.lineIndices)assert.ok(index<vertices,'line index');
 } else if(family==='prepared-mesh') {
+  await import('../tools/build/load-spherical-core.mjs');
   const manifest=json('assets/data/prepared-polygons/generated/v2/manifest.json');
   assert.equal(manifest.schema,'pandolab-prepared-polygon-meshes');
   assert.ok(Object.keys(manifest.meshes).length,'empty prepared meshes');

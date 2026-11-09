@@ -1,3 +1,4 @@
+import './workers/polygon-raster-contract.js';
 import { buildSelectionBoundarySegments } from "./selection-stroke-geometry.js";
 import { resolveRenderLod, simplifyRenderGeometry } from "./render-lod.js";
 import "./workers/gpu-mesh-core.js";
@@ -266,7 +267,7 @@ export function createRenderSceneBuilder({
     buildCount += 1;
     const sources = new Map();
     const polygons = (input.polygons || []).filter(item => item?.key && item?.geometry)
-      .map(item => polygonPacket(item, input, sources)).filter(packet => packet.triangleCount > 0)
+      .map(item => polygonPacket(item, input, sources)).filter(packet => packet.triangleCount > 0 || packet.rasterState === 'grid-collapsed')
       .sort((left, right) => left.order - right.order);
     const strokes = (input.strokes || []).filter(item => item?.key && (item?.geometry || item?.startsEnds))
       .map(item => strokePacket(item, input, sources)).filter(packet => packet.segmentCount > 0)
@@ -299,7 +300,7 @@ export function createRenderSceneBuilder({
     for (const item of input.polygons || []) {
       if (!item?.key || !item?.geometry) continue;
       const packet = polygonPacket(item, input, sources);
-      if (packet.triangleCount > 0) polygonMap.set(String(packet.key), packet);
+      if (packet.triangleCount > 0 || packet.rasterState === 'grid-collapsed') polygonMap.set(String(packet.key), packet);
       else polygonMap.delete(String(item.key));
     }
     for (const item of input.strokes || []) {

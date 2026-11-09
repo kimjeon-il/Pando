@@ -57,7 +57,7 @@ export function prepareGpuBaseScene({ mesh, overrideMesh, frame, scene, budgetBy
         const result = pass.ensureResource(item.resourcePacket || item.packet);
         const uploaded = result?.resource;
         if (uploaded) {
-          overlayUploadBytes += Number(uploaded.byteLength || byteLength);
+          overlayUploadBytes += Number(uploaded.byteLength ?? byteLength);
           if (overlayUploadBytes > uploadBudget) overrunCount += 1;
         } else if (result?.reason === 'upload-pending') deferredOverlayKeys.add(String(item.packet.key));
         else failedOverlayKeys.add(String(item.packet.key));

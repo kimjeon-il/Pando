@@ -8,6 +8,8 @@ import { fileURLToPath } from 'node:url';
 import { decodePolygonMesh, POLYGON_MESH_FORMAT_VERSION } from "../../src/rendering/polygon-mesh-codec.js";
 import "../../src/rendering/workers/gpu-mesh-core.js";
 
+await import('../build/load-spherical-core.mjs');
+
 const root = fileURLToPath(new URL("../../", import.meta.url));
 const data = resolve(root, 'assets/data');
 const readJson = file => JSON.parse(readFileSync(resolve(root, file), 'utf8'));

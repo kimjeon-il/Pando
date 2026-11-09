@@ -1,3 +1,4 @@
+import { isGridCollapsedPolygonPacket } from './polygon-mesh-codec.js';
 import { isRenderDevice } from "./render-device.js";
 import { createGpuResourceBudget } from "./gpu-resource-budget.js";
 import { applyGpuBlendMode, parseGpuColor, resetGpuNormalBlend } from "./gpu-blend-utils.js";
@@ -107,6 +108,16 @@ export function createGpuPolygonOverlayPass({ onError = null, onResourceReady = 
       cacheHits += 1;
       resourceBudget.touch(key, packet?.priority);
       return { resource: previous, reason: '' };
+    }
+    if (packet.indices?.length === 0 && isGridCollapsedPolygonPacket(packet)) {
+      uploadScheduler?.cancelKey('polygon:' + key);
+      pendingUploads.delete(key);
+      if (previous) deleteResource(key);
+      const resource = Object.freeze({ key, signature: nextSignature, indexCount: 0,
+        byteLength: 0, positionBuffer: null, indexBuffer: null, rasterState: 'grid-collapsed' });
+      resources.set(key, resource); resourceBudget.track(key, 0, packet?.priority);
+      buildCount++; cacheMisses++;
+      return { resource, reason: 'grid-collapsed' };
     }
     if (!(packet.positions instanceof Float32Array) || !(packet.indices instanceof Uint32Array)
       || packet.positions.length < 6 || packet.indices.length < 3) {
@@ -218,7 +229,7 @@ export function createGpuPolygonOverlayPass({ onError = null, onResourceReady = 
   function drawPackets(packets = [], frameContext, { styleByKey = null, claimTransparent = false, preparedOnly = false } = {}) {
     const started = performance.now();
     drawCount += 1;
-    const renderedKeys = [];
+    const renderedKeys = [], gridCollapsedKeys = [];
     const missingKeys = [];
     if (!gl || !programInfo || contextLost || gl.isContextLost?.() || !frameContext) {
       return Object.freeze({ succeeded: false, renderedKeys, missingKeys: packets.map(packet => String(packet?.key || '')).filter(Boolean) });
@@ -234,6 +245,9 @@ export function createGpuPolygonOverlayPass({ onError = null, onResourceReady = 
       if (!resource) {
         if (key) missingKeys.push(key);
         continue;
+      }
+      if (resource.rasterState === 'grid-collapsed') {
+        resourceBudget.touch(key); if (key) gridCollapsedKeys.push(key); continue;
       }
       try {
         resourceBudget.touch(key, packet?.priority);
@@ -251,7 +265,7 @@ export function createGpuPolygonOverlayPass({ onError = null, onResourceReady = 
     drawMs += performance.now() - started;
     return Object.freeze({
       succeeded: missingKeys.length === 0,
-      renderedKeys: Object.freeze(renderedKeys),
+      renderedKeys: Object.freeze(renderedKeys), gridCollapsedKeys: Object.freeze(gridCollapsedKeys),
       missingKeys: Object.freeze(missingKeys),
     });
   }
@@ -261,7 +275,7 @@ export function createGpuPolygonOverlayPass({ onError = null, onResourceReady = 
   function drawResourceItems(items = [], frameContext) {
     const started = performance.now();
     drawCount += 1;
-    const renderedKeys = [];
+    const renderedKeys = [], gridCollapsedKeys = [];
     const missingKeys = [];
     if (!gl || !programInfo || contextLost || gl.isContextLost?.() || !frameContext) {
       return Object.freeze({ succeeded: false, renderedKeys, missingKeys: items.map(item => String(item?.key || '')).filter(Boolean) });
@@ -275,6 +289,9 @@ export function createGpuPolygonOverlayPass({ onError = null, onResourceReady = 
       if (!resource) {
         if (key) missingKeys.push(key);
         continue;
+      }
+      if (resource.rasterState === 'grid-collapsed') {
+        resourceBudget.touch(key); if (key) gridCollapsedKeys.push(key); continue;
       }
       try {
         resourceBudget.touch(key, item?.priority);
@@ -290,7 +307,7 @@ export function createGpuPolygonOverlayPass({ onError = null, onResourceReady = 
     }
     resetGpuNormalBlend(gl);
     drawMs += performance.now() - started;
-    return Object.freeze({ succeeded: missingKeys.length === 0, renderedKeys: Object.freeze(renderedKeys), missingKeys: Object.freeze(missingKeys) });
+    return Object.freeze({ succeeded: missingKeys.length === 0, renderedKeys: Object.freeze(renderedKeys), gridCollapsedKeys: Object.freeze(gridCollapsedKeys), missingKeys: Object.freeze(missingKeys) });
   }
 
   function retain(keys = [], { protectedKeys = [] } = {}) {

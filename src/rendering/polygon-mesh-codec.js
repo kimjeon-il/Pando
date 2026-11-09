@@ -1,3 +1,5 @@
+import './workers/polygon-raster-contract.js';
+export const { isGridCollapsedPolygonPacket } = globalThis.PandoLabPolygonRasterContract;
 const MAGIC = 0x50474d31;
 export const POLYGON_MESH_FORMAT_VERSION = 2;
 const FORMAT = POLYGON_MESH_FORMAT_VERSION;
@@ -38,7 +40,10 @@ export function decodePolygonMesh(buffer, { algorithmVersion } = {}) {
     || packet.boundaryIndices.length % 2 || packet.featureIds.length !== packet.positions.length / 2) fail('length');
   packet.vertexCount = packet.positions.length / 2; packet.triangleCount = packet.indices.length / 3;
   packet.segmentCount = packet.boundaryIndices.length / 2;
-  if (!packet.triangleCount) fail('empty triangulation');
+  if (!packet.triangleCount) {
+    if (!isGridCollapsedPolygonPacket(packet)) fail('uncertified empty triangulation');
+    packet.rasterState = 'grid-collapsed';
+  }
   for (const index of packet.indices) if (index >= packet.vertexCount) fail('vertex index');
 
   // Persist boundary indices only. Decode stroke endpoints from the exact
