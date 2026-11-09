@@ -47,8 +47,8 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: pando-generated-artifacts-${{ github.ref }}
-  cancel-in-progress: true
+  group: pando-generated-artifacts-${{ github.ref }}-${{ github.event_name == 'workflow_dispatch' && github.run_id || 'publication' }}
+  cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' }}
 
 jobs:
   plan:
@@ -184,7 +184,10 @@ jobs:
           PANDOEDITOR_WASM_MODULE: ${{ github.workspace }}/assets/wasm/pandoeditor-core.js
           CHECK_SELECTION: '{"unitTests":["tests/unit/geometry/country-shared-boundary.test.mjs","tests/unit/geometry/boundary-lines.test.mjs"],"browserSpecs":[],"commands":["wasm-domain-geometry"],"prerequisites":[]}'
         run: node scripts/run-application-checks.mjs
-      - name: Verify only immutable geometry admission and offline storage
+      - name: Prepare only the display policy used by synthetic source fixtures
+        if: inputs.verification == 'geometry-resources'
+        run: node --input-type=module -e "import {readLibraryDataFile} from './tools/data/library-context.mjs';readLibraryDataFile('assets/data/builtin-world/display-policy-v1.json',{fetch:true});"
+      - name: Verify immutable admission and affected synthetic GIS contracts
         if: inputs.verification == 'geometry-resources'
         env:
           PANDOEDITOR_WASM_MODULE: ${{ github.workspace }}/assets/wasm/pandoeditor-core.js
