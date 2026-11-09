@@ -7,7 +7,6 @@ import * as __dep3 from "../../../src/document/object-query.js";
 import * as __dep4 from "../../../src/document/object-ref-identity.js";
 import * as __dep5 from "../../../src/document/territorial-entity-repository.js";
 import * as __dep6 from "../../../src/document/object-search-model.js";
-import * as __dep7 from "node:timers";
 import * as __dep8 from "node:vm";
 import * as __dep9 from "../../../src/ui/navigation-bindings.js";
 import * as __dep10 from "../../../src/data/place-runtime.js";
@@ -84,7 +83,6 @@ test('parent links do not create folders or hide cyclic entries in the flat resu
 contractSuite("object-search-controller", () => {
 const assert = __dep1.default;
 const test = __dep0.default;
-const { setImmediate } = __dep7;
 const vm = __dep8.default;
 const { createNavigationBindings } = __dep9;
 const { createPlaceRuntime } = __dep10;
