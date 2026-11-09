@@ -6,7 +6,7 @@ import * as __country_dep2 from "node:test";
 import * as __country_dep3 from "node:assert/strict";
 import * as __country_dep5 from "../../../src/document/builtin-subunits.js";
 import * as __country_dep6 from "../../../src/document/territorial-units.js";
-import * as __country_dep8 from "../../../src/document/builtin-session.js";
+import * as __country_dep8 from "../../../src/rendering/territorial-scene-runtime.js";
 import * as __country_dep9 from "../../../src/geometry/geometry-versions.js";
 import * as __country_dep10 from "../../../src/ui/layer-presentation.js";
 contractSuite("builtin-subunits", () => {
@@ -54,7 +54,7 @@ test('display policy rejects ambiguous, duplicate and self-parent mappings',()=>
 contractSuite("builtin-subunit-geometry-revision", () => {
 const assert = __country_dep3.default;
 const test = __country_dep2.default;
-const { createBuiltinSession } = __country_dep8;
+const { createTerritorialSceneRuntime } = __country_dep8;
 const { builtinSubunitId, builtinSubunitSourceId } = __country_dep5;
 const { createTerritorialFeature } = __country_dep6;
 const { geometryRevision, touchGeometry } = __country_dep9;
@@ -71,8 +71,9 @@ test('native built-in eligibility rejects in-place canonical edits even with unc
   const display = [parent, preview];
   const entities = [parent, unit];
   const baseline = JSON.stringify(unit.geometry);
-  const owner = createBuiltinSession();
-  owner.connect({ projectState: { state: { layerPresentation: {} } },
+  let scenePorts;
+  const owner = createTerritorialSceneRuntime({getDependencies:()=>scenePorts});
+  scenePorts=({ projectState: { state: { layerPresentation: {} } },
     objectModelB: { territorialScope: { displayEntities: () => display } },
     territorialModel: { entityRepository: { list: () => entities, get: id => entities.find(entity => entity.id === id) } },
     objectDefinitions: { builtinSubunitSourceId },
@@ -99,8 +100,9 @@ test('boundary projection keeps non-native children and resolves independent set
     geometry: square(1), metadata: { builtinSubunit: { sourceCountryId: 'HKG' } } });
   const entities = [parent, child];
   const state = { layerVisibility: { objects: true }, layerPresentation: { styles: { objects: { opacity: 0.4 } } } };
-  const owner = createBuiltinSession();
-  owner.connect({ projectState: { state },
+  let scenePorts;
+  const owner = createTerritorialSceneRuntime({getDependencies:()=>scenePorts});
+  scenePorts=({ projectState: { state },
     objectModelB: { territorialScope: { displayEntities: () => entities } },
     territorialModel: { entityRepository: { list: () => entities, get: id => entities.find(entity => entity.id === id) } },
     objectDefinitions: { builtinSubunitSourceId }, applicationServicesB: { layerStyle },
