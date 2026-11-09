@@ -50,7 +50,7 @@ test('project Viewer closure excludes private authoring inputs and retains pinne
  const inputPaths=Object.values(context.generation.inputs);
  const specs={
   [context.catalogs.world]:{assets:{}},
-  [context.catalogs.territorial]:{entities:[],geometryAssets:[]},
+  [context.catalogs.territorial]:{schema:'pandolab-builtin-world',schemaVersion:2,storageLayout:'descriptor-geometries-v1',entities:[],geometryAssets:[]},
   [context.catalogs.preparedMeshes]:{meshes:{}},
   [context.catalogs.rivers]:{container:{url:'fixture.bin'},shards:[]},
   [context.catalogs.places]:{shards:{}},
