@@ -24,7 +24,10 @@ jobs:
       - id: data
         if: steps.install.outcome == 'success'
         continue-on-error: true
-        uses: ./.github/actions/library-data
+        shell: bash
+        run: |
+          set -o pipefail
+          node tools/data/library-data.mjs --purpose=gis --include-prefix=assets/data/builtin-world/display-policy-v1.json 2>&1 | tee "$RUNNER_TEMP/stage2-library.log"
       - id: prerequisite
         if: steps.install.outcome == 'success' && steps.data.outcome == 'success'
         continue-on-error: true
@@ -44,9 +47,12 @@ jobs:
             const fs = require('fs');
             const logPath = process.env.RUNNER_TEMP + '/stage2-core-test.log';
             const output = fs.existsSync(logPath) ? fs.readFileSync(logPath, 'utf8').slice(-18000) : 'test did not execute';
+            const dataLogPath = process.env.RUNNER_TEMP + '/stage2-library.log';
+            const dataOutput = fs.existsSync(dataLogPath) ? fs.readFileSync(dataLogPath, 'utf8').slice(-9000) : 'library preparation did not execute';
             const result = {
               schema: 'pando-stage2-core-validation-v1',
               output,
+              dataOutput,
               sourceCommit: context.sha,
               install: '${{ steps.install.outcome }}',
               library: '${{ steps.data.outcome }}',
