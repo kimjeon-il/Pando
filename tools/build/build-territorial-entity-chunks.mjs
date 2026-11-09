@@ -4,6 +4,7 @@ import path from 'node:path';
 import {createHash} from 'node:crypto';
 import {selectTerritorialChunkBytes} from '../data/territorial-chunk-compression.mjs';
 import {selectTerritorialChunkSource} from '../data/territorial-metadata-projection.mjs';
+import {readProjectGenerationContext} from './project-generation-context.mjs';
 import {encodeTerritorialSource} from '../data/territorial-source-codec.mjs';
 import {territorialSourceLayout} from '../../src/data/territorial-source-format.js';
 import {readTerritorialSource,readTerritorialSourceDescriptors,readTerritorialLineages,entityFileName,territorialDataRoot,territorialSourceRoot} from '../data/territorial-entity-sources.mjs';
@@ -23,17 +24,24 @@ export function buildTerritorialRetirementIndex({previousIndex,retirement,view,d
 }
 
 if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url)){
-const output=path.join(territorialDataRoot,'generated/v2');
+const projectArg=process.argv.find(arg=>arg.startsWith('--project='));
+const root=fileURLToPath(new URL('../../',import.meta.url));
+const projectId=projectArg?.slice(10)||null;
+const project=projectId?readProjectGenerationContext({root,projectId}):null;
+const sourceRoot=project?path.resolve(root,project.source('territorialSourceRoot')):territorialSourceRoot;
+const output=project?path.dirname(path.resolve(root,project.source('territorialSourceIndex')))
+ :path.join(territorialDataRoot,'generated/v2');
 const check=process.argv.includes('--check');
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 const scope=process.argv.find(arg=>arg.startsWith('--entities='));
 const retirementFile=process.argv.find(arg=>arg.startsWith('--retirement-manifest='));
 if(retirementFile){
+ if(projectId&&projectId!=='default-world')throw Error('Project-specific retirement requires a paired source retirement receipt');
  if(scope)throw Error('Publish the explicit retirement baseline before ordinary entity chunk updates');
  const retirement=JSON.parse(fs.readFileSync(retirementFile.slice('--retirement-manifest='.length)));
  const previousIndex=JSON.parse(check?readRetirementReceipt(retirement.stagedIndex):fs.readFileSync(path.join(output,'index.json')));
  const index=buildTerritorialRetirementIndex({previousIndex,retirement,
-  view:JSON.parse(fs.readFileSync(path.join(territorialSourceRoot,'views/world.json'))),displayPolicy:planTerritorialRetirement(retirement,JSON.parse(readRetirementReceipt(retirement.previousIndex))).displayPolicy,
+  view:JSON.parse(fs.readFileSync(path.join(sourceRoot,'views/world.json'))),displayPolicy:planTerritorialRetirement(retirement,JSON.parse(readRetirementReceipt(retirement.previousIndex))).displayPolicy,
   pathExists:logical=>fs.existsSync(fileURLToPath(new URL('../../'+logical,import.meta.url)))});
  const bytes=`${JSON.stringify(index,null,2)}\n`;
  if(check){if(fs.readFileSync(path.join(output,'index.json'),'utf8')!==bytes)throw Error('Stale territorial retirement index');}
@@ -46,7 +54,7 @@ const existingIndexPath=path.join(output,'index.json');
 const priorIndex=fs.existsSync(existingIndexPath)?JSON.parse(fs.readFileSync(existingIndexPath,'utf8')):null;
 const previous=selected?priorIndex:null;
 if(selected&&!previous)throw new Error('Scoped chunk publication requires a prior index');
-const descriptors=readTerritorialSourceDescriptors();
+const descriptors=readTerritorialSourceDescriptors(sourceRoot);
 const indexedDescriptors=new Map(descriptors.map(entity=>[entity.entityId,entity]));
 const entities=selected?selected.map(id=>{
  const entity=indexedDescriptors.get(id);
@@ -57,11 +65,11 @@ const priorRows=new Map((priorIndex?.entities||[]).map(row=>[row.entityId,row]))
 if(selected&&selected.some(id=>!previous.entities.some(row=>row.entityId===id)))throw new Error('Scoped publication cannot add catalog identities');
 const expectedFiles=new Set(['index.json']);
 fs.mkdirSync(output,{recursive:true});
-const index={schemaVersion:2,lineages:previous?.lineages||readTerritorialLineages(),entities:entities.map(entity=>{
+const index={schemaVersion:2,lineages:previous?.lineages||readTerritorialLineages(sourceRoot),entities:entities.map(entity=>{
  // The intermediate catalog stores metadata only. Immutable coordinates are
  // referenced by verified content digest and never repacked for name edits.
  const projection=selectTerritorialChunkSource(entity,priorRows.get(entity.entityId),()=>{
-  const full=readTerritorialSource(entity.entityId);
+  const full=readTerritorialSource(entity.entityId,sourceRoot);
   return {entity:full,descriptor:encodeTerritorialSource(full).descriptor};
  });
  const bytes=Buffer.from(`${JSON.stringify(projection.descriptor,null,2)}\n`);
@@ -72,12 +80,12 @@ const index={schemaVersion:2,lineages:previous?.lineages||readTerritorialLineage
  if(check&&changed)throw new Error(`Stale territorial chunk: ${file}`);
  if(!check&&changed)writeLibraryOutput(destination,stored);
  return territorialIndexEntry(projection.entity,{sha256:sha(stored),compressedBytes:stored.length,decodedBytes:bytes.length,storageLayout:territorialSourceLayout,...(projection.verifiedGeometryBounds?{verifiedGeometryBounds:projection.verifiedGeometryBounds}:{})});
- }),snapshots:previous?.snapshots||fs.readdirSync(path.join(territorialSourceRoot,'snapshots')).filter(f=>f.endsWith('.json')).sort().map(file=>{
- const snapshot=JSON.parse(fs.readFileSync(path.join(territorialSourceRoot,'snapshots',file),'utf8'));
+ }),snapshots:previous?.snapshots||fs.readdirSync(path.join(sourceRoot,'snapshots')).filter(f=>f.endsWith('.json')).sort().map(file=>{
+ const snapshot=JSON.parse(fs.readFileSync(path.join(sourceRoot,'snapshots',file),'utf8'));
  parseTemporal(snapshot.referenceDate,{nullable:false});
  if(snapshot.schemaVersion!==1 || new Set(snapshot.entityRefs).size!==snapshot.entityRefs.length || snapshot.entityRefs.some(id=>!entities.some(e=>e.entityId===id)))throw new Error(`Invalid territorial snapshot: ${file}`);
  return snapshot;
- }),views:previous?.views||fs.readdirSync(path.join(territorialSourceRoot,'views')).filter(f=>f.endsWith('.json')).sort()
+ }),views:previous?.views||fs.readdirSync(path.join(sourceRoot,'views')).filter(f=>f.endsWith('.json')).sort()
    .map(file=>JSON.parse(fs.readFileSync(path.join(territorialSourceRoot,'views',file),'utf8')))};
 if(previous){const updates=new Map(index.entities.map(row=>[row.entityId,row]));index.entities=previous.entities.map(row=>updates.get(row.entityId)||row);}
 if(!selected)for(const file of fs.readdirSync(output)) if(!expectedFiles.has(file) && !process.env.PANDOLAB_LIBRARY_SOURCE_ROOT)throw new Error(`Obsolete territorial output must be explicitly removed: ${file}`);
