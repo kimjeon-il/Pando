@@ -26,8 +26,8 @@ jobs:
         run: node --test --test-timeout=30000 tests/unit/build/frontend-build.test.mjs tests/unit/document/monorepo-pages-staging.test.mjs
       - name: P1-4 project identity and shared reader adapter (JS-only)
         run: node --test --test-timeout=30000 tests/unit/data/map-project-identity-contract.test.mjs tests/unit/document/project-open-adapter-contract.test.mjs
-      - name: P2-1 same self-contained resource policy in browser and classic Worker
-        run: node --test --test-timeout=30000 tests/unit/rendering/resource-update-policy.test.mjs
+      - name: P2-1 self-contained Worker policy and independent physical asset loading
+        run: node --test --test-timeout=30000 tests/unit/rendering/resource-update-policy.test.mjs tests/unit/data/physical-asset-reader.test.mjs
       - name: P1-5 reject legacy fallback from product Viewer
         run: node --test --test-timeout=30000 tests/unit/data/library-data-scope.test.mjs
       - name: P2-2 check owners and deterministic selection only
