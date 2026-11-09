@@ -509,19 +509,24 @@ export function createProjectDomain({
         const outcome = await commandOwner.presentationCatalogLoad(readPresentationCatalog());
         await publishCommand(outcome, { expectedGeneration: nextGeneration, reason: 'presentation-catalog' });
       }
-      const result = await replaceSnapshot(reason === 'new' ? null : documentModel.snapshot(), {
+      const acceptedDocument=documentModel.snapshot();
+      // Candidate content identity is derived from the *accepted* C++ document
+      // and made available to replacement adapters. It is published as active
+      // only after the map presentation/replacement succeeds.
+      const candidateContentProject=reason==='builtin'
+        ?contentIdentityFor(prepared.contentProject,acceptedDocument):null;
+      const result = await replaceSnapshot(reason === 'new' ? null : acceptedDocument, {
         reason, generation: nextGeneration, skipRenderReset: true,
+        ...(candidateContentProject?{contentProject:candidateContentProject}:{}),
         ...(reason === 'new' ? {
-          prepared: { ...prepared,project: documentModel.snapshot() },
+          prepared: { ...prepared,project: acceptedDocument },
         } : {}),
       });
       if (result === false) throw new Error('Project replacement was rejected.');
       requireCurrent();
-      // Bind only after C++ has accepted the actual document, not on source
-      // preparation. A user GeoPackage—even with builtin sourceMode—stays
-      // independent. The rollback path restores the previous source binding.
-      activeContentProject=reason==='builtin'
-        ?contentIdentityFor(prepared.contentProject,documentModel.snapshot()):null;
+      // An imported GeoPackage, even when sourceMode is builtin, never
+      // implicitly inherits the default content project.
+      activeContentProject=candidateContentProject;
       // Unsupported/read-error recovery retains its original slots and write hold.
       if (reason === 'new' && !persistence?.getRecovery?.()) await persistence?.clear?.();
       if (reason === 'new') saveState?.markNewProject();
