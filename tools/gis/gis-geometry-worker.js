@@ -1,5 +1,5 @@
 'use strict';
-const rpcHostUrl = new URL('../../src/rendering/workers/worker-rpc-host.js', self.location.href);
+const rpcHostUrl = new URL('../../src/runtime/workers/worker-rpc-host.js', self.location.href);
 const revision = new URL(self.location.href).searchParams.get('v');
 if (revision) rpcHostUrl.searchParams.set('v', revision);
 importScripts(new URL('../../src/geometry/polygon-clipping-core.js', self.location.href).href, rpcHostUrl.href);
