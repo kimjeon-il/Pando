@@ -1,0 +1,10 @@
+{
+  "sourceCommit": "569e67fc5bd6e4f6a9ed970488499bd8acb60dea",
+  "install": "success",
+  "library": "success",
+  "coreCheck": "failure",
+  "rebuilt": "success",
+  "browserInstall": "success",
+  "browser": "failure",
+  "output": "[WebServer] file:///home/runner/work/Pando/Pando/scripts/lib/map-catalog-coherence.mjs:5\n[WebServer] const invalid=message=>{throw new TypeError('Incompatible project catalogs: '+message);};\n[WebServer]                               ^\n[WebServer] \n[WebServer] TypeError: Incompatible project catalogs: prepared meshes do not match selected territorial catalog\n[WebServer]     at invalid (file:///home/runner/work/Pando/Pando/scripts/lib/map-catalog-coherence.mjs:5:31)\n[WebServer]     at validateMapCatalogCoherence (file:///home/runner/work/Pando/Pando/scripts/lib/map-catalog-coherence.mjs:27:6)\n[WebServer]     at buildFrontendSnapshot (file:///home/runner/work/Pando/Pando/scripts/lib/frontend-build.mjs:106:23)\n[WebServer]     at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n[WebServer]     at async file:///home/runner/work/Pando/Pando/tests/browser/server.mjs:11:62\n[WebServer] \n[WebServer] Node.js v24.22.2\nError: Process from config.webServer was not able to start. Exit code: 1\n\n"
+}
