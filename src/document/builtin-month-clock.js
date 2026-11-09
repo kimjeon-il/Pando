@@ -1,7 +1,9 @@
 import {parseTemporal} from "./temporal.js";
 export const deviceCurrentMonth=(now=new Date())=>`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
 
-// Owns builtin query mode only. It never schedules changes to a user document.
+// Legacy clock retained solely for existing source-compatibility and regression tests.
+// Viewer runtime uses createProjectMonthClock plus the shared C++ time cursor.
+// Do not reintroduce this controller into the application project lifecycle.
 export function createBuiltinMonthClock({applyMonth,now=()=>new Date(),window=null,document=null,onCommitted=()=>{},onError=()=>{},coalesceRequests=false}){
  if(typeof applyMonth!=='function')throw new TypeError('Builtin month application is required');
  if(typeof coalesceRequests!=='boolean')throw new TypeError('Builtin request coalescing requires a boolean.');
