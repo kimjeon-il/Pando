@@ -5,6 +5,7 @@ import { join, dirname } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { gzipSync } from 'node:zlib';
+import { encodeCountryMesh } from '../../src/rendering/country-mesh-codec.js';
 import {UI_VIEWER_SOURCES} from '../../scripts/lib/ui-source-catalog.mjs';
 import { buildWorkerAsset } from '../../scripts/lib/worker-assets.mjs';
 import {buildFrontendIndex,emitFrontendModule} from '../../scripts/lib/frontend-layout.mjs';
@@ -20,7 +21,7 @@ export const put = (root, path, value) => {
 };
 export const run = (command, args, cwd) => spawnSync(command, command === 'git' ? ['-c', 'core.fsync=none', ...args] : args, { cwd, encoding: 'utf8' });
 
-export async function pagesRepositoryFixture(t) {
+export async function pagesRepositoryFixture(t, { sceneRevision = 6, preparedRevision = 6, previewRevision = 6, canonicalRevision = 6, descriptorRevision = null } = {}) {
   const parent = mkdtempSync(join(tmpdir(), 'pando-pages-'));
   t.after(()=>rmSync(parent,{recursive:true,force:true}));
   const root = join(parent, 'source');
@@ -29,9 +30,11 @@ export async function pagesRepositoryFixture(t) {
   assert.equal(run('git', ['config', 'user.name', 'Test'], root).status, 0);
   assert.equal(run('git', ['config', 'user.email', 'test@example.invalid'], root).status, 0);
   put(root, 'index.html', '<h1>Viewer</h1><script src="assets/js/build-meta.js"></script><script type="module" src="assets/js/viewer.js"></script>');
-  put(root, 'assets/js/viewer.js', "import './workers/core-viewer-session-worker.js';");
+  put(root, 'assets/js/viewer.js', "import '../runtime/workers/core-viewer-session-worker.js';");
   put(root, 'assets/js/workers/core-viewer-session-worker.js', '// fixed viewer worker');
   put(root, 'assets/js/app.js', '// editor only');
+  put(root, 'projects/default-world/manifest.json', readFileSync(new URL('../../projects/default-world/manifest.json', import.meta.url)));
+  put(root, 'assets/data/places/urban-lifetimes-v1.json', '{"lifetimes":[]}');
   put(root,'package.json','{"version":"1.0.0"}');
   put(root,'apps/editor/templates/index.html','<h1>Editor</h1><script type="module" src="assets/js/app.js"></script>');
   put(root,'src/rendering/resource-update-policy.js','export const policy=true;');
@@ -62,7 +65,40 @@ export async function pagesRepositoryFixture(t) {
     'assets/js/workers/core-viewer-session-worker.js': { url: worker.url, files: [...worker.files.keys()],
       sha256: Object.fromEntries([...worker.files].map(([path, source]) => [path, createHash('sha256').update(source).digest('hex')])) }
   } }) + ');');
-  put(root,'assets/data/world/current.json','{"assets":{}}');
+  const bytes = Buffer.from('tiny immutable asset'), sha256 = createHash('sha256').update(bytes).digest('hex');
+  const assets = {};
+  for (const [role, name, extension, encoding] of [
+    ['previewCountries', 'countries-preview', '.geojson.gz', 'gzip'],
+    ['previewMesh', 'world-mesh-preview', '.bin.gz', 'gzip'],
+    ['canonicalCountryPacket', 'countries-canonical', '.pcg.gz', 'gzip'],
+    ['canonicalMesh', 'world-mesh', '.bin.gz', 'gzip'],
+    ['labelAnchors', 'country-label-anchors', '.json', 'identity'],
+    ['preparedCountryScene', 'country-scene', '.bin.gz', 'gzip'],
+  ]) {
+    const url = 'world/objects/' + name + '-sha256-' + sha256 + extension;
+    assets[role] = { url, encoding, sha256, compressedBytes: bytes.length, decodedBytes: 64,
+      ...['previewMesh', 'canonicalMesh', 'canonicalCountryPacket'].includes(role) ? { header: [1, 2, 1, 0, 0, 0, 1, sceneRevision] } : {},
+      ...role === 'preparedCountryScene' ? { algorithmVersion: sceneRevision, identity: { fills: [['fixture', sha256]], boundaries: [] } } : {} };
+    put(root, 'assets/data/' + url, bytes);
+  }
+  for (const [role, name, revision] of [['previewMesh', 'world-mesh-preview', previewRevision], ['canonicalMesh', 'world-mesh', canonicalRevision]]) {
+    const meshBuffer = encodeCountryMesh({ positions: new Int32Array([0,0,1,0,0,1]),
+      countryIndices: new Uint16Array([0,0,0]), triangleIndices: new Uint32Array([0,1,2]),
+      lineIndices: new Uint32Array([0,1,1,2,2,0]), countryTriangleRanges: new Uint32Array([0,3]),
+      countryBoundaryRanges: new Uint32Array([0,6]), countryBounds: new Int32Array([0,0,1,1]),
+      countryBoundsFlags: new Uint32Array([1]) }, ['fixture'], 3);
+    new Uint32Array(meshBuffer,0,12)[7] = revision;
+    const stored = gzipSync(Buffer.from(meshBuffer)), digest = createHash('sha256').update(stored).digest('hex');
+    const url = 'world/objects/' + name + '-sha256-' + digest + '.bin.gz';
+    const header = [...new Uint32Array(meshBuffer,0,12)];
+    if (descriptorRevision !== null) header[7] = descriptorRevision;
+    assets[role] = { url, encoding: 'gzip', sha256: digest, compressedBytes: stored.length,
+      decodedBytes: meshBuffer.byteLength, header };
+    put(root, 'assets/data/' + url, stored);
+  }
+  put(root,'assets/data/world/current.json',JSON.stringify({schema:'pandolab-world-bundle',schemaVersion:1,
+    source:{sha256,countryCount:1,url:'source.json'},defaultClassification:{countries:{}},
+    derivation:{preview:'canonical-topology-simplified',coordinateCount:4,meshAlgorithmRevision:sceneRevision},assets}));
   put(root,'assets/data/terrain-preview/v0.13.3-p2/manifest.json','{"sourceDem":{"landMaskSha256":"land"},"tiles":{}}');
   const landSource=Buffer.from(JSON.stringify({type:'MultiPolygon',coordinates:[[[[0,0],[0,1],[1,1],[1,0],[0,0]]]]}));
   const landCompressed=gzipSync(landSource,{level:9,mtime:0});
@@ -74,7 +110,7 @@ export async function pagesRepositoryFixture(t) {
   put(root,'assets/data/places/manifest.json','{"shards":{}}');
   put(root,'assets/data/territorial-entities/generated/v2/index.json','{"entities":[]}');
   put(root,'assets/data/builtin-world/generated/v1/index.json','{"schema":"pandolab-builtin-world","schemaVersion":2,"storageLayout":"descriptor-geometries-v1","geometryAssets":[],"entities":[]}');
-  put(root,'assets/data/prepared-polygons/generated/v2/manifest.json','{"meshes":{}}');
+  put(root,'assets/data/prepared-polygons/generated/v2/manifest.json',JSON.stringify({algorithmVersion:preparedRevision,meshes:{}}));
   const data = join(root, '.library-data/repository');
   mkdirSync(data, { recursive: true });
   run('git', ['init', '-q'], data);

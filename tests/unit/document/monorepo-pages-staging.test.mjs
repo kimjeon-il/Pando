@@ -21,6 +21,7 @@ test('stages committed viewer assets while excluding editor and repository sourc
   assert.equal(existsSync(join(stage, meta.workerAssets['assets/js/workers/core-viewer-session-worker.js'].url)), true);
   assert.equal(existsSync(join(stage, 'native')), false);
   assert.equal(existsSync(join(stage, 'shared')), false);
+  assert.equal(existsSync(join(stage, 'src')), false);
   assert.equal(existsSync(join(stage, 'apps')), false);
   assert.deepEqual(readFileSync(join(stage, 'assets/wasm/pandoeditor-core.wasm')),
     Buffer.from([0, 97, 115, 109, 1, 0, 0, 0]));
@@ -34,7 +35,7 @@ test('stages committed viewer assets while excluding editor and repository sourc
   assert.equal(evidence.fileCount,evidence.files.length);
   assert.equal(evidence.bytes, evidence.files.reduce((total, file) => total + file.bytes, 0));
   assert.equal(evidence.excludedNativeFiles, 1);
-  assert.ok(evidence.excludedSharedFiles > 2);
+  assert.equal(evidence.excludedSharedFiles, 0);
   assert.ok(evidence.excludedAppFiles >= 2);
   assert.equal(evidence.files.some(file => file.path.startsWith('native/')), false);
 });
@@ -62,6 +63,7 @@ test('final evidence describes the staged files and their current hashes', async
 test('storage HEAD and a stale publication channel cannot replace the committed data pin', async t => {
   const { root, stage, manifest } = await fixture(t), data = join(root, '.library-data/repository');
   const pin = JSON.parse(readFileSync(join(root, 'config/library-data.json'))).revision;
+  const expectedWorld = JSON.parse(readFileSync(join(data, 'assets/data/world/current.json')));
   put(data, 'assets/data/library-channel/current.json', '{"revision":"stale-independent-release"}');
   put(data, 'assets/data/world/current.json', '{"assets":{},"wrongSource":true}');
   assert.equal(run('git', ['add', '.'], data).status, 0);
@@ -69,7 +71,7 @@ test('storage HEAD and a stale publication channel cannot replace the committed 
   const result = run(process.execPath, [script, '--root', root, '--stage', stage, '--manifest', manifest], root);
   assert.equal(result.status, 0, result.stderr);
   assert.equal(JSON.parse(readFileSync(manifest)).dataCommit, pin);
-  assert.deepEqual(JSON.parse(readFileSync(join(stage, 'assets/data/world/current.json'))), { assets: {} });
+  assert.deepEqual(JSON.parse(readFileSync(join(stage, 'assets/data/world/current.json'))), expectedWorld);
   assert.equal(existsSync(join(stage, 'assets/data/library-channel')), false);
 });
 
@@ -121,4 +123,20 @@ test('refuses to stage inside the repository or overwrite a prior artifact', asy
   assert.equal(run(process.execPath, [script, '--root', root, '--stage', stage, '--manifest', manifest], root).status, 0);
   const again = run(process.execPath, [script, '--root', root, '--stage', stage, '--manifest', manifest], root);
   assert.notEqual(again.status, 0);
+});
+
+for (const [name, options, expected] of [
+  ['obsolete prepared country scene', { sceneRevision: 5 }, /Invalid prepared country scene descriptor/],
+  ['obsolete prepared polygon manifest', { preparedRevision: 5 }, /Prepared polygon mesh algorithm revision mismatch/],
+  ['obsolete preview mesh', { previewRevision: 5 }, /previewMesh/],
+  ['obsolete canonical mesh', { canonicalRevision: 5 }, /canonicalMesh/],
+  ['obsolete packet behind current descriptors', { canonicalRevision: 5, descriptorRevision: 6 }, /canonicalMesh/],
+  ['obsolete descriptors around current packets', { descriptorRevision: 5 }, /previewMesh/],
+]) test('refuses ' + name + ' before publication, even with optional checks skipped', async t => {
+  const { root, stage, manifest } = await fixture(t, options);
+  const result = run(process.execPath, [script, '--root', root, '--stage', stage, '--manifest', manifest, '--skip-checks'], root);
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, expected);
+  assert.equal(existsSync(stage), false);
+  assert.equal(existsSync(manifest), false);
 });

@@ -7,6 +7,10 @@ import { fileURLToPath } from 'node:url';
 import {buildFrontendSnapshot} from "../../scripts/lib/frontend-build.mjs";
 import {prepareLibraryData} from "../data/library-runtime.mjs";
 
+import { validateWorldBundle } from '../../src/data/world-bundle-manifest.js';
+import { createStoredAssetLoader } from '../../src/data/stored-asset-loader.js';
+import { decodeCountryMesh, MESH_ALGORITHM_REVISION } from '../../src/rendering/country-mesh-codec.js';
+
 const LIMIT_BYTES = 1_000_000_000;
 const REQUIRED = [
   'index.html', '.nojekyll',
@@ -72,6 +76,14 @@ export async function stageWebPages(rootInput, stageInput, manifestInput, { skip
   const sourceCommit=execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim();
   const snapshot=await buildFrontendSnapshot({root,sourceCommit,readSourceBytes});
   if([...snapshot.viewerPaths].some(path=>path.endsWith('/assets/js/workers/core-viewer-session-worker.js')))for(const name of ['pandoeditor-core.js','pandoeditor-core.wasm','pandoeditor-core.manifest.json']){const path='assets/wasm/'+name;if(!snapshot.assets.has(path))throw Error('Missing protected Web URL: '+path);snapshot.viewerPaths.add(path);}
+  // Admission must precede publication; optional metadata checks cannot bypass it.
+  const world = JSON.parse(snapshot.readPinnedRuntimeAsset(snapshot.buildMeta.worldBundle.url));
+  validateWorldBundle(world);
+  const prepared = JSON.parse(snapshot.readPinnedRuntimeAsset(snapshot.buildMeta.preparedPolygonMeshes.url));
+  if (prepared.algorithmVersion !== MESH_ALGORITHM_REVISION) {
+    throw Error('Prepared polygon mesh algorithm revision mismatch: expected ' + MESH_ALGORITHM_REVISION
+      + ', received ' + prepared.algorithmVersion);
+  }
   const library=prepareLibraryData({root}),payload=new Map(),files=[];
   for(const path of snapshot.viewerPaths){
     const generated=snapshot.assets.get(path);let bytes,sourcePath=null;
@@ -80,6 +92,19 @@ export async function stageWebPages(rootInput, stageInput, manifestInput, { skip
     payload.set(path,bytes);files.push({path,sourcePath,bytes:bytes.length,sha256:hash('sha256',bytes),generated:!sourcePath});
   }
   for(const path of REQUIRED)if(!payload.has(path))throw Error('Missing protected Web URL: '+path);
+  const meshLoader = createStoredAssetLoader({ dataRevision: snapshot.dataRevision, cacheStorage: null });
+  for (const role of ['previewMesh', 'canonicalMesh']) {
+    const spec = world.assets[role], stored = payload.get('assets/data/' + spec.url);
+    if (!stored || spec.header[7] !== MESH_ALGORITHM_REVISION) {
+      throw Error('Pinned world ' + role + ' mesh algorithm revision mismatch or missing asset');
+    }
+    try {
+      await meshLoader.decodeStoredAsset(stored.buffer.slice(stored.byteOffset, stored.byteOffset + stored.byteLength),
+        spec, 'mesh', role, role, buffer => decodeCountryMesh(buffer));
+    } catch (cause) {
+      throw new Error('Pinned world ' + role + ' failed mesh admission', { cause });
+    }
+  }
   const total=files.reduce((n,f)=>n+f.bytes,0);if(total>LIMIT_BYTES)throw Error('Pages site exceeds size limit: '+total);
   mkdirSync(stage,{recursive:true});
   for(const file of files){const output=resolve(stage,file.path);if(!within(stage,output))throw Error('Invalid Pages output');mkdirSync(dirname(output),{recursive:true});writeFileSync(output,payload.get(file.path));if(hash('sha256',readFileSync(output))!==file.sha256)throw Error('Staged copy mismatch');}
