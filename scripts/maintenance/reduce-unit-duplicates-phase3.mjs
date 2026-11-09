@@ -102,6 +102,45 @@ for (const [path, wanted] of Object.entries(plan)) {
     if(output[end]==='\n')end++;
     output=output.slice(0,item.start)+output.slice(end);
   }
+  // Pruned tests must not leave unused imports or state-building fixtures.
+  // Each exact rewrite is checked once against the reviewed source.
+  const rewrites = {
+    'tests/unit/rendering/gpu-helper-utils.test.mjs': [
+      ['import * as __dep7 from "node:fs";\n', ''],
+      ['const { readFileSync } = __dep7;\n', ''],
+    ],
+    'tests/unit/ui/ui-state-controllers.test.mjs': [
+      ['const { filterSelectOptions, normalizeSelectQuery } = __unit_dep9;',
+       'const { filterSelectOptions } = __unit_dep9;'],
+    ],
+    'tests/unit/geometry/hydro-source-reader.test.mjs': [
+      ['scanHydroRegionMetadata,scanHydroRiverCandidates}', 'scanHydroRegionMetadata}'],
+      ['prepareHydroCalibrationLakeRegions,prepareHydroCalibrationLakes,prepareHydroCalibrationRegion,prepareHydroCalibrationRiverRegions,prepareHydroCalibrationRivers,runHydroCalibration,selectHydroCalibrationReferences}',
+       'prepareHydroCalibrationLakes,prepareHydroCalibrationRivers}'],
+    ],
+    'tests/unit/build/p2-artifact-plan.test.mjs': [
+      ['symlinkSync, statSync }', 'symlinkSync }'],
+      ['libraryReportRoot,librarySharedCheckout}', 'libraryReportRoot}'],
+      ['import {withLibraryOutputs} from "../../../tools/data/library-runtime.mjs";\n', ''],
+      ['import {publishContent,linkContent} from "../../../tools/data/library-content.mjs";\n', ''],
+      ['import {reportPath} from "../../../tools/data/report-paths.mjs";\n', ''],
+      ['publishP2FromWorkflow,archiveGeneratedLibraryOutputs,assertP2LibraryPublicationBase',
+       'publishP2FromWorkflow,assertP2LibraryPublicationBase'],
+    ],
+  };
+  for(const [before,after] of rewrites[path]||[]){
+    if(output.split(before).length!==2)throw Error('Unexpected leftover binding at '+path+': '+before);
+    output=output.replace(before,after);
+  }
+  if(path==='tests/unit/build/p2-artifact-plan.test.mjs'){
+    const ast=parseJavaScript(output,{filePath:path});
+    const fixture=ast.ast.body.find(node=>node.type==='VariableDeclaration'&&
+      node.declarations.some(d=>d.id.type==='Identifier'&&d.id.name==='nativeValidationChanges'));
+    if(!fixture||fixture.declarations.length!==1)throw Error('Unexpected nativeValidationChanges fixture');
+    let end=fixture.range[1];
+    if(output[end]==='\n')end++;
+    output=output.slice(0,fixture.range[0])+output.slice(end);
+  }
   parseJavaScript(output,{filePath:path});
   if(output===input||output.length>input.length)throw Error('Not reduced: '+path);
   prepared.set(path,output);
