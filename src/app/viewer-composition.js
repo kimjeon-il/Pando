@@ -44,7 +44,7 @@ export async function composeViewer({ productMode, meta }) {
   if(productMode!=='viewer')throw new Error('실행 설정이 올바르지 않습니다.');
   const projection='globe';
   const get=id=>document.getElementById(id),status=get('viewerStatus');
-  let map,previousView,display,projectClock,syncStatus;
+  let map,previousView,display,projectClock,syncStatus,presentedMonth=null;
   const inspectParams=new URLSearchParams(window.location.search);
   let inspectorController=null;
   const initialPresentation=createViewerInitialPresentation({onPresented:()=>{get('viewer').dataset.initialLoading='false';map.finishInitialPreview();}});
@@ -182,7 +182,11 @@ export async function composeViewer({ productMode, meta }) {
   };
   const disposeTimeline=installTimelineControls({
     document,window,
-    getMonth:()=>activeSession?.commandOwner.state().timelineCursor||null,
+    getMonth:()=>{
+      const accepted=presentedMonth;
+      return accepted&&(projectDomain.isOpening()||accepted.scope===projectDomain.activeProjectScope())
+        ?accepted.month:activeSession?.commandOwner.state().timelineCursor||null;
+    },
     getRange:()=>projectDomain.timelineNavigation().range,
     setMonth:async month=>{
       if(projectDomain.isOpening())throw new Error('지도를 여는 중입니다.');
@@ -229,6 +233,8 @@ export async function composeViewer({ productMode, meta }) {
     await map.renderer.waitForMapPresentation(presentedGeneration);
     if(request!==projectDomain.getOpenRevision()||(options?.isCurrent?.()===false)
       ||projectDomain.getGeneration()!==presentedGeneration)return false;
+    presentedMonth={scope:projectDomain.activeProjectScope(),
+      month:activeSession.commandOwner.state().timelineCursor};
     window.dispatchEvent(new CustomEvent('pandolab:project-changed'));
     status.dataset.ready='true';
     presentViewerLoadStatus(status,'지도 준비 완료.');
@@ -322,7 +328,11 @@ export async function composeViewer({ productMode, meta }) {
       if(!active)return false;
       return changeProjectCursor(month,{isCurrent,commit});
     },
-    onCommitted:()=>{syncStatus();window.dispatchEvent(new CustomEvent('pandolab:project-changed'));},
+    onCommitted:()=>{
+      presentedMonth={scope:projectDomain.activeProjectScope(),
+        month:activeSession.commandOwner.state().timelineCursor};
+      syncStatus();window.dispatchEvent(new CustomEvent('pandolab:project-changed'));
+    },
     onError:report,
   });
   disposables.push(projectClock);
