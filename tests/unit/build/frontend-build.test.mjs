@@ -102,7 +102,7 @@ test('selected Hydro source version and land/terrain pairing are validated befor
  f.metadata[hydro]={...f.metadata[hydro],schema:'pandolab-water-shards-v5'};
  const terrain='assets/data/terrain-preview/v0.13.3-p2/manifest.json';
  f.metadata[terrain]={...f.metadata[terrain],sourceDem:{landMaskSha256:'other-land'}};
- await assert.rejects(buildFrontendSnapshot(f.options),/Land derivative must match pinned terrain/);
+ await assert.rejects(buildFrontendSnapshot(f.options),/terrain and physical land lineage differ/);
 });
 
 
