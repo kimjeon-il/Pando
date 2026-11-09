@@ -38,6 +38,8 @@ export async function pagesRepositoryFixture(t) {
   put(root,'projects/default-world/manifest.json',readFileSync(new URL('../../projects/default-world/manifest.json',import.meta.url)));
   put(root,'apps/editor/templates/index.html','<h1>Editor</h1><script type="module" src="assets/js/app.js"></script>');
   put(root,'src/rendering/resource-update-policy.js','export const policy=true;');
+  // The generated classic Worker policy is compiled from this real runtime owner.
+  put(root,'src/runtime/resource-dependency-policy.js',readFileSync(new URL('../../src/runtime/resource-dependency-policy.js',import.meta.url)));
   for(const path of new Set([...UI_VIEWER_SOURCES,'assets/css/app.css','assets/css/viewer.css']))put(root,path.replace('assets/css/','src/ui/css/'),'.fixture { color:red; }');
   put(root, '.nojekyll', '');
   put(root, 'assets/data/terrain-preview/v0.13.3-p2/manifest.json', '{"tiles":{}}');
