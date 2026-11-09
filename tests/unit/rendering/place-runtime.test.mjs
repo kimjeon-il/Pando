@@ -2,7 +2,7 @@ import { describe as contractSuite } from 'node:test';
 import * as __dep0 from "node:assert/strict";
 import * as __dep1 from "node:test";
 import * as __dep2 from "node:timers";
-import * as __dep3 from "../../../src/document/place-runtime.js";
+import * as __dep3 from "../../../src/data/place-runtime.js";
 import * as __dep4 from "../../../src/document/place-contract.js";
 import * as __dep5 from "../../../src/rendering/rendering-domain.js";
 import * as __dep6 from "../../../src/rendering/label-layout.js";

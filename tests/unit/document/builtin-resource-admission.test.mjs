@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { setImmediate } from 'node:timers';
-import { createPlaceRuntime } from "../../../src/document/place-runtime.js";
+import { createPlaceRuntime } from "../../../src/data/place-runtime.js";
 import { normalizePlace } from "../../../src/document/place-contract.js";
 import { createPhysicalResources } from "../../../src/data/physical-resources.js";
 

@@ -1,6 +1,6 @@
 import { createMapVisualFrame, isMapVisualFrame } from "./map-visual-frame.js";
 import { placeLabelDimensions } from "./label-layout.js";
-import { createPlaceRuntime } from "../document/place-runtime.js";
+import { createPlaceRuntime } from "../data/place-runtime.js";
 import {projectResourceOverlay} from "../document/project-resource-overlay.js";
 import { isBuiltinPlaceId } from "../document/place-contract.js";
 import { placeLabelRowsAtMonth } from "../ui/place-name-display.js";

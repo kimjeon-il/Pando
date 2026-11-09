@@ -1,9 +1,9 @@
 import { createWorkerRpcClient } from "../runtime/worker-rpc.js";
 import { createLatestWorkerJobScheduler, createWorkerCancellationError } from "../runtime/worker-job-scheduler.js";
-import { isBuiltinPlaceId, normalizePlace, PLACE_LIMITS } from "./place-contract.js";
+import { isBuiltinPlaceId, normalizePlace, PLACE_LIMITS } from "../document/place-contract.js";
 import { resourceKey, resourceUpdate } from "../rendering/resource-update-policy.js";
 import { placeLabelRowsAtMonth } from "../ui/place-name-display.js";
-import { indexPlaceUrbanLifetimes,placeUrbanLabelActiveAtMonth } from "./place-lifetime-policy.js";
+import { indexPlaceUrbanLifetimes,placeUrbanLabelActiveAtMonth } from "../document/place-lifetime-policy.js";
 const EMPTY = Object.freeze({ revision: 0, signature: 'empty', records: Object.freeze([]) });
 
 /** Canonical owner of the builtin label snapshot and Worker lifecycle. */

@@ -10,7 +10,7 @@ import * as __dep6 from "../../../src/document/object-search-model.js";
 import * as __dep7 from "node:timers";
 import * as __dep8 from "node:vm";
 import * as __dep9 from "../../../src/ui/navigation-bindings.js";
-import * as __dep10 from "../../../src/document/place-runtime.js";
+import * as __dep10 from "../../../src/data/place-runtime.js";
 import * as __dep11 from "../../../src/ui/surface-controller.js";
 import * as __dep12 from "../../../src/ui/object-search-controller.js";
 import * as __dep13 from "../../../src/ui/selection-ui-controller.js";
