@@ -48,3 +48,10 @@ export function projectOpenReceipt({readResult,accepted,document=null,generation
     reason:readResult.reason,documentId:accepted?document.documentId:null,
     generation:accepted?generation:null,contentProject:accepted?contentProject:null});
 }
+
+export function projectOpenCancelledReceipt(reader){
+  const description=OPEN_SOURCES[reader?.source];
+  if(!description)throw new TypeError('Cancelled project opening requires a registered reader.');
+  return Object.freeze({accepted:false,source:reader.source,admission:description.admission,
+    reason:description.reason,documentId:null,generation:null,contentProject:null});
+}
