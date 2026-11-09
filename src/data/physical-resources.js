@@ -450,6 +450,8 @@ export function createPhysicalResources({ buildMeta,projectResources=null,
   }
 
   function initializeTerrainService() {
+    if(!hasResources())return;
+    const generation=sourceGeneration,isActive=()=>isCurrentSource(generation);
     if(capabilities.terrain)(terrainService = (0, dependencies.physicalServices.createTerrainService)({
       fetchWithRetry: dependencies.physicalServices.fetchWithRetry,
       manifestUrl: () => dependencies.physicalConfig.TERRAIN_PRIMARY_MANIFEST_URL,
@@ -457,6 +459,7 @@ export function createPhysicalResources({ buildMeta,projectResources=null,
         ? () => dependencies.physicalConfig.TERRAIN_FALLBACK_MANIFEST_URL : null,
       getLoadState: () => dependencies.projectState.state.physicalLoadState.terrain,
       onLoading: () => {
+        if(!isActive())return;
         dependencies.projectState.state.physicalLoadState.terrain = 'loading';
         dependencies.projectState.state.physicalLoadState.terrainManifest = 'loading';
         (0, dependencies.layerPresentation.invalidateObjectPresentation)();
@@ -466,6 +469,7 @@ export function createPhysicalResources({ buildMeta,projectResources=null,
         category: 'asset', operation: 'terrain-manifest', result: `retry-${attempt}`,
       }),
       acceptManifest: (manifest, manifestUrl, context) => {
+        if(!isActive())return;
         dependencies.projectState.state.terrainManifest = manifest;
         dependencies.projectState.state.physicalLoadState.terrainManifest = 'ready';
         dependencies.projectState.state.physicalLoadState.terrain = 'ready';
@@ -478,6 +482,7 @@ export function createPhysicalResources({ buildMeta,projectResources=null,
         dependencies.domains.renderingDomain?.invalidateBaseScene?.('terrain-manifest-ready');
       },
       onFailure: error => {
+        if(!isActive())return;
         dependencies.projectState.state.physicalLoadState.terrainManifest = 'error';
         dependencies.projectState.state.physicalLoadState.terrain = 'error';
         dependencies.operationFeedback.reliabilityDiagnostic.push({ category: 'asset', operation: 'terrain-manifest', result: 'failed', errorCode: 'PL-TERRAIN-001' });
@@ -492,13 +497,16 @@ export function createPhysicalResources({ buildMeta,projectResources=null,
       fetchWithRetry: dependencies.physicalServices.fetchWithRetry,
       dataVersion: dependencies.physicalConfig.HYDRO_DATA_VERSION,
       manifestUrl: () => {
-        const manifestUrl = new URL(projectHydro?projectHydro.slice('assets/data/'.length):
+        const path=roleCatalog('rivers');
+        if(projectResources?.managed&&!path)throw new Error('No active project Hydro catalog');
+        const manifestUrl = new URL(path?path.slice('assets/data/'.length):
           `hydro/v${dependencies.physicalConfig.HYDRO_DATA_VERSION}/manifest.json`, dependencies.physicalConfig.PHYSICAL_DATA_BASE_URL);
         manifestUrl.searchParams.set('v', dependencies.physicalConfig.DATA_REVISION);
         return manifestUrl;
       },
       getLoadState: () => dependencies.projectState.state.physicalLoadState.hydro,
       onLoading: () => {
+        if(!isActive())return;
         dependencies.projectState.state.physicalLoadState.hydro = 'loading';
         dependencies.projectState.state.physicalLoadState.hydroManifest = 'loading';
         dependencies.projectState.state.physicalLoadState.hydroWorker = 'starting';
@@ -510,6 +518,7 @@ export function createPhysicalResources({ buildMeta,projectResources=null,
         category: 'asset', operation: 'hydro-manifest', result: `retry-${attempt}`,
       }),
       acceptManifest: async (manifest, manifestUrl) => {
+        if(!isActive())return false;
         dependencies.projectState.state.hydroManifest = manifest;
         dependencies.projectState.state.hydroFeatureCache = new Map();
         dependencies.projectState.state.hydroFeatureByFid = new Map();
@@ -522,9 +531,11 @@ export function createPhysicalResources({ buildMeta,projectResources=null,
         do {
           generation=renderer.getProjectGeneration();
           workerReady=await renderer.setHydroManifest(manifest,manifestUrl);
+          if(!isActive())return false;
         } while(generation!==renderer.getProjectGeneration());
-        if (!workerReady) return false;
+        if (!workerReady||!isActive()) return false;
         await admitHydroFeatures();
+        if(!isActive())return false;
         dependencies.projectState.state.physicalLoadState.hydroWorker = 'ready';
         dependencies.projectState.state.physicalLoadState.hydro = 'ready';
         (0, dependencies.layerPresentation.invalidateObjectPresentation)();
@@ -533,6 +544,7 @@ export function createPhysicalResources({ buildMeta,projectResources=null,
         return true;
       },
       onFailure: error => {
+        if(!isActive())return;
         if (dependencies.projectState.state.physicalLoadState.hydroManifest !== 'ready') dependencies.projectState.state.physicalLoadState.hydroManifest = 'error';
         dependencies.projectState.state.physicalLoadState.hydroWorker = 'error';
         dependencies.projectState.state.physicalLoadState.hydro = 'error';
