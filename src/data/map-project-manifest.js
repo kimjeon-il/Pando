@@ -50,6 +50,9 @@ export function validateMapProjectManifest(input){
   if(!isRecord(input.resources)||Object.keys(input.resources).length!==ROLES.size||
     Object.keys(input.resources).some(key=>!ROLES.has(key)))
     throw new TypeError('Map project requires each supported resource role exactly once');
+  // Every role declares a reproducible catalog, even when its rendered
+  // contents are optional (such as prepared meshes). A declared pinned asset
+  // must still be present and integrity-checked during the current build.
   const resources={};
   for(const role of MAP_PROJECT_ROLES){
     const entry=input.resources[role];
