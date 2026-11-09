@@ -8,7 +8,7 @@ permissions:
 jobs:
   core-project:
     runs-on: ubuntu-24.04
-    timeout-minutes: 12
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
@@ -21,8 +21,12 @@ jobs:
       - id: install
         continue-on-error: true
         run: pnpm install --frozen-lockfile --ignore-scripts
-      - id: prerequisite
+      - id: data
         if: steps.install.outcome == 'success'
+        continue-on-error: true
+        uses: ./.github/actions/library-data
+      - id: prerequisite
+        if: steps.install.outcome == 'success' && steps.data.outcome == 'success'
         continue-on-error: true
         run: node scripts/check-core-prerequisite.mjs
       - id: test
@@ -45,6 +49,7 @@ jobs:
               output,
               sourceCommit: context.sha,
               install: '${{ steps.install.outcome }}',
+              library: '${{ steps.data.outcome }}',
               prerequisite: '${{ steps.prerequisite.outcome }}',
               regression: '${{ steps.test.outcome }}',
               verified: '${{ steps.test.outcome }}' === 'success',
