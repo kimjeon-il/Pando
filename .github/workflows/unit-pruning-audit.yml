@@ -1,0 +1,51 @@
+name: Unit pruning focused audit
+on:
+  push:
+    branches: ['work/optimization']
+    paths:
+      - '.github/workflows/unit-pruning-audit.yml'
+      - 'tests/unit/**'
+      - 'scripts/contracts/application-checks.json'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Verify surviving test references and selection registration
+        run: node scripts/check-test-consolidation.mjs
+      - name: Exercise independent retained behavior
+        run: >-
+          node --test
+          tests/unit/runtime/worker-assets.test.mjs
+          tests/unit/rendering/resource-update-policy.test.mjs
+          tests/unit/data/stored-asset-content-cache.test.mjs
+          tests/unit/document/place-names.test.mjs
+          tests/unit/build/frontend-layout.test.mjs
+      - name: Report exact AST-based reductions
+        run: |
+          node --input-type=module <<'JS'
+          import {readdirSync,readFileSync} from 'node:fs';
+          import {join} from 'node:path';
+          import {parseJavaScript,walkJavaScript} from './scripts/lib/source-analysis.mjs';
+          const files=[];
+          function visit(dir){for(const e of readdirSync(dir,{withFileTypes:true})){const path=join(dir,e.name);if(e.isDirectory())visit(path);else if(path.endsWith('.test.mjs'))files.push(path);}}
+          visit('tests/unit');
+          let assertions=0,declarations=0,lines=0;
+          for(const path of files){const text=readFileSync(path,'utf8'),src=parseJavaScript(text,{filePath:path});lines+=text.split(/\r?\n/).length;walkJavaScript(src,node=>{
+          if(node.type!=='CallExpression')return;
+          if(node.callee.type==='Identifier'&&['test','it'].includes(node.callee.name))declarations++;
+          if(node.callee.type==='Identifier'&&node.callee.name==='assert')assertions++;
+          if(node.callee.type==='MemberExpression'&&node.callee.object?.name==='assert')assertions++;
+          });}
+          console.log('PANDO_PHASE3_TOTALS='+JSON.stringify({files:files.length,declarations,assertions,lines}));
+          JS
