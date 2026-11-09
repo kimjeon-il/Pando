@@ -1,0 +1,35 @@
+{
+  "format": "pandolab-map-project-manifest",
+  "schemaVersion": 1,
+  "projectId": "default-world",
+  "documentFormat": "pandolab-project-state",
+  "resources": {
+    "world": {
+      "catalog": "assets/data/world/current.json"
+    },
+    "territorial": {
+      "catalog": "assets/data/builtin-world/generated/v1/index.json"
+    },
+    "rivers": {
+      "catalog": "assets/data/hydro/v0.13.4/manifest.json"
+    },
+    "lakes": {
+      "catalog": "assets/data/hydro/v0.13.4/manifest.json"
+    },
+    "places": {
+      "catalog": "assets/data/places/manifest.json"
+    },
+    "placeLifetimes": {
+      "catalog": "assets/data/places/urban-lifetimes-v1.json"
+    },
+    "terrain": {
+      "catalog": "assets/data/terrain-preview/v0.13.3-p2/manifest.json"
+    },
+    "physicalLand": {
+      "catalog": "assets/data/physical-land/v1/manifest.json"
+    },
+    "preparedMeshes": {
+      "catalog": "assets/data/prepared-polygons/generated/v2/manifest.json"
+    }
+  }
+}
