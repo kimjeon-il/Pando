@@ -283,7 +283,8 @@ export async function composeViewer({ productMode, meta }) {
     try{
       // Physical resources are scoped to this document; one C++ cursor owns
       // the date for both builtin and GeoPackage projects.
-      await owners.physicalResources.preparePhysicalContext(month,{isCurrent:current});
+      await owners.physicalResources.preparePhysicalContext(month,{
+        isCurrent:current,activeProject:projectDomain.activeProject()});
       if(!current())return false;
       if(!await applyDocumentMonth(month,{isCurrent:current,waitForFrame:true,
         onCursorAccepted:()=>map.renderer.admitTemporalViewTransition(temporalTicket)}))return false;
