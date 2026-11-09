@@ -43,7 +43,7 @@ test('clean LF and CRLF checkouts share identical immutable frontend bytes while
  f.put('src/app/viewer.js','export const viewer=true;\n');
  f.put('assets/vendor/NOTICE','Copyright fixture\nTerms remain unchanged.\n');
  const binary=Buffer.from([137,80,78,71,13,10,26,10,255]);
- f.put('assets/img/proof.png',binary);
+ f.put('assets/vendor/proof.png',binary);
  const lf=await buildFrontendSnapshot(f.options);
  const crlf=await buildFrontendSnapshot({...f.options,readSourceBytes:path=>{
   const bytes=readFileSync(join(f.root,path));
@@ -51,7 +51,7 @@ test('clean LF and CRLF checkouts share identical immutable frontend bytes while
  }});
  assert.equal(crlf.sourceSha256,lf.sourceSha256);
  assert.deepEqual([...crlf.assets].map(([path,row])=>[path,row.bytes]),[...lf.assets].map(([path,row])=>[path,row.bytes]));
- assert.deepEqual(crlf.assets.get('assets/img/proof.png').bytes,binary);
+ assert.deepEqual(crlf.assets.get('assets/vendor/proof.png').bytes,binary);
 });
 
 
