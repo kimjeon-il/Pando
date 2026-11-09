@@ -110,7 +110,7 @@ test('pinned Viewer materialization follows selected project catalog roles witho
  const project={...source,projectId:'alternate-world',resources:{...source.resources,places:{catalog:alt}}};
  const specs={
   [source.resources.world.catalog]:{assets:{}},
-  [source.resources.territorial.catalog]:{entities:[]},
+  [source.resources.territorial.catalog]:{schema:'pandolab-builtin-world',schemaVersion:2,storageLayout:'descriptor-geometries-v1',entities:[],geometryAssets:[]},
   [source.resources.rivers.catalog]:{container:{url:'shared-hydro.bin'},shards:[]},
   [source.resources.places.catalog]:{shards:{old:{url:'old-city.bin'}}},
   [alt]:{shards:{new:{url:'new-city.bin'}}},
@@ -119,7 +119,7 @@ test('pinned Viewer materialization follows selected project catalog roles witho
   [source.resources.physicalLand.catalog]:{asset:{url:'assets/data/land.bin'}},
   [source.resources.placeLifetimes.catalog]:{entries:[]},
  };
- const hydroBin=source.resources.rivers.catalog.replace(/manifest\\.json$/,'shared-hydro.bin');
+ const hydroBin=source.resources.rivers.catalog.replace('manifest.json','shared-hydro.bin');
  const paths=[...Object.keys(specs),'assets/data/land.bin',hydroBin,'assets/data/places/new-city.bin','assets/data/places/old-city.bin'];
  const entries=Object.fromEntries(paths.map(path=>[path,{stored:path}]));
  const read=entry=>Buffer.from(JSON.stringify(specs[entry.stored]));
