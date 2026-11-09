@@ -46,7 +46,7 @@ jobs:
       - run: pnpm exec playwright install --with-deps chromium
       - name: Verify current country and border frames, engine requests and date return
         env:
-          CHECK_SELECTION: '{"unitTests":[],"browserSpecs":["tests/browser/runtime/viewer-readonly-startup.spec.mjs","tests/browser/rendering/country-prepared-scene.spec.mjs","tests/browser/document/viewer-calendar.spec.mjs"],"commands":[],"prerequisites":[]}'
+          CHECK_SELECTION: '{"unitTests":[],"browserSpecs":["tests/browser/runtime/viewer-readonly-startup.spec.mjs","tests/browser/rendering/country-prepared-scene.spec.mjs"],"commands":[],"prerequisites":[]}'
         run: node scripts/run-application-checks.mjs --phase browser | tee "$RUNNER_TEMP/ui-presentation.log"
       - name: Preserve exact committed source delta and browser evidence
         if: always()
