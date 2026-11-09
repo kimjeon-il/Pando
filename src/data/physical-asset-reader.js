@@ -5,11 +5,11 @@ import {createStoredAssetLoader} from './stored-asset-loader.js';
 export function createPhysicalAssetReader({
   buildMeta,resolveBaseUrl,onLandReady=()=>{},createLoader=createStoredAssetLoader,
 }={}){
-  if(!buildMeta||typeof resolveBaseUrl!=='function')
+  if(typeof resolveBaseUrl!=='function')
     throw new TypeError('Physical asset reader requires build metadata and a source base URL');
   let loader=null,physicalLand=null,landLoading=null,initialPreview=null,initialPreviewLoading=null;
   const storedPhysicalAssets=()=>{
-    if(!loader)loader=createLoader({dataRevision:buildMeta.dataRevision,
+    if(!loader)loader=createLoader({dataRevision:buildMeta?.dataRevision,
       resolveUrl:spec=>new URL(spec.url.replace(/^assets\/data\//,''),resolveBaseUrl()).href});
     return loader;
   };
@@ -22,7 +22,7 @@ export function createPhysicalAssetReader({
   function loadPhysicalLandMask({notify=true}={}){
     if(physicalLand)return Promise.resolve(physicalLand);
     if(!landLoading)landLoading=(async()=>{
-      const spec=buildMeta.physicalLand;
+      const spec=buildMeta?.physicalLand;
       if(!spec)throw new Error('Missing pinned physical land asset.');
       const response=await storedPhysicalAssets().loadAsset(spec,'background','physical-land','육지 배경',
         buffer=>decodeGeometry(buffer,'physical land'));
@@ -34,7 +34,7 @@ export function createPhysicalAssetReader({
   }
   function loadInitialLandPreview(){
     if(!initialPreviewLoading){
-      const source=buildMeta.physicalLand,spec=buildMeta.initialLandPreview;
+      const source=buildMeta?.physicalLand,spec=buildMeta?.initialLandPreview;
       if(!spec?.url||spec.sourceSha256!==source?.sha256)
         return Promise.reject(new Error('Initial land preview does not match the pinned physical source.'));
       initialPreviewLoading=storedPhysicalAssets().loadAsset(spec,'background','initial-land-preview','초기 지도 윤곽',
