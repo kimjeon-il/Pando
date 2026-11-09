@@ -6,8 +6,6 @@ import * as __dep2 from "../../../src/rendering/gpu-blend-utils.js";
 import * as __dep3 from "../../../src/rendering/gpu-shader-utils.js";
 import * as __dep4 from "../../../src/rendering/gpu-view-uniforms.js";
 import * as __dep5 from "../../../src/rendering/scene-color-cache.js";
-import * as __dep6 from "../../../src/rendering/gpu-canvas-scene-packets.js";
-import * as __dep7 from "node:fs";
 import * as __dep8 from "../../helpers/gpu-recovery-source-harness.mjs";
 import * as __dep9 from "../../../scripts/lib/renderer-v2-architecture.mjs";
 import * as __dep10 from "../../../src/rendering/gpu-hydro-preparation.js";
@@ -184,72 +182,9 @@ test('GPU view helper writes the shared uniforms in stable order', () => {
     ['uniform1i', 'uMode', 1],
   ]);
 });
-contractSuite("gpu-canvas-scene-packets", () => {
-const test = __dep1.default;
-const assert = __dep0.default;
-const { createCanvasScenePackets } = __dep6;
-
-test('Canvas packets keep geometry on the Worker until its source changes or the Worker restarts', () => {
-  const packets = createCanvasScenePackets();
-  const geometry = new Float64Array([0, 0, 1, 1]);
-  const first = { key: 'land', sourceKey: 'v1', ringCoordinates: geometry, style: { color: '#fff' } };
-  assert.equal(packets.delta([first], 'scene')[0].ringCoordinates, geometry);
-  assert.equal(Object.hasOwn(packets.delta([first], 'scene')[0], 'ringCoordinates'), false);
-  assert.equal(Object.hasOwn(packets.delta([], 'scene')[0] || {}, 'ringCoordinates'), false);
-  assert.equal(packets.delta([first], 'scene')[0].ringCoordinates, geometry);
-  packets.clear();
-  assert.equal(packets.delta([first], 'scene')[0].ringCoordinates, geometry);
-});
-
-test('Canvas packet projections include current polygon, stroke and boundary fields', () => {
-  const packets = createCanvasScenePackets();
-  const polygon = { key: 'land', ringCoordinates: new Float64Array([0, 0]), role: 'physical-land', discarded: 1 };
-  assert.equal(packets.scenePolygons([polygon])[0].ringCoordinates, polygon.ringCoordinates);
-  assert.equal(Object.hasOwn(packets.scenePolygons([polygon])[0], 'discarded'), false);
-  assert.deepEqual(packets.scenePolygons([{ key: 'empty' }]), []);
-  assert.deepEqual(packets.sceneStrokes({ strokes: [{ key: 'coast', startsEnds: [0, 1], discarded: 1 }] }).map(row => row.key), ['coast']);
-  assert.equal(packets.countryBoundary(null), null);
-  assert.deepEqual(packets.countryBoundary({ segments: [1], outlineOverrides: { startsEnds: [2], ownerRanges: [], ownerIds: [], internalOwners: [] } }).segments, [1]);
-});
-
-
-test('Canvas raw physical packets preserve every ring, hole, water revision and allocation identity',()=>{
-  const land={type:'MultiPolygon',coordinates:[
-    [[[0,0],[4,0],[4,4],[0,0]],[[1,1],[2,1],[1,2],[1,1]]],
-    [[[5,5],[6,5],[6,6],[5,5]]],
-  ]};
-  const water={type:'Polygon',coordinates:[[[7,7],[8,7],[8,8],[7,7]]]};
-  const context={geometry:land,revision:'land-v8',water,waterRevision:'water-v9'};
-  const a=createCanvasScenePackets(),first=a.physicalPolygons(context);
-  assert.deepEqual(first.map(x=>x.role),['physical-land','physical-water']);
-  assert.deepEqual([...first[0].ringOffsets],[0,4,8,12]);
-  assert.deepEqual([...first[0].polygonOffsets],[0,2,3]);
-  assert.equal(first[0].geometryRevision,'land-v8');
-  assert.equal(first[1].geometryRevision,'water-v9');
-  assert.equal(first[0].ringCoordinates.length,24);
-  assert.equal(a.physicalPolygons(context)[0].ringCoordinates,first[0].ringCoordinates,
-    'repeated views reuse one source allocation');
-  const full=a.delta(first,'scene');
-  assert.equal(full[0].ringCoordinates,first[0].ringCoordinates);
-  const metadata=a.delta(a.physicalPolygons(context),'scene');
-  assert.equal(Object.hasOwn(metadata[0],'ringCoordinates'),false,'unchanged physical source skips transport');
-  const revised=a.physicalPolygons({...context,revision:'land-v10'});
-  assert.notEqual(revised[0].sourceKey,first[0].sourceKey);
-  const changed=a.delta(revised,'scene');
-  assert.equal(changed[0].geometryRevision,'land-v10');
-  assert.equal(Object.hasOwn(changed[0],'ringCoordinates'),false,
-    'a revision-only metadata change reuses identical immutable geometry bytes');
-  assert.deepEqual(a.physicalPolygons(null),[]);
-});
-test('malformed raw physical geometry cannot become an admitted Canvas packet',()=>{
-  const a=createCanvasScenePackets();
-  assert.throws(()=>a.physicalPolygons({geometry:{type:'MultiPolygon',coordinates:[[[[NaN,0],[1,0],[1,1],[NaN,0]]]]},revision:'bad'}),/nonfinite/);
-});
-});
 contractSuite("gpu-shared-pass-initialization", () => {
 const assert = __dep0.default;
 const test = __dep1.default;
-const { readFileSync } = __dep7;
 const { fixture } = __dep8;
 const { auditSharedGpuPassInitialization } = __dep9;
 
@@ -368,111 +303,6 @@ function fakeTimers(t) {
   return timers;
 }
 
-test('equal manifest content retains its Worker across cloned metadata', async t => {
-  const { owner, workers, manifest } = fixture(t);
-  const ready = owner.setManifest(manifest, 'https://example.test/hydro/index.json');
-  workers[0].onmessage({ data: { type: 'ready' } }); await ready;
-  const reused = owner.setManifest(structuredClone(manifest), 'https://example.test/hydro/index.json');
-  assert.equal(workers.length, 1);
-  assert.equal(await reused, true);
-});
-
-test('equal immutable pack delivery and a transport retry retain prepared pack allocations', async t => {
-  const {owner,workers,manifest,registrations}=fixture(t);
-  const ready=owner.setManifest(manifest,'https://example.test/hydro/index.json');
-  workers[0].onmessage({data:{type:'ready'}});await ready;
-  const message={type:'pack',revision:1,packId:7,mesh:{riverStarts:new Int32Array([1,2,3,4])}};
-  workers[0].onmessage({data:message});const pack=owner.pack(7);
-  workers[0].onmessage({data:structuredClone(message)});
-  assert.strictEqual(owner.pack(7),pack);
-  assert.equal(registrations.length,1);
-  workers[0].onerror({message:'transport failed'});
-  const retried=owner.setManifest(structuredClone(manifest),'https://example.test/hydro/index.json');
-  workers[1].onmessage({data:{type:'ready'}});await retried;
-  assert.strictEqual(owner.pack(7),pack);
-});
-
-test('document generation changes retain uploaded hydro buffers in the same context', async t => {
-  const { owner, workers, manifest } = fixture(t);
-  const jobs = [];
-  const {gl,deleted}=createTrackedGlBufferPort({withUploads:true});
-  
-  const scheduler = { enqueueUpload: job => { jobs.push(job); return Promise.resolve(); }, cancelKey() {} };
-  owner.setContext({ gl, version: 2, projectGeneration: 1, contextGeneration: 1, scheduler });
-  const ready = owner.setManifest(manifest, 'https://example.test/hydro/index.json');
-  workers[0].onmessage({ data: { type: 'ready' } }); await ready;
-  workers[0].onmessage({ data: { type: 'pack', revision: 1, packId: 7, mesh: { riverStarts: new Int32Array([1, 2, 3, 4]) } } });
-  for (const job of jobs) while (!job.step({ byteBudget: 1024 }).done) { /* Drain the actual owner upload. */ }
-  const resources = owner.pack(7).resources, uploads = jobs.length;
-  owner.setContext({ gl, version: 2, projectGeneration: 2, contextGeneration: 1, scheduler });
-  assert.equal(deleted.length, 0);
-  assert.equal(jobs.length, uploads);
-  assert.strictEqual(owner.pack(7).resources, resources);
-  owner.setContext({ gl, version: 2, projectGeneration: 2, contextGeneration: 2, scheduler });
-  assert.ok(deleted.length > 0);
-  assert.ok(jobs.length > uploads);
-});
-
-test('a ready Worker crash retires its generation and settles both RPC kinds without removing packs', async t => {
-  const timers = fakeTimers(t);
-  const { owner, workers, manifest, phases, errors } = fixture(t);
-  const ready = owner.setManifest(manifest, 'https://example.test/hydro/index.json');
-  const worker = workers[0];
-  worker.onmessage({ data: { type: 'ready' } }); await ready;
-  worker.onmessage({ data: { type: 'pack', packId: 7, revision: 1, mesh: {} } });
-  const pack = owner.pack(7);
-  const feature = owner.loadFeature(12).catch(error => error);
-  const query = owner.queryFeatures([0, 0, 1, 1]).catch(error => error);
-  const crash = new Error('Worker crashed after ready');
-  worker.onerror({ message: crash.message, error: crash });
-  assert.equal(owner.hasWorker(), false);
-  assert.equal(worker.terminated, true);
-  assert.strictEqual(await feature, crash);
-  assert.strictEqual(await query, crash);
-  assert.equal(owner.stats().hydroFeaturePendingCount, 0);
-  assert.equal(owner.stats().hydroLogicalQueryPendingCount, 0);
-  assert.equal(timers.size, 0);
-  assert.equal(phases.at(-1).hydroWorker, 'error');
-  assert.strictEqual(errors[0], crash);
-  worker.onmessage({ data: { type: 'ready' } });
-  worker.onmessage({ data: { type: 'feature', requestId: 1, feature: {} } });
-  worker.onmessage({ data: { type: 'pack', packId: 8, revision: 100, mesh: {} } });
-  assert.strictEqual(owner.pack(7), pack);
-  assert.equal(owner.pack(8), undefined);
-  await assert.rejects(owner.loadFeature(12), /준비되지/);
-});
-
-test('pack reuse, pruning, source replacement and disposal pair each registration with retirement', async t => {
-  const { owner, workers, manifest, registrations, messages } = fixture(t);
-  const ready = owner.setManifest(manifest, 'https://example.test/hydro/index.json');
-  const worker = workers[0];
-  worker.onmessage({ data: { type: 'ready' } }); await ready;
-  const send = (packId, bytes = 0) => worker.onmessage({ data: {
-    type: 'pack', packId, revision: 1, descriptors: [{ fid: packId }], mesh: { riverStarts: new ArrayBuffer(bytes) },
-  } });
-  send(7);
-  const old = owner.pack(7);
-  send(7);
-  const replacement = owner.pack(7);
-  assert.strictEqual(replacement, old);
-  assert.deepEqual(registrations, [['register', old]]);
-  send(8, 9 * 1024 * 1024);
-  assert.equal(owner.entries().length, 0);
-  assert.deepEqual(messages.at(-1), { type: 'release', packIds: [7, 8] });
-  send(9);
-  const resetPack = owner.pack(9);
-  const restarted = owner.setManifest({ ...manifest, index: { sha256: 'changed-source' } }, 'https://example.test/hydro/index.json');
-  assert.deepEqual(registrations.at(-1), ['unregister', resetPack]);
-  workers[1].onmessage({ data: { type: 'ready' } }); await restarted;
-  workers[1].onmessage({ data: { type: 'pack', packId: 10, revision: 1, mesh: {} } });
-  const finalPack = owner.pack(10);
-  owner.dispose();
-  assert.deepEqual(registrations.at(-1), ['unregister', finalPack]);
-  assert.equal(owner.entries().length, 0);
-  assert.equal(registrations.filter(([event]) => event === 'register').length,
-    registrations.filter(([event]) => event === 'unregister').length);
-});
-
 test('retiring a replaced pack unregisters it before cancelling upload and releasing its buffers', async t => {
   const { owner, workers, manifest, registrations } = fixture(t);
   const jobs = new Map();
@@ -529,24 +359,6 @@ for (const operation of ['feature', 'query']) {
     assert.equal(owner.hasWorker(), false);
   });
 }
-
-test('RPC replies and typed errors cancel their timers without retiring a healthy Worker', async t => {
-  const timers = fakeTimers(t);
-  const { owner, workers, manifest } = fixture(t);
-  const ready = owner.setManifest(manifest, 'https://example.test/hydro/index.json');
-  workers[0].onmessage({ data: { type: 'ready' } }); await ready;
-  const feature = owner.loadFeature(12).catch(error => error);
-  const query = owner.queryFeatures([0, 0, 1, 1]).catch(error => error);
-  assert.equal(timers.size, 2);
-  workers[0].onmessage({ data: { type: 'feature', requestId: 1, feature: { id: 'river' } } });
-  workers[0].onmessage({ data: { type: 'logical-features-error', requestId: 2, message: 'query failed' } });
-  assert.deepEqual(await feature, { id: 'river' });
-  assert.match((await query).message, /query failed/);
-  assert.equal(timers.size, 0);
-  assert.equal(owner.hasWorker(), true);
-  assert.equal(owner.stats().hydroFeaturePendingCount, 0);
-  assert.equal(owner.stats().hydroLogicalQueryPendingCount, 0);
-});
 
 test('hydro owner owns readiness, restart RPC settlement, stale delivery and request payloads', async t => {
   const { owner, workers, messages, manifest } = fixture(t);

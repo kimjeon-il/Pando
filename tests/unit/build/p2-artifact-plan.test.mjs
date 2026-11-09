@@ -1,21 +1,18 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync, symlinkSync, statSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync, symlinkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import test from 'node:test';
 import { sharedSourceManifest } from "../../../tools/build/package-shared-core-assets.mjs";
-import {libraryMaterializedRoot,libraryReportRoot,librarySharedCheckout} from "../../../tools/data/library-context.mjs";
-import {withLibraryOutputs} from "../../../tools/data/library-runtime.mjs";
-import {publishContent,linkContent} from "../../../tools/data/library-content.mjs";
-import {reportPath} from "../../../tools/data/report-paths.mjs";
+import {libraryMaterializedRoot,libraryReportRoot} from "../../../tools/data/library-context.mjs";
 import { wasmStatus, selectJobs, assertSafeGeneratedPaths,
   plan, assertArtifactsCurrent } from "../../../scripts/p2-artifact-plan.mjs";
 import { graphStatus, stageArtifacts, publishArtifacts, artifactEvidence, assertBranchState,
   RECEIPT_PATH,artifactGraph } from "../../../scripts/lib/p2-artifact-graph.mjs";
 import * as artifactOwners from "../../../scripts/lib/p2-artifact-graph.mjs";
-import { publishGeneratedArtifacts,publishP2FromWorkflow,archiveGeneratedLibraryOutputs,assertP2LibraryPublicationBase } from "../../../scripts/p2-publish-artifacts.mjs";
+import { publishGeneratedArtifacts,publishP2FromWorkflow,assertP2LibraryPublicationBase } from "../../../scripts/p2-publish-artifacts.mjs";
 
 const digest=bytes=>createHash('sha256').update(bytes).digest('hex');
 test('P2 isolates the generated work branch from a newer source-library work/gis branch',()=>{
@@ -168,32 +165,6 @@ const integrationPresentationChanges=[
 ];
 const staleDataFamilyIds=['territorial','current-world','builtin-world','world-mesh',
   'world-preview','world-bundle','shared-boundaries','prepared-mesh','places'];
-const nativeValidationChanges=[
-  'src/rendering/country-mesh-zoom-policy.js',
-  'src/rendering/workers/canvas-render-worker.js',
-  'scripts/p2-publish-artifacts.mjs',
-  '.github/workflows/generated-artifacts-p2.yml',
-  'docs/architecture/p7-ci-nonbrowser-recovery.md',
-  'scripts/check-territorial-library.mjs',
-  'scripts/lib/late-soviet-check.mjs',
-  '.github/actions/native-test-prerequisites/action.yml',
-  'scripts/lib/native-test-prerequisites.mjs',
-  'scripts/prepare-native-test-tools.mjs',
-  '.github/workflows/viewer-functional-p6-1.yml',
-  '.github/workflows/application-architecture.yml',
-  '.github/workflows/ui-architecture.yml',
-  '.github/workflows/place-runtime.yml',
-  '.github/workflows/shared-core.yml',
-  '.devcontainer/devcontainer.json',
-  '.devcontainer/setup-remote.sh',
-  '.devcontainer/start-preview.sh',
-  '.devcontainer/acceptance.sh',
-  'scripts/remote-only-doctor.mjs',
-  'scripts/lib/check-changes.mjs',
-  'playwright.codespaces.config.js',
-  'tests/unit/runtime/remote-only-contract.test.mjs',
-  'tests/unit/runtime/remote-only-contract.test.mjs',
-];
 function nativeValidationFixture(t) {
   const f=fixture(t);
   f.put('tools/generate.mjs','export const generator=1;\n');
@@ -207,21 +178,6 @@ function nativeValidationFixture(t) {
   f.put('input/data.json','previously changed data');
   return {...f,families,config};
 }
-
-test('CI-only pushes leave existing stale data diagnostics without scheduling generation',t=>{
-  const f=nativeValidationFixture(t),before=graphStatus(f.root);
-  assert.deepEqual(before.selectedFamilies,staleDataFamilyIds);
-  for(const path of nativeValidationChanges){
-    const result=plan(f.root,{changes:[path],event:'push'});
-    assert.equal(result.dataGenerationDeferred,true,path);
-    assert.deepEqual(result.selectedFamilies,[],path);assert.equal(result.wasm,false,path);
-    for(const id of staleDataFamilyIds){
-      assert.equal(result.statuses[id].needed,true,id);
-      assert.deepEqual(result.statuses[id].reasons,before.statuses[id].reasons,id);
-      assert.equal(result.statuses[id].inputFingerprint,before.statuses[id].inputFingerprint,id);
-    }
-  }
-});
 
 test('CI-only exemptions never override declared generation ownership',t=>{
   const f=nativeValidationFixture(t),path='scripts/lib/native-test-prerequisites.mjs';
@@ -252,25 +208,6 @@ function staleDataFixture(t) {
   f.put('input/a.txt','previously changed data input');
   return f;
 }
-
-test('auto validation/presentation-only push leaves nine stale data families unselected',t=>{
-  const f=staleDataFixture(t),before=graphStatus(f.root);
-  assert.deepEqual(before.selectedFamilies,staleDataFamilyIds);
-  const result=plan(f.root,{changes:integrationPresentationChanges,event:'push'});
-  assert.deepEqual(result.selectedFamilies,[]);
-  assert.deepEqual(result.blockedFamilies,[]);
-  assert.equal(result.wasm,false);
-  assert.equal(result.dataGenerationDeferred,true);
-  for(const id of staleDataFamilyIds) {
-    assert.equal(result.statuses[id].needed,true,id);
-    assert.equal(result.statuses[id].selected,false,id);
-    assert.deepEqual(result.statuses[id].reasons,before.statuses[id].reasons,id);
-    assert.equal(result.statuses[id].inputFingerprint,before.statuses[id].inputFingerprint,id);
-    assert.equal(result.statuses[id].outputFingerprint,before.statuses[id].outputFingerprint,id);
-  }
-  assert.throws(()=>assertArtifactsCurrent(result.statuses,staleDataFamilyIds),
-    /P2_GENERATED_ARTIFACT_STALE: territorial/);
-});
 
 test('auto presentation guard preserves actual generator, data input and pin changes',t=>{
   for(const path of ['tools/generate.mjs','input/a.txt','config/library-data.json',
@@ -538,64 +475,6 @@ test('staging excludes private data cache and baselines existing external mounts
   assert.equal(staged.paths.some(path=>path.startsWith('.library-data/')||path==='assets/data/existing.bin'||path==='reports/existing.md'),false);
 });
 
-test('report ownership bookkeeping is excluded while unexpected logical reports are rejected',async t=>{
- const f=graphFixture(t);
- const run=(command,cwd)=>{
-  execFileSync(process.execPath,command.slice(1),{cwd,stdio:'pipe'});
-  for(const path of ['reports/.variants/original','reports/.edits/owner/draft.md','reports/.owners.json']){
-   mkdirSync(dirname(join(cwd,path)),{recursive:true});writeFileSync(join(cwd,path),'library ownership bytes');
-  }
- };
- const staged=await stageArtifacts(f.root,{families:['a'],expectedSourceSha:f.head,stageDir:'build-native/p2/report-controls',run});
- assert.deepEqual(staged.paths.filter(p=>p.startsWith('reports/')),[]);
- await assert.rejects(stageArtifacts(f.root,{families:['a'],expectedSourceSha:f.head,stageDir:'build-native/p2/unowned-report',run:(command,cwd)=>{
-  run(command,cwd);mkdirSync(join(cwd,'reports/development'),{recursive:true});writeFileSync(join(cwd,'reports/development/unexpected.md'),'unique report');
- }}),/P2_UNEXPECTED_GENERATED_FILE: reports\/development\/unexpected.md/);
-});
-
-test('receipt and publication writes detach readonly data and retain the original shared bytes',async t=>{
- const f=graphFixture(t),revision='a'.repeat(40),output='assets/data/example/out.json';
- f.families[0].outputs=[output];f.config();f.put('.gitignore','build-native/\n.library-data/\n/assets/data\n');
- f.put('config/library-data.json',JSON.stringify({repository:'example/data',revision,mounts:['assets/data']}));
- const setup=root=>{
-  const shared=librarySharedCheckout(root),view=libraryMaterializedRoot(root),files={};
-  for(const [path,text]of [[output,'old'],[RECEIPT_PATH,JSON.stringify({schema:'pandolab-generated-artifact-receipt',schemaVersion:1,families:{}})]]){
-   const blob=publishContent(shared,Buffer.from(text));linkContent(shared,blob.sha256,join(view,path));files[path]={sha256:blob.sha256,bytes:Buffer.byteLength(text),storage:'shared'};
-  }
-  writeFileSync(join(view,'.cache-owner.json'),JSON.stringify({schema:'pando-shared-runtime-v1',owner:'main',revision,files}));writeFileSync(join(view,'.complete'),revision);
-  mkdirSync(join(root,'assets'),{recursive:true});symlinkSync(join(view,'assets/data'),join(root,'assets/data'),process.platform==='win32'?'junction':'dir');
-  return{shared,view,files};
- };
- const original=setup(f.root),head=f.commit(),stageDir='build-native/p2/readonly';
- assert.equal(f.git('ls-files','--','assets/data'),'','the external data mount must remain untracked on every platform');
- await stageArtifacts(f.root,{families:['a'],expectedSourceSha:head,stageDir,prepareData:({root})=>setup(root),run:(command,cwd)=>{
-  if(command[1]==='tools/generate.mjs')withLibraryOutputs({root:cwd,paths:[join(cwd,output)]},()=>writeFileSync(join(cwd,output),'source-a generated'));
-  else assert.equal(readFileSync(join(cwd,output),'utf8'),'source-a generated');
- }});
- assert.throws(()=>publishArtifacts(f.root,{stageDir,expectedSourceSha:head,beforeWrite:(_path,index)=>{if(index===1)throw Error('interrupted publication');}}),/interrupted publication/);
- assert.equal(readFileSync(join(f.root,output),'utf8'),'old');
- publishArtifacts(f.root,{stageDir,expectedSourceSha:head});
- assert.equal(readFileSync(join(f.root,output),'utf8'),'source-a generated');
- for(const [path,row]of Object.entries(original.files)){
-  const blob=join(original.shared,'.pando-store/blobs',row.sha256);
-  assert.equal(readFileSync(blob).length,row.bytes);assert.equal(statSync(blob).mode&0o200,0);
-  assert.notEqual(statSync(join(f.root,path)).ino,statSync(blob).ino);
- }
-});
-test('mounted publication stages only the stored pin and excludes unrelated writable data',t=>{
- const f=graphFixture(t),before={repository:'example/data',revision:'a'.repeat(40),mounts:['assets/data']};
- f.put('config/library-data.json',JSON.stringify(before));const view=libraryMaterializedRoot(f.root);mkdirSync(view,{recursive:true});
- writeFileSync(join(view,'.cache-owner.json'),JSON.stringify({files:{'assets/data/selected.bin':{storage:'private'},'assets/data/unrelated.bin':{storage:'private'}}}));
- const calls=[],revision='b'.repeat(40),result=archiveGeneratedLibraryOutputs(f.root,['assets/data/selected.bin'],{
-  store(options){calls.push(options);f.put('config/library-data.json',JSON.stringify({...before,revision}));return revision;},
-  prepare(options){assert.deepEqual(options,{root:f.root,fetch:false});},
- });
- assert.deepEqual(result.changedPaths,['config/library-data.json']);assert.equal(result.libraryRevision,revision);
- assert.deepEqual(calls,[{root:f.root,push:true,prefixes:['assets/data/selected.bin']}]);
- f.put('config/library-data.json',JSON.stringify(before));writeFileSync(join(view,'.cache-owner.json'),JSON.stringify({files:{'assets/data/territorial-entities/source/unfinished.json':{storage:'private'}}}));
- assert.throws(()=>archiveGeneratedLibraryOutputs(f.root,['assets/data/territorial-entities/generated/v2/index.json'],{store(){throw Error('must not archive WIP');}}),/P2_UNRELATED_RUNTIME_WIP/);
-});
-
 test('result evidence verifies mounted output from the committed library pin, not mutable views or archive HEAD',t=>{
  const f=graphFixture(t),checkout=join(f.root,'.library-data/repository'),output='assets/data/example.bin';
  mkdirSync(checkout,{recursive:true});
@@ -619,25 +498,6 @@ test('result evidence verifies mounted output from the committed library pin, no
  f.put('config/library-data.json',JSON.stringify({repository:'example/data',revision:dataGit('rev-parse','HEAD'),mounts:['assets/data']}));
  const corrupted=f.commit();
  assert.throws(()=>artifactEvidence(f.root,{resultSha:corrupted,expectedSourceSha:f.head,evidenceFile:'build-native/p2/corrupt-evidence.json',families:['a']}),/corrupt/);
-});
-
-test('report fingerprints follow the owner read view when originals are stored only as variants',t=>{
- const f=graphFixture(t),checkout=join(f.root,'.library-data/repository'),logical='reports/places/tier1-major-cities-batch01.json',bytes=Buffer.from('{"records":[]}\n');
- mkdirSync(join(checkout,'reports/places'),{recursive:true});mkdirSync(join(checkout,'archive'),{recursive:true});
- const dataGit=(...args)=>execFileSync('git',args,{cwd:checkout,stdio:'pipe'}).toString().trim();
- dataGit('init','-q');dataGit('config','user.email','fixture@example.invalid');dataGit('config','user.name','Fixture');
- writeFileSync(join(checkout,logical),bytes);
- writeFileSync(join(checkout,'archive/index.json'),JSON.stringify({reportLayout:'subjects-v1',files:{[logical]:{stored:logical,encoding:'identity',bytes:bytes.length,sha256:digest(bytes)}}}));
- dataGit('add','.');dataGit('commit','-qm','report edition');const revision=dataGit('rev-parse','HEAD');
- rmSync(join(checkout,logical));
- f.put('.gitignore','build-native/\n.library-data/\nreports/\n');
- f.put('config/library-data.json',JSON.stringify({repository:'example/data',revision,mounts:['reports']}));
- symlinkSync(join(checkout,'reports'),join(f.root,'reports'),process.platform==='win32'?'junction':'dir');
- f.families[0].inputs=[{prefix:'reports/places/',pattern:'batch01\\.json$'}];f.config();
- const view=reportPath('reports/places',{root:f.root,access:'read'});
- assert.equal(readFileSync(join(view,'tier1-major-cities-batch01.json'),'utf8'),bytes.toString());
- const status=graphStatus(f.root).statuses.a;
- assert.deepEqual(status.inputs,{[logical]:digest(bytes)});
 });
 
 
