@@ -5,6 +5,7 @@ import * as __country_dep1 from "../../../src/document/country-feature.js";
 import * as __country_dep2 from "node:test";
 import * as __country_dep3 from "node:assert/strict";
 import * as __country_dep6 from "../../../src/document/territorial-units.js";
+import * as __country_display from "../../../src/document/territorial-display-identity.js";
 import * as __country_dep8 from "../../../src/rendering/territorial-scene-runtime.js";
 import * as __country_dep9 from "../../../src/geometry/geometry-versions.js";
 import * as __country_dep10 from "../../../src/ui/layer-presentation.js";
@@ -12,7 +13,7 @@ contractSuite("builtin-subunits", () => {
 const {validateBuiltinDisplayPolicy}=__country_dep0;
 const {normalizeCountryCollection}=__country_dep1;
 const test=__country_dep2.default,assert=__country_dep3.default;
-const {builtinSubunitId,builtinSubunitSourceId}=__country_dep6;
+const {builtinSubunitId,builtinSubunitSourceId}=__country_display;
 const square=x=>({type:'Polygon',coordinates:[[[x,0],[x,1],[x+1,1],[x+1,0],[x,0]]]});
 const source=()=>({type:'FeatureCollection',features:['AAA','BBB','CCC'].map((id,i)=>({
   type:'Feature',id,properties:{name:id},geometry:square(i*3),
@@ -70,7 +71,7 @@ contractSuite("builtin-subunit-geometry-revision", () => {
 const assert = __country_dep3.default;
 const test = __country_dep2.default;
 const { createTerritorialSceneRuntime } = __country_dep8;
-const { builtinSubunitId, builtinSubunitSourceId } = __country_dep6;
+const { builtinSubunitId, builtinSubunitSourceId } = __country_display;
 const { createTerritorialFeature } = __country_dep6;
 const { geometryRevision, touchGeometry } = __country_dep9;
 const { layerStyle } = __country_dep10;

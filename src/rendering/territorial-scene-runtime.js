@@ -1,6 +1,6 @@
 import {normalizeCountryCollection} from "../document/country-feature.js";
 import {geometryRevision} from "../geometry/geometry-versions.js";
-import {territorialSceneDisplayId} from "../document/territorial-units.js";
+import {territorialSceneDisplayId} from "../document/territorial-display-identity.js";
 import {territorialRootId} from "../document/territorial-units.js";
 
 // Common map presentation from the accepted C++ project. The canonical

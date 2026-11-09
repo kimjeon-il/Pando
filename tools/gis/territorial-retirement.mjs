@@ -5,7 +5,7 @@ import {isDeepStrictEqual} from 'node:util';
 import {decodeTerritorialSource} from '../data/territorial-source-codec.mjs';
 import {territorialIndexEntry} from './territorial-index-entry.js';
 import {validateBuiltinDisplayPolicy} from './builtin-display-policy.mjs';
-import {builtinSubunitId} from '../../src/document/territorial-units.js';
+import {builtinSubunitId} from '../../src/document/territorial-display-identity.js';
 import {compileBuiltinReadIndex,builtinGeometryAssets} from '../../src/data/builtin-country-files.js';
 
 const base='assets/data/territorial-entities';

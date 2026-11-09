@@ -1,5 +1,5 @@
 import {createTerritorialFeature} from '../../src/document/territorial-units.js';
-import {builtinSubunitId} from '../../src/document/territorial-units.js';
+import {builtinSubunitId} from '../../src/document/territorial-display-identity.js';
 
 // Generator-owned display merge. This is not a Viewer document mutation.
 const polygons = geometry => geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates;
