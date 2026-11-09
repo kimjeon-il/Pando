@@ -85,7 +85,7 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
   let pendingPropertyPaint=false;
   let lastFrame=null;
 
-  const {builtinSession,projectSession,renderQuality,pointerTargets,cameraNavigation:navigation,countryIndex,spatialIndex,mapProjection,objectPresentation,hydroSettings:physicalSettings,objectCatalog,territorialLabels:labelOwner,physicalResources,gpuScene,mapHost,objectPicking}=owners;
+  const {projectResources,builtinSession,projectSession,renderQuality,pointerTargets,cameraNavigation:navigation,countryIndex,spatialIndex,mapProjection,objectPresentation,hydroSettings:physicalSettings,objectCatalog,territorialLabels:labelOwner,physicalResources,gpuScene,mapHost,objectPicking}=owners;
   const commonPorts=createMapReadPorts(owners);
   mapHost.initializeResolutionQuery();mapHost.initializeMapResizeObserver();
   connectMapOwner('projectSession',projectSession,mergeCapabilityPorts(commonPorts,{readiness:{DATA_READINESS},applicationConstantsA:{DISTRIBUTION_RENDER_MODES},
@@ -324,8 +324,14 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
   inputPresentation.bindSvg(d3.select(element));
   mapHost.startMapResizeObserver();
   return Object.freeze({
-    async setSession(next,{view=null,prepareView=null}={}){
+    async setSession(next,{view=null,prepareView=null,contentProject=undefined}={}){
       if(next!==documentSession)throw new Error('Map output requires its single document session.');
+      // Select references before composing the accepted C++ world. An imported
+      // file has no implicit builtin countries, places, terrain or water.
+      if(contentProject!==undefined&&projectResources.select(contentProject)){
+        physicalResources.selectProjectResources();
+        labelOwner.selectProjectResources();
+      }
       session=next;
       projectSession.setViewingPresentation(view||{},{reset:true});
       if(prepareView)await prepareView();
