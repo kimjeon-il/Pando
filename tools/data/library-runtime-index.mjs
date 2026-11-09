@@ -7,7 +7,7 @@ import {validateTerritorialSourceGeometry,territorialSourceLayout} from '../../s
 export function runtimeArchiveIndex(index,readVerified,{purpose='viewer',prefixes=[],projectManifest=null}={}){
  let selected;
  if(purpose==='reports')selected=new Set();
- else if(purpose==='viewer')selected=collectRuntimeDataAssets({
+ else if(purpose==='viewer'||purpose==='viewer-legacy')selected=collectRuntimeDataAssets({
   availablePaths:Object.keys(index.files),
   entryPaths:viewerDataEntryPaths,
   projectManifest,

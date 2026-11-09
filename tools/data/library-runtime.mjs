@@ -78,7 +78,9 @@ function retireOwnedCaches(root, current) {
   lastRetirementSignature = signature;
 }
 
-export function prepareLibraryData({ root = defaultRoot, fetch = true, purpose = 'viewer', prefixes = [], projectId = null } = {}) {
+// Product entry points select the default map explicitly; historical source tools
+// may request the separately named viewer-legacy scope.
+export function prepareLibraryData({ root = defaultRoot, fetch = true, purpose = 'viewer', prefixes = [], projectId = 'default-world' } = {}) {
   return withLibraryLock(root, () => prepareOwnedLibraryData({ root, fetch, purpose, prefixes, projectId }));
 }
 
