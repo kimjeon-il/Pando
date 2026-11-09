@@ -681,7 +681,6 @@
         "tests/native/document/p5-polygon-mesh-wasm.test.mjs"
       ],
       "requires": [
-        "core",
         "core-assets"
       ]
     },
@@ -964,6 +963,65 @@
         "tools/gis/verify-approved-caspian-network.mjs",
         "tests/fixtures/gis-caspian-1922-native-baseline.json",
         "config/library-data.json",
+        ".github/actions/native-test-prerequisites/action.yml"
+      ]
+    },
+    "native-spherical-polygon-tests": {
+      "argv": [
+        "node",
+        "scripts/prepare-native-test-tools.mjs",
+        "spherical-polygon-tests"
+      ],
+      "inputs": [
+        "CMakeLists.txt",
+        "CMakePresets.json",
+        "tools/build/native/**",
+        "tools/cpp/CMakeLists.txt",
+        "scripts/lib/native-test-prerequisites.mjs",
+        ".github/actions/native-test-prerequisites/action.yml"
+      ]
+    },
+    "native-polygon-mesh-tests": {
+      "argv": [
+        "node",
+        "scripts/prepare-native-test-tools.mjs",
+        "polygon-mesh-tests"
+      ],
+      "inputs": [
+        "CMakeLists.txt",
+        "CMakePresets.json",
+        "tools/build/native/**",
+        "tools/cpp/CMakeLists.txt",
+        "scripts/lib/native-test-prerequisites.mjs",
+        ".github/actions/native-test-prerequisites/action.yml"
+      ]
+    },
+    "core-assets": {
+      "argv": [
+        "node",
+        "scripts/check-core-prerequisite.mjs"
+      ],
+      "env": {
+        "PANDOEDITOR_WASM_MODULE": "{root}/assets/wasm/pandoeditor-core.js"
+      },
+      "inputs": [
+        "assets/wasm/pandoeditor-core.js",
+        "assets/wasm/pandoeditor-core.wasm",
+        "assets/wasm/pandoeditor-core.manifest.json",
+        "config/core-source-roots.json"
+      ]
+    },
+    "native-document-session-tests": {
+      "argv": [
+        "node",
+        "scripts/prepare-native-test-tools.mjs",
+        "document-session-tests"
+      ],
+      "inputs": [
+        "CMakeLists.txt",
+        "CMakePresets.json",
+        "tools/build/native/**",
+        "scripts/lib/native-test-prerequisites.mjs",
         ".github/actions/native-test-prerequisites/action.yml"
       ]
     }
@@ -1354,6 +1412,25 @@
       ],
       "requires": [
         "core"
+      ],
+      "excludeTests": [
+        "tests/unit/document/core-geometry-resources-wasm.test.mjs"
+      ]
+    },
+    {
+      "tests": [
+        "tests/unit/geometry/polygon-clipped-positive-ring.test.mjs",
+        "tests/unit/geometry/polygon-geometry.test.mjs",
+        "tests/unit/document/historical-world-territories.test.mjs",
+        "tests/unit/geometry/gpu-mesh-country-strokes.test.mjs",
+        "tests/unit/geometry/map-geometry-validation.test.mjs",
+        "tests/unit/rendering/country-mesh-preparation.test.mjs",
+        "tests/unit/geometry/polygon-canonical-storage.test.mjs",
+        "tests/unit/document/core-geometry-resources-wasm.test.mjs",
+        "tests/unit/rendering/prepared-country-scene.test.mjs"
+      ],
+      "requires": [
+        "core-assets"
       ]
     }
   ]

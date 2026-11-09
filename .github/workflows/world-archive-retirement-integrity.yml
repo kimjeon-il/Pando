@@ -1,30 +1,26 @@
-name: World Archive Retirement Integrity
+name: Project-selected world archive integrity
 
 on:
   pull_request:
     paths:
-      - 'assets/data/**'
+      - 'projects/**'
       - 'config/library-data.json'
       - '.github/actions/library-data/**'
       - 'tools/data/library-*.mjs'
       - 'tools/build/build-world-bundle.mjs'
-      - 'src/rendering/workers/gpu-mesh-core.js'
-      - 'src/rendering/physical-layer-service.js'
-      - 'src/rendering/terrain-manifest.js'
-      - 'tests/unit/geometry/gpu-mesh-country-strokes.test.mjs'
+      - 'scripts/lib/frontend-build.mjs'
+      - 'scripts/lib/product-assets.mjs'
+      - 'src/data/runtime-manifest-assets.js'
+      - 'src/data/map-project-manifest.js'
       - '.github/workflows/world-archive-retirement-integrity.yml'
   push:
     branches: [main]
     paths:
-      - 'assets/data/**'
+      - 'projects/**'
       - 'config/library-data.json'
       - '.github/actions/library-data/**'
-      - 'tools/data/library-*.mjs'
       - 'tools/build/build-world-bundle.mjs'
-      - 'src/rendering/workers/gpu-mesh-core.js'
-      - 'src/rendering/physical-layer-service.js'
-      - 'src/rendering/terrain-manifest.js'
-      - 'tests/unit/geometry/gpu-mesh-country-strokes.test.mjs'
+      - 'src/data/runtime-manifest-assets.js'
       - '.github/workflows/world-archive-retirement-integrity.yml'
   workflow_dispatch:
 
@@ -34,78 +30,20 @@ permissions:
 jobs:
   integrity:
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Prepare pinned external library data
         uses: ./.github/actions/library-data
-      - name: Verify current pinned archive bytes and retired world paths
+      - name: Verify only project-selected pinned runtime closure
         run: |
-          node --input-type=module <<'NODE'
-          import assert from 'node:assert/strict';
-          import {readFileSync} from 'node:fs';
-          import {execFileSync} from 'node:child_process';
-          import {libraryConfig,libraryCheckout,safeChild} from './tools/data/library-context.mjs';
-          import {decodeLibraryArchiveBytes} from './tools/data/library-archive.mjs';
-          import {assertDataPath,publishWorldBundle} from './tools/build/build-world-bundle.mjs';
-          import {HYDRO_DATA_VERSION} from './src/rendering/physical-layer-service.js';
-          import {TERRAIN_RASTER_VERSION} from './src/rendering/terrain-manifest.js';
-          const root=process.cwd(),config=libraryConfig(root),checkout=libraryCheckout(root);
-          const git=(cwd,args,{encoding='utf8',maxBuffer=16*1024*1024}={})=>execFileSync('git',args,{cwd,encoding,maxBuffer,
-            env:{...process.env,GIT_NO_LAZY_FETCH:'1'}});
-          const tracked=new Set(git(root,['ls-tree','-rz','--name-only','HEAD']).split('\0').filter(Boolean));
-          assert.deepEqual([...tracked].filter(path=>path==='assets/data'||path.startsWith('assets/data/')),[],
-            'External library data must not be tracked in application Git');
-          // The pin owns runtime bytes even when storage HEAD contains later reports or work.
-          const index=JSON.parse(git(checkout,['show',config.revision+':archive/index.json']));
-          assert.equal(index.schemaVersion,1,'Unsupported library archive index');
-          const stored=new Set(git(checkout,['ls-tree','-rz','--name-only',config.revision]).split('\0').filter(Boolean));
-          const verified=new Set();
-          const readPinned=path=>{
-            const entry=index.files?.[path];
-            assert.ok(entry,'Missing active/pinned archive path: '+path);
-            safeChild(checkout,entry.stored);
-            assert.ok(stored.has(entry.stored),'Missing pinned archive blob: '+entry.stored);
-            const archived=git(checkout,['show',config.revision+':'+entry.stored],
-              {encoding:null,maxBuffer:Math.max(entry.bytes*2,16*1024*1024)});
-            const bytes=decodeLibraryArchiveBytes(archived,entry);
-            assert.ok(readFileSync(safeChild(root,path)).equals(bytes),'Mounted library bytes differ from pin: '+path);
-            verified.add(path);return bytes;
-          };
-          const json=path=>JSON.parse(readPinned(path));
-          const dataPath=url=>'assets/data/'+assertDataPath(url);
-          const bundle=json('assets/data/world/current.json'),seed=json('assets/data/world/build-input.json');
-          const activePath=dataPath(seed.legacyPreviewManifest),active=json(activePath);
-          assert.equal(seed.legacyPreviewManifest,'world-preview-v'+active.version+'.json');
-          // Preserve the physical dependency checks using their current runtime owners.
-          const hydroBase=dataPath('hydro/v'+HYDRO_DATA_VERSION)+'/';
-          const hydro=json(hydroBase+'manifest.json');
-          const required=new Set([
-            'assets/data/world/current.json','assets/data/world/build-input.json',
-            activePath,dataPath(bundle.source.url),dataPath(seed.canonicalSource),
-            hydroBase+assertDataPath(hydro.container.url),
-            dataPath('terrain-preview/v'+TERRAIN_RASTER_VERSION+'/manifest.json')
-          ]);
-          for(const manifest of [bundle,active])for(const entry of Object.values(manifest.assets||{}))required.add(dataPath(entry.url));
-          for(const boundaries of [bundle.compatibility?.sharedBoundaries,seed.sharedBoundaries])
-            for(const url of Object.values(boundaries||{}))required.add(dataPath(url));
-          for(const path of required)if(!verified.has(path))readPinned(path);
-          const retired=[];
-          for(const v of ['0.30.0','0.31.0','0.32.0','0.34.0'])for(const stem of [
-            ['world-preview','.json'],['countries-preview','.geojson.gz'],
-            ['world-mesh-preview','.bin.gz'],['countries-canonical','.pcg.gz']
-          ]){const path='assets/data/'+stem[0]+'-v'+v+stem[1];if(index.files[path]||required.has(path))retired.push(path)}
-          assert.deepEqual(retired,[],'Retired world bundles must not return to the paired archive');
-          // Read-only canonical checks retain digest, size, header and source/alias identity checks.
-          const result=publishWorldBundle({root,check:true});
-          console.log(JSON.stringify({dataRepository:config.repository,dataRevision:config.revision,
-            activeManifest:seed.legacyPreviewManifest,verifiedArchivePaths:verified.size,
-            worldAssets:result.validatedAssets,retiredVersionGroupsAbsent:4}));
-          NODE
-      - name: Verify original current preview geometry and mesh assertions
-        run: node --test tests/unit/geometry/gpu-mesh-country-strokes.test.mjs
+          test -z "$(git ls-files assets/data)"
+          node scripts/generate-build-metadata.mjs --check --product=viewer
+          node --test tests/unit/data/map-project-manifest.test.mjs tests/unit/data/frontend-runtime-closure.test.mjs
