@@ -1,0 +1,86 @@
+name: Focused stage 3 map resource ownership check
+on:
+  push:
+    branches: [work/map-project-stage3-check-20261109]
+    paths: [.github/workflows/stage3-focused-resource-check.yml]
+permissions:
+  contents: write
+jobs:
+  project-resources:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: pnpm/action-setup@v4
+      - id: install
+        continue-on-error: true
+        run: pnpm install --frozen-lockfile --ignore-scripts
+      - id: syntax
+        if: steps.install.outcome == 'success'
+        continue-on-error: true
+        run: |
+          node --check src/data/map-project-resource-selection.js
+          node --check src/data/physical-resources.js
+          node --check src/rendering/territorial-labels.js
+          node --check src/app/map-owner-composition.js
+          node --check src/app/viewer-composition.js
+          node --check src/app/viewer-map.js
+      - id: lint
+        if: steps.install.outcome == 'success'
+        continue-on-error: true
+        run: pnpm exec eslint src/data/map-project-resource-selection.js src/data/physical-resources.js src/data/physical-source-configuration.js src/rendering/territorial-labels.js src/document/project-domain.js src/app/map-owner-composition.js src/app/viewer-composition.js src/app/viewer-map.js tests/unit/data/map-project-resource-selection.test.mjs
+      - id: tests
+        if: steps.install.outcome == 'success'
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          node --test --test-concurrency=1 --test-timeout=15000 \
+            tests/unit/data/map-project-resource-selection.test.mjs \
+            tests/unit/data/map-project-manifest.test.mjs \
+            tests/unit/rendering/physical-layer-service.test.mjs \
+            tests/unit/document/object-search-availability.test.mjs 2>&1 | tee "$RUNNER_TEMP/stage3-tests.log"
+      - name: Record exact bounded-check results in validation branch only
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const log = process.env.RUNNER_TEMP + '/stage3-tests.log';
+            const result = {
+              schema:'pando-stage3-resource-validation-v1',
+              sourceCommit: context.sha,
+              install:'${{ steps.install.outcome }}',
+              syntax:'${{ steps.syntax.outcome }}',
+              lint:'${{ steps.lint.outcome }}',
+              regression:'${{ steps.tests.outcome }}',
+              output:fs.existsSync(log) ? fs.readFileSync(log,'utf8').slice(-18000) : 'test did not execute',
+            };
+            const branch=context.ref.replace('refs/heads/','');
+            let sha;
+            try {
+              const existing=await github.rest.repos.getContent({
+                owner:context.repo.owner,repo:context.repo.repo,
+                path:'reports/stage3-resource-validation.json',ref:branch,
+              });
+              sha=existing.data.sha;
+            } catch(error){if(error.status!==404)throw error;}
+            await github.rest.repos.createOrUpdateFileContents({
+              owner:context.repo.owner,repo:context.repo.repo,
+              path:'reports/stage3-resource-validation.json',
+              content:Buffer.from(JSON.stringify(result,null,2)+'\n').toString('base64'),
+              message:'test: record bounded stage 3 resource validation',
+              branch,...(sha?{sha}:{}),
+            });
+      - name: Fail on bounded-check regression
+        if: always()
+        run: |
+          test '${{ steps.syntax.outcome }}' = 'success'
+          test '${{ steps.lint.outcome }}' = 'success'
+          test '${{ steps.tests.outcome }}' = 'success'
