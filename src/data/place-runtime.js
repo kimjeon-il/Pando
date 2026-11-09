@@ -1,7 +1,7 @@
 import { createWorkerRpcClient } from "../runtime/worker-rpc.js";
 import { createLatestWorkerJobScheduler, createWorkerCancellationError } from "../runtime/worker-job-scheduler.js";
 import { isBuiltinPlaceId, normalizePlace, PLACE_LIMITS } from "../document/place-contract.js";
-import { resourceKey, resourceUpdate } from "../runtime/resource-update-policy.js";
+import { resourceKey, resourceUpdate } from "../runtime/resource-dependency-policy.js";
 import { placeLabelRowsAtMonth } from "./place-name-policy.js";
 import { indexPlaceUrbanLifetimes,placeUrbanLabelActiveAtMonth } from "./place-lifetime-policy.js";
 const EMPTY = Object.freeze({ revision: 0, signature: 'empty', records: Object.freeze([]) });
