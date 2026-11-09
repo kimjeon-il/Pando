@@ -43,10 +43,27 @@ async function chooseYear(page,year){
 }
 test('real Viewer keeps source cache, C++ time, country selection, GeoPackage switch and return in one session',async({page},info)=>{
   test.setTimeout(300_000);
-  const errors=[],observations=[];
+  const errors=[],consoleErrors=[],observations=[];
   page.on('pageerror',error=>errors.push(error.message));
+  page.on('console',message=>{if(message.type()==='error'||message.type()==='warning')
+    consoleErrors.push(message.text().slice(0,1500));});
   await page.goto('/?debug=1&renderer=webgl2&demTerrain=raster',{waitUntil:'domcontentloaded',timeout:40_000});
-  await assertMapReady(page);
+  try{await assertMapReady(page);}
+  catch(error){
+    const startup=await page.evaluate(()=>{
+      const viewer=globalThis.__PANDOLAB_VIEWER__;
+      return {status:document.getElementById('viewerStatus')?.outerHTML,
+        message:document.getElementById('viewerStatus')?.textContent,
+        bootstrap:document.getElementById('bootstrapLoading')?.textContent,
+        diagnostic:viewer?.diagnostics?.()?.slice(-30)||[],
+        core:viewer?.documentState?.()||null,
+        render:viewer?.rendererStats?.()||null,
+      };
+    }).catch(reason=>({captureError:String(reason)}));
+    console.log('PROJECT_RUNTIME_STARTUP_FAILURE '+JSON.stringify({
+      startup,errors,consoleErrors:consoleErrors.slice(-30)}));
+    throw error;
+  }
   const initial=await read(page);
   observations.push({stage:'default',...initial});
   expect(initial.countries).toBeGreaterThan(0);
