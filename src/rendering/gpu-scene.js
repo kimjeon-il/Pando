@@ -172,6 +172,23 @@ export function createGpuScene({getPhysicalLand=()=>null}={}) {
         genericFillItems: dependencies.interactionPresentation.currentGpuInteractionFillItems,
       },
     };
+    // A presentation callback can arrive without any effective scene change.
+    // The visual frame and worker submission have their own owners; avoid
+    // copying scene packets and rebuilding the object lookup for that case.
+    const sameFields = (previous, next) => previous && Object.keys(next).length === Object.keys(previous).length
+      && Object.keys(next).every(key => Object.is(previous[key], next[key]));
+    const sameFillItems = currentRenderScene?.interaction?.genericFillItems;
+    if (currentRenderScene && gpuSceneDirtyDomains.size === 0
+      && sameFields(currentRenderScene.revisions, sceneInput.revisions)
+      && sameFields(currentRenderScene.country, sceneInput.country)
+      && sameFields(currentRenderScene.physical, sceneInput.physical)
+      && sameFields(currentRenderScene.quality, sceneInput.renderQuality)
+      && currentRenderScene.interaction.selectionPacket === sceneInput.interaction.selectionPacket
+      && Array.isArray(sameFillItems)
+      && sameFillItems.length === sceneInput.interaction.genericFillItems.length
+      && sameFillItems.every((item, index) => item === sceneInput.interaction.genericFillItems[index])) {
+      return currentRenderScene;
+    }
     const requiredPolygons = [...gpuSceneDomains].flatMap(([name, domain]) =>
       !currentRenderScene || gpuSceneDirtyDomains.has(name)
         ? [...domain.polygons, ...domain.strokes.filter(item =>
