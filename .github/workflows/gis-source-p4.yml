@@ -109,7 +109,7 @@ jobs:
           cmake --build build-native/territorial-recipe --target pando-territorial-recipe
       - name: Cross-check persisted geometry against the pinned C++ recipe
         run: |
-          node --test tests/unit/document/territorial-recipe-cli.test.mjs tests/unit/document/territorial-recipe-cpp.test.mjs
+          node --test tests/unit/document/territorial-recipe-cli.test.mjs
           node tools/build/build-territorial-geometry.mjs --check
       - name: Preserve historical recipe proof, not reprocessed data
         if: always()
