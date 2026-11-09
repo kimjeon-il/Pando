@@ -1,9 +1,10 @@
 {
   "schema": "pando-stage2-core-validation-v1",
-  "output": "node:internal/child_process:1191\n    result.error = new ErrnoException(result.error, 'spawnSync ' + options.file);\n                   ^\n\n<ref *1> Error: spawnSync git ENOENT\n    at Object.spawnSync (node:internal/child_process:1191:20)\n    at spawnSync (node:child_process:929:24)\n    at execFileSync (node:child_process:972:15)\n    at git (file:///home/runner/work/Pando/Pando/tools/data/library-context.mjs:15:18)\n    at readLibraryDataFile (file:///home/runner/work/Pando/Pando/tools/data/library-context.mjs:62:28)\n    at loadBuiltinDisplayPolicy (file:///home/runner/work/Pando/Pando/tools/gis/builtin-display-policy.mjs:28:54)\n    at historicalWorldCases (file:///home/runner/work/Pando/Pando/tests/fixtures/historical-world-cases.mjs:14:52)\n    at file:///home/runner/work/Pando/Pando/tests/unit/data/builtin-world-loader.test.mjs:13:66 {\n  errno: -2,\n  code: 'ENOENT',\n  syscall: 'spawnSync git',\n  path: 'git',\n  spawnargs: [\n    '-c',\n    'core.fsync=none',\n    '-c',\n    'core.fsyncObjectFiles=false',\n    '-c',\n    'core.autocrlf=false',\n    '-c',\n    'maintenance.auto=false',\n    '-c',\n    'gc.auto=0',\n    'show',\n    'a53f9b319b23678e82c4b9ffdb9f824a040ca5f3:archive/index.json'\n  ],\n  error: [Circular *1],\n  status: null,\n  signal: null,\n  output: null,\n  pid: 0,\n  stdout: undefined,\n  stderr: undefined\n}\n\nNode.js v24.22.2\n✖ tests/unit/data/builtin-world-loader.test.mjs (228.792634ms)\n✔ actual C++ catalogs keep independent live place and hydro identities across source admission (221.274673ms)\nℹ tests 2\nℹ suites 0\nℹ pass 1\nℹ fail 1\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 657.321101\n\n✖ failing tests:\n\ntest at tests/unit/data/builtin-world-loader.test.mjs:1:1\n✖ tests/unit/data/builtin-world-loader.test.mjs (228.792634ms)\n  'test failed'\n",
-  "sourceCommit": "f7f6e6ea5912abf32cd9775b6b328a0aecd58374",
+  "output": "test did not execute",
+  "sourceCommit": "4310e3155a5b08638e41c1209c4c64860798e668",
   "install": "success",
-  "prerequisite": "success",
-  "regression": "failure",
+  "library": "failure",
+  "prerequisite": "skipped",
+  "regression": "skipped",
   "verified": false
 }
