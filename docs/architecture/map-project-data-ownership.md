@@ -74,3 +74,19 @@ GitHub Actions 실행 기록: https://github.com/kimjeon-il/Pando/actions/runs/4
 - 고정 DEM 버전으로 외부 지형을 선택하는 정책과 이전 빌드/자료 저장소의 비프로젝트 fallback은 아직 남아 있다.
 - 내장 지도 `sourceMode: 'builtin'`은 기존 C++/WASM 파일 스키마 호환을 위해 유지하며, 콘텐츠 프로젝트 ID와 혼용하지 않는다.
 - 이 단계의 검증은 선택된 자료 빌드·검사 범위에 한정되며, 전체 GIS·브라우저·C++/WASM 검사 또는 라이브 배포는 수행하지 않는다.
+
+## 4단계: 프로젝트별 빌드·자료 준비 연결 (2026-11-09 추가)
+
+- `mapProjectManifestSourcePath(projectId)`가 프로젝트 ID를 검증하고 `projects/<projectId>/manifest.json`만 선택한다. 매니페스트 내부의 `projectId`와 요청 ID가 다르면 실패한다.
+- `buildFrontendSnapshot({projectId})`, `generate-build-metadata.mjs --project=...`, `frontend-dev-server.mjs --project=...`, `stage-monorepo-pages.mjs --project ...`로 명시적으로 선택할 수 있다. 인자를 생략한 웹 배포는 이전처럼 `default-world`를 선택한다.
+- 빌드 결과 `buildMeta.mapProject` / `mapProjectManifest`는 선택된 프로젝트의 9개 데이터 역할과 검증된 매니페스트 바이트·해시를 담는다. 다른 프로젝트의 지명 카탈로그를 암묵적으로 함께 발행하지 않는다.
+- `prepareLibraryData({projectId})`는 고정된 외부 자료 저장소 인덱스를 프로젝트의 역할 그래프대로 선택해 read-only 뷰로 준비한다. 비프로젝트 구형 호출은 현재의 호환용 자료 준비 경로를 유지한다.
+- Pages 스테이징에서 필수 데이터 경로를 `terrain-preview/v0.13.3-p2`와 `hydro/v0.13.4`로 박아 두지 않고, **선택 프로젝트 매니페스트의 역할별 실제 카탈로그**로 검증한다. GIS 원본과 비선택 자료는 계속 배포되지 않는다.
+- 개발 서버는 외부 자료 핀뿐 아니라 현재 프로젝트 매니페스트 변경도 감지해 다시 준비한다.
+
+### 아직 제한된 사항
+
+- 원래의 Hydro 런타임은 강과 호수가 하나의 공동 샤드 카탈로그를 사용하는 설계다. 프로젝트에 두 역할을 선언하되 **서로 다른 두 물리 Hydro 카탈로그를 동시에 렌더링하는 엔진은 아직 구현하지 않았다**. 강/호수 간 실제 데이터 합성이나 별도의 Worker를 임의로 추가하지 않는다.
+- Viewer 실행 중 다른 프로젝트로 전환하는 UI 및 서로 다른 C++ 프로젝트 정본을 한 세션에서 교체하는 생명주기는 이번 빌드/데이터 소유권 분리와 별개다.
+- 자료 저장소의 비프로젝트 호출용 호환 fallback, 일부 고정 지형 소스 선택은 남아 있다. 기본 프로젝트가 없는 임시 테스트와 이전 GIS 생성 도구를 갑자기 파손하지 않기 위해 일괄 제거하지 않았다.
+- 단위 테스트와 CI가 통과해야 기능 검증 완료로 판정할 수 있다. **커밋은 실행 검증 성공을 의미하지 않는다**.

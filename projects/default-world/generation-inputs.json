@@ -1,0 +1,14 @@
+{
+  "format": "pandolab-map-generation-inputs",
+  "schemaVersion": 1,
+  "projectId": "default-world",
+  "inputs": {
+    "territorialSourceRoot": "assets/data/territorial-entities/source",
+    "territorialSourceIndex": "assets/data/territorial-entities/generated/v2/index.json",
+    "territorialCurrentWorld": "assets/data/territorial-entities/generated/current-world.geojson",
+    "worldView": "assets/data/territorial-entities/source/views/world.json",
+    "historicalPolicy": "assets/data/historical-world/policy.json",
+    "displayPolicy": "assets/data/builtin-world/display-policy-v1.json",
+    "worldBuildRecipe": "assets/data/world/build-input.json"
+  }
+}

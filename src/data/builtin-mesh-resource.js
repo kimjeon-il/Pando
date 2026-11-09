@@ -3,13 +3,35 @@ import { preparedCountrySceneKey } from '../rendering/country-mesh-codec.js';
 /** The existing resource owner delivers one immutable prepared scene, not a document. */
 export function createBuiltinMeshResourceLoader({runtimeAssetUrl,WorkerClass=Worker}={}) {
   if(typeof runtimeAssetUrl!=='function')throw new TypeError('runtimeAssetUrl is required for the built-in mesh loader.');
-  const pending=new Map();let retained=null,lastMiss=null,disposed=false;
+  const pending=new Map(), retained=new Map();let lastMiss=null,disposed=false;
+  // Retain the last two verified CPU scenes across A -> B -> A date moves.
+  // Keep the original loader as sole owner; no second decoded mesh cache.
+  const maxRetainedMeshBytes=96*1024*1024;
+  let retainedMeshBytes=0;
+  function remember(key,value) {
+    const prior=retained.get(key);
+    if(prior)retainedMeshBytes-=prior.meshBuffer.byteLength;
+    retained.delete(key);retained.set(key,value);
+    retainedMeshBytes+=value.meshBuffer.byteLength;
+    while(retained.size>2||(retainedMeshBytes>maxRetainedMeshBytes&&retained.size>1)){
+      const oldest=retained.keys().next().value,evicted=retained.get(oldest);
+      retainedMeshBytes-=evicted.meshBuffer.byteLength;
+      retained.delete(oldest);
+    }
+  }
   const cancellation=()=>Object.assign(new Error('Built-in mesh loader disposed'),{name:'AbortError'});
   function load(sceneIdentity) {
     if(disposed)return Promise.reject(cancellation());
     let key;
     try {key=preparedCountrySceneKey(sceneIdentity);}catch(error){return Promise.reject(error);}
-    if(retained?.key===key)return Promise.resolve(retained.value);
+    const cached=retained.get(key);
+    if(cached){
+      if(cached.meshBuffer.byteLength){
+        retained.delete(key);retained.set(key,cached);
+        return Promise.resolve(cached);
+      }
+      retainedMeshBytes-=cached.meshBuffer.byteLength;retained.delete(key);
+    }
     if(lastMiss===key)return Promise.resolve(null);
     if(pending.has(key))return pending.get(key).promise;
     let resolve,reject;
@@ -34,7 +56,7 @@ export function createBuiltinMeshResourceLoader({runtimeAssetUrl,WorkerClass=Wor
           }
           const value=Object.freeze({meshBuffer:message.meshBuffer,preparedStroke:message.preparedStroke,
             spatialBlocks:message.spatialBlocks,boundaryPacket:message.boundaryPacket,identity:message.identity});
-          retained={key,value};finish(null,value);
+          remember(key,value);finish(null,value);
         }else if(message?.type==='builtin-mesh-error')finish(new Error(message.message||'내장 기본 메시를 준비하지 못했습니다.'));
       };
       worker.onerror=event=>finish(new Error(event.message||'내장 기본 메시 Worker 오류'));
@@ -44,7 +66,7 @@ export function createBuiltinMeshResourceLoader({runtimeAssetUrl,WorkerClass=Wor
   return Object.freeze({load,dispose(){
     if(disposed)return;disposed=true;
     for(const entry of [...pending.values()])entry.cancel();
-    retained=null;lastMiss=null;
+    retained.clear();retainedMeshBytes=0;lastMiss=null;
   }});
 }
 // @worker-transport dedicated: builtin mesh cache delivery owns its streaming resource protocol

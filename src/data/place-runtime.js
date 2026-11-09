@@ -1,8 +1,8 @@
 import { createWorkerRpcClient } from "../runtime/worker-rpc.js";
 import { createLatestWorkerJobScheduler, createWorkerCancellationError } from "../runtime/worker-job-scheduler.js";
-import { isBuiltinPlaceId, normalizePlace, PLACE_LIMITS } from "./place-contract.js";
-import { resourceKey, resourceUpdate } from "../rendering/resource-update-policy.js";
-import { placeLabelRowsAtMonth } from "../ui/place-name-display.js";
+import { isBuiltinPlaceId, normalizePlace, PLACE_LIMITS } from "../document/place-contract.js";
+import { resourceKey, resourceUpdate } from "../runtime/resource-dependency-policy.js";
+import { placeLabelRowsAtMonth } from "./place-name-policy.js";
 import { indexPlaceUrbanLifetimes,placeUrbanLabelActiveAtMonth } from "./place-lifetime-policy.js";
 const EMPTY = Object.freeze({ revision: 0, signature: 'empty', records: Object.freeze([]) });
 
@@ -10,7 +10,7 @@ const EMPTY = Object.freeze({ revision: 0, signature: 'empty', records: Object.f
 export function createPlaceRuntime({ manifestUrl = new URL('../../data/places/manifest.json', import.meta.url).href, createWorker = null, rpc = null, onSnapshot = () => {}, onError = () => {}, onSettled = () => {}, getProtectedIds = () => [],getPresentation=()=>null,admitReferences,urbanLifetimes=null,loadUrbanLifetimes=null,urbanLifetimesUrl=new URL('../../data/places/urban-lifetimes-v1.json',import.meta.url).href } = {}) {
   if (typeof manifestUrl !== 'string' || !manifestUrl) throw new TypeError('Place manifest URL must be a nonempty string');
   if(typeof admitReferences!=='function')throw new TypeError('Place publication requires its accepted identity admission boundary.');
-  let snapshot=EMPTY, revision=0, moving=false, closed=false, desired=null, requestedDependencies=null, snapshotDependencies=null, referenceSequence=0;
+  let snapshot=EMPTY, revision=0, projectEpoch=0, moving=false, closed=false, desired=null, requestedDependencies=null, snapshotDependencies=null, referenceSequence=0;
   let admittedReferenceKey=null;
   let lifetimeIndex=urbanLifetimes?indexPlaceUrbanLifetimes(urbanLifetimes):null;
   let lifetimeTask=null;
@@ -121,9 +121,17 @@ export function createPlaceRuntime({ manifestUrl = new URL('../../data/places/ma
     }
   }
   function cancelViewport() { requestedDependencies=null; revision++; scheduler.cancelKey('viewport'); }
+  function resetProject() {
+    if(closed)return;
+    projectEpoch++;revision++;moving=false;desired=null;
+    scheduler.cancelAll('project-replaced');
+    retained.clear();snapshot=EMPTY;admittedReferenceKey=null;
+    requestedDependencies=null;snapshotDependencies=null;
+  }
   return Object.freeze({
     prepare,
     cancelViewport,
+    resetProject,
     beginInteraction() { moving=true; cancelViewport(); scheduler.cancelKey('search'); },
     settle(view=desired) { const wasMoving=moving; moving=false; const task=view ? prepare(view) : Promise.resolve(false); if (wasMoving) onSettled(); return task; },
     snapshot: () => snapshot,
@@ -135,15 +143,18 @@ export function createPlaceRuntime({ manifestUrl = new URL('../../data/places/ma
     },
     retain: remember,
     async search(query, { scope = 'display', mapDate = null, signal = null } = {}) {
+      const requestEpoch=projectEpoch;
       if (!['display', 'reference'].includes(scope)) throw new TypeError('Unknown place search scope.');
       const reference = scope === 'reference';
       if (closed || (moving && !reference)) throw createWorkerCancellationError('지도 이동 중에는 지명 조회를 보류합니다.', 'interaction');
       signal?.throwIfAborted();
       await ensureUrbanLifetimes();
+      if(requestEpoch!==projectEpoch)throw createWorkerCancellationError('Project source changed','project-replaced');
       signal?.throwIfAborted();
       const job=scheduler.enqueue({ jobKey: reference ? `reference:${++referenceSequence}` : 'search', signal,
         payload: { query, scope, mapDate, presentation:reference ? null : getPresentation() }, metadata: { controller: new AbortController() } });
       const result=await job.promise;
+      if(requestEpoch!==projectEpoch)throw createWorkerCancellationError('Project source changed','project-replaced');
       if (result.records.length > PLACE_LIMITS.searchResults) throw new RangeError('Place search result budget exceeded');
       const records=result.records.map(normalizePlace);
       const displayed=reference?records:records.filter(record=>sourceActive(record));
@@ -153,11 +164,12 @@ export function createPlaceRuntime({ manifestUrl = new URL('../../data/places/ma
         return { ...result, records };
       }
       return publishAccepted(async()=>{
-        if(closed || moving)throw createWorkerCancellationError('지도 이동 중에는 지명 조회를 보류합니다.','interaction');
+        if(closed || moving || requestEpoch!==projectEpoch)
+          throw createWorkerCancellationError('Project source changed or interaction resumed','project-replaced');
         const candidate=new Map(retained);
         displayed.forEach(record=>rememberInto(candidate,record));
         await admitReferences(()=>references(snapshot.records,candidate));
-        if(closed || moving) {
+        if(closed || moving || requestEpoch!==projectEpoch) {
           if(!closed)await admitReferences(()=>references());
           throw createWorkerCancellationError('지도 이동 중에는 지명 조회를 보류합니다.','interaction');
         }

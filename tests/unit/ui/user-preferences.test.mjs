@@ -48,10 +48,21 @@ test('current preferences retain only label and composable selection settings', 
   });
   assert.deepEqual(preferences, {
     backgrounds:defaultUserPreferences().backgrounds,version: 2,
+    timeline:{defaultWorldFollowCurrentMonth:true},
     appearance: { theme: 'dark', accentPreset: 'blue', smoothLines: true },
     labels: { country: { font: 'serif', color: '#aa11bb' }, place: { font: 'gothic', color: '#123456', pointColor: '#abcdef', languages: { ko: true, en: false, native: false } } },
     selection: { color: '#0f1e2d', outlineVisible: false, fillStrength: 0.6 },
   });
+});
+
+test('default-world follows the current month by preference without changing user-file dates',()=>{
+  assert.deepEqual(defaultUserPreferences().timeline,{defaultWorldFollowCurrentMonth:true});
+  assert.equal(normalizeUserPreferences({version:2,timeline:{defaultWorldFollowCurrentMonth:false}})
+    .timeline.defaultWorldFollowCurrentMonth,false);
+  assert.equal(normalizeUserPreferences({version:2,timeline:{defaultWorldFollowCurrentMonth:'false'}})
+    .timeline.defaultWorldFollowCurrentMonth,true);
+  assert.equal(normalizeUserPreferences({version:1,timeline:{defaultWorldFollowCurrentMonth:false}})
+    .timeline.defaultWorldFollowCurrentMonth,true);
 });
 
 test('retired editor status bar setting is omitted from Viewer preferences', () => {

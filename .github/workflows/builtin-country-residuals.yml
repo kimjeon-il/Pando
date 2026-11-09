@@ -1,17 +1,6 @@
 name: Builtin country residual dependency contracts
 on:
-  push:
-    branches: [work/gis]
-    paths:
-      - '.github/workflows/builtin-country-residuals.yml'
-      - 'tests/unit/data/builtin-country-publication.test.mjs'
-      - 'tests/unit/data/builtin-country-loading.test.mjs'
-      - 'tests/unit/rendering/prepared-country-scope.test.mjs'
-      - 'tools/gis/prepare-water-object-history.mjs'
-      - 'tools/data/library-runtime-index.mjs'
-      - 'tools/data/library-data.mjs'
-      - 'scripts/lib/prepared-input-verification.mjs'
-      - 'scripts/p2-validate-artifacts.mjs'
+  # Preserved as a focused publication/archival audit; shared CI selects ordinary tests.
   workflow_dispatch:
 permissions:
   contents: read

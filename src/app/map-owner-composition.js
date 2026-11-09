@@ -12,7 +12,7 @@ import {createObjectPresentation} from "../ui/object-presentation.js";
 import {createHydroSettings} from "../ui/physical-settings.js";
 import {createObjectCatalog} from "../document/object-catalog.js";
 import {createTerritorialLabels} from "../rendering/territorial-labels.js";
-import {createPhysicalResources} from "../data/physical-resources.js";
+import {createPhysicalResources} from "../rendering/physical-map-controller.js";
 import {createGpuScene} from "../rendering/gpu-scene.js";
 import {createMapHost} from "../ui/map-workspace-host.js";
 import {createObjectPicking} from "../map/object-picking.js";
@@ -32,7 +32,7 @@ export function initializeMapReadOwners(owners,phase){
   for(const [owner,method]of stages)owners[owner][method]();
 }
 
-/** One read-only owner graph for the Web Viewer and Windows reviewer. */
+/** One read-only map owner graph for the Web Viewer. */
 export function createMapOwners({productMode,readOnly=productMode==='viewer',projection=productMode==='viewer'?'globe':'flat',platform=null,buildMeta,editing=null,isObjectVisible,resolveVisibilityGroup,closeActiveOverlay=null,onViewingChange=null}){
   if(productMode!=='viewer')throw new TypeError('Map composition requires viewer product mode.');
   if(readOnly!==true||editing)throw new TypeError('Read-only map composition cannot register editing hooks.');

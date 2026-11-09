@@ -16,8 +16,19 @@ export function createSelectionDomain({
   if (typeof refAdapter?.toCore !== 'function' || typeof refAdapter?.fromCore !== 'function') {
     throw new TypeError('An explicit Core selection reference adapter is required.');
   }
-  let current = Object.freeze({ revision: 0, hoverRevision: 0,
-    projectGeneration: Number(projectDomain?.getGeneration?.() || 0), selection: empty, hover: null });
+  const activeScope=()=>projectDomain?.activeProjectScope?.()??null;
+  const activeProjectId=()=>projectDomain?.activeProject?.()?.projectId??null;
+  // Keep the pre-existing public snapshot shape; the project gate is readable
+  // but non-enumerable so consumers and persistence never acquire new fields.
+  const scopedSnapshot=(value,projectId=activeProjectId(),projectScope=activeScope())=>{
+    Object.defineProperties(value,{
+      projectId:{value:projectId,enumerable:false},
+      projectScope:{value:projectScope,enumerable:false},
+    });
+    return Object.freeze(value);
+  };
+  let current = scopedSnapshot({ revision: 0, hoverRevision: 0,
+    projectGeneration: Number(projectDomain?.getGeneration?.() || 0),selection: empty, hover: null });
   let disposed = false, lastNative = null, lastChanged = false;
   const contexts = new WeakMap();
   const metrics = { mutationCount: 0, noOpCount: 0, renderInvalidationCount: 0 };
@@ -29,9 +40,11 @@ export function createSelectionDomain({
     if (!converted) invalid('A valid public selection reference is required.');
     return converted;
   };
-  function acceptCoreSnapshot(native, { reason = 'selection-change', projectGeneration = generation(), reset = false } = {}) {
-    if (disposed) return current;
-    if (native === lastNative && projectGeneration === current.projectGeneration) return current;
+  function acceptCoreSnapshot(native, { reason = 'selection-change', projectGeneration = generation(),
+    projectScope = activeScope(), reset = false } = {}) {
+    if (disposed||projectScope!==activeScope()||(!reset&&projectGeneration!==generation())) return current;
+    if (native === lastNative && projectGeneration === current.projectGeneration
+      && projectScope === current.projectScope) return current;
     if (!Number.isSafeInteger(native?.selectionRevision) || native.selectionRevision < 0
       || !Number.isSafeInteger(native.hoverRevision) || native.hoverRevision < 0
       || !Array.isArray(native.items) || !Object.hasOwn(native, 'primary') || !Object.hasOwn(native, 'hover')) {
@@ -43,8 +56,9 @@ export function createSelectionDomain({
     const hover = native.hover === null ? null : webRef(native.hover);
     if (new Set(keys).size !== keys.length || (preferred && !keys.includes(preferred.key))
       || (items.length && !preferred) || (!items.length && preferred)) invalid('Invalid authoritative C++ selection order/primary.');
-    const selectionChanged = native.selectionRevision !== current.revision;
-    const hoverChanged = native.hoverRevision !== current.hoverRevision;
+    const scopeChanged=projectScope!==current.projectScope;
+    const selectionChanged = native.selectionRevision !== current.revision||scopeChanged;
+    const hoverChanged = native.hoverRevision !== current.hoverRevision||scopeChanged;
     const generationChanged = projectGeneration !== current.projectGeneration;
     if (!selectionChanged && (preferred?.key !== (current.selection.primaryKey || undefined)
       || keys.length !== current.selection.keys.length || keys.some((key, index) => key !== current.selection.keys[index]))) {
@@ -54,8 +68,10 @@ export function createSelectionDomain({
     lastNative = native; lastChanged = selectionChanged || hoverChanged || generationChanged;
     if (!lastChanged) return current;
     const previous = current.selection;
-    current = Object.freeze({ revision: native.selectionRevision, hoverRevision: native.hoverRevision, projectGeneration,
-      selection: selectionChanged ? Object.freeze({ primaryKey: preferred?.key || null, keys, items }) : current.selection, hover });
+    current = scopedSnapshot({ revision: native.selectionRevision, hoverRevision: native.hoverRevision,
+      projectGeneration,
+      selection: selectionChanged ? Object.freeze({ primaryKey: preferred?.key || null, keys, items }) : current.selection, hover },
+      activeProjectId(),projectScope);
     if (reset || reason === 'project-reset' || generationChanged) {
       metrics.mutationCount += 1;
       onSelectionChanged(current, reason, previous);
@@ -107,12 +123,17 @@ export function createSelectionDomain({
     const epoch = commandOwner.state()?.epoch;
     if (!Number.isSafeInteger(epoch)) throw Object.assign(new Error('The Core document must be loaded before selecting objects.'), { code: 'PL-CORE-NOT-LOADED' });
     const request = { ...payload };
-    const context = { reason, projectGeneration, reset: payload.action === 'resetProject', observed: false, changed: false };
+    const projectScope=activeScope();
+    const context = { reason, projectGeneration, projectScope,
+      reset: payload.action === 'resetProject', observed: false, changed: false };
     contexts.set(request, context);
     // Preserve intent order in the Core queue. Its epoch is resolved when the
     // request reaches Core, after any earlier document commands complete.
-    return commandOwner.selectionApply(request, { isCurrent: () => !disposed && generation() === projectGeneration && isCurrent() }).then(ack => {
-      if (disposed) return current;
+    return commandOwner.selectionApply(request, { isCurrent: () => !disposed
+      && (context.reset||generation() === projectGeneration)
+      && activeScope()===projectScope && isCurrent() }).then(ack => {
+      if (disposed||activeScope()!==projectScope
+        ||(!context.reset&&generation()!==projectGeneration)) return current;
       if (typeof ack?.countNoOp !== 'boolean' || !ack.selection) invalid('A complete C++ selection acknowledgement is required.');
       const native = ack.selection;
       if (!context.observed) { acceptCoreSnapshot(native, context); context.changed = lastChanged; }
@@ -141,9 +162,13 @@ export function createSelectionDomain({
   };
   function dispose() { if (disposed) return; disposed = true; unsubscribe(); }
   return Object.freeze({ replace, toggle, selectRange, setMany, remove, prune, clear, setHover, resetProject, refresh, acceptCoreSnapshot,
-    snapshot: () => current, primary: () => current.selection.items.find(ref => ref.key === current.selection.primaryKey) || null,
-    has: value => current.selection.keys.includes(typeof value === 'string' ? value : objectRefKey(value)),
-    size: () => current.selection.items.length,
+    snapshot: () => current.projectScope===activeScope()?current:scopedSnapshot({...current,
+      projectGeneration:generation(),selection:empty,hover:null}),
+    primary: () => current.projectScope===activeScope()
+      ?current.selection.items.find(ref => ref.key === current.selection.primaryKey)||null:null,
+    has: value => current.projectScope===activeScope()&&current.selection.keys.includes(
+      typeof value === 'string' ? value : objectRefKey(value)),
+    size: () => current.projectScope===activeScope()?current.selection.items.length:0,
     createPacket: channels => selectionPacketFactory({ ...(channels || {}), revision: current.revision, hoverRevision: current.hoverRevision }),
     stats: () => Object.freeze({ selectionRevision: current.revision, selectionHoverRevision: current.hoverRevision,
       selectionMutationCount: metrics.mutationCount, selectionNoOpCount: metrics.noOpCount,

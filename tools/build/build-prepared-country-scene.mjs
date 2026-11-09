@@ -10,6 +10,8 @@ import {decodeCountryMesh,encodeCountryMesh,extractCountryMeshSlot,encodePrepare
 import {createCountryMeshPreparation} from '../../src/rendering/country-mesh-preparation.js';
 import {prepareCountryStroke} from '../../src/rendering/country-stroke-preparation.js';
 import {prepareMeshSpatialBlocks} from '../../src/rendering/mesh-spatial-blocks.js';
+import {readProjectGenerationContext} from './project-generation-context.mjs';
+import {reusePreparedSceneReceipt} from './prepared-scene-reuse.mjs';
 
 const defaultRoot=fileURLToPath(new URL('../../',import.meta.url));
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -17,7 +19,7 @@ const digest=g=>sha(JSON.stringify([g.type,g.coordinates]));
 const asBuffer=bytes=>bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength);
 
 /** Build only a display derivative from pinned runtime inputs. No GIS regeneration. */
-export async function buildPreparedCountryScene({root=defaultRoot,month,write=true}={}) {
+export async function buildPreparedCountryScene({root=defaultRoot,month,write=true,projectId='default-world'}={}) {
   if(!/^\d{4}-\d{2}$/.test(month||''))throw new Error('An explicit reference month is required');
   await import('./load-spherical-core.mjs');
   await import('../../src/rendering/workers/gpu-mesh-core.js');
@@ -26,7 +28,9 @@ export async function buildPreparedCountryScene({root=defaultRoot,month,write=tr
     import('../../src/data/builtin-world-loader.js'),import('../../src/geometry/geometry-version-store.js'),
     import('../../src/document/timeline-resolver.js'),import('../../src/document/builtin-subunits.js'),
     import('../../src/document/territorial-units.js'),import('../../src/rendering/country-shared-boundary-packet.js')]);
-  const data=resolve(root,'assets/data'),worldPath=resolve(data,'world/current.json');
+  const context=readProjectGenerationContext({root,projectId});
+  const data=resolve(root,'assets/data'),worldPath=resolve(root,context.catalogs.world);
+  const countryRoot=dirname(resolve(root,context.catalogs.territorial));
   const world=JSON.parse(readFileSync(worldPath,'utf8'));
   const readAsset=spec=>{
     const raw=readFileSync(resolve(data,spec.url));
@@ -38,12 +42,12 @@ export async function buildPreparedCountryScene({root=defaultRoot,month,write=tr
   const source=createCanonicalCountryStore(readAsset(world.assets.canonicalCountryPacket),
     {expectedHeader:world.assets.canonicalCountryPacket.header}).materializeCollectionSync();
   const sourceIds=source.features.map(f=>String(f.id));
-  const baseline=decodeCountryMesh(readAsset(world.assets.canonicalMesh),sourceIds).mesh;
+  // Decode the large canonical mesh only after an immutable scene cache miss.
   const byDigest=new Map();
   source.features.forEach((feature,slot)=>{const key=digest(feature.geometry);if(!byDigest.has(key))byDigest.set(key,slot);});
-  const indexBytes=readFileSync(resolve(data,'builtin-world/generated/v1/index.json')),index=JSON.parse(indexBytes);
+  const indexBytes=readFileSync(resolve(root,context.catalogs.territorial)),index=JSON.parse(indexBytes);
   const countryBytes=new Map();
-  const readCountry=path=>{if(!countryBytes.has(path))countryBytes.set(path,readFileSync(resolve(data,'builtin-world/generated/v1',path)));return countryBytes.get(path);};
+  const readCountry=path=>{if(!countryBytes.has(path))countryBytes.set(path,readFileSync(resolve(countryRoot,path)));return countryBytes.get(path);};
   const countries=index.entities.map(entry=>readBuiltinCountry(entry,index,readCountry));
   const project=assembleBuiltinWorld(index,countries,month);
   const resolved=resolveWorld(project.territorialEntities,project.timelineRecords,createGeometryVersionStore(project.geometries),month);
@@ -60,6 +64,38 @@ export async function buildPreparedCountryScene({root=defaultRoot,month,write=tr
   const engine=globalThis.PandoLabGpuMeshCore;
   engine.setSharedCore(globalThis.PandoLabSphericalCore);
   if(world.derivation.meshAlgorithmRevision!==engine.MESH_ALGORITHM_REVISION)throw new Error('Canonical mesh algorithm identity mismatch');
+  const sourceReceipt={countryPacket:world.assets.canonicalCountryPacket.sha256,
+    canonicalMesh:world.assets.canonicalMesh.sha256,builtinIndex:sha(indexBytes)};
+  const existing=world.assets.preparedCountryScene;
+  const hit=reusePreparedSceneReceipt({spec:existing,identity,source:sourceReceipt,
+    referenceMonth:month,algorithmVersion:engine.MESH_ALGORITHM_REVISION,
+    readStored:url=>readFileSync(resolve(data,url))});
+  if(hit){
+    const spec=hit.spec;
+    const summary={month,fillCount:roots.length,boundaryCount:boundaries.length,
+      reused:roots.map(feature=>({id:String(feature.id),source:'immutable-prepared-scene'})),
+      built:[],reusedImmutable:true,compressedBytes:spec.compressedBytes,
+      decodedBytes:spec.decodedBytes,assetSha256:spec.sha256};
+    if(write&&JSON.stringify(existing)!==JSON.stringify(spec)){
+      withLibraryOutputs({root,paths:[worldPath]},()=>{
+        world.assets.preparedCountryScene=spec;
+        writeFileSync(worldPath,JSON.stringify(world,null,2)+'\n');
+      });
+    }
+    let verifiedPacket=null;
+    return {spec,summary,get packet(){
+      // Existing callers can still request a decoded packet. A metadata-only
+      // CLI/catalog build never touches this optional large payload.
+      if(!verifiedPacket){
+        const stored=readFileSync(resolve(data,spec.url));
+        const bytes=gunzipSync(stored);
+        if(bytes.length!==spec.decodedBytes)throw new Error('Prepared scene decoded size mismatch');
+        verifiedPacket=decodePreparedCountryScene(asBuffer(bytes),identity);
+      }
+      return verifiedPacket;
+    }};
+  }
+  const baseline=decodeCountryMesh(readAsset(world.assets.canonicalMesh),sourceIds).mesh;
   const preparation=createCountryMeshPreparation({engine,loadPreparedPart:async (_key,feature)=>{
     const slot=byDigest.get(hashes.get(feature.geometry));
     if(slot===undefined){built.push(String(feature.id));return null;}
@@ -87,7 +123,7 @@ export async function buildPreparedCountryScene({root=defaultRoot,month,write=tr
   const hash=sha(compressed),url=`world/objects/country-scene-sha256-${hash}.bin.gz`;
   const spec={url,encoding:'gzip',sha256:hash,compressedBytes:compressed.length,decodedBytes:encoded.byteLength,
     algorithmVersion:engine.MESH_ALGORITHM_REVISION,referenceMonth:month,identity,
-    source:{countryPacket:world.assets.canonicalCountryPacket.sha256,canonicalMesh:world.assets.canonicalMesh.sha256,builtinIndex:sha(indexBytes)}};
+    source:sourceReceipt};
   const output=resolve(data,url),summary={month,fillCount:ids.length,boundaryCount:boundaries.length,reused,built,
     compressedBytes:compressed.length,decodedBytes:encoded.byteLength,assetSha256:hash};
   if(write)withLibraryOutputs({root,paths:[worldPath,output]},()=>{
@@ -101,5 +137,6 @@ export async function buildPreparedCountryScene({root=defaultRoot,month,write=tr
 }
 const invoked=process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url);
 if(invoked){const month=process.argv.find(a=>a.startsWith('--month='))?.slice(8);
-  try {const {summary}=await buildPreparedCountryScene({month});console.log('PREPARED_COUNTRY_SCENE '+JSON.stringify(summary));}
+  const projectId=process.argv.find(a=>a.startsWith('--project='))?.slice(10)||'default-world';
+  try {const {summary}=await buildPreparedCountryScene({month,projectId});console.log('PREPARED_COUNTRY_SCENE '+JSON.stringify(summary));}
   catch(error){console.error(error);process.exitCode=1;}}

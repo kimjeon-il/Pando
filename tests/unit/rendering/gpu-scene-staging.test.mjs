@@ -1,6 +1,7 @@
 import { describe as contractSuite } from 'node:test';
 import { createGpuScene } from "../../../src/rendering/gpu-scene.js";
 import { createGpuCanvasWorker } from "../../../src/rendering/gpu-canvas-worker.js";
+import { createCanvasScenePackets } from "../../../src/rendering/gpu-canvas-scene-packets.js";
 import { classifyGpuResourceReady, classifyCanvasWorkerFrame } from "../../../src/rendering/map-render-publication.js";
 import * as __contract_dep0 from "node:assert/strict";
 import * as __contract_dep1 from "node:test";
@@ -284,4 +285,78 @@ test('normal country pass still synchronizes geometry and draws before presentin
   assert.deepEqual([f.actions.pending,f.actions.replace,f.actions.sync,f.actions.draw],[1,1,1,1]);
   assert.deepEqual(f.actions.coverage,[result]);
 });
+});
+
+test('unchanged renderer inputs do not rebuild scene packets or resource object indexes', () => {
+  const calls = { build: 0, patch: 0, submit: 0 };
+  const makeScene = (input, previous = {}) => ({
+    revision: input.revision,
+    revisions: { ...input.revisions },
+    country: { ...(previous.country || {}), ...input.country },
+    physical: { ...(previous.physical || {}), ...input.physical },
+    quality: { ...(previous.quality || {}), ...input.renderQuality },
+    interaction: { selectionPacket: input.interaction.selectionPacket,
+      genericFillItems: [...input.interaction.genericFillItems] },
+    polygons: previous.polygons || [], strokes: previous.strokes || [],
+  });
+  const builder = {
+    setCacheByteBudget() {}, missingPolygons() { return []; }, releasePrepared() {}, clear() {},
+    build(input) { calls.build++; return makeScene(input); },
+    patch(previous, input) { calls.patch++; return makeScene(input, previous); },
+  };
+  const state = {
+    layerPresentation: { overlayOrder: [] }, projection: 'flat', stateRevision: 0,
+    layerVisibility: { objects: true, rivers: true, lakes: true },
+    physicalSettings: { terrainVisible: false, terrainStyle: 'physical', hiddenHydroIds: {} },
+    pendingCountryRenderIds: new Set(),
+  };
+  const mapLayout = { viewRevision: 1 };
+  const renderer = createGpuScene();
+  renderer.connect({
+    projectState: { state, mapWorkScheduler: { cancel() {} } },
+    renderScene: {
+      createRenderSceneBuilder: () => builder,
+      currentRenderQuality: { backgroundLod: 'high', renderPacketCacheBudgetBytes: 1024 },
+      OVERLAY_GROUPS: [],
+    },
+    countries: { countryLandRevision: 1 }, mapLayout,
+    interactionPresentation: { currentGpuInteractionFillItems: [] },
+    interactionStateCommands: { replaceGpuInteractionFillItems() {} },
+    rendering: { gpuMapRenderer: { setRenderScene() { calls.submit++; } } },
+    platform: { runtimeAssetUrl: value => value },
+  });
+  renderer.initializeGpuSceneDomains();
+  renderer.initializeGpuSceneResourceObjectKeys();
+  renderer.initializeRenderSceneBuilder();
+  const first = renderer.syncGpuRenderScene();
+  assert.equal(renderer.syncGpuRenderScene(), first);
+  assert.deepEqual(calls, { build: 1, patch: 0, submit: 1 });
+  state.layerVisibility.objects = false;
+  renderer.syncGpuRenderScene();
+  assert.equal(calls.patch, 1, 'changed presentation still patches existing packets');
+  mapLayout.viewRevision++;
+  renderer.syncGpuRenderScene();
+  assert.equal(calls.patch, 2, 'changed view metadata still reaches the scene');
+});
+
+test('Canvas Worker packets omit equivalent immutable geometry but resend changed identities', () => {
+  const packets = createCanvasScenePackets();
+  const packet = (sourceKey, coordinates) => ({
+    key: 'land', sourceKey, ringCoordinates: Float64Array.from(coordinates),
+    ringOffsets: Uint32Array.from([0, 4]), polygonOffsets: Uint32Array.from([0, 1]),
+  });
+  const first = packets.delta([packet('revision:one', [0, 0, 1, 0, 1, 1, 0, 0])], 'scene');
+  assert.ok(first[0].ringCoordinates instanceof Float64Array);
+  const repeated = packets.delta([packet('revision:one', [0, 0, 1, 0, 1, 1, 0, 0])], 'scene');
+  assert.equal(Object.hasOwn(repeated[0], 'ringCoordinates'), false,
+    'new typed arrays with certified unchanged source do not cross the Worker boundary');
+  const changed = packets.delta([packet('revision:two', [0, 0, 2, 0, 2, 2, 0, 0])], 'scene');
+  assert.ok(changed[0].ringCoordinates instanceof Float64Array);
+  const anonymous = () => ({ key: 'unversioned', startsEnds: new Float32Array([0, 0, 1, 1]) });
+  packets.delta([anonymous()], 'strokes');
+  assert.ok(packets.delta([anonymous()], 'strokes')[0].startsEnds instanceof Float32Array,
+    'unversioned geometry cannot be omitted merely because its values look similar');
+  packets.clear();
+  assert.ok(packets.delta([packet('revision:two', [0, 0, 2, 0, 2, 2, 0, 0])], 'scene')[0].ringCoordinates,
+    'a new Worker generation must receive complete packet bytes');
 });

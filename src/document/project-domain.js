@@ -1,7 +1,8 @@
-import {normalizeProjectSetup} from "./project-setup.js";
+import {normalizeProjectSetup,requireProjectMonth} from "./project-setup.js";
 import { getRuntimePerformanceMetrics,PERFORMANCE_METRIC_NAMES } from "../runtime/runtime-performance-metrics.js";
 import { createCoreDocumentReadModel } from "./core-document-read-model.js";
 import { createProductModePolicy } from "../app/product-mode-policy.js";
+import {createProjectOpenAdapter} from "./project-open-adapter.js";
 
 const metricNow=() => typeof performance==='undefined' ? Date.now():performance.now();
 const cloneValue = value => {
@@ -28,6 +29,7 @@ export function createProjectDomain({
   saveState = null,
   createProjectFile = null,
   prepareNewProject = async () => null,
+  admitImportedProject = project => project,
   restoreReplacement = null,
   invalidateProject = () => {},
   invalidateCommand = () => {},
@@ -55,10 +57,22 @@ export function createProjectDomain({
   let replacing = false;
   let saving = false;
   let commandQueue = Promise.resolve();
+  // One admitted C++ document is active irrespective of its input reader.
+  // projectId identifies content; documentId and generation isolate a session.
+  let activeProject=null;
+  const currentActiveProject=()=>activeProject?Object.freeze({...activeProject,generation}):null;
+  const activeProjectScope=()=>JSON.stringify([
+    activeProject?.projectId||null,activeProject?.documentId||null,generation]);
+  const timelineNavigation=()=>Object.freeze({
+    ...currentActiveProject(),
+    month:commandOwner?.state?.()?.timelineCursor||null,
+    range:snapshot().projectSetup?.timelineRange||null,
+    scope:activeProjectScope(),
+  });
   const preparedIntents=new Map();
   function currentProject(project) {
     if (project && Object.hasOwn(project,'packageAssets')) throw Object.assign(new TypeError('Unsupported retired project attachments.'),{code:'PL-PROJECT-RETIRED-ASSETS'});
-    return project;
+    return admitImportedProject(project);
   }
 
   const snapshot = () => {
@@ -165,11 +179,14 @@ export function createProjectDomain({
     commandQueue=operation.catch(() => {});
     return operation;
   };
-  const readmitBuiltinSelectionCatalogs = async () => {
+  const readmitBuiltinSelectionCatalogs = async ({replacingProject=false}={}) => {
     if(typeof readBuiltinSelectionCatalogs!=='function')throw new TypeError('The immutable platform builtin identity catalogs are required for document admission.');
     const catalogs=readBuiltinSelectionCatalogs();
     if(!Array.isArray(catalogs))throw new TypeError('Builtin selection catalogs must be explicit domain/ref records.');
-    for(const { domain,refs } of catalogs)await commandOwner.selectionCatalogLoad(domain,refs);
+    // A replacement may not inherit the previous project's transient water
+    // and place references. Its own providers re-admit them after acceptance.
+    for(const {domain,refs} of catalogs)
+      await commandOwner.selectionCatalogLoad(domain,replacingProject?[]:refs);
   };
 
   // Startup promotion replaces data inside the current render generation. It
@@ -225,6 +242,11 @@ export function createProjectDomain({
       const stale=()=>Object.assign(new Error('Temporal candidate belongs to an older project request.'),
         {code:'PL-CORE-STALE',name:'AbortError',cancelled:true});
       if(!current())throw stale();
+      // A date change never rebuilds or re-identifies the active document.
+      // Legacy transition requests must use the common C++ cursor instead.
+      if(transition)throw Object.assign(
+        new TypeError('Project date changes must reuse the accepted C++ timeline cursor.'),
+        {code:'PL-TIMELINE-REPLACE-RETIRED'});
       if(typeof commandOwner?.temporalSourcePrepare!=='function'
         ||typeof commandOwner?.temporalCandidatePrepare!=='function')
         throw new TypeError('Core temporal source/candidate owner is required.');
@@ -233,13 +255,9 @@ export function createProjectDomain({
       try {
         source=await commandOwner.temporalSourcePrepare(facts,{dataRevision,manifestSha256,isCurrent:current});
         if(!current())throw stale();
-        // Only an explicit builtin Viewer date change retains the document ID.
-        // Native preparation validates the clean builtin owner and immutable
-        // geometry versions before constructing its delta; file/editor loads
-        // keep their existing independent-document admission.
-        if(transition&&(!readOnly||snapshot().projectSetup?.sourceMode!=='builtin'))
-          throw new TypeError('Temporal identity reuse requires the active builtin Viewer.');
-        const documentId=transition?snapshot().documentId:globalThis.crypto.randomUUID();
+        // Only independent-document opening allocates another document identity.
+        // Existing projects navigate dates by commandOwner.setTimelineCursor.
+        const documentId=globalThis.crypto.randomUUID();
         const candidate=await commandOwner.temporalCandidatePrepare({
           sourceId:source.sourceId,targetMonth:facts.sourceMonth,
           sourceFingerprint:source.fingerprint,setup,documentId,
@@ -427,6 +445,7 @@ export function createProjectDomain({
     const requireCurrent=()=>{if(!isCurrent())throw Object.assign(new Error('Project opening was superseded.'),{code:'PL-CORE-STALE',name:'AbortError',cancelled:true});};
     requireCurrent();
     let checkpoint;
+    const previousActiveProject=activeProject;
     let replacementStarted = false;
     let failure;
     let replacementResult;
@@ -456,7 +475,7 @@ export function createProjectDomain({
         if(!Number.isSafeInteger(prepared.baselineId)||prepared.baselineId<=0)throw new TypeError('A previously admitted Core builtin source handle is required.');
         await commandOwner.loadBaseline(prepared.baselineId,prepared.setup);
       } else await commandOwner.load(JSON.stringify(prepared));
-      await readmitBuiltinSelectionCatalogs();
+      await readmitBuiltinSelectionCatalogs({replacingProject:true});
       if (readPresentationCatalog) {
         if (typeof readPresentationCatalog !== 'function' || typeof commandOwner?.presentationCatalogLoad !== 'function'
           || typeof publishCommand !== 'function')
@@ -472,6 +491,12 @@ export function createProjectDomain({
       });
       if (result === false) throw new Error('Project replacement was rejected.');
       requireCurrent();
+      const accepted=documentModel.snapshot();
+      activeProject=Object.freeze({
+        projectId:accepted.mapProjectIdentity?.projectId||null,
+        documentId:typeof accepted.documentId==='string'?accepted.documentId:null,
+        source:reason==='builtin'?'builtin':reason==='load'?'project':'new',
+      });
       // Unsupported/read-error recovery retains its original slots and write hold.
       if (reason === 'new' && !persistence?.getRecovery?.()) await persistence?.clear?.();
       if (reason === 'new') saveState?.markNewProject();
@@ -481,16 +506,20 @@ export function createProjectDomain({
       replacementResult=result;
     } catch (error) {
       failure=error;
+      activeProject=previousActiveProject;
       if (replacementStarted && checkpoint !== undefined) {
         // Generations stay monotonic so failed replacement workers remain stale.
         try {
           const rollbackGeneration = await bumpGeneration('project-rollback',presentation==='temporal'?{presentation}:null);
           await commandOwner.rollbackReplacement(checkpoint.replacementId);
-          if(restoreReplacement)await restoreReplacement(documentModel.snapshot(),rollbackGeneration);
+          if(restoreReplacement)await restoreReplacement(documentModel.snapshot(),rollbackGeneration,previousActiveProject);
           await restoreEditorSession(checkpoint.editor,rollbackGeneration);
           if(saveState && checkpoint.io)saveState.restore(checkpoint.io);
         }
-        catch (restoreError) { error.restoreError = restoreError; }
+        catch (restoreError) {
+          activeProject=null;
+          error.restoreError = restoreError;
+        }
       }
       if (replacementStarted) onReplacementError(error, reason);
     } finally {
@@ -523,33 +552,29 @@ export function createProjectDomain({
   const load = (project,options) => replace(project, 'load',options);
   const open = async (read,{source='project',presentation='default',isCurrent:requestCurrent=()=>true,onPresented}={}) => {
     assertActive();
-    if(!['project','builtin'].includes(source))throw new TypeError('Unknown project source.');
-    if(typeof read!=='function')throw new TypeError('Project opening requires its asynchronous source reader.');
+    const adapter=createProjectOpenAdapter({source,read});
     const ticket=++openRequest,isCurrent=()=>!disposed&&ticket===openRequest&&requestCurrent();
     opening=true;
     try {
-      // Builtin readers admit a Core baseline. Run them after an earlier
-      // replacement/rollback has settled, so they observe its final generation.
-      const project=source==='builtin'?null:await read();
-      if((source!=='builtin'&&!project)||!isCurrent())return false;
+      // GeoPackage decoding may overlap the previous presentation. Builtin
+      // candidate preparation must wait for the preceding Core rollback.
+      const early=adapter.requiresSettledReplacement?null:await adapter.prepare({isCurrent});
+      if(!isCurrent())return false;
       const operation=openQueue.then(async()=>{
         if(!isCurrent())return false;
-        if(source==='builtin') {
-          let baseline;
-          try {
-            baseline=await read();
-            if(!baseline||!isCurrent())return false;
-            await replace(baseline,'builtin',{isCurrent,presentation,onPresented});
-          } finally {
-            // A superseded read may have prepared Core source handles but
-            // never entered replacement. Both handles are invalidated by
-            // adoption/rollback; this also cleans up the uncommitted case.
-            if(baseline?.kind==='temporal-candidate')
-              await discardTemporalBuiltin(baseline);
-          }
+        let prepared=early;
+        try {
+          prepared??=await adapter.prepare({isCurrent});
+          if(!isCurrent())return false;
+          // Both source adapters now enter the exact same C++ replacement,
+          // generation, Viewer presentation and rollback transaction.
+          await replace(prepared.value,prepared.reason,{isCurrent,presentation,onPresented});
+          return isCurrent();
+        } finally {
+          // Candidate cleanup is independent of successful adoption. It also
+          // covers superseded reads that never entered the transaction.
+          if(prepared?.releaseCandidate)await discardTemporalBuiltin(prepared.releaseCandidate);
         }
-        else await load(project,{isCurrent});
-        return isCurrent();
       });
       openQueue=operation.catch(()=>{});
       return await operation;
@@ -625,6 +650,10 @@ export function createProjectDomain({
   return Object.freeze({
     snapshot,
     state: () => commandOwner.state(),
+    activeProject:currentActiveProject,
+    activeProjectScope,
+    timelineNavigation,
+    requireTimelineMonth:month=>requireProjectMonth(snapshot().projectSetup,month),
     resolveWorld,
     getGeneration: () => generation,
     isReplacing: () => replacing,

@@ -6,6 +6,7 @@ import * as __library_dep2_reports from "../../../tools/data/library-reports.mjs
 import * as __library_dep2_runtime from "../../../tools/data/library-runtime.mjs";
 import * as __library_dep2_publication from "../../../tools/data/library-report-publication.mjs";
 import * as __library_dep2_store from "../../../tools/data/library-store.mjs";
+import {runtimeArchiveIndex} from '../../../tools/data/library-runtime-index.mjs';
 const __library_dep2={...__library_dep2_context,...__library_dep2_reports,...__library_dep2_runtime,...__library_dep2_publication,...__library_dep2_store};
 
 // Original feature contract: library-data-scope.test.mjs
@@ -73,5 +74,12 @@ test('expected branch permits explicit main and rejects arbitrary or mismatched 
  assert.doesNotThrow(()=>libraryData.assertExpectedLibraryRevision({expectedRevision,expectedBranch:'main',branch:'main',head:expectedRevision,remote:expectedRevision}));
  assert.throws(()=>libraryData.assertExpectedLibraryRevision({expectedRevision,expectedBranch:'evil',head:expectedRevision,remote:expectedRevision}),/branch/i);
  assert.throws(()=>libraryData.assertExpectedLibraryRevision({expectedRevision,expectedBranch:'main',branch:'work/gis',head:expectedRevision,remote:expectedRevision}),/branch/i);
+});
+
+test('viewer library scope never silently falls back to the legacy world',()=>{
+ const index={files:{}};
+ assert.throws(()=>runtimeArchiveIndex(index,()=>Buffer.alloc(0),{purpose:'viewer'}),/map project manifest/);
+ const legacy=runtimeArchiveIndex(index,()=>Buffer.alloc(0),{purpose:'viewer-legacy'});
+ assert.deepEqual(Object.keys(legacy.files),[]);
 });
 });

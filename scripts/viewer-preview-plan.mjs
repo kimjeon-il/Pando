@@ -20,7 +20,7 @@ export function classifyViewerPreview(paths,{web}={},scope='auto') {
     throw Error('VIEWER_PREVIEW_INVALID_CHANGE_LIST');
   const availableWeb=web??existsSync(resolve(root,'src/app/index.html'));
   const touched=paths.some(path=>!path.endsWith('.md') &&
-    /^(?:apps\/viewer\/|shared\/|assets\/|config\/library-data\.json$|index\.html$|\.nojekyll$|contracts\/|tests\/browser\/|tests\/unit\/(?:viewer|builtin|map|gpu|terrain|hydro|current-browser)-|tools\/stage-monorepo-pages\.mjs$|scripts\/(?:stage-viewer-preview|viewer-preview-plan)\.mjs$|\.github\/workflows\/viewer-preview\.yml$|playwright\.config\.js$)/.test(path));
+    /^(?:apps\/viewer\/|shared\/|assets\/|projects\/|src\/|config\/library-data\.json$|index\.html$|\.nojekyll$|contracts\/|tests\/browser\/|tests\/unit\/(?:viewer|builtin|map|gpu|terrain|hydro|current-browser)-|tools\/stage-monorepo-pages\.mjs$|scripts\/(?:stage-viewer-preview|viewer-preview-plan)\.mjs$|\.github\/workflows\/viewer-preview\.yml$|playwright\.config\.js$)/.test(path));
   const active=availableWeb&&scope!=='off';
   const explicit=scope!=='auto'&&scope!=='off';
   return {

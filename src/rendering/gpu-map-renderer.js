@@ -64,7 +64,7 @@ const [{ drawGpuBaseScene }, { prepareGpuBaseScene, prepareGpuInteractionPlan, s
   import(`./gpu-scene-preparation.js?v=${encodeURIComponent(rendererAssetRevision)}`),
   import(`./gpu-stroke-renderer.js?v=${encodeURIComponent(rendererAssetRevision)}`),
   import(`./gpu-terrain-preparation.js?v=${encodeURIComponent(rendererAssetRevision)}`),
-  import(`./terrain-manifest.js?v=${encodeURIComponent(rendererAssetRevision)}`),
+  import(`../data/terrain-manifest.js?v=${encodeURIComponent(rendererAssetRevision)}`),
   import(`./workers/canvas-scene-composition-core.js?v=${encodeURIComponent(rendererAssetRevision)}`),
 ]);
 
@@ -4773,8 +4773,31 @@ export function createGpuMapRenderer(deps) {
 
     function estimateCanvasMessageBytes(message) {
       if (message?.type === 'view') return 192;
-      try { return new Blob([JSON.stringify(message)]).size; }
-      catch (_) { return 0; }
+      // Diagnostic only: do not JSON-serialize full GeoJSON/typed-array payloads
+      // on the UI thread just to approximate structured-clone transport bytes.
+      const seen = new WeakSet(), pending = [message];
+      let bytes = 0;
+      while (pending.length) {
+        const value = pending.pop();
+        if (typeof value === 'string') { bytes += value.length * 2; continue; }
+        if (typeof value === 'number' || typeof value === 'boolean') { bytes += 8; continue; }
+        if (!value || typeof value !== 'object' || seen.has(value)) continue;
+        seen.add(value);
+        if (ArrayBuffer.isView(value)) { bytes += value.byteLength; continue; }
+        if (value instanceof ArrayBuffer) { bytes += value.byteLength; continue; }
+        if (Array.isArray(value)) {
+          // Coordinates are usually number arrays; account for their payload
+          // without visiting each numeric element or allocating a JSON string.
+          if (value.length && typeof value[0] === 'number') { bytes += value.length * 8; continue; }
+          for (const item of value) pending.push(item);
+        } else {
+          for (const [key, item] of Object.entries(value)) {
+            bytes += key.length * 2;
+            pending.push(item);
+          }
+        }
+      }
+      return bytes;
     }
 
     function recordCanvasWorkerMessage(message) {

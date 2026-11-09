@@ -10,7 +10,7 @@ import {parseArgs} from 'node:util';
 import {gunzipSync} from 'node:zlib';
 import {loadCompleteHydroFeatures} from './hydro-selected-data.mjs';
 import {hydroGeometryCoordinates,verifyHydroCoreDelivery,verifyHydroKoreaCoverage,verifyHydroManifestPolicy,verifyHydroRiverGroups} from './hydro-pack-decoder.mjs';
-import {HYDRO_DATA_VERSION} from "../../src/rendering/physical-layer-service.js";
+import {HYDRO_DATA_VERSION} from "../../src/data/physical-layer-service.js";
 
 const codes=['af','ar','as','au','eu','gr','na','sa','si'];
 const hex=/^[0-9a-f]{64}$/;

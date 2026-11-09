@@ -2,7 +2,7 @@ import { describe as contractSuite } from 'node:test';
 import * as __dep0 from "node:assert/strict";
 import * as __dep1 from "node:test";
 import * as __dep2 from "node:timers";
-import * as __dep3 from "../../../src/document/place-runtime.js";
+import * as __dep3 from "../../../src/data/place-runtime.js";
 import * as __dep4 from "../../../src/document/place-contract.js";
 import * as __dep5 from "../../../src/rendering/rendering-domain.js";
 import * as __dep6 from "../../../src/rendering/label-layout.js";
@@ -26,6 +26,28 @@ const { setImmediate }=__dep2;
 const { createPlaceRuntime }=__dep3;
 const { normalizePlace, PLACE_LIMITS }=__dep4;
 
+test('switching project readers clears Places snapshots and aborts old Worker publication',async()=>{
+  let begin,release;
+  const started=new Promise(resolve=>{begin=resolve;});
+  const blocked=new Promise(resolve=>{release=resolve;});
+  const published=[];let admissions=0;
+  const runtime=createPlaceRuntime({
+    admitReferences:async()=>{admissions++;},
+    onSnapshot:value=>published.push(value.signature),
+    rpc:{stop(){},request:async()=>{begin();return blocked;}}
+  });
+  try {
+    const old=runtime.prepare({projection:'flat',threshold:1,presentation:{month:'2026-01'}});
+    await started;
+    runtime.resetProject();
+    release({result:{records:[],signature:'previous-project'}});
+    assert.equal(await old,false);
+    assert.equal(runtime.snapshot().signature,'empty');
+    assert.deepEqual(runtime.selectionReferences(),[]);
+    assert.deepEqual(published,[]);
+    assert.equal(admissions,0,'the previous project cannot re-admit its labels');
+  }finally{runtime.dispose();}
+});
 test('date reevaluation with equal place records retains the admitted snapshot and its allocations', async () => {
   let admissions=0, publications=0;
   const record=normalizePlace({source:'synthetic',sourceId:'same',name:'Same',kind:'city',coordinates:[1,2]});

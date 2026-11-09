@@ -480,7 +480,7 @@ std::string optionalText(const V& v,const std::string& key,const std::string& fa
 }
 V strings(std::initializer_list<const char*> values){V result=V::arr();for(const auto* value:values)result.array.push_back(V::str(value));return result;}
 V currentWebHeader() {
-    return object({{"version",V::str("0.1.0-timeline")},{"savedAt",V::str("")},{"baseDataset",V::str("external-territorial-entities")},{"sourceInfo",V{}},{"physicalSourceInfo",V::obj()},{"projectSetup",codecjson::parse(ProjectDocument{}.exchangeMetadata).object.at("projectSetup")},
+    return object({{"version",V::str("0.1.0-timeline")},{"savedAt",V::str("")},{"baseDataset",V::str("external-territorial-entities")},{"sourceInfo",V{}},{"physicalSourceInfo",V::obj()},{"mapProjectIdentity",V{}},{"projectSetup",codecjson::parse(ProjectDocument{}.exchangeMetadata).object.at("projectSetup")},
         {"landObjectModel",object({{"schemaVersion",V::num(2)},{"coastlineAuthority",V::str("territorialEntities")},{"purpose",V::str("lossless-fallback")},{"directCreation",V::boolean(false)},{"sourceProvenanceSchemaVersion",V::num(1)},{"canonicalProperties",strings({"name","notes","color","locked","source"})}})},
         {"territorialModel",object({{"schemaVersion",V::num(TerritorialIdentityVersion)},{"coastlineAuthority",V::str("territorialEntities")},{"storage",V::str("territorialEntities")},{"kinds",strings({"general","regional"})},{"coverageModes",strings({"partition","explicit"})}})},
         {"distributionModel",object({{"schemaVersion",V::num(3)},{"sourceModes",strings({"territorial","geometry"})},{"valueKind",V::str("finite-number")}})}});
@@ -491,7 +491,23 @@ void validateHeader(const V& header,const ProjectDocument&) {
     for(const auto* key:{"version","savedAt","baseDataset"})(void)str(field(header,key));
     require(field(header,"sourceInfo").kind==V::Null||field(header,"sourceInfo").kind==V::Object,"INVALID_SOURCE_INFO");
     require(field(header,"physicalSourceInfo").kind==V::Object,"INVALID_PHYSICAL_SETTINGS");
-    ProjectDocument checks;unknown(checks,9,header,"/exchangeMetadata",{"version","savedAt","baseDataset","sourceInfo","physicalSourceInfo","landObjectModel","territorialModel","distributionModel","projectSetup"});
+    const auto& identity=field(header,"mapProjectIdentity");
+    if(identity.kind!=V::Null) {
+        require(identity.kind==V::Object&&identity.object.size()==3,
+                "INVALID_MAP_PROJECT_IDENTITY: expected three fields");
+        const auto id=str(field(identity,"projectId"));
+        require(!id.empty()&&id.size()<=64&&id[0]>='a'&&id[0]<='z'&&
+                id.find_first_not_of("abcdefghijklmnopqrstuvwxyz0123456789-")==std::string::npos,
+                "INVALID_MAP_PROJECT_IDENTITY: project ID");
+        const auto digest=str(field(identity,"manifestSha256"));
+        require(digest.size()==64&&digest.find_first_not_of("0123456789abcdef")==std::string::npos,
+                "INVALID_MAP_PROJECT_IDENTITY: manifest digest");
+        const auto revision=str(field(identity,"dataRevision"));
+        require(revision.size()==37&&revision.compare(0,5,"data-")==0&&
+                revision.substr(5).find_first_not_of("0123456789abcdef")==std::string::npos,
+                "INVALID_MAP_PROJECT_IDENTITY: data revision");
+    }
+    ProjectDocument checks;unknown(checks,9,header,"/exchangeMetadata",{"version","savedAt","baseDataset","sourceInfo","physicalSourceInfo","mapProjectIdentity","landObjectModel","territorialModel","distributionModel","projectSetup"});
     validateProjectSetup(field(header,"projectSetup"));
 }
 void validateExchangeMetadata(const ProjectDocument& d) {
@@ -764,8 +780,11 @@ ProjectDocument readWebDocumentValue(const V& root,const PlatformPorts& ports,bo
     require(integer(field(root,"schemaVersion"))==ProjectVersion,"UNSUPPORTED_VERSION: expected web v14");
     const auto format=str(field(root,"format"));require(format!="pandolab-autosave-delta","BASE_DATA_REQUIRED: web delta requires its matching baseline");require(format=="pandolab-project-state"||format=="pandolab-autosave-full","UNSUPPORTED_FORMAT");
     for(const auto* key:{"defaultView","layerVisibility","itemVisibility"})require(!root.object.count(key),"PL-SCHEMA-FIELD: viewing state is device-only");
-    unknown(d,10,root,"",{"format","schemaVersion","version","savedAt","baseDataset","landObjectModel","territorialModel","distributionModel","sourceInfo","physicalSourceInfo","documentId","territorialEntities","timelineRecords","geometries","geometryResources","labels","hydroEdits","genericFeatures","distributionLayers","distributionEntries","labelSettings","distributionSettings","layerPresentation","projectSetup"});
-    auto header=V::obj();for(const auto& [key,value]:currentWebHeader().object)header.object[key]=field(root,key);validateHeader(header,d);d.exchangeMetadata=header.encode();
+    unknown(d,10,root,"",{"format","schemaVersion","version","savedAt","baseDataset","landObjectModel","territorialModel","distributionModel","sourceInfo","physicalSourceInfo","documentId","territorialEntities","timelineRecords","geometries","geometryResources","labels","hydroEdits","genericFeatures","distributionLayers","distributionEntries","labelSettings","distributionSettings","layerPresentation","projectSetup","mapProjectIdentity"});
+    auto header=V::obj();for(const auto& [key,value]:currentWebHeader().object){
+        if(key=="mapProjectIdentity"&&!root.object.count(key))header.object[key]=V{};
+        else header.object[key]=field(root,key);
+    }validateHeader(header,d);d.exchangeMetadata=header.encode();
     d.documentId=str(field(root,"documentId"));require(!d.documentId.empty(),"INVALID_DOCUMENT_ID");
     for(const auto& row:array(field(root,"territorialEntities")))readWebTerritorialIdentity(row,d,ports);
     for(const auto& row:array(field(root,"hydroEdits"))) {

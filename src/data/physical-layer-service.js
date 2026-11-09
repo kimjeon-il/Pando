@@ -61,31 +61,45 @@ export function createHydroService({
   onRetry,
   acceptManifest,
   onFailure,
+  // Generation-specific requests can replace a pending older project load.
+  loadKey=()=>null,
+  isLoadCurrent=()=>true,
 }) {
-  let pendingLoad = null;
+  let pendingLoad=null,pendingKey=null,readyKey=null;
 
-  function load(force = false) {
-    // Consumers need the same readiness result, not an early duplicate-load failure.
-    if (pendingLoad) return pendingLoad;
-    if (!force && getLoadState() === 'ready') return Promise.resolve(true);
-    pendingLoad = Promise.resolve().then(loadManifest).finally(() => { pendingLoad = null; });
-    return pendingLoad;
+  function load(force=false) {
+    const key=loadKey();
+    if(pendingLoad&&Object.is(pendingKey,key))return pendingLoad;
+    if(!force&&getLoadState()==='ready'&&Object.is(readyKey,key))
+      return Promise.resolve(true);
+    const task=Promise.resolve().then(()=>loadManifest(key)).finally(()=>{
+      if(pendingLoad===task){pendingLoad=null;pendingKey=null;}
+    });
+    pendingKey=key;pendingLoad=task;
+    return task;
   }
 
-  async function loadManifest() {
+  async function loadManifest(key) {
+    if(!isLoadCurrent(key))return false;
     onLoading();
     try {
-      const url = manifestUrl();
-      const manifest = await fetchManifest({ fetchWithRetry, url, operation: 'hydro-manifest', onRetry });
-      if (manifest.version !== dataVersion || manifest.schema !== 'pandolab-water-shards-v5') throw new Error('수계 타일 버전이 맞지 않습니다.');
-      const accepted = await acceptManifest(manifest, url);
-      if (!accepted) throw new Error('수계 Worker 초기화에 실패했습니다.');
+      const url=manifestUrl();
+      const manifest=await fetchManifest({fetchWithRetry,url,operation:'hydro-manifest',onRetry});
+      if(!isLoadCurrent(key))return false;
+      if(manifest.version!==dataVersion||manifest.schema!=='pandolab-water-shards-v5')
+        throw new Error('수계 타일 버전이 맞지 않습니다.');
+      const accepted=await acceptManifest(manifest,url,{key,isCurrent:()=>isLoadCurrent(key)});
+      if(!isLoadCurrent(key))return false;
+      if(!accepted)throw new Error('수계 Worker 초기화에 실패했습니다.');
+      readyKey=key;
       return true;
-    } catch (error) {
-      onFailure(error);
+    } catch(error) {
+      // A previous project's rejected network/Worker reply must never
+      // alter the active project's load status or surface an obsolete error.
+      if(isLoadCurrent(key))onFailure(error);
       return false;
     }
   }
 
-  return Object.freeze({ load });
+  return Object.freeze({load});
 }

@@ -291,7 +291,7 @@
         ]
       ],
       "consumers": [
-        "src/document/place-runtime.js"
+        "src/data/place-runtime.js"
       ],
       "tools": [
         "node"

@@ -1,16 +1,7 @@
 name: Current Hydro Runtime Contract
 
 on:
-  push:
-    branches: [main, work/ui, work/objects, work/gis, work/places]
-    paths:
-      - 'tools/checks/check-current-hydro-layout.mjs'
-      - 'tests/unit/geometry/current-hydro-layout.test.mjs'
-      - 'tests/unit/data/hydro-packfile.test.mjs'
-      - 'src/rendering/workers/hydro-tile-worker.js'
-      - 'src/rendering/workers/hydro-shard-store.js'
-      - 'assets/data/hydro/**'
-      - '.github/workflows/active-hydro-optimization-gate.yml'
+  # Specialized source-layout reproductions are run on demand.
   workflow_dispatch:
 
 permissions:

@@ -40,8 +40,20 @@ export function createObjectSearchController({
   let builtinRows = [];
   let builtinTruncated = false;
   let rowRevision = 0, projectTransition = 0, projectSuspended = false;
+  let projectScope=String(model.snapshot()?.projectScope??'');
+  const readProjectScope=()=>String(model.snapshot()?.projectScope??'');
   const currentRow = target => !disposed && !projectSuspended
-    && target?.dataset?.searchRowRevision === String(rowRevision);
+    && target?.dataset?.searchRowRevision === String(rowRevision)
+    && target?.dataset?.searchProjectScope === readProjectScope();
+  function syncProjectScope(){
+    const next=readProjectScope();
+    if(next===projectScope)return false;
+    projectScope=next;searchGeneration++;rowRevision++;
+    cachedCatalog=null;cachedRevision=undefined;renderedDependencies=null;
+    renderedSearchRefs=[];builtinQuery=null;builtinRows=[];builtinTruncated=false;
+    cancelBuiltinSearch();
+    return true;
+  }
 
   const selection = () => model.selectionSnapshot?.().selection || { primaryKey: null, items: [] };
 
@@ -77,6 +89,7 @@ export function createObjectSearchController({
     row.className = 'object-search-result ui-selectable-row';
     row.dataset.objectKey = item.key;
     row.dataset.searchRowRevision = String(rowRevision);
+    row.dataset.searchProjectScope = projectScope;
     row.setAttribute('role', 'option');
     row.setAttribute('aria-selected', String(selected));
     row.classList.toggle('is-selected', selected);
@@ -88,6 +101,7 @@ export function createObjectSearchController({
     select.dataset.objectSearchSelect = item.layerGroup;
     select.dataset.itemId = item.id;
     select.dataset.searchRowRevision = String(rowRevision);
+    select.dataset.searchProjectScope = projectScope;
     select.setAttribute('aria-label', item.name);
     const name = document.createElement('strong');
     name.textContent = item.name;
@@ -101,6 +115,7 @@ export function createObjectSearchController({
     focus.dataset.objectSearchFocus = item.layerGroup;
     focus.dataset.itemId = item.id;
     focus.dataset.searchRowRevision = String(rowRevision);
+    focus.dataset.searchProjectScope = projectScope;
     focus.dataset.tooltip = '선택 객체로 이동';
     focus.setAttribute('aria-label', `${item.name} 선택 객체로 이동`);
     const focusIcon = createIcon?.('focus', 'ui-icon');
@@ -126,7 +141,7 @@ export function createObjectSearchController({
   }
 
   function commitRows(query, rows) {
-    const next = { source: 'object-search', content: resourceKey(rows.map(item =>
+    const next = { source: resourceKey(['object-search',projectScope]), content: resourceKey(rows.map(item =>
       [item.key, item.id, item.layerGroup, item.name || '', item.typeLabel || '', item.flagUrl || ''])),
       preparation: 'search-rows-v1', context: null, presentation: resourceKey([query, builtinTruncated]) };
     if (!resourceUpdate(renderedDependencies, next).present) { syncSelection(); return false; }
@@ -149,17 +164,19 @@ export function createObjectSearchController({
 
   function requestBuiltinRows(query) {
     const normalized = normalizePlaceQuery(query);
-    const next = { source: 'builtin-search', content: resourceKey([normalized, model.snapshot().builtinContext ?? null]),
+    const next = { source: resourceKey(['builtin-search',projectScope]),
+      content: resourceKey([normalized, model.snapshot().builtinContext ?? null]),
       preparation: 'search-v1', context: null, presentation: 'results' };
     if (model.snapshot().searchActive === false || !resourceUpdate(builtinQuery, next).prepare) return;
     builtinQuery = next;
-    const generation = ++searchGeneration;
+    const generation = ++searchGeneration,requestScope=projectScope;
     cancelBuiltinSearch();
     builtinRows = [];
     builtinTruncated = false;
     if (!builtinSearch || [...normalized].length < 2) return;
     Promise.resolve().then(() => builtinSearch(normalized)).then(result => {
-      if (disposed || generation !== searchGeneration || model.snapshot().searchActive === false || normalizePlaceQuery(model.snapshot().search) !== normalized) return;
+      if (disposed || generation !== searchGeneration || requestScope !== readProjectScope()
+        || model.snapshot().searchActive === false || normalizePlaceQuery(model.snapshot().search) !== normalized) return;
       builtinTruncated = result.truncated === true;
       builtinRows = result.records.slice(0, PLACE_LIMITS.searchResults).map(record => {
         const ref = normalizeObjectRef({ domain: 'label', type: record.kind, id: record.id });
@@ -167,7 +184,7 @@ export function createObjectSearchController({
       });
       commitRows(query, combinedRows(query));
     }).catch(error => {
-      if (disposed || generation !== searchGeneration) return;
+      if (disposed || generation !== searchGeneration || requestScope !== readProjectScope()) return;
       builtinQuery = null;
       if (error.cancelled || error.name === 'AbortError') return;
       onSearchError(error);
@@ -176,6 +193,7 @@ export function createObjectSearchController({
 
   function render() {
     if (disposed || projectSuspended) return false;
+    syncProjectScope();
     const snapshot = model.snapshot();
     const query = String(snapshot.search || '').trim();
     const results = elements.searchResults;
@@ -221,12 +239,13 @@ export function createObjectSearchController({
     if (!group || !id) return false;
     const additive = event.ctrlKey || event.metaKey;
     const range = event.shiftKey;
-    const queryRevision = searchGeneration, rowTicket = rowRevision;
+    const queryRevision = searchGeneration, rowTicket = rowRevision,sourceScope=projectScope;
     const selected = await commands.selectItem({
       group, id, additive, range,
       orderedRefs: range ? renderedSearchRefs : [],
     });
-    if (disposed || projectSuspended || queryRevision !== searchGeneration || rowTicket !== rowRevision) return false;
+    if (disposed || projectSuspended || queryRevision !== searchGeneration
+      || rowTicket !== rowRevision || sourceScope !== readProjectScope()) return false;
     if (selected === true && !additive && !range) commands.closeAfterSingleSelection?.();
     return selected === true;
   }
@@ -236,9 +255,10 @@ export function createObjectSearchController({
     const group = target.dataset.objectSearchFocus;
     const id = target.dataset.itemId;
     if (!group || !id) return false;
-    const rowTicket = rowRevision, queryRevision = searchGeneration;
+    const rowTicket = rowRevision, queryRevision = searchGeneration,sourceScope=projectScope;
     const selected = await commands.selectItem({ group, id, additive: false, range: false, orderedRefs: [] });
-    if (selected !== true || disposed || projectSuspended || rowTicket !== rowRevision || queryRevision !== searchGeneration) return false;
+    if (selected !== true || disposed || projectSuspended || rowTicket !== rowRevision
+      || queryRevision !== searchGeneration || sourceScope !== readProjectScope()) return false;
     commands.focusItem?.(group, id);
     return true;
   }
@@ -327,6 +347,7 @@ export function createObjectSearchController({
     builtinQuery = null;
     builtinRows = [];
     builtinTruncated = false;
+    syncProjectScope();
     // Reconcile a visible query immediately after accepted map publication.
     // Post-hydration may still be pending, but no retired country can remain.
     return String(model.snapshot().search || '').trim() ? render() : true;
@@ -381,7 +402,9 @@ export function createAppObjectSearchController(runtime = {}) {
     createEmptyState: runtime.createEmptyState,
     createIcon,
     builtinSearch: runtime.builtinSearch ? async query => {
-      if(state.resourceCapabilities?.builtinPlaces===false||state.layerVisibility?.labels===false)return {records:[],truncated:false};
+      if(runtime.libraryAvailable?.()===false
+        ||state.resourceCapabilities?.builtinPlaces===false||state.layerVisibility?.labels===false)
+        return {records:[],truncated:false};
       const result=await runtime.builtinSearch(query);
       return {...result,records:result.records.map(record=>{
         const name=result.displayNames?.[record.id];
@@ -390,13 +413,16 @@ export function createAppObjectSearchController(runtime = {}) {
       })};
     } : null,
     cancelBuiltinSearch: runtime.cancelBuiltinSearch,
-    builtinRecordVisible: record => state.resourceCapabilities?.builtinPlaces!==false&&state.layerVisibility?.labels!==false&&state.itemVisibility?.labels?.[record.id]!==false&&!(state.labels || []).some(label => String(label.sourcePlaceId || '') === String(record.id)),
+    builtinRecordVisible: record => runtime.libraryAvailable?.()!==false
+      &&state.resourceCapabilities?.builtinPlaces!==false&&state.layerVisibility?.labels!==false&&state.itemVisibility?.labels?.[record.id]!==false&&!(state.labels || []).some(label => String(label.sourcePlaceId || '') === String(record.id)),
     onSearchError: runtime.onSearchError,
     model: {
-      snapshot: () => ({ builtinContext:JSON.stringify([state.timelineCursor,state.layerVisibility?.labels,state.itemVisibility?.labels]),search: state.objectSearch, searchActive: runtime.isSearchOpen(),
+      snapshot: () => ({ projectScope:runtime.getProjectScope?.()??null,
+        builtinContext:JSON.stringify([runtime.getProjectScope?.()??null,state.timelineCursor,state.layerVisibility?.labels,state.itemVisibility?.labels]),
+        search: state.objectSearch, searchActive: runtime.isSearchOpen(),
         searchSurfaceOpen: runtime.isSearchSurfaceOpen() }),
       items: listObjectSearchItems,
-      catalogRevision: () => state.objectPresentationRevision,
+      catalogRevision: () => resourceKey([runtime.getProjectScope?.()??null,state.objectPresentationRevision]),
       itemRef: layerItemObjectRef,
       selectionSnapshot: () => selectionDomain.snapshot(),
       compare: compareSearchItems,

@@ -168,17 +168,20 @@ test('world manifest and real prepared scene packet accept the same current mesh
   assert.deepEqual(read.preparedStroke,scene.preparedStroke);
 });
 
-test('prepared scene rejects mesh5 and unknown revisions even behind a current descriptor',()=>{
+test('obsolete prepared scene revisions are optional cache misses, but invalid descriptors and mixed payloads fail closed',()=>{
   for(const rejectedRevision of [5,codec.MESH_ALGORITHM_REVISION+1]) {
     const scene=packageFixture(),raw=codec.encodePreparedCountryScene(scene);
     const {bundle}=pairedWorldBundle(scene,raw);
     bundle.assets.preparedCountryScene.algorithmVersion=rejectedRevision;
-    assert.throws(()=>validateWorldBundle(bundle),/prepared country scene descriptor/);
+    const validated=validateWorldBundle(bundle);
+    assert.equal(validated.assets.preparedCountryScene,undefined,
+      'retired geometry acceleration must not block the canonical C++ world');
+    assert.ok(validated.assets.canonicalCountryPacket);
+    assert.ok(validated.assets.canonicalMesh);
     const legacyMesh=scene.meshBuffer.slice(0);new Uint32Array(legacyMesh,0,8)[7]=rejectedRevision;
     assert.throws(()=>codec.decodeCountryMesh(legacyMesh,ids),Error);
     assert.throws(()=>codec.encodePreparedCountryScene({...scene,meshBuffer:legacyMesh}),Error);
-    // Corrupt only a test packet's embedded revision, then give it matching transfer
-    // hashes and a current descriptor. Relabeling cannot admit an old/mixed payload.
+    // A corrupt packet with a current descriptor must never be admitted.
     const header=new Uint32Array(raw,0,4),metadata=JSON.parse(new TextDecoder().decode(new Uint8Array(raw,16,header[2])));
     const meshSection=metadata.arrays[metadata.payload.meshBuffer.$array],base=Math.ceil((16+header[2])/8)*8;
     new Uint32Array(raw,base+meshSection.offset,8)[7]=rejectedRevision;
@@ -187,4 +190,8 @@ test('prepared scene rejects mesh5 and unknown revisions even behind a current d
     assert.equal(createHash('sha256').update(disguised.stored).digest('hex'),spec.sha256);
     assert.throws(()=>codec.decodePreparedCountryScene(bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.length),spec.identity),Error);
   }
+  const scene=packageFixture(),raw=codec.encodePreparedCountryScene(scene);
+  const {bundle}=pairedWorldBundle(scene,raw);
+  bundle.assets.preparedCountryScene.sha256='f'.repeat(64);
+  assert.throws(()=>validateWorldBundle(bundle),/prepared country scene descriptor/);
 });

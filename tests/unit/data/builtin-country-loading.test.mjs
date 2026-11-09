@@ -320,7 +320,7 @@ function fixture(t,{missingPart=false,badHash=false,legacy=false}={}){
 
 test('runtime preparation needs only active builtin files and broad storage preserves unhydrated archive history',t=>{
  const f=fixture(t);
- prepareLibraryData({root:f.root,fetch:false});
+ prepareLibraryData({root:f.root,fetch:false,purpose:'viewer-legacy'});
  for(const part of f.country.parts)assert.ok(existsSync(join(f.root,base+part.file)));
  for(const path of f.retired)assert.equal(existsSync(join(f.root,path)),false,path);
  assert.equal(existsSync(join(f.root,'assets/data/other/value.bin')),false,'unreferenced archive inputs are not Viewer preparation');
@@ -332,13 +332,13 @@ test('runtime preparation needs only active builtin files and broad storage pres
 
 test('missing active country part is never excused as an archived orphan',t=>{
  const f=fixture(t,{missingPart:true});
- assert.throws(()=>prepareLibraryData({root:f.root,fetch:false}),/country-parts/);
+ assert.throws(()=>prepareLibraryData({root:f.root,fetch:false,purpose:'viewer-legacy'}),/country-parts/);
  assert.equal(f.git(f.data,'rev-parse','HEAD'),f.pin);
 });
 
 test('country catalog and archive must agree on the active file integrity pins',t=>{
  const f=fixture(t,{badHash:true});
- assert.throws(()=>prepareLibraryData({root:f.root,fetch:false}),/country.*(?:pin|integrity)|(?:pin|integrity).*country/i);
+ assert.throws(()=>prepareLibraryData({root:f.root,fetch:false,purpose:'viewer-legacy'}),/country.*(?:pin|integrity)|(?:pin|integrity).*country/i);
  assert.equal(f.git(f.data,'rev-parse','HEAD'),f.pin);
 });
 
