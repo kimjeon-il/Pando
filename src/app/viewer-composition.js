@@ -65,7 +65,7 @@ export async function composeViewer({ productMode, meta }) {
   const projectDomain=createProjectDomain({productMode,readOnly:true,commandOwner:documentSession.commandOwner,documentModel:documentSession.documentModel,
     readBuiltinSelectionCatalogs:()=>map?[{domain:'placeBuiltin',refs:map.placeSelectionReferences()},{domain:'hydroBuiltin',refs:map.hydroSelectionReferences()}]:[],publishCommand:()=>map.refreshSelection(),
     onProjectReset:async event=>{postPresentation.invalidate();searchController.cancelSearch();previousView=map.capturePresentation();await selectionDomain.resetProject(event.generation);selectionUiController.resetProject();map.renderingDomain.resetProjectGeneration(event.generation,{presentation:event.presentation,isCurrent:event.isCurrent,onPresented:event.onPresented});},
-    replaceSnapshot:async()=>{await map.setSession(activeSession,{prepareView:async()=>{
+    replaceSnapshot:async(_document,{contentProject=null}={})=>{await map.setSession(activeSession,{contentProject,prepareView:async()=>{
       const project=activeSession.documentModel.snapshot(),bounds=project.projectSetup.initialMapBounds;
       if(openingPreserved)map.projectSession.restoreViewingPresentation({documentId:project.documentId,viewingPresentation:openingPreserved});
       else {
@@ -79,7 +79,7 @@ export async function composeViewer({ productMode, meta }) {
       map.loadPhysicalResources();
       if(!openingPreserved&&!bounds&&map.features().length)map.navigation.fitMapToFeature({type:'FeatureCollection',features:map.features()});
     }});await map.renderer.waitForTemporalPresentation();return true;},
-    restoreReplacement:async()=>{await map.setSession(activeSession,{view:previousView});await map.renderer.waitForTemporalPresentation();}});
+    restoreReplacement:async()=>{await map.setSession(activeSession,{contentProject:projectDomain.activeContentProject(),view:previousView});await map.renderer.waitForTemporalPresentation();}});
   disposables.push(projectDomain);
   let selectionUiController;
   const selectionDomain=createSelectionDomain({commandOwner:documentSession.commandOwner,projectDomain,
