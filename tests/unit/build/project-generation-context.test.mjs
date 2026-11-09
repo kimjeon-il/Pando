@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {readProjectGenerationContext,validateProjectGenerationInputs}
  from '../../../tools/build/project-generation-context.mjs';
+import {collectRuntimeDataAssets} from '../../../src/data/runtime-manifest-assets.js';
+import {mapProjectResourcePaths} from '../../../src/data/map-project-manifest.js';
 
 const root=new URL('../../../',import.meta.url).pathname;
 test('generation input receipts are private source selectors, not Viewer publication data',()=>{
@@ -38,4 +40,32 @@ test('alternate projects use their own generation inputs and output catalog role
  assert.throws(()=>validateProjectGenerationInputs({...alt,inputs:{...alt.inputs,
    worldView:'assets/data/../escape.json'}},'alternate-world'),/Unsafe/);
  assert.throws(()=>validateProjectGenerationInputs(generation,'alternate-world'),/identity|Invalid/);
+});
+
+test('project Viewer closure excludes private authoring inputs and retains pinned derivative catalogs',()=>{
+ const context=readProjectGenerationContext({root});
+ const project=context.project,catalogs=mapProjectResourcePaths(project);
+ const hydroPayload='assets/data/hydro/v0.13.4/fixture.bin';
+ const landPayload='assets/data/physical-land/fixture.bin';
+ const inputPaths=Object.values(context.generation.inputs);
+ const specs={
+  [context.catalogs.world]:{assets:{}},
+  [context.catalogs.territorial]:{entities:[],geometryAssets:[]},
+  [context.catalogs.preparedMeshes]:{meshes:{}},
+  [context.catalogs.rivers]:{container:{url:'fixture.bin'},shards:[]},
+  [context.catalogs.places]:{shards:{}},
+  [project.resources.placeLifetimes.catalog]:{entries:[]},
+  [project.resources.terrain.catalog]:{tiles:{}},
+  [context.catalogs.physicalLand]:{asset:{url:landPayload}},
+ };
+ const selected=collectRuntimeDataAssets({availablePaths:[
+   ...catalogs,hydroPayload,landPayload,...inputPaths],
+  projectManifest:project,
+  readManifest:path=>{assert.ok(specs[path],path);return specs[path];}});
+ for(const input of inputPaths)assert.equal(selected.has(input),false,
+   'Viewer publication cannot ship authoring input: '+input);
+ assert.equal(selected.has(context.catalogs.territorial),true);
+ assert.equal(selected.has(context.catalogs.preparedMeshes),true);
+ assert.equal(selected.has(hydroPayload),true);
+ assert.equal(selected.has(landPayload),true);
 });

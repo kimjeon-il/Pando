@@ -1099,6 +1099,24 @@
   "bindings": [
     {
       "tests": [
+        "tests/unit/data/territorial-metadata-projection.test.mjs",
+        "tests/unit/build/project-generation-context.test.mjs",
+        "tests/unit/build/prepared-scene-reuse.test.mjs"
+      ],
+      "inputs": [
+        "projects/**/generation-inputs.json",
+        "tools/data/territorial-metadata-projection.mjs",
+        "tools/build/build-territorial-entity-chunks.mjs",
+        "tools/gis/territorial-index-entry.js",
+        "tools/build/project-generation-context.mjs",
+        "tools/build/prepared-scene-reuse.mjs",
+        "tools/build/build-builtin-world.mjs",
+        "tools/build/build-prepared-country-scene.mjs",
+        "tools/build/build-prepared-polygon-mesh.mjs"
+      ]
+    },
+    {
+      "tests": [
         "tests/unit/data/map-project-manifest.test.mjs",
         "tests/unit/build/frontend-build.test.mjs",
         "tests/unit/data/frontend-runtime-closure.test.mjs",
