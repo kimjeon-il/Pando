@@ -1,0 +1,57 @@
+name: Scoped map-project stage 2 verification
+on:
+  push:
+    branches: ['work/optimization']
+    paths:
+      - '.github/workflows/map-project-stage2-verify.yml'
+      - 'projects/default-world/manifest.json'
+      - 'src/data/map-project-manifest.js'
+      - 'scripts/lib/frontend-build.mjs'
+      - 'scripts/lib/product-assets.mjs'
+      - 'src/data/runtime-manifest-assets.js'
+      - 'src/document/builtin-session.js'
+      - 'src/app/map-owner-composition.js'
+      - 'src/rendering/territorial-labels.js'
+      - 'src/document/place-runtime.js'
+      - 'src/data/physical-resources.js'
+      - 'tests/unit/data/map-project-manifest.test.mjs'
+      - 'tests/unit/build/frontend-build.test.mjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Lint changed contract and Viewer resource owners
+        run: >-
+          pnpm exec eslint
+          src/data/map-project-manifest.js
+          src/data/runtime-manifest-assets.js
+          src/document/builtin-session.js
+          src/app/map-owner-composition.js
+          src/rendering/territorial-labels.js
+          src/document/place-runtime.js
+          src/data/physical-resources.js
+          scripts/lib/frontend-build.mjs
+          scripts/lib/product-assets.mjs
+          tests/unit/data/map-project-manifest.test.mjs
+          tests/unit/build/frontend-build.test.mjs
+          tests/helpers/frontend-build-fixture.mjs
+      - name: Verify selected project, frontend build and published data closure
+        run: >-
+          node --test
+          tests/unit/data/map-project-manifest.test.mjs
+          tests/unit/build/frontend-build.test.mjs
+          tests/unit/ui/product-assets.test.mjs
+          tests/unit/data/frontend-runtime-closure.test.mjs
