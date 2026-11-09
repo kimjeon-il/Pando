@@ -90,3 +90,29 @@ GitHub Actions 실행 기록: https://github.com/kimjeon-il/Pando/actions/runs/4
 - Viewer 실행 중 다른 프로젝트로 전환하는 UI 및 서로 다른 C++ 프로젝트 정본을 한 세션에서 교체하는 생명주기는 이번 빌드/데이터 소유권 분리와 별개다.
 - 자료 저장소의 비프로젝트 호출용 호환 fallback, 일부 고정 지형 소스 선택은 남아 있다. 기본 프로젝트가 없는 임시 테스트와 이전 GIS 생성 도구를 갑자기 파손하지 않기 위해 일괄 제거하지 않았다.
 - 단위 테스트와 CI가 통과해야 기능 검증 완료로 판정할 수 있다. **커밋은 실행 검증 성공을 의미하지 않는다**.
+
+
+## 후속 단계: 프로젝트 Reader/Adapter 및 로딩 결과 통합 (2026-11-09)
+
+- 입력 파서는 분리한다. 내장 세계지도는 기존 국가 인덱스와 C++ source/candidate를 준비하고,
+  GeoPackage는 `src/data/project-file-reader.js`의 별도 Worker를 사용한다.
+- `src/data/project-open-adapter.js`가 읽기 전략(`queued`/`eager`)을 등록하고
+  양쪽 결과를 동일한 `pandolab-project-read-result`로 변환한다.
+  오래된 C++ 교체가 끝나야 준비할 수 있는 내장 source만 대기열 안에서 읽는다.
+  GeoPackage 디코딩은 교체 대기열 밖에서 미리 진행하며, 최신 요청만 C++로 진입한다.
+- `ProjectDomain.openProject`는 출처에 관계없이 기존 command queue, C++ snapshot validation,
+  bounded replacement capsule, Core admission, selection reset, rollback 및 presentation 승인 절차를
+  한 번만 실행한다. 서로 다른 C++ admission 명령(`loadBaseline`/temporal candidate vs `load`)은 유지한다.
+- 결과는 동일한 `pandolab-project-open-receipt`로 반환한다.
+  `accepted`, `source`, `reason`, `documentId`, `generation`, `contentProject`로
+  성공과 취소를 구분한다. 과거 `open`의 boolean 반환은 호환용 래퍼로 유지한다.
+- Viewer는 같은 영수증에서 받은 generation을 실제 렌더링 완료와 비교한다.
+  승인된 C++ 문서와 실제 표시 완료를 구별하며, 후처리(검색, 지형 부가 로딩)는
+  이전과 같이 렌더링 준비 신호를 지연시키지 않는다.
+- 입력으로 만들어진 국가·수계·지명·지형의 정본을 재작성하지 않는다.
+  프로젝트별 리소스 선택과 rollback은 이전 단계의 동일 소유자를 사용한다.
+  내장 지도 자동 현재월 추적은 Reader가 아니라 Viewer의 명시적 시간 정책으로 남긴다.
+
+확인 항목: Reader 결과 계약, 큐 순서와 stale read, 실제 C++ 문서 승인,
+이전 프로젝트 복구, 외부 프로젝트의 기본 내장 원본 미상속, 기존 지연 형상·캐시 유지.
+전체 GIS 재생성, C++ 스키마 변경, GeoPackage 파서 통합, 신규 편집기는 수행하지 않는다.
