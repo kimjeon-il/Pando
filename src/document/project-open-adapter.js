@@ -15,7 +15,6 @@ export function createProjectOpenAdapter({source='project',read}={}){
     async prepare({isCurrent=()=>true}={}){
       if(!isCurrent())throw stale();
       const value=await read();
-      if(!isCurrent())throw stale();
       if(!value||typeof value!=='object'||Array.isArray(value))
         throw new TypeError('Project reader must return a project document or accepted source candidate.');
       if(builtin){
