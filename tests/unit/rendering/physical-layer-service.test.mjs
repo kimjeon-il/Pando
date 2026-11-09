@@ -320,6 +320,17 @@ test('P4-5 unchanged historical lake versions reuse the exact physical result wh
   assert.equal(requests.length,fetched);
   state.timelineCursor='1922-12';
   assert.strictEqual(resources.physicalLand,first,'revisiting a matching source may reuse the physical mask');
+  // File projects may retain sourceMode:'builtin' for compatibility, but
+  // default-world water is available only through the admitted source reader.
+  resources.setProjectSource('project');
+  assert.equal(resources.physicalLand.revision,modern.sha256);
+  assert.equal(resources.physicalLand.water??null,null);
+  assert.equal(resources.isHydroObjectActive({id:ref.id,properties:{pandolab_id:ref.id}}),false);
+  assert.deepEqual(resources.builtinHydroSelectionReferences([
+    {id:ref.id,properties:{pandolab_id:ref.id}}
+  ]),[]);
+  resources.setProjectSource('builtin');
+  assert.strictEqual(resources.physicalLand,first,'a same-source return may reuse verified immutable geometry');
 });
 });
 
