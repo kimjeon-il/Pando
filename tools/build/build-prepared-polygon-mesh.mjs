@@ -104,7 +104,9 @@ if(selectedIds){
  const known=new Set(index.entities.map(row=>row.entityId));
  if(countryIds.some(id=>!known.has(id)))throw Error('Unknown scoped mesh country');
  const mapping=new Map(index.sourceIdentities.flatMap(row=>row.sourceEntityIds.map(id=>[id,row.projectEntityId])));
- const subunits=new Map(loadBuiltinDisplayPolicy().subunits.map(row=>[builtinSubunitId(row.sourceCountryId),row.parentId])),neighbors=new Map();
+ const displayPolicy=project?readJson(generationInput('displayPolicy','')):loadBuiltinDisplayPolicy();
+ if(!Array.isArray(displayPolicy.subunits))throw Error('Invalid selected project display policy');
+ const subunits=new Map(displayPolicy.subunits.map(row=>[builtinSubunitId(row.sourceCountryId),row.parentId])),neighbors=new Map();
  for(const source of sourceIndex.entities){
   const child=mapping.get(source.entityId),parent=subunits.get(child)||mapping.get(source.parentEntityId)||source.parentEntityId;
   if(!child||!parent||child===parent)continue;
