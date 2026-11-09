@@ -16,6 +16,7 @@ import {builtinSubunitId} from "../../src/document/builtin-subunits.js";
 import {loadBuiltinDisplayPolicy} from "../gis/builtin-display-policy.mjs";
 import {encodeBuiltinCountries,finalizeBuiltinWorldFiles,readBuiltinCountryStoredBytes,readBuiltinCountry} from "../data/builtin-country-bytes.mjs";
 import {isDeepStrictEqual} from 'node:util';
+import {readProjectGenerationContext} from './project-generation-context.mjs';
 import {assertTerritorialRetirement,assertBuiltinRetirement,readRetirementReceipt,planTerritorialRetirement} from '../gis/territorial-retirement.mjs';
 export {finalizeBuiltinWorldFiles};
 
@@ -264,6 +265,18 @@ export function writeBuiltinWorldPublication(files,directory=output,{check=false
  });
 }
 if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url)){
+ const projectId=process.argv.find(arg=>arg.startsWith('--project='))?.slice(10)||'default-world';
+ const root=fileURLToPath(new URL('../../',import.meta.url));
+ const generation=readProjectGenerationContext({root,projectId});
+ const sourceRoot=path.resolve(root,generation.source('territorialSourceRoot'));
+ const sourceIndexPath=generation.source('territorialSourceIndex');
+ const sourceIndexAbsolute=path.resolve(root,sourceIndexPath);
+ const output=path.dirname(path.resolve(root,generation.catalogs.territorial));
+ const selectedView=JSON.parse(fs.readFileSync(path.resolve(root,generation.source('worldView'))));
+ const selectedPolicy=JSON.parse(fs.readFileSync(path.resolve(root,generation.source('historicalPolicy'))));
+ const selectedDisplayPolicy=JSON.parse(fs.readFileSync(path.resolve(root,generation.source('displayPolicy'))));
+ const selectedRead=id=>readTerritorialSource(id,sourceRoot,{sourceIndex,
+  chunkRoot:path.dirname(sourceIndexAbsolute)});
  if(process.argv.includes('--pack-existing'))throw Error('--pack-existing is retired; use country-scoped --entities=<ids> generation');
  const selected=process.argv.find(arg=>arg.startsWith('--entities='));
  const retirementFile=process.argv.find(arg=>arg.startsWith('--retirement-manifest='));
@@ -271,7 +284,7 @@ if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.ur
  if(namesOnly&&!selected)throw Error('--names-only requires --entities');
  if(namesOnly&&process.argv.includes('--plan'))throw Error('--plan is only supported for geometry generation');
  if(process.argv.includes('--plan')&&!selected)throw new Error('--plan requires --entities');
- const sourceIndex=JSON.parse(fs.readFileSync(path.join(territorialDataRoot,'generated/v2/index.json')));
+ const sourceIndex=JSON.parse(fs.readFileSync(sourceIndexAbsolute));
  const index=selected||retirementFile?JSON.parse(fs.readFileSync(path.join(output,'index.json'))):null;
  let files,retirementInputs=null;
  if(retirementFile){
@@ -287,21 +300,22 @@ if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.ur
    const ids=selected.slice('--entities='.length).split(',').filter(Boolean);
    const root=fileURLToPath(new URL("../../",import.meta.url)),config=libraryConfig(root),checkout=libraryCheckout(root);
    const archive=JSON.parse(execFileSync('git',['-c','maintenance.auto=false','-c','gc.auto=0','show',`${config.revision}:archive/index.json`],{cwd:checkout,maxBuffer:16*1024*1024}));
-   files=buildBuiltinWorldNamePublication({entityIds:ids,sourceIndex,previousIndex:index,readCountry:file=>fs.readFileSync(path.join(output,file)),
-    readPreviousSource:id=>normalizeTerritorialLibraryEntity(decodeTerritorialSource(JSON.parse(decodeArchiveEntry(checkout,archive.files[`assets/data/territorial-entities/source/countries/${entityFileName(id)}`],config.revision)),file=>decodeArchiveEntry(checkout,archive.files['assets/data/territorial-entities/source/'+file],config.revision)))});
+   files=buildBuiltinWorldNamePublication({entityIds:ids,sourceIndex,previousIndex:index,readSource:selectedRead,readCountry:file=>fs.readFileSync(path.join(output,file)),
+    readPreviousSource:id=>normalizeTerritorialLibraryEntity(decodeTerritorialSource(JSON.parse(decodeArchiveEntry(checkout,archive.files[`${generation.source('territorialSourceRoot')}/countries/${entityFileName(id)}`],config.revision)),file=>decodeArchiveEntry(checkout,archive.files[generation.source('territorialSourceRoot')+'/'+file],config.revision)))});
    console.log(`Name-only generation: ${ids.length} selected source; geometry and coverage reused without recomputation.`);
   }else{
   const root=fileURLToPath(new URL("../../",import.meta.url)),config=libraryConfig(root),checkout=libraryCheckout(root);
   const archive=JSON.parse(execFileSync('git',['-c','maintenance.auto=false','-c','gc.auto=0','show',`${config.revision}:archive/index.json`],{cwd:checkout,maxBuffer:16*1024*1024}));
-  const previousSourceIndex=JSON.parse(decodeArchiveEntry(checkout,archive.files['assets/data/territorial-entities/generated/v2/index.json'],config.revision));
+  const previousSourceIndex=JSON.parse(decodeArchiveEntry(checkout,archive.files[sourceIndexPath],config.revision));
   files=buildBuiltinWorldPartialPublication({entityIds:selected.slice('--entities='.length).split(',').filter(Boolean),sourceIndex,previousSourceIndex,
-   view:JSON.parse(fs.readFileSync(path.join(territorialSourceRoot,'views/world.json'))),policy:JSON.parse(fs.readFileSync(new URL("../../assets/data/historical-world/policy.json",import.meta.url))),
+   view:selectedView,policy:selectedPolicy,displayPolicy:selectedDisplayPolicy,readSource:selectedRead,
    previousIndex:index,previousCoverage:JSON.parse(fs.readFileSync(path.join(output,'coverage-report.json'))),
    planOnly:process.argv.includes('--plan'),
    onScope:planned=>{console.log(`Scoped generation: ${planned.requested} requested; ${planned.sourceIds.length} connected source inputs in ${planned.components.length} components; other source and country payload files are not read.`);}});
   if(process.argv.includes('--plan')){console.log(JSON.stringify(files,null,2));process.exit(0);}
   }
- }else files=buildBuiltinWorldPublication({input:{sourceIndex}});
+ }else files=buildBuiltinWorldPublication({input:{sourceIndex,entities:readTerritorialSources(sourceRoot,{sourceIndex,chunkRoot:path.dirname(sourceIndexAbsolute)}),
+   view:selectedView,policy:selectedPolicy,displayPolicy:selectedDisplayPolicy}});
  writeBuiltinWorldPublication(files,output,{check:process.argv.includes('--check'),retirementInputs});
  console.log(`Builtin world: ${JSON.parse(files.get('index.json')).entities.length} country references; ${[...files.keys()].filter(file=>file.startsWith('countries/')||file.startsWith('country-parts/')).length} bounded files emitted; ${[...files.values()].reduce((n,b)=>n+b.length,0)} output bytes; no aggregate transport`);
 }
