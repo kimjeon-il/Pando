@@ -3,7 +3,6 @@ import * as __temporal_session_1 from "node:assert/strict";
 import * as __temporal_session_2 from "node:fs";
 import * as __temporal_session_3 from "../../../src/document/project-domain.js";
 import * as __temporal_session_4 from "../../../src/document/builtin-session.js";
-import * as __temporal_session_5 from "../../../src/document/builtin-month-clock.js";
 import * as __temporal_session_6 from "../../../src/document/core-document-read-model.js";
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -40,7 +39,6 @@ const assert = __temporal_session_1.default;
 const readFileSync = __temporal_session_2["readFileSync"];
 const createProjectDomain = __temporal_session_3["createProjectDomain"];
 const createBuiltinSession = __temporal_session_4["createBuiltinSession"];
-const createBuiltinMonthClock = __temporal_session_5["createBuiltinMonthClock"];
 const createCoreDocumentReadModel = __temporal_session_6["createCoreDocumentReadModel"];
 const fixture=()=> {
   const events=[];
@@ -168,48 +166,6 @@ test('missing temporal WASM capability fails instead of admitting a legacy basel
   session.dispose();
 });
 
-
-test('rapid timeline intents start only the final target and commit it once',async()=>{
-  const started=[],commits=[];
-  const clock=createBuiltinMonthClock({coalesceRequests:true,
-    onCommitted:month=>commits.push(month),
-    applyMonth:async(month,{isCurrent,commit})=>{
-      started.push(month);
-      if(isCurrent())commit();
-      return isCurrent();
-    }});
-  const first=clock.selectMonth('2025-12');
-  const middle=clock.selectMonth('2024-12');
-  const latest=clock.selectMonth('2023-12');
-  assert.deepEqual(started,[],'same-task intermediate targets must not start work');
-  assert.deepEqual(await Promise.all([first,middle,latest]),[false,false,true]);
-  assert.deepEqual(started,['2023-12']);
-  assert.deepEqual(commits,['2023-12']);
-  assert.equal(clock.month(),'2023-12');
-  clock.dispose();
-});
-
-test('out-of-order completion cannot publish an older timeline target',async()=>{
-  const pending=new Map(),commits=[];
-  const clock=createBuiltinMonthClock({
-    onCommitted:month=>commits.push(month),
-    applyMonth:(month,{isCurrent,commit})=>new Promise(resolve=>{
-      pending.set(month,{isCurrent,commit,resolve});
-    }),
-  });
-  const older=clock.selectMonth('1950-12');
-  const latest=clock.selectMonth('1951-12');
-  assert.equal(pending.get('1951-12').commit(),true);
-  pending.get('1951-12').resolve(true);
-  assert.equal(await latest,true);
-  assert.equal(pending.get('1950-12').isCurrent(),false);
-  assert.equal(pending.get('1950-12').commit(),false);
-  pending.get('1950-12').resolve(true);
-  assert.equal(await older,false);
-  assert.equal(clock.month(),'1951-12');
-  assert.deepEqual(commits,['1951-12']);
-  clock.dispose();
-});
 
 test('opening a user file while a temporal candidate waits discards it before file adoption',async()=>{
   const f=fixture();

@@ -10,7 +10,7 @@ import {temporalContains, temporalMonthEnd} from "../../../src/document/temporal
 import {resolveWorld} from "../../../src/document/timeline-resolver.js";
 import {createGeometryVersionStore} from "../../../src/geometry/geometry-version-store.js";
 import fs from 'node:fs';
-import {deviceCurrentMonth} from "../../../src/document/builtin-month-clock.js";
+import {deviceCurrentMonth} from "../../../src/document/calendar-month.js";
 
 let built;
 function fixture(){
