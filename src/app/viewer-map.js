@@ -85,7 +85,7 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
   let pendingPropertyPaint=false;
   let lastFrame=null;
 
-  const {builtinSession,projectSession,renderQuality,pointerTargets,cameraNavigation:navigation,countryIndex,spatialIndex,mapProjection,objectPresentation,hydroSettings:physicalSettings,objectCatalog,territorialLabels:labelOwner,physicalResources,gpuScene,mapHost,objectPicking}=owners;
+  const {projectResources,builtinSession,projectSession,renderQuality,pointerTargets,cameraNavigation:navigation,countryIndex,spatialIndex,mapProjection,objectPresentation,hydroSettings:physicalSettings,objectCatalog,territorialLabels:labelOwner,physicalResources,gpuScene,mapHost,objectPicking}=owners;
   const commonPorts=createMapReadPorts(owners);
   mapHost.initializeResolutionQuery();mapHost.initializeMapResizeObserver();
   connectMapOwner('projectSession',projectSession,mergeCapabilityPorts(commonPorts,{readiness:{DATA_READINESS},applicationConstantsA:{DISTRIBUTION_RENDER_MODES},
@@ -136,7 +136,8 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
   const objectQuery=createObjectQuery(readPorts);
   connectMapOwner('objectCatalog',objectCatalog,mergeCapabilityPorts(commonPorts,readPorts));
   const runtimeAssetUrl = path => {const url=runtimeContext.assetUrl(path);return /\/workers\/[\w-]+-worker\.js$/.test(url.pathname)?workerAssetUrl(url,meta):url;};
-  const physicalConfig={...createPhysicalSourceConfiguration({assetBaseUrl:runtimeContext.assetBaseUrl,dataRevision:meta.dataRevision,resourceProfile:meta.resourceProfile,mapProject:meta.mapProject}),
+  const physicalConfig={...createPhysicalSourceConfiguration({assetBaseUrl:runtimeContext.assetBaseUrl,
+    dataRevision:meta.dataRevision,resourceProfile:meta.resourceProfile,mapProject:meta.mapProject}),
     DATA_REVISION:meta.dataRevision,HYDRO_DATA_VERSION,TERRAIN_OCEAN_REPRESENTATIVE,PHYSICAL_DATASET};
   const territorialScope=objectPresentation.territorialScope;
   connectMapOwner('builtinSession',builtinSession,mergeCapabilityPorts(commonPorts,{territorialModel:{entityRepository:repository},objectModelB:{territorialScope},
@@ -208,7 +209,7 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
     feedback:{reportOperationError:onError},domains:{get renderingDomain(){return renderingDomain;},get projectDomain(){return projectDomain;},
       get selectionDomain(){return documentSession.selectionDomain;},objectSearchController:{cancelSearch:()=>onPlacesSettled('cancel'),render:()=>onPlacesSettled('render')}}};
   connectMapOwner('territorialLabels',labelOwner,mergeCapabilityPorts(commonPorts,labelPorts));initializeMapReadOwners(owners,'labels');
-  const places=labelOwner.builtinPlaces;
+  const places=()=>labelOwner.builtinPlaces;
   const svg=d3.select(labelLayer).attr('class','map-svg map-overlay-svg');
   const {interactionSvg,territorialLabelLayer,labelLayer:userLabelLayer,hydroLakeLayer,hydroRiverLayer,hydroEditLayer,territorialUnitLayer,genericFeatureLayer,distributionLayer,territorialBoundaryLayer,selectionLayer,hoverLayer}=createMapOverlayLayers({map:d3.select(element),svg,productMode:'viewer'});
 
@@ -324,8 +325,14 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
   inputPresentation.bindSvg(d3.select(element));
   mapHost.startMapResizeObserver();
   return Object.freeze({
-    async setSession(next,{view=null,prepareView=null}={}){
+    async setSession(next,{view=null,prepareView=null,contentProject=undefined}={}){
       if(next!==documentSession)throw new Error('Map output requires its single document session.');
+      // Select references before composing the accepted C++ world. An imported
+      // file has no implicit builtin countries, places, terrain or water.
+      if(contentProject!==undefined&&projectResources?.select?.(contentProject)){
+        physicalResources.selectProjectResources();
+        labelOwner.selectProjectResources();
+      }
       session=next;
       projectSession.setViewingPresentation(view||{},{reset:true});
       if(prepareView)await prepareView();
@@ -337,8 +344,8 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
     },
     finishInitialPreview:initialPreview.finish,
     cancelInitialReveal:initialPreview.dispose,
-    cancelSearch:()=>places.cancelSearch(),update,features:entityStore.snapshot,searchPlaces:query=>places.search(query),renderer,
-    loadPhysicalResources:physicalResources.loadPhysicalData,loadPhysicalLandMask:physicalResources.loadPhysicalLandMask,viewState:state,objectPresentation,searchActive:()=>places.isSearchOpen(),
+    cancelSearch:()=>places().cancelSearch(),update,features:entityStore.snapshot,searchPlaces:query=>places().search(query),renderer,
+    loadPhysicalResources:physicalResources.loadPhysicalData,loadPhysicalLandMask:physicalResources.loadPhysicalLandMask,viewState:state,objectPresentation,searchActive:()=>places().isSearchOpen(),
     prepareBuiltinProject:async(month,options)=>{
       // Parallel country/physical preparation must not orphan a native
       // candidate when only the physical half fails or is superseded.
