@@ -1,0 +1,29 @@
+name: Optimization focused recovery contracts
+on:
+  push:
+    branches: [work/optimization]
+    paths:
+      - '.github/workflows/optimization-focused-recovery.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  focused:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: P0-1 Pages staging contracts
+        run: node --test --test-timeout=30000 tests/unit/document/monorepo-pages-staging.test.mjs
+      - name: P0-2 and P0-3 project change selection
+        run: node --test --test-timeout=30000 tests/unit/runtime/project-manifest-change-plan.test.mjs
+      - name: P1-1 project terrain and P1-2 shared Hydro contract
+        run: node --test --test-timeout=30000 tests/unit/data/physical-source-project.test.mjs tests/unit/data/map-project-manifest.test.mjs
