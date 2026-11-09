@@ -1,6 +1,6 @@
 'use strict';
-// Shared, stateless geographic tile math. Works in the classic Canvas Worker
-// and in the GPU module without a second implementation or transport.
+// Shared geographic tile math with a per-backend visibility-cache factory.
+// No shared mutable cache or duplicated CPU tile-selection implementation.
 (typeof self === 'undefined' ? globalThis : self).PandoLabTerrainTileSelection = (() => {
   function tileSpec(level,column,row,numericLevel=false) {
     const x0=column*level.tileSize,y0=row*level.tileSize;
@@ -48,5 +48,37 @@
     }
     return specs;
   }
-  return Object.freeze({tileSpec,neighbours,visible});
+  function chooseLevel(manifest, desiredWidth) {
+    if (!manifest?.levels?.length) return { level: null, resolutionLimited: false };
+    const limit = Number(desiredWidth) * 1.12;
+    const last = manifest.levels[manifest.levels.length - 1];
+    return {
+      level: manifest.levels.find(level => level.width >= limit) || last,
+      resolutionLimited: last.width < limit,
+    };
+  }
+  function createVisibilityCache({ distance, numericLevel = false } = {}) {
+    let camera = null;
+    const levels = new Map();
+    return Object.freeze({
+      select(level, { cameraKey, includeAll = false, viewport, scale, projection,
+        flatCenter, globeCenter } = {}) {
+        if (!camera || camera.length !== cameraKey.length
+          || cameraKey.some((value, index) => !Object.is(value, camera[index]))) {
+          camera = cameraKey.slice();
+          levels.clear();
+        }
+        let record = levels.get(level);
+        if (!record) { record = {}; levels.set(level, record); }
+        const kind = includeAll ? 'all' : 'visible';
+        if (!record[kind]) {
+          record[kind] = visible(level, { includeAll, viewport, scale,
+            projection, flatCenter, globeCenter, distance, numericLevel });
+        }
+        return record[kind];
+      },
+      clear() { camera = null; levels.clear(); },
+    });
+  }
+  return Object.freeze({ tileSpec, neighbours, visible, chooseLevel, createVisibilityCache });
 })();

@@ -398,28 +398,20 @@ function canvasFallbackWorkerMain() {
     function terrainLevelForView(projection, terrainDpr, manifest = terrainManifest) {
       if (!manifest?.levels?.length) return null;
       const desiredWidth = Math.max(1, 2 * Math.PI * projection.scale() * Math.max(1, Number(terrainDpr || 1)));
-      return manifest.levels.find(level => level.width >= desiredWidth * 1.12)
-        || manifest.levels[manifest.levels.length - 1];
+      return tileSelection.chooseLevel(manifest, desiredWidth).level;
     }
 
-    let visibleWindow=null,visibleTileCache=new Map();
+    const visibleTileCache=tileSelection.createVisibilityCache({
+      distance:self.d3.geo.distance,numericLevel:true,
+    });
     function visibleTerrainTileSpecs(level,message,projection,width,height,includeAll=false) {
       const view=message.view||{},rotation=view.globeRotation||[0,0,0],flatCenter=view.flatCenter||[0,20];
       const camera=[width,height,projection.scale(),message.projection,flatCenter[0],flatCenter[1],
         Number(rotation[0]||0),Number(rotation[1]||0),terrainManifest,terrainDemManifest];
-      if(!visibleWindow||camera.some((value,index)=>!Object.is(value,visibleWindow[index]))) {
-        visibleWindow=camera;visibleTileCache.clear();
-      }
-      let cached=visibleTileCache.get(level);
-      if(!cached){cached={};visibleTileCache.set(level,cached);}
-      const type=includeAll?'all':'visible';
-      if(cached[type])return cached[type];
-      cached[type]=tileSelection.visible(level,{
-        includeAll,viewport:[width,height],scale:camera[2],projection:camera[3],
+      return visibleTileCache.select(level,{
+        cameraKey:camera,includeAll,viewport:[width,height],scale:camera[2],projection:camera[3],
         flatCenter,globeCenter:[-camera[6],-camera[7]],
-        distance:self.d3.geo.distance,numericLevel:true,
       });
-      return cached[type];
     }
 
     function drawTexturedTriangle(image, sourcePoints, destinationPoints, dpr) {

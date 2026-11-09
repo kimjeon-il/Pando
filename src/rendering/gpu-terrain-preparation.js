@@ -31,19 +31,17 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, onTi
     function terrainLevelForView(frameContext = activeFrameContext) {
       if (!terrainManifest?.levels?.length) return null;
       const physicalScale = Number(frameContext?.scale) || Number(activeFrameContext?.scale) || 1;
-      // The render canvas may lower its DPR under load, but that must not
-      // choose a blurrier source terrain level for an unchanged map view.
-      // Physical scale belongs to the shared frame, so divide by its own DPR.
+      // Render DPR reduction must not degrade the selected source terrain.
       const frameDpr = Math.max(1, Number(frameContext.dpr));
       const sourceDpr = Math.min(isMobile() ? 2 : 3, Math.max(1, Number(view.devicePixelRatio || 1)));
       const desiredWidth = Math.max(1, 2 * PI * (physicalScale / frameDpr) * sourceDpr);
-      resolutionLimited = terrainManifest.levels.at(-1).width < desiredWidth * 1.12;
-      return terrainManifest.levels.find(level => level.width >= desiredWidth * 1.12)
-        || terrainManifest.levels[terrainManifest.levels.length - 1];
+      const choice = tileSelection.chooseLevel(terrainManifest, desiredWidth);
+      resolutionLimited = choice.resolutionLimited;
+      return choice.level;
     }
 
     const tileSelection=globalThis.PandoLabTerrainTileSelection;
-    let visibleCamera=null,visibleTileCache=new Map();
+    const visibleTileCache=tileSelection.createVisibilityCache({ distance: geoDistance });
     const terrainTileSpec=tileSelection.tileSpec;
     const terrainNeighbourSpecs=tileSelection.neighbours;
     function visibleTerrainTileSpecs(level,includeAll=false,frameContext=activeFrameContext) {
@@ -54,18 +52,10 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, onTi
       const projection=frameContext?.viewState?.projection||view.projection;
       const camera=[viewport[0],viewport[1],scale,projection,flatCenter?.[0],flatCenter?.[1],
         Number(rotation?.[0]||0),Number(rotation?.[1]||0)];
-      if(!visibleCamera||camera.some((value,index)=>!Object.is(value,visibleCamera[index]))) {
-        visibleCamera=camera;visibleTileCache.clear();
-      }
-      let cached=visibleTileCache.get(level);
-      if(!cached){cached={};visibleTileCache.set(level,cached);}
-      const type=includeAll?'all':'visible';
-      if(cached[type])return cached[type];
-      cached[type]=tileSelection.visible(level,{
-        includeAll,viewport,scale,projection,flatCenter,
-        globeCenter:[-camera[6],-camera[7]],distance:geoDistance,
+      return visibleTileCache.select(level,{
+        cameraKey:camera,includeAll,viewport,scale,projection,flatCenter,
+        globeCenter:[-camera[6],-camera[7]],
       });
-      return cached[type];
     }
 
     function requestTerrainTile(spec, priority = 0, pump = true) {
@@ -542,7 +532,7 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, onTi
       projectGeneration = next.projectGeneration; contextRevision = next.contextGeneration;
     },
     setManifest(manifest) {
-      visibleCamera=null;visibleTileCache.clear();
+      visibleTileCache.clear();
       const next = { ...dependencies, content: resourceKey(manifest) };
       if (resourceUpdate(dependencies, next).input) reset();
       dependencies = next; terrainManifest = manifest;
