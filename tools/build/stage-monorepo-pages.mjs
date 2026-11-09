@@ -69,7 +69,7 @@ export async function stageWebPages(rootInput, stageInput, manifestInput, { skip
   const sourceCommit=execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim();
   const snapshot=await buildFrontendSnapshot({root,sourceCommit,readSourceBytes,projectId});
   if([...snapshot.viewerPaths].some(path=>path.endsWith('/assets/js/workers/core-viewer-session-worker.js')))for(const name of ['pandoeditor-core.js','pandoeditor-core.wasm','pandoeditor-core.manifest.json']){const path='assets/wasm/'+name;if(!snapshot.assets.has(path))throw Error('Missing protected Web URL: '+path);snapshot.viewerPaths.add(path);}
-  const library=prepareLibraryData({root}),payload=new Map(),files=[];
+  const library=prepareLibraryData({root,projectId}),payload=new Map(),files=[];
   for(const path of snapshot.viewerPaths){
     const generated=snapshot.assets.get(path);let bytes,sourcePath=null;
     if(generated){bytes=generated.bytes;sourcePath=generated.sourcePath;}

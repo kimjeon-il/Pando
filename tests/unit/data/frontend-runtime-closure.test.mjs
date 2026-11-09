@@ -103,3 +103,31 @@ test('Hydro byte ranges preserve whole-container identity and reject ranges outs
  value.index.offset=8;
  assert.throws(()=>runtimeArchiveIndex({files},()=>Buffer.from(JSON.stringify(value))),/range/i);
 });
+
+test('pinned Viewer materialization follows selected project catalog roles without leaking the default place collection',()=>{
+ const source=JSON.parse(readFileSync(new URL('../../../projects/default-world/manifest.json',import.meta.url),'utf8'));
+ const alt='assets/data/places/alternate-world.json';
+ const project={...source,projectId:'alternate-world',resources:{...source.resources,places:{catalog:alt}}};
+ const specs={
+  [source.resources.world.catalog]:{assets:{}},
+  [source.resources.territorial.catalog]:{entities:[]},
+  [source.resources.rivers.catalog]:{container:{url:'shared-hydro.bin'},shards:[]},
+  [source.resources.places.catalog]:{shards:{old:{url:'old-city.bin'}}},
+  [alt]:{shards:{new:{url:'new-city.bin'}}},
+  [source.resources.preparedMeshes.catalog]:{meshes:{}},
+  [source.resources.terrain.catalog]:{tiles:{}},
+  [source.resources.physicalLand.catalog]:{asset:{url:'assets/data/land.bin'}},
+  [source.resources.placeLifetimes.catalog]:{entries:[]},
+ };
+ const hydroBin=source.resources.rivers.catalog.replace(/manifest\\.json$/,'shared-hydro.bin');
+ const paths=[...Object.keys(specs),'assets/data/land.bin',hydroBin,'assets/data/places/new-city.bin','assets/data/places/old-city.bin'];
+ const entries=Object.fromEntries(paths.map(path=>[path,{stored:path}]));
+ const read=entry=>Buffer.from(JSON.stringify(specs[entry.stored]));
+ const selected=runtimeArchiveIndex({files:entries},read,{projectManifest:project}).files;
+ assert.ok(selected[alt]);
+ assert.ok(selected['assets/data/places/new-city.bin']);
+ assert.equal(selected[source.resources.places.catalog],undefined);
+ assert.equal(selected['assets/data/places/old-city.bin'],undefined);
+ assert.ok(selected[source.resources.territorial.catalog]);
+ assert.ok(selected[hydroBin]);
+});
