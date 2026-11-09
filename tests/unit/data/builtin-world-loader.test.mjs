@@ -169,6 +169,8 @@ test('the default map and imported file use identical accepted C++ territorial l
  assert.equal(association.documentId,admitted.documentId);
  assert.equal(association.catalog,territorialCatalog);
  assert.equal(association.catalogSha256,digest);
+ assert.equal(association.manifest.resources.rivers.catalog,defaultProjectManifest.resources.rivers.catalog);
+ assert.equal(association.dataRevision,'fixture');
  assert.equal(presentedSources[0]?.documentId,admitted.documentId,
   'candidate project identity is available to the replacement adapter');
  assert.equal(owner.project.territorial.list(),owner.documentModel.territorialViews());
