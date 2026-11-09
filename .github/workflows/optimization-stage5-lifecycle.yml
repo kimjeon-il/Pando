@@ -1,4 +1,5 @@
 name: Optimization stage 5 project lifecycle focused contracts
+# Exact source-owned and generation-safe regression probes only; no full test suite.
 on:
   push:
     branches: [work/optimization]
