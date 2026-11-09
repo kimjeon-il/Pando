@@ -340,7 +340,7 @@ jobs:
           tests/unit/document/core-territorial-store-wasm.test.mjs
           tests/unit/document/core-save-state-projection.test.mjs
           tests/unit/document/timeline-controls.test.mjs tests/unit/document/app-builtin-session.test.mjs tests/unit/document/shared-core-assets.test.mjs
-           tests/unit/runtime/core-worker-ownership.test.mjs
+           tests/unit/document/core-document-runtime.test.mjs
       - name: Ordered storage snapshot and project replacement boundaries
         env:
           PANDOEDITOR_WASM_MODULE: build-native/p1/pando-wasm/shared/wasm/pandoeditor-core.js
@@ -471,7 +471,7 @@ jobs:
         with:
           node-version: '24'
       - name: Ordered Worker transport, late acknowledgement and existing client contracts
-        run: node --test  tests/unit/document/core-document-client.test.mjs tests/unit/document/core-document-runtime.test.mjs tests/unit/runtime/core-worker-ownership.test.mjs
+        run: node --test  tests/unit/document/core-document-client.test.mjs tests/unit/document/core-document-runtime.test.mjs tests/unit/document/core-document-runtime.test.mjs
       - name: Prepare exact pinned builtin-world comparison data
         uses: ./.github/actions/library-data
       - name: Checkout exact pinned Emscripten SDK

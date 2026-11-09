@@ -101,7 +101,7 @@ jobs:
           src/rendering/rendering-domain.js
           src/app/viewer-map.js
           tests/unit/ui/core-product-mode.test.mjs
-          tests/unit/ui/map-readonly-flat-boundary.test.mjs
+          tests/unit/ui/core-product-mode.test.mjs
           tests/unit/data/file-access-contract.test.mjs
           tests/unit/app/viewer-initial-presentation.test.mjs
       - name: Verify Core read access, project ownership and editing isolation
@@ -110,7 +110,7 @@ jobs:
           tests/unit/ui/core-product-mode.test.mjs
           tests/unit/data/file-access-contract.test.mjs
           tests/unit/app/viewer-initial-presentation.test.mjs
-          tests/unit/ui/map-readonly-flat-boundary.test.mjs
+          tests/unit/ui/core-product-mode.test.mjs
           tests/unit/app/viewer-bootstrap-recovery.test.mjs
       - name: Verify existing runtime module boundaries
         run: node scripts/check-runtime-boundaries.mjs

@@ -464,7 +464,7 @@ jobs:
             node tools/gis/package-terrain-preview.mjs --binary $terrain --directory build-native/terrain-preview/artifact
             if ($LASTEXITCODE -ne 0) { throw 'Terrain packaging failed' }
             $env:PANDO_TERRAIN_PREVIEW_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/terrain-preview/artifact"
-            node --test tests/unit/build/physical-terrain-builder.test.mjs
+            node --test tests/unit/build/terrain-preview-builder.test.mjs
             if ($LASTEXITCODE -ne 0) { throw 'Physical terrain pipeline differs from frozen source pixels' }
           }
       - uses: actions/upload-artifact@v4
@@ -739,7 +739,7 @@ jobs:
           node tools/gis/package-hydro-encoding.mjs --binary $env:PANDO_HYDRO_ENCODING_BINARY --directory build-native/hydro-encoding/artifact
           if ($LASTEXITCODE -ne 0) { throw 'Hydro encoder packaging failed' }
           $env:PANDO_HYDRO_ENCODING_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/hydro-encoding/artifact"
-          node --test tests/unit/geometry/hydro-encoding-native.test.mjs tests/unit/data/hydro-packfile.test.mjs tests/unit/geometry/hydro-river-groups.test.mjs tests/unit/geometry/hydro-repair-cli.test.mjs tests/unit/geometry/hydro-fingerprint.test.mjs
+          node --test tests/unit/geometry/hydro-encoding-native.test.mjs tests/unit/data/hydro-packfile.test.mjs tests/unit/geometry/hydro-river-groups.test.mjs tests/unit/geometry/hydro-repair-cli.test.mjs tests/unit/geometry/hydro-source-reader.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Hydro feature bytes differ from the Python oracle' }
       - uses: actions/upload-artifact@v4
         with:
@@ -970,7 +970,7 @@ jobs:
 
           $env:PANDO_MAP_IMAGE_ARTIFACT = "$env:GITHUB_WORKSPACE/build-native/map-image/artifact"
 
-          node --test tests/unit/document/map-native-resize.test.mjs tests/unit/document/map-native-packaging.test.mjs tests/unit/document/map-native-webp-encode.test.mjs tests/unit/document/map-native-jpeg-encode.test.mjs
+          node --test tests/unit/document/map-native-resize.test.mjs tests/unit/document/native-tool.test.mjs tests/unit/document/map-native-webp-encode.test.mjs tests/unit/document/map-native-jpeg-encode.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Map image native integration failed' }
 
           if ($LASTEXITCODE -ne 0) { throw 'Map image workflow failed' }
@@ -1270,7 +1270,7 @@ jobs:
         env:
           PANDO_HYDRO_CONNECTIVITY_BINARY: ./build-native/hydro/pando-hydro-connectivity
           PANDO_HYDRO_CONNECTIVITY_DIRECTORY: ${{ github.workspace }}/build-native/hydro/artifact
-        run: node --test tests/unit/geometry/hydro-connectivity-native.test.mjs tests/unit/geometry/hydro-outlets.test.mjs tests/unit/geometry/hydro-source-reader.test.mjs tests/unit/geometry/hydro-repair-cli.test.mjs tests/unit/geometry/hydro-fingerprint.test.mjs tests/unit/geometry/hydro-name.test.mjs tests/unit/geometry/hydro-system-names.test.mjs
+        run: node --test tests/unit/geometry/hydro-connectivity-native.test.mjs tests/unit/geometry/hydro-outlets.test.mjs tests/unit/geometry/hydro-source-reader.test.mjs tests/unit/geometry/hydro-repair-cli.test.mjs tests/unit/geometry/hydro-source-reader.test.mjs tests/unit/geometry/hydro-name.test.mjs tests/unit/geometry/hydro-system-names.test.mjs
       - uses: actions/upload-artifact@v4
         with:
           name: hydro-connectivity-linux-${{ github.sha }}
@@ -1301,7 +1301,7 @@ jobs:
         run: |
           $env:PANDO_HYDRO_CONNECTIVITY_BINARY = "$env:GITHUB_WORKSPACE/build-native/hydro/Release/pando-hydro-connectivity.exe"
           $env:PANDO_HYDRO_CONNECTIVITY_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/hydro/artifact"
-          node --test tests/unit/geometry/hydro-connectivity-native.test.mjs tests/unit/geometry/hydro-outlets.test.mjs tests/unit/geometry/hydro-source-reader.test.mjs tests/unit/geometry/hydro-repair-cli.test.mjs tests/unit/geometry/hydro-fingerprint.test.mjs tests/unit/geometry/hydro-name.test.mjs tests/unit/geometry/hydro-system-names.test.mjs
+          node --test tests/unit/geometry/hydro-connectivity-native.test.mjs tests/unit/geometry/hydro-outlets.test.mjs tests/unit/geometry/hydro-source-reader.test.mjs tests/unit/geometry/hydro-repair-cli.test.mjs tests/unit/geometry/hydro-source-reader.test.mjs tests/unit/geometry/hydro-name.test.mjs tests/unit/geometry/hydro-system-names.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Hydro connectivity checks failed' }
       - uses: actions/upload-artifact@v4
         with:
@@ -1326,7 +1326,7 @@ jobs:
       - name: Verify real Windows file identities and allocation
         env:
           PANDO_PC_ALLOCATION_BINARY: ${{ github.workspace }}/build-native/pc-allocation/Release/pando-pc-file-allocation.exe
-        run: node --test tests/unit/data/pc-file-allocation-native.test.mjs tests/unit/document/native-tool.test.mjs
+        run: node --test tests/unit/data/worktree-storage.test.mjs tests/unit/document/native-tool.test.mjs
       - name: Package source and binary identities
         run: node tools/build/package-native-allocation.mjs --binary build-native/pc-allocation/Release/pando-pc-file-allocation.exe --directory build-native/pc-allocation
       - name: Verify the downloaded-tool invocation contract in the real cleanup owner
