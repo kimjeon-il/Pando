@@ -1,3 +1,5 @@
+import {spawnSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
@@ -11,6 +13,7 @@ import {territorialIndexEntry} from '../../../tools/gis/territorial-index-entry.
 import {builtinSubunitId} from '../../../src/document/builtin-subunits.js';
 import {assertTerritorialStorageScope} from '../../../tools/data/library-store.mjs';
 import {buildTerritorialRetirementIndex} from '../../../tools/build/build-territorial-entity-chunks.mjs';
+import {encodeTerritorialSource} from '../../../tools/data/territorial-source-codec.mjs';
 import {buildCurrentWorld} from '../../../tools/data/territorial-current-world.mjs';
 
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -31,11 +34,12 @@ function fixture(){
  const displayPolicy={schema:'pandolab-builtin-display-policy',schemaVersion:1,revision:'keep',subunits:[{sourceCountryId:'PGA',parentId:'USA'}],territoryMerges:[],sourceAttributions:{}};
  const policy={schemaVersion:1,unknownPeerOverlap:'exclude-from-all',replacements:[]};
  const files=publication.buildBuiltinWorldPublication({input:{entities,view:index.views[0],policy,sourceIndex:index,displayPolicy}});
+ const sourceEncoding=encodeTerritorialSource(entities[1]);
  const manifest={schemaVersion:1,kind:'invalid-current-identity',previousIndex:receipt('index.before.json',bytes(index)),stagedIndex:receipt('index.staged.json',bytes(index)),
   previousBuiltinIndex:receipt('builtin.before.json',files.get('index.json')),previousCoverage:receipt('coverage.before.json',files.get('coverage-report.json')),
   previousCurrentWorld:receipt('world-projection.before.geojson',bytes(buildCurrentWorld({entities,view:index.views[0]}))),
   worldView:receipt('world.before.json',bytes(index.views[0])),displayPolicy:receipt('display.before.json',bytes(displayPolicy)),
-  sources:[{entityId:'state:PGA',source:receipt('PGA.before.json',bytes(entities[1])),chunk:receipt('PGA.before.gz',stored.get('state:PGA')),lineage:receipt('pga.before.json',bytes(index.lineages[1]))}]};
+  sources:[{entityId:'state:PGA',source:receipt('PGA.before.json',bytes(sourceEncoding.descriptor)),geometryResources:[...sourceEncoding.geometries].map(([file,data])=>({file,receipt:receipt(file,data)})),chunk:receipt('PGA.before.gz',stored.get('state:PGA')),lineage:receipt('pga.before.json',bytes(index.lineages[1]))}]};
  const next=structuredClone(index);next.entities.splice(1,1);next.lineages.splice(1,1);next.views[0].selections.splice(1,1);
  return {entities,index,next,displayPolicy,nextDisplay:{...displayPolicy,subunits:[]},policy,files,manifest,receipts,
   readRecovery:p=>receipts.get(p),previousIndex:JSON.parse(files.get('index.json')),previousCoverage:JSON.parse(files.get('coverage-report.json'))};
@@ -203,4 +207,75 @@ test('failed compile writes nothing; failed activation restores policy, projecti
  assert.deepEqual(fs.readFileSync(displayPolicyTarget),f.readRecovery(f.manifest.displayPolicy.path));
  publication.writeBuiltinWorldPublication(files,directory,{retirementInputs,currentWorldTarget,displayPolicyTarget});
  assert.deepEqual(fs.readFileSync(path.join(directory,'index.json')),files.get('index.json'));
+});
+
+test('retirement anchors exact coordinate receipts and retains immutable shared resources',()=>{
+ const f=fixture(),plan=retirement.planTerritorialRetirement(f.manifest,f.index,{readRecovery:f.readRecovery});
+ const resource=f.manifest.sources[0].geometryResources[0];
+ assert.deepEqual(plan.recoveryReceipts.get(base+'/source/'+resource.file),resource.receipt);
+ assert.equal(plan.removePaths.length,3);
+ assert.equal(plan.removePaths.includes(base+'/source/'+resource.file),false);
+ assert.deepEqual(plan.index,f.next);
+});
+
+test('retirement rejects missing duplicate extra or mismatched coordinate receipts',()=>{
+ const mutations=[
+  f=>{delete f.manifest.sources[0].geometryResources;},
+  f=>{f.manifest.sources[0].geometryResources=[];},
+  f=>{const r=f.manifest.sources[0].geometryResources;r.push(structuredClone(r[0]));},
+  f=>{const r=f.manifest.sources[0].geometryResources;r.push({...r[0],file:'geometries/sha256-'+ 'a'.repeat(64)+'.json'});},
+  f=>{f.manifest.sources[0].geometryResources[0].file='../outside.json';},
+  f=>{f.manifest.sources[0].geometryResources[0].receipt.sha256='a'.repeat(64);},
+  f=>{const r=f.manifest.sources[0].geometryResources[0].receipt;const data=Buffer.from('corrupt');f.receipts.set(r.path,data);r.sha256=sha(data);},
+ ];
+ for(const mutate of mutations){const f=fixture();mutate(f);assert.throws(()=>retirement.planTerritorialRetirement(f.manifest,f.index,{readRecovery:f.readRecovery}),/retirement|geometry resource/i);}
+});
+
+test('retirement resolves only the current descriptor codec with real identity and length checks',()=>{
+ const mutations=[
+  d=>{d.geometryVersions[0].geometryResource.bytes++;},
+  d=>{d.geometryVersions[0].geometryResource.logicalRef.id='state:OTHER:current';},
+  d=>{d.geometryVersions[0].geometry={type:'Polygon',coordinates:[]};},
+  d=>{delete d.storageLayout;},
+ ];
+ for(const mutate of mutations){const f=fixture(),r=f.manifest.sources[0].source,d=JSON.parse(f.readRecovery(r.path));mutate(d);const data=bytes(d);f.receipts.set(r.path,data);r.sha256=sha(data);assert.throws(()=>retirement.planTerritorialRetirement(f.manifest,f.index,{readRecovery:f.readRecovery}),/geometry resource/i);}
+ const f=fixture(),r=f.manifest.sources[0].source,data=bytes(f.entities[1]);f.receipts.set(r.path,data);r.sha256=sha(data);
+ assert.throws(()=>retirement.planTerritorialRetirement(f.manifest,f.index,{readRecovery:f.readRecovery}),/invalid source descriptor/);
+});
+
+test('valid rehashed descriptor and geometry cannot replace the indexed retired source',()=>{
+ const f=fixture(),replacement=structuredClone(f.entities[1]);replacement.geometryVersions[0].geometry.coordinates[0][1][0]+=0.25;
+ const encoded=encodeTerritorialSource(replacement),row=f.manifest.sources[0],raw=bytes(encoded.descriptor);
+ f.receipts.set(row.source.path,raw);row.source.sha256=sha(raw);
+ row.geometryResources=[...encoded.geometries].map(([file,data])=>{f.receipts.set(file,data);return {file,receipt:{path:file,sha256:sha(data)}};});
+ assert.throws(()=>retirement.planTerritorialRetirement(f.manifest,f.index,{readRecovery:f.readRecovery}),/recovery source differs from indexed chunk/);
+});
+
+// Exercise the real CLI entrypoints against a tiny read-only filesystem fixture.
+// No catalog hydration, network, writes, or native build occurs in the child.
+function retirementCli(f,kind){
+ const root=fileURLToPath(new URL('../../../',import.meta.url)),chunk=kind==='chunk';
+ const entry=path.join(root,'tools/build/'+(chunk?'build-territorial-entity-chunks.mjs':'build-builtin-world.mjs'));
+ const manifestFile=path.join(root,'synthetic-retirement-manifest.json');
+ const fixtureFiles=[...f.receipts].map(([p,b])=>[path.resolve(root,p),b.toString('base64')]);
+ fixtureFiles.push([manifestFile,bytes(f.manifest).toString('base64')],
+  [path.join(root,base,'source/views/world.json'),bytes(f.next.views[0]).toString('base64')],
+  [path.join(root,base,'generated/v2/index.json'),bytes(f.next).toString('base64')],
+  [path.join(root,'assets/data/builtin-world/generated/v1/index.json'),bytes(f.previousIndex).toString('base64')]);
+ const input={root,entry,manifestFile,files:fixtureFiles,kind};
+ const script="import fs from 'node:fs';import path from 'node:path';import {fileURLToPath,pathToFileURL} from 'node:url';import {syncBuiltinESMExports} from 'node:module';"+
+  'const input='+JSON.stringify(input)+';'+
+  "const files=new Map(input.files),read=fs.readFileSync,exists=fs.existsSync,resolve=p=>path.resolve(p instanceof URL?fileURLToPath(p):p);"+
+  "fs.readFileSync=(p,...args)=>{const key=resolve(p);if(key===path.join(input.root,'assets/data/historical-world/policy.json'))throw Error('correct canonical policy target');if(key===path.join(input.root,'tools/assets/data/historical-world/policy.json'))throw Error('wrong relocated policy target');if(files.has(key)){const data=Buffer.from(files.get(key),'base64');return typeof args[0]==='string'?data.toString(args[0]):data;}return read(p,...args);};"+
+  "fs.existsSync=p=>{const key=resolve(p);if(key===path.join(input.root,'assets/data/territorial-entities/source/countries/state-PGA.json'))return true;if(key.includes(path.join('tools','assets','data')))return false;return exists(p);};"+
+  "for(const name of ['writeFileSync','mkdirSync','unlinkSync','renameSync'])fs[name]=()=>{throw Error('unexpected CLI mutation');};syncBuiltinESMExports();"+
+  "process.argv=[process.execPath,input.entry,'--retirement-manifest='+input.manifestFile,'--check'];await import(pathToFileURL(input.entry));";
+ const imports=[];for(let i=0;i<process.execArgv.length;i++)if(process.execArgv[i]==='--import')imports.push(process.execArgv[i],process.execArgv[++i]);
+ return spawnSync(process.execPath,[...imports,'--input-type=module','-'],{cwd:root,input:script,encoding:'utf8',timeout:20000,env:process.env});
+}
+test('retirement chunk CLI rejects a source that still exists at the canonical app path',()=>{
+ const result=retirementCli(fixture(),'chunk');assert.equal(result.status,1);assert.match(result.stderr,/remove only the preserved source, lineage and chunk/);
+});
+test('retirement builtin CLI resolves policy from the canonical app data path',()=>{
+ const result=retirementCli(fixture(),'builtin');assert.equal(result.status,1);assert.match(result.stderr,/^Error: correct canonical policy target$/m);
 });

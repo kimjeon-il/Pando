@@ -31,7 +31,7 @@ if(retirementFile){
  const previousIndex=JSON.parse(check?readRetirementReceipt(retirement.stagedIndex):fs.readFileSync(path.join(output,'index.json')));
  const index=buildTerritorialRetirementIndex({previousIndex,retirement,
   view:JSON.parse(fs.readFileSync(path.join(territorialSourceRoot,'views/world.json'))),displayPolicy:planTerritorialRetirement(retirement,JSON.parse(readRetirementReceipt(retirement.previousIndex))).displayPolicy,
-  pathExists:logical=>fs.existsSync(fileURLToPath(new URL('../'+logical,import.meta.url)))});
+  pathExists:logical=>fs.existsSync(fileURLToPath(new URL('../../'+logical,import.meta.url)))});
  const bytes=`${JSON.stringify(index,null,2)}\n`;
  if(check){if(fs.readFileSync(path.join(output,'index.json'),'utf8')!==bytes)throw Error('Stale territorial retirement index');}
  else writeLibraryOutput(path.join(output,'index.json'),bytes);
