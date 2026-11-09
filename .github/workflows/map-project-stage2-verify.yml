@@ -37,6 +37,8 @@ jobs:
         uses: ./.github/actions/library-data
       - name: Verify actual project-selected Viewer build with pinned GIS metadata
         run: node scripts/generate-build-metadata.mjs --check
+      - name: Verify actual Viewer product asset selection against immutable project catalogs
+        run: node scripts/generate-build-metadata.mjs --check --product=viewer
       - name: Lint changed contract and Viewer resource owners
         run: >-
           pnpm exec eslint
