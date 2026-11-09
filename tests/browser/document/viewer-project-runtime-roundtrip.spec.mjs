@@ -6,8 +6,17 @@ test('accepted default-world and GeoPackage share the same Viewer scene and reco
  test.setTimeout(240000);
  const errors=[];page.on('pageerror',error=>errors.push(error.message));
  const fixture=await createViewerProjectPackage('프로젝트 전환 회귀');
- await page.goto('/?debug=1&renderer=canvas');
+ await page.goto('/?debug=1');
  const ready=()=>expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:120000});
+ try { await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:18000}); }
+ catch {
+   console.log('INITIAL_SCENE_STALL_DIAGNOSTIC '+JSON.stringify(await page.evaluate(()=>{
+     const api=window.__PANDOLAB_VIEWER__;
+     return {status:document.getElementById('viewerStatus')?.outerHTML,
+       diagnostics:api?.diagnostics?.()?.slice(-16),
+       renderer:api?.rendererStats?.(),month:api?.documentState?.()?.timelineCursor};
+   })).slice(0,20000));
+ }
  await ready();
  const initial=await page.evaluate(()=>{
   const api=window.__PANDOLAB_VIEWER__;
