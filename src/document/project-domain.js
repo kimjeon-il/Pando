@@ -2,6 +2,8 @@ import {normalizeProjectSetup} from "./project-setup.js";
 import { getRuntimePerformanceMetrics,PERFORMANCE_METRIC_NAMES } from "../runtime/runtime-performance-metrics.js";
 import { createCoreDocumentReadModel } from "./core-document-read-model.js";
 import { createProductModePolicy } from "../app/product-mode-policy.js";
+import {createTerritorialEntityRepository} from "./territorial-entity-repository.js";
+import {validateMapProjectManifest,mapProjectDocumentIdentity,mapProjectResourcePath,mapProjectResourceScope} from "../data/map-project-manifest.js";
 
 const metricNow=() => typeof performance==='undefined' ? Date.now():performance.now();
 const cloneValue = value => {
@@ -54,6 +56,42 @@ export function createProjectDomain({
   let disposed = false;
   let replacing = false;
   let saving = false;
+  // A content project is a source binding, not a second C++ document/store.
+  // Only an explicitly selected builtin candidate may acquire this identity.
+  let activeContentProject = null;
+  const normalizeContentProject = source => {
+    if(source==null)return null;
+    const manifest=validateMapProjectManifest(source.manifest);
+    if(typeof source.dataRevision!=='string'||!source.dataRevision.trim()
+      ||!/^[a-f0-9]{64}$/.test(source.catalogSha256||''))
+      throw new TypeError('Invalid content project catalog revision');
+    return Object.freeze({manifest,dataRevision:source.dataRevision,catalogSha256:source.catalogSha256});
+  };
+  const contentIdentityFor = (source,acceptedDocument) => {
+    const content=normalizeContentProject(source);
+    if(!content)return null;
+    const identity=mapProjectDocumentIdentity(content.manifest,acceptedDocument);
+    const scope=mapProjectResourceScope(content.manifest,{
+      documentId:identity.documentId,dataRevision:content.dataRevision});
+    return Object.freeze({...identity,catalog:mapProjectResourcePath(content.manifest,content.manifest.document.sourceRole),
+      catalogSha256:content.catalogSha256,scope});
+  };
+  // The Viewer and imported files both query the accepted C++ temporal views.
+  // Reuse the existing repository indexing logic; no copied country records.
+  let territorialRepository;
+  const territory=()=> {
+    if(typeof documentModel?.territorialViews!=='function')
+      throw new TypeError('The accepted C++ territorial query is required.');
+    if(!territorialRepository)territorialRepository=createTerritorialEntityRepository({
+      getEntities:()=>documentModel.territorialViews()});
+    return territorialRepository;
+  };
+  const territorial=Object.freeze({
+    list:options=>territory().list(options),
+    get:id=>territory().get(id),
+    identities:()=>documentModel.list('territorial'),
+    world:()=>documentModel.world(),
+  });
   let commandQueue = Promise.resolve();
   const preparedIntents=new Map();
   function currentProject(project) {
@@ -192,6 +230,8 @@ export function createProjectDomain({
       if(generation!==expectedGeneration || replacing)
         throw Object.assign(new Error('Document admission completed after project replacement.'),{ code: 'PL-CORE-STALE' });
       await publishCommand(outcome,{ expectedGeneration,reason });
+      // An untagged direct admission must not inherit an earlier content source.
+      activeContentProject=null;
       return documentModel.snapshot();
     });
     commandQueue=operation.catch(() => {});
@@ -218,7 +258,10 @@ export function createProjectDomain({
   // No baseline admission occurs until the existing replacement transaction
   // has captured a reversible Core capsule.
   const prepareTemporalBuiltin = (facts,setup,{dataRevision,manifestSha256,transition=false,
-    expectedGeneration = generation,isCurrent = () => true} = {}) => {
+    expectedGeneration = generation,isCurrent = () => true,contentProject=null} = {}) => {
+    const selectedContent=normalizeContentProject(contentProject);
+    if(selectedContent&&selectedContent.catalogSha256!==manifestSha256)
+      throw new TypeError('Temporal source differs from project territorial catalog');
     const operation=commandQueue.then(async()=>{
       assertActive();
       const current=()=>!disposed&&!replacing&&generation===expectedGeneration&&isCurrent();
@@ -255,7 +298,8 @@ export function createProjectDomain({
           expectedGeneration,expectedEpoch:candidate.expectedEpoch,
           sourceId:source.sourceId,candidateId:candidate.candidateId,
           targetMonth:candidate.targetMonth,sourceFingerprint:candidate.sourceFingerprint,
-          worldSha256:candidate.worldSha256});
+          worldSha256:candidate.worldSha256,
+          ...(selectedContent?{contentProject:selectedContent}:{})});
       } catch(error) {
         if(source&&commandOwner.state()?.epoch===sourceEpoch)
           try {await commandOwner.temporalSourceRelease(source.sourceId);}
@@ -427,6 +471,7 @@ export function createProjectDomain({
     const requireCurrent=()=>{if(!isCurrent())throw Object.assign(new Error('Project opening was superseded.'),{code:'PL-CORE-STALE',name:'AbortError',cancelled:true});};
     requireCurrent();
     let checkpoint;
+    const previousContentProject=activeContentProject;
     let replacementStarted = false;
     let failure;
     let replacementResult;
@@ -472,6 +517,11 @@ export function createProjectDomain({
       });
       if (result === false) throw new Error('Project replacement was rejected.');
       requireCurrent();
+      // Bind only after C++ has accepted the actual document, not on source
+      // preparation. A user GeoPackage—even with builtin sourceMode—stays
+      // independent. The rollback path restores the previous source binding.
+      activeContentProject=reason==='builtin'
+        ?contentIdentityFor(prepared.contentProject,documentModel.snapshot()):null;
       // Unsupported/read-error recovery retains its original slots and write hold.
       if (reason === 'new' && !persistence?.getRecovery?.()) await persistence?.clear?.();
       if (reason === 'new') saveState?.markNewProject();
@@ -481,6 +531,7 @@ export function createProjectDomain({
       replacementResult=result;
     } catch (error) {
       failure=error;
+      activeContentProject=previousContentProject;
       if (replacementStarted && checkpoint !== undefined) {
         // Generations stay monotonic so failed replacement workers remain stale.
         try {
@@ -625,6 +676,8 @@ export function createProjectDomain({
   return Object.freeze({
     snapshot,
     state: () => commandOwner.state(),
+    territorial,
+    activeContentProject:()=>activeContentProject,
     resolveWorld,
     getGeneration: () => generation,
     isReplacing: () => replacing,
