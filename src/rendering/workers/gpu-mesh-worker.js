@@ -69,7 +69,7 @@ const countryPreparation = meshCoreReady.then(() => import(`../country-mesh-prep
   .then(({ createCountryMeshPreparation }) => createCountryMeshPreparation({ engine: self.PandoLabGpuMeshCore }));
 countryPreparation.catch(() => {}); // The mesh operation propagates initialization failures.
 const screenLodModule = import(`../render-lod.js?v=${encodeURIComponent(assetRevision)}`);
-let screenLodSource = null, screenLodIndex = null;
+let screenLodSource = null, screenLodIndex = null, screenLodFeatures = null;
 async function buildMesh(features, context, request = {}) {
   const canonicalFeatures = features;
   const lod = request.lod;
@@ -80,28 +80,42 @@ async function buildMesh(features, context, request = {}) {
     if (!sourceKey) throw new TypeError('Screen LOD requires a verified source key.');
     try {
       if (screenLodSource !== sourceKey || !screenLodIndex) {
+        if (request.useCachedSource || !canonicalFeatures.length)
+          throw Object.assign(new Error('Cached country LOD source was not admitted.'),
+            { code: 'PL-LOD-SOURCE-MISS' });
         const next = createSharedPolygonLodIndex(canonicalFeatures);
         context.throwIfCancelled();
-        screenLodIndex = next; screenLodSource = sourceKey;
+        screenLodIndex = next;
+        screenLodSource = sourceKey;
+        screenLodFeatures = canonicalFeatures;
       }
+      // The Worker keeps one source-scoped canonical geometry in memory.
+      // Subsequent zoom buckets transfer only the screen request and visible IDs.
+      features = screenLodFeatures;
       const display = screenLodIndex.derive({
         cssScale: lod.upperScale, errorPx: lod.errorPx,
+        visibleIds: request.visibleIds ?? null,
       });
       derived = !display.fallback && display.keptVertices < display.originalVertices;
       if (derived) features = display.features;
       lodInfo = { key: String(lod.key || ''), upperScale: lod.upperScale,
         errorPx: lod.errorPx, originalVertices: display.originalVertices,
         keptVertices: display.keptVertices, arcCount: screenLodIndex.stats().arcCount,
+        visibleCountryCount: display.visibleCountryCount, scoped: display.scoped,
         fallback: display.fallback, simplified: derived };
     } catch (error) {
       if (error.name === 'AbortError' || error.cancelled) throw error;
       // Invalid source topology never prevents its exact canonical mesh
       // from rendering. The candidate is rejected as a whole, not per country.
-      screenLodSource = null; screenLodIndex = null;
+      if (error.code === 'PL-LOD-SOURCE-MISS') throw error;
+      screenLodSource = null; screenLodIndex = null; screenLodFeatures = null;
       lodInfo = { key: String(lod.key || ''), fallback: true,
         simplified: false, failure: String(error.message || error).slice(0, 240) };
     }
   }
+  // No simplification or a failed topology check means draw the already
+  // admitted exact mesh. Never spend time regenerating it on a failed LOD.
+  if (lod && !derived) return { lod: lodInfo };
   const started = performance.now();
   const total = features.length + 3;
   const progress = (completed, phase) => context.emitEvent('geometry.mesh-progress',
@@ -112,12 +126,11 @@ async function buildMesh(features, context, request = {}) {
   } catch (error) {
     if (!derived || error.name === 'AbortError' || error.cancelled) throw error;
     // A simplified polygon can be invalid even if its winding is preserved.
-    // Retry ALL countries at exact precision rather than splitting a seam.
+    // The original canonical GPU mesh remains active, so do not duplicate
+    // world-wide triangulation just to signal an invalid display derivative.
     context.throwIfCancelled();
-    features = canonicalFeatures;
-    mesh = await (await countryPreparation).build(features, context, progress);
-    lodInfo = { ...lodInfo, fallback: true, simplified: false,
-      failure: String(error.message || error).slice(0, 240) };
+    return { lod: { ...lodInfo, fallback: true, simplified: false,
+      failure: String(error.message || error).slice(0, 240) } };
   }
   if (lodInfo) mesh.lod = lodInfo;
   const { prepareCountryStroke } = await strokePreparation;
@@ -173,9 +186,21 @@ self.PandoLabWorkerRpc.install({
     'geometry.mesh': async (payload, context) => {
       context.throwIfCancelled();
       const { unpackCountryMeshFeatures } = await meshTransfer;
-      const mesh = await buildMesh(unpackCountryMeshFeatures(payload), context, payload);
+      const source = payload.lod && payload.useCachedSource
+        ? [] : unpackCountryMeshFeatures(payload);
+      let mesh;
+      try {
+        mesh = await buildMesh(source, context, payload);
+      } catch (error) {
+        if (!payload.lod || error.name === 'AbortError' || error.cancelled
+          || error.code === 'PL-LOD-SOURCE-MISS') throw error;
+        mesh = { lod: { key: String(payload.lod.key || ''),
+          fallback: true, simplified: false,
+          failure: String(error.message || error).slice(0, 240) } };
+      }
       context.throwIfCancelled();
-      return self.PandoLabWorkerRpc.transferResult(mesh, meshTransferables(mesh));
+      return payload.lod && !mesh.lod?.simplified
+        ? mesh : self.PandoLabWorkerRpc.transferResult(mesh, meshTransferables(mesh));
     },
   },
 });
