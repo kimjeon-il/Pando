@@ -14,7 +14,10 @@ export const PLACE_RANK_MODEL = Object.freeze({
   isolationScaleKm: 220,
   isolationWeight: 0.62,
   crowdingWeight: 0.24,
-  tierMinScores: Object.freeze([6.85, 6.35, 5.85, 5.20]),
+  // The five population thresholds were recalled by the user. Spatial bonuses
+  // and penalties operate on the log-population scale, so the actual label tier
+  // is determined from the adjusted score, not the modern population alone.
+  populationTierThresholds: Object.freeze([1000000, 500000, 200000, 100000, 50000]),
   tierMinZoom: Object.freeze([1, 1.4, 2, 3, 5]),
 });
 
@@ -57,9 +60,15 @@ export function scorePlacePopulationAndSpacing(place, candidates, model = PLACE_
   const isolationBonus = model.isolationWeight *
     Math.min(1, nearestPeerKm / model.isolationScaleKm);
   const score = populationScore + isolationBonus - crowdingPenalty;
-  const tier = 1 + model.tierMinScores.filter(minimum => score < minimum).length;
+  const thresholds = model.populationTierThresholds;
+  // Approved administrative seats below 50k remain in the source and may be
+  // shown in the least prominent band; this does not widen candidate selection.
+  const populationTier = population < thresholds[4] ? null
+    : 1 + thresholds.slice(0, 4).filter(minimum => population < minimum).length;
+  const tier = 1 + thresholds.slice(0, 4).filter(minimum =>
+    score < Math.log10(1 + minimum)).length;
   return {
-    population, tier, priority: Math.min(99, Math.max(1, Math.round(score * 12))),
+    population, populationTier, tier, priority: Math.min(99, Math.max(1, Math.round(score * 12))),
     minZoom: model.tierMinZoom[tier - 1],
     score: Number(score.toFixed(6)),
     populationScore: Number(populationScore.toFixed(6)),
