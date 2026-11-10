@@ -428,7 +428,9 @@ export function createGpuMapRenderer(deps) {
         geometryRevision:geometryRevisionTracker.committedRevision(),
         paletteRevision:countryPaletteRevision,physicalStyleRevision:physicalStyleStateRevision,
         terrainVisible:state.physicalSettings.terrainVisible,
-        surfaceQuality:surfacePresentation.quality,surfaceGeometryQuality:surfacePresentation.geometryQuality,
+        surfaceQuality:surfacePresentation.quality,
+        surfaceGeometryQuality:activeMeshQuality === 'lod'
+          ? `lod:${screenLodTargetKey}` : surfacePresentation.geometryQuality,
       });
     }
 
