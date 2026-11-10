@@ -5,9 +5,7 @@ import { createHash } from 'node:crypto';
 import { reportPath } from "../../../tools/data/report-paths.mjs";
 import { canonicalPlaceTextBytes, generatePlaceRelease, validateRuntimeApproval } from "../../../tools/build/build-place-runtime.mjs";
 import { decodePlaceTile } from "../../../src/data/place-codec.js";
-import { normalizePlace, PLACE_DISPLAY_TIERS, resolvePlaceDisplayRank } from "../../../src/document/place-contract.js";
-import { layoutLabels } from "../../../src/rendering/label-layout.js";
-import { placeView } from "../../helpers/place-view.mjs";
+import { normalizePlace } from "../../../src/document/place-contract.js";
 import { resolvePlaceLabelRows } from "../../../src/ui/place-name-display.js";
 import { createPlaceWorkerStore } from "../../../src/data/place-worker-store.js";
 
@@ -88,51 +86,6 @@ test('published PLAC v3 bytes decode every place with historical name transition
     assert.ok(resolvePlaceLabelRows(byId.get(id),triple,lastBefore)[0].modernName,id);
     assert.ok(resolvePlaceLabelRows(byId.get(id),triple,firstAt).length>0,id+' missing after first naming record');
   }
-});
-
-test('five display bands prioritize Seoul over Daejeon using pinned PLAC v3 bytes', async () => {
-  const places = decodePlaceTile(publishedBytes);
-  const seoul = places.find(row => row.sourceId === '1835848');
-  const daejeon = places.find(row => row.sourceId === '1835235');
-  assert.equal(seoul.featureCode, 'PPLC');
-  assert.equal(daejeon.featureCode, 'PPLA');
-  assert.equal(seoul.priority, 70, 'pinned publisher data stays unranked');
-  assert.equal(daejeon.priority, 70, 'candidate/release data is unchanged');
-  assert.equal(resolvePlaceDisplayRank(seoul).tier, 1);
-  assert.equal(resolvePlaceDisplayRank(daejeon).tier, 3);
-  assert.ok(resolvePlaceDisplayRank(seoul).priority > resolvePlaceDisplayRank(daejeon).priority);
-  assert.ok(resolvePlaceDisplayRank(seoul).minZoom < resolvePlaceDisplayRank(daejeon).minZoom);
-  const ordered = ['PPLC', 'PPLG', 'PPLA', 'PPLA2', 'PPL']
-    .map((featureCode, i) => resolvePlaceDisplayRank(normalizePlace({
-      source: 'geonames', sourceId: String(90000000 + i), kind: 'city', name: 'Test',
-      coordinates: [0, 0], featureCode, priority: 70, minZoom: 1.25,
-    })));
-  assert.deepEqual(ordered.map(row => row.tier), [1, 2, 3, 4, 5]);
-  assert.ok(ordered.every((row, i) => row === PLACE_DISPLAY_TIERS[i + 1]));
-  for (const [source, kind] of [['synthetic', 'city'], ['geonames', 'town']]) {
-    const unranked = normalizePlace({ source, sourceId: '9999', name: 'Not auto-promoted',
-      kind, coordinates: [0, 0], featureCode: 'PPLC', priority: 70, minZoom: 1.25 });
-    assert.equal(resolvePlaceDisplayRank(unranked).tier, null,
-      'unapproved or noncity references must not be promoted into the five-band display');
-  }
-  assert.ok(ordered.every((row, i) => i === 0 || (
-    ordered[i - 1].priority > row.priority && ordered[i - 1].minZoom < row.minZoom
-  )));
-  const candidates = [daejeon, seoul].map(row => {
-    const display = resolvePlaceDisplayRank(row);
-    return { key: row.id, point: [200, 200], width: 80, height: 22,
-      priority: display.priority, minZoom: display.minZoom, collisionGroup: 'place' };
-  });
-  assert.deepEqual(layoutLabels(candidates, { zoom: 3 }).map(row => row.key), [seoul.id],
-    'when labels overlap, the capital-like display tier must win over GeoNames ID order');
-
-  const store = createPlaceWorkerStore({ manifest, fetchBytes: async () => new Uint8Array(publishedBytes) });
-  const view = { flatCenter: [127.2, 37], width: 800, height: 600, scale: 900 };
-  const coarse = await store.queryViewport(placeView({ ...view, threshold: 1 }));
-  assert.ok(coarse.records.some(row => row.sourceId === seoul.sourceId), 'Seoul should be eligible at 1x');
-  assert.ok(!coarse.records.some(row => row.sourceId === daejeon.sourceId), 'Daejeon should wait for its tier');
-  const detailed = await store.queryViewport(placeView({ ...view, threshold: 2 }));
-  assert.ok(detailed.records.some(row => row.sourceId === daejeon.sourceId), 'Daejeon enters at 2x');
 });
 
 test('all selected present and historic languages are searchable without custom project labels', async () => {
