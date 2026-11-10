@@ -135,6 +135,9 @@ export function coalesceSpatialBlockRanges(ranges,maxRanges=96) {
 // Reuse the exact same BVH visibility predicate for drawing and the
 // viewport-scoped LOD preparation queue. Conservatively admit uncertain seams.
 function createSpatialBlockVisibility(tree, frame, padding) {
+  const [width, height] = frame.cssViewport;
+  const [tx, ty] = frame.cssTranslate;
+  const scale = frame.cssScale;
   const interval = (node, row) => {
     let low = 0, high = 0;
     for (let a = 0; a < 3; a++) { const x = tree.bounds[node * 6 + a] * row[a], y = tree.bounds[node * 6 + a + 3] * row[a]; low += Math.min(x, y); high += Math.max(x, y); }
@@ -170,7 +173,7 @@ export function visibleSpatialBlockRanges(mesh, frame, kind = 'triangle', paddin
     validation.set(tree, valid);
   }
   if (!validation.get(tree)) return null;
-  const ranges = [], [width, height] = frame.cssViewport, [tx, ty] = frame.cssTranslate, scale = frame.cssScale;
+  const ranges = [];
   const visible = createSpatialBlockVisibility(tree, frame, padding);
 
   const visit = node => {
