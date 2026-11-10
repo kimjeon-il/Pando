@@ -15,7 +15,10 @@ if (assetRevision) {
 importScripts('./geographic-boundary-core.js', rasterContractUrl.href, meshCoreUrl.href, rpcHostUrl.href);
 
 const meshCoreReady = import("../../document/temporal.js")
-  .then(({ sharedCalculationCore }) => self.PandoLabGpuMeshCore.setSharedCore(sharedCalculationCore));
+  .then(({ sharedCalculationCore }) => {
+    self.PandoLabGpuMeshCore.setSharedCore(sharedCalculationCore);
+    return sharedCalculationCore;
+  });
 meshCoreReady.catch(() => {}); // Each mesh operation awaits this prerequisite.
 const strokePreparation = import(`../country-stroke-preparation.js?v=${encodeURIComponent(assetRevision)}`);
 const blockPreparation = import(`../mesh-spatial-blocks.js?v=${encodeURIComponent(assetRevision)}`);
@@ -71,12 +74,14 @@ countryPreparation.catch(() => {}); // The mesh operation propagates initializat
 const screenLodModule = import(`../render-lod.js?v=${encodeURIComponent(assetRevision)}`);
 let screenLodSource = null, screenLodIndex = null, screenLodFeatures = null;
 let screenLodScope = '', screenLodScopedFeatures = null;
+const screenLodTileCache = new Map();
 async function buildMesh(features, context, request = {}) {
   const canonicalFeatures = features;
   const lod = request.lod;
   let lodInfo = null, derived = false;
   if (lod) {
-    const { createSharedPolygonLodIndex, resolveScreenLodEdgeDegrees } = await screenLodModule;
+    const { createSharedPolygonLodIndex, resolveScreenLodEdgeDegrees,
+      tileLargePolygonLodFeatures } = await screenLodModule;
     const sourceKey = String(request.sourceKey || '');
     if (!sourceKey) throw new TypeError('Screen LOD requires a verified source key.');
     try {
@@ -87,6 +92,7 @@ async function buildMesh(features, context, request = {}) {
         screenLodSource = sourceKey;
         screenLodFeatures = canonicalFeatures;
         screenLodIndex = null; screenLodScope = ''; screenLodScopedFeatures = null;
+        screenLodTileCache.clear();
       }
       // Canonical source transport is project-scoped. Topology preparation is
       // viewport-scoped: a focused country never indexes all world's LSIB
@@ -116,6 +122,22 @@ async function buildMesh(features, context, request = {}) {
             || { id: feature.id, geometry: null });
         } else features = display.features;
       }
+      let tiled = null;
+      if (request.visibleTiles?.length) {
+        const core = await meshCoreReady;
+        if (typeof core?.polygonOperation !== 'function')
+          throw Object.assign(new Error('Compiled display polygon clipping is unavailable.'),
+            { code: 'PL-LOD-CLIPPING' });
+        tiled = tileLargePolygonLodFeatures(features, request.visibleTiles, {
+          intersection: (left, right) => core.polygonOperation('intersection', [left, right], false),
+          sourceKey, lodKey: String(lod.key || ''),
+          cache: screenLodTileCache,
+        });
+        if (tiled.tiledCountryCount) {
+          features = tiled.features;
+          derived = true;
+        }
+      }
       lodInfo = { key: String(lod.key || ''), upperScale: lod.upperScale,
         errorPx: lod.errorPx,
         maxEdgeDegrees: resolveScreenLodEdgeDegrees({ cssScale: lod.upperScale, errorPx: lod.errorPx }),
@@ -123,7 +145,10 @@ async function buildMesh(features, context, request = {}) {
         keptVertices: display.keptVertices, arcCount: screenLodIndex.stats().arcCount,
         visibleCountryCount: screenLodScopedFeatures.length,
         slotCountryCount: screenLodFeatures.length,
-        scoped: !!visibleIds, sourceCached: true, fallback: display.fallback, simplified: derived };
+        scoped: !!visibleIds, sourceCached: true, fallback: display.fallback, simplified: derived,
+        tiledCountryCount: tiled?.tiledCountryCount || 0,
+        tilesPrepared: tiled?.tilesPrepared || 0,
+        tilesReused: tiled?.tilesReused || 0 };
     } catch (error) {
       if (error.name === 'AbortError' || error.cancelled) throw error;
       // Invalid source topology never prevents its exact canonical mesh
@@ -131,6 +156,7 @@ async function buildMesh(features, context, request = {}) {
       if (error.code === 'PL-LOD-SOURCE-MISS') throw error;
       screenLodSource = null; screenLodIndex = null; screenLodFeatures = null;
       screenLodScope = ''; screenLodScopedFeatures = null;
+      screenLodTileCache.clear();
       lodInfo = { key: String(lod.key || ''), fallback: true,
         sourceCached: false, simplified: false, failure: String(error.message || error).slice(0, 240) };
     }
