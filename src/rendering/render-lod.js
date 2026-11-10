@@ -179,6 +179,24 @@ export function resolveScreenLodBucket({ cssScale, previous = null,
     key: `${upperScale}:${errorPx}` });
 }
 
+/**
+ * Bound spherical mesh chord/sagitta deviation independently of boundary DP.
+ * Unlike a fixed world-wide 0.499-degree subdivision, this creates fewer
+ * interior triangles at small screen scales without changing source geometry.
+ */
+export function resolveScreenLodEdgeDegrees({
+  cssScale, errorPx = MAX_MAP_GEOMETRY_ERROR_PX,
+  minDegrees = 0.499, maxDegrees = 8,
+} = {}) {
+  if (!Number.isFinite(cssScale) || cssScale <= 0 || !Number.isFinite(errorPx)
+    || errorPx <= 0 || !Number.isFinite(minDegrees) || minDegrees <= 0
+    || !Number.isFinite(maxDegrees) || maxDegrees < minDegrees)
+    throw new TypeError('Invalid screen LOD tessellation budget.');
+  const permittedSagitta = Math.min(2, errorPx / cssScale);
+  const angleRadians = 2 * Math.acos(1 - permittedSagitta);
+  return Math.max(minDegrees, Math.min(maxDegrees, angleRadians / RADIANS_PER_LOD_DEGREE));
+}
+
 export function createSharedPolygonLodIndex(features, { precision = 7 } = {}) {
   if (!Array.isArray(features) || !Number.isInteger(precision) || precision < 0 || precision > 9)
     throw new TypeError('Shared polygon LOD requires features and a valid precision.');
