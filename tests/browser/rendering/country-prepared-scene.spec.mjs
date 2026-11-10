@@ -1,5 +1,6 @@
 import {test,expect} from '@playwright/test';
 import {writeFile} from 'node:fs/promises';
+import {navigateViewerStartup} from '../helpers/viewer-acceptance.mjs';
 
 // This is a real pinned world, not a status-only mock. Do not fake performance.now.
 test('prepared initial scene publishes country triangles and borders on cold and cached loads',async({page},info)=>{
@@ -27,8 +28,7 @@ test('prepared initial scene publishes country triangles and borders on cold and
   try {
     for(const mode of ['cold','cached-reload']){
       const started=Date.now();
-      if(mode==='cold')await page.goto('/?debug=1&renderer=webgl2',{waitUntil:'domcontentloaded'});
-      else await page.reload({waitUntil:'domcontentloaded'});
+      await navigateViewerStartup(page,{cold:mode==='cold'});
       await ready();const state=await read();observations.push({mode,elapsedMs:Date.now()-started,...state});
       expect(state.preparation.source).toBe('prepared-country-scene');
       expect(state.preparation.builtCount).toBe(0);

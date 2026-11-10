@@ -1,5 +1,6 @@
 import {test,expect} from '@playwright/test';
 import {writeFile} from 'node:fs/promises';
+import {navigateViewerStartup} from '../helpers/viewer-acceptance.mjs';
 
 // A data-ready flag is not a render receipt. Require the current country and
 // boundary frame before checking whether startup used generated geometry.
@@ -10,8 +11,7 @@ test('builtin cold and cached reload present prepared country geometry without t
   page.on('pageerror',error=>errors.push(error.message));
   for(const visit of ['cold','warm']){
     const start=Date.now(),requestStart=requests.length;
-    if(visit==='cold')await page.goto('/?debug=1&renderer=webgl2',{waitUntil:'domcontentloaded'});
-    else await page.reload({waitUntil:'domcontentloaded'});
+    await navigateViewerStartup(page,{cold:visit==='cold'});
     await page.waitForFunction(()=>{
       const api=globalThis.__PANDOLAB_VIEWER__,stats=api?.rendererStats();
       return api?.initialMapPresented()===true&&stats.canonicalMeshReady===true

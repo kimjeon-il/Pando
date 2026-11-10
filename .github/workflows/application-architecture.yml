@@ -106,9 +106,8 @@ jobs:
           cache: pnpm
       - &a4
         run: pnpm install --frozen-lockfile
-      - &library
-        name: Prepare pinned external library data
-        uses: ./.github/actions/library-data
+      - name: Prepare pinned library metadata for check planning
+        run: node tools/data/library-data.mjs --prepare-metadata
       - name: Reject retired workflow executables before selecting checks
         run: node scripts/check-test-consolidation.mjs
       - name: Select current application checks
@@ -135,7 +134,9 @@ jobs:
       - *a2
       - *a3
       - *a4
-      - *library
+      - &library
+        name: Prepare pinned external library data
+        uses: ./.github/actions/library-data
       - name: Select current application checks
         id: plan
         env: *a5

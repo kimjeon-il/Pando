@@ -4,12 +4,16 @@ import {isAbsolute,relative,resolve} from "node:path";
 import {fileURLToPath} from "node:url";
 import {defaultRoot,git,libraryConfig,libraryReportRoot,libraryReportEditRoot} from "./library-context.mjs";
 import {centralizeLibraryReports} from "./library-reports.mjs";
-import {prepareLibraryData,mountLibraryInputs,beginLibraryWrite,endLibraryWrite,withLibraryWrite} from "./library-runtime.mjs";
+import {prepareLibraryData,prepareLibraryMetadata,mountLibraryInputs,beginLibraryWrite,endLibraryWrite,withLibraryWrite} from "./library-runtime.mjs";
 import {organizeLibraryReports,publishLibraryReports,checkLibraryReports} from "./library-report-publication.mjs";
 import {storeLibraryData} from "./library-store.mjs";
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  if (process.argv[2]?.startsWith('--mount-inputs=')) {
+  if (process.argv[2] === '--prepare-metadata') {
+    const root = process.argv.find(arg => arg.startsWith('--root='))?.slice(7) || defaultRoot;
+    const { repository, revision } = prepareLibraryMetadata({ root });
+    console.log(`Library metadata prepared: ${repository}@${revision}`);
+  } else if (process.argv[2]?.startsWith('--mount-inputs=')) {
     const root = process.argv.find(arg => arg.startsWith('--root='))?.slice(7);
     if (!root) throw Error('Explicit reproduction root is required');
     console.log(mountLibraryInputs({ source: process.argv[2].slice(15), root }));

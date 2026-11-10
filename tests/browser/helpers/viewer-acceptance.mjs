@@ -1,5 +1,10 @@
 import { expect } from '@playwright/test';
 
+export async function navigateViewerStartup(page, { cold }) {
+  if (cold) await page.goto('/?debug=1&renderer=webgl2', { waitUntil: 'domcontentloaded' });
+  else await page.reload({ waitUntil: 'domcontentloaded' });
+}
+
 // Shared acceptance boundaries for the shipped Viewer. Clock and renderer selection
 // always stay with the caller, so a test can still hold external data or GPU work.
 export async function openReadyViewer(page,{url='/?debug=1',timeout=90_000}={}){
