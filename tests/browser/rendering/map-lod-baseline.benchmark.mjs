@@ -38,7 +38,7 @@ for (const projection of ['globe', 'flat']) for (const device of [
           && stats?.countriesPublishedGeneration === stats?.projectGeneration
           && stats?.surfaceDraw?.countryIndexCount > 0);
       }), { timeout: 90_000 }).toBe(true);
-      for (const zoom of [1, 2, 4, 8, 16, 32, 64]) {
+      for (const zoom of [1, 2, 4, 4.5, 8, 16, 32]) {
         const start = Date.now();
         await page.evaluate(({ projection, zoom }) => {
           const host = window.__PANDOLAB_MAP_HOST__;
@@ -55,7 +55,7 @@ for (const projection of ['globe', 'flat']) for (const device of [
             const stats = window.__PANDOLAB_VIEWER__?.rendererStats?.();
             return !!(stats?.screenLodBucket && stats.screenLodLatest?.key === stats.screenLodBucket
               && !stats.screenLodPreparingKey);
-          }, null, { timeout: 15000 });
+          }, null, { timeout: process.env.PANDOLAB_REQUIRE_LOD === '1' ? 90000 : 15000 });
           lodSettled = true;
         } catch { /* The report explicitly records an unsettled candidate. */ }
         const lodAdmissionMs = lodSettled ? Date.now() - start : null;
@@ -107,6 +107,11 @@ for (const projection of ['globe', 'flat']) for (const device of [
             frameIntervals: frames,
           };
         }, { cacheState, projection, zoom });
+        if (process.env.PANDOLAB_REQUIRE_LOD === '1') {
+          expect(lodSettled, `LOD admission at ${cacheState}/${projection}/${zoom}`).toBe(true);
+          expect(result.activeMeshQuality).toBe('lod');
+          expect(result.screenLodFailure || '').toBe('');
+        }
         records.push({
           ...result, elapsedZoomMs: Date.now() - start,
           lodSettled, lodAdmissionMs,

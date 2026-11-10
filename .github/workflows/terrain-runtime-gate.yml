@@ -10,7 +10,7 @@ on:
       - 'src/rendering/workers/canvas-render-worker.js'
       - 'src/data/physical-resources.js'
       - 'tests/unit/rendering/terrain-tile-selection-shared.test.mjs'
-      - '.github/workflows/terrain-preview-gate.yml'
+      - '.github/workflows/terrain-runtime-gate.yml'
   push:
     branches: [main, work/optimization]
     paths:
@@ -18,7 +18,7 @@ on:
       - 'src/rendering/**terrain**'
       - 'src/rendering/gpu-map-renderer.js'
       - 'src/data/physical-resources.js'
-      - '.github/workflows/terrain-preview-gate.yml'
+      - '.github/workflows/terrain-runtime-gate.yml'
   workflow_dispatch:
 
 permissions:

@@ -12,8 +12,7 @@ import {fingerprintProjectBaseline} from "../../src/document/project-baseline-fi
 const noop=() => {};
 function emptySession() {
   const session=createProjectSession();
-  session.connect({ readiness: { DATA_READINESS: { PREVIEW: 'preview' } },
-    applicationConstantsA: { DISTRIBUTION_RENDER_MODES: { OVERLAP: 'overlap' } },
+  session.connect({ applicationConstantsA: { DISTRIBUTION_RENDER_MODES: { OVERLAP: 'overlap' } },
     modelValidation: { normalizeLayerPresentation },physicalConfig: { PHYSICAL_DATASET: 'fixture' },domains: {},
     uiFactoriesA: { createAtomicMapStateController: () => ({}) },
     platformConfigurationA: { APP_VERSION: '0.34.0',BASE_DATASET: 'fixture',HYDRO_DATASET: 'fixture-hydro' },

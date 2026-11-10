@@ -4,7 +4,6 @@ import * as __dep0 from "node:assert/strict";
 import * as __dep1 from "node:test";
 import * as __dep3 from "node:zlib";
 import * as __dep4 from "node:crypto";
-import * as __dep5 from "../../../src/document/project-domain.js";
 import * as __dep6 from "../../helpers/core-command-services/save-state-controller.mjs";
 import * as __dep7 from "../../helpers/core-project.mjs";
 import * as __dep8 from "../../helpers/current-command-fixture.mjs";
@@ -14,7 +13,6 @@ const assert = __dep0.default;
 const test = __dep1.default;
 const { gzipSync } = __dep3;
 const { createHash } = __dep4;
-const { createProjectDomain } = __dep5;
 const { createSaveStateController } = __dep6;
 const { createNodeCoreProject } = __dep7;
 const { createCommandFixture } = __dep8;
@@ -51,16 +49,6 @@ test('load/new publish one event, render and autosave after Core replacement and
   events.length=0;await domain.createProject({initialMonth:'2026-10',timelineRange:null,initialMapBounds:null,sourceMode:'builtin'});
   assert.deepEqual(events,['prepare','cancel-pending','reset','replace','clear-autosave','event','render','autosave']);
   assert.deepEqual(domain.snapshot().timelineRecords,initial.timelineRecords);assert.equal(saveState.snapshot().file,'never-saved');
-});
-
-test('project preview cache operations pass through ProjectDomain',async () => {
-  const project={ format: 'pandolab-autosave-delta' },calls=[];
-  const domain=createProjectDomain({ productMode:'editor', persistence: {
-    restorePreview: async value => { calls.push(['restore',value]);return { countryIds: ['DEU'] }; },
-    ensurePreview: value => { calls.push(['ensure',value]);return true; },
-  } });
-  assert.deepEqual(await domain.restorePreview(project),{ countryIds: ['DEU'] });
-  assert.equal(domain.ensurePreview(project),true);assert.deepEqual(calls,[['restore',project],['ensure',project]]);
 });
 
 test('failed platform replacement restores the canonical full project and history without success effects',async t => {
@@ -180,7 +168,7 @@ test('common project opening keeps the last request and validates through the re
   const before=owner.project.snapshot();
   await assert.rejects(owner.project.open(async()=>({format:'broken'})));
   assert.deepEqual(owner.project.snapshot(),before);
-  assert.equal(await owner.project.open(async()=>null),false);
+  await assert.rejects(owner.project.open(async()=>null),/Project reader must return a project document/);
   assert.equal(owner.project.snapshot().baseDataset,'latest');
   assert.equal(owner.client.state().canUndo,false);
  }finally{owner.dispose();}

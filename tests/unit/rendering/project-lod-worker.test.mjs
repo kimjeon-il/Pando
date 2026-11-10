@@ -34,8 +34,11 @@ function actualWorker(t) {
   let requestId = 0;
   return payload => new Promise((resolve, reject) => {
     const id = ++requestId;
+    const progressEvents = [];
     const receive = data => {
+      if (data.type === 'event' && data.operation === 'geometry.lod-progress' && data.payload?.requestId === id) progressEvents.push(data.payload);
       if (data.type !== 'result' || data.requestId !== id) return;
+      data.progressEvents = progressEvents;
       worker.off('message', receive); worker.off('error', reject); resolve(data);
     };
     worker.on('message', receive); worker.once('error', reject);
@@ -59,6 +62,12 @@ test('actual LOD Worker retains one full-source topology index while visibility 
   const first = await request(payload);
   assert.equal(first.ok, true, first.error?.message);
   assert.equal(first.result.lod.topologyReused, false);
+  assert.equal(first.result.lod.fallback, false, first.result.lod.failure);
+  assert.ok(first.progressEvents.length >= 5);
+  assert.equal(first.progressEvents.at(-1).completed, first.progressEvents.at(-1).total);
+  for(let i=1;i<first.progressEvents.length;i++)
+    assert.ok(first.progressEvents[i].completed >= first.progressEvents[i-1].completed, 'LOD progress cannot renew a timeout by going backwards');
+  assert.ok(first.result.lod.preparationPhases.topology >= 0);
   assert.equal(first.result.lod.topologyFeatureCount, 3);
   assert.equal(first.result.displayFeatures[1].geometry, null);
   for (const point of shared) assert.ok(first.result.displayFeatures[0].geometry.coordinates[0]

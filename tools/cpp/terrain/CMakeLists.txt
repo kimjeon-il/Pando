@@ -1,6 +1,0 @@
-cmake_minimum_required(VERSION 3.21)
-project(pando_terrain_preview LANGUAGES CXX)
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-add_executable(pando-terrain-preview preview.cpp land-mask.cpp ../map-image/resample.cpp ../../../src/data/native/src/losslessjson.cpp)
-target_include_directories(pando-terrain-preview PRIVATE ../../../src/document/native/include ../../../src/geometry/native/include ../../../src/map/native/include ../../../src/rendering/native/include ../../../src/data/native/include ../../../src/runtime/native/include)

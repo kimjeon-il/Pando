@@ -289,3 +289,23 @@ test('derived geometry retains explicit original coordinate indices for every di
     assert.deepEqual(points,indices.map(i=>countries[f].geometry.coordinates[0][i]));
   }
 });
+
+test('dense immutable physical rings do not allocate a mutable contraction graph', () => {
+  const count=12000;
+  const ring=Array.from({length:count},(_,i)=>{
+    const angle=i/count*Math.PI*2;
+    return [20+Math.cos(angle)*4,40+Math.sin(angle)*4];
+  });
+  ring.push(ring[0]);
+  const physical={id:'physical-land',geometry:{type:'Polygon',coordinates:[ring,
+    [[20,40],[20,41],[21,41],[21,40],[20,40]]]}};
+  const progress=[];
+  const index=createSharedPolygonLodIndex([physical],{onProgress:value=>progress.push(value)});
+  assert.equal(index.stats().graphVertexCount,0);
+  assert.equal(index.stats().immutableProtectedVertexCount,count+4);
+  assert.ok(index.stats().preparationMs>=0);
+  assert.deepEqual(progress.map(value=>value.phase),['source-graph','importance','topology']);
+  const display=index.derive({cssScale:100,capped:true});
+  assert.deepEqual(display.features[0].geometry,physical.geometry);
+  assert.equal(display.sourceIndices[0][0][0].length,count+1);
+});

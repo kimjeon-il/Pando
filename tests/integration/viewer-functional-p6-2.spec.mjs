@@ -28,7 +28,6 @@ test('P6-2 narrow layout, touch camera, year input and mobile preferences', asyn
     await expect(page.locator('#timelineDateButtonText')).toHaveText(`${year}년`);
     await expect(page.locator('#timelineDateBasis')).toHaveText(basis);
     await expect(page.locator('#viewer')).toHaveAttribute('data-initial-loading', 'false');
-    await expect(page.locator('#viewerInitialPreview')).toBeHidden();
     await expect(page.locator('#timelineDateError')).toHaveJSProperty('hidden', true);
     await expect(page.locator('#viewerCanvas')).toBeVisible();
     const state = await page.evaluate(() => {

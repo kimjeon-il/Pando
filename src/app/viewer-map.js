@@ -4,7 +4,6 @@ import {workerAssetUrl} from "../runtime/worker-asset-url.js";
 import {createMapInteractionGate} from "../map/map-interaction-gate.js";
 import {createAtomicMapStateController} from "./map-state-transition.js";
 import {createTerritorialEntityStore} from "../document/territorial-entity-store.js";
-import {DATA_READINESS} from "./startup-readiness.js";
 import {createMapRenderer,createMapRenderingResources} from "../rendering/map-renderer-composition.js";
 import {createPhysicalSourceConfiguration,HYDRO_LAYER_META,HYDRO_TOOL_CONFIG,TERRAIN_OCEAN_REPRESENTATIVE,PHYSICAL_DATASET} from "../data/physical-source-configuration.js";
 import {createMapOverlayLayers} from "../ui/map-workspace-host.js";
@@ -87,7 +86,7 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
   const {projectResourcePorts,projectSourceRuntime,territorialSceneRuntime,projectSession,renderQuality,pointerTargets,cameraNavigation:navigation,countryIndex,spatialIndex,mapProjection,objectPresentation,hydroSettings:physicalSettings,objectCatalog,territorialLabels:labelOwner,physicalResources,gpuScene,mapHost,objectPicking}=owners;
   const commonPorts=createMapReadPorts(owners);
   mapHost.initializeResolutionQuery();mapHost.initializeMapResizeObserver();
-  connectMapOwner('projectSession',projectSession,mergeCapabilityPorts(commonPorts,{readiness:{DATA_READINESS},applicationConstantsA:{DISTRIBUTION_RENDER_MODES},
+  connectMapOwner('projectSession',projectSession,mergeCapabilityPorts(commonPorts,{applicationConstantsA:{DISTRIBUTION_RENDER_MODES},
     modelValidation:{normalizeLayerPresentation},physicalConfig:{PHYSICAL_DATASET},domains:{selectionDomain:documentSession.selectionDomain},
     uiFactoriesA:{createAtomicMapStateController},}));
   projectSession.initializeMapWorkScheduler();

@@ -346,14 +346,9 @@ export function createGpuTerrainPreparation({ tileUrl, onUnusable, onTileFailure
       // over the missing target regions, including when zooming out, and pin
       // exactly those draw resources against eviction during replacement uploads.
       const missingSpecs = targetSpecs.filter(spec => !terrainTiles.has(spec.key));
-      const fallbackSpecs = missingSpecs.length
-        ? [...(baseLevel.id !== targetLevel.id && baseReady ? baseSpecs : []),
-          ...terrainManifest.levels.filter(level => level.id !== targetLevel.id && level.id !== baseLevel.id)
-          .flatMap(level => visibleTerrainTileSpecs(level, false, frameContext))
-          .filter(spec => terrainTiles.has(spec.key) && missingSpecs.some(target =>
-            spec.bounds[0] < target.bounds[2] && spec.bounds[2] > target.bounds[0]
-            && spec.bounds[3] < target.bounds[1] && spec.bounds[1] > target.bounds[3]))]
-        : [];
+      const drawSpecs = tileSelection.readyDrawSpecs(terrainManifest, targetLevel, targetSpecs,
+        (level, all) => visibleTerrainTileSpecs(level, all, frameContext), key => terrainTiles.has(key));
+      const fallbackSpecs = drawSpecs.filter(spec => Number(spec.level) !== Number(targetLevel.id));
       for (const spec of fallbackSpecs) terrainRetentionKeys.add(spec.key);
       // Speculation starts only after current coverage reaches the GPU, and
       // only uses spare cache space. It must not block decoding visible tiles
@@ -400,7 +395,6 @@ export function createGpuTerrainPreparation({ tileUrl, onUnusable, onTileFailure
       const prepared = [];
       // Camera scale selects detail, never visibility. Ready tiles replace
       // cached coverage only after their upload has completed.
-      const drawSpecs = [...fallbackSpecs, ...targetSpecs];
       for (const spec of drawSpecs) {
         const tile = terrainTiles.get(spec.key);
         if (!tile) continue;

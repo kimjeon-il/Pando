@@ -23,7 +23,7 @@ export const put = (root, path, value) => {
 };
 export const run = (command, args, cwd) => spawnSync(command, command === 'git' ? ['-c', 'core.fsync=none', ...args] : args, { cwd, encoding: 'utf8' });
 
-export async function pagesRepositoryFixture(t, { sceneRevision = 6, preparedRevision = 6, previewRevision = 6, canonicalRevision = 6, descriptorRevision = null } = {}) {
+export async function pagesRepositoryFixture(t, { sceneRevision = 6, preparedRevision = 6, retiredPreviewDescriptors = false, canonicalRevision = 6, descriptorRevision = null } = {}) {
   const parent = mkdtempSync(join(tmpdir(), 'pando-pages-'));
   t.after(()=>rmSync(parent,{recursive:true,force:true}));
   const root = join(parent, 'source');
@@ -70,10 +70,8 @@ export async function pagesRepositoryFixture(t, { sceneRevision = 6, preparedRev
       sha256: Object.fromEntries([...worker.files].map(([path, source]) => [path, createHash('sha256').update(source).digest('hex')])) }
   } }) + ');');
   const bytes = Buffer.from('tiny immutable asset'), sha256 = createHash('sha256').update(bytes).digest('hex');
-  const assets = {};
+  const assets = retiredPreviewDescriptors ? {previewMesh:{url:'unavailable-preview.bin.gz',header:[0,0,0,0,0,0,0,5]},previewCountries:{url:'unavailable-preview.geojson.gz'}} : {};
   for (const [role, name, extension, encoding] of [
-    ['previewCountries', 'countries-preview', '.geojson.gz', 'gzip'],
-    ['previewMesh', 'world-mesh-preview', '.bin.gz', 'gzip'],
     ['canonicalCountryPacket', 'countries-canonical', '.pcg.gz', 'gzip'],
     ['canonicalMesh', 'world-mesh', '.bin.gz', 'gzip'],
     ['labelAnchors', 'country-label-anchors', '.json', 'identity'],
@@ -81,11 +79,11 @@ export async function pagesRepositoryFixture(t, { sceneRevision = 6, preparedRev
   ]) {
     const url = 'world/objects/' + name + '-sha256-' + sha256 + extension;
     assets[role] = { url, encoding, sha256, compressedBytes: bytes.length, decodedBytes: 64,
-      ...['previewMesh', 'canonicalMesh', 'canonicalCountryPacket'].includes(role) ? { header: [1, 2, 1, 0, 0, 0, 1, sceneRevision] } : {},
+      ...['canonicalMesh', 'canonicalCountryPacket'].includes(role) ? { header: [1, 2, 1, 0, 0, 0, 1, sceneRevision] } : {},
       ...role === 'preparedCountryScene' ? { algorithmVersion: sceneRevision, identity: { fills: [['fixture', sha256]], boundaries: [] } } : {} };
     put(root, 'assets/data/' + url, bytes);
   }
-  for (const [role, name, revision] of [['previewMesh', 'world-mesh-preview', previewRevision], ['canonicalMesh', 'world-mesh', canonicalRevision]]) {
+  for (const [role, name, revision] of [['canonicalMesh', 'world-mesh', canonicalRevision]]) {
     const meshBuffer = encodeCountryMesh({ positions: new Int32Array([0,0,1,0,0,1]),
       countryIndices: new Uint16Array([0,0,0]), triangleIndices: new Uint32Array([0,1,2]),
       lineIndices: new Uint32Array([0,1,1,2,2,0]), countryTriangleRanges: new Uint32Array([0,3]),
@@ -102,7 +100,7 @@ export async function pagesRepositoryFixture(t, { sceneRevision = 6, preparedRev
   }
   put(root,'assets/data/world/current.json',JSON.stringify({schema:'pandolab-world-bundle',schemaVersion:1,
     source:{sha256,countryCount:1,url:'source.json'},defaultClassification:{countries:{}},
-    derivation:{preview:'canonical-topology-simplified',coordinateCount:4,meshAlgorithmRevision:sceneRevision},assets}));
+    derivation:{coordinateCount:4,meshAlgorithmRevision:sceneRevision},assets}));
   put(root,'assets/data/terrain/v0.13.3/manifest.json',JSON.stringify(numericalTerrainFixture()));
   const landSource=Buffer.from(JSON.stringify({type:'MultiPolygon',coordinates:[[[[0,0],[0,1],[1,1],[1,0],[0,0]]]]}));
   const landCompressed=gzipSync(landSource,{level:9,mtime:0});

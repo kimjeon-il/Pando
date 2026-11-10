@@ -86,3 +86,17 @@ test('failed or stale temporal tickets never publish', () => {
   assert.equal(h.session.finishTemporalViewTransition(token), true);
   assert.equal(h.retired, 1);
 });
+
+test('accepted dated content can prepare its LOD before its completion frame',async()=>{
+ const h=harness(),token=h.session.beginTemporalViewTransition();
+ assert.equal(h.session.countrySourceAdmitted('mesh-A'),false);
+ h.session.admitTemporalViewTransition(token);
+ assert.equal(h.session.countrySourceAdmitted('mesh-A'),false);
+ await h.session.prepareTemporalCountrySource([{content:'mesh-A'}]);
+ assert.equal(h.session.countrySourceAdmitted('mesh-A'),true);
+ assert.equal(h.session.countrySourceAdmitted('old-mesh'),false);
+ assert.equal(h.session.temporalPending(),true);
+ assert.equal(h.session.canPresentVisualFrame({projectGeneration:1,frameId:1}),false);
+ h.setContext(2);
+ assert.equal(h.session.countrySourceAdmitted('mesh-A'),false);
+});

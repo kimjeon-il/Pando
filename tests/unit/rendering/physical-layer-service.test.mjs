@@ -79,6 +79,36 @@ test('terrain service preserves manifest retry policy and lifecycle callbacks', 
   ]);
 });
 
+test('physical terrain controller publishes the selected numerical manifest to the renderer', async () => {
+  const state = { physicalLoadState: {} }, accepted = [], errors = [], invalidations = [];
+  const url = new URL('https://example.test/terrain/v0.13.3/manifest.json');
+  const resources = createPhysicalResources({ capabilities: { terrain: true, builtinHydro: false } });
+  resources.connect({
+    projectState: { state },
+    physicalConfig: { TERRAIN_PRIMARY_MANIFEST_URL: url, TERRAIN_SOURCE_CHOICE: 'project' },
+    physicalServices: { createTerrainService, fetchWithRetry: async requested => {
+      assert.equal(requested, url);
+      return response(numericalManifest);
+    } },
+    layerPresentation: { invalidateObjectPresentation() {} },
+    operationFeedback: { reliabilityDiagnostic: { push() {} } },
+    domains: { renderingDomain: { invalidateBaseScene: reason => invalidations.push(reason) } },
+    rendering: { gpuMapRenderer: { setTerrainManifest: (...args) => accepted.push(args) } },
+    feedback: { reportOperationError: error => errors.push(error.message) },
+  });
+  resources.initializeTerrainService();
+  assert.equal(await resources.loadTerrainManifest(), true, errors.join('; '));
+  assert.deepEqual(errors, []);
+  assert.equal(state.physicalLoadState.terrain, 'ready');
+  assert.equal(state.physicalLoadState.terrainManifest, 'ready');
+  assert.equal(accepted.length, 1);
+  assert.equal(accepted[0][0], state.terrainManifest);
+  assert.deepEqual(accepted[0], [numericalManifest, url, { source: 'project' }]);
+  assert.deepEqual(invalidations, ['terrain-manifest-ready']);
+  assert.equal(await resources.loadTerrainManifest(), false);
+  assert.equal(accepted.length, 1);
+});
+
 test('physical services skip duplicate loads and report invalid manifests without throwing', async () => {
   let fetched = 0;
   const skipped = createTerrainService({
@@ -368,7 +398,7 @@ for(const requestModern of [true,false])test(requestModern
       {id:'caspian-old',objectRef:caspian,validFrom:'1922-01-01',validTo:'1929-12-31',geometryRef:oldRef},
       {id:'caspian-modern',objectRef:caspian,validFrom:'1930-01-01',validTo:null,geometryRef:modernRef}]}};
   globalThis.fetch=async url=>new Response(bytes.get(new URL(url).pathname.split('/').at(-1)));
-  const firstAdmission=deferred(),releaseFirst=deferred(),modernReady=deferred(),lateReady=deferred();
+  const firstAdmission=deferred(),releaseFirst=deferred(),modernReady=deferred();
   t.after(()=>releaseFirst.resolve());
   let admissions=0,ready=0;
   const state={timelineCursor:'',hydroEdits:[],hydroFeatureCache:new Map()};
@@ -381,7 +411,7 @@ for(const requestModern of [true,false])test(requestModern
       references();admissions++;
       if(admissions===1){firstAdmission.resolve();await releaseFirst.promise;}
     }},renderingDomain:{invalidateProject:reason=>{
-      if(reason==='physical-water-ready'){ready++;(ready===1?modernReady:lateReady).resolve();}
+      if(reason==='physical-water-ready'){ready++;modernReady.resolve();}
     }}},feedback:{reportOperationError:error=>{throw error;}}});
   resource.setProjectSource('builtin');
   await resource.loadPhysicalData({includeHydro:false});
@@ -395,11 +425,13 @@ for(const requestModern of [true,false])test(requestModern
   if(requestModern){
     void resource.physicalLand;await modernReady.promise;
     assert.deepEqual(state.hydroFeatureCache.get(caspian.id).properties.geometryRef,modernRef);
-    releaseFirst.resolve();await lateReady.promise;
+    releaseFirst.resolve();await new Promise(resolve=>setImmediate(resolve));
+    assert.equal(ready,1,'a superseded historical activation cannot publish another ready frame');
     assert.deepEqual(state.hydroFeatureCache.get(caspian.id).properties.geometryRef,modernRef,
       'late historical admission must not overwrite the current modern selection/copy resource');
   }else{
-    releaseFirst.resolve();await modernReady.promise;
+    releaseFirst.resolve();await new Promise(resolve=>setImmediate(resolve));
+    assert.equal(ready,0,'a cursor change alone makes the pending activation ineligible to publish');
     assert.equal(state.hydroFeatureCache.has(caspian.id),false,
       'the actual date selection changes before a background getter updates its requested key');
     assert.equal(admissions,1,'the second stale source must never cross the canonical admission boundary');

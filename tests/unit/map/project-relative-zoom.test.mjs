@@ -77,7 +77,7 @@ test('camera commands clamp both projections to relative 1..32 and retain fracti
   const navigation=createCameraNavigation();
   navigation.connect({projectState:{state},mapNavigation:{ZOOM_LIMITS},
     platform:{clamp:(n,a,b)=>Math.min(b,Math.max(a,n))},
-    rendering:{gpuMapRenderer:{cancelCountryFocus(){}}},domains:{}});
+    domains:{}});
   for(const projection of ['globe','flat']) {
     state.projection=projection;
     navigation.zoomBy(.5);assert.equal(state.view[projection+'Zoom'],1);

@@ -139,14 +139,20 @@ export function createMapHost({productMode='editor',readOnly=productMode==='view
       getProjectionKind: () => dependencies.projectState.state.projection,
       setProjectionKind: kind => {
         productPolicy.assertProjection(kind);
-        dependencies.projectState.state.projection = kind === 'globe' ? 'globe' : 'flat';
+        const state = dependencies.projectState.state;
+        state.view = dependencies.mapNavigation.reprojectView(state.view, state.projection, kind);
+        state.projection = kind;
         (0, dependencies.mapView.updateProjection)();
         return true;
       },
       getViewState: () => projectionViewSnapshot(),
       setViewState: view => {
         productPolicy.assertProjection(view?.projection);
-        if (view?.projection) dependencies.projectState.state.projection = view.projection === 'globe' ? 'globe' : 'flat';
+        if (view?.projection) {
+          const state = dependencies.projectState.state;
+          if (!view.view) state.view = dependencies.mapNavigation.reprojectView(state.view, state.projection, view.projection);
+          state.projection = view.projection;
+        }
         if (view?.view) dependencies.projectState.state.view = (0, dependencies.platform.deepClone)(view.view);
         (0, dependencies.mapView.updateProjection)();
         return true;

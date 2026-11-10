@@ -307,7 +307,7 @@ const __suiteDependency7 = __dep7;
 featureDescribe("camera-navigation", () => {
   const assert = __suiteDependency0.default;
   const test = __suiteDependency1.default;
-  const {  createCameraNavigation  } = __suiteDependency2;
+  const { createCameraNavigation, ZOOM_LIMITS } = __suiteDependency2;
   const {  normalizeMapSurfaceDragDelta  } = __suiteDependency3;
   const {  equirectangularCenterForAnchor  } = __suiteDependency4;
 test('continuous zoom can defer Worker settle until the gesture ends', () => {
@@ -315,14 +315,8 @@ test('continuous zoom can defer Worker settle until the gesture ends', () => {
   const owner = createCameraNavigation();
   owner.connect({
     projectState: { state: { projection: 'flat', view: { flatZoom: 1, globeZoom: 1 } } },
-    rendering: { gpuMapRenderer: { cancelCountryFocus: () => events.push(['cancel']) } },
     platform: { clamp: (value, minimum, maximum) => Math.max(minimum, Math.min(maximum, value)) },
-    mapNavigation: {
-      ZOOM_LIMITS: {
-        flat: { min: 0.5, max: 32 },
-        globe: { min: 0.5, max: 32 },
-      },
-    },
+    mapNavigation: { ZOOM_LIMITS },
     domains: {
       renderingDomain: {
         endInteraction: reason => events.push(['settle', reason]),
@@ -332,38 +326,35 @@ test('continuous zoom can defer Worker settle until the gesture ends', () => {
   });
 
   assert.equal(owner.zoomBy(1.1, { settle: false }), true);
-  assert.deepEqual(events, [['cancel'], ['view', 'zoom-control-interaction']]);
+  assert.deepEqual(events, [['view', 'zoom-control-interaction']]);
   assert.equal(owner.zoomBy(1.1, false), true);
-  assert.deepEqual(events, [['cancel'], ['view', 'zoom-control-interaction'], ['cancel'], ['settle', 'zoom-control-settle']]);
+  assert.deepEqual(events, [['view', 'zoom-control-interaction'], ['settle', 'zoom-control-settle']]);
 });
 
-test('world reset cancels an outstanding focus before settling the current view', () => {
+test('world reset restores relative zoom before settling the current view', () => {
   const events = [];
   const state = { projection: 'globe', view: { globeZoom: 5 } };
   const owner = createCameraNavigation();
   owner.connect({ projectState: { state },
-    rendering: { gpuMapRenderer: { cancelCountryFocus: () => events.push('cancel') } },
     mapView: { syncMapHostFromState: () => events.push(state.view.globeZoom) },
     domains: { renderingDomain: { endInteraction: () => events.push('settle') } },
   });
   owner.resetView();
-  assert.deepEqual(events, ['cancel', 1, 'settle']);
+  assert.deepEqual(events, [1, 'settle']);
 });
 
 function focusNavigationFixture({ host = false } = {}) {
-  const events = [];
   const state = { projection: 'flat', size: { width: 200, height: 200 },
     view: { flatZoom: 1.25, globeZoom: 1.25, flatCenter: [0, 0], globeRotation: [0, 0, 0] } };
   const owner = createCameraNavigation();
   const projection = coordinate => [100 + (coordinate[0] - state.view.flatCenter[0]) * Math.PI / 180 * 100 * state.view.flatZoom,
     100 - (coordinate[1] - state.view.flatCenter[1]) * Math.PI / 180 * 100 * state.view.flatZoom];
-  const renderer = { requestCountryFocus: () => events.push('focus'), cancelCountryFocus: () => events.push('cancel') };
-  owner.connect({ projectState: { state }, rendering: { gpuMapRenderer: renderer },
+  owner.connect({ projectState: { state },
     platform: { clamp: (value, min, max) => Math.max(min, Math.min(max, value)), d3: { geo: { centroid: () => [10, 10] } } },
     countries: { validLabelAnchor: coordinate => Array.isArray(coordinate) && coordinate.length === 2 && coordinate.every(Number.isFinite) },
     surfaces: { isMobile: () => false },
     mapNavigation: { normalizeMapSurfaceDragDelta, equirectangularCenterForAnchor, FLAT_LATITUDE_LIMIT: 89,
-      ZOOM_LIMITS: { flat: { min: 0.5, max: 32 }, globe: { min: 0.5, max: 32 } } },
+      ZOOM_LIMITS },
     mapView: { updateProjection: () => {}, syncMapHostFromState: () => {}, activeProjection: () => projection,
       screenToGeo: point => point.every(Number.isFinite)
         ? [state.view.flatCenter[0] + (point[0] - 100) * 180 / (Math.PI * 100 * state.view.flatZoom),
@@ -374,62 +365,75 @@ function focusNavigationFixture({ host = false } = {}) {
       ...(host ? { mapHost: { isReady: () => true, dragBy: (dx, dy) => owner.panMapViewBy(dx, dy) } } : {}) },
     domains: { renderingDomain: { invalidateView: () => {}, endInteraction: () => {} }, projectDomain: { queueViewAutosave: () => {} } },
   });
-  return { owner, state, events };
+  return { owner, state };
 }
 
 for (const source of ['wheel', 'pinch']) {
-  test(`${source} cancels focus only after a valid user camera change`, () => {
-    const { owner, state, events } = focusNavigationFixture();
+  test(`${source} changes camera zoom only for a valid transform`, () => {
+    const { owner, state } = focusNavigationFixture();
     owner.focusCoordinate([10, 10], 1.25);
+    const focused=structuredClone(state.view);
     assert.equal(owner.transformMapView({ zoom: state.view.flatZoom, fromPoint: [100, 100], toPoint: [100, 100], source }), false);
-    assert.deepEqual(events, ['focus']);
+    assert.deepEqual(state.view, focused);
     assert.equal(owner.transformMapView({ zoom: state.view.flatZoom * 1.1, fromPoint: [100, 100], toPoint: [100, 100], source }), true);
-    assert.deepEqual(events, ['focus', 'cancel']);
+    assert.equal(state.view.flatZoom, 1.25*1.1);
+    assert.deepEqual(state.view.flatCenter, [10,10]);
   });
 }
 
-test('pinch translation cancels focus without a zoom change', () => {
-  const { owner, state, events } = focusNavigationFixture();
+test('pinch translation moves the center without changing zoom', () => {
+  const { owner, state } = focusNavigationFixture();
   owner.focusCoordinate([10, 10], 1.25);
   assert.equal(owner.transformMapView({ zoom: state.view.flatZoom, fromPoint: [100, 100], toPoint: [105, 100], source: 'pinch' }), true);
-  assert.deepEqual(events, ['focus', 'cancel']);
+  assert.equal(state.view.flatZoom,1.25);
+  assert.notDeepEqual(state.view.flatCenter,[10,10]);
 });
 
 for (const host of [false, true]) {
-  test(`pointer pan ${host ? 'through ready host' : 'before host readiness'} cancels focus only for finite movement`, () => {
-    const { owner, events } = focusNavigationFixture({ host });
+  test(`pointer pan ${host ? 'through ready host' : 'before host readiness'} moves the camera only for finite movement`, () => {
+    const { owner, state } = focusNavigationFixture({ host });
     owner.focusCoordinate([10, 10], 1.25);
+    const focused=structuredClone(state.view);
     assert.equal(owner.dragMapBy(0, 0), false);
     assert.equal(owner.dragMapBy(Number.NaN, Infinity), false);
-    assert.deepEqual(events, ['focus']);
+    assert.deepEqual(state.view,focused);
     assert.equal(owner.dragMapBy(5, 0), true);
-    assert.deepEqual(events, ['focus', 'cancel']);
+    assert.notDeepEqual(state.view.flatCenter,focused.flatCenter);
+    assert.equal(state.view.flatZoom,focused.flatZoom);
   });
 }
 
-test('invalid and clamped zoom attempts preserve the focus session and camera', () => {
-  const { owner, state, events } = focusNavigationFixture();
+test('invalid and clamped zoom attempts preserve the camera', () => {
+  const { owner, state } = focusNavigationFixture();
   owner.focusCoordinate([10, 10], 1.25);
   for (const factor of [1, Number.NaN, Infinity, -1]) assert.equal(owner.zoomBy(factor), false);
   assert.equal(state.view.flatZoom, 1.25);
-  assert.deepEqual(events, ['focus']);
+  assert.deepEqual(state.view.flatCenter,[10,10]);
   state.view.flatZoom = 32;
   assert.equal(owner.zoomBy(2), false);
-  assert.deepEqual(events, ['focus']);
+  assert.equal(state.view.flatZoom,32);
+  assert.deepEqual(state.view.flatCenter,[10,10]);
 });
 
-test('object focus internal fitting and anchor alignment preserve their new focus session', () => {
-  const { owner, events } = focusNavigationFixture();
+test('object focus fits the feature and aligns its geographic anchor', () => {
+  const { owner, state } = focusNavigationFixture();
   owner.fitMapToFeature({ type: 'Feature', properties: {}, geometry: { type: 'Point', coordinates: [10, 10] } });
-  assert.deepEqual(events, ['focus']);
+  assert.deepEqual(state.view.flatCenter,[10,10]);
+  assert.ok(Math.abs(state.view.flatZoom-1.4432)<1e-10);
 });
-test('clamped latitude-only pans preserve focus in flat and globe views', () => {
+test('clamped latitude-only pans preserve the camera in flat and globe views', () => {
   for (const projection of ['flat', 'globe']) {
-    const { owner, state, events } = focusNavigationFixture();
+    const { owner, state } = focusNavigationFixture();
     state.projection = projection;
     owner.focusCoordinate([0, 89], 1.25);
+    const focused=structuredClone(state.view);
     assert.equal(owner.dragMapBy(0, 5), false);
-    assert.deepEqual(events, ['focus']);
+    assert.equal(state.view.flatZoom,focused.flatZoom);
+    assert.equal(state.view.globeZoom,focused.globeZoom);
+    // Longitude -0 and +0 are the same geographic center. Adding a zero
+    // horizontal pan can normalize its sign without moving the camera.
+    for(const field of ['flatCenter','globeRotation'])
+      assert.ok(state.view[field].every((value,index)=>value===focused[field][index]));
   }
 });
 });

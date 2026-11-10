@@ -30,7 +30,7 @@ function fixture() {
   put('.nojekyll'); put('assets/css/viewer.css');
   const preview='assets/data/physical-land/preview/v1/fixture.json.gz';
   put(preview,'preview');
-  put('assets/js/build-meta.js','globalThis.PANDOLAB_BUILD_META=Object.freeze('+JSON.stringify({initialLandPreview:{url:preview}})+');');
+  put('assets/js/build-meta.js','globalThis.PANDOLAB_BUILD_META=Object.freeze('+JSON.stringify({})+');');
   put('assets/js/viewer.js', "import './modules/read.js';");
   put('assets/js/modules/read.js', 'export const value = 1;');
   put('assets/js/app.js'); put('assets/js/bootstrap.js'); put('assets/js/modules/app-composition.js');

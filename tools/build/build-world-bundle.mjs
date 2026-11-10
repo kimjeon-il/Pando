@@ -137,7 +137,7 @@ export function publishWorldBundle({ root, check = false, manifestOverride = nul
   if (manifestOverride) {
     if(selected?.projectId!=='default-world' && selected
       && !manifestOverride.startsWith(selected.projectId+'/'))
-      throw new TypeError('Nondefault project cannot publish a shared legacy preview manifest');
+      throw new TypeError('Nondefault project cannot publish a shared world source descriptor');
     seed.legacyPreviewManifest = assertDataPath(manifestOverride);
   }
   const legacy = JSON.parse(readData(seed.legacyPreviewManifest));

@@ -65,6 +65,26 @@ test('both rendering backends share source-resolution LOD decisions', () => {
   assert.equal(tiles.chooseLevel(null, 100).level, null);
 });
 
+test('shared ready draw selection retains numerical coverage until each target is ready', () => {
+  const manifest={levels:[
+    {id:0,width:256,height:128,tileSize:128,columns:2,rows:1},
+    {id:1,width:512,height:256,tileSize:128,columns:4,rows:2},
+  ]};
+  const select=level=>tiles.visible(level,{includeAll:true,viewport:[256,128],scale:40});
+  const base=select(manifest.levels[0]),target=select(manifest.levels[1]);
+  const ready=new Set(base.map(spec=>spec.key));
+  const draw=()=>tiles.readyDrawSpecs(manifest,manifest.levels[1],target,select,key=>ready.has(key));
+  assert.deepEqual(Array.from(draw(),spec=>spec.key),Array.from(base,spec=>spec.key));
+  ready.add(target[0].key);
+  assert.deepEqual(Array.from(draw(),spec=>spec.key),[...base,target[0]].map(spec=>spec.key));
+  for(const spec of target)ready.add(spec.key);
+  assert.deepEqual(Array.from(draw(),spec=>spec.key),Array.from(target,spec=>spec.key));
+  ready.delete(base[0].key);
+  const zoomOut=tiles.readyDrawSpecs(manifest,manifest.levels[0],base,select,key=>ready.has(key));
+  assert.ok(zoomOut.some(spec=>Number(spec.level)===1),'ready finer tiles cover missing coarse replacements');
+  assert.equal(zoomOut.at(-1).key,base[1].key,'ready current targets paint after inherited coverage');
+});
+
 test('per-backend visibility cache reuses identical views and invalidates changes', () => {
   const level = { id: 2, width: 512, height: 256, tileSize: 256, rows: 1, columns: 2 };
   const cache = tiles.createVisibilityCache({ distance: () => 0, numericLevel: true });

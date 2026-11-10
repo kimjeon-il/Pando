@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { gzipSync } from 'node:zlib';
-/** Same unchanged source used by terrain preview generation; no political fields. */
+/** Canonical physical-land source; no political fields. */
 export function buildPhysicalLandMask(sourceBytes) {
   const coordinates = [];
   for (const feature of JSON.parse(sourceBytes).features) {

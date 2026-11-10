@@ -14,7 +14,6 @@ const EMPTY_REVISIONS = Object.freeze({
   overlayOrder: 0,
   countryState: 0,
   selection: 0,
-  editPreview: 0,
   view: 0,
 });
 

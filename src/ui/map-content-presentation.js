@@ -380,8 +380,7 @@ export function createMapContentPresentation({countries={},hydro={},territorial=
         pendingTerritorialBoundary = candidate;
         // Catch synchronous preparation failures as well as Worker rejection.
         (async () => {
-          const response = await prepareMapDisplay({ kind: 'boundaries',
-            ...(state.countryVisualPhase === 'preview' ? { entities: [...countries, ...units] } : {}) },
+          const response = await prepareMapDisplay({ kind: 'boundaries' },
           { jobKey: 'edit-display:boundaries' });
           if (isDisposed() || pendingTerritorialBoundary !== candidate || candidate.epoch !== territorialBoundaryEpoch) return;
           if (!Array.isArray(response?.result?.segments)) throw new TypeError('Territorial boundary result requires segments');

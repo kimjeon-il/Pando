@@ -41,7 +41,6 @@ test('P6-1 desktop startup, camera, year navigation, direct input and themes', a
     await expect(page.locator('#timelineDateButtonText')).toHaveText(`${year}년`);
     await expect(page.locator('#timelineDateBasis')).toHaveText(basis);
     await expect(page.locator('#viewer')).toHaveAttribute('data-initial-loading', 'false');
-    await expect(page.locator('#viewerInitialPreview')).toBeHidden();
     await expect(page.locator('#timelineDateError')).toHaveJSProperty('hidden', true);
     await expect(page.locator('#viewerCanvas')).toBeVisible();
     const state = await page.evaluate(() => {

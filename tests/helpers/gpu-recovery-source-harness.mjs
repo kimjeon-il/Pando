@@ -125,7 +125,7 @@ export async function fixture({override=false, version=2, shared=false, holdStro
       recordCanvasWorkerMessage(){},canvasWorkerViewMessage:()=>({}),canvasWorkerInitMessage:()=>({}),
       canvasCountryInputs:()=>c.canonicalCountryFeatures(),postCanvasWorkerMessage(){},connectHydroCanvasWorkers(){},syncCanvasWorkerState(){},
       createGpuCanvasWorker:({worker})=>worker,
-      markPreviewFramePresented(){},completeGeometryDisplay(){},
+      completeGeometryDisplay(){},
       framePresentationListener:()=>{if(c.approveWorker!==false)c.commitVisualFrame(c.lastVisualFrame);},
     });
     c.workerChannels.create=()=>{const worker={queueFrame(){},resetGeneration(){},terminate(){worker.terminated=true;}};c.latestWorker=worker;return worker;};

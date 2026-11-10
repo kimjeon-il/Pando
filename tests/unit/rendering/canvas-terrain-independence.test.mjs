@@ -4,8 +4,9 @@ import { readFileSync } from 'node:fs';
 import * as resourcePolicy from "../../../src/rendering/resource-update-policy.js";
 import {canvasWorkerFrameMatchesPhysical} from "../../../src/rendering/country-mesh-zoom-policy.js";
 import {createCanvasScenePackets} from "../../../src/rendering/gpu-canvas-scene-packets.js";
+import {terrainAssetUrl} from "../../../src/data/terrain-manifest.js";
 
-const workerSource = readFileSync(new URL("../../../src/rendering/workers/canvas-render-worker.js", import.meta.url), 'utf8');
+const workerSource = readFileSync(new URL("../../../src/rendering/workers/canvas-render-core.js", import.meta.url), 'utf8');
 const terrainCoreSource = readFileSync(new URL("../../../src/rendering/workers/canvas-terrain-dem-core.js", import.meta.url), 'utf8');
 const terrainTileSource = readFileSync(new URL("../../../src/rendering/workers/terrain-tile-selection-core.js", import.meta.url), 'utf8');
 const manifest = { gutter: 1, urlTemplate: 'terrain/v0.12.6/{level}/{column}-{row}.webp', levels: [
@@ -44,7 +45,7 @@ function canvasTerrainRuntime({ expectDem = false, timerPorts = null, now = () =
           canvas, setTransform() {}, clearRect() {}, save() {}, restore() {}, beginPath() {},
           moveTo() {}, lineTo() {}, arc() {}, closePath() {}, stroke() {}, fill() {}, clip() {}, setLineDash() {},
           drawImage(...args) { if (args.length === 9) drawn.push(args); if (args[0]?.probeTriangle) triangleCopies.push(args); },
-          getImageData() { return { data: new Uint8ClampedArray(canvas.width * canvas.height * 4) }; },
+          getImageData() { return { width:canvas.width,height:canvas.height,data: new Uint8ClampedArray(canvas.width * canvas.height * 4) }; },
           putImageData() {},
         };
       }
@@ -97,39 +98,47 @@ function canvasTerrainRuntime({ expectDem = false, timerPorts = null, now = () =
   new Function('self', terrainCoreSource)(scope);
   new Function('self', terrainTileSource)(scope);
   scope.PandoLabResourceUpdatePolicy = resourcePolicy;
-  new Function('self', 'importScripts', 'OffscreenCanvas', 'fetch', 'createImageBitmap',
-    'ImageData', 'performance', 'setTimeout', 'clearTimeout', workerSource.replace('self.onmessage = event => {',
+  scope.OffscreenCanvas=Canvas;
+  scope.terrainAssetUrl=terrainAssetUrl;
+  new Function('self', 'globalThis', 'fetch', 'createImageBitmap',
+    'ImageData', 'performance', workerSource.replace('    function dispose() {',
       `self.drawTerrainTriangle = drawTexturedTriangle;
       self.traceTerrainGrid = (spec, projection, message) => {
-        const oldDraw = drawTexturedTriangle, oldManifest = terrainManifest, triangles = [];
-        terrainManifest = { gutter: 0 };
+        const oldDraw = drawTexturedTriangle, oldManifest = terrainDemManifest, triangles = [];
+        terrainDemManifest = { gutter: 0 };
         drawTexturedTriangle = (_image, source, destination) => triangles.push({ source, destination });
         try { for (const _ of drawGlobeTerrainTile(spec, {}, projection, message, 1, false)) {} return triangles; }
-        finally { drawTexturedTriangle = oldDraw; terrainManifest = oldManifest; }
+        finally { drawTexturedTriangle = oldDraw; terrainDemManifest = oldManifest; }
       };
       self.currentRenderState = () => lastRenderMessage;
       self.stageDemForTest = manifest => {
+        if(terrainDemManifest!==manifest){
+          for(const entry of demRequests.values())entry.controller.abort();
+          demRequests.clear();demQueue.length=0;demQueuedKeys.clear();
+          demTiles.clear();demCacheBytes=0;
+        }
         terrainDemManifest = manifest;
         terrainDemManifestUrl = 'https://example.test/dem/manifest.json';
-        terrainTint = {width:1,height:1,data:new Uint8ClampedArray(4)};
+        resolveTerrainAssetUrl=self.terrainAssetUrl;
         requestLatestTerrainDemand();
       };
       self.stageDemTileForTest = key => {
-        const image = {bitmap:true,probeDem:true,width:1026,height:1026};
+        const image = {bitmap:true,probeDem:true,width:1026,height:1026,close(){}};
         demTiles.set(key,{land:image,ocean:image,political:image,bytes:1026*1026*12,lastUsed:1});
         demCacheBytes += 1026*1026*12;
       };
-      self.onmessage = event => {`))(
-    scope, () => {}, Canvas, fetch, async () => ({ width: 3, height: 3, close() {} }),
+      function dispose() {`)+'\nself.PandoLabCanvasRenderer.install(self);')(
+    scope, {setTimeout:timerPorts?.setTimeout || (() => 0),clearTimeout:timerPorts?.clearTimeout || (() => {})}, fetch,
+    async blob => ({ width:blob.width,height:blob.height,close() {} }),
     class ImageData { constructor(data, width, height) { Object.assign(this, { data, width, height }); } },
-    { now }, timerPorts?.setTimeout || (() => 0), timerPorts?.clearTimeout || (() => {}));
+    { now });
   const country = (id, east = 1) => ({ id, type: 'Feature', properties: {},
     geometry: { type: 'Polygon', coordinates: [[[0, 0], [east, 0], [east, 1], [0, 1], [0, 0]]] } });
   const features = [country('VISIBLE'), country('HIDDEN')];
   const land = { key: 'physical-land', role: 'physical-land', geometry: country('LAND', 2).geometry };
   const frame = {
     surfacePresentation: { targetQuality: 'canonical', quality: 'canonical' },
-    width: 1000, height: 600, dpr: 1, terrainDpr: 2, meshQuality: 'preview',
+    width: 1000, height: 600, dpr: 1, terrainDpr: 2,
     renderProjection: { scale: 350, translate: [500, 300] }, projection: 'flat',
     view: { flatCenter: [0, 0], flatZoom: 1 },
     physicalSettings: { terrainVisible: true, terrainStyle: 'political' },
@@ -145,9 +154,8 @@ function canvasTerrainRuntime({ expectDem = false, timerPorts = null, now = () =
     scope.onmessage({ data: message });
     if(messages.at(-1)?.type==='error')throw new Error(messages.at(-1).message);
   };
-  send({ ...frame, type: 'init', features,
-    terrainDemManifestUrl: expectDem ? 'https://example.test/expected-dem.json' : undefined,
-    terrainManifestUrl: 'https://example.test/assets/data/terrain/v0.12.6/manifest.json' });
+  send({ ...frame, type: 'init', features,terrainEnabled:false });
+  if(!expectDem)scope.stageDemForTest(manifest);
   return {
     messages, requests, drawn, paths, substrates, features, land, send, triangleCopies,
     currentRenderState: () => scope.currentRenderState(),
@@ -160,7 +168,12 @@ function canvasTerrainRuntime({ expectDem = false, timerPorts = null, now = () =
     async deliver(request) {
       assert.ok(request && !request.completed, 'tile request must be pending');
       request.completed = true;
-      request.resolve({ ok: true, blob: async () => ({}) });
+      const match=new URL(request.url).pathname.match(/\/(\d+)\/(\d+)-(\d+)\.webp$/);
+      const level=manifest.levels[Number(match[1])];
+      request.resolve({ ok: true, blob: async () => ({
+        width:Math.min(level.tileSize,level.width-Number(match[2])*level.tileSize)+2,
+        height:Math.min(level.tileSize,level.height-Number(match[3])*level.tileSize)+2,
+      }) });
       await settle();
     },
     find: suffix => requests.find(request => !request.completed && request.url.endsWith(suffix)),
@@ -168,13 +181,13 @@ function canvasTerrainRuntime({ expectDem = false, timerPorts = null, now = () =
 }
 
 test('DEM manifest completion schedules visible detail immediately without another view paint', async () => {
-  const h = canvasTerrainRuntime(); await settle();
+  const h = canvasTerrainRuntime({expectDem:true}); await settle();
   h.render({ terrainDpr: 1, renderProjection: {scale: 100, translate: [500,300]} });
   const before = h.messages.filter(message => message.type === 'frame').length;
   const dem = { ...manifest, version:'0.13.3', urlTemplate:'https://example.test/dem/{level}/{column}-{row}.webp' };
   h.stageDem(dem);
   assert.ok(h.requests.some(request => request.url.includes('/dem/0/')),
-    'DEM detail must be requested when tint/manifest becomes ready, not on the next paint');
+    'DEM detail must be requested when its manifest becomes ready, not on the next paint');
   assert.equal(h.messages.filter(message => message.type === 'frame').length, before,
     'resource scheduling cannot certify an unpainted bitmap');
 });
@@ -203,7 +216,7 @@ test('actual country frame paints before optional Canvas DEM, then accepts full 
   assert.ok(h.drawn.length>before,'DEM completes on a later genuine frame');
 });
 
-test('ready DEM tiles reuse a camera-stable raster substrate without repainting globe triangles', async () => {
+test('replacement numerical DEM invalidates cached substrate while reusing the current camera', async () => {
   const h=canvasTerrainRuntime(); await settle();
   const view={terrainDpr:1,physicalSettings:{terrainVisible:true,terrainStyle:'physical'},
     renderProjection:{scale:100,translate:[500,300]}};
@@ -218,7 +231,7 @@ test('ready DEM tiles reuse a camera-stable raster substrate without repainting 
   h.render(view);
   assert.ok(h.drawn.length>0,'the detailed DEM is actually composited');
   assert.ok(h.drawn.every(args=>args[0]?.probeDem),
-    'raster base copies must stay cached through DEM-only resource changes');
+    'replacement source must paint only its own numerical tiles');
   assert.equal(h.messages.at(-1).terrainComplete,false,
     'one detailed tile cannot certify the complete DEM target');
 });
@@ -243,7 +256,7 @@ test('Canvas reuses terrain substrate across generations only for the same certi
   assert.ok(h.substrates.length>firstPaints,'changed physical provenance must invalidate cached pixels');
 });
 
-test('Canvas prepares raster tiles without tessellating an uncertified zero-land frame',async()=>{
+test('Canvas prepares numerical tiles without tessellating an uncertified zero-land frame',async()=>{
   const h=canvasTerrainRuntime();await settle();
   const noLand={scenePolygons:[],surfacePresentation:{targetQuality:'canonical',quality:'pending'},
     physicalSettings:{terrainVisible:true,terrainStyle:'physical'}};
@@ -379,7 +392,7 @@ test('Canvas reuses immutable terrain images for repeated projection', async () 
   assert.ok(h.drawn.every(args => args[0].bitmap), 'projected tiles use immutable image bitmaps');
 });
 
-test('Canvas terrain demand ignores country preview and backing DPR, but follows source DPR', async () => {
+test('Canvas terrain demand ignores country LOD and backing DPR, but follows source DPR', async () => {
   const h = canvasTerrainRuntime(); await settle(); h.render();
   assert.deepEqual(h.levels(), [2, 2], 'current visible detail consumes both initial fetch slots');
   assert.equal(h.messages.at(-1).terrainStats.terrainReady, false);
@@ -387,10 +400,11 @@ test('Canvas terrain demand ignores country preview and backing DPR, but follows
     const request=h.requests.find(request=>!request.completed); if(!request)break;
     await h.deliver(request);h.render();
   }
-  h.render({ meshQuality: 'canonical', dpr: 1.5 });
+  h.render({ dpr: 1.5 });
   assert.ok(h.levels().every(level => level === 0 || level === 2));
-  h.render({ meshQuality: 'preview', terrainDpr: 1 });
+  h.render({ surfacePresentation: {quality:'lod',targetQuality:'canonical'}, terrainDpr: 1 });
   await settle();
+  assert.equal(h.messages.filter(message=>message.type==='frame').at(-1).terrainStats.terrainTargetLevel,1);
   assert.ok(h.levels().includes(1), 'a lower source DPR selects a lower terrain level');
 });
 
@@ -455,7 +469,7 @@ test('temporal frames without physical land retain the completed terrain for the
   assert.equal(h.drawn.length, 0, 'the matching complete terrain remains reusable');
 });
 
-test('physical terrain reuses its projected base when only the land mask changes', async () => {
+test('physical terrain recomposites cached numerical tiles when the land mask changes', async () => {
   const h = canvasTerrainRuntime(); await settle();
   const view = { terrainDpr: 1, physicalSettings: {terrainVisible: true, terrainStyle: 'physical'},
     renderProjection: {scale: 100, translate: [500, 300]} };
@@ -467,7 +481,8 @@ test('physical terrain reuses its projected base when only the land mask changes
   h.drawn.length = 0;
   const changedLand = {...h.land, geometry: {type: 'Polygon', coordinates: [[[0,0],[3,0],[3,1],[0,0]]]}};
   h.render({...view, scenePolygons: [changedLand]});
-  assert.equal(h.drawn.length, 0, 'a new land mask must not reproject unchanged base tiles');
+  assert.ok(h.drawn.length > 0, 'a new mask must recompose land and ocean from cached numerical tiles');
+  h.drawn.length=0;
   h.render({...view, renderProjection: {scale: 110, translate: [500, 300]}, scenePolygons: [changedLand]});
   assert.ok(h.drawn.length > 0, 'camera changes must invalidate the projected base');
 });
@@ -513,7 +528,7 @@ test('Canvas terrain acknowledges prepared coverage and its source limit in the 
   assert.equal(h.messages.at(-1).terrainStats.terrainReady, false);
 });
 
-test('Canvas cannot acknowledge raster coverage while requested DEM and tint are pending', async () => {
+test('Canvas cannot acknowledge terrain while the selected numerical DEM is pending', async () => {
   const h = canvasTerrainRuntime({ expectDem: true }); await settle();
   h.render({ terrainDpr: 1, renderProjection: { scale: 100, translate: [500, 300] } });
   for (const request of h.requests.filter(request => /\/0\//.test(request.url))) await h.deliver(request);
@@ -541,7 +556,7 @@ test('Canvas keeps world coverage and the physical mask independently of politic
   assert.equal(h.drawn.length, 0);
   await h.deliver(h.find('/0/0-0.webp'));
   h.render({surfacePresentation:{quality:'pending',targetQuality:'canonical'},terrainDpr:1,renderProjection:{scale:100,translate:[500,300]}});
-  assert.equal(h.drawn.length, 0, 'the provisional physical bitmap defers tile reprojection');
+  assert.ok(h.drawn.length > 0, 'a certified physical layer can paint ready numerical tiles before country admission');
   assert.equal(h.messages.at(-1).surfaceQuality, 'pending');
   assert.equal(h.messages.at(-1).physicalLandCount, 1);
   assert.deepEqual(h.substrates.at(-1), [h.land.geometry]);
@@ -598,16 +613,16 @@ test('Canvas reuses physical terrain through political changes and invalidates i
   assert.equal(h.drawn.length,9,'replacement physical source invalidates the mask');
 });
 
-test('Canvas neighbour prefetch does not redraw the ready viewport terrain', async () => {
+test('an offscreen cached numerical tile does not redraw the ready viewport terrain', async () => {
   const h=canvasTerrainRuntime();await settle();h.render({terrainDpr:1,renderProjection:{scale:100,translate:[500,300]}});
   await h.deliver(h.find('/0/0-0.webp'));await h.deliver(h.find('/0/1-0.webp'));h.render();
-  for(let count=0;!h.find('/2/0-0.webp') && count<30;count++) {
+  for(let count=0;!h.messages.filter(message=>message.type==='frame').at(-1).terrainStats.terrainReady && count<30;count++) {
     const pending=h.requests.find(request=>!request.completed);
     assert.ok(pending);await h.deliver(pending);h.render();
   }
-  const neighbour=h.find('/2/0-0.webp');assert.ok(neighbour);
-  await h.deliver(neighbour);h.drawn.length=0;h.render();
-  assert.equal(h.drawn.length,0,'offscreen prefetch must not trigger a full terrain repaint');
+  assert.equal(h.messages.filter(message=>message.type==='frame').at(-1).terrainStats.terrainReady,true);
+  h.stageDemTile('2/0-0');h.drawn.length=0;h.render();
+  assert.equal(h.drawn.length,0,'offscreen cache entries must not trigger a full terrain repaint');
 });
 
 test('P7 Canvas resource redraws coalesce and an explicit newer view cancels the obsolete scheduled paint',async()=>{

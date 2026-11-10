@@ -21,7 +21,7 @@ export const TASK_SOURCES = Object.freeze({
   'hydro-tiles':'tools/gis/build-hydro.mjs',
   'hydro-packfile':'tools/build/build-hydro-packfile.mjs',
   'hydro-connectivity':'tools/gis/repair-hydro-connectivity.mjs',
-  'physical-data':'tools/build/build-physical-data.mjs',
+  'physical-hydro':'tools/gis/build-physical-hydro.mjs',
   'place-candidates':'tools/build/build-place-candidates.mjs',
 });
 export function buildCommand(task,args=[],{root=ROOT}={}){

@@ -171,7 +171,9 @@
         "tests/browser/**/gpu-*.spec.mjs",
         "tests/browser/**/country-*.spec.mjs",
         "tests/browser/**/renderer-*.spec.mjs",
-        "tests/browser/rendering/map-vector-lod.spec.mjs"
+        "tests/browser/rendering/map-vector-lod.spec.mjs",
+        "tests/browser/rendering/project-common-lod.spec.mjs",
+        "tests/browser/rendering/project-common-lod-regions.spec.mjs"
       ],
       "inputs": [
         "src/**/gpu-*.js",
@@ -1599,6 +1601,14 @@
       ],
       "requires": [
         "core-assets"
+      ]
+    },
+    {
+      "tests": [
+        "tests/unit/document/physical-webp-stream.test.mjs"
+      ],
+      "requires": [
+        "native-map-image"
       ]
     }
   ]

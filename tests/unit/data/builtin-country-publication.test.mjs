@@ -128,7 +128,7 @@ test('independent finalization requires new bytes and rejects corrupt or unrefer
  assert.equal(typeof publication.finalizeBuiltinWorldFiles,'function');
  const {files,index}=fixture(),entry=index.entities[0];
  const missing=new Map(files);missing.delete(entry.file);
- assert.throws(()=>publication.finalizeBuiltinWorldFiles(structuredClone(index),missing),/Missing exact country bytes/);
+ assert.throws(()=>publication.finalizeBuiltinWorldFiles(structuredClone(index),missing),/Missing exact descriptor for builtin read index/);
  const corrupt=new Map(files);corrupt.set(entry.file,Buffer.from('corrupt'));
  assert.throws(()=>publication.finalizeBuiltinWorldFiles(structuredClone(index),corrupt),/country bytes/);
  const unreferenced=new Map(files);unreferenced.set('transport/retired.bin',Buffer.from('retired'));
@@ -136,7 +136,7 @@ test('independent finalization requires new bytes and rejects corrupt or unrefer
  const previousIndex=structuredClone(index),changed=structuredClone(index);
  changed.entities[0].sha256='0'.repeat(64);
  changed.entities[0].file=`countries/${entry.entityId.replaceAll(':','-')}-sha256-${changed.entities[0].sha256}.json.gz`;
- assert.throws(()=>publication.finalizeBuiltinWorldFiles(changed,new Map(),{previousIndex}),/Missing exact country bytes/);
+ assert.throws(()=>publication.finalizeBuiltinWorldFiles(changed,new Map(),{previousIndex}),/Missing exact descriptor for builtin read index/);
 });
 
 test('finalizing a selected publication drops old transport metadata without mutating its baseline',()=>{
@@ -165,9 +165,7 @@ const catalog=()=>({schema:'pandolab-builtin-world',schemaVersion:2,storageLayou
 function viewerInput(index=catalog()){
  const files=new Map([['index.html',''],['.nojekyll',''],['assets/js/viewer.js','export const viewer=true;'],[ROOT+'index.json',JSON.stringify(index)],
   [ROOT+'transport/old.bin','old aggregate'],[ROOT+'countries/orphan.json.gz','orphan']]);
- const preview='assets/data/physical-land/preview/v1/fixture.json.gz';
- files.set(preview,'preview');
- files.set('assets/js/build-meta.js','globalThis.PANDOLAB_BUILD_META=Object.freeze('+JSON.stringify({initialLandPreview:{url:preview}})+');');
+ files.set('assets/js/build-meta.js','globalThis.PANDOLAB_BUILD_META=Object.freeze({});');
  for(const row of index.entities)files.set(ROOT+row.file,'country');
  return {files,collect:()=>collectViewerAssets({root:tmpdir(),availablePaths:[...files.keys()],readSource:path=>files.get(path),workerAssets:{}})};
 }

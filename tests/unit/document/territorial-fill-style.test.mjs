@@ -199,7 +199,7 @@ test('territorial hits use the displayed geometry and withhold pending surfaces'
   const A = createTerritorialFeature({ id: 'A', entityKind: 'general', geometry: square(0, 10) });
   const B = createTerritorialFeature({ id: 'B', entityKind: 'general', parentId: 'A', coverageMode: 'explicit', geometry: square(0, 10) });
   const R = createTerritorialFeature({ id: 'R', entityKind: 'regional', geometry: square(0, 10) });
-  const state = { territorialEntities: [A, B, R], layerVisibility: {}, countryVisualPhase: 'preview', layerPresentation: normalizeLayerPresentation({ overlayOrder: ['objects'] }) };
+  const state = { territorialEntities: [A, B, R], layerVisibility: {}, countryVisualPhase: 'canonical', layerPresentation: normalizeLayerPresentation({ overlayOrder: ['objects'] }) };
   await initializeTestTerritorialState(state);
 const store = createTerritorialEntityStore({ documentModel:testCoreProject(state).documentModel,commandOwner:testCoreProject(state).client });
   const entityRepository = createTerritorialEntityRepository({ entityStore: store });
@@ -256,7 +256,7 @@ const square = size => ({ type: 'Polygon', coordinates: [[[0,0],[0,size],[size,s
 test('display projection follows canonical identity, metadata and geometry without mutation', async () => {
   const A = createTerritorialFeature({ id: 'A', entityKind: 'general', geometry: square(10) });
   const B = createTerritorialFeature({ id: 'B', entityKind: 'general', parentId: 'A', geometry: square(3) });
-  const state = { territorialEntities: [A, B], countryVisualPhase: 'preview' };
+  const state = { territorialEntities: [A, B], countryVisualPhase: 'canonical' };
   const before = structuredClone([A, B]);
   await initializeTestTerritorialState(state);
   const store = createTerritorialEntityStore({ documentModel: testCoreProject(state).documentModel, commandOwner: testCoreProject(state).client });
@@ -265,8 +265,7 @@ test('display projection follows canonical identity, metadata and geometry witho
   const first = display.displayEntities();
   assert.strictEqual(display.displayEntities(), first);
   assert.strictEqual(display.displayFeature('A'), repo.get('A'));
-  state.countryVisualPhase = 'canonical';
-  assert.strictEqual(display.displayEntities(), first);
+
   await executeTerritorialTestCommand(state, 'territorial.metadata', { id: 'B', field: 'color', value: '#123456', valuePresent: true });
   assert.equal(display.displayFeature('B').properties.style.color, '#123456');
   await executeTerritorialTestCommand(state, 'territorial.patch', { features: [{ ...repo.get('A'), geometry: square(7) }] });

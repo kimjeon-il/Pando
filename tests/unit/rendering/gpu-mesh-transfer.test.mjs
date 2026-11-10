@@ -95,6 +95,28 @@ test('polygon preparation accepts finite progress across a long batch but still 
   jobs.cancelAll();
 });
 
+test('LOD progress extends only advancing work and a stalled phase still times out', async t => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const sent = [], worker = { postMessage: message => sent.push(message), terminate() {} };
+  const jobs = createGpuMeshWorkerJobs({ isCurrent: () => true, createWorker: () => worker });
+  const pending = jobs.prepareDisplayLod({ features: [], sourceKey: 'source', projectGeneration: 1,
+    geometryRevision: 1, lod: { upperScale: 256, errorPx: .5, key: '256:.5' } })
+    .then(value => ({ value }), error => ({ error }));
+  for (let i=0;i<20;i++) await Promise.resolve();
+  const envelope = sent.find(message => message.type === 'request');
+  assert.ok(envelope);
+  const progress = completed => worker.onmessage({ data: { ...envelope, type: 'event',
+    operation: 'geometry.lod-progress', payload: { requestId: envelope.requestId, completed,
+      total: 3000004, phase: 'topology', elapsedMs: completed } } });
+  t.mock.timers.tick(25000); progress(1);
+  t.mock.timers.tick(25000); progress(2);
+  assert.equal(jobs.stats().displayLod.phase, 'topology');
+  t.mock.timers.tick(25000); progress(2);
+  t.mock.timers.tick(5000);
+  assert.equal((await pending).error.code, 'PL-WORKER-RPC-TIMEOUT');
+  jobs.cancelAll();
+});
+
 test('full rebuild owner settles replaced, stale and disposed requests and preserves payload', async () => {
   const workers = [], sent = [];
   const owner = createGpuMeshWorkerJobs({ isCurrent: () => true, createWorker: () => {

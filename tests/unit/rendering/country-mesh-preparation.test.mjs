@@ -352,13 +352,13 @@ test('failed boundary preparation exposes a retry through the real rebuild contr
   assert.equal(renderer.mapReadiness().status, 'boundaries');
 });
 
-test('pending precise resources cannot change the requested CSS scale band', t => {
+test('camera scale cannot publish an unprepared source mesh', t => {
   const { renderer } = fixture(t);
   renderer.syncCountryMeshQuality({ cssScale: 700 });
-  assert.equal(renderer.getRuntimeState().desiredCountryMeshQuality, 'canonical');
+  assert.equal(renderer.getRuntimeState().surfacePresentation.quality, 'pending');
   assert.equal(renderer.getRuntimeState().canonicalMeshReady, false);
   renderer.syncCountryMeshQuality({ cssScale: 504 });
-  assert.equal(renderer.getRuntimeState().desiredCountryMeshQuality, 'canonical');
+  assert.equal(renderer.getRuntimeState().surfacePresentation.quality, 'pending');
 });
 
 test('unchanged country geometry skips complete preparation across a project generation', async t => {
@@ -388,32 +388,26 @@ test('reusing a completed mesh invalidates an older rebuild delivery token', asy
   assert.ok(renderer.getStats().geometryRenderTaskToken>older);
 });
 
-test('focus does not change the formal display source', async t => {
+test('scale changes retain the admitted formal display source', async t => {
   const { renderer } = fixture(t);
-  renderer.requestCountryFocus();
   await renderer.rebuildFromCountries([]);
   renderer.syncCountryMeshQuality({ cssScale: 300 });
   renderer.commitVisualFrame({ frameId: 1 });
-  assert.equal(renderer.getRuntimeState().countryFocusPending, true);
   assert.equal(renderer.getRuntimeState().surfacePresentation.geometryQuality, 'canonical');
-  renderer.cancelCountryFocus();
   renderer.syncCountryMeshQuality({ cssScale: 300 });
-  assert.equal(renderer.getRuntimeState().desiredCountryMeshQuality, 'canonical');
   assert.equal(renderer.getRuntimeState().surfacePresentation.geometryQuality, 'canonical', 'uncertified startup mesh is never readmitted');
 });
 
-test('project replacement resets focus while projection retains the formal surface', async t => {
+test('project replacement keeps unprepared surfaces pending across projections', async t => {
   const { state, renderer } = fixture(t);
   renderer.syncCountryMeshQuality({ cssScale: 300 });
   renderer.syncCountryMeshQuality({ cssScale: 570 });
-  assert.equal(renderer.getRuntimeState().desiredCountryMeshQuality, 'canonical', 'an unpresented preview cannot establish transition-band history');
+  assert.equal(renderer.getRuntimeState().surfacePresentation.quality, 'pending');
   state.projection = 'flat';
   renderer.syncCountryMeshQuality({ cssScale: 570, projection: 'flat' });
-  assert.equal(renderer.getRuntimeState().desiredCountryMeshQuality, 'canonical');
-  renderer.requestCountryFocus();
+  assert.equal(renderer.getRuntimeState().surfacePresentation.quality, 'pending');
   renderer.resetProjectRenderState();
   renderer.syncCountryMeshQuality({ cssScale: 570 });
-  assert.equal(renderer.getRuntimeState().countryFocusPending, false);
-  assert.equal(renderer.getRuntimeState().desiredCountryMeshQuality, 'canonical');
+  assert.equal(renderer.getRuntimeState().surfacePresentation.quality, 'pending');
 });
 });

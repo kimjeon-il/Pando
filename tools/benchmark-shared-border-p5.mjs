@@ -76,7 +76,7 @@ function comparePackets(reference,actual,quality) {
 function samplePair(oldFn,newFn,segments,limit,count) {
   const results={legacy:{ms:[],heap:[],rss:[]},compiled:{ms:[],heap:[],rss:[]}};
   function measure(key,fn) {
-    global.gc?.();
+    globalThis.gc?.();
     const before=process.memoryUsage();
     const started=performance.now();
     const packet=fn(segments,[],{maxEdgeDegrees:limit});
@@ -107,13 +107,12 @@ function samplePair(oldFn,newFn,segments,limit,count) {
 }
 
 const cases=[
-  {quality:'preview',limit:2,...readArchive('preview')},
   {quality:'canonical',limit:0.499,...readArchive('canonical')},
   {quality:'stress',limit:0.499,...synthetic()},
 ];
 const results=[];
 for(const {quality,limit,name,sourceHash,segments} of cases) {
-  let outputSegments=0;
+  let outputSegments;
   {
     const baseline=old.prepareCountrySharedBoundaryPacket(segments,[],{maxEdgeDegrees:limit});
     const current=modern.prepareCountrySharedBoundaryPacket(segments,[],{maxEdgeDegrees:limit});

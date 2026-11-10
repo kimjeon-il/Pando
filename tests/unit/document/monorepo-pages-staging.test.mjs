@@ -152,7 +152,7 @@ test('obsolete optional prepared country scene is a cache miss, not a failed can
 });
 
 test('retired preview descriptors are neither validated nor staged', async t => {
- const {root,stage,manifest}=await fixture(t,{previewRevision:5});
+ const {root,stage,manifest}=await fixture(t,{retiredPreviewDescriptors:true});
  const result=run(process.execPath,[script,'--root',root,'--stage',stage,'--manifest',manifest,'--skip-checks'],root);
  assert.equal(result.status,0,result.stderr);
  const evidence=JSON.parse(readFileSync(manifest,'utf8'));

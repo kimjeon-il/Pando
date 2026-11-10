@@ -147,7 +147,6 @@ test('P3-1 rapid year inputs merge to the latest visible month and stale reads n
  await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentState().timelineCursor)).toBe('2020-12');
  await expect(page.locator('#timelineDateButtonText')).toHaveText('2020년');
  await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true');
- await expect(page.locator('#viewerInitialPreview')).toBeHidden();
  const result=await page.evaluate(()=>({
    requested:window.__P3_REQUESTS__.slice(),
    commits:window.__P3_COMMITS__.slice(),
@@ -384,7 +383,6 @@ for(const renderer of ['webgl','canvas-worker','canvas2d'])for(const width of [1
     expect(returned.mapReadiness.mapReady).toBe(true);
     expect(returned.countriesPublishedGeneration).toBe(returned.projectGeneration);
     expect(await page.evaluate(()=>window.__PANDOLAB_VIEWER__.cameraSnapshot())).toEqual(camera);
-    await expect(page.locator('#viewerInitialPreview')).toBeHidden();
     await expect(page.locator('#viewer')).toHaveAttribute('data-initial-loading','false');
     // A newer Core cursor is not sufficient proof of a painted frame.
     await expect.poll(()=>page.evaluate(()=>{

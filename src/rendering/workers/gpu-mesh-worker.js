@@ -79,6 +79,11 @@ const screenLodAlgorithm = 'shared-topology-contraction-v1';
 async function buildMesh(features, context, request = {}) {
   const canonicalFeatures = features;
   const lod = request.lod;
+  const lodStarted = performance.now();
+  const lodProgress = (completed, phase) => { if(lod) context.emitEvent('geometry.lod-progress',
+    { requestId: context.requestId, completed, total: 3000004, phase, elapsedMs: performance.now()-lodStarted },
+    { projectRevision: context.projectRevision }); };
+  lodProgress(0, 'topology');
   let lodInfo = null, derived = false, displayFeatures = null, displaySourceIndices = null;
   let displayPhysicalFeatures = null, displayPhysicalSourceIndices = null;
   if (lod) {
@@ -109,10 +114,16 @@ async function buildMesh(features, context, request = {}) {
         visibleIds.add(String(feature.id));
       const topologyReused = !!screenLodIndex;
       if (!screenLodIndex) {
-        const next = createSharedPolygonLodIndex(sourceFeatures);
+        const next = createSharedPolygonLodIndex(sourceFeatures, { onProgress: progress => {
+          if(progress.phase === 'topology-progress')
+            lodProgress(2 + Math.floor(progress.completed / Math.max(1, progress.total) * 1000000), 'topology');
+          else if(progress.phase === 'source-graph') lodProgress(1, 'importance');
+          else if(progress.phase === 'importance') lodProgress(2, 'topology');
+        } });
         context.throwIfCancelled();
         screenLodIndex = next;
       }
+      lodProgress(1000002, 'derive');
       const display = screenLodIndex.derive({
         cssScale: lod.upperScale, errorPx: lod.errorPx, visibleIds, capped: lod.capped === true,
       });
@@ -150,7 +161,7 @@ async function buildMesh(features, context, request = {}) {
         slotCountryCount: screenLodCountryCount,
         physicalFeatureCount: displayPhysicalFeatures.length,
         topologyReused, topologyFeatureCount: screenLodIndex.stats().featureCount,
-        algorithmVersion: screenLodAlgorithm,
+        algorithmVersion: screenLodAlgorithm, preparationPhases: screenLodIndex.stats().preparationPhases,
         scoped: !!visibleIds, sourceCached: true, fallback: display.fallback, simplified: derived,
         tiledCountryCount: tiled?.tiledCountryCount || 0,
         tilesPrepared: tiled?.tilesPrepared || 0,
@@ -173,19 +184,27 @@ async function buildMesh(features, context, request = {}) {
   // happens to match the original; every backend receives that same geometry.
   if (lod && !derived) return { lod: lodInfo, displayFeatures, displaySourceIndices,
     displayPhysicalFeatures, displayPhysicalSourceIndices };
+  lodProgress(1000002, 'country-mesh');
   const started = performance.now();
   const total = features.length + 3;
-  const progress = (completed, phase) => context.emitEvent('geometry.mesh-progress',
-    { requestId: context.requestId, completed, total, phase }, { projectRevision: context.projectRevision });
+  const progress = (completed, phase) => {
+    context.emitEvent('geometry.mesh-progress',
+      { requestId: context.requestId, completed, total, phase }, { projectRevision: context.projectRevision });
+    lodProgress(completed <= features.length + 1
+      ? 1000002 + Math.floor(completed / (features.length + 1) * 1000000)
+      : 3000002 + completed - features.length - 1, phase);
+  };
   let mesh;
   try {
     mesh = await (await countryPreparation).build(features, context, progress, {
       validate: derived,
       maxEdgeDegrees: lodInfo?.maxEdgeDegrees || self.PandoLabGpuMeshCore.MAX_RENDER_EDGE_DEGREES,
     });
+    lodProgress(2000002, 'physical-mesh');
     if (displayPhysicalFeatures?.length) {
       const store = await polygonPreparation;
       mesh.displayPhysicalPackets = [];
+      let physicalCompleted = 0;
       for (const feature of displayPhysicalFeatures) {
         context.throwIfCancelled();
         if (!feature.geometry) continue;
@@ -194,6 +213,7 @@ async function buildMesh(features, context, request = {}) {
           geometry: feature.geometry,
         }, context);
         mesh.displayPhysicalPackets.push({ id: String(feature.id), packet });
+        lodProgress(2000002 + Math.floor(++physicalCompleted / displayPhysicalFeatures.length * 1000000), 'physical-mesh');
       }
       mesh.physicalPreparation = store.stats();
     }
@@ -208,8 +228,9 @@ async function buildMesh(features, context, request = {}) {
     return { lod: { ...lodInfo, fallback: true, simplified: false,
       failure: String(error.message || error).slice(0, 240) } };
   }
+  lodProgress(3000002, 'stroke');
   if (lodInfo) {
-    mesh.lod = lodInfo;
+    mesh.lod = { ...lodInfo, preparationMs: performance.now()-lodStarted };
     mesh.displayFeatures = displayFeatures;
     mesh.displaySourceIndices = displaySourceIndices;
     mesh.displayPhysicalFeatures = displayPhysicalFeatures;

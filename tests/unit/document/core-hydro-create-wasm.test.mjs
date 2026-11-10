@@ -109,7 +109,7 @@ test('hydro copy, delete and Undo/Redo derive source suppression without saving 
   const owner=await createNodeCoreProject(seed);t.after(()=>owner.dispose());
   await owner.client.presentationCatalogLoad({hydroLayers:{[sourceId]:'river'},countryLabelIds:[],builtinSubunitSources:{}});
   const session=createProjectSession({productMode:'viewer'});
-  session.connect({readiness:{DATA_READINESS:{PREVIEW:'preview'}},applicationConstantsA:{DISTRIBUTION_RENDER_MODES:{OVERLAP:'overlap'}},
+  session.connect({applicationConstantsA:{DISTRIBUTION_RENDER_MODES:{OVERLAP:'overlap'}},
     uiFactoriesA:{createAtomicMapStateController:()=>({})},modelValidation:{normalizeLayerPresentation:()=>({})},physicalConfig:{PHYSICAL_DATASET:'fixture'},domains:{}});
   session.initializeMapWorkScheduler();session.installDocumentProjection({documentModel:owner.documentModel,commandOwner:owner.client,entityStore:{snapshot:()=>[]}});
   const state=session.state;

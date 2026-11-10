@@ -247,8 +247,7 @@ featureDescribe("core-empty-document-wasm", () => {
   const {  createCoreDocumentReadModel  } = __suiteDependency27;
   const {  createTerritorialEntityStore  } = __suiteDependency28;
 test('the application startup seed is a complete empty current-format input accepted by the same C++ document owner',async () => {
-  const session=createProjectSession();session.connect({ readiness: { DATA_READINESS: { PREVIEW: 'preview' } },
-    applicationConstantsA: { DISTRIBUTION_RENDER_MODES: { OVERLAP: 'overlap' } },modelValidation: { normalizeLayerPresentation },
+  const session=createProjectSession();session.connect({ applicationConstantsA: { DISTRIBUTION_RENDER_MODES: { OVERLAP: 'overlap' } },modelValidation: { normalizeLayerPresentation },
     physicalConfig: { PHYSICAL_DATASET: 'fixture' },domains: {},
     uiFactoriesA: { createAtomicMapStateController: () => ({}) },
     platformConfigurationA: { APP_VERSION: '0.34.0',BASE_DATASET: 'fixture',HYDRO_DATASET: 'fixture-hydro' },

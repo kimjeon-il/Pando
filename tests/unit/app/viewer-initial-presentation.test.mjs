@@ -328,7 +328,7 @@ test('quiet completion preserves accessibility without declaring the renderer re
 });
 });
 });
-contractSuite("viewer-globe-only", () => {
+contractSuite("viewer-projections", () => {
 const test = __merge_dep0.default;
 const assert = __merge_dep1.default;
 const { createProductModePolicy } = __merge_dep6;
@@ -339,26 +339,27 @@ const { createMapLayoutMetricsSnapshot } = __merge_dep10;
 const { initialBoundsView } = __merge_dep11;
 
 for (const [mode, projection, rejected] of [['viewer','globe','flat'],['editor','flat','globe']]) {
-  test(`${mode} admits its fixed projection and rejects an explicit switch`,()=>{
+  test(`${mode} enforces its supported projection set`,()=>{
     const policy=createProductModePolicy(mode);
     assert.doesNotThrow(()=>policy.assertProjection(projection));
-    assert.throws(()=>policy.assertProjection(rejected),{code:'PL-PRODUCT-PROJECTION'});
+    if(mode==='viewer') assert.doesNotThrow(()=>policy.assertProjection(rejected));
+    else assert.throws(()=>policy.assertProjection(rejected),{code:'PL-PRODUCT-PROJECTION'});
     assert.throws(()=>policy.assertProjection('unknown'),{code:'PL-PRODUCT-PROJECTION'});
     assert.doesNotThrow(()=>policy.assertProjection(undefined)); // A camera-only host update.
   });
-  test(`${mode} atomic camera restore keeps the product projection and geographic center`,()=>{
+  test(`${mode} atomic camera restore preserves supported projection and geographic center`,()=>{
     const layout=createMapLayoutMetricsSnapshot({width:900,height:624});
     const navigation=createCameraNavigation();
     navigation.connect({platform:{clamp:(value,min,max)=>Math.max(min,Math.min(max,value))},mapView:{projectionLayoutMetrics:()=>layout}});
     const session=createProjectSession({productMode:mode});
-    session.connect({readiness:{DATA_READINESS:{PREVIEW:'preview'}},applicationConstantsA:{DISTRIBUTION_RENDER_MODES:{OVERLAP:'overlap'}},
+    session.connect({applicationConstantsA:{DISTRIBUTION_RENDER_MODES:{OVERLAP:'overlap'}},
       modelValidation:{normalizeLayerPresentation:()=>({})},physicalConfig:{PHYSICAL_DATASET:'fixture'},domains:{},
       uiFactoriesA:{createAtomicMapStateController},mapNavigation:navigation});
     session.initializeMapWorkScheduler();
     const view={...session.state.view,flatCenter:[175,25],flatZoom:3,globeRotation:[-175,-25,0],globeZoom:3};
     const camera=session.atomicMapStateController;
     camera.commit(camera.begin(),{projection:rejected,view});
-    assert.equal(session.state.projection,projection);
+    assert.equal(session.state.projection,mode==='viewer'?rejected:projection);
     assert.deepEqual(projection==='globe'?session.state.view.globeRotation:session.state.view.flatCenter,projection==='globe'?[-175,-25,0]:[175,25]);
     assert.deepEqual(view.flatCenter,[175,25]);
   });
@@ -366,12 +367,13 @@ for (const [mode, projection, rejected] of [['viewer','globe','flat'],['editor',
 
 test('globe initial bounds fit across the dateline on desktop and mobile',()=>{
   for(const size of [{width:1440,height:900},{width:390,height:844}]){
-    const layout=createMapLayoutMetricsSnapshot(size),bounds={west:170,east:-170,south:-10,north:10};
+    const bounds={west:170,east:-170,south:-10,north:10};
+    const layout=createMapLayoutMetricsSnapshot({...size,projectBounds:bounds});
     const initial=initialBoundsView(bounds,layout,'globe');
     assert.equal(initial.projection,'globe');
     assert.equal(Math.abs(initial.view.globeRotation[0]),180);
     assert.equal(initial.view.globeRotation[1],0);
-    assert.ok(initial.view.globeZoom>1);
+    assert.equal(initial.view.globeZoom,1);
     const angle=Math.acos(Math.cos(10*Math.PI/180)**2);
     assert.ok(2*layout.globeBaseScale*initial.view.globeZoom*Math.sin(angle)<=Math.min(layout.contentWidth,layout.contentHeight));
   }
@@ -394,7 +396,7 @@ test('flat review keeps editor projection but never creates edit-draft or save s
  assert.throws(()=>policy.assertOperation('core.document-execute'),{code:'PL-PRODUCT-READONLY'});
  assert.doesNotThrow(()=>policy.assertOperation('core.document-selection-apply'));
  const session=createProjectSession({productMode:'editor',readOnly:true});
- session.connect({readiness:{DATA_READINESS:{PREVIEW:'preview'}},applicationConstantsA:{DISTRIBUTION_RENDER_MODES:{OVERLAP:'overlap'}},
+ session.connect({applicationConstantsA:{DISTRIBUTION_RENDER_MODES:{OVERLAP:'overlap'}},
   modelValidation:{normalizeLayerPresentation:()=>({})},physicalConfig:{PHYSICAL_DATASET:'fixture'},domains:{},
   uiFactoriesA:{createAtomicMapStateController},
   mapNavigation:{clampViewZooms:view=>view,reprojectView:view=>view}});

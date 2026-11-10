@@ -691,8 +691,6 @@ export function createProjectDomain({
       resolveAutosaveRecovery: persistence?.resolveRecovery,
       completeAutosaveRecovery: persistence?.completeRecovery,
       loadAutosave: project => load(project),
-      restorePreview: persistence?.restorePreview,
-      ensurePreview: persistence?.ensurePreview,
       flushAutosave: () => persistence?.persist(),
     }:{}),
   });

@@ -7,8 +7,6 @@ import { validateWorldBundle, worldAssetUrl } from "../../../src/data/world-bund
 
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
 const types = Object.freeze({
-  previewCountries: ['countries-preview', '.geojson.gz', 'gzip'],
-  previewMesh: ['world-mesh-preview', '.bin.gz', 'gzip'],
   canonicalCountryPacket: ['countries-canonical', '.pcg.gz', 'gzip'],
   canonicalMesh: ['world-mesh', '.bin.gz', 'gzip'],
   labelAnchors: ['country-label-anchors', '.json', 'identity'],
@@ -28,10 +26,9 @@ function fixture() {
   return {
     schema: 'pandolab-world-bundle', schemaVersion: 1,
     source: { url: 'territorial-entities/generated/current-world.geojson', sha256: 'a'.repeat(64), countryCount: 258 },
-    derivation: { preview: 'canonical-topology-simplified', coordinateCount: 105884, meshAlgorithmRevision: 5 },
+    derivation: { coordinateCount: 105884, meshAlgorithmRevision: 5 },
     defaultClassification: { countries: { TEST: 'digest' } }, assets,
     compatibility: { sharedBoundaries: {
-      preview: 'countries-preview-shared-v0.34.0.json.gz',
       canonical: 'countries-canonical-shared-v0.34.0.json.gz',
     } },
   };
@@ -39,10 +36,6 @@ function fixture() {
 
 test('bundled world manifest admits canonical assets without any preview descriptor', () => {
   const value = fixture();
-  delete value.assets.previewCountries;
-  delete value.assets.previewMesh;
-  delete value.derivation.preview;
-  delete value.compatibility.sharedBoundaries.preview;
   const normalized = validateWorldBundle(value);
   assert.equal(normalized.sourceSha256, value.source.sha256);
   assert.strictEqual(normalized.defaultClassification, value.defaultClassification);

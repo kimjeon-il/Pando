@@ -289,7 +289,7 @@ test('unchanged renderer inputs do not rebuild scene packets or resource object 
   const calls = { build: 0, patch: 0, submit: 0 };
   const makeScene = (input, previous = {}) => ({
     revision: input.revision,
-    revisions: { editPreview: 0, ...input.revisions }, // actual RenderScene default contract
+    revisions: { ...input.revisions },
     country: { ...(previous.country || {}), ...input.country },
     physical: { ...(previous.physical || {}), ...input.physical },
     quality: { ...(previous.quality || {}), ...input.renderQuality },
@@ -327,7 +327,7 @@ test('unchanged renderer inputs do not rebuild scene packets or resource object 
   renderer.initializeGpuSceneResourceObjectKeys();
   renderer.initializeRenderSceneBuilder();
   const first = renderer.syncGpuRenderScene();
-  assert.equal(first.revisions.editPreview, 0, 'normalized RenderScene adds a default revision');
+  assert.equal(first.revisions.view, mapLayout.viewRevision);
   assert.equal(renderer.syncGpuRenderScene(), first);
   assert.deepEqual(calls, { build: 1, patch: 0, submit: 1 });
   state.layerVisibility.objects = false;

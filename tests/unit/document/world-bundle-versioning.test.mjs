@@ -13,7 +13,6 @@ const seed = Object.freeze({
   canonicalSource: 'territorial-entities/generated/current-world.geojson',
   legacyPreviewManifest: 'world-preview-v0.36.0.json',
   sharedBoundaries: {
-    preview: 'countries-preview-shared-v0.34.0.json.gz',
     canonical: 'countries-canonical-shared-v0.34.0.json.gz',
   },
 });
@@ -25,7 +24,6 @@ function scenario(version = '0.36.0') {
   }));
   const sourceBytes = Buffer.from(JSON.stringify({ type: 'FeatureCollection', features }));
   const decoded = {
-    previewCountries: 'preview', previewMesh: 'mesh',
     canonicalCountryPacket: 'packet', canonicalMesh: 'mesh-canonical',
     labelAnchors: '{"anchors":{}}',
   };
@@ -40,10 +38,8 @@ function scenario(version = '0.36.0') {
     legacy: {
       version, source: seed.canonicalSource, countries: 258,
       sourceSha256: sha256(sourceBytes), canonicalSourceSha256: sha256(sourceBytes),
-      previewSourceSha256: sha256(sourceBytes),
-      previewDerivation: 'canonical-topology-simplified', previewSourceScale: 'derived',
       defaultClassification: { countries: { S0: 'hash' } },
-      coordinateCount: 200, simplificationQuantile: 0.2, meshAlgorithmRevision: 3, assets: specs,
+      coordinateCount: 200, meshAlgorithmRevision: 3, assets: specs,
     },
   };
 }

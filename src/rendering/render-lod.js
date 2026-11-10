@@ -1,3 +1,5 @@
+import { createBoundarySpatialIndex } from '../geometry/boundary-spatial-index.js';
+
 const RENDER_LOD_LEVELS = Object.freeze({
   COARSE: 'coarse',
   MEDIUM: 'medium',
@@ -127,11 +129,11 @@ function lodCartesian([longitude, latitude]) {
   return [Math.cos(lat) * Math.cos(lon), Math.cos(lat) * Math.sin(lon), Math.sin(lat)];
 }
 function lodPointSegmentSquared(point, start, end) {
-  const delta = end.map((value, axis) => value - start[axis]);
-  const length = delta.reduce((sum, value) => sum + value * value, 0);
-  const t = length ? Math.max(0, Math.min(1,
-    delta.reduce((sum, value, axis) => sum + value * (point[axis] - start[axis]), 0) / length)) : 0;
-  return delta.reduce((sum, _, axis) => sum + (point[axis] - start[axis] - t * delta[axis]) ** 2, 0);
+  const dx=end[0]-start[0],dy=end[1]-start[1],dz=end[2]-start[2];
+  const px=point[0]-start[0],py=point[1]-start[1],pz=point[2]-start[2];
+  const length=dx*dx+dy*dy+dz*dz;
+  const t=length?Math.max(0,Math.min(1,(dx*px+dy*py+dz*pz)/length)):0;
+  return (px-t*dx)**2+(py-t*dy)**2+(pz-t*dz)**2;
 }
 function lodVertexImportance(points) {
   const importance = new Float64Array(points.length);
@@ -168,7 +170,7 @@ function lodSignedArea(points) {
 // preserves the active graph and accounts for all original points along its
 // replacement chord. Selecting a tolerance therefore selects a prefix of this
 // certified contraction sequence, rather than independently repairing rings.
-function protectLodHierarchy(nodes, edges, rings) {
+function protectLodHierarchy(nodes, edges, rings, protectedRings, onProgress) {
   const cross = (a,b,c) => (b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0]);
   const on = (a,b,p) => cross(a,b,p)===0 && p[0]>=Math.min(a[0],b[0])
     && p[0]<=Math.max(a[0],b[0]) && p[1]>=Math.min(a[1],b[1]) && p[1]<=Math.max(a[1],b[1]);
@@ -178,8 +180,8 @@ function protectLodHierarchy(nodes, edges, rings) {
       || abC===0&&on(a,b,c) || abD===0&&on(a,b,d) || cdA===0&&on(c,d,a) || cdB===0&&on(c,d,b);
   };
   const insideTriangle = (p,a,b,c) => {
-    const signs=[cross(a,b,p),cross(b,c,p),cross(c,a,p)];
-    return signs.every(x=>x>=0)||signs.every(x=>x<=0);
+    const ab=cross(a,b,p),bc=cross(b,c,p),ca=cross(c,a,p);
+    return ab>=0&&bc>=0&&ca>=0||ab<=0&&bc<=0&&ca<=0;
   };
   const graph=new Map(),grid=new Map(),pointGrid=new Map(),overflow=new Set();
   const keyFor=(a,b)=>a<b?`${a}|${b}`:`${b}|${a}`;
@@ -201,7 +203,8 @@ function protectLodHierarchy(nodes, edges, rings) {
     return result;
   };
   for(const [key,node] of nodes){
-    node.active=true;node.rank=0;node.finalRank=Infinity;node.refs=[];
+    node.active=true;node.rank=node.sourceProtected?Infinity:0;node.finalRank=Infinity;node.refs=[];
+    node.unit=lodCartesian(node.point);
     node.links=new Map();
     const cell=cells([node.point])[0];if(!pointGrid.has(cell))pointGrid.set(cell,new Set());pointGrid.get(cell).add(key);
   }
@@ -226,11 +229,26 @@ function protectLodHierarchy(nodes, edges, rings) {
     graph.delete(entry.key);nodes.get(entry.a).links.delete(entry.b);nodes.get(entry.b).links.delete(entry.a);
     if(entry.cells)for(const cell of entry.cells)grid.get(cell).delete(entry);else overflow.delete(entry);
   };
-  for(const [key,edge] of edges){const [a,b]=key.split('|');addEdge(a,b,[nodes.get(a).point,nodes.get(b).point],edge.signature);}
+  for(const [key,edge] of edges){const [a,b]=key.split('|');addEdge(a,b,[nodes.get(a),nodes.get(b)],edge.signature);}
   let threshold=0,protectedCount=0;
   const candidates=[...nodes.entries()].filter(([,node])=>Number.isFinite(node.rank))
     .sort((a,b)=>a[1].rank-b[1].rank||a[0].localeCompare(b[0]));
-  for(const [key,node] of candidates){
+  const fixedEdges=[];
+  const fixedIndex=createBoundarySpatialIndex();
+  if(candidates.length&&protectedRings.length){
+    const boxes=[];
+    for(const ring of protectedRings)for(let i=0;i<ring.points.length;i++){
+      const a=ring.points[i],b=ring.points[(i+1)%ring.points.length];
+      fixedEdges.push({a,b});
+      boxes.push([Math.min(a[0],b[0])*4,Math.min(a[1],b[1])*4,
+        Math.max(a[0],b[0])*4,Math.max(a[1],b[1])*4]);
+    }
+    fixedIndex.loadPacked(fixedEdges,boxes);
+  }
+  const same=(a,b)=>a[0]===b[0]&&a[1]===b[1];
+  for(let candidateIndex=0;candidateIndex<candidates.length;candidateIndex++){
+    if(candidateIndex%4096===0)onProgress({phase:'topology-progress',completed:candidateIndex,total:candidates.length});
+    const [key,node]=candidates[candidateIndex];
     if(node.links.size!==2){protectedCount++;continue;}
     const [a,b]=[...node.links.keys()],first=node.links.get(a),second=node.links.get(b);
     const pa=nodes.get(a).point,pb=nodes.get(b).point,p=node.point;
@@ -240,33 +258,63 @@ function protectLodHierarchy(nodes, edges, rings) {
       return {ring,index,previous,next,area:ring.currentArea-cross(before,p,after)};
     });
     if(changes.some(change=>change.ring.remaining<=3||Math.sign(change.area)!==Math.sign(change.ring.originalArea))){protectedCount++;continue;}
-    const occupied=cells([pa,p,pb]),possible=new Set(overflow);
-    if(occupied)for(const cell of occupied)for(const edge of grid.get(cell)||[])possible.add(edge);
-    else for(const edge of graph.values())possible.add(edge);
+    const occupied=cells([pa,p,pb]);
     let safe=true;
-    for(const edge of possible){
-      if(edge===first||edge===second)continue;
+    const visitEdge=edge=>{
+      if(edge.visited===candidateIndex+1||edge===first||edge===second)return;
+      edge.visited=candidateIndex+1;
       const c=nodes.get(edge.a).point,d=nodes.get(edge.b).point;
-      if(!intersects(pa,pb,c,d))continue;
+      if(Math.max(c[0],d[0])<Math.min(pa[0],pb[0])||Math.min(c[0],d[0])>Math.max(pa[0],pb[0])
+        ||Math.max(c[1],d[1])<Math.min(pa[1],pb[1])||Math.min(c[1],d[1])>Math.max(pa[1],pb[1])
+        ||!intersects(pa,pb,c,d))return;
       // Existing endpoint adjacency is legal; new overlap or a T contact is not.
       const shared=edge.a===a||edge.a===b||edge.b===a||edge.b===b;
-      if(!shared || cross(pa,pb,c)===0&&cross(pa,pb,d)===0){safe=false;break;}
+      if(!shared || cross(pa,pb,c)===0&&cross(pa,pb,d)===0)safe=false;
+    };
+    if(occupied){
+      for(const edge of overflow){visitEdge(edge);if(!safe)break;}
+      for(const cell of occupied){
+        if(!safe)break;
+        for(const edge of grid.get(cell)||[]){visitEdge(edge);if(!safe)break;}
+      }
+    }else{
+      for(const edge of graph.values()){visitEdge(edge);if(!safe)break;}
+    }
+    if(safe&&fixedEdges.length){
+      const bounds=[Math.min(pa[0],p[0],pb[0])*4,Math.min(pa[1],p[1],pb[1])*4,
+        Math.max(pa[0],p[0],pb[0])*4,Math.max(pa[1],p[1],pb[1])*4];
+      for(const {a:c,b:d} of fixedIndex.query(bounds)){
+        const shared=same(c,pa)||same(c,pb)||same(d,pa)||same(d,pb);
+        if(intersects(pa,pb,c,d)&&(!shared||cross(pa,pb,c)===0&&cross(pa,pb,d)===0)){
+          safe=false;break;
+        }
+        if(cross(pa,p,pb)!==0&&[c,d].some(point=>!same(point,pa)&&!same(point,pb)
+          &&insideTriangle(point,pa,p,pb))){safe=false;break;}
+      }
     }
     if(safe&&cross(pa,p,pb)!==0){
-      const possibleNodes=occupied?new Set(occupied.flatMap(cell=>[...(pointGrid.get(cell)||[])])):new Set(nodes.keys());
-      for(const other of possibleNodes)if(other!==key&&other!==a&&other!==b&&nodes.get(other).active
-        &&insideTriangle(nodes.get(other).point,pa,p,pb)){safe=false;break;}
+      const visitPoint=other=>{
+        if(other!==key&&other!==a&&other!==b&&nodes.get(other).active
+          &&insideTriangle(nodes.get(other).point,pa,p,pb))safe=false;
+      };
+      if(occupied)for(const cell of occupied){
+        if(!safe)break;
+        for(const other of pointGrid.get(cell)||[]){visitPoint(other);if(!safe)break;}
+      }
+      else for(const other of nodes.keys()){visitPoint(other);if(!safe)break;}
     }
     if(!safe){protectedCount++;continue;}
-    const sources=[...first.sources,...second.sources],unitA=lodCartesian(pa),unitB=lodCartesian(pb);
+    const sources=[...first.sources,...second.sources],unitA=nodes.get(a).unit,unitB=nodes.get(b).unit;
     let deviation=0;
-    for(const point of sources)deviation=Math.max(deviation,
-      Math.sqrt(distanceToSegmentSquared(point,pa,pb))*RADIANS_PER_LOD_DEGREE,
-      Math.sqrt(lodPointSegmentSquared(lodCartesian(point),unitA,unitB)));
+    for(const source of sources)deviation=Math.max(deviation,
+      Math.sqrt(distanceToSegmentSquared(source.point,pa,pb))*RADIANS_PER_LOD_DEGREE,
+      Math.sqrt(lodPointSegmentSquared(source.unit,unitA,unitB)));
     threshold=Math.max(threshold,node.rank,deviation);node.finalRank=threshold;
     for(const change of changes){change.ring.currentArea=change.area;change.ring.remaining--;
       change.ring.next[change.previous]=change.next;change.ring.previous[change.next]=change.previous;}
-    node.active=false;removeEdge(first);removeEdge(second);addEdge(a,b,sources,first.signature);
+    node.active=false;
+    pointGrid.get(cells([p])[0]).delete(key);
+    removeEdge(first);removeEdge(second);addEdge(a,b,sources,first.signature);
   }
   for(const ring of rings)ring.keys.forEach((key,index)=>{ring.importance[index]=nodes.get(key).finalRank;});
   return protectedCount;
@@ -325,10 +373,19 @@ export function resolveScreenLodEdgeDegrees({
   return Math.max(minDegrees, Math.min(maxDegrees, angleRadians / RADIANS_PER_LOD_DEGREE));
 }
 
-export function createSharedPolygonLodIndex(features) {
+export function createSharedPolygonLodIndex(features, { onProgress = () => {} } = {}) {
   if (!Array.isArray(features))
     throw new TypeError('Shared polygon LOD requires features.');
+  const preparationStarted = performance.now();
+  const preparationPhases = {};
+  let phaseStarted = preparationStarted;
+  const phase = name => {
+    preparationPhases[name] = performance.now() - phaseStarted;
+    phaseStarted = performance.now();
+    onProgress({ phase: name, durationMs: preparationPhases[name] });
+  };
   const nodes = new Map(), edges = new Map(), allRings = [], sharedArcs = new Map();
+  const protectedRings = [];
   const featureIds = new Set();
   function requireNode(coordinate) {
     if (!finiteCoordinate(coordinate)) throw new TypeError('Invalid source polygon coordinate.');
@@ -348,7 +405,22 @@ export function createSharedPolygonLodIndex(features) {
         || !finiteCoordinate(ring[ring.length - 1])
         || lodNodeKey(ring[0]) !== lodNodeKey(ring.at(-1)))
         throw new TypeError('Country polygon LOD requires closed rings.');
-      const points = ring.slice(0, -1), keys = points.map(requireNode);
+      const points = ring.slice(0, -1);
+      const protectedRing=polygon.length>1||ringIndex>0||hasDatelineJump(ring)
+        ||points.some(point=>Math.abs(point[1])>=85);
+      if(protectedRing){
+        const unique=new Set();
+        for(let index=0;index<points.length;index++){
+          const point=points[index],next=points[(index+1)%points.length];
+          if(!finiteCoordinate(point))throw new TypeError('Invalid source polygon coordinate.');
+          if(point[0]===next[0]&&point[1]===next[1])throw new TypeError('Duplicated polygon edge.');
+          if(unique.size<3)unique.add(lodNodeKey(point));
+        }
+        if(unique.size<3)throw new TypeError('Invalid polygon ring.');
+        const info={id,polygonIndex,ringIndex,points,protected:true};
+        protectedRings.push(info);allRings.push(info);return info;
+      }
+      const keys = points.map(requireNode);
       if (new Set(keys).size < 3) throw new TypeError('Invalid polygon ring.');
       const edgeKeys = keys.map((key, index) => {
         const next = keys[(index + 1) % keys.length];
@@ -362,16 +434,22 @@ export function createSharedPolygonLodIndex(features) {
       });
       const info = { id, polygonIndex, ringIndex, points, keys, edgeKeys,
         originalArea: lodSignedArea(points), importance: new Float64Array(points.length),
-        protected: polygon.length > 1 || ringIndex > 0 || hasDatelineJump(ring)
-          || points.some(point => Math.abs(point[1]) >= 85) };
+        protected: false };
       allRings.push(info);
       return info;
     }));
   });
+  // Immutable protected rings need neither adjacency Sets nor contraction
+  // nodes. Only matching mutable source nodes inherit their fixed protection.
+  if(nodes.size)for(const ring of protectedRings)for(const point of ring.points){
+    const node=nodes.get(lodNodeKey(point));
+    if(node)node.sourceProtected=true;
+  }
   for (const edge of edges.values()) edge.signature = [...edge.owners].sort().join('|');
+  phase('source-graph');
   for (const info of allRings) {
+    if(info.protected)continue;
     const { points, keys, edgeKeys, importance } = info;
-    if (info.protected) { importance.fill(Infinity); continue; }
     const anchors = new Set();
     for (let index = 0; index < keys.length; index += 1) {
       const node = nodes.get(keys[index]);
@@ -416,7 +494,13 @@ export function createSharedPolygonLodIndex(features) {
       }
     }
   }
-  const topologyProtectedCount=protectLodHierarchy(nodes,edges,allRings);
+  phase('importance');
+  const graphVertexCount=nodes.size;
+  // Shared-arc construction has finished with these Sets. Release them before
+  // building mutable links instead of retaining two adjacency representations.
+  for(const node of nodes.values()){node.neighbors=null;node.owners=null;}
+  const topologyProtectedCount=protectLodHierarchy(nodes,edges,allRings.filter(ring=>!ring.protected),protectedRings,onProgress);
+  phase('topology');
   const arcCount = sharedArcs.size;
   // Only original-index importance and shared edge ownership are needed during
   // display selection. Release the temporary contraction graph after preparing.
@@ -426,6 +510,7 @@ export function createSharedPolygonLodIndex(features) {
     delete ring.previous; delete ring.next;
     delete ring.remaining; delete ring.currentArea;
   }
+  const preparationMs=performance.now()-preparationStarted;
   function derive({ cssScale, errorPx = MAX_MAP_GEOMETRY_ERROR_PX,
     visibleIds = null, capped = false } = {}) {
     if (!Number.isFinite(cssScale) || cssScale <= 0 || !Number.isFinite(errorPx) || errorPx <= 0)
@@ -447,6 +532,12 @@ export function createSharedPolygonLodIndex(features) {
       const polygons = byFeature[index].map((polygon,polygonIndex) => polygon.map((info,ringIndex) => {
         sourceIndices[index][polygonIndex] ||= [];
         originalVertices += info.points.length;
+        if(info.protected){
+          const indices=info.points.map((_,i)=>i);
+          sourceIndices[index][polygonIndex][ringIndex]=[...indices,0];
+          keptVertices+=info.points.length;
+          return [...info.points.map(cloneCoordinate),cloneCoordinate(info.points[0])];
+        }
         const indices = [];
         for (let i = 0; i < info.points.length; i++)
           if (info.importance[i] >= tolerance) indices.push(i);
@@ -510,6 +601,10 @@ export function createSharedPolygonLodIndex(features) {
     sharedEdgeCount: [...edges.values()].filter(edge => edge.owners.size > 1).length,
     arcCount,
     topologyProtectedCount,
+    graphVertexCount,
+    immutableProtectedVertexCount:protectedRings.reduce((sum,ring)=>sum+ring.points.length,0),
+    preparationMs,
+    preparationPhases: Object.freeze({ ...preparationPhases }),
   }) });
 }
 

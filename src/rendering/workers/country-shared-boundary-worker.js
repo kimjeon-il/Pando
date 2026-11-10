@@ -277,7 +277,7 @@ async function prepareMessage(message) {
       if (profiling) record('state-segments', performance.now() - segmentsStarted,
         {segments: segments.length});
       packet = prepareCountrySharedBoundaryPacket(segments, preparedFeatures,
-        { preparedStore: boundaryState.preparedStore, maxEdgeDegrees: message.quality === 'preview' ? 2 : 0.499,
+        { preparedStore: boundaryState.preparedStore, maxEdgeDegrees: 0.499,
           includeOutlines: message.includeOutlines !== false, profile: record || undefined });
       const retainedStarted = profiling ? performance.now() : 0;
       const retained = retainPreparedPacket(key, packet);

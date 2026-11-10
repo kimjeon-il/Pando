@@ -29,7 +29,7 @@ export function createProductModePolicy(productMode, {readOnly = productMode ===
     readOnly,
     projection,
     assertProjection(requested) {
-      if (requested !== undefined && requested !== projection)
+      if (requested !== undefined && (!['flat', 'globe'].includes(requested) || (productMode === 'editor' && requested !== projection)))
         throw Object.assign(new Error(`The ${productMode} supports only the ${projection} projection.`), { code: 'PL-PRODUCT-PROJECTION', productMode, projection: requested });
     },
     assertOperation(operation) {

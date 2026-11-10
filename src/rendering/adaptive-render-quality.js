@@ -77,10 +77,6 @@ export function renderQualityProfile(tier, {
     tier: normalized,
     phase: interaction ? 'interaction' : 'settle',
     revision: Number(revision || 0),
-    // Preview geometry is a one-way startup fallback.  Interaction quality
-    // may change cadence and upload budgets, but must never select the
-    // low-resolution country dataset again after canonical promotion.
-    countryMeshQuality: 'canonical',
     activeEditLod: 'high',
     selectedLod: 'high',
     ...selected,

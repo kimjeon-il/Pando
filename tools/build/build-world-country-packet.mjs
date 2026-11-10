@@ -29,7 +29,7 @@ const canonicalCountryPacketPath = path.join(dataDirectory, legacySourceManifest
 const canonicalMeshPath = path.join(dataDirectory, legacySourceManifest.assets.canonicalMesh.url);
 const labelAnchorsPath = path.join(dataDirectory, legacySourceManifest.assets.labelAnchors.url);
 const sourceManifestPath = path.join(dataDirectory, bundleSeed.legacyPreviewManifest);
-if(projectId!=='default-world'&&Object.values(legacySourceManifest.assets)
+if(projectId!=='default-world'&&['canonicalCountryPacket','canonicalMesh','labelAnchors'].map(role=>legacySourceManifest.assets[role])
   .some(asset=>typeof asset?.url!=='string'
     ||!/^[-a-zA-Z0-9_./]+$/.test(asset.url)
     ||asset.url.split('/').some(part=>!part||part==='.'||part==='..')

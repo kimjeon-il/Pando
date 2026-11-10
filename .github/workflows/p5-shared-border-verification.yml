@@ -89,7 +89,7 @@ jobs:
         run: |
           cp build-native/p5-legacy/assets/js/modules/country-shared-boundary-packet.js assets/js/modules/.p5-legacy-country-shared-boundary-packet.js
           test "$(git hash-object assets/js/modules/.p5-legacy-country-shared-boundary-packet.js)" = be3a2ebde3820e25a6ac231565e7b406eac21f89
-      - name: Measure real-world preview, canonical, and stress packet paths
+      - name: Measure real-world canonical and stress packet paths
         run: |
           node --expose-gc --max-old-space-size=3072 tools/benchmark-shared-border-p5.mjs --output build-native/p5-performance.json --check-regressions
       - name: Summarize comparable CPU timings and transient memory caveats

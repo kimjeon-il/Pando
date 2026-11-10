@@ -295,8 +295,6 @@ export function createPhysicalResources({ buildMeta,capabilities = {terrain:true
     if(capabilities.terrain)(terrainService = (0, dependencies.physicalServices.createTerrainService)({
       fetchWithRetry: dependencies.physicalServices.fetchWithRetry,
       manifestUrl: () => dependencies.physicalConfig.TERRAIN_PRIMARY_MANIFEST_URL,
-      fallbackManifestUrl: dependencies.physicalConfig.TERRAIN_FALLBACK_MANIFEST_URL
-        ? () => dependencies.physicalConfig.TERRAIN_FALLBACK_MANIFEST_URL : null,
       getLoadState: () => dependencies.projectState.state.physicalLoadState.terrain,
       onLoading: () => {
         dependencies.projectState.state.physicalLoadState.terrain = 'loading';
@@ -307,13 +305,12 @@ export function createPhysicalResources({ buildMeta,capabilities = {terrain:true
       onRetry: (_operation, attempt) => dependencies.operationFeedback.reliabilityDiagnostic.push({
         category: 'asset', operation: 'terrain-manifest', result: `retry-${attempt}`,
       }),
-      acceptManifest: (manifest, manifestUrl, context) => {
+      acceptManifest: (manifest, manifestUrl) => {
         dependencies.projectState.state.terrainManifest = manifest;
         dependencies.projectState.state.physicalLoadState.terrainManifest = 'ready';
         dependencies.projectState.state.physicalLoadState.terrain = 'ready';
         dependencies.rendering.gpuMapRenderer.setTerrainManifest(manifest, manifestUrl, {
-          source: context.usedFallback ? 'fallback' : dependencies.physicalConfig.TERRAIN_SOURCE_CHOICE,
-          fallbackReason: context.fallbackReason,
+          source: dependencies.physicalConfig.TERRAIN_SOURCE_CHOICE,
         });
         (0, dependencies.layerPresentation.invalidateObjectPresentation)();
         dependencies.domains.objectSearchController?.render();

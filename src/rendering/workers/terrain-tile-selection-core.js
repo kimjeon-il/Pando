@@ -118,5 +118,18 @@
       clear() { camera = null; levels.clear(); },
     });
   }
-  return Object.freeze({ tileSpec, neighbours, visible, chooseLevel, createVisibilityCache, demVisiblePolicy, admitVisibleTiles });
+  function readyDrawSpecs(manifest, targetLevel, targetSpecs, visibleSpecs, isReady) {
+    const missing = targetSpecs.filter(spec => !isReady(spec.key));
+    const base = manifest.levels[0], baseSpecs = visibleSpecs(base, true);
+    const fallback = missing.length ? [
+      ...(base.id !== targetLevel.id && baseSpecs.every(spec => isReady(spec.key)) ? baseSpecs : []),
+      ...manifest.levels.filter(level => level.id !== targetLevel.id && level.id !== base.id)
+        .flatMap(level => visibleSpecs(level, false))
+        .filter(spec => isReady(spec.key) && missing.some(target =>
+          spec.bounds[0] < target.bounds[2] && spec.bounds[2] > target.bounds[0]
+          && spec.bounds[3] < target.bounds[1] && spec.bounds[1] > target.bounds[3])),
+    ] : [];
+    return [...fallback, ...targetSpecs.filter(spec => isReady(spec.key))];
+  }
+  return Object.freeze({ tileSpec, neighbours, visible, chooseLevel, createVisibilityCache, demVisiblePolicy, admitVisibleTiles, readyDrawSpecs });
 })();

@@ -32,7 +32,7 @@ node scripts/gis/run-source.mjs --task terrain-dem --execute -- \
 node scripts/gis/run-source.mjs --task hydro-tiles
 ```
 
-호출 가능한 작업: `historical-border`, `historical-coast`, `terrain-dem`, `terrain-preview`, `hydro-tiles`, `hydro-packfile`, `hydro-connectivity`, `physical-data`, `place-candidates`. 지정된 원본 파이프라인은 인수·해시·원본 추적 정책을 기존 도구에서 처리하므로 래퍼가 파일 내용을 임의 변경하지 않는다. `--execute` 없이는 호출 계획만 표시한다. 이들 중 간척·해안선 가공은 **역사 타임라인 자동 조사에서 제외**된 별개 연구 작업이다.
+호출 가능한 작업: `historical-border`, `historical-coast`, `terrain-dem`, `hydro-tiles`, `hydro-packfile`, `hydro-connectivity`, `physical-hydro`, `place-candidates`. 지정된 원본 파이프라인은 인수·해시·원본 추적 정책을 기존 도구에서 처리하므로 래퍼가 파일 내용을 임의 변경하지 않는다. `--execute` 없이는 호출 계획만 표시한다. 이들 중 간척·해안선 가공은 **역사 타임라인 자동 조사에서 제외**된 별개 연구 작업이다.
 
 ## 기존 전용 GIS/조사 워크플로 구분
 

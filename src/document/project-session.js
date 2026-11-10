@@ -53,11 +53,8 @@ export function createProjectSession({productMode='editor',readOnly=productMode=
 
     const background=loadUserPreferences().backgrounds[productMode];
     (state = {
-      dataReadiness: dependencies.readiness.DATA_READINESS.PREVIEW,
-      geometryProgress: 0,
-      meshProgress: 0,
       ...createEmptyTerritorialState(),
-      countryVisualPhase: 'preview',
+      countryVisualPhase: 'pending',
 
       countryIndex: new Map(),
       sourceInfo: null,
@@ -122,10 +119,12 @@ export function createProjectSession({productMode='editor',readOnly=productMode=
       applySnapshot: snapshot => {
         const projection = snapshot.projection || state.projection;
         const view = { ...state.view, ...snapshot.view };
-        state.view = projection !== productPolicy.projection
-          ? dependencies.mapNavigation.reprojectView(view, projection, productPolicy.projection)
+        const targetProjection = productMode === 'viewer' ? projection : productPolicy.projection;
+        productPolicy.assertProjection(targetProjection);
+        state.view = projection !== targetProjection
+          ? dependencies.mapNavigation.reprojectView(view, projection, targetProjection)
           : dependencies.mapNavigation.clampViewZooms(view);
-        state.projection = productPolicy.projection;
+        state.projection = targetProjection;
         state.transitionRevision = Number(snapshot.stateRevision || state.transitionRevision || 0);
       },
     }));
@@ -199,7 +198,7 @@ export function createProjectSession({productMode='editor',readOnly=productMode=
   const captureViewingPresentation=()=>structuredClone(Object.fromEntries(Object.entries(viewingPresentation || {}).filter(([key])=>key!=='physicalSettings'&&(readOnly||key!=='layerPresentation'))));
 
   // A detached, empty startup input. C++ validates and owns it before any
-  // preview/canonical source or editable UI is admitted.
+  // source geometry or editable UI is admitted.
   function initialDocument() {
     return createInitialDocument({ appVersion: dependencies.platformConfigurationA.APP_VERSION,
       baseDataset: dependencies.platformConfigurationA.BASE_DATASET, state,

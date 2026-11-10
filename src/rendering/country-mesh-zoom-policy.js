@@ -40,8 +40,6 @@ export function canvasWorkerPresentationKey(frame, {
   ]);
 }
 
-/** Source-matched initial Canvas land preview is a background only.
- * It cannot certify country geometry or a temporal replacement. */
 /** Stable for the same physical pixels even if coordinator frameId and
  * country-only view/style revisions advance during asynchronous preparation. */
 export function canvasWorkerBackgroundPresentationKey(frame, {

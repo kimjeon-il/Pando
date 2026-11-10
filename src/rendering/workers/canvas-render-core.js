@@ -394,24 +394,31 @@ function canvasFallbackWorkerMain(self) {
       const desiredWidth = 2 * Math.PI * projection.scale() * Math.max(1, Number(message.terrainDpr || dpr));
       const admission = tileSelection.admitVisibleTiles(terrainDemManifest, desiredWidth,
         level => visibleTerrainTileSpecs(level, message, projection, width, height, false));
+      const select = (level, all) => visibleTerrainTileSpecs(level, message, projection, width, height, all);
       return { demLevel: admission.level, demSpecs: admission.specs,
+        baseSpecs: select(terrainDemManifest.levels[0], true),
+        drawSpecs: tileSelection.readyDrawSpecs(terrainDemManifest, admission.level, admission.specs, select, key => demTiles.has(key)),
         terrainComplete: admission.specs.length > 0 && admission.specs.every(spec => demTiles.has(spec.key)),
         resolutionLimited: admission.resolutionLimited };
     }
     function scheduleTerrainDemand(plan) {
       if (!plan) return;
-      const { demSpecs } = plan;
+      const { demSpecs, baseSpecs, drawSpecs } = plan;
       terrainProtectedKeys.clear();
-      for (const spec of demSpecs) terrainProtectedKeys.add(`dem:${spec.key}`);
+      for (const spec of [...demSpecs, ...baseSpecs, ...drawSpecs]) terrainProtectedKeys.add(`dem:${spec.key}`);
       pruneDemTiles();
-      wantedDemKeys = new Set(demSpecs.map(spec => spec.key));
-      for (const [key, request] of demRequests) if (!wantedDemKeys.has(key)) request.controller.abort();
+      wantedDemKeys = new Set([...demSpecs, ...baseSpecs].map(spec => spec.key));
+      const targetKeys = new Set(demSpecs.map(spec => spec.key));
+      const targetWaiting = demSpecs.some(spec => !demTiles.has(spec.key) && !demRequests.has(spec.key));
+      for (const [key, request] of demRequests)
+        if (!wantedDemKeys.has(key) || (targetWaiting && !targetKeys.has(key))) request.controller.abort();
       for (let index = demQueue.length - 1; index >= 0; index -= 1) {
         if (wantedDemKeys.has(demQueue[index].spec.key)) continue;
         demQueuedKeys.delete(demQueue[index].spec.key);
         demQueue.splice(index, 1);
       }
       for (const spec of demSpecs) requestDemTile(spec, 10_000);
+      for (const spec of baseSpecs) requestDemTile(spec, 5_000);
     }
 
     function requestLatestTerrainDemand() {
@@ -426,7 +433,7 @@ function canvasFallbackWorkerMain(self) {
 
     function* renderTerrain(message, projection, width, height, dpr, plan) {
       if (!plan) return !message.physicalSettings?.terrainVisible;
-      const { terrainComplete, demLevel, demSpecs } = plan;
+      const { terrainComplete, demLevel, demSpecs, drawSpecs } = plan;
       // The main-thread physical certificate necessarily rejects a bitmap
       // without a land packet. Keep downloading tiles, but do not spend CPU
       // tessellating an unpresentable early bitmap while the verified land
@@ -452,12 +459,12 @@ function canvasFallbackWorkerMain(self) {
         context.clip();
       };
       const drawDem = function* (channel) {
-        for (const spec of demSpecs) {
+        for (const spec of drawSpecs) {
           const tile = demTiles.get(spec.key);
           if (!tile) continue;
           tile.lastUsed = performance.now();
           if (message.projection === 'flat') drawFlatTerrainTile(spec, tile[channel], projection, dpr);
-          else yield* drawGlobeTerrainTile(spec, tile[channel], projection, message, dpr, demLevel.id === 0);
+          else yield* drawGlobeTerrainTile(spec, tile[channel], projection, message, dpr, Number(spec.level) === 0);
         }
       };
       context.save();
@@ -682,11 +689,12 @@ function canvasFallbackWorkerMain(self) {
     }
 
     function scheduleHydroRender() {
-      // Resource/style updates can cancel the first cooperative paint before
-      // hasRenderedView becomes true. Its current view still needs a bitmap:
-      // otherwise the worker has no frame to present and no later camera
-      // input is guaranteed to arrive. Never revive a superseded project.
-      if (!lastRenderMessage
+      // A resource notification is not a view submission. After a project
+      // reset, data/physical packets may arrive before the first view and
+      // contain no theme or camera. Only repaint a view already submitted in
+      // this generation. The view handler sets this flag before starting its
+      // cooperative paint, so cancelling that first paint remains replayable.
+      if (!hasRenderedView || !lastRenderMessage
         || Number(lastRenderMessage.projectGeneration ?? projectGeneration) !== projectGeneration) return;
       if (activePaint) { repaintAfterPaint = true; return; }
       if (hydroRenderTimer) return;
@@ -695,6 +703,8 @@ function canvasFallbackWorkerMain(self) {
       // Coalesce resource notifications for one animation-frame interval.
       hydroRenderTimer = setTimeout(() => {
         hydroRenderTimer = 0;
+        if (!hasRenderedView || !lastRenderMessage
+          || Number(lastRenderMessage.projectGeneration ?? projectGeneration) !== projectGeneration) return;
         try { render(lastRenderMessage); }
         catch (error) { self.postMessage({ type: 'error', message: error?.message || String(error) }); }
       }, 16);
@@ -734,7 +744,11 @@ function canvasFallbackWorkerMain(self) {
       const dependency=content=>({source:'canvas-country',content,preparation:'geometry-v1',context:null,presentation:'geometry'});
       const change=resourceUpdate(previous?.boundaryGeometryRevision ? dependency(previous.boundaryGeometryRevision) : null,dependency(key));
       if(!change.prepare)return {...feature,geometry:previous.geometry};
-      if(!feature.geometry)throw new Error('Canvas country geometry is missing for a changed dependency');
+      // LOD visibility explicitly supplies null for an offscreen owner. That
+      // empty display shape must retire its previous path; only omission is
+      // a metadata delta requiring an already retained matching dependency.
+      if(!Object.hasOwn(feature,'geometry') || feature.geometry === undefined)
+        throw new Error('Canvas country geometry is missing for a changed dependency');
       return feature;
     }
 
@@ -861,7 +875,7 @@ function canvasFallbackWorkerMain(self) {
           ? JSON.stringify(landPackets.map(packet => [packet.sourceKey, packet.geometryRevision]))
           : null;
         const substrateKey = JSON.stringify([terrainViewKey,
-          terrainPlan?.demSpecs.filter(spec => demTiles.has(spec.key)).map(spec => spec.key),
+          terrainPlan?.drawSpecs.map(spec => spec.key),
           physicalIdentity]);
         const reuseSubstrate = substrate && substrateState?.key === substrateKey
           && (physicalIdentity !== null

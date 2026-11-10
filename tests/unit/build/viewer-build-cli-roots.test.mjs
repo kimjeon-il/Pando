@@ -31,7 +31,6 @@ function probeCli(file,cwd){
   '../../src/geometry/geometry-validation.js':['validateGeometry','validateClippedGeometry'],
   '../../src/rendering/canonical-country-packet.js':['inspectCanonicalCountryPacket'],
   './canonical-country-packet-encoder.mjs':['encodeCanonicalCountryPacket'],
-  '../gis/preview-topology.mjs':['buildTopologyPreview'],
   '../gis/builtin-country-classification.mjs':['classifyBuiltinCountries'],
   '../gis/builtin-display-policy.mjs':['loadBuiltinDisplayPolicy'],
   '../../scripts/lib/gzip-asset-verification.mjs':['verifyGzipAssetBytes'],

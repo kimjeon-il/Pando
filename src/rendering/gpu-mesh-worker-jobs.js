@@ -51,6 +51,9 @@ export function createGpuMeshWorkerJobs({ createWorker, createRebuildWorker = cr
   async function executeDisplayLod(payload, accepts) {
     const current = lodRpc ||= createWorkerRpcClient({
       createWorker,
+      onEvent: message => { if(message.operation === 'geometry.lod-progress') {
+        lodMetrics.phase = message.payload.phase; lodMetrics.phaseElapsedMs = message.payload.elapsedMs;
+      } },
       isCurrent: ({ entry, message }) => Number(message.projectRevision) === Number(entry.projectRevision),
     });
     try {
@@ -76,6 +79,7 @@ export function createGpuMeshWorkerJobs({ createWorker, createRebuildWorker = cr
         transfer: packed ? [packed.coordinates.buffer] : [],
         projectRevision: payload.projectGeneration,
         metadata: { geometryRevision: payload.geometryRevision, sourceKey: payload.sourceKey },
+        progress: { operation: 'geometry.lod-progress', total: 3000004 },
       });
       if (lodRpc !== current) return null;
       // Even a stale viewport result can certify the immutable source already

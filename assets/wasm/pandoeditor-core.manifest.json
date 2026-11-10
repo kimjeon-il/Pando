@@ -1,7 +1,7 @@
 {
   "schema": "pandoeditor-core-wasm",
   "abiVersion": 1,
-  "sourceSha256": "fd8c81ae254275e6a113e873df86a58e0b8f8265002f445973d6c475dfd7a3ca",
+  "sourceSha256": "c7ebf2a5c59a911c1f45ddda9b848b307a45b7baa6c2d4b426919c415f3d9ba3",
   "compiler": {
     "name": "emscripten",
     "version": "6.0.3"
@@ -505,7 +505,7 @@
     },
     {
       "path": "src/rendering/native/src/polygonmesh.cpp",
-      "sha256": "f95ab2dff880e3b9c4377b05a954ad6f327f457edfdd068cf423ccdb9c0b8653"
+      "sha256": "d4820fd636d431263484dd996a3a06b5dfa8d494b9720ebc3e8c724a065b41ec"
     },
     {
       "path": "src/runtime/native/include/pandoeditor/version.h",
@@ -621,7 +621,7 @@
     },
     {
       "path": "tests/native/geometry/polygon-mesh-tests.cpp",
-      "sha256": "87b6e411e6f6b9b3e0338e830b8f5cfe0ec11d2395ae6c76298839b3ca677294"
+      "sha256": "4a89fa91a12817b17c32d3ef2cff2b692332f74f1d8417ef68df53d38e19b55c"
     },
     {
       "path": "tests/native/geometry/river-partition-probe.cpp",
@@ -655,7 +655,7 @@
     },
     "wasm": {
       "file": "pandoeditor-core.wasm",
-      "sha256": "bec1925bf436ec26dfff74f8d4f3864dcd869d3d106748e2454682f09ba1394b"
+      "sha256": "8d0537523c5acc83920b671b40e520854a5bf0407e07e8c495530222a5948474"
     }
   }
 }

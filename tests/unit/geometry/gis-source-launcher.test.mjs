@@ -53,7 +53,7 @@ test('GIS source tools use their canonical Node entrypoints',()=>{
  assert.equal(coast[0],process.execPath);
  assert.match(coast[1],/build-german-1914-base\.mjs$/);
  assert.deepEqual(coast.slice(2),['--modern-coast','--output','candidate.json','--diagnostics','diagnostics.json']);
- assert.match(buildCommand('physical-data',[])[1],/build-physical-data\.mjs$/);
+ assert.match(buildCommand('physical-hydro',[])[1],/build-physical-hydro\.mjs$/);
  assert.match(buildCommand('hydro-connectivity',[])[1],/repair-hydro-connectivity\.mjs$/);
 });
 test('GIS raw subprocess launch requires explicit --execute and keeps forwarded args',()=>{

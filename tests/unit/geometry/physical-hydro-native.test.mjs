@@ -5,7 +5,6 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
 import {buildPhysicalHydro,physicalHydroProperties,physicalHydroCollection} from "../../../tools/gis/build-physical-hydro.mjs";
-import {buildPhysicalTerrain} from "../../../tools/gis/build-physical-terrain.mjs";
 
 const oracle=JSON.parse(readFileSync(new URL("../../fixtures/physical-hydro-properties-oracle.json",import.meta.url),'utf8'));
 test('physical hydro attributes match the existing Python source cases',()=>{
@@ -51,23 +50,16 @@ test('physical hydro retains source feature order, coordinates and null-shape co
   assert.deepEqual(result.collection.features[0].geometry,geometry);
   assert.throws(()=>physicalHydroCollection({type:'FeatureCollection',features:[{geometry:{type:'Point',coordinates:[1,2]},properties:{}}]},'rivers_base','river'),/line/i);
 });
-test('physical data entry point delegates hydro to the same Node/GDAL owner',
+test('physical hydro CLI uses the same Node/GDAL owner',
   {skip:!process.env.PANDO_GDAL_OGR2OGR},t=>{
     const fixture=JSON.parse(readFileSync(new URL("../../fixtures/physical-hydro-shapefile-oracle.json",import.meta.url),'utf8'));
     const root=mkdtempSync(join(tmpdir(),'pando-physical-legacy-')),source=join(root,'source'),output=join(root,'candidate');
     t.after(()=>rmSync(root,{recursive:true}));mkdirSync(source);
     for(const [name,base64] of Object.entries(fixture.files))writeFileSync(join(source,name),Buffer.from(base64,'base64'));
-    const processResult=spawnSync(process.execPath,['tools/build/build-physical-data.mjs',source,output,'--hydro-only'],
+    const processResult=spawnSync(process.execPath,['tools/gis/build-physical-hydro.mjs','--source',source,'--output',output],
       {encoding:'utf8',windowsHide:true,env:process.env,timeout:60000});
     if(processResult.error)throw processResult.error;
     assert.equal(processResult.status,0,processResult.stderr);
     for(const [id,expected] of Object.entries(fixture.layers))
       assert.deepEqual(JSON.parse(readFileSync(join(output,'hydro',id+'.geojson'))),expected);
-  });
-test('existing physical terrain output is rejected before source reads',async t=>{
-    const root=mkdtempSync(join(tmpdir(),'pando-physical-preserve-'));t.after(()=>rmSync(root,{recursive:true}));
-    const target=join(root,'output','terrain','v0.12.6');mkdirSync(target,{recursive:true});
-    const marker=join(target,'keep');writeFileSync(marker,'preserve');
-    await assert.rejects(buildPhysicalTerrain({sourceRoot:join(root,'missing-sources'),outputRoot:join(root,'output'),countriesPath:join(root,'countries.json')}),/output exists/i);
-    assert.equal(readFileSync(marker,'utf8'),'preserve');
   });

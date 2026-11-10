@@ -386,7 +386,8 @@ export async function composeViewer({ productMode, meta }) {
   disposables.push(preferencesDialog);
   if(inspectParams.get('debug')==='1')globalThis.__PANDOLAB_VIEWER__=Object.freeze({initialMapPresented:initialPresentation.hasPresented,productMode,documentState:()=>activeSession?.commandOwner.state(),
     documentSnapshot:()=>activeSession?.documentModel.snapshot(),resolvedWorld:()=>activeSession?.documentModel.world(),selectionSnapshot:()=>activeSession?.selectionDomain.snapshot().selection,
-    diagnostics:diagnostics.snapshot,rendererStats:()=>map.renderer.getStats(),visibleTerritorialCount:()=>map.objectQuery.visibleTerritorialCount(),
+    diagnostics:diagnostics.snapshot,rendererStats:()=>map.renderer.getStats(),
+    interactionBoundary:()=>{const boundary=map.renderer.getCountryInteractionBoundaryData();return {revision:boundary.revision,baseLineIndexCount:boundary.base?.lineIndices?.length || 0};},visibleTerritorialCount:()=>map.objectQuery.visibleTerritorialCount(),
     mapProjection:()=>map.viewState.projection,readOnly:documentSession.readOnly,
     openFile:file=>openUserProject(()=>readProjectFile(file)),builtinMonth:()=>({
       month:activeSession.commandOwner.state().timelineCursor,
