@@ -11,6 +11,8 @@ export function createGpuMeshWorkerJobs({ createWorker, createRebuildWorker = cr
   let lodBusy = false;
   let rebuildBusy = false;
   let outputBytes = 0;
+  const lodMetrics = { requests: 0, sourceTransfers: 0, sourceReuses: 0,
+    transferredCoordinateBytes: 0, generatedMeshBytes: 0 };
   function cancelRebuild() {
     rebuildRpc?.stop('superseded');
     rebuildRpc = null; rebuildBusy = false;
@@ -62,6 +64,11 @@ export function createGpuMeshWorkerJobs({ createWorker, createRebuildWorker = cr
       const packed = reuseSource ? null : await packCountryMeshFeatures(payload.features || [], {
         isCurrent: () => lodRpc === current && accepts(),
       });
+      lodMetrics.requests += 1;
+      if (packed) {
+        lodMetrics.sourceTransfers += 1;
+        lodMetrics.transferredCoordinateBytes += packed.coordinates.byteLength;
+      } else lodMetrics.sourceReuses += 1;
       const response = await current.request('geometry.mesh', {
         ...(packed || {}),
         useCachedSource: reuseSource,
@@ -76,6 +83,9 @@ export function createGpuMeshWorkerJobs({ createWorker, createRebuildWorker = cr
       // Even a stale viewport result can certify the immutable source already
       // loaded by this same living Worker. It cannot certify a display frame.
       lodSourceInWorker = response.result?.lod?.sourceCached === true ? payload.sourceKey : '';
+      if (accepts()) lodMetrics.generatedMeshBytes += ['positions', 'countryIndices',
+        'triangleIndices', 'lineIndices'].reduce(
+        (sum, field) => sum + Number(response.result?.[field]?.byteLength || 0), 0);
       return accepts() ? response.result : null;
     } catch (error) {
       if (error.cancelled || error.name === 'AbortError' || lodRpc !== current || !accepts()) return null;
@@ -128,7 +138,9 @@ export function createGpuMeshWorkerJobs({ createWorker, createRebuildWorker = cr
       rpc?.stop(reason);
       rpc = null;
     },
-    stats: () => scheduler.stats(),
+    stats: () => Object.freeze({ ...scheduler.stats(), displayLod: Object.freeze({
+      ...lodMetrics, sourceCached: !!lodSourceInWorker, workerActive: !!lodRpc,
+    }) }),
     outputBytes: () => outputBytes,
   });
 }
