@@ -1,5 +1,35 @@
 # Country object storage — current contract
 
+## Raw modern source authoring
+
+An existing single undated modern source version may adopt a lossless original
+feature before display regeneration. Its `modernBoundarySupplement.sourceAdoptionReview`
+references a previously archived JSON review by path and SHA-256. The storage
+validator binds that review to the entity/version, previous and candidate geometry
+digests, original source receipt, coordinate roundtrip and topology/ownership checks.
+Names, lifetime, version dates, ownership and historical provenance must remain
+unchanged. Existing supplement caveats remain in place and the previous attribution
+is retained as `priorPreparedAttribution`.
+
+A dated, open-ended current source proxy may use the same source-only path when
+exactly one selected version changes and the ordered version IDs and every other
+version remain identical. The archived receipt must bind the unchanged target
+period and the original archived prepared-current adoption row. Both existing
+representative selectors must already identify that version; an open-ended date
+alone is not evidence of current-source status. Historical uncertainty and all
+prior provenance remain unchanged. This does not establish a new effective date.
+If new sourceInfo carries a geometry digest, the review declares
+`sourceInfoGeometryDigestFormat` as
+`sha256(JSON.stringify([geometry.type, geometry.coordinates]))` and binds it to
+the new geometry; old digest conventions are not silently reinterpreted.
+
+This admission accepts only exact source descriptor and content-addressed source
+geometry paths. It does not approve raw geometry for rendering. Closed historical
+reconstructions, generated chunks and compiled publications retain their existing
+display review requirements; mixing such outputs into a source admission is rejected.
+A shared old geometry resource does not automatically authorize changing another
+historical version. Such a version remains unchanged until separately reviewed.
+
 The 2026-11-01 builtin publication uses country-files-v1 throughout generation,
 loading, caching, Web/App packaging and runtime preparation. Countries exceeding
 512 KiB use bounded country-owned parts; no all-country transport is required.
