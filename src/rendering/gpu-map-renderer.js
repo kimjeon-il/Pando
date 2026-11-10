@@ -4817,7 +4817,7 @@ export function createGpuMapRenderer(deps) {
             viewRevision: Number(presentedVisualFrame.viewRevision),
             projectionRevision: Number(presentedVisualFrame.projectionRevision),
             projectGeneration: Number(presentedVisualFrame.projectGeneration),
-            renderer: 'canvas-worker',
+            renderer: rendererMode,
             temporalCommit,
           });
           completeGeometryDisplay(geometryRevisionTracker.pendingIds(), geometryRevision, { renderFrame: false });

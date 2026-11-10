@@ -24,10 +24,14 @@ async function read(page) {
   });
 }
 async function accepted(page, { documentId, projection, zoom } = {}) {
+  let acceptedState;
   await expect.poll(async () => {
     const state = await read(page), s = state.stats;
+    acceptedState = state;
     return Boolean(s?.renderer === expectedBackend && !s.projectRenderBlocked
       && s.mapReadiness?.mapReady && s.countriesPublishedGeneration === s.projectGeneration
+      && Math.abs(s.screenScale - state.camera?.scale) < 1e-7
+      && state.boundary.revision.includes(`display-interaction:lod:${s.screenLodTargetKey}:`)
       && s.activeMeshQuality === 'lod' && (expectedBackend.startsWith('webgl')
         ? s.surfaceDraw?.countryIndexCount > 0
         : s.triangleCount > 0 && s.canvasDisplayedStyleRevision === s.canvasStyleRevision
@@ -38,7 +42,7 @@ async function accepted(page, { documentId, projection, zoom } = {}) {
       && (!projection || state.camera?.projection === projection)
       && (zoom == null || Math.abs(state.camera?.zoom - zoom) < 1e-8));
   }, { timeout: 90_000, message: 'The actual regional project LOD must be painted on its own accepted frame' }).toBe(true);
-  const state = await read(page);
+  const state = acceptedState;
   expect(state.stats.canvasWorkerLastError || '').toBe('');
   return state;
 }

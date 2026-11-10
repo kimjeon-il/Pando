@@ -27,10 +27,22 @@ const fixture = `self.paintNumericalFixture = async heightMeters => {
   const projection=self.d3.geo.equirectangular().scale(128/(2*Math.PI)).translate([64,32]).center([0,0]);
   const message={projection:'flat',physicalSettings:{terrainVisible:true,terrainStyle:'physical'},scenePolygons:[packet]};
   const plan={terrainComplete:true,demLevel:{id:0},demSpecs:[{key:'test',bounds:[-180,90,180,-90],pixelWidth:4,pixelHeight:2}]};
+  plan.drawSpecs=plan.demSpecs;
   for(const step of renderTerrain(message,projection,128,64,1,plan)) { }
   const pixel=(x,y)=>Array.from(context.getImageData(x,y,1,1).data);
-  return {land:pixel(64,32),ocean:pixel(30,32),beyondCoast:pixel(73,32),
+  const result={land:pixel(64,32),ocean:pixel(30,32),beyondCoast:pixel(73,32),
     expectedLand:Array.from(colors.land.slice(0,4)),expectedOcean:Array.from(colors.ocean.slice(0,4))};
+  // Four adjacent numeric tiles meet off the pixel grid. White underneath
+  // exposes any fractional edge hole independently of the DEM's own colors.
+  context.setTransform(1,0,0,1,0,0);context.fillStyle='#ffffff';context.fillRect(0,0,128,64);
+  projection.translate([63.25,31.25]);
+  for(const bounds of [[-180,90,0,0],[0,90,180,0],[-180,0,0,-90],[0,0,180,-90]])
+    drawFlatTerrainTile({bounds,pixelWidth:4,pixelHeight:2},tile.ocean,projection,1);
+  result.seams=[[10,31],[63,10],[63,31],[64,32]].map(point=>pixel(...point));
+  // Target-level colors must remain opaque over older cached coverage.
+  drawFlatTerrainTile({bounds:[-180,90,0,0],pixelWidth:4,pixelHeight:2},tile.land,projection,1);
+  result.promoted=pixel(62,30);
+  return result;
 };
 `;
 const renderer = read('../../../src/rendering/workers/canvas-render-core.js')
@@ -66,6 +78,8 @@ for (const mode of ['worker', 'inline']) {
       expect(result.land).toEqual(result.expectedLand);
       expect(result.ocean).toEqual(result.expectedOcean);
       expect(result.beyondCoast).toEqual(result.expectedOcean);
+      for(const pixel of result.seams)expect(pixel).toEqual(result.expectedOcean);
+      expect(result.promoted).toEqual(result.expectedLand);
     }
   });
 }

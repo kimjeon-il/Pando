@@ -53,8 +53,12 @@ for (const projection of ['globe', 'flat']) for (const device of [
         try {
           await page.waitForFunction(() => {
             const stats = window.__PANDOLAB_VIEWER__?.rendererStats?.();
+            const camera = window.__PANDOLAB_MAP_HOST__?.getViewState();
+            const boundary = window.__PANDOLAB_VIEWER__?.interactionBoundary?.();
             return !!(stats?.screenLodBucket && stats.screenLodLatest?.key === stats.screenLodBucket
-              && !stats.screenLodPreparingKey);
+              && !stats.screenLodPreparingKey && stats.mapReadiness?.mapReady
+              && Math.abs(stats.screenScale - camera?.scale) < 1e-7
+              && boundary?.revision?.includes(`display-interaction:lod:${stats.screenLodTargetKey}:`));
           }, null, { timeout: process.env.PANDOLAB_REQUIRE_LOD === '1' ? 90000 : 15000 });
           lodSettled = true;
         } catch { /* The report explicitly records an unsettled candidate. */ }

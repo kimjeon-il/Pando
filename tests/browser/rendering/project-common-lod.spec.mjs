@@ -20,10 +20,15 @@ async function snapshot(page) {
 }
 
 async function acceptedLod(page, backend, projection, zoom) {
+  let accepted;
   await expect.poll(async () => {
-    const { stats: s, camera: c, presented } = await snapshot(page);
+    const candidate = await snapshot(page);
+    const { stats: s, camera: c, presented, boundary } = candidate;
+    accepted = candidate;
     return Boolean(s?.screenLodFailure || presented && s?.renderer === backend && !s.projectRenderBlocked
       && s.mapReadiness?.mapReady && s.countriesPublishedGeneration === s.projectGeneration
+      && Math.abs(s.screenScale - c?.scale) < 1e-7
+      && boundary.revision.includes(`display-interaction:lod:${s.screenLodTargetKey}:`)
       && s.activeMeshQuality === 'lod' && (backend.startsWith('webgl')
         ? s.surfaceDraw?.countryIndexCount > 0
         : s.triangleCount > 0 && s.canvasDisplayedStyleRevision === s.canvasStyleRevision
@@ -32,7 +37,6 @@ async function acceptedLod(page, backend, projection, zoom) {
       && !s.screenLodLatest?.fallback && !s.screenLodPreparingKey && !s.screenLodFailure
       && (!projection || c?.projection === projection) && (zoom == null || Math.abs(c?.zoom - zoom) < 1e-8));
   }, { timeout: 90_000, message: `An accepted ${backend} LOD frame must reach the visible map` }).toBe(true);
-  const accepted = await snapshot(page);
   expect(accepted.stats.screenLodFailure || '').toBe('');
   expect(accepted.stats.canvasWorkerLastError || '').toBe('');
   return accepted;

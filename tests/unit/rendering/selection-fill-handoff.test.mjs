@@ -73,7 +73,7 @@ async function harness(t) {
   // The real renderer starts in pending before a scene renderer takes ownership.
   // Keep stale SVG presentation coverage separate from context recovery.
   let renderer = 'pending', presented, currentFrame, interactionRenders = 0;
-  const result = () => renderer === 'canvas-worker' ? { deferred: true, frameId: currentFrame.frameId } : null;
+  const result = () => ['canvas-worker','canvas2d'].includes(renderer) ? { deferred: true, frameId: currentFrame.frameId } : null;
   const rendering = createRenderingDomain({
     requestFrame: callback => queued.push(callback), selectionDomain: selection,
     prepareView: ({ frameId }) => (currentFrame = createMapVisualFrame({ frameId, projectGeneration: 3, viewRevision: 1,
@@ -105,9 +105,9 @@ async function harness(t) {
 const fillSelector = '.map-selection-fill, .map-hover-fill';
 const outlineSelector = '.map-selection-outline, .map-hover-outline';
 
-test('temporal Canvas acknowledgement publishes current selection rather than reprojecting old outlines', async t => {
+for (const backend of ['canvas-worker','canvas2d']) test(`temporal ${backend} acknowledgement publishes current selection rather than reprojecting old outlines`, async t => {
   const h = await harness(t);
-  h.setRenderer('canvas-worker');
+  h.setRenderer(backend);
   h.render('invalidateSelection');
   assert.equal(h.nodes(outlineSelector).length, 2);
   await h.clearSelection();
@@ -157,16 +157,19 @@ test('deferred view changes retain pending-startup emphasis until acceptance, th
   h.verifyCanonical();
 });
 
-test('synchronous Canvas2D scene redraw reconciles pending-startup fill ownership without a selection change', async t => {
+test('inline Canvas2D bitmap acceptance reconciles pending-startup fill ownership without a selection change', async t => {
   const h = await harness(t);
   h.render('invalidateGpuContext');
   assert.equal(h.nodes(fillSelector).length, 2);
   h.setRenderer('canvas2d');
-  h.render('invalidateGpuFrame');
+  const first=h.render('invalidateGpuFrame');
+  assert.equal(h.nodes(fillSelector).length,2,'inline scheduling cannot acknowledge pixels before the bitmap callback');
+  assert.equal(h.accept(first),true,'inline Canvas retains its asynchronous presentation ticket');
   assert.equal(h.nodes(fillSelector).length, 0);
   assert.equal(h.nodes(outlineSelector).length, 2);
   const outlines = h.nodes(outlineSelector), stages = h.stages();
-  h.render('invalidateView');
+  const next=h.render('invalidateView');
+  assert.equal(h.accept(next),true);
   assert.equal(h.stages(), stages);
   assert.deepEqual(h.nodes(outlineSelector), outlines);
   h.verifyCanonical();

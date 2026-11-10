@@ -332,13 +332,21 @@ function canvasFallbackWorkerMain(self) {
         // can mirror a whole tile when the camera crosses the antimeridian.
         const rectangle = self.PandoLabCanvasTerrainDem.flatTileRectangle([west, north, east, south],
           projection.scale(), projection.translate(), projection.center(), offset);
+        // Adjacent destination rectangles meet at fractional pixels. Cropping
+        // off both gutters lets independent Canvas edge coverage expose the
+        // substrate along that boundary. Paint the stored neighboring texels
+        // at their unchanged scale; the common land clip still owns coverage.
+        const bleedX = rectangle[2] * gutter / spec.pixelWidth;
+        const bleedY = rectangle[3] * gutter / spec.pixelHeight;
         context.drawImage(
           image,
-          gutter,
-          gutter,
-          spec.pixelWidth,
-          spec.pixelHeight,
-          ...rectangle.map(value => value * dpr),
+          0, 0,
+          spec.pixelWidth + 2 * gutter,
+          spec.pixelHeight + 2 * gutter,
+          (rectangle[0] - bleedX) * dpr,
+          (rectangle[1] - bleedY) * dpr,
+          (rectangle[2] + 2 * bleedX) * dpr,
+          (rectangle[3] + 2 * bleedY) * dpr,
         );
       }
     }

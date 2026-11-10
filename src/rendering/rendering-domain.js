@@ -865,7 +865,7 @@ export function createRenderingDomain({
       stats.visualFrameRejectedCount += 1;
       return false;
     }
-    if (!canvasPresented && gpuMapRenderer?.getRuntimeState().renderer === 'canvas-worker'
+    if (!canvasPresented && ['canvas-worker','canvas2d'].includes(gpuMapRenderer?.getRuntimeState().renderer)
       && (gpuResult?.deferred || pendingVisualFrames.has(frame))) {
       // A pending bitmap may still be admitted while a newer same-view frame waits.
       pendingVisualFrames.stage(frame);
@@ -940,10 +940,6 @@ export function createRenderingDomain({
       view: frame => {
         const result = renderPass('view', frame);
         if (result?.deferred) commitViewAttachedLayers(frame, result);
-        else if (gpuMapRenderer?.getRuntimeState?.()?.renderer === 'canvas2d' && canPresentFrame(frame, result)) {
-          // Canvas2D presents synchronously and has no Worker acceptance callback.
-          renderSelectionOverlay(frame, { viewOnly: true, updateData: false, gpuFrameResult: result });
-        }
         return result;
       },
       base: renderBase,
