@@ -280,6 +280,10 @@
         {
           "prefix": "reports/places/",
           "pattern": "(?:^|/)(?:tier1-major-cities-batch\\d{2}[-a-z0-9]*|runtime-release-approvals-v1)\\.json$"
+        },
+        {
+          "prefix": "reports/map-analysis/corpus/gazetteer-v1/",
+          "pattern": "(?:^|/)(?:sources/cities500\\.source\\.json|runtime/records/[a-f0-9]{2}\\.json)$"
         }
       ],
       "outputs": [
@@ -301,7 +305,9 @@
         ]
       ],
       "consumers": [
-        "src/data/place-runtime.js"
+        "src/data/place-runtime.js",
+        "src/data/place-worker-store.js",
+        "src/rendering/territorial-labels.js"
       ],
       "tools": [
         "node"
