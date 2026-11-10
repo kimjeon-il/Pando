@@ -5,16 +5,21 @@ export function createCountryMeshPreparation({ engine, loadPreparedPart = null, 
   yieldTask = () => new Promise(resolve => setTimeout(resolve, 0)) }) {
   const cache = new Map();
   let cacheBytes = 0;
-  async function build(features, context, progress = () => {}, { validate = false } = {}) {
+  async function build(features, context, progress = () => {}, {
+    validate = false, maxEdgeDegrees = engine.MAX_RENDER_EDGE_DEGREES,
+  } = {}) {
+    if (!Number.isFinite(maxEdgeDegrees) || maxEdgeDegrees < engine.MAX_RENDER_EDGE_DEGREES)
+      throw new TypeError('Invalid country mesh edge subdivision budget.');
     const parts = [], started = performance.now();
     const preparation = { featureCount: features.length, builtCount: 0, reusedCount: 0,
+      maxEdgeDegrees,
       hashMs: 0, triangulationMs: 0, assemblyMs: 0, slowestFeature: null };
     let lastYield = started;
     for (let index = 0; index < features.length; index++) {
       context.throwIfCancelled();
       const feature = features[index];
       const hashing = performance.now();
-      const key = `${engine.MESH_ALGORITHM_REVISION}:${engine.MAX_RENDER_EDGE_DEGREES}:${validate ? 'validated' : 'canonical'}:${feature.geometry ? await polygonGeometryDigest(feature.geometry) : 'empty'}`;
+      const key = `${engine.MESH_ALGORITHM_REVISION}:${maxEdgeDegrees}:${validate ? 'validated' : 'canonical'}:${feature.geometry ? await polygonGeometryDigest(feature.geometry) : 'empty'}`;
       preparation.hashMs += performance.now() - hashing;
       context.throwIfCancelled();
       let part = cache.get(key);
@@ -26,7 +31,7 @@ export function createCountryMeshPreparation({ engine, loadPreparedPart = null, 
         context.throwIfCancelled();
         if (part) preparation.reusedCount++;
         else {
-          part = engine.buildGpuMeshFeatures([feature], { validate,
+          part = engine.buildGpuMeshFeatures([feature], { validate, maxEdgeDegrees,
             throwIfCancelled: () => context.throwIfCancelled() });
           preparation.triangulationMs += performance.now() - begin;
           preparation.builtCount++;
