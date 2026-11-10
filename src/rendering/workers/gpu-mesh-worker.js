@@ -108,7 +108,7 @@ async function buildMesh(features, context, request = {}) {
     { requestId: context.requestId, completed, total, phase }, { projectRevision: context.projectRevision });
   let mesh;
   try {
-    mesh = await (await countryPreparation).build(features, context, progress);
+    mesh = await (await countryPreparation).build(features, context, progress, { validate: derived });
   } catch (error) {
     if (!derived || error.name === 'AbortError' || error.cancelled) throw error;
     // A simplified polygon can be invalid even if its winding is preserved.
