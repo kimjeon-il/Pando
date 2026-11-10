@@ -309,12 +309,13 @@ export function createSharedPolygonLodIndex(features, { precision = 7 } = {}) {
         const indices = [];
         // A feature smaller than the allowed pixel deviation is still a
         // real island: preserve its complete ring instead of erasing detail.
-        const longitude = info.points.map(point => point[0]);
-        const latitude = info.points.map(point => point[1]);
-        const tinyRing = Math.hypot(
-          Math.max(...longitude) - Math.min(...longitude),
-          Math.max(...latitude) - Math.min(...latitude),
-        ) * RADIANS_PER_LOD_DEGREE <= tolerance;
+        let west = Infinity, east = -Infinity, south = Infinity, north = -Infinity;
+        for (const point of info.points) {
+          west = Math.min(west, point[0]); east = Math.max(east, point[0]);
+          south = Math.min(south, point[1]); north = Math.max(north, point[1]);
+        }
+        const tinyRing = Math.hypot(east - west, north - south)
+          * RADIANS_PER_LOD_DEGREE <= tolerance;
         for (let i = 0; i < info.points.length; i++)
           if (tinyRing || protectedSet.has(info.id) || info.importance[i] >= tolerance
             || protectedNodes.has(info.keys[i])) indices.push(i);
