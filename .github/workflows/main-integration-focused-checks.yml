@@ -1,4 +1,5 @@
 name: Focused integration of optimization with main
+# Verify integration after the latest optimization parent was merged.
 on:
   push:
     branches: [work/optimization-main-merge-20261110]
@@ -52,6 +53,7 @@ jobs:
             tests/unit/document/monorepo-pages-staging.test.mjs \
             tests/unit/build/frontend-build.test.mjs \
             tests/unit/data/map-project-runtime.test.mjs \
+            tests/unit/build/project-generation-context.test.mjs \
             2>&1 | tee "$RUNNER_TEMP/merge-tests.log"
       - name: Record exact integration check outcomes in this validation branch
         if: always()
