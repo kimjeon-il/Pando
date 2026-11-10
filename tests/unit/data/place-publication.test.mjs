@@ -109,6 +109,12 @@ test('five display bands prioritize Seoul over Daejeon using pinned PLAC v3 byte
     })));
   assert.deepEqual(ordered.map(row => row.tier), [1, 2, 3, 4, 5]);
   assert.ok(ordered.every((row, i) => row === PLACE_DISPLAY_TIERS[i + 1]));
+  for (const [source, kind] of [['synthetic', 'city'], ['geonames', 'town']]) {
+    const unranked = normalizePlace({ source, sourceId: '9999', name: 'Not auto-promoted',
+      kind, coordinates: [0, 0], featureCode: 'PPLC', priority: 70, minZoom: 1.25 });
+    assert.equal(resolvePlaceDisplayRank(unranked).tier, null,
+      'unapproved or noncity references must not be promoted into the five-band display');
+  }
   assert.ok(ordered.every((row, i) => i === 0 || (
     ordered[i - 1].priority > row.priority && ordered[i - 1].minZoom < row.minZoom
   )));
