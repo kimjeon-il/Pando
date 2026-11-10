@@ -13,7 +13,7 @@ import { createCountryBoundaryGeometryTransport } from "./country-boundary-geome
 import { terrainDemFragmentSource } from "./terrain-dem-shaders.js";
 import { resolveMapInteractionStyle } from "../map/map-interaction-style.js";
 import { decodeCountryMesh } from "./country-mesh-codec.js";
-import { createCountryTriangleRangeMap, canSubmitCountryIndices } from "./gpu-country-ranges.js";
+import { createCountryTriangleRangeMap, canSubmitCountryIndices, visibleCountryMeshIdsForFrame } from "./gpu-country-ranges.js";
 export { countryDrawRangesForFrame, createCountryTriangleRangeMap, mergeCountryDrawRanges } from "./gpu-country-ranges.js";
 import { createRenderDevice } from "./render-device.js";
 import { createSceneColorCache } from "./scene-color-cache.js";
@@ -2464,7 +2464,17 @@ export function createGpuMapRenderer(deps) {
       const generation = projectGeneration;
       const revision = geometryRevisionTracker.committedRevision();
       const sourceKey = `${source}:mesh-algorithm-${globalThis.PandoLabGpuMeshCore.MESH_ALGORITHM_REVISION}`;
-      const key = `${generation}:${revision}:${sourceKey}:${bucket.key}`;
+      const canonicalEntry = meshVariants.get('canonical');
+      const visibleIds = lastVisualFrame?.projectGeneration === generation
+        ? visibleCountryMeshIdsForFrame(canonicalEntry.mesh, lastVisualFrame)
+        : null;
+      // The viewport's admitted country set is part of the immutable
+      // derivative key. A camera pan can never replay a mesh omitting the
+      // newly visible countries, even if its scale bucket is unchanged.
+      const allVisible = !visibleIds || visibleIds.length === canonicalEntry.countryIds.length;
+      const scopedIds = allVisible ? null : visibleIds;
+      const viewKey = allVisible ? 'whole-world' : scopedIds.join(',');
+      const key = `${generation}:${revision}:${sourceKey}:${bucket.key}:${viewKey}`;
       screenLodSourceKey = sourceKey;
       if (screenLodTargetKey === key) return key;
       screenLodTargetKey = key;
@@ -2489,7 +2499,7 @@ export function createGpuMapRenderer(deps) {
         const started = performance.now();
         patchJobScheduler.prepareDisplayLod({
           projectGeneration: generation, geometryRevision: revision, sourceKey,
-          features: canonicalCountryFeatures(), lod: bucket,
+          features: canonicalCountryFeatures(), lod: bucket, visibleIds: scopedIds,
         }, current).then(async result => {
           if (!result || !current()) return;
           screenLodLatest = Object.freeze({
