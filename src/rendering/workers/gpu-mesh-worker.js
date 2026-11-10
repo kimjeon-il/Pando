@@ -102,7 +102,7 @@ async function buildMesh(features, context, request = {}) {
         errorPx: lod.errorPx, originalVertices: display.originalVertices,
         keptVertices: display.keptVertices, arcCount: screenLodIndex.stats().arcCount,
         visibleCountryCount: display.visibleCountryCount, scoped: display.scoped,
-        fallback: display.fallback, simplified: derived };
+        sourceCached: true, fallback: display.fallback, simplified: derived };
     } catch (error) {
       if (error.name === 'AbortError' || error.cancelled) throw error;
       // Invalid source topology never prevents its exact canonical mesh
@@ -110,7 +110,7 @@ async function buildMesh(features, context, request = {}) {
       if (error.code === 'PL-LOD-SOURCE-MISS') throw error;
       screenLodSource = null; screenLodIndex = null; screenLodFeatures = null;
       lodInfo = { key: String(lod.key || ''), fallback: true,
-        simplified: false, failure: String(error.message || error).slice(0, 240) };
+        sourceCached: false, simplified: false, failure: String(error.message || error).slice(0, 240) };
     }
   }
   // No simplification or a failed topology check means draw the already
@@ -196,6 +196,7 @@ self.PandoLabWorkerRpc.install({
           || error.code === 'PL-LOD-SOURCE-MISS') throw error;
         mesh = { lod: { key: String(payload.lod.key || ''),
           fallback: true, simplified: false,
+          sourceCached: screenLodSource === payload.sourceKey,
           failure: String(error.message || error).slice(0, 240) } };
       }
       context.throwIfCancelled();
