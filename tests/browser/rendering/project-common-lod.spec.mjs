@@ -189,15 +189,18 @@ for (const [queryBackend, expectedBackend] of backends) {
 
 test('project-common-lod dated frame commits after an accepted LOD',async({page,baseURL},info)=>{
   test.setTimeout(180000);
+  const queryBackend=process.env.PANDOLAB_DATE_RENDERER || 'webgl2';
+  const expectedBackend=backends.find(([query])=>query===queryBackend)?.[1];
+  if(!expectedBackend)throw new Error('Unsupported dated-frame renderer');
   const errors=[];page.on('pageerror',error=>errors.push(error.message));
   try {
-    await openReadyViewer(page,{url:baseURL+'/?debug=1&renderer=webgl2',timeout:120000});
+    await openReadyViewer(page,{url:baseURL+'/?debug=1&renderer='+queryBackend,timeout:120000});
     await setCamera(page,'flat',4.5);
-    await acceptedLod(page,'webgl2','flat',4.5);
+    await acceptedLod(page,expectedBackend,'flat',4.5);
     const before=await snapshot(page);
     await page.locator('#timelinePreviousYear').click();
     await expect.poll(async()=>(await snapshot(page)).month).not.toBe(before.month);
-    await acceptedLod(page,'webgl2','flat',4.5);
+    await acceptedLod(page,expectedBackend,'flat',4.5);
   } finally {
     await writeFile(info.outputPath('date-state.json'),JSON.stringify({...(await snapshot(page)),errors},null,2));
   }

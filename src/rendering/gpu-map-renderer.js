@@ -156,9 +156,7 @@ export function createGpuMapRenderer(deps) {
       isDisposed: () => disposed,
       getReadiness: () => mapReadiness(),
       invalidateFrame: reason => invalidateGpuFrame(reason),
-      prepareContentKey: (features, isCurrent) => isWebGlRenderer()
-        ? countryMeshContentKey(features, { isCurrent })
-        : resourceKey(features.map(feature => [String(feature.id), geometryRevisionKey(feature.geometry)])),
+      prepareContentKey: (features, isCurrent) => countryMeshContentKey(features, { isCurrent }),
       isProjectBlocked: () => projectRenderBlocked,
       isRecoveryFrameAdmissible: frame => !gpuRecovery.snapshot().active
         || (!!gpuRecoveryFrameEvidence && gpuRecoveryFrameEvidence.frame === frame),
@@ -2895,10 +2893,8 @@ export function createGpuMapRenderer(deps) {
       // Re-materialized country coordinates may be identical even though their
       // JavaScript object references differ. Retain GPU mesh resources only
       // after matching the complete ordered country IDs and polygon content.
-      const content = isWebGlRenderer()
-        ? await countryMeshContentKey(features,{isCurrent:()=>taskProjectGeneration===projectGeneration
-            && geometryRevisionTracker.isCurrent(task.token,task.revision) && isWebGlRenderer()})
-        : resourceKey(features.map(feature => [String(feature.id), geometryRevisionKey(feature.geometry)]));
+      const content = await countryMeshContentKey(features,{isCurrent:()=>taskProjectGeneration===projectGeneration
+        && geometryRevisionTracker.isCurrent(task.token,task.revision)});
       if(content===null || taskProjectGeneration!==projectGeneration
         || !geometryRevisionTracker.isCurrent(task.token,task.revision))return false;
       const nextDependencies = { source: 'country-mesh',

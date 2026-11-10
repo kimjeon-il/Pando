@@ -336,6 +336,7 @@ function fixture(t) {
   const state = { projection: 'globe', view: { globeZoom: 1, flatZoom: 1 }, physicalSettings: {}, pendingCountryRenderIds: new Set() };
   const retries = [];
   const renderer = createGpuMapRenderer({ state, runtimeAssetUrl: path => new URL(path,'https://test.local/assets/js/'), scheduleGpuFrame: () => {}, scheduleGpuMeshRebuild: (...args) => retries.push(args),
+    getPhysicalContextState: () => ({ready:false}),
     renderCountryBoundaryFeatures: () => [], countryBoundaryStyleById: () => null,
     mapWorkScheduler: { cancel: () => {} }, isMobile: () => false, rendererUi: { setMapPreparationStatus() {} }, renderViewFrame: () => {} });
   t.after(() => { renderer.dispose(); globalThis.window = oldWindow; globalThis.Worker = oldWorker;
@@ -368,6 +369,20 @@ test('unchanged country geometry skips complete preparation across a project gen
   renderer.resetProjectRenderState();
   await renderer.rebuildFromCountries([]);
   assert.equal(renderer.getStats().countryMeshReuseCount, before + 1);
+});
+
+test('non-WebGL dated admission reuses canonical content across new geometry objects', async t => {
+  const { renderer } = fixture(t);
+  const features = [{id:'A',type:'Feature',properties:{},geometry:{type:'Polygon',
+    coordinates:[[[0,0],[1,0],[0,1],[0,0]]]}}];
+  await renderer.rebuildFromCountries(features);
+  const before = renderer.getStats().countryMeshReuseCount || 0;
+  const token = renderer.beginTemporalViewTransition();
+  await renderer.prepareTemporalCountrySource(structuredClone(features));
+  renderer.admitTemporalViewTransition(token);
+  await renderer.rebuildFromCountries(structuredClone(features));
+  assert.equal(renderer.getStats().countryMeshReuseCount, before + 1);
+  assert.equal(renderer.getStats().temporalReadiness.countryContentMatched, true);
 });
 
 test('an unchanged boundary request shares the current in-flight preparation', async t => {
