@@ -379,3 +379,100 @@ export function createSharedPolygonLodIndex(features, { precision = 7 } = {}) {
     arcCount: sharedArcs.size,
   }) });
 }
+
+
+/**
+ * Derive only the visible internal geographic cells of a large country.
+ * The supplied intersection capability is the application's compiled
+ * polygon engine. Tile boundaries are on a common global integer grid;
+ * source geometry, editing and picking never consume these derivatives.
+ * Any incomplete/invalid clip aborts the derivative (canonical keeps showing).
+ *
+ * The cache is owned by the existing mesh Worker and keyed by source revision,
+ * zoom bucket and tile. Moving the camera reuses unchanged prepared cells.
+ */
+export function tileLargePolygonLodFeatures(features, visibleTiles, {
+  intersection, sourceKey, lodKey, tileDegrees = 4,
+  minimumVertices = 4000, cache = new Map(), maxCachedTiles = 128,
+} = {}) {
+  if (!Array.isArray(features) || !Array.isArray(visibleTiles)
+    || typeof intersection !== 'function' || !sourceKey || !lodKey
+    || !Number.isInteger(180 / tileDegrees) || tileDegrees <= 0)
+    throw new TypeError('Screen tile LOD requires source, grid and compiled clipping.');
+  const byId = new Map(visibleTiles.map(row => [String(row.id), row.tiles]));
+  let tiledCountryCount = 0, tilesPrepared = 0, tilesReused = 0;
+  const result = features.map(feature => {
+    const tiles = byId.get(String(feature.id));
+    const geometry = feature.geometry;
+    if (!tiles?.length || !geometry || !['Polygon', 'MultiPolygon'].includes(geometry.type))
+      return feature;
+    const sourcePolygons = geometry.type === 'Polygon'
+      ? [geometry.coordinates] : geometry.coordinates;
+    const polygonBounds = sourcePolygons.map(polygon => {
+      let west = Infinity, east = -Infinity, south = Infinity, north = -Infinity;
+      let vertices = 0;
+      for (const ring of polygon) for (const point of ring) {
+        if (!finiteCoordinate(point)) throw new TypeError('Invalid polygon tile coordinate.');
+        west = Math.min(west, point[0]); east = Math.max(east, point[0]);
+        south = Math.min(south, point[1]); north = Math.max(north, point[1]);
+        vertices++;
+      }
+      return { west, east, south, north, vertices };
+    });
+    const sourceVertices = polygonBounds.reduce((sum, box) => sum + box.vertices, 0);
+    if (sourceVertices < minimumVertices) return feature;
+    if (sourcePolygons.some(polygon => polygon.some(ring =>
+      hasDatelineJump(ring) || ring.some(point => Math.abs(point[1]) >= 85)))) return feature;
+    const parts = [];
+    const sorted = [...tiles].sort(([ax, ay], [bx, by]) => ax - bx || ay - by);
+    for (const tile of sorted) {
+      if (!Array.isArray(tile) || tile.length !== 2
+        || !tile.every(Number.isInteger)) throw new TypeError('Invalid geographic tile key.');
+      const [x, y] = tile, west = x * tileDegrees, south = y * tileDegrees;
+      const east = west + tileDegrees, north = south + tileDegrees;
+      if (west < -180 || east > 180 || south < -90 || north > 90)
+        throw new TypeError('Geographic tile is outside the legal world bounds.');
+      const intersecting = sourcePolygons.filter((_polygon, i) => {
+        const box = polygonBounds[i];
+        return box.east >= west && box.west <= east
+          && box.north >= south && box.south <= north;
+      });
+      if (!intersecting.length) continue;
+      const key = `${sourceKey}:${lodKey}:${String(feature.id)}:${x}:${y}`;
+      let clipped = cache.get(key);
+      if (clipped) {
+        cache.delete(key); cache.set(key, clipped);
+        tilesReused++;
+      } else {
+        const rectangle = [[west, south], [east, south],
+          [east, north], [west, north], [west, south]];
+        clipped = intersection(intersecting, [[rectangle]]);
+        if (!Array.isArray(clipped)) throw new Error('Compiled tile clipping returned no polygon array.');
+        for (const polygon of clipped) {
+          if (!Array.isArray(polygon) || !polygon.length) throw new Error('Invalid tile polygon.');
+          for (const ring of polygon) {
+            if (!Array.isArray(ring) || ring.length < 4 || ring.some(point => !finiteCoordinate(point))
+              || lodNodeKey(ring[0], 7) !== lodNodeKey(ring.at(-1), 7))
+              throw new Error('Incomplete clipped polygon ring.');
+          }
+        }
+        cache.set(key, clipped);
+        while (cache.size > maxCachedTiles) cache.delete(cache.keys().next().value);
+        tilesPrepared++;
+      }
+      if (clipped.length) parts.push({
+        tileKey: key, geometry: { type: 'MultiPolygon', coordinates: clipped },
+      });
+    }
+    if (!parts.length) {
+      // Conservatively preserve the original feature. BVH admission can
+      // legitimately include a country outside its exact polygon footprint.
+      return feature;
+    }
+    tiledCountryCount++;
+    return { ...feature, geometry: null, lodParts: parts };
+  });
+  return Object.freeze({
+    features: result, tiledCountryCount, tilesPrepared, tilesReused,
+  });
+}
