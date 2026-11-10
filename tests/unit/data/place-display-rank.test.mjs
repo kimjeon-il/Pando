@@ -18,6 +18,35 @@ test('the core population signal grows independently of administration code',()=
   assert.ok(b.tier<a.tier);
 });
 
+test('five baseline population boundaries are 50k, 100k, 200k, 500k and 1m',()=>{
+  assert.deepEqual(PLACE_RANK_MODEL.populationTierThresholds,
+    [1000000,500000,200000,100000,50000]);
+  const neutral={...PLACE_RANK_MODEL,isolationWeight:0,crowdingWeight:0};
+  const cases=[
+    [1000000,1],[999999,2],
+    [500000,2],[499999,3],
+    [200000,3],[199999,4],
+    [100000,4],[99999,5],
+    [50000,5],[49999,null],
+  ];
+  for(const [population,expected] of cases){
+    const point=city(String(population),[0,0],population);
+    const result=scorePlacePopulationAndSpacing(point,[point],neutral);
+    assert.equal(result.populationTier,expected,'baseline tier of population '+population);
+    assert.equal(result.tier,expected??5,'display remains at least tier 5 for an approved center');
+  }
+});
+
+test('neighbourhood adjustments can shift population tiers without changing their thresholds',()=>{
+  const subject=city('1',[0,0],200000);
+  const isolated=scorePlacePopulationAndSpacing(subject,[subject]);
+  const dense=scorePlacePopulationAndSpacing(subject,[subject,...Array.from({length:40},(_,i)=>
+    city(String(i+2),[0.02*(i%8),0.03*Math.floor(i/8)],300000))]);
+  assert.equal(isolated.populationTier,3);
+  assert.equal(dense.populationTier,3);
+  assert.ok(isolated.tier<dense.tier);
+});
+
 test('nearby competing cities penalize a dense city while remoteness rewards an equally populated one',()=>{
   const subject=city('1',[0,0],200000),surrounding=Array.from({length:12},(_,i)=>
     city(String(i+2),[(i%4)*0.08,Math.floor(i/4)*0.06],250000));
