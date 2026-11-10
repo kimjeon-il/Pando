@@ -120,6 +120,7 @@ export function selectedPlaceNames(place) {
     ...(place.nameTimeline || []).flatMap(entry => [entry.ko, entry.en, entry.native,
       ...(entry.nativeExtras || [])])].filter(value => typeof value === 'string' && value.trim());
 }
+/** Candidate ordering consumes the population/spatial score emitted by the pinned place manifest. */
 export function comparePlaces(a, b) {
   return b.priority - a.priority || b.population - a.population || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
 }

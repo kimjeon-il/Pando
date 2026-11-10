@@ -1,6 +1,6 @@
 import { createHydroTileWindow, hydroTileSpecsForWindow } from "./hydro-tile-window.js";
 import { decodePlaceTile } from "./place-codec.js";
-import { comparePlaces, normalizePlaceQuery, selectedPlaceNames, PLACE_LIMITS } from "../document/place-contract.js";
+import { comparePlaces, normalizePlace, normalizePlaceQuery, selectedPlaceNames, PLACE_LIMITS } from "../document/place-contract.js";
 import { resolvePlaceLabelRows, placeLabelRowsAtMonth } from "../ui/place-name-display.js";
 import { createFrameProjectors } from "../rendering/map-visual-frame.js";
 import { placeLabelDimensions, automaticLabelSettings } from "../rendering/label-layout.js";
@@ -66,6 +66,21 @@ export function validatePlaceManifest(raw) {
     if (!Array.isArray(pages)) throw new TypeError('Invalid place search pages');
     for (const row of pages) { checkTile(row); if (typeof row.first !== 'string' || typeof row.last !== 'string' || row.first > row.last) throw new TypeError('Invalid place search range'); }
   }
+  const ranking = raw.displayRanking;
+  if (ranking !== undefined) {
+    if (ranking?.schema !== 'pando-place-population-spatial-display-v1' ||
+      !Number.isInteger(ranking.approvedCount) || !Number.isInteger(ranking.neighbourhoodCandidateCount) ||
+      !/^[a-f0-9]{64}$/.test(String(ranking.sourceSha256 || '')) ||
+      !ranking.entries || typeof ranking.entries !== 'object' || Array.isArray(ranking.entries) ||
+      Object.keys(ranking.entries).length !== ranking.approvedCount) throw new TypeError('Invalid place display rankings');
+    for (const [id, row] of Object.entries(ranking.entries)) {
+      if (!/^[1-9][0-9]*$/.test(id) || !Number.isSafeInteger(row.population) || row.population < 0 ||
+        !Number.isInteger(row.tier) || row.tier < 1 || row.tier > 5 ||
+        !Number.isInteger(row.priority) || row.priority < 1 || row.priority > 99 ||
+        ![1, 1.4, 2, 3, 5].includes(row.minZoom) || !Number.isFinite(row.score))
+        throw new TypeError('Invalid place display ranking entry: ' + id);
+    }
+  }
   return raw;
 }
 
@@ -121,7 +136,12 @@ export function createPlaceWorkerStore({ manifest: raw, baseUrl = 'http://localh
       context.throwIfCancelled(); bytes ||= full.subarray(row.offset,row.offset+row.length);
       if (await sha256Hex(bytes) !== row.sha256) throw new Error('Invalid place tile hash');
       context.throwIfCancelled();
-      const records=decodePlaceTile(bytes);
+      const records=decodePlaceTile(bytes).map(record => {
+        const rank=record.source==='geonames' && record.kind==='city'
+          ? manifest.displayRanking?.entries?.[record.sourceId] : null;
+        return rank ? normalizePlace({ ...record, population:rank.population,
+          priority:rank.priority, minZoom:rank.minZoom }) : record;
+      });
       const decodedBytes=records.reduce((total,record) => total+512+Object.values(record).reduce((sum,value)=>sum+(typeof value === 'string' ? value.length*2 : 0),0)+record.nameNativeExtras.reduce((sum,name)=>sum+name.length*2,0)+JSON.stringify(record.nameTimeline).length*2,0);
       context.throwIfCancelled(); return put(`tile:${key}`,records,decodedBytes);
     })();
@@ -149,7 +169,13 @@ export function createPlaceWorkerStore({ manifest: raw, baseUrl = 'http://localh
     if (specs.length > PLACE_LIMITS.queryTiles) throw new RangeError('Place viewport tile budget exceeded');
     const rows=specs.map(spec => manifest.tiles[`${spec.stage}/${spec.x}-${spec.y}`]).filter(Boolean);
     const inViewport=viewportPredicate(view);
-    const {records}=await loadRows(rows,context,record => Math.max(record.minZoom,automaticLabelSettings(record.kind).minZoom) <= Number(view.threshold || 0) && inViewport(record),PLACE_LIMITS.candidates);
+    const {records}=await loadRows(rows,context,record => {
+      const ranked=record.source==='geonames' && record.kind==='city' &&
+        manifest.displayRanking?.entries?.[record.sourceId] !== undefined;
+      const minimumZoom=ranked ? record.minZoom
+        : Math.max(record.minZoom,automaticLabelSettings(record.kind).minZoom);
+      return minimumZoom <= Number(view.threshold || 0) && inViewport(record);
+    },PLACE_LIMITS.candidates);
     metrics.lastTileCount=rows.length; metrics.lastCandidateCount=records.length;
     return { signature: `${manifest.revision}:${tileWindow?.signature || 'empty'}`, records, tileCount: rows.length, cacheBytes: used, peakWorkingRecords:metrics.peakWorkingRecords };
   }

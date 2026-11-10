@@ -4,6 +4,8 @@ import { createHash } from 'node:crypto';
 import { placeView } from "../../helpers/place-view.mjs";
 import { createPlaceWorkerStore, readPlaceResponse } from "../../../src/data/place-worker-store.js";
 import { normalizePlace, PLACE_LIMITS } from "../../../src/document/place-contract.js";
+import { generateApprovedPlaceDisplayRanks } from "../../../tools/build/place-display-rank.mjs";
+import { layoutLabels } from "../../../src/rendering/label-layout.js";
 import { encodePlaceTile } from "../../../src/data/place-codec.js";
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
 const records = Array.from({ length: 20 }, (_, i) => normalizePlace({ source: 'synthetic', sourceId: String(i), name: `서울 ${i}`, coordinates: [127 + i / 100, 37], kind: 'city', minZoom: 0, priority: i }));
@@ -13,6 +15,47 @@ function fixture() {
   const manifest = { version: 1, revision: 'test', stages: [{ id: 0, minZoom: 0, columns: 1, rows: 1 }], tiles: { '0/0-0': row }, shards: { s: { url: 's.bin', bytes: bytes.length } }, search: { '서울': [{ ...row, first: '서울', last: '서울\uffff' }] } };
   return { bytes, manifest };
 }
+
+test('pinned GeoNames population/spatial scores decide Seoul versus Daejeon display order', async () => {
+  const sourceRows = [
+    { id:'geonames:1835848', coordinates:[126.9784,37.566], population:10349312, featureCode:'PPLC' },
+    { id:'geonames:1835235', coordinates:[127.38493,36.34913], population:1441203, featureCode:'PPLA' },
+    { id:'geonames:1843564', coordinates:[126.70515,37.45646], population:3015482, featureCode:'PPLA' },
+  ];
+  const release = sourceRows.slice(0,2).map(row => normalizePlace({
+    source:'geonames',sourceId:row.id.split(':')[1],kind:'city',name:row.id,
+    coordinates:row.coordinates,priority:70,minZoom:1.25,featureCode:row.featureCode,
+  }));
+  const ranking = generateApprovedPlaceDisplayRanks(release, sourceRows, 'a'.repeat(64));
+  assert.equal(ranking.approvedCount,2);
+  assert.ok(ranking.entries['1835848'].population > ranking.entries['1835235'].population);
+  assert.ok(ranking.entries['1835848'].priority > ranking.entries['1835235'].priority);
+  assert.equal(ranking.entries['1835848'].populationTier,1);
+  assert.equal(ranking.entries['1835235'].populationTier,1);
+  assert.equal(ranking.entries['1835848'].minZoom,1);
+  assert.equal(ranking.entries['1835235'].minZoom,1,
+    'both million-plus cities qualify at 1x; collision priority resolves overlap');
+  const bytes = new Uint8Array(encodePlaceTile(release));
+  const {manifest} = fixture();
+  manifest.shards.s.bytes=bytes.length;
+  manifest.tiles['0/0-0'].length=bytes.length;
+  manifest.tiles['0/0-0'].sha256=sha256(bytes);
+  manifest.search={};manifest.displayRanking=ranking;
+  const store=createPlaceWorkerStore({manifest,fetchBytes:async()=>bytes});
+  const view={flatCenter:[127.2,37],width:800,height:600,scale:900};
+  const firstStage=await store.queryViewport(placeView({...view,threshold:1}));
+  assert.deepEqual(firstStage.records.map(row=>row.sourceId),['1835848','1835235'],
+    'both modern populations exceed the one-million baseline');
+  assert.equal(firstStage.records[0].population,10349312);
+  const all=await store.queryViewport(placeView({...view,threshold:5}));
+  assert.deepEqual(all.records.map(row=>row.sourceId),['1835848','1835235']);
+  const candidates=all.records.map(row=>({
+    key:row.id,point:[200,200],width:90,height:25,priority:row.priority,
+    minZoom:row.minZoom,collisionGroup:'place',
+  }));
+  assert.deepEqual(layoutLabels(candidates,{zoom:5}).map(row=>row.key),[all.records[0].id]);
+  assert.equal(decodePlaceTile(bytes)[0].population,0,'approved identity shard must not be rewritten');
+});
 
 test('place data revisions isolate stale responses and full shards do not request ranges', async t => {
   for (const offset of [0, 24]) {
