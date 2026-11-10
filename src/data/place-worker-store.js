@@ -1,6 +1,6 @@
 import { createHydroTileWindow, hydroTileSpecsForWindow } from "./hydro-tile-window.js";
 import { decodePlaceTile } from "./place-codec.js";
-import { comparePlaces, normalizePlaceQuery, selectedPlaceNames, PLACE_LIMITS } from "../document/place-contract.js";
+import { comparePlaces, normalizePlaceQuery, selectedPlaceNames, PLACE_LIMITS, resolvePlaceDisplayRank } from "../document/place-contract.js";
 import { resolvePlaceLabelRows, placeLabelRowsAtMonth } from "../ui/place-name-display.js";
 import { createFrameProjectors } from "../rendering/map-visual-frame.js";
 import { placeLabelDimensions, automaticLabelSettings } from "../rendering/label-layout.js";
@@ -149,7 +149,12 @@ export function createPlaceWorkerStore({ manifest: raw, baseUrl = 'http://localh
     if (specs.length > PLACE_LIMITS.queryTiles) throw new RangeError('Place viewport tile budget exceeded');
     const rows=specs.map(spec => manifest.tiles[`${spec.stage}/${spec.x}-${spec.y}`]).filter(Boolean);
     const inViewport=viewportPredicate(view);
-    const {records}=await loadRows(rows,context,record => Math.max(record.minZoom,automaticLabelSettings(record.kind).minZoom) <= Number(view.threshold || 0) && inViewport(record),PLACE_LIMITS.candidates);
+    const {records}=await loadRows(rows,context,record => {
+      const display=resolvePlaceDisplayRank(record);
+      const minimumZoom=display.tier == null
+        ? Math.max(display.minZoom,automaticLabelSettings(record.kind).minZoom) : display.minZoom;
+      return minimumZoom <= Number(view.threshold || 0) && inViewport(record);
+    },PLACE_LIMITS.candidates);
     metrics.lastTileCount=rows.length; metrics.lastCandidateCount=records.length;
     return { signature: `${manifest.revision}:${tileWindow?.signature || 'empty'}`, records, tileCount: rows.length, cacheBytes: used, peakWorkingRecords:metrics.peakWorkingRecords };
   }
