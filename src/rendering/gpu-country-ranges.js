@@ -167,6 +167,27 @@ function countryVisibilityForFrame(sourceMesh, frameContext, paddingPixels, coun
   return visible;
 }
 
+/**
+ * Conservative view admission for Worker display derivatives. The complete
+ * canonical country slots and identities remain owned by the renderer; only
+ * visible slots need polygon triangulation. Return null (all-country fallback)
+ * when source metadata is missing, rather than falsely hiding a country.
+ * Use the same country bounds predicate as real GPU culling.
+ */
+export function visibleCountryMeshIdsForFrame(sourceMesh, frameContext, {
+  paddingPixels = 320,
+} = {}) {
+  const ids = sourceMesh?.metadataCountryIds;
+  const count = ids?.length;
+  if (!Array.isArray(ids) || !frameContext
+    || !(sourceMesh.countryBounds instanceof Int32Array)
+    || !(sourceMesh.countryBoundsFlags instanceof Uint32Array)
+    || sourceMesh.countryBounds.length !== count * 4
+    || sourceMesh.countryBoundsFlags.length !== count) return null;
+  const visible = countryVisibilityForFrame(sourceMesh, frameContext, paddingPixels, count);
+  return ids.filter((_id, index) => visible[index] === 1).map(String);
+}
+
 export function countryDrawRangesForFrame(sourceMesh, frameContext, {
   kind = 'triangle',
   paddingPixels = COUNTRY_CULLING_PADDING_PIXELS,
