@@ -63,8 +63,10 @@ async function regionalPackage(page, region) {
     const viewer = globalThis.__PANDOLAB_VIEWER__, current = viewer.documentSnapshot();
     const world = viewer.resolvedWorld();
     const row = world.entities.find(entity => entity.id === region.id);
+    const identity = current.territorialEntities.find(entity => entity.id === region.id);
     if (!row?.identity || !['Polygon', 'MultiPolygon'].includes(row.geometry?.type))
       throw new Error(`Current canonical ${region.id} geometry is unavailable`);
+    if (!identity) throw new Error(`Stored ${region.id} identity is unavailable`);
     const { createInitialDocument } = await import('/assets/js/modules/initial-document.js');
     const { TIMELINE_RECORD_SCHEMA_VERSION } = await import('/assets/js/modules/timeline-records.js');
     const month = viewer.builtinMonth().month;
@@ -73,7 +75,9 @@ async function regionalPackage(page, region) {
       state: { projectSetup: { initialMonth: month, timelineRange: null,
         initialMapBounds: region.bounds, sourceMode: 'empty' } } });
     source.mapProjectIdentity = structuredClone(current.mapProjectIdentity);
-    source.territorialEntities = [structuredClone(row.identity)];
+    // Resolved identity contains display-only nameSource metadata. Preserve the
+    // actual stored identity across the production GeoPackage round trip.
+    source.territorialEntities = [structuredClone(identity)];
     const geometryId = `regional-render-fixture:${region.id}`;
     source.geometries = [{ id: geometryId, version: 1, geojson: structuredClone(row.geometry) }];
     const objectRef = { domain: 'territorial', id: row.id };
@@ -92,7 +96,7 @@ async function regionalPackage(page, region) {
       database.run('INSERT INTO pandolab_project_settings (setting_key, json_value) VALUES (?, ?)',
         ['project_state', JSON.stringify(source)]);
       return { bytes: Array.from(database.export()), documentId: source.documentId, geometryId, month,
-        sourceGeometryJson: JSON.stringify(row.geometry), sourceIdentity: row.identity,
+        sourceGeometryJson: JSON.stringify(row.geometry), sourceIdentity: identity,
         sourceCommit: globalThis.PANDOLAB_BUILD_META.sourceCommit,
         dataRevision: globalThis.PANDOLAB_BUILD_META.dataRevision };
     } finally { database.close(); }
