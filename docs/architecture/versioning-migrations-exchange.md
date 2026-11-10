@@ -102,14 +102,14 @@ renderer, or persistence call sites.
 
 The following is retained unchanged from this document's former opening. It is **not** an additional current app-version authority.
 
-## Version ownership
+### 2026 version ownership wording (historical)
 
 - `package.json` is the only editable source for the app version.
 - `assets/js/build-meta.js` and asset query revisions are generated build metadata, not release version sources.
 - Project schema, model schema, dataset versions, and build/cache revisions are independent from the app version.
 - Shared schema numbers live in `assets/js/modules/version-contract.js`.
 
-## App version policy
+### 2026 app version wording (historical)
 
 The app uses `0.MINOR.PATCH` while it remains pre-1.0.
 
