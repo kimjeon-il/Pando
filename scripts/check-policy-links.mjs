@@ -31,7 +31,7 @@ function inside(root, file) {
   return path !== '..' && !path.startsWith('..' + sep) && !isAbsolute(path);
 }
 
-/** Policy navigation is not a second rule engine; retain historical records unchanged. */
+/** Policy navigation and one-hop linked source-doc paths, not a second rule engine. */
 export function checkPolicyLinks(root = resolve(fileURLToPath(new URL('..', import.meta.url)))) {
   root = resolve(root);
   const errors = [];
@@ -45,10 +45,12 @@ export function checkPolicyLinks(root = resolve(fileURLToPath(new URL('..', impo
   const groupIds = new Set((catalog.groups || []).map(group => group.id));
   const npmScripts = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')).scripts || {};
   const checkFiles = [...pages.map(page => 'docs/policies/' + page), 'AGENTS.md', 'README.md', 'VERSIONING.md'];
+  const scheduled = new Set(checkFiles);
   let links = 0, codeReferences = 0, groupReferences = 0, scriptReferences = 0;
   const listed = new Set();
 
-  for (const path of checkFiles) {
+  for (let index = 0; index < checkFiles.length; index++) {
+    const path = checkFiles[index];
     const absolute = join(root, path);
     if (!existsSync(absolute)) { error(path, 'missing input document'); continue; }
     const markdown = readFileSync(absolute, 'utf8');
@@ -60,6 +62,11 @@ export function checkPolicyLinks(root = resolve(fileURLToPath(new URL('..', impo
       if (!existsSync(target)) { error(path, 'missing link target: ' + link.raw); continue; }
       links++;
       const source = relative(root, target).split(sep).join('/');
+      if (path.startsWith('docs/policies/') && !HISTORY.has(path.split('/').at(-1)) &&
+        source.startsWith('docs/') && source.endsWith('.md') &&
+        !source.startsWith('docs/policies/') && !scheduled.has(source)) {
+        scheduled.add(source); checkFiles.push(source);
+      }
       if (DOMAIN_SOURCE.test(source)) codeReferences++;
       if (path === index) listed.add(source);
     }

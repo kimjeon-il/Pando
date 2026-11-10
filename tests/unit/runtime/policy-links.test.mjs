@@ -52,3 +52,17 @@ test('rejects broken links, unknown check groups and scripts', () => {
     assert.ok(result.errors.some(line => line.includes('unknown npm script')));
   } finally { rmSync(f.root, { recursive: true, force: true }); }
 });
+
+test('checks one-hop canonical policy document links without rewriting history', () => {
+  const f = fixture();
+  try {
+    f.write('docs/policies/places.md', '# Places\n[Code](../../src/place.js)\n' +
+      '[Source contract](../original.md)\n' +
+      f.tick + 'check-group:places-runtime' + f.tick + '\n');
+    f.write('docs/original.md', '# Original\n[Missing legacy file](../src/removed.js)\n');
+    const result = checkPolicyLinks(f.root);
+    assert.equal(result.ok, false);
+    assert.ok(result.errors.some(line => line.includes('docs/original.md') &&
+      line.includes('missing link target')));
+  } finally { rmSync(f.root, { recursive: true, force: true }); }
+});
