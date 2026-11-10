@@ -34,7 +34,7 @@ test('same shared edge direction is rejected and three-country nonmanifold is re
   const conflict = inspectMapLodTopology([west, reversed]);
   assert.equal(conflict.sharedWindingConflicts, 1);
   assert.equal(conflict.valid, false);
-  const third = country('C', [[2,0],[5,0],[5,-2],[2,-2],[2,0]]);
+  const third = country('C', [[2,0],[2,2],[1,3],[1,0],[2,0]]);
   const nonmanifold = inspectMapLodTopology([west, east, third]);
   assert.equal(nonmanifold.nonManifoldEdges, 1);
   assert.equal(nonmanifold.valid, false);
