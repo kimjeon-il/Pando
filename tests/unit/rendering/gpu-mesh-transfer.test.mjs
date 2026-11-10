@@ -157,3 +157,63 @@ test('patch worker owner preserves payload shape and ignores late replies after 
   assert.equal(owner.outputBytes(), 0);
 });
 });
+
+
+contractSuite('screen-lod-worker-transport', () => {
+const assert = __contract_dep0.default;
+const test = __contract_dep1.default;
+const { createGpuMeshWorkerJobs } = __contract_dep5;
+
+test('screen LOD transfers canonical geometry once, reuses source, and resets after cancellation', async () => {
+  const workers = [], messages = [];
+  const jobs = createGpuMeshWorkerJobs({ isCurrent: () => true, createWorker: () => {
+    const worker = {
+      terminated: false,
+      postMessage(message, transfer = []) { messages.push({ worker, message, transfers: transfer.length }); },
+      terminate() { this.terminated = true; },
+    };
+    workers.push(worker);
+    return worker;
+  } });
+  const features = [{ id: 'A', geometry: { type: 'Polygon', coordinates: [[
+    [0, 0], [2, 0], [2, 2], [0, 2], [0, 0],
+  ]] } }];
+  const payload = { features, projectGeneration: 4, geometryRevision: 8,
+    sourceKey: 'geometry-sha-abc', visibleIds: ['A'],
+    lod: { key: '200:0.5', upperScale: 200, errorPx: 0.5 } };
+  const first = jobs.prepareDisplayLod(payload);
+  for (let i = 0; i < 20 && !messages.length; i++) await Promise.resolve();
+  const one = messages.at(-1);
+  assert.equal(one.message.payload.useCachedSource, false);
+  assert.equal(one.message.payload.rows.length, 1);
+  assert.equal(one.transfers, 1);
+  one.worker.onmessage({ data: { ...one.message, type: 'result', ok: true,
+    result: { lod: { key: payload.lod.key, sourceCached: true,
+      simplified: false, fallback: false } } } });
+  assert.equal((await first).lod.sourceCached, true);
+  const second = jobs.prepareDisplayLod({ ...payload,
+    lod: { key: '400:0.5', upperScale: 400, errorPx: 0.5 } });
+  for (let i = 0; i < 20 && messages.length < 2; i++) await Promise.resolve();
+  const two = messages.at(-1);
+  assert.equal(workers.length, 1);
+  assert.equal(two.message.payload.useCachedSource, true);
+  assert.equal(two.message.payload.coordinates, undefined);
+  assert.deepEqual(two.message.payload.visibleIds, ['A']);
+  assert.equal(two.transfers, 0);
+  two.worker.onmessage({ data: { ...two.message, type: 'result', ok: true,
+    result: { lod: { key: '400:0.5', sourceCached: true, simplified: false } } } });
+  await second;
+  jobs.cancelDisplayLod();
+  assert.equal(workers[0].terminated, true);
+  const third = jobs.prepareDisplayLod(payload);
+  for (let i = 0; i < 20 && messages.length < 3; i++) await Promise.resolve();
+  const three = messages.at(-1);
+  assert.equal(workers.length, 2);
+  assert.equal(three.message.payload.useCachedSource, false);
+  assert.equal(three.transfers, 1);
+  three.worker.onmessage({ data: { ...three.message, type: 'result', ok: true,
+    result: { lod: { sourceCached: true, simplified: false } } } });
+  await third;
+  jobs.cancelAll();
+});
+});
