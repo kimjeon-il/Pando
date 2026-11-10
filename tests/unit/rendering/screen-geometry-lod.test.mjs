@@ -101,3 +101,54 @@ test('invalid scale or unclosed rings cannot become an accepted derivative', () 
     ]] },
   }]), TypeError);
 });
+
+
+test('viewport scoping excludes nonvisible polygons without renumbering country slots', () => {
+  const source = JSON.stringify(countries);
+  const index = createSharedPolygonLodIndex(countries);
+  const scoped = index.derive({ cssScale: 400, visibleIds: ['west'] });
+  assert.equal(scoped.scoped, true);
+  assert.equal(scoped.visibleCountryCount, 1);
+  assert.equal(scoped.features.length, 2);
+  assert.equal(scoped.features[0].id, 'west');
+  assert.equal(scoped.features[1].id, 'east');
+  assert.equal(scoped.features[1].geometry, null);
+  assert.ok(scoped.features[0].geometry.coordinates[0].length >= 4);
+  assert.equal(JSON.stringify(countries), source);
+  const restored = index.derive({ cssScale: 400, visibleIds: ['east'] });
+  assert.equal(restored.features[0].geometry, null);
+  assert.ok(restored.features[1].geometry);
+});
+
+test('screen LOD rejects invalid screen tolerances in both scoped and global paths', () => {
+  const index = createSharedPolygonLodIndex(countries);
+  for (const cssScale of [NaN, -1, 0, Infinity])
+    assert.throws(() => index.derive({ cssScale }), TypeError);
+  for (const errorPx of [NaN, -1, 0, Infinity])
+    assert.throws(() => index.derive({ cssScale: 100, errorPx }), TypeError);
+});
+
+test('ring start offset and reverse winding do not create a mismatched shared arc', () => {
+  const west = structuredClone(countries[0]);
+  const east = structuredClone(countries[1]);
+  const ring = east.geometry.coordinates[0];
+  const open = ring.slice(0, -1);
+  const offset = 3;
+  const rotated = [...open.slice(offset), ...open.slice(0, offset)];
+  east.geometry.coordinates[0] = [...rotated, rotated[0]];
+  const index = createSharedPolygonLodIndex([west, east]);
+  const low = index.derive({ cssScale: 80 });
+  const high = index.derive({ cssScale: 16000 });
+  assert.equal(low.fallback, false);
+  assert.equal(high.fallback, false);
+  assert.ok(low.keptVertices <= high.keptVertices);
+  // A shared edge's internal source vertices either survive on both sides
+  // or are eliminated on both sides, independent of ring start offsets.
+  const kept = new Set(low.features[0].geometry.coordinates[0]
+    .map(value => value.join(',')));
+  for (const point of aToB.slice(1, -1)) {
+    const key = point.join(',');
+    assert.equal(kept.has(key), low.features[1].geometry.coordinates[0]
+      .some(value => value.join(',') === key));
+  }
+});
