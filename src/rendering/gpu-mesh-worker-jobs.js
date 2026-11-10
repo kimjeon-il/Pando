@@ -9,6 +9,7 @@ export function createGpuMeshWorkerJobs({ createWorker, createRebuildWorker = cr
   let lodRpc = null;
   let lodSourceInWorker = '';
   let lodBusy = false;
+  let lodQueue = Promise.resolve();
   let rebuildBusy = false;
   let outputBytes = 0;
   const lodMetrics = { requests: 0, sourceTransfers: 0, sourceReuses: 0,
@@ -48,12 +49,7 @@ export function createGpuMeshWorkerJobs({ createWorker, createRebuildWorker = cr
   }
   // Display LOD never cancels the canonical rebuild or the edit-patch queue.
   // A separate worker can retain one topology index for repeated zoom buckets.
-  async function prepareDisplayLod(payload, accepts = () => true) {
-    if (!Number.isFinite(payload?.lod?.upperScale) || payload.lod.upperScale <= 0
-      || !Number.isFinite(payload?.lod?.errorPx) || payload.lod.errorPx <= 0
-      || typeof payload.sourceKey !== 'string' || !payload.sourceKey)
-      throw new TypeError('Display LOD needs a source identity and screen-error bucket.');
-    if (lodBusy) cancelDisplayLod();
+  async function executeDisplayLod(payload, accepts) {
     const current = lodRpc ||= createWorkerRpcClient({
       createWorker,
       isCurrent: ({ entry, message }) => Number(message.projectRevision) === Number(entry.projectRevision),
@@ -74,6 +70,7 @@ export function createGpuMeshWorkerJobs({ createWorker, createRebuildWorker = cr
         useCachedSource: reuseSource,
         lod: payload.lod, sourceKey: payload.sourceKey,
         visibleIds: payload.visibleIds ?? null,
+        visibleTiles: payload.visibleTiles ?? [],
       }, {
         transfer: packed ? [packed.coordinates.buffer] : [],
         projectRevision: payload.projectGeneration,
@@ -96,6 +93,20 @@ export function createGpuMeshWorkerJobs({ createWorker, createRebuildWorker = cr
     } finally {
       if (lodRpc === current) lodBusy = false;
     }
+  }
+  function prepareDisplayLod(payload, accepts = () => true) {
+    if (!Number.isFinite(payload?.lod?.upperScale) || payload.lod.upperScale <= 0
+      || !Number.isFinite(payload?.lod?.errorPx) || payload.lod.errorPx <= 0
+      || typeof payload.sourceKey !== 'string' || !payload.sourceKey)
+      return Promise.reject(new TypeError('Display LOD needs a source identity and screen-error bucket.'));
+    // Serialize requests on the SAME Worker. Obsolete viewports are skipped
+    // before transmission, while an in-flight response may still establish the
+    // current immutable source cache. This prevents losing large-country tile
+    // caches on rapid panning.
+    const pending = lodQueue.catch(() => {}).then(() =>
+      accepts() ? executeDisplayLod(payload, accepts) : null);
+    lodQueue = pending;
+    return pending;
   }
   function ensureRpc() {
     return rpc ||= createWorkerRpcClient({
