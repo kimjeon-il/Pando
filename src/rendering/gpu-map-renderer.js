@@ -866,6 +866,7 @@ export function createGpuMapRenderer(deps) {
     const countryStrokePacketCache = {
       preview: { mesh: null, countryIds: null, revision: '', resource: null },
       canonical: { mesh: null, countryIds: null, revision: '', resource: null },
+      lod: { mesh: null, countryIds: null, revision: '', resource: null },
       override: { mesh: null, countryIds: null, revision: '', resource: null },
     };
     const countryStrokeMeshRevisions = new WeakMap();
@@ -2417,6 +2418,10 @@ export function createGpuMapRenderer(deps) {
         resources: stagedResources || uploadMeshResources(nextMesh),
       }), { preserveOtherVariants });
       if (builtinMeshBaseline?.mesh === nextMesh) builtinMeshBaseline.resources = entry.resources;
+      if (variantQuality === 'lod') {
+        countryStrokePacketCache.lod.mesh = null;
+        countryStrokePacketCache.lod.resource = null;
+      }
       if (activate) activateMeshVariant(variantQuality, { renderFrame });
       prewarmCountryStrokeResources();
       projectRenderBlocked = false;
