@@ -2,7 +2,7 @@ import { createMapVisualFrame, isMapVisualFrame } from "./map-visual-frame.js";
 import { placeLabelDimensions } from "./label-layout.js";
 import { createPlaceRuntime } from "../data/place-runtime.js";
 import {projectResourceOverlay} from "../document/project-resource-overlay.js";
-import { isBuiltinPlaceId, resolvePlaceDisplayRank } from "../document/place-contract.js";
+import { isBuiltinPlaceId } from "../document/place-contract.js";
 import { placeLabelRowsAtMonth } from "../ui/place-name-display.js";
 import { temporalMonthEnd } from "../document/temporal.js";
 import { territorialLabelFlag } from "./territorial-label-flags.js";
@@ -226,14 +226,16 @@ export function createTerritorialLabels({ capabilities = {builtinPlaces:true,eag
       const selected = selectedIds.has(String(label.id));
       if (!selected && !builtinIds.has(label.id) && !indexedLabelIds.has(String(label.id))) continue;
       const settings = (0, dependencies.labelPresentation.automaticLabelSettings)(label.kind, dependencies.projectState.state.labelSettings[(0, dependencies.labelPresentation.labelKey)('label', label.id)] || {});
-      const display = isBuiltinPlaceId(label.id) ? resolvePlaceDisplayRank(label) : null;
-      const minZoom = display?.tier != null ? display.minZoom
+      // Validated places carry their continuous population/spatial rank from the
+      // pinned viewport manifest. Never replace it with a feature-code priority.
+      const builtinDisplay = isBuiltinPlaceId(label.id) ? label : null;
+      const minZoom = builtinDisplay ? Number(builtinDisplay.minZoom)
         : Math.max(settings.minZoom, Number(label.minZoom || 0));
       if (zoom < Number(minZoom ?? -Infinity) || zoom > Number(settings.maxZoom ?? Infinity)) continue;
       const coordinate = settings.pinned && settings.manualPosition ? settings.manualPosition : label.coordinates;
       const point = frameContext.projectVisibleCoordinate(coordinate);
       if (!point) continue;
-      const priority = display?.tier != null ? display.priority : (settings.priority ?? (label.kind === 'capital' ? dependencies.labelPresentation.LABEL_PRIORITIES.capital : label.kind === 'city' ? dependencies.labelPresentation.LABEL_PRIORITIES.majorCity : label.kind === 'region' ? dependencies.labelPresentation.LABEL_PRIORITIES.administrative : dependencies.labelPresentation.LABEL_PRIORITIES.place));
+      const priority = builtinDisplay ? Number(builtinDisplay.priority) : (settings.priority ?? (label.kind === 'capital' ? dependencies.labelPresentation.LABEL_PRIORITIES.capital : label.kind === 'city' ? dependencies.labelPresentation.LABEL_PRIORITIES.majorCity : label.kind === 'region' ? dependencies.labelPresentation.LABEL_PRIORITIES.administrative : dependencies.labelPresentation.LABEL_PRIORITIES.place));
       const rows = isBuiltinPlaceId(label.id)
         ? placeLabelRowsAtMonth(label, dependencies.projectState.state.timelineCursor, placeLanguages)
         : [{ language: 'ko', text: label.name }];
