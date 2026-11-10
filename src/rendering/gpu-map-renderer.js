@@ -719,10 +719,11 @@ export function createGpuMapRenderer(deps) {
       return publishCountrySharedBoundary(packet);
     }
     function prepareCountrySharedBoundary({ features = null, removedIds = [], replace = false, baselineCache = null } = {}) {
+      const boundaryQuality = activeMeshQuality === 'lod' ? 'canonical' : activeMeshQuality;
       const boundaryFeatures = renderCountryBoundaryFeatures();
       const nextDependencies = { source: 'country-boundary',
         content: boundaryContentKey(boundaryFeatures),
-        preparation: resourceKey(['shared-boundary-v1', activeMeshQuality, !shouldShowSharedCountryBorders(state.physicalSettings)]),
+        preparation: resourceKey(['shared-boundary-v1', boundaryQuality, !shouldShowSharedCountryBorders(state.physicalSettings)]),
         context: gl ? [gl, renderDeviceContextRevision] : null, presentation: 'boundaries' };
       const change = resourceUpdate(countryBoundaryDependencies, nextDependencies);
       if (countryBoundaryTask && countryBoundaryTask.projectGeneration===projectGeneration
@@ -742,13 +743,13 @@ export function createGpuMapRenderer(deps) {
         return;
       }
       if (!change.prepare && pendingCountrySharedBoundary) { promotePreparedCountryBoundary(); return; }
-      if (activeMeshQuality === 'canonical' && builtinPreparedBoundary?.content === nextDependencies.content) {
+      if (boundaryQuality === 'canonical' && builtinPreparedBoundary?.content === nextDependencies.content) {
         countryBoundaryDependencies = nextDependencies;
         const revision = `${projectGeneration}:prepared:${++countryBoundaryRequestId}`;
         const packet = builtinPreparedBoundary.packet;
         pendingCountrySharedBoundary = { ...packet, key: `country-shared-boundary:${revision}`,
           geometryRevision: revision, sourceProjectGeneration: projectGeneration,
-          sourceGeometryRevision: geometryRevisionTracker.committedRevision(), sourceQuality: activeMeshQuality,
+          sourceGeometryRevision: geometryRevisionTracker.committedRevision(), sourceQuality: boundaryQuality,
           outlineOverrides: { ...packet.outlineOverrides, key: `country-outline-overrides:${revision}`, geometryRevision: revision } };
         performanceMetrics.countryBoundaryPreparedAssetCount = (performanceMetrics.countryBoundaryPreparedAssetCount || 0) + 1;
         promotePreparedCountryBoundary();
@@ -767,7 +768,7 @@ export function createGpuMapRenderer(deps) {
           if (Number(data?.requestId) !== countryBoundaryRequestId
             || Number(data?.projectGeneration) !== projectGeneration
             || Number(data?.geometryRevision) !== geometryRevisionTracker.committedRevision()
-            || data?.quality !== activeMeshQuality) return;
+            || data?.quality !== (activeMeshQuality === 'lod' ? 'canonical' : activeMeshQuality)) return;
           if (data.type === 'resync') {
             // A missing/evicted Worker base is recoverable, not a failed date
             // transition. Force the complete current authoritative snapshot.
@@ -809,7 +810,7 @@ export function createGpuMapRenderer(deps) {
         replace = true;
       }
       if (baselineCache === null) baselineCache = !features && replace
-        && meshVariants.get(activeMeshQuality)?.boundaryCacheKind === 'built-in'
+        && meshVariants.get(boundaryQuality)?.boundaryCacheKind === 'built-in'
         && countryOverrideIds.size === 0;
       // Overlay-only child edits do not create a country mesh override. They
       // still invalidate the precomputed boundary cache's geometry contract.
@@ -851,9 +852,9 @@ export function createGpuMapRenderer(deps) {
         ...transportMessage,
         requestId: countryBoundaryRequestId, projectGeneration,
         includeOutlines: countryBoundaryIncludesOutlines,
-        geometryRevision: geometryRevisionTracker.committedRevision(), quality: activeMeshQuality,
-        cacheUrl: transportMessage.type === 'replace' && sharedBoundaryCacheUrls?.[activeMeshQuality]
-          ? new URL(sharedBoundaryCacheUrls[activeMeshQuality], PHYSICAL_DATA_BASE_URL).href : null,
+        geometryRevision: geometryRevisionTracker.committedRevision(), quality: boundaryQuality,
+        cacheUrl: transportMessage.type === 'replace' && sharedBoundaryCacheUrls?.[boundaryQuality]
+          ? new URL(sharedBoundaryCacheUrls[boundaryQuality], PHYSICAL_DATA_BASE_URL).href : null,
         skipCacheReconcile: transportMessage.type === 'replace' && baselineCache,
       });
     }
