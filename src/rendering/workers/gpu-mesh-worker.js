@@ -70,6 +70,7 @@ const countryPreparation = meshCoreReady.then(() => import(`../country-mesh-prep
 countryPreparation.catch(() => {}); // The mesh operation propagates initialization failures.
 const screenLodModule = import(`../render-lod.js?v=${encodeURIComponent(assetRevision)}`);
 let screenLodSource = null, screenLodIndex = null, screenLodFeatures = null;
+let screenLodScope = '', screenLodScopedFeatures = null;
 async function buildMesh(features, context, request = {}) {
   const canonicalFeatures = features;
   const lod = request.lod;
@@ -79,36 +80,55 @@ async function buildMesh(features, context, request = {}) {
     const sourceKey = String(request.sourceKey || '');
     if (!sourceKey) throw new TypeError('Screen LOD requires a verified source key.');
     try {
-      if (screenLodSource !== sourceKey || !screenLodIndex) {
+      if (screenLodSource !== sourceKey || !screenLodFeatures) {
         if (request.useCachedSource || !canonicalFeatures.length)
           throw Object.assign(new Error('Cached country LOD source was not admitted.'),
             { code: 'PL-LOD-SOURCE-MISS' });
-        const next = createSharedPolygonLodIndex(canonicalFeatures);
-        context.throwIfCancelled();
-        screenLodIndex = next;
         screenLodSource = sourceKey;
         screenLodFeatures = canonicalFeatures;
+        screenLodIndex = null; screenLodScope = ''; screenLodScopedFeatures = null;
       }
-      // The Worker keeps one source-scoped canonical geometry in memory.
-      // Subsequent zoom buckets transfer only the screen request and visible IDs.
-      features = screenLodFeatures;
+      // Canonical source transport is project-scoped. Topology preparation is
+      // viewport-scoped: a focused country never indexes all world's LSIB
+      // edges just to draw its immediate neighborhood.
+      const sourceFeatures = screenLodFeatures;
+      const visibleIds = request.visibleIds === null || request.visibleIds === undefined
+        ? null : new Set(request.visibleIds.map(String));
+      const scopeKey = visibleIds
+        ? [...visibleIds].sort().join('|') : '*';
+      if (!screenLodIndex || screenLodScope !== scopeKey) {
+        const candidates = visibleIds
+          ? sourceFeatures.filter(feature => visibleIds.has(String(feature.id))) : sourceFeatures;
+        const next = createSharedPolygonLodIndex(candidates);
+        context.throwIfCancelled();
+        screenLodIndex = next;
+        screenLodScopedFeatures = candidates;
+        screenLodScope = scopeKey;
+      }
       const display = screenLodIndex.derive({
         cssScale: lod.upperScale, errorPx: lod.errorPx,
-        visibleIds: request.visibleIds ?? null,
       });
       derived = !display.fallback && display.keptVertices < display.originalVertices;
-      if (derived) features = display.features;
+      if (derived) {
+        if (visibleIds) {
+          const byId = new Map(display.features.map(feature => [String(feature.id), feature]));
+          features = sourceFeatures.map(feature => byId.get(String(feature.id))
+            || { id: feature.id, geometry: null });
+        } else features = display.features;
+      }
       lodInfo = { key: String(lod.key || ''), upperScale: lod.upperScale,
         errorPx: lod.errorPx, originalVertices: display.originalVertices,
         keptVertices: display.keptVertices, arcCount: screenLodIndex.stats().arcCount,
-        visibleCountryCount: display.visibleCountryCount, scoped: display.scoped,
-        sourceCached: true, fallback: display.fallback, simplified: derived };
+        visibleCountryCount: screenLodScopedFeatures.length,
+        slotCountryCount: screenLodFeatures.length,
+        scoped: !!visibleIds, sourceCached: true, fallback: display.fallback, simplified: derived };
     } catch (error) {
       if (error.name === 'AbortError' || error.cancelled) throw error;
       // Invalid source topology never prevents its exact canonical mesh
       // from rendering. The candidate is rejected as a whole, not per country.
       if (error.code === 'PL-LOD-SOURCE-MISS') throw error;
       screenLodSource = null; screenLodIndex = null; screenLodFeatures = null;
+      screenLodScope = ''; screenLodScopedFeatures = null;
       lodInfo = { key: String(lod.key || ''), fallback: true,
         sourceCached: false, simplified: false, failure: String(error.message || error).slice(0, 240) };
     }
