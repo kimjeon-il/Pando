@@ -6,7 +6,10 @@ or `AGENTS.override.md` provides more specific rules.
 ## Branch and permanent worktree policy (mandatory)
 
 Read [docs/branch-policy.md](docs/branch-policy.md) before choosing a branch or
-local worktree. Web Viewer starts in `src/app/`; UI, map, document, geometry,
+local worktree.
+Before adding or revising repository policy, use the [policy navigation](docs/policies/README.md)
+to find the existing owner. It is an index, not a replacement for this file or
+any domain-specific contract; keep historical verification records intact. Web Viewer starts in `src/app/`; UI, map, document, geometry,
 rendering, data and runtime sources live in their corresponding `src/` domains.
 C++ implementations live in each domain's `native/`, with build orchestration
 in `tools/build/native/`. The retired `apps/editor/` application is absent;
