@@ -6,7 +6,7 @@ import { createPlaceWorkerStore, readPlaceResponse } from "../../../src/data/pla
 import { normalizePlace, PLACE_LIMITS } from "../../../src/document/place-contract.js";
 import { generateApprovedPlaceDisplayRanks } from "../../../tools/build/place-display-rank.mjs";
 import { layoutLabels } from "../../../src/rendering/label-layout.js";
-import { encodePlaceTile } from "../../../src/data/place-codec.js";
+import { encodePlaceTile, decodePlaceTile } from "../../../src/data/place-codec.js";
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
 const records = Array.from({ length: 20 }, (_, i) => normalizePlace({ source: 'synthetic', sourceId: String(i), name: `서울 ${i}`, coordinates: [127 + i / 100, 37], kind: 'city', minZoom: 0, priority: i }));
 function fixture() {
