@@ -2480,9 +2480,11 @@ export function createGpuMapRenderer(deps) {
       screenLodTargetKey = key;
       if (screenLodTimer !== null) lifecycle.cancelTimeout(screenLodTimer);
       screenLodTimer = null;
-      if (screenLodPreparingKey && screenLodPreparingKey !== key)
-        patchJobScheduler.cancelDisplayLod();
-      screenLodPreparingKey = '';
+      // Keep an in-flight request alive during short pans. Its result is
+      // rejected by screenLodTargetKey if stale; a subsequent request can
+      // reuse the Worker's admitted source instead of retransferring it.
+      // The job owner cancels only if the old request is still busy when the
+      // next debounced request actually begins.
       // Prepared derivatives may be reused when returning to the same bucket.
       if (meshVariants.get('lod')?.lodKey === key || screenLodRejectedKey === key)
         return key;
