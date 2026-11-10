@@ -5,7 +5,7 @@ export function createCountryMeshPreparation({ engine, loadPreparedPart = null, 
   yieldTask = () => new Promise(resolve => setTimeout(resolve, 0)) }) {
   const cache = new Map();
   let cacheBytes = 0;
-  async function build(features, context, progress = () => {}) {
+  async function build(features, context, progress = () => {}, { validate = false } = {}) {
     const parts = [], started = performance.now();
     const preparation = { featureCount: features.length, builtCount: 0, reusedCount: 0,
       hashMs: 0, triangulationMs: 0, assemblyMs: 0, slowestFeature: null };
@@ -26,7 +26,7 @@ export function createCountryMeshPreparation({ engine, loadPreparedPart = null, 
         context.throwIfCancelled();
         if (part) preparation.reusedCount++;
         else {
-          part = engine.buildGpuMeshFeatures([feature], { validate: false,
+          part = engine.buildGpuMeshFeatures([feature], { validate,
             throwIfCancelled: () => context.throwIfCancelled() });
           preparation.triangulationMs += performance.now() - begin;
           preparation.builtCount++;
