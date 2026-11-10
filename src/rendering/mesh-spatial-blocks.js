@@ -132,22 +132,9 @@ export function coalesceSpatialBlockRanges(ranges,maxRanges=96) {
   return ranges;
 }
 
-const validation = new WeakMap();
-export function visibleSpatialBlockRanges(mesh, frame, kind = 'triangle', padding = 64, maxRanges = 96) {
-  const tree = mesh.spatialBlocks?.[kind];
-  if (!tree || mesh.spatialBlocks.version !== 1) return null;
-  const fullCount = (kind === 'triangle' ? mesh.triangleIndices : mesh.lineIndices).length;
-  if (!validation.has(tree)) {
-    const count = tree.ranges?.length / 2;
-    const valid = tree.roots instanceof Int32Array && tree.ranges instanceof Uint32Array && tree.children instanceof Int32Array && tree.bounds instanceof Float64Array && tree.geographicBounds instanceof Float64Array
-      && Number.isInteger(count) && tree.bounds.length === count * 6 && tree.geographicBounds.length === count * 4 && tree.children.length === count * 2
-      && [...tree.roots].every(n => n >= -1 && n < count)
-      && Array.from({ length: count }, (_, n) => n).every(n => tree.ranges[n * 2] + tree.ranges[n * 2 + 1] <= fullCount && [tree.children[n * 2], tree.children[n * 2 + 1]].every(c => c === -1 || (c > n && c < count)))
-      && [...tree.bounds, ...tree.geographicBounds].every(Number.isFinite);
-    validation.set(tree, valid);
-  }
-  if (!validation.get(tree)) return null;
-  const ranges = [], [width, height] = frame.cssViewport, [tx, ty] = frame.cssTranslate, scale = frame.cssScale;
+// Reuse the exact same BVH visibility predicate for drawing and the
+// viewport-scoped LOD preparation queue. Conservatively admit uncertain seams.
+function createSpatialBlockVisibility(tree, frame, padding) {
   const interval = (node, row) => {
     let low = 0, high = 0;
     for (let a = 0; a < 3; a++) { const x = tree.bounds[node * 6 + a] * row[a], y = tree.bounds[node * 6 + a + 3] * row[a]; low += Math.min(x, y); high += Math.max(x, y); }
@@ -165,6 +152,27 @@ export function visibleSpatialBlockRanges(mesh, frame, kind = 'triangle', paddin
     if (ty - scale * (south * rad - center[1]) < -padding || ty - scale * (north * rad - center[1]) > height + padding) return false;
     return (frame.worldOffsets || [0]).some(offset => tx + scale * (east * rad + offset - center[0]) >= -padding && tx + scale * (west * rad + offset - center[0]) <= width + padding);
   };
+  return visible;
+}
+
+const validation = new WeakMap();
+export function visibleSpatialBlockRanges(mesh, frame, kind = 'triangle', padding = 64, maxRanges = 96) {
+  const tree = mesh.spatialBlocks?.[kind];
+  if (!tree || mesh.spatialBlocks.version !== 1) return null;
+  const fullCount = (kind === 'triangle' ? mesh.triangleIndices : mesh.lineIndices).length;
+  if (!validation.has(tree)) {
+    const count = tree.ranges?.length / 2;
+    const valid = tree.roots instanceof Int32Array && tree.ranges instanceof Uint32Array && tree.children instanceof Int32Array && tree.bounds instanceof Float64Array && tree.geographicBounds instanceof Float64Array
+      && Number.isInteger(count) && tree.bounds.length === count * 6 && tree.geographicBounds.length === count * 4 && tree.children.length === count * 2
+      && [...tree.roots].every(n => n >= -1 && n < count)
+      && Array.from({ length: count }, (_, n) => n).every(n => tree.ranges[n * 2] + tree.ranges[n * 2 + 1] <= fullCount && [tree.children[n * 2], tree.children[n * 2 + 1]].every(c => c === -1 || (c > n && c < count)))
+      && [...tree.bounds, ...tree.geographicBounds].every(Number.isFinite);
+    validation.set(tree, valid);
+  }
+  if (!validation.get(tree)) return null;
+  const ranges = [], [width, height] = frame.cssViewport, [tx, ty] = frame.cssTranslate, scale = frame.cssScale;
+  const visible = createSpatialBlockVisibility(tree, frame, padding);
+
   const visit = node => {
     if (node < 0 || !visible(node)) return;
     if (tree.children[node * 2] >= 0) { visit(tree.children[node * 2]); visit(tree.children[node * 2 + 1]); }
@@ -172,4 +180,40 @@ export function visibleSpatialBlockRanges(mesh, frame, kind = 'triangle', paddin
   };
   for (const root of tree.roots) visit(root);
   return coalesceSpatialBlockRanges(ranges,maxRanges);
+}
+
+
+/** Enumerates visible canonical triangle leaves, not a full-world rebuild.
+ * Each leaf belongs to a country slot and supplies a conservative geographic
+ * envelope for its on-demand display-only polygon tiles. Returns null rather
+ * than under-selecting an oversized or incompatible index.
+ */
+export function visibleMeshSpatialLeaves(mesh, frame, {
+  kind = 'triangle', padding = 320, maxLeaves = 512,
+} = {}) {
+  const tree = mesh?.spatialBlocks?.[kind];
+  if (!tree || mesh.spatialBlocks.version !== 1 || !frame ||
+    !(tree.roots instanceof Int32Array) ||
+    !(tree.children instanceof Int32Array) ||
+    !(tree.geographicBounds instanceof Float64Array) ||
+    tree.children.length !== tree.geographicBounds.length / 2 ||
+    !Number.isInteger(maxLeaves) || maxLeaves <= 0) return null;
+  const visible = createSpatialBlockVisibility(tree, frame, padding);
+  const result = [];
+  for (let countryIndex = 0; countryIndex < tree.roots.length; countryIndex++) {
+    const stack = [tree.roots[countryIndex]];
+    while (stack.length) {
+      const node = stack.pop();
+      if (node < 0 || !visible(node)) continue;
+      const left = tree.children[node * 2], right = tree.children[node * 2 + 1];
+      if (left >= 0) {
+        stack.push(right, left);
+        continue;
+      }
+      const geographicBounds = Array.from(tree.geographicBounds.subarray(node * 4, node * 4 + 4));
+      result.push({ countryIndex, node, geographicBounds });
+      if (result.length > maxLeaves) return null;
+    }
+  }
+  return result;
 }
