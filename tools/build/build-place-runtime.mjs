@@ -184,7 +184,7 @@ function loadArchivedDisplayPopulationSources() {
   const source = JSON.parse(readFileSync(sourcePath, 'utf8'));
   const directory = reportPath('reports/map-analysis/corpus/gazetteer-v1/runtime/records', { access: 'read' });
   const records = [];
-  for (const filename of readdirSync(directory).filter(name => /^[a-f0-9]{2}\\.json$/.test(name)).sort()) {
+  for (const filename of readdirSync(directory).filter(name => /^[a-f0-9]{2}\.json$/.test(name)).sort()) {
     const shard = JSON.parse(readFileSync(join(directory, filename), 'utf8'));
     for (const row of Object.values(shard)) records.push({
       id: row.id, coordinates: row.coordinates, population: row.population,
