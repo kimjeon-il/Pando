@@ -310,10 +310,17 @@ export function createSharedPolygonLodIndex(features, { precision = 7 } = {}) {
         for (let i = 0; i < info.points.length; i++)
           if (protectedSet.has(info.id) || info.importance[i] >= tolerance
             || protectedNodes.has(info.keys[i])) indices.push(i);
+        // Preserve small islands and narrow rings in place instead of
+        // invalidating an otherwise useful whole-world derivative. Shared
+        // borders still undergo the complete cross-owner seam check below.
+        const initial = indices.map(i => info.points[i]);
+        if (initial.length < 3
+          || Math.sign(lodSignedArea(initial)) !== Math.sign(info.originalArea)) {
+          indices.length = 0;
+          for (let i = 0; i < info.points.length; i++) indices.push(i);
+        }
         const selected = indices.map(i => info.points[i]);
         keptVertices += selected.length;
-        if (selected.length < 3 || Math.sign(lodSignedArea(selected)) !== Math.sign(info.originalArea))
-          invalid = true;
         // A shared source chain must be represented by the same new segment
         // in every country that owns it. Abort the complete derivative if a
         // different ring cut or a protected neighbor causes a seam mismatch.
