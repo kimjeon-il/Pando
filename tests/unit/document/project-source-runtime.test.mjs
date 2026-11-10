@@ -8,6 +8,19 @@ const sha='a'.repeat(64);
 const meta={mapProject:project,mapProjectManifest:{sha256:'b'.repeat(64)},
  projectCatalogs:{territorial:{catalog:project.resources.territorial.catalog,sha256:sha,bytes:200}},
  dataRevision:'data-'+'c'.repeat(32)};
+test('selected project rejects missing or mismatched territorial receipts before loading',async()=>{
+ let loads=0;
+ for(const catalogs of [undefined,{territorial:{...meta.projectCatalogs.territorial,
+  catalog:'assets/data/foreign/index.json'}}]){
+  const runtime=createProjectSourceRuntime({buildMeta:{...meta,projectCatalogs:catalogs,
+   builtinWorld:{url:project.resources.territorial.catalog,sha256:sha}},
+   getDependencies:()=>({domains:{projectDomain:{getGeneration:()=>1}},
+    platformConfigurationA:{BASE_DATASET:'test-dataset'}}),
+   createSourceLoader:()=>{loads++;throw new Error('must not load');}});
+  await assert.rejects(runtime.prepareProjectSource('2026-11'),/receipt/);
+ }
+ assert.equal(loads,0);
+});
 test('common project source runtime preserves verified country bytes and deferred geometry loading',async()=>{
  const events=[],world={documentId:'test-doc',format:'pandolab-project-state'};
  let generation=3,loaderCreated=0,loads=0,baselineId=0;
