@@ -393,7 +393,7 @@ export function createSharedPolygonLodIndex(features, { precision = 7 } = {}) {
  */
 export function tileLargePolygonLodFeatures(features, visibleTiles, {
   intersection, sourceKey, lodKey, tileDegrees = 5,
-  minimumVertices = 4000, cache = new Map(), maxCachedTiles = 128,
+  minimumVertices = 4, cache = new Map(), maxCachedTiles = 128,
 } = {}) {
   if (!Array.isArray(features) || !Array.isArray(visibleTiles)
     || typeof intersection !== 'function' || !sourceKey || !lodKey
