@@ -6,6 +6,7 @@ import { packCountryMeshFeatures } from "./country-mesh-transfer.js";
 export function createGpuMeshWorkerJobs({ createWorker, createRebuildWorker = createWorker, isCurrent, onMesh = () => {}, onError = () => {} }) {
   let rpc = null;
   let rebuildRpc = null;
+  let lodRpc = null;
   let rebuildBusy = false;
   let outputBytes = 0;
   function cancelRebuild() {
@@ -35,6 +36,39 @@ export function createGpuMeshWorkerJobs({ createWorker, createRebuildWorker = cr
       throw error;
     } finally {
       if (rebuildRpc === current) rebuildBusy = false;
+    }
+  }
+  function cancelDisplayLod() {
+    lodRpc?.stop('superseded-screen-lod');
+    lodRpc = null;
+  }
+  // Display LOD never cancels the canonical rebuild or the edit-patch queue.
+  // A separate worker can retain one topology index for repeated zoom buckets.
+  async function prepareDisplayLod(payload, accepts = () => true) {
+    if (!Number.isFinite(payload?.lod?.upperScale) || payload.lod.upperScale <= 0
+      || !Number.isFinite(payload?.lod?.errorPx) || payload.lod.errorPx <= 0
+      || typeof payload.sourceKey !== 'string' || !payload.sourceKey)
+      throw new TypeError('Display LOD needs a source identity and screen-error bucket.');
+    cancelDisplayLod();
+    const current = lodRpc = createWorkerRpcClient({
+      createWorker,
+      isCurrent: ({ entry, message }) => Number(message.projectRevision) === Number(entry.projectRevision),
+    });
+    try {
+      const packed = await packCountryMeshFeatures(payload.features || [], {
+        isCurrent: () => lodRpc === current && accepts(),
+      });
+      const response = await current.request('geometry.mesh', {
+        ...packed, lod: payload.lod, sourceKey: payload.sourceKey,
+      }, {
+        transfer: [packed.coordinates.buffer],
+        projectRevision: payload.projectGeneration,
+        metadata: { geometryRevision: payload.geometryRevision, sourceKey: payload.sourceKey },
+      });
+      return lodRpc === current && accepts() ? response.result : null;
+    } catch (error) {
+      if (error.cancelled || error.name === 'AbortError' || lodRpc !== current || !accepts()) return null;
+      throw error;
     }
   }
   function ensureRpc() {
@@ -67,13 +101,14 @@ export function createGpuMeshWorkerJobs({ createWorker, createRebuildWorker = cr
     },
   });
   return Object.freeze({
-    rebuild, cancelRebuild,
+    rebuild, cancelRebuild, prepareDisplayLod, cancelDisplayLod,
     enqueue: entry => scheduler.enqueue(entry),
     preparePolygons: (items, revision) => scheduler.enqueue({ jobKey: 'overlay-preparation', geometryRevision: revision,
       targetRevision: revision, payload: { polygonPreparation: { items } } }).promise,
     cancelAll(reason = 'cancelled', { preserveIdleRebuild = false } = {}) {
       if (!preserveIdleRebuild || rebuildBusy) cancelRebuild();
       scheduler.cancelAll(reason);
+      cancelDisplayLod();
       rpc?.stop(reason);
       rpc = null;
     },
