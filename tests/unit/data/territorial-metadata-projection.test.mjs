@@ -72,3 +72,24 @@ test('previous descriptor hash must be verified before reusing geometry projecti
  assert.throws(()=>assertIndexedTerritorialChunk(prior,Buffer.from('tampered metadata')),/pinned index/);
  assert.throws(()=>assertIndexedTerritorialChunk(prior,null),/pinned index/);
 });
+
+test('legacy index rows without immutable geometry receipts trigger a full source read',()=>{
+ const legacy={...previous(),geometryVersions:[{versionId:'2026',validFrom:null,validTo:null}]};
+ let reads=0;
+ assert.equal(metadataOnlyTerritorialProjection(descriptor('New'),legacy),null);
+ const selected=selectTerritorialChunkSource(descriptor('New'),legacy,()=>{
+   reads++;
+   return {descriptor:descriptor('New'),entity:{
+     ...descriptor('New'),storageLayout:undefined,
+     geometryVersions:[{versionId:'2026',geometry:{type:'Polygon',coordinates:[[[0,0],[1,0],[0,0]]]}}]
+   }};
+ });
+ assert.equal(reads,1);
+ assert.equal(selected.readsGeometry,true);
+ assert.equal(selected.verifiedGeometryBounds,null);
+});
+
+test('corrupt current geometry resource identity still fails closed',()=>{
+ const invalid=descriptor('New',{...resource,bytes:0});
+ assert.throws(()=>metadataOnlyTerritorialProjection(invalid,previous()),/invalid geometry resource identity/);
+});

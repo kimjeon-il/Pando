@@ -19,8 +19,13 @@ export function metadataOnlyTerritorialProjection(descriptor,previous){
  for(const version of descriptor.geometryVersions){
   const prior=old.get(version.versionId);
   if(!prior)return null;
+  // Old published indexes may contain a geometry-less projection of the
+  // source entity. That is not a reusable geometry receipt: fall back to the
+  // canonical source reader instead of crashing during a full rebuild.
   const source=validateTerritorialSourceGeometry(version,descriptor.entityId);
-  const verified=validateTerritorialSourceGeometry(prior,descriptor.entityId);
+  let verified;
+  try { verified=validateTerritorialSourceGeometry(prior,descriptor.entityId); }
+  catch { return null; }
   if(source.sha256!==verified.sha256||source.bytes!==verified.bytes||
     source.file!==verified.file||source.type!==verified.type||
     JSON.stringify(source.logicalRef)!==JSON.stringify(verified.logicalRef))return null;
