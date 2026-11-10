@@ -451,9 +451,12 @@ export function tileLargePolygonLodFeatures(features, visibleTiles, {
         for (const polygon of clipped) {
           if (!Array.isArray(polygon) || !polygon.length) throw new Error('Invalid tile polygon.');
           for (const ring of polygon) {
-            if (!Array.isArray(ring) || ring.length < 4 || ring.some(point => !finiteCoordinate(point))
+            if (!Array.isArray(ring) || ring.length < 4 || ring.some(point =>
+              !finiteCoordinate(point)
+              || point[0] < west - 1e-6 || point[0] > east + 1e-6
+              || point[1] < south - 1e-6 || point[1] > north + 1e-6)
               || lodNodeKey(ring[0], 7) !== lodNodeKey(ring.at(-1), 7))
-              throw new Error('Incomplete clipped polygon ring.');
+              throw new Error('Incomplete or out-of-bounds clipped polygon ring.');
           }
         }
         cache.set(key, clipped);
