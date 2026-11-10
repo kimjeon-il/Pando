@@ -2421,6 +2421,136 @@ export function createGpuMapRenderer(deps) {
       syncGpuRecoveryAvailability();
     }
 
+    function resetCountryDisplayLod() {
+      if (screenLodTimer !== null) lifecycle.cancelTimeout(screenLodTimer);
+      screenLodTimer = null;
+      patchJobScheduler.cancelDisplayLod();
+      screenLodBucket = null;
+      screenLodTargetKey = '';
+      screenLodPreparingKey = '';
+      screenLodRejectedKey = '';
+      screenLodSourceKey = '';
+      screenLodFailure = '';
+      screenLodLatest = null;
+    }
+
+    // The canonical mesh is authoritative for edits, picks, and source
+    // revisions. This schedules only a disposable lower-cost presentation mesh.
+    // A frame can always keep drawing the accepted canonical resource.
+    function ensureCountryDisplayLod({ cssScale = lastVisualFrame?.cssScale } = {}) {
+      const selected = countryFocusPending || !!state.selected
+        || !!countryEmphasis.primaryId || countryEmphasis.selectedIds.size > 0;
+      const source = countryMeshDependencies?.content;
+      const eligible = !disposed && isWebGlRenderer() && canonicalMeshReady
+        && meshVariants.has('canonical') && typeof source === 'string' && !!source
+        && !selected && !projectRenderBlocked && !temporalPending()
+        && !countryOverrideIds.size && !geometryRevisionTracker.pendingIds().length
+        && Number.isFinite(cssScale) && cssScale > 0;
+      if (!eligible) {
+        if (screenLodTargetKey) {
+          screenLodTargetKey = '';
+          if (screenLodTimer !== null) lifecycle.cancelTimeout(screenLodTimer);
+          screenLodTimer = null;
+          patchJobScheduler.cancelDisplayLod();
+          screenLodPreparingKey = '';
+        }
+        return '';
+      }
+      const bucket = resolveScreenLodBucket({ cssScale, previous: screenLodBucket });
+      screenLodBucket = bucket;
+      const generation = projectGeneration;
+      const revision = geometryRevisionTracker.committedRevision();
+      const sourceKey = `${source}:mesh-algorithm-${globalThis.PandoLabGpuMeshCore.MESH_ALGORITHM_REVISION}`;
+      const key = `${generation}:${revision}:${sourceKey}:${bucket.key}`;
+      screenLodSourceKey = sourceKey;
+      if (screenLodTargetKey === key) return key;
+      screenLodTargetKey = key;
+      if (screenLodTimer !== null) lifecycle.cancelTimeout(screenLodTimer);
+      screenLodTimer = null;
+      if (screenLodPreparingKey && screenLodPreparingKey !== key)
+        patchJobScheduler.cancelDisplayLod();
+      screenLodPreparingKey = '';
+      // Prepared derivatives may be reused when returning to the same bucket.
+      if (meshVariants.get('lod')?.lodKey === key || screenLodRejectedKey === key)
+        return key;
+      screenLodTimer = lifecycle.timeout(() => {
+        screenLodTimer = null;
+        const current = () => !disposed && generation === projectGeneration
+          && revision === geometryRevisionTracker.committedRevision()
+          && source === countryMeshDependencies?.content
+          && screenLodTargetKey === key && isWebGlRenderer()
+          && canonicalMeshReady && !projectRenderBlocked && !temporalPending()
+          && !geometryRevisionTracker.pendingIds().length && !countryOverrideIds.size;
+        if (!current()) return;
+        screenLodPreparingKey = key;
+        const started = performance.now();
+        patchJobScheduler.prepareDisplayLod({
+          projectGeneration: generation, geometryRevision: revision, sourceKey,
+          features: canonicalCountryFeatures(), lod: bucket,
+        }, current).then(async result => {
+          if (!result || !current()) return;
+          screenLodLatest = Object.freeze({
+            ...result.lod, durationMs: Number((performance.now() - started).toFixed(2)),
+            generatedVertices: result.positions?.length / 2 || 0,
+          });
+          performanceMetrics.screenLodPreparedCount =
+            (performanceMetrics.screenLodPreparedCount || 0) + 1;
+          if (!result.lod?.simplified || result.lod?.fallback) {
+            screenLodRejectedKey = key;
+            screenLodFailure = result.lod?.failure || '';
+            invalidateGpuFrame('screen-lod-canonical-retained');
+            return;
+          }
+          let resources = null;
+          try {
+            assertPreparedStroke(result, result.countryIds || []);
+            const nextMesh = {
+              preparedStroke: result.preparedStroke,
+              spatialBlocks: result.spatialBlocks,
+              positions: asMeshArray(Int32Array, result.positions),
+              countryIndices: asMeshArray(Uint16Array, result.countryIndices),
+              triangleIndices: asMeshArray(Uint32Array, result.triangleIndices),
+              lineIndices: asMeshArray(Uint32Array, result.lineIndices),
+              strokeStartsEnds: asMeshArray(Float32Array, result.strokeStartsEnds),
+              strokeOwnerRanges: result.strokeOwnerRanges || null,
+              countryTriangleRanges: asMeshArray(Uint32Array, result.countryTriangleRanges),
+              countryBoundaryRanges: asMeshArray(Uint32Array, result.countryBoundaryRanges),
+              countryBounds: asMeshArray(Int32Array, result.countryBounds),
+              countryBoundsFlags: asMeshArray(Uint32Array, result.countryBoundsFlags),
+            };
+            resources = await stageMeshResources(nextMesh, { projectGeneration: generation });
+            if (!resources) throw new Error('LOD mesh GPU upload was not committed.');
+            if (!current()) {
+              disposeMeshResources(resources);
+              return;
+            }
+            setMesh(nextMesh, result.countryIds || [], {
+              quality: 'lod', preserveOtherVariants: true, activate: false,
+              renderFrame: false, stagedResources: resources,
+              boundaryCacheKind: meshVariants.get('canonical')?.boundaryCacheKind || 'none',
+            });
+            resources = null;
+            meshVariants.get('lod').lodKey = key;
+            screenLodFailure = '';
+            performanceMetrics.screenLodUploadCount =
+              (performanceMetrics.screenLodUploadCount || 0) + 1;
+            syncCountryMeshQuality();
+            invalidateGpuFrame('screen-lod-published');
+          } finally {
+            if (resources) disposeMeshResources(resources);
+          }
+        }).catch(error => {
+          if (!current() || error.name === 'AbortError' || error.cancelled) return;
+          screenLodRejectedKey = key;
+          screenLodFailure = String(error.message || error).slice(0, 360);
+          console.warn('[PL-SCREEN-LOD]', error);
+        }).finally(() => {
+          if (screenLodPreparingKey === key) screenLodPreparingKey = '';
+        });
+      }, 120);
+      return key;
+    }
+
     function promoteCanonicalMesh({ frameId = 0 } = {}) {
       canonicalMeshReady = true;
       if (activeMeshQuality === 'canonical') recordCanonicalFrameReady();
