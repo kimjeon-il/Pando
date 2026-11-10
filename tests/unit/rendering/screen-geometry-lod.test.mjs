@@ -167,3 +167,17 @@ test('spherical mesh edge subdivision gets finer with zoom and stays under the C
   assert.ok(edges[0] > edges.at(-1));
   assert.throws(() => resolveScreenLodEdgeDegrees({ cssScale: 0 }), TypeError);
 });
+
+test('small island is preserved without rejecting the other country LOD', () => {
+  const island = { id: 'island', geometry: { type: 'Polygon', coordinates: [[
+    [10, 10], [10.0001, 10], [10.0001, 10.0001], [10, 10.0001], [10, 10],
+  ]] } };
+  const mainland = { id: 'mainland', geometry: { type: 'Polygon', coordinates: [[
+    [0, 0], [2, 0], [2, 1], [1.5, 1.0001], [1, 1], [0.5, 1.0001], [0, 1], [0, 0],
+  ]] } };
+  const result = createSharedPolygonLodIndex([island, mainland])
+    .derive({ cssScale: 100, errorPx: 2 });
+  assert.equal(result.fallback, false);
+  assert.deepEqual(result.features[0].geometry, island.geometry);
+  assert.ok(result.keptVertices < result.originalVertices);
+});
