@@ -182,10 +182,17 @@ function allSelectedNames(record) {
 function loadArchivedDisplayPopulationSources() {
   const sourcePath = reportPath('reports/map-analysis/corpus/gazetteer-v1/sources/cities500.source.json', { access: 'read' });
   const source = JSON.parse(readFileSync(sourcePath, 'utf8'));
+  const indexPath = reportPath('reports/map-analysis/corpus/gazetteer-v1/runtime/manifest.json', { access: 'read' });
+  const index = JSON.parse(readFileSync(indexPath, 'utf8'));
+  if (!index.sources?.some(entry => entry.sha256 === source.sha256) || index.recordCount < 200000)
+    throw new Error('Archived GeoNames source/index pairing is missing or changed');
   const directory = reportPath('reports/map-analysis/corpus/gazetteer-v1/runtime/records', { access: 'read' });
   const records = [];
   for (const filename of readdirSync(directory).filter(name => /^[a-f0-9]{2}\.json$/.test(name)).sort()) {
-    const shard = JSON.parse(readFileSync(join(directory, filename), 'utf8'));
+    const bytes = readFileSync(join(directory, filename));
+    if (hash('sha256', bytes) !== index.files?.['records/' + filename]?.sha256)
+      throw new Error('Archived GeoNames record shard changed: ' + filename);
+    const shard = JSON.parse(bytes.toString('utf8'));
     for (const row of Object.values(shard)) records.push({
       id: row.id, coordinates: row.coordinates, population: row.population,
       featureCode: row.featureCode,
