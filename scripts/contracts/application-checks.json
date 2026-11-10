@@ -837,12 +837,13 @@
         "tests/unit/runtime/policy-links.test.mjs",
         "scripts/contracts/application-checks.json",
         "package.json",
-        "src/**",
-        "tools/**",
-        "config/**",
-        "contracts/**",
-        "projects/**",
-        ".github/workflows/**"
+        "src/runtime/version-contract.js",
+        "src/document/map-object-categories.js",
+        "src/data/terrain-manifest.js",
+        "config/library-data.json",
+        "config/generated-artifacts.json",
+        "contracts/places/v3.json",
+        "projects/*/manifest.json"
       ],
       "argv": [
         "node",

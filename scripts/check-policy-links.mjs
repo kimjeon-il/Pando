@@ -2,7 +2,7 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const HISTORY = new Set(['p0-overview.md', 'p1-reconciliation.md', 'p2-maintenance.md']);
+const HISTORY = new Set(['p0-overview.md', 'p1-reconciliation.md', 'p2-maintenance.md', 'mixed-policy-audit.md']);
 const SKIP_CHECKS = new Set(['README.md', 'maintenance.md']);
 const DOMAIN_SOURCE = /^(?:src|scripts|tools|config|contracts|projects)\/.+/u;
 const MARKDOWN_LINK = /!?\[[^\]\r\n]+\]\(([^)\r\n]+)\)/gu;

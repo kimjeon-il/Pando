@@ -36,7 +36,7 @@
 - 기존 `scripts/check-policy-links.mjs`는 현행 `docs/policies/*.md`와 직접 연결된 원본 문서의 Markdown 상대 링크·검증 그룹·npm 명령을 **실패 조건**으로 검사한다.
 - 확장 검사에서는 **전체 `docs/**/*.md` 및 루트 안내 Markdown**을 읽는다. 중앙 정책에 연결되지 않은 옛 단계별 기록의 깨진 링크, 삭제된 코드 경로 표현, 규범적 문장 후보는 *진단*한다. 역사 기록의 URL/소스가 없다는 이유로 조용히 삭제·복원하거나 현재 제품 검사를 실패 처리하지 않는다.
 - `node scripts/check-policy-links.mjs --strict-all`은 전체 문서의 미해결 경로를 엄격하게 검사하기 위한 수동 감사 모드다. 평소 CI는 현재 정책과 연결된 계약에 대해 실패를 판정한다.
-- `scripts/contracts/application-checks.json`의 기존 `policy-links` 그룹은 `docs/**` 외에 `src/**`·`tools/**`·`config/**`·`contracts/**`·`projects/**` 및 CI 경로 변경에도 선택되도록 하여 **코드 소유자 이동 시 문서 참조가 방치되지 않게** 한다.
+- `scripts/contracts/application-checks.json`의 기존 `policy-links` 그룹은 `docs/**`와 버전·객체 Registry·DEM 및 지정된 핀·PLAC·프로젝트 매니페스트 등 **검증된 대표 원본 경로** 변경에도 선택되도록 한다. 전체 `src/**`·`tools/**` 검사를 CI 계획에 강제로 추가하지 않는다. 그 외 소유자 이동은 관련 문서 갱신 시 전체 정책 감사에서 확인한다.
 
 ## 보존과 검증 한계
 
