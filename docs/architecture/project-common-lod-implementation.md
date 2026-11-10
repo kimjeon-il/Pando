@@ -1,4 +1,6 @@
-# Project-common LOD implementation
+# Project-common LOD implementation — 2026-11-10 work/gis execution plan
+
+> **Historical plan, not a current cross-branch mandate.** The instructions below to work only on `work/gis`, defer particular inputs, and refrain from main integration describe the approved **scope of that dated task**. Follow the current [branch policy](../branch-policy.md), [P0/P1 LOD record](map-rendering-lod-p0-p1.md), and actual `src/rendering/` implementation for today's work. Keep the original plan and evidence destinations intact; no unrun runtime validation is claimed here.
 
 Approved scope: preserve current vector sources and saved project format; defer LSIB
 ingestion and T_NE/T_min calibration. Work only on work/gis; no main integration or deployment.
