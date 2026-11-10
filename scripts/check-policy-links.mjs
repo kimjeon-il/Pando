@@ -49,8 +49,8 @@ export function checkPolicyLinks(root = resolve(fileURLToPath(new URL('..', impo
   let links = 0, codeReferences = 0, groupReferences = 0, scriptReferences = 0;
   const listed = new Set();
 
-  for (let index = 0; index < checkFiles.length; index++) {
-    const path = checkFiles[index];
+  for (let cursor = 0; cursor < checkFiles.length; cursor++) {
+    const path = checkFiles[cursor];
     const absolute = join(root, path);
     if (!existsSync(absolute)) { error(path, 'missing input document'); continue; }
     const markdown = readFileSync(absolute, 'utf8');
