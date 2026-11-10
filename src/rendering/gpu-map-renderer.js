@@ -29,6 +29,7 @@ import { isRenderScene, buildPolygonGeometryPacket } from "./render-scene.js";
 import { isMapVisualFrame } from "./map-visual-frame.js";
 export { visibleFlatWorldOffsets } from "./map-visual-frame.js";
 import { createGpuMeshWorkerJobs } from "./gpu-mesh-worker-jobs.js";
+import { resolveScreenLodBucket } from "./render-lod.js";
 import { decideCountryPatchPresentation } from "./country-mesh-quality-gate.js";
 import { resolveCountryMeshQuality, resolveMapSurfacePresentation, canAdmitCanvasWorkerPartialBackground, canAdmitWebGlPartialBackground, canvasWorkerFrameMatchesPhysical, canvasWorkerPresentationKey, canvasWorkerBackgroundPresentationKey, selectCanvasPhysicalSource } from "./country-mesh-zoom-policy.js";
 import { validateMapSurfacePreview } from "../document/project-preview-policy.js";
@@ -256,6 +257,11 @@ export function createGpuMapRenderer(deps) {
     let renderQuality = DEFAULT_RENDER_QUALITY;
     let meshSwitchCount = 0;
     let renderQualityChangeCount = 0;
+    // A single canonical source may produce multiple display-only mesh buckets.
+    // These identities never participate in document editing or CPU picking.
+    let screenLodBucket = null, screenLodTargetKey = '', screenLodPreparingKey = '';
+    let screenLodRejectedKey = '', screenLodTimer = null, screenLodSourceKey = '';
+    let screenLodFailure = '', screenLodLatest = null;
     // Readiness and displayed quality are independent. Keep one preview and
     // one canonical mesh; zoom history belongs to this renderer generation.
     let qualityPhase = 'startup-preview';
@@ -342,7 +348,14 @@ export function createGpuMapRenderer(deps) {
       surfacePresentation = nextPresentation;
       const quality = surfacePresentation.quality;
       state.countryVisualPhase = quality;
-      const geometryQuality = surfacePresentation.geometryQuality;
+      const lodKey = ensureCountryDisplayLod({ cssScale, projection });
+      const exactQuality = surfacePresentation.geometryQuality;
+      const selectedGeometry = countryFocusPending || !!state.selected
+        || !!countryEmphasis.primaryId || countryEmphasis.selectedIds.size > 0;
+      const lodEntry = meshVariants.get('lod');
+      const geometryQuality = exactQuality === 'canonical' && !selectedGeometry
+        && lodEntry?.lodKey === lodKey && lodKey && !countryOverrideIds.size
+        && !geometryRevisionTracker.pendingIds().length ? 'lod' : exactQuality;
       if (geometryQuality !== 'pending' && geometryQuality !== activeMeshQuality) {
         if (isWebGlRenderer()) activateMeshVariant(geometryQuality, { renderFrame: false });
         else { activeMeshQuality = geometryQuality; meshQuality = geometryQuality; meshSwitchCount += 1; }
@@ -1529,6 +1542,7 @@ export function createGpuMapRenderer(deps) {
     }
 
     function meshQualityLabel() {
+      if (activeMeshQuality === 'lod') return '배율별 정식 LOD';
       return surfacePresentation.quality === 'canonical' ? '무손실'
         : surfacePresentation.quality === 'preview' ? '저배율 표시' : '정밀 경계 준비 중';
     }
@@ -2345,7 +2359,7 @@ export function createGpuMapRenderer(deps) {
     }
 
     function activateMeshVariant(quality, { renderFrame = true } = {}) {
-      const requestedQuality = quality === 'preview' ? 'preview' : 'canonical';
+      const requestedQuality = quality === 'preview' ? 'preview' : quality === 'lod' ? 'lod' : 'canonical';
       if (requestedQuality === 'preview') {
         previewActivationCount += 1;
         if (!previewAllowed) {
@@ -2382,7 +2396,7 @@ export function createGpuMapRenderer(deps) {
       stagedResources = null,
       boundaryCacheKind = 'none',
     } = {}) {
-      const variantQuality = quality === 'preview' ? 'preview' : 'canonical';
+      const variantQuality = quality === 'preview' ? 'preview' : quality === 'lod' ? 'lod' : 'canonical';
       if (variantQuality === 'preview' && !previewAllowed) {
         previewActivationAfterCanonical += 1;
         return false;
@@ -2734,6 +2748,7 @@ export function createGpuMapRenderer(deps) {
     }
 
     function resetProjectRenderState({ generation = null, presentation = 'default', isCurrent = () => true, onPresented = () => {} } = {}) {
+      resetCountryDisplayLod();
       // A fall-back result requested for the previous project must not be
       // accepted, warned about, or block the next project's terrain source.
       terrainFallbackRequest?.abort();
@@ -2858,6 +2873,7 @@ export function createGpuMapRenderer(deps) {
       // Every accepted request supersedes earlier deliveries, including a
       // synchronous cache hit after a different shape began preparing.
       const task = geometryRevisionTracker.beginTask(geometryRevision);
+      resetCountryDisplayLod();
       stopPatchWorkerJobs(reason);
       // This entry is reached after Core admission and scene invalidation.
       // Let the new physical background render while its country mesh builds.
@@ -5481,6 +5497,7 @@ export function createGpuMapRenderer(deps) {
 
     async function replaceBuiltInMesh({ meshBuffer, preparedStroke, spatialBlocks, features, countryPatchIds = [], onStaged = null, quality = 'canonical', builtinIdentity = null, contentKey = null, projectGeneration: requestedGeneration = projectGeneration }) {
       if (disposed || Number(requestedGeneration) !== projectGeneration) return false;
+      resetCountryDisplayLod();
       if (rendererMode === 'webgl-recovering' && !await waitForGpuDevice(requestedGeneration)) return false;
       projectRenderBlocked = false;
       invalidateGpuFrame('accepted-project-background');
@@ -5979,7 +5996,13 @@ export function createGpuMapRenderer(deps) {
         effectivePixelRatio,
         devicePixelRatio: Math.max(1, Number(window.devicePixelRatio || 1)),
         meshQuality: surfacePresentation.quality,
-        activeMeshQuality: surfacePresentation.quality,
+        activeMeshQuality,
+        screenLodBucket: screenLodBucket?.key || null,
+        screenLodSourceKey: screenLodSourceKey || null,
+        screenLodTargetKey,
+        screenLodPreparingKey,
+        screenLodFailure,
+        screenLodLatest,
         canonicalMeshReady,
         availableMeshQualities: [...meshVariants.keys()],
         meshVariantBytes: Object.fromEntries([...meshVariants.entries()].map(([quality, entry]) => [quality, Number(entry.resources?.byteLength || 0)])),
@@ -6088,6 +6111,7 @@ export function createGpuMapRenderer(deps) {
       presentedStrokeDomains.clear();
       if (disposed) return;
       disposed = true;
+      resetCountryDisplayLod();
       terrainFallbackRequest?.abort();
       terrainFallbackRequest=null;
       gpuRecovery.dispose();
