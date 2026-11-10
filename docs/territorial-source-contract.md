@@ -1,7 +1,8 @@
 # Territorial source provenance and project wire contract
 
-This contract is shared by Pando Web and PandoEditor. The temporal semantics in
-`docs/timeline-contract.md` are unchanged.
+This source-provenance and historical exchange contract originated as a shared Pando Web/PandoEditor agreement. The current product is the single Pando Web Viewer with a C++/WASM document and temporal owner. See [project data ownership](architecture/project-data-ownership.md), [temporal meaning](timeline-contract.md), and current schema owners [`src/runtime/version-contract.js`](../src/runtime/version-contract.js) / [`src/document/timeline-records.js`](../src/document/timeline-records.js).
+
+> **Current wire versions:** project **14**, territorial model **6**, `timelineRecords` **3**. The old project **10** / timeline **1** figures below are a dated migration/fixture snapshot, **not accepted current input**. Preserve original source receipts and test-oracle descriptions; do not use historical migration steps as live code instructions.
 
 ## Names
 
@@ -87,6 +88,8 @@ other edits. An advanced source input revision cannot hide behind an unchanged
 compiled payload. A whole-prefix scope, extra deletion, changed snapshot, unrelated
 view/display change or missing recovery copy does not authorize this correction.
 Raw reference datasets and original evidence remain outside the removal scope.
+
+### Original 2026 source/project exchange schema snapshot (historical; not current)
 
 - Web project schemaVersion: **10**; native project version: **10**.
 - Territorial identity/model schemaVersion: **6**; timelineRecords: **1**.

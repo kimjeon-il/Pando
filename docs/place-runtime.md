@@ -1,5 +1,7 @@
 # 내장 지명 메커니즘 검증 기록
 
+> **현행 안내(2026-11-11):** 이 문서는 2026-10-01~11-10 단계별 구현·검증 기록을 보관한다. 당시 'manifest가 비어 있다', 'v2만 지원' 등 시점 한정 서술은 현재 배포 상태로 소급하지 않는다. 현재 PLAC v3·코드 정본은 [`src/document/place-contract.js`](../src/document/place-contract.js)·[`contracts/places/v3.json`](../contracts/places/v3.json), 후보 선정은 [`tools/lib/geonames-policy.mjs`](../tools/lib/geonames-policy.mjs), 5단계 **표시 계산**은 [`tools/build/place-display-rank.mjs`](../tools/build/place-display-rank.mjs)다. 이 규칙들은 서로 대체하지 않으며 2026-11-10의 사용자 확인 인구 경계와 잠정 공간 보정값을 유지한다.
+
 기준: `main`의 `c134b2971d3e007d823f865a2bac1b6a9ddaca70`, 검증일 2026-10-01.
 작업 브랜치: `codex/place-runtime-million`.
 

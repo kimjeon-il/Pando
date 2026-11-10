@@ -1,5 +1,7 @@
 # Common map visual policy — M4 through M7
 
+> **범위 구분:** M4(시각 순서), M5(선분 스타일), M6(프레임 투영)의 원칙과 각 단계의 **2026-10-06 실행 증거**가 같은 파일에 함께 있다. 현재 정책의 실제 표시 순서·스타일은 `src/ui/layer-presentation.js`와 `src/rendering/`의 실행 소유자가 결정한다. `### M4/M5/M6 execution evidence`, M7의 검사·커밋 기록은 당시 검증 결과이며 현재 CI 통과를 의미하지 않는다. 새로운 독립 렌더러·중복 표시 규칙을 만들지 않는다.
+
 ## M4: visual order
 
 `layer-presentation.js` owns an immutable visual role table. It is presentation

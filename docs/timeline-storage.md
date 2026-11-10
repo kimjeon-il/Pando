@@ -1,4 +1,6 @@
-# T2-2a: geometry-bearing timeline storage checkpoints
+# T2-2a: geometry-bearing timeline storage checkpoints (historical stage record)
+
+> **Current product:** [`src/document/timeline-storage.js`](../src/document/timeline-storage.js) owns storage snapshot/restore, and the C++/WASM timeline validator is used through the live project model. The T2-2a text below describes an **earlier partial implementation**, including the then-unconnected serializer and old Web/App source layout. Current project 14 / `timelineRecords` 3 and the present calling graph, not this stage's TODO list, determine production support. Historical tests and verification are preserved unchanged.
 
 Date: 2026-10-04. Companion to `timeline-contract.md` and `timeline-records.md`.
 Bases: web `ccb180ac978a42d26dbcfd2c19c7a6a611764bfe`; app

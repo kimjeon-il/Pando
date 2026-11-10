@@ -1,4 +1,6 @@
-# 웹 T2-2 프로젝트 영속성
+# 웹 T2-2 프로젝트 영속성 — 2026-10-04~06 실행·검증 이력
+
+> **현재 지원 스키마:** 프로젝트 **14** ([`src/runtime/version-contract.js`](../src/runtime/version-contract.js)), `timelineRecords` **3** ([`src/document/timeline-records.js`](../src/document/timeline-records.js)). 아래의 프로젝트 9·10, 기록 1 및 Web/App·Windows·Qt 비교는 각 커밋의 **당시 이력·고정 테스트 증거**다. 현재 Viewer의 스키마나 별도 앱 배포 의무를 의미하지 않는다. 당시 실패·검사·SHA는 삭제하거나 성공으로 고쳐 쓰지 않는다.
 
 ## 현재 계보·출처 계약 검증 (2026-10-06)
 

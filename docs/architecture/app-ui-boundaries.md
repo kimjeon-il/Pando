@@ -1,6 +1,18 @@
-# Application UI and lifecycle boundaries
+# Application UI and lifecycle boundaries — historical Editor composition and current Viewer owners
 
-`app.js` supplies explicit queries and commands to these production modules:
+> **Current product:** Web Viewer (`src/app/viewer.js` → `src/app/viewer-composition.js`) with embedded read-only inspector. `apps/editor`, the Windows/Tauri review shell and the previous `app.js` editing composition are retired. The old names and port contracts below remain **historical architecture evidence**, not instructions to rebuild a second app.
+
+## Current production owner map (2026-11-11 source paths)
+
+- `src/app/viewer.js`: Web Viewer entry point; `src/app/viewer-composition.js`: composition and current document/project connections.
+- `src/app/map-owner-composition.js`, `src/app/map-owner-ports.js` and `src/app/viewer-map.js`: map owner wiring and Viewer map session.
+- `src/app/application-lifecycle.js`: startup/disposal lifecycle; `src/document/project-domain.js` and `src/document/project-state.js`: project transactions and state.
+- `src/data/file-access-contract.js` and `src/data/project-file-reader.js`: file contract/reading. These do not create a Windows review shell.
+- [module ownership inventory](../app-module-ownership.md) identifies other current source responsibilities. Old UI/editing state paths are not substitute domain owners.
+
+## Historical App/Editor composition (retained 2026 design record)
+
+`app.js` supplied explicit queries and commands to these production modules **at the time**:
 
 | Module | Ownership |
 | --- | --- |

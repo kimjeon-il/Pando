@@ -1,6 +1,8 @@
-# UI Information Architecture v2
+# UI Information Architecture v2 — 편집 UI 설계 기록
 
-이 문서는 `추가`와 `편집` Surface의 정보 위계를 고정한다. 4단계의 목적은 새 기능이 들어올 때 메뉴 분류와 편집 헤더가 다시 기능별 예외로 퍼지는 것을 막는 것이다.
+> **적용 상태:** 이 문서의 `추가`·`편집` Surface, Windows 검수기 및 관련 버튼 구성은 이전 편집 제품의 정보구조 결정이다. 현행 Pando는 읽기 전용 Web Viewer이므로 이러한 편집 화면을 현행 필수 UI로 간주하지 않는다. 공통 글자·컨트롤·반응형 설계 정책은 [UI Architecture](ui-architecture.md), 제품 화면과 코드 소유권은 [현재 Viewer 모듈](../app-module-ownership.md)을 따른다. 당시 설계 및 UI 검증 의도는 아래에 보존한다.
+
+이 문서는 2026년 당시 `추가`와 `편집` Surface의 정보 위계를 고정했다. 4단계의 목적은 새 기능이 들어올 때 메뉴 분류와 편집 헤더가 다시 기능별 예외로 퍼지는 것을 막는 것이다.
 
 ## 추가 Surface
 
@@ -52,7 +54,7 @@ P2에서도 `정보 / 편집 / 관계` 구조와 기능 위치를 유지한다. 
 
 ## CI 계약
 
-`node scripts/check-ui.mjs information`이 현재 Viewer·Windows 검수기의 정보 구조를 검사한다.
+`node scripts/check-ui.mjs information`은 현재 등록된 UI IA 검사 명령이다. 과거 Viewer·Windows 양쪽 정보구조 검증을 전제로 작성된 아래 확인 항목은 당시 검증 범위로 보존하며, 폐기된 Windows 제품을 다시 배포하지 않는다.
 
 - 검수 패널 버튼과 요청 내보내기가 폼을 제출하지 않는지
 - 검수 자료 다중 파일 선택과 읽기 전용 프로젝트 파일 선택을 유지하는지
