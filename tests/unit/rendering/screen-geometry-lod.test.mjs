@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   MAX_MAP_GEOMETRY_ERROR_PX,
   resolveScreenLodBucket,
+  resolveScreenLodEdgeDegrees,
   createSharedPolygonLodIndex,
 } from '../../../src/rendering/render-lod.js';
 
@@ -151,4 +152,18 @@ test('ring start offset and reverse winding do not create a mismatched shared ar
     assert.equal(kept.has(key), low.features[1].geometry.coordinates[0]
       .some(value => value.join(',') === key));
   }
+});
+
+test('spherical mesh edge subdivision gets finer with zoom and stays under the CSS error budget', () => {
+  const levels = [100, 250, 1000, 4000, 16000];
+  const edges = levels.map(cssScale => resolveScreenLodEdgeDegrees({ cssScale }));
+  assert.equal(edges.length, levels.length);
+  for (let index = 0; index < levels.length; index++) {
+    if (index) assert.ok(edges[index] <= edges[index - 1]);
+    const radians = edges[index] * Math.PI / 180;
+    const sagittaPx = levels[index] * (1 - Math.cos(radians / 2));
+    assert.ok(sagittaPx <= MAX_MAP_GEOMETRY_ERROR_PX + 1e-9);
+  }
+  assert.ok(edges[0] > edges.at(-1));
+  assert.throws(() => resolveScreenLodEdgeDegrees({ cssScale: 0 }), TypeError);
 });
