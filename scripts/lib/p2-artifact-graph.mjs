@@ -49,15 +49,24 @@ function files(root,p,path=safePath(root,p)) {
   if(!statSync(path).isDirectory())return [p];
   return readdirSync(path).filter(name=>p!=='reports'||!name.startsWith('.')).sort().flatMap(name=>files(root,p.replace(/\/$/,'')+'/'+name,resolve(path,name)));
 }
-function expand(root,selectors,{source=false}={}) {
-  const selectedFiles=p=>files(root,p,source?inputPath(root,p):safePath(root,p));
+function expand(root,selectors,{source=false,archive=null}={}) {
+  const selectedFiles=p=>archive&&p.startsWith('assets/data/')
+    ?Object.keys(archive.files).filter(path=>path===p||path.startsWith(p.replace(/\/$/,'')+'/')).sort()
+    :files(root,p,source?inputPath(root,p):safePath(root,p));
   return [...new Set(selectors.flatMap(value=>{
     if(typeof value==='string')return value.endsWith('/')?selectedFiles(value):[value];
     return selectedFiles(value.prefix).filter(p=>new RegExp(value.pattern).test(p));
   }))].sort();
 }
-function hashes(root,paths,{source=false}={}) {
+function hashes(root,paths,{source=false,archive=null}={}) {
   return Object.fromEntries(paths.map(p=>{
+    if(archive&&p.startsWith('assets/data/')){
+      const entry=archive.files[p];
+      if(!entry)return [p,null];
+      assert.match(entry.sha256,/^[a-f0-9]{64}$/,'Invalid pinned archive hash: '+p);
+      return [p,source&&/\.(?:[cm]?js|json|geojson|txt|py|ya?ml|cmake)$/.test(p)
+        ?sha(Buffer.from(archive.read(p).toString('utf8').replaceAll('\r\n','\n'))):entry.sha256];
+    }
     const path=source?inputPath(root,p):safePath(root,p);
     if(!existsSync(path))return [p,null];
     let bytes=readFileSync(path);
@@ -98,7 +107,8 @@ function provenance(value,items=[]) {
   return items;
 }
 
-export function artifactGraph(root,{readGeneratedJson=p=>json(root,p)}={}) {
+export function artifactGraph(root,{archive=null,readGeneratedJson=p=>archive&&p.startsWith('assets/data/')?JSON.parse(archive.read(p).toString('utf8')):json(root,p)}={}) {
+  const present=p=>archive&&p.startsWith('assets/data/')?Object.hasOwn(archive.files,p):existsSync(inputPath(root,p));
   const graph=json(root,GRAPH_PATH);
   assert.equal(graph.schema,'pandolab-generated-artifact-graph');assert.equal(graph.schemaVersion,1);
   const families=graph.families.map(input=>{
@@ -108,7 +118,7 @@ export function artifactGraph(root,{readGeneratedJson=p=>json(root,p)}={}) {
       // Source-only GIS build inputs were retired from the published viewer
       // dataset. Planning and validating already-pinned output must not
       // require those unpublished generation sources.
-      const seed=optionalJson(root,'assets/data/world/build-input.json');
+      const seed=present('assets/data/world/build-input.json')?readGeneratedJson('assets/data/world/build-input.json'):null;
       const current=readGeneratedJson('assets/data/world/current.json');
       if(seed){
         const manifest='assets/data/'+seed.legacyPreviewManifest;
@@ -145,7 +155,7 @@ export function artifactGraph(root,{readGeneratedJson=p=>json(root,p)}={}) {
     if(f.resolve==='hydro'||f.resolve==='terrain') {
       const manifest=f.resolve==='hydro'?'assets/data/hydro/v0.13.4/manifest.json':'assets/data/terrain-preview/v0.13.3-p2/manifest.json';
       f.outputs.push(dirname(manifest).replaceAll('\\','/')+'/');
-      f.provenance=provenance(json(root,manifest).sources);
+      f.provenance=provenance(readGeneratedJson(manifest).sources);
     }
 
     // A pinned Viewer release intentionally excludes GIS authoring inputs.
@@ -156,8 +166,8 @@ export function artifactGraph(root,{readGeneratedJson=p=>json(root,p)}={}) {
       'assets/data/builtin-world/display-policy-v1.json',
       'assets/data/historical-world/policy.json',
     ]);
-    if(existsSync(safePath(root,'assets/data/world/current.json'))&&
-      f.inputs.some(value=>typeof value==='string'&&retiredSourcePaths.has(value)&&!existsSync(inputPath(root,value)))){
+    if(present('assets/data/world/current.json')&&
+      f.inputs.some(value=>typeof value==='string'&&retiredSourcePaths.has(value)&&!present(value))){
       f.manual=true;
       f.blockedReason='GIS authoring inputs are absent from the pinned Viewer data snapshot; regenerate from a source-enabled GIS checkout';
     }
@@ -178,17 +188,17 @@ export function artifactGraph(root,{readGeneratedJson=p=>json(root,p)}={}) {
   families.forEach(f=>visit(f.id));return ordered;
 }
 
-export function graphStatus(root,{wasm=null,requested=[],force=false}={}) {
-  const graph=artifactGraph(root), receipt=optionalJson(root,RECEIPT_PATH), pins=json(root,'config/toolchain-versions.json');
+export function graphStatus(root,{wasm=null,requested=[],force=false,archive=null}={}) {
+  const graph=artifactGraph(root,{archive}), receipt=archive?(archive.files[RECEIPT_PATH]?JSON.parse(archive.read(RECEIPT_PATH).toString('utf8')):null):optionalJson(root,RECEIPT_PATH), pins=json(root,'config/toolchain-versions.json');
   const statuses={},byId=new Map(graph.map(f=>[f.id,f]));
   requested.forEach(id=>assert.ok(byId.has(id),'P2_INVALID_FAMILY: '+id));
   for(const f of graph) {
-    const inputs=hashes(root,expand(root,f.inputs,{source:true}),{source:true});
+    const inputs=hashes(root,expand(root,f.inputs,{source:true,archive}),{source:true,archive});
     const generatorHashes=hashes(root,f.sources,{source:true});
     const tools=Object.fromEntries((f.tools||[]).map(k=>[k,pins[k]??null]));
     const dependencies=Object.fromEntries(f.dependencies.map(id=>[id,id==='wasm'
       ?sha(canonical(hashes(root,WASM_OUTPUTS))):statuses[id].outputFingerprint]));
-    const outputs=hashes(root,expand(root,f.outputs));
+    const outputs=hashes(root,expand(root,f.outputs,{archive}),{archive});
     const definition={...f};delete definition.sources;
     const inputFingerprint=sha(canonical({definition,inputs,generatorHashes,tools,dependencies}));
     const outputFingerprint=sha(canonical(outputs));
@@ -207,7 +217,7 @@ export function graphStatus(root,{wasm=null,requested=[],force=false}={}) {
     const blocked=[...Object.entries({...inputs,...generatorHashes}).filter(([,v])=>v===null).map(([p])=>'missing input: '+p)];
     for(const source of f.externalSources||[]) {
       if(!source.path||!/^[a-f0-9]{64}$/.test(source.sha256||'')||!source.version||!source.source)blocked.push('unpinned external source: '+(source.path||source.source));
-      else if(hashes(root,[source.path])[source.path]!==source.sha256)blocked.push('missing or mismatched external source: '+source.path);
+      else if(hashes(root,[source.path],{archive})[source.path]!==source.sha256)blocked.push('missing or mismatched external source: '+source.path);
     }
     if(f.blockedReason)blocked.push(f.blockedReason);
     const manualAllowed=!f.manual||requested.includes(f.id);

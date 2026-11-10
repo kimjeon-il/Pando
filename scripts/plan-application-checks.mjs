@@ -18,6 +18,22 @@ const matches = (file, patterns = []) => patterns.some(pattern => matchesPattern
 const executable = file => /\.[cm]?js$/.test(file) && !/\/(?:vendor|worker-runtime|fixtures|gen|target|dist)\//.test(file);
 const product = file => /^src\//.test(file);
 
+function expandCheckGroups(catalog, requested) {
+  const expanded = new Set(), active = new Set();
+  const visit = id => {
+    if (active.has(id)) throw Error('Cyclic check group inclusion: ' + id);
+    if (expanded.has(id)) return;
+    const group = catalog.groups.find(row => row.id === id);
+    if (!group) throw Error('Unknown included check group: ' + id);
+    if (group.includes !== undefined && (!Array.isArray(group.includes) || group.includes.some(value => typeof value !== 'string'))) throw Error('Invalid included check groups: ' + id);
+    active.add(id);
+    (group.includes || []).forEach(visit);
+    active.delete(id); expanded.add(id);
+  };
+  requested.forEach(visit);
+  return [...expanded];
+}
+
 export function loadRepository(root = process.cwd(), { catalog, libraryFiles } = {}) {
   if (root instanceof URL) root = fileURLToPath(root);
   const archived = file => {
@@ -54,6 +70,7 @@ export function loadRepository(root = process.cwd(), { catalog, libraryFiles } =
     if (group.mode === 'manual' && !group.reason) throw Error('Manual check needs a reason: ' + group.id);
     for (const required of group.requires || []) if (!catalog.prerequisites?.[required] && !catalog.groups.some(row => row.id === required)) throw Error('Missing prerequisite: ' + required);
   }
+  expandCheckGroups(catalog, catalog.groups.map(group => group.id));
   for (const command of [...catalog.groups, ...Object.values(catalog.prerequisites || {})]) {
     for (const argv of command.argv ? [command.argv] : []) {
       if (!Array.isArray(argv) || !argv.length || argv.some(value => typeof value !== 'string')) throw Error('Invalid check command');
@@ -96,6 +113,7 @@ export function loadRepository(root = process.cwd(), { catalog, libraryFiles } =
     if (!pattern.includes('*') && !owners.has(pattern))
       throw Error('Missing registered test: ' + pattern);
   }
+  for (const file of catalog.metadataOnlyTests || []) if (!file.startsWith('tests/unit/') || !owners.has(file)) throw Error('Invalid metadata-only test: ' + file);
   const unitRequirements = new Map(tests.filter(file => file.startsWith('tests/unit/'))
     .map(file => [file, new Set(owners.get(file).requires || [])]));
   for (const binding of catalog.unitPrerequisites || []) {
@@ -238,6 +256,7 @@ export function loadRepository(root = process.cwd(), { catalog, libraryFiles } =
 
 export function planApplicationChecks({ changedFiles = [], repository, groups: requestedGroups = [],exactSelection=null }) {
   const repo = repository || loadRepository();
+  requestedGroups = expandCheckGroups(repo.catalog, requestedGroups);
   const changed = [...new Set(changedFiles.map(slash))].sort();
   // Unknown active Viewer file types must not be silently claimed by a broad
   // directory-level test group. Deleted/added known source extensions remain
@@ -317,7 +336,6 @@ export function planApplicationChecks({ changedFiles = [], repository, groups: r
       }
     }
   }
-  for (const id of requestedGroups) if (!repo.catalog.groups.some(group => group.id === id)) throw Error('Unknown check group: ' + id);
   for (const file of changed) {
     if (!requestedGroups.length && matches(file, repo.catalog.productRoots) && !matchedProduct.has(file) && !infrastructure
       && !matches(file, repo.catalog.passiveInputs || []) && !repo.owners.has(file)) throw Error('Unclassified product change: ' + file);

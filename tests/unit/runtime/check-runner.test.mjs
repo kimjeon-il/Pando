@@ -12,6 +12,16 @@ import * as runner from "../../../scripts/run-application-checks.mjs";
 
 const executePlan=(plan,options)=>executeCiPlan(plan,{...options,environment:{GITHUB_ACTIONS:'true'}});
 
+test('only proven metadata-only unit selections omit runtime data preparation',()=>{
+ const repository={catalog:{groups:[],prerequisites:{},metadataOnlyTests:['tests/unit/planner.test.mjs']}};
+ const plan={prerequisites:[],commands:[],unitTests:['tests/unit/planner.test.mjs'],browserSpecs:[]};
+ assert.equal(executionOutputs(plan,{repository}).runtime_data,false);
+ assert.equal(executionOutputs({...plan,unitTests:['tests/unit/unknown.test.mjs']},{repository}).runtime_data,true);
+ assert.equal(executionOutputs({...plan,browserSpecs:['tests/browser/startup.spec.mjs'],browserPrerequisites:[]},{repository}).runtime_data,true);
+ assert.equal(executionOutputs({...plan,browserSpecs:['tests/browser/startup.spec.mjs'],browserPrerequisites:[]},{repository,phase:'non-browser'}).runtime_data,false);
+ assert.equal(executionOutputs({...plan,commands:['check-data']},{repository}).runtime_data,true);
+});
+
 test('check commands retain the supplied process environment and prerequisite overrides',()=>{
  const repository={root:'/fixture',catalog:{prerequisites:{sample:{argv:['node','sample.mjs'],env:{INHERITED:'override',EXTRA:'{root}/input'}}},groups:[]}};
  const plan={prerequisites:['sample'],commands:[],unitTests:[],browserSpecs:[],unitTestPrerequisites:{},reasons:{}};

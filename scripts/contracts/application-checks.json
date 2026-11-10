@@ -2,6 +2,30 @@
   "schema": "pando-application-checks-v1",
   "groups": [
     {
+      "id": "viewer-startup",
+      "kind": "browser",
+      "testPatterns": [
+        "tests/browser/runtime/viewer-readonly-startup.spec.mjs"
+      ],
+      "inputs": [
+        "src/**/gpu-*.js",
+        "src/**/map-display-*.js",
+        "src/**/render-*.js",
+        "src/**/map-visual-*.js",
+        "src/rendering/workers/canvas-render-worker.js",
+        "src/rendering/workers/gpu-mesh-worker.js",
+        "src/app/viewer.js",
+        "src/document/object-query.js",
+        "src/**/object-search-*.js",
+        "src/ui/place-name-display.js",
+        "src/ui/layer-presentation.js"
+      ],
+      "requires": [
+        "generated",
+        "core"
+      ]
+    },
+    {
       "id": "frontend-layout",
       "kind": "unit",
       "testPatterns": [
@@ -171,6 +195,9 @@
       "requires": [
         "generated",
         "core"
+      ],
+      "includes": [
+        "viewer-startup"
       ]
     },
     {
@@ -193,6 +220,9 @@
       "requires": [
         "generated",
         "core"
+      ],
+      "includes": [
+        "viewer-startup"
       ]
     },
     {
@@ -1554,5 +1584,10 @@
         "core-assets"
       ]
     }
+  ],
+  "metadataOnlyTests": [
+    "tests/unit/runtime/check-runner.test.mjs",
+    "tests/unit/runtime/workflow-check-ownership.test.mjs",
+    "tests/unit/runtime/project-manifest-change-plan.test.mjs"
   ]
 }

@@ -151,7 +151,7 @@ function validationOrPresentationOnly(changes,graph) {
   });
 }
 
-export function plan(rootDir=root,{changes=[],manual='auto',families=[],event=process.env.GITHUB_EVENT_NAME||''}={}) {
+export function plan(rootDir=root,{changes=[],manual='auto',families=[],event=process.env.GITHUB_EVENT_NAME||'',archive=null}={}) {
   const statuses={
     wasm:wasmStatus(rootDir)
   };
@@ -160,7 +160,7 @@ export function plan(rootDir=root,{changes=[],manual='auto',families=[],event=pr
   // other families merely to discard their selections afterwards: scoped
   // preparation intentionally leaves their payloads unhydrated.
   if(manual==='wasm')return {statuses,...jobs,dataGenerationDeferred:false,selectedFamilies:[],blockedFamilies:[]};
-  const graph=graphStatus(rootDir,{wasm:statuses.wasm,requested:families,force:manual==='all'});
+  const graph=graphStatus(rootDir,{wasm:statuses.wasm,requested:families,force:manual==='all',archive});
   // An automatic validation/presentation push must not repair unrelated stale
   // data. Explicit generation, unknown comparisons and WASM rebuilds retain
   // their existing selection. Keep stale diagnostics available to --check.
