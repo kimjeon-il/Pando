@@ -2376,6 +2376,7 @@ export function createGpuMapRenderer(deps) {
       mesh = entry.mesh;
       meshCountryIds = entry.countryIds;
       if (changed) meshSwitchCount += 1;
+      if (changed) sceneColorCache.invalidate('country-mesh-variant');
       if (changed) markPaletteDirty({ base: true, emphasis: true });
       const resources = entry.resources;
       positionBuffer = resources?.positionBuffer || null;
