@@ -72,10 +72,11 @@ export function createGpuMeshWorkerJobs({ createWorker, createRebuildWorker = cr
         projectRevision: payload.projectGeneration,
         metadata: { geometryRevision: payload.geometryRevision, sourceKey: payload.sourceKey },
       });
-      if (lodRpc !== current || !accepts()) return null;
-      // Mark the source reusable only after Worker admission was acknowledged.
+      if (lodRpc !== current) return null;
+      // Even a stale viewport result can certify the immutable source already
+      // loaded by this same living Worker. It cannot certify a display frame.
       lodSourceInWorker = response.result?.lod?.sourceCached === true ? payload.sourceKey : '';
-      return response.result;
+      return accepts() ? response.result : null;
     } catch (error) {
       if (error.cancelled || error.name === 'AbortError' || lodRpc !== current || !accepts()) return null;
       // A restarted Worker cannot satisfy an old source token. Force a fresh
