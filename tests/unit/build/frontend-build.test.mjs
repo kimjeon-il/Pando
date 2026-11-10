@@ -23,10 +23,8 @@ test('one source build emits only the Viewer runtime shared with Windows reviewe
  assert.equal(snapshot.buildMeta.mapProject.resources.rivers.catalog,snapshot.buildMeta.mapProject.resources.lakes.catalog);
  assert.equal(snapshot.buildMeta.mapProject.resources.places.catalog,'assets/data/places/manifest.json');
  assert.ok(snapshot.viewerPaths.has(snapshot.buildMeta.mapProjectManifest.url));
- assert.match(snapshot.buildMeta.initialLandPreview.sha256,/^[a-f0-9]{64}$/);
- assert.equal(snapshot.buildMeta.initialLandPreview.sourceSha256,f.metadata['assets/data/physical-land/v1/manifest.json'].asset.sha256);
- assert.ok(snapshot.assets.has(snapshot.buildMeta.initialLandPreview.url));
- assert.ok(snapshot.viewerPaths.has(snapshot.buildMeta.initialLandPreview.url));
+ assert.equal(Object.hasOwn(snapshot.buildMeta,'initialLandPreview'),false);
+ assert.equal([...snapshot.viewerPaths].some(path=>path.includes('initial-land-preview')),false);
  assert.match(snapshot.buildMeta.projectCatalogs.world.sha256,/^[a-f0-9]{64}$/);
  for(const field of ['worldBundle','builtinWorld','preparedPolygonMeshes','physicalLand','physicalWaterObjects','hydroCatalogVersion'])
    assert.equal(Object.hasOwn(snapshot.buildMeta,field),false,'No duplicated global '+field);
@@ -101,7 +99,7 @@ test('a separately selected project owns the complete published map and place re
 });
 
 
-test('selected Hydro source version and land/terrain pairing are validated before publication',async t=>{
+test('selected Hydro and numerical terrain contracts are validated before publication',async t=>{
  const f=fixture(t);
  const hydro='assets/data/hydro/v0.13.4/manifest.json';
  f.metadata[hydro]={...f.metadata[hydro],version:'alternate-release'};
@@ -110,9 +108,11 @@ test('selected Hydro source version and land/terrain pairing are validated befor
  f.metadata[hydro]={...f.metadata[hydro],schema:'invalid'};
  await assert.rejects(buildFrontendSnapshot(f.options),/Hydro catalog/);
  f.metadata[hydro]={...f.metadata[hydro],schema:'pandolab-water-shards-v5'};
- const terrain='assets/data/terrain-preview/v0.13.3-p2/manifest.json';
+ const terrain='assets/data/terrain/v0.13.3/manifest.json';
  f.metadata[terrain]={...f.metadata[terrain],sourceDem:{landMaskSha256:'other-land'}};
- await assert.rejects(buildFrontendSnapshot(f.options),/terrain and physical land lineage differ/);
+ await assert.doesNotReject(buildFrontendSnapshot(f.options),'DEM samples do not classify physical land');
+ f.metadata[terrain]={...f.metadata[terrain],representation:'raster-rgba-v1'};
+ await assert.rejects(buildFrontendSnapshot(f.options),/지형 표현 형식/);
 });
 
 
@@ -142,7 +142,7 @@ test('changing default-world geography, terrain and mesh catalogs requires no Vi
   world:'assets/data/world/alternate.json',
   territorial:'assets/data/builtin-world/alternate/index.json',
   physicalLand:'assets/data/physical-land/alternate/manifest.json',
-  terrain:'assets/data/terrain-preview/alternate/manifest.json',
+  terrain:'assets/data/terrain/alternate/manifest.json',
   preparedMeshes:'assets/data/prepared-polygons/alternate/manifest.json',
  };
  const meta=f.metadata;

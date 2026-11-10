@@ -2,6 +2,9 @@
 // Shared geographic tile math with a per-backend visibility-cache factory.
 // No shared mutable cache or duplicated CPU tile-selection implementation.
 (typeof self === 'undefined' ? globalThis : self).PandoLabTerrainTileSelection = (() => {
+  // All backends admit the same visible numerical source set. The footprint
+  // covers three RGBA color planes; device caches may retain additional tiles.
+  const demVisiblePolicy = Object.freeze({ byteBudget: 96 * 1024 * 1024, bytesPerPixel: 12 });
   function tileSpec(level,column,row,numericLevel=false) {
     const x0=column*level.tileSize,y0=row*level.tileSize;
     const x1=Math.min(level.width,x0+level.tileSize),y1=Math.min(level.height,y0+level.tileSize);
@@ -79,6 +82,19 @@
       resolutionLimited: last.width < limit,
     };
   }
+  function admitVisibleTiles(manifest, desiredWidth, visibleSpecs, policy = demVisiblePolicy) {
+    const requested = chooseLevel(manifest, desiredWidth);
+    if (!requested.level) return { level: null, specs: [], resolutionLimited: false, bytes: 0 };
+    for (let index = manifest.levels.indexOf(requested.level); index >= 0; index -= 1) {
+      const level = manifest.levels[index], specs = visibleSpecs(level);
+      const gutter = Number(manifest.gutter || 0);
+      const bytes = specs.reduce((sum, spec) => sum
+        + (spec.pixelWidth + 2 * gutter) * (spec.pixelHeight + 2 * gutter) * policy.bytesPerPixel, 0);
+      if (bytes <= policy.byteBudget) return { level, specs, bytes,
+        resolutionLimited: requested.resolutionLimited || level !== requested.level };
+    }
+    throw new Error('Visible numerical DEM exceeds the shared memory admission budget.');
+  }
   function createVisibilityCache({ distance, numericLevel = false } = {}) {
     let camera = null;
     const levels = new Map();
@@ -102,5 +118,5 @@
       clear() { camera = null; levels.clear(); },
     });
   }
-  return Object.freeze({ tileSpec, neighbours, visible, chooseLevel, createVisibilityCache });
+  return Object.freeze({ tileSpec, neighbours, visible, chooseLevel, createVisibilityCache, demVisiblePolicy, admitVisibleTiles });
 })();

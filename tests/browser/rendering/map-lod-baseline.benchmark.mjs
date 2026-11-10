@@ -21,16 +21,17 @@ for (const projection of ['globe', 'flat']) for (const device of [
     await page.setViewportSize({ width: device.width, height: device.height });
     test.setTimeout(360_000);
     const errors = [], records = [];
-    page.on('pageerror', error => errors.push(String(error.message)));
+    page.on('response',response=>{if(response.status()>=400)console.log('LOD_HTTP_ERROR '+response.status()+' '+response.url());});
+    page.on('pageerror', error => {errors.push(String(error.message)); console.log('LOD_PAGE_ERROR '+error.stack);});
     page.on('console', message => {
-      if (message.type() === 'error') errors.push(message.text());
+      if (message.type() === 'error') {errors.push(message.text());console.log('LOD_CONSOLE_ERROR '+message.text());}
     });
     const url = new URL('?debug=1&renderer=webgl2',
       process.env.PANDOLAB_TEST_SITE_URL || `${baseURL}/`);
     for (const cacheState of ['cold', 'warm']) {
       await page.goto(url.href, { waitUntil: 'domcontentloaded' });
-      await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready', 'true',
-        { timeout: 90_000 });
+      await page.waitForFunction(()=>{const status=document.getElementById('viewerStatus');return status?.dataset.ready==='true'||status?.getAttribute('role')==='alert';},null,{timeout:90000});
+      expect(await page.locator('#viewerStatus').getAttribute('data-ready'),JSON.stringify(errors)).toBe('true');
       await expect.poll(() => page.evaluate(() => {
         const stats = window.__PANDOLAB_VIEWER__?.rendererStats?.();
         return !!(stats?.canonicalMeshReady && stats?.countrySharedBoundaryReady

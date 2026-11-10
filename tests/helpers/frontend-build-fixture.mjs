@@ -1,3 +1,4 @@
+import {numericalTerrainFixture} from './numerical-terrain-fixture.mjs';
 import {mkdirSync,writeFileSync,readFileSync} from 'node:fs';
 import {isolatedTestWorkspace} from './check-workspace-fixture.mjs';
 import {createHash} from 'node:crypto';
@@ -23,7 +24,7 @@ export function frontendFixture(t){
    sha256:createHash('sha256').update(storedPhysicalLand).digest('hex')};
  const metadata={
   'assets/data/world/current.json':{schema:'pandolab-world-bundle',schemaVersion:1,assets:{}},
-  'assets/data/terrain-preview/v0.13.3-p2/manifest.json':{sourceDem:{landMaskSha256:'a'.repeat(64)},tiles:{}},
+  'assets/data/terrain/v0.13.3/manifest.json':numericalTerrainFixture(),
   'assets/data/physical-land/v1/manifest.json':{schema:'pando-physical-land-v3',sourceSha256:'a'.repeat(64),asset:physicalAsset},
   'assets/data/hydro/v0.13.4/manifest.json':{schema:'pandolab-water-shards-v5',version:'0.13.4',container:{url:'data.bin'},shards:[]},
   'assets/data/places/manifest.json':{shards:{}},

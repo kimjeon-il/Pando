@@ -35,8 +35,8 @@ export function mapBackgroundTargetKey(frame,{
 }
 
 /** Ready, non-empty terrain resources are the only drawable GPU terrain. */
-export function canDrawTerrainTiles(tiles,representation,style,tintReady,demFormat) {
-  return tiles.length>0&&(representation!==demFormat||style!=='physical'||tintReady===true);
+export function canDrawTerrainTiles(tiles) {
+  return tiles.length > 0;
 }
 
 export function classifyGpuResourceReady(key, scene, strokeResourceKey = packet => packet.key, sceneKeys = null) {

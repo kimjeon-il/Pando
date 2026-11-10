@@ -1,27 +1,19 @@
 // Screen scale is CSS pixels per radian, shared by flat and globe frames.
 // Resource availability and admission of display derivatives belong to the renderer.
-export const MAP_SURFACE_LOW_SCALE = 504;
-export const MAP_SURFACE_HIGH_SCALE = 642;
-export const MAP_SURFACE_MAX_ERROR_PX = 0.5;
-export function resolveCountryMeshQuality({ cssScale, previous = null, focus = false, selected = false }) {
-  if (focus || selected || !Number.isFinite(cssScale) || cssScale <= 0) return 'canonical';
-  if (cssScale <= MAP_SURFACE_LOW_SCALE) return 'preview';
-  if (cssScale >= MAP_SURFACE_HIGH_SCALE) return 'canonical';
-  return previous === 'preview' ? 'preview' : 'canonical';
+export function resolveMapSurfacePresentation({ canonicalReady = false,
+  backgroundPresented = true, recoveryDrawing = false } = {}) {
+  const geometryQuality = canonicalReady ? 'canonical' : 'pending';
+  return Object.freeze({targetQuality:'canonical',geometryQuality,
+    quality:backgroundPresented || recoveryDrawing ? geometryQuality : 'pending'});
 }
 
-/** Country paint, land, borders and picking consume this same decision. */
-export function resolveMapSurfacePresentation({ canonicalReady = false, previewReady = false,
-  previewVerified = false, backgroundPresented = true, recoveryDrawing = false, ...view }) {
-  const targetQuality = resolveCountryMeshQuality(view);
-  const geometryQuality = targetQuality === 'preview' && previewReady && previewVerified
-    ? 'preview' : canonicalReady ? 'canonical' : 'pending';
-  // A restored GL device must redraw the already-admitted canonical mesh
-  // before it can publish its first new physical frame. This flag chooses
-  // draw quality only; map readiness still requires an actually accepted frame.
-  return Object.freeze({ targetQuality, geometryQuality,
-    quality: backgroundPresented || recoveryDrawing ? geometryQuality : 'pending' });
+export function selectCanvasPhysicalSource({actual,state}={}) {
+  if(state?.ready && actual?.geometry && actual.revision===state.landRevision
+    && (state.waterRevision==null ? !actual.water : !!actual.water && actual.waterRevision===state.waterRevision))
+    return {source:actual,context:state};
+  return {source:null,context:{ready:false}};
 }
+
 
 
 /**
@@ -67,28 +59,10 @@ export function canvasWorkerBackgroundPresentationKey(frame, {
   ]);
 }
 
-export function selectCanvasPhysicalSource({ actual, state, preview, sourceRevision, temporalPending = false } = {}) {
-  const unavailable = {source:null,context:{ready:false},preview:false};
-  if (state?.ready) {
-    if (actual?.geometry && actual.revision === state.landRevision
-      && (state.waterRevision == null ? !actual.water
-        : !!actual.water && actual.waterRevision === state.waterRevision))
-      return {source:actual,context:state,preview:false};
-    return unavailable;
-  }
-  if (!temporalPending && preview?.certified === true && preview?.geometry
-    && typeof sourceRevision === 'string' && /^[a-f0-9]{64}$/.test(sourceRevision)
-    && preview.sourceRevision === sourceRevision
-    && typeof preview.revision === 'string' && /^[a-f0-9]{64}$/.test(preview.revision))
-    return {source:preview,
-      context:{ready:true,landRevision:preview.revision,waterRevision:null,preview:true},preview:true};
-  return unavailable;
-}
-
 /** Only a transferred, current Worker bitmap may unblock initial country paint
  * before optional terrain data completes. Temporal replacement remains strict. */
 export function canAdmitCanvasWorkerPartialBackground({ rendererMode, committedBitmap, physicalSceneMatched, temporalPending } = {}) {
-  return rendererMode === 'canvas-worker' && committedBitmap === true
+  return (rendererMode === 'canvas-worker' || rendererMode === 'canvas2d') && committedBitmap === true
     && physicalSceneMatched === true && temporalPending === false;
 }
 

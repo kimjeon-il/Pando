@@ -21,14 +21,9 @@
 }
 
 /* First-map decoration shares the map frame; it never captures input. */
-.viewer-root .viewer-initial-preview { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 12; pointer-events: none; overflow: hidden; }
-.viewer-root .viewer-initial-preview[hidden] { display: none; }
-.viewer-root .viewer-initial-preview path { stroke: none; pointer-events: none; }
 
 /* First page only: neutral coastline -> accepted country/border surface -> names. */
 .viewer-root[data-initial-loading='true'] #viewerLabels,
-.viewer-root[data-initial-reveal='countries'] #viewerLabels { opacity: 0; }
-.viewer-root[data-initial-reveal='labels'] #viewerLabels {
   animation: viewer-initial-labels 140ms ease-out both;
 }
 @keyframes viewer-initial-labels {
@@ -36,7 +31,6 @@
   to { opacity: 1; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .viewer-root[data-initial-reveal='labels'] #viewerLabels { animation: none; }
 }
 
 

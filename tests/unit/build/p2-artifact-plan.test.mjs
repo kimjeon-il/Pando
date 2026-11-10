@@ -164,7 +164,7 @@ const integrationPresentationChanges=[
   'tests/unit/build/p2-artifact-plan.test.mjs',
 ];
 const staleDataFamilyIds=['territorial','current-world','builtin-world','world-mesh',
-  'world-preview','world-bundle','shared-boundaries','prepared-mesh','places'];
+  'world-country-packet','world-bundle','shared-boundaries','prepared-mesh','places'];
 function nativeValidationFixture(t) {
   const f=fixture(t);
   f.put('tools/generate.mjs','export const generator=1;\n');
@@ -424,7 +424,7 @@ test('world bundle ownership follows the current manifest rather than every cach
   const f=fixture(t);
   f.put('assets/data/world/build-input.json',JSON.stringify({legacyPreviewManifest:'legacy.json'}));
   f.put('assets/data/legacy.json',JSON.stringify({assets:{},sharedBoundaries:{}}));
-  f.put('assets/data/world/current.json',JSON.stringify({assets:{packet:{url:'world/objects/current.bin'}}}));
+  f.put('assets/data/world/current.json',JSON.stringify({assets:{canonicalCountryPacket:{url:'world/objects/current.bin'}}}));
   f.put('assets/data/world/objects/current.bin','current');
   f.put('assets/data/world/objects/retired.bin','retired');
   f.put('config/generated-artifacts.json',JSON.stringify({schema:'pandolab-generated-artifact-graph',schemaVersion:1,

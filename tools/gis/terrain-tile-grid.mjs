@@ -1,7 +1,4 @@
-// Assemble DEM interiors and derive wrapped/clamped preview tiles without touching source tiles.
-import {createHash} from 'node:crypto';
-import {encodeNativeWebpLossless,readNativeRawWebp} from '../map-image/native-resample.mjs';
-import {composeNativeTerrainPreview} from './terrain-preview-native.mjs';
+// Assemble DEM interiors and derive wrapped/clamped numeric tiles without touching source tiles.
 function validateLevel(level){
   const {width,height,columns,rows,tileSize}=level||{};
   if(![width,height,columns,rows,tileSize].every(value=>Number.isSafeInteger(value)&&value>0)||
@@ -26,11 +23,11 @@ export function assembleTerrainDemLevel(level,tiles){
   }
   return {width,height,data:output};
 }
-export function extractTerrainPreviewTile(world,level,column,row){
+export function extractTerrainTile(world,level,column,row){
   const {width,height,columns,rows,tileSize}=validateLevel(level);
   if(world?.width!==width||world.height!==height||!(world.data instanceof Uint8Array)||world.data.length!==width*height*4||
     !Number.isSafeInteger(column)||column<0||column>=columns||!Number.isSafeInteger(row)||row<0||row>=rows)
-    throw Error('Invalid terrain preview tile request');
+    throw Error('Invalid terrain numeric tile request');
   const outWidth=Math.min(tileSize,width-column*tileSize)+2,outHeight=Math.min(tileSize,height-row*tileSize)+2;
   const output=Buffer.alloc(outWidth*outHeight*4);
   for(let y=0;y<outHeight;y++){const sourceY=Math.min(height-1,Math.max(0,row*tileSize+y-1));
@@ -38,22 +35,22 @@ export function extractTerrainPreviewTile(world,level,column,row){
       output.set(world.data.subarray(source,source+4),(y*outWidth+x)*4);}}
   return {width:outWidth,height:outHeight,data:output};
 }
-export function verifyTerrainPreviewTileEdges(level,tiles){
+export function verifyTerrainTileEdges(level,tiles){
   const {width,height,columns,rows,tileSize}=validateLevel(level);
-  if(!Array.isArray(tiles)||tiles.length!==columns*rows)throw Error('Missing preview tile');
+  if(!Array.isArray(tiles)||tiles.length!==columns*rows)throw Error('Missing numeric tile');
   const byPosition=new Map();
   for(const tile of tiles){
     const {column,row}=tile||{};
     if(!Number.isSafeInteger(column)||column<0||column>=columns||!Number.isSafeInteger(row)||row<0||row>=rows||
       tile.width!==Math.min(tileSize,width-column*tileSize)+2||tile.height!==Math.min(tileSize,height-row*tileSize)+2||
       !(tile.data instanceof Uint8Array)||tile.data.length!==tile.width*tile.height*4||byPosition.has(`${column},${row}`))
-      throw Error('Invalid preview tile');
+      throw Error('Invalid numeric tile');
     byPosition.set(`${column},${row}`,tile);
   }
   const at=(tile,x,y)=>(y*tile.width+x)*4;
   const same=(a,x,y,b,u,v)=>{
     const i=at(a,x,y),j=at(b,u,v);
-    for(let k=0;k<4;k++)if(a.data[i+k]!==b.data[j+k])throw Error('Terrain preview gutter differs');
+    for(let k=0;k<4;k++)if(a.data[i+k]!==b.data[j+k])throw Error('Terrain numeric gutter differs');
   };
   for(let row=0;row<rows;row++)for(let column=0;column<columns;column++){
     const tile=byPosition.get(`${column},${row}`),next=byPosition.get(`${(column+1)%columns},${row}`);
@@ -68,24 +65,4 @@ export function verifyTerrainPreviewTileEdges(level,tiles){
     if(row===0)for(let x=0;x<tile.width;x++)same(tile,x,0,tile,x,1);
     if(row===rows-1)for(let x=0;x<tile.width;x++)same(tile,x,tile.height-1,tile,x,tile.height-2);
   }
-}
-export async function renderTerrainPreviewLevel({level,tiles,tint,land},{signal,terrainOptions={},imageOptions={}}={}){
-  signal?.throwIfAborted();const {width,height,columns,rows}=validateLevel(level);
-  if(!Number.isSafeInteger(level.id)||level.id<0||!tint||!(tint.data instanceof Uint8Array)||
-    !Number.isSafeInteger(tint.width)||tint.width<1||!Number.isSafeInteger(tint.height)||tint.height<1||tint.data.length!==tint.width*tint.height*3||
-    !(land instanceof Uint8Array)||land.length!==width*height)throw Error('Explicit terrain tint and land pixels required');
-  const dem=assembleTerrainDemLevel(level,tiles),pixels=await composeNativeTerrainPreview({dem:dem.data,tint:tint.data,land,
-    width,height,tintWidth:tint.width,tintHeight:tint.height,x:0,y:0,levelWidth:width,levelHeight:height},{...terrainOptions,signal});
-  const world={width,height,data:pixels},output=[],decodedTiles=[];let tileBytes=0;
-  for(let row=0;row<rows;row++)for(let column=0;column<columns;column++){
-    signal?.throwIfAborted();const tile=extractTerrainPreviewTile(world,level,column,row);
-    const encoded=await encodeNativeWebpLossless(tile,{...imageOptions,signal}),decoded=await readNativeRawWebp(encoded.data,{...imageOptions,signal});
-    if(decoded.width!==tile.width||decoded.height!==tile.height||!decoded.data.equals(tile.data))throw Error('Terrain preview WebP did not preserve RGBA pixels');
-    decodedTiles.push({column,row,...decoded});
-    tileBytes+=encoded.data.length;if(tileBytes>32000000)throw Error('Terrain preview exceeds byte budget');
-    output.push({path:`${level.id}/${column}-${row}.webp`,width:tile.width,height:tile.height,data:encoded.data,
-      sha256:createHash('sha256').update(encoded.data).digest('hex')});
-  }
-  verifyTerrainPreviewTileEdges(level,decodedTiles);
-  return {tiles:output,tileBytes};
 }

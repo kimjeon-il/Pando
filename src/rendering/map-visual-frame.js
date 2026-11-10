@@ -1,3 +1,5 @@
+import { resolveScreenLodBucket } from './render-lod.js';
+
 const PI = Math.PI;
 
 const freezePair = value => Object.freeze([Number(value?.[0] || 0), Number(value?.[1] || 0)]);
@@ -120,6 +122,7 @@ export function createMapVisualFrame({
   projectCoordinate = null,
   projectPath = null,
   createCanvasPath = null,
+  lodSelection = null,
 } = {}) {
   if (!viewState || typeof viewState !== 'object') throw new TypeError('MapVisualFrame requires viewState.');
   const projectionKind = viewState.projection === 'flat' ? 'flat' : 'globe';
@@ -129,6 +132,14 @@ export function createMapVisualFrame({
   const dpr = Math.max(1, Number(viewState.dpr || layoutSnapshot?.dpr || 1));
   const cssTranslate = freezePair(viewState.translate || [width / 2, height / 2]);
   const cssScale = Math.max(1e-9, Number(viewState.scale || 1));
+  const relativeZoom = Math.max(1, Math.min(32, Number(viewState.relativeZoom ?? viewState.zoom
+    ?? viewState[projectionKind === 'globe' ? 'globeZoom' : 'flatZoom'] ?? 1)));
+  const baseScale = cssScale / relativeZoom;
+  const scalePixelsPerMeter = cssScale / 6371008.8;
+  const selectedLod = lodSelection || resolveScreenLodBucket({ cssScale });
+  const frozenLodSelection = Object.freeze({ ...selectedLod });
+  const lodPolicyKey = selectedLod.policyKey;
+  const lodSelectionKey = selectedLod.key;
   const flatCenterDegrees = freezePair(viewState.projectionCenter || viewState.flatCenter || [0, 0]);
   const flatCenter = freezePair([flatCenterDegrees[0] * PI / 180, flatCenterDegrees[1] * PI / 180]);
   const rows = mode === 0
@@ -171,13 +182,16 @@ export function createMapVisualFrame({
     safeInset,
     translate: cssTranslate,
     scale: cssScale,
+    baseScale, relativeZoom, scalePixelsPerMeter, lodPolicyKey, lodSelectionKey,
+    lodSelection: frozenLodSelection,
     rotation,
     projectionCenter,
     flatCenter: flatCenterDegrees,
     globeRotation: rotation,
   });
   const signature = [resolvedFrameId, resolvedViewRevision, projectGeneration, projectionRevision,
-    projectionKind, width, height, dpr, ...cssTranslate, cssScale,
+    projectionKind, width, height, dpr, ...cssTranslate, cssScale, baseScale, relativeZoom,
+    lodPolicyKey, lodSelectionKey,
     ...(rotation || []), ...flatCenterDegrees].join(':');
   return Object.freeze({
     ...frozenViewState,

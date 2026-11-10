@@ -273,7 +273,6 @@ test('packing yields within a large ring and stops an obsolete request before di
 contractSuite("country-mesh-zoom-policy", () => {
 const assert = __dep1.default;
 const test = __dep0.default;
-const { resolveCountryMeshQuality } = __dep12;
 const surfacePolicy = __dep12;
 
 test('prepared country geometry stays hidden until its background frame is presented', () => {
@@ -283,30 +282,12 @@ test('prepared country geometry stays hidden until its background frame is prese
   assert.equal(surfacePolicy.resolveMapSurfacePresentation({ ...prepared, backgroundPresented: true }).quality, 'canonical');
 });
 
-test('CSS scale uses inclusive thresholds, keeps history in the band and starts precise', () => {
-  for (const previous of ['preview', 'canonical']) {
-    assert.equal(resolveCountryMeshQuality({ cssScale: 504, previous }), 'preview');
-    assert.equal(resolveCountryMeshQuality({ cssScale: 642, previous }), 'canonical');
-    assert.equal(resolveCountryMeshQuality({ cssScale: 570, previous }), previous);
+test('scale, selection and focus cannot activate independent preview geometry', () => {
+  for(const cssScale of [100,504,570,642,10000])for(const selected of [false,true]) {
+    const pending=surfacePolicy.resolveMapSurfacePresentation({cssScale,selected,focus:selected,canonicalReady:false});
+    assert.equal(pending.geometryQuality,'pending');
+    assert.equal(surfacePolicy.resolveMapSurfacePresentation({cssScale,selected,canonicalReady:true}).geometryQuality,'canonical');
   }
-  assert.equal(resolveCountryMeshQuality({ cssScale: 570 }), 'canonical');
-});
-
-test('projection, DPR, device and dragging cannot change the same CSS scale decision', () => {
-  for (const projection of ['flat', 'globe']) for (const dpr of [1, 2, 3]) {
-    assert.equal(resolveCountryMeshQuality({ cssScale: 500, projection, dpr, mobile: true, dragging: true }), 'preview');
-    assert.equal(resolveCountryMeshQuality({ cssScale: 650, projection, dpr }), 'canonical');
-  }
-});
-
-test('focus and selection protect precise geometry at low scale', () => {
-  for (const forced of [{ focus: true }, { selected: true }]) {
-    assert.equal(resolveCountryMeshQuality({ cssScale: 100, ...forced }), 'canonical');
-  }
-});
-
-test('invalid scale cannot silently choose simplified geometry', () => {
-  for (const cssScale of [undefined, NaN, 0, -1]) assert.equal(resolveCountryMeshQuality({ cssScale }), 'canonical');
 });
 
 test('one surface decision withholds both country and land preview at high scale while precise data is pending', () => {
@@ -315,13 +296,13 @@ test('one surface decision withholds both country and land preview at high scale
   { targetQuality: 'canonical', geometryQuality: 'pending', quality: 'pending' });
 });
 
-test('a verified low-scale surface can return to simplified display after precise preparation', () => {
+test('a prepared formal surface remains the sole source at low scale', () => {
   assert.deepEqual(surfacePolicy.resolveMapSurfacePresentation?.({ cssScale: 400,
     canonicalReady: true, previewReady: true, previewVerified: true }),
-  { targetQuality: 'preview', geometryQuality: 'preview', quality: 'preview' });
+  { targetQuality: 'canonical', geometryQuality: 'canonical', quality: 'canonical' });
   assert.deepEqual(surfacePolicy.resolveMapSurfacePresentation?.({ cssScale: 400,
     canonicalReady: true, previewReady: true, previewVerified: false }),
-  { targetQuality: 'preview', geometryQuality: 'canonical', quality: 'canonical' });
+  { targetQuality: 'canonical', geometryQuality: 'canonical', quality: 'canonical' });
 });
 
 test('selection and missing or invalid derivatives cannot silently admit a simplified surface', () => {
@@ -332,7 +313,7 @@ test('selection and missing or invalid derivatives cannot silently admit a simpl
   }
   assert.deepEqual(surfacePolicy.resolveMapSurfacePresentation?.({ cssScale: 100,
     canonicalReady: false, previewReady: true, previewVerified: false }),
-  { targetQuality: 'preview', geometryQuality: 'pending', quality: 'pending' });
+  { targetQuality: 'canonical', geometryQuality: 'pending', quality: 'pending' });
 });
 });
 
@@ -377,7 +358,7 @@ test('pending precise resources cannot change the requested CSS scale band', t =
   assert.equal(renderer.getRuntimeState().desiredCountryMeshQuality, 'canonical');
   assert.equal(renderer.getRuntimeState().canonicalMeshReady, false);
   renderer.syncCountryMeshQuality({ cssScale: 504 });
-  assert.equal(renderer.getRuntimeState().desiredCountryMeshQuality, 'preview');
+  assert.equal(renderer.getRuntimeState().desiredCountryMeshQuality, 'canonical');
 });
 
 test('unchanged country geometry skips complete preparation across a project generation', async t => {
@@ -396,7 +377,7 @@ test('an unchanged boundary request shares the current in-flight preparation', a
   await renderer.rebuildFromCountries([]);
   await renderer.rebuildFromCountries([]);
   assert.equal(workers.length,1);
-  assert.equal(workers[0].sent.length,1);
+  assert.equal(workers[0].sent.length,0,'unchanged in-flight topology is not retransferred');
 });
 
 test('reusing a completed mesh invalidates an older rebuild delivery token', async t => {
@@ -407,7 +388,7 @@ test('reusing a completed mesh invalidates an older rebuild delivery token', asy
   assert.ok(renderer.getStats().geometryRenderTaskToken>older);
 });
 
-test('focus retains precise geometry until explicitly released', async t => {
+test('focus does not change the formal display source', async t => {
   const { renderer } = fixture(t);
   renderer.requestCountryFocus();
   await renderer.rebuildFromCountries([]);
@@ -417,11 +398,11 @@ test('focus retains precise geometry until explicitly released', async t => {
   assert.equal(renderer.getRuntimeState().surfacePresentation.geometryQuality, 'canonical');
   renderer.cancelCountryFocus();
   renderer.syncCountryMeshQuality({ cssScale: 300 });
-  assert.equal(renderer.getRuntimeState().desiredCountryMeshQuality, 'preview');
+  assert.equal(renderer.getRuntimeState().desiredCountryMeshQuality, 'canonical');
   assert.equal(renderer.getRuntimeState().surfacePresentation.geometryQuality, 'canonical', 'uncertified startup mesh is never readmitted');
 });
 
-test('project replacement and projection changes reset the transition band to precise', async t => {
+test('project replacement resets focus while projection retains the formal surface', async t => {
   const { state, renderer } = fixture(t);
   renderer.syncCountryMeshQuality({ cssScale: 300 });
   renderer.syncCountryMeshQuality({ cssScale: 570 });

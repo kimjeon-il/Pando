@@ -68,4 +68,4 @@
     return lines;
   }
   scope.PandoLabGeographicBoundary = { normalizeLongitude, isArtificialBoundaryEdge, buildRenderableBoundarySegments };
-})(self);
+})(typeof self === 'undefined' ? globalThis : self);

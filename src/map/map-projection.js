@@ -57,11 +57,23 @@ export function createMapProjection({capabilities=resourceCapabilities('viewer')
       mobile: (0, dependencies.surfaces.isMobile)(),
       revision: mapLayoutMetricsRefreshCount,
       reason,
+      projectBounds: dependencies.projectState.state.projectSetup?.initialMapBounds || null,
     });
     return mapLayoutMetricsSnapshot;
   }
 
   function projectionLayoutMetrics() {
+    const bounds = dependencies.projectState.state.projectSetup?.initialMapBounds || null;
+    const boundsKey = JSON.stringify(bounds);
+    if (mapLayoutMetricsSnapshot && mapLayoutMetricsSnapshot.projectBoundsKey !== boundsKey) {
+      // A project reference change updates the fit without discarding measured
+      // viewport insets. Date queries do not change the fixed reference bounds.
+      const previous = mapLayoutMetricsSnapshot;
+      mapLayoutMetricsSnapshot = dependencies.mapLayout.createMapLayoutMetricsSnapshot({
+        ...previous, safeInsets: previous.safe, projectBounds: bounds,
+        revision: ++mapLayoutMetricsRefreshCount, reason: 'project-reference',
+      });
+    }
     if (!mapLayoutMetricsSnapshot) {
       mapLayoutMetricsSnapshot = (0, dependencies.mapLayout.createMapLayoutMetricsSnapshot)({
         width: dependencies.projectState.state.size.width,
@@ -69,6 +81,7 @@ export function createMapProjection({capabilities=resourceCapabilities('viewer')
         dpr: Math.max(1, Number(window.devicePixelRatio || 1)),
         safeInsets: dependencies.mapLayout.DEFAULT_SAFE_INSETS,
         mobile: (0, dependencies.surfaces.isMobile)(),
+        projectBounds: bounds,
       });
     }
     return mapLayoutMetricsSnapshot;

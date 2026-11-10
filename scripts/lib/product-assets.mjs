@@ -17,14 +17,16 @@ export const runtimeDependencies = Object.freeze({
     'assets/js/workers/country-shared-boundary-worker.js', 'assets/js/workers/canvas-render-worker.js'],
   'assets/js/modules/builtin-mesh-resource.js': ['assets/js/workers/data-loader-worker.js'],
   'assets/js/workers/canvas-render-worker.js': ['assets/js/vendor/d3.min.js', 'assets/js/workers/geographic-boundary-core.js',
-    'assets/js/workers/canvas-scene-composition-core.js', 'assets/js/workers/canvas-terrain-dem-core.js', 'assets/js/modules/terrain-manifest.js'],
+    'assets/js/workers/canvas-scene-composition-core.js', 'assets/js/workers/canvas-terrain-dem-core.js',
+    'assets/js/workers/terrain-tile-selection-core.js', 'assets/js/workers/resource-update-policy-core.js', 'assets/js/workers/canvas-render-core.js'],
+  'assets/js/workers/canvas-render-core.js': ['assets/js/modules/terrain-manifest.js'],
   'assets/js/workers/project-read-worker.js': ['assets/js/vendor/sql/sql-wasm.js', 'assets/js/vendor/sql/sql-wasm.wasm'],
 });
 export const viewerDataEntryPaths = Object.freeze([...new Set(Object.values(runtimeDependencies).flat()
   .filter(path => path.startsWith('assets/data/')))]);
 export const dynamicExpressions = Object.freeze({
   'assets/js/modules/core-wasm-loader.js': ['url'],
-  'assets/js/workers/canvas-render-worker.js': ['validationUrl.href'],
+  'assets/js/workers/canvas-render-core.js': ['validationUrl.href'],
   'assets/js/workers/place-worker.js': ['storeModuleUrl.href'],
 });
 const editorOnly = /^(?:assets\/js\/(?:app|bootstrap|gis-io|gis-adapters)\.js|assets\/js\/modules\/(?:app-(?:composition|runtime-dependencies|domain-assembly|lifecycle-assembly|project-restore|project-snapshots|country-commits|generic-commands|object-commands|global-input-bindings|file-bindings|tool-bindings|editor-bindings|territorial-drafts|territory-selection-workflow|geometry-preview|history-assembly|gis-assembly|library-assembly)|editing-|editor-map-click|spatial-edit-registration|project-setup-dialog|project-file-service|import-service|export-service)|assets\/js\/workers\/(?:core-session-worker|map-edit-worker|gis-gpkg-worker|gis-geometry-worker|geometry-validation-worker|river-territory-partition-worker)\.js)/;
@@ -55,10 +57,10 @@ export async function collectViewerAssets({ root, availablePaths, readSource = p
   for (const path of available) {
     if (/^assets\/(?:fonts|vendor|wasm)\//.test(path) && !path.endsWith('.map') && !isEditorOnlyAsset(path)) include(path);
   }
-  const previewMetadataSource=readSource('assets/js/build-meta.js');
-  const previewMetadata=/Object\.freeze\(([\s\S]*)\);\s*$/.exec(previewMetadataSource);
-  if(!previewMetadata)throw Error('Viewer build metadata must be immutable.');
-  const meta=JSON.parse(previewMetadata[1]);
+  const metadataSource=readSource('assets/js/build-meta.js');
+  const metadataMatch=/Object\.freeze\(([\s\S]*)\);\s*$/.exec(metadataSource);
+  if(!metadataMatch)throw Error('Viewer build metadata must be immutable.');
+  const meta=JSON.parse(metadataMatch[1]);
   const project=meta.mapProject?validateMapProjectManifest(meta.mapProject):null;
   if(project){
     const spec=meta.mapProjectManifest;
@@ -74,10 +76,6 @@ export async function collectViewerAssets({ root, availablePaths, readSource = p
   for(const path of collectRuntimeDataAssets({availablePaths:available,
     entryPaths:viewerDataEntryPaths,projectManifest:project,
     readManifest:path=>JSON.parse(readSource(path))}))include(path);
-  const dataAsset=(url,base)=>include(url.startsWith('assets/')?url:base+url);
-  const previewSpec=meta.initialLandPreview;
-  if(!previewSpec?.url)throw Error('Missing immutable first-map land preview.');
-  dataAsset(previewSpec.url,'assets/data/');
   const html = readSource('index.html');
   for (const match of html.matchAll(/\b(?:src|href)=["']([^"']+)["']/g)) {
     const path = stripQuery(match[1]).replace(/^\.\//, '');

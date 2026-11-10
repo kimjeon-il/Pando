@@ -44,7 +44,7 @@ export function createBuiltinMeshResourceLoader({runtimeAssetUrl,WorkerClass=Wor
     }
     pending.set(key,entry);
     try {
-      const worker=entry.worker=new WorkerClass(runtimeAssetUrl('workers/data-loader-worker.js?mode=builtin-mesh-only'),
+      const worker=entry.worker=new WorkerClass(runtimeAssetUrl('workers/data-loader-worker.js'),
         {type:'module',name:'pandolab-builtin-mesh-resource'});
       worker.onmessage=({data:message})=>{
         if(!entry.live||disposed)return;

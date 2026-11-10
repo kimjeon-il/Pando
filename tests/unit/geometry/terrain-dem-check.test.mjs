@@ -3,7 +3,7 @@ import * as __dem_dep0 from "node:assert/strict";
 import * as __dem_dep1 from "node:fs";
 import * as __dem_dep2 from "node:test";
 import * as __dem_dep3 from "../../../tools/gis/terrain-dem-check.mjs";
-import * as __dem_dep4 from "../../../tools/gis/terrain-preview-grid.mjs";
+import * as __dem_dep4 from "../../../tools/gis/terrain-tile-grid.mjs";
 import * as __dem_dep5 from "node:child_process";
 import * as __dem_dep6 from "node:crypto";
 import * as __dem_dep7 from "node:fs/promises";
@@ -52,7 +52,7 @@ test('native DEM tile results match the original Python verifier',{skip:!directo
 contractSuite("terrain-dem-level", () => {
 const assert = __dem_dep0.default;
 const test = __dem_dep2.default;
-const { extractTerrainPreviewTile } = __dem_dep4;
+const { extractTerrainTile } = __dem_dep4;
 const { verifyTerrainDemLevel } = __dem_dep3;
 
 const directory=process.env.PANDO_TERRAIN_DEM_CHECK_DIRECTORY;
@@ -60,7 +60,7 @@ test('DEM level checks only requested tiles, source sample and published seams',
   const level={id:5,width:3,height:3,columns:2,rows:2,tileSize:2},pixels=Buffer.alloc(3*3*4);
   for(let i=0;i<9;i++)pixels.set([46,226,4,255],i*4); // decoded elevation 2
   const world={width:3,height:3,data:pixels},calls=[],samples=[];
-  const readTile=async(column,row)=>{calls.push([column,row]);return {...extractTerrainPreviewTile(world,level,column,row),encoded:Buffer.from(`${column},${row}`)};};
+  const readTile=async(column,row)=>{calls.push([column,row]);return {...extractTerrainTile(world,level,column,row),encoded:Buffer.from(`${column},${row}`)};};
   const sourceSample=async(x,y)=>{samples.push([x,y]);return 2;};
   const result=await verifyTerrainDemLevel({level,readTile,sourceSample},{directory});
   assert.deepEqual(calls,[[0,0],[1,0],[0,1],[1,1]]);assert.deepEqual(samples,[[0,0]]);
@@ -81,7 +81,7 @@ const { tmpdir } = __dem_dep8;
 const { join, resolve } = __dem_dep9;
 const { promisify } = __dem_dep10;
 const test = __dem_dep2.default;
-const { extractTerrainPreviewTile } = __dem_dep4;
+const { extractTerrainTile } = __dem_dep4;
 const { encodeNativeWebpLossless } = __dem_dep11;
 
 const exec=promisify(execFile),sha=data=>createHash('sha256').update(data).digest();
@@ -94,7 +94,7 @@ test('DEM verifier checks pinned synthetic source, tiles, reference and tint wit
   for(let i=0;i<9;i++)data.set([46,226,4,255],i*4);
   const world={width:3,height:3,data},aggregate=createHash('sha256');
   for(let row=0;row<2;row++)for(let column=0;column<2;column++){
-    const path=`5/${column}-${row}.webp`,tile=extractTerrainPreviewTile(world,level,column,row);
+    const path=`5/${column}-${row}.webp`,tile=extractTerrainTile(world,level,column,row);
     const bytes=(await encodeNativeWebpLossless(tile)).data;await writeFile(join(output,path),bytes);
     aggregate.update(path).update(sha(bytes));
   }

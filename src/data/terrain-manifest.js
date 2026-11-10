@@ -1,21 +1,5 @@
-export const TERRAIN_RASTER_VERSION = '0.13.3-p2';
-export const TERRAIN_RASTER_DATASET = 'ETOPO 2022 DEM derived preview';
 export const TERRAIN_DEM_VERSION = '0.13.3';
 export const TERRAIN_DEM_FORMAT = 'dem-relief-v1';
-export const TERRAIN_RASTER_FORMAT = 'raster-rgba-v1';
-
-export function terrainRasterManifestUrl(baseUrl, revision = '') {
-  const url = new URL(`terrain-preview/v${TERRAIN_RASTER_VERSION}/manifest.json`, baseUrl);
-  if (revision) url.searchParams.set('v', revision);
-  return url;
-}
-
-export function selectTerrainManifestUrls({ official, raster, dev = null, preview = false, rasterOnly = false, defaultDem = false }) {
-  if (dev) return { primary: dev, fallback: raster, source: 'development' };
-  if (rasterOnly) return { primary: raster, fallback: null, source: 'raster' };
-  if (preview || defaultDem) return { primary: official, fallback: raster, source: preview ? 'preview' : 'official' };
-  return { primary: raster, fallback: null, source: 'raster' };
-}
 
 export function terrainAssetUrl(path, { manifestUrl, dataBaseUrl, revision = '' } = {}) {
   const value = String(path || '');
@@ -27,8 +11,8 @@ export function terrainAssetUrl(path, { manifestUrl, dataBaseUrl, revision = '' 
 }
 
 export function validateTerrainManifest(manifest) {
-  const format = manifest?.representation || (manifest?.version === TERRAIN_RASTER_VERSION ? TERRAIN_RASTER_FORMAT : '');
-  if (format !== TERRAIN_RASTER_FORMAT && format !== TERRAIN_DEM_FORMAT) {
+  const format = manifest?.representation;
+  if (format !== TERRAIN_DEM_FORMAT) {
     throw new Error(`지원하지 않는 지형 표현 형식: ${format || '(없음)'}`);
   }
   if (manifest.crs !== 'EPSG:4326' || JSON.stringify(manifest.extent) !== '[-180,-90,180,90]') {
@@ -47,19 +31,6 @@ export function validateTerrainManifest(manifest) {
         || Number(level.columns) !== Math.ceil(width / tileSize)
         || Number(level.rows) !== Math.ceil(height / tileSize)) {
       throw new Error(`지형 LOD ${index}의 크기가 올바르지 않습니다.`);
-    }
-  }
-  if (manifest.version === TERRAIN_RASTER_VERSION) {
-    if (format !== TERRAIN_RASTER_FORMAT || manifest.tileFormat !== 'lossless WebP RGBA'
-        || manifest.levels.length !== 2 || manifest.levels.some((level, index) => level.width !== 1350 * 2 ** index || level.height !== 675 * 2 ** index)
-        || manifest.sourceDem?.version !== TERRAIN_DEM_VERSION
-        || !/^[a-f0-9]{64}$/.test(manifest.sourceDem?.assetsSha256 || '')
-        || !/^[a-f0-9]{64}$/.test(manifest.sourceDem?.tintSha256 || '')
-        || !/^[a-f0-9]{64}$/.test(manifest.sourceDem?.landMaskSha256 || '')
-        || Object.keys(manifest.tiles || {}).length !== 8
-        || Object.values(manifest.tiles || {}).some(tile => !Number.isInteger(tile.bytes) || tile.bytes < 1 || !/^[a-f0-9]{64}$/.test(tile.sha256 || ''))
-        || Object.values(manifest.tiles || {}).reduce((sum, tile) => sum + tile.bytes, 0) > 32_000_000) {
-      throw new Error('DEM 미리보기의 출처·LOD·타일 계약이 올바르지 않습니다.');
     }
   }
   if (format === TERRAIN_DEM_FORMAT) {

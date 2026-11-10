@@ -14,6 +14,7 @@ const { packCountryMeshFeatures } = __contract_dep4;
 
 test('actual mesh Worker transfers every output buffer and detaches its originals', { timeout: 5000 }, async t => {
   const transportModule = new URL("../../helpers/source-worker-transport.mjs", import.meta.url).href;
+  const workerSource = new URL('../../../src/rendering/workers/gpu-mesh-worker.js', import.meta.url).href;
   const worker = new Worker(`
     (async () => {
     const { parentPort } = require('node:worker_threads');
@@ -32,7 +33,7 @@ test('actual mesh Worker transfers every output buffer and detaches its original
     };
     vm.runInThisContext(transport.read(self.location), {
       filename: self.location.href,
-      importModuleDynamically: specifier => import(transport.sourceUrl(specifier)),
+      importModuleDynamically: specifier => import(new URL(specifier, ${JSON.stringify(workerSource)})),
     });
     parentPort.on('message', data => self.onmessage({ data }));
     })();
@@ -179,13 +180,15 @@ test('screen LOD transfers canonical geometry once, reuses source, and resets af
     [0, 0], [2, 0], [2, 2], [0, 2], [0, 0],
   ]] } }];
   const payload = { features, projectGeneration: 4, geometryRevision: 8,
+    extraPhysicalFeatures: [{ id: 'physical-land', geometry: features[0].geometry }],
     sourceKey: 'geometry-sha-abc', visibleIds: ['A'],
     lod: { key: '200:0.5', upperScale: 200, errorPx: 0.5 } };
   const first = jobs.prepareDisplayLod(payload);
   for (let i = 0; i < 20 && !messages.length; i++) await Promise.resolve();
   const one = messages.at(-1);
   assert.equal(one.message.payload.useCachedSource, false);
-  assert.equal(one.message.payload.rows.length, 1);
+  assert.equal(one.message.payload.rows.length, 2);
+  assert.equal(one.message.payload.countryFeatureCount, 1);
   assert.equal(one.transfers, 1);
   one.worker.onmessage({ data: { ...one.message, type: 'result', ok: true,
     result: { lod: { key: payload.lod.key, sourceCached: true,

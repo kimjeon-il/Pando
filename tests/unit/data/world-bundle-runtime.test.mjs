@@ -37,31 +37,35 @@ function fixture() {
   };
 }
 
-test('bundled world manifest supplies immutable assets and the previous preview identity', () => {
+test('bundled world manifest admits canonical assets without any preview descriptor', () => {
   const value = fixture();
+  delete value.assets.previewCountries;
+  delete value.assets.previewMesh;
+  delete value.derivation.preview;
+  delete value.compatibility.sharedBoundaries.preview;
   const normalized = validateWorldBundle(value);
   assert.equal(normalized.sourceSha256, value.source.sha256);
   assert.strictEqual(normalized.defaultClassification, value.defaultClassification);
-  assert.equal(normalized.sharedBoundaryCacheUrls.preview, 'countries-preview-shared-v0.34.0.json.gz');
-  assert.equal(worldAssetUrl(normalized.assets.previewMesh, 'https://example.org/Pando/assets/data/').href,
-    `https://example.org/Pando/assets/data/${normalized.assets.previewMesh.url}`);
+  assert.equal(normalized.sharedBoundaryCacheUrls.preview, undefined);
+  assert.equal(worldAssetUrl(normalized.assets.canonicalMesh, 'https://example.org/Pando/assets/data/').href,
+    `https://example.org/Pando/assets/data/${normalized.assets.canonicalMesh.url}`);
   assert.equal(normalized.version, undefined);
-  assert.equal(normalized.assets.previewMesh.url.includes('0.36.0'), false);
+  assert.equal(normalized.assets.canonicalMesh.url.includes('0.36.0'), false);
 });
 
 test('worker manifest validation rejects versioned, tampered and traversal paths', () => {
   for (const invalid of ['../../secret', '/secret', '//other-host/test', 'world/objects/../hack',
     'world/objects/%2e%2e/evil', 'world/objects/key?v=evil', 'countries-preview-v0.36.0.geojson.gz']) {
     const value = fixture();
-    value.assets.previewCountries.url = invalid;
+    value.assets.canonicalCountryPacket.url = invalid;
     assert.throws(() => validateWorldBundle(value), /내용 주소/);
   }
-  for (const quality of ['preview', 'canonical']) {
+  for (const quality of ['canonical']) {
     const value = fixture();
     value.compatibility.sharedBoundaries[quality] = '../../elsewhere';
     assert.throws(() => validateWorldBundle(value), /공유 국경선/);
   }
   const altered = fixture();
-  altered.assets.previewMesh.sha256 = 'f'.repeat(64);
+  altered.assets.canonicalMesh.sha256 = 'f'.repeat(64);
   assert.throws(() => validateWorldBundle(altered), /내용 주소/);
 });

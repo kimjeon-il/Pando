@@ -37,7 +37,7 @@ jobs:
           node --check tools/gis/territorial-index-entry.js
           node --check tools/build/project-generation-context.mjs
           node --check tools/build/build-world-mesh.mjs
-          node --check tools/build/build-world-preview.mjs
+          node --check tools/build/build-world-country-packet.mjs
           node --check tools/build/build-world-bundle.mjs
           node --check tools/gis/builtin-display-policy.mjs
           node --check tools/build/build-builtin-world.mjs
@@ -51,7 +51,7 @@ jobs:
           tools/gis/territorial-index-entry.js
           tools/build/project-generation-context.mjs
           tools/build/build-world-mesh.mjs
-          tools/build/build-world-preview.mjs
+          tools/build/build-world-country-packet.mjs
           tools/build/build-world-bundle.mjs
           tools/gis/builtin-display-policy.mjs
           tools/build/prepared-scene-reuse.mjs

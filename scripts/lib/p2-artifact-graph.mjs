@@ -116,13 +116,13 @@ export function artifactGraph(root,{readGeneratedJson=p=>json(root,p)}={}) {
         if(f.resolve==='world-mesh'){
           f.outputs.push('assets/data/'+legacy.assets.canonicalMesh.url);
           f.layout={canonicalMesh:legacy.assets.canonicalMesh.url};
-        }else if(f.resolve==='world-preview'){
-          f.outputs.push(manifest,...['canonicalCountryPacket','previewCountries','previewMesh'].map(k=>'assets/data/'+legacy.assets[k].url));
+        }else if(f.resolve==='world-country-packet'){
+          f.outputs.push(manifest,...['canonicalCountryPacket'].map(k=>'assets/data/'+legacy.assets[k].url));
           f.inputs.push('assets/data/'+legacy.assets.labelAnchors.url);
-          f.layout={manifest,assets:Object.fromEntries(Object.entries(legacy.assets).map(([k,v])=>[k,v.url]))};
+          f.layout={manifest,assets:Object.fromEntries(Object.entries(legacy.assets).filter(([role])=>['canonicalCountryPacket','canonicalMesh','labelAnchors'].includes(role)).map(([k,v])=>[k,v.url]))};
         }else if(f.resolve==='world-bundle'){
-          f.outputs.push(...Object.values(current.assets).map(asset=>'assets/data/'+asset.url));
-        }else f.outputs.push(...Object.values(seed.sharedBoundaries).map(p=>'assets/data/'+p));
+          f.outputs.push(...['canonicalCountryPacket','canonicalMesh','labelAnchors','preparedCountryScene'].map(role=>current.assets[role]).filter(Boolean).map(asset=>'assets/data/'+asset.url));
+        }else f.outputs.push(...[seed.sharedBoundaries.canonical].map(p=>'assets/data/'+p));
       }else{
         // The archived source manifest cannot be reconstructed from a runtime
         // bundle; only derive known output ownership from its pinned manifest.
@@ -130,20 +130,20 @@ export function artifactGraph(root,{readGeneratedJson=p=>json(root,p)}={}) {
         if(f.resolve==='world-mesh'){
           f.outputs.push('assets/data/'+current.assets.canonicalMesh.url);
           f.layout={canonicalMesh:current.assets.canonicalMesh.url};
-        }else if(f.resolve==='world-preview'){
-          const roles=['canonicalCountryPacket','previewCountries','previewMesh','labelAnchors'];
-          f.outputs.push(...roles.slice(0,3).map(k=>'assets/data/'+current.assets[k].url));
+        }else if(f.resolve==='world-country-packet'){
+          const roles=['canonicalCountryPacket','labelAnchors'];
+          f.outputs.push(...roles.slice(0,1).map(k=>'assets/data/'+current.assets[k].url));
           f.inputs.push('assets/data/'+current.assets.labelAnchors.url);
           f.layout={assets:Object.fromEntries(roles.map(k=>[k,current.assets[k].url]))};
         }else if(f.resolve==='world-bundle'){
-          f.outputs.push(...Object.values(current.assets).map(asset=>'assets/data/'+asset.url));
+          f.outputs.push(...['canonicalCountryPacket','canonicalMesh','labelAnchors','preparedCountryScene'].map(role=>current.assets[role]).filter(Boolean).map(asset=>'assets/data/'+asset.url));
         }else{
-          f.outputs.push(...Object.values(current.compatibility?.sharedBoundaries||{}).map(p=>'assets/data/'+p));
+          f.outputs.push(...[current.compatibility.sharedBoundaries.canonical].map(p=>'assets/data/'+p));
         }
       }
     }
     if(f.resolve==='hydro'||f.resolve==='terrain') {
-      const manifest=f.resolve==='hydro'?'assets/data/hydro/v0.13.4/manifest.json':'assets/data/terrain-preview/v0.13.3-p2/manifest.json';
+      const manifest=f.resolve==='hydro'?'assets/data/hydro/v0.13.4/manifest.json':'assets/data/terrain/v0.13.3/manifest.json';
       f.outputs.push(dirname(manifest).replaceAll('\\','/')+'/');
       f.provenance=provenance(json(root,manifest).sources);
     }

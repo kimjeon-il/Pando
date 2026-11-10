@@ -16,7 +16,7 @@ import {storeLibraryData} from "../tools/data/library-store.mjs";
 import {RECEIPT_PATH,artifactGraph,ownsPath} from './lib/p2-artifact-graph.mjs';
 const APP='kimjeon-il/Pando',DATA='kimjeon-il/PandoLab-library-data';
 const CONFIG='config/library-data.json',FIXTURE='tests/fixtures/builtin-modern-interval-baseline.json';
-const FAMILIES=Object.freeze(['territorial','current-world','world-mesh','world-preview','world-bundle','shared-boundaries','builtin-world','prepared-mesh']);
+const FAMILIES=Object.freeze(['territorial','current-world','world-mesh','world-country-packet','world-bundle','shared-boundaries','builtin-world','prepared-mesh']);
 const SHA=/^(?!0{40}$)[a-f0-9]{40}$/;
 const hash=b=>createHash('sha256').update(b).digest('hex');
 function fail(code){throw Object.assign(Error(code),{code});}

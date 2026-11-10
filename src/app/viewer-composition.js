@@ -61,7 +61,7 @@ export async function composeViewer({ productMode, meta }) {
   let map,previousView,display,projectClock,syncStatus,presentedMonth=null;
   const inspectParams=new URLSearchParams(window.location.search);
   let inspectorController=null;
-  const initialPresentation=createViewerInitialPresentation({onPresented:()=>{get('viewer').dataset.initialLoading='false';map.finishInitialPreview();}});
+  const initialPresentation=createViewerInitialPresentation({onPresented:()=>{get('viewer').dataset.initialLoading='false';}});
   const preferencePresentation=createPreferencePresentation({document,window,productMode,onChange:change=>{if(map)map.refreshAppearance(change);}});
   const diagnostics=createDiagnosticLog({limit:250});
   const tooltipController=createTooltipController({document,window,tooltip:get('uiTooltip'),clamp:(value,min,max)=>Math.max(min,Math.min(max,value))});
@@ -210,11 +210,6 @@ export async function composeViewer({ productMode, meta }) {
   });
   disposables.push({dispose:disposeTimeline});
   const open=async (reader,options)=>{
-    if (initialPresentation.hasPresented()) {
-      // First-page effects must not replay or overlap later date/file opens.
-      get('viewer').dataset.initialReveal = 'complete';
-      map.cancelInitialReveal();
-    }
     postPresentation.invalidate();
     const searchTicket=searchController.beginProjectTransition?.();
     const preserved=options?.preserveView?map.capturePresentation():null;

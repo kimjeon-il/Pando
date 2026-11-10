@@ -9,8 +9,6 @@ import { gunzipSync } from 'node:zlib';
 export const WORLD_BUNDLE_SCHEMA = 'pandolab-world-bundle';
 export const WORLD_BUNDLE_FORMAT = 1;
 export const ROLES = Object.freeze({
-  previewCountries: ['countries-preview', '.geojson.gz'],
-  previewMesh: ['world-mesh-preview', '.bin.gz'],
   canonicalCountryPacket: ['countries-canonical', '.pcg.gz'],
   canonicalMesh: ['world-mesh', '.bin.gz'],
   labelAnchors: ['country-label-anchors', '.json'],
@@ -37,11 +35,9 @@ export function contentAddress(role, digest) {
 
 export function bundleDescriptor({ seed, legacy, assets, sourceBytes }) {
   if (seed?.schema !== 'pandolab-world-build-input' || seed?.schemaVersion !== 1) throw new Error('Invalid world build input');
-  if (!Number.isSafeInteger(legacy?.countries) || legacy.countries <= 0 || legacy?.source !== seed.canonicalSource || !legacy.defaultClassification
-      || legacy.previewDerivation !== 'canonical-topology-simplified') throw new Error('Incompatible legacy world manifest');
+  if (!Number.isSafeInteger(legacy?.countries) || legacy.countries <= 0 || legacy?.source !== seed.canonicalSource || !legacy.defaultClassification) throw new Error('Incompatible legacy world manifest');
   const sourceDigest = sha256(sourceBytes);
-  if (sourceDigest !== legacy.sourceSha256 || sourceDigest !== legacy.canonicalSourceSha256
-      || sourceDigest !== legacy.previewSourceSha256) throw new Error('Stale canonical world source');
+  if (sourceDigest !== legacy.sourceSha256 || sourceDigest !== legacy.canonicalSourceSha256) throw new Error('Stale canonical world source');
   const outAssets = {};
   for (const role of Object.keys(ROLES)) {
     const old = legacy.assets?.[role];
@@ -65,12 +61,11 @@ export function bundleDescriptor({ seed, legacy, assets, sourceBytes }) {
   }
   // Shared-boundary caches keep legacy URLs until the renderer migrates in phase 3.
   const boundaries = {};
-  for (const role of ['preview', 'canonical']) boundaries[role] = assertDataPath(seed.sharedBoundaries?.[role]);
+  for (const role of ['canonical']) boundaries[role] = assertDataPath(seed.sharedBoundaries?.[role]);
   return {
     schema: WORLD_BUNDLE_SCHEMA, schemaVersion: WORLD_BUNDLE_FORMAT,
     source: { url: seed.canonicalSource, sha256: sourceDigest, countryCount: legacy.countries },
-    derivation: { preview: legacy.previewDerivation, previewSourceScale: legacy.previewSourceScale,
-      simplificationQuantile: legacy.simplificationQuantile, coordinateCount: legacy.coordinateCount,
+    derivation: { coordinateCount: legacy.coordinateCount,
       meshAlgorithmRevision: legacy.meshAlgorithmRevision },
     defaultClassification: legacy.defaultClassification,
     assets: outAssets,
@@ -117,7 +112,7 @@ export function verifyPublishedWorldBundle({root,catalogPath='assets/data/world/
   for(const role of Object.keys(ROLES))verified(catalogue.assets?.[role],role);
   const prepared=catalogue.assets?.preparedCountryScene;
   if(prepared)verified(prepared,'prepared-country-scene',false);
-  for(const role of ['preview','canonical']) {
+  for(const role of ['canonical']) {
     const reference=assertDataPath(catalogue.compatibility?.sharedBoundaries?.[role]);
     if(!existsSync(resolve(data,reference)))
       throw new Error('Missing published shared boundary: '+role);

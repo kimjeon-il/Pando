@@ -1,10 +1,11 @@
+import {validateTerrainManifest} from '../../src/data/terrain-manifest.js';
 import {mapProjectResourcePath} from '../../src/data/map-project-manifest.js';
 
 const record=value=>value!==null&&typeof value==='object'&&!Array.isArray(value);
 const sha=value=>typeof value==='string'&&/^[0-9a-f]{64}$/.test(value);
 const invalid=message=>{throw new TypeError('Incompatible project catalogs: '+message);};
 
-// Modern preview is not equated to a dated C++ territory. Prepared mesh inputs
+// Prepared mesh inputs
 // must instead match the selected project's source catalogs byte-for-byte.
 export function validateMapCatalogCoherence(project,metadata,sha256ForPath){
  if(typeof sha256ForPath!=='function')invalid('source hash reader required');
@@ -13,7 +14,7 @@ export function validateMapCatalogCoherence(project,metadata,sha256ForPath){
  const land=get('physicalLand'),terrain=get('terrain'),hydro=get('rivers');
  const places=get('places'),lifetimes=get('placeLifetimes');
  if(world?.schema!=='pandolab-world-bundle'||world.schemaVersion!==1||!record(world.assets))
-   invalid('unsupported world preview');
+   invalid('unsupported world catalog');
  if(country?.schema!=='pandolab-builtin-world'||country.schemaVersion!==2||
    country.storageLayout!=='descriptor-geometries-v1'||
    !Array.isArray(country.entities)||!Array.isArray(country.geometryAssets))
@@ -30,8 +31,9 @@ export function validateMapCatalogCoherence(project,metadata,sha256ForPath){
  });
  if(land?.schema!=='pando-physical-land-v3'||!sha(land.sourceSha256)||
    !record(land.asset)||!sha(land.asset.sha256))invalid('unsupported physical land index');
- if(!terrain?.sourceDem||terrain.sourceDem.landMaskSha256!==land.sourceSha256)
-   invalid('terrain and physical land lineage differ');
+ // Elevation and shade are independent numeric samples; only physicalLand
+ // classifies coverage. Historical land changes never invalidate DEM bytes.
+ validateTerrainManifest(terrain);
  if(hydro?.schema!=='pandolab-water-shards-v5'||typeof hydro.version!=='string'||!hydro.version||
    !record(hydro.container)||!Array.isArray(hydro.shards))
    invalid('unsupported immutable Hydro catalog');

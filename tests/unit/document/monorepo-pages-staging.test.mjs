@@ -131,10 +131,9 @@ test('refuses to stage inside the repository or overwrite a prior artifact', asy
 
 for (const [name, options, expected] of [
   ['obsolete prepared polygon manifest', { preparedRevision: 5 }, /Prepared polygon mesh algorithm revision mismatch/],
-  ['obsolete preview mesh', { previewRevision: 5 }, /previewMesh/],
   ['obsolete canonical mesh', { canonicalRevision: 5 }, /canonicalMesh/],
   ['obsolete packet behind current descriptors', { canonicalRevision: 5, descriptorRevision: 6 }, /canonicalMesh/],
-  ['obsolete descriptors around current packets', { descriptorRevision: 5 }, /previewMesh/],
+  ['obsolete descriptors around current packets', { descriptorRevision: 5 }, /canonicalMesh/],
 ]) test('refuses ' + name + ' before publication, even with optional checks skipped', async t => {
   const { root, stage, manifest } = await fixture(t, options);
   const result = run(process.execPath, [script, '--root', root, '--stage', stage, '--manifest', manifest, '--skip-checks'], root);
@@ -150,4 +149,12 @@ test('obsolete optional prepared country scene is a cache miss, not a failed can
   const result=run(process.execPath,[script,'--root',root,'--stage',stage,'--manifest',manifest,'--skip-checks'],root);
   assert.equal(result.status,0,result.stderr);
   assert.equal(existsSync(stage),true);
+});
+
+test('retired preview descriptors are neither validated nor staged', async t => {
+ const {root,stage,manifest}=await fixture(t,{previewRevision:5});
+ const result=run(process.execPath,[script,'--root',root,'--stage',stage,'--manifest',manifest,'--skip-checks'],root);
+ assert.equal(result.status,0,result.stderr);
+ const evidence=JSON.parse(readFileSync(manifest,'utf8'));
+ assert.equal(evidence.files.some(file=>/countries-preview|world-mesh-preview|physical-land\/preview/.test(file.path)),false);
 });

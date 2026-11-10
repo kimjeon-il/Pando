@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { terrainDemFragmentSource } from "../../../src/rendering/terrain-dem-shaders.js";
 import { readFileSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
-const presentation = JSON.parse(readFileSync(new URL("../../fixtures/terrain-presentation.json", import.meta.url)));
+const flatLand = [{height:0,rgb:[110,159,100],gray:148},{height:1000,rgb:[174,184,112],gray:154},{height:2500,rgb:[184,146,100],gray:177},{height:4500,rgb:[184,174,159],gray:213},{height:6500,rgb:[245,243,230],gray:225}];
 const cpuScope={self:{}};
 runInNewContext(readFileSync(new URL("../../../src/rendering/workers/canvas-terrain-dem-core.js",import.meta.url),'utf8'),cpuScope);
 
@@ -62,16 +62,13 @@ async function renderSamples(page, version, tile, samples) {
     const pixels = new Uint8Array(tile.width * tile.height * 4);
     tile.heights.forEach((height, i) => {
       const encoded = Math.round(height) + 12000;
-      pixels.set([encoded >> 8, encoded & 255, 128, 255], i * 4);
+      pixels.set([encoded >> 8, encoded & 255, tile.shades?.[i] ?? tile.shade ?? 128, 255], i * 4);
     });
     upload(0, tile.width, tile.height, pixels);
-    upload(1, 1, 1, new Uint8Array([200, 100, 50, 255]));
     const uniform = name => gl.getUniformLocation(program, name);
-    gl.uniform1i(uniform('uTerrain'), 0); gl.uniform1i(uniform('uTint'), 1);
+    gl.uniform1i(uniform('uTerrain'), 0);
     gl.uniform1i(uniform('uMode'), 1);
     gl.uniform2f(uniform('uTextureSize'), tile.width, tile.height);
-    // At latitude zero these level dimensions give 100 m per texel.
-    gl.uniform2f(uniform('uLevelSize'), 400302.28884, 200151.14442);
     const results = samples.map(sample => {
       gl.uniform2f(uniform('uSampleUv'), (sample.x + 0.5) / tile.width, (sample.y + 0.5) / tile.height);
       gl.uniform2f(uniform('uSampleLonLat'), 0, sample.latitude || 0);
@@ -94,6 +91,30 @@ function elevationTile(width, height, elevationAt) {
 }
 
 for (const version of [2, 1]) {
+  test(`DEM fractional pixels match Canvas palette interpolation in WebGL${version}`, async ({page})=>{
+    const tile=elevationTile(4,4,(x,y)=>[-4000,0,2500,6500][(x+y)%4]);
+    tile.shades=Array.from({length:16},(_,i)=>[112,180,212,255][i%4]);
+    const dem=tile.heights.flatMap((height,i)=>[(height+12000)>>8,(height+12000)&255,tile.shades[i],255]);
+    const planes=cpuScope.self.PandoLabCanvasTerrainDem.convertTile({dem,width:4,height:4});
+    const samples=[{x:.2,y:.7,physical:true},{x:1.3,y:1.6,physical:true},{x:2.7,y:2.1,physical:true},
+      {x:.2,y:.7,physical:true,land:false},{x:1.3,y:1.6,physical:true,land:false},
+      {x:.2,y:.7},{x:1.3,y:1.6},{x:2.7,y:2.1,dark:true}];
+    const gpu=await renderSamples(page,version,tile,samples);
+    const canvas=await page.evaluate(({planes,samples})=>{
+      const source=document.createElement('canvas');source.width=source.height=4;
+      const target=document.createElement('canvas');target.width=target.height=1;
+      const src=source.getContext('2d'),ctx=target.getContext('2d');
+      return samples.map(sample=>{
+        const channel=sample.physical?(sample.land===false?'ocean':'land'):'political';
+        src.putImageData(new ImageData(new Uint8ClampedArray(planes[channel]),4,4),0,0);
+        ctx.clearRect(0,0,1,1);ctx.filter=sample.dark?'brightness(0.84)':'none';
+        ctx.drawImage(source,sample.x,sample.y,1,1,0,0,1,1);
+        return Array.from(ctx.getImageData(0,0,1,1).data);
+      });
+    },{planes:Object.fromEntries(Object.entries(planes).map(([key,value])=>[key,Array.from(value)])),samples});
+    for(let i=0;i<samples.length;i++)for(let channel=0;channel<4;channel++)
+      expect(Math.abs(gpu[i][channel]-canvas[i][channel]),`sample ${i} channel ${channel}`).toBeLessThanOrEqual(2);
+  });
   test(`DEM slope colors match Canvas cell centers in WebGL${version}`, async ({page})=>{
     for(const latitude of [0,45,89.6,-89.6])for(const direction of [-1,1]){
       const tile=elevationTile(7,7,(x,y)=>1200+direction*75*(x-3)+40*(y-3)+9*(x-3)**2);
@@ -110,8 +131,8 @@ for (const version of [2, 1]) {
     }
   });
   test(`DEM selected elevation palette and height grayscale in WebGL${version}`, async ({page}) => {
-    for (const row of presentation.flatLand) {
-      const colors=await renderSamples(page,version,elevationTile(3,3,()=>row.height),[
+    for (const row of flatLand) {
+      const colors=await renderSamples(page,version,{...elevationTile(3,3,()=>row.height),shade:212},[
         {x:1,y:1,physical:true},{x:1,y:1},
       ]);
       const expected=[row.rgb,[row.gray,row.gray,row.gray]];
@@ -132,15 +153,15 @@ for (const version of [2, 1]) {
     }
   });
 
-  test(`DEM flat surfaces preserve selected colors, dark theme and normalized polar shade in WebGL${version}`, async ({ page }) => {
+  test(`DEM flat surfaces preserve selected colors, dark theme and stored shade at all latitudes in WebGL${version}`, async ({ page }) => {
     const tile = elevationTile(6, 6, () => 0);
     const colors = await renderSamples(page, version, tile, [
       { x: 2.25, y: 2.25 }, { x: 2.25, y: 2.25, physical: true },
       { x: 2.25, y: 2.25, dark: true }, { x: 2.25, y: 2.25, physical: true, dark: true },
       { x: 2.25, y: 2.25, latitude: 89.6 },
     ]);
-    const expected = [[148,148,148,255], [146,135,80,255], [120,125,131,255],
-      [118,114,71,255], [56,56,56,255]];
+    const expected = [[56,56,56,255], [42,60,38,255], [47,47,47,255],
+      [35,50,32,255], [56,56,56,255]];
     for (let i = 0; i < colors.length; i += 1) {
       for (let channel = 0; channel < 4; channel += 1) {
         expect(Math.abs(colors[i][channel] - expected[i][channel])).toBeLessThanOrEqual(1);
@@ -154,26 +175,22 @@ for (const version of [2, 1]) {
     const east = await renderSamples(page, version, elevationTile(6, 6, x => 32 * x), samples);
     const south = await renderSamples(page, version, elevationTile(6, 6, (x, y) => 32 * y),
       samples.map(({ x, y }) => ({ x: y, y: x })));
-    // The selected directional mixture is intentionally asymmetric; at these
-    // low elevations height-tone variation is below one output byte.
-    for (const color of east) expect(Math.abs(color[0] - 173)).toBeLessThanOrEqual(1);
-    for (const color of south) expect(Math.abs(color[0] - 160)).toBeLessThanOrEqual(1);
+    // Stored shade makes direction irrelevant; low-height tonal changes remain below one byte.
+    for (const color of east) expect(Math.abs(color[0] - 56)).toBeLessThanOrEqual(1);
+    for (const color of south) expect(Math.abs(color[0] - 56)).toBeLessThanOrEqual(1);
   });
 
-  test(`DEM central differences match curved surface gradients and latitude scale in WebGL${version}`, async ({ page }) => {
+  test(`DEM stored shade remains independent of curved-surface direction and latitude in WebGL${version}`, async ({ page }) => {
     const tile = elevationTile(7, 7, (x, y) => {
       const east = x - 3, south = y - 3;
       return 90 * east * east + 55 * south * south + 35 * east * south;
     });
-    // For this quadratic, half-texel differences are exactly
-    // dH/dx = 180(x-3) + 35(y-3), dH/dy = 110(y-3) + 35(x-3).
-    // Hand-evaluated gradients plus bilinear heights (55.8, 78.9, 89.0625,
-    // 34.0625 m), the selected four lights and height-tone curve.
+    // Low heights use the same stored shade regardless of local slope or latitude.
     const colors = await renderSamples(page, version, tile, [
       { x: 3.1, y: 3.8 }, { x: 3.7, y: 3.2 }, { x: 2.25, y: 3.75 },
       { x: 3.25, y: 2.75 }, { x: 3.1, y: 3.8, latitude: 45 },
     ]);
-    const expected = [158, 156, 56, 149, 161];
+    const expected = [56, 56, 56, 56, 56];
     for (let i = 0; i < colors.length; i += 1) expect(Math.abs(colors[i][0] - expected[i])).toBeLessThanOrEqual(1);
   });
 

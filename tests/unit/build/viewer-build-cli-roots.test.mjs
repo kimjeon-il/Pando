@@ -9,7 +9,7 @@ const root=path.resolve(process.env.PANDO_CLI_ROOT_TEST_ROOT||fileURLToPath(new 
 const candidates=process.env.PANDO_CLI_ROOT_TEST_CANDIDATES;
 const targets=[
  ['build-world-mesh.mjs','world/build-input.json'],
- ['build-world-preview.mjs','world/build-input.json'],
+ ['build-world-country-packet.mjs','world/build-input.json'],
  ['build-world-bundle.mjs','world/build-input.json'],
  ['build-country-shared-boundaries.mjs','world/current.json'],
 ];
@@ -34,7 +34,6 @@ function probeCli(file,cwd){
   '../gis/preview-topology.mjs':['buildTopologyPreview'],
   '../gis/builtin-country-classification.mjs':['classifyBuiltinCountries'],
   '../gis/builtin-display-policy.mjs':['loadBuiltinDisplayPolicy'],
-  '../../src/document/project-preview-policy.js':['geometryFingerprint'],
   '../../scripts/lib/gzip-asset-verification.mjs':['verifyGzipAssetBytes'],
   '../../src/geometry/boundary-topology.js':['buildCountrySharedBoundarySegments','serializeCountrySharedBoundarySegments'],
   '../../src/document/temporal.js':['sharedCalculationCore'],

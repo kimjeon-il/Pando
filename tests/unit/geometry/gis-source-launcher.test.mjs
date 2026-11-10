@@ -53,7 +53,6 @@ test('GIS source tools use their canonical Node entrypoints',()=>{
  assert.equal(coast[0],process.execPath);
  assert.match(coast[1],/build-german-1914-base\.mjs$/);
  assert.deepEqual(coast.slice(2),['--modern-coast','--output','candidate.json','--diagnostics','diagnostics.json']);
- assert.match(buildCommand('terrain-preview',[])[1],/build-terrain-preview\.mjs$/);
  assert.match(buildCommand('physical-data',[])[1],/build-physical-data\.mjs$/);
  assert.match(buildCommand('hydro-connectivity',[])[1],/repair-hydro-connectivity\.mjs$/);
 });
@@ -86,13 +85,8 @@ test('mapped scripts cannot follow linked directories outside an explicit reposi
  symlinkSync(outside,join(root,'tools'),process.platform==='win32'?'junction':'dir');
  assert.throws(()=>buildCommand('terrain-dem',[],{root}),/escaped repository/);
 });
-test('terrain preview dispatcher invokes the Node owner with explicit arguments',()=>{
- const calls=[];
- assert.equal(runSource({argv:['--task','terrain-preview','--execute','--','--check'],output:()=>{},
-   spawn:(exe,args,options)=>{calls.push({exe,args,options});return {status:0,signal:null};}}),0);
- assert.equal(calls[0].exe,process.execPath);
- assert.match(calls[0].args[0],/build-terrain-preview\.mjs$/);
- assert.deepEqual(calls[0].args.slice(1),['--check']);
+test('retired terrain preview cannot be dispatched',()=>{
+ assert.throws(()=>buildCommand('terrain-preview',[]),/Unsupported/);
 });
 test('DEM generation requires source-bound native elevation reading, encoding and tint filling',t=>{
  const root=mkdtempSync(join(tmpdir(),'gis-dem-dispatch-'));t.after(()=>rmSync(root,{recursive:true,force:true}));

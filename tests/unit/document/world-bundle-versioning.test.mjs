@@ -53,8 +53,8 @@ test('world bundle identity does not depend on program version', () => {
   const m = bundleDescriptor({ seed, legacy: a.legacy, assets: a.assets, sourceBytes: a.sourceBytes });
   assert.deepEqual(m, bundleDescriptor({ seed, legacy: b.legacy, assets: b.assets, sourceBytes: b.sourceBytes }));
   assert.equal(m.schemaVersion, 1);
-  assert.equal(m.assets.previewMesh.sha256, sha256(a.assets.previewMesh));
-  assert.ok(m.assets.previewMesh.url.includes(m.assets.previewMesh.sha256));
+  assert.equal(m.assets.canonicalMesh.sha256, sha256(a.assets.canonicalMesh));
+  assert.ok(m.assets.canonicalMesh.url.includes(m.assets.canonicalMesh.sha256));
   assert.equal(JSON.stringify(m).includes('0.36.0'), false);
   assert.equal(m.version, undefined);
 });
@@ -65,12 +65,12 @@ test('unsafe paths, modified asset bytes and stale canonical sources fail closed
   }
   const a = scenario();
   assert.throws(() => bundleDescriptor({
-    seed, legacy: a.legacy, assets: { ...a.assets, previewMesh: Buffer.from('wrong') }, sourceBytes: a.sourceBytes,
+    seed, legacy: a.legacy, assets: { ...a.assets, canonicalMesh: Buffer.from('wrong') }, sourceBytes: a.sourceBytes,
   }), /digest\/size mismatch/);
   assert.throws(() => bundleDescriptor({
     seed, legacy: a.legacy, assets: a.assets, sourceBytes: Buffer.from('new source'),
   }), /Stale canonical/);
-  assert.throws(() => contentAddress('previewMesh', 'bad'), /Invalid world asset/);
+  assert.throws(() => contentAddress('canonicalMesh', 'bad'), /Invalid world asset/);
 });
 
 test('publisher validates source, is idempotent and rejects corrupted immutable copies', () => {
@@ -89,9 +89,9 @@ test('publisher validates source, is idempotent and rejects corrupted immutable 
     for (const [key, bytes] of Object.entries(fixture.assets)) write(fixture.legacy.assets[key].url, bytes);
     assert.throws(() => publishWorldBundle({ root, check: true }), /Stale world/);
     const first = publishWorldBundle({ root });
-    assert.equal(first.validatedAssets, 5);
-    assert.equal(publishWorldBundle({ root, check: true }).validatedAssets, 5);
-    const immutable = join(data, first.bundle.assets.previewMesh.url);
+    assert.equal(first.validatedAssets, 3);
+    assert.equal(publishWorldBundle({ root, check: true }).validatedAssets, 3);
+    const immutable = join(data, first.bundle.assets.canonicalMesh.url);
     writeFileSync(immutable, 'invalid');
     assert.throws(() => publishWorldBundle({ root, check: true }), /corrupted/);
   } finally {

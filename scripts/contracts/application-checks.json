@@ -59,22 +59,6 @@
       "inputs": []
     },
     {
-      "id": "object-contracts",
-      "kind": "unit",
-      "testPatterns": [
-        "tests/unit/**/object-*.test.mjs",
-        "tests/unit/**/territorial-*.test.mjs",
-        "tests/unit/**/project-*.test.mjs",
-        "tests/unit/**/temporal*.test.mjs",
-        "tests/unit/**/timeline*.test.mjs",
-        "tests/unit/**/generic-*.test.mjs",
-        "tests/unit/**/distribution-*.test.mjs",
-        "tests/unit/**/core-*.test.mjs",
-        "tests/unit/**/web-*.test.mjs"
-      ],
-      "inputs": []
-    },
-    {
       "id": "gis-contracts",
       "kind": "unit",
       "testPatterns": [
@@ -94,7 +78,29 @@
         "tests/unit/**/river-territory-*.test.mjs",
         "tests/unit/geometry/map-geometry-validation.test.mjs",
         "tests/unit/**/historical-german-*.test.mjs",
-        "tests/unit/**/historical-source-*.test.mjs"
+        "tests/unit/**/historical-source-*.test.mjs",
+        "tests/unit/map/project-relative-zoom.test.mjs",
+        "tests/unit/rendering/formal-map-surface.test.mjs",
+        "tests/unit/rendering/canvas-inline-worker.test.mjs",
+        "tests/unit/rendering/project-lod-frame.test.mjs",
+        "tests/unit/rendering/project-lod-worker.test.mjs",
+        "tests/unit/build/world-country-packet.test.mjs"
+      ],
+      "inputs": []
+    },
+    {
+      "id": "object-contracts",
+      "kind": "unit",
+      "testPatterns": [
+        "tests/unit/**/object-*.test.mjs",
+        "tests/unit/**/territorial-*.test.mjs",
+        "tests/unit/**/project-*.test.mjs",
+        "tests/unit/**/temporal*.test.mjs",
+        "tests/unit/**/timeline*.test.mjs",
+        "tests/unit/**/generic-*.test.mjs",
+        "tests/unit/**/distribution-*.test.mjs",
+        "tests/unit/**/core-*.test.mjs",
+        "tests/unit/**/web-*.test.mjs"
       ],
       "inputs": []
     },
@@ -133,7 +139,8 @@
       "id": "terrain",
       "kind": "browser",
       "testPatterns": [
-        "tests/browser/**/terrain-*.spec.mjs"
+        "tests/browser/**/terrain-*.spec.mjs",
+        "tests/browser/rendering/canvas-numeric-dem.spec.mjs"
       ],
       "inputs": [
         "src/**/terrain-*.js",
@@ -141,14 +148,15 @@
         "src/**/gpu-terrain-*.js",
         "src/rendering/gpu-base-scene-pass.js",
         "src/**/workers/canvas-terrain-*.js",
-        "assets/data/terrain-*/**",
         "assets/data/physical-land/**",
         "src/rendering/workers/canvas-render-worker.js",
+        "src/rendering/workers/canvas-render-core.js",
         "src/rendering/workers/canvas-scene-composition-core.js",
         "src/rendering/gpu-scene.js",
         "src/rendering/gpu-scene-preparation.js",
         "src/rendering/gpu-map-renderer.js",
-        "src/workers/canvas-terrain-*.js"
+        "src/workers/canvas-terrain-*.js",
+        "assets/data/terrain/**"
       ],
       "requires": [
         "generated",
@@ -171,6 +179,7 @@
         "src/**/render-*.js",
         "src/**/map-visual-*.js",
         "src/rendering/workers/canvas-render-worker.js",
+        "src/rendering/workers/canvas-render-core.js",
         "src/rendering/workers/gpu-mesh-worker.js"
       ],
       "requires": [
@@ -553,19 +562,19 @@
       "testPatterns": []
     },
     {
-      "id": "country-preview",
+      "id": "country-packet",
       "kind": "command",
       "inputs": [
         "assets/data/territorial-entities/source/**"
       ],
       "argv": [
         "node",
-        "tools/build/build-world-preview.mjs",
+        "tools/build/build-world-country-packet.mjs",
         "--check"
       ],
       "gisNative": true,
       "requires": [
-        "country-validity-canonical"
+        "country-validity"
       ],
       "testPatterns": []
     },
@@ -639,21 +648,6 @@
       "testPatterns": []
     },
     {
-      "id": "country-validity-canonical",
-      "kind": "command",
-      "inputs": [
-        "assets/data/territorial-entities/source/**",
-        "config/library-data.json"
-      ],
-      "argv": [
-        "node",
-        "tools/checks/run-country-validator.mjs",
-        "--canonical-only"
-      ],
-      "gisNative": true,
-      "testPatterns": []
-    },
-    {
       "id": "country-validity",
       "kind": "command",
       "inputs": [
@@ -665,9 +659,6 @@
         "tools/checks/run-country-validator.mjs"
       ],
       "gisNative": true,
-      "requires": [
-        "country-preview"
-      ],
       "testPatterns": []
     },
     {
@@ -1312,6 +1303,7 @@
       "inputs": [
         "src/**/physical-*.js",
         "src/rendering/workers/canvas-render-worker.js",
+        "src/rendering/workers/canvas-render-core.js",
         "assets/data/physical-land/**"
       ]
     },
@@ -1414,6 +1406,56 @@
       "inputs": [
         ".github/workflows/**",
         "tools/checks/audit-workflow-check-owners.mjs"
+      ]
+    },
+    {
+      "tests": [
+        "tests/unit/map/project-relative-zoom.test.mjs",
+        "tests/unit/rendering/project-lod-frame.test.mjs",
+        "tests/unit/rendering/project-lod-worker.test.mjs"
+      ],
+      "inputs": [
+        "src/rendering/render-lod.js",
+        "src/map/map-layout-metrics.js",
+        "src/rendering/map-visual-frame.js",
+        "src/document/project-setup.js"
+      ]
+    },
+    {
+      "tests": [
+        "tests/unit/rendering/formal-map-surface.test.mjs",
+        "tests/unit/rendering/canvas-inline-worker.test.mjs",
+        "tests/browser/rendering/canvas-numeric-dem.spec.mjs"
+      ],
+      "inputs": [
+        "src/rendering/gpu-map-renderer.js",
+        "src/rendering/workers/canvas-render-worker.js",
+        "src/rendering/workers/canvas-render-core.js",
+        "src/rendering/map-renderer-composition.js"
+      ]
+    },
+    {
+      "tests": [
+        "tests/unit/build/terrain-runtime-package.test.mjs",
+        "tests/unit/rendering/terrain-numeric-color.test.mjs"
+      ],
+      "inputs": [
+        "projects/**/manifest.json",
+        "tools/build/package-terrain-runtime.mjs",
+        "src/data/terrain-manifest.js",
+        "src/data/runtime-manifest-assets.js",
+        "src/rendering/terrain-dem-shaders.js",
+        "src/rendering/workers/canvas-terrain-dem-core.js"
+      ]
+    },
+    {
+      "tests": [
+        "tests/unit/build/world-country-packet.test.mjs"
+      ],
+      "inputs": [
+        "tools/build/build-world-country-packet.mjs",
+        "tools/build/build-world-bundle.mjs",
+        "config/generated-artifacts.json"
       ]
     }
   ],

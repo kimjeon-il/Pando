@@ -10,5 +10,6 @@ export default defineConfig({
   retries: 0,
   fullyParallel: false,
   outputDir: fileURLToPath(new URL('../../test-results/map-lod-p0', import.meta.url)),
+  webServer: { ...base.webServer, cwd: fileURLToPath(new URL('../../', import.meta.url)) },
   use: { ...base.use, trace: 'off', screenshot: 'off' },
 });

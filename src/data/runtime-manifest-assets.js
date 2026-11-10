@@ -43,7 +43,7 @@ export function collectRuntimeDataAssets({availablePaths,readManifest,entryPaths
     ['rivers','assets/data/hydro/v0.13.4/manifest.json'],
     ['places','assets/data/places/manifest.json'],
     ['placeLifetimes','assets/data/places/urban-lifetimes-v1.json'],
-    ['terrain','assets/data/terrain-preview/v0.13.3-p2/manifest.json'],
+    ['terrain','assets/data/terrain/v0.13.3/manifest.json'],
     ['physicalLand','assets/data/physical-land/v1/manifest.json'],
   ];
   const project=projectManifest?validateMapProjectManifest(projectManifest):null;
@@ -69,8 +69,11 @@ export function collectRuntimeDataAssets({availablePaths,readManifest,entryPaths
     if(role==='placeLifetimes')continue;
     const manifest=readManifest(path),base=path.slice(0,path.lastIndexOf('/')+1);
     if(role==='world'){
-      for(const item of Object.values(manifest.assets||{}))dataAsset(item.url,'assets/data/',item);
-      for(const url of Object.values(manifest.compatibility?.sharedBoundaries||{}))dataAsset(url,'assets/data/');
+      for(const role of ['canonicalCountryPacket','canonicalMesh','labelAnchors','preparedCountryScene']) {
+        const item=manifest.assets?.[role];if(item)dataAsset(item.url,'assets/data/',item);
+      }
+      const boundary=manifest.compatibility?.sharedBoundaries?.canonical;
+      if(boundary)dataAsset(boundary,'assets/data/');
     }else if(role==='territorial'){
       for(const item of builtinCountryAssets(manifest))dataAsset(item.file,base,item);
     }
@@ -88,7 +91,7 @@ export function collectRuntimeDataAssets({availablePaths,readManifest,entryPaths
         for(const item of [context.land,context.asset])dataAsset(item.url,'assets/data/',item);
     }
     else if(role==='terrain'){
-      for(const key of Object.keys(manifest.tiles))dataAsset(key,base);
+      for(const [key,tile] of Object.entries(manifest.tiles))dataAsset(key,base,tile);
     }
   }
 

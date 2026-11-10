@@ -18,7 +18,6 @@ async function fetchManifest({ fetchWithRetry, url, operation, onRetry }) {
 export function createTerrainService({
   fetchWithRetry,
   manifestUrl,
-  fallbackManifestUrl,
   getLoadState,
   onLoading,
   onRetry,
@@ -29,19 +28,9 @@ export function createTerrainService({
     if (!force && ['loading', 'ready'].includes(getLoadState())) return false;
     onLoading();
     try {
-      let selectedUrl = manifestUrl();
-      let manifest;
-      let fallbackReason = null;
-      try {
-        manifest = validateTerrainManifest(await fetchManifest({ fetchWithRetry, url: selectedUrl, operation: 'terrain-manifest', onRetry }));
-      } catch (primaryError) {
-        if (!fallbackManifestUrl) throw primaryError;
-        console.warn('DEM terrain unavailable; using raster terrain', primaryError);
-        fallbackReason = String(primaryError?.message || primaryError).slice(0, 160);
-        selectedUrl = fallbackManifestUrl();
-        manifest = validateTerrainManifest(await fetchManifest({ fetchWithRetry, url: selectedUrl, operation: 'terrain-raster-manifest', onRetry }));
-      }
-      await acceptManifest(manifest, selectedUrl, { usedFallback: fallbackReason !== null, fallbackReason });
+      const selectedUrl = manifestUrl();
+      const manifest = validateTerrainManifest(await fetchManifest({ fetchWithRetry, url: selectedUrl, operation: 'terrain-manifest', onRetry }));
+      await acceptManifest(manifest, selectedUrl);
       return true;
     } catch (error) {
       onFailure(error);

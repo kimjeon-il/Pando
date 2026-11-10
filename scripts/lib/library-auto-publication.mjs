@@ -1,6 +1,6 @@
 import {createHash} from 'node:crypto';
 import {planSync} from './library-auto-sync.mjs';
-const FAMILIES=['territorial','current-world','world-mesh','world-preview','world-bundle','shared-boundaries','builtin-world','prepared-mesh'];
+const FAMILIES=['territorial','current-world','world-mesh','world-country-packet','world-bundle','shared-boundaries','builtin-world','prepared-mesh'];
 const KEYS=['schema','schemaVersion','inputDataSha','inputFingerprint','generatingAppSha','generatorIdentity','families','outputs'];
 const sha=b=>createHash('sha256').update(b).digest('hex');
 function fail(code){throw Object.assign(new TypeError(code),{code});}
@@ -14,11 +14,11 @@ function outputFamily(p){
  for(const [prefix,family] of [['territorial-entities/generated/v2/','territorial'],['builtin-world/generated/v1/','builtin-world'],['prepared-polygons/generated/v2/','prepared-mesh']])if(p.startsWith('assets/data/'+prefix)&&/\.(?:json|geojson|bin)(?:\.gz)?$/.test(p))return family;
  const fixed={
  'territorial-entities/generated/current-world.geojson':'current-world','world/current.json':'world-bundle',
- 'world-mesh-v0.36.1.bin.gz':'world-mesh','world-preview-v0.36.1.json':'world-preview',
- 'countries-preview-v0.36.1.geojson.gz':'world-preview','countries-canonical-v0.36.1.pcg.gz':'world-preview','world-mesh-preview-v0.36.1.bin.gz':'world-preview',
- 'countries-preview-shared-v0.36.1.json.gz':'shared-boundaries','countries-canonical-shared-v0.36.1.json.gz':'shared-boundaries'};
+ 'world-mesh-v0.36.1.bin.gz':'world-mesh','world-preview-v0.36.1.json':'world-country-packet',
+ 'countries-canonical-v0.36.1.pcg.gz':'world-country-packet',
+ 'countries-canonical-shared-v0.36.1.json.gz':'shared-boundaries'};
  if(p.startsWith('assets/data/')&&Object.hasOwn(fixed,p.slice(12)))return fixed[p.slice(12)];
- if(/^assets\/data\/world\/objects\/(?:countries-preview-sha256-[a-f0-9]{64}\.geojson\.gz|countries-canonical-sha256-[a-f0-9]{64}\.pcg\.gz|world-mesh(?:-preview)?-sha256-[a-f0-9]{64}\.bin\.gz|country-label-anchors-sha256-[a-f0-9]{64}\.json)$/.test(p))return 'world-bundle';
+ if(/^assets\/data\/world\/objects\/(?:countries-canonical-sha256-[a-f0-9]{64}\.pcg\.gz|world-mesh-sha256-[a-f0-9]{64}\.bin\.gz|country-label-anchors-sha256-[a-f0-9]{64}\.json)$/.test(p))return 'world-bundle';
  fail('INVALID_OUTPUT_PATH');
 }
 function checkedReceipt(receipt){

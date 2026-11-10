@@ -16,7 +16,7 @@ Ring rectangle(double west,double south,double east,double north) {
 double area(const MeshPosition& a,const MeshPosition& b,const MeshPosition& c) {
     return std::abs((b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0]))/2;
 }
-void check(const PolygonFillMesh& mesh,double expectedArea=0) {
+void check(const PolygonFillMesh& mesh,double expectedArea=0,double maxEdgeDegrees=.499) {
     assert(!mesh.triangles.empty());
     const auto vector=[](const MeshPosition& p){
         constexpr double radians=3.14159265358979323846/180.;
@@ -30,7 +30,7 @@ void check(const PolygonFillMesh& mesh,double expectedArea=0) {
         for(unsigned i=0;i<3;++i) {
             const auto a=t[i],b=t[(i+1)%3];
             const auto x=vector(mesh.geographic.at(a)),y=vector(mesh.geographic.at(b));
-            assert(x[0]*y[0]+x[1]*y[1]+x[2]*y[2]>=boundaryMinimumDot(.499)-1e-14);
+            assert(x[0]*y[0]+x[1]*y[1]+x[2]*y[2]>=boundaryMinimumDot(maxEdgeDegrees)-1e-14);
             ++edges[std::minmax(a,b)];
         }
     }
@@ -88,6 +88,49 @@ int main() {
         }
     }
     const Polygon source{rectangle(0,0,4,4),rectangle(1,1,3,3)};
+    // Earcut can bridge through the collinear bottom of this hole while
+    // preserving area, leaving its bottom edge absent from the triangle mesh.
+    const Polygon collinearHole{{{10,10},{10,8},{10.1,6},{10,4},{10.1,2},{10,0},{20,0},{20,10},{10,10}},
+        {{12,2},{12,4},{14,4},{14,2},{12,2}}};
+    for(unsigned transpose=0;transpose<2;++transpose)for(unsigned reverse=0;reverse<2;++reverse)
+    for(unsigned rotation=0;rotation<2;++rotation)for(const double limit:{180.,.499}) {
+        auto input=collinearHole;
+        for(auto& ring:input) {
+            ring.pop_back();
+            if(transpose)for(auto& p:ring)std::swap(p.x,p.y);
+            if(reverse)std::reverse(ring.begin(),ring.end());
+            std::rotate(ring.begin(),ring.begin()+rotation,ring.end());
+            ring.push_back(ring.front());
+        }
+        const auto mesh=buildPolygonFillMesh(input,limit,true);
+        check(mesh,95.6,limit);
+        std::size_t index=0;
+        for(const auto& ring:input)for(std::size_t i=0;i+1<ring.size();++i,++index)
+            assert(mesh.geographic[index][0]==ring[i].x&&mesh.geographic[index][1]==ring[i].y);
+    }
+    // Earcut omits these collinear hole vertices: only eleven triangles enter
+    // conformity, but one unmatched edge scans/splits thousands of vertices.
+    // At 180 degrees there is only one (no-op) refinement pass. The sixth
+    // callback therefore cannot be reached by checking outer edges alone.
+    auto denseHole=collinearHole;
+    auto& denseRing=denseHole[1];denseRing.pop_back();
+    for(unsigned i=1;i<8192;++i)denseRing.push_back({14.-2.*i/8192,2});
+    denseRing.push_back(denseRing.front());
+    unsigned conformityCallbacks=0;
+    const auto denseMesh=buildPolygonFillMesh(denseHole,180.,true,[&]{++conformityCallbacks;});
+    check(denseMesh,95.6,180.);
+    assert(conformityCallbacks>6);
+    // Also cancel at the final conformity checkpoint, just before the sole
+    // refinement callback, to cover propagation while draining split work.
+    for(const unsigned stop:{6u,conformityCallbacks-1}) {
+        unsigned calls=0;bool stopped=false;
+        try{buildPolygonFillMesh(denseHole,180.,true,[&]{
+            if(++calls==stop)throw std::runtime_error("cancelled during source conformity");
+        });}catch(const std::runtime_error& error){
+            stopped=std::string(error.what())=="cancelled during source conformity";
+        }
+        assert(stopped&&calls==stop);
+    }
     const auto snapshot=source;
     const auto holes=buildPolygonFillMesh(source);check(holes,12);
     assert(source.front().size()==snapshot.front().size());

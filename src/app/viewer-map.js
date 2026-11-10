@@ -1,4 +1,3 @@
-import {createViewerInitialPreview} from "./viewer-initial-preview.js";
 import {connectMapOwner,createMapReadPorts,mergeCapabilityPorts} from "./map-owner-ports.js";
 import {createMapInputPresentation} from "../map/map-input-presentation.js";
 import {workerAssetUrl} from "../runtime/worker-asset-url.js";
@@ -223,16 +222,12 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
     hydroModel:{hydroFeatureById:hydroById},territorialModel:{DISTRIBUTION_MODES},distributionServices:readPorts.distributionServices}));
   gpuScene.initializeSelectionPass();gpuScene.initializeRenderSceneBuilder();gpuScene.initializeGpuSceneDomains();gpuScene.initializeGpuSceneResourceObjectKeys();
   mapHost.attachMapOutput({overlaySvg:svg,gpuCanvas:canvas});
-  initialized=Promise.all([renderer.initialize({allowPreview:false}),mapHost.initializeMapHost()]);
+  initialized=Promise.all([renderer.initialize(),mapHost.initializeMapHost()]);
   initialized.then(()=>renderingDomain.invalidateProject('map-initialized'))
     .catch(error=>onError(error,'지도 표시를 준비하지 못했습니다.','PL-MAP-INITIALIZE-001'));
   const selectionDomain=documentSession.selectionDomain;
   const selectAt=(point,options={})=>objectPicking.handleObjectSelectionAt(point,{...options,sourceEvent:d3.event}).catch(onError);
 
-  const initialPreview=createViewerInitialPreview({element:document.getElementById('viewerInitialPreview'),
-    loadLand:()=>physicalResources.loadInitialLandPreview(),isInitial:isInitialPresentation,
-    onError:error=>diagnostics.push({category:'initial-preview',errorCode:'PL-MAP-INITIAL-PREVIEW',
-      technicalMessage:error.message||String(error),stack:error.stack||''})});
   const mapDisplay=createMapDisplayClient({getEntities:territorialScope.displayEntities,getRevision:()=>spatialIndex.mapObjectGeometryRevisions.territorial});
   renderingDomain=createRenderingDomain({gpuMapRenderer:renderer,sceneBuilder:gpuScene.renderSceneBuilder,projectDomain,selectionDomain:selectionDomain,
     mapHost:()=>mapHost.mapHost,
@@ -250,7 +245,6 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
     prepareView:options=>{
       state.size={width:Math.max(1,element.clientWidth),height:Math.max(1,element.clientHeight)};
       lastFrame=mapHost.prepareVisualFrame(options);
-      if(isInitialPresentation())initialPreview.render(lastFrame,theme());
       renderer.resize(lastFrame);return lastFrame;
     },
     onFrameComplete:mapHost.handleRenderFrameComplete,
@@ -258,7 +252,6 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
     reportDiagnostic:entry=>diagnostics.push({category:'rendering-domain',...entry}),
   });
   renderQuality.applyAdaptiveRenderQuality();
-  initialPreview.start().catch(error=>onError(error,'지도 미리보기 진단을 기록하지 못했습니다.','PL-MAP-INITIAL-PREVIEW'));
   function buildScene(){if(!session)return;objectCatalog.invalidateObjectPresentation();renderingDomain.invalidateProject('document-presentation');}
   async function update() {
     if(!session)return;
@@ -341,8 +334,6 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
       projectSession.pruneViewingItems(objectCatalog.presentationCatalog());
       await update();
     },
-    finishInitialPreview:initialPreview.finish,
-    cancelInitialReveal:initialPreview.dispose,
     cancelSearch:()=>places().cancelSearch(),update,features:entityStore.snapshot,searchPlaces:query=>labelOwner.searchPlaces(query),renderer,
     loadPhysicalResources:physicalResources.loadPhysicalData,loadPhysicalLandMask:physicalResources.loadPhysicalLandMask,viewState:state,objectPresentation,searchActive:()=>places().isSearchOpen(),
     prepareBuiltinProject:async(month,options)=>{
@@ -370,6 +361,6 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
     refreshAppearance(options){renderQuality.applyMapAppearanceChange(options);objectCatalog.invalidateObjectPresentation();onPlacesSettled('render');},
 
     navigation,mapProjection,projectSession,renderingDomain,
-    dispose(){disposed=true;releaseGeometryLoader();projectSourceRuntime.dispose();initialPreview.dispose();entityStore.dispose();renderQuality.cancelGpuMeshRebuild();inputPresentation.dispose();pointerTargets.cancelCountryHoverPick();countryIndex.resetCountryLabelAnchorRuntime();mapHost.stopMapResizeObserver();renderingDomain.dispose();renderer.dispose();gpuScene.renderSceneBuilder.clear();},
+    dispose(){disposed=true;releaseGeometryLoader();projectSourceRuntime.dispose();entityStore.dispose();renderQuality.cancelGpuMeshRebuild();inputPresentation.dispose();pointerTargets.cancelCountryHoverPick();countryIndex.resetCountryLabelAnchorRuntime();mapHost.stopMapResizeObserver();renderingDomain.dispose();renderer.dispose();gpuScene.renderSceneBuilder.clear();},
   });
 }

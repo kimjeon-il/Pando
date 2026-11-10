@@ -67,7 +67,7 @@ export function createCanvasScenePackets() {
     return packets.map(({key,role,geometry,revision,order}) => ({
       ...physicalGeometryPacket(geometry, revision),
       key, role, geometryRevision: revision,
-      sourceKey: 'canvas-physical:'+key+':'+revision,
+      sourceKey: 'canvas-physical:'+key+':'+revision+':'+(context.displayLodKey || 'source'),
       order, style: {color:'#ffffff',fillAlpha:1}, blendMode:'normal',
     }));
   }

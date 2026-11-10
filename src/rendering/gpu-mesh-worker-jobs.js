@@ -8,7 +8,6 @@ export function createGpuMeshWorkerJobs({ createWorker, createRebuildWorker = cr
   let rebuildRpc = null;
   let lodRpc = null;
   let lodSourceInWorker = '';
-  let lodBusy = false;
   let lodQueue = Promise.resolve();
   let rebuildBusy = false;
   let outputBytes = 0;
@@ -45,7 +44,7 @@ export function createGpuMeshWorkerJobs({ createWorker, createRebuildWorker = cr
   }
   function cancelDisplayLod() {
     lodRpc?.stop('superseded-screen-lod');
-    lodRpc = null; lodBusy = false; lodSourceInWorker = '';
+    lodRpc = null; lodSourceInWorker = '';
   }
   // Display LOD never cancels the canonical rebuild or the edit-patch queue.
   // A separate worker can retain one topology index for repeated zoom buckets.
@@ -54,10 +53,11 @@ export function createGpuMeshWorkerJobs({ createWorker, createRebuildWorker = cr
       createWorker,
       isCurrent: ({ entry, message }) => Number(message.projectRevision) === Number(entry.projectRevision),
     });
-    lodBusy = true;
     try {
       const reuseSource = lodSourceInWorker === payload.sourceKey;
-      const packed = reuseSource ? null : await packCountryMeshFeatures(payload.features || [], {
+      const countryFeatures = payload.features || [];
+      const extraPhysicalFeatures = payload.extraPhysicalFeatures || [];
+      const packed = reuseSource ? null : await packCountryMeshFeatures([...countryFeatures, ...extraPhysicalFeatures], {
         isCurrent: () => lodRpc === current && accepts(),
       });
       lodMetrics.requests += 1;
@@ -68,6 +68,7 @@ export function createGpuMeshWorkerJobs({ createWorker, createRebuildWorker = cr
       const response = await current.request('geometry.mesh', {
         ...(packed || {}),
         useCachedSource: reuseSource,
+        countryFeatureCount: countryFeatures.length,
         lod: payload.lod, sourceKey: payload.sourceKey,
         visibleIds: payload.visibleIds ?? null,
         visibleTiles: payload.visibleTiles ?? [],
@@ -90,8 +91,6 @@ export function createGpuMeshWorkerJobs({ createWorker, createRebuildWorker = cr
       // transfer on the next request rather than silently reusing stale data.
       if (lodRpc === current) cancelDisplayLod();
       throw error;
-    } finally {
-      if (lodRpc === current) lodBusy = false;
     }
   }
   function prepareDisplayLod(payload, accepts = () => true) {

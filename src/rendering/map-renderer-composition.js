@@ -19,7 +19,6 @@ export function createMapRenderer(dependencies, { presentMapPreparation, onMapPr
       DATA_REVISION: dependencies.physicalConfig.DATA_REVISION,
       sharedBoundaryCacheUrls: globalThis.PANDOLAB_WORLD_SHARED_BOUNDARY_CACHE_URLS || null,
       PHYSICAL_DATA_BASE_URL: dependencies.physicalConfig.PHYSICAL_DATA_BASE_URL,
-      TERRAIN_RASTER_MANIFEST_URL: dependencies.physicalConfig.TERRAIN_RASTER_MANIFEST_URL,
       TERRAIN_PRIMARY_MANIFEST_URL: dependencies.physicalConfig.TERRAIN_PRIMARY_MANIFEST_URL,
       onTerrainSourceChanged: manifest => { dependencies.projectState.state.terrainManifest = manifest; },
       createCountryFillResolver: () => {
@@ -41,9 +40,7 @@ export function createMapRenderer(dependencies, { presentMapPreparation, onMapPr
       hydroVisibilityThreshold: dependencies.physicalResources.hydroVisibilityThreshold,
       getPhysicalContextState: () => dependencies.physicalResources.physicalContextState,
       getPhysicalLand: () => dependencies.physicalResources.physicalLand,
-      getInitialLandPreview: () => dependencies.physicalResources.initialLandPreview,
       getPhysicalLandSourceRevision: () => dependencies.physicalResources.physicalLandSourceRevision,
-      prepareCanvasPhysicalPreview: () => dependencies.physicalResources.loadInitialLandPreview(),
       isCountryVisibleById: dependencies.builtinCountries.isRenderCountryVisible,
       renderCountryFeatures: () => dependencies.countries.builtinTerritorialScene().collection.features,
       renderCountryBoundaryFeatures: () => dependencies.countries.builtinTerritorialScene().boundaryCollection.features,

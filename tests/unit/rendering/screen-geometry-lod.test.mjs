@@ -18,6 +18,38 @@ const countries = [
   ]] } },
 ];
 
+test('sub-decimal distinct source vertices are never conflated into a shared node', () => {
+  const tiny = [{ id: 'tiny', geometry: { type: 'Polygon', coordinates: [[
+    [0, 0], [0.00000001, 0], [0.00000001, 0.00000001], [0, 0],
+  ]] } }];
+  const index = createSharedPolygonLodIndex(tiny);
+  assert.deepEqual(index.derive({ cssScale: 100 }).features, tiny);
+  assert.equal(index.stats().vertexCount, 3);
+});
+
+test('calibrated source tolerance respects the detail cap instead of forcing pixel accuracy', () => {
+  const policy = { sourceHash: 'a'.repeat(64), algorithmVersion: 'shared-arcs-v1',
+    referenceScale: 0.002, referenceToleranceMeters: 250, minimumToleranceMeters: 50 };
+  const world = resolveScreenLodBucket({ cssScale: 100, scalePixelsPerMeter: 0.002,
+    sourceHash: policy.sourceHash, policy });
+  const regional = resolveScreenLodBucket({ cssScale: 1274201.76, scalePixelsPerMeter: 0.2,
+    sourceHash: policy.sourceHash, policy });
+  assert.equal(world.toleranceMeters, 250);
+  assert.equal(regional.toleranceMeters, 50);
+  assert.equal(regional.detailLimited, true);
+  assert.ok(regional.errorPx > MAX_MAP_GEOMETRY_ERROR_PX);
+  assert.notEqual(world.key, regional.key);
+  assert.throws(() => resolveScreenLodBucket({ cssScale: 100, scalePixelsPerMeter: 0.002,
+    sourceHash: 'b'.repeat(64), policy }), /source/i);
+});
+
+test('invalid calibration is rejected rather than silently using full source geometry', () => {
+  const policy = { sourceHash: 'a'.repeat(64), algorithmVersion: 'shared-arcs-v1',
+    referenceScale: 0.002, referenceToleranceMeters: 250, minimumToleranceMeters: 0 };
+  assert.throws(() => resolveScreenLodBucket({ cssScale: 100, scalePixelsPerMeter: 0.002,
+    sourceHash: policy.sourceHash, policy }), /tolerance|policy/i);
+});
+
 function sharedArc(features) {
   const west = features[0].geometry.coordinates[0];
   const east = features[1].geometry.coordinates[0];
@@ -73,10 +105,11 @@ test('LOD buckets always bound CSS scale, avoiding visible downgrade jitter', ()
   assert.ok(zoomIn.toleranceRadians <= MAX_MAP_GEOMETRY_ERROR_PX / 900);
 });
 
-test('selected source keeps all vertices on its neighbor shared boundary', () => {
+test('object selection is outside the LOD contract and cannot restore source detail', () => {
   const index = createSharedPolygonLodIndex(countries);
-  const result = index.derive({ cssScale: 120, protectedIds: ['west'] });
-  assert.deepEqual(result.features[0].geometry, countries[0].geometry);
+  const result = index.derive({ cssScale: 120, selectedIds: ['west'] });
+  assert.deepEqual(result.features, index.derive({ cssScale: 120 }).features);
+  assert.ok(result.keptVertices < result.originalVertices);
   assert.deepEqual(...sharedArc(result.features));
 });
 
@@ -101,6 +134,41 @@ test('invalid scale or unclosed rings cannot become an accepted derivative', () 
       [0, 0], [1, 0], [1, 1], [0, 1],
     ]] },
   }]), TypeError);
+  assert.throws(() => createSharedPolygonLodIndex([countries[0],countries[0]]), /unique source IDs/);
+});
+
+test('polar rings and date-line rings retain source identity at every fractional scale', () => {
+  const polar={id:'polar',geometry:{type:'Polygon',coordinates:[[
+    [-180,85],[-90,86],[0,85],[90,86],[180,85],[180,90],[-180,90],[-180,85],
+  ]]}};
+  const date={id:'date',geometry:{type:'Polygon',coordinates:[[
+    [179,-2],[-179,-2],[-178,0],[-179,2],[179,2],[178,0],[179,-2],
+  ]]}};
+  const index=createSharedPolygonLodIndex([polar,date]);
+  for(const cssScale of [1,1.5,2,4,8,16,32,4096]){
+    const result=index.derive({cssScale,capped:true});
+    assert.deepEqual(result.features,[polar,date]);
+    assert.equal(result.fallback,false);
+  }
+});
+
+test('differently split coincident boundaries are protected without snapping source coordinates', () => {
+  const source=[
+    {id:'west',geometry:{type:'Polygon',coordinates:[[[0,0],[2,0],[2,2],[0,2],[0,0]]]}},
+    {id:'east',geometry:{type:'Polygon',coordinates:[[[2,0],[4,0],[4,2],[2,2],[2,1],[2,0]]]}},
+    {id:'north',geometry:{type:'Polygon',coordinates:[[[2,2],[4,2],[4,4],[2,4],[2,2]]]}},
+  ];
+  const index=createSharedPolygonLodIndex(source);
+  assert.equal(index.stats().sharedEdgeCount,1,'only exact source edges are shared; no invented split');
+  for(const cssScale of [1,32,1000]){
+    const result=index.derive({cssScale});
+    for(let i=0;i<source.length;i++){
+      assert.ok(result.features[i].geometry.coordinates[0].some(p=>p[0]===2&&p[1]===2),'triple contact retained');
+      assert.ok(result.features[i].geometry.coordinates[0].every(point=>source[i].geometry.coordinates[0]
+        .some(original=>point[0]===original[0]&&point[1]===original[1])));
+    }
+    assert.ok(result.features[1].geometry.coordinates[0].some(p=>p[0]===2&&p[1]===1));
+  }
 });
 
 
@@ -180,4 +248,44 @@ test('small island is preserved without rejecting the other country LOD', () => 
   assert.equal(result.fallback, false);
   assert.deepEqual(result.features[0].geometry, island.geometry);
   assert.ok(result.keptVertices < result.originalVertices);
+});
+
+test('a protected offscreen neighbor constrains the same shared arc', () => {
+  const source=structuredClone(countries);
+  source[1].geometry.coordinates.push([[1,1.4],[1.2,1.4],[1.2,1.6],[1,1.4]]);
+  const index=createSharedPolygonLodIndex(source);
+  const result=index.derive({cssScale:80,visibleIds:['west']});
+  for(const point of aToB)assert.ok(result.features[0].geometry.coordinates[0]
+    .some(candidate=>candidate[0]===point[0]&&candidate[1]===point[1]));
+  assert.equal(result.features[1].geometry,null);
+});
+
+test('display hierarchy never adds a contact with an isolated island across a concave coast', () => {
+  const mainland={id:'main',geometry:{type:'Polygon',coordinates:[[
+    [0,0],[4,0],[4,4],[3,4],[3,1],[1,1],[1,4],[0,4],[0,0],
+  ]]}};
+  const island={id:'island',geometry:{type:'Polygon',coordinates:[[
+    [1.8,2],[2.2,2],[2.2,2.4],[1.8,2.4],[1.8,2],
+  ]]}};
+  const index=createSharedPolygonLodIndex([mainland,island]);
+  const inside=(ring,[x,y])=>{let result=false;for(let i=0,j=ring.length-1;i<ring.length;j=i++){
+    const a=ring[i],b=ring[j];if((a[1]>y)!==(b[1]>y)&&x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0])result=!result;
+  }return result;};
+  let previous=null;
+  for(const cssScale of [1,2,4,16,64,256,1024]){
+    const result=index.derive({cssScale});
+    assert.equal(result.fallback,false);
+    const ring=result.features[0].geometry.coordinates[0];
+    assert.equal(inside(ring,[2,2.2]),false);
+    if(previous)for(const point of previous)assert.ok(ring.some(p=>p[0]===point[0]&&p[1]===point[1]));
+    previous=ring;
+  }
+});
+
+test('derived geometry retains explicit original coordinate indices for every displayed ring',()=>{
+  const index=createSharedPolygonLodIndex(countries),result=index.derive({cssScale:100});
+  for(let f=0;f<countries.length;f++){
+    const indices=result.sourceIndices[f][0][0],points=result.features[f].geometry.coordinates[0];
+    assert.deepEqual(points,indices.map(i=>countries[f].geometry.coordinates[0][i]));
+  }
 });

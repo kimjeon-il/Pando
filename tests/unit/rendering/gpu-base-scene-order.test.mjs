@@ -83,14 +83,9 @@ for (const style of ['political', 'physical']) {
     });
 }
 
-test('WebGL never submits a second physical-land mask when raster/DEM tiles are not drawable', () => {
-  const canDraw=(tiles,representation,style,tintReady)=>
-    canDrawTerrainTiles(tiles,representation,style,tintReady,'dem-relief-v1');
-  assert.equal(canDraw([], 'dem-relief-v1', 'physical', true), false);
-  assert.equal(canDraw([{}], 'dem-relief-v1', 'physical', false), false);
-  assert.equal(canDraw([{}], 'dem-relief-v1', 'physical', true), true);
-  assert.equal(canDraw([{}], 'dem-relief-v1', 'political', false), true);
-  assert.equal(canDraw([{}], 'raster-rgba-v1', 'physical', false), true);
+test('WebGL submits the physical-land mask only when numerical tiles are drawable', () => {
+  assert.equal(canDrawTerrainTiles([]),false);
+  assert.equal(canDrawTerrainTiles([{}]),true);
 
   let landDraws=0, terrainDraws=0, invisibleMaskDraws=0, colorEnabled=true;
   const gl = new Proxy({colorMask:value=>{colorEnabled=value;}},
@@ -105,7 +100,7 @@ test('WebGL never submits a second physical-land mask when raster/DEM tiles are 
       return {renderedKeys:packets.map(row=>row.key),missingKeys:[]};
     },
   };
-  drawGpuBaseScene({gl,frame:{},width:100,height:100,terrainVisible:canDraw([],'dem-relief-v1','physical',true),
+  drawGpuBaseScene({gl,frame:{},width:100,height:100,terrainVisible:canDrawTerrainTiles([]),
     surfacePresentation:{quality:'pending'}, countriesVisible:false,
     prepared:{baseTriangleDraw:{ranges:[]}, overrideTriangleDraw:{ranges:[]},
       territoryItems:[],independentItems:[],physicalWaterItems:[],

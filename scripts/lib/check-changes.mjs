@@ -49,7 +49,7 @@ export function selectNativeBuilds(paths, scope='auto') {
   const globalChange=filenames.some(path=>
     /^(?:CMakeLists\.txt|CMakePresets\.json|\.nvmrc|config\/toolchain-versions\.json|\.github\/workflows\/shared-core\.yml)$/.test(path));
   return {
-    core:globalChange || filenames.some(path=>/^(?:src\/[^/]+\/native\/|tools\/build\/native\/|config\/core-source-roots\.json$|tests\/native\/|tests\/unit\/(?:core-|native-|selection-|map-hover-|project-serializer|project-preview-policy))/.test(path)),
+    core:globalChange || filenames.some(path=>/^(?:src\/[^/]+\/native\/|tools\/build\/native\/|config\/core-source-roots\.json$|tests\/native\/|tests\/unit\/(?:core-|native-|selection-|map-hover-|project-serializer))/.test(path)),
     gis:globalChange || filenames.some(path=>/^(?:tools\/cpp\/|tests\/unit\/(?:geometry\/)?(?:gis-.*native|hydro-.*native|polygon-geometry|gis-math-contract|annex-slivers)\.test\.mjs)/.test(path)),
     // Source-matched WASM is produced once by generated-artifacts-p2.yml.
     wasm:false,

@@ -14,7 +14,7 @@ import {decodeTerritorialSource} from '../../tools/data/territorial-source-codec
 import {validateTerritorialSourceGeometry} from '../../src/data/territorial-source-format.js';
 import {temporalContains,temporalMonthEnd} from "../../src/document/temporal.js";
 import {createAutoPublicationReceipt} from './library-auto-publication.mjs';
-const FAMILIES=Object.freeze(['territorial','current-world','world-mesh','world-preview','world-bundle','shared-boundaries','builtin-world','prepared-mesh']);
+const FAMILIES=Object.freeze(['territorial','current-world','world-mesh','world-country-packet','world-bundle','shared-boundaries','builtin-world','prepared-mesh']);
 const COUNTRY='assets/data/builtin-world/generated/v1/';
 const TERRITORIAL='assets/data/territorial-entities/generated/v2/';
 const FIXTURE='tests/fixtures/builtin-modern-interval-baseline.json';

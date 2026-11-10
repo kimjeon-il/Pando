@@ -1,4 +1,4 @@
-export const ZOOM_LIMITS=Object.freeze({globe:Object.freeze({min:.72,max:32}),flat:Object.freeze({min:.75,max:64})});
+export const ZOOM_LIMITS=Object.freeze({globe:Object.freeze({min:1,max:32}),flat:Object.freeze({min:1,max:32})});
 export const FLAT_LATITUDE_LIMIT=89.999;
 import { panCameraView } from "./camera-pan.js";
 /** CameraNavigation: extracted application responsibility.

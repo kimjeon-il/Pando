@@ -10,7 +10,6 @@ import {buildUiBundles} from '../build-ui-bundle.mjs';
 import {buildWorkerAsset} from './worker-assets.mjs';
 import {collectViewerAssets} from './product-assets.mjs';
 import {decodeArchiveEntry,libraryCheckout,libraryConfig} from "../../tools/data/library-context.mjs";
-import {createInitialLandPreviewAsset} from './initial-land-preview.mjs';
 import {validateMapCatalogCoherence} from './map-catalog-coherence.mjs';
 import {MAP_PROJECT_ROLES,validateMapProjectManifest,mapProjectResourcePath,mapProjectResourcePaths,mapProjectManifestSourcePath}
   from '../../src/data/map-project-manifest.js';
@@ -102,7 +101,6 @@ export async function buildFrontendSnapshot({root=process.cwd(),sourceCommit,rea
    return [path,{value,sha256:hash(bytes),bytes:bytes.length}];
  }));
  const metadata=Object.fromEntries(metadataPaths.map(path=>[path,catalogInputs[path].value]));
- const land=metadata[resource('physicalLand')];
  const {hydroVersion,preparedMeshesCurrent}=validateMapCatalogCoherence(
    mapProject,metadata,path=>catalogInputs[path].sha256);
  const projectCatalogs=Object.fromEntries(MAP_PROJECT_ROLES.map(role=>{
@@ -113,8 +111,6 @@ export async function buildFrontendSnapshot({root=process.cwd(),sourceCommit,rea
  }));
  const dataRevision='data-'+hash(JSON.stringify([mapProject.projectId,mapProject.resources,
    metadataPaths.map(path=>[path,catalogInputs[path].sha256])])).slice(0,32);
- const initialLandPreview=createInitialLandPreviewAsset(readPinnedData(land.asset.url),land.asset);
- generated(initialLandPreview.spec.url,initialLandPreview.bytes,'viewer');
  const projectBytes=Buffer.from(projectSource);
  const projectManifestPath='assets/data/projects/'+mapProject.projectId+'/manifest.json';
  generated(projectManifestPath,projectBytes,'viewer');
@@ -125,7 +121,7 @@ export async function buildFrontendSnapshot({root=process.cwd(),sourceCommit,rea
  // expanded into process-global build metadata.
  const buildMeta={appVersion,buildId,assetRevision,dataRevision,sourceCommit,dataCommit:pinned?.revision||null,...resourceProfile?{resourceProfile}:{},
    mapProject,mapProjectManifest,projectCatalogs,
-   workerAssets,initialLandPreview:initialLandPreview.spec};
+   workerAssets};
  generated('assets/js/build-meta.js','// Generated product identity.\nglobalThis.PANDOLAB_BUILD_META = Object.freeze('+JSON.stringify(buildMeta,null,2)+');\n');
  const templates=renderProductHtml(sourceText),moduleImports=Object.fromEntries([...assets.keys()].filter(p=>p.startsWith('assets/js/')&&p.endsWith('.js')).map(p=>['./'+p,'./'+p+'?v='+encodeURIComponent(assetRevision)]));
  const render=(template,imports)=>{

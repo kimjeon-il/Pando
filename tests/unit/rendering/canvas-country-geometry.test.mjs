@@ -126,9 +126,9 @@ test('Canvas invalidates prepared strokes on changed revision, buffer identity o
 });
 });
 contractSuite("canvas-globe-viewport", () => {
+const { readFileSync }=__dep4;
 const test=__dep0.default;
 const assert=__dep1.default;
-const { readFileSync }=__dep4;
 const { createHash }=__dep6;
 const vm=__dep5.default;
 const resourceUpdatePolicy=__dep7;
@@ -141,19 +141,20 @@ function runtime() {
   vm.createContext(scope);
   vm.runInContext(readFileSync(new URL('../../../assets/js-vendor/d3.min.js', import.meta.url), 'utf8'), scope);
   vm.runInContext(readFileSync(new URL('workers/terrain-tile-selection-core.js', root), 'utf8'), scope);
-  const source = readFileSync(new URL('workers/canvas-render-worker.js', root), 'utf8');
+  const source = readFileSync(new URL('workers/canvas-render-core.js', root), 'utf8');
   const anchor = 'self.onmessage = event => {';
   assert.ok(source.includes(anchor));
   vm.runInContext(source.replace(anchor, `self.setHydroForTest = features => { hydroEditFeatures = features; };
     self.hydroPassForTest = renderHydroPass; self.projectionForTest = createProjection;
     self.cachedPathForTest = typeof createCanvasPath === 'function' ? createCanvasPath : undefined;
     self.traceTerrainGrid = (spec,projection,message) => {
-      const previousDraw=drawTexturedTriangle,previousManifest=terrainManifest,triangles=[];
-      terrainManifest={gutter:1};
+      const previousDraw=drawTexturedTriangle,previousManifest=terrainDemManifest,triangles=[];
+      terrainDemManifest={gutter:1};
       drawTexturedTriangle=(_image,source,destination)=>triangles.push([source,destination]);
       try { for (const _ of drawGlobeTerrainTile(spec,{},projection,message,1,false)) { /* Drain cooperative terrain rows. */ } return triangles; }
-      finally { drawTexturedTriangle=previousDraw; terrainManifest=previousManifest; }
+      finally { drawTexturedTriangle=previousDraw; terrainDemManifest=previousManifest; }
     }; ` + anchor), scope);
+  scope.PandoLabCanvasRenderer.install(scope);
   return scope;
 }
 
@@ -269,7 +270,7 @@ const test=__dep0.default;
 const assert=__dep1.default;
 const policy=__dep8;
 const { createGpuCanvasWorker }=__dep9;
-const { readFileSync }=__dep4;
+
 
 const input = Object.freeze({
   rendererMode: 'canvas-worker',
@@ -292,7 +293,7 @@ test('a genuine current Canvas Worker bitmap admits an initial canonical country
 test('unpainted, wrong-backend and temporal replacements never authorize partial background admission', () => {
   for(const change of [
     {committedBitmap:false},{physicalSceneMatched:false},{temporalPending:true},
-    {rendererMode:'webgl2'},{rendererMode:'webgl1'},{rendererMode:'canvas2d'},
+    {rendererMode:'webgl2'},{rendererMode:'webgl1'},
   ])assert.equal(policy.canAdmitCanvasWorkerPartialBackground?.({...input,...change}),false);
 });
 
@@ -400,29 +401,14 @@ test('transport accepts a visually identical older scheduled frame but rejects w
 
 // Actual Canvas transport acceptance and frame-identity behavior are
 // exercised in gpu-canvas-worker and gpu-scene-staging runtime suites.
-test('Canvas admits only a pinned initial physical preview and never replaces authoritative land or temporal frames',()=>{
-  const sourceRevision='b'.repeat(64),previewRevision='a'.repeat(64);
-  const preview={geometry:{type:'MultiPolygon',coordinates:[]},revision:previewRevision,
-    sourceRevision,certified:true};
-  const selected=policy.selectCanvasPhysicalSource({actual:null,state:{ready:false},preview,sourceRevision});
-  assert.equal(selected.preview,true);
-  assert.equal(policy.canvasWorkerFrameMatchesPhysical({
-    physicalLandCount:1,physicalLandRevision:previewRevision,physicalWaterCount:0,
-  },selected.context),true);
-  for(const mutation of [
-    {sourceRevision:'c'.repeat(64)}, {temporalPending:true},
-    {preview:{...preview,certified:false}}, {preview:{...preview,sourceRevision:'d'.repeat(64)}},
-  ])assert.equal(policy.selectCanvasPhysicalSource({
-    actual:null,state:{ready:false},preview,sourceRevision,...mutation,
-  }).preview,false,'a preview cannot bypass exact pin or a pending temporal change');
-  const actual={geometry:{type:'MultiPolygon',coordinates:[]},revision:'e'.repeat(64)};
-  const authoritative={ready:true,landRevision:actual.revision,waterRevision:null};
-  const full=policy.selectCanvasPhysicalSource({actual,state:authoritative,preview,sourceRevision});
-  assert.equal(full.preview,false);
-  assert.equal(full.source,actual);
-  assert.equal(policy.selectCanvasPhysicalSource({
-    actual,state:{...authoritative,landRevision:'f'.repeat(64)},preview,sourceRevision,
-  }).context.ready,false,'invalid authoritative physical source must not silently fallback to preview');
+test('Canvas requires admitted physical land and preserves source and water identities',()=>{
+ const actual={geometry:{type:'MultiPolygon',coordinates:[]},revision:'land'};
+ const state={ready:true,landRevision:'land',waterRevision:null};
+ assert.equal(policy.selectCanvasPhysicalSource({actual,state}).source,actual);
+ assert.equal(policy.selectCanvasPhysicalSource({actual,state:{...state,landRevision:'other'}}).context.ready,false);
+ assert.equal(policy.selectCanvasPhysicalSource({actual,state:{...state,waterRevision:'water'}}).context.ready,false);
+ assert.equal(policy.selectCanvasPhysicalSource({actual,state:{ready:false}}).source,null);
+ assert.equal(policy.canAdmitCanvasWorkerPartialBackground({...input,rendererMode:'canvas2d'}),true);
 });
 
 test('background picture identity ignores coordinator churn but rejects changed physical view',()=>{
@@ -454,7 +440,7 @@ const vm = __canvas_dep5.default;
 
 const context = { self: {} };
 vm.runInNewContext(fs.readFileSync(new URL("../../../src/rendering/workers/canvas-terrain-dem-core.js", import.meta.url), 'utf8'), context);
-const { convertTile, affineTransform, flatTileRectangle, triangleClip, budgetedDemTiles, convertedBytesPerPixel } = context.self.PandoLabCanvasTerrainDem;
+const { convertTile, affineTransform, flatTileRectangle, triangleClip } = context.self.PandoLabCanvasTerrainDem;
 const presentation = JSON.parse(fs.readFileSync(new URL("../../fixtures/terrain-presentation.json", import.meta.url)));
 const constantTile = height => {
   const dem = new Uint8ClampedArray(3 * 3 * 4), encoded = height + 12000;
@@ -464,7 +450,7 @@ const constantTile = height => {
 };
 
 test('Canvas converts flat plains and plateaus to the selected elevation colors and grayscale', () => {
-  for (const row of presentation.flatLand) {
+  for (const row of [{height:0,rgb:[110,159,100],gray:148},{height:1000,rgb:[174,184,112],gray:154},{height:2500,rgb:[184,146,100],gray:177},{height:4500,rgb:[184,174,159],gray:213},{height:6500,rgb:[245,243,230],gray:225}]) {
     const options=constantTile(row.height), before=options.dem.slice(), result=convertTile(options);
     assert.deepEqual([...result.land.slice(16,19)],row.rgb,`${row.height}m land`);
     assert.equal(result.political[16],row.gray,`${row.height}m grayscale`);
@@ -473,23 +459,23 @@ test('Canvas converts flat plains and plateaus to the selected elevation colors 
   assert.deepEqual([...convertTile(constantTile(-4000)).ocean.slice(16,19)],[53,98,137]);
 });
 
-test('Canvas tile conversion interpolates geographic tint before mixing elevation colors', () => {
+test('Canvas numerical colors ignore former tint pixels', () => {
   const options=constantTile(0);
   const result=convertTile({...options,tint:new Uint8ClampedArray([0,0,0,255,200,100,50,255]),tintWidth:2});
-  assert.deepEqual([...result.land.slice(16,19)],[106,115,70]);
+  assert.deepEqual([...result.land.slice(16,19)],[110,159,100]);
 });
 
-test('Canvas detailed DEM uses settled height-derived shade with the original polar fallback', () => {
+test('Canvas uses precomputed shade identically at all latitudes', () => {
   const dem = new Uint8ClampedArray(3 * 3 * 4);
   for (let index = 0; index < dem.length; index += 4) dem.set([72, 68, 128, 255], index); // 6500m
   const tint = new Uint8ClampedArray([220, 180, 120, 255]);
   const options = { dem, width: 3, height: 3, tint, tintWidth: 1, tintHeight: 1,
     bounds: [-1, 1, 1, -1], pixelWidth: 1, pixelHeight: 1, levelWidth: 1350, levelHeight: 675 };
   const result = convertTile(options);
-  assert.deepEqual([...result.land.slice(16,19)],[235,217,186]);
-  assert.equal(result.political[16], 224);
+  assert.deepEqual([...result.land.slice(16,19)],[93,92,87]);
+  assert.equal(result.political[16], 85);
   const polar = convertTile({ ...options, bounds: [-1, 90, 1, 89.8] });
-  assert.equal(polar.political[16], 85, 'polar input uses the new neutral-shade normalization and height tone');
+  assert.equal(polar.political[16], 85, 'stored shade is preserved at the pole');
 });
 
 test('Canvas triangle projection maps every source corner without checkerboard seams', () => {
@@ -519,22 +505,5 @@ test('triangle clips cover shared antialiased edges in either winding without mo
   }
 });
 
-test('Canvas DEM uses the highest complete viewport LOD that fits its decoded 96MiB budget', () => {
-  assert.equal(convertedBytesPerPixel, 12);
-  const levels = [{id:0},{id:1},{id:2},{id:3}];
-  const spec = key => ({key, pixelWidth:1024, pixelHeight:1024});
-  const visible = level => Array.from({length: [2,4,7,16][level.id]},
-    (_, index) => spec(`${level.id}/${index}`));
-  const budget = 96 * 1024 * 1024;
-  const fit = budgetedDemTiles(levels, levels[3], visible, budget);
-  assert.equal(fit.level.id, 2, '16 fully decoded three-plane tiles cannot fit 96MiB');
-  assert.equal(fit.specs.length, 7);
-  assert.equal(fit.limited, true);
-  assert.ok(fit.specs.reduce((sum, tile) =>
-    sum + (tile.pixelWidth + 2) * (tile.pixelHeight + 2) * convertedBytesPerPixel, 0) <= budget);
-  const roomy = budgetedDemTiles(levels, levels[3], visible, 256 * 1024 * 1024);
-  assert.equal(roomy.level.id, 3);
-  assert.equal(roomy.limited, false);
-  assert.equal(budgetedDemTiles(levels, null, visible, budget).level, null);
-});
+
 });

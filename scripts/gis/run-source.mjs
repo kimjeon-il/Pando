@@ -18,7 +18,6 @@ export const TASK_SOURCES = Object.freeze({
   'historical-border':'tools/gis/build-german-1914-base.mjs',
   'historical-coast':'tools/gis/build-german-1914-base.mjs',
   'terrain-dem':'tools/gis/terrain-dem-build.mjs',
-  'terrain-preview':'tools/build/build-terrain-preview.mjs',
   'hydro-tiles':'tools/gis/build-hydro.mjs',
   'hydro-packfile':'tools/build/build-hydro-packfile.mjs',
   'hydro-connectivity':'tools/gis/repair-hydro-connectivity.mjs',

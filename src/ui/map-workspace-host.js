@@ -128,6 +128,7 @@ export function createMapHost({productMode='editor',readOnly=productMode==='view
     const visualProjection=visualProjectionForSnapshot(viewState);
     const visualPath=dependencies.platform.d3.geo.path().projection(visualProjection);
     return dependencies.renderFactories.createMapVisualFrame({frameId,viewRevision:viewState.revision,
+      lodSelection:dependencies.rendering.gpuMapRenderer.resolveDisplayLod(viewState.scale),
       projectGeneration:dependencies.domains.projectDomain.getGeneration(),projectionRevision:visualProjectionRevision,viewState,
       layoutSnapshot:dependencies.mapLayout.mapLayoutMetricsSnapshot,projectCoordinate:coordinate=>visualProjection(coordinate),
       projectPath:geometry=>visualPath(geometry),createCanvasPath:context=>dependencies.platform.d3.geo.path().projection(visualProjection).context(context)});

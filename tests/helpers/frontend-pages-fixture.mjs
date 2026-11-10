@@ -1,3 +1,4 @@
+import {numericalTerrainFixture} from './numerical-terrain-fixture.mjs';
 import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, renameSync, readdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -43,7 +44,7 @@ export async function pagesRepositoryFixture(t, { sceneRevision = 6, preparedRev
   put(root,'src/runtime/resource-dependency-policy.js',readFileSync(new URL('../../src/runtime/resource-dependency-policy.js',import.meta.url)));
   for(const path of new Set([...UI_VIEWER_SOURCES,'assets/css/app.css','assets/css/viewer.css']))put(root,path.replace('assets/css/','src/ui/css/'),'.fixture { color:red; }');
   put(root, '.nojekyll', '');
-  put(root, 'assets/data/terrain-preview/v0.13.3-p2/manifest.json', '{"tiles":{}}');
+  put(root, 'assets/data/terrain/v0.13.3/manifest.json', '{"tiles":{}}');
   put(root, 'assets/data/hydro/v0.13.4/manifest.json', '{"schema":"pandolab-water-shards-v5","version":"0.13.4","container":{"url":"hydro.bin"},"shards":[]}');
   put(root, 'assets/data/hydro/v0.13.4/hydro.bin', 'fixture packfile');
   put(root, 'reports/a.md', 'report');
@@ -102,7 +103,7 @@ export async function pagesRepositoryFixture(t, { sceneRevision = 6, preparedRev
   put(root,'assets/data/world/current.json',JSON.stringify({schema:'pandolab-world-bundle',schemaVersion:1,
     source:{sha256,countryCount:1,url:'source.json'},defaultClassification:{countries:{}},
     derivation:{preview:'canonical-topology-simplified',coordinateCount:4,meshAlgorithmRevision:sceneRevision},assets}));
-  put(root,'assets/data/terrain-preview/v0.13.3-p2/manifest.json',JSON.stringify({sourceDem:{landMaskSha256:'a'.repeat(64)},tiles:{}}));
+  put(root,'assets/data/terrain/v0.13.3/manifest.json',JSON.stringify(numericalTerrainFixture()));
   const landSource=Buffer.from(JSON.stringify({type:'MultiPolygon',coordinates:[[[[0,0],[0,1],[1,1],[1,0],[0,0]]]]}));
   const landCompressed=gzipSync(landSource,{level:9,mtime:0});
   const landAsset={url:'assets/data/physical-land/land.bin',encoding:'gzip',

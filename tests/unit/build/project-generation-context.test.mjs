@@ -1,3 +1,4 @@
+import {fileURLToPath} from 'node:url';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync,writeFileSync,mkdirSync,mkdtempSync,rmSync} from 'node:fs';
@@ -11,7 +12,7 @@ import {readProjectGenerationContext,readProjectWorldGenerationContext,validateP
 import {collectRuntimeDataAssets} from '../../../src/data/runtime-manifest-assets.js';
 import {mapProjectResourcePaths} from '../../../src/data/map-project-manifest.js';
 
-const root=new URL('../../../',import.meta.url).pathname;
+const root=fileURLToPath(new URL('../../../',import.meta.url));
 test('generation input receipts are private source selectors, not Viewer publication data',()=>{
  const context=readProjectGenerationContext({root});
  assert.equal(context.projectId,'default-world');
@@ -121,14 +122,14 @@ test('world generators select the same project source recipe and reject cross-pr
 test('P2 generation graph fingerprints the selected project input mapping and catalog identity',()=>{
  const graph=JSON.parse(readFileSync(new URL('../../../config/generated-artifacts.json',import.meta.url)));
  const families=new Map(graph.families.map(f=>[f.id,f]));
- for(const id of ['builtin-world','world-mesh','world-preview','world-bundle','prepared-mesh']){
+ for(const id of ['builtin-world','world-mesh','world-country-packet','world-bundle','prepared-mesh']){
   const inputs=families.get(id)?.inputs;
   assert.ok(inputs?.includes('projects/default-world/generation-inputs.json'),id+' missing authored source mapping');
   assert.ok(inputs?.includes('projects/default-world/manifest.json'),id+' missing Viewer catalog ownership');
  }
  const world=families.get('world-mesh');
  assert.ok(world.dependencies.includes('current-world'), 'country source remains a versioned dependency');
- assert.ok(families.get('world-preview').dependencies.includes('world-mesh'), 'preview cannot bypass its mesh');
+ assert.ok(families.get('world-country-packet').dependencies.includes('world-mesh'), 'preview cannot bypass its mesh');
 });
 
 test('Viewer-only world checks verify pinned bytes without private GIS generation recipes',t=>{
@@ -160,7 +161,7 @@ test('Viewer-only world checks verify pinned bytes without private GIS generatio
     canonical:'shared-canonical.json.gz'}},assets,
  };
  put('assets/data/world/current.json',JSON.stringify(published));
- assert.equal(verifyPublishedWorldBundle({root}).validatedAssets,5);
+ assert.equal(verifyPublishedWorldBundle({root}).validatedAssets,3);
  const result=publishWorldBundle({root,projectId:'default-world',check:true});
  assert.equal(result.sourceFree,true);
  assert.equal(result.bundle.source.sha256,'b'.repeat(64));

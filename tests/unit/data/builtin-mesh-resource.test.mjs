@@ -42,7 +42,7 @@ test('built-in mesh loader shares one worker request and releases it after a ver
   const first = loader.load(identity);
   const second = loader.load(identity);
   assert.equal(first, second);
-  assert.match(instance.url, /mode=builtin-mesh-only/);
+  assert.match(instance.url, /workers\/data-loader-worker\.js/);
   assert.equal(instance.options.type, 'module');
   instance.emit({ type: 'builtin-mesh-loader-ready' });
   assert.deepEqual(instance.messages, [{ type: 'load-builtin-mesh', sceneIdentity: identity }]);

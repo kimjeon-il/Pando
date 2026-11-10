@@ -23,7 +23,6 @@ export function createPhysicalResources({ buildMeta,capabilities = {terrain:true
     onLandReady:()=>dependencies.domains.renderingDomain.invalidateProject('physical-land-ready')});
   const storedPhysicalAssets=()=>assetReader.storedPhysicalAssets();
   const loadPhysicalLandMask=options=>assetReader.loadPhysicalLandMask(options);
-  const loadInitialLandPreview=()=>assetReader.loadInitialLandPreview();
   const waterContexts=new Map();
   let requestedWaterKey=null;
   let physicalSelection=null;
@@ -400,10 +399,8 @@ export function createPhysicalResources({ buildMeta,capabilities = {terrain:true
     setProjectSource,
     initializeTerrainService,
     loadPhysicalLandMask,
-    loadInitialLandPreview,
     preparePhysicalContext,
     get physicalLand() { return currentPhysicalContext(); },
-    get initialLandPreview() { return assetReader.initialLandPreview; },
     get physicalLandSourceRevision() { return buildMeta.physicalLand?.sha256 || null; },
     get physicalContextState() {
       const context=currentPhysicalContext(),selection=selectedPhysicalWater(),entry=waterContexts.get(selection.key);

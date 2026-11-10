@@ -93,7 +93,7 @@ export async function stageWebPages(rootInput, stageInput, manifestInput, { skip
   for(const path of [...REQUIRED,snapshot.buildMeta.mapProjectManifest.url,...mapProjectResourcePaths(snapshot.buildMeta.mapProject)])
     if(!payload.has(path))throw Error('Missing protected Web URL: '+path);
   const meshLoader = createStoredAssetLoader({ dataRevision: snapshot.dataRevision, cacheStorage: null });
-  for (const role of ['previewMesh', 'canonicalMesh']) {
+  for (const role of ['canonicalMesh']) {
     const spec = world.assets[role], stored = payload.get('assets/data/' + spec.url);
     if (!stored || spec.header[7] !== MESH_ALGORITHM_REVISION) {
       throw Error('Pinned world ' + role + ' mesh algorithm revision mismatch or missing asset');

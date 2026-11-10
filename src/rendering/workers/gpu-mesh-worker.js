@@ -73,12 +73,14 @@ const countryPreparation = meshCoreReady.then(() => import(`../country-mesh-prep
 countryPreparation.catch(() => {}); // The mesh operation propagates initialization failures.
 const screenLodModule = import(`../render-lod.js?v=${encodeURIComponent(assetRevision)}`);
 let screenLodSource = null, screenLodIndex = null, screenLodFeatures = null;
-let screenLodScope = '', screenLodScopedFeatures = null;
+let screenLodCountryCount = 0;
 const screenLodTileCache = new Map();
+const screenLodAlgorithm = 'shared-topology-contraction-v1';
 async function buildMesh(features, context, request = {}) {
   const canonicalFeatures = features;
   const lod = request.lod;
-  let lodInfo = null, derived = false;
+  let lodInfo = null, derived = false, displayFeatures = null, displaySourceIndices = null;
+  let displayPhysicalFeatures = null, displayPhysicalSourceIndices = null;
   if (lod) {
     const { createSharedPolygonLodIndex, resolveScreenLodEdgeDegrees,
       tileLargePolygonLodFeatures } = await screenLodModule;
@@ -91,37 +93,37 @@ async function buildMesh(features, context, request = {}) {
             { code: 'PL-LOD-SOURCE-MISS' });
         screenLodSource = sourceKey;
         screenLodFeatures = canonicalFeatures;
-        screenLodIndex = null; screenLodScope = ''; screenLodScopedFeatures = null;
+        const count = request.countryFeatureCount ?? canonicalFeatures.length;
+        if (!Number.isInteger(count) || count < 0 || count > canonicalFeatures.length)
+          throw new TypeError('Invalid country/physical LOD source partition.');
+        screenLodCountryCount = count;
+        screenLodIndex = null;
         screenLodTileCache.clear();
       }
-      // Canonical source transport is project-scoped. Topology preparation is
-      // viewport-scoped: a focused country never indexes all world's LSIB
-      // edges just to draw its immediate neighborhood.
+      // Source-owned topology includes offscreen owners. Visibility only filters
+      // the derived output; a pan never changes shared protection or rebuilds it.
       const sourceFeatures = screenLodFeatures;
       const visibleIds = request.visibleIds === null || request.visibleIds === undefined
         ? null : new Set(request.visibleIds.map(String));
-      const scopeKey = visibleIds
-        ? [...visibleIds].sort().join('|') : '*';
-      if (!screenLodIndex || screenLodScope !== scopeKey) {
-        const candidates = visibleIds
-          ? sourceFeatures.filter(feature => visibleIds.has(String(feature.id))) : sourceFeatures;
-        const next = createSharedPolygonLodIndex(candidates);
+      if (visibleIds) for (const feature of sourceFeatures.slice(screenLodCountryCount))
+        visibleIds.add(String(feature.id));
+      const topologyReused = !!screenLodIndex;
+      if (!screenLodIndex) {
+        const next = createSharedPolygonLodIndex(sourceFeatures);
         context.throwIfCancelled();
         screenLodIndex = next;
-        screenLodScopedFeatures = candidates;
-        screenLodScope = scopeKey;
       }
       const display = screenLodIndex.derive({
-        cssScale: lod.upperScale, errorPx: lod.errorPx,
+        cssScale: lod.upperScale, errorPx: lod.errorPx, visibleIds, capped: lod.capped === true,
       });
-      derived = !display.fallback && display.keptVertices < display.originalVertices;
-      if (derived) {
-        if (visibleIds) {
-          const byId = new Map(display.features.map(feature => [String(feature.id), feature]));
-          features = sourceFeatures.map(feature => byId.get(String(feature.id))
-            || { id: feature.id, geometry: null });
-        } else features = display.features;
-      }
+      displayFeatures = display.features.slice(0, screenLodCountryCount);
+      displaySourceIndices = display.sourceIndices.slice(0, screenLodCountryCount);
+      displayPhysicalFeatures = display.features.slice(screenLodCountryCount);
+      displayPhysicalSourceIndices = display.sourceIndices.slice(screenLodCountryCount);
+      // Even an entirely topology-protected visible ring is a validated display
+      // derivative. Never silently substitute the full source for a capped LOD.
+      derived = !display.fallback;
+      if (derived) features = displayFeatures;
       let tiled = null;
       if (request.visibleTiles?.length) {
         const core = await meshCoreReady;
@@ -140,11 +142,15 @@ async function buildMesh(features, context, request = {}) {
       }
       lodInfo = { key: String(lod.key || ''), upperScale: lod.upperScale,
         errorPx: lod.errorPx,
-        maxEdgeDegrees: resolveScreenLodEdgeDegrees({ cssScale: lod.upperScale, errorPx: lod.errorPx }),
+        // Tessellation error is numerical and independent of GIS detail caps.
+        maxEdgeDegrees: resolveScreenLodEdgeDegrees({ cssScale: lod.upperScale }),
         originalVertices: display.originalVertices,
         keptVertices: display.keptVertices, arcCount: screenLodIndex.stats().arcCount,
-        visibleCountryCount: screenLodScopedFeatures.length,
-        slotCountryCount: screenLodFeatures.length,
+        visibleCountryCount: displayFeatures.filter(feature => !!feature.geometry).length,
+        slotCountryCount: screenLodCountryCount,
+        physicalFeatureCount: displayPhysicalFeatures.length,
+        topologyReused, topologyFeatureCount: screenLodIndex.stats().featureCount,
+        algorithmVersion: screenLodAlgorithm,
         scoped: !!visibleIds, sourceCached: true, fallback: display.fallback, simplified: derived,
         tiledCountryCount: tiled?.tiledCountryCount || 0,
         tilesPrepared: tiled?.tilesPrepared || 0,
@@ -154,16 +160,19 @@ async function buildMesh(features, context, request = {}) {
       // Invalid source topology never prevents its exact canonical mesh
       // from rendering. The candidate is rejected as a whole, not per country.
       if (error.code === 'PL-LOD-SOURCE-MISS') throw error;
+      if (lod.capped) throw Object.assign(new Error('Capped display LOD preparation failed.', { cause: error }),
+        { code: 'PL-LOD-TOPOLOGY', detail: String(error.message || error) });
       screenLodSource = null; screenLodIndex = null; screenLodFeatures = null;
-      screenLodScope = ''; screenLodScopedFeatures = null;
       screenLodTileCache.clear();
       lodInfo = { key: String(lod.key || ''), fallback: true,
         sourceCached: false, simplified: false, failure: String(error.message || error).slice(0, 240) };
     }
   }
-  // No simplification or a failed topology check means draw the already
-  // admitted exact mesh. Never spend time regenerating it on a failed LOD.
-  if (lod && !derived) return { lod: lodInfo };
+  // Only an uncapped failed candidate may return a canonical-retention notice.
+  // Accepted candidates include protected rings even when their vertex count
+  // happens to match the original; every backend receives that same geometry.
+  if (lod && !derived) return { lod: lodInfo, displayFeatures, displaySourceIndices,
+    displayPhysicalFeatures, displayPhysicalSourceIndices };
   const started = performance.now();
   const total = features.length + 3;
   const progress = (completed, phase) => context.emitEvent('geometry.mesh-progress',
@@ -174,8 +183,24 @@ async function buildMesh(features, context, request = {}) {
       validate: derived,
       maxEdgeDegrees: lodInfo?.maxEdgeDegrees || self.PandoLabGpuMeshCore.MAX_RENDER_EDGE_DEGREES,
     });
+    if (displayPhysicalFeatures?.length) {
+      const store = await polygonPreparation;
+      mesh.displayPhysicalPackets = [];
+      for (const feature of displayPhysicalFeatures) {
+        context.throwIfCancelled();
+        if (!feature.geometry) continue;
+        const { packet } = await store.prepare({
+          cacheKey: `${request.sourceKey}:physical:${feature.id}:${lod.key}`,
+          geometry: feature.geometry,
+        }, context);
+        mesh.displayPhysicalPackets.push({ id: String(feature.id), packet });
+      }
+      mesh.physicalPreparation = store.stats();
+    }
   } catch (error) {
     if (!derived || error.name === 'AbortError' || error.cancelled) throw error;
+      if (lod.capped) throw Object.assign(new Error('No valid mesh satisfies the capped display LOD.', { cause: error }),
+        { code: 'PL-LOD-TOPOLOGY', detail: String(error.message || error) });
     // A simplified polygon can be invalid even if its winding is preserved.
     // The original canonical GPU mesh remains active, so do not duplicate
     // world-wide triangulation just to signal an invalid display derivative.
@@ -183,7 +208,13 @@ async function buildMesh(features, context, request = {}) {
     return { lod: { ...lodInfo, fallback: true, simplified: false,
       failure: String(error.message || error).slice(0, 240) } };
   }
-  if (lodInfo) mesh.lod = lodInfo;
+  if (lodInfo) {
+    mesh.lod = lodInfo;
+    mesh.displayFeatures = displayFeatures;
+    mesh.displaySourceIndices = displaySourceIndices;
+    mesh.displayPhysicalFeatures = displayPhysicalFeatures;
+    mesh.displayPhysicalSourceIndices = displayPhysicalSourceIndices;
+  }
   const { prepareCountryStroke } = await strokePreparation;
   const { prepareMeshSpatialBlocks } = await blockPreparation;
   context.throwIfCancelled();
@@ -201,7 +232,7 @@ async function buildMesh(features, context, request = {}) {
 }
 
 function meshTransferables(mesh) {
-  return [
+  return [...new Set([
     mesh.positions.buffer,
     mesh.countryIndices.buffer,
     mesh.triangleIndices.buffer,
@@ -214,7 +245,9 @@ function meshTransferables(mesh) {
     mesh.preparedStroke.instances.buffer,
     mesh.preparedStroke.nodes.buffer,
     ...Object.values(mesh.spatialBlocks).filter(value => value && typeof value === 'object').flatMap(tree => Object.values(tree).map(array => array.buffer)),
-  ];
+    ...(mesh.displayPhysicalPackets || []).flatMap(({ packet }) => Object.values(packet)
+      .filter(ArrayBuffer.isView).map(array => array.buffer)),
+  ])];
 }
 
 self.PandoLabWorkerRpc.install({
@@ -244,7 +277,7 @@ self.PandoLabWorkerRpc.install({
         mesh = await buildMesh(source, context, payload);
       } catch (error) {
         if (!payload.lod || error.name === 'AbortError' || error.cancelled
-          || error.code === 'PL-LOD-SOURCE-MISS') throw error;
+          || error.code === 'PL-LOD-SOURCE-MISS' || payload.lod.capped) throw error;
         mesh = { lod: { key: String(payload.lod.key || ''),
           fallback: true, simplified: false,
           sourceCached: screenLodSource === payload.sourceKey,
