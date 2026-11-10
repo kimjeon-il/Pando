@@ -307,8 +307,16 @@ export function createSharedPolygonLodIndex(features, { precision = 7 } = {}) {
       const polygons = byFeature[index].map(polygon => polygon.map(info => {
         originalVertices += info.points.length;
         const indices = [];
+        // A feature smaller than the allowed pixel deviation is still a
+        // real island: preserve its complete ring instead of erasing detail.
+        const longitude = info.points.map(point => point[0]);
+        const latitude = info.points.map(point => point[1]);
+        const tinyRing = Math.hypot(
+          Math.max(...longitude) - Math.min(...longitude),
+          Math.max(...latitude) - Math.min(...latitude),
+        ) * RADIANS_PER_LOD_DEGREE <= tolerance;
         for (let i = 0; i < info.points.length; i++)
-          if (protectedSet.has(info.id) || info.importance[i] >= tolerance
+          if (tinyRing || protectedSet.has(info.id) || info.importance[i] >= tolerance
             || protectedNodes.has(info.keys[i])) indices.push(i);
         // Preserve small islands and narrow rings in place instead of
         // invalidating an otherwise useful whole-world derivative. Shared
