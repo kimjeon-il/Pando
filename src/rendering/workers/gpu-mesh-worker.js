@@ -76,7 +76,7 @@ async function buildMesh(features, context, request = {}) {
   const lod = request.lod;
   let lodInfo = null, derived = false;
   if (lod) {
-    const { createSharedPolygonLodIndex } = await screenLodModule;
+    const { createSharedPolygonLodIndex, resolveScreenLodEdgeDegrees } = await screenLodModule;
     const sourceKey = String(request.sourceKey || '');
     if (!sourceKey) throw new TypeError('Screen LOD requires a verified source key.');
     try {
@@ -117,7 +117,9 @@ async function buildMesh(features, context, request = {}) {
         } else features = display.features;
       }
       lodInfo = { key: String(lod.key || ''), upperScale: lod.upperScale,
-        errorPx: lod.errorPx, originalVertices: display.originalVertices,
+        errorPx: lod.errorPx,
+        maxEdgeDegrees: resolveScreenLodEdgeDegrees({ cssScale: lod.upperScale, errorPx: lod.errorPx }),
+        originalVertices: display.originalVertices,
         keptVertices: display.keptVertices, arcCount: screenLodIndex.stats().arcCount,
         visibleCountryCount: screenLodScopedFeatures.length,
         slotCountryCount: screenLodFeatures.length,
@@ -142,7 +144,10 @@ async function buildMesh(features, context, request = {}) {
     { requestId: context.requestId, completed, total, phase }, { projectRevision: context.projectRevision });
   let mesh;
   try {
-    mesh = await (await countryPreparation).build(features, context, progress, { validate: derived });
+    mesh = await (await countryPreparation).build(features, context, progress, {
+      validate: derived,
+      maxEdgeDegrees: lodInfo?.maxEdgeDegrees || self.PandoLabGpuMeshCore.MAX_RENDER_EDGE_DEGREES,
+    });
   } catch (error) {
     if (!derived || error.name === 'AbortError' || error.cancelled) throw error;
     // A simplified polygon can be invalid even if its winding is preserved.
