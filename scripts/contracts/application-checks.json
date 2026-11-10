@@ -86,6 +86,8 @@
         "tests/unit/**/country-*.test.mjs",
         "tests/unit/rendering/screen-geometry-lod.test.mjs",
         "tests/unit/rendering/visible-country-lod.test.mjs",
+        "tests/unit/rendering/spatial-country-tile-lod.test.mjs",
+        "tests/unit/rendering/map-lod-topology-audit.test.mjs",
         "tests/unit/**/boundary-*.test.mjs",
         "tests/unit/**/lsib-*.test.mjs",
         "tests/unit/**/prepared-*.test.mjs",
