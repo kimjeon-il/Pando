@@ -1,9 +1,11 @@
 # Timeline records — T2-1 data contract
 
-Date: 2026-10-04. Normative companion to `docs/timeline-contract.md`.
+Date: 2026-10-04. Original T2-1 data contract; companion to `docs/timeline-contract.md`.
 
-Updated 2026-10-21: the current schema and independent lifetime/map-coverage
-contract below supersede T2-1's full-coverage rule. The T2 verification record
+> **Current product:** `timelineRecords` schema **3** in [`src/document/timeline-records.js`](../src/document/timeline-records.js), project schema **14** in [`src/runtime/version-contract.js`](../src/runtime/version-contract.js). This T2-1/T2-2 historical document retains schema-2 examples and verification results verbatim; those examples are **not current wire-schema instructions**.
+
+Updated 2026-10-21: the then-current schema and independent lifetime/map-coverage
+contract below superseded T2-1's full-coverage rule. The T2 verification record
 at the end remains historical evidence for that earlier implementation.
 
 ## Scope and integration boundary
@@ -21,7 +23,7 @@ The branch inputs are web `c01084dc32f519949bb92a610b064170fdff6a40` and app
 entities; app still has Country/Subunit/Region and a different project codec.
 Do not pretend these full project formats are already interchangeable.
 
-## Current record shape (schemaVersion 2)
+## 2026-10-21 record shape (schemaVersion 2; historical)
 
 ```text
 TimelineRecords {

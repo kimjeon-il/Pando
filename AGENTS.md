@@ -1,4 +1,4 @@
-# AGENTS.md ? PandoLab / world-map
+# AGENTS.md — PandoLab / Pando
 
 These instructions apply to the entire repository unless a deeper `AGENTS.md`
 or `AGENTS.override.md` provides more specific rules.
@@ -34,7 +34,7 @@ all maintained sources use the same commit and branch:
   resolve conflicts without silently choosing one side.
 - Never merge `work/*` into `main`, commit directly to `main`, deploy, or
   transfer changes between categories without explicit user instructions.
-- Verify Web and App changes independently even though they share a commit.
+- Verify the affected Web Viewer and its embedded read-only inspector workflows. Retired standalone Web/App parity gates remain historical evidence, not a live release requirement.
 - Exception branches or temporary worktrees require a concrete reason why an
   existing workspace cannot handle the work, and user approval. Do not delete
   them automatically after integration.
@@ -140,7 +140,7 @@ preparation/storage and publish only explicitly completed report scopes.
   `kimjeon-il/map-toolkit` repository at `D:/dev/Map Toolkit`. Follow its
   AGENTS.md and `docs/reference-map-plugin.md` for plugin work. Pando owns
   only common computation/storage tooling, current GeoPackage reading and E3
-  review. The current Viewer/Windows reviewer has no general GeoJSON editing UI;
+  review. The current Web Viewer and its embedded read-only inspector have no general GeoJSON editing UI;
   retained editor/Core regression adapters are not production import workflows.
 - For a completed Map Toolkit change that affects its packaged source, WASM or
   pinned analysis resources, finish focused checks, commit/push the reviewed
@@ -311,7 +311,7 @@ support forward.
 ## Rendering
 
 - All map resources follow the common dependency policy in
-  `assets/js/modules/resource-update-policy.js`. A date, viewport, project
+  `src/runtime/resource-dependency-policy.js` (re-exported by `src/rendering/resource-update-policy.js`). A date, viewport, project
   generation or unrelated revision change alone must not discard resources.
   Reuse unchanged inputs and prepared results; refresh only dependencies that
   actually changed, separating input loading, CPU preparation, GPU upload and

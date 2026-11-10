@@ -1,5 +1,7 @@
 # TerritorialEntity 공통 계약 — 일반객체·지방객체
 
+> **현행 구현 판본(2026-11-11 확인):** 프로젝트 14, 영토/Feature 모델 6, `timelineRecords` 3, 레이어 표현 5. 버전의 실행 정본은 [`src/runtime/version-contract.js`](../../src/runtime/version-contract.js), [`src/document/timeline-records.js`](../../src/document/timeline-records.js)다. 아래 2026-10-03~04 단계별 계획과 예시의 옛 판본은 **당시 기록**으로 보존하며 현재 지원되는 스키마라고 해석하지 않는다.
+
 확정일: 2026-10-03. 구현 정리 기준: 2026-10-04, `main` / `8b5f72e` 이후 단계 5·6 미커밋 변경.
 
 이 문서는 **공통 계약**이다. 국가와 하위단위를 동일한 일반객체로 통합하고,
@@ -53,7 +55,7 @@ TerritorialEntity
 | `type` | `"Feature"` | 공통 GeoJSON 표현 |
 | `id` | 비어 있지 않은 문자열, 기본값 없음 | 두 종류 전체에서 유일한 논리 ID |
 | `geometry` | Polygon/MultiPolygon, 기본값 없음 | 직접 소유하는 유효한 canonical 형상 |
-| `properties.schemaVersion` | 공통 모델 버전 `6` | 프로젝트 스키마 `13`, timelineRecords 스키마 `2` |
+| `properties.schemaVersion` | 공통 모델 버전 `6` | 현행 프로젝트 스키마 `14`, timelineRecords 스키마 `3` (원문 당시 `13`/`2`) |
 | `properties.entityKind` | `general` 또는 `regional`, 모델 입력에서 필수 | 일반객체 또는 지방객체. 계층 깊이·ID·교차 국가 수에서 추측하지 않음 |
 | `properties.name`, `notes` | 문자열, `""` | 명시적 이름과 메모 |
 | `properties.parentId` | 문자열, `""` | 일반객체의 상위 일반객체 ID. 지방객체에서는 반드시 빈 문자열 |
@@ -62,7 +64,7 @@ TerritorialEntity
 | `properties.locked` | Boolean, `false` | 편집 잠금 |
 | `properties.validFrom`, `validTo` | 기존 날짜 문자열 또는 `null`, 기본 `null` | 기존 기간 계약 유지 |
 | `properties.metadata` | 객체, `{}` | 국기·수도·원본 부가정보의 기존 의미 유지 |
-| `properties.sourceFolderId`, `sourceEntityId`, `sourceGeometryVersion` | 문자열, `""` | 원본 entity/version과 프로젝트 객체 ID 구분. [웹·앱 출처 계약](../territorial-source-contract.md) 참조 |
+| `properties.sourceFolderId`, `sourceEntityId`, `sourceGeometryVersion` | 문자열, `""` | 원본 entity/version과 프로젝트 객체 ID 구분. [영토 출처 계약·역사 교환 기록](../territorial-source-contract.md) 참조 |
 
 `unitType`, `associatedCountryId`, `sovereignId`는 최종 canonical 필드에 없다.
 ‘국가형/하위단위형’, 독립 권역 Boolean 또는 metadata 안의 동일한 역할 필드로
@@ -209,7 +211,7 @@ ID를 교체하지 않는다.
 root, parent, ancestors 또는 표시 범위 조회를 사용한다. 모든 호출을 무조건
 root로 치환하거나 옛 이름의 forwarding alias를 남기지 않는다.
 
-## 6. 현행→최종 대응과 적용 시점
+## 6. 2026-10-03 당시 현행→최종 대응과 적용 시점 (역사 기록)
 
 아래 대응표의 전환 전 기준은 단일 저장소와 unitType 3종류가 존재했던 cd85e14다.
 이미 제거된 국가 override/별도 컬렉션을 이번에 새로 제거할 대상으로 적지 않는다.
