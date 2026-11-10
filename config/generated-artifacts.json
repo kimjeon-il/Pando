@@ -244,9 +244,7 @@
       "inputs": [
         "src/rendering/workers/gpu-mesh-core.js",
         "projects/default-world/generation-inputs.json",
-        "projects/default-world/manifest.json",
-        "src/rendering/workers/polygon-raster-contract.js",
-        "src/rendering/polygon-mesh-codec.js"
+        "projects/default-world/manifest.json"
       ],
       "outputs": [
         "assets/data/prepared-polygons/generated/v2/"
