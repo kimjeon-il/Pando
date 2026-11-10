@@ -3,7 +3,8 @@ import test from 'node:test';
 import { createHash } from 'node:crypto';
 import { placeView } from "../../helpers/place-view.mjs";
 import { createPlaceWorkerStore, readPlaceResponse } from "../../../src/data/place-worker-store.js";
-import { normalizePlace, PLACE_LIMITS, PLACE_DISPLAY_TIERS, resolvePlaceDisplayRank } from "../../../src/document/place-contract.js";
+import { normalizePlace, PLACE_LIMITS } from "../../../src/document/place-contract.js";
+import { generateApprovedPlaceDisplayRanks } from "../../../tools/build/place-display-rank.mjs";
 import { layoutLabels } from "../../../src/rendering/label-layout.js";
 import { encodePlaceTile } from "../../../src/data/place-codec.js";
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
@@ -15,52 +16,40 @@ function fixture() {
   return { bytes, manifest };
 }
 
-test('restored five display bands give Seoul precedence over Daejeon at worker and layout boundaries', async () => {
+test('pinned GeoNames population/spatial scores decide Seoul versus Daejeon display order', async () => {
   const sourceRows = [
-    { sourceId: '1835235', name: '대전', coordinates: [127.38493, 36.34913], featureCode: 'PPLA' },
-    { sourceId: '1835848', name: '서울', coordinates: [126.9784, 37.566], featureCode: 'PPLC' },
-  ].map(value => normalizePlace({ source: 'geonames', kind: 'city', priority: 70, population: 0,
-    minZoom: 1.25, ...value }));
-  const [daejeon, seoul] = sourceRows;
-  assert.equal(resolvePlaceDisplayRank(seoul).tier, 1);
-  assert.equal(resolvePlaceDisplayRank(daejeon).tier, 3);
-  assert.equal(resolvePlaceDisplayRank(seoul).priority, PLACE_DISPLAY_TIERS[1].priority);
-  assert.ok(resolvePlaceDisplayRank(seoul).priority > resolvePlaceDisplayRank(daejeon).priority);
-  const allBands = ['PPLC','PPLG','PPLA','PPLA2','PPL'].map((featureCode,i) =>
-    resolvePlaceDisplayRank(normalizePlace({ source:'geonames', sourceId:String(9000+i),
-      kind:'city', name:'Sample', coordinates:[0,0], featureCode, priority:70, minZoom:1.25 })));
-  assert.deepEqual(allBands.map(style=>style.tier), [1,2,3,4,5]);
-  assert.ok(allBands.every((style,i)=>style===PLACE_DISPLAY_TIERS[i+1]));
-  assert.ok(allBands.every((style,i)=>i===0 || (
-    allBands[i-1].priority>style.priority && allBands[i-1].minZoom<style.minZoom
-  )));
-  for (const [source,kind] of [['synthetic','city'],['geonames','town']]) {
-    const unapproved=normalizePlace({source,sourceId:'9999',kind,name:'Unapproved',
-      coordinates:[0,0],featureCode:'PPLC',priority:70,minZoom:1.25});
-    assert.equal(resolvePlaceDisplayRank(unapproved).tier,null);
-  }
-  const candidateBox = row => {
-    const style=resolvePlaceDisplayRank(row);
-    return {key:row.id,point:[200,200],width:90,height:25,
-      priority:style.priority,minZoom:style.minZoom,collisionGroup:'place'};
-  };
-  assert.deepEqual(layoutLabels(sourceRows.map(candidateBox),{zoom:3}).map(row=>row.key),
-    [seoul.id], 'collision ordering may not fall back to ascending GeoNames ID');
-
-  const bytes=new Uint8Array(encodePlaceTile(sourceRows));
-  const {manifest}=fixture();
+    { id:'geonames:1835848', coordinates:[126.9784,37.566], population:10349312, featureCode:'PPLC' },
+    { id:'geonames:1835235', coordinates:[127.38493,36.34913], population:1441203, featureCode:'PPLA' },
+    { id:'geonames:1843564', coordinates:[126.70515,37.45646], population:3015482, featureCode:'PPLA' },
+  ];
+  const release = sourceRows.slice(0,2).map(row => normalizePlace({
+    source:'geonames',sourceId:row.id.split(':')[1],kind:'city',name:row.id,
+    coordinates:row.coordinates,priority:70,minZoom:1.25,featureCode:row.featureCode,
+  }));
+  const ranking = generateApprovedPlaceDisplayRanks(release, sourceRows, 'a'.repeat(64));
+  assert.equal(ranking.approvedCount,2);
+  assert.ok(ranking.entries['1835848'].population > ranking.entries['1835235'].population);
+  assert.ok(ranking.entries['1835848'].priority > ranking.entries['1835235'].priority);
+  assert.ok(ranking.entries['1835848'].minZoom < ranking.entries['1835235'].minZoom);
+  const bytes = new Uint8Array(encodePlaceTile(release));
+  const {manifest} = fixture();
   manifest.shards.s.bytes=bytes.length;
   manifest.tiles['0/0-0'].length=bytes.length;
   manifest.tiles['0/0-0'].sha256=sha256(bytes);
-  manifest.search={};
+  manifest.search={};manifest.displayRanking=ranking;
   const store=createPlaceWorkerStore({manifest,fetchBytes:async()=>bytes});
   const view={flatCenter:[127.2,37],width:800,height:600,scale:900};
-  const low=await store.queryViewport(placeView({...view,threshold:1}));
-  assert.deepEqual(low.records.map(row=>row.sourceId),[seoul.sourceId],
-    'Seoul must be visible at 1x while Daejeon waits for 2x');
-  const high=await store.queryViewport(placeView({...view,threshold:2}));
-  assert.deepEqual(high.records.map(row=>row.sourceId),[seoul.sourceId,daejeon.sourceId],
-    'both are available at 2x, ordered by the five-band display policy');
+  const seoul=await store.queryViewport(placeView({...view,threshold:1}));
+  assert.deepEqual(seoul.records.map(row=>row.sourceId),['1835848']);
+  assert.equal(seoul.records[0].population,10349312);
+  const all=await store.queryViewport(placeView({...view,threshold:5}));
+  assert.deepEqual(all.records.map(row=>row.sourceId),['1835848','1835235']);
+  const candidates=all.records.map(row=>({
+    key:row.id,point:[200,200],width:90,height:25,priority:row.priority,
+    minZoom:row.minZoom,collisionGroup:'place',
+  }));
+  assert.deepEqual(layoutLabels(candidates,{zoom:5}).map(row=>row.key),[all.records[0].id]);
+  assert.equal(decodePlaceTile(bytes)[0].population,0,'approved identity shard must not be rewritten');
 });
 
 test('place data revisions isolate stale responses and full shards do not request ranges', async t => {
