@@ -14,7 +14,7 @@ export function createCountryMeshPreparation({ engine, loadPreparedPart = null, 
       context.throwIfCancelled();
       const feature = features[index];
       const hashing = performance.now();
-      const key = `${engine.MESH_ALGORITHM_REVISION}:${engine.MAX_RENDER_EDGE_DEGREES}:${feature.geometry ? await polygonGeometryDigest(feature.geometry) : 'empty'}`;
+      const key = `${engine.MESH_ALGORITHM_REVISION}:${engine.MAX_RENDER_EDGE_DEGREES}:${validate ? 'validated' : 'canonical'}:${feature.geometry ? await polygonGeometryDigest(feature.geometry) : 'empty'}`;
       preparation.hashMs += performance.now() - hashing;
       context.throwIfCancelled();
       let part = cache.get(key);
