@@ -74,7 +74,7 @@ export function createGpuMeshWorkerJobs({ createWorker, createRebuildWorker = cr
       });
       if (lodRpc !== current || !accepts()) return null;
       // Mark the source reusable only after Worker admission was acknowledged.
-      lodSourceInWorker = payload.sourceKey;
+      lodSourceInWorker = response.result?.lod?.sourceCached === true ? payload.sourceKey : '';
       return response.result;
     } catch (error) {
       if (error.cancelled || error.name === 'AbortError' || lodRpc !== current || !accepts()) return null;
