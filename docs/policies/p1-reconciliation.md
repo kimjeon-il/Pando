@@ -1,7 +1,7 @@
 # P1 — 중복 규칙 통합·구형 참조 정리 결과 (2026-11-11)
 
 > 대상: `kimjeon-il/Pando` 기존 상설 `work/ui`  
-> P0 근거: [inventory.p0.json](inventory.p0.json), [P0 중앙 색인](README.md)  
+> P0 근거: [inventory.p0.json](inventory.p0.json), [P0 중앙 색인](p0-overview.md)  
 > 현재 코드의 현행성과 역사 문서의 당시 효력을 구분한다. **제품 동작·외부 데이터 핀·스키마·이전 증거의 바이트를 변경하는 작업이 아니다.**
 
 ## 처리 원칙
