@@ -73,7 +73,9 @@
       ],
       "inputs": [
         "assets/data/historical-world/policy.json",
-        "assets/data/builtin-world/display-policy-v1.json"
+        "assets/data/builtin-world/display-policy-v1.json",
+        "projects/default-world/generation-inputs.json",
+        "projects/default-world/manifest.json"
       ],
       "outputs": [
         "assets/data/builtin-world/generated/v1/"
@@ -106,7 +108,9 @@
       ],
       "inputs": [
         "assets/data/world/build-input.json",
-        "src/rendering/workers/gpu-mesh-core.js"
+        "src/rendering/workers/gpu-mesh-core.js",
+        "projects/default-world/generation-inputs.json",
+        "projects/default-world/manifest.json"
       ],
       "outputs": [],
       "generate": [
@@ -140,7 +144,9 @@
       "inputs": [
         "assets/data/world/build-input.json",
         "assets/js-vendor/d3.min.js",
-        "src/rendering/workers/gpu-mesh-core.js"
+        "src/rendering/workers/gpu-mesh-core.js",
+        "projects/default-world/generation-inputs.json",
+        "projects/default-world/manifest.json"
       ],
       "outputs": [],
       "generate": [
@@ -171,7 +177,9 @@
         "world-preview"
       ],
       "inputs": [
-        "assets/data/world/build-input.json"
+        "assets/data/world/build-input.json",
+        "projects/default-world/generation-inputs.json",
+        "projects/default-world/manifest.json"
       ],
       "outputs": [
         "assets/data/world/current.json"
@@ -235,6 +243,8 @@
       ],
       "inputs": [
         "src/rendering/workers/gpu-mesh-core.js",
+        "projects/default-world/generation-inputs.json",
+        "projects/default-world/manifest.json",
         "src/rendering/workers/polygon-raster-contract.js",
         "src/rendering/polygon-mesh-codec.js"
       ],
