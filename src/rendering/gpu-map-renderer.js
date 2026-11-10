@@ -4147,12 +4147,17 @@ export function createGpuMapRenderer(deps) {
     }
 
     function currentCountryStrokeResources() {
+      const canonicalEntry = meshVariants.get('canonical');
+      const canonicalSource = canonicalEntry?.mesh || mesh;
+      const canonicalIds = canonicalEntry?.countryIds || meshCountryIds;
       const activeRevision = `${activeMeshQuality}:${countryStrokeMeshRevision(mesh)}:${mesh?.lineIndices?.length || 0}`;
+      const exactRevision = `canonical:${countryStrokeMeshRevision(canonicalSource)}:${canonicalSource?.lineIndices?.length || 0}`;
       const revisionOverride = `override:${countryStrokeMeshRevision(overrideMesh)}:${overrideMesh?.lineIndices?.length || 0}`;
       const base = buildCountryStrokeResource(mesh, meshCountryIds, activeMeshQuality, activeRevision);
       return Object.freeze({
         base,
-        selectionBase: base,
+        selectionBase: canonicalSource === mesh ? base
+          : buildCountryStrokeResource(canonicalSource, canonicalIds, 'canonical', exactRevision),
         override: buildCountryStrokeResource(overrideMesh, meshCountryIds, 'override', revisionOverride),
       });
     }
@@ -5829,13 +5834,16 @@ export function createGpuMapRenderer(deps) {
     function getCountryInteractionBoundaryData() {
       const pendingIds = geometryRevisionTracker.pendingIds().map(String).sort();
       const overriddenIds = [...countryOverrideIds].map(String).sort();
-      const visibleIds = meshCountryIds.filter(id => isCountryVisibleById(id));
+      const canonicalEntry = meshVariants.get('canonical');
+      const exactMesh = canonicalEntry?.mesh || mesh;
+      const exactIds = canonicalEntry?.countryIds || meshCountryIds;
+      const visibleIds = exactIds.filter(id => isCountryVisibleById(id));
       const strokeResources = currentCountryStrokeResources();
       return {
-        revision: [activeMeshQuality, geometryRevisionTracker.committedRevision(), geometryRevisionTracker.displayedRevision(), mesh?.lineIndices?.length || 0, overrideMesh?.lineIndices?.length || 0, pendingIds.join(','), overriddenIds.join(','), Number(state.objectPresentationRevision || 0)].join(':'),
-        base: mesh,
+        revision: ['canonical-interaction', geometryRevisionTracker.committedRevision(), geometryRevisionTracker.displayedRevision(), exactMesh?.lineIndices?.length || 0, overrideMesh?.lineIndices?.length || 0, pendingIds.join(','), overriddenIds.join(','), Number(state.objectPresentationRevision || 0)].join(':'),
+        base: exactMesh,
         override: overrideMesh,
-        countryIds: meshCountryIds,
+        countryIds: exactIds,
         pendingIds,
         overriddenIds,
         visibleIds,
