@@ -216,4 +216,36 @@ test('screen LOD transfers canonical geometry once, reuses source, and resets af
   await third;
   jobs.cancelAll();
 });
+
+test('a stale viewport reply may cache its source but cannot publish its old frame', async () => {
+  const workers = [], sent = [];
+  const jobs = createGpuMeshWorkerJobs({ isCurrent: () => true, createWorker: () => {
+    const worker = { postMessage: value => sent.push(value), terminate() {} };
+    workers.push(worker);
+    return worker;
+  } });
+  const features = [{ id: 'A', geometry: { type: 'Polygon', coordinates: [[
+    [0, 0], [1, 0], [1, 1], [0, 1], [0, 0],
+  ]] } }];
+  const payload = { features, sourceKey: 'same-topology', projectGeneration: 2,
+    geometryRevision: 5, lod: { key: '256:0.5', upperScale: 256, errorPx: 0.5 } };
+  let oldView = true;
+  const first = jobs.prepareDisplayLod(payload, () => oldView);
+  for (let i = 0; i < 20 && !sent.length; i++) await Promise.resolve();
+  const firstMessage = sent.at(-1);
+  oldView = false;
+  workers[0].onmessage({ data: { ...firstMessage, type: 'result', ok: true,
+    result: { lod: { sourceCached: true, simplified: false } } } });
+  assert.equal(await first, null);
+  const next = jobs.prepareDisplayLod({ ...payload,
+    lod: { key: '512:0.5', upperScale: 512, errorPx: 0.5 } });
+  for (let i = 0; i < 20 && sent.length < 2; i++) await Promise.resolve();
+  const newerMessage = sent.at(-1);
+  assert.equal(workers.length, 1);
+  assert.equal(newerMessage.payload.useCachedSource, true);
+  workers[0].onmessage({ data: { ...newerMessage, type: 'result', ok: true,
+    result: { lod: { sourceCached: true, simplified: false } } } });
+  await next;
+  jobs.cancelAll();
+});
 });
