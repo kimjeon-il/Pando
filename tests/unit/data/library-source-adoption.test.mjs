@@ -50,6 +50,102 @@ function currentFixture(){
  return f;
 }
 
+function subgeometryFixture({dated=false,type='MultiPolygon'}={}){
+ const f=dated?currentFixture():fixture(),old=f.before.geometryVersions.at(-1),v=f.next.geometryVersions.at(-1);
+ const ring=(x,y,size)=>[[x,y],[x,y+size],[x+size,y+size],[x+size,y],[x,y]];
+ const polygons=[[ring(0,0,10),ring(1,1,1),ring(4,4,1),ring(7,7,1)],[ring(20,20,1)]];
+ old.geometry={type,coordinates:type==='Polygon'?polygons[0]:polygons};v.geometry=structuredClone(old.geometry);
+ const target=type==='Polygon'?v.geometry.coordinates:v.geometry.coordinates[0];
+ target[1]=ring(1.1,1.1,1);target[2]=ring(4.1,4.1,1);
+ f.proof.method='lossless-original-subgeometry';v.modernBoundarySupplement.adoptionMode=f.proof.method;
+ delete f.proof.topology.noSharedBoundaryReason;
+ f.proof.topology.counterpartVersions=[1,2].map(i=>({entityId:'state:BBB'+i,versionId:'modern',geometrySha256:digest({type:'Polygon',coordinates:[target[i]]})}));
+ f.proof.subgeometryChanges=[1,2].map((i)=>({kind:'complete-hole-ring',target:{polygonIndex:0,ringIndex:i},original:{polygonIndex:634,ringIndex:i,coordinates:structuredClone(target[i]),coordinatesSha256:hash(JSON.stringify(target[i]))},previousCoordinatesSha256:hash(JSON.stringify(polygons[0][i])),coordinatesSha256:hash(JSON.stringify(target[i])),counterpartVersion:structuredClone(f.proof.topology.counterpartVersions[i-1])}));
+ f.refresh=()=>{
+  f.proof.previousGeometrySha256=digest(old.geometry);f.proof.geometrySha256=digest(v.geometry);
+  if(dated){
+   const priorSha=digest(old.geometry);
+   for(const e of [f.before,f.next]){e.geometryVersions.at(-1).historicalProvenance.currentGeometrySource.geometrySha256=priorSha;e.geometryVersions.at(-1).modernBoundarySupplement.geometrySha256=priorSha;}
+   v.modernBoundarySupplement.priorPreparedAttribution.geometrySha256=priorSha;
+   f.priorProof.rows[0].candidateGeometrySha256=f.priorProof.rows[0].donorGeometrySha256=priorSha;
+   f.priorBytes=Buffer.from(JSON.stringify(f.priorProof));const sha=hash(f.priorBytes);f.proof.priorPreparedSourceReview.sha256=sha;
+   for(const e of [f.before,f.next]){e.geometryVersions.at(-1).historicalProvenance.currentGeometrySource.sourceReview.sha256=sha;e.geometryVersions.at(-1).modernBoundarySupplement.sourceReview.sha256=sha;}
+   v.modernBoundarySupplement.priorPreparedAttribution.sourceReview.sha256=sha;f.next.sourceInfo.geometrySha256=digest(v.geometry);
+  }
+  f.bytes=Buffer.from(JSON.stringify(f.proof));v.modernBoundarySupplement.sourceAdoptionReview.sha256=hash(f.bytes);
+  f.prefixes=[base+'countries/state-AAA.json',base+'geometries/sha256-'+hash(JSON.stringify(v.geometry)+'\n')+'.json'];
+ };
+ f.readEvidence=reference=>reference===f.proof.priorPreparedSourceReview?.reference?f.priorBytes:f.bytes;
+ f.refresh();return f;
+}
+
+for(const options of [{},{type:'Polygon'},{dated:true}])test('archived original complete holes admit source-only replacement '+JSON.stringify(options),()=>{
+ const f=subgeometryFixture(options),snapshot=structuredClone(f.next);
+ assert.equal(assertHistoricalSourceStorageChanges(f.next,f.before,f),1);assert.deepEqual(f.next,snapshot);
+ assert.throws(()=>assertHistoricalDisplayChanges(f.next,f.before),/Historical display review required/);
+ const v=f.next.geometryVersions.at(-1),compiled={entityId:f.next.entityId,identity:{properties:{metadata:{historicalTimeline:{geometryVersions:[v]}}}},geometries:[{id:'g',version:1,geojson:v.geometry}],sourceBindings:[{sourceVersionId:v.versionId,geometryRef:{id:'g',version:1},validFrom:v.validFrom,validTo:null}]};
+ assert.throws(()=>assertHistoricalCompiledChanges(compiled,null),/Historical display review required/);
+});
+
+for(const kind of ['missing changes','empty changes','arbitrary arc','exterior index','missing hole','bad target index','bad source index','source exterior','duplicate target','unchanged target','missing original coordinates','corrupt original hash','stale previous ring hash','stale candidate ring hash','moved original vertex','rotated original ring','open original ring','invalid coordinate','short ring','moved candidate vertex','added candidate vertex','unlisted hole','changed exterior','changed component','added hole','removed hole','geometry type','geometry metadata','missing counterpart','stale counterpart','self counterpart','unreviewed counterpart','missing topology checks','whole feature attribution','whole feature method','source attribution hash','changed parent','changed provenance','changed lifetime','missing archived evidence','corrupt archived evidence'])test('partial source admission rejects '+kind,()=>{
+ const f=subgeometryFixture(),v=f.next.geometryVersions[0],changes=f.proof.subgeometryChanges,c=changes[0];
+ if(kind==='missing changes')delete f.proof.subgeometryChanges;
+ if(kind==='empty changes')f.proof.subgeometryChanges=[];
+ if(kind==='arbitrary arc')c.kind='open-arc';
+ if(kind==='exterior index')c.target.ringIndex=0;
+ if(kind==='missing hole')c.target.ringIndex=8;
+ if(kind==='bad target index')c.target.polygonIndex=0.5;
+ if(kind==='bad source index')c.original.polygonIndex=-1;
+ if(kind==='source exterior')c.original.ringIndex=0;
+ if(kind==='duplicate target')changes.push(structuredClone(c));
+ if(kind==='unchanged target'){c.target.ringIndex=3;c.original.coordinates=structuredClone(v.geometry.coordinates[0][3]);c.original.coordinatesSha256=c.previousCoordinatesSha256=c.coordinatesSha256=hash(JSON.stringify(c.original.coordinates));}
+ if(kind==='missing original coordinates')delete c.original.coordinates;
+ if(kind==='corrupt original hash')c.original.coordinatesSha256=hash('wrong');
+ if(kind==='stale previous ring hash')c.previousCoordinatesSha256=hash('wrong');
+ if(kind==='stale candidate ring hash')c.coordinatesSha256=hash('wrong');
+ if(kind==='moved original vertex'){c.original.coordinates[1][0]+=0.1;c.original.coordinatesSha256=hash(JSON.stringify(c.original.coordinates));}
+ if(kind==='rotated original ring'){const r=c.original.coordinates;r.shift();r.push(structuredClone(r[0]));c.original.coordinatesSha256=hash(JSON.stringify(r));}
+ if(kind==='open original ring'){c.original.coordinates.pop();c.original.coordinatesSha256=hash(JSON.stringify(c.original.coordinates));}
+ if(kind==='invalid coordinate'){c.original.coordinates[1][0]='1.1';c.original.coordinatesSha256=hash(JSON.stringify(c.original.coordinates));}
+ if(kind==='short ring'){c.original.coordinates=[[1,1],[2,2],[1,1]];c.original.coordinatesSha256=hash(JSON.stringify(c.original.coordinates));}
+ if(kind==='moved candidate vertex')v.geometry.coordinates[0][1][1][0]+=0.1;
+ if(kind==='added candidate vertex')v.geometry.coordinates[0][1].splice(1,0,[1.1,1.2]);
+ if(['moved candidate vertex','added candidate vertex'].includes(kind))c.coordinatesSha256=hash(JSON.stringify(v.geometry.coordinates[0][1]));
+ if(kind==='unlisted hole')changes.pop();
+ if(kind==='changed exterior')v.geometry.coordinates[0][0][1][0]+=0.1;
+ if(kind==='changed component')v.geometry.coordinates[1][0][1][0]+=0.1;
+ if(kind==='added hole')v.geometry.coordinates[0].push(structuredClone(v.geometry.coordinates[0][1]));
+ if(kind==='removed hole')v.geometry.coordinates[0].pop();
+ if(kind==='geometry type'){v.geometry={type:'Polygon',coordinates:v.geometry.coordinates[0]};}
+ if(kind==='geometry metadata')v.geometry.bbox=[0,0,30,30];
+ if(kind==='missing counterpart')delete c.counterpartVersion;
+ if(kind==='stale counterpart')c.counterpartVersion.geometrySha256=hash('wrong');
+ if(kind==='self counterpart'){c.counterpartVersion.entityId=f.next.entityId;f.proof.topology.counterpartVersions[0].entityId=f.next.entityId;}
+ if(kind==='unreviewed counterpart'){f.proof.topology.counterpartVersions=[];f.proof.topology.noSharedBoundaryReason='not applicable';}
+ if(kind==='missing topology checks')f.proof.topology.checks=['validity'];
+ if(kind==='whole feature attribution')v.modernBoundarySupplement.adoptionMode='lossless-original-feature';
+ if(kind==='whole feature method')f.proof.method='lossless-original-feature';
+ if(kind==='source attribution hash'){f.next.sourceInfo={geometrySha256:hash('wrong')};f.proof.sourceInfoGeometryDigestFormat='sha256(JSON.stringify([geometry.type, geometry.coordinates]))';}
+ if(kind==='changed parent')f.next.parentId='state:changed';
+ if(kind==='changed provenance')v.historicalProvenance.status='approved';
+ if(kind==='changed lifetime')f.next.lifetime.validFrom='1800';
+ f.refresh();
+ if(kind==='missing archived evidence')f.readEvidence=()=>undefined;
+ if(kind==='corrupt archived evidence')f.readEvidence=()=>Buffer.from('{}');
+ assert.throws(()=>assertHistoricalSourceStorageChanges(f.next,f.before,f),/Raw source adoption:/);
+});
+
+for(const kind of ['other geometry','other attribution','prior approval','prior evidence','period'])test('dated partial source preserves existing approval requirement for '+kind,()=>{
+ const f=subgeometryFixture({dated:true}),v=f.next.geometryVersions.at(-1);
+ if(kind==='other geometry')f.next.geometryVersions[0].geometry.coordinates[0][1][0]+=0.1;
+ if(kind==='other attribution')f.next.geometryVersions[0].sourceId='changed';
+ if(kind==='prior approval')delete f.before.geometryVersions.at(-1).historicalProvenance.currentGeometrySource;
+ if(kind==='prior evidence')delete f.proof.priorPreparedSourceReview;
+ if(kind==='period')v.validFrom='2003-01-01';
+ // Keep archived evidence unchanged: its original input binding cannot authorize these changes.
+ assert.throws(()=>assertHistoricalSourceStorageChanges(f.next,f.before,f),/Raw source adoption:/);
+});
+
 test('selected dated current source admits raw geometry while preserving other versions and display gates',()=>{
  const f=currentFixture(),snapshot=structuredClone(f.next);
  assert.equal(assertHistoricalSourceStorageChanges(f.next,f.before,f),1);assert.deepEqual(f.next,snapshot);
@@ -109,8 +205,8 @@ for(const kind of ['missing evidence','corrupt evidence','stale geometry','chang
  if(kind==='unrelated resource')f.prefixes[1]=base+'geometries/sha256-'+hash('unrelated')+'.json';
  assert.throws(()=>assertHistoricalSourceStorageChanges(f.next,f.before,f));
 });
-for(const multiversion of [false,true])test('actual source storage reads archived proof and preserves generated data'+(multiversion?' for a selected dated current version':''),t=>{
- const f=multiversion?currentFixture():fixture(),parent=mkdtempSync(join(tmpdir(),'pando-source-admission-')),root=join(parent,'app'),data=join(root,'.library-data/repository');
+for(const partial of [false,true])for(const multiversion of [false,true])test('actual source storage reads archived proof and preserves generated data'+(partial?' for partial holes':'')+(multiversion?' for a selected dated current version':''),t=>{
+ const f=partial?subgeometryFixture({dated:multiversion}):multiversion?currentFixture():fixture(),parent=mkdtempSync(join(tmpdir(),'pando-source-admission-')),root=join(parent,'app'),data=join(root,'.library-data/repository');
  t.after(()=>rmSync(parent,{recursive:true,force:true}));
  const put=(r,p,b)=>{mkdirSync(dirname(join(r,p)),{recursive:true});writeFileSync(join(r,p),b);};
  const git=(r,...args)=>execFileSync('git',['-c','core.autocrlf=false',...args],{cwd:r,encoding:'utf8',stdio:'pipe'}).trim();

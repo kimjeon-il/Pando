@@ -372,3 +372,7 @@ Linux Node 22 CI와 로컬 Windows Node 24 사이의 정확한 재생성 차이 
 4. `scripts/generate-build-metadata.mjs`
 
 각 빌더는 `node tools/<파일명>`으로 실행한다. 이미 현재 canonical 공유 경계를 생성했다면 새 preview 생성 후 `node tools/build/build-country-shared-boundaries.mjs --quality=preview`만 실행해 같은 canonical 계산을 반복하지 않는다. 생성과 별도 검사·벤치마크를 구분하며, 외부 자료 저장소 안에서는 실행하지 않는다.
+
+## Original enclave-hole source adoption
+
+The source-only lossless-original-subgeometry receipt supports complete existing hole-ring replacements. Its hash-bound archived review embeds exact original ordered coordinates and old/new ring hashes, names the paired counterpart versions, and preserves every unlisted coordinate, geometry field, version and ownership field. A partial source must not claim whole-feature original provenance. Dated source approval requirements remain unchanged. This receipt does not authorize display or compiled publication; their existing validators still apply.

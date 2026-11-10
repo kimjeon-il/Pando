@@ -93,9 +93,33 @@ export function assertHistoricalSourceStorageChanges(next,previous,{prefixes,rea
     ||row.donorGeometrySha256!==digest(old.geometry)||row.exactDonorCoordinateCopy!==true||row.periodPreserved!==true
     ||row.candidate?.valid!==true||row.candidate.empty!==false)fail('stale prior current-source adoption evidence');
  }
- if(review.method!=='lossless-original-feature'||review.rawCoordinateRoundtrip!==true||!evidence(review.source))fail('lossless original feature evidence required');
+ if(!['lossless-original-feature','lossless-original-subgeometry'].includes(review.method)||review.rawCoordinateRoundtrip!==true||!evidence(review.source))fail('lossless original source evidence required');
  const topology=review.topology;
  if(topology?.status!=='passed'||!Array.isArray(topology.checks)||['validity','shared-boundary','gaps-overlaps','holes-islands','ownership'].some(k=>!topology.checks.includes(k))||!Array.isArray(topology.counterpartVersions)||!topology.counterpartVersions.every(c=>c.entityId&&c.versionId&&requiredHash(c.geometrySha256))||(!topology.counterpartVersions.length&&!topology.noSharedBoundaryReason))fail('ownership and topology review required');
+ if(review.method==='lossless-original-subgeometry'){
+  if(v.modernBoundarySupplement.adoptionMode!==review.method)fail('explicit partial source attribution required');
+  if(next.sourceInfo?.geometrySha256!==undefined&&(review.sourceInfoGeometryDigestFormat!=='sha256(JSON.stringify([geometry.type, geometry.coordinates]))'||next.sourceInfo.geometrySha256!==review.geometrySha256))fail('source attribution geometry hash or explicit format is stale');
+  const changes=review.subgeometryChanges;
+  if(!Array.isArray(changes)||!changes.length||!['Polygon','MultiPolygon'].includes(old.geometry.type)||v.geometry.type!==old.geometry.type)fail('complete original hole replacements required');
+  const polygons=geometry=>geometry.type==='Polygon'?[geometry.coordinates]:geometry.coordinates;
+  const expected=structuredClone(old.geometry),beforePolygons=polygons(old.geometry),afterPolygons=polygons(v.geometry),expectedPolygons=polygons(expected),seen=new Set();
+  const ringHash=ring=>createHash('sha256').update(JSON.stringify(ring)).digest('hex');
+  const closedRing=ring=>Array.isArray(ring)&&ring.length>=4&&ring.every(p=>Array.isArray(p)&&p.length===2&&p.every(Number.isFinite))&&isDeepStrictEqual(ring[0],ring.at(-1));
+  const holeIndex=index=>index&&Number.isSafeInteger(index.polygonIndex)&&index.polygonIndex>=0&&Number.isSafeInteger(index.ringIndex)&&index.ringIndex>0;
+  for(const change of changes){
+   const {target,original,counterpartVersion}=change||{};
+   if(change?.kind!=='complete-hole-ring'||!holeIndex(target)||!holeIndex(original))fail('only indexed complete original holes are supported');
+   const key=target.polygonIndex+':'+target.ringIndex,prior=beforePolygons[target.polygonIndex]?.[target.ringIndex],candidate=afterPolygons[target.polygonIndex]?.[target.ringIndex];
+   if(seen.has(key)||!closedRing(prior)||!closedRing(candidate)||!closedRing(original.coordinates)||isDeepStrictEqual(prior,candidate))fail('distinct changed existing complete holes required');
+   seen.add(key);
+   // Original coordinate payload is inside the hash-checked archived review and
+   // bound to its source feature receipt. No generated, reordered or moved vertices.
+   if(change.previousCoordinatesSha256!==ringHash(prior)||change.coordinatesSha256!==ringHash(candidate)||original.coordinatesSha256!==ringHash(original.coordinates)||!isDeepStrictEqual(candidate,original.coordinates))fail('stale or nonoriginal hole coordinates');
+   if(!counterpartVersion||counterpartVersion.entityId===next.entityId||!topology.counterpartVersions.some(c=>c.entityId===counterpartVersion.entityId&&c.versionId===counterpartVersion.versionId&&c.geometrySha256===counterpartVersion.geometrySha256))fail('paired hole counterpart topology review required');
+   expectedPolygons[target.polygonIndex][target.ringIndex]=candidate;
+  }
+  if(!isDeepStrictEqual(expected,v.geometry))fail('coordinates outside selected holes changed');
+ }else if(review.subgeometryChanges!==undefined||v.modernBoundarySupplement.adoptionMode==='lossless-original-subgeometry')fail('partial source cannot claim original whole feature');
  return 1;
 }
 /** Compiled-only writes must cover each changed dated binding, including derivatives. */
