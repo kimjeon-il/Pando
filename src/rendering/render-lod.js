@@ -213,7 +213,7 @@ export function createSharedPolygonLodIndex(features, { precision = 7 } = {}) {
       });
       const info = { id, polygonIndex, ringIndex, points, keys, edgeKeys,
         originalArea: lodSignedArea(points), importance: new Float64Array(points.length),
-        protected: ringIndex > 0 || hasDatelineJump(ring)
+        protected: polygon.length > 1 || ringIndex > 0 || hasDatelineJump(ring)
           || points.some(point => Math.abs(point[1]) >= 85) };
       allRings.push(info);
       return info;
@@ -271,12 +271,15 @@ export function createSharedPolygonLodIndex(features, { precision = 7 } = {}) {
     const tolerance = errorPx / cssScale;
     if (!Number.isFinite(tolerance) || tolerance < 0) throw new TypeError('Invalid LOD screen scale.');
     const protectedSet = new Set([...protectedIds].map(String));
+    const protectedNodes = new Set();
+    if (protectedSet.size) for (const [key, node] of nodes)
+      if ([...node.owners].some(owner => protectedSet.has(owner))) protectedNodes.add(key);
     let invalid = false, originalVertices = 0, keptVertices = 0;
     const output = features.map((feature, index) => {
       const polygons = byFeature[index].map(polygon => polygon.map(info => {
         originalVertices += info.points.length;
         const selected = protectedSet.has(info.id) ? info.points
-          : info.points.filter((_, i) => info.importance[i] >= tolerance);
+          : info.points.filter((_, i) => info.importance[i] >= tolerance || protectedNodes.has(info.keys[i]));
         keptVertices += selected.length;
         if (selected.length < 3 || Math.sign(lodSignedArea(selected)) !== Math.sign(info.originalArea))
           invalid = true;
