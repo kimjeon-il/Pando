@@ -1,5 +1,7 @@
 # Rendering unit contract consolidation
 
+> **검사 소유권·이행 결과 분리:** 아래 P0~P7 검사 통합은 당시 `work/optimization`의 결정과 결과 기록이다. 현재 실행 그룹과 전제 조건은 [`scripts/contracts/application-checks.json`](../../scripts/contracts/application-checks.json), 실행기는 `scripts/run-application-checks.mjs`의 현행 계약을 따른다. [검증 정책 안내](../policies/validation.md)에서 연결한다. 이전 파일 목록·실패·검증 범위는 현행 allowlist나 CI 성공 판정이 아니다.
+
 Scope: the Web Viewer render pipeline, WebGL GPU resources, Canvas fallback,
 renderer and mesh Workers, terrain runtime and terrain build/verification.
 Owner branch: `work/optimization`. This is a test-only migration; it does not

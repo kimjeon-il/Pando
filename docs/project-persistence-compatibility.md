@@ -1,5 +1,7 @@
 # P6 — 프로젝트 저장·복원 및 호환성 경계
 
+> **현행 정본·당시 검증의 구분:** 지원하는 프로젝트 스키마는 코드의 [`src/runtime/version-contract.js`](../src/runtime/version-contract.js)와 [프로젝트 읽기·검증](../src/document/project-state.js)에서 확인한다. 아래 GPKG/정본·출처 보존 제한은 [객체·시간축](policies/objects-time.md) 및 [프로젝트·자료](policies/data-projects.md) 색인에서 찾을 수 있다. `work/objects` P6 테스트 명령·범위와 결과는 당시 검증 계획으로 보존하며 현재 저장/복원 기능의 전체 인수검사를 인증하지 않는다.
+
 기준: `work/objects` P0–P5 후속 작업, 2026-11-06. 이 문서는 현재 지원 범위를 기록하며 이전 버전의 마이그레이션을 약속하지 않는다.
 
 ## 정본과 버전
@@ -20,7 +22,7 @@
 - 파일 저장은 정본 C++에서 동일 epoch의 프로젝트 JSON과 공간 투영을 받아 인코딩한다. 파일 기록 중 편집이 진행되면 구 epoch의 저장 완료를 최신 문서의 저장 완료로 간주하지 않는다.
 - 기존 편집 경로의 자동저장 계약은 `pandolab-autosave-full` 전체 snapshot(영역 정체성·타임라인·형상 archive 포함)이다. 과거 delta 계약을 읽어야 한다면 `baseDataset` 및 정확한 `baseDatasetFingerprint`가 일치할 때만 복원하며, 불일치 시 기존 문서를 유지하고 오류를 반환한다. Viewer에 별도 자동저장 writer나 두 번째 프로젝트 소유자를 추가하지 않는다.
 
-## 최소 회귀 검증
+## P6 당시 최소 회귀 검증 기준
 
 - `tests/unit/data/p6-project-persistence.test.mjs`: 정본 버전·문서 ID·출처 일치, 국기 sidecar 무손실/충돌 거부, IndexedDB 문서별 격리.
 - `tests/unit/core-gpkg-file-boundary.test.mjs`: 정적·복합 타임라인 C++ export → 실제 GPKG → import 후 정본 전체 일치.

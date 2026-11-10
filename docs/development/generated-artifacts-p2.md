@@ -1,5 +1,7 @@
 # P2/P7 — 생성물 입력 그래프와 원격 게시
 
+> **현재 규범과 단계별 작업 구분:** 생성물 계열의 입력·의존성·실행자·검증자·출력 소유권은 [`config/generated-artifacts.json`](../../config/generated-artifacts.json)이 기계 정본이다. 저장·원본 보존 제한은 [자료 프로젝트 정책](../policies/data-projects.md)에 연결한다. 아래 P2/P7 실행 순서와 당시 보류·검증 결과는 해당 작업의 이력이며 매 변경마다 전체 재생성하거나 별도 앱을 게시하는 명령이 아니다.
+
 공통 C++ 빌드는 루트 CMake 프리셋을 사용한다. 생성물의 정본 입력·생성기·검증기·소비 위치는 `config/generated-artifacts.json`에 기록한다. 기존 계열별 manifest는 유지한다.
 
 ## 소유권과 도구
@@ -13,7 +15,7 @@
 | 수계·지형 원본 가공 | 명시적인 GIS 데이터 작업 | 원본 출처·버전·해시 필요; 일반 개발에서 Python 설치/다운로드 없음 |
 
 
-## 계획과 실행
+## 당시 계획과 실행 (P2/P7 기록)
 
 `.github/workflows/generated-artifacts-p2.yml`은 `work/ui`, `work/objects`, `work/gis`, `work/places`에서 실제 입력 지문을 비교한다. 브랜치 이름으로 계열을 제한하지 않는다.
 
@@ -48,6 +50,6 @@ gh workflow run generated-artifacts-p2.yml --ref work/objects -f scope=auto
 
 정상 자동 소스 push의 검증은 P3가 최종 결과 SHA에서 수행한다. 원본 push 때 오래된 WASM으로 P3를 먼저 실행하지 않는다. 구현 중 수동 생성과 P9 최종 검증의 구체적 실행 범위는 workflow 입력으로 구분한다.
 
-## 검증 상태
+## 당시 검증 상태 및 아직 남은 근거
 
 이 문서는 실행 계약이다. 구현 여부와 실제 실행 증거, 미검증 항목은 `reports/development/performance/p6-p9-execution-2026-10-16.md`에 기록한다. 그래프 등록만으로 실제 자산 재생성·앱/웹 동등성·성능 통과를 뜻하지 않는다.
