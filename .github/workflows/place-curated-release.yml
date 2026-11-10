@@ -10,6 +10,7 @@ on:
       - 'tools/build/place-display-rank.mjs'
       - 'tools/build/build-place-runtime.mjs'
       - 'tests/unit/data/place-display-rank.test.mjs'
+      - 'tests/unit/data/place-worker-store.test.mjs'
 
 permissions:
   contents: write
