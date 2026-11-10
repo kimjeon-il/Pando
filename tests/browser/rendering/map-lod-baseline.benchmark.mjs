@@ -46,7 +46,18 @@ for (const projection of ['globe', 'flat']) for (const device of [
             globeZoom: zoom } });
           host.requestRepaint('lod-p0-benchmark');
         }, { projection, zoom });
-        await page.waitForTimeout(1700);
+        // The LOD worker can finish *after* the next animation frame. Do not
+        // misreport an uncommitted canonical fallback as a measured LOD frame.
+        let lodSettled = false;
+        try {
+          await page.waitForFunction(() => {
+            const stats = window.__PANDOLAB_VIEWER__?.rendererStats?.();
+            return !!(stats?.screenLodBucket && stats.screenLodLatest?.key === stats.screenLodBucket
+              && !stats.screenLodPreparingKey);
+          }, null, { timeout: 15000 });
+          lodSettled = true;
+        } catch { /* The report explicitly records an unsettled candidate. */ }
+        const lodAdmissionMs = lodSettled ? Date.now() - start : null;
         const result = await page.evaluate(async ({ cacheState, projection, zoom }) => {
           const frames = [];
           await new Promise(resolve => {
@@ -97,6 +108,7 @@ for (const projection of ['globe', 'flat']) for (const device of [
         }, { cacheState, projection, zoom });
         records.push({
           ...result, elapsedZoomMs: Date.now() - start,
+          lodSettled, lodAdmissionMs,
           p95FrameIntervalMs: percentile(result.frameIntervals, 0.95),
           p99FrameIntervalMs: percentile(result.frameIntervals, 0.99),
           frameIntervals: undefined,
