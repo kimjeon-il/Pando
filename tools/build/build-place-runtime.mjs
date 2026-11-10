@@ -11,6 +11,7 @@ import { join, resolve } from 'node:path';
 import { encodePlaceTile, decodePlaceTile } from "../../src/data/place-codec.js";
 import { normalizePlace, normalizePlaceQuery, PLACE_LIMITS } from "../../src/document/place-contract.js";
 import { reportPath } from "../data/report-paths.mjs";
+import { generateApprovedPlaceDisplayRanks } from "./place-display-rank.mjs";
 
 const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 const OUTPUT_DIR = join(ROOT, 'assets/data/places');
@@ -178,8 +179,27 @@ function allSelectedNames(record) {
     .filter(value => typeof value === 'string' && value.trim());
 }
 
+function loadArchivedDisplayPopulationSources() {
+  const sourcePath = reportPath('reports/map-analysis/corpus/gazetteer-v1/sources/cities500.source.json', { access: 'read' });
+  const source = JSON.parse(readFileSync(sourcePath, 'utf8'));
+  const directory = reportPath('reports/map-analysis/corpus/gazetteer-v1/runtime/records', { access: 'read' });
+  const records = [];
+  for (const filename of readdirSync(directory).filter(name => /^[a-f0-9]{2}\\.json$/.test(name)).sort()) {
+    const shard = JSON.parse(readFileSync(join(directory, filename), 'utf8'));
+    for (const row of Object.values(shard)) records.push({
+      id: row.id, coordinates: row.coordinates, population: row.population,
+      featureCode: row.featureCode,
+    });
+  }
+  if (records.length < 200000) throw new Error('Incomplete archived GeoNames spatial source');
+  return { records, sourceSha256: source.sha256 };
+}
+
 export function generatePlaceRelease() {
   const catalog = deriveReleaseCatalog();
+  const populationSources = loadArchivedDisplayPopulationSources();
+  const displayRanking = generateApprovedPlaceDisplayRanks(catalog.records,
+    populationSources.records, populationSources.sourceSha256);
   const catalogText = sortedJson(catalog);
   const records = catalog.records.map(normalizePlace);
   const bytes = Buffer.from(encodePlaceTile(records));
@@ -197,7 +217,8 @@ export function generatePlaceRelease() {
     prefix, [{ ...row, first: prefix, last: prefix + '\uffff' }],
   ]));
   const manifest = { version: 1,
-    revision: 'approved-places-' + hash('sha256', catalogText).slice(0, 16),
+    revision: 'approved-places-' + hash('sha256', catalogText).slice(0, 16) + '-spatial-v1',
+    displayRanking,
     stages: [{ id: 0, minZoom: 0, columns: 1, rows: 1 }],
     tiles: { '0/0-0': row },
     shards: { [shard]: { url: 'places-v1.bin', bytes: bytes.length, sha256: sum } },
