@@ -278,6 +278,7 @@ export function createSharedPolygonLodIndex(features, { precision = 7 } = {}) {
     if (protectedSet.size) for (const [key, node] of nodes)
       if ([...node.owners].some(owner => protectedSet.has(owner))) protectedNodes.add(key);
     let invalid = false, originalVertices = 0, keptVertices = 0;
+    const sharedSegments = new Map();
     const output = features.map((feature, index) => {
       const featureId = String(feature?.id ?? index);
       if (visibleSet && !visibleSet.has(featureId)) {
@@ -287,17 +288,50 @@ export function createSharedPolygonLodIndex(features, { precision = 7 } = {}) {
       }
       const polygons = byFeature[index].map(polygon => polygon.map(info => {
         originalVertices += info.points.length;
-        const selected = protectedSet.has(info.id) ? info.points
-          : info.points.filter((_, i) => info.importance[i] >= tolerance || protectedNodes.has(info.keys[i]));
+        const indices = [];
+        for (let i = 0; i < info.points.length; i++)
+          if (protectedSet.has(info.id) || info.importance[i] >= tolerance
+            || protectedNodes.has(info.keys[i])) indices.push(i);
+        const selected = indices.map(i => info.points[i]);
         keptVertices += selected.length;
         if (selected.length < 3 || Math.sign(lodSignedArea(selected)) !== Math.sign(info.originalArea))
           invalid = true;
+        // A shared source chain must be represented by the same new segment
+        // in every country that owns it. Abort the complete derivative if a
+        // different ring cut or a protected neighbor causes a seam mismatch.
+        for (let j = 0; j < indices.length; j++) {
+          const from = indices[j], to = indices[(j + 1) % indices.length];
+          const edge = edges.get(info.edgeKeys[from]);
+          const owners = [...edge.owners].filter(id => !visibleSet || visibleSet.has(id));
+          if (owners.length < 2) continue;
+          let current = from, consistent = true;
+          do {
+            if (edges.get(info.edgeKeys[current]).signature !== edge.signature) {
+              consistent = false; break;
+            }
+            current = (current + 1) % info.points.length;
+          } while (current !== to);
+          if (!consistent) { invalid = true; continue; }
+          const firstKey = info.keys[from], secondKey = info.keys[to];
+          const segmentKey = firstKey < secondKey
+            ? `${firstKey};${secondKey}` : `${secondKey};${firstKey}`;
+          const key = `${edge.signature}:${segmentKey}`;
+          if (!sharedSegments.has(key)) sharedSegments.set(key, {
+            expected: new Set(owners), actual: new Set(),
+          });
+          sharedSegments.get(key).actual.add(info.id);
+        }
         return [...selected.map(cloneCoordinate), cloneCoordinate(selected[0] || info.points[0])];
       }));
       const type = feature?.geometry?.type;
       return { ...feature, geometry: !type ? null : { type,
         coordinates: type === 'Polygon' ? polygons[0] : polygons } };
     });
+    for (const { expected, actual } of sharedSegments.values())
+      if (expected.size !== actual.size || [...expected].some(id => !actual.has(id))) {
+        invalid = true;
+        break;
+      }
     // Never restore only one country of a shared arc: fail closed as a frame.
     return Object.freeze({ features: invalid ? features : output, fallback: invalid,
       originalVertices, keptVertices: invalid ? originalVertices : keptVertices,
