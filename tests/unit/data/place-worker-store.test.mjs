@@ -30,7 +30,11 @@ test('pinned GeoNames population/spatial scores decide Seoul versus Daejeon disp
   assert.equal(ranking.approvedCount,2);
   assert.ok(ranking.entries['1835848'].population > ranking.entries['1835235'].population);
   assert.ok(ranking.entries['1835848'].priority > ranking.entries['1835235'].priority);
-  assert.ok(ranking.entries['1835848'].minZoom < ranking.entries['1835235'].minZoom);
+  assert.equal(ranking.entries['1835848'].populationTier,1);
+  assert.equal(ranking.entries['1835235'].populationTier,1);
+  assert.equal(ranking.entries['1835848'].minZoom,1);
+  assert.equal(ranking.entries['1835235'].minZoom,1,
+    'both million-plus cities qualify at 1x; collision priority resolves overlap');
   const bytes = new Uint8Array(encodePlaceTile(release));
   const {manifest} = fixture();
   manifest.shards.s.bytes=bytes.length;
@@ -39,9 +43,10 @@ test('pinned GeoNames population/spatial scores decide Seoul versus Daejeon disp
   manifest.search={};manifest.displayRanking=ranking;
   const store=createPlaceWorkerStore({manifest,fetchBytes:async()=>bytes});
   const view={flatCenter:[127.2,37],width:800,height:600,scale:900};
-  const seoul=await store.queryViewport(placeView({...view,threshold:1}));
-  assert.deepEqual(seoul.records.map(row=>row.sourceId),['1835848']);
-  assert.equal(seoul.records[0].population,10349312);
+  const firstStage=await store.queryViewport(placeView({...view,threshold:1}));
+  assert.deepEqual(firstStage.records.map(row=>row.sourceId),['1835848','1835235'],
+    'both modern populations exceed the one-million baseline');
+  assert.equal(firstStage.records[0].population,10349312);
   const all=await store.queryViewport(placeView({...view,threshold:5}));
   assert.deepEqual(all.records.map(row=>row.sourceId),['1835848','1835235']);
   const candidates=all.records.map(row=>({
