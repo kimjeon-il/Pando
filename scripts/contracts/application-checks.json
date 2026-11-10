@@ -836,7 +836,13 @@
         "scripts/check-policy-links.mjs",
         "tests/unit/runtime/policy-links.test.mjs",
         "scripts/contracts/application-checks.json",
-        "package.json"
+        "package.json",
+        "src/**",
+        "tools/**",
+        "config/**",
+        "contracts/**",
+        "projects/**",
+        ".github/workflows/**"
       ],
       "argv": [
         "node",
