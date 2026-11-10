@@ -7,6 +7,7 @@ export function createGpuMeshWorkerJobs({ createWorker, createRebuildWorker = cr
   let rpc = null;
   let rebuildRpc = null;
   let lodRpc = null;
+  let lodSourceInWorker = '';
   let lodBusy = false;
   let rebuildBusy = false;
   let outputBytes = 0;
@@ -41,7 +42,7 @@ export function createGpuMeshWorkerJobs({ createWorker, createRebuildWorker = cr
   }
   function cancelDisplayLod() {
     lodRpc?.stop('superseded-screen-lod');
-    lodRpc = null; lodBusy = false;
+    lodRpc = null; lodBusy = false; lodSourceInWorker = '';
   }
   // Display LOD never cancels the canonical rebuild or the edit-patch queue.
   // A separate worker can retain one topology index for repeated zoom buckets.
@@ -57,19 +58,29 @@ export function createGpuMeshWorkerJobs({ createWorker, createRebuildWorker = cr
     });
     lodBusy = true;
     try {
-      const packed = await packCountryMeshFeatures(payload.features || [], {
+      const reuseSource = lodSourceInWorker === payload.sourceKey;
+      const packed = reuseSource ? null : await packCountryMeshFeatures(payload.features || [], {
         isCurrent: () => lodRpc === current && accepts(),
       });
       const response = await current.request('geometry.mesh', {
-        ...packed, lod: payload.lod, sourceKey: payload.sourceKey,
+        ...(packed || {}),
+        useCachedSource: reuseSource,
+        lod: payload.lod, sourceKey: payload.sourceKey,
+        visibleIds: payload.visibleIds ?? null,
       }, {
-        transfer: [packed.coordinates.buffer],
+        transfer: packed ? [packed.coordinates.buffer] : [],
         projectRevision: payload.projectGeneration,
         metadata: { geometryRevision: payload.geometryRevision, sourceKey: payload.sourceKey },
       });
-      return lodRpc === current && accepts() ? response.result : null;
+      if (lodRpc !== current || !accepts()) return null;
+      // Mark the source reusable only after Worker admission was acknowledged.
+      lodSourceInWorker = payload.sourceKey;
+      return response.result;
     } catch (error) {
       if (error.cancelled || error.name === 'AbortError' || lodRpc !== current || !accepts()) return null;
+      // A restarted Worker cannot satisfy an old source token. Force a fresh
+      // transfer on the next request rather than silently reusing stale data.
+      if (lodRpc === current) cancelDisplayLod();
       throw error;
     } finally {
       if (lodRpc === current) lodBusy = false;
