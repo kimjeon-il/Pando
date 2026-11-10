@@ -13,8 +13,12 @@ function percentile(values, part) {
   return round(sorted[Math.min(sorted.length - 1, Math.ceil(sorted.length * part) - 1)]);
 }
 
-for (const projection of ['globe', 'flat']) {
-  test(`record actual canonical and screen LOD performance (${projection})`, async ({ page, baseURL }, info) => {
+for (const projection of ['globe', 'flat']) for (const device of [
+  { name: 'desktop', width: 1440, height: 900 },
+  { name: 'mobile', width: 390, height: 844 },
+]) {
+  test(`record actual canonical and screen LOD performance (${projection}/${device.name})`, async ({ page, baseURL }, info) => {
+    await page.setViewportSize({ width: device.width, height: device.height });
     test.setTimeout(360_000);
     const errors = [], records = [];
     page.on('pageerror', error => errors.push(String(error.message)));
@@ -61,7 +65,6 @@ for (const projection of ['globe', 'flat']) {
           const resources = performance.getEntriesByType('resource');
           return {
             cacheState, projection, zoom, capturedAt: new Date().toISOString(),
-            elapsedZoomMs: Date.now() - (window.__pandoLodStart || Date.now()),
             projectGeneration: stats.projectGeneration,
             projectMonth: window.__PANDOLAB_VIEWER__.builtinMonth()?.month,
             renderer: stats.renderer, screenScale: stats.screenScale,
@@ -98,8 +101,8 @@ for (const projection of ['globe', 'flat']) {
       }
     }
     const report = { label: process.env.PANDOLAB_BASELINE_LABEL || 'unlabeled',
-      projection, viewport: '1440x900', measured: true, errors, records };
-    await writeFile(info.outputPath(`render-lod-${projection}.json`),
+      projection, viewport: `${device.width}x${device.height}`, device: device.name, measured: true, errors, records };
+    await writeFile(info.outputPath(`render-lod-${projection}-${device.name}.json`),
       JSON.stringify(report, null, 2));
     console.log('MAP_LOD_BENCHMARK ' + JSON.stringify(report));
     expect(errors).toEqual([]);
