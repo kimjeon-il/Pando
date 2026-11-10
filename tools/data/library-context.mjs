@@ -258,4 +258,3 @@ export function organizationTree(shared, revision) {
     return { mode, oid, path: row.slice(tab + 1) };
   });
 }
-
