@@ -2,28 +2,32 @@ import * as __temporal_session_0 from "node:test";
 import * as __temporal_session_1 from "node:assert/strict";
 import * as __temporal_session_2 from "node:fs";
 import * as __temporal_session_3 from "../../../src/document/project-domain.js";
-import * as __temporal_session_4 from "../../../src/document/builtin-session.js";
-import * as __temporal_session_5 from "../../../src/document/builtin-month-clock.js";
+import * as __temporal_session_4 from "../../../src/document/project-source-runtime.js";
 import * as __temporal_session_6 from "../../../src/document/core-document-read-model.js";
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createBuiltinSession } from "../../../src/document/builtin-session.js";
+import { createProjectSourceRuntime } from "../../../src/document/project-source-runtime.js";
+import { createTerritorialSceneRuntime } from "../../../src/rendering/territorial-scene-runtime.js";
 
 test('country source preparation is independent from an unresolved render geometry promise and preserves source errors',async t=>{
  const previous=globalThis.window;globalThis.window={PANDOLAB_CANONICAL_GEOMETRY_PROMISE:new Promise(()=>{})};t.after(()=>{globalThis.window=previous;});
  const error=Object.assign(new Error('source unavailable'),{code:'SOURCE_FETCH'});
- const owner=createBuiltinSession({builtinWorldLoader:{loadProject:async()=>{throw error;}}});
- owner.connect({platformConfigurationA:{BASE_DATASET:'fixture'},domains:{projectDomain:{getGeneration:()=>0}}});
+ let sourcePorts;
+ const owner=createProjectSourceRuntime({builtinWorldLoader:{loadProject:async()=>{throw error;}},getDependencies:()=>sourcePorts});
+ sourcePorts=({platformConfigurationA:{BASE_DATASET:'fixture'},domains:{projectDomain:{getGeneration:()=>0}}});
  await assert.rejects(owner.prepareProjectBaseline(),value=>value===error);assert.equal(owner.projectBaseline,null);
 });
 
 test('baseline sends uncompressed bytes once and retains only the admitted Core receipt',async t=>{
  const previous=globalThis.window;globalThis.window={};t.after(()=>{globalThis.window=previous;});
  const calls=[],project={schemaVersion:10,test:'memory assembly'};
- const owner=createBuiltinSession({builtinWorldLoader:{loadProject:async()=>({project})}});
- owner.connect({platformConfigurationA:{BASE_DATASET:'fixture'},domains:{projectDomain:{getGeneration:()=>4,state:()=>({storageBaselineId:7}),admitStorageBaseline:async(facts,options)=>{calls.push({facts,options});return {storageBaselineId:7};}}}});
+ let sourcePorts;
+ const owner=createProjectSourceRuntime({builtinWorldLoader:{loadProject:async()=>({project})},getDependencies:()=>sourcePorts});
+ sourcePorts=({platformConfigurationA:{BASE_DATASET:'fixture'},domains:{projectDomain:{getGeneration:()=>4,state:()=>({storageBaselineId:7}),admitStorageBaseline:async(facts,options)=>{calls.push({facts,options});return {storageBaselineId:7};}}}});
  const baseline=await owner.prepareProjectBaseline();assert.equal(await owner.prepareProjectBaseline(),baseline);assert.equal(calls.length,1);
- const renderStore={materializeCollectionSync(){},materializeFeature(){},geometryEquals(){},ids:()=>[]};owner.installCanonicalCountryStore(renderStore);
+ const renderStore={materializeCollectionSync(){},materializeFeature(){},geometryEquals(){},ids:()=>[]};
+ const sceneRuntime=createTerritorialSceneRuntime({getDependencies:()=>sourcePorts});
+ sceneRuntime.installCanonicalCountryStore(renderStore);
  assert.equal(await owner.prepareProjectBaseline(),baseline);assert.equal(calls.length,1);
  assert.equal(Object.hasOwn(baseline,'sourceBytes'),false);assert.equal(baseline.baselineId,7);assert.equal(baseline.encoding,'identity');assert.match(baseline.fingerprint,/^[a-f0-9]{64}$/);
  assert.ok(calls[0].facts.sourceBytes instanceof Uint8Array);
@@ -39,8 +43,7 @@ const test = __temporal_session_0.default;
 const assert = __temporal_session_1.default;
 const readFileSync = __temporal_session_2["readFileSync"];
 const createProjectDomain = __temporal_session_3["createProjectDomain"];
-const createBuiltinSession = __temporal_session_4["createBuiltinSession"];
-const createBuiltinMonthClock = __temporal_session_5["createBuiltinMonthClock"];
+const createProjectSourceRuntime = __temporal_session_4["createProjectSourceRuntime"];
 const createCoreDocumentReadModel = __temporal_session_6["createCoreDocumentReadModel"];
 const fixture=()=> {
   const events=[];
@@ -159,57 +162,16 @@ test('missing temporal WASM capability fails instead of admitting a legacy basel
       admissions++;baselineId=2;return {storageBaselineId:baselineId};
     },
   };
-  const session=createBuiltinSession({buildMeta,builtinWorldLoader:{loadProject:async month=>{
+  let sourcePorts;
+ const session=createProjectSourceRuntime({buildMeta,getDependencies:()=>sourcePorts,builtinWorldLoader:{loadProject:async month=>{
     loads++;return {project:{projectSetup:{initialMonth:month},territorialEntities:[]}};
   }}});
-  session.connect({domains:{projectDomain:domain},platformConfigurationA:{BASE_DATASET:'fixture'}});
+  sourcePorts=({domains:{projectDomain:domain},platformConfigurationA:{BASE_DATASET:'fixture'}});
   await assert.rejects(session.prepareProjectCandidate('2025-12'),{code:'PL-CORE-DOCUMENT-ABI'});
   assert.equal(admissions,0);assert.equal(loads,1);
   session.dispose();
 });
 
-
-test('rapid timeline intents start only the final target and commit it once',async()=>{
-  const started=[],commits=[];
-  const clock=createBuiltinMonthClock({coalesceRequests:true,
-    onCommitted:month=>commits.push(month),
-    applyMonth:async(month,{isCurrent,commit})=>{
-      started.push(month);
-      if(isCurrent())commit();
-      return isCurrent();
-    }});
-  const first=clock.selectMonth('2025-12');
-  const middle=clock.selectMonth('2024-12');
-  const latest=clock.selectMonth('2023-12');
-  assert.deepEqual(started,[],'same-task intermediate targets must not start work');
-  assert.deepEqual(await Promise.all([first,middle,latest]),[false,false,true]);
-  assert.deepEqual(started,['2023-12']);
-  assert.deepEqual(commits,['2023-12']);
-  assert.equal(clock.month(),'2023-12');
-  clock.dispose();
-});
-
-test('out-of-order completion cannot publish an older timeline target',async()=>{
-  const pending=new Map(),commits=[];
-  const clock=createBuiltinMonthClock({
-    onCommitted:month=>commits.push(month),
-    applyMonth:(month,{isCurrent,commit})=>new Promise(resolve=>{
-      pending.set(month,{isCurrent,commit,resolve});
-    }),
-  });
-  const older=clock.selectMonth('1950-12');
-  const latest=clock.selectMonth('1951-12');
-  assert.equal(pending.get('1951-12').commit(),true);
-  pending.get('1951-12').resolve(true);
-  assert.equal(await latest,true);
-  assert.equal(pending.get('1950-12').isCurrent(),false);
-  assert.equal(pending.get('1950-12').commit(),false);
-  pending.get('1950-12').resolve(true);
-  assert.equal(await older,false);
-  assert.equal(clock.month(),'1951-12');
-  assert.deepEqual(commits,['1951-12']);
-  clock.dispose();
-});
 
 test('opening a user file while a temporal candidate waits discards it before file adoption',async()=>{
   const f=fixture();

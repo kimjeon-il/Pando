@@ -7,7 +7,6 @@ import * as __contract_dep0 from "node:assert/strict";
 import * as __contract_dep1 from "node:test";
 import * as __contract_dep2 from "../../../src/rendering/gpu-scene-preparation.js";
 import * as __contract_dep3 from "../../../src/rendering/gpu-base-scene-pass.js";
-import * as __contract_dep4 from "node:fs";
 import * as __contract_dep5 from "../../../src/ui/map-content-presentation.js";
 const assert = __contract_dep0.default;
 const test = __contract_dep1.default;
@@ -153,7 +152,6 @@ test('failure of both B and eligible A is a failed presentation with no promotio
 contractSuite("gpu-scene-worker-presentation", () => {
 const test = __contract_dep1.default;
 const assert = __contract_dep0.default;
-const { readFileSync } = __contract_dep4;
 
 test('failed polygon preparation clears pending identity and retries the current input',async()=>{
   let attempts=0, ready=false, scheduled=null, presented=0, errorReports=0,renderer='webgl2',canvasRequests=0,baseInvalidations=0;
@@ -291,7 +289,7 @@ test('unchanged renderer inputs do not rebuild scene packets or resource object 
   const calls = { build: 0, patch: 0, submit: 0 };
   const makeScene = (input, previous = {}) => ({
     revision: input.revision,
-    revisions: { ...input.revisions },
+    revisions: { editPreview: 0, ...input.revisions }, // actual RenderScene default contract
     country: { ...(previous.country || {}), ...input.country },
     physical: { ...(previous.physical || {}), ...input.physical },
     quality: { ...(previous.quality || {}), ...input.renderQuality },
@@ -329,6 +327,7 @@ test('unchanged renderer inputs do not rebuild scene packets or resource object 
   renderer.initializeGpuSceneResourceObjectKeys();
   renderer.initializeRenderSceneBuilder();
   const first = renderer.syncGpuRenderScene();
+  assert.equal(first.revisions.editPreview, 0, 'normalized RenderScene adds a default revision');
   assert.equal(renderer.syncGpuRenderScene(), first);
   assert.deepEqual(calls, { build: 1, patch: 0, submit: 1 });
   state.layerVisibility.objects = false;
@@ -342,6 +341,11 @@ test('unchanged renderer inputs do not rebuild scene packets or resource object 
   state.physicalSettings.terrainVisible = true;
   renderer.syncGpuRenderScene();
   assert.equal(calls.patch, 3, 'physical presentation changes still reach the scene');
+  assert.equal(renderer.syncGpuRenderScene().revision, first.revision + 3,
+    'no-op sync attempts cannot consume public scene revision numbers');
+  renderer.initializeRenderSceneBuilder();
+  assert.notEqual(renderer.syncGpuRenderScene(), first,
+    'a fresh packet builder must never inherit an unverified no-op from an old owner');
 });
 
 test('Canvas Worker packets omit equivalent immutable geometry but resend changed identities', () => {
@@ -374,4 +378,23 @@ test('GPU upload completion classifies an indexed immutable scene without rescan
   assert.equal(classifyGpuResourceReady('scene-stroke:two', scene, undefined, indexed), 'scene');
   assert.equal(classifyGpuResourceReady('selection:one', scene, undefined, indexed), 'interaction');
   assert.equal(classifyGpuResourceReady('country-boundary:one', scene, undefined, indexed), 'country-boundary');
+});
+
+test('Canvas physical packets refresh mutated in-place land when its admitted revision advances', () => {
+  const packets = createCanvasScenePackets();
+  const land = { type: 'Polygon', coordinates: [[[0,0],[2,0],[2,2],[0,0]]] };
+  const context = { geometry: land, revision: 'land:1' };
+  const first = packets.physicalPolygons(context)[0];
+  assert.deepEqual(Array.from(first.ringCoordinates), [0,0,2,0,2,2,0,0]);
+  assert.strictEqual(packets.physicalPolygons(context)[0].ringCoordinates, first.ringCoordinates,
+    'same accepted version must keep the packed packet');
+  land.coordinates[0][1][0] = 9;
+  const revised = packets.physicalPolygons({ ...context, revision: 'land:2' })[0];
+  assert.notStrictEqual(revised.ringCoordinates, first.ringCoordinates);
+  assert.equal(revised.ringCoordinates[2],9,
+    'a changed revision cannot reuse coordinates packed for the previous physical source');
+  const wire = packets.delta([first], 'physical');
+  assert.ok(wire[0].ringCoordinates);
+  const next = packets.delta([revised], 'physical');
+  assert.ok(next[0].ringCoordinates, 'changed physical source must be resent to Worker');
 });

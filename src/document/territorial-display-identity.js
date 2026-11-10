@@ -1,5 +1,5 @@
-// Deterministic identity is stable across generated and saved projects.
-// The relationship itself is stored in the compiled project metadata.
+// Pure map-entity display identity shared by GIS generation and Viewer.
+// No Core/WASM or timeline dependency is permitted here.
 export const builtinSubunitId = sourceId => `d34b00a1-9b13-8000-8000-000000${[...sourceId].map(c => c.charCodeAt(0).toString(16).padStart(2, '0')).join('')}`;
 
 export function builtinSubunitSourceId(feature) {

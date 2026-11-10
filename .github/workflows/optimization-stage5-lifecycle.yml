@@ -1,5 +1,5 @@
 name: Optimization stage 5 project lifecycle focused contracts
-# Exact source-owned and generation-safe regression probes only; no full test suite.
+# Adversarial 5-8 audit rerun: exact source-owned and generation-safe regression probes only.
 on:
   push:
     branches: [work/optimization]

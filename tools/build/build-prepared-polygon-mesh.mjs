@@ -19,7 +19,7 @@ import {assembleBuiltinWorld,selectBuiltinCountries} from "../../src/data/builti
 import {resolvePhysicalWaterObjects,composePhysicalWaterGeometry} from "../../src/data/physical-resources.js";
 import {applyPhysicalLandPatch,regionalLandLayout} from '../../src/data/physical-land-patch.js';
 import {applyPreparedMeshDelta,preparedMeshDeltaLayout} from '../../src/data/prepared-mesh-delta.js';
-import {builtinSubunitId} from "../../src/document/builtin-subunits.js";
+import {builtinSubunitId} from "../../src/document/territorial-display-identity.js";
 import {decodeTerritorialSource} from '../data/territorial-source-codec.mjs';
 import {territorialSourceLayout} from '../../src/data/territorial-source-format.js';
 import {loadBuiltinDisplayPolicy} from "../gis/builtin-display-policy.mjs";

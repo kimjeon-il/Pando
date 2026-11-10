@@ -10,6 +10,7 @@ export function createGpuScene({getPhysicalLand=()=>null}={}) {
   let dependencies;
   let selectionPass;
   let renderSceneBuilder;
+  let lastAcceptedSceneBuilder = null;
   let gpuSceneDomains;
   let gpuSceneDirtyDomains;
   let gpuSceneBuiltDomainKeys;
@@ -145,7 +146,7 @@ export function createGpuScene({getPhysicalLand=()=>null}={}) {
     }
     renderSceneBuilder.setCacheByteBudget(dependencies.renderScene.currentRenderQuality.renderPacketCacheBudgetBytes);
     const sceneInput = {
-      revision: ++renderSceneRevision,
+      revision: renderSceneRevision + 1,
       revisions: {
         geometry: renderSceneGeometryRevision,
         style: renderSceneStyleRevision,
@@ -175,10 +176,14 @@ export function createGpuScene({getPhysicalLand=()=>null}={}) {
     // A presentation callback can arrive without any effective scene change.
     // The visual frame and worker submission have their own owners; avoid
     // copying scene packets and rebuilding the object lookup for that case.
-    const sameFields = (previous, next) => previous && Object.keys(next).length === Object.keys(previous).length
+    // RenderScene inserts normalized default revisions (e.g. editPreview),
+    // which are absent from the domain's authored input. Compare the authored
+    // fields instead of requiring matching key counts.
+    const sameFields = (previous, next) => previous
       && Object.keys(next).every(key => Object.is(previous[key], next[key]));
     const sameFillItems = currentRenderScene?.interaction?.genericFillItems;
-    if (currentRenderScene && gpuSceneDirtyDomains.size === 0
+    if (currentRenderScene && lastAcceptedSceneBuilder === renderSceneBuilder
+      && gpuSceneDirtyDomains.size === 0
       && sameFields(currentRenderScene.revisions, sceneInput.revisions)
       && sameFields(currentRenderScene.country, sceneInput.country)
       && sameFields(currentRenderScene.physical, sceneInput.physical)
@@ -286,6 +291,8 @@ export function createGpuScene({getPhysicalLand=()=>null}={}) {
     } else {
       currentRenderScene = renderSceneBuilder.patch(currentRenderScene, sceneInput);
     }
+    renderSceneRevision = sceneInput.revision;
+    lastAcceptedSceneBuilder = renderSceneBuilder;
     gpuSceneDirtyDomains.clear();
     // Invert the accepted scene once, not once for each selected object.
     const objectIndex=new Map();
@@ -381,6 +388,7 @@ export function createGpuScene({getPhysicalLand=()=>null}={}) {
     renderSceneBuilder?.clear();
     pendingPreparation = null;
     preparationFailure = null;
+    lastAcceptedSceneBuilder = null;
     (renderSceneBuilder = (0, dependencies.renderScene.createRenderSceneBuilder)({
       meshJobs: createGpuMeshWorkerJobs({
         createWorker: () => new Worker(dependencies.platform.runtimeAssetUrl('workers/gpu-mesh-worker.js'), { name: 'pandolab-overlay-mesh' }),
@@ -398,6 +406,7 @@ export function createGpuScene({getPhysicalLand=()=>null}={}) {
     (gpuSceneBuiltDomainKeys = new Map());
 
     (currentRenderScene = null);
+    lastAcceptedSceneBuilder = null;
 
     (renderSceneRevision = 0);
 

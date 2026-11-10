@@ -1,7 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFileSync} from 'node:fs';
-import {readProjectGenerationContext,validateProjectGenerationInputs}
+import {readFileSync,writeFileSync,mkdirSync,mkdtempSync,rmSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join,dirname} from 'node:path';
+import {createHash} from 'node:crypto';
+import {gzipSync} from 'node:zlib';
+import {verifyPublishedWorldBundle,publishWorldBundle,contentAddress,ROLES} from '../../../tools/build/build-world-bundle.mjs';
+import {readProjectGenerationContext,readProjectWorldGenerationContext,validateProjectGenerationInputs}
  from '../../../tools/build/project-generation-context.mjs';
 import {collectRuntimeDataAssets} from '../../../src/data/runtime-manifest-assets.js';
 import {mapProjectResourcePaths} from '../../../src/data/map-project-manifest.js';
@@ -68,4 +73,97 @@ test('project Viewer closure excludes private authoring inputs and retains pinne
  assert.equal(selected.has(context.catalogs.preparedMeshes),true);
  assert.equal(selected.has(hydroPayload),true);
  assert.equal(selected.has(landPayload),true);
+});
+
+test('world generators select the same project source recipe and reject cross-project output aliases',()=>{
+ const manifest=JSON.parse(readFileSync(new URL('../../../projects/default-world/manifest.json',import.meta.url)));
+ const generation=JSON.parse(readFileSync(new URL('../../../projects/default-world/generation-inputs.json',import.meta.url)));
+ const projectId='alternate-world';
+ const altManifest={...manifest,projectId,resources:{...manifest.resources,
+   world:{catalog:'assets/data/alternate-world/current.json'}}};
+ const altGeneration={...generation,projectId,inputs:{...generation.inputs,
+   territorialCurrentWorld:'assets/data/alternate-world/current-world.geojson',
+   worldBuildRecipe:'assets/data/alternate-world/build-input.json'}};
+ const recipe={schema:'pandolab-world-build-input',schemaVersion:1,
+   canonicalSource:'alternate-world/current-world.geojson',
+   legacyPreviewManifest:'alternate-world/preview-v0.36.1.json'};
+ const inputs=new Map([
+  ['projects/alternate-world/manifest.json',JSON.stringify(altManifest)],
+  ['projects/alternate-world/generation-inputs.json',JSON.stringify(altGeneration)],
+  ['assets/data/alternate-world/build-input.json',JSON.stringify(recipe)],
+ ]);
+ const opts={projectId,readSource:path=>{
+   if(!inputs.has(path))throw Error('Unapproved generation input '+path);
+   return inputs.get(path);
+ }};
+ const selected=readProjectWorldGenerationContext(opts);
+ assert.equal(selected.projectId,projectId);
+ assert.equal(selected.catalogs.world,altManifest.resources.world.catalog);
+ assert.equal(selected.worldRecipe.canonicalSource,'alternate-world/current-world.geojson');
+ assert.equal(selected.worldRecipePath,altGeneration.inputs.worldBuildRecipe);
+ inputs.set('projects/alternate-world/manifest.json',JSON.stringify({
+   ...altManifest,resources:{...altManifest.resources,
+     world:manifest.resources.world},
+ }));
+ assert.throws(()=>readProjectWorldGenerationContext(opts),/project-owned/);
+ inputs.set('projects/alternate-world/manifest.json',JSON.stringify(altManifest));
+ inputs.set(altGeneration.inputs.worldBuildRecipe,JSON.stringify({...recipe,
+   canonicalSource:'territorial-entities/generated/current-world.geojson'}));
+ assert.throws(()=>readProjectWorldGenerationContext(opts),/differs/);
+ inputs.set(altGeneration.inputs.worldBuildRecipe,JSON.stringify({...recipe,
+   legacyPreviewManifest:'world-preview-v0.36.1.json'}));
+ assert.throws(()=>readProjectWorldGenerationContext(opts),/project-owned/);
+ inputs.set(altGeneration.inputs.worldBuildRecipe,JSON.stringify({...recipe,
+   legacyPreviewManifest:'../unsafe-preview-v0.36.1.json'}));
+ assert.throws(()=>readProjectWorldGenerationContext(opts),/Unsafe/);
+});
+
+test('P2 generation graph fingerprints the selected project input mapping and catalog identity',()=>{
+ const graph=JSON.parse(readFileSync(new URL('../../../config/generated-artifacts.json',import.meta.url)));
+ const families=new Map(graph.families.map(f=>[f.id,f]));
+ for(const id of ['builtin-world','world-mesh','world-preview','world-bundle','prepared-mesh']){
+  const inputs=families.get(id)?.inputs;
+  assert.ok(inputs?.includes('projects/default-world/generation-inputs.json'),id+' missing authored source mapping');
+  assert.ok(inputs?.includes('projects/default-world/manifest.json'),id+' missing Viewer catalog ownership');
+ }
+ const world=families.get('world-mesh');
+ assert.ok(world.dependencies.includes('current-world'), 'country source remains a versioned dependency');
+ assert.ok(families.get('world-preview').dependencies.includes('world-mesh'), 'preview cannot bypass its mesh');
+});
+
+test('Viewer-only world checks verify pinned bytes without private GIS generation recipes',t=>{
+ const root=mkdtempSync(join(tmpdir(),'pando-published-world-'));
+ t.after(()=>rmSync(root,{recursive:true,force:true}));
+ const put=(path,content)=>{const file=join(root,path);mkdirSync(dirname(file),{recursive:true});writeFileSync(file,content);};
+ const manifest=readFileSync(new URL('../../../projects/default-world/manifest.json',import.meta.url));
+ const generation=readFileSync(new URL('../../../projects/default-world/generation-inputs.json',import.meta.url));
+ put('projects/default-world/manifest.json',manifest);
+ put('projects/default-world/generation-inputs.json',generation);
+ const digest=bytes=>createHash('sha256').update(bytes).digest('hex');
+ const assets={};
+ for(const role of Object.keys(ROLES)){
+  const decoded=Buffer.from('immutable-'+role);
+  const encoding=role==='labelAnchors'?'identity':'gzip';
+  const bytes=encoding==='gzip'?gzipSync(decoded):decoded;
+  const sha=digest(bytes),url=contentAddress(role,sha);
+  put('assets/data/'+url,bytes);
+  assets[role]={url,sha256:sha,compressedBytes:bytes.length,decodedBytes:decoded.length,encoding};
+ }
+ for(const role of ['preview','canonical'])
+  put('assets/data/shared-'+role+'.json.gz','validated archive data');
+ const published={
+  schema:'pandolab-world-bundle',schemaVersion:1,
+  source:{url:'territorial-entities/generated/current-world.geojson',
+    sha256:'b'.repeat(64),countryCount:1},
+  defaultClassification:{countries:{A:'digest'}},
+  compatibility:{sharedBoundaries:{preview:'shared-preview.json.gz',
+    canonical:'shared-canonical.json.gz'}},assets,
+ };
+ put('assets/data/world/current.json',JSON.stringify(published));
+ assert.equal(verifyPublishedWorldBundle({root}).validatedAssets,5);
+ const result=publishWorldBundle({root,projectId:'default-world',check:true});
+ assert.equal(result.sourceFree,true);
+ assert.equal(result.bundle.source.sha256,'b'.repeat(64));
+ put('assets/data/'+assets.canonicalMesh.url,Buffer.from('broken'));
+ assert.throws(()=>publishWorldBundle({root,projectId:'default-world',check:true}),/integrity/);
 });

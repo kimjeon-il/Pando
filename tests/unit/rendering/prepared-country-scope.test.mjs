@@ -1,5 +1,5 @@
 import { describe as contractSuite } from 'node:test';
-import * as __gis_dep0 from "../../../src/document/builtin-subunits.js";
+import * as __gis_dep0 from "../../../src/document/territorial-display-identity.js";
 import {loadBuiltinDisplayPolicy} from "../../../tools/gis/builtin-display-policy.mjs";
 import * as __gis_dep1 from "node:test";
 import * as __gis_dep2 from "node:assert/strict";

@@ -12,7 +12,7 @@ import {normalizeTerritorialLibraryEntity} from "../gis/territorial-library.js";
 import {decodeTerritorialSource} from '../data/territorial-source-codec.mjs';
 import {buildCurrentWorld} from "../data/territorial-current-world.mjs";
 import {compileBuiltinWorldCatalog,coalesceCoverageAdjustments,replaceBuiltinWorldCountryNames} from "./builtin-world-compiler.mjs";
-import {builtinSubunitId} from "../../src/document/builtin-subunits.js";
+import {builtinSubunitId} from "../../src/document/territorial-display-identity.js";
 import {loadBuiltinDisplayPolicy} from "../gis/builtin-display-policy.mjs";
 import {encodeBuiltinCountries,finalizeBuiltinWorldFiles,readBuiltinCountryStoredBytes,readBuiltinCountry} from "../data/builtin-country-bytes.mjs";
 import {isDeepStrictEqual} from 'node:util';

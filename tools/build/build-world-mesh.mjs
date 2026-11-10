@@ -7,16 +7,26 @@ import path from 'node:path';
 import vm from 'node:vm';
 import zlib from 'node:zlib';
 import { fileURLToPath } from 'node:url';
+import { readProjectWorldGenerationContext } from './project-generation-context.mjs';
 
 const toolDirectory = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(toolDirectory, '..', '..');
-const sourcePath = path.join(projectRoot, 'assets', 'data', 'territorial-entities', 'generated', 'current-world.geojson');
-const bundleSeed = JSON.parse(fs.readFileSync(path.join(projectRoot, 'assets/data/world/build-input.json'), 'utf8'));
-const pinnedManifest = JSON.parse(fs.readFileSync(path.join(projectRoot, 'assets/data', bundleSeed.legacyPreviewManifest), 'utf8'));
-const outputPath = path.resolve(
-  projectRoot,
-  process.argv[2] || path.join('assets', 'data', pinnedManifest.assets.canonicalMesh.url),
-);
+const projectId = process.argv.find(value=>value.startsWith('--project='))?.slice('--project='.length) || 'default-world';
+const context = readProjectWorldGenerationContext({root:projectRoot,projectId});
+const sourcePath = path.resolve(projectRoot,context.source('territorialCurrentWorld'));
+const pinnedManifest = JSON.parse(fs.readFileSync(
+  path.resolve(projectRoot,'assets/data',context.worldRecipe.legacyPreviewManifest),'utf8'));
+const outputOverride = process.argv.slice(2).find(value=>!value.startsWith('--'));
+if(projectId!=='default-world'&&!pinnedManifest.assets.canonicalMesh.url.startsWith(projectId+'/'))
+  throw new TypeError('Nondefault project canonical mesh must use a project-owned output path');
+const outputPath = path.resolve(projectRoot,
+  outputOverride || path.join('assets','data',pinnedManifest.assets.canonicalMesh.url));
+const outputScope=path.resolve(projectRoot,'assets/data',projectId);
+const outputRelative=path.relative(outputScope,outputPath);
+if(projectId!=='default-world'
+  &&(!outputRelative||outputRelative==='..'||outputRelative.startsWith('..'+path.sep)
+    ||path.isAbsolute(outputRelative)))
+  throw new TypeError('Nondefault project canonical mesh cannot escape its output namespace');
 const MESH_FORMAT_VERSION = 2;
 const MESH_HEADER_WORDS = 12;
 const frontend = buildFrontendIndex(projectRoot);

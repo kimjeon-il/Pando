@@ -3,7 +3,7 @@ import * as __project_dep0 from "node:assert/strict";
 import * as __project_dep1 from "node:crypto";
 import * as __project_dep2 from "node:zlib";
 import * as __project_dep3 from "node:test";
-import * as __project_dep4 from "../../../src/document/builtin-subunits.js";
+import * as __project_dep4 from "../../../src/document/territorial-display-identity.js";
 import * as __project_dep5 from "../../../src/document/territorial-units.js";
 import * as __project_dep6 from "../../../src/document/territorial-entity-store.js";
 import * as __project_dep7 from "../../../src/document/territorial-entity-repository.js";

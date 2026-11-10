@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createBuiltinSession} from "../../../src/document/builtin-session.js";
+import {createProjectSourceRuntime} from "../../../src/document/project-source-runtime.js";
 import {createBuiltinProjectSetup} from "../../../src/document/project-setup.js";
 
 const setup=({loader=null,buildMeta={dataRevision:'fixture',builtinWorld:{sha256:'a'.repeat(64)}}}={})=>{
@@ -21,8 +21,9 @@ const setup=({loader=null,buildMeta={dataRevision:'fixture',builtinWorld:{sha256
   projectSetup:{initialMonth:month},territorialEntities:[{id:'dated',properties:{name:month}}],
   geometries:[],timelineRecords:{schemaVersion:3,lifetimes:[],geometryBindings:[],parentRelations:[],propertyBindings:[]}
  }})};
- const session=createBuiltinSession({builtinWorldLoader:world,buildMeta});
- session.connect({domains:{projectDomain:domain},platformConfigurationA:{BASE_DATASET:'fixed-source'}});
+ let sourcePorts;
+ const session=createProjectSourceRuntime({builtinWorldLoader:world,buildMeta,getDependencies:()=>sourcePorts});
+ sourcePorts=({domains:{projectDomain:domain},platformConfigurationA:{BASE_DATASET:'fixed-source'}});
  return {session,domain,core,document,calls,generation:()=>generation,advance:()=>{generation++;}};
 };
 

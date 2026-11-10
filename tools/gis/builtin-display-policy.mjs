@@ -24,8 +24,8 @@ export function validateBuiltinDisplayPolicy(value){
   }
   return value;
 }
-export function loadBuiltinDisplayPolicy(){
- const value=validateBuiltinDisplayPolicy(JSON.parse(readLibraryDataFile('assets/data/builtin-world/display-policy-v1.json')));
+export function loadBuiltinDisplayPolicy(path='assets/data/builtin-world/display-policy-v1.json'){
+ const value=validateBuiltinDisplayPolicy(JSON.parse(readLibraryDataFile(path)));
  return Object.freeze({...value,
   subunits:Object.freeze(value.subunits.map(row=>Object.freeze(row))),
   territoryMerges:Object.freeze(value.territoryMerges.map(row=>Object.freeze(row)))});
