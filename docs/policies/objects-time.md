@@ -12,3 +12,11 @@
 | 저장·복원 당시 단계 | [타임라인 저장 기록](../timeline-storage.md), [영속성 검증 이력](../timeline-persistence.md) | 그때의 미완료/테스트 상태를 현재 결함 또는 성공으로 소급하지 않음 |
 
 **검증 계약:** `check-group:object-contracts`, `check-group:project-file-contracts`, `check-group:territorial-storage`. 코드 버전 상수와 문서상의 과거 숫자가 다르면 현재 코드 계약을 검사하되 과거 예제는 그대로 보존합니다.
+
+## 추가 저장·명령·객체 규범
+
+- [프로젝트 GPKG 저장·복원 호환성](../project-persistence-compatibility.md): 스키마 14, 정본 JSON과 공간 표현 파생물 분리, 출처 ID 보존, 문서별 보기 상태 격리 및 원본 손상 입력 거부를 별도 규칙으로 취급합니다.
+- [Generic Feature 및 출처 보존](../architecture/generic-feature-provenance.md): Generic은 알 수 없는 외부 형상의 fallback이며 새 표준 영역 유형이나 자유 생성 객체가 아닙니다.
+- [공통 Core 명령 경계](../architecture/shared-core-command-boundary.md): `src/document/native/` 기준의 검증·커밋·히스토리 일관성을 지키고 옛 Web/App 이중 명령 경계를 복원하지 않습니다.
+- [하천·호수의 기간별 형상](../hydro-timeline.md): C++ `timelineRecords`와 수계의 시점별 형상/표시 자격은 별도 규칙입니다. 아랄해의 특수 표시 구간은 모든 수계의 일반 기간 규칙이 아닙니다.
+

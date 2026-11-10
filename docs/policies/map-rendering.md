@@ -12,3 +12,11 @@
 | 자원 무효화·재사용 | [런타임 자원 정책](../../src/runtime/resource-dependency-policy.js) | [AGENTS.md](../../AGENTS.md)의 지도 자원 원칙과 연결 |
 
 **검증 계약:** `check-group:renderer-contract`, `check-group:gis-contracts`, `check-group:rendering`. 표시 코드의 실제 품질/픽셀 동등성은 해당 브라우저·GPU 검증을 별도 수행해야 합니다.
+
+## 추가로 확인된 표시 규칙·검증 기록
+
+- [Renderer v2의 단일 렌더러·지오메트리 불변 계약](../architecture/renderer-v2.md): 정본 형상을 표시용 LOD로 역기록하지 않고, Worker RPC·RenderScene·WebGL/Canvas 책임을 분리합니다.
+- [상호작용 강조의 우선순위와 검증](../interaction-emphasis.md): 선택/호버/편집 시 시각 우선순위가 기술되지만, 당시의 편집 기능·브라우저 검증이 현재 Viewer에서 그대로 유효함을 뜻하지 않습니다.
+- [DEM 지형 정책·전환 기록](../terrain-dem.md): 지형 자료는 프로젝트별 `dem-relief-v1` 계약을 따르며 과거 raster fallback 서술은 당시 구현·검증으로 구분합니다.
+- [성능 진단 지표](../performance-diagnostics.md): 통계적 계측 기준과 실제 기능 차단 상한을 혼동하지 않습니다.
+

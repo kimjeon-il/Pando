@@ -12,3 +12,11 @@
 | 데이터 폐기 및 URL | [구형 GIS URL 현행 정책](../data-url-retention-policy.md) | 당시 삭제 목록·원본 무결성은 별도 보존 |
 
 **검증 계약:** `check-group:project-file-contracts`, `check-group:current-world`, `check-group:assets`. 최종 GIS 원자료의 역사적 정확도·실효지배 판단은 저장 파일의 존재 검증만으로 인증되지 않습니다.
+
+## 다른 문서에 포함된 데이터·생성 규칙
+
+- [GPKG 정본 저장·복원 규칙](../project-persistence-compatibility.md): `project_state` JSON이 정본이며 공간표·출처 sidecar는 제한된 검증·복구 역할만 수행합니다.
+- [생성물 계획·게시 계약](../development/generated-artifacts-p2.md): 원본/출력 의존 그래프와 증분 검증의 기계 판독 정본은 [config/generated-artifacts.json](../../config/generated-artifacts.json)에 있습니다.
+- [정밀 GIS 부분 조회 도구](../world-data-inspection.md): 원본 수정 금지, BBOX 단편 조회와 전체 시점별 형상의 차이, 원본 해시·출력 한도를 별도 절차로 확인합니다.
+- [Map Toolkit 통합 경계](../reference-map-plugin.md): 외부 전용 분석 도구의 소스·배포·자료 핀은 Viewer의 별도 런타임 기능이 아닙니다.
+

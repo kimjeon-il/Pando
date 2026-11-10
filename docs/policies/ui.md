@@ -11,3 +11,9 @@
 | 이전 편집 IA 및 수명주기 | [UI Information Architecture](../architecture/ui-information-architecture.md), [구형 App 경계](../architecture/app-ui-boundaries.md) | 당시 UX·검증 이력으로 보관; 현재 기능 요구가 아님 |
 
 **검증 계약:** `check-group:ui-architecture`, `check-group:ui-components`, `check-group:ui-layering`, `check-group:ui-ia`. 현재 일괄 명령은 `check-script:check:ui`. 실제 화면·키보드·반응형의 시각 합격 여부는 해당 브라우저 검사로 확인해야 합니다.
+
+## 객체 Registry와 상호작용 규칙
+
+- [객체 메타데이터 Registry](../architecture/ui-object-registry.md)의 **현행 원본은** [`src/document/map-object-categories.js`](../../src/document/map-object-categories.js)입니다. 문서에 보존된 예전 Action Registry·편집기/추가 메뉴 계약은 현재 UI의 존재를 입증하지 않습니다.
+- [상호작용 강조의 역할별 우선순위](../interaction-emphasis.md)는 지도 표시 정책과 만나는 별도의 시각적 계약입니다. 옛 편집 제스처 검증은 과거 기록으로 구분합니다.
+

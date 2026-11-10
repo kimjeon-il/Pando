@@ -15,3 +15,8 @@
 외부 라이브러리의 [역사명 편집 정책](https://github.com/kimjeon-il/PandoLab-library-data/blob/main/reports/places/historical-display-policy.json)과 [한국어 지도 표기 정책](https://github.com/kimjeon-il/PandoLab-library-data/blob/main/reports/places/korean-map-label-policy.json)은 **스테이징** 판본일 수 있습니다. 문서에 적힌 편집 규칙이 현재 런타임에 모두 적용된다고 가정하지 않습니다. 정확한 도시에 대한 자료 핀·승인 상태를 확인해야 합니다.
 
 **검증 계약:** `check-group:place-contracts`, `check-group:places-runtime`. 현재 관련 스크립트는 `check-script:check:places`; 이력 문서의 `pnpm check:place-sync`는 현재 등록된 명령으로 간주하지 않습니다.
+
+## 다른 파일에 포함된 검수 규칙
+
+[대량 지명 조사·배치 절차](../place-batch-pipeline.md)에 도시 ID 중복 검수, 역사명별 실제 효력일, 증거 없는 `fromDate` 금지, 지역별 공용어 확인, 검수 미완료 도시 자동 게시 금지, 현대 GeoNames 인구로 역사 도시 등급을 확정하지 않는 규칙이 있습니다. 이는 현재 후보 함수나 인구 기반 **표시 등급**을 새로 정의하지 않으며, 당시 배치 처리 완료·검증 결과와 구분해 해석해야 합니다.
+

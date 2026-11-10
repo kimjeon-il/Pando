@@ -8,3 +8,10 @@
 - [과거 검사 통합 감사](../development/testing/validation-consolidation-2026-11-07.md)와 [검사 자동화 설계](../architecture/check-automation.md)는 당시 계획·구현 및 잔여 과제의 맥락입니다.
 
 **검증 계약:** `check-group:policy-links`, `check-group:workflow-ownership`, `check-group:runtime-boundaries`. 정책 파일 검사는 `check-script:check:policies`로 개별 실행할 수 있습니다.
+
+## 다른 문서에 섞인 검증 규칙
+
+- [렌더링 단위 검사 소유권](../validation/rendering-unit-contract-ownership.md), [파일·GPKG 검사 소유권](../validation/project-file-unit-contract-ownership.md), [GIS·영토 검사 소유권](../validation/gis-territory-unit-contract-ownership.md), [검사 인프라 소유권](../validation/check-infrastructure-unit-ownership.md)은 원래 검사 통합 과정의 경계와 증거입니다.
+- [검사 통합 작업 기록](../development/testing/validation-consolidation-2026-11-07.md)은 테스트 삭제/변경의 당시 결정과 검증 한계이며 현재 유효한 CI allowlist가 아닙니다.
+- 실제 검사 그룹·전제 조건·명령은 여전히 [application-checks.json](../../scripts/contracts/application-checks.json)에서 결정하며, 기존 단계별 계획의 `must`를 전부 현재 의무로 자동 승격하지 않습니다.
+
