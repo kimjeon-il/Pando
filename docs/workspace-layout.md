@@ -1,4 +1,20 @@
-# Source and output layout
+# Source and output layout — active Viewer paths and archived workspace map
+
+**Current source ownership (2026-11-11):** The only shipping product is the Web Viewer. The permanent worktree layout is governed by [branch-policy.md](branch-policy.md), and the current product module inventory is [app-module-ownership.md](app-module-ownership.md). The `apps/viewer`, `apps/editor`, `shared/frontend`, `shared/core` paths in the original layout below belong to an archived, retired product structure.
+
+| Current owner | Source and published responsibility |
+| --- | --- |
+| Viewer entry, HTML and composition | `src/app/index.html`, `src/app/viewer.js`, `src/app/viewer-composition.js` |
+| UI / CSS / fragments | `src/ui/` |
+| Document / C++ and WASM | `src/document/` and domain-specific `src/*/native/` |
+| Map, geometry, rendering, runtime | `src/map/`, `src/geometry/`, `src/rendering/`, `src/runtime/` |
+| GIS source/build/check helpers | `tools/`, `scripts/`, `config/`, `contracts/` |
+| Pinned GIS data and report originals | external `PandoLab-library-data`, selected through `config/library-data.json` |
+
+Current supported scripts: `pnpm deps:prepare`, `pnpm dev:web`, `pnpm build:web`. The repository's `package.json` and `scripts/lib/frontend-layout.mjs` own actual script names and published paths. **There is no active `dev:editor`, `dev:windows` or `build:windows` script.** Local build restrictions and cache-cleanup protections remain governed by [AGENTS.md](../AGENTS.md) and [worktree-storage.md](worktree-storage.md).
+
+## Historical Web/App/Windows workspace and staging decisions (preserved)
+The original instructions below are a dated architectural snapshot, **not current checkout paths, build commands or a new SDK installation instruction**. They are retained for tracing prior toolchain, input identity and evidence decisions.
 
 All permanent checkouts use the same layout. Editable source stays independent in each branch.
 

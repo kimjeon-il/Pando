@@ -1,11 +1,12 @@
 # PandoLab runtime refactor inventory
 
-Current cross-platform ownership: [platform-boundaries.md](platform-boundaries.md).
-The Phase 06 line ranges and extraction narrative below are historical, not the
-current entrypoint size. Current production entry is the small `app.js` loader;
-`app-composition.js` wires existing application owners through capability ports.
+Current ownership: [Web Viewer module inventory](../app-module-ownership.md) and [Viewer composition](../../src/app/viewer-composition.js). The former `platform-boundaries.md` link pointed to a document that is not present in the current repository. 
 
-This inventory fixes the Phase 06 extraction boundaries before code is moved. It describes the current `assets/js/app.js` responsibilities; it is not a new runtime contract.
+**Historical Phase 06 snapshot:** the line ranges and extraction narrative below predate the single Viewer transition. The former `assets/js/app.js` and `app-composition.js` entrypoints are **not** current owners; the current entry is `src/app/viewer.js`, with composition in `src/app/viewer-composition.js`.
+
+## Archived Phase 06 extraction inventory (historical)
+
+This inventory **originally** fixed the Phase 06 extraction boundaries before code was moved. It describes the responsibilities of `assets/js/app.js` **at that stage**, not a current runtime contract.
 
 | Current responsibility | Approximate current range | Coupling / strongly connected group | Target boundary |
 | --- | ---: | --- | --- |

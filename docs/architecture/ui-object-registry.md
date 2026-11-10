@@ -1,10 +1,12 @@
 # UI Object Registry
 
-5단계의 목적은 객체 종류와 객체 작업의 이름·아이콘·UI 연결을 여러 화면에서 따로 정의하지 않도록 중앙 Registry로 고정하는 것이다.
+객체 종류·표시명·아이콘·레이어 분류를 여러 화면에서 중복 정의하지 않는 **현재 표시 메타데이터 정본**은 [`src/document/map-object-categories.js`](../../src/document/map-object-categories.js)의 `MAP_OBJECT_TYPES` / `MAP_OBJECT_CATEGORIES`다. 이는 프로젝트 저장 스키마의 정본이 아니다. 현행 [Viewer 모듈 소유권](../app-module-ownership.md)을 함께 따른다.
 
-## Object Type Registry
+> **역사 기록:** 아래의 `assets/js/modules/map-object-categories.js`·`object-action-registry.js` 및 편집기/추가 메뉴/명령 실행에 대한 Stage 5 설계는 이전 편집 제품의 계약이다. 현재 저장소에 동일한 독립 Action Registry 파일이 있다고 가정하거나 편집 UI 구현을 요구하지 않는다. 당시 설계와 테스트 의도는 보존한다.
 
-`assets/js/modules/map-object-categories.js`가 객체 UI 메타데이터의 단일 원본이다.
+## 2026 Stage 5 Object Type Registry (역사적 설계)
+
+당시 `assets/js/modules/map-object-categories.js`가 객체 UI 메타데이터의 단일 원본이었다.
 
 각 객체 타입은 최소 다음을 선언한다.
 
@@ -35,7 +37,7 @@ generic      → generic
 
 레이어, 추가 메뉴, 편집기 또는 검색이 객체 표시 이름을 새로 만들지 않는다. 가능한 경우 `MAP_OBJECT_TYPES`와 `MAP_OBJECT_CATEGORIES`를 참조한다. `generic`은 fallback 데이터이므로 `creatable: false`를 유지한다.
 
-## Action Registry
+## 2026 Stage 5 Action Registry (역사적 설계)
 
 `assets/js/modules/object-action-registry.js`가 객체 작업의 의미 메타데이터를 소유한다.
 
@@ -58,7 +60,7 @@ danger
 
 실제 프로젝트 mutation은 Action Registry가 직접 수행하지 않는다. `createObjectActionExecutor({ execute })`는 canonical command 문자열을 외부 executor에 전달하는 bridge만 제공한다. 실제 Command → Mutation 통합은 다음 Application Architecture 단계에서 담당한다.
 
-## Runtime ownership
+## 2026 Stage 5 Runtime ownership (역사적 설계)
 
 ```text
 Object Type Registry
@@ -74,7 +76,7 @@ Application Command Layer
   → 실제 mutation 실행 (후속 단계)
 ```
 
-## CI contract
+## 2026 Stage 5 CI contract (과거 검증 목표)
 
 `check-object-registry.mjs`와 `object-registry.test.mjs`가 다음을 고정한다.
 
@@ -86,4 +88,4 @@ Application Command Layer
 - runtime presenter가 실제 bootstrap 경로에서 설치되는지
 - 기존 `app.js`가 레이어명/추가 메뉴 등에서 Registry를 계속 소비하는지
 
-새 타입이나 작업을 추가할 때는 화면별 문자열을 추가하기 전에 Registry descriptor를 먼저 추가한다.
+현행 객체 표시 타입을 추가할 때는 `src/document/map-object-categories.js`의 descriptor와 소비자를 먼저 검토한다. 위 Action Registry/편집 UI 목록은 당시 단계의 검증 목표를 보존한 것이며 현재 존재하지 않는 파일을 새로운 정본으로 만들지 않는다.

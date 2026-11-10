@@ -1,4 +1,8 @@
-# DEM 지형 자료
+# DEM 지형 자료 — 현행 숫자형 DEM·과거 전환 기록
+
+> **현행 조회 기준(2026-11-11):** 지도 프로젝트의 `terrain` 카탈로그는 [프로젝트 매니페스트](../src/data/map-project-manifest.js)로 선택한다. [`src/data/terrain-manifest.js`](../src/data/terrain-manifest.js)는 `dem-relief-v1` / `0.13.3` 수치 DEM 검증 계약을 소유하고, [`src/data/physical-source-configuration.js`](../src/data/physical-source-configuration.js)가 선택된 프로젝트 경로를 전달한다. [지형 미리보기 기록](terrain-preview.md)의 `raster-rgba-v1`은 퇴역한 표시 방법이다. 아래 기존 raster `0.12.6` fallback 및 WebGL/Canvas 미리보기·검증 명령은 **2026-10-05 당시의 자료 전환 및 계측 기록**이며 현행 기본 동작으로 단정하지 않는다. 새로운 다운로드·변환·배포 명령을 승인하지 않는다.
+
+## 2026-10 당시 DEM/raster 전환 정책과 검증 원문 (보존)
 
 WebGL1·2의 기본 지형은 공개된 ETOPO DEM `0.13.3`의 색채 표현이다. DEM manifest, tint 또는 데이터셋을 사용할 수 없으면 Natural Earth raster `0.12.6`으로 전환한다. Canvas는 raster `0.12.6`을 계속 사용한다. 기존 프로젝트는 처음 불러올 때 색채 표현으로 한 번 전환되며, 그 뒤 사용자가 선택한 없음·흑백·색채 설정을 저장한다. 색채 표현은 평면의 기준 밝기를 유지하도록 DEM 음영을 정규화해 지형의 명암이 흐려지지 않게 합성한다.
 
