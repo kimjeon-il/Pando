@@ -224,7 +224,8 @@ export function generatePlaceRelease() {
     prefix, [{ ...row, first: prefix, last: prefix + '\uffff' }],
   ]));
   const manifest = { version: 1,
-    revision: 'approved-places-' + hash('sha256', catalogText).slice(0, 16) + '-spatial-v1',
+    revision: 'approved-places-' + hash('sha256', catalogText).slice(0, 16)
+      + '-spatial-' + hash('sha256', sortedJson(displayRanking)).slice(0, 12),
     displayRanking,
     stages: [{ id: 0, minZoom: 0, columns: 1, rows: 1 }],
     tiles: { '0/0-0': row },
