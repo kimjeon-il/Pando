@@ -84,6 +84,10 @@ export function prepareLibraryData({ root = defaultRoot, fetch = true, purpose =
   return withLibraryLock(root, () => prepareOwnedLibraryData({ root, fetch, purpose, prefixes, projectId }));
 }
 
+export function prepareLibraryMetadata({ root = defaultRoot, fetch = true } = {}) {
+  return withLibraryLock(root, () => prepareOwnedLibraryMetadata({ root, fetch }), { compact: false });
+}
+
 export function mountLibraryInputs({ source, root }) {
   source = realpathSync(source); root = realpathSync(root);
   const input = safeChild(source, 'assets/data'), output = safeChild(root, 'assets/data');
@@ -480,7 +484,7 @@ export function writeLibraryOutput(path, bytes, options) {
   return withLibraryOutputs({ paths: [path] }, () => writeFileSync(path, bytes, options));
 }
 
-export function prepareOwnedLibraryData({ root, fetch, purpose = 'viewer', prefixes = [], source = null, projectId = 'default-world' }) {
+function prepareOwnedLibraryMetadata({ root, fetch }) {
   root = resolve(root); const checkout = libraryCheckout(root);
   const config = libraryConfig(root);
   if (!existsSync(resolve(checkout, '.git'))) {
@@ -505,6 +509,13 @@ export function prepareOwnedLibraryData({ root, fetch, purpose = 'viewer', prefi
   // The archive checkout owns stored work. Runtime pairing is selected by the
   // pinned Git tree, not by moving that checkout back over later reports/WIP.
   if (!current || !existsSync(resolve(checkout, 'archive/index.json'))) throw Error('Library archive checkout is incomplete; preserve its work before repairing it.');
+  if (!index || typeof index.files !== 'object' || !index.files || Array.isArray(index.files)) throw Error('Invalid pinned library archive index');
+  return { checkout, config, index, repository: config.repository, revision: config.revision };
+}
+
+export function prepareOwnedLibraryData({ root, fetch, purpose = 'viewer', prefixes = [], source = null, projectId = 'default-world' }) {
+  root = resolve(root);
+  const { checkout, config, index } = prepareOwnedLibraryMetadata({ root, fetch });
   excludeReportStorage(librarySharedCheckout(root));
   const reportRoot = libraryReportRoot(root);
   if (existsSync(resolve(checkout, '.working/report-owner.json'))) throw Error('Centralize existing report originals with --centralize-reports --apply before preparing data.');

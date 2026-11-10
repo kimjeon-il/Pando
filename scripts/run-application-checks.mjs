@@ -75,8 +75,12 @@ export function executionOutputs(plan, { repository, ...options } = {}) {
   phasePrerequisites(plan, phase).forEach(include);
   const nonBrowser = Boolean(plan.unitTests.length || plan.commands.length || plan.explicitPrerequisites?.length), count = plan.browserSpecs.length;
   const total = Math.min(8, Math.ceil(count / 4));
+  const metadataOnly = new Set(repository?.catalog.metadataOnlyTests || []);
+  const runtimeData = phase !== 'non-browser' && count > 0 || phase !== 'browser' && (
+    plan.commands.length > 0 || Boolean(plan.explicitPrerequisites?.length) || plan.unitTests.some(file => !metadataOnly.has(file)));
   return {
     checks: nonBrowser || count > 0, non_browser: nonBrowser, browser: count > 0, browser_count: count,
+    runtime_data: runtimeData,
     browser_matrix: { include: Array.from({ length: total }, (_, i) => ({ current: i + 1, total })) },
     gis_native: phase !== 'browser' && (required.has('native-hydro-point-screen') ||
       required.has('native-territorial-recipe') || required.has('native-caspian-oracle') ||

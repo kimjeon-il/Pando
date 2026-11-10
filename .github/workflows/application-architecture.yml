@@ -106,9 +106,8 @@ jobs:
           cache: pnpm
       - &a4
         run: pnpm install --frozen-lockfile
-      - &library
-        name: Prepare pinned external library data
-        uses: ./.github/actions/library-data
+      - name: Prepare pinned library metadata for check planning
+        run: node tools/data/library-data.mjs --prepare-metadata
       - name: Reject retired workflow executables before selecting checks
         run: node scripts/check-test-consolidation.mjs
       - name: Select current application checks
@@ -135,11 +134,15 @@ jobs:
       - *a2
       - *a3
       - *a4
-      - *library
+      - name: Prepare pinned library metadata for check planning
+        run: node tools/data/library-data.mjs --prepare-metadata
       - name: Select current application checks
         id: plan
         env: *a5
         run: node scripts/run-application-checks.mjs --list --github-output --phase non-browser
+      - name: Prepare pinned external library data
+        if: steps.plan.outputs.runtime_data == 'true'
+        uses: ./.github/actions/library-data
       - name: Install native GIS prerequisites only for selected data checks
         if: steps.plan.outputs.gis_native == 'true'
         run: sudo apt-get update && sudo apt-get install -y libgeos-dev libproj-dev
@@ -172,7 +175,8 @@ jobs:
       - *a2
       - *a3
       - *a4
-      - *library
+      - name: Prepare pinned external library data
+        uses: ./.github/actions/library-data
       - name: Select current application checks
         id: plan
         env: *a5

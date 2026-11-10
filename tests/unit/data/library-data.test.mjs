@@ -7,12 +7,49 @@ import { execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { createHash } from 'node:crypto';
 import { gzipSync } from 'node:zlib';
-import {compactLibraryCheckout,prepareLibraryData,withLibraryWrite} from "../../../tools/data/library-runtime.mjs";
+import {compactLibraryCheckout,prepareLibraryData,prepareLibraryMetadata,withLibraryWrite} from "../../../tools/data/library-runtime.mjs";
 import {decodeArchiveEntry,libraryReportRoot,libraryReportEditRoot,libraryMaterializedRoot,safeChild,readLibraryDataFile} from "../../../tools/data/library-context.mjs";
 import {hydrateReports} from "../../../tools/data/library-reports.mjs";
 import {storeLibraryData,libraryPublicationRef} from "../../../tools/data/library-store.mjs";
 import { reportPath } from "../../../tools/data/report-paths.mjs";
 import {encodeTerritorialSource} from '../../../tools/data/territorial-source-codec.mjs';
+
+test('metadata preparation reads the pinned archive without mounting runtime data',t=>{
+ const root=mkdtempSync(join(tmpdir(),'pando-metadata-')),checkout=join(root,'.library-data/repository');
+ t.after(()=>rmSync(root,{recursive:true,force:true}));
+ const put=(path,value)=>{mkdirSync(dirname(path),{recursive:true});writeFileSync(path,value);};
+ const git=(...args)=>execFileSync('git',args,{cwd:checkout,encoding:'utf8',stdio:'pipe'}).trim();
+ mkdirSync(checkout,{recursive:true});git('init','-q');git('config','user.name','Fixture');git('config','user.email','fixture@example.invalid');
+ put(join(checkout,'archive/index.json'),JSON.stringify({files:{'assets/data/pinned.json':{}}}));git('add','.');git('commit','-qm','pinned');
+ const revision=git('rev-parse','HEAD');
+ put(join(checkout,'archive/index.json'),JSON.stringify({files:{'assets/data/newer.json':{}}}));git('add','.');git('commit','-qm','newer');
+ put(join(root,'config/library-data.json'),JSON.stringify({repository:'fixture/data',revision,mounts:['assets/data','reports']}));
+ const result=prepareLibraryMetadata({root,fetch:false});
+ assert.deepEqual(Object.keys(result.index.files),['assets/data/pinned.json']);
+ assert.equal(existsSync(join(root,'assets/data')),false);assert.equal(existsSync(join(root,'reports')),false);
+ assert.equal(git('rev-parse','HEAD')===revision,false);
+ put(join(root,'config/library-data.json'),JSON.stringify({repository:'fixture/data',revision:'0'.repeat(40),mounts:[]}));
+ assert.throws(()=>prepareLibraryMetadata({root,fetch:false}));
+ put(join(checkout,'archive/index.json'),JSON.stringify({files:null}));git('add','.');git('commit','-qm','invalid index');
+ put(join(root,'config/library-data.json'),JSON.stringify({repository:'fixture/data',revision:git('rev-parse','HEAD'),mounts:[]}));
+ assert.throws(()=>prepareLibraryMetadata({root,fetch:false}),/Invalid pinned library archive index/);
+});
+
+test('metadata preparation bootstraps a fresh checkout with only archive metadata',t=>{
+ const base=mkdtempSync(join(tmpdir(),'pando-metadata-clone-')),root=join(base,'app'),source=join(base,'source');
+ t.after(()=>rmSync(base,{recursive:true,force:true}));
+ const put=(path,value)=>{mkdirSync(dirname(path),{recursive:true});writeFileSync(path,value);};
+ const git=(...args)=>execFileSync('git',args,{cwd:source,encoding:'utf8',stdio:'pipe'}).trim();
+ mkdirSync(source,{recursive:true});git('init','-q');git('config','user.name','Fixture');git('config','user.email','fixture@example.invalid');
+ put(join(source,'archive/index.json'),JSON.stringify({files:{'assets/data/example.bin':{}}}));
+ put(join(source,'payload/example.bin'),'unneeded data');git('add','.');git('commit','-qm','fixture');
+ put(join(root,'config/library-data.json'),JSON.stringify({repository:'fixture/data',revision:git('rev-parse','HEAD'),mounts:['assets/data','reports']}));
+ const env={...process.env,GIT_CONFIG_COUNT:'1',GIT_CONFIG_KEY_0:`url.${pathToFileURL(source).href}.insteadOf`,GIT_CONFIG_VALUE_0:'https://github.com/fixture/data.git'};
+ execFileSync(process.execPath,[join(process.cwd(),'tools/data/library-data.mjs'),'--prepare-metadata',`--root=${root}`],{env,stdio:'pipe'});
+ assert.equal(existsSync(join(root,'.library-data/repository/archive/index.json')),true);
+ assert.equal(existsSync(join(root,'.library-data/repository/payload/example.bin')),false);
+ assert.equal(existsSync(join(root,'assets/data')),false);
+});
 
 test('a new pin refreshes unchanged shared inputs while preserving private working edits',t=>{
  const parent=mkdtempSync(join(tmpdir(),'pando-pin-refresh-')),root=join(parent,'app'),checkout=join(root,'.library-data/repository');

@@ -1,9 +1,25 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtempSync,mkdirSync,writeFileSync,rmSync} from 'node:fs';
+import {mkdtempSync,writeFileSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {auditWorkflowCheckOwners} from '../../../tools/checks/audit-workflow-check-owners.mjs';
+import {scheduleViewerPreview} from '../../../scripts/viewer-preview-plan.mjs';
+import {readFileSync} from 'node:fs';
+import YAML from 'yaml';
+
+test('preview delegates only unfiltered automatic pushes to the canonical application workflow',()=>{
+ const applicationWorkflow=YAML.parse(readFileSync(new URL('../../../.github/workflows/application-architecture.yml',import.meta.url),'utf8'));
+ const selection={preview:true,browser:true,contracts:true};
+ for(const branch of ['work/ui','work/gis','work/objects','work/places']){
+  assert.ok(applicationWorkflow.on.push.branches.includes(branch));
+  assert.equal(scheduleViewerPreview(selection,{branch,applicationWorkflow}).contracts,false);
+  assert.equal(scheduleViewerPreview(selection,{branch,applicationWorkflow,event:'workflow_dispatch'}).contracts,true);
+ }
+ assert.equal(scheduleViewerPreview(selection,{branch:'work/custom',applicationWorkflow}).contracts,true);
+ const filtered=structuredClone(applicationWorkflow);filtered.on.push.paths=['src/**'];
+ assert.equal(scheduleViewerPreview(selection,{branch:'work/ui',applicationWorkflow:filtered}).contracts,true);
+});
 
 test('workflow ownership audit preserves independent specialized jobs and detects only exact automatic duplicates',t=>{
  const dir=mkdtempSync(join(tmpdir(),'pando-ci-owners-'));

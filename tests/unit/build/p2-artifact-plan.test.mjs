@@ -15,6 +15,20 @@ import * as artifactOwners from "../../../scripts/lib/p2-artifact-graph.mjs";
 import { publishGeneratedArtifacts,publishP2FromWorkflow,assertP2LibraryPublicationBase } from "../../../scripts/p2-publish-artifacts.mjs";
 
 const digest=bytes=>createHash('sha256').update(bytes).digest('hex');
+test('pinned archive planning matches mounted hashes without reading output payloads',t=>{
+ const f=fixture(t),source='assets/data/example/input.json',output='assets/data/example/output.bin';
+ const values={[source]:Buffer.from('{"value":1}\r\n'),[output]:Buffer.from('large prepared payload')};
+ for(const [path,bytes] of Object.entries(values))f.put(path,bytes);
+ f.put('config/generated-artifacts.json',JSON.stringify({schema:'pandolab-generated-artifact-graph',schemaVersion:1,
+  families:[{id:'example',inputs:[source],outputs:['assets/data/example/output.bin'],dependencies:[],generate:[],validate:[]}]}));
+ const before=graphStatus(f.root),reads=[];
+ const archive={files:Object.fromEntries(Object.entries(values).map(([path,bytes])=>[path,{sha256:digest(bytes)}])),
+  read(path){reads.push(path);return values[path];}};
+ f.put(output,'different mounted edition');
+ assert.deepEqual(graphStatus(f.root,{archive}),before);
+ assert.ok(!reads.includes(output),'output integrity is compared by pinned identity without hydration');
+ assert.ok(reads.includes(source),'text input fingerprints retain newline normalization');
+});
 test('P2 isolates the generated work branch from a newer source-library work/gis branch',()=>{
   const pin='2fc08b781d9dc6a7709b6ac75c5a05ff3d935bff',gis='8beb97cca9992ae2099ab0ce19dca4d62f10961a';
   const proposed=assertP2LibraryPublicationBase({pinnedRevision:pin,
