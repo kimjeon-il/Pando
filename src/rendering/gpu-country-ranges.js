@@ -261,7 +261,7 @@ export function countryDrawRangesForFrame(sourceMesh, frameContext, {
  * are modified here; Worker-side clipping is a disposable display derivative.
  */
 export function visibleLargeCountryTilesForFrame(sourceMesh, frame, {
-  minTriangles = 12000, tileDegrees = 4, paddingPixels = 320,
+  minTriangles = 12000, tileDegrees = 5, paddingPixels = 320,
   maxLeaves = 512, maxTilesPerCountry = 96, maxTilesTotal = 192,
 } = {}) {
   const ids = sourceMesh?.metadataCountryIds;
