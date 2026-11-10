@@ -2504,9 +2504,15 @@ export function createGpuMapRenderer(deps) {
           features: canonicalCountryFeatures(), lod: bucket, visibleIds: scopedIds,
         }, current).then(async result => {
           if (!result || !current()) return;
+          const candidateGpuBytes = ['positions', 'countryIndices', 'triangleIndices', 'lineIndices']
+            .reduce((sum, field) => sum + Number(result[field]?.byteLength || 0), 0);
+          const canonicalGpuBytes = Number(meshVariants.get('canonical')?.resources?.byteLength || 0);
+          const lodBudgetBytes = Math.max(12 * 1024 * 1024, Math.min(128 * 1024 * 1024,
+            Number(renderQuality.renderPacketCacheBudgetBytes || 64 * 1024 * 1024)));
           screenLodLatest = Object.freeze({
             ...result.lod, durationMs: Number((performance.now() - started).toFixed(2)),
             generatedVertices: result.positions?.length / 2 || 0,
+            candidateGpuBytes, canonicalGpuBytes, lodBudgetBytes,
           });
           performanceMetrics.screenLodPreparedCount =
             (performanceMetrics.screenLodPreparedCount || 0) + 1;
@@ -2514,6 +2520,14 @@ export function createGpuMapRenderer(deps) {
             screenLodRejectedKey = key;
             screenLodFailure = result.lod?.failure || '';
             invalidateGpuFrame('screen-lod-canonical-retained');
+            return;
+          }
+          if (candidateGpuBytes > lodBudgetBytes
+            || (canonicalGpuBytes > 0 && candidateGpuBytes >= canonicalGpuBytes)) {
+            screenLodRejectedKey = key;
+            screenLodFailure = 'Display LOD exceeds the memory budget or offers no GPU mesh reduction.';
+            performanceMetrics.screenLodBudgetRejectCount =
+              (performanceMetrics.screenLodBudgetRejectCount || 0) + 1;
             return;
           }
           let resources = null;
