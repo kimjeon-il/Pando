@@ -16,7 +16,7 @@ Branch: `work/optimization`. This report distinguishes confirmed code defects, m
 
 ## Verification policy and remaining acceptance
 
-- Focused stage 5 and stage 6 workflows are rerun by this audit commit, without enabling a duplicate standing CI owner.
+- [Stage 5 focused run 42735074646](https://github.com/kimjeon-il/Pando/actions/runs/42735074646): **success**. [Stage 6 focused run 42735074741](https://github.com/kimjeon-il/Pando/actions/runs/42735074741): **success**. These are scoped source/contract checks, not browser or full GIS sign-off.
 - The P2 artifact workflow on `4537dcc8` is asynchronous; report its result only after GitHub records a conclusion. A previous failed run does not establish that the new fallback works.
 - A successful metadata-only unit test proves a guarded fast path, **not** a full real-data generation. Full acceptance requires source-matched GIS inputs, current-world and mesh receipts, project transition browser smoke, and validation of source/release ownership.
 - `main` was already eight commits ahead of the optimization branch's merge base at audit start. Reconcile those changes before any eventual merge; do not force-push or silently overwrite `main`.
