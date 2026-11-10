@@ -7,6 +7,7 @@ export function createGpuMeshWorkerJobs({ createWorker, createRebuildWorker = cr
   let rpc = null;
   let rebuildRpc = null;
   let lodRpc = null;
+  let lodBusy = false;
   let rebuildBusy = false;
   let outputBytes = 0;
   function cancelRebuild() {
@@ -40,7 +41,7 @@ export function createGpuMeshWorkerJobs({ createWorker, createRebuildWorker = cr
   }
   function cancelDisplayLod() {
     lodRpc?.stop('superseded-screen-lod');
-    lodRpc = null;
+    lodRpc = null; lodBusy = false;
   }
   // Display LOD never cancels the canonical rebuild or the edit-patch queue.
   // A separate worker can retain one topology index for repeated zoom buckets.
@@ -49,11 +50,12 @@ export function createGpuMeshWorkerJobs({ createWorker, createRebuildWorker = cr
       || !Number.isFinite(payload?.lod?.errorPx) || payload.lod.errorPx <= 0
       || typeof payload.sourceKey !== 'string' || !payload.sourceKey)
       throw new TypeError('Display LOD needs a source identity and screen-error bucket.');
-    cancelDisplayLod();
-    const current = lodRpc = createWorkerRpcClient({
+    if (lodBusy) cancelDisplayLod();
+    const current = lodRpc ||= createWorkerRpcClient({
       createWorker,
       isCurrent: ({ entry, message }) => Number(message.projectRevision) === Number(entry.projectRevision),
     });
+    lodBusy = true;
     try {
       const packed = await packCountryMeshFeatures(payload.features || [], {
         isCurrent: () => lodRpc === current && accepts(),
@@ -69,6 +71,8 @@ export function createGpuMeshWorkerJobs({ createWorker, createRebuildWorker = cr
     } catch (error) {
       if (error.cancelled || error.name === 'AbortError' || lodRpc !== current || !accepts()) return null;
       throw error;
+    } finally {
+      if (lodRpc === current) lodBusy = false;
     }
   }
   function ensureRpc() {
