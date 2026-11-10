@@ -142,3 +142,22 @@ node --test tests/unit/data/place-publication.test.mjs tests/unit/data/place-cod
 ```
 
 세 게시 산출물 `assets/data/places/reviewed-records-v1.json`, `places-v1.bin`, `manifest.json`은 하나의 승인 목록과 22개 조사본으로 결정론적으로 재생성된다. manifest의 검색 prefix·tile 범위·sha256은 **승인된 레코드만** 포함해야 한다. PR 검증은 `place-runtime.yml`이 담당하고, `work/places`에서만 새로 생성된 바이너리를 커밋하는 자동 게시 작업은 `place-curated-release.yml`이 담당한다. `main` 통합과 웹사이트 실배포 및 앱 저장소 이전은 별도 작업이다.
+
+## 2026-11-10: 5단계 도시 라벨 표시 규칙 복구 (work/places)
+
+- **자료 후보 선정 정책은 변경하지 않는다.** `tools/lib/geonames-policy.mjs`의 PPLC/PPLG/PPLA/PPLA2·인구 5만 이상 PPL 선별, 검수 보류/제외, 출시 승인 목록과 PLAC v3 바이너리·원본 자료의 핀을 그대로 사용한다.
+- 기존 기록에는 **도시 중요도를 5단계로 따로 관리한다는 구조**는 있으나, 확정된 단계별 명칭·숫자 임계값·역사 등급표가 없다. 따라서 아래 숫자는 **복원된 원본의 확정값이 아니라 현재 저장된 자료만으로 가능한 잠정 표시 정책**이다. 역사적 수도 지위나 역사 도시 인구의 인증이 아니다.
+- 기존 검수 승인 도시의 PLAC v3 `priority=70, minZoom=1.25, population=0, kind=city`를 **읽기 시점에만** 분류한다. 승인되지 않은 도시, 사용자 생성 라벨, 기존 `town` 등은 이 분류로 승격시키지 않는다. 앞으로 별도 검증한 개별 등급/우선순위를 제공할 경우 이 임시 분류보다 우선한다.
+
+| 표시 단계 | 현행 GeoNames 후보 분류(임시 근거) | 충돌 우선순위 | 최초 확대 배율 |
+| --- | --- | ---: | ---: |
+| 1 | PPLC (국가 수도 후보) | 95 | 1.0배 |
+| 2 | PPLG (정부 소재지 후보; 법정 수도 단정 금지) | 87 | 1.4배 |
+| 3 | PPLA (제1 행정중심지 후보) | 77 | 2.0배 |
+| 4 | PPLA2 (제2 행정중심지 후보) | 65 | 3.0배 |
+| 5 | PPL (일반 취락 후보; 출시 승인된 기록만) | 53 | 5.0배 |
+
+- **코드의 단일 규칙**: `src/document/place-contract.js`의 `PLACE_DISPLAY_TIERS`와 `resolvePlaceDisplayRank`. Worker의 viewport 필터·후보 우선 정렬 및 지도 라벨의 최초 표시/충돌 정렬은 **모두 이 결과**를 사용한다. 따라서 동일 지명쌍의 지도 노출 단계와 충돌 순서가 일치한다.
+- 서울 GeoNames `1835848/PPLC`와 대전 `1835235/PPLA`의 **동일 좌표 충돌 사례**에서 서울을 먼저 남기고 대전은 2배부터 허용해야 한다. 승인된 173개 PLAC v3 레코드/검색 색인/명칭·존속 기간의 실제 값은 이 수정으로 변경하지 않는다.
+- 역사 지도에서 현재 GeoNames 행정 코드를 과거의 법적 지위로 자동 소급하지 않는다. 이 단계는 **시각적 정렬을 위한 현대 출처의 대체 기준**이다. 시대별 `rankTimeline`/5단계 중요도는 **도시별로 검증된 별도 자료**가 확보돼야 정확히 구현할 수 있다. 도시 이름 `displayTimeline`, 존재 `urban-lifetimes-v1`, 수록 여부 `runtime-release-approvals-v1`와는 독립적으로 유지한다.
+- 이 분류는 `main` 배포본이 아니라 개발 브랜치 `work/places`에서만 적용된다. 실제 브라우저 시각 품질, 전 세계 도시 분포와 단계별 밀도는 이후 배포 전 점검 대상이다.
