@@ -13,7 +13,7 @@ import { createCountryBoundaryGeometryTransport } from "./country-boundary-geome
 import { terrainDemFragmentSource } from "./terrain-dem-shaders.js";
 import { resolveMapInteractionStyle } from "../map/map-interaction-style.js";
 import { decodeCountryMesh } from "./country-mesh-codec.js";
-import { createCountryTriangleRangeMap, canSubmitCountryIndices, visibleCountryMeshIdsForFrame } from "./gpu-country-ranges.js";
+import { createCountryTriangleRangeMap, canSubmitCountryIndices, visibleCountryMeshIdsForFrame, visibleLargeCountryTilesForFrame } from "./gpu-country-ranges.js";
 export { countryDrawRangesForFrame, createCountryTriangleRangeMap, mergeCountryDrawRanges } from "./gpu-country-ranges.js";
 import { createRenderDevice } from "./render-device.js";
 import { createSceneColorCache } from "./scene-color-cache.js";
@@ -2479,7 +2479,14 @@ export function createGpuMapRenderer(deps) {
       const allVisible = !visibleIds || visibleIds.length === canonicalEntry.countryIds.length;
       const scopedIds = allVisible ? null : visibleIds;
       const viewKey = allVisible ? 'whole-world' : scopedIds.join(',');
-      const key = `${generation}:${revision}:${sourceKey}:${bucket.key}:${viewKey}`;
+      const visibleTiles = lastVisualFrame?.projectGeneration === generation
+        && countrySharedBoundary?.sourceProjectGeneration === generation
+        ? visibleLargeCountryTilesForFrame(canonicalEntry.mesh, lastVisualFrame) : [];
+      // For the same set of country IDs, a pan across a very large country
+      // may still enter new *interior* blocks. Keep those tile IDs in the
+      // admission key rather than reusing an incomplete derivative.
+      const tileKey = visibleTiles.map(row => `${row.id}=${row.tiles.map(tile => tile.join(':')).join(';')}`).join('|');
+      const key = `${generation}:${revision}:${sourceKey}:${bucket.key}:${viewKey}:${tileKey}`;
       screenLodSourceKey = sourceKey;
       if (screenLodTargetKey === key) return key;
       screenLodTargetKey = key;
@@ -2507,6 +2514,7 @@ export function createGpuMapRenderer(deps) {
         patchJobScheduler.prepareDisplayLod({
           projectGeneration: generation, geometryRevision: revision, sourceKey,
           features: canonicalCountryFeatures(), lod: bucket, visibleIds: scopedIds,
+          visibleTiles,
         }, current).then(async result => {
           if (!result || !current()) return;
           const candidateGpuBytes = ['positions', 'countryIndices', 'triangleIndices', 'lineIndices']
