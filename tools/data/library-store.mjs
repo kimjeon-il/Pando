@@ -6,7 +6,7 @@ import {dirname,resolve} from "node:path";
 import {gunzipSync,gzipSync} from "node:zlib";
 import {contentFiles,contentHash,removeContentLink,replaceLibraryFile,shareContentFile} from "./library-content.mjs";
 import {assertHistoricalStorageChanges} from "../gis/historical-display-storage.mjs";
-import {assertHistoricalDisplayChanges} from "../gis/historical-display-review.mjs";
+import {assertHistoricalSourceStorageChanges} from "../gis/historical-display-review.mjs";
 import {readBuiltinCountry,readBuiltinCountryStoredBytes} from "./builtin-country-bytes.mjs";
 import {decodeTerritorialSource} from './territorial-source-codec.mjs';
 import {defaultRoot,gitOptions,git,libraryConfig,libraryCheckout,libraryMaterializedRoot,libraryReportRoot,librarySharedCheckout,libraryOwnerId,safeChild,decodeArchiveEntry,withLibraryLock,organizationTree} from "./library-context.mjs";
@@ -212,7 +212,14 @@ export function storeOwnedLibraryData({ root, push, prefixes, removePaths, repor
     const raw=sourceEntity(p,newBytes);
     if(raw.schemaVersion!==2||typeof raw.entityId!=='string'||!Array.isArray(raw.geometryVersions)
       ||p!==territorial+'/source/countries/'+raw.entityId.replace(':','-')+'.json')throw Error('Source filename identity/schema mismatch');
-    assertHistoricalDisplayChanges(raw,archived.files[p]?previousSource(p):null);
+    assertHistoricalSourceStorageChanges(raw,archived.files[p]?previousSource(p):null,{prefixes,readEvidence:reference=>{
+      // Authoring evidence is an immutable archived input. Unstored files and caller
+      // claims cannot stand in for a prior source adoption review.
+      const revision=git(data.checkout,['rev-parse','HEAD']);
+      const index=JSON.parse(readFileSync(resolve(data.checkout,'archive/index.json'),'utf8'));
+      if(!index.files[reference])throw Error('Missing archived source adoption evidence: '+reference);
+      return decodeArchiveEntry(data.checkout,index.files[reference],revision,{fetch:false});
+    }});
   }
   const reviewScopes=['assets/data/territorial-entities','assets/data/builtin-world'];
   if(prefixes.some(p=>reviewScopes.some(s=>p===s||p.startsWith(s+'/')||s.startsWith(p+'/')))){

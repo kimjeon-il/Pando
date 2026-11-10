@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import {pathToFileURL} from 'node:url';
 import {createHash} from 'node:crypto';
+import {isDeepStrictEqual} from 'node:util';
 // Same payload as the canonical prepared-polygon digest; GeoJSON key order is metadata.
 const digest=geometry=>createHash('sha256').update(JSON.stringify([geometry.type,geometry.coordinates])).digest('hex');
 const requiredHash=value=>typeof value==='string'&&/^[a-f0-9]{64}$/.test(value);
@@ -29,6 +30,45 @@ export function assertHistoricalDisplayChanges(next,previous){
  let checked=0;const before=new Map((previous?.geometryVersions||[]).map(v=>[v.versionId,v]));
  for(const version of next.geometryVersions){const old=before.get(version.versionId);if(old&&digest(old.geometry)===digest(version.geometry))continue;if(historical(version)){assertHistoricalDisplayReview(next.entityId,version);checked++;}}
  return checked;
+}
+/** Admit an original modern authoring source, never a display or compiled resource.
+ * Evidence must already be archived by the storage owner, not supplied by a flag.
+ * Dated reconstructions and ownership/identity edits still require the normal review.
+ */
+export function assertHistoricalSourceStorageChanges(next,previous,{prefixes,readEvidence}={}){
+ const versions=next.geometryVersions||[];
+ if(previous&&next.entityId===previous.entityId&&versions.length===previous.geometryVersions?.length&&versions.every(v=>{const old=previous.geometryVersions.find(p=>p.versionId===v.versionId);return old&&digest(old.geometry)===digest(v.geometry);}))return assertHistoricalDisplayChanges(next,previous);
+ if(!versions.some(v=>v.modernBoundarySupplement?.sourceAdoptionReview))return assertHistoricalDisplayChanges(next,previous);
+ const fail=message=>{throw Error('Raw source adoption: '+message);};
+ const base='assets/data/territorial-entities/source/';
+ if(!Array.isArray(prefixes)||!prefixes.length||prefixes.some(p=>!/^assets\/data\/territorial-entities\/source\/(?:countries\/[\w-]+\.json|geometries\/sha256-[a-f0-9]{64}\.json)$/.test(p)))fail('exact source-only scope required');
+ if(!previous||versions.length!==1||previous.geometryVersions?.length!==1)fail('existing single modern version required');
+ const v=versions[0],old=previous.geometryVersions[0];
+ if(v.validFrom!=null||v.validTo!=null||old.validFrom!=null||old.validTo!=null)fail('dated reconstruction is not modern source adoption');
+ const preserved=entity=>{
+  const copy=structuredClone(entity);
+  // Only source attribution and coordinate payload may change. All prior historical
+  // provenance, ownership, names, lifetimes and version identifiers remain exact.
+  if(copy.sourceInfo)for(const k of ['sourceId','title','geometrySha256','geometryVersionId'])delete copy.sourceInfo[k];
+  for(const version of copy.geometryVersions)for(const k of ['geometry','sourceId','modernBoundarySupplement'])delete version[k];
+  return copy;
+ };
+ if(!isDeepStrictEqual(preserved(next),preserved(previous)))fail('identity, period, ownership or provenance changed');
+ if(!isDeepStrictEqual(v.modernBoundarySupplement.priorPreparedAttribution,old.modernBoundarySupplement))fail('prior source attribution must be preserved');
+ const replacedAttribution=new Set(['sourceId','status','sourceFile','rawLayer','sourceWP_IDs','rawBlobSha256','geometrySha256','adoptionMode','sourceProperties','priorPreparedAttribution','sourceAdoptionReview']);
+ for(const [key,value] of Object.entries(old.modernBoundarySupplement||{}))if(!replacedAttribution.has(key)&&!isDeepStrictEqual(v.modernBoundarySupplement[key],value))fail('source caveat changed: '+key);
+ const resourceHash=createHash('sha256').update(JSON.stringify(v.geometry)+'\n').digest('hex');
+ if(!prefixes.includes(base+'countries/'+next.entityId.replace(':','-')+'.json')||!prefixes.includes(base+'geometries/sha256-'+resourceHash+'.json'))fail('paired descriptor and exact geometry resource required');
+ const receipt=v.modernBoundarySupplement.sourceAdoptionReview;
+ if(!evidence(receipt)||!/^reports\/(?:[\w.-]+\/)*[\w.-]+\.json$/.test(receipt.reference)||receipt.reference.split('/').includes('..')||typeof readEvidence!=='function')fail('archived adoption evidence required');
+ const bytes=readEvidence(receipt.reference);
+ if(!Buffer.isBuffer(bytes)||createHash('sha256').update(bytes).digest('hex')!==receipt.sha256)fail('missing or corrupt adoption evidence');
+ const review=JSON.parse(bytes);
+ if(review.schemaVersion!==1||review.status!=='raw-source-only-not-display-approved'||review.entityId!==next.entityId||review.versionId!==v.versionId||review.previousGeometrySha256!==digest(old.geometry)||review.geometrySha256!==digest(v.geometry))fail('stale geometry or identity evidence');
+ if(review.method!=='lossless-original-feature'||review.rawCoordinateRoundtrip!==true||!evidence(review.source))fail('lossless original feature evidence required');
+ const topology=review.topology;
+ if(topology?.status!=='passed'||!Array.isArray(topology.checks)||['validity','shared-boundary','gaps-overlaps','holes-islands','ownership'].some(k=>!topology.checks.includes(k))||!Array.isArray(topology.counterpartVersions)||!topology.counterpartVersions.every(c=>c.entityId&&c.versionId&&requiredHash(c.geometrySha256))||(!topology.counterpartVersions.length&&!topology.noSharedBoundaryReason))fail('ownership and topology review required');
+ return 1;
 }
 /** Compiled-only writes must cover each changed dated binding, including derivatives. */
 export function assertHistoricalCompiledChanges(next,previous){
