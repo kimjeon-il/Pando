@@ -392,7 +392,7 @@ export function createSharedPolygonLodIndex(features, { precision = 7 } = {}) {
  * zoom bucket and tile. Moving the camera reuses unchanged prepared cells.
  */
 export function tileLargePolygonLodFeatures(features, visibleTiles, {
-  intersection, sourceKey, lodKey, tileDegrees = 4,
+  intersection, sourceKey, lodKey, tileDegrees = 5,
   minimumVertices = 4000, cache = new Map(), maxCachedTiles = 128,
 } = {}) {
   if (!Array.isArray(features) || !Array.isArray(visibleTiles)
