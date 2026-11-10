@@ -61,6 +61,7 @@
     "check:geometry-runtime": "node --test tests/unit/geometry/polygon-geometry.test.mjs tests/unit/geometry/gis-math-contract.test.mjs tests/unit/geometry/annex-slivers.test.mjs",
     "check:ci-inventory": "node scripts/check-test-consolidation.mjs && node --test tests/unit/runtime/check-runner.test.mjs",
     "check:affected": "node scripts/run-application-checks.mjs",
+    "check:policies": "node scripts/check-policy-links.mjs && node --test tests/unit/runtime/policy-links.test.mjs",
     "test:gis-node": "node --test tests/unit/data/hydro-packfile.test.mjs tests/unit/geometry/download-terrain-source.test.mjs tests/unit/document/place-batch-pipeline.test.mjs tests/unit/document/place-candidates.test.mjs tests/unit/geometry/gis-source-launcher.test.mjs tests/unit/data/library-report-publication.test.mjs",
     "dev:web": "node scripts/frontend-dev-server.mjs --product=viewer",
     "build:web": "node scripts/generate-build-metadata.mjs --product=viewer",

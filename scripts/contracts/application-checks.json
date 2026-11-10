@@ -826,6 +826,26 @@
       ]
     },
     {
+      "id": "policy-links",
+      "kind": "command",
+      "inputs": [
+        "docs/**",
+        "AGENTS.md",
+        "README.md",
+        "VERSIONING.md",
+        "scripts/check-policy-links.mjs",
+        "tests/unit/runtime/policy-links.test.mjs",
+        "scripts/contracts/application-checks.json",
+        "package.json"
+      ],
+      "argv": [
+        "node",
+        "scripts/check-policy-links.mjs"
+      ],
+      "requires": [],
+      "testPatterns": []
+    },
+    {
       "id": "workflow-ownership",
       "kind": "command",
       "inputs": [
