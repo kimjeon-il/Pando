@@ -25,6 +25,13 @@
 - [P1 결정 대장](p1-reconciliation.md)의 '같은 규칙만 통합, 다른 규칙은 분리' 방침.
 - `main` 병합 및 Pages 배포는 사용자 별도 승인 없이는 실행하지 않는다.
 
-## 점검 결과
+## 점검 결과 (2026-11-11 확인)
 
-점검 지표는 이 작업의 실제 검증 명령 및 GitHub 원격 경로 감사가 완료된 뒤에만 기록한다. 정적 경로·계약 검사가 실제 렌더링·데이터 정합성 검사 통과를 의미하지 않는다.
+- **[GitHub Actions 집중 검사 통과](https://github.com/kimjeon-il/Pando/actions/runs/42909930272)**: `work/ui@150d76221a5102549cf591708eec2b0fd21baea3`의 Application Architecture 검사 최종 **success**. `policy-links` 명령형 검사와 변경 파일에 해당하는 단위 테스트 실행이 각각 통과했다.
+- 정적 검사 실제 출력: `files: 49`, `links: 291`, `codeReferences: 82`, `groupReferences: 24`, `scriptReferences: 3`; 누락된 상대 링크·실행 소유자·그룹/스크립트 참조 **0건**.
+- 새 검사 단위 테스트: **3개 통과, 실패 0개**. 정상 등록, 깨진 링크·검증 이름 감지, 연결된 원본 문서의 깨진 링크 탐지를 확인했다.
+- P2 원본 정책 연결 감사에서 발견한 구형 해안선 JSON의 잘못된 Markdown 링크 **2개**는 [연구 시점의 경로와 보존된 요약 보고서](../historical-coastline-change-workflow.md)로 구별해 수정했다. 삭제된 옛 JSON을 현재 정본 파일로 허위 연결하지 않았다.
+- 초기 CI [실패 실행](https://github.com/kimjeon-il/Pando/actions/runs/42909467874)은 새 검사기 내부에서 `index` 반복변수 이름이 중앙 색인 경로와 충돌한 버그였다. [수정 커밋](https://github.com/kimjeon-il/Pando/commit/150d76221a5102549cf591708eec2b0fd21baea3)에서 이름 충돌을 수정하고 재실행해 통과했다. 실패 기록은 성공으로 덮어쓰지 않는다.
+- 이번 최종 문서 기록 갱신은 **검사 통과한 기존 코드와 계약을 변경하지 않는다**. 이 문서 갱신 커밋의 검증 실행은 별도로 확인한다.
+
+**검증 한계:** 상대 Markdown 링크는 **파일 경로 존재** 중심이며 외부 HTTP URL, Markdown 헤딩 앵커, GIS 사료 정확도, 브라우저·GPU 화면 회귀는 검사 대상이 아니다. 브라우저 단계는 영향 범위 밖이어서 **skipped**였다. 전체 제품 회귀 통과라고 표기하지 않는다.
