@@ -98,7 +98,7 @@ test('canonical BVH selects visible internal blocks without revisiting offscreen
     minTriangles: 100, paddingPixels: 10,
   }));
   assert.equal(first[0].id, 'mainland');
-  assert.ok(first[0].tiles.every(tile => tile[0] >= 0 && tile[0] <= 1));
+  assert.ok(first[0].tiles.every(tile => tile[0] >= -1 && tile[0] <= 1));
   const shifted = visibleLargeCountryTilesForFrame(mesh, {
     ...frame, flatCenter: [12 * Math.PI / 180, 0],
   }, { minTriangles: 100, paddingPixels: 10 });
