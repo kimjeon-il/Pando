@@ -84,6 +84,8 @@
         "tests/unit/**/terrain-*.test.mjs",
         "tests/unit/**/physical-land*.test.mjs",
         "tests/unit/**/country-*.test.mjs",
+        "tests/unit/rendering/screen-geometry-lod.test.mjs",
+        "tests/unit/rendering/visible-country-lod.test.mjs",
         "tests/unit/**/boundary-*.test.mjs",
         "tests/unit/**/lsib-*.test.mjs",
         "tests/unit/**/prepared-*.test.mjs",
@@ -158,7 +160,8 @@
         "tests/browser/**/canvas-*.spec.mjs",
         "tests/browser/**/gpu-*.spec.mjs",
         "tests/browser/**/country-*.spec.mjs",
-        "tests/browser/**/renderer-*.spec.mjs"
+        "tests/browser/**/renderer-*.spec.mjs",
+        "tests/browser/rendering/map-vector-lod.spec.mjs"
       ],
       "inputs": [
         "src/**/gpu-*.js",
