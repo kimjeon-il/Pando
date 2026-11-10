@@ -267,15 +267,24 @@ export function createSharedPolygonLodIndex(features, { precision = 7 } = {}) {
       }
     }
   }
-  function derive({ cssScale, errorPx = MAX_MAP_GEOMETRY_ERROR_PX, protectedIds = [] } = {}) {
+  function derive({ cssScale, errorPx = MAX_MAP_GEOMETRY_ERROR_PX,
+    protectedIds = [], visibleIds = null } = {}) {
+    if (!Number.isFinite(cssScale) || cssScale <= 0 || !Number.isFinite(errorPx) || errorPx <= 0)
+      throw new TypeError('Invalid LOD screen scale or pixel error.');
     const tolerance = errorPx / cssScale;
-    if (!Number.isFinite(tolerance) || tolerance < 0) throw new TypeError('Invalid LOD screen scale.');
     const protectedSet = new Set([...protectedIds].map(String));
+    const visibleSet = visibleIds === null ? null : new Set([...visibleIds].map(String));
     const protectedNodes = new Set();
     if (protectedSet.size) for (const [key, node] of nodes)
       if ([...node.owners].some(owner => protectedSet.has(owner))) protectedNodes.add(key);
     let invalid = false, originalVertices = 0, keptVertices = 0;
     const output = features.map((feature, index) => {
+      const featureId = String(feature?.id ?? index);
+      if (visibleSet && !visibleSet.has(featureId)) {
+        originalVertices += byFeature[index].reduce((count, polygon) =>
+          count + polygon.reduce((sum, ring) => sum + ring.points.length, 0), 0);
+        return { ...feature, geometry: null };
+      }
       const polygons = byFeature[index].map(polygon => polygon.map(info => {
         originalVertices += info.points.length;
         const selected = protectedSet.has(info.id) ? info.points
@@ -291,7 +300,9 @@ export function createSharedPolygonLodIndex(features, { precision = 7 } = {}) {
     });
     // Never restore only one country of a shared arc: fail closed as a frame.
     return Object.freeze({ features: invalid ? features : output, fallback: invalid,
-      originalVertices, keptVertices: invalid ? originalVertices : keptVertices });
+      originalVertices, keptVertices: invalid ? originalVertices : keptVertices,
+      visibleCountryCount: visibleSet ? output.filter(feature => !!feature.geometry).length : features.length,
+      scoped: !!visibleSet });
   }
   return Object.freeze({ derive, stats: () => Object.freeze({
     featureCount: features.length, ringCount: allRings.length,
