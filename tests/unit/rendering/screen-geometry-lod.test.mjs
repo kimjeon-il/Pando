@@ -13,7 +13,7 @@ const countries = [
     [0, 0], [4, 0], ...aToB, [0, 0],
   ]] } },
   { id: 'east', geometry: { type: 'Polygon', coordinates: [[
-    ...[...aToB].reverse(), [0, 2], [4, 2], [4, 1],
+    ...[...aToB].reverse(), [4, 2], [0, 2], [0, 1],
   ]] } },
 ];
 
