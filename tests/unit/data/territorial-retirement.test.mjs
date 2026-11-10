@@ -10,7 +10,7 @@ import path from 'node:path';
 import * as retirement from '../../../tools/gis/territorial-retirement.mjs';
 import * as publication from '../../../tools/build/build-builtin-world.mjs';
 import {territorialIndexEntry} from '../../../tools/gis/territorial-index-entry.js';
-import {builtinSubunitId} from '../../../src/document/builtin-subunits.js';
+import {builtinSubunitId} from '../../../src/document/territorial-display-identity.js';
 import {assertTerritorialStorageScope} from '../../../tools/data/library-store.mjs';
 import {buildTerritorialRetirementIndex} from '../../../tools/build/build-territorial-entity-chunks.mjs';
 import {encodeTerritorialSource} from '../../../tools/data/territorial-source-codec.mjs';

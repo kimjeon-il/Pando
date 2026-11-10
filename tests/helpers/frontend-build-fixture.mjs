@@ -11,6 +11,7 @@ export function frontendFixture(t){
  put('package.json',JSON.stringify({version:'1.0.0'}));
  put('projects/default-world/manifest.json',readFileSync(new URL('../../projects/default-world/manifest.json',import.meta.url)));
  for(const path of new Set([...UI_VIEWER_SOURCES,'assets/css/app.css','assets/css/viewer.css']))put(path.replace('assets/css/','src/ui/css/'),'.x { color: red; }');
+ put('src/runtime/resource-dependency-policy.js',readFileSync(new URL('../../src/runtime/resource-dependency-policy.js',import.meta.url)));
  put('src/rendering/resource-update-policy.js','export const value=1;');
  put('src/app/viewer.js','export const viewer=true;');
  const html=entry=>'<html data-app-version="1.0.0"><link rel="stylesheet" href="assets/css/ui-viewer.bundle.css"><script src="assets/js/build-meta.js"></script><script type="module" src="assets/js/'+entry+'"></script></html>';
@@ -21,16 +22,19 @@ export function frontendFixture(t){
    compressedBytes:storedPhysicalLand.length,decodedBytes:physicalLand.length,
    sha256:createHash('sha256').update(storedPhysicalLand).digest('hex')};
  const metadata={
-  'assets/data/world/current.json':{assets:{}},
-  'assets/data/terrain-preview/v0.13.3-p2/manifest.json':{sourceDem:{landMaskSha256:'land'},tiles:{}},
-  'assets/data/physical-land/v1/manifest.json':{sourceSha256:'land',asset:physicalAsset},
-  'assets/data/hydro/v0.13.4/manifest.json':{container:{url:'data.bin'},shards:[]},
+  'assets/data/world/current.json':{schema:'pandolab-world-bundle',schemaVersion:1,assets:{}},
+  'assets/data/terrain-preview/v0.13.3-p2/manifest.json':{sourceDem:{landMaskSha256:'a'.repeat(64)},tiles:{}},
+  'assets/data/physical-land/v1/manifest.json':{schema:'pando-physical-land-v3',sourceSha256:'a'.repeat(64),asset:physicalAsset},
+  'assets/data/hydro/v0.13.4/manifest.json':{schema:'pandolab-water-shards-v5',version:'0.13.4',container:{url:'data.bin'},shards:[]},
   'assets/data/places/manifest.json':{shards:{}},
-  'assets/data/places/urban-lifetimes-v1.json':{entries:[]},
+  'assets/data/places/urban-lifetimes-v1.json':{schema:'pando-place-urban-lifetimes-v1',schemaVersion:1,entries:[]},
   'assets/data/territorial-entities/generated/v2/index.json':{entities:[]},
   'assets/data/builtin-world/generated/v1/index.json':{schema:'pandolab-builtin-world',schemaVersion:2,storageLayout:'descriptor-geometries-v1',geometryAssets:[],entities:[],template:{}},
-  'assets/data/prepared-polygons/generated/v2/manifest.json':{meshes:{},algorithmSourceSha256:'mesh'},
+  'assets/data/prepared-polygons/generated/v2/manifest.json':{schema:'pandolab-prepared-polygon-meshes',schemaVersion:2,meshes:{},inputHashes:{},algorithmSourceSha256:'mesh'},
   'assets/data/physical-land/land.bin':storedPhysicalLand,'assets/data/hydro/v0.13.4/data.bin':null,
  };
+ for(const catalog of ['assets/data/builtin-world/generated/v1/index.json','assets/data/physical-land/v1/manifest.json'])
+  metadata['assets/data/prepared-polygons/generated/v2/manifest.json'].inputHashes[catalog]=
+   createHash('sha256').update(JSON.stringify(metadata[catalog])).digest('hex');
  return{root,put,metadata,options:{root,sourceCommit:'a'.repeat(40),dataPaths:Object.keys(metadata),readPinnedData:path=>Buffer.isBuffer(metadata[path])?metadata[path]:Buffer.from(JSON.stringify(metadata[path]))}};
 }

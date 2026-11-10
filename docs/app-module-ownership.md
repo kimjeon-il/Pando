@@ -1,84 +1,34 @@
-# Application module ownership
+# Viewer application module ownership (2026-11-09, work/optimization)
 
-`assets/js/app.js` is the revisioned entry point only. It loads
-`app-composition.js`, composes the application, and starts the existing
-`application-lifecycle.js` lifecycle. The runtime-boundary check limits the entry
-to 400 nonempty lines and rejects feature implementations there.
+This document describes the **current Web Viewer**, not the retired Editor or Windows runtime. The original `assets/js/app.js` / `app-composition.js` map below was historical and is no longer authoritative.
 
-## Composition and lifetime
+## Published entry and layout
 
-1. Load the existing runtime dependencies and owner factories with the same asset revision.
-2. Construct owners without DOM side effects or event registration.
-3. Connect each owner exactly once through the named `app-connect-*` modules.
-4. Run initialization stages in the original application statement order.
-5. Start the existing lifecycle, which initializes the domains before binding UI events.
+- `src/app/index.html` is the HTML shell. `src/app/viewer.js` is published as `assets/js/viewer.js`; the entry preflights the shared WASM then dynamically imports `src/app/viewer-composition.js`.
+- `src/app/map-owner-composition.js` constructs the read-only map owners; `src/app/viewer-map.js` wires the map session, and `src/app/application-lifecycle.js` owns startup and disposal. App owners must not redefine data catalogs or geometry algorithms.
+- `src/document/` owns the C++-backed project session, temporal and territorial document semantics; it does not own the contents of a map dataset. `src/document/builtin-session.js` selects a project-declared territorial catalog.
+- `src/data/` owns resource manifests, prepared data, place runtime and its lifetime policy, physical layer services, immutable asset loading, and file readers. `src/data/gpkg-read-core.js` is the one canonical GPKG read implementation; the duplicate Worker-location copy was retired.
+- `src/map/` owns camera, projection, input, spatial selection and hit testing. `src/geometry/` owns geometry mathematics and native geometry source.
+- `src/rendering/` owns GPU/Canvas rendering, layer presentation, map visual frame, resource admission and render scheduling. It does not own project data catalogs or a separate copy of the place/terrain schema.
+- `src/runtime/` owns platform ports, Worker RPC, shared core loading, runtime context and idle map-work scheduling.
+- `src/ui/` owns Viewer surfaces, controllers, CSS and fragments.
 
-The connections are explicit named getters and, only where existing code replaces
-a binding, setters. They do not copy state, create a registry, or perform render
-work. For example, replacing the canonical store or a controller is visible to
-its consumers without reconstructing their ports. The project/session state
-remains owned by `app-project-session.js`; selection remains in SelectionDomain.
+Source modules from these directories are published through `scripts/lib/frontend-layout.mjs` into the stable `assets/js/modules/` and `assets/js/workers/` namespaces. A source **move between domains is not an asset URL rename**. Always verify both static ESM imports and classic Worker `importScripts` / dynamic imports before deleting old source owners.
 
-Initialization stages are separate from construction because the existing code
-contains forward callbacks between owners. Do not move event registration into
-factory construction, eagerly read another owner's mutable values, or initialize
-a stage twice. Stage names identify the first binding initialized at that point,
-not an independently repeatable reset API.
+## Data contract and operational boundaries
 
-## Responsibility map
+The selected `projects/<projectId>/manifest.json` declares resource catalogs for the world, territories, rivers, lakes, places, place lifetimes, terrain, physical land and prepared meshes. `src/data/map-project-manifest.js` validates the ID, roles and safe paths; `scripts/lib/frontend-build.mjs` builds only the selected project's runtime closure.
 
-All names below are under `assets/js/modules/` and have an `app-` prefix.
+The shared GIS library archive and project sessions are different owners. Dataset catalogs contain the individual objects, coordinates and dates. The project manifest points to catalogs instead of cloning their content, and Viewer consumers are read-only.
 
-| Responsibility | Owners |
-| --- | --- |
-| Runtime/module loading | `runtime-dependencies` (shared lazy promises, retries, versioned URLs) |
-| Startup and disposal | `composition`, `domain-assembly`, `lifecycle-assembly`, `progressive-startup` |
-| Environment and project session | `environment`, `builtin-session`, `project-session` |
-| UI surfaces and bindings | `workspace-surfaces`, `navigation-bindings`, `tool-bindings`, `file-bindings`, `global-input-bindings`, `editor-bindings` |
-| UI feedback | `readiness-notifications`, `task-presentation`, `territory-component-ui` |
-| Object operations | `object-commands`, `generic-commands`, `object-deletion`, `object-metadata`, `territorial-conversion` |
-| Selection/property presentation | `property-selection`, `object-presentation`, `layer-list`, `color-picker` |
-| Project/history and IO | `project-snapshots`, `history-assembly`, `project-restore`, `gis-assembly`, `library-assembly` |
-| Territory-selection workflow | `territory-selection-workflow` (the only setup/method/selection session, transitions, multi-area controls, preview debounce, and final-action gate) |
-| Territory operation adapters | `country-modes` and `country-commits` (annex/country source and Worker plans), `territorial-drafts` (subunit/region source, relationship, remainder, and local plans) |
-| Other editing workflows | `country-modes`, `country-commits`, `territorial-drafts`, `river-candidates`, `geometry-preview` |
-| Spatial/geometry preparation | `country-index`, `spatial-index`, `country-validation`, `land-relations`, `cut-geometry`, `territory-components` |
-| Projection and input | `map-projection`, `camera-navigation`, `map-host`, `pointer-targets`, `object-picking` |
-| Render resources | `service-assembly`, `gpu-scene`, `interaction-packets`, `country-labels`, `physical-resources`, `render-quality`, `map-audit` |
-| Map settings | `map-settings`, `hydro-settings` |
+`scripts/run-application-checks.mjs` is the common affected-check executor. Independent native builds, immutable artifact publication, on-demand GIS research, and production Pages deployment retain separate operational boundaries. They are not replaceable merely because filenames or check inputs overlap.
 
-The connection files contain only wiring: `foundation`, `spatial-data`,
-`map-resources`, `map-interaction`, `object-editing`, `project-io`, and
-`lifecycle-ui`. Actual algorithms belong to the owners, or to the pre-existing
-domain/service modules they call. In particular, `domain-assembly` configures
-the existing domains; it does not replace their ownership contracts.
+## Stage 3 moves and invariants
 
-Annexation, country creation, subunit creation, and region creation read and
-write only `state.territorySelectionSession`. Their adapters provide setup
-validation, source preparation, draft completion, and final change plans; they
-must not own stages, toolbar state, preview timers, or mirrored operation state.
-There are no operation-specific compatibility fields or transition wrappers.
+- Moved the map work scheduler to `src/runtime/map-work-scheduler.js`.
+- Moved place RPC runtime and lifetime catalog validation to `src/data/place-runtime.js` and `src/data/place-lifetime-policy.js`.
+- Moved terrain manifest and physical-layer service into `src/data/`.
+- Removed the byte-identical unconsumed `src/data/workers/gpkg-read-core.js`, preserving `src/data/gpkg-read-core.js`.
+- Preserved the generated module URL names, Worker RPC protocols, existing C++ document owner and GIS source-pinning rules.
 
-## Contracts retained
-
-- Modal, GIS and historical runtime loads remain demand-driven and retryable.
-- Existing project, selection, transaction, generation and Undo contracts remain authoritative.
-- Frame snapshots, GPU/SVG coverage, canonical meshes and Worker lifetimes are unchanged.
-- No additional render/resize loop, eager focus, geometry union or per-frame state copy is introduced.
-- Existing debug facades and the pagehide/back-forward-cache disposal policy remain in the lifecycle assembly.
-- Relative lazy-load URLs are still resolved against the original application asset base.
-
-## Focused checks
-
-`tests/unit/application-composition.test.mjs` checks the entry boundary,
-side-effect-free owner construction, complete named connections, single connect,
-live replacement ports and canonical-store replacement. The river request tests
-now instantiate the actual river-candidate owner instead of evaluating a sliced
-copy of `app.js`.
-
-Source contracts use `scripts/lib/application-source.mjs` to select actual owners.
-The application-wide legacy Python contracts use `tests/application_source.py`.
-Only dependency-port spelling is normalized; algorithm assertions are retained.
-Function-specific checks use parsed function ranges rather than assuming the next
-function is still in the same file. The runtime-boundary checker covers all
-implementation owners and includes revisioned dynamic imports in its cycle graph.
+All subsequent moves require verification of publishing closures, reverse imports, Worker startup, and relevant CI. Large-domain all-at-once rearrangements and destructive cleanup without executable evidence are not permitted.

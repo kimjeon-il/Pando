@@ -5,7 +5,7 @@ import {buildBuiltinWorldPublication} from "../../../tools/build/build-builtin-w
 import {historicalWorldCases} from "../../fixtures/historical-world-cases.mjs";
 import {withExplicitView} from "../../helpers/builtin-world.mjs";
 import {createBuiltinWorldLoader} from "../../../src/data/builtin-world-loader.js";
-import {createBuiltinSession} from "../../../src/document/builtin-session.js";
+import {createProjectSourceRuntime} from "../../../src/document/project-source-runtime.js";
 import {createNodeCoreProject} from "../../helpers/core-project.mjs";
 import {startupDocument} from "../../helpers/core-startup.mjs";
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -71,8 +71,9 @@ test('latest builtin reader admits its baseline after a superseded replacement f
  const owner=await createNodeCoreProject(startupDocument([]),{productMode:'viewer',replaceSnapshot:async()=>{
   if(++replacements===1){started();await held;}return true;
  },restoreReplacement:async()=>{}});t.after(()=>owner.dispose());
- const session=createBuiltinSession({builtinWorldLoader:fixture().loader});
- session.connect({platformConfigurationA:{BASE_DATASET:startupDocument([]).baseDataset},domains:{projectDomain:owner.project}});
+ let sourcePorts;
+ const session=createProjectSourceRuntime({builtinWorldLoader:fixture().loader,getDependencies:()=>sourcePorts});
+ sourcePorts=({platformConfigurationA:{BASE_DATASET:startupDocument([]).baseDataset},domains:{projectDomain:owner.project}});
  const read=month=>async()=>({...await session.prepareProjectBaseline(month),setup:{initialMonth:month,timelineRange:null,initialMapBounds:null,sourceMode:'builtin'}});
  const earlier=owner.project.open(read('2014-02'),{source:'builtin'});await enter;
  const latest=owner.project.open(read('2014-01'),{source:'builtin'});release();
@@ -86,8 +87,9 @@ test('latest builtin reader admits its baseline after a superseded replacement f
 test('one Core project retains identity and historical records across month changes and gaps',async t=>{
  const owner=await createNodeCoreProject(startupDocument([]),{appVersion:'fixture'});
  t.after(()=>owner.dispose());
- const session=createBuiltinSession({builtinWorldLoader:fixture().loader});
- session.connect({platformConfigurationA:{BASE_DATASET:startupDocument([]).baseDataset},
+ let sourcePorts;
+ const session=createProjectSourceRuntime({builtinWorldLoader:fixture().loader,getDependencies:()=>sourcePorts});
+ sourcePorts=({platformConfigurationA:{BASE_DATASET:startupDocument([]).baseDataset},
   domains:{projectDomain:{getGeneration:()=>0,state:()=>owner.client.state(),
    admitStorageBaseline:async facts=>(await owner.client.storageBaselineLoad(facts)).state}}});
  const prepared=await session.prepareProjectBaseline('2014-02');

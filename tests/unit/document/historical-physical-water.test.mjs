@@ -161,7 +161,9 @@ test('two independently resolved lakes share one physical land derivative withou
    {id:'late',objectRef:copyRef,validFrom:'1926-01-01',validTo:null,geometryRef:{id:'copy-second',version:2}}]};
  for(const [date,x] of [['1925-12-31',6],['1926-01-01',7]]) {
    const world=sharedCalculationCore.timelineResolveWorld(records,{entities:[{objectRef:copyRef,entityKind:'lake'}],geometryExists:()=>true},date);
-   model.acceptWorld({...world,sourceEpoch:1},1);
+   // Core read-model publication accepts a month cursor; the source resolver above
+   // still checks the exact day-boundary version transition.
+   model.acceptWorld({...world,month:date.slice(0,7),sourceEpoch:1},1);
    assert.equal(model.snapshot().hydroEdits[0].geometry,null,'canonical identity remains geometry-free');
    state.hydroEdits=model.list('hydro');
    assert.deepEqual(state.hydroEdits[0].geometry,box(x),'read model supplies the C++ selected geometry');

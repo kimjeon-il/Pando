@@ -6,8 +6,14 @@ import { packCountryMeshFeatures } from "./country-mesh-transfer.js";
 export function createGpuMeshWorkerJobs({ createWorker, createRebuildWorker = createWorker, isCurrent, onMesh = () => {}, onError = () => {} }) {
   let rpc = null;
   let rebuildRpc = null;
+  let lodRpc = null;
+  let lodSourceInWorker = '';
+  let lodBusy = false;
+  let lodQueue = Promise.resolve();
   let rebuildBusy = false;
   let outputBytes = 0;
+  const lodMetrics = { requests: 0, sourceTransfers: 0, sourceReuses: 0,
+    transferredCoordinateBytes: 0, generatedMeshBytes: 0 };
   function cancelRebuild() {
     rebuildRpc?.stop('superseded');
     rebuildRpc = null; rebuildBusy = false;
@@ -36,6 +42,71 @@ export function createGpuMeshWorkerJobs({ createWorker, createRebuildWorker = cr
     } finally {
       if (rebuildRpc === current) rebuildBusy = false;
     }
+  }
+  function cancelDisplayLod() {
+    lodRpc?.stop('superseded-screen-lod');
+    lodRpc = null; lodBusy = false; lodSourceInWorker = '';
+  }
+  // Display LOD never cancels the canonical rebuild or the edit-patch queue.
+  // A separate worker can retain one topology index for repeated zoom buckets.
+  async function executeDisplayLod(payload, accepts) {
+    const current = lodRpc ||= createWorkerRpcClient({
+      createWorker,
+      isCurrent: ({ entry, message }) => Number(message.projectRevision) === Number(entry.projectRevision),
+    });
+    lodBusy = true;
+    try {
+      const reuseSource = lodSourceInWorker === payload.sourceKey;
+      const packed = reuseSource ? null : await packCountryMeshFeatures(payload.features || [], {
+        isCurrent: () => lodRpc === current && accepts(),
+      });
+      lodMetrics.requests += 1;
+      if (packed) {
+        lodMetrics.sourceTransfers += 1;
+        lodMetrics.transferredCoordinateBytes += packed.coordinates.byteLength;
+      } else lodMetrics.sourceReuses += 1;
+      const response = await current.request('geometry.mesh', {
+        ...(packed || {}),
+        useCachedSource: reuseSource,
+        lod: payload.lod, sourceKey: payload.sourceKey,
+        visibleIds: payload.visibleIds ?? null,
+        visibleTiles: payload.visibleTiles ?? [],
+      }, {
+        transfer: packed ? [packed.coordinates.buffer] : [],
+        projectRevision: payload.projectGeneration,
+        metadata: { geometryRevision: payload.geometryRevision, sourceKey: payload.sourceKey },
+      });
+      if (lodRpc !== current) return null;
+      // Even a stale viewport result can certify the immutable source already
+      // loaded by this same living Worker. It cannot certify a display frame.
+      lodSourceInWorker = response.result?.lod?.sourceCached === true ? payload.sourceKey : '';
+      if (accepts()) lodMetrics.generatedMeshBytes += ['positions', 'countryIndices',
+        'triangleIndices', 'lineIndices'].reduce(
+        (sum, field) => sum + Number(response.result?.[field]?.byteLength || 0), 0);
+      return accepts() ? response.result : null;
+    } catch (error) {
+      if (error.cancelled || error.name === 'AbortError' || lodRpc !== current || !accepts()) return null;
+      // A restarted Worker cannot satisfy an old source token. Force a fresh
+      // transfer on the next request rather than silently reusing stale data.
+      if (lodRpc === current) cancelDisplayLod();
+      throw error;
+    } finally {
+      if (lodRpc === current) lodBusy = false;
+    }
+  }
+  function prepareDisplayLod(payload, accepts = () => true) {
+    if (!Number.isFinite(payload?.lod?.upperScale) || payload.lod.upperScale <= 0
+      || !Number.isFinite(payload?.lod?.errorPx) || payload.lod.errorPx <= 0
+      || typeof payload.sourceKey !== 'string' || !payload.sourceKey)
+      return Promise.reject(new TypeError('Display LOD needs a source identity and screen-error bucket.'));
+    // Serialize requests on the SAME Worker. Obsolete viewports are skipped
+    // before transmission, while an in-flight response may still establish the
+    // current immutable source cache. This prevents losing large-country tile
+    // caches on rapid panning.
+    const pending = lodQueue.catch(() => {}).then(() =>
+      accepts() ? executeDisplayLod(payload, accepts) : null);
+    lodQueue = pending;
+    return pending;
   }
   function ensureRpc() {
     return rpc ||= createWorkerRpcClient({
@@ -67,17 +138,20 @@ export function createGpuMeshWorkerJobs({ createWorker, createRebuildWorker = cr
     },
   });
   return Object.freeze({
-    rebuild, cancelRebuild,
+    rebuild, cancelRebuild, prepareDisplayLod, cancelDisplayLod,
     enqueue: entry => scheduler.enqueue(entry),
     preparePolygons: (items, revision) => scheduler.enqueue({ jobKey: 'overlay-preparation', geometryRevision: revision,
       targetRevision: revision, payload: { polygonPreparation: { items } } }).promise,
     cancelAll(reason = 'cancelled', { preserveIdleRebuild = false } = {}) {
       if (!preserveIdleRebuild || rebuildBusy) cancelRebuild();
       scheduler.cancelAll(reason);
+      cancelDisplayLod();
       rpc?.stop(reason);
       rpc = null;
     },
-    stats: () => scheduler.stats(),
+    stats: () => Object.freeze({ ...scheduler.stats(), displayLod: Object.freeze({
+      ...lodMetrics, sourceCached: !!lodSourceInWorker, workerActive: !!lodRpc,
+    }) }),
     outputBytes: () => outputBytes,
   });
 }

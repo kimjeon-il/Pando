@@ -1,0 +1,46 @@
+name: Optimization final focused JS contracts
+# Covers the repaired source-owned Worker runtime and project contracts only.
+on:
+  push:
+    branches: [work/optimization]
+    paths:
+      - '.github/workflows/optimization-focused-recovery.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  focused:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: P1-3 and P1-5 project catalog and Pages admission
+        run: node --test --test-timeout=30000 tests/unit/build/frontend-build.test.mjs tests/unit/document/monorepo-pages-staging.test.mjs
+      - name: P1-4 project identity and shared reader adapter (JS-only)
+        run: node --test --test-timeout=30000 tests/unit/data/map-project-identity-contract.test.mjs tests/unit/document/project-open-adapter-contract.test.mjs
+      - name: P2-1 self-contained Worker policy and independent physical asset loading
+        run: node --test --test-timeout=30000 tests/unit/rendering/resource-update-policy.test.mjs tests/unit/data/physical-asset-reader.test.mjs
+      - name: P1-5 reject legacy fallback from product Viewer
+        run: node --test --test-timeout=30000 tests/unit/data/library-data-scope.test.mjs
+      - name: P2-2 check owners and deterministic selection only
+        run: node --test --test-timeout=30000 tests/unit/runtime/workflow-check-ownership.test.mjs tests/unit/runtime/project-manifest-change-plan.test.mjs
+      - name: Record independent workflow gate ownership
+        shell: bash
+        run: |
+          node tools/checks/audit-workflow-check-owners.mjs > "$RUNNER_TEMP/workflow-owners.json"
+          node --input-type=module -e "import {readFileSync} from 'node:fs'; const r=JSON.parse(readFileSync(process.env.RUNNER_TEMP+'/workflow-owners.json','utf8')); console.log(JSON.stringify({workflowCount:r.workflowCount,jobCount:r.jobCount,automatic:r.automatic,manualOnly:r.manualOnly,multiOwnerTestCount:r.multiOwnerTestCount,duplicateJobs:r.duplicateJobs.length,issues:r.issues.length}));"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: optimization-workflow-owners
+          path: ${{ runner.temp }}/workflow-owners.json
+          if-no-files-found: ignore
+          retention-days: 3

@@ -1,4 +1,5 @@
 name: Web-only GitHub Pages
+# Deployment request 2026-11-10: republish integrated main with the existing pinned-data and live-verification gates.
 
 on:
   push:

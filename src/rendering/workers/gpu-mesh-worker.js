@@ -4,18 +4,21 @@ const buildMetaUrl = new URL('../build-meta.js', self.location.href);
 buildMetaUrl.searchParams.set('v', new URL(self.location.href).searchParams.get('v') || '');
 importScripts(buildMetaUrl.href);
 const assetRevision = globalThis.PANDOLAB_BUILD_META?.assetRevision || '';
-const meshCoreUrl = new URL('./gpu-mesh-core.js', self.location.href);
 const rasterContractUrl = new URL('./polygon-raster-contract.js', self.location.href);
+const meshCoreUrl = new URL('./gpu-mesh-core.js', self.location.href);
 const rpcHostUrl = new URL('./worker-rpc-host.js', self.location.href);
 if (assetRevision) {
-  meshCoreUrl.searchParams.set('v', assetRevision);
   rasterContractUrl.searchParams.set('v', assetRevision);
+  meshCoreUrl.searchParams.set('v', assetRevision);
   rpcHostUrl.searchParams.set('v', assetRevision);
 }
 importScripts('./geographic-boundary-core.js', rasterContractUrl.href, meshCoreUrl.href, rpcHostUrl.href);
 
 const meshCoreReady = import("../../document/temporal.js")
-  .then(({ sharedCalculationCore }) => self.PandoLabGpuMeshCore.setSharedCore(sharedCalculationCore));
+  .then(({ sharedCalculationCore }) => {
+    self.PandoLabGpuMeshCore.setSharedCore(sharedCalculationCore);
+    return sharedCalculationCore;
+  });
 meshCoreReady.catch(() => {}); // Each mesh operation awaits this prerequisite.
 const strokePreparation = import(`../country-stroke-preparation.js?v=${encodeURIComponent(assetRevision)}`);
 const blockPreparation = import(`../mesh-spatial-blocks.js?v=${encodeURIComponent(assetRevision)}`);
@@ -24,25 +27,36 @@ const polygonPreparation = meshCoreReady.then(() => Promise.all([
   import(`../prepared-polygon-mesh.js?v=${encodeURIComponent(assetRevision)}`),
   import(`../../data/stored-asset-loader.js?v=${encodeURIComponent(assetRevision)}`),
   import(`../../runtime/worker-asset-url.js?v=${encodeURIComponent(assetRevision)}`),
+  import(`../../data/map-project-runtime.js?v=${encodeURIComponent(assetRevision)}`),
 ])).then(async ([{ createPreparedPolygonMeshStore }, { createStoredAssetLoader },
-  { runtimeDataAssetUrl, workerBuildMeta }]) => {
+  { runtimeDataAssetUrl, workerBuildMeta },{mapProjectCatalogSpec}]) => {
   const engine = self.PandoLabGpuMeshCore;
   const meta = workerBuildMeta(self.location.href, globalThis.PANDOLAB_BUILD_META);
-  const spec = meta.preparedPolygonMeshes;
+  const spec=mapProjectCatalogSpec(meta,'preparedMeshes');
+  const catalogDirectory=spec.url.slice(0,spec.url.lastIndexOf('/')+1);
   const { loadAsset } = createStoredAssetLoader({ dataRevision: meta.dataRevision,
     cachePolicy: 'immutable', resolveUrl: asset => {
-      if (!asset.url.startsWith('assets/data/prepared-polygons/generated/v2/') || asset.url.includes('..'))
-        throw new Error('Invalid prepared polygon asset path');
+      // The selected project owns the mesh catalog directory; no default-world
+      // version/path may be used as a fallback when the project changes.
+      if (!asset.url.startsWith(catalogDirectory)||asset.url.includes('..'))
+        throw new Error('Invalid project prepared polygon asset path');
       return runtimeDataAssetUrl(self.location.href, asset);
     } });
+  const currentMesh=meta.projectCatalogs?.preparedMeshes?.current!==false;
   return createPreparedPolygonMeshStore({ engine,
-    loadManifest: meta.resourceProfile === 'test-fixture' ? null : async () => {
-      if (!spec) throw new Error('Required prepared polygon manifest is missing from build metadata');
-      const result = await loadAsset(spec, 'mesh', 'polygon-manifest', 'Prepared polygon manifest', buffer => JSON.parse(new TextDecoder().decode(buffer)));
-      const manifest = result.value;
-      if (manifest.schema !== 'pandolab-prepared-polygon-meshes' || manifest.schemaVersion !== 2
-        || manifest.meshFormatVersion !== 2 || manifest.algorithmSourceSha256 !== spec.algorithmSourceSha256)
-        throw new Error('Invalid or unverifiable prepared polygon manifest');
+    loadManifest: meta.resourceProfile === 'test-fixture'||!currentMesh ? null : async () => {
+      const result = await loadAsset(spec, 'mesh', 'polygon-manifest', 'Prepared polygon manifest',
+        buffer => JSON.parse(new TextDecoder().decode(buffer)));
+      const manifest=result.value;
+      if (manifest.schema !== 'pandolab-prepared-polygon-meshes'||manifest.schemaVersion!==2
+        ||manifest.meshFormatVersion!==2||!/^[a-f0-9]{64}$/.test(manifest.algorithmSourceSha256||''))
+        throw new Error('Invalid or unverifiable selected project prepared polygon manifest');
+      // A different project's territory or physical land can never reuse its
+      // old accelerators, even if the manifest itself has a valid SHA-256.
+      for(const role of ['territorial','physicalLand']){
+        const selected=meta.mapProject.resources[role].catalog;
+        if(manifest.inputHashes?.[selected]!==meta.projectCatalogs[role].sha256)return null;
+      }
       // Pinned data may have been generated by an earlier geometry algorithm.
       // Never decode those packets as current; recompute with the admitted
       // C++/WASM engine instead, keeping source-byte integrity checks intact.
@@ -57,12 +71,119 @@ polygonPreparation.catch(() => {}); // The operation awaits and propagates its o
 const countryPreparation = meshCoreReady.then(() => import(`../country-mesh-preparation.js?v=${encodeURIComponent(assetRevision)}`))
   .then(({ createCountryMeshPreparation }) => createCountryMeshPreparation({ engine: self.PandoLabGpuMeshCore }));
 countryPreparation.catch(() => {}); // The mesh operation propagates initialization failures.
-async function buildMesh(features, context) {
+const screenLodModule = import(`../render-lod.js?v=${encodeURIComponent(assetRevision)}`);
+let screenLodSource = null, screenLodIndex = null, screenLodFeatures = null;
+let screenLodScope = '', screenLodScopedFeatures = null;
+const screenLodTileCache = new Map();
+async function buildMesh(features, context, request = {}) {
+  const canonicalFeatures = features;
+  const lod = request.lod;
+  let lodInfo = null, derived = false;
+  if (lod) {
+    const { createSharedPolygonLodIndex, resolveScreenLodEdgeDegrees,
+      tileLargePolygonLodFeatures } = await screenLodModule;
+    const sourceKey = String(request.sourceKey || '');
+    if (!sourceKey) throw new TypeError('Screen LOD requires a verified source key.');
+    try {
+      if (screenLodSource !== sourceKey || !screenLodFeatures) {
+        if (request.useCachedSource || !canonicalFeatures.length)
+          throw Object.assign(new Error('Cached country LOD source was not admitted.'),
+            { code: 'PL-LOD-SOURCE-MISS' });
+        screenLodSource = sourceKey;
+        screenLodFeatures = canonicalFeatures;
+        screenLodIndex = null; screenLodScope = ''; screenLodScopedFeatures = null;
+        screenLodTileCache.clear();
+      }
+      // Canonical source transport is project-scoped. Topology preparation is
+      // viewport-scoped: a focused country never indexes all world's LSIB
+      // edges just to draw its immediate neighborhood.
+      const sourceFeatures = screenLodFeatures;
+      const visibleIds = request.visibleIds === null || request.visibleIds === undefined
+        ? null : new Set(request.visibleIds.map(String));
+      const scopeKey = visibleIds
+        ? [...visibleIds].sort().join('|') : '*';
+      if (!screenLodIndex || screenLodScope !== scopeKey) {
+        const candidates = visibleIds
+          ? sourceFeatures.filter(feature => visibleIds.has(String(feature.id))) : sourceFeatures;
+        const next = createSharedPolygonLodIndex(candidates);
+        context.throwIfCancelled();
+        screenLodIndex = next;
+        screenLodScopedFeatures = candidates;
+        screenLodScope = scopeKey;
+      }
+      const display = screenLodIndex.derive({
+        cssScale: lod.upperScale, errorPx: lod.errorPx,
+      });
+      derived = !display.fallback && display.keptVertices < display.originalVertices;
+      if (derived) {
+        if (visibleIds) {
+          const byId = new Map(display.features.map(feature => [String(feature.id), feature]));
+          features = sourceFeatures.map(feature => byId.get(String(feature.id))
+            || { id: feature.id, geometry: null });
+        } else features = display.features;
+      }
+      let tiled = null;
+      if (request.visibleTiles?.length) {
+        const core = await meshCoreReady;
+        if (typeof core?.polygonOperation !== 'function')
+          throw Object.assign(new Error('Compiled display polygon clipping is unavailable.'),
+            { code: 'PL-LOD-CLIPPING' });
+        tiled = tileLargePolygonLodFeatures(features, request.visibleTiles, {
+          intersection: (left, right) => core.polygonOperation('intersection', [left, right], false),
+          sourceKey, lodKey: String(lod.key || ''),
+          cache: screenLodTileCache,
+        });
+        if (tiled.tiledCountryCount) {
+          features = tiled.features;
+          derived = true;
+        }
+      }
+      lodInfo = { key: String(lod.key || ''), upperScale: lod.upperScale,
+        errorPx: lod.errorPx,
+        maxEdgeDegrees: resolveScreenLodEdgeDegrees({ cssScale: lod.upperScale, errorPx: lod.errorPx }),
+        originalVertices: display.originalVertices,
+        keptVertices: display.keptVertices, arcCount: screenLodIndex.stats().arcCount,
+        visibleCountryCount: screenLodScopedFeatures.length,
+        slotCountryCount: screenLodFeatures.length,
+        scoped: !!visibleIds, sourceCached: true, fallback: display.fallback, simplified: derived,
+        tiledCountryCount: tiled?.tiledCountryCount || 0,
+        tilesPrepared: tiled?.tilesPrepared || 0,
+        tilesReused: tiled?.tilesReused || 0 };
+    } catch (error) {
+      if (error.name === 'AbortError' || error.cancelled) throw error;
+      // Invalid source topology never prevents its exact canonical mesh
+      // from rendering. The candidate is rejected as a whole, not per country.
+      if (error.code === 'PL-LOD-SOURCE-MISS') throw error;
+      screenLodSource = null; screenLodIndex = null; screenLodFeatures = null;
+      screenLodScope = ''; screenLodScopedFeatures = null;
+      screenLodTileCache.clear();
+      lodInfo = { key: String(lod.key || ''), fallback: true,
+        sourceCached: false, simplified: false, failure: String(error.message || error).slice(0, 240) };
+    }
+  }
+  // No simplification or a failed topology check means draw the already
+  // admitted exact mesh. Never spend time regenerating it on a failed LOD.
+  if (lod && !derived) return { lod: lodInfo };
   const started = performance.now();
   const total = features.length + 3;
   const progress = (completed, phase) => context.emitEvent('geometry.mesh-progress',
     { requestId: context.requestId, completed, total, phase }, { projectRevision: context.projectRevision });
-  const mesh = await (await countryPreparation).build(features, context, progress);
+  let mesh;
+  try {
+    mesh = await (await countryPreparation).build(features, context, progress, {
+      validate: derived,
+      maxEdgeDegrees: lodInfo?.maxEdgeDegrees || self.PandoLabGpuMeshCore.MAX_RENDER_EDGE_DEGREES,
+    });
+  } catch (error) {
+    if (!derived || error.name === 'AbortError' || error.cancelled) throw error;
+    // A simplified polygon can be invalid even if its winding is preserved.
+    // The original canonical GPU mesh remains active, so do not duplicate
+    // world-wide triangulation just to signal an invalid display derivative.
+    context.throwIfCancelled();
+    return { lod: { ...lodInfo, fallback: true, simplified: false,
+      failure: String(error.message || error).slice(0, 240) } };
+  }
+  if (lodInfo) mesh.lod = lodInfo;
   const { prepareCountryStroke } = await strokePreparation;
   const { prepareMeshSpatialBlocks } = await blockPreparation;
   context.throwIfCancelled();
@@ -116,9 +237,22 @@ self.PandoLabWorkerRpc.install({
     'geometry.mesh': async (payload, context) => {
       context.throwIfCancelled();
       const { unpackCountryMeshFeatures } = await meshTransfer;
-      const mesh = await buildMesh(unpackCountryMeshFeatures(payload), context);
+      const source = payload.lod && payload.useCachedSource
+        ? [] : unpackCountryMeshFeatures(payload);
+      let mesh;
+      try {
+        mesh = await buildMesh(source, context, payload);
+      } catch (error) {
+        if (!payload.lod || error.name === 'AbortError' || error.cancelled
+          || error.code === 'PL-LOD-SOURCE-MISS') throw error;
+        mesh = { lod: { key: String(payload.lod.key || ''),
+          fallback: true, simplified: false,
+          sourceCached: screenLodSource === payload.sourceKey,
+          failure: String(error.message || error).slice(0, 240) } };
+      }
       context.throwIfCancelled();
-      return self.PandoLabWorkerRpc.transferResult(mesh, meshTransferables(mesh));
+      return payload.lod && !mesh.lod?.simplified
+        ? mesh : self.PandoLabWorkerRpc.transferResult(mesh, meshTransferables(mesh));
     },
   },
 });

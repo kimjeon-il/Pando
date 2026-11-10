@@ -5,13 +5,13 @@ import * as __terrain_dep1 from "../../../src/data/physical-resources.js";
 import * as __terrain_dep2 from "node:assert/strict";
 import * as __terrain_dep3 from "node:timers";
 import * as __terrain_dep4 from "node:fs";
-import * as __terrain_dep5 from "../../../src/rendering/physical-layer-service.js";
+import * as __terrain_dep5 from "../../../src/data/physical-layer-service.js";
 import * as __terrain_dep6 from "../../../tools/data/physical-water-catalog.mjs";
 import * as __terrain_dep7 from "node:crypto";
 import * as __terrain_dep8 from "node:zlib";
 import * as __terrain_dep9 from "node:module";
 import * as __terrain_dep10 from "../../../tools/build/build-physical-land-mask.mjs";
-import * as __terrain_dep11 from "../../../src/rendering/terrain-manifest.js";
+import * as __terrain_dep11 from "../../../src/data/terrain-manifest.js";
 
 // Original feature contract: physical-layer-service.test.mjs
 contractSuite("physical-layer-service", () => {
@@ -200,7 +200,7 @@ test('hydro admission joins the replacement renderer generation after its old Wo
   hydroPresentation:{allBuiltInHydroFeatures:()=>[]},domains:{projectDomain:{admitSelectionCatalog:async()=>true},renderingDomain:{invalidateOverlayGeometry(){}}},
   rendering:{gpuMapRenderer:{getProjectGeneration:()=>generation,setHydroManifest:async()=>{if(++calls===1){await gate;return false;}return true;}}},
   feedback:{reportOperationError:error=>errors.push(error)}});
- resources.initializeTerrainService();const pending=resources.loadHydroData();
+ resources.setProjectSource('builtin');resources.initializeTerrainService();const pending=resources.loadHydroData();
  while(!calls)await new Promise(resolve=>setImmediate(resolve));generation=2;release();
  assert.equal(await pending,true);assert.equal(calls,2);assert.equal(state.physicalLoadState.hydro,'ready');assert.deepEqual(errors,[]);
 });
@@ -301,6 +301,7 @@ test('P4-5 unchanged historical lake versions reuse the exact physical result wh
     domains:{renderingDomain:{invalidateProject:()=>{}}},
     feedback:{reportOperationError:err=>{throw err;}}
   });
+  resources.setProjectSource('builtin');
   await resources.loadPhysicalLandMask();
   await resources.preparePhysicalContext('1922-12');
   state.timelineCursor='1922-12';
@@ -319,6 +320,17 @@ test('P4-5 unchanged historical lake versions reuse the exact physical result wh
   assert.equal(requests.length,fetched);
   state.timelineCursor='1922-12';
   assert.strictEqual(resources.physicalLand,first,'revisiting a matching source may reuse the physical mask');
+  // File projects may retain sourceMode:'builtin' for compatibility, but
+  // default-world water is available only through the admitted source reader.
+  resources.setProjectSource('project');
+  assert.equal(resources.physicalLand.revision,modern.sha256);
+  assert.equal(resources.physicalLand.water??null,null);
+  assert.equal(resources.isHydroObjectActive({id:ref.id,properties:{pandolab_id:ref.id}}),false);
+  assert.deepEqual(resources.builtinHydroSelectionReferences([
+    {id:ref.id,properties:{pandolab_id:ref.id}}
+  ]),[]);
+  resources.setProjectSource('builtin');
+  assert.strictEqual(resources.physicalLand,first,'a same-source return may reuse verified immutable geometry');
 });
 });
 
@@ -369,6 +381,7 @@ for(const requestModern of [true,false])test(requestModern
     }},renderingDomain:{invalidateProject:reason=>{
       if(reason==='physical-water-ready'){ready++;(ready===1?modernReady:lateReady).resolve();}
     }}},feedback:{reportOperationError:error=>{throw error;}}});
+  resource.setProjectSource('builtin');
   await resource.loadPhysicalData({includeHydro:false});
   state.timelineCursor='1922';void resource.physicalLand;
   await firstAdmission.promise;

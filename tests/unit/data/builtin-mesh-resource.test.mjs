@@ -68,3 +68,36 @@ test('an unmatched historical scene returns no asset, but corruption rejects the
  await assert.rejects(retry,/identity/);
  loader.dispose();
 });
+
+test('verified A-B-A country scenes reuse the bounded loader cache without a new Worker', async () => {
+  const instances = [];
+  class FakeWorker {
+    constructor() { instances.push(this); }
+    postMessage() {}
+    terminate() { this.terminated = true; }
+    emit(message) { this.onmessage?.({ data: message }); }
+  }
+  const loader = createBuiltinMeshResourceLoader({ runtimeAssetUrl: path => path, WorkerClass: FakeWorker });
+  const a = identity;
+  const b = { ...identity, fills: [['A', 'b'.repeat(64)]] };
+  const c = { ...identity, fills: [['A', 'c'.repeat(64)]] };
+  async function admit(scene) {
+    const pending = loader.load(scene);
+    const worker = instances.at(-1);
+    worker.emit({ type: 'builtin-mesh-loader-ready' });
+    worker.emit({ type: 'builtin-mesh-ready', meshBuffer: new ArrayBuffer(32),
+      preparedStroke: {}, spatialBlocks: {},
+      identity: { hash: 'd'.repeat(64), sceneKey: preparedCountrySceneKey(scene) } });
+    return pending;
+  }
+  const savedA = await admit(a);
+  await admit(b);
+  assert.equal(await loader.load(a), savedA, 'a dated return preserves the decoded CPU mesh');
+  assert.equal(instances.length, 2);
+  await admit(c);
+  assert.equal(instances.length, 3);
+  await admit(b);
+  assert.equal(instances.length, 4, 'a third distinct scene evicts the least recently used entry');
+  loader.dispose();
+  assert.ok(instances.every(worker => worker.terminated));
+});

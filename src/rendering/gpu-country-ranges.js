@@ -4,7 +4,7 @@ export function canSubmitCountryIndices(indexCount, drawRanges = null) {
     && (!Array.isArray(drawRanges) || drawRanges.some(range => Number(range?.count) > 0));
 }
 
-import { visibleSpatialBlockRanges } from "./mesh-spatial-blocks.js";
+import { visibleSpatialBlockRanges, visibleMeshSpatialLeaves } from "./mesh-spatial-blocks.js";
 
 const COUNTRY_BOUNDS_FLAG_DATELINE = 1;
 const COUNTRY_BOUNDS_FLAG_FULL_LONGITUDE = 2;
@@ -167,6 +167,27 @@ function countryVisibilityForFrame(sourceMesh, frameContext, paddingPixels, coun
   return visible;
 }
 
+/**
+ * Conservative view admission for Worker display derivatives. The complete
+ * canonical country slots and identities remain owned by the renderer; only
+ * visible slots need polygon triangulation. Return null (all-country fallback)
+ * when source metadata is missing, rather than falsely hiding a country.
+ * Use the same country bounds predicate as real GPU culling.
+ */
+export function visibleCountryMeshIdsForFrame(sourceMesh, frameContext, {
+  paddingPixels = 320,
+} = {}) {
+  const ids = sourceMesh?.metadataCountryIds;
+  const count = ids?.length;
+  if (!Array.isArray(ids) || !frameContext
+    || !(sourceMesh.countryBounds instanceof Int32Array)
+    || !(sourceMesh.countryBoundsFlags instanceof Uint32Array)
+    || sourceMesh.countryBounds.length !== count * 4
+    || sourceMesh.countryBoundsFlags.length !== count) return null;
+  const visible = countryVisibilityForFrame(sourceMesh, frameContext, paddingPixels, count);
+  return ids.filter((_id, index) => visible[index] === 1).map(String);
+}
+
 export function countryDrawRangesForFrame(sourceMesh, frameContext, {
   kind = 'triangle',
   paddingPixels = COUNTRY_CULLING_PADDING_PIXELS,
@@ -230,4 +251,75 @@ export function countryDrawRangesForFrame(sourceMesh, frameContext, {
     return { ranges: fullRanges, culled: false, visibleCountryCount, indexCount, fullIndexCount: indexCount, fallback: true };
   }
   return { ranges: merged, culled: true, visibleCountryCount, indexCount: visibleIndexCount, fullIndexCount: indexCount, fallback: false };
+}
+
+
+/**
+ * Stable integer-degree tile IDs for the *visible leaves* of very large
+ * canonical country meshes. The spatial BVH belongs to the exact source mesh,
+ * so panning changes only tiles that enter/leave the view. No source polygons
+ * are modified here; Worker-side clipping is a disposable display derivative.
+ */
+export function visibleLargeCountryTilesForFrame(sourceMesh, frame, {
+  minTriangles = 12000, tileDegrees = 5, paddingPixels = 320,
+  maxLeaves = 512, maxTilesPerCountry = 96, maxTilesTotal = 192,
+} = {}) {
+  const ids = sourceMesh?.metadataCountryIds;
+  const ranges = sourceMesh?.countryTriangleRanges;
+  const bounds = sourceMesh?.countryBounds;
+  const flags = sourceMesh?.countryBoundsFlags;
+  if (!Array.isArray(ids) || !frame || !ranges || ranges.length !== ids.length * 2
+    || !(bounds instanceof Int32Array) || bounds.length !== ids.length * 4
+    || !(flags instanceof Uint32Array) || flags.length !== ids.length
+    || !(tileDegrees > 0 && tileDegrees <= 20)
+    || !Number.isInteger(180 / tileDegrees) || !Number.isInteger(90 / tileDegrees))
+    return [];
+  const leaves = visibleMeshSpatialLeaves(sourceMesh, frame, {
+    kind: 'triangle', padding: paddingPixels, maxLeaves,
+  });
+  if (!leaves) return [];
+  const eligible = new Set();
+  for (let i = 0; i < ids.length; i++) {
+    const west = bounds[i * 4] * COUNTRY_BOUNDS_SCALE;
+    const south = bounds[i * 4 + 1] * COUNTRY_BOUNDS_SCALE;
+    const east = bounds[i * 4 + 2] * COUNTRY_BOUNDS_SCALE;
+    const north = bounds[i * 4 + 3] * COUNTRY_BOUNDS_SCALE;
+    if (ranges[i * 2 + 1] / 3 >= minTriangles && flags[i] === 0
+      && west <= east && south > -85 && north < 85) eligible.add(i);
+  }
+  const tiles = new Map();
+  const rejected = new Set();
+  for (const leaf of leaves) {
+    const index = leaf.countryIndex;
+    if (!eligible.has(index) || rejected.has(index)) continue;
+    const [west, south, east, north] = leaf.geographicBounds;
+    if (![west, south, east, north].every(Number.isFinite)
+      || east < west || east - west > 90 || south < -85 || north > 85
+      || south > north) { rejected.add(index); tiles.delete(index); continue; }
+    const target = tiles.get(index) || new Set();
+    const fromX = Math.max(-180 / tileDegrees, Math.floor((west - 1e-7) / tileDegrees));
+    const toX = Math.min(180 / tileDegrees - 1, Math.floor((east + 1e-7) / tileDegrees));
+    const fromY = Math.max(-90 / tileDegrees, Math.floor((south - 1e-7) / tileDegrees));
+    const toY = Math.min(90 / tileDegrees - 1, Math.floor((north + 1e-7) / tileDegrees));
+    if ((toX - fromX + 1) * (toY - fromY + 1) > maxTilesPerCountry) {
+      rejected.add(index); tiles.delete(index); continue;
+    }
+    for (let x = fromX; x <= toX; x++) {
+      for (let y = fromY; y <= toY; y++) {
+        target.add(`${x}:${y}`);
+        if (target.size > maxTilesPerCountry) break;
+      }
+      if (target.size > maxTilesPerCountry) break;
+    }
+    if (target.size > maxTilesPerCountry) {
+      rejected.add(index); tiles.delete(index);
+    } else tiles.set(index, target);
+  }
+  const result = [...tiles.entries()].sort(([a], [b]) => a - b).map(([countryIndex, tileSet]) => ({
+    id: String(ids[countryIndex]),
+    tiles: [...tileSet].map(value => value.split(':').map(Number))
+      .sort(([ax, ay], [bx, by]) => ax - bx || ay - by),
+  }));
+  if (result.reduce((sum, row) => sum + row.tiles.length, 0) > maxTilesTotal) return [];
+  return result;
 }

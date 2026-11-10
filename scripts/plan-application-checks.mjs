@@ -41,7 +41,7 @@ export function loadRepository(root = process.cwd(), { catalog, libraryFiles } =
       return [file];
     });
   }
-  const files = ['assets', 'src', 'scripts', 'tools', 'tests', 'shared', 'contracts', 'config', '.github/workflows', '.github/actions']
+  const files = ['assets', 'src', 'scripts', 'tools', 'tests', 'projects', 'shared', 'contracts', 'config', '.github/workflows', '.github/actions']
     .flatMap(filesIn).concat(['index.html', 'package.json', 'playwright.config.js', 'eslint.config.js'].filter(exists)).sort();
   const tests = files.filter(file => /\.(?:test|spec)\.mjs$/.test(file) && /^tests\/(?:unit|browser)\//.test(file));
   const ids = new Set();

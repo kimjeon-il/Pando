@@ -13,6 +13,7 @@ import {buildFrontendIndex,emitFrontendModule} from '../../scripts/lib/frontend-
 export const put = (root, path, value) => {
   if(path==='index.html')path='src/app/index.html';
   else if(path==='assets/js/viewer.js')path='src/app/viewer.js';
+  else if(path==='assets/js/workers/core-viewer-session-worker.js')path='src/document/workers/core-viewer-session-worker.js';
   else if(path.startsWith('assets/js/')&&!path.endsWith('build-meta.js'))path='src/runtime/'+path.slice(10);
   else if(path.startsWith('assets/wasm/')||path.startsWith('assets/fonts/'))path='assets/'+path.slice(7);
   const target = join(root, path);
@@ -30,18 +31,20 @@ export async function pagesRepositoryFixture(t, { sceneRevision = 6, preparedRev
   assert.equal(run('git', ['config', 'user.name', 'Test'], root).status, 0);
   assert.equal(run('git', ['config', 'user.email', 'test@example.invalid'], root).status, 0);
   put(root, 'index.html', '<h1>Viewer</h1><script src="assets/js/build-meta.js"></script><script type="module" src="assets/js/viewer.js"></script>');
-  put(root, 'assets/js/viewer.js', "import '../runtime/workers/core-viewer-session-worker.js';");
+  put(root, 'assets/js/viewer.js', "import '../document/core-document-client.js';");
+  put(root,'src/document/core-document-client.js','export const viewerCore = true;');
   put(root, 'assets/js/workers/core-viewer-session-worker.js', '// fixed viewer worker');
   put(root, 'assets/js/app.js', '// editor only');
-  put(root, 'projects/default-world/manifest.json', readFileSync(new URL('../../projects/default-world/manifest.json', import.meta.url)));
-  put(root, 'assets/data/places/urban-lifetimes-v1.json', '{"lifetimes":[]}');
   put(root,'package.json','{"version":"1.0.0"}');
+  put(root,'projects/default-world/manifest.json',readFileSync(new URL('../../projects/default-world/manifest.json',import.meta.url)));
   put(root,'apps/editor/templates/index.html','<h1>Editor</h1><script type="module" src="assets/js/app.js"></script>');
   put(root,'src/rendering/resource-update-policy.js','export const policy=true;');
+  // The generated classic Worker policy is compiled from this real runtime owner.
+  put(root,'src/runtime/resource-dependency-policy.js',readFileSync(new URL('../../src/runtime/resource-dependency-policy.js',import.meta.url)));
   for(const path of new Set([...UI_VIEWER_SOURCES,'assets/css/app.css','assets/css/viewer.css']))put(root,path.replace('assets/css/','src/ui/css/'),'.fixture { color:red; }');
   put(root, '.nojekyll', '');
   put(root, 'assets/data/terrain-preview/v0.13.3-p2/manifest.json', '{"tiles":{}}');
-  put(root, 'assets/data/hydro/v0.13.4/manifest.json', '{"container":{"url":"hydro.bin"},"shards":[]}');
+  put(root, 'assets/data/hydro/v0.13.4/manifest.json', '{"schema":"pandolab-water-shards-v5","version":"0.13.4","container":{"url":"hydro.bin"},"shards":[]}');
   put(root, 'assets/data/hydro/v0.13.4/hydro.bin', 'fixture packfile');
   put(root, 'reports/a.md', 'report');
   put(root, 'native/CMakeLists.txt', 'project(native)');
@@ -99,18 +102,24 @@ export async function pagesRepositoryFixture(t, { sceneRevision = 6, preparedRev
   put(root,'assets/data/world/current.json',JSON.stringify({schema:'pandolab-world-bundle',schemaVersion:1,
     source:{sha256,countryCount:1,url:'source.json'},defaultClassification:{countries:{}},
     derivation:{preview:'canonical-topology-simplified',coordinateCount:4,meshAlgorithmRevision:sceneRevision},assets}));
-  put(root,'assets/data/terrain-preview/v0.13.3-p2/manifest.json','{"sourceDem":{"landMaskSha256":"land"},"tiles":{}}');
+  put(root,'assets/data/terrain-preview/v0.13.3-p2/manifest.json',JSON.stringify({sourceDem:{landMaskSha256:'a'.repeat(64)},tiles:{}}));
   const landSource=Buffer.from(JSON.stringify({type:'MultiPolygon',coordinates:[[[[0,0],[0,1],[1,1],[1,0],[0,0]]]]}));
   const landCompressed=gzipSync(landSource,{level:9,mtime:0});
   const landAsset={url:'assets/data/physical-land/land.bin',encoding:'gzip',
     compressedBytes:landCompressed.length,decodedBytes:landSource.length,
     sha256:createHash('sha256').update(landCompressed).digest('hex')};
-  put(root,'assets/data/physical-land/v1/manifest.json',JSON.stringify({sourceSha256:'land',asset:landAsset}));
+  put(root,'assets/data/physical-land/v1/manifest.json',JSON.stringify({schema:'pando-physical-land-v3',sourceSha256:'a'.repeat(64),asset:landAsset}));
   put(root,'assets/data/physical-land/land.bin',landCompressed);
   put(root,'assets/data/places/manifest.json','{"shards":{}}');
+  put(root,'assets/data/places/urban-lifetimes-v1.json',JSON.stringify({schema:'pando-place-urban-lifetimes-v1',schemaVersion:1,entries:[]}));
   put(root,'assets/data/territorial-entities/generated/v2/index.json','{"entities":[]}');
   put(root,'assets/data/builtin-world/generated/v1/index.json','{"schema":"pandolab-builtin-world","schemaVersion":2,"storageLayout":"descriptor-geometries-v1","geometryAssets":[],"entities":[]}');
-  put(root,'assets/data/prepared-polygons/generated/v2/manifest.json',JSON.stringify({algorithmVersion:preparedRevision,meshes:{}}));
+  const identityPath='assets/data/builtin-world/generated/v1/index.json';
+  const landPath='assets/data/physical-land/v1/manifest.json';
+  const inputHashes=Object.fromEntries([identityPath,landPath].map(path=>[path,
+    createHash('sha256').update(readFileSync(join(root,path))).digest('hex')]));
+  put(root,'assets/data/prepared-polygons/generated/v2/manifest.json',JSON.stringify({
+    schema:'pandolab-prepared-polygon-meshes',schemaVersion:2,algorithmVersion:preparedRevision,meshes:{},inputHashes}));
   const data = join(root, '.library-data/repository');
   mkdirSync(data, { recursive: true });
   run('git', ['init', '-q'], data);

@@ -1,19 +1,20 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createBuiltinSession} from "../../../src/document/builtin-session.js";
+import {createProjectSourceRuntime} from "../../../src/document/project-source-runtime.js";
 
 function fixture(){
   let generation=1,reads=0,admissions=0;
   const meta={dataRevision:'rev1',builtinWorld:{sha256:'a'.repeat(64)}};
   const state={storageBaselineId:0,documentDirty:false,timelineCursor:'2026-10'};
-  const owner=createBuiltinSession({buildMeta:meta,
+  let sourcePorts;
+  const owner=createProjectSourceRuntime({buildMeta:meta,getDependencies:()=>sourcePorts,
     builtinWorldLoader:{loadProject:async month=>{
       reads++;
       return {project:{projectSetup:{initialMonth:month,sourceMode:'builtin'},
         territorialEntities:[{id:'country',properties:{name:'Test'}}],timelineRecords:{
           schemaVersion:3,lifetimes:[],geometryBindings:[],parentRelations:[],propertyBindings:[]}}};
     }}});
-  owner.connect({platformConfigurationA:{BASE_DATASET:'test'},domains:{projectDomain:{
+  sourcePorts=({platformConfigurationA:{BASE_DATASET:'test'},domains:{projectDomain:{
     getGeneration:()=>generation,state:()=>state,
     admitStorageBaseline:async()=>{admissions++;state.storageBaselineId=admissions;return {storageBaselineId:admissions};},
   }}});

@@ -13,7 +13,7 @@ import { createCountryBoundaryGeometryTransport } from "./country-boundary-geome
 import { terrainDemFragmentSource } from "./terrain-dem-shaders.js";
 import { resolveMapInteractionStyle } from "../map/map-interaction-style.js";
 import { decodeCountryMesh } from "./country-mesh-codec.js";
-import { createCountryTriangleRangeMap, canSubmitCountryIndices } from "./gpu-country-ranges.js";
+import { createCountryTriangleRangeMap, canSubmitCountryIndices, visibleCountryMeshIdsForFrame, visibleLargeCountryTilesForFrame } from "./gpu-country-ranges.js";
 export { countryDrawRangesForFrame, createCountryTriangleRangeMap, mergeCountryDrawRanges } from "./gpu-country-ranges.js";
 import { createRenderDevice } from "./render-device.js";
 import { createSceneColorCache } from "./scene-color-cache.js";
@@ -29,6 +29,7 @@ import { isRenderScene, buildPolygonGeometryPacket } from "./render-scene.js";
 import { isMapVisualFrame } from "./map-visual-frame.js";
 export { visibleFlatWorldOffsets } from "./map-visual-frame.js";
 import { createGpuMeshWorkerJobs } from "./gpu-mesh-worker-jobs.js";
+import { resolveScreenLodBucket } from "./render-lod.js";
 import { decideCountryPatchPresentation } from "./country-mesh-quality-gate.js";
 import { resolveCountryMeshQuality, resolveMapSurfacePresentation, canAdmitCanvasWorkerPartialBackground, canAdmitWebGlPartialBackground, canvasWorkerFrameMatchesPhysical, canvasWorkerPresentationKey, canvasWorkerBackgroundPresentationKey, selectCanvasPhysicalSource } from "./country-mesh-zoom-policy.js";
 import { validateMapSurfacePreview } from "../document/project-preview-policy.js";
@@ -64,7 +65,7 @@ const [{ drawGpuBaseScene }, { prepareGpuBaseScene, prepareGpuInteractionPlan, s
   import(`./gpu-scene-preparation.js?v=${encodeURIComponent(rendererAssetRevision)}`),
   import(`./gpu-stroke-renderer.js?v=${encodeURIComponent(rendererAssetRevision)}`),
   import(`./gpu-terrain-preparation.js?v=${encodeURIComponent(rendererAssetRevision)}`),
-  import(`./terrain-manifest.js?v=${encodeURIComponent(rendererAssetRevision)}`),
+  import(`../data/terrain-manifest.js?v=${encodeURIComponent(rendererAssetRevision)}`),
   import(`./workers/canvas-scene-composition-core.js?v=${encodeURIComponent(rendererAssetRevision)}`),
 ]);
 
@@ -214,6 +215,8 @@ export function createGpuMapRenderer(deps) {
     let builtinMeshBaseline = null;
     const builtinMeshResourceLoader = createBuiltinMeshResourceLoader({ runtimeAssetUrl, WorkerClass: workerChannels.WorkerClass });
     let renderScene = null;
+    // Derived lookup for resource-ready notifications; scoped by immutable scene and project.
+    let indexedSceneResources = { scene: null, generation: -1, keys: new Set() };
     let renderInteractionState = Object.freeze({
       selectionPacket: null,
       genericFillItems: Object.freeze([]),
@@ -254,6 +257,11 @@ export function createGpuMapRenderer(deps) {
     let renderQuality = DEFAULT_RENDER_QUALITY;
     let meshSwitchCount = 0;
     let renderQualityChangeCount = 0;
+    // A single canonical source may produce multiple display-only mesh buckets.
+    // These identities never participate in document editing or CPU picking.
+    let screenLodBucket = null, screenLodTargetKey = '', screenLodPreparingKey = '';
+    let screenLodRejectedKey = '', screenLodTimer = null, screenLodSourceKey = '';
+    let screenLodFailure = '', screenLodLatest = null;
     // Readiness and displayed quality are independent. Keep one preview and
     // one canonical mesh; zoom history belongs to this renderer generation.
     let qualityPhase = 'startup-preview';
@@ -340,7 +348,14 @@ export function createGpuMapRenderer(deps) {
       surfacePresentation = nextPresentation;
       const quality = surfacePresentation.quality;
       state.countryVisualPhase = quality;
-      const geometryQuality = surfacePresentation.geometryQuality;
+      const lodKey = ensureCountryDisplayLod({ cssScale, projection });
+      const exactQuality = surfacePresentation.geometryQuality;
+      const selectedGeometry = countryFocusPending || !!state.selected
+        || !!countryEmphasis.primaryId || countryEmphasis.selectedIds.size > 0;
+      const lodEntry = meshVariants.get('lod');
+      const geometryQuality = exactQuality === 'canonical' && !selectedGeometry
+        && lodEntry?.lodKey === lodKey && lodKey && !countryOverrideIds.size
+        && !geometryRevisionTracker.pendingIds().length ? 'lod' : exactQuality;
       if (geometryQuality !== 'pending' && geometryQuality !== activeMeshQuality) {
         if (isWebGlRenderer()) activateMeshVariant(geometryQuality, { renderFrame: false });
         else { activeMeshQuality = geometryQuality; meshQuality = geometryQuality; meshSwitchCount += 1; }
@@ -413,7 +428,9 @@ export function createGpuMapRenderer(deps) {
         geometryRevision:geometryRevisionTracker.committedRevision(),
         paletteRevision:countryPaletteRevision,physicalStyleRevision:physicalStyleStateRevision,
         terrainVisible:state.physicalSettings.terrainVisible,
-        surfaceQuality:surfacePresentation.quality,surfaceGeometryQuality:surfacePresentation.geometryQuality,
+        surfaceQuality:surfacePresentation.quality,
+        surfaceGeometryQuality:activeMeshQuality === 'lod'
+          ? `lod:${screenLodTargetKey}` : surfacePresentation.geometryQuality,
       });
     }
 
@@ -704,10 +721,11 @@ export function createGpuMapRenderer(deps) {
       return publishCountrySharedBoundary(packet);
     }
     function prepareCountrySharedBoundary({ features = null, removedIds = [], replace = false, baselineCache = null } = {}) {
+      const boundaryQuality = activeMeshQuality === 'lod' ? 'canonical' : activeMeshQuality;
       const boundaryFeatures = renderCountryBoundaryFeatures();
       const nextDependencies = { source: 'country-boundary',
         content: boundaryContentKey(boundaryFeatures),
-        preparation: resourceKey(['shared-boundary-v1', activeMeshQuality, !shouldShowSharedCountryBorders(state.physicalSettings)]),
+        preparation: resourceKey(['shared-boundary-v1', boundaryQuality, !shouldShowSharedCountryBorders(state.physicalSettings)]),
         context: gl ? [gl, renderDeviceContextRevision] : null, presentation: 'boundaries' };
       const change = resourceUpdate(countryBoundaryDependencies, nextDependencies);
       if (countryBoundaryTask && countryBoundaryTask.projectGeneration===projectGeneration
@@ -727,13 +745,13 @@ export function createGpuMapRenderer(deps) {
         return;
       }
       if (!change.prepare && pendingCountrySharedBoundary) { promotePreparedCountryBoundary(); return; }
-      if (activeMeshQuality === 'canonical' && builtinPreparedBoundary?.content === nextDependencies.content) {
+      if (boundaryQuality === 'canonical' && builtinPreparedBoundary?.content === nextDependencies.content) {
         countryBoundaryDependencies = nextDependencies;
         const revision = `${projectGeneration}:prepared:${++countryBoundaryRequestId}`;
         const packet = builtinPreparedBoundary.packet;
         pendingCountrySharedBoundary = { ...packet, key: `country-shared-boundary:${revision}`,
           geometryRevision: revision, sourceProjectGeneration: projectGeneration,
-          sourceGeometryRevision: geometryRevisionTracker.committedRevision(), sourceQuality: activeMeshQuality,
+          sourceGeometryRevision: geometryRevisionTracker.committedRevision(), sourceQuality: boundaryQuality,
           outlineOverrides: { ...packet.outlineOverrides, key: `country-outline-overrides:${revision}`, geometryRevision: revision } };
         performanceMetrics.countryBoundaryPreparedAssetCount = (performanceMetrics.countryBoundaryPreparedAssetCount || 0) + 1;
         promotePreparedCountryBoundary();
@@ -752,7 +770,7 @@ export function createGpuMapRenderer(deps) {
           if (Number(data?.requestId) !== countryBoundaryRequestId
             || Number(data?.projectGeneration) !== projectGeneration
             || Number(data?.geometryRevision) !== geometryRevisionTracker.committedRevision()
-            || data?.quality !== activeMeshQuality) return;
+            || data?.quality !== (activeMeshQuality === 'lod' ? 'canonical' : activeMeshQuality)) return;
           if (data.type === 'resync') {
             // A missing/evicted Worker base is recoverable, not a failed date
             // transition. Force the complete current authoritative snapshot.
@@ -794,7 +812,7 @@ export function createGpuMapRenderer(deps) {
         replace = true;
       }
       if (baselineCache === null) baselineCache = !features && replace
-        && meshVariants.get(activeMeshQuality)?.boundaryCacheKind === 'built-in'
+        && meshVariants.get(boundaryQuality)?.boundaryCacheKind === 'built-in'
         && countryOverrideIds.size === 0;
       // Overlay-only child edits do not create a country mesh override. They
       // still invalidate the precomputed boundary cache's geometry contract.
@@ -836,9 +854,9 @@ export function createGpuMapRenderer(deps) {
         ...transportMessage,
         requestId: countryBoundaryRequestId, projectGeneration,
         includeOutlines: countryBoundaryIncludesOutlines,
-        geometryRevision: geometryRevisionTracker.committedRevision(), quality: activeMeshQuality,
-        cacheUrl: transportMessage.type === 'replace' && sharedBoundaryCacheUrls?.[activeMeshQuality]
-          ? new URL(sharedBoundaryCacheUrls[activeMeshQuality], PHYSICAL_DATA_BASE_URL).href : null,
+        geometryRevision: geometryRevisionTracker.committedRevision(), quality: boundaryQuality,
+        cacheUrl: transportMessage.type === 'replace' && sharedBoundaryCacheUrls?.[boundaryQuality]
+          ? new URL(sharedBoundaryCacheUrls[boundaryQuality], PHYSICAL_DATA_BASE_URL).href : null,
         skipCacheReconcile: transportMessage.type === 'replace' && baselineCache,
       });
     }
@@ -848,6 +866,7 @@ export function createGpuMapRenderer(deps) {
     const countryStrokePacketCache = {
       preview: { mesh: null, countryIds: null, revision: '', resource: null },
       canonical: { mesh: null, countryIds: null, revision: '', resource: null },
+      lod: { mesh: null, countryIds: null, revision: '', resource: null },
       override: { mesh: null, countryIds: null, revision: '', resource: null },
     };
     const countryStrokeMeshRevisions = new WeakMap();
@@ -1527,6 +1546,7 @@ export function createGpuMapRenderer(deps) {
     }
 
     function meshQualityLabel() {
+      if (activeMeshQuality === 'lod') return '배율별 정식 LOD';
       return surfacePresentation.quality === 'canonical' ? '무손실'
         : surfacePresentation.quality === 'preview' ? '저배율 표시' : '정밀 경계 준비 중';
     }
@@ -2343,7 +2363,7 @@ export function createGpuMapRenderer(deps) {
     }
 
     function activateMeshVariant(quality, { renderFrame = true } = {}) {
-      const requestedQuality = quality === 'preview' ? 'preview' : 'canonical';
+      const requestedQuality = quality === 'preview' ? 'preview' : quality === 'lod' ? 'lod' : 'canonical';
       if (requestedQuality === 'preview') {
         previewActivationCount += 1;
         if (!previewAllowed) {
@@ -2359,6 +2379,7 @@ export function createGpuMapRenderer(deps) {
       mesh = entry.mesh;
       meshCountryIds = entry.countryIds;
       if (changed) meshSwitchCount += 1;
+      if (changed) sceneColorCache.invalidate('country-mesh-variant');
       if (changed) markPaletteDirty({ base: true, emphasis: true });
       const resources = entry.resources;
       positionBuffer = resources?.positionBuffer || null;
@@ -2380,7 +2401,7 @@ export function createGpuMapRenderer(deps) {
       stagedResources = null,
       boundaryCacheKind = 'none',
     } = {}) {
-      const variantQuality = quality === 'preview' ? 'preview' : 'canonical';
+      const variantQuality = quality === 'preview' ? 'preview' : quality === 'lod' ? 'lod' : 'canonical';
       if (variantQuality === 'preview' && !previewAllowed) {
         previewActivationAfterCanonical += 1;
         return false;
@@ -2397,11 +2418,179 @@ export function createGpuMapRenderer(deps) {
         resources: stagedResources || uploadMeshResources(nextMesh),
       }), { preserveOtherVariants });
       if (builtinMeshBaseline?.mesh === nextMesh) builtinMeshBaseline.resources = entry.resources;
+      if (variantQuality === 'lod') {
+        countryStrokePacketCache.lod.mesh = null;
+        countryStrokePacketCache.lod.resource = null;
+      }
       if (activate) activateMeshVariant(variantQuality, { renderFrame });
       prewarmCountryStrokeResources();
       projectRenderBlocked = false;
       sceneColorCache.invalidate('mesh-ready');
       syncGpuRecoveryAvailability();
+    }
+
+    function resetCountryDisplayLod() {
+      if (screenLodTimer !== null) lifecycle.cancelTimeout(screenLodTimer);
+      screenLodTimer = null;
+      patchJobScheduler.cancelDisplayLod();
+      screenLodBucket = null;
+      screenLodTargetKey = '';
+      screenLodPreparingKey = '';
+      screenLodRejectedKey = '';
+      screenLodSourceKey = '';
+      screenLodFailure = '';
+      screenLodLatest = null;
+    }
+
+    // The canonical mesh is authoritative for edits, picks, and source
+    // revisions. This schedules only a disposable lower-cost presentation mesh.
+    // A frame can always keep drawing the accepted canonical resource.
+    function ensureCountryDisplayLod({ cssScale = lastVisualFrame?.cssScale } = {}) {
+      const selected = countryFocusPending || !!state.selected
+        || !!countryEmphasis.primaryId || countryEmphasis.selectedIds.size > 0;
+      const source = countryMeshDependencies?.content;
+      const eligible = !disposed && isWebGlRenderer() && canonicalMeshReady
+        && meshVariants.has('canonical') && typeof source === 'string' && !!source
+        && !selected && !projectRenderBlocked && !temporalPending()
+        && !countryOverrideIds.size && !geometryRevisionTracker.pendingIds().length
+        && Number.isFinite(cssScale) && cssScale > 0;
+      if (!eligible) {
+        if (screenLodTargetKey) {
+          screenLodTargetKey = '';
+          if (screenLodTimer !== null) lifecycle.cancelTimeout(screenLodTimer);
+          screenLodTimer = null;
+          patchJobScheduler.cancelDisplayLod();
+          screenLodPreparingKey = '';
+        }
+        return '';
+      }
+      const bucket = resolveScreenLodBucket({ cssScale, previous: screenLodBucket });
+      screenLodBucket = bucket;
+      const generation = projectGeneration;
+      const revision = geometryRevisionTracker.committedRevision();
+      const sourceKey = `${source}:mesh-algorithm-${globalThis.PandoLabGpuMeshCore.MESH_ALGORITHM_REVISION}`;
+      const canonicalEntry = meshVariants.get('canonical');
+      const visibleIds = lastVisualFrame?.projectGeneration === generation
+        ? visibleCountryMeshIdsForFrame(canonicalEntry.mesh, lastVisualFrame)
+        : null;
+      // The viewport's admitted country set is part of the immutable
+      // derivative key. A camera pan can never replay a mesh omitting the
+      // newly visible countries, even if its scale bucket is unchanged.
+      const allVisible = !visibleIds || visibleIds.length === canonicalEntry.countryIds.length;
+      const scopedIds = allVisible ? null : visibleIds;
+      const viewKey = allVisible ? 'whole-world' : scopedIds.join(',');
+      const visibleTiles = lastVisualFrame?.projectGeneration === generation
+        && countrySharedBoundary?.sourceProjectGeneration === generation
+        ? visibleLargeCountryTilesForFrame(canonicalEntry.mesh, lastVisualFrame) : [];
+      // For the same set of country IDs, a pan across a very large country
+      // may still enter new *interior* blocks. Keep those tile IDs in the
+      // admission key rather than reusing an incomplete derivative.
+      const tileKey = visibleTiles.map(row => `${row.id}=${row.tiles.map(tile => tile.join(':')).join(';')}`).join('|');
+      const key = `${generation}:${revision}:${sourceKey}:${bucket.key}:${viewKey}:${tileKey}`;
+      screenLodSourceKey = sourceKey;
+      if (screenLodTargetKey === key) return key;
+      screenLodTargetKey = key;
+      if (screenLodTimer !== null) lifecycle.cancelTimeout(screenLodTimer);
+      screenLodTimer = null;
+      // Keep an in-flight request alive during short pans. Its result is
+      // rejected by screenLodTargetKey if stale; a subsequent request can
+      // reuse the Worker's admitted source instead of retransferring it.
+      // The job owner cancels only if the old request is still busy when the
+      // next debounced request actually begins.
+      // Prepared derivatives may be reused when returning to the same bucket.
+      if (meshVariants.get('lod')?.lodKey === key || screenLodRejectedKey === key)
+        return key;
+      screenLodTimer = lifecycle.timeout(() => {
+        screenLodTimer = null;
+        const current = () => !disposed && generation === projectGeneration
+          && revision === geometryRevisionTracker.committedRevision()
+          && source === countryMeshDependencies?.content
+          && screenLodTargetKey === key && isWebGlRenderer()
+          && canonicalMeshReady && !projectRenderBlocked && !temporalPending()
+          && !geometryRevisionTracker.pendingIds().length && !countryOverrideIds.size;
+        if (!current()) return;
+        screenLodPreparingKey = key;
+        const started = performance.now();
+        patchJobScheduler.prepareDisplayLod({
+          projectGeneration: generation, geometryRevision: revision, sourceKey,
+          features: canonicalCountryFeatures(), lod: bucket, visibleIds: scopedIds,
+          visibleTiles,
+        }, current).then(async result => {
+          if (!result || !current()) return;
+          const candidateGpuBytes = ['positions', 'countryIndices', 'triangleIndices', 'lineIndices']
+            .reduce((sum, field) => sum + Number(result[field]?.byteLength || 0), 0);
+          const canonicalGpuBytes = Number(meshVariants.get('canonical')?.resources?.byteLength || 0);
+          const lodBudgetBytes = Math.max(12 * 1024 * 1024, Math.min(128 * 1024 * 1024,
+            Number(renderQuality.renderPacketCacheBudgetBytes || 64 * 1024 * 1024)));
+          screenLodLatest = Object.freeze({
+            ...result.lod, durationMs: Number((performance.now() - started).toFixed(2)),
+            generatedVertices: result.positions?.length / 2 || 0,
+            candidateGpuBytes, canonicalGpuBytes, lodBudgetBytes,
+          });
+          performanceMetrics.screenLodPreparedCount =
+            (performanceMetrics.screenLodPreparedCount || 0) + 1;
+          if (!result.lod?.simplified || result.lod?.fallback) {
+            screenLodRejectedKey = key;
+            screenLodFailure = result.lod?.failure || '';
+            invalidateGpuFrame('screen-lod-canonical-retained');
+            return;
+          }
+          if (candidateGpuBytes > lodBudgetBytes
+            || (canonicalGpuBytes > 0 && candidateGpuBytes >= canonicalGpuBytes)) {
+            screenLodRejectedKey = key;
+            screenLodFailure = 'Display LOD exceeds the memory budget or offers no GPU mesh reduction.';
+            performanceMetrics.screenLodBudgetRejectCount =
+              (performanceMetrics.screenLodBudgetRejectCount || 0) + 1;
+            return;
+          }
+          let resources = null;
+          try {
+            assertPreparedStroke(result, result.countryIds || []);
+            const nextMesh = {
+              preparedStroke: result.preparedStroke,
+              spatialBlocks: result.spatialBlocks,
+              positions: asMeshArray(Int32Array, result.positions),
+              countryIndices: asMeshArray(Uint16Array, result.countryIndices),
+              triangleIndices: asMeshArray(Uint32Array, result.triangleIndices),
+              lineIndices: asMeshArray(Uint32Array, result.lineIndices),
+              strokeStartsEnds: asMeshArray(Float32Array, result.strokeStartsEnds),
+              strokeOwnerRanges: result.strokeOwnerRanges || null,
+              countryTriangleRanges: asMeshArray(Uint32Array, result.countryTriangleRanges),
+              countryBoundaryRanges: asMeshArray(Uint32Array, result.countryBoundaryRanges),
+              countryBounds: asMeshArray(Int32Array, result.countryBounds),
+              countryBoundsFlags: asMeshArray(Uint32Array, result.countryBoundsFlags),
+            };
+            resources = await stageMeshResources(nextMesh, { projectGeneration: generation });
+            if (!resources) throw new Error('LOD mesh GPU upload was not committed.');
+            if (!current()) {
+              disposeMeshResources(resources);
+              return;
+            }
+            setMesh(nextMesh, result.countryIds || [], {
+              quality: 'lod', preserveOtherVariants: true, activate: false,
+              renderFrame: false, stagedResources: resources,
+              boundaryCacheKind: meshVariants.get('canonical')?.boundaryCacheKind || 'none',
+            });
+            resources = null;
+            meshVariants.get('lod').lodKey = key;
+            screenLodFailure = '';
+            performanceMetrics.screenLodUploadCount =
+              (performanceMetrics.screenLodUploadCount || 0) + 1;
+            syncCountryMeshQuality();
+            invalidateGpuFrame('screen-lod-published');
+          } finally {
+            if (resources) disposeMeshResources(resources);
+          }
+        }).catch(error => {
+          if (!current() || error.name === 'AbortError' || error.cancelled) return;
+          screenLodRejectedKey = key;
+          screenLodFailure = String(error.message || error).slice(0, 360);
+          console.warn('[PL-SCREEN-LOD]', error);
+        }).finally(() => {
+          if (screenLodPreparingKey === key) screenLodPreparingKey = '';
+        });
+      }, 120);
+      return key;
     }
 
     function promoteCanonicalMesh({ frameId = 0 } = {}) {
@@ -2732,6 +2921,7 @@ export function createGpuMapRenderer(deps) {
     }
 
     function resetProjectRenderState({ generation = null, presentation = 'default', isCurrent = () => true, onPresented = () => {} } = {}) {
+      resetCountryDisplayLod();
       // A fall-back result requested for the previous project must not be
       // accepted, warned about, or block the next project's terrain source.
       terrainFallbackRequest?.abort();
@@ -2856,6 +3046,7 @@ export function createGpuMapRenderer(deps) {
       // Every accepted request supersedes earlier deliveries, including a
       // synchronous cache hit after a different shape began preparing.
       const task = geometryRevisionTracker.beginTask(geometryRevision);
+      resetCountryDisplayLod();
       stopPatchWorkerJobs(reason);
       // This entry is reached after Core admission and scene invalidation.
       // Let the new physical background render while its country mesh builds.
@@ -3908,8 +4099,14 @@ export function createGpuMapRenderer(deps) {
     }
 
     function overlayResourceReady(key) {
+      if (indexedSceneResources.scene !== renderScene || indexedSceneResources.generation !== projectGeneration) {
+        const keys = new Set((renderScene?.polygons || []).map(packet => String(packet.key)));
+        for (const packet of renderScene?.strokes || [])
+          keys.add(String(sceneStrokeResourcePacket(packet, projectGeneration).key));
+        indexedSceneResources = { scene: renderScene, generation: projectGeneration, keys };
+      }
       const source = classifyGpuResourceReady(key, renderScene,
-        packet => sceneStrokeResourcePacket(packet, projectGeneration).key);
+        packet => sceneStrokeResourcePacket(packet, projectGeneration).key, indexedSceneResources.keys);
       if (source === 'country-boundary') {
         promotePreparedCountryBoundary();
         sceneColorCache.invalidate('country-boundary-resource-ready');
@@ -3958,12 +4155,17 @@ export function createGpuMapRenderer(deps) {
     }
 
     function currentCountryStrokeResources() {
+      const canonicalEntry = meshVariants.get('canonical');
+      const canonicalSource = canonicalEntry?.mesh || mesh;
+      const canonicalIds = canonicalEntry?.countryIds || meshCountryIds;
       const activeRevision = `${activeMeshQuality}:${countryStrokeMeshRevision(mesh)}:${mesh?.lineIndices?.length || 0}`;
+      const exactRevision = `canonical:${countryStrokeMeshRevision(canonicalSource)}:${canonicalSource?.lineIndices?.length || 0}`;
       const revisionOverride = `override:${countryStrokeMeshRevision(overrideMesh)}:${overrideMesh?.lineIndices?.length || 0}`;
       const base = buildCountryStrokeResource(mesh, meshCountryIds, activeMeshQuality, activeRevision);
       return Object.freeze({
         base,
-        selectionBase: base,
+        selectionBase: canonicalSource === mesh ? base
+          : buildCountryStrokeResource(canonicalSource, canonicalIds, 'canonical', exactRevision),
         override: buildCountryStrokeResource(overrideMesh, meshCountryIds, 'override', revisionOverride),
       });
     }
@@ -4773,8 +4975,31 @@ export function createGpuMapRenderer(deps) {
 
     function estimateCanvasMessageBytes(message) {
       if (message?.type === 'view') return 192;
-      try { return new Blob([JSON.stringify(message)]).size; }
-      catch (_) { return 0; }
+      // Diagnostic only: do not JSON-serialize full GeoJSON/typed-array payloads
+      // on the UI thread just to approximate structured-clone transport bytes.
+      const seen = new WeakSet(), pending = [message];
+      let bytes = 0;
+      while (pending.length) {
+        const value = pending.pop();
+        if (typeof value === 'string') { bytes += value.length * 2; continue; }
+        if (typeof value === 'number' || typeof value === 'boolean') { bytes += 8; continue; }
+        if (!value || typeof value !== 'object' || seen.has(value)) continue;
+        seen.add(value);
+        if (ArrayBuffer.isView(value)) { bytes += value.byteLength; continue; }
+        if (value instanceof ArrayBuffer) { bytes += value.byteLength; continue; }
+        if (Array.isArray(value)) {
+          // Coordinates are usually number arrays; account for their payload
+          // without visiting each numeric element or allocating a JSON string.
+          if (value.length && typeof value[0] === 'number') { bytes += value.length * 8; continue; }
+          for (const item of value) pending.push(item);
+        } else {
+          for (const [key, item] of Object.entries(value)) {
+            bytes += key.length * 2;
+            pending.push(item);
+          }
+        }
+      }
+      return bytes;
     }
 
     function recordCanvasWorkerMessage(message) {
@@ -4797,7 +5022,18 @@ export function createGpuMapRenderer(deps) {
             ...(!complete || change.prepare ? {geometry} : {})};
         }) };
       const sent = canvasWorker?.postMessage(message) || false;
-      if (sent && next) canvasLastCountryDependencies = next;
+      if (!sent) {
+        // Scene deltas were computed before the transport attempt. A failed
+        // synchronous send cannot certify them as accepted Worker geometry.
+        // Re-admit complete source and styles on the next live Worker.
+        canvasScenePackets.clear();
+        canvasLastCountryDependencies = null;
+        canvasLastSentGeometryRevision = -1;
+        canvasLastStyleSignature = '';
+        canvasLastPhysicalStyleSignature = '';
+        return false;
+      }
+      if (next) canvasLastCountryDependencies = next;
       if (sent && ['init', 'data', 'replace-data', 'patch'].includes(message.type))
         canvasLastSentGeometryRevision = Number(message.geometryRevision || 0);
       if (sent && message.type==='patch') canvasLastCountryDependencies=canvasCountryDependencies(canvasCountryInputs());
@@ -5439,6 +5675,7 @@ export function createGpuMapRenderer(deps) {
 
     async function replaceBuiltInMesh({ meshBuffer, preparedStroke, spatialBlocks, features, countryPatchIds = [], onStaged = null, quality = 'canonical', builtinIdentity = null, contentKey = null, projectGeneration: requestedGeneration = projectGeneration }) {
       if (disposed || Number(requestedGeneration) !== projectGeneration) return false;
+      resetCountryDisplayLod();
       if (rendererMode === 'webgl-recovering' && !await waitForGpuDevice(requestedGeneration)) return false;
       projectRenderBlocked = false;
       invalidateGpuFrame('accepted-project-background');
@@ -5605,13 +5842,16 @@ export function createGpuMapRenderer(deps) {
     function getCountryInteractionBoundaryData() {
       const pendingIds = geometryRevisionTracker.pendingIds().map(String).sort();
       const overriddenIds = [...countryOverrideIds].map(String).sort();
-      const visibleIds = meshCountryIds.filter(id => isCountryVisibleById(id));
+      const canonicalEntry = meshVariants.get('canonical');
+      const exactMesh = canonicalEntry?.mesh || mesh;
+      const exactIds = canonicalEntry?.countryIds || meshCountryIds;
+      const visibleIds = exactIds.filter(id => isCountryVisibleById(id));
       const strokeResources = currentCountryStrokeResources();
       return {
-        revision: [activeMeshQuality, geometryRevisionTracker.committedRevision(), geometryRevisionTracker.displayedRevision(), mesh?.lineIndices?.length || 0, overrideMesh?.lineIndices?.length || 0, pendingIds.join(','), overriddenIds.join(','), Number(state.objectPresentationRevision || 0)].join(':'),
-        base: mesh,
+        revision: ['canonical-interaction', geometryRevisionTracker.committedRevision(), geometryRevisionTracker.displayedRevision(), exactMesh?.lineIndices?.length || 0, overrideMesh?.lineIndices?.length || 0, pendingIds.join(','), overriddenIds.join(','), Number(state.objectPresentationRevision || 0)].join(':'),
+        base: exactMesh,
         override: overrideMesh,
-        countryIds: meshCountryIds,
+        countryIds: exactIds,
         pendingIds,
         overriddenIds,
         visibleIds,
@@ -5937,7 +6177,13 @@ export function createGpuMapRenderer(deps) {
         effectivePixelRatio,
         devicePixelRatio: Math.max(1, Number(window.devicePixelRatio || 1)),
         meshQuality: surfacePresentation.quality,
-        activeMeshQuality: surfacePresentation.quality,
+        activeMeshQuality,
+        screenLodBucket: screenLodBucket?.key || null,
+        screenLodSourceKey: screenLodSourceKey || null,
+        screenLodTargetKey,
+        screenLodPreparingKey,
+        screenLodFailure,
+        screenLodLatest,
         canonicalMeshReady,
         availableMeshQualities: [...meshVariants.keys()],
         meshVariantBytes: Object.fromEntries([...meshVariants.entries()].map(([quality, entry]) => [quality, Number(entry.resources?.byteLength || 0)])),
@@ -6046,6 +6292,7 @@ export function createGpuMapRenderer(deps) {
       presentedStrokeDomains.clear();
       if (disposed) return;
       disposed = true;
+      resetCountryDisplayLod();
       terrainFallbackRequest?.abort();
       terrainFallbackRequest=null;
       gpuRecovery.dispose();

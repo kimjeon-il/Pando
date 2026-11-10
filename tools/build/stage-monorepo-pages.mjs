@@ -5,18 +5,14 @@ import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, writeFileS
 import { dirname, isAbsolute, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {buildFrontendSnapshot} from "../../scripts/lib/frontend-build.mjs";
+import {mapProjectResourcePath,mapProjectResourcePaths} from '../../src/data/map-project-manifest.js';
+import {validateWorldBundle} from '../../src/data/world-bundle-manifest.js';
+import {createStoredAssetLoader} from '../../src/data/stored-asset-loader.js';
+import {decodeCountryMesh,MESH_ALGORITHM_REVISION} from '../../src/rendering/country-mesh-codec.js';
 import {prepareLibraryData} from "../data/library-runtime.mjs";
 
-import { validateWorldBundle } from '../../src/data/world-bundle-manifest.js';
-import { createStoredAssetLoader } from '../../src/data/stored-asset-loader.js';
-import { decodeCountryMesh, MESH_ALGORITHM_REVISION } from '../../src/rendering/country-mesh-codec.js';
-
 const LIMIT_BYTES = 1_000_000_000;
-const REQUIRED = [
-  'index.html', '.nojekyll',
-  'assets/data/terrain-preview/v0.13.3-p2/manifest.json',
-  'assets/data/hydro/v0.13.4/manifest.json'
-];
+const REQUIRED = ['index.html', '.nojekyll'];
 const hash = (algorithm, bytes) => createHash(algorithm).update(bytes).digest('hex');
 const blobHash = bytes => hash('sha1', Buffer.concat([Buffer.from(`blob ${bytes.length}\0`), bytes]));
 const within = (root, target) => {
@@ -57,7 +53,7 @@ function isEquivalentCrLfCheckout(working, committed) {
   }
 }
 
-export async function stageWebPages(rootInput, stageInput, manifestInput, { skipChecks = false } = {}) {
+export async function stageWebPages(rootInput, stageInput, manifestInput, { skipChecks = false, projectId = 'default-world' } = {}) {
   const root = resolve(rootInput), stage = resolve(stageInput), manifest = resolve(manifestInput);
   if (within(root, stage) || stage === root) throw Error('Pages stage must be outside the source repository');
   if (within(root, manifest) || manifest === root || within(stage, manifest)) throw Error('Pages evidence must be outside source and stage');
@@ -74,24 +70,28 @@ export async function stageWebPages(rootInput, stageInput, manifestInput, { skip
   // The generator and native-free staging recipe must also belong to HEAD.
   for(const file of all)if(/^(?:scripts\/|tools\/stage-monorepo-pages\.mjs$|tools\/library-(?:data|archive)\.mjs$|config\/library-data\.json$)/.test(file.path))readSourceBytes(file.path);
   const sourceCommit=execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim();
-  const snapshot=await buildFrontendSnapshot({root,sourceCommit,readSourceBytes});
+  const snapshot=await buildFrontendSnapshot({root,sourceCommit,readSourceBytes,projectId});
   if([...snapshot.viewerPaths].some(path=>path.endsWith('/assets/js/workers/core-viewer-session-worker.js')))for(const name of ['pandoeditor-core.js','pandoeditor-core.wasm','pandoeditor-core.manifest.json']){const path='assets/wasm/'+name;if(!snapshot.assets.has(path))throw Error('Missing protected Web URL: '+path);snapshot.viewerPaths.add(path);}
-  // Admission must precede publication; optional metadata checks cannot bypass it.
-  const world = JSON.parse(snapshot.readPinnedRuntimeAsset(snapshot.buildMeta.worldBundle.url));
+  // Preserve main's source-matched geometry publication gate, resolving
+  // manifests through the selected project rather than retired global specs.
+  // Optional stale prepared acceleration cannot replace canonical country data.
+  const resourcePath=role=>mapProjectResourcePath(snapshot.buildMeta.mapProject,role);
+  const world=JSON.parse(snapshot.readPinnedRuntimeAsset(resourcePath('world')));
   validateWorldBundle(world);
-  const prepared = JSON.parse(snapshot.readPinnedRuntimeAsset(snapshot.buildMeta.preparedPolygonMeshes.url));
-  if (prepared.algorithmVersion !== MESH_ALGORITHM_REVISION) {
-    throw Error('Prepared polygon mesh algorithm revision mismatch: expected ' + MESH_ALGORITHM_REVISION
-      + ', received ' + prepared.algorithmVersion);
-  }
-  const library=prepareLibraryData({root}),payload=new Map(),files=[];
+  const prepared=JSON.parse(snapshot.readPinnedRuntimeAsset(resourcePath('preparedMeshes')));
+  if(snapshot.buildMeta.projectCatalogs.preparedMeshes.current!==false
+    &&prepared.algorithmVersion!==MESH_ALGORITHM_REVISION)
+    throw Error('Prepared polygon mesh algorithm revision mismatch: expected '
+      +MESH_ALGORITHM_REVISION+', received '+prepared.algorithmVersion);
+  const library=prepareLibraryData({root,projectId}),payload=new Map(),files=[];
   for(const path of snapshot.viewerPaths){
     const generated=snapshot.assets.get(path);let bytes,sourcePath=null;
     if(generated){bytes=generated.bytes;sourcePath=generated.sourcePath;}
     else{const spec=library.files[path];if(!path.startsWith('assets/data/')||!spec)throw Error('Missing protected Web URL: '+path);bytes=readFileSync(resolve(library.materialized,path));if(bytes.length!==spec.bytes||hash('sha256',bytes)!==spec.sha256)throw Error('Pinned library transfer mismatch: '+path);}
     payload.set(path,bytes);files.push({path,sourcePath,bytes:bytes.length,sha256:hash('sha256',bytes),generated:!sourcePath});
   }
-  for(const path of REQUIRED)if(!payload.has(path))throw Error('Missing protected Web URL: '+path);
+  for(const path of [...REQUIRED,snapshot.buildMeta.mapProjectManifest.url,...mapProjectResourcePaths(snapshot.buildMeta.mapProject)])
+    if(!payload.has(path))throw Error('Missing protected Web URL: '+path);
   const meshLoader = createStoredAssetLoader({ dataRevision: snapshot.dataRevision, cacheStorage: null });
   for (const role of ['previewMesh', 'canonicalMesh']) {
     const spec = world.assets[role], stored = payload.get('assets/data/' + spec.url);
@@ -108,7 +108,7 @@ export async function stageWebPages(rootInput, stageInput, manifestInput, { skip
   const total=files.reduce((n,f)=>n+f.bytes,0);if(total>LIMIT_BYTES)throw Error('Pages site exceeds size limit: '+total);
   mkdirSync(stage,{recursive:true});
   for(const file of files){const output=resolve(stage,file.path);if(!within(stage,output))throw Error('Invalid Pages output');mkdirSync(dirname(output),{recursive:true});writeFileSync(output,payload.get(file.path));if(hash('sha256',readFileSync(output))!==file.sha256)throw Error('Staged copy mismatch');}
-  const evidence={schema:'pando-web-pages-staging',productMode:'viewer',sourceCommit,frontendInputSha256:snapshot.sourceSha256,metadataCheck:skipChecks?'skipped':'passed',fileCount:files.length,dataRepository:library.repository,dataCommit:library.revision,bytes:total,limitBytes:LIMIT_BYTES,excludedNativeFiles:all.filter(f=>f.path.startsWith('native/')).length,excludedSharedFiles:all.filter(f=>f.path.startsWith('shared/')).length,excludedAppFiles:all.filter(f=>f.path.startsWith('apps/')).length,files};
+  const evidence={schema:'pando-web-pages-staging',productMode:'viewer',projectId:snapshot.buildMeta.mapProject.projectId,sourceCommit,frontendInputSha256:snapshot.sourceSha256,metadataCheck:skipChecks?'skipped':'passed',fileCount:files.length,dataRepository:library.repository,dataCommit:library.revision,bytes:total,limitBytes:LIMIT_BYTES,excludedNativeFiles:all.filter(f=>f.path.startsWith('native/')).length,excludedSharedFiles:all.filter(f=>f.path.startsWith('shared/')).length,excludedAppFiles:all.filter(f=>f.path.startsWith('apps/')).length,files};
   mkdirSync(dirname(manifest), { recursive: true });
   writeFileSync(manifest, JSON.stringify(evidence, null, 2) + '\n');
   return evidence;
@@ -148,6 +148,6 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   if (!arg('--stage') || !arg('--manifest')) throw Error('Usage: stage-monorepo-pages.mjs --root ROOT --stage OUT --manifest EVIDENCE [--skip-checks]');
   const result = args.includes('--finalize')
     ? finalizeWebPages(arg('--stage'), arg('--manifest'))
-    : await stageWebPages(arg('--root') || '.', arg('--stage'), arg('--manifest'), { skipChecks: args.includes('--skip-checks') });
+    : await stageWebPages(arg('--root') || '.', arg('--stage'), arg('--manifest'), { skipChecks: args.includes('--skip-checks'),projectId:arg('--project') ?? 'default-world' });
   process.stdout.write(`${result.fileCount} Web files, ${result.bytes} bytes, ${result.excludedNativeFiles} native, ${result.excludedSharedFiles} shared and ${result.excludedAppFiles} app source files excluded\n`);
 }

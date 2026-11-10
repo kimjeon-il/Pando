@@ -106,3 +106,376 @@ export function simplifyRenderGeometry(geometry, {
   };
   return geometry;
 }
+
+
+/**
+ * A display-only, source-revision-owned shared arc index. Matching reverse
+ * country borders reuse one vertex-importance sequence. The screen error is
+ * conservatively bounded in both flat and orthographic globe projections.
+ */
+const RADIANS_PER_LOD_DEGREE = Math.PI / 180;
+export const MAX_MAP_GEOMETRY_ERROR_PX = 0.5;
+
+function lodNodeKey(coordinate, precision) {
+  const factor = 10 ** precision;
+  return `${Math.round(coordinate[0] * factor)},${Math.round(coordinate[1] * factor)}`;
+}
+function lodCartesian([longitude, latitude]) {
+  const lon = longitude * RADIANS_PER_LOD_DEGREE;
+  const lat = latitude * RADIANS_PER_LOD_DEGREE;
+  return [Math.cos(lat) * Math.cos(lon), Math.cos(lat) * Math.sin(lon), Math.sin(lat)];
+}
+function lodPointSegmentSquared(point, start, end) {
+  const delta = end.map((value, axis) => value - start[axis]);
+  const length = delta.reduce((sum, value) => sum + value * value, 0);
+  const t = length ? Math.max(0, Math.min(1,
+    delta.reduce((sum, value, axis) => sum + value * (point[axis] - start[axis]), 0) / length)) : 0;
+  return delta.reduce((sum, _, axis) => sum + (point[axis] - start[axis] - t * delta[axis]) ** 2, 0);
+}
+function lodVertexImportance(points) {
+  const importance = new Float64Array(points.length);
+  importance[0] = importance[points.length - 1] = Infinity;
+  const unit = points.map(lodCartesian);
+  const stack = [[0, points.length - 1, Infinity]];
+  while (stack.length) {
+    const [first, last, cap] = stack.pop();
+    let maximum = 0, furthest = -1;
+    for (let index = first + 1; index < last; index += 1) {
+      const flat = distanceToSegmentSquared(points[index], points[first], points[last])
+        * RADIANS_PER_LOD_DEGREE ** 2;
+      const globe = lodPointSegmentSquared(unit[index], unit[first], unit[last]);
+      const candidate = Math.sqrt(Math.max(flat, globe));
+      if (candidate > maximum) { maximum = candidate; furthest = index; }
+    }
+    if (furthest < 0 || !maximum) continue;
+    const significance = Math.min(cap, maximum);
+    importance[furthest] = significance;
+    stack.push([first, furthest, significance], [furthest, last, significance]);
+  }
+  return importance;
+}
+function lodSignedArea(points) {
+  let sum = 0;
+  for (let index = 0; index < points.length; index += 1) {
+    const a = points[index], b = points[(index + 1) % points.length];
+    sum += a[0] * b[1] - b[0] * a[1];
+  }
+  return sum;
+}
+
+/**
+ * Buckets represent an upper bound on cssScale, never the rounded-down scale.
+ * Increases take effect immediately; 15% hysteresis applies only to zoom-out.
+ */
+export function resolveScreenLodBucket({ cssScale, previous = null,
+  errorPx = MAX_MAP_GEOMETRY_ERROR_PX } = {}) {
+  if (!Number.isFinite(cssScale) || cssScale <= 0 || !Number.isFinite(errorPx) || errorPx <= 0)
+    throw new TypeError('Screen LOD needs positive CSS scale and pixel error.');
+  const step = Math.SQRT2;
+  const target = Math.pow(2, Math.ceil(Math.log2(cssScale) * 2) / 2);
+  const keep = previous?.upperScale >= cssScale && cssScale > previous.upperScale / step * 0.85;
+  const upperScale = keep ? previous.upperScale : target;
+  return Object.freeze({ upperScale, errorPx, toleranceRadians: errorPx / upperScale,
+    key: `${upperScale}:${errorPx}` });
+}
+
+/**
+ * Bound spherical mesh chord/sagitta deviation independently of boundary DP.
+ * Unlike a fixed world-wide 0.499-degree subdivision, this creates fewer
+ * interior triangles at small screen scales without changing source geometry.
+ */
+export function resolveScreenLodEdgeDegrees({
+  cssScale, errorPx = MAX_MAP_GEOMETRY_ERROR_PX,
+  minDegrees = 0.499, maxDegrees = 8,
+} = {}) {
+  if (!Number.isFinite(cssScale) || cssScale <= 0 || !Number.isFinite(errorPx)
+    || errorPx <= 0 || !Number.isFinite(minDegrees) || minDegrees <= 0
+    || !Number.isFinite(maxDegrees) || maxDegrees < minDegrees)
+    throw new TypeError('Invalid screen LOD tessellation budget.');
+  const permittedSagitta = Math.min(2, errorPx / cssScale);
+  const angleRadians = 2 * Math.acos(1 - permittedSagitta);
+  return Math.max(minDegrees, Math.min(maxDegrees, angleRadians / RADIANS_PER_LOD_DEGREE));
+}
+
+export function createSharedPolygonLodIndex(features, { precision = 7 } = {}) {
+  if (!Array.isArray(features) || !Number.isInteger(precision) || precision < 0 || precision > 9)
+    throw new TypeError('Shared polygon LOD requires features and a valid precision.');
+  const nodes = new Map(), edges = new Map(), allRings = [], sharedArcs = new Map();
+  function requireNode(coordinate) {
+    if (!finiteCoordinate(coordinate)) throw new TypeError('Invalid source polygon coordinate.');
+    const key = lodNodeKey(coordinate, precision);
+    if (!nodes.has(key)) nodes.set(key, { neighbors: new Set(), owners: new Set() });
+    return key;
+  }
+  const byFeature = features.map((feature, featureIndex) => {
+    const id = String(feature?.id ?? featureIndex), geometry = feature?.geometry;
+    if (geometry && !['Polygon', 'MultiPolygon'].includes(geometry.type))
+      throw new TypeError('Country LOD accepts only polygon geometry.');
+    const polygons = !geometry ? [] : geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates;
+    return polygons.map((polygon, polygonIndex) => polygon.map((ring, ringIndex) => {
+      if (!Array.isArray(ring) || ring.length < 4 || !finiteCoordinate(ring[0])
+        || !finiteCoordinate(ring[ring.length - 1])
+        || lodNodeKey(ring[0], precision) !== lodNodeKey(ring.at(-1), precision))
+        throw new TypeError('Country polygon LOD requires closed rings.');
+      const points = ring.slice(0, -1), keys = points.map(requireNode);
+      if (new Set(keys).size < 3) throw new TypeError('Invalid polygon ring.');
+      const edgeKeys = keys.map((key, index) => {
+        const next = keys[(index + 1) % keys.length];
+        if (key === next) throw new TypeError('Duplicated polygon edge.');
+        nodes.get(key).owners.add(id);
+        nodes.get(key).neighbors.add(next); nodes.get(next).neighbors.add(key);
+        const edgeKey = key < next ? `${key}|${next}` : `${next}|${key}`;
+        if (!edges.has(edgeKey)) edges.set(edgeKey, { owners: new Set() });
+        edges.get(edgeKey).owners.add(id);
+        return edgeKey;
+      });
+      const info = { id, polygonIndex, ringIndex, points, keys, edgeKeys,
+        originalArea: lodSignedArea(points), importance: new Float64Array(points.length),
+        protected: polygon.length > 1 || ringIndex > 0 || hasDatelineJump(ring)
+          || points.some(point => Math.abs(point[1]) >= 85) };
+      allRings.push(info);
+      return info;
+    }));
+  });
+  for (const edge of edges.values()) edge.signature = [...edge.owners].sort().join('|');
+  for (const info of allRings) {
+    const { points, keys, edgeKeys, importance } = info;
+    if (info.protected) { importance.fill(Infinity); continue; }
+    const anchors = new Set();
+    for (let index = 0; index < keys.length; index += 1) {
+      const node = nodes.get(keys[index]);
+      const before = edges.get(edgeKeys[(index + keys.length - 1) % keys.length]);
+      const after = edges.get(edgeKeys[index]);
+      if (node.neighbors.size !== 2 || node.owners.size >= 3 || before.signature !== after.signature)
+        anchors.add(index);
+    }
+    if (anchors.size < 3) {
+      // Add anchors on private coastlines first; never split a shared arc on
+      // just one side merely to meet the three-vertex ring minimum.
+      const candidates = keys.map((key, index) => ({ key, index }))
+        .filter(({ index }) => edges.get(edgeKeys[index]).owners.size === 1
+          && edges.get(edgeKeys[(index + keys.length - 1) % keys.length]).owners.size === 1)
+        .sort((a, b) => a.key.localeCompare(b.key) || a.index - b.index);
+      for (const { index } of candidates) {
+        anchors.add(index);
+        if (anchors.size >= 3) break;
+      }
+    }
+    const ordered = [...anchors].sort((a, b) => a - b);
+    if (!ordered.length) { importance.fill(Infinity); continue; }
+    for (const index of ordered) importance[index] = Infinity;
+    for (let anchor = 0; anchor < ordered.length; anchor += 1) {
+      const start = ordered[anchor], end = ordered[(anchor + 1) % ordered.length];
+      const path = [start];
+      for (let pos = (start + 1) % keys.length; pos !== end; pos = (pos + 1) % keys.length)
+        path.push(pos);
+      path.push(end);
+      if (path.length <= 2) continue;
+      const forward = keys[start] < keys[end];
+      const canonical = forward ? path : [...path].reverse();
+      const arcKey = canonical.map(index => keys[index]).join(';');
+      let ranked = sharedArcs.get(arcKey);
+      if (!ranked) {
+        ranked = lodVertexImportance(canonical.map(index => points[index]));
+        sharedArcs.set(arcKey, ranked);
+      }
+      for (let offset = 1; offset < path.length - 1; offset++) {
+        const rank = forward ? offset : path.length - 1 - offset;
+        importance[path[offset]] = ranked[rank];
+      }
+    }
+  }
+  function derive({ cssScale, errorPx = MAX_MAP_GEOMETRY_ERROR_PX,
+    protectedIds = [], visibleIds = null } = {}) {
+    if (!Number.isFinite(cssScale) || cssScale <= 0 || !Number.isFinite(errorPx) || errorPx <= 0)
+      throw new TypeError('Invalid LOD screen scale or pixel error.');
+    const tolerance = errorPx / cssScale;
+    const protectedSet = new Set([...protectedIds].map(String));
+    const visibleSet = visibleIds === null ? null : new Set([...visibleIds].map(String));
+    const protectedNodes = new Set();
+    if (protectedSet.size) for (const [key, node] of nodes)
+      if ([...node.owners].some(owner => protectedSet.has(owner))) protectedNodes.add(key);
+    let invalid = false, originalVertices = 0, keptVertices = 0;
+    const sharedSegments = new Map();
+    const output = features.map((feature, index) => {
+      const featureId = String(feature?.id ?? index);
+      if (visibleSet && !visibleSet.has(featureId)) {
+        originalVertices += byFeature[index].reduce((count, polygon) =>
+          count + polygon.reduce((sum, ring) => sum + ring.points.length, 0), 0);
+        return { ...feature, geometry: null };
+      }
+      const polygons = byFeature[index].map(polygon => polygon.map(info => {
+        originalVertices += info.points.length;
+        const indices = [];
+        // A feature smaller than the allowed pixel deviation is still a
+        // real island: preserve its complete ring instead of erasing detail.
+        let west = Infinity, east = -Infinity, south = Infinity, north = -Infinity;
+        for (const point of info.points) {
+          west = Math.min(west, point[0]); east = Math.max(east, point[0]);
+          south = Math.min(south, point[1]); north = Math.max(north, point[1]);
+        }
+        const tinyRing = Math.hypot(east - west, north - south)
+          * RADIANS_PER_LOD_DEGREE <= tolerance;
+        for (let i = 0; i < info.points.length; i++)
+          if (tinyRing || protectedSet.has(info.id) || info.importance[i] >= tolerance
+            || protectedNodes.has(info.keys[i])) indices.push(i);
+        // Preserve small islands and narrow rings in place instead of
+        // invalidating an otherwise useful whole-world derivative. Shared
+        // borders still undergo the complete cross-owner seam check below.
+        const initial = indices.map(i => info.points[i]);
+        if (initial.length < 3
+          || Math.sign(lodSignedArea(initial)) !== Math.sign(info.originalArea)) {
+          indices.length = 0;
+          for (let i = 0; i < info.points.length; i++) indices.push(i);
+        }
+        const selected = indices.map(i => info.points[i]);
+        keptVertices += selected.length;
+        // A shared source chain must be represented by the same new segment
+        // in every country that owns it. Abort the complete derivative if a
+        // different ring cut or a protected neighbor causes a seam mismatch.
+        for (let j = 0; j < indices.length; j++) {
+          const from = indices[j], to = indices[(j + 1) % indices.length];
+          const edge = edges.get(info.edgeKeys[from]);
+          const owners = [...edge.owners].filter(id => !visibleSet || visibleSet.has(id));
+          if (owners.length < 2) continue;
+          let current = from, consistent = true;
+          do {
+            if (edges.get(info.edgeKeys[current]).signature !== edge.signature) {
+              consistent = false; break;
+            }
+            current = (current + 1) % info.points.length;
+          } while (current !== to);
+          if (!consistent) { invalid = true; continue; }
+          const firstKey = info.keys[from], secondKey = info.keys[to];
+          const segmentKey = firstKey < secondKey
+            ? `${firstKey};${secondKey}` : `${secondKey};${firstKey}`;
+          const key = `${edge.signature}:${segmentKey}`;
+          if (!sharedSegments.has(key)) sharedSegments.set(key, {
+            expected: new Set(owners), actual: new Set(),
+          });
+          sharedSegments.get(key).actual.add(info.id);
+        }
+        return [...selected.map(cloneCoordinate), cloneCoordinate(selected[0] || info.points[0])];
+      }));
+      const type = feature?.geometry?.type;
+      return { ...feature, geometry: !type ? null : { type,
+        coordinates: type === 'Polygon' ? polygons[0] : polygons } };
+    });
+    for (const { expected, actual } of sharedSegments.values())
+      if (expected.size !== actual.size || [...expected].some(id => !actual.has(id))) {
+        invalid = true;
+        break;
+      }
+    // Never restore only one country of a shared arc: fail closed as a frame.
+    return Object.freeze({ features: invalid ? features : output, fallback: invalid,
+      originalVertices, keptVertices: invalid ? originalVertices : keptVertices,
+      visibleCountryCount: visibleSet ? output.filter(feature => !!feature.geometry).length : features.length,
+      scoped: !!visibleSet });
+  }
+  return Object.freeze({ derive, stats: () => Object.freeze({
+    featureCount: features.length, ringCount: allRings.length,
+    vertexCount: allRings.reduce((sum, ring) => sum + ring.points.length, 0),
+    sharedEdgeCount: [...edges.values()].filter(edge => edge.owners.size > 1).length,
+    arcCount: sharedArcs.size,
+  }) });
+}
+
+
+/**
+ * Derive only the visible internal geographic cells of a large country.
+ * The supplied intersection capability is the application's compiled
+ * polygon engine. Tile boundaries are on a common global integer grid;
+ * source geometry, editing and picking never consume these derivatives.
+ * Any incomplete/invalid clip aborts the derivative (canonical keeps showing).
+ *
+ * The cache is owned by the existing mesh Worker and keyed by source revision,
+ * zoom bucket and tile. Moving the camera reuses unchanged prepared cells.
+ */
+export function tileLargePolygonLodFeatures(features, visibleTiles, {
+  intersection, sourceKey, lodKey, tileDegrees = 5,
+  minimumVertices = 4, cache = new Map(), maxCachedTiles = 128,
+} = {}) {
+  if (!Array.isArray(features) || !Array.isArray(visibleTiles)
+    || typeof intersection !== 'function' || !sourceKey || !lodKey
+    || !Number.isInteger(180 / tileDegrees) || tileDegrees <= 0)
+    throw new TypeError('Screen tile LOD requires source, grid and compiled clipping.');
+  const byId = new Map(visibleTiles.map(row => [String(row.id), row.tiles]));
+  let tiledCountryCount = 0, tilesPrepared = 0, tilesReused = 0;
+  const result = features.map(feature => {
+    const tiles = byId.get(String(feature.id));
+    const geometry = feature.geometry;
+    if (!tiles?.length || !geometry || !['Polygon', 'MultiPolygon'].includes(geometry.type))
+      return feature;
+    const sourcePolygons = geometry.type === 'Polygon'
+      ? [geometry.coordinates] : geometry.coordinates;
+    const polygonBounds = sourcePolygons.map(polygon => {
+      let west = Infinity, east = -Infinity, south = Infinity, north = -Infinity;
+      let vertices = 0;
+      for (const ring of polygon) for (const point of ring) {
+        if (!finiteCoordinate(point)) throw new TypeError('Invalid polygon tile coordinate.');
+        west = Math.min(west, point[0]); east = Math.max(east, point[0]);
+        south = Math.min(south, point[1]); north = Math.max(north, point[1]);
+        vertices++;
+      }
+      return { west, east, south, north, vertices };
+    });
+    const sourceVertices = polygonBounds.reduce((sum, box) => sum + box.vertices, 0);
+    if (sourceVertices < minimumVertices) return feature;
+    if (sourcePolygons.some(polygon => polygon.some(ring =>
+      hasDatelineJump(ring) || ring.some(point => Math.abs(point[1]) >= 85)))) return feature;
+    const parts = [];
+    const sorted = [...tiles].sort(([ax, ay], [bx, by]) => ax - bx || ay - by);
+    for (const tile of sorted) {
+      if (!Array.isArray(tile) || tile.length !== 2
+        || !tile.every(Number.isInteger)) throw new TypeError('Invalid geographic tile key.');
+      const [x, y] = tile, west = x * tileDegrees, south = y * tileDegrees;
+      const east = west + tileDegrees, north = south + tileDegrees;
+      if (west < -180 || east > 180 || south < -90 || north > 90)
+        throw new TypeError('Geographic tile is outside the legal world bounds.');
+      const intersecting = sourcePolygons.filter((_polygon, i) => {
+        const box = polygonBounds[i];
+        return box.east >= west && box.west <= east
+          && box.north >= south && box.south <= north;
+      });
+      if (!intersecting.length) continue;
+      const key = `${sourceKey}:${lodKey}:${String(feature.id)}:${x}:${y}`;
+      let clipped = cache.get(key);
+      if (clipped) {
+        cache.delete(key); cache.set(key, clipped);
+        tilesReused++;
+      } else {
+        const rectangle = [[west, south], [east, south],
+          [east, north], [west, north], [west, south]];
+        clipped = intersection(intersecting, [[rectangle]]);
+        if (!Array.isArray(clipped)) throw new Error('Compiled tile clipping returned no polygon array.');
+        for (const polygon of clipped) {
+          if (!Array.isArray(polygon) || !polygon.length) throw new Error('Invalid tile polygon.');
+          for (const ring of polygon) {
+            if (!Array.isArray(ring) || ring.length < 4 || ring.some(point =>
+              !finiteCoordinate(point)
+              || point[0] < west - 1e-6 || point[0] > east + 1e-6
+              || point[1] < south - 1e-6 || point[1] > north + 1e-6)
+              || lodNodeKey(ring[0], 7) !== lodNodeKey(ring.at(-1), 7))
+              throw new Error('Incomplete or out-of-bounds clipped polygon ring.');
+          }
+        }
+        cache.set(key, clipped);
+        while (cache.size > maxCachedTiles) cache.delete(cache.keys().next().value);
+        tilesPrepared++;
+      }
+      if (clipped.length) parts.push({
+        tileKey: key, geometry: { type: 'MultiPolygon', coordinates: clipped },
+      });
+    }
+    if (!parts.length) {
+      // Conservatively preserve the original feature. BVH admission can
+      // legitimately include a country outside its exact polygon footprint.
+      return feature;
+    }
+    tiledCountryCount++;
+    return { ...feature, geometry: null, lodParts: parts };
+  });
+  return Object.freeze({
+    features: result, tiledCountryCount, tilesPrepared, tilesReused,
+  });
+}

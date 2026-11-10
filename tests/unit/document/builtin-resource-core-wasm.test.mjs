@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import test from 'node:test';
 import {createNodeCoreProject} from "../../helpers/core-project.mjs";
-import {createPlaceRuntime} from "../../../src/document/place-runtime.js";
+import {createPlaceRuntime} from "../../../src/data/place-runtime.js";
 import {normalizePlace} from "../../../src/document/place-contract.js";
 import {createPhysicalResources} from "../../../src/data/physical-resources.js";
 

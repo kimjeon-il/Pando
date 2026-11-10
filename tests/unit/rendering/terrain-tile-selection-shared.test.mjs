@@ -31,3 +31,29 @@ test('per-backend visibility cache reuses identical views and invalidates change
   cache.clear();
   assert.notEqual(cache.select(level, query), first);
 });
+
+test('flat visible scan matches the exhaustive wrapped predicate with partial edge tiles', () => {
+  const level = { id: 4, width: 1030, height: 515, tileSize: 128, rows: 5, columns: 9 };
+  const reference = ({viewport, scale, flatCenter}) => {
+    const keys = [];
+    for (let row = 0; row < level.rows; row++) for (let column = 0; column < level.columns; column++) {
+      const spec = tiles.tileSpec(level, column, row);
+      const [west, north, east, south] = spec.bounds;
+      const centerLon = (west + east) / 2, centerLat = (north + south) / 2;
+      const lon = Math.abs((((centerLon - flatCenter[0]) + 540) % 360) - 180);
+      if (lon <= viewport[0] / Math.max(1, scale) * 90 / Math.PI + (east - west) / 2 + 2
+        && Math.abs(centerLat - flatCenter[1])
+          <= viewport[1] / Math.max(1, scale) * 90 / Math.PI + (north - south) / 2 + 2)
+        keys.push(spec.key);
+    }
+    return keys;
+  };
+  for (const flatCenter of [[0, 0], [179, 12], [-179, -35], [540, 0]]) {
+    for (const scale of [20, 250, 2400]) {
+      const input = { viewport: [400, 230], scale, flatCenter, projection: 'flat' };
+      assert.deepEqual(Array.from(tiles.visible(level, input), row => row.key), reference(input));
+    }
+  }
+  assert.equal(tiles.visible(level, { includeAll: true, viewport: [200, 100], scale: 1,
+    projection: 'flat', flatCenter: [0, 0] }).length, 45);
+});

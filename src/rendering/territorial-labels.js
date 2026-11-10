@@ -1,6 +1,6 @@
 import { createMapVisualFrame, isMapVisualFrame } from "./map-visual-frame.js";
 import { placeLabelDimensions } from "./label-layout.js";
-import { createPlaceRuntime } from "../document/place-runtime.js";
+import { createPlaceRuntime } from "../data/place-runtime.js";
 import {projectResourceOverlay} from "../document/project-resource-overlay.js";
 import { isBuiltinPlaceId } from "../document/place-contract.js";
 import { placeLabelRowsAtMonth } from "../ui/place-name-display.js";
@@ -20,7 +20,12 @@ export function createTerritorialLabels({ capabilities = {builtinPlaces:true,eag
   let countryOutlineCache;
   let labelLayoutMetrics;
   let territorialLabelScreenAreas;
-  let builtinPlaces;
+  let builtinPlaces,activeSource='unbound';
+  function setProjectSource(source) {
+    if(!['builtin','project','new'].includes(source))throw new TypeError('Unknown map source');
+    activeSource=source==='builtin'?'builtin':'project';
+    builtinPlaces?.resetProject();
+  }
   function connect(ports) {
     if (dependencies) throw new Error('territorial-labels already connected');
     dependencies = ports;
@@ -44,6 +49,7 @@ export function createTerritorialLabels({ capabilities = {builtinPlaces:true,eag
   }
 
   function preparePlaces({ force = false } = {}) {
+    if(activeSource!=='builtin')return Promise.resolve(false);
     if (!capabilities.builtinPlaces || (!capabilities.eagerBuiltinPlaces && !force && builtinPlaces.snapshot().revision === 0)) return Promise.resolve(false);
     if (dependencies.projectState.state.mapMoving) { builtinPlaces.beginInteraction(); return Promise.resolve(false); }
     if (!force && dependencies.projectState.state.layerVisibility.labels === false) { builtinPlaces.cancelViewport(); return builtinPlaces.settle(null); }
@@ -54,6 +60,7 @@ export function createTerritorialLabels({ capabilities = {builtinPlaces:true,eag
     const resources=projectResourceOverlay('label',dependencies.projectState.state.labels);
     const user=resources.findById(id);
     if(user)return user;
+    if(activeSource!=='builtin')return null;
     // An authored copy hides its source from selection, but does not delete it
     // from the immutable reference library or the pinned place worker store.
     if(resources.isSourceReplaced(id))return null;
@@ -207,9 +214,9 @@ export function createTerritorialLabels({ capabilities = {builtinPlaces:true,eag
       });
     }
     const selectedIds = new Set(dependencies.domains.selectionDomain.snapshot().selection.items.filter(ref => ref.domain === 'label').map(ref => String(ref.id)));
-    const loadedReferences=[...new Map([...builtinPlaces.snapshot().records,
+    const loadedReferences=activeSource==='builtin'?[...new Map([...builtinPlaces.snapshot().records,
       ...[...selectedIds].map(id=>builtinPlaces.resolve(id)).filter(Boolean)]
-      .map(label=>[label.id,label])).values()];
+      .map(label=>[label.id,label])).values()]:[];
     const resources=projectResourceOverlay('label',dependencies.projectState.state.labels,loadedReferences,
       {isReferenceActive:builtinPlaces.isActive});
     const builtinIds = new Set(resources.library.map(label => label.id));
@@ -307,10 +314,12 @@ export function createTerritorialLabels({ capabilities = {builtinPlaces:true,eag
 
   return Object.freeze({
     connect,
+    setProjectSource,
     preparePlaces,
     labelById,
+    searchPlaces:query=>activeSource==='builtin'?builtinPlaces.search(query):Promise.resolve({records:[],truncated:false}),
     get builtinPlaces() { return builtinPlaces; },
-    builtinPlaceSelectionReferences:()=>builtinPlaces.selectionReferences(),
+    builtinPlaceSelectionReferences:()=>activeSource==='builtin'?builtinPlaces.selectionReferences():[],
     initializeCountryOutlineCache,
     initializeLabelLayoutMetrics,
     initializeTerritorialLabelScreenAreas,

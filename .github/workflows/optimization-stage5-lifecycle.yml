@@ -1,0 +1,47 @@
+name: Optimization stage 5 project lifecycle focused contracts
+# Adversarial 5-8 audit rerun: exact source-owned and generation-safe regression probes only.
+on:
+  push:
+    branches: [work/optimization]
+    paths:
+      - '.github/workflows/optimization-stage5-lifecycle.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  project-lifecycle:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Shared reader, project identity, immutable prepared scene and active-source gate
+        run: >-
+          node --test --test-timeout=30000
+          tests/unit/document/project-open-adapter-contract.test.mjs
+          tests/unit/data/map-project-identity-contract.test.mjs
+          tests/unit/data/builtin-mesh-resource.test.mjs
+          tests/unit/app/project-lifecycle-source-policy.test.mjs
+      - name: Superseded Hydro Worker and project-switch generation contract
+        run: >-
+          node --test --test-timeout=30000
+          tests/unit/data/hydro-project-generation.test.mjs
+      - name: Changed lifecycle modules parse without a native build
+        run: |
+          node --check src/data/place-runtime.js
+          node --check src/rendering/territorial-labels.js
+          node --check src/app/viewer-map.js
+          node --check src/rendering/physical-map-controller.js
+          node --check src/document/project-domain.js
+      - name: Project-owned Viewer publication and Pages staging
+        run: >-
+          node --test --test-timeout=30000
+          tests/unit/build/frontend-build.test.mjs
+          tests/unit/document/monorepo-pages-staging.test.mjs
