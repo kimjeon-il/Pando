@@ -120,6 +120,36 @@ export function selectedPlaceNames(place) {
     ...(place.nameTimeline || []).flatMap(entry => [entry.ko, entry.en, entry.native,
       ...(entry.nativeExtras || [])])].filter(value => typeof value === 'string' && value.trim());
 }
+/**
+ * Restored five-band *cartographic* visibility order for the currently pinned
+ * approved GeoNames release.  The source featureCode describes present-day
+ * administrative roles, NOT a historical capital status or city population.
+ *
+ * The existing PLAC v3 release intentionally published every approved city as
+ * priority=70/minZoom=1.25/population=0.  Only that exact unranked combination
+ * receives this temporary display policy; future reviewed per-city ranks may
+ * replace it without changing candidate eligibility or historical name data.
+ */
+export const PLACE_DISPLAY_TIERS = Object.freeze({
+  1: Object.freeze({ tier: 1, priority: 95, minZoom: 1 }),
+  2: Object.freeze({ tier: 2, priority: 87, minZoom: 1.4 }),
+  3: Object.freeze({ tier: 3, priority: 77, minZoom: 2 }),
+  4: Object.freeze({ tier: 4, priority: 65, minZoom: 3 }),
+  5: Object.freeze({ tier: 5, priority: 53, minZoom: 5 }),
+});
+const GEO_FEATURE_DISPLAY_TIERS = Object.freeze({
+  PPLC: 1, PPLG: 2, PPLA: 3, PPLA2: 4, PPL: 5,
+});
+export function resolvePlaceDisplayRank(place) {
+  // Do not infer a historical tier from today's feature codes. These bands
+  // affect only drawing order/visibility, not city identity or time validity.
+  const isUnrankedApprovedCity = place?.source === 'geonames' && place?.kind === 'city'
+    && place.priority === 70 && place.minZoom === 1.25;
+  const tier = isUnrankedApprovedCity ? GEO_FEATURE_DISPLAY_TIERS[place.featureCode] : null;
+  return tier == null ? { tier: null, priority: Number(place?.priority ?? 40), minZoom: Number(place?.minZoom ?? 0) }
+    : PLACE_DISPLAY_TIERS[tier];
+}
 export function comparePlaces(a, b) {
-  return b.priority - a.priority || b.population - a.population || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
+  return resolvePlaceDisplayRank(b).priority - resolvePlaceDisplayRank(a).priority
+    || b.population - a.population || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
 }
