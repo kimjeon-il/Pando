@@ -64,7 +64,7 @@ const [{ drawGpuBaseScene }, { prepareGpuBaseScene, prepareGpuInteractionPlan, s
   import(`./gpu-scene-preparation.js?v=${encodeURIComponent(rendererAssetRevision)}`),
   import(`./gpu-stroke-renderer.js?v=${encodeURIComponent(rendererAssetRevision)}`),
   import(`./gpu-terrain-preparation.js?v=${encodeURIComponent(rendererAssetRevision)}`),
-  import(`./terrain-manifest.js?v=${encodeURIComponent(rendererAssetRevision)}`),
+  import(`../data/terrain-manifest.js?v=${encodeURIComponent(rendererAssetRevision)}`),
   import(`./workers/canvas-scene-composition-core.js?v=${encodeURIComponent(rendererAssetRevision)}`),
 ]);
 
@@ -214,6 +214,8 @@ export function createGpuMapRenderer(deps) {
     let builtinMeshBaseline = null;
     const builtinMeshResourceLoader = createBuiltinMeshResourceLoader({ runtimeAssetUrl, WorkerClass: workerChannels.WorkerClass });
     let renderScene = null;
+    // Derived lookup for resource-ready notifications; scoped by immutable scene and project.
+    let indexedSceneResources = { scene: null, generation: -1, keys: new Set() };
     let renderInteractionState = Object.freeze({
       selectionPacket: null,
       genericFillItems: Object.freeze([]),
@@ -3908,8 +3910,14 @@ export function createGpuMapRenderer(deps) {
     }
 
     function overlayResourceReady(key) {
+      if (indexedSceneResources.scene !== renderScene || indexedSceneResources.generation !== projectGeneration) {
+        const keys = new Set((renderScene?.polygons || []).map(packet => String(packet.key)));
+        for (const packet of renderScene?.strokes || [])
+          keys.add(String(sceneStrokeResourcePacket(packet, projectGeneration).key));
+        indexedSceneResources = { scene: renderScene, generation: projectGeneration, keys };
+      }
       const source = classifyGpuResourceReady(key, renderScene,
-        packet => sceneStrokeResourcePacket(packet, projectGeneration).key);
+        packet => sceneStrokeResourcePacket(packet, projectGeneration).key, indexedSceneResources.keys);
       if (source === 'country-boundary') {
         promotePreparedCountryBoundary();
         sceneColorCache.invalidate('country-boundary-resource-ready');
@@ -4773,8 +4781,31 @@ export function createGpuMapRenderer(deps) {
 
     function estimateCanvasMessageBytes(message) {
       if (message?.type === 'view') return 192;
-      try { return new Blob([JSON.stringify(message)]).size; }
-      catch (_) { return 0; }
+      // Diagnostic only: do not JSON-serialize full GeoJSON/typed-array payloads
+      // on the UI thread just to approximate structured-clone transport bytes.
+      const seen = new WeakSet(), pending = [message];
+      let bytes = 0;
+      while (pending.length) {
+        const value = pending.pop();
+        if (typeof value === 'string') { bytes += value.length * 2; continue; }
+        if (typeof value === 'number' || typeof value === 'boolean') { bytes += 8; continue; }
+        if (!value || typeof value !== 'object' || seen.has(value)) continue;
+        seen.add(value);
+        if (ArrayBuffer.isView(value)) { bytes += value.byteLength; continue; }
+        if (value instanceof ArrayBuffer) { bytes += value.byteLength; continue; }
+        if (Array.isArray(value)) {
+          // Coordinates are usually number arrays; account for their payload
+          // without visiting each numeric element or allocating a JSON string.
+          if (value.length && typeof value[0] === 'number') { bytes += value.length * 8; continue; }
+          for (const item of value) pending.push(item);
+        } else {
+          for (const [key, item] of Object.entries(value)) {
+            bytes += key.length * 2;
+            pending.push(item);
+          }
+        }
+      }
+      return bytes;
     }
 
     function recordCanvasWorkerMessage(message) {
@@ -4797,7 +4828,18 @@ export function createGpuMapRenderer(deps) {
             ...(!complete || change.prepare ? {geometry} : {})};
         }) };
       const sent = canvasWorker?.postMessage(message) || false;
-      if (sent && next) canvasLastCountryDependencies = next;
+      if (!sent) {
+        // Scene deltas were computed before the transport attempt. A failed
+        // synchronous send cannot certify them as accepted Worker geometry.
+        // Re-admit complete source and styles on the next live Worker.
+        canvasScenePackets.clear();
+        canvasLastCountryDependencies = null;
+        canvasLastSentGeometryRevision = -1;
+        canvasLastStyleSignature = '';
+        canvasLastPhysicalStyleSignature = '';
+        return false;
+      }
+      if (next) canvasLastCountryDependencies = next;
       if (sent && ['init', 'data', 'replace-data', 'patch'].includes(message.type))
         canvasLastSentGeometryRevision = Number(message.geometryRevision || 0);
       if (sent && message.type==='patch') canvasLastCountryDependencies=canvasCountryDependencies(canvasCountryInputs());

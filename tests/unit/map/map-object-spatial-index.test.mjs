@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createMapObjectSpatialIndex } from "../../../src/map/map-object-spatial-index.js";
+import { createSpatialIndex } from "../../../src/geometry/spatial-index.js";
 
 test('queries only nearby map objects and updates entries', () => {
   const index = createMapObjectSpatialIndex({ cellSize: 5 });
@@ -60,4 +61,33 @@ test('map object diagnostics and incremental domain clearing retain exact tier c
   assert.equal(after.largeEntryCount,after.coarseEntryCount + after.globalEntryCount);
   assert.ok(index.query([-180,-90,180,90]).every(row=>row.domain==='active'));
   assert.equal(index.clearDomain('retired'),0);
+});
+
+test('unchanged territorial revision reuses the index even when repository.list allocates a new array', () => {
+  const original = createMapObjectSpatialIndex();
+  let cleared = 0, inserted = 0, boundsCalls = 0;
+  const index = {
+    clearDomain(...args) { cleared++; return original.clearDomain(...args); },
+    upsert(...args) { inserted++; return original.upsert(...args); },
+  };
+  const state = { labels: [], genericFeatures: [], hydroEdits: [] };
+  const feature = { id: 'A', geometry: { type: 'Point', coordinates: [10, 20] } };
+  const owner = createSpatialIndex();
+  owner.connect({
+    spatialFactories: { createMapObjectSpatialIndex: () => index },
+    projectState: { state },
+    territorialModel: { entityRepository: { list: () => [feature] } },
+    domains: { renderingDomain: { getDistributionRenderRows: () => [] } },
+    cutGeometry: { coordinateBounds: () => { boundsCalls++; return [10, 20, 10, 20]; } },
+  });
+  owner.initializeGeometryBoundsCache();
+  owner.initializeMapObjectSpatialIndex();
+  assert.equal(owner.rebuildMapObjectSpatialIndex(), true);
+  const before = { cleared, inserted, boundsCalls };
+  assert.equal(owner.rebuildMapObjectSpatialIndex(), false);
+  assert.deepEqual({ cleared, inserted, boundsCalls }, before);
+  owner.mapObjectGeometryRevisions.territorial++;
+  assert.equal(owner.rebuildMapObjectSpatialIndex(), true);
+  assert.equal(inserted, before.inserted + 1);
+  assert.equal(cleared, before.cleared + 1);
 });

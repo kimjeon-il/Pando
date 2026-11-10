@@ -47,6 +47,22 @@ int main() {
     assert(input);
     const std::string bytes{std::istreambuf_iterator<char>(input),std::istreambuf_iterator<char>()};
     const projectcodec::PlatformPorts ports{[](const std::string&){throw std::invalid_argument("UNEXPECTED_FLAG");}};
+    // A map project identity is persistent C++ exchange metadata, not a
+    // Viewer-only session field; older v14 documents still decode as unbound.
+    const auto fixtureRoot=codecjson::parse(bytes);
+    assert(!fixtureRoot.object.count("mapProjectIdentity"));
+    auto mapped=fixtureRoot;
+    mapped.object["mapProjectIdentity"]=codecjson::parse(
+        R"({"projectId":"default-world","manifestSha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","dataRevision":"data-bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"})");
+    auto mappedDocument=projectcodec::decodeWeb(mapped.encode(),ports);
+    Project mappedProject;mappedProject.replace(std::move(mappedDocument));
+    const auto mappedSaved=codecjson::parse(projectcodec::encodeWeb(mappedProject.snapshot(),ports));
+    assert(mappedSaved.object.at("mapProjectIdentity").encode()==mapped.object.at("mapProjectIdentity").encode());
+    mapped.object.at("mapProjectIdentity").object.at("manifestSha256")=codecjson::Value::str("invalid");
+    try {projectcodec::decodeWeb(mapped.encode(),ports);assert(false);}
+    catch(const std::invalid_argument& error){
+        assert(std::string(error.what()).find("INVALID_MAP_PROJECT_IDENTITY")==0);
+    }
     auto document=projectcodec::decodeWeb(bytes,ports);
     assert(document.units.size()==4);
     assert(document.documentId==codecjson::parse(bytes).object.at("documentId").string);

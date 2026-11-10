@@ -1,7 +1,7 @@
 import {coreSelectionRefToWeb} from "./core-object-ref.js";
 import {projectResourceOverlay} from "./project-resource-overlay.js";
 import {loadUserPreferences} from "../ui/user-preferences.js";
-import { createMapWorkScheduler } from "../rendering/map-work-scheduler.js";
+import { createMapWorkScheduler } from "../runtime/map-work-scheduler.js";
 import { createEmptyTerritorialState } from "./territorial-entity-store.js";
 import { createInitialDocument } from "./initial-document.js";
 import { resourceCapabilities } from "../runtime/resource-capabilities.js";

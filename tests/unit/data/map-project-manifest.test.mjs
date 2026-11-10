@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {validateMapProjectManifest,mapProjectResourcePaths,mapProjectResourcePath,MAP_PROJECT_ROLES}
+import {validateMapProjectManifest,mapProjectResourcePaths,mapProjectResourcePath,mapProjectManifestSourcePath,MAP_PROJECT_ROLES}
   from '../../../src/data/map-project-manifest.js';
 const current=JSON.parse(readFileSync(new URL('../../../projects/default-world/manifest.json',import.meta.url),'utf8'));
 
@@ -35,4 +35,16 @@ test('changing one project collection changes only its declared resource graph',
  assert.equal(mapProjectResourcePath(other,'territorial'),'assets/data/alternate/territories.json');
  assert.equal(mapProjectResourcePath(other,'rivers'),mapProjectResourcePath(current,'rivers'));
  assert.equal(mapProjectResourcePath(current,'territorial'),'assets/data/builtin-world/generated/v1/index.json');
+});
+
+test('project source path is determined by validated project identity only',()=>{
+ assert.equal(mapProjectManifestSourcePath('default-world'),'projects/default-world/manifest.json');
+ assert.equal(mapProjectManifestSourcePath('alternate-world'),'projects/alternate-world/manifest.json');
+ for(const id of ['', '../other','default/../world','UPPER','local?rev=1'])
+  assert.throws(()=>mapProjectManifestSourcePath(id),/project ID/);
+});
+
+test('river and lake catalogs cannot silently diverge from the shared Hydro renderer',()=>{
+ assert.throws(()=>validateMapProjectManifest({...current,resources:{...current.resources,
+  lakes:{catalog:'assets/data/alternate/lakes.json'}}}),/share one Hydro catalog/);
 });

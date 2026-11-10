@@ -29,6 +29,28 @@
     const flatHalfLon=width/Math.max(1,scale)*90/Math.PI;
     const flatHalfLat=height/Math.max(1,scale)*90/Math.PI;
     const globeRadius=Math.asin(Math.min(1,Math.hypot(width,height)*0.5/Math.max(1,scale)));
+    if (!includeAll && projection === 'flat') {
+      // Longitude and latitude inclusion are independent for the flat map.
+      // Test each source row/column once, then allocate only visible tiles.
+      // Keep the original wrapped-distance predicate and source ordering.
+      const columns = [], rows = [];
+      for (let column = 0; column < level.columns; column++) {
+        const x0 = column * level.tileSize, x1 = Math.min(level.width, x0 + level.tileSize);
+        const centerLon = -180 + (x0 + x1) / level.width * 180;
+        const halfLon = (x1 - x0) / level.width * 180;
+        const deltaLon = Math.abs((((centerLon - flatCenter[0]) + 540) % 360) - 180);
+        if (deltaLon <= flatHalfLon + halfLon + 2) columns.push(column);
+      }
+      for (let row = 0; row < level.rows; row++) {
+        const y0 = row * level.tileSize, y1 = Math.min(level.height, y0 + level.tileSize);
+        const centerLat = 90 - (y0 + y1) / level.height * 90;
+        const halfLat = (y1 - y0) / level.height * 90;
+        if (Math.abs(centerLat - flatCenter[1]) <= flatHalfLat + halfLat + 2) rows.push(row);
+      }
+      for (const row of rows) for (const column of columns)
+        specs.push(tileSpec(level, column, row, numericLevel));
+      return specs;
+    }
     for(let row=0;row<level.rows;row++)for(let column=0;column<level.columns;column++){
       if(includeAll){specs.push(tileSpec(level,column,row,numericLevel));continue;}
       // Derive bounds before allocating a tile descriptor. Most high-LOD

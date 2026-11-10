@@ -7,9 +7,14 @@ export function createCanvasScenePackets() {
       const key = `${channel}:${packet.key}`;
       next.add(key);
       const geometry = packet.ringCoordinates || packet.startsEnds;
+      const sourceKey = typeof packet.sourceKey === 'string' && packet.sourceKey ? packet.sourceKey : null;
       const previous = sentGeometry.get(key);
-      sentGeometry.set(key, geometry);
-      if (previous !== geometry) return packet;
+      // Immutable packet identity survives an equivalent typed-array copy.
+      // Unversioned packets still need exact allocation identity.
+      const unchanged = previous && previous.sourceKey === sourceKey
+        && (sourceKey !== null || previous.geometry === geometry);
+      sentGeometry.set(key, { geometry, sourceKey });
+      if (!unchanged) return packet;
       const { ringCoordinates: _coordinates, ringOffsets: _rings, polygonOffsets: _polygons, startsEnds: _segments, ...metadata } = packet;
       return metadata;
     });
@@ -23,10 +28,10 @@ export function createCanvasScenePackets() {
   // the Worker to paint a certified physical mask while the optional GPU mesh
   // remains under preparation.
   const physicalGeometryCache = new WeakMap();
-  function physicalGeometryPacket(geometry) {
+  function physicalGeometryPacket(geometry, revision) {
     if (!geometry || (geometry.type !== 'MultiPolygon' && geometry.type !== 'Polygon')) return null;
-    let cached = physicalGeometryCache.get(geometry);
-    if (cached) return cached;
+    const cached = physicalGeometryCache.get(geometry);
+    if (cached?.revision === revision) return cached.packet;
     const coordinates = [], ringOffsets = [0], polygonOffsets = [0];
     const polygons = geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates;
     for (const polygon of polygons) {
@@ -41,13 +46,13 @@ export function createCanvasScenePackets() {
       }
       polygonOffsets.push(ringOffsets.length - 1);
     }
-    cached = Object.freeze({
+    const packed = Object.freeze({
       ringCoordinates: Float64Array.from(coordinates),
       ringOffsets: Uint32Array.from(ringOffsets),
       polygonOffsets: Uint32Array.from(polygonOffsets),
     });
-    physicalGeometryCache.set(geometry, cached);
-    return cached;
+    physicalGeometryCache.set(geometry, { revision, packet: packed });
+    return packed;
   }
   function physicalPolygons(context) {
     if (!context?.geometry || !context.revision) return [];
@@ -60,7 +65,7 @@ export function createCanvasScenePackets() {
       revision: context.waterRevision, order: -19000,
     });
     return packets.map(({key,role,geometry,revision,order}) => ({
-      ...physicalGeometryPacket(geometry),
+      ...physicalGeometryPacket(geometry, revision),
       key, role, geometryRevision: revision,
       sourceKey: 'canvas-physical:'+key+':'+revision,
       order, style: {color:'#ffffff',fillAlpha:1}, blendMode:'normal',
@@ -78,7 +83,7 @@ export function createCanvasScenePackets() {
 
   function sceneStrokes(scene) {
     return (scene?.strokes || []).map(packet => ({
-      key: packet.key, startsEnds: packet.startsEnds, ownerRanges: packet.ownerRanges, ownerIds: packet.ownerIds,
+      key: packet.key, sourceKey: packet.sourceKey, startsEnds: packet.startsEnds, ownerRanges: packet.ownerRanges, ownerIds: packet.ownerIds,
       order: packet.order, style: packet.style, blendMode: packet.blendMode,
     }));
   }

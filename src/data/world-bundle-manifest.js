@@ -53,10 +53,18 @@ export function validateWorldBundle(bundle) {
     const asset=bundle.assets.preparedCountryScene;
     if(!HEX_256.test(asset.sha256)||asset.url!==`world/objects/country-scene-sha256-${asset.sha256}.bin.gz`
       ||asset.encoding!=='gzip'||!Number.isSafeInteger(asset.compressedBytes)||asset.compressedBytes<=0
-      ||!Number.isSafeInteger(asset.decodedBytes)||asset.decodedBytes<=0||asset.algorithmVersion!==MESH_ALGORITHM_REVISION)
+      ||!Number.isSafeInteger(asset.decodedBytes)||asset.decodedBytes<=0
+      ||!Number.isSafeInteger(asset.algorithmVersion)||asset.algorithmVersion<1)
       throw new Error('Invalid prepared country scene descriptor');
-    preparedCountrySceneKey(asset.identity);
-    assets.preparedCountryScene=Object.freeze({...asset});
+    // This is an optional immutable accelerator, not the canonical world.
+    // A pinned previous mesh algorithm must be a cache miss. It must not
+    // prevent the current C++ geometry engine from building a fresh scene.
+    // Current-version descriptors remain strictly verified, and hash/length
+    // checks are never bypassed for any asset actually selected for loading.
+    if(asset.algorithmVersion===MESH_ALGORITHM_REVISION){
+      preparedCountrySceneKey(asset.identity);
+      assets.preparedCountryScene=Object.freeze({...asset});
+    }
   }
   const shared = {};
   for (const quality of ['preview', 'canonical']) {

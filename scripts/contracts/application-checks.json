@@ -178,6 +178,7 @@
       "kind": "browser",
       "testPatterns": [
         "tests/browser/**/viewer-*.spec.mjs",
+        "tests/browser/runtime/project-runtime-roundtrip.spec.mjs",
         "tests/browser/document/web-viewer.spec.mjs",
         "tests/browser/**/shared-map-*.spec.mjs",
         "tests/browser/**/shared-view*.spec.mjs"
@@ -275,6 +276,38 @@
       ],
       "requires": [],
       "testPatterns": []
+    },
+    {
+      "id": "current-hydro-layout",
+      "kind": "command",
+      "argv": [
+        "node",
+        "tools/checks/check-current-hydro-layout.mjs",
+        "--root",
+        ".",
+        "--allow-retired",
+        "false"
+      ],
+      "inputs": [
+        "tools/checks/check-current-hydro-layout.mjs",
+        "src/rendering/workers/hydro-tile-worker.js",
+        "src/rendering/workers/hydro-shard-store.js",
+        "src/data/physical-layer-service.js",
+        "config/library-data.json",
+        "assets/data/hydro/**"
+      ]
+    },
+    {
+      "id": "p2-source-syntax",
+      "kind": "command",
+      "argv": [
+        "node",
+        "--check",
+        "scripts/p2-validate-artifacts.mjs"
+      ],
+      "inputs": [
+        "scripts/p2-validate-artifacts.mjs"
+      ]
     },
     {
       "id": "territorial-storage",
@@ -763,6 +796,22 @@
       "requires": [
         "native-document-session-tests"
       ]
+    },
+    {
+      "id": "workflow-ownership",
+      "kind": "command",
+      "inputs": [
+        ".github/workflows/**",
+        "tools/checks/audit-workflow-check-owners.mjs",
+        "scripts/contracts/application-checks.json"
+      ],
+      "argv": [
+        "node",
+        "tools/checks/audit-workflow-check-owners.mjs",
+        "--summary"
+      ],
+      "requires": [],
+      "testPatterns": []
     }
   ],
   "prerequisites": {
@@ -1032,7 +1081,8 @@
     "tools/**",
     "contracts/**",
     "tests/**",
-    "src/**"
+    "src/**",
+    "projects/**"
   ],
   "passiveInputs": [
     "assets/vendor/**",
@@ -1048,6 +1098,35 @@
     "config/toolchain-versions.json"
   ],
   "bindings": [
+    {
+      "tests": [
+        "tests/unit/data/territorial-metadata-projection.test.mjs",
+        "tests/unit/build/project-generation-context.test.mjs",
+        "tests/unit/build/prepared-scene-reuse.test.mjs"
+      ],
+      "inputs": [
+        "projects/**/generation-inputs.json",
+        "tools/data/territorial-metadata-projection.mjs",
+        "tools/build/build-territorial-entity-chunks.mjs",
+        "tools/gis/territorial-index-entry.js",
+        "tools/build/project-generation-context.mjs",
+        "tools/build/prepared-scene-reuse.mjs",
+        "tools/build/build-builtin-world.mjs",
+        "tools/build/build-prepared-country-scene.mjs",
+        "tools/build/build-prepared-polygon-mesh.mjs"
+      ]
+    },
+    {
+      "tests": [
+        "tests/unit/data/map-project-manifest.test.mjs",
+        "tests/unit/build/frontend-build.test.mjs",
+        "tests/unit/data/frontend-runtime-closure.test.mjs",
+        "tests/unit/document/monorepo-pages-staging.test.mjs"
+      ],
+      "inputs": [
+        "projects/**/manifest.json"
+      ]
+    },
     {
       "tests": [
         "tests/unit/rendering/prepared-polygon-mesh.test.mjs",
@@ -1288,6 +1367,48 @@
       ],
       "tests": [
         "tests/unit/runtime/check-runner.test.mjs"
+      ]
+    },
+    {
+      "tests": [
+        "tests/unit/build/frontend-build.test.mjs"
+      ],
+      "inputs": [
+        "scripts/lib/map-catalog-coherence.mjs",
+        "src/data/map-project-manifest.js"
+      ]
+    },
+    {
+      "tests": [
+        "tests/unit/document/map-project-identity.test.mjs"
+      ],
+      "inputs": [
+        "src/data/map-project-identity.js",
+        "src/document/builtin-session.js",
+        "src/document/project-domain.js",
+        "src/data/native/src/projectcodec.cpp"
+      ]
+    },
+    {
+      "tests": [
+        "tests/unit/rendering/physical-layer-service.test.mjs",
+        "tests/unit/document/historical-physical-water.test.mjs"
+      ],
+      "inputs": [
+        "src/data/physical-water-model.js",
+        "src/data/physical-resources.js",
+        "src/rendering/physical-map-controller.js",
+        "src/rendering/physical-water-presentation.js",
+        "src/rendering/hydro-view-presentation.js"
+      ]
+    },
+    {
+      "tests": [
+        "tests/unit/runtime/workflow-check-ownership.test.mjs"
+      ],
+      "inputs": [
+        ".github/workflows/**",
+        "tools/checks/audit-workflow-check-owners.mjs"
       ]
     }
   ],

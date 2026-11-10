@@ -4,12 +4,14 @@ import {viewerDataEntryPaths} from '../../scripts/lib/product-assets.mjs';
 import {validateTerritorialSourceGeometry,territorialSourceLayout} from '../../src/data/territorial-source-format.js';
 
 // Archive metadata remains complete. A preparation scope is only a view over it.
-export function runtimeArchiveIndex(index,readVerified,{purpose='viewer',prefixes=[]}={}){
+export function runtimeArchiveIndex(index,readVerified,{purpose='viewer',prefixes=[],projectManifest=null}={}){
  let selected;
  if(purpose==='reports')selected=new Set();
- else if(purpose==='viewer')selected=collectRuntimeDataAssets({
+ else if(purpose==='viewer'&&!projectManifest)throw Error('Viewer runtime archive requires a map project manifest');
+ else if(purpose==='viewer'||purpose==='viewer-legacy')selected=collectRuntimeDataAssets({
   availablePaths:Object.keys(index.files),
   entryPaths:viewerDataEntryPaths,
+  projectManifest,
   readManifest:path=>JSON.parse(readVerified(index.files[path],path)),
   verifyAsset:(path,spec)=>{
    const entry=index.files[path];

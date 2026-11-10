@@ -327,7 +327,10 @@ function canvasRuntime({ renderError = null, features = [], theme = {}, visualOr
   scope.importScripts = (...urls) => urls.forEach(url => vm.runInContext(new URL(url).pathname.endsWith('/resource-update-policy-core.js')
     ? policy+'\nself.PandoLabResourceUpdatePolicy=PandoLabResourceUpdatePolicy;'
     : readFileSync(new URL(new URL(url).pathname.endsWith('/vendor/d3.min.js')
-      ? '../../../assets/js-vendor/d3.min.js' : url, import.meta.url), 'utf8'), scope));
+      ? '../../../assets/js-vendor/d3.min.js'
+      : new URL(url).pathname.endsWith('/geographic-boundary-core.js')
+        ? '../../../src/geometry/workers/geographic-boundary-core.js'
+        : url, import.meta.url), 'utf8'), scope));
   vm.runInContext(readFileSync(script, 'utf8'), scope);
   const pathFactory = scope.d3.geo.path;
   let pathBuildCount = 0;

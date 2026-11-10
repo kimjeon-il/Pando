@@ -73,7 +73,7 @@ export function archiveGeneratedLibraryOutputs(cwd,changed,{store=storeLibraryDa
   const revision=store({root:cwd,push:true,prefixes}),after=libraryConfig(cwd);
   assert.equal(after.revision,revision,'P2_LIBRARY_PIN_NOT_STORED');
   assert.deepEqual({...after,revision:before.revision},before,'P2_UNEXPECTED_LIBRARY_CONFIG_CHANGE');
-  prepare({root:cwd,fetch:false});
+  prepare({root:cwd,fetch:false,purpose:'viewer-legacy'});
   return{changedPaths:[...changed.filter(path=>!mounted(path)),'config/library-data.json'],libraryRevision:revision};
 }
 

@@ -1,5 +1,5 @@
-import { parseTemporal, shiftTemporalMonth } from "../document/temporal.js";
-import { deviceCurrentMonth } from "../document/builtin-month-clock.js";
+import { parseTemporal, shiftTemporalMonth,compareTemporal } from "../document/temporal.js";
+import { deviceCurrentMonth } from "../document/calendar-month.js";
 
 export function shiftTimelineMonth(value, delta) {
   return shiftTemporalMonth(value, delta);
@@ -12,7 +12,7 @@ export function timelineMonthLabel(value) {
 }
 
 /** Owns transient date input; the session cursor and Core own committed time. */
-export function installTimelineControls({ document, window, getMonth, setMonth, now = () => new Date() }) {
+export function installTimelineControls({ document, window, getMonth, getRange=()=>null, setMonth, now = () => new Date() }) {
   const get = id => document.getElementById(id);
   const root = get('timelineControls'), popover = get('timelinePopover'), form = get('timelineDateForm');
   const year = get('timelineYearInput'), month = get('timelineMonthInput'), go = get('timelineGoBtn');
@@ -43,6 +43,11 @@ export function installTimelineControls({ document, window, getMonth, setMonth, 
     year.setAttribute('aria-invalid', String(!!message));
     month.setAttribute('aria-invalid', String(!!message));
   };
+  const permitted = value => {
+    const range=getRange();
+    return !range||(!range.start||compareTemporal(value,range.start)>=0)
+      &&(!range.end||compareTemporal(value,range.end)<=0);
+  };
   const syncInputs = () => {
     if (!getMonth()) return;
     const point = parseTemporal(getMonth(), { nullable: false });
@@ -60,6 +65,14 @@ export function installTimelineControls({ document, window, getMonth, setMonth, 
     basis.textContent = viewUnit === 'month' ? '월말 기준' : getMonth() === deviceCurrentMonth(now()) ? '현재 월 기준'
       : point.month === 12 ? '연말 기준' : `${point.month}월말 기준`;
     button.setAttribute('aria-label', `${readable}, ${basis.textContent}, 시점 직접 입력`);
+    // Navigation bounds are supplied by the currently admitted C++ project.
+    // No builtin-specific date rules live in the timeline surface.
+    for(const [node,delta] of steps) {
+      try {
+        const shifted=shiftTimelineMonth(getMonth(),delta);
+        node.disabled=!permitted(viewUnit==='year'?annualMonth(shifted):shifted);
+      }catch{node.disabled=true;}
+    }
     if (!editing) syncInputs();
   };
   const exitEdit = (restoreFocus = false) => {
@@ -82,6 +95,7 @@ export function installTimelineControls({ document, window, getMonth, setMonth, 
     try {
       const point = parseTemporal(requested, { nullable: false });
       if (point.precision !== 'month') throw new TypeError('연도와 월을 확인하세요.');
+      if(!permitted(point.canonical))throw new RangeError('활성 프로젝트의 시간 탐색 범위를 벗어났습니다.');
       requestedMonth = point.canonical;
       const accepted = await setMonth(point.canonical);
       if (disposed || request !== changeRequest) return false;

@@ -4,7 +4,8 @@ import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+// Resolve from tools/checks to the repository, never the tools/ directory.
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const normalize = process.argv.length === 3 && process.argv[2] === '--normalize-stdin';
 const build = path.join(root, 'build-native', normalize ? 'territorial-normalizer' : 'territorial-tools');
 const target = normalize ? 'pando-spherical-polygon-normalize' : 'pando-country-geometry-check';

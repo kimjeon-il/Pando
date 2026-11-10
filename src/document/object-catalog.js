@@ -1,5 +1,5 @@
 import { effectiveTerritorialFlagUrl } from "../ui/country-flags.js";
-import {builtinSubunitSourceId} from "./builtin-subunits.js";
+import {builtinSubunitSourceId} from "./territorial-display-identity.js";
 import {projectResourceOverlay} from "./project-resource-overlay.js";
 
 /** ObjectCatalog: extracted application responsibility.

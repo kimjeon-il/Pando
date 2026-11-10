@@ -50,6 +50,39 @@ function fixture() {
   } };
 }
 
+test('pending Core selection cannot publish across a changed project ID and generation',async()=>{
+ let projectId='default-world',documentId='builtin-one',generation=1,transition;
+ const pending=[];
+ const commandOwner={
+  state:()=>({epoch:9}),
+  subscribeTransitions:callback=>{transition=callback;return()=>{};},
+  selectionSnapshot:async()=>snapshot(),
+  selectionApply:(request,options)=>new Promise(resolve=>pending.push({request,options,resolve})),
+ };
+ const domain=createSelectionDomain({commandOwner,refAdapter,projectDomain:{
+  getGeneration:()=>generation,activeProjectScope:()=>JSON.stringify([projectId,documentId,generation]),
+  activeProject:()=>({projectId,documentId}),
+ }});
+ const previous=domain.replace(A);
+ assert.equal(pending[0].options.isCurrent(),true);
+ projectId='alternate-world';documentId='file-two';generation=2;
+ assert.equal(pending[0].options.isCurrent(),false);
+ const obsolete=snapshot(1,[A]);
+ transition({selection:obsolete,countNoOp:true},'core.document-selection-apply',pending[0].request);
+ pending[0].resolve({selection:obsolete,countNoOp:true});
+ await previous;
+ assert.equal(domain.snapshot().projectId,'alternate-world');
+ assert.equal(domain.snapshot().selection.items.length,0);
+ const reset=domain.resetProject(2);
+ const fresh=snapshot(0,[]);
+ transition({selection:fresh,countNoOp:true},'core.document-selection-apply',pending[1].request);
+ pending[1].resolve({selection:fresh,countNoOp:true});
+ await reset;
+ assert.equal(domain.snapshot().projectScope,JSON.stringify(['alternate-world','file-two',2]));
+ assert.equal(domain.size(),0);
+ domain.dispose();
+});
+
 test('selection owner requires the Core transport and explicit ref conversion', () => {
   assert.throws(() => createSelectionDomain(), /Core selection owner/);
   assert.throws(() => createSelectionDomain({ commandOwner: { state() {}, selectionApply() {}, selectionSnapshot() {}, subscribeTransitions() {} } }), /reference adapter/);

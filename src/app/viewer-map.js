@@ -26,7 +26,7 @@ import {createAdaptiveRenderQualityController} from "../rendering/adaptive-rende
 import {createMapDisplayClient} from "../ui/map-display-client.js";
 import {OVERLAY_GROUPS} from "../ui/layer-presentation.js";
 import {initializeMapReadOwners} from "./map-owner-composition.js";
-import {builtinSubunitSourceId} from "../document/builtin-subunits.js";
+import {builtinSubunitSourceId} from "../document/territorial-display-identity.js";
 import {buildRenderableStrokeFeature} from "../geometry/geographic-boundary.js";
 import { ZOOM_LIMITS,FLAT_LATITUDE_LIMIT } from "../map/camera-navigation.js";
 import { createMapLayoutMetricsSnapshot, equirectangularCenterForAnchor, DEFAULT_SAFE_INSETS } from "../map/map-layout-metrics.js";
@@ -37,7 +37,7 @@ import { createRenderSceneBuilder } from "../rendering/render-scene.js";
 import { resolveMapTheme } from "../ui/map-theme.js";
 import { createTerritorialEntityRepository } from "../document/territorial-entity-repository.js";
 import { normalizeLayerPresentation } from "../ui/layer-presentation.js";
-import { createHydroService, createTerrainService, HYDRO_DATA_VERSION } from "../rendering/physical-layer-service.js";
+import { createHydroService, createTerrainService, HYDRO_DATA_VERSION } from "../data/physical-layer-service.js";
 import { fetchWithRetry } from "../runtime/reliability-core.js";
 import { layoutLabels, automaticLabelSettings, labelKey, LABEL_PRIORITIES } from "../rendering/label-layout.js";
 import { layerStyle } from "../ui/layer-presentation.js";
@@ -85,7 +85,7 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
   let pendingPropertyPaint=false;
   let lastFrame=null;
 
-  const {builtinSession,projectSession,renderQuality,pointerTargets,cameraNavigation:navigation,countryIndex,spatialIndex,mapProjection,objectPresentation,hydroSettings:physicalSettings,objectCatalog,territorialLabels:labelOwner,physicalResources,gpuScene,mapHost,objectPicking}=owners;
+  const {projectResourcePorts,projectSourceRuntime,territorialSceneRuntime,projectSession,renderQuality,pointerTargets,cameraNavigation:navigation,countryIndex,spatialIndex,mapProjection,objectPresentation,hydroSettings:physicalSettings,objectCatalog,territorialLabels:labelOwner,physicalResources,gpuScene,mapHost,objectPicking}=owners;
   const commonPorts=createMapReadPorts(owners);
   mapHost.initializeResolutionQuery();mapHost.initializeMapResizeObserver();
   connectMapOwner('projectSession',projectSession,mergeCapabilityPorts(commonPorts,{readiness:{DATA_READINESS},applicationConstantsA:{DISTRIBUTION_RENDER_MODES},
@@ -112,7 +112,7 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
     rendering:{get gpuMapRenderer(){return renderer;}},gpuRenderingA:{get renderSceneBuilder(){return gpuScene.renderSceneBuilder;},get selectionPass(){return gpuScene.selectionPass;}},
     hydroModel:{currentMapDevicePixelRatio:physicalSettings.currentMapDevicePixelRatio},
     preferences:{get resolvedInteractionStyle(){return getInteractionStyle();}},selectionServices:{setSelectionInteractionStyle},
-    countries:builtinSession,domains:{get renderingDomain(){return renderingDomain;}},feedback:{reportOperationError:onError}}));
+    countries:territorialSceneRuntime,domains:{get renderingDomain(){return renderingDomain;}},feedback:{reportOperationError:onError}}));
   renderQuality.initializeRenderQualityController();renderQuality.initializeGpuRebuildTimer();
 
   const theme = () => resolveMapTheme({state,theme:document.documentElement.dataset.theme || 'dark'});
@@ -136,14 +136,14 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
   const objectQuery=createObjectQuery(readPorts);
   connectMapOwner('objectCatalog',objectCatalog,mergeCapabilityPorts(commonPorts,readPorts));
   const runtimeAssetUrl = path => {const url=runtimeContext.assetUrl(path);return /\/workers\/[\w-]+-worker\.js$/.test(url.pathname)?workerAssetUrl(url,meta):url;};
-  const physicalConfig={...createPhysicalSourceConfiguration({assetBaseUrl:runtimeContext.assetBaseUrl,dataRevision:meta.dataRevision,resourceProfile:meta.resourceProfile}),
+  const physicalConfig={...createPhysicalSourceConfiguration({assetBaseUrl:runtimeContext.assetBaseUrl,dataRevision:meta.dataRevision,resourceProfile:meta.resourceProfile,mapProject:meta.mapProject}),
     DATA_REVISION:meta.dataRevision,HYDRO_DATA_VERSION,TERRAIN_OCEAN_REPRESENTATIVE,PHYSICAL_DATASET};
   const territorialScope=objectPresentation.territorialScope;
-  connectMapOwner('builtinSession',builtinSession,mergeCapabilityPorts(commonPorts,{territorialModel:{entityRepository:repository},objectModelB:{territorialScope},
+  connectMapOwner('projectResourcePorts',projectResourcePorts,mergeCapabilityPorts(commonPorts,{territorialModel:{entityRepository:repository},objectModelB:{territorialScope},
     objectDefinitions:{builtinSubunitSourceId},applicationServicesB:{layerStyle},platformConfigurationA:{BASE_DATASET},domains:{projectDomain},
     rendering:{get gpuMapRenderer(){return renderer;}},layerPresentation:objectCatalog}));
-  builtinSession.initializePristineCountriesFallback();
-  const releaseGeometryLoader=documentSession.commandOwner.setGeometryLoader(builtinSession.loadGeometryResources);
+  territorialSceneRuntime.initializePristineCountriesFallback();
+  const releaseGeometryLoader=documentSession.commandOwner.setGeometryLoader(projectSourceRuntime.loadGeometryResources);
   connectMapOwner('hydroSettings',physicalSettings,mergeCapabilityPorts(commonPorts,{physicalResources,physicalConfig,preferences:{mapTheme:theme},platform:{$:id=>document.getElementById(id),clamp},
     hydroPresentation:readPorts.hydroPresentation,objectPresentation,layerPresentation:objectCatalog}));
   Object.assign(readPorts.hydroPresentation,{allBuiltInHydroFeatures:physicalSettings.allBuiltInHydroFeatures,
@@ -158,7 +158,7 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
     platformConfigurationA:{APP_VERSION:meta.appVersion},layerPresentation:{ASSET_REVISION:meta.assetRevision,isLayerItemVisible:objectCatalog.isLayerItemVisible},
     preferences:{mapTheme:theme,get systemTheme(){return document.documentElement.dataset.theme;}},colorModel:readPorts.colorModel,
     platform:{d3,deepClone:structuredClone,$:id=>document.getElementById(id),runtimeAssetUrl},
-    countries:builtinSession,builtinCountries:builtinSession,countryLabelModel:labelOwner,
+    countries:territorialSceneRuntime,builtinCountries:territorialSceneRuntime,countryLabelModel:labelOwner,
     territorialModel:{entityRepository:repository},hydroPresentation:readPorts.hydroPresentation,hydroModel:{hydroFeatureById:hydroById},
     physicalResources,physicalServices:{isHydroFeatureVisible:physicalSettings.isHydroFeatureVisible},surfaces:{isMobile},
     readinessUi:{isSafeKoreanErrorMessage},mapHostViewB:{queueMapResize:()=>mapHost.queueMapResize()},
@@ -190,10 +190,10 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
   connectMapOwner('spatialIndex',spatialIndex,mergeCapabilityPorts(commonPorts,{projectState:{mapWorkScheduler},territorialModel:{entityRepository:repository},cutGeometry:{coordinateBounds},
     mapView:mapProjection,spatialFactories:{createMapObjectSpatialIndex},domains:{get renderingDomain(){return renderingDomain;}},surfaces:{isMobile},rendering:{get selectionPerformanceMetrics(){return selectionPerformanceMetrics;}}}));
   initializeMapReadOwners(owners,'spatial');
-  Object.assign(readPorts,{navigation,objectModelB:{territorialScope},countries:{builtinTerritorialScene:builtinSession.builtinTerritorialScene,validLabelAnchor:countryIndex.validLabelAnchor},surfaces:{isMobile},feedback:{setActionStatus:onStatus}});
+  Object.assign(readPorts,{navigation,objectModelB:{territorialScope},countries:{builtinTerritorialScene:territorialSceneRuntime.builtinTerritorialScene,validLabelAnchor:countryIndex.validLabelAnchor},surfaces:{isMobile},feedback:{setActionStatus:onStatus}});
   const countryPorts={projectState:{state,mapWorkScheduler},platform:{d3,deepClone:structuredClone,runtimeAssetUrl},
-    countries:{builtinTerritorialScene:builtinSession.builtinTerritorialScene,territorialLabelFeatureById:builtinSession.territorialLabelFeatureById,
-      PRISTINE_LABEL_ANCHORS:builtinSession.PRISTINE_LABEL_ANCHORS},
+    countries:{builtinTerritorialScene:territorialSceneRuntime.builtinTerritorialScene,territorialLabelFeatureById:territorialSceneRuntime.territorialLabelFeatureById,
+      PRISTINE_LABEL_ANCHORS:territorialSceneRuntime.PRISTINE_LABEL_ANCHORS},
     objectDisplay:{invalidateObjectPresentation:objectCatalog.invalidateObjectPresentation},mapView:{ringRepresentativePoint:mapProjection.ringRepresentativePoint},
     domains:{get projectDomain(){return projectDomain;},get renderingDomain(){return renderingDomain;}}};
   connectMapOwner('countryIndex',countryIndex,mergeCapabilityPorts(commonPorts,countryPorts));initializeMapReadOwners(owners,'anchors');
@@ -208,7 +208,7 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
     feedback:{reportOperationError:onError},domains:{get renderingDomain(){return renderingDomain;},get projectDomain(){return projectDomain;},
       get selectionDomain(){return documentSession.selectionDomain;},objectSearchController:{cancelSearch:()=>onPlacesSettled('cancel'),render:()=>onPlacesSettled('render')}}};
   connectMapOwner('territorialLabels',labelOwner,mergeCapabilityPorts(commonPorts,labelPorts));initializeMapReadOwners(owners,'labels');
-  const places=labelOwner.builtinPlaces;
+  const places=()=>labelOwner.builtinPlaces;
   const svg=d3.select(labelLayer).attr('class','map-svg map-overlay-svg');
   const {interactionSvg,territorialLabelLayer,labelLayer:userLabelLayer,hydroLakeLayer,hydroRiverLayer,hydroEditLayer,territorialUnitLayer,genericFeatureLayer,distributionLayer,territorialBoundaryLayer,selectionLayer,hoverLayer}=createMapOverlayLayers({map:d3.select(element),svg,productMode:'viewer'});
 
@@ -264,13 +264,15 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
     if(!session)return;
     const generation=++updateGeneration;
     state.countryIndex=new Map(entityStore.snapshot().map(feature=>[String(feature.id),feature]));
-    const rootFeatures=builtinSession.builtinTerritorialScene().collection.features;
+    const rootFeatures=territorialSceneRuntime.builtinTerritorialScene().collection.features;
     await initialized;if(generation!==updateGeneration)return;
     // A dated frame may not be accepted until its newly resolved country mesh is ready.
     if(!await renderer.prepareTemporalCountrySource(rootFeatures)||generation!==updateGeneration)return;
     let preparedMesh = null;
     const needsMesh = rootGeometryDirty || renderer.getRuntimeState().projectRenderBlocked;
-    if (needsMesh && session.documentModel.snapshot().projectSetup?.sourceMode === 'builtin') {
+    // Prepared scene admission validates geometry, hierarchy and immutable hashes.
+    // A project without a matching prepared asset uses the same Core-backed mesh path.
+    if (needsMesh) {
       preparedMesh = await renderer.loadBuiltinMeshForScene(rootFeatures, {isCurrent: () => generation === updateGeneration});
       if (generation !== updateGeneration) return;
     }
@@ -324,8 +326,12 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
   inputPresentation.bindSvg(d3.select(element));
   mapHost.startMapResizeObserver();
   return Object.freeze({
-    async setSession(next,{view=null,prepareView=null}={}){
+    async setSession(next,{view=null,prepareView=null,source='project'}={}){
       if(next!==documentSession)throw new Error('Map output requires its single document session.');
+      // The admitted reader origin is an in-memory session property, not an
+      // interpretation of the backward-compatible projectSetup.sourceMode.
+      physicalResources.setProjectSource(source);
+      labelOwner.setProjectSource(source);
       session=next;
       projectSession.setViewingPresentation(view||{},{reset:true});
       if(prepareView)await prepareView();
@@ -337,13 +343,13 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
     },
     finishInitialPreview:initialPreview.finish,
     cancelInitialReveal:initialPreview.dispose,
-    cancelSearch:()=>places.cancelSearch(),update,features:entityStore.snapshot,searchPlaces:query=>places.search(query),renderer,
-    loadPhysicalResources:physicalResources.loadPhysicalData,loadPhysicalLandMask:physicalResources.loadPhysicalLandMask,viewState:state,objectPresentation,searchActive:()=>places.isSearchOpen(),
+    cancelSearch:()=>places().cancelSearch(),update,features:entityStore.snapshot,searchPlaces:query=>labelOwner.searchPlaces(query),renderer,
+    loadPhysicalResources:physicalResources.loadPhysicalData,loadPhysicalLandMask:physicalResources.loadPhysicalLandMask,viewState:state,objectPresentation,searchActive:()=>places().isSearchOpen(),
     prepareBuiltinProject:async(month,options)=>{
       // Parallel country/physical preparation must not orphan a native
       // candidate when only the physical half fails or is superseded.
       const [candidate,physical]=await Promise.allSettled([
-        builtinSession.prepareProjectCandidate(month,options),
+        projectSourceRuntime.prepareProjectCandidate(month,options),
         physicalResources.preparePhysicalContext(month,options),
       ]);
       if(candidate.status==='fulfilled'&&physical.status==='rejected')
@@ -364,6 +370,6 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
     refreshAppearance(options){renderQuality.applyMapAppearanceChange(options);objectCatalog.invalidateObjectPresentation();onPlacesSettled('render');},
 
     navigation,mapProjection,projectSession,renderingDomain,
-    dispose(){disposed=true;releaseGeometryLoader();builtinSession.dispose();initialPreview.dispose();entityStore.dispose();renderQuality.cancelGpuMeshRebuild();inputPresentation.dispose();pointerTargets.cancelCountryHoverPick();countryIndex.resetCountryLabelAnchorRuntime();mapHost.stopMapResizeObserver();renderingDomain.dispose();renderer.dispose();gpuScene.renderSceneBuilder.clear();},
+    dispose(){disposed=true;releaseGeometryLoader();projectSourceRuntime.dispose();initialPreview.dispose();entityStore.dispose();renderQuality.cancelGpuMeshRebuild();inputPresentation.dispose();pointerTargets.cancelCountryHoverPick();countryIndex.resetCountryLabelAnchorRuntime();mapHost.stopMapResizeObserver();renderingDomain.dispose();renderer.dispose();gpuScene.renderSceneBuilder.clear();},
   });
 }

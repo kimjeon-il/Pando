@@ -11,6 +11,11 @@ function requireOnly(value,allowed,label){
   if(!isRecord(value)||Object.keys(value).some(key=>!allowed.includes(key)))
     throw new TypeError('Invalid '+label+' fields');
 }
+export function mapProjectManifestSourcePath(projectId){
+  if(typeof projectId!=='string'||!/^[a-z][a-z0-9-]{0,63}$/.test(projectId))
+    throw new TypeError('Invalid map project ID');
+  return 'projects/'+projectId+'/manifest.json';
+}
 export function validateMapProjectManifest(input){
   requireOnly(input,['format','schemaVersion','projectId','documentFormat','resources'],
     'map project manifest');
@@ -32,6 +37,10 @@ export function validateMapProjectManifest(input){
       throw new TypeError('Unsafe map project resource path: '+role);
     resources[role]=Object.freeze({catalog:path});
   }
+  // One immutable Hydro shard catalog owns both river and lake identities.
+  // Do not advertise separate catalogs until the rendering and cache owners support them.
+  if(resources.rivers.catalog!==resources.lakes.catalog)
+    throw new TypeError('River and lake roles must share one Hydro catalog');
   return Object.freeze({format:input.format,schemaVersion:input.schemaVersion,
     projectId:input.projectId,documentFormat:input.documentFormat,
     resources:Object.freeze(resources)});

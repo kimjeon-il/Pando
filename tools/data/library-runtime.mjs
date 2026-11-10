@@ -5,6 +5,7 @@ import {dirname,isAbsolute,relative,resolve,sep} from "node:path";
 import {fileURLToPath} from "node:url";
 import {atomicStorageJSON,containedPath,contentFiles,contentHash,contentPath,linkContent,makePrivate,publishContent,removeContentLink} from "./library-content.mjs";
 import {runtimeArchiveIndex} from "./library-runtime-index.mjs";
+import {mapProjectManifestSourcePath,validateMapProjectManifest} from '../../src/data/map-project-manifest.js';
 import {defaultRoot,gitOptions,git,libraryConfig,libraryCheckout,libraryMaterializedRoot,libraryRuntimeLeasePaths,libraryReportRoot,librarySharedCheckout,libraryOwnerId,safeChild,decodeArchiveEntry,prefetchArchiveEntries,withLibraryLock,withCheckoutLock,setMetadataCheckout} from "./library-context.mjs";
 import {excludeReportStorage,reportContext} from "./library-reports.mjs";
 
@@ -77,8 +78,10 @@ function retireOwnedCaches(root, current) {
   lastRetirementSignature = signature;
 }
 
-export function prepareLibraryData({ root = defaultRoot, fetch = true, purpose = 'viewer', prefixes = [] } = {}) {
-  return withLibraryLock(root, () => prepareOwnedLibraryData({ root, fetch, purpose, prefixes }));
+// Product entry points select the default map explicitly; historical source tools
+// may request the separately named viewer-legacy scope.
+export function prepareLibraryData({ root = defaultRoot, fetch = true, purpose = 'viewer', prefixes = [], projectId = 'default-world' } = {}) {
+  return withLibraryLock(root, () => prepareOwnedLibraryData({ root, fetch, purpose, prefixes, projectId }));
 }
 
 export function mountLibraryInputs({ source, root }) {
@@ -218,9 +221,9 @@ export function runtimeMaterializationPeak(index, sourceFiles, presentHashes) {
   return {poolBytes,privateBytes,totalBytes:poolBytes+privateBytes};
 }
 
-export function materializeRuntimeView({ root, index, source = null, fetch=false,purpose='viewer',prefixes=[] }) {
+export function materializeRuntimeView({ root, index, source = null, fetch=false,purpose='viewer',prefixes=[],projectManifest=null }) {
   const shared = librarySharedCheckout(root), config = libraryConfig(root), owner = libraryOwnerId(root);
-  index=runtimeArchiveIndex(index,entry=>decodeArchiveEntry(libraryCheckout(root),entry,config.revision,{fetch}),{purpose,prefixes});
+  index=runtimeArchiveIndex(index,entry=>decodeArchiveEntry(libraryCheckout(root),entry,config.revision,{fetch}),{purpose,prefixes,projectManifest});
   source ||= libraryMaterializedRoot(root);
   const sourceOwnerPath=resolve(source,'.cache-owner.json');
   const sourceOwner=existsSync(sourceOwnerPath)?JSON.parse(readFileSync(sourceOwnerPath,'utf8')):null;
@@ -477,7 +480,7 @@ export function writeLibraryOutput(path, bytes, options) {
   return withLibraryOutputs({ paths: [path] }, () => writeFileSync(path, bytes, options));
 }
 
-export function prepareOwnedLibraryData({ root, fetch, purpose = 'viewer', prefixes = [], source = null }) {
+export function prepareOwnedLibraryData({ root, fetch, purpose = 'viewer', prefixes = [], source = null, projectId = 'default-world' }) {
   root = resolve(root); const checkout = libraryCheckout(root);
   const config = libraryConfig(root);
   if (!existsSync(resolve(checkout, '.git'))) {
@@ -509,7 +512,14 @@ export function prepareOwnedLibraryData({ root, fetch, purpose = 'viewer', prefi
   reportContext(root); // Metadata only; report editions stay independent of the runtime pin.
   if (purpose === 'reports') return { repository: config.repository, revision: config.revision,
     checkout, materialized: null, files: {}, archiveFiles: index.files };
-  const materialized = materializeRuntimeView({ root, index, fetch, purpose, prefixes, source });
+  let projectManifest=null;
+  if(purpose==='viewer'&&projectId===null)throw new TypeError('Viewer library preparation requires an explicit map project');
+  if(purpose==='viewer'&&projectId!==null){
+    const file=resolve(root,mapProjectManifestSourcePath(projectId));
+    projectManifest=validateMapProjectManifest(JSON.parse(readFileSync(file,'utf8')));
+    if(projectManifest.projectId!==projectId)throw new TypeError('Library project identity mismatch');
+  }
+  const materialized = materializeRuntimeView({ root, index, fetch, purpose, prefixes, source, projectManifest });
   const excludePath = resolve(checkout, git(checkout, ['rev-parse', '--git-path', 'info/exclude']));
   const exclude = existsSync(excludePath) ? readFileSync(excludePath, 'utf8') : '';
   if (!exclude.split(/\r?\n/).includes('/.working/')) { mkdirSync(dirname(excludePath), { recursive: true }); writeFileSync(excludePath, exclude + '\n/.working/\n'); }

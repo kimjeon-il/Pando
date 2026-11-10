@@ -41,12 +41,12 @@ test('different preparation scopes never reuse a completed view or copy excluded
   files[path]={stored:path,encoding:'identity',bytes:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex')};
  }
  const index={schemaVersion:1,files};
- const viewer=materializeRuntimeView({root:directory,index,purpose:'viewer'});
+ const viewer=materializeRuntimeView({root:directory,index,purpose:'viewer-legacy'});
  const gis=materializeRuntimeView({root:directory,index,purpose:'gis',prefixes:['assets/data/original']});
  assert.notEqual(viewer,gis);
  assert.equal(existsSync(join(viewer,'assets/data/original/source.json')),false);
  assert.equal(readFileSync(join(gis,'assets/data/original/source.json'),'utf8'),'private original');
- assert.equal(materializeRuntimeView({root:directory,index,purpose:'viewer'}),viewer);
+ assert.equal(materializeRuntimeView({root:directory,index,purpose:'viewer-legacy'}),viewer);
 });
 test('runtime closure rejects missing and escaping resources before preparing a view',()=>{
  for(const url of ['world/objects/missing.bin','../source.json'])assert.throws(()=>collectRuntimeDataAssets({availablePaths:[root],
@@ -60,10 +60,10 @@ test('Viewer preparation uses the same manifest closure and validates stored pay
  };
  const manifest={assets:{canonical:{url:'world/objects/current.bin',sha256:'a'.repeat(64),compressedBytes:7}},source:{url:source}};
  const read=entry=>{assert.equal(entry,entries[root]);return Buffer.from(JSON.stringify(manifest));};
- const selected=runtimeArchiveIndex({files:entries},read,{purpose:'viewer'});
+ const selected=runtimeArchiveIndex({files:entries},read,{purpose:'viewer-legacy'});
  assert.deepEqual(Object.keys(selected.files).sort(),[root,payload].sort());
  assert.equal(entries[source].stored,'source','archive metadata is not changed');
- assert.throws(()=>runtimeArchiveIndex({files:{...entries,[payload]:{...entries[payload],sha256:'b'.repeat(64)}}},read,{purpose:'viewer'}),/integrity|identity/i);
+ assert.throws(()=>runtimeArchiveIndex({files:{...entries,[payload]:{...entries[payload],sha256:'b'.repeat(64)}}},read,{purpose:'viewer-legacy'}),/integrity|identity/i);
 });
 
 test('GIS scope identity includes private edits and new outputs and preserves the pinned archive',t=>{
@@ -99,7 +99,35 @@ test('Hydro byte ranges preserve whole-container identity and reject ranges outs
  const files={[manifest]:{},[payload]:{sha256:'a'.repeat(64),bytes:10}};
  const value={container:{url:'hydro.bin',sha256:'a'.repeat(64),bytes:10},
   index:{url:'hydro.bin',sha256:'b'.repeat(64),offset:0,bytes:4},shards:[]};
- assert.deepEqual(Object.keys(runtimeArchiveIndex({files},()=>Buffer.from(JSON.stringify(value))).files).sort(),[manifest,payload].sort());
+ assert.deepEqual(Object.keys(runtimeArchiveIndex({files},()=>Buffer.from(JSON.stringify(value)),{purpose:'viewer-legacy'}).files).sort(),[manifest,payload].sort());
  value.index.offset=8;
- assert.throws(()=>runtimeArchiveIndex({files},()=>Buffer.from(JSON.stringify(value))),/range/i);
+ assert.throws(()=>runtimeArchiveIndex({files},()=>Buffer.from(JSON.stringify(value)),{purpose:'viewer-legacy'}),/range/i);
+});
+
+test('pinned Viewer materialization follows selected project catalog roles without leaking the default place collection',()=>{
+ const source=JSON.parse(readFileSync(new URL('../../../projects/default-world/manifest.json',import.meta.url),'utf8'));
+ const alt='assets/data/places/alternate-world.json';
+ const project={...source,projectId:'alternate-world',resources:{...source.resources,places:{catalog:alt}}};
+ const specs={
+  [source.resources.world.catalog]:{assets:{}},
+  [source.resources.territorial.catalog]:{schema:'pandolab-builtin-world',schemaVersion:2,storageLayout:'descriptor-geometries-v1',entities:[],geometryAssets:[]},
+  [source.resources.rivers.catalog]:{container:{url:'shared-hydro.bin'},shards:[]},
+  [source.resources.places.catalog]:{shards:{old:{url:'old-city.bin'}}},
+  [alt]:{shards:{new:{url:'new-city.bin'}}},
+  [source.resources.preparedMeshes.catalog]:{meshes:{}},
+  [source.resources.terrain.catalog]:{tiles:{}},
+  [source.resources.physicalLand.catalog]:{asset:{url:'assets/data/land.bin'}},
+  [source.resources.placeLifetimes.catalog]:{entries:[]},
+ };
+ const hydroBin=source.resources.rivers.catalog.replace('manifest.json','shared-hydro.bin');
+ const paths=[...Object.keys(specs),'assets/data/land.bin',hydroBin,'assets/data/places/new-city.bin','assets/data/places/old-city.bin'];
+ const entries=Object.fromEntries(paths.map(path=>[path,{stored:path}]));
+ const read=entry=>Buffer.from(JSON.stringify(specs[entry.stored]));
+ const selected=runtimeArchiveIndex({files:entries},read,{projectManifest:project}).files;
+ assert.ok(selected[alt]);
+ assert.ok(selected['assets/data/places/new-city.bin']);
+ assert.equal(selected[source.resources.places.catalog],undefined);
+ assert.equal(selected['assets/data/places/old-city.bin'],undefined);
+ assert.ok(selected[source.resources.territorial.catalog]);
+ assert.ok(selected[hydroBin]);
 });

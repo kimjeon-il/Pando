@@ -120,7 +120,7 @@ export function createAutomaticAdapters({root,env=process.env,settings,io={}}){
   if(text(dataRoot,['branch','--show-current'])!==branch)fail('DATA_BRANCH_MISMATCH');
   text(dataRoot,['merge-base','--is-ancestor','HEAD',p.h.data]);
   text(dataRoot,['merge','--ff-only',p.h.data]);
-  (io.prepareLibraryData||prepareLibraryData)({root,fetch:false});
+  (io.prepareLibraryData||prepareLibraryData)({root,fetch:false,purpose:'viewer-legacy'});
   const result=await (io.deriveAutomaticRuntime||deriveAutomaticRuntime)({root,inputProjection:runtimeProjection,regenerationOnly,inputDataSha:p.h.data,expectedAppSha:p.h.app,expectedDataSha:p.c.revision,branch,generatorIdentity:p.id,stageDir:'build-native/p2/automatic'});
   await assertCurrent(token);
   derived={candidate:p.h.data,result,fixtureHash:hash(readFileSync(resolve(root,FIXTURE)))};

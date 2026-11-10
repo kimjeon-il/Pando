@@ -8,6 +8,9 @@ import {startDevelopmentServer} from "../../../scripts/frontend-dev-server.mjs";
 test('frontend refresh prepares data only when its pin changes and preserves the last valid response',async t=>{
  const root=mkdtempSync(join(tmpdir(),'pando-dev-boundary-'));t.after(()=>rmSync(root,{recursive:true,force:true}));
  mkdirSync(join(root,'config'));const pin=revision=>writeFileSync(join(root,'config/library-data.json'),JSON.stringify({schemaVersion:1,repository:'kimjeon-il/PandoLab-library-data',revision:revision.repeat(40),mounts:['assets/data','reports']}));pin('a');
+ mkdirSync(join(root,'projects/default-world'),{recursive:true});
+ const project=path=>writeFileSync(join(root,'projects/default-world/manifest.json'),path);
+ project('project-v1');
  let prepared=0,generation=0,reject=false;
  const server=await startDevelopmentServer({repository:root,product:'viewer',port:0,observe:false,prepareLibrary:async()=>{prepared++;return{revision:'prepared-pin'};},buildAssets:async({prepared:input})=>{assert.equal(input.revision,'prepared-pin','asset building awaits canonical preparation');if(reject)throw Error('Invalid edited source');return{assets:new Map([['index.html',{bytes:Buffer.from('<html>'+ ++generation+'</html>')}]]),evidence:{}};}});
  t.after(()=>server.close());const origin='http://127.0.0.1:'+server.server.address().port;
@@ -17,6 +20,7 @@ test('frontend refresh prepares data only when its pin changes and preserves the
  assert.ok((await fetch(origin).then(r=>r.text())).includes('<html>3</html>'));
  assert.match((await fetch(origin+'/__shell/health').then(r=>r.json())).error,/Invalid edited source/);
  reject=false;pin('b');await server.refresh();assert.equal(prepared,2);
+ project('project-v2');await server.refresh();assert.equal(prepared,3,'project catalog changes refresh pinned materialization');
 });
 
 test('the actual viewer serves the current frontend and blocks editor and repository sources',async t=>{

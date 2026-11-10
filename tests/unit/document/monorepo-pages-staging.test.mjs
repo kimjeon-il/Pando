@@ -29,13 +29,17 @@ test('stages committed viewer assets while excluding editor and repository sourc
   assert.equal(evidence.dataRepository, 'example/library-data');
   assert.match(evidence.dataCommit, /^[0-9a-f]{40}$/);
   assert.equal(meta.sourceCommit, evidence.sourceCommit);
+  assert.equal(evidence.projectId,'default-world');
+  assert.ok(evidence.files.some(file=>file.path===meta.mapProjectManifest.url));
+  for(const role of Object.values(meta.mapProject.resources))
+    assert.ok(evidence.files.some(file=>file.path===role.catalog),'Required project catalog: '+role.catalog);
   assert.equal(meta.dataCommit, evidence.dataCommit);
   assert.equal(existsSync(join(stage, 'assets/data/library-channel')), false);
   assert.equal(existsSync(join(stage, 'assets/data/library-releases')), false);
   assert.equal(evidence.fileCount,evidence.files.length);
   assert.equal(evidence.bytes, evidence.files.reduce((total, file) => total + file.bytes, 0));
   assert.equal(evidence.excludedNativeFiles, 1);
-  assert.equal(evidence.excludedSharedFiles, 0);
+  assert.equal(evidence.excludedSharedFiles, 0, 'retired shared/ source is absent in current fixtures');
   assert.ok(evidence.excludedAppFiles >= 2);
   assert.equal(evidence.files.some(file => file.path.startsWith('native/')), false);
 });
@@ -126,7 +130,6 @@ test('refuses to stage inside the repository or overwrite a prior artifact', asy
 });
 
 for (const [name, options, expected] of [
-  ['obsolete prepared country scene', { sceneRevision: 5 }, /Invalid prepared country scene descriptor/],
   ['obsolete prepared polygon manifest', { preparedRevision: 5 }, /Prepared polygon mesh algorithm revision mismatch/],
   ['obsolete preview mesh', { previewRevision: 5 }, /previewMesh/],
   ['obsolete canonical mesh', { canonicalRevision: 5 }, /canonicalMesh/],
@@ -139,4 +142,12 @@ for (const [name, options, expected] of [
   assert.match(result.stderr, expected);
   assert.equal(existsSync(stage), false);
   assert.equal(existsSync(manifest), false);
+});
+
+
+test('obsolete optional prepared country scene is a cache miss, not a failed canonical publication',async t=>{
+  const {root,stage,manifest}=await fixture(t,{sceneRevision:5});
+  const result=run(process.execPath,[script,'--root',root,'--stage',stage,'--manifest',manifest,'--skip-checks'],root);
+  assert.equal(result.status,0,result.stderr);
+  assert.equal(existsSync(stage),true);
 });

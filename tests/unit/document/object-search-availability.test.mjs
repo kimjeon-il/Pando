@@ -7,10 +7,9 @@ import * as __dep3 from "../../../src/document/object-query.js";
 import * as __dep4 from "../../../src/document/object-ref-identity.js";
 import * as __dep5 from "../../../src/document/territorial-entity-repository.js";
 import * as __dep6 from "../../../src/document/object-search-model.js";
-import * as __dep7 from "node:timers";
 import * as __dep8 from "node:vm";
 import * as __dep9 from "../../../src/ui/navigation-bindings.js";
-import * as __dep10 from "../../../src/document/place-runtime.js";
+import * as __dep10 from "../../../src/data/place-runtime.js";
 import * as __dep11 from "../../../src/ui/surface-controller.js";
 import * as __dep12 from "../../../src/ui/object-search-controller.js";
 import * as __dep13 from "../../../src/ui/selection-ui-controller.js";
@@ -84,7 +83,6 @@ test('parent links do not create folders or hide cyclic entries in the flat resu
 contractSuite("object-search-controller", () => {
 const assert = __dep1.default;
 const test = __dep0.default;
-const { setImmediate } = __dep7;
 const vm = __dep8.default;
 const { createNavigationBindings } = __dep9;
 const { createPlaceRuntime } = __dep10;
@@ -208,6 +206,42 @@ test('a search click waits for Core selection approval and releases its listener
   assert.equal(closed,1,'only a confirmed selection closes the search');
   controller.dispose();
   assert.equal(results.listeners.has('click'),false,'disposed controller must release listeners');
+});
+
+test('old project search rows and late selection completions cannot act in another project scope',async()=>{
+ let scope='default-world:document-1:1',selected=0,closed=0,approve;
+ const pending=new Promise(resolve=>{approve=resolve;});
+ const results=element();
+ const controller=createObjectSearchController({
+  window:{setTimeout,clearTimeout},document:{createElement:element},
+  elements:{searchResults:results},groups:{search:['objects']},
+  createEmptyState:element,
+  model:{
+   snapshot:()=>({search:'Alpha',searchActive:true,projectScope:scope}),
+   items:()=>[{id:'A',name:'Alpha'}],
+   itemRef:(_,id)=>normalizeObjectRef({domain:'territorial',type:'entity',id}),
+   compare:(a,b)=>a.name.localeCompare(b.name),
+   selectionSnapshot:()=>({selection:{primaryKey:null,items:[]}}),
+  },
+  commands:{
+   selectItem:()=>{selected++;return pending;},
+   closeAfterSingleSelection:()=>{closed++;},
+  },
+ });
+ controller.bind();controller.render();
+ const old=results.children[0].children[0];
+ scope='user-file:document-2:2';
+ results.listeners.get('click')({target:old,shiftKey:false,ctrlKey:false,metaKey:false});
+ await tick();
+ assert.equal(selected,0,'the prior scope row is inert before rerender');
+ controller.render();
+ const current=results.children[0].children[0];
+ results.listeners.get('click')({target:current,shiftKey:false,ctrlKey:false,metaKey:false});
+ assert.equal(selected,1);
+ scope='different-project:document-3:3';
+ approve(true);await tick();
+ assert.equal(closed,0,'late success may not close the newly selected project search');
+ controller.dispose();
 });
 
 test('search catalog is reused between queries and rebuilt on a real catalog revision', () => {

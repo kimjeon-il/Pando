@@ -160,7 +160,7 @@ export function assertCurrentProjectSchema(input, { baseEntities = null, baseDat
     'timelineRecords', 'geometries', 'distributionLayers', 'distributionEntries',
     'labelSettings', 'distributionSettings', 'layerPresentation',
     'baseDataset', 'landObjectModel', 'territorialModel',
-    'distributionModel', 'physicalSourceInfo', 'projectSetup',
+    'distributionModel', 'physicalSourceInfo', 'projectSetup', 'mapProjectIdentity',
   ]), '프로젝트');
   if (project.format !== 'pandolab-autosave-delta' && (Object.hasOwn(project, 'entityDelta') || Object.hasOwn(project, 'baseDatasetFingerprint'))) {
     throw schemaError('변경분과 기준 fingerprint는 delta 자동저장에만 허용됩니다.', 'PL-SCHEMA-FIELD');
@@ -180,6 +180,14 @@ export function assertCurrentProjectSchema(input, { baseEntities = null, baseDat
   }
   if(typeof project.documentId !== 'string' || !project.documentId.trim()) throw schemaError('문서 ID가 필요합니다.');
   normalizeProjectSetup(project.projectSetup);
+  if(project.mapProjectIdentity!=null){
+    const identity=project.mapProjectIdentity;
+    assertAllowedKeys(identity,new Set(['projectId','manifestSha256','dataRevision']),'지도 프로젝트 정체성');
+    if(!/^[a-z][a-z0-9-]{0,63}$/.test(identity.projectId||'')||
+      !/^[0-9a-f]{64}$/.test(identity.manifestSha256||'')||
+      !/^data-[0-9a-f]{32}$/.test(identity.dataRevision||''))
+      throw schemaError('지도 프로젝트 정체성이 올바르지 않습니다.','PL-PROJECT-IDENTITY');
+  }
   assertAllowedKeys(project.distributionSettings,new Set(['renderMode','activeLayerId','boundaryVisible']),'분포 표시 설정');
   if(!['overlap','single'].includes(project.distributionSettings?.renderMode))throw schemaError('분포 표시 방식이 올바르지 않습니다.','PL-SCHEMA-DISTRIBUTION-MODE');
   assertAllowedKeys(project.layerPresentation, new Set(['schemaVersion', 'overlayOrder', 'styles', 'objectStyles', 'objectOrder']), '레이어 표현');

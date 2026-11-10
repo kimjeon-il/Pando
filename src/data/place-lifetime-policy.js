@@ -1,4 +1,4 @@
-import {temporalMonthEnd} from "./temporal.js";
+import {temporalMonthEnd} from "../document/temporal.js";
 
 const schema='pando-place-urban-lifetimes-v1';
 const validDate=value=>{
