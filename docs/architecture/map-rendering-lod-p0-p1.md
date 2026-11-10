@@ -36,6 +36,9 @@ LOD 응답 키는 `projectGeneration:geometryRevision:sourceContent:meshAlgorith
    중요도 순위를 생성한다. 서로 역방향으로 저장된 국경도 동일 arc 순위를 사용한다.
 2. 지구본 3차원 chord와 평면 경위도 투영의 오차 중 큰 값을 적용한다. 목표 한도는
    **0.5 CSS px**이며, 화면 배율에 대해 **상향 반올림한 버킷**을 사용한다.
+   정점 단순화뿐 아니라 C++ 메시 엔진에 전달하는 **내부 삼각형 최대 변 길이**도
+   화면에서 보이는 구면 chord/sagitta 오차로 산정한다. 축소 시 더 긴 변을 허용하고
+   확대 시 기본 최대 변 길이 0.499°를 향해 정밀해진다.
 3. 확대 시 즉시 정밀도를 높이고 축소 시 15% 히스테리시스를 적용한다. 선택 객체는
    원본을 보존하고 인접 국가의 공유 경계 정점도 함께 보존한다.
 4. 해안·국경 접합점, 세 국가 이상의 교차점, 날짜변경선·고위도, 구멍을 보호한다.
@@ -94,6 +97,7 @@ WebGL 리소스 바이트, Chromium이 공개하는 경우의 JS heap. GPU 전�
 - 단위 계약: `tests/unit/rendering/screen-geometry-lod.test.mjs` — 역방향
   공유 국경, 오차, 확대·축소, 선택 객체, 구멍/날짜변경선, 입력 불변성,
   가시 국가 스코프와 국가 슬롯 보존
+- 기하 단위 테스트에는 구면 chord/sagitta 오차와 배율별 메시 분할 한도 검사도 포함한다.
 - 가시성·전송: `tests/unit/rendering/visible-country-lod.test.mjs`,
   `tests/unit/rendering/gpu-mesh-transfer.test.mjs` — 평면/지구본,
   최초 정본 전송·Worker 재사용·취소·오래된 프레임 거부
