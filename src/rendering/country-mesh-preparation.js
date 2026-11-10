@@ -121,11 +121,18 @@ export function createCountryMeshPreparation({ engine, loadPreparedPart = null, 
         lines += part.lineIndices.length;
         strokes += part.strokeStartsEnds.length;
       }
-      // Dateline/full-longitude part bounds require a conservative union.
-      if (flags || !Number.isFinite(bounds[0]))
+      // One source part must be byte-for-byte equivalent to the canonical
+      // engine. Only a multi-tile union needs conservative bound promotion.
+      if (countryParts.length === 1) {
+        mesh.countryBounds.set(countryParts[0].countryBounds, countryIndex * 4);
+        mesh.countryBoundsFlags[countryIndex] = countryParts[0].countryBoundsFlags[0];
+      } else if (flags || !Number.isFinite(bounds[0])) {
         mesh.countryBounds.set([-180e6, -90e6, 180e6, 90e6], countryIndex * 4);
-      else mesh.countryBounds.set(bounds, countryIndex * 4);
-      mesh.countryBoundsFlags[countryIndex] = flags ? 2 : 0;
+        mesh.countryBoundsFlags[countryIndex] = 2;
+      } else {
+        mesh.countryBounds.set(bounds, countryIndex * 4);
+        mesh.countryBoundsFlags[countryIndex] = 0;
+      }
       mesh.countryTriangleRanges.set([startTriangle, triangles - startTriangle], countryIndex * 2);
       mesh.countryBoundaryRanges.set([startBoundary, lines - startBoundary], countryIndex * 2);
       mesh.strokeOwnerRanges[id] = { first: startStroke / 4, count: (strokes - startStroke) / 4 };
