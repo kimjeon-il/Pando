@@ -72,8 +72,8 @@ test('public Viewer opens pinned Korean map data without invalid historical reco
   expect(snapshot.month).toMatch(/^\d{4}-\d{2}$/);
   expect(snapshot.lifetimes).toHaveLength(2);
   expect(snapshot.lifetimes).toEqual(expect.arrayContaining([
-    {entityId:'KOR',validFrom:null,validTo:null},
-    {entityId:'PRK',validFrom:null,validTo:null},
+    {entityId:'KOR',validFrom:'1948-08-15',validTo:null},
+    {entityId:'PRK',validFrom:'1948-09-09',validTo:null},
   ]));
   expect(snapshot.coverage).toHaveLength(2);
   expect(snapshot.coverage).toEqual(expect.arrayContaining([
@@ -195,7 +195,7 @@ test('matching boundary Worker protocol error rolls back the dated Core document
   let routeCount=0;
   await page.route('**/modules/gpu-map-renderer.js*',async route=>{
     const response=await route.fetch();let source=await response.text();
-    const force='      const boundaryFeatures = renderCountryBoundaryFeatures();';
+    const force='      const canonicalBoundaryFeatures=renderCountryBoundaryFeatures();';
     const receipt='          countryBoundaryLastMessage = ';
     if(source.split(force).length!==2||source.split(receipt).length!==2)
       throw Error('W2-P5 rollback test ports changed; inspect renderer source');

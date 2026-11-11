@@ -250,7 +250,7 @@ test('P0 reproducible static baseline reports checked-out Git files without inve
  assert.ok(data.trackedFiles>0);
  assert.ok(data.indexedFrontendAssets>0&&data.boundaryCheckedModules>0);
  assert.equal(Object.values(data.areas).reduce((sum,row)=>sum+row.files,0),data.trackedFiles);
- assert.ok(data.areas['apps/viewer'].files>0);
+ assert.ok(data.areas['src'].files>0);
 });
 });
 contractSuite("project-invariants", () => {
@@ -477,6 +477,7 @@ test('P4 selected but copied builtin places cannot reappear through the label lo
   feedback:{reportOperationError(){}},
  });
  owner.initializeLabelLayoutMetrics();
+ owner.setProjectSource('builtin');
  t.after(()=>owner.builtinPlaces.dispose());
  owner.builtinPlaces.retain(source);
  assert.equal(owner.labelById(authored.id),authored);

@@ -11,7 +11,9 @@ export function historicalWorldCases() {
   // Full source reconstruction belongs to separate data publication checks.
   // The compiler's current-world ingress requires all default subunit endpoints.
   // Include those identities as the same tiny squares, without reading assets.
-  const ids = [...new Set(['RUS', 'KOR', 'PRK', ...loadBuiltinDisplayPolicy().subunits.flatMap(row => [row.sourceCountryId, row.parentId])])];
+  const displayPolicy = {schema:'pandolab-builtin-display-policy',schemaVersion:1,revision:'synthetic-fixture',
+    subunits:[],territoryMerges:[],sourceAttributions:{}};
+  const ids = ['RUS','KOR','PRK'];
   const sources = ids.map((id, index) => ({ ...entity(`current:${id}`, null, null,
     [{...version(`${id}:current`, null, null, index * 2 - 150),}]), sourceInfo: { featureId: id, featureProperties: { name: id } } }));
   const snapshot = { schemaVersion: 1, referenceDate: '2026-10-01', entityRefs: sources.map(row => row.entityId) };
@@ -28,6 +30,6 @@ export function historicalWorldCases() {
       entity('state:leap', '2000-02-29', '2000-02-29', [version('leap-v1', '2000-02-29', '2000-02-29', 19)]),
     ], currentSnapshot: snapshot, currentWorld,
     policy: { schemaVersion: 1, unknownPeerOverlap: 'exclude-from-all', replacements: [] },
+    displayPolicy,
   };
 }
-import {loadBuiltinDisplayPolicy} from "../../tools/gis/builtin-display-policy.mjs";

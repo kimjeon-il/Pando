@@ -151,7 +151,19 @@ export function createCoreDocumentClient({
       { storageJson,baselineId: options.baselineId ?? null },options),
     inspectImport: (storageJson,options = {}) => ordered('core.document-inspect-import',
       { storageJson,baselineId: options.baselineId ?? null },options),
-    setTimelineCursor: async(month, options) => {await ensureGeometryResources(month,options);return ordered('core.document-timeline-cursor', { month }, options, true, true);},
+    setTimelineCursor: async(month, options) => {
+      try {
+        await ensureGeometryResources(month,options);
+        return await ordered('core.document-timeline-cursor', { month }, options, true, true);
+      } catch(error) {
+        // Geometry admission queries happen before cursor dispatch. Preserve
+        // the cursor API's rejection contract for invalid calendar precision.
+        if(error?.code==='PL-TEMPORAL-001')
+          throw Object.assign(new Error('INVALID_TIMELINE_CURSOR: '+error.message),
+            {code:'INVALID_TIMELINE_CURSOR',cause:error});
+        throw error;
+      }
+    },
     resolveWorld: (month, options) => ordered('core.document-resolve-world', { month }, options),
     projectState: options => ordered('core.document-state', {}, options),
     selectionCatalogLoad: (domain,refs,expectedEpoch,options) => ordered('core.document-selection-catalog',

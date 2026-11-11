@@ -342,8 +342,7 @@ for (const [mode, projection, rejected] of [['viewer','globe','flat'],['editor',
   test(`${mode} enforces its supported projection set`,()=>{
     const policy=createProductModePolicy(mode);
     assert.doesNotThrow(()=>policy.assertProjection(projection));
-    if(mode==='viewer') assert.doesNotThrow(()=>policy.assertProjection(rejected));
-    else assert.throws(()=>policy.assertProjection(rejected),{code:'PL-PRODUCT-PROJECTION'});
+    assert.throws(()=>policy.assertProjection(rejected),{code:'PL-PRODUCT-PROJECTION'});
     assert.throws(()=>policy.assertProjection('unknown'),{code:'PL-PRODUCT-PROJECTION'});
     assert.doesNotThrow(()=>policy.assertProjection(undefined)); // A camera-only host update.
   });

@@ -113,7 +113,7 @@ for (const region of regions) {
       const url = new URL(`?debug=1&renderer=${requestedBackend}`, process.env.PANDOLAB_TEST_SITE_URL || `${baseURL}/`);
       await openReadyViewer(page, { url: url.href, timeout: 120_000 });
       const world = await accepted(page), worldScale32 = {};
-      for (const projection of ['flat', 'globe']) {
+      for (const projection of ['globe']) {
         await camera(page, region, projection, 32);
         const state = await accepted(page, { projection, zoom: 32 });
         worldScale32[projection] = state.camera.scale;
@@ -145,7 +145,7 @@ for (const region of regions) {
       expect(hash(stored.currentGeometryJson)).toBe(packageEvidence.sourceGeometrySha256);
       observations.push({ stage: 'opened', ...opened });
 
-      for (const projection of ['flat', 'globe']) {
+      for (const projection of ['globe']) {
         let projectBaseScale = null;
         const keys = new Set();
         for (const zoom of zooms) {

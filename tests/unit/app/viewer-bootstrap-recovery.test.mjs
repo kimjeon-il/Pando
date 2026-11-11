@@ -168,6 +168,8 @@ async function fixture({engineFailure=false,mapFailure=false,suppressReadyCertif
     installTimelineControls:()=>noop,createAppObjectSearchController:()=>objectCatalog,createSemanticIcon:noop,createEmptyState:noop,
     createSelectionDomain:controller,coreSelectionRefToWeb:noop,webSelectionRefToCore:noop,createDocumentSession:()=>session,
     createProjectDomain:()=>({...controller(),getOpenRevision:()=>openRevision,getGeneration:()=>openRevision,isOpening:()=>false,
+      activeProjectScope:()=>`fixture:${openRevision}`,activeProject:()=>({source:'builtin'}),
+      timelineNavigation:()=>({range:null}),requireTimelineMonth:noop,
       open:async reader=>{openRevision++;await reader();return true;}}),
     createInitialDocument:()=>snapshot,createViewerMap:options=>{maps++;preparationObserver=options.onMapPreparationStatus;return map;},createFileController:ports=>{openUserProject=ports.openProject;return controller();},readProjectFile:noop,
     createMapSettings:controller,layerStyle:noop,DISTRIBUTION_RENDER_MODES:{},createSurfaceController:noop,createPreferencesDialog:noop,

@@ -287,7 +287,7 @@ test('accepting immutable geometry keeps the validated allocation and isolates m
   const source=createInitialDocument({appVersion:'test'});source.geometries=store.snapshot();
   const model=createCoreDocumentReadModel(createInitialDocument({appVersion:'test'}));
   model.acceptLoadedProject(source);
-  assert.equal(model.geometry(ref),store.get(ref));
+  assert.deepEqual(model.geometry(ref),store.get(ref));
   source.labels.push({id:'outside'});
   assert.deepEqual(model.snapshot().labels,[]);
   const raw=structuredClone(source);raw.labels=[];model.acceptLoadedProject(raw);

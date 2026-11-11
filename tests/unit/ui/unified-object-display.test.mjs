@@ -134,6 +134,7 @@ function node() {
     classList:{toggle:(key,enabled)=>enabled?classes.add(key):classes.delete(key)},
     setAttribute(key,value){this.attributes[key]=value;},
     addEventListener(key,handler){events.set(key,handler);},
+    removeEventListener(key,handler){if(events.get(key)===handler)events.delete(key);},
     append(...children){this.children.push(...children);},
     prepend(...children){this.children.unshift(...children);},
     replaceChildren(...children){this.children=children;},
@@ -209,7 +210,7 @@ test('P4-4 a C++ membership transition reports new and extinct country IDs for d
   owner.dispose();
 });
 
-test('P4-4 pending project keeps old search visible but inert and makes old actions no-ops',()=>{
+test('P4-4 pending project keeps old search visible but inert and makes old actions no-ops',async()=>{
   const f=searchFixture(),old=f.button('OLD'),oldFocus=f.button('OLD','focus');
   assert.ok(old&&oldFocus);
   const ticket=f.controller.beginProjectTransition();
@@ -229,6 +230,7 @@ test('P4-4 pending project keeps old search visible but inert and makes old acti
   assert.deepEqual(f.selected,[],'removed row handlers stay inert even after new rows are mounted');
   assert.deepEqual(f.focused,[]);
   f.click(f.button('NEW'));
+  await Promise.resolve();
   assert.deepEqual(f.selected,['NEW']);
   assert.equal(f.closed.length,1);
   f.controller.dispose();

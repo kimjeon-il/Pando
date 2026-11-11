@@ -39,7 +39,7 @@ function writeFixture(root) {
   fs.mkdirSync(path.join(root,'countries'));fs.mkdirSync(path.join(root,'lineages'));
   const lineage={schemaVersion:2,lineageId:'germany',names:{ko:'독일'},entityRefs:['state:DEU','state:GDR'],relations:[{type:'successor',from:'state:GDR',to:'state:DEU'}]};
   fs.writeFileSync(path.join(root,'lineages/germany.json'),JSON.stringify(lineage));
-  for(const id of lineage.entityRefs)fs.writeFileSync(path.join(root,'countries',sources.entityFileName(id)),JSON.stringify({...sample(id),lineageId:'germany'}));
+  for(const id of lineage.entityRefs)sources.writeTerritorialSource({...sample(id),lineageId:'germany'},root);
   return lineage;
 }
 
@@ -58,7 +58,7 @@ test('source update changes only explicit identity and preserves curated sibling
   const result=JSON.parse(fs.readFileSync(path.join(root,'countries/state-GDR.json'),'utf8'));
   assert.equal(fs.readFileSync(path.join(root,'countries/state-DEU.json'),'utf8'),sibling);
   assert.deepEqual(JSON.parse(fs.readFileSync(path.join(root,'lineages/germany.json'),'utf8')),lineage);
-  assert.equal(result.metadata.note,'curated');
+  assert.equal(sources.readTerritorialSource('state:GDR',root).metadata.note,'curated');
   const before=fs.readFileSync(path.join(root,'countries/state-GDR.json'),'utf8');
   assert.throws(()=>sources.updateTerritorialSource('state:GDR',e=>({...e,entityId:'state:wrong'}),root));
   assert.equal(fs.readFileSync(path.join(root,'countries/state-GDR.json'),'utf8'),before);

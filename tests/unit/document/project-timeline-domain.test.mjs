@@ -1,4 +1,5 @@
 import { describe as contractSuite } from 'node:test';
+import { fingerprintProjectBaseline } from '../../../src/document/project-baseline-fingerprint.js';
 import * as __contract_dep0 from "node:assert/strict";
 import * as __contract_dep1 from "node:test";
 import * as __contract_dep2 from "node:fs";
