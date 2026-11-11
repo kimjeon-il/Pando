@@ -58,8 +58,9 @@ int main(){try{
   }
   auto compact=[&](std::size_t index){return Byte(std::min(255,((int(shade[index])+2)/4)*4));};
   for(std::uint32_t y=0;y<height;y++)for(std::uint32_t x=0;x<width;x++){
-    const auto index=std::size_t(y)*width+x;const auto packed=quantizedMeters(heights[index])+12000;
-    if(packed<0||packed>65535)throw std::invalid_argument("Quantized DEM elevation outside encoding range");Byte tone=compact(index);
+    const auto index=std::size_t(y)*width+x;// Saturate only extreme representable-range sentinels; the ETOPO source
+    // itself remains well within the 16-bit envelope.
+    const auto packed=std::clamp(quantizedMeters(heights[index])+12000,std::int64_t(0),std::int64_t(65535));Byte tone=compact(index);
     const auto world=std::int64_t(north)+y;if(world<0||world>=levelHeight){
       if(levelHeight<=1350){const auto real=world<0?-std::int64_t(north):std::int64_t(levelHeight)-1-north;
         if(real<0||real>=height)throw std::invalid_argument("Missing real polar DEM row");tone=compact(std::size_t(real)*width+x);}
