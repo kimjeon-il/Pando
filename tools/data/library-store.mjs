@@ -9,6 +9,7 @@ import {assertHistoricalStorageChanges} from "../gis/historical-display-storage.
 import {assertHistoricalSourceStorageChanges} from "../gis/historical-display-review.mjs";
 import {readBuiltinCountry,readBuiltinCountryStoredBytes} from "./builtin-country-bytes.mjs";
 import {decodeTerritorialSource} from './territorial-source-codec.mjs';
+import {assertOriginalAuthoringSourceStorageChanges,assertTerritorialSourceResourceBytes} from './territorial-original-authoring.mjs';
 import {defaultRoot,gitOptions,git,libraryConfig,libraryCheckout,libraryMaterializedRoot,libraryReportRoot,librarySharedCheckout,libraryOwnerId,safeChild,decodeArchiveEntry,withLibraryLock,organizationTree} from "./library-context.mjs";
 import {reportRegistry,writeReportRegistry,checkedReportPath,assertReportSubject} from "./library-reports.mjs";
 import {compactOwnedCheckout,libraryWriteLeases,scopesOverlap,prepareOwnedLibraryData,ownedMaterializedView} from "./library-runtime.mjs";
@@ -204,23 +205,35 @@ export function storeOwnedLibraryData({ root, push, prefixes, removePaths, repor
     retirementPlan=assertTerritorialStorageScope(prefixes,libraryIndex,previousIndex,{readLineage:id=>JSON.parse(newBytes(territorial+'/source/lineages/'+id+'.json')),readSourceDescriptor:p=>JSON.parse(newBytes(p)),retirement,removePaths,pathExists:p=>existsSync(resolve(data.materialized,p)),
       ...(retirement?{displayPolicy:JSON.parse(newBytes(retirementDisplayPath)),worldView:JSON.parse(newBytes(territorial+"/source/views/world.json"))}:{})});
   }
+  // Source coordinate resources are immutable CAS bytes, not domain admission.
+  // Even a resource-only scope must not replace bytes an unchanged descriptor uses.
+  if(data.materialized&&traversable(territorial+'/source/geometries'))for(const file of contentFiles(resolve(data.materialized,territorial+'/source/geometries'))){
+    const p=territorial+'/source/geometries/'+file.logical;
+    if(included(p))assertTerritorialSourceResourceBytes(p,newBytes(p));
+  }
+  let evidenceRevision,evidenceIndex;
+  const readSourceEvidence=reference=>{
+    // Non-source stores do not need an authoring-evidence snapshot.
+    if(!evidenceIndex){
+      evidenceRevision=git(data.checkout,['rev-parse','HEAD']);
+      evidenceIndex=JSON.parse(git(data.checkout,['show',evidenceRevision+':archive/index.json']));
+    }
+    if(!evidenceIndex.files[reference])throw Error('Missing archived source adoption evidence: '+reference);
+    return decodeArchiveEntry(data.checkout,evidenceIndex.files[reference],evidenceRevision,{fetch:false});
+  };
   // Editable source may be stored before its derived chunks are regenerated.
   // Validate the selected source itself, without recreating a second authority.
-  if(data.materialized)for(const file of contentFiles(resolve(data.materialized,territorial+'/source/countries'))){
+  if(data.materialized&&traversable(territorial+'/source/countries'))for(const file of contentFiles(resolve(data.materialized,territorial+'/source/countries'))){
     const p=territorial+'/source/countries/'+file.logical;
     if(!included(p)||!p.startsWith(territorial+'/source/countries/')||!p.endsWith('.json')||!existsSync(resolve(data.materialized,p)))continue;
     const bytes=newBytes(p);if(contentHash(bytes)===archived.files[p]?.sha256)continue;
     const raw=sourceEntity(p,newBytes);
     if(raw.schemaVersion!==2||typeof raw.entityId!=='string'||!Array.isArray(raw.geometryVersions)
       ||p!==territorial+'/source/countries/'+raw.entityId.replace(':','-')+'.json')throw Error('Source filename identity/schema mismatch');
-    assertHistoricalSourceStorageChanges(raw,archived.files[p]?previousSource(p):null,{prefixes,readEvidence:reference=>{
-      // Authoring evidence is an immutable archived input. Unstored files and caller
-      // claims cannot stand in for a prior source adoption review.
-      const revision=git(data.checkout,['rev-parse','HEAD']);
-      const index=JSON.parse(readFileSync(resolve(data.checkout,'archive/index.json'),'utf8'));
-      if(!index.files[reference])throw Error('Missing archived source adoption evidence: '+reference);
-      return decodeArchiveEntry(data.checkout,index.files[reference],revision,{fetch:false});
-    }});
+    const previous=archived.files[p]?previousSource(p):null;
+    // Both gates use one fixed archived revision, never mutable report files.
+    assertOriginalAuthoringSourceStorageChanges(raw,previous,{prefixes,readEvidence:readSourceEvidence});
+    assertHistoricalSourceStorageChanges(raw,previous,{prefixes,readEvidence:readSourceEvidence});
   }
   const reviewScopes=['assets/data/territorial-entities','assets/data/builtin-world'];
   if(prefixes.some(p=>reviewScopes.some(s=>p===s||p.startsWith(s+'/')||s.startsWith(p+'/')))){
