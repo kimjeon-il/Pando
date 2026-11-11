@@ -104,6 +104,13 @@ export async function buildFrontendSnapshot({root=process.cwd(),sourceCommit,rea
  const metadata=Object.fromEntries(metadataPaths.map(path=>[path,catalogInputs[path].value]));
  const {hydroVersion,preparedMeshesCurrent}=validateMapCatalogCoherence(
    mapProject,metadata,path=>catalogInputs[path].sha256);
+ const terrainPackaging=metadata[resource('terrain')].packaging;
+ if(terrainPackaging && !terrainExternalSource){
+   if(!/^[a-f0-9]{40}$/.test(terrainPackaging.sourceRevision||'')
+     || terrainPackaging.sourcePath!==`terrain/v${metadata[resource('terrain')].version}/manifest.json`)
+     throw Error('Invalid pinned external terrain source');
+   terrainExternalSource={revision:terrainPackaging.sourceRevision};
+ }
  const projectCatalogs=Object.fromEntries(MAP_PROJECT_ROLES.map(role=>{
    const path=resource(role),receipt=catalogInputs[path];
    return [role,{catalog:path,sha256:receipt.sha256,bytes:receipt.bytes,

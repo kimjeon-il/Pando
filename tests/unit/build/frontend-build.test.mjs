@@ -6,6 +6,13 @@ import {createHash} from 'node:crypto';
 import {buildFrontendSnapshot} from "../../../scripts/lib/frontend-build.mjs";
 import {frontendFixture as fixture} from "../../helpers/frontend-build-fixture.mjs";
 
+test('Viewer development metadata uses the immutable terrain source declared by its pinned catalog',async t=>{
+ const f=fixture(t),revision='a'.repeat(40);
+ f.metadata[f.terrainPath].packaging={sourceRevision:revision,sourcePath:'terrain/v0.14.0/manifest.json'};
+ const snapshot=await buildFrontendSnapshot(f.options);
+ assert.deepEqual(snapshot.buildMeta.terrainExternalSource,{revision});
+});
+
 test('one source build emits only the Viewer runtime shared with Windows reviewer',async t=>{
  const f=fixture(t),snapshot=await buildFrontendSnapshot(f.options);
  assert.ok(snapshot.html.viewer.includes('assets/js/viewer.js'));
