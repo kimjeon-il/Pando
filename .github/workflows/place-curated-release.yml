@@ -1,10 +1,16 @@
-# Historical explicit reproduction; current automatic publication is owned by generated-artifacts-p2.yml.
+# Narrow place-only release. Never rebuild unrelated GIS/terrain families or deploy main.
 name: Curated Place Release
 
-# Source-review changes on the dedicated places branch rebuild only its own assets.
-# GITHUB_TOKEN commits do not create a second push workflow run.
 on:
   workflow_dispatch:
+  push:
+    branches: [work/places]
+    paths:
+      - '.github/workflows/place-curated-release.yml'
+      - 'tools/build/place-display-rank.mjs'
+      - 'tools/build/build-place-runtime.mjs'
+      - 'tests/unit/data/place-display-rank.test.mjs'
+      - 'tests/unit/data/place-worker-store.test.mjs'
 
 permissions:
   contents: write
@@ -16,14 +22,17 @@ concurrency:
 jobs:
   generate-verified-places:
     if: github.repository == 'kimjeon-il/Pando' && github.ref == 'refs/heads/work/places'
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
     steps:
-      - name: Checkout places branch
+      - name: Checkout exactly this places revision
         uses: actions/checkout@v4
         with:
-          ref: work/places
+          persist-credentials: true
           fetch-depth: 0
+
+      - name: Prepare exact pinned library archive
+        uses: ./.github/actions/library-data
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -31,41 +40,71 @@ jobs:
           version: 11.19.0
           run_install: false
 
-      - name: Setup Node 22
+      - name: Setup Node from repository pin
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version-file: .nvmrc
           cache: pnpm
 
-      - name: Install checked-in dependencies
-        run: pnpm install --frozen-lockfile
+      - name: Install pinned dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
 
-      - name: Generate approved-only PLAC v3 catalog, shard and manifest
+      - name: Hydrate only reviewed places and archived spatial population records
+        run: |
+          node tools/data/report-paths.mjs reports/places read
+          node tools/data/report-paths.mjs reports/map-analysis/corpus/gazetteer-v1/sources/cities500.source.json read
+          node tools/data/report-paths.mjs reports/map-analysis/corpus/gazetteer-v1/runtime/manifest.json read
+          node tools/data/report-paths.mjs reports/map-analysis/corpus/gazetteer-v1/runtime/records read
+
+      - name: Generate population tiers and neighbourhood weights only
         run: node tools/build/build-place-runtime.mjs
 
-      - name: Verify byte-for-byte reproducibility
-        run: node tools/build/build-place-runtime.mjs --check
+      - name: Verify deterministic generation and approved records
+        run: |
+          node tools/build/build-place-runtime.mjs --check
+          node --input-type=module -e '
+            import fs from "node:fs";
+            import assert from "node:assert/strict";
+            const a=JSON.parse(fs.readFileSync("assets/data/places/manifest.json","utf8"));
+            const p=a.displayRanking;
+            assert.equal(p?.approvedCount,173);
+            assert.equal(Object.keys(p.entries).length,173);
+            assert.deepEqual(p.model.populationTierThresholds,[1000000,500000,200000,100000,50000]);
+            assert.equal(p.entries["1835848"].populationTier,1);
+            assert.equal(p.entries["1835235"].populationTier,1);
+            assert(p.entries["1835848"].priority>p.entries["1835235"].priority);
+            console.log(JSON.stringify({count:p.approvedCount,neighbours:p.neighbourhoodCandidateCount,
+              seoul:p.entries["1835848"],daejeon:p.entries["1835235"]}));
+          '
 
-      - name: Run focused publication and codec tests
-        run: node --test tests/unit/data/place-publication.test.mjs tests/unit/data/place-codec.test.mjs
+      - name: Run focused population, Worker, publication and codec tests
+        run: >-
+          node --test
+          tests/unit/data/place-display-rank.test.mjs
+          tests/unit/data/place-worker-store.test.mjs
+          tests/unit/data/place-publication.test.mjs
+          tests/unit/data/place-codec.test.mjs
 
-      - name: Lint updated release publisher and tests
-        run: pnpm exec eslint tools/build/build-place-runtime.mjs tests/unit/data/place-publication.test.mjs
+      - name: Lint ranking publisher and tests
+        run: >-
+          pnpm exec eslint tools/build/place-display-rank.mjs
+          tools/build/build-place-runtime.mjs
+          tests/unit/data/place-display-rank.test.mjs
+          tests/unit/data/place-worker-store.test.mjs
 
-      - name: Check generated file integrity
-        run: git diff --check
-
-      - name: Commit only generated places assets to work/places
+      - name: Store and pin only completed city data; never merge main
         env:
           PANDOLAB_LIBRARY_WRITE_TOKEN: ${{ secrets.PANDOLAB_LIBRARY_WRITE_TOKEN }}
         run: |
-          if git diff --quiet -- assets/data/places/reviewed-records-v1.json assets/data/places/places-v1.bin assets/data/places/manifest.json; then
-            echo "Place release outputs already match the approved source."
-            exit 0
+          set -euo pipefail
+          test -n "$PANDOLAB_LIBRARY_WRITE_TOKEN"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          node tools/data/library-data.mjs --store-and-stage --push --             assets/data/places/reviewed-records-v1.json             assets/data/places/places-v1.bin             assets/data/places/manifest.json
+          if git diff --cached --quiet; then
+            echo "Curated place release already matches the pinned library."
+          else
+            git diff --cached --check
+            git commit -m "build(places): pin validated population and spatial display rankings [skip ci]"
+            git push origin HEAD:refs/heads/work/places
           fi
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          node tools/data/library-data.mjs --store-and-stage --push -- assets/data/places/reviewed-records-v1.json assets/data/places/places-v1.bin assets/data/places/manifest.json
-          git commit -m 'build(places): publish approved-only city shard and search manifest'
-          # If the remote moved while this job ran, fail safely rather than rewrite it.
-          git push origin 'HEAD:work/places'
