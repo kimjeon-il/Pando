@@ -678,6 +678,7 @@ export function createGpuMapRenderer(deps) {
     let oceanSubstrateBuffer = null;
     let pickProgram = null;
     let terrainDemProgram = null;
+    let terrainPaletteTheme = null;
     let hydroFillProgram = null;
     let hydroLineProgram = null;
     let hydroPickProgram = null;
@@ -1001,6 +1002,8 @@ export function createGpuMapRenderer(deps) {
         geometryRevision: geometryRevisionTracker.committedRevision(), quality: boundaryQuality,
         cacheUrl: transportMessage.type === 'replace' && sharedBoundaryCacheUrls?.[boundaryQuality]
           ? new URL(sharedBoundaryCacheUrls[boundaryQuality], PHYSICAL_DATA_BASE_URL).href : null,
+        ...(transportMessage.type === 'replace' && sharedBoundaryCacheUrls?.[boundaryQuality]
+          ? {externalRuntimeData:globalThis.PANDOLAB_BUILD_META?.externalRuntimeData || null} : {}),
         skipCacheReconcile: transportMessage.type === 'replace' && baselineCache,
       });
     }
@@ -1552,7 +1555,9 @@ export function createGpuMapRenderer(deps) {
         );
         primeProgramLocations(terrainDemProgram, GPU_VIEW_UNIFORM_NAMES);
         primeProgramLocations(terrainDemProgram,
-          ['uTerrain', 'uGeoBounds', 'uUvBounds', 'uPhysicalStyle', 'uDarkTheme', 'uTextureSize', 'uLandPass']);
+          ['uTerrain', 'uGeoBounds', 'uUvBounds', 'uPhysicalStyle', 'uDarkTheme', 'uTextureSize', 'uLandPass',
+            'uTerrainLandColors[0]', 'uTerrainSeaSurface', 'uTerrainSeaDeep']);
+        terrainPaletteTheme = null;
         return true;
       } catch (error) {
         terrainDemProgram = null;
@@ -1658,6 +1663,7 @@ export function createGpuMapRenderer(deps) {
       uniformLocationCache = new WeakMap();
       attributeLocationCache = new WeakMap();
       terrainDemProgram = null;
+      terrainPaletteTheme = null;
       const vertexSource = glVersion === 2 ? vertexShaderSourceWebGl2 : vertexShaderSourceWebGl1;
       fillProgram = createProgram(vertexSource, glVersion === 2 ? fillFragmentSourceWebGl2 : fillFragmentSourceWebGl1);
       const oceanVertex = `${glVersion === 2 ? '#version 300 es\n' : ''}precision highp float;
@@ -3913,7 +3919,16 @@ export function createGpuMapRenderer(deps) {
       gl.uniform4f(cachedUniformLocation(program, 'uUvBounds'), u0, v0, u1, v1);
       gl.uniform1f(cachedUniformLocation(program, 'uPhysicalStyle'),
         state.physicalSettings.terrainStyle === 'physical' ? 1 : 0);
-      gl.uniform1f(cachedUniformLocation(program, 'uDarkTheme'), getSystemTheme() === 'dark' ? 1 : 0);
+      const darkTerrainTheme = getSystemTheme() === 'dark';
+      const paletteTheme = darkTerrainTheme ? 'dark' : 'light';
+      if (terrainPaletteTheme !== paletteTheme) {
+        const palette = globalThis.PandoLabCanvasTerrainDem.paletteForTheme(paletteTheme);
+        gl.uniform3fv(cachedUniformLocation(program, 'uTerrainLandColors[0]'), palette.landColors);
+        gl.uniform3fv(cachedUniformLocation(program, 'uTerrainSeaSurface'), palette.seaSurface);
+        gl.uniform3fv(cachedUniformLocation(program, 'uTerrainSeaDeep'), palette.seaDeep);
+        terrainPaletteTheme = paletteTheme;
+      }
+      gl.uniform1f(cachedUniformLocation(program, 'uDarkTheme'), darkTerrainTheme ? 1 : 0);
       if (dem) {
         gl.uniform2f(cachedUniformLocation(program, 'uTextureSize'), sourceWidth, sourceHeight);
         gl.uniform1f(cachedUniformLocation(program, 'uLandPass'), pass === 'land' ? 1 : 0);
@@ -4507,6 +4522,7 @@ export function createGpuMapRenderer(deps) {
         terrainEnabled:terrainPreparation!==null,
         terrainAssetsSha256:terrainManifest?.assetsSha256 || null,
         terrainExternalSource:globalThis.PANDOLAB_BUILD_META?.terrainExternalSource || null,
+        externalRuntimeData:globalThis.PANDOLAB_BUILD_META?.externalRuntimeData || null,
         terrainDemManifestUrl:terrainPreparation ? String(terrainManifestUrl || TERRAIN_PRIMARY_MANIFEST_URL) : null,
       };
       message.type = 'init';
@@ -5480,7 +5496,7 @@ export function createGpuMapRenderer(deps) {
       terrainSource = source;
       if(sourceChanged){physicalStyleStateRevision++;canvasLastPhysicalStyleSignature='';}
       terrainPreparation?.setManifest(terrainManifest);
-      if(sourceChanged && canvasWorker)postCanvasWorkerMessage({type:'terrain-source',terrainDemManifestUrl:String(manifestUrl),terrainAssetsSha256:manifest?.assetsSha256 || null,terrainExternalSource:globalThis.PANDOLAB_BUILD_META?.terrainExternalSource || null});
+      if(sourceChanged && canvasWorker)postCanvasWorkerMessage({type:'terrain-source',terrainDemManifestUrl:String(manifestUrl),terrainAssetsSha256:manifest?.assetsSha256 || null,terrainExternalSource:globalThis.PANDOLAB_BUILD_META?.terrainExternalSource || null,externalRuntimeData:globalThis.PANDOLAB_BUILD_META?.externalRuntimeData || null});
       if (terrainManifest?.representation === TERRAIN_DEM_FORMAT && gl && !ensureTerrainDemProgram()) {
         activateCanvasFallback('DEM 셰이더 정밀도가 부족합니다.');
       }

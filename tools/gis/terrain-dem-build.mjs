@@ -15,7 +15,15 @@ import {buildNativeDemTintZip} from './terrain-dem-tint.mjs';
 import {encodeDemWebp} from './terrain-dem-webp.mjs';
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
-const version='0.13.3',tileSize=1024;
+const version='0.14.0',tileSize=1024;
+const elevationQuantization=Object.freeze({
+  source:'original ETOPO 2022 float32',method:'roundHalfToEven',sign:'preserve',
+  selection:'source elevation sign and unrounded absolute magnitude; physicalLand remains the independent render mask',
+  land:[{fromMeters:0,toMetersExclusive:256,stepMeters:16},{fromMeters:256,stepMeters:32}],
+  ocean:[{fromMeters:0,toMetersExclusive:256,stepMeters:16},
+    {fromMeters:256,toMetersExclusive:1024,stepMeters:64},{fromMeters:1024,stepMeters:128}],
+  heightDecodeSpacingMeters:1,shadeInput:'original float32 (before quantization)',
+});
 const iceUrl='https://raw.githubusercontent.com/nvkelso/natural-earth-vector/693f11422f4e08d2da4566b854dda53eb7c39fb3/geojson/ne_10m_glaciated_areas.geojson';
 const defaultProfile=Object.freeze({strict:true,tintWidth:4096,tintHeight:2048,
   etopoSha256:'8630abc401cc6bdd30b507a68d3eb9eda5b65f5636f7199e4b1eefd476b5a9e2',
@@ -77,11 +85,13 @@ export async function buildTerrainDemCandidate({etopo,tintZip,ice,countries,outp
       heightDatum:'EGM2008 (EPSG:3855)',sourceCrs:'EPSG:9518',extent:[-180,-90,180,90],registration:'cell-center',
       sourceGridOrigin:[-180,90],sourceResolutionDegrees:[360/metadata.width,180/metadata.height],tileFormat:'lossless WebP RGBA',
       channels:{r:'encoded elevation high byte',g:'encoded elevation low byte',b:'precomputed hillshade',a:'255'},
-      elevation:{encode:'round(meters)+12000',decode:'R*256+G-12000',biasMeters:12000,spacingMeters:1,validEncodedRange:[0,65535]},
+      elevation:{encode:'roundHalfToEven(abs(meters)/step)*step*sign(meters)+12000',decode:'R*256+G-12000',
+        biasMeters:12000,spacingMeters:1,validEncodedRange:[0,65535],quantization:elevationQuantization},
       shade:{azimuthDegrees:315,altitudeDegrees:45,ambient:0.42,diffuse:0.58,polarFallbackDegrees:89.5,quantizationStep:4},
       gutter:1,tileSize:profile.levels[0].tileSize,levels:profile.levels,urlTemplate:`terrain/v${version}/{level}/{column}-{row}.webp`,
       tint:{url:`terrain/v${version}/tint.webp`,width:profile.tintWidth,height:profile.tintHeight,
         sha256:(await hashTerrainFile(tintPath,{signal})).sha256,...tintReport},
+      tileSha256:summary.tileSha256,
       sources:[{url:'https://www.ngdc.noaa.gov/mgg/global/relief/ETOPO2022/data/30s/30s_surface_elev_gtif/ETOPO_2022_v1_30s_N90W180_surface.tif',
         ...source,nodata:metadata.nodata,dtype:metadata.dtype,width:metadata.width,height:metadata.height},
         {url:'https://naturalearth.s3.amazonaws.com/10m_raster/HYP_HR.zip',...tintSource},
@@ -109,6 +119,9 @@ export async function rebuildTerrainDemTint({sourceOutput,tintZip,ice,countries,
   const [archiveHash,iceHash,landHash]=await Promise.all([tintZip,ice,countries].map(path=>hashTerrainFile(path,{signal})));
   if(archiveHash.sha256!==profile.tintSha256||iceHash.sha256!==profile.iceSha256)throw Error('Tint source checksum mismatch');
   const manifest=JSON.parse(await readFile(join(sourceRoot,'manifest.json'),{encoding:'utf8',signal}));
+  // A tint-only copy from v0.13.3 would retain unquantized R/G bytes but falsely
+  // advertise the v0.14.0 quantization contract. Require a complete float32 rebuild.
+  if(version==='0.14.0')throw Error('Terrain v0.14.0 requires original ETOPO float32 regeneration; --reuse-dem is prohibited');
   if(manifest.representation!=='dem-relief-v1'||manifest.version===version||!Array.isArray(manifest.sources))throw Error('Earlier DEM dataset required');
   const originalVersion=manifest.version,sourceAssets=await summarizeTerrainAssets(sourceRoot,manifest.levels,{signal});
   if(sourceAssets.assetsSha256!==manifest.assetsSha256)throw Error('Source DEM dataset checksum mismatch');
@@ -167,6 +180,7 @@ export async function repairTerrainDem({output,etopo,minLevel=0,maxLevel=5}={}, 
     for(const level of manifest.levels)await reconcileDemGutterFiles(output,level,{signal});
     const summary=await summarizeTerrainAssets(output,manifest.levels,{signal}),old=manifest.generation||{};
     delete manifest.generation;manifest.assetsSha256=summary.assetsSha256;
+    if(manifest.version==='0.14.0')manifest.tileSha256=summary.tileSha256;
     await replaceChecked(manifestPath,Buffer.from(JSON.stringify(manifest,null,2)+'\n'),original,signal);
     const priorLevels=previous.levelReports||old.levelReports||[];
     const report={completed:true,totalBytes:summary.reports.reduce((sum,item)=>sum+item.bytes,0)+(await stat(join(output,'tint.webp'))).size,

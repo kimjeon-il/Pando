@@ -24,7 +24,7 @@ export async function hashTerrainFile(path,{signal}={}){
 
 export async function summarizeTerrainAssets(output,levels,{signal}={}){
   signal?.throwIfAborted();if(typeof output!=='string'||!output||!Array.isArray(levels)||!levels.length)throw Error('Explicit DEM output and levels required');
-  const root=resolve(output),digest=terrainAssetDigest(),reports=[],seen=new Set();
+  const root=resolve(output),digest=terrainAssetDigest(),reports=[],seen=new Set(),tileSha256={};
   for(const level of levels){
     if(!Number.isSafeInteger(level?.id)||level.id<0||seen.has(level.id)||
       ![level.rows,level.columns].every(value=>Number.isSafeInteger(value)&&value>0&&value<=10000)||level.rows*level.columns>1000000)
@@ -33,9 +33,10 @@ export async function summarizeTerrainAssets(output,levels,{signal}={}){
     for(let row=0;row<level.rows;row++)for(let column=0;column<level.columns;column++){
       const path=`${level.id}/${column}-${row}.webp`,file=await hashTerrainFile(resolve(root,path),{signal});
       bytes+=file.bytes;maxTileBytes=Math.max(maxTileBytes,file.bytes);digest.add(path,file.sha256);
+      tileSha256[path]=file.sha256;
     }
     reports.push({level:level.id,tileCount:level.rows*level.columns,bytes,maxTileBytes});
   }
   const tint=await hashTerrainFile(resolve(root,'tint.webp'),{signal});
-  return {assetsSha256:digest.finish(tint.sha256),reports};
+  return {assetsSha256:digest.finish(tint.sha256),tileSha256,reports};
 }

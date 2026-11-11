@@ -23,6 +23,7 @@ function canvasFallbackWorkerMain(self) {
     let terrainDemManifestUrl = '';
     let terrainExpectedHash = '';
     let terrainTileRequest = null, fetchTerrainTile = null, terrainExternalSource = null;
+    let externalRuntimeData = null;
     const demTiles = new Map();
     const demRequests = new Map();
     const demQueue = [];
@@ -160,19 +161,43 @@ function canvasFallbackWorkerMain(self) {
       } finally { bitmap.close?.(); }
     }
 
+    function demPlaneBitmap(data, width, height) {
+      const plane = new OffscreenCanvas(width, height);
+      plane.getContext('2d').putImageData(new ImageData(data, width, height), 0, 0);
+      return plane.transferToImageBitmap();
+    }
+
     async function prepareDemBitmap(blob, spec) {
       const pixels = await readRgba(blob);
       if (pixels.width !== spec.pixelWidth + 2 || pixels.height !== spec.pixelHeight + 2)
         throw new Error(`DEM 타일 크기가 올바르지 않습니다: ${spec.key}`);
-      const converted = self.PandoLabCanvasTerrainDem.convertTile({ dem: pixels.data, width: pixels.width, height: pixels.height });
-      const layers = [converted.land, converted.ocean, converted.political];
-      const result = layers.map(data => {
-        const canvas = new OffscreenCanvas(pixels.width, pixels.height);
-        canvas.getContext('2d').putImageData(new ImageData(data, pixels.width, pixels.height), 0, 0);
-        return canvas.transferToImageBitmap();
+      // The decoded RGBA8 DEM is held once per cached tile so switching the
+      // presentation palette never downloads the source tile a second time.
+      const raw = pixels.data, theme = lastRenderMessage?.darkTheme ? 'dark' : 'light';
+      const converted = self.PandoLabCanvasTerrainDem.convertTile({
+        dem: raw, width: pixels.width, height: pixels.height, theme,
       });
-      return { land: result[0], ocean: result[1], political: result[2],
-        bytes: pixels.width * pixels.height * self.PandoLabCanvasTerrainDem.convertedBytesPerPixel };
+      return {
+        land: demPlaneBitmap(converted.land, pixels.width, pixels.height),
+        ocean: demPlaneBitmap(converted.ocean, pixels.width, pixels.height),
+        political: demPlaneBitmap(converted.political, pixels.width, pixels.height),
+        raw, theme, width: pixels.width, height: pixels.height,
+        bytes: pixels.width * pixels.height * (self.PandoLabCanvasTerrainDem.convertedBytesPerPixel + 4),
+      };
+    }
+
+    function applyDemPresentationTheme(tile, theme) {
+      if (tile.theme === theme || !tile.raw) return;
+      const converted = self.PandoLabCanvasTerrainDem.convertTile({
+        dem: tile.raw, width: tile.width, height: tile.height, theme, includePolitical: false,
+      });
+      const land = demPlaneBitmap(converted.land, tile.width, tile.height);
+      const ocean = demPlaneBitmap(converted.ocean, tile.width, tile.height);
+      tile.land.close?.();
+      tile.ocean.close?.();
+      tile.land = land;
+      tile.ocean = ocean;
+      tile.theme = theme;
     }
 
     function requestDemTile(spec, priority = 0) {
@@ -246,12 +271,13 @@ function canvasFallbackWorkerMain(self) {
       try {
         const fetchUrl = new URL(url);
         if (expectedHash) fetchUrl.searchParams.set('v', expectedHash);
-        const response = await fetch(fetchUrl.href, {signal: controller.signal});
-        if (!response.ok) throw new Error(`DEM 매니페스트 HTTP ${response.status}`);
         const validationUrl = new URL('../modules/terrain-manifest.js', self.location.href);
         validationUrl.searchParams.set('v', assetRevision);
         const terrainModule = await import(validationUrl.href);
         const { validateTerrainManifest } = terrainModule;
+        const runtimeFetch = terrainModule.createExternalRuntimeDataFetch({meta:{externalRuntimeData}});
+        const response = await runtimeFetch(fetchUrl.href, {signal: controller.signal});
+        if (!response.ok) throw new Error(`DEM 매니페스트 HTTP ${response.status}`);
         const manifest = validateTerrainManifest(await response.json());
         if (manifest.representation !== 'dem-relief-v1') throw new Error('수치 DEM 매니페스트가 필요합니다.');
         if (expectedHash && manifest.assetsSha256 !== expectedHash) throw new Error('DEM 원본 식별값이 현재 장면과 다릅니다.');
@@ -466,6 +492,7 @@ function canvasFallbackWorkerMain(self) {
           const tile = demTiles.get(spec.key);
           if (!tile) continue;
           tile.lastUsed = performance.now();
+          if (style === 'physical') applyDemPresentationTheme(tile, message.darkTheme ? 'dark' : 'light');
           if (message.projection === 'flat') drawFlatTerrainTile(spec, tile[channel], projection, dpr);
           else yield* drawGlobeTerrainTile(spec, tile[channel], projection, message, dpr, Number(spec.level) === 0);
         }
@@ -473,7 +500,8 @@ function canvasFallbackWorkerMain(self) {
       context.save();
       try {
         context.globalAlpha = 1;
-        context.filter = message.darkTheme ? `brightness(${self.PandoLabCanvasTerrainDem.darkBrightness})` : 'none';
+        context.filter = style === 'political' && message.darkTheme
+          ? `brightness(${self.PandoLabCanvasTerrainDem.darkBrightness})` : 'none';
         if (style === 'political') clipLand();
         clipGlobe();
         if (demLevel) {
@@ -1044,6 +1072,7 @@ function canvasFallbackWorkerMain(self) {
       const message = event.data || {};
       if (message.projectGeneration != null && Number(message.projectGeneration) < projectGeneration) return;
       if (Object.hasOwn(message, 'terrainExternalSource')) terrainExternalSource = message.terrainExternalSource;
+      if (Object.hasOwn(message, 'externalRuntimeData')) externalRuntimeData = message.externalRuntimeData;
       if (message.type === 'init') {
         hasRenderedView = false;
         features = replaceCountryFeatures(message.features || []);

@@ -17,6 +17,14 @@ std::uint32_t u32(const std::vector<Byte>& bytes,std::size_t at){if(at+4>bytes.s
   return std::uint32_t(bytes[at])|(std::uint32_t(bytes[at+1])<<8)|(std::uint32_t(bytes[at+2])<<16)|(std::uint32_t(bytes[at+3])<<24);}
 std::int64_t even(double value){const auto lower=std::floor(value),fraction=value-lower;auto result=static_cast<std::int64_t>(lower);
   if(fraction>0.5||(fraction==0.5&&result%2))++result;return result;}
+// Classify against the original float32 height, not the subsequently rounded sample.
+// Shade is computed from the unmodified heights[] vector earlier in this encoder.
+std::int64_t quantizedMeters(float original){
+  const double magnitude=std::fabs(double(original));
+  const int step=original<0.0f ? (magnitude<256.0?16:magnitude<1024.0?64:128) : (magnitude<256.0?16:32);
+  const auto rounded=even(magnitude/double(step))*step;
+  return original<0.0f?-rounded:rounded;
+}
 int main(){try{
 #ifdef _WIN32
   if(_setmode(_fileno(stdin),_O_BINARY)==-1||_setmode(_fileno(stdout),_O_BINARY)==-1)throw std::runtime_error("Cannot set DEM binary mode");
@@ -50,7 +58,9 @@ int main(){try{
   }
   auto compact=[&](std::size_t index){return Byte(std::min(255,((int(shade[index])+2)/4)*4));};
   for(std::uint32_t y=0;y<height;y++)for(std::uint32_t x=0;x<width;x++){
-    const auto index=std::size_t(y)*width+x;const auto packed=even(heights[index])+12000;Byte tone=compact(index);
+    const auto index=std::size_t(y)*width+x;// Saturate only extreme representable-range sentinels; the ETOPO source
+    // itself remains well within the 16-bit envelope.
+    const auto packed=std::clamp(quantizedMeters(heights[index])+12000,std::int64_t(0),std::int64_t(65535));Byte tone=compact(index);
     const auto world=std::int64_t(north)+y;if(world<0||world>=levelHeight){
       if(levelHeight<=1350){const auto real=world<0?-std::int64_t(north):std::int64_t(levelHeight)-1-north;
         if(real<0||real>=height)throw std::invalid_argument("Missing real polar DEM row");tone=compact(std::size_t(real)*width+x);}

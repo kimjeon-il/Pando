@@ -1,4 +1,4 @@
-export const TERRAIN_DEM_VERSION = '0.13.3';
+export const TERRAIN_DEM_VERSION = '0.14.0';
 export const TERRAIN_DEM_FORMAT = 'dem-relief-v1';
 
 export function terrainTileRequest(spec, manifest, { manifestUrl, dataBaseUrl, externalSource = null } = {}) {
@@ -10,12 +10,12 @@ export function terrainTileRequest(spec, manifest, { manifestUrl, dataBaseUrl, e
   if (!externalSource) return { url: terrainAssetUrl(relative, { manifestUrl, dataBaseUrl, revision: manifest.assetsSha256 }) };
   const revision = externalSource.revision, packaging = manifest.packaging;
   if (!/^[a-f0-9]{40}$/.test(revision || '') || packaging?.sourceRevision !== revision
-      || packaging.sourcePath !== 'terrain/v0.13.3/manifest.json' || manifest.version !== '0.13.3')
+      || packaging.sourcePath !== `terrain/v${manifest.version}/manifest.json` || !/^\d+\.\d+\.\d+$/.test(manifest.version || ''))
     throw new Error('고정 DEM 원본 식별값이 다릅니다.');
   const entry = manifest.tiles?.[key];
   if (!entry || !Number.isSafeInteger(entry.bytes) || entry.bytes < 1 || !/^[a-f0-9]{64}$/.test(entry.sha256 || ''))
     throw new Error(`DEM 타일 무결성 정보가 없습니다: ${key}`);
-  return { url: new URL(`https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/${revision}/terrain/v0.13.3/${key}`),
+  return { url: new URL(`https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/${revision}/terrain/v${manifest.version}/${key}`),
     bytes: entry.bytes, sha256: entry.sha256 };
 }
 
@@ -89,6 +89,20 @@ export function validateTerrainManifest(manifest) {
         || manifest.tint.height < 1 || manifest.tint.width !== manifest.tint.height * 2
         || !manifest.assetsSha256 || !Array.isArray(manifest.sources)) {
       throw new Error('DEM 지형 채널·고도·LOD 계약이 올바르지 않습니다.');
+    }
+  }
+  if (manifest.version === '0.14.0') {
+    const policy = manifest.elevation?.quantization, inventory = manifest.tileSha256;
+    const count = manifest.levels.reduce((sum, level) => sum + level.columns * level.rows, 0);
+    if (!policy || policy.method !== 'roundHalfToEven' || policy.shadeInput !== 'original float32 (before quantization)'
+      || JSON.stringify(policy.land?.map(band => band.stepMeters)) !== '[16,32]'
+      || JSON.stringify(policy.ocean?.map(band => band.stepMeters)) !== '[16,64,128]'
+      || !inventory || typeof inventory !== 'object' || Array.isArray(inventory)
+      || Object.keys(inventory).length !== count
+      || manifest.levels.some(level => Array.from({length:level.rows}, (_,row) =>
+        Array.from({length:level.columns}, (_,column) => inventory[`${level.id}/${column}-${row}.webp`]))
+        .flat().some(hash => !/^[a-f0-9]{64}$/.test(String(hash || ''))))) {
+      throw new Error('DEM v0.14.0 고도 양자화 정책 또는 타일 SHA-256 목록이 올바르지 않습니다.');
     }
   }
   return Object.freeze({ ...manifest, representation: format });

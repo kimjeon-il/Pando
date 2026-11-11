@@ -6,7 +6,7 @@ import {verifyNativeTool} from "../build/native-tool.mjs";
 
 const rootDefault=fileURLToPath(new URL('../../',import.meta.url));
 export const terrainDemCheckSources=Object.freeze(['tools/cpp/terrain-dem-check/CMakeLists.txt','tools/cpp/terrain-dem-check/check.cpp']);
-export async function checkNativeDemTile({tile,reference,left,top,west,shadeStep=4,excludeNorth=false,excludeSouth=false},
+export async function checkNativeDemTile({tile,reference,left,top,west,shadeStep=4,excludeNorth=false,excludeSouth=false,referenceShadeOnly=false},
   {root=rootDefault,directory=resolve(root,'build-native/terrain-dem-check/artifact'),signal}={}){
   signal?.throwIfAborted();const {width,height,data}=tile||{};
   if(![width,height].every(value=>Number.isSafeInteger(value)&&value>=3&&value<=16384)||width*height>16777216||
@@ -17,7 +17,8 @@ export async function checkNativeDemTile({tile,reference,left,top,west,shadeStep
     throw Error('Matching DEM reference tile required');
   for(const [name,value,length] of [['left',left,height*4],['top',top,width*4],['west',west,height*4]])
     if(value!==undefined&&(!(value instanceof Uint8Array)||value.length!==length))throw Error('Invalid DEM '+name+' gutter');
-  const flags=(reference?1:0)|(left?2:0)|(top?4:0)|(west?8:0)|(excludeNorth?16:0)|(excludeSouth?32:0);
+  if(typeof referenceShadeOnly!=='boolean'||(referenceShadeOnly&&!reference))throw Error('Explicit shade-only reference requires a reference tile');
+  const flags=(reference?1:0)|(left?2:0)|(top?4:0)|(west?8:0)|(excludeNorth?16:0)|(excludeSouth?32:0)|(referenceShadeOnly?64:0);
   const header=Buffer.alloc(24);header.write('PDTCHK01');header.writeUInt32LE(width,8);header.writeUInt32LE(height,12);
   header.writeUInt32LE(flags,16);header.writeUInt32LE(shadeStep,20);
   const executable=process.platform==='win32'?'pando-terrain-dem-check.exe':'pando-terrain-dem-check';
@@ -33,9 +34,16 @@ export async function checkNativeDemTile({tile,reference,left,top,west,shadeStep
 
 const samples=new Set(['0,0','21,5','42,10','3,17']);
 function halfEven(value){const lower=Math.floor(value),fraction=value-lower;return lower+(fraction>0.5||(fraction===0.5&&lower%2!==0)?1:0);}
+export function quantizeTerrainMeters(original){
+  if(!Number.isFinite(original))throw new TypeError('Finite source DEM elevation required');
+  const magnitude=Math.abs(original);
+  const step=original<0 ? (magnitude<256?16:magnitude<1024?64:128) : (magnitude<256?16:32);
+  const encoded=Math.sign(original)*halfEven(magnitude/step)*step;
+  return encoded===0 ? 0 : Math.max(-12000,Math.min(53535,encoded));
+}
 function column(tile,x){const output=Buffer.alloc(tile.height*4);for(let y=0;y<tile.height;y++)
   output.set(tile.data.subarray((y*tile.width+x)*4,(y*tile.width+x)*4+4),y*4);return output;}
-export async function verifyTerrainDemLevel({level,readTile,readReference,sourceSample,shadeStep=4},options={}){
+export async function verifyTerrainDemLevel({level,readTile,readReference,sourceSample,shadeStep=4,quantized=false,referenceShadeOnly=false},options={}){
   options.signal?.throwIfAborted();const {id,width,height,columns,rows,tileSize}=level||{};
   if(!Number.isSafeInteger(id)||id<0||![width,height,columns,rows,tileSize].every(value=>Number.isSafeInteger(value)&&value>0)||
     width>1000000||height>1000000||tileSize>16382||columns*rows>1000000||columns!==Math.ceil(width/tileSize)||rows!==Math.ceil(height/tileSize)||
@@ -50,12 +58,12 @@ export async function verifyTerrainDemLevel({level,readTile,readReference,source
       const reference=readReference?await readReference(col,row):undefined;
       if(col===0)westInterior=column(tile,1);
       await checkNativeDemTile({tile,reference,left:previousRight,top:previousRow.get(col),west:col===columns-1?westInterior:undefined,
-        shadeStep,excludeNorth:row===0,excludeSouth:row===rows-1},options);
+        shadeStep,excludeNorth:row===0,excludeSouth:row===rows-1,referenceShadeOnly},options);
       previousRight=column(tile,tile.width-1);nextRow.set(col,Buffer.from(tile.data.subarray((tile.height-1)*tile.width*4)));
       if(id===5&&samples.has(`${col},${row}`)){
         if(typeof sourceSample!=='function')throw Error('DEM original elevation sampler required');
         const source=await sourceSample(col*tileSize,row*tileSize),offset=(tile.width+1)*4;
-        if(!Number.isFinite(source)||tile.data[offset]*256+tile.data[offset+1]-12000!==halfEven(source))
+        if(!Number.isFinite(source)||tile.data[offset]*256+tile.data[offset+1]-12000!==(quantized?quantizeTerrainMeters(source):halfEven(source)))
           throw Error('DEM elevation differs from source');
       }
       const size=tile.encoded.length;total+=size;maximum=Math.max(maximum,size);

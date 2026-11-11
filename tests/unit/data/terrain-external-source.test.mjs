@@ -30,3 +30,18 @@ test('tile download rejects HTTP failures, wrong lengths, and corrupt bytes befo
   await assert.rejects(fetchTerrainTile(request,{fetchFn:response(body.subarray(1))}), /크기/);
   await assert.rejects(fetchTerrainTile(request,{fetchFn:response(Buffer.alloc(body.length))}), /해시/);
 });
+
+
+test('v0.14.0 uses the new fixed source release without a second tile format', () => {
+  const nextRevision='0866eb0aebb35d1355892b808de331b30c5fe52b';
+  const next = {
+    ...manifest,version:'0.14.0',
+    urlTemplate:'terrain/v0.14.0/{level}/{column}-{row}.webp',
+    packaging:{sourceRevision:nextRevision,sourcePath:'terrain/v0.14.0/manifest.json'},
+  };
+  const request=terrainTileRequest(spec,next,{externalSource:{revision:nextRevision}});
+  assert.equal(request.url.href,
+    'https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/0866eb0aebb35d1355892b808de331b30c5fe52b/terrain/v0.14.0/5/13-4.webp');
+  assert.deepEqual([request.bytes,request.sha256],[body.length,sha256]);
+  assert.throws(()=>terrainTileRequest(spec,{...next,packaging:{...next.packaging,sourcePath:'terrain/v0.13.3/manifest.json'}},{externalSource:{revision:nextRevision}}));
+});
