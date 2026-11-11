@@ -1,6 +1,7 @@
 import {builtinCountryAssets} from './builtin-country-files.js';
 import {regionalLandLayout} from './physical-land-patch.js';
 import {preparedMeshDeltaLayout} from './prepared-mesh-delta.js';
+import {isPublishedPreparedMeshSpec} from './prepared-mesh-publication.js';
 import {MAP_PROJECT_ROLES,validateMapProjectManifest} from './map-project-manifest.js';
 
 /** All independently source-verified name receipts that belong with a Hydro release.
@@ -24,7 +25,8 @@ function hydroSourceReceiptFiles(manifest){
 }
 
 
-export function collectRuntimeDataAssets({availablePaths,readManifest,entryPaths=[],projectManifest=null,verifyAsset=()=>{}}){
+export function collectRuntimeDataAssets({availablePaths,readManifest,entryPaths=[],projectManifest=null,
+  preparedMeshesCurrent=true,verifyAsset=()=>{}}){
  const available=new Set(availablePaths),selected=new Set();
  const include=(path,spec)=>{
   if(typeof path!=='string'||!path.startsWith('assets/data/')||!/^[-A-Za-z0-9_./]+$/.test(path)||path.split('/').some(part=>!part||part==='.'||part==='..'))throw Error('Invalid runtime data dependency: '+path);
@@ -78,7 +80,11 @@ export function collectRuntimeDataAssets({availablePaths,readManifest,entryPaths
       for(const item of builtinCountryAssets(manifest))dataAsset(item.file,base,item);
     }
     else if(role==='preparedMeshes'){
-      for(const item of Object.values(manifest.meshes))dataAsset(item.url,base,item);
+      // Immutable source catalog remains published. Optional accelerator packets
+      // outside the bounded Viewer subset are reconstructed from canonical geometry.
+      if(!project||preparedMeshesCurrent)
+        for(const item of Object.values(manifest.meshes))
+          if(!project||isPublishedPreparedMeshSpec(item))dataAsset(item.url,base,item);
     }else if(role==='rivers'||role==='lakes'){
       dataAsset(manifest.container.url,base,manifest.container);
       for(const item of [manifest.index,manifest.metadata?.core,manifest.metadata?.detail,...manifest.shards])if(item?.url)dataAsset(item.url,base,item);

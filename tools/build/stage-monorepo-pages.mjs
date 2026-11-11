@@ -105,7 +105,23 @@ export async function stageWebPages(rootInput, stageInput, manifestInput, { skip
       throw new Error('Pinned world ' + role + ' failed mesh admission', { cause });
     }
   }
-  const total=files.reduce((n,f)=>n+f.bytes,0);if(total>LIMIT_BYTES)throw Error('Pages site exceeds size limit: '+total);
+  const total=files.reduce((n,f)=>n+f.bytes,0);
+  if(total>LIMIT_BYTES){
+    // A capacity failure must identify its actual published asset owners;
+    // never raise the limit or silently drop immutable project resources.
+    const category=new Map();
+    for(const file of files){
+      const segments=file.path.split('/');
+      const owner=file.path.startsWith('assets/data/')
+        ? segments.slice(0,4).join('/') : segments.slice(0,2).join('/');
+      category.set(owner,(category.get(owner)||0)+file.bytes);
+    }
+    const largest=[...files].sort((a,b)=>b.bytes-a.bytes).slice(0,12)
+      .map(({path,bytes})=>({path,bytes}));
+    throw Error('Pages site exceeds size limit: '+total+
+      '; categories='+JSON.stringify([...category].sort((a,b)=>b[1]-a[1]))+
+      '; largest='+JSON.stringify(largest));
+  }
   mkdirSync(stage,{recursive:true});
   for(const file of files){const output=resolve(stage,file.path);if(!within(stage,output))throw Error('Invalid Pages output');mkdirSync(dirname(output),{recursive:true});writeFileSync(output,payload.get(file.path));if(hash('sha256',readFileSync(output))!==file.sha256)throw Error('Staged copy mismatch');}
   const evidence={schema:'pando-web-pages-staging',productMode:'viewer',projectId:snapshot.buildMeta.mapProject.projectId,sourceCommit,frontendInputSha256:snapshot.sourceSha256,metadataCheck:skipChecks?'skipped':'passed',fileCount:files.length,dataRepository:library.repository,dataCommit:library.revision,bytes:total,limitBytes:LIMIT_BYTES,excludedNativeFiles:all.filter(f=>f.path.startsWith('native/')).length,excludedSharedFiles:all.filter(f=>f.path.startsWith('shared/')).length,excludedAppFiles:all.filter(f=>f.path.startsWith('apps/')).length,files};

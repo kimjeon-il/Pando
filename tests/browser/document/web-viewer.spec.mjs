@@ -44,13 +44,13 @@ test(`existing UI loads, searches and navigates without document writes at ${vie
   await closeViewingDisplay(page);
   await page.locator('#timelineDateButton').click();
   await page.locator('#timelineViewUnit').selectOption('month');
-  await page.locator('#timelineYearInput').fill('-1');
+  await page.locator('#timelineYearInput').fill('2025');
   await page.locator('#timelineMonthInput').selectOption('12');
   await page.locator('#timelineYearInput').press('Enter');
-  await expect(page.locator('#timelineDateButtonText')).toHaveText('기원전 1년 12월');
+  await expect(page.locator('#timelineDateButtonText')).toHaveText('2025년 12월');
   await page.locator('#timelineDateButton').click();
   await page.locator('#timelineNextMonth').click();
-  await expect(page.locator('#timelineDateButtonText')).toHaveText('1년 1월');
+  await expect(page.locator('#timelineDateButtonText')).toHaveText('2026년 1월');
   await page.keyboard.press('Escape');
   await page.keyboard.press('Control+z');
   await page.keyboard.press('Delete');
@@ -311,7 +311,7 @@ for (const { viewport, hasTouch } of cases) {
 featureTest.describe("viewer-globe-only", () => {
   const {  expect, test  } = __suiteDependency1;
 test('web keeps its globe through bounded file open, search, reset and mobile navigation',async({page})=>{
-  const {createViewerProjectPackage}=await import(process.env.PANDOLAB_TEST_VIEWER_FIXTURE || '../fixtures/viewer-project-package.mjs');
+  const {createViewerProjectPackage}=await import(process.env.PANDOLAB_TEST_VIEWER_FIXTURE || '../../fixtures/viewer-project-package.mjs');
   const fixture=await createViewerProjectPackage('지구본 범위 검사');
   const errors=[];page.on('pageerror',error=>errors.push(error.message));
   await page.route('**/modules/viewer-map.js*',async route=>{

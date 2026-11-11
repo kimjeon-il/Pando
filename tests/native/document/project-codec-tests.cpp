@@ -67,6 +67,14 @@ int main() {
     assert(document.units.size()==4);
     assert(document.documentId==codecjson::parse(bytes).object.at("documentId").string);
     Project project;project.replace(document);
+    // Current v14 export canonicalizes an omitted identity to explicit null.
+    const auto legacySaved=codecjson::parse(projectcodec::encodeWeb(project.snapshot(),ports));
+    assert(legacySaved.object.at("mapProjectIdentity").kind==codecjson::Value::Null);
+    auto explicitNull=fixtureRoot;
+    explicitNull.object["mapProjectIdentity"]=codecjson::Value{};
+    Project nullableProject;nullableProject.replace(projectcodec::decodeWeb(explicitNull.encode(),ports));
+    const auto nullableSaved=codecjson::parse(projectcodec::encodeWeb(nullableProject.snapshot(),ports));
+    assert(nullableSaved.object.count("mapProjectIdentity")&&nullableSaved.object.at("mapProjectIdentity").kind==codecjson::Value::Null);
     const auto encoded=projectcodec::encodeWeb(project.snapshot(),ports);
     const auto restored=projectcodec::decodeWeb(encoded,ports);
     assert(semanticallyEqual(document,restored));

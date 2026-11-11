@@ -28,8 +28,9 @@ const polygonPreparation = meshCoreReady.then(() => Promise.all([
   import(`../../data/stored-asset-loader.js?v=${encodeURIComponent(assetRevision)}`),
   import(`../../runtime/worker-asset-url.js?v=${encodeURIComponent(assetRevision)}`),
   import(`../../data/map-project-runtime.js?v=${encodeURIComponent(assetRevision)}`),
+  import(`../../data/prepared-mesh-publication.js?v=${encodeURIComponent(assetRevision)}`),
 ])).then(async ([{ createPreparedPolygonMeshStore }, { createStoredAssetLoader },
-  { runtimeDataAssetUrl, workerBuildMeta },{mapProjectCatalogSpec}]) => {
+  { runtimeDataAssetUrl, workerBuildMeta },{mapProjectCatalogSpec},{publishedPreparedMeshManifest}]) => {
   const engine = self.PandoLabGpuMeshCore;
   const meta = workerBuildMeta(self.location.href, globalThis.PANDOLAB_BUILD_META);
   const spec=mapProjectCatalogSpec(meta,'preparedMeshes');
@@ -62,7 +63,7 @@ const polygonPreparation = meshCoreReady.then(() => Promise.all([
       // C++/WASM engine instead, keeping source-byte integrity checks intact.
       if (manifest.algorithmVersion !== engine.MESH_ALGORITHM_REVISION
         || manifest.maxEdgeDegrees !== engine.MAX_RENDER_EDGE_DEGREES) return null;
-      return manifest;
+      return publishedPreparedMeshManifest(manifest);
     },
     loadAsset: async asset => (await loadAsset(asset, 'mesh', asset.sha256, 'Prepared polygon mesh', buffer => buffer)).value,
   });
