@@ -4,6 +4,7 @@ import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {buildFrontendSnapshot} from './lib/frontend-build.mjs';
 import { isEditorOnlyAsset } from './lib/product-assets.mjs';
+import { mapProjectResourcePath } from '../src/data/map-project-manifest.js';
 
 const scriptsDirectory = resolve(fileURLToPath(new URL('.', import.meta.url)));
 const projectRoot = resolve(scriptsDirectory, '..');
@@ -72,28 +73,32 @@ if (existsSync(resolve(projectRoot, bundlePath))) {
   }
 }
 
-// Generated preparation metadata is an integrity contract, not merely a version label.
-// A stale size or checksum disables fixed-mesh loading and large polygon editing.
-const preparedPath = 'assets/data/prepared-polygons/generated/v2/manifest.json';
-expect(existsSync(resolve(projectRoot, preparedPath)), `Prepared polygon manifest is missing: ${preparedPath}`);
-if (existsSync(resolve(projectRoot, preparedPath))) {
-  try {
-    const bytes = readFileSync(resolve(projectRoot, preparedPath));
-    const manifest = JSON.parse(bytes.toString('utf8'));
-    const expected = {
-      url: preparedPath,
-      encoding: 'identity',
-      compressedBytes: bytes.length,
-      decodedBytes: bytes.length,
-      sha256: createHash('sha256').update(bytes).digest('hex'),
-      algorithmSourceSha256: manifest.algorithmSourceSha256,
-    };
-    for (const [key, value] of Object.entries(expected)) {
-      expect(buildMeta?.preparedPolygonMeshes?.[key] === value,
-        `build-meta.js의 preparedPolygonMeshes.${key}가 현재 매니페스트와 다릅니다.`);
+// The selected project owns the prepared-mesh catalog receipt. Older global
+// preparedPolygonMeshes metadata was retired in favor of projectCatalogs.
+const preparedPath = buildMeta?.mapProject
+  ? mapProjectResourcePath(buildMeta.mapProject, 'preparedMeshes') : null;
+expect(!!preparedPath, '프로젝트별 준비 메시 카탈로그 경로가 없습니다.');
+if (preparedPath) {
+  expect(existsSync(resolve(projectRoot, preparedPath)), `Prepared polygon manifest is missing: ${preparedPath}`);
+  if (existsSync(resolve(projectRoot, preparedPath))) {
+    try {
+      const bytes = readFileSync(resolve(projectRoot, preparedPath));
+      const manifest = JSON.parse(bytes.toString('utf8'));
+      const receipt = buildMeta?.projectCatalogs?.preparedMeshes;
+      expect(receipt?.catalog === preparedPath,
+        'build-meta.js의 준비 메시 카탈로그 경로가 프로젝트 선언과 다릅니다.');
+      expect(receipt?.bytes === bytes.length,
+        'build-meta.js의 준비 메시 카탈로그 크기가 실제 파일과 다릅니다.');
+      expect(receipt?.sha256 === createHash('sha256').update(bytes).digest('hex'),
+        'build-meta.js의 준비 메시 카탈로그 해시가 실제 파일과 다릅니다.');
+      expect(typeof receipt?.current === 'boolean',
+        '준비 메시의 현재 원본 적합 여부를 명시하지 않았습니다.');
+      expect(manifest.schema === 'pandolab-prepared-polygon-meshes'
+        && manifest.schemaVersion === 2 && /^[a-f0-9]{64}$/.test(manifest.algorithmSourceSha256 || ''),
+        'Prepared polygon metadata is missing a valid algorithm source receipt.');
+    } catch (error) {
+      failures.push(`Prepared polygon metadata validation failed: ${error.message}`);
     }
-  } catch (error) {
-    failures.push(`Prepared polygon metadata validation failed: ${error.message}`);
   }
 }
 
