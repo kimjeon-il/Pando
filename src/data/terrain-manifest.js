@@ -60,5 +60,19 @@ export function validateTerrainManifest(manifest) {
       throw new Error('DEM 지형 채널·고도·LOD 계약이 올바르지 않습니다.');
     }
   }
+  if (manifest.version === '0.14.0') {
+    const policy = manifest.elevation?.quantization, inventory = manifest.tileSha256;
+    const count = manifest.levels.reduce((sum, level) => sum + level.columns * level.rows, 0);
+    if (!policy || policy.method !== 'roundHalfToEven' || policy.shadeInput !== 'original float32 (before quantization)'
+      || JSON.stringify(policy.land?.map(band => band.stepMeters)) !== '[16,32]'
+      || JSON.stringify(policy.ocean?.map(band => band.stepMeters)) !== '[16,64,128]'
+      || !inventory || typeof inventory !== 'object' || Array.isArray(inventory)
+      || Object.keys(inventory).length !== count
+      || manifest.levels.some(level => Array.from({length:level.rows}, (_,row) =>
+        Array.from({length:level.columns}, (_,column) => inventory[`${level.id}/${column}-${row}.webp`]))
+        .flat().some(hash => !/^[a-f0-9]{64}$/.test(String(hash || ''))))) {
+      throw new Error('DEM v0.14.0 고도 양자화 정책 또는 타일 SHA-256 목록이 올바르지 않습니다.');
+    }
+  }
   return Object.freeze({ ...manifest, representation: format });
 }
