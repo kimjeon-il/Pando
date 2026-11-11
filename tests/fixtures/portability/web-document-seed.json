@@ -4,6 +4,7 @@
   "version": "0.34.0",
   "savedAt": "2026-10-04T00:00:00.000Z",
   "baseDataset": "external-territorial-entities",
+  "mapProjectIdentity": null,
   "landObjectModel": {
     "schemaVersion": 2,
     "coastlineAuthority": "territorialEntities",

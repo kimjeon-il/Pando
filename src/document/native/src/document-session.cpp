@@ -631,12 +631,6 @@ std::string DocumentSession::admitGeometryResources(const std::vector<std::pair<
 bool DocumentSession::setTimelineCursor(const std::string& month,std::uint32_t expectedEpoch,ResolvedWorld* resolvedForResponse) {
     requireLoaded();if(expectedEpoch!=epoch_)throw std::invalid_argument("STALE_REVISION: session epoch changed");
     if(epoch_==std::numeric_limits<std::uint32_t>::max())throw std::overflow_error("CORE_SESSION_EPOCH_OVERFLOW");
-    // Cursor navigation has a different error contract from read-only world
-    // queries. Validate before resolution without altering resolver semantics.
-    bool canonicalMonth=false;
-    try {const auto parsed=parseTemporal(month);canonicalMonth=parsed.precision=="month"&&parsed.canonical==month;}
-    catch(const std::exception&) {}
-    if(!canonicalMonth)throw std::invalid_argument("INVALID_TIMELINE_CURSOR: canonical month required");
     // Resolve exactly once. The same temporal result prunes selection, builds
     // the static view and forms the Worker response at the new session epoch.
     const auto world=project_.resolveWorld(month);auto nextSelection=selection_;

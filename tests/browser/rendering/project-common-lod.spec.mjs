@@ -101,8 +101,10 @@ for (const [queryBackend, expectedBackend] of backends) {
     try {
       const url = new URL(`?debug=1&renderer=${queryBackend}`, process.env.PANDOLAB_TEST_SITE_URL || `${baseURL}/`);
       await openReadyViewer(page, { url: url.href, timeout: 120_000 });
-      await setCamera(page, 'flat', 1);
-      const initial = await acceptedLod(page, expectedBackend, 'flat', 1);
+      // The public Viewer has an immutable globe projection. Exercise the full
+      // 1-32x LOD sweep here; flat projection belongs to Editor integration.
+      await setCamera(page, 'globe', 1);
+      const initial = await acceptedLod(page, expectedBackend, 'globe', 1);
       expect(initial.stats.patchWorkerJobs?.displayLod?.requests).toBeGreaterThan(0);
       expect(initial.stats.screenLodPreparedCount).toBeGreaterThan(0);
       expect(initial.boundary.revision).toContain(`display-interaction:lod:${initial.stats.screenLodTargetKey}:`);
@@ -113,7 +115,7 @@ for (const [queryBackend, expectedBackend] of backends) {
       const firstImage = await canvasEvidence(page, info, `${queryBackend}-world-1`);
       const documentId = await page.evaluate(() => globalThis.__PANDOLAB_VIEWER__.documentSnapshot().documentId);
 
-      for (const projection of ['flat', 'globe']) {
+      for (const projection of ['globe']) {
         const keys = new Set();
         for (const zoom of zooms) {
           await setCamera(page, projection, zoom);
@@ -176,8 +178,8 @@ for (const [queryBackend, expectedBackend] of backends) {
         observations.push({ stage: 'context-restored', ...recovered });
       }
       await page.setViewportSize({ width: 1280, height: 800 });
-      await setCamera(page, 'flat', 32);
-      await acceptedLod(page, expectedBackend, 'flat', 32);
+      await setCamera(page, 'globe', 32);
+      await acceptedLod(page, expectedBackend, 'globe', 32);
       const finalImage = await canvasEvidence(page, info, `${queryBackend}-world-32`);
       expect(finalImage.sha256).not.toBe(firstImage.sha256);
       expect(await page.evaluate(() => globalThis.__PANDOLAB_VIEWER__.documentSnapshot().documentId)).toBe(documentId);
@@ -199,12 +201,12 @@ test('project-common-lod dated frame commits after an accepted LOD',async({page,
   const errors=[];page.on('pageerror',error=>errors.push(error.message));
   try {
     await openReadyViewer(page,{url:baseURL+'/?debug=1&renderer='+queryBackend,timeout:120000});
-    await setCamera(page,'flat',4.5);
-    await acceptedLod(page,expectedBackend,'flat',4.5);
+    await setCamera(page,'globe',4.5);
+    await acceptedLod(page,expectedBackend,'globe',4.5);
     const before=await snapshot(page);
     await page.locator('#timelinePreviousYear').click();
     await expect.poll(async()=>(await snapshot(page)).month).not.toBe(before.month);
-    await acceptedLod(page,expectedBackend,'flat',4.5);
+    await acceptedLod(page,expectedBackend,'globe',4.5);
   } finally {
     await writeFile(info.outputPath('date-state.json'),JSON.stringify({...(await snapshot(page)),errors},null,2));
   }
