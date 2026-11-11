@@ -491,8 +491,9 @@ void validateHeader(const V& header,const ProjectDocument&) {
     for(const auto* key:{"version","savedAt","baseDataset"})(void)str(field(header,key));
     require(field(header,"sourceInfo").kind==V::Null||field(header,"sourceInfo").kind==V::Object,"INVALID_SOURCE_INFO");
     require(field(header,"physicalSourceInfo").kind==V::Object,"INVALID_PHYSICAL_SETTINGS");
-    const auto& identity=field(header,"mapProjectIdentity");
-    if(identity.kind!=V::Null) {
+    const auto identityIt=header.object.find("mapProjectIdentity");
+    if(identityIt!=header.object.end()&&identityIt->second.kind!=V::Null) {
+        const auto& identity=identityIt->second;
         require(identity.kind==V::Object&&identity.object.size()==3,
                 "INVALID_MAP_PROJECT_IDENTITY: expected three fields");
         const auto id=str(field(identity,"projectId"));
@@ -782,8 +783,8 @@ ProjectDocument readWebDocumentValue(const V& root,const PlatformPorts& ports,bo
     for(const auto* key:{"defaultView","layerVisibility","itemVisibility"})require(!root.object.count(key),"PL-SCHEMA-FIELD: viewing state is device-only");
     unknown(d,10,root,"",{"format","schemaVersion","version","savedAt","baseDataset","landObjectModel","territorialModel","distributionModel","sourceInfo","physicalSourceInfo","documentId","territorialEntities","timelineRecords","geometries","geometryResources","labels","hydroEdits","genericFeatures","distributionLayers","distributionEntries","labelSettings","distributionSettings","layerPresentation","projectSetup","mapProjectIdentity"});
     auto header=V::obj();for(const auto& [key,value]:currentWebHeader().object){
-        if(key=="mapProjectIdentity"&&!root.object.count(key))header.object[key]=V{};
-        else header.object[key]=field(root,key);
+        if(key=="mapProjectIdentity"&&!root.object.count(key))continue;
+        header.object[key]=field(root,key);
     }validateHeader(header,d);d.exchangeMetadata=header.encode();
     d.documentId=str(field(root,"documentId"));require(!d.documentId.empty(),"INVALID_DOCUMENT_ID");
     for(const auto& row:array(field(root,"territorialEntities")))readWebTerritorialIdentity(row,d,ports);
@@ -991,7 +992,11 @@ codecjson::Value webContentValue(const ProjectSnapshot& snapshot,const ObjectRef
 }
 namespace {
 V webSnapshotValue(const ProjectDocument& d,const WebStorageContext& context) {
-    auto root=currentWebHeader();for(const auto& [key,value]:jsonObject(d.exchangeMetadata).object)root.object[key]=value;
+    const auto savedHeader=jsonObject(d.exchangeMetadata);
+    auto root=currentWebHeader();for(const auto& [key,value]:savedHeader.object)root.object[key]=value;
+    // Optional project identity is absent in legacy v14 input. Preserve that
+    // omission on round trip rather than manufacturing a new null field.
+    if(!savedHeader.object.count("mapProjectIdentity"))root.object.erase("mapProjectIdentity");
     if(context.version)root.object["version"]=V::str(*context.version);if(context.savedAt)root.object["savedAt"]=V::str(*context.savedAt);
     validateHeader(root,d);root.object["format"]=V::str(context.format);root.object["schemaVersion"]=V::num(ProjectVersion);root.object["documentId"]=V::str(d.documentId);
     V units=V::arr(),archive=V::arr(),labels=V::arr(),hydro=V::arr(),generic=V::arr(),layers=V::arr(),entries=V::arr();

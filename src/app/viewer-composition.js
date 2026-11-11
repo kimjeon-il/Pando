@@ -348,8 +348,15 @@ export async function composeViewer({ productMode, meta }) {
   });
   disposables.push(projectClock);
   const openUserProject=async(reader,options)=>{
-    projectClock.cancelPending();
-    return open(reader,options);
+    const finish=projectClock.beginExternalOpen();
+    try {
+      const accepted=await open(reader,options);
+      finish(accepted);
+      return accepted;
+    } catch(error) {
+      finish(false);
+      throw error;
+    }
   };
   const fileElements={projectOpen:get('openProjectBtn'),projectInput:get('projectFileInput')};
   const files=createFileController({productMode,elements:fileElements,fileAccess:createBrowserFileAccess({productMode,elements:fileElements,window,document}),projectDomain,openProject:openUserProject,reportOperationError:report,window,document});

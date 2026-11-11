@@ -119,7 +119,9 @@ export function createProjectSession({productMode='editor',readOnly=productMode=
       applySnapshot: snapshot => {
         const projection = snapshot.projection || state.projection;
         const view = { ...state.view, ...snapshot.view };
-        const targetProjection = productMode === 'viewer' ? projection : productPolicy.projection;
+        // Both products have one immutable admitted projection. A restored
+        // camera may carry an old kind, but cannot switch the live product.
+        const targetProjection = productPolicy.projection;
         productPolicy.assertProjection(targetProjection);
         state.view = projection !== targetProjection
           ? dependencies.mapNavigation.reprojectView(view, projection, targetProjection)

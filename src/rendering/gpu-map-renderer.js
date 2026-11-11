@@ -503,8 +503,8 @@ export function createGpuMapRenderer(deps) {
           && !projectRenderBlocked && !!renderScene});
       const lodKey=ensureCountryDisplayLod({cssScale});
       const accepted=meshVariants.get('lod');
-      if(deps.lodPolicy && (!lodKey || accepted?.lodKey!==lodKey))
-        surfacePresentation=resolveMapSurfacePresentation({canonicalReady:false});
+      // Display-only LOD preparation must never suppress the already accepted
+      // canonical frame. Publish its derivative only after it is ready.
       const geometryQuality=surfacePresentation.geometryQuality==='canonical'
         && accepted?.lodKey===lodKey && !!lodKey ? 'lod' : surfacePresentation.geometryQuality;
       if(geometryQuality!=='pending' && (geometryQuality!==activeMeshQuality || meshVariants.get(geometryQuality)?.mesh!==mesh)) {
@@ -5619,6 +5619,7 @@ export function createGpuMapRenderer(deps) {
         effectivePixelRatio,
         devicePixelRatio: Math.max(1, Number(window.devicePixelRatio || 1)),
         meshQuality: surfacePresentation.quality,
+        surfacePresentation,
         activeMeshQuality,
         screenLodBucket: screenLodBucket?.key || null,
         screenLodSourceKey: screenLodSourceKey || null,

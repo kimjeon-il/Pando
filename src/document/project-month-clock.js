@@ -14,7 +14,9 @@ export function createProjectMonthClock({
     ||typeof initialAutomatic!=='boolean'||typeof coalesceRequests!=='boolean')
     throw new TypeError('Invalid project timeline follow policy');
   let automatic=initialAutomatic,committed=null,pendingMonth=null,pendingResult=null;
-  let request=0,disposed=false,timer;
+  let request=0,disposed=false,timer,externalOpenToken=0,externalOpenSuspended=false;
+  const clearPending=()=>{request++;pendingMonth=null;pendingResult=null;};
+  const resumeExternalOpen=()=>{externalOpenToken++;externalOpenSuspended=false;};
   const isMonth=value=>parseTemporal(value,{nullable:false}).precision==='month';
   async function change(month,mode){
     if(!isMonth(month))throw new TypeError('A query month is required');
@@ -48,7 +50,7 @@ export function createProjectMonthClock({
     onFollowChange(value,{mode});
   };
   function refresh(){
-    if(!automatic||disposed||!canFollow())return Promise.resolve(false);
+    if(!automatic||externalOpenSuspended||disposed||!canFollow())return Promise.resolve(false);
     const month=deviceCurrentMonth(now());
     return month===pendingMonth?pendingResult||Promise.resolve(false)
       :month===committed?Promise.resolve(false):change(month,'follow');
@@ -67,12 +69,22 @@ export function createProjectMonthClock({
   schedule();
   return Object.freeze({
     month:()=>committed,
-    isAutomatic:()=>automatic,
+    isAutomatic:()=>automatic&&!externalOpenSuspended,
     initialize:()=>change(deviceCurrentMonth(now()),'startup'),
-    followNow:()=>{setFollow(true,'follow');return change(deviceCurrentMonth(now()),'follow');},
-    selectMonth:month=>{setFollow(false,'manual');return change(month,'manual');},
+    followNow:()=>{resumeExternalOpen();setFollow(true,'follow');return change(deviceCurrentMonth(now()),'follow');},
+    selectMonth:month=>{resumeExternalOpen();setFollow(false,'manual');return change(month,'manual');},
     refresh,
-    cancelPending:()=>{request++;pendingMonth=null;pendingResult=null;},
+    cancelPending:clearPending,
+    // A pending user-file read disables calendar follow immediately, without
+    // changing the saved default-world preference. Rejected opens restore it.
+    beginExternalOpen:()=>{
+      const token=++externalOpenToken;
+      externalOpenSuspended=true;
+      clearPending();
+      return accepted=>{
+        if(!disposed&&token===externalOpenToken&&accepted!==true)externalOpenSuspended=false;
+      };
+    },
     dispose:()=>{
       disposed=true;request++;pendingResult=null;
       window?.clearTimeout(timer);
