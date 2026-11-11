@@ -148,12 +148,12 @@ try{
   // Capture synchronous API-entry cost. Suppression is limited to the ablation samples.
   await page.addInitScript(()=>{
     const probe=globalThis.__PANDO_GL_PROBE__={active:false,skipInstanced:false,perMethod:{},
-      start(skip=false){this.perMethod={};this.skipInstanced=skip;this.active=true;},
-      finish(){this.active=false;this.skipInstanced=false;return JSON.parse(JSON.stringify(this.perMethod));}};
+      start(skip=false){this.perMethod={};this.slow=[];this.skipInstanced=skip;this.active=true;},
+      finish(){this.active=false;this.skipInstanced=false;return JSON.parse(JSON.stringify({methods:this.perMethod,slow:this.slow||[]}));}};
     for(const Ctor of [globalThis.WebGLRenderingContext,globalThis.WebGL2RenderingContext]){
       if(!Ctor?.prototype)continue;
       for(const name of ['drawElements','drawArrays','drawArraysInstanced','drawElementsInstanced',
-        'readPixels','getParameter','getError','checkFramebufferStatus','clear','flush']){
+        'isBuffer','readPixels','getParameter','getError','checkFramebufferStatus','clear','flush']){
         const desc=Object.getOwnPropertyDescriptor(Ctor.prototype,name);
         if(typeof desc?.value!=='function'||!desc.configurable)continue;
         Object.defineProperty(Ctor.prototype,name,{...desc,value:function(...args){
@@ -166,6 +166,11 @@ try{
             const row=probe.perMethod[name]||(probe.perMethod[name]={calls:0,executed:0,skipped:0,totalMs:0,maxMs:0});
             row.calls++;if(suppress)row.skipped++;else row.executed++;
             row.totalMs+=elapsed;row.maxMs=Math.max(row.maxMs,elapsed);
+            if(elapsed>=100&&(name==='getParameter'||name==='isBuffer')&&probe.slow.length<80){
+              probe.slow.push({method:name,elapsedMs:Math.round(elapsed*10)/10,
+                parameter:name==='getParameter'?Number(args[0]):null,
+                stack:new Error('slow-webgl-sync').stack?.split('\n').slice(1,9).join('\n')||null});
+            }
           }
         }});
       }
@@ -192,7 +197,7 @@ try{
   report.phases.push(await sample('zoom32-europe',()=>zoomInto(10)));
   // At the SAME 32x globe viewport, alternate normal and skipped instanced
   // draw calls across four small camera rotations that invalidate the globe cache.
-  for(const [label,lon,omit] of [
+  if(!process.argv.includes('--sync-trace'))for(const [label,lon,omit] of [
     ['same-area-normal-1',10.005,false],['same-area-no-instanced-1',10.010,true],
     ['same-area-normal-2',10.015,false],['same-area-no-instanced-2',10.020,true]
   ]){
