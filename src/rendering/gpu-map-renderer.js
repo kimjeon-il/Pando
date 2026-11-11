@@ -4833,7 +4833,9 @@ export function createGpuMapRenderer(deps) {
         failCanvasWorker(reason);
         return true;
       }
-      const ticket = gpuRecovery.beginFallback(reason, recoveryTicket);
+      const reserved = recoveryTicket || (forceInline ? gpuRecovery.fallbackTicket() : null);
+      if (forceInline && reserved && !gpuRecovery.retryFallback(reserved)) return false;
+      const ticket = gpuRecovery.beginFallback(reason, reserved);
       if (!ticket) return false;
       try {
       cancelGpuRecoveryPresentation();
@@ -4939,6 +4941,9 @@ export function createGpuMapRenderer(deps) {
           window.__PANDOLAB_GPU_METRICS__ = getStats();
           gpuRecovery.fallbackUsable(ticket);
           syncGpuRecoveryAvailability();
+          // This merely requests a real visible-frame submission; it does not
+          // admit or fabricate a recovered bitmap.
+          if (scheduleFrame) invalidateGpuFrame('canvas-fallback-ready');
           return true;
         } catch (error) {
           console.warn('Canvas worker unavailable', error);

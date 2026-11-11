@@ -12,8 +12,9 @@ export function historicalWorldCases() {
   // The compiler's current-world ingress requires all default subunit endpoints.
   // Include those identities as the same tiny squares, without reading assets.
   const displayPolicy = {schema:'pandolab-builtin-display-policy',schemaVersion:1,revision:'synthetic-fixture',
-    subunits:[],territoryMerges:[],sourceAttributions:{}};
-  const ids = ['RUS','KOR','PRK'];
+    subunits:[{sourceCountryId:'GRL',parentId:'DNK'},
+      {sourceCountryId:'HKG',parentId:'CHN'}],territoryMerges:[],sourceAttributions:{}};
+  const ids = ['RUS','KOR','PRK','DNK','GRL','CHN','HKG'];
   const sources = ids.map((id, index) => ({ ...entity(`current:${id}`, null, null,
     [{...version(`${id}:current`, null, null, index * 2 - 150),}]), sourceInfo: { featureId: id, featureProperties: { name: id } } }));
   const snapshot = { schemaVersion: 1, referenceDate: '2026-10-01', entityRefs: sources.map(row => row.entityId) };

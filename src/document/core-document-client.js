@@ -127,7 +127,12 @@ export function createCoreDocumentClient({
     undo: options => ordered('core.document-undo', {}, options, true, true),
     redo: options => ordered('core.document-redo', {}, options, true, true),
     markSaved: (expectedEpoch, options) => ordered('core.document-mark-saved', { expectedEpoch }, options, true, true),
-    exportSnapshot: async(context, options) => {await ensureGeometryResources('',options);return ordered('core.document-export', context, options);},
+    exportSnapshot: async(context, options) => {
+      // Reject unauthorized persistence before any geometry preflight RPC.
+      policy.assertOperation('core.document-export');
+      await ensureGeometryResources('',options);
+      return ordered('core.document-export', context, options);
+    },
     setGeometryLoader(loader){
       if(typeof loader!=='function')throw new TypeError('An immutable geometry resource loader is required.');
       geometryLoader=loader;return ()=>{if(geometryLoader===loader)geometryLoader=null;};

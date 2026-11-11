@@ -24,10 +24,8 @@ import * as __country_dep14_runtime from "../../../tools/data/library-runtime.mj
 import * as __country_dep14_publication from "../../../tools/data/library-report-publication.mjs";
 import * as __country_dep14_store from "../../../tools/data/library-store.mjs";
 const __country_dep14={...__country_dep14_context,...__country_dep14_reports,...__country_dep14_runtime,...__country_dep14_publication,...__country_dep14_store};
-import * as __country_dep15 from "node:path";
 import * as __country_dep16 from "node:crypto";
 import * as __country_dep17 from "../../../tools/gis/territorial-entity-loader.js";
-import * as __country_dep18 from "../../../tools/data/territorial-entity-sources.mjs";
 import * as __country_dep19 from "../../../src/document/country-feature.js";
 contractSuite("territorial-entity-repository", () => {
 const { describe : contractSuite } = __country_dep0;
@@ -325,12 +323,9 @@ test('scoped registration preserves existing membership and rejects orphan, dupl
 });
 contractSuite("territorial-entity-loader", () => {
 const assert = __country_dep2.default;
-const fs = __country_dep6.default;
-const path = __country_dep15.default;
 const { createHash } = __country_dep16;
 const test = __country_dep0.default;
 const { createTerritorialEntityLoader } = __country_dep17;
-const { territorialDataRoot } = __country_dep18;
 
 
 
@@ -364,7 +359,7 @@ const indexAssets=(()=>{
 })();
 function fixture(corrupt=false,wrongMetadata=false){
  let index=indexAssets.get('index.json');let calls=0;
- if(wrongMetadata){const raw=JSON.parse(index);raw.entities.find(e=>e.entityId==='state:KOR').lineageId='france';raw.lineages.find(l=>l.lineageId==='korea').entityRefs=raw.lineages.find(l=>l.lineageId==='korea').entityRefs.filter(id=>id!=='state:KOR');raw.lineages.find(l=>l.lineageId==='france').entityRefs.push('state:KOR');index=Buffer.from(JSON.stringify(raw));}
+ if(wrongMetadata){const raw=JSON.parse(index);raw.entities.find(e=>e.entityId==='state:KOR').metadata={mismatched:true};index=Buffer.from(JSON.stringify(raw));}
  const service=createTerritorialEntityLoader({indexUrl:'https://test/index.json',
    dataRevision:'test',indexSpec:{encoding:'identity',compressedBytes:index.length,
      decodedBytes:index.length,sha256:createHash('sha256').update(index).digest('hex')},

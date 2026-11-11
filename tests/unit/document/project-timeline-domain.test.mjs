@@ -10,9 +10,7 @@ import * as __contract_dep6 from "../../../tools/gis/project-template-compiler.j
 import * as __contract_dep7 from "../../fixtures/timeline-storage-cases.mjs";
 import * as __contract_dep8 from "../../helpers/timeline-project.mjs";
 import * as __contract_dep9 from "../../helpers/core-command-services/save-state-controller.mjs";
-import * as __contract_dep10 from "../../helpers/web-oracle.mjs";
 contractSuite('project-timeline-domain',async()=>{
-const {fingerprintProjectBaseline}=await __contract_dep10.loadWebOracle('assets/js/modules/project-serializer.js');
 const assert = __contract_dep0.default;
 const test = __contract_dep1.default;
 const { readFileSync } = __contract_dep2;
@@ -114,8 +112,8 @@ const { createNodeCoreProject } = __contract_dep4;
 function project(staticOnly=false) {
   const source=projectForStorage();
   if(staticOnly)source.projectFields.timelineRecords.geometryBindings=[{id:'shape-static',objectRef:{domain:"territorial",id:'A'},validFrom:null,validTo:null,geometryRef:{id:'shape',version:2}}];
-  return structuredClone(createProjectTemplateCompiler({appVersion:'0.34.0',baseDataset:'base',distributionModes:['territorial','geometry'],
-    terrainDataset:'terrain',hydroDataset:'hydro',readSnapshot:()=>source}).buildProject());
+  return {...structuredClone(createProjectTemplateCompiler({appVersion:'0.34.0',baseDataset:'base',distributionModes:['territorial','geometry'],
+    terrainDataset:'terrain',hydroDataset:'hydro',readSnapshot:()=>source}).buildProject()),mapProjectIdentity:null};
 }
 async function session(t,input=staticAutosaveProject()) {
   const effects=[],presentation={render:'current-render',session:'current-session',target:'original.pando'};let owner;

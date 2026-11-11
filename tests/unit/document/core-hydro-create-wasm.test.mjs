@@ -155,7 +155,7 @@ featureDescribe("core-hydro-geometry-history", () => {
   const { readFileSync } = __suiteDependency2;
   const { createNodeCoreProject } = __suiteDependency4;
 test('hydro geometry undo restores the accepted feature coordinates as well as Core history',async()=>{
-  const seed=JSON.parse(readFileSync(new URL('../fixtures/portability/web-document-seed.json',import.meta.url),'utf8'));
+  const seed=JSON.parse(readFileSync(new URL('../../fixtures/portability/web-document-seed.json',import.meta.url),'utf8'));
   const owner=await createNodeCoreProject(seed);
   const id='plugin-history-line',geometry={type:'LineString',coordinates:[[10,40],[11,41]]};
   try {

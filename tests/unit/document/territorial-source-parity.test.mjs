@@ -55,7 +55,6 @@ test('source update changes only explicit identity and preserves curated sibling
   const lineage=writeFixture(root);
   const sibling=fs.readFileSync(path.join(root,'countries/state-DEU.json'),'utf8');
   sources.updateTerritorialSource('state:GDR',entity=>({...entity,metadata:{note:'curated'}}),root);
-  const result=JSON.parse(fs.readFileSync(path.join(root,'countries/state-GDR.json'),'utf8'));
   assert.equal(fs.readFileSync(path.join(root,'countries/state-DEU.json'),'utf8'),sibling);
   assert.deepEqual(JSON.parse(fs.readFileSync(path.join(root,'lineages/germany.json'),'utf8')),lineage);
   assert.equal(sources.readTerritorialSource('state:GDR',root).metadata.note,'curated');

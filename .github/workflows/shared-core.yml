@@ -416,11 +416,11 @@ jobs:
           tests/unit/document/core-document-read-model.test.mjs tests/unit/document/core-document-wasm.test.mjs
           tests/unit/document/core-document-selection-wasm.test.mjs
           tests/unit/document/core-document-world-wasm.test.mjs
-           tests/unit/document/core-codec-unicode-wasm.test.mjs
+          tests/unit/document/core-codec-unicode-wasm.test.mjs
           tests/unit/document/core-codec-unicode-ids-wasm.test.mjs
           tests/unit/runtime/core-map-presentation-wasm.test.mjs
           tests/unit/document/core-hydro-create-wasm.test.mjs
-           tests/unit/document/core-label-gesture-wasm.test.mjs
+          tests/unit/document/core-label-gesture-wasm.test.mjs
           tests/unit/document/timeline-geopackage.test.mjs
           tests/unit/document/core-project-file-save-wasm.test.mjs
           tests/unit/document/timeline-controls.test.mjs tests/unit/document/app-builtin-session.test.mjs tests/unit/document/shared-core-assets.test.mjs

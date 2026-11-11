@@ -5,7 +5,6 @@ import * as __country_dep2 from "../../../tools/build/builtin-world-compiler.mjs
 import * as __country_dep3 from "../../../tools/data/territorial-current-world.mjs";
 import * as __country_dep4 from "../../../src/document/temporal.js";
 import * as __country_dep5 from "node:crypto";
-import * as __country_dep6 from "../../../tools/data/territorial-entity-sources.mjs";
 import * as __country_dep7 from "../../../tools/gis/apply-post-2000-territorial-links.mjs";
 
 // Original feature contract: historical-world-parent-relations.test.mjs
@@ -36,7 +35,8 @@ function fixture(){
  const view={schemaVersion:1,selections:[{entityId:'state:DEU',geometryVersionId:'modern'}],sourceInfo:{collectionMetadata:{type:'FeatureCollection'}}};
  const parentRelations=entities.slice(1).map(row=>({entityId:row.entityId,parentEntityId:'state:DEU',
   validFrom:'1914-07-31',validTo:'1914-07-31',basis:{sourceEntityId:'state:DEU',geometryVersionIds:['empire']}}));
- return {entities,view,policy:{schemaVersion:1,unknownPeerOverlap:'exclude-from-all',replacements:[],parentRelations}};
+ return {entities,view,policy:{schemaVersion:1,unknownPeerOverlap:'exclude-from-all',replacements:[],parentRelations},
+  displayPolicy:{schema:'pandolab-builtin-display-policy',schemaVersion:1,revision:'synthetic-fixture',subunits:[],territoryMerges:[],sourceAttributions:{}}};
 }
 const compile=input=>compileBuiltinWorldCatalog({...input,currentWorld:buildCurrentWorld(input),availableSourceIds:new Set(['DEU'])});
 function geometryAt(country,date){
@@ -91,7 +91,7 @@ test('partial publication follows dated parent dependencies and leaves unrelated
  input.policy.parentRelations=[{entityId:child.entityId,parentEntityId:'state:parent',validFrom:'1900-07-31',validTo:'1900-07-31'}];
  const previousSourceIndex={entities:input.entities.map(entity=>territorialIndexEntry(entity,{sha256:'before'}))};
  const previous=buildBuiltinWorldPublication({input:{...input,sourceIndex:previousSourceIndex}});
- const common={sourceIndex:previousSourceIndex,previousSourceIndex,view:input.view,policy:input.policy,
+ const common={sourceIndex:previousSourceIndex,previousSourceIndex,view:input.view,policy:input.policy,displayPolicy:input.displayPolicy,
   previousIndex:JSON.parse(previous.get('index.json')),previousCoverage:JSON.parse(previous.get('coverage-report.json')),
   currentWorld:input.currentWorld,readSource:id=>input.entities.find(row=>row.entityId===id)};
  const plan=buildBuiltinWorldPartialPublication({...common,entityIds:[child.entityId],planOnly:true});
@@ -109,7 +109,7 @@ contractSuite("post-2000-territorial-links", () => {
 const test = __country_dep0.default;
 const assert = __country_dep1.default;
 const { createHash } = __country_dep5;
-const { readTerritorialSources, readTerritorialLineages } = __country_dep6;
+// Post-2000 planning is exercised on a complete independent country corpus.
 const { planPost2000CountryLinks } = __country_dep7;
 
 
@@ -119,9 +119,31 @@ const { planPost2000CountryLinks } = __country_dep7;
 
 const hash=o=>createHash('sha256').update(JSON.stringify(o)).digest('hex');
 test('transition plan reuses existing geometry and does not predate independence',()=>{
- const sources=readTerritorialSources();
+ const geometry={type:'Polygon',coordinates:[[[0,0],[1,0],[1,1],[0,0]]]};
+ const source=(id,from,versionId,validTo=null)=>({
+   schemaVersion:2,entityId:'state:'+id,entityKind:'general',lineageId:id.toLowerCase(),
+   names:{ko:id,en:id},alternateNames:[],lifetime:{validFrom:from,validTo},
+   parentEntityId:'',instantiation:{mode:'independent',countryUpdates:{}},
+   geometryVersions:[{versionId,validFrom:from,validTo,geometry:structuredClone(geometry)}],
+   metadata:{},sourceInfo:{},
+ });
+ const yugoslavia=source('yugoslavia','1918-12-01',
+   'state:federal-republic-of-yugoslavia:1992-2003-r1','2003-02-04');
+ yugoslavia.geometryVersions[0].validFrom='1992-04-27';
+ yugoslavia.sourceInfo.geometryRecipes=[{id:'historical-country:federal-republic-of-yugoslavia:1992-2003-r1',
+   validFrom:'1992-04-27',validTo:'2003-02-04'}];
+ yugoslavia.sourceInfo.importProvenance={versionIds:{}};
+ const sources=[yugoslavia,
+   source('TLS','2002-05-20','state:TLS:2002-2026-independence-r1'),
+   source('KOS','2008-02-17','state:KOS:independence-r1'),
+   source('SRB','2006-06-05','state:SRB:independence-r1'),
+   source('MNE','2006-06-03','state:MNE:independence-r1'),
+   source('SDN','1956-01-01','state:sudan:1956-2011-r1','2011-07-08'),
+   source('SDS','2011-07-09','state:SDS:2011-07-09-independence-r1')];
+ const lineages=['tls','kos'].map(id=>({schemaVersion:2,lineageId:id,
+   names:{ko:id},entityRefs:['state:'+(id==='tls'?'TLS':'KOS')],relations:[]}));
  const policy={schemaVersion:1,replacements:[]};
- const plan=planPost2000CountryLinks(sources,readTerritorialLineages(),policy);
+ const plan=planPost2000CountryLinks(sources,lineages,policy);
  const byId=new Map(sources.map(x=>[x.entityId,x]));
  if(plan.already){
   assert.ok(byId.has('state:untaet-east-timor'));

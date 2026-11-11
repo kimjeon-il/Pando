@@ -66,7 +66,7 @@ test('partial geometry publication never reads or rewrites unrelated country pay
  input.entities.find(entity=>entity.entityId==='current:KOR').lifetime.validFrom='1948-08-15';
  const sourceIndex=catalog(input),reads=[];
  const files=publication.buildBuiltinWorldPartialPublication({entityIds:['current:KOR'],sourceIndex,previousSourceIndex,
-  previousIndex,previousCoverage:JSON.parse(before.get('coverage-report.json')),view:input.view,policy:input.policy,
+  previousIndex,previousCoverage:JSON.parse(before.get('coverage-report.json')),view:input.view,policy:input.policy,displayPolicy:input.displayPolicy,
   currentWorld:input.currentWorld,readSource:id=>{reads.push(id);return input.entities.find(entity=>entity.entityId===id);},
   readCountry:()=>{throw Error('Unrelated country payload must not be read');}});
  const index=indexOf(files),expected=publication.buildBuiltinWorldPublication({input:{...input,sourceIndex}});

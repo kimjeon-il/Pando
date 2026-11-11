@@ -155,12 +155,14 @@ async function fixture({engineFailure=false,mapFailure=false,suppressReadyCertif
     update:async()=>{},dispose:()=>disposed++,cancelSearch:noop,searchPlaces:noop,closeObjectChooser:noop};
   const bindings={presentViewerLoadStatus,window,document,CustomEvent,URL,URLSearchParams,structuredClone,console:{warn:noop,error:noop},
     createViewerPostPresentation,
+    createMapProjectRuntime:()=>({project:{projectId:'default-world'},hydratePhysicalMetadata:async()=>({})}),
+    bindProjectDocumentIdentity:project=>project,
     createViewerInspectorController:()=>({syncMapSelection:noop,openAfterStartup:async()=>false,dispose:noop}),
     createViewerAdjacentPrefetch: () => ({afterPresented: noop,interrupt: noop,dispose: noop}),
     createPlatformPorts:()=>({}),createRuntimeContext:({meta})=>({meta,platform:{}}),createBrowserFileAccess:()=>({}),connectMapOwner:noop,
     createBrowserProjectStorage:()=>({}),initialBoundsView:noop,
     createNotificationPresentation:()=>({...controller(),reportOperationError:noop}),createApplicationLifecycle,createViewerInitialPresentation,
-    createPreferencePresentation:()=>({...controller(),current:{}}),
+    createPreferencePresentation:()=>({...controller(),current:{timeline:{defaultWorldFollowCurrentMonth:true}}}),
     createMapOwners:()=>({workspaceSurfaces:surfaces,mapHost:{queueMapResize:noop},physicalResources:{loadHydroData:noop},
       territorialLabels:{preparePlaces:noop},builtinSession:{}}),
     saveUserPreferences:noop,createDiagnosticLog:()=>({snapshot:()=>[]}),isRecoverableLoadError,
@@ -173,9 +175,18 @@ async function fixture({engineFailure=false,mapFailure=false,suppressReadyCertif
       open:async reader=>{openRevision++;await reader();return true;}}),
     createInitialDocument:()=>snapshot,createViewerMap:options=>{maps++;preparationObserver=options.onMapPreparationStatus;return map;},createFileController:ports=>{openUserProject=ports.openProject;return controller();},readProjectFile:noop,
     createMapSettings:controller,layerStyle:noop,DISTRIBUTION_RENDER_MODES:{},createSurfaceController:noop,createPreferencesDialog:noop,
-    createBuiltinMonthClock:options=>({...controller(),month:()=>null,suspend:()=>()=>true,isAutomatic:()=>!manual,
-      refresh:()=>manual?false:options.applyMonth('1953-07',{isCurrent:()=>true,commit:noop}),
-      followNow:()=>{nowSelections++;return options.applyMonth('1953-07',{isCurrent:()=>true,commit:noop});}}),
+    createProjectMonthClock:options=>{
+      let committed=null;
+      const apply=async()=> {
+        if(manual || committed==='1953-07')return false;
+        return options.applyMonth('1953-07',{mode:'startup',isCurrent:()=>true,
+          commit:()=>{committed='1953-07';return true;}});
+      };
+      return {...controller(),month:()=>committed,isAutomatic:()=>!manual,
+        cancelPending:noop,beginExternalOpen:()=>()=>{},
+        initialize:apply,refresh:apply,followNow:()=>{nowSelections++;committed=null;return apply();},
+        selectMonth:month=>{manual=true;committed=month;return true;}};
+    },
   };
   const source=readFileSync(new URL("../../../src/app/viewer-composition.js",import.meta.url),'utf8')
     .replace(/^import .*;\r?$/gm,'').replace('export async function composeViewer','async function composeViewer')

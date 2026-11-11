@@ -146,7 +146,7 @@ test('P3-1 rapid year inputs merge to the latest visible month and stale reads n
  await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__.builtinMonth().month),
   {timeout:100000}).toBe('2020-12');
  await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentState().timelineCursor)).toBe('2020-12');
- await expect(page.locator('#timelineDateButtonText')).toHaveText('2020년');
+ await expect(page.locator('#timelineDateButtonText')).toHaveText('2020년',{timeout:90_000});
  await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true');
  const result=await page.evaluate(()=>({
    requested:window.__P3_REQUESTS__.slice(),

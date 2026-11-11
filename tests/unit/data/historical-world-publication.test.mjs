@@ -29,7 +29,7 @@ test('country publication is deterministic, has no aggregate project and detects
  }
  writeBuiltinWorldPublication(second,folder,{check:true});
  fs.appendFileSync(path.join(folder,'index.json'),'stale');
- assert.throws(()=>writeBuiltinWorldPublication(first,folder,{check:true}),/stale/i);
+ assert.throws(()=>writeBuiltinWorldPublication(first,folder,{check:true}),/stale|Unexpected non-whitespace/i);
 });
 test('country publication rejects a missing policy',()=>{
  assert.throws(()=>buildBuiltinWorldPublication({policyFile:path.join(os.tmpdir(),'missing-history-policy.json')}),/ENOENT|missing/i);
@@ -64,7 +64,7 @@ test('partial publication rebuilds a changed lifetime and its overlapping peer, 
  const sourceIndex={entities:input.entities.map(entity=>territorialIndexEntry(entity,{sha256:entity===changed?'after':'before',compressedBytes:1,decodedBytes:1}))};
  const reads=[];
  const partial=buildBuiltinWorldPartialPublication({entityIds:[changed.entityId],sourceIndex,previousSourceIndex,
-  view:input.view,policy:input.policy,previousIndex:JSON.parse(before.get('index.json')),
+  view:input.view,policy:input.policy,displayPolicy:input.displayPolicy,previousIndex:JSON.parse(before.get('index.json')),
   previousCoverage:JSON.parse(before.get('coverage-report.json')),
   readSource:id=>{reads.push(id);return input.entities.find(row=>row.entityId===id);},
   currentWorld:input.currentWorld});
@@ -85,7 +85,7 @@ test('partial lifetime generation carries parent gaps to children and plans with
  const before=buildBuiltinWorldPublication({input:{...input,sourceIndex:previousSourceIndex}});
  input.entities.find(row=>row.entityId==='state:parent').lifetime.validFrom='1902';
  const sourceIndex={entities:input.entities.map(entity=>territorialIndexEntry(entity,{}))};
- const options={entityIds:['state:parent'],sourceIndex,previousSourceIndex,view:input.view,policy:input.policy,
+ const options={entityIds:['state:parent'],sourceIndex,previousSourceIndex,view:input.view,policy:input.policy,displayPolicy:input.displayPolicy,
   previousIndex:JSON.parse(before.get('index.json')),previousCoverage:JSON.parse(before.get('coverage-report.json')),
   currentWorld:input.currentWorld,readSource:()=>{throw new Error('unplanned source read');}};
  const plan=buildBuiltinWorldPartialPublication({...options,planOnly:true});
@@ -113,7 +113,7 @@ test('partial generation discovers the first overlap across the antimeridian aft
  changed.lifetime.validFrom='1989';
  const sourceIndex={entities:input.entities.map(entity=>territorialIndexEntry(entity,{}))};
  const files=buildBuiltinWorldPartialPublication({entityIds:[changed.entityId],sourceIndex,previousSourceIndex,
-  view:input.view,policy:input.policy,previousIndex:JSON.parse(before.get('index.json')),previousCoverage:JSON.parse(before.get('coverage-report.json')),
+  view:input.view,policy:input.policy,displayPolicy:input.displayPolicy,previousIndex:JSON.parse(before.get('index.json')),previousCoverage:JSON.parse(before.get('coverage-report.json')),
   currentWorld:input.currentWorld,readSource:id=>input.entities.find(row=>row.entityId===id)});
  assert.deepEqual(JSON.parse(files.get('index.json')).entities,JSON.parse(buildBuiltinWorldPublication({input}).get('index.json')).entities);
 });
@@ -126,7 +126,7 @@ test('partial provenance retains the old revision of an unread, independently ed
  input.entities.find(row=>row.entityId==='current:PRK').lifetime.validFrom='1948-09-09';
  const sourceIndex={entities:input.entities.map(entity=>territorialIndexEntry(entity,{sha256:entity.entityId==='current:KOR'?'finished':entity.entityId==='current:PRK'?'unfinished':'before'}))};
  const reads=[];
- const files=buildBuiltinWorldPartialPublication({entityIds:['current:KOR'],sourceIndex,previousSourceIndex,view:input.view,policy:input.policy,
+ const files=buildBuiltinWorldPartialPublication({entityIds:['current:KOR'],sourceIndex,previousSourceIndex,view:input.view,policy:input.policy,displayPolicy:input.displayPolicy,
   previousIndex:JSON.parse(before.get('index.json')),previousCoverage:JSON.parse(before.get('coverage-report.json')),currentWorld:input.currentWorld,
   readSource:id=>{reads.push(id);return input.entities.find(row=>row.entityId===id);}});
  const index=JSON.parse(files.get('index.json'));

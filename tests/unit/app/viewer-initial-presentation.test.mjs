@@ -358,7 +358,7 @@ for (const [mode, projection, rejected] of [['viewer','globe','flat'],['editor',
     const view={...session.state.view,flatCenter:[175,25],flatZoom:3,globeRotation:[-175,-25,0],globeZoom:3};
     const camera=session.atomicMapStateController;
     camera.commit(camera.begin(),{projection:rejected,view});
-    assert.equal(session.state.projection,mode==='viewer'?rejected:projection);
+    assert.equal(session.state.projection,projection);
     assert.deepEqual(projection==='globe'?session.state.view.globeRotation:session.state.view.flatCenter,projection==='globe'?[-175,-25,0]:[175,25]);
     assert.deepEqual(view.flatCenter,[175,25]);
   });

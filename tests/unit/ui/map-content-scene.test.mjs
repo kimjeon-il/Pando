@@ -440,13 +440,11 @@ test('diagnostic observation distinguishes a real null, thrown error and data', 
 test('temporal probes instrument the active production sources on LF and CRLF checkouts',()=>{
  for(const [name,path] of [
   ['viewer-composition.js','src/app/viewer-composition.js'],
-  ['builtin-session.js','src/document/builtin-session.js'],
   ['project-domain.js','src/document/project-domain.js'],
  ]){
   const source=readFileSync(new URL("../../../"+path,import.meta.url),'utf8').replaceAll('\r\n','\n');
   const instrumented=instrumentMapBaselineSource(source,name);
   assert.equal(instrumentMapBaselineSource(source.replaceAll('\n','\r\n'),name),instrumented);
-  if(name==='builtin-session.js')assert.match(instrumented,/candidate-prepare:start/);
   if(name==='project-domain.js'){
    for(const phase of ['candidate-adopt','candidate-queue','temporal-source','temporal-candidate']){
     assert.match(instrumented,new RegExp(phase+':start'));

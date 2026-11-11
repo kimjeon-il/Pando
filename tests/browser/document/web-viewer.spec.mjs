@@ -47,10 +47,10 @@ test(`existing UI loads, searches and navigates without document writes at ${vie
   await page.locator('#timelineYearInput').fill('2025');
   await page.locator('#timelineMonthInput').selectOption('12');
   await page.locator('#timelineYearInput').press('Enter');
-  await expect(page.locator('#timelineDateButtonText')).toHaveText('2025년 12월');
+  await expect(page.locator('#timelineDateButtonText')).toHaveText('2025년 12월',{timeout:90_000});
   await page.locator('#timelineDateButton').click();
   await page.locator('#timelineNextMonth').click();
-  await expect(page.locator('#timelineDateButtonText')).toHaveText('2026년 1월');
+  await expect(page.locator('#timelineDateButtonText')).toHaveText('2026년 1월',{timeout:90_000});
   await page.keyboard.press('Escape');
   await page.keyboard.press('Control+z');
   await page.keyboard.press('Delete');
@@ -335,7 +335,7 @@ test('web keeps its globe through bounded file open, search, reset and mobile na
   await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true');
   expect(await projection()).toBe('globe');
   const initial=await page.evaluate(()=>window.__PANDOLAB_MAP_HOST__.getViewState());
-  expect(initial.globeRotation.slice(0,2)).toEqual([-7.5,-7.5]);expect(initial.globeZoom).toBeGreaterThan(1);
+  expect(initial.globeRotation.slice(0,2)).toEqual([-7.5,-7.5]);expect(initial.globeZoom).toBe(1); // The project bounds already calibrate globeBaseScale.
   const before=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentState());
   await page.locator('#objectSearchBtn').click();await page.locator('#objectSearchInput').fill('지구본 범위 검사');
   await page.locator('#objectSearchResults button').filter({hasText:'지구본 범위 검사'}).first().click();

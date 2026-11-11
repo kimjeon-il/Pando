@@ -116,15 +116,6 @@ export function instrumentMapBaselineSource(source, name) {
     next = replaceExactlyOnce(next, done, done + 'globalThis.__PANDO_P0__.settled();');
     next = replaceExactlyOnce(next, 'productMode,documentState:',
       'cameraSnapshot:()=>structuredClone({projection:map.viewState.projection,view:map.viewState.view}),p0BuildMeta:()=>runtimeContext.meta,productMode,documentState:');
-  } else if (name === 'builtin-session.js') {
-    around(`const {project}=await builtinWorldLoader.loadProject(month,{isCurrent,
-        concurrency:background?1:6,waitForIdle:background?waitForIdle:null});`, 'country-read-assemble');
-    around('const bytes=new TextEncoder().encode(JSON.stringify(project));', 'serialize');
-    around(`const fingerprint=[...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))]
-        .map(value=>value.toString(16).padStart(2,'0')).join('');`, 'source-hash');
-    around(`const candidate=await domain.prepareTemporalBuiltin(facts,setup,{
-        dataRevision:buildMeta.dataRevision,manifestSha256:buildMeta.builtinWorld.sha256,
-        expectedGeneration:prepared.expectedGeneration,isCurrent,transition});`, 'candidate-prepare');
   } else if (name === 'project-domain.js') {
     next = replaceExactlyOnce(next, `expectedGeneration = generation,isCurrent = () => true} = {}) => {
     const operation=commandQueue.then(async()=>{`,
