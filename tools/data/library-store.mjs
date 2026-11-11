@@ -11,7 +11,7 @@ import {readBuiltinCountry,readBuiltinCountryStoredBytes} from "./builtin-countr
 import {decodeTerritorialSource} from './territorial-source-codec.mjs';
 import {defaultRoot,gitOptions,git,libraryConfig,libraryCheckout,libraryMaterializedRoot,libraryReportRoot,librarySharedCheckout,libraryOwnerId,safeChild,decodeArchiveEntry,withLibraryLock,organizationTree} from "./library-context.mjs";
 import {reportRegistry,writeReportRegistry,checkedReportPath,assertReportSubject} from "./library-reports.mjs";
-import {compactOwnedCheckout,libraryWriteLeases,scopesOverlap,prepareOwnedLibraryData} from "./library-runtime.mjs";
+import {compactOwnedCheckout,libraryWriteLeases,scopesOverlap,prepareOwnedLibraryData,ownedMaterializedView} from "./library-runtime.mjs";
 
 function validateExpectedLibraryRevision(expectedRevision) {
   if (expectedRevision !== undefined && (typeof expectedRevision !== 'string' || !/^[a-f0-9]{40}$/.test(expectedRevision))) {
@@ -40,12 +40,12 @@ export function assertExpectedLibraryRevision({ expectedRevision, expectedBranch
   if (remote !== expectedRevision) throw Error(`Library remote ${expectedBranch || 'work/gis'} differs from the expected revision; regenerate against the latest data before storing.`);
 }
 
-export function storeLibraryData({ root = defaultRoot, push = false, prefixes = null, removePaths = [], expectedRevision, expectedBranch, readPreviousCountry,readPreviousSource,retirement=null } = {}) {
+export function storeLibraryData({ root = defaultRoot, push = false, prefixes = null, removePaths = [], expectedRevision, expectedBranch, readPreviousCountry,readPreviousSource,retirement=null,materialized } = {}) {
   validateExpectedLibraryRevision(expectedRevision);
   validateExpectedBranch(expectedBranch);
   if (!prefixes?.length) throw Error("Storage requires explicit library prefixes.");
   for (const path of prefixes) if (path === 'reports' || path.startsWith('reports/')) assertReportSubject(root, path);
-  return withLibraryLock(root, () => storeOwnedLibraryData({ root, push, prefixes, removePaths, expectedRevision, expectedBranch, readPreviousCountry,readPreviousSource,retirement }));
+  return withLibraryLock(root, () => storeOwnedLibraryData({ root, push, prefixes, removePaths, expectedRevision, expectedBranch, readPreviousCountry,readPreviousSource,retirement,materialized }));
 }
 
 function recordReportOwner(root, source, paths) {
@@ -162,10 +162,11 @@ export function runtimeStoreIndex(pinned, current) {
   } };
 }
 
-export function storeOwnedLibraryData({ root, push, prefixes, removePaths, reportData, expectedRevision, expectedBranch, readPreviousCountry,readPreviousSource,retirement }) {
+export function storeOwnedLibraryData({ root, push, prefixes, removePaths, reportData, expectedRevision, expectedBranch, readPreviousCountry,readPreviousSource,retirement,materialized: explicitView }) {
   // Store the owner's current write view. Preparing a different view here can
   // hide unpublished outputs, and absence from a view never means deletion.
-  const materialized = libraryMaterializedRoot(root);
+  if (reportData && explicitView !== undefined) throw Error('Report storage cannot select a runtime view');
+  const materialized = explicitView === undefined ? libraryMaterializedRoot(root) : ownedMaterializedView(root, explicitView);
   let data = reportData;
   if (!data && existsSync(resolve(materialized, '.complete'))) {
     const record = JSON.parse(readFileSync(resolve(materialized, '.cache-owner.json'), 'utf8'));

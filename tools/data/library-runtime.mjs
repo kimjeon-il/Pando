@@ -424,11 +424,28 @@ export function libraryWriteLeases(shared) {
 
 export const scopesOverlap = (a, b) => a === b || a.startsWith(b + '/') || b.startsWith(a + '/');
 
-export function beginLibraryWrite({ root = defaultRoot, prefixes, pid = process.pid } = {}) {
+/** Explicit offline-source views use the same owner, pin and write lease contract
+ * without requiring an OS directory mount. Never accept arbitrary caller paths. */
+export function ownedMaterializedView(root, materialized) {
+  if (typeof materialized !== 'string') throw Error('Explicit owned runtime scope is required');
+  const config = libraryConfig(root), owner = libraryOwnerId(root);
+  const base = resolve(librarySharedCheckout(root), '.pando-cache/materialized', owner, config.revision);
+  const view = containedPath(base, materialized), parts = relative(base, view).split(sep);
+  if (parts.length !== 2 || parts[0] !== 'scopes' || !/^[a-f0-9]{64}$/.test(parts[1]))
+    throw Error('Explicit view is not an owned pinned runtime scope');
+  const record = JSON.parse(readFileSync(resolve(view, '.cache-owner.json'), 'utf8'));
+  if (record.schema !== 'pando-shared-runtime-v1' || record.owner !== owner || record.revision !== config.revision
+      || record.preparation?.purpose !== 'gis' || record.preparation?.scopeId !== parts[1]
+      || readFileSync(resolve(view, '.complete'), 'utf8').trim() !== config.revision)
+    throw Error('Explicit view has an invalid owned pinned scope identity');
+  return view;
+}
+
+export function beginLibraryWrite({ root = defaultRoot, prefixes, pid = process.pid, materialized } = {}) {
   return withLibraryLock(root, () => {
     const config = libraryConfig(root), shared = librarySharedCheckout(root), owner = libraryOwnerId(root);
     if (!Number.isInteger(pid) || pid <= 0 || !Array.isArray(prefixes) || !prefixes.length || prefixes.some(path => typeof path !== 'string' || !/^[\w.-]+(?:\/[\w.-]+)*$/.test(path) || path.split('/').some(p => p === '.' || p === '..' || p.startsWith('.')) || !config.mounts.some(mount => mount !== 'reports' && (path === mount || path.startsWith(mount + '/'))))) throw Error('Explicit valid runtime write prefixes are required');
-    let view = libraryMaterializedRoot(root);
+    let view = materialized === undefined ? libraryMaterializedRoot(root) : ownedMaterializedView(root, materialized);
     if (!existsSync(resolve(view, '.complete'))) view = prepareOwnedLibraryData({ root, fetch: false, purpose: 'gis', prefixes }).materialized;
     if (libraryWriteLeases(shared).some(lease => lease.alive && lease.owner === owner && lease.prefixes.some(a => prefixes.some(b => scopesOverlap(a, b))))) throw Error('An overlapping library write lease is running');
     const manifest = resolve(view, '.cache-owner.json'), record = JSON.parse(readFileSync(manifest, 'utf8'));
@@ -499,7 +516,8 @@ export function writeLibraryOutput(path, bytes, options) {
   return withLibraryOutputs({ paths: [path] }, () => writeFileSync(path, bytes, options));
 }
 
-export function prepareOwnedLibraryData({ root, fetch, purpose = 'viewer', prefixes = [], source = null, projectId = 'default-world' }) {
+export function prepareOwnedLibraryData({ root, fetch, purpose = 'viewer', prefixes = [], source = null, projectId = 'default-world', mount = true }) {
+  if (typeof mount !== 'boolean' || (!mount && purpose !== 'gis')) throw Error('Unmounted preparation is limited to explicit GIS source work');
   root = resolve(root); const checkout = libraryCheckout(root);
   const config = libraryConfig(root);
   if (!existsSync(resolve(checkout, '.git'))) {
@@ -539,6 +557,12 @@ export function prepareOwnedLibraryData({ root, fetch, purpose = 'viewer', prefi
     if(projectManifest.projectId!==projectId)throw new TypeError('Library project identity mismatch');
   }
   const materialized = materializeRuntimeView({ root, index, fetch, purpose, prefixes, source, projectManifest });
+  if (!mount) {
+    ownedMaterializedView(root, materialized);
+    const prepared = JSON.parse(readFileSync(resolve(materialized, '.cache-owner.json'), 'utf8'));
+    return { repository: config.repository, revision: config.revision, checkout, materialized,
+      files: prepared.files, archiveFiles: index.files, preparation: prepared.preparation, mounted: false };
+  }
   const excludePath = resolve(checkout, git(checkout, ['rev-parse', '--git-path', 'info/exclude']));
   const exclude = existsSync(excludePath) ? readFileSync(excludePath, 'utf8') : '';
   if (!exclude.split(/\r?\n/).includes('/.working/')) { mkdirSync(dirname(excludePath), { recursive: true }); writeFileSync(excludePath, exclude + '\n/.working/\n'); }
