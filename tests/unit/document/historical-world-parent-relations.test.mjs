@@ -150,9 +150,9 @@ test('transition plan reuses existing geometry and does not predate independence
   assert.ok(byId.has('state:unmik-kosovo'));
   return;
  }
- const yugoslavia=byId.get('state:yugoslavia');
+ const existingYugoslavia=byId.get('state:yugoslavia');
  const newYugo=plan.updated[0];
- assert.equal(hash(newYugo.geometryVersions.at(-1).geometry),hash(yugoslavia.geometryVersions.at(-1).geometry));
+ assert.equal(hash(newYugo.geometryVersions.at(-1).geometry),hash(existingYugoslavia.geometryVersions.at(-1).geometry));
  assert.equal(newYugo.geometryVersions.at(-1).validFrom,'2003-02-04');
  assert.equal(newYugo.lifetime.validTo,'2006-06-02');
  const timor=plan.created.find(x=>x.entityId==='state:untaet-east-timor');
