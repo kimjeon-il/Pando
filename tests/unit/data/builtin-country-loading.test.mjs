@@ -228,7 +228,7 @@ const { createBuiltinWorldLoader } = __country_dep4;
 const deferred=()=>{let resolve;const promise=new Promise(done=>{resolve=done;});return {promise,resolve};};
 test('a failed query settles its outstanding failed reads before an immediate clean retry',async t=>{
  const files=buildBuiltinWorldPublication({input:withExplicitView(historicalWorldCases())});
- const index=JSON.parse(files.get('index.json')),wanted=new Set(['AUS','CHN']);
+ const index=JSON.parse(files.get('index.json')),wanted=new Set(['RUS','CHN']);
  const positions=index.entities.map((entry,i)=>wanted.has(entry.entityId)?i:-1).filter(i=>i>=0);
  index.readIndex.identities=positions.map(i=>index.readIndex.identities[i]);
  index.readIndex.sourceHashes=positions.map(i=>index.readIndex.sourceHashes[i]);
