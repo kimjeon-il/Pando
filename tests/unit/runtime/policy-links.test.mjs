@@ -71,11 +71,13 @@ test('surveys unlinked historical documents without accepting them as current ru
   const f = fixture();
   try {
     f.write('docs/archive.md', '# Old notes\nDo not reintroduce the retired editor.\n' +
+      '[Local path](C:/Users/old-profile/Pandoeditor/file.md)\n' +
       '[Old implementation](old-module.js)\n' +
       f.tick + 'apps/editor/old.js' + f.tick + '\n');
     const result = checkPolicyLinks(f.root);
     assert.equal(result.ok, true, JSON.stringify(result.errors));
     assert.ok(result.audit.totalMarkdown >= 4);
+    assert.equal(result.audit.unresolvedLinks.filter(x => x.file === 'docs/archive.md').length, 1);
     assert.ok(result.audit.unresolvedLinks.some(x => x.file === 'docs/archive.md'));
     assert.ok(result.audit.staleSourceMentions.some(x => x.path === 'apps/editor/old.js'));
     assert.ok(result.audit.unindexedRuleDocs.includes('docs/archive.md'));

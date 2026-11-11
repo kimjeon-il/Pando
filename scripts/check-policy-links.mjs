@@ -19,7 +19,7 @@ function relativeTargets(text) {
   const links = [];
   for (const match of stripCodeFences(text).matchAll(MARKDOWN_LINK)) {
     const raw = match[1].trim().replace(/^<|>$/gu, '').split(/\s+"/u)[0];
-    if (!raw || raw.startsWith('#') || /^(?:https?:|mailto:|tel:|data:)/iu.test(raw)) continue;
+    if (!raw || raw.startsWith('#') || /^(?:https?:|mailto:|tel:|data:)/iu.test(raw) || /^[A-Za-z]:[\\/]/u.test(raw)) continue;
     let url;
     try { url = decodeURIComponent(raw.split(/[?#]/u)[0]); }
     catch { links.push({ raw, invalid: true }); continue; }
@@ -162,12 +162,12 @@ if (invokedAsScript) {
       files: result.files, links: result.links, codeReferences: result.codeReferences,
       groupReferences: result.groupReferences, scriptReferences: result.scriptReferences,
       auditedMarkdown: result.audit.totalMarkdown,
-      archivalLinkWarnings: result.audit.unresolvedLinks.length,
+      unindexedLinkWarnings: result.audit.unresolvedLinks.length,
       staleSourceMentions: result.audit.staleSourceMentions.length,
       unindexedRuleCandidates: result.audit.unindexedRuleDocs.length,
     }) + '\n');
     for (const finding of result.audit.unresolvedLinks.slice(0, 12))
-      process.stdout.write('policy-audit: historical link review ' + JSON.stringify(finding) + '\n');
+      process.stdout.write('policy-audit: unindexed document link review ' + JSON.stringify(finding) + '\n');
     if (result.audit.unresolvedLinks.length > 12)
       process.stdout.write('policy-audit: additional historic link findings ' +
         (result.audit.unresolvedLinks.length - 12) + '\n');
