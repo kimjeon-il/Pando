@@ -75,6 +75,7 @@ export async function collectViewerAssets({ root, availablePaths, readSource = p
   }
   for(const path of collectRuntimeDataAssets({availablePaths:available,
     entryPaths:viewerDataEntryPaths,projectManifest:project,
+    preparedMeshesCurrent:meta.projectCatalogs?.preparedMeshes?.current!==false,
     readManifest:path=>JSON.parse(readSource(path))}))include(path);
   const html = readSource('index.html');
   for (const match of html.matchAll(/\b(?:src|href)=["']([^"']+)["']/g)) {

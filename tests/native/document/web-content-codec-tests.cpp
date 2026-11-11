@@ -24,6 +24,9 @@ std::string seedBytes() {
         const auto& left=a.object.at("id").string;const auto& right=b.object.at("id").string;
         return left==right?codecjson::finiteNumber(a.object.at("version"))<codecjson::finiteNumber(b.object.at("version")):left<right;
     });
+    // Current v14 snapshots normalize legacy omitted project identity to null.
+    // Keep all other fields and original content-array ordering exactly.
+    root.object["mapProjectIdentity"]=V{};
     return root.encode();
 }
 void canonicalArchiveCollisionRetainsOriginalCarrier(const std::string& seed) {

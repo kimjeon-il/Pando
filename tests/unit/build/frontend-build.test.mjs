@@ -116,6 +116,22 @@ test('selected Hydro and numerical terrain contracts are validated before public
 });
 
 
+test('Viewer closure publishes only bounded optional prepared meshes while preserving the full catalog',async t=>{
+  const f=fixture(t),directory='assets/data/prepared-polygons/generated/v2/';
+  const small=directory+'small.bin.gz',large=directory+'large.bin.gz';
+  f.metadata[directory+'manifest.json'].meshes={
+    small:{url:small,compressedBytes:65536,sha256:'a'.repeat(64)},
+    large:{url:large,compressedBytes:65537,sha256:'b'.repeat(64)},
+  };
+  f.metadata[small]=Buffer.alloc(65536);
+  f.metadata[large]=Buffer.alloc(65537);
+  const snapshot=await buildFrontendSnapshot({...f.options,dataPaths:Object.keys(f.metadata)});
+  assert.equal(snapshot.buildMeta.projectCatalogs.preparedMeshes.current,true);
+  assert.ok(snapshot.viewerPaths.has(directory+'manifest.json'));
+  assert.ok(snapshot.viewerPaths.has(small));
+  assert.equal(snapshot.viewerPaths.has(large),false);
+});
+
 test('obsolete prepared meshes are cache misses, not a source change or deployment failure',async t=>{
  const f=fixture(t),before=await buildFrontendSnapshot(f.options);
  assert.equal(before.buildMeta.mapProject.projectId,'default-world');

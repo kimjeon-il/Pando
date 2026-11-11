@@ -317,6 +317,9 @@ int main() {
         const auto& left=a.object.at("id").string;const auto& right=b.object.at("id").string;
         return left==right?codecjson::finiteNumber(a.object.at("version"))<codecjson::finiteNumber(b.object.at("version")):left<right;
     });
+    // Older v14 input omitted this optional field; canonical snapshots explicitly
+    // represent the unbound project identity as null without changing content.
+    canonicalSeed.object["mapProjectIdentity"]=codecjson::Value{};
     const auto seed=canonicalSeed.encode();
     ownedCommandBoundaries(seed);
     canonicalStoredSessionContracts(seed);

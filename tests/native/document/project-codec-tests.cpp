@@ -67,9 +67,9 @@ int main() {
     assert(document.units.size()==4);
     assert(document.documentId==codecjson::parse(bytes).object.at("documentId").string);
     Project project;project.replace(document);
-    // Pre-identity v14 files round-trip without adding mapProjectIdentity.
+    // Current v14 export canonicalizes an omitted identity to explicit null.
     const auto legacySaved=codecjson::parse(projectcodec::encodeWeb(project.snapshot(),ports));
-    assert(!legacySaved.object.count("mapProjectIdentity"));
+    assert(legacySaved.object.at("mapProjectIdentity").kind==codecjson::Value::Null);
     auto explicitNull=fixtureRoot;
     explicitNull.object["mapProjectIdentity"]=codecjson::Value{};
     Project nullableProject;nullableProject.replace(projectcodec::decodeWeb(explicitNull.encode(),ports));
