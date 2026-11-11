@@ -2,10 +2,14 @@ import { test as featureTest } from '@playwright/test';
 import * as __suiteDependency0 from "@playwright/test";
 import * as __suiteDependency1 from "@playwright/test";
 
+// Browser launch arguments are worker-scoped and must be set at file scope.
+// Both consolidated hydro cases share the same deterministic SwiftShader backend.
+featureTest.use({ launchOptions: { args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu-sandbox'] } });
+
 // Preserved Viewer feature contract: hydro-sdf-webgl.spec.mjs
 featureTest.describe("hydro-sdf-webgl", () => {
   const {  expect, test  } = __suiteDependency0;
-test.use({ launchOptions: { args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu-sandbox'] } });
+
 
 test('real WebGL 1/2 compile and link SDF color and pick shaders without changing hydro IDs', async ({ page }) => {
   await page.route(/hydro-sdf-fixture$/, route => route.fulfill({ contentType: 'text/html', body: '<!doctype html><title>Hydro SDF GPU</title>' }));
