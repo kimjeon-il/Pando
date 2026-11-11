@@ -164,6 +164,7 @@ async function sample(){
           return {rafFps:Math.round(gaps.length*10000/duration)/10,
             maxFrameGapMs:gaps.length?Math.round(gaps.at(-1)*10)/10:null,
             p95FrameGapMs:gaps.length?Math.round(gaps[Math.floor((gaps.length-1)*0.95)]*10)/10:null,
+            p99FrameGapMs:gaps.length?Math.round(gaps[Math.floor((gaps.length-1)*0.99)]*10)/10:null,
             rafFrames:gaps.length,durationMs:Math.round(duration),glDrawCalls:this.glCalls};
         },
       };
