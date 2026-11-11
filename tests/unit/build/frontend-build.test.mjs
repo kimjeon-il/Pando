@@ -108,7 +108,7 @@ test('selected Hydro and numerical terrain contracts are validated before public
  f.metadata[hydro]={...f.metadata[hydro],schema:'invalid'};
  await assert.rejects(buildFrontendSnapshot(f.options),/Hydro catalog/);
  f.metadata[hydro]={...f.metadata[hydro],schema:'pandolab-water-shards-v5'};
- const terrain='assets/data/terrain/v0.13.3/manifest.json';
+ const terrain=f.terrainPath;
  f.metadata[terrain]={...f.metadata[terrain],sourceDem:{landMaskSha256:'other-land'}};
  await assert.doesNotReject(buildFrontendSnapshot(f.options),'DEM samples do not classify physical land');
  f.metadata[terrain]={...f.metadata[terrain],representation:'raster-rgba-v1'};
