@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import vm from 'node:vm';
 import { createGpuTerrainPreparation } from '../../../src/rendering/gpu-terrain-preparation.js';
+import { fetchTerrainTile } from '../../../src/data/terrain-manifest.js';
 import * as resourcePolicy from '../../../src/runtime/resource-dependency-policy.js';
 const source = readFileSync(new URL('../../../src/rendering/workers/terrain-tile-selection-core.js', import.meta.url), 'utf8');
 const scope = {};
@@ -34,7 +35,7 @@ test('GPU preparation and Canvas plan admit identical tile lists at mixed levels
   };self.onmessage = event => {`),runtime);
   runtime.PandoLabCanvasRenderer.install(runtime);
   t.mock.method(globalThis,'fetch',(_url,{signal})=>new Promise((_resolve,reject)=>signal.addEventListener('abort',()=>reject(new DOMException('stopped','AbortError')))));
-  const owner=createGpuTerrainPreparation({tileUrl:spec=>`https://example.test/${spec.key}`,isMobile:()=>false,invalidate(){},geoDistance:runtime.d3.geo.distance});
+  const owner=createGpuTerrainPreparation({readTile:(spec,signal)=>fetchTerrainTile({url:`https://example.test/${spec.key}`},{signal}),isMobile:()=>false,invalidate(){},geoDistance:runtime.d3.geo.distance});
   t.after(()=>owner.dispose());
   owner.setContext({gl:{},ready:true,projectGeneration:1,contextGeneration:1,scheduler:{}});
   const manifest={gutter:1,levels:Array.from({length:6},(_,id)=>({id,width:1350*2**id,height:675*2**id,tileSize:1024,columns:Math.ceil(1350*2**id/1024),rows:Math.ceil(675*2**id/1024)}))};

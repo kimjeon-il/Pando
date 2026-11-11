@@ -21,7 +21,7 @@ export function terrainTileRequest(spec, manifest, { manifestUrl, dataBaseUrl, e
 
 export async function fetchTerrainTile(request, { signal, fetchFn = fetch } = {}) {
   const response = await fetchFn(request.url, { signal });
-  if (!response.ok) throw new Error(`DEM 타일 HTTP ${response.status}`);
+  if (!response.ok) throw new Error(`지형 타일 HTTP ${response.status}`);
   const blob = await response.blob();
   if (request.sha256) {
     if (blob.size !== request.bytes) throw new Error('DEM 타일 크기가 다릅니다.');

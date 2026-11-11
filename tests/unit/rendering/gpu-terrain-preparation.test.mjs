@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createGpuTerrainPreparation } from "../../../src/rendering/gpu-terrain-preparation.js";
+import { fetchTerrainTile } from '../../../src/data/terrain-manifest.js';
 import { createMapVisualFrame } from "../../../src/rendering/map-visual-frame.js";
 
 test('GPU and Canvas share one tile geometry, neighbours and viewport selection algorithm', () => {
@@ -29,7 +30,7 @@ function fixture(t, onUnusable = () => {}, { mobile = false, geoDistance = () =>
     options.signal.addEventListener('abort', () => reject(Object.assign(new Error('aborted'), { name: 'AbortError' })), { once: true });
   }));
   const owner = createGpuTerrainPreparation({
-    tileUrl: spec => `https://example.test/${spec.key}`,
+    readTile: (spec, signal) => fetchTerrainTile({url:`https://example.test/${spec.key}`}, {signal}),
     tintUrl,
     onUnusable,
     onTileFailure,

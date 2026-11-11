@@ -2,7 +2,7 @@ import { resourceKey, resourceUpdate } from "./resource-update-policy.js";
 import "./workers/terrain-tile-selection-core.js";
 // Owns terrain requests, retries, decoded bitmaps, upload queue, textures and grids.
 // prepare() returns ready draw records; drawing never initiates preparation.
-export function createGpuTerrainPreparation({ tileUrl, readTile, onUnusable, onTileFailure, isMobile, invalidate, geoDistance }) {
+export function createGpuTerrainPreparation({ readTile, onUnusable, onTileFailure, isMobile, invalidate, geoDistance }) {
   const PI = Math.PI;
   let gl = null, uploadScheduler = null, ready = false, disposed = false;
   let epoch = 0, projectGeneration = 0, contextRevision = 0;
@@ -112,11 +112,7 @@ export function createGpuTerrainPreparation({ tileUrl, readTile, onUnusable, onT
       controllers.add(controller);
       terrainActiveFetches += 1;
       const request = (async () => {
-        const blob = readTile ? await readTile(spec, controller.signal) : await (async () => {
-          const response = await fetch(tileUrl(spec), { signal: controller.signal });
-          if (!response.ok) throw new Error(`지형 타일 HTTP ${response.status}`);
-          return response.blob();
-        })();
+        const blob = await readTile(spec, controller.signal);
         let bitmap;
         try { bitmap = await createImageBitmap(blob, { premultiplyAlpha: 'none', colorSpaceConversion: 'none' }); }
         catch (error) {
