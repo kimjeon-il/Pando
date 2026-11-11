@@ -215,7 +215,14 @@ async function prepareMessage(message) {
       let cached = message.cacheUrl === loadedCacheUrl && message.quality === loadedCacheQuality ? pendingCache : null;
       if (message.cacheUrl && (message.cacheUrl !== loadedCacheUrl || message.quality !== loadedCacheQuality)) {
         try {
-          const response = await fetch(message.cacheUrl);
+          let runtimeFetch=fetch;
+          if(message.externalRuntimeData){
+            const dataModuleUrl=new URL('../modules/external-runtime-data.js',self.location.href);
+            dataModuleUrl.searchParams.set('v',new URL(self.location.href).searchParams.get('v')||'');
+            const {createExternalRuntimeDataFetch}=await import(dataModuleUrl.href);
+            runtimeFetch=createExternalRuntimeDataFetch({meta:{externalRuntimeData:message.externalRuntimeData}});
+          }
+          const response = await runtimeFetch(message.cacheUrl);
           if (!response.ok) throw new Error(`HTTP ${response.status}`);
           const stream = response.body.pipeThrough(new DecompressionStream('gzip'));
           cached = JSON.parse(await new Response(stream).text());

@@ -74,7 +74,7 @@ export async function stageWebPages(rootInput, stageInput, manifestInput, { skip
   for(const file of all)if(/^(?:scripts\/|tools\/stage-monorepo-pages\.mjs$|tools\/library-(?:data|archive)\.mjs$|config\/library-data\.json$)/.test(file.path))readSourceBytes(file.path);
   const sourceCommit=execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim();
   const terrainExternalSource={revision:TERRAIN_SOURCE_REVISION};
-  const snapshot=await buildFrontendSnapshot({root,sourceCommit,readSourceBytes,projectId,terrainExternalSource});
+  const snapshot=await buildFrontendSnapshot({root,sourceCommit,readSourceBytes,projectId,terrainExternalSource,externalRuntimeData:true});
   const terrainPath=mapProjectResourcePath(snapshot.buildMeta.mapProject,'terrain');
   const terrain=JSON.parse(snapshot.readPinnedRuntimeAsset(terrainPath));
   const checkout=libraryCheckout(root), packaging=terrain.packaging;
@@ -112,6 +112,13 @@ export async function stageWebPages(rootInput, stageInput, manifestInput, { skip
     if(!entry || entry.bytes!==tile.bytes || entry.sha256!==tile.sha256)throw Error('Pinned DEM archive identity mismatch: '+path);
     if(!snapshot.viewerPaths.delete(path))throw Error('Missing selected DEM tile: '+path);
   }
+  for(const [path,entry] of Object.entries(snapshot.buildMeta.externalRuntimeData.files)){
+    const source=library.archiveFiles[path], materialized=library.files[path];
+    if(!source || !materialized || materialized.bytes!==entry.bytes || materialized.sha256!==entry.sha256
+      || source.bytes!==entry.bytes || source.sha256!==entry.sha256 || source.stored!==entry.stored || source.encoding!==entry.encoding)
+      throw Error('Pinned external data identity mismatch: '+path);
+    if(!snapshot.viewerPaths.delete(path))throw Error('Missing selected external runtime asset: '+path);
+  }
   for(const path of snapshot.viewerPaths){
     const generated=snapshot.assets.get(path);let bytes,sourcePath=null;
     if(generated){bytes=generated.bytes;sourcePath=generated.sourcePath;}
@@ -119,10 +126,10 @@ export async function stageWebPages(rootInput, stageInput, manifestInput, { skip
     payload.set(path,bytes);files.push({path,sourcePath,bytes:bytes.length,sha256:hash('sha256',bytes),generated:!sourcePath});
   }
   for(const path of [...REQUIRED,snapshot.buildMeta.mapProjectManifest.url,...mapProjectResourcePaths(snapshot.buildMeta.mapProject)])
-    if(!payload.has(path))throw Error('Missing protected Web URL: '+path);
+    if(!payload.has(path)&&!snapshot.buildMeta.externalRuntimeData.files[path])throw Error('Missing protected Web URL: '+path);
   const meshLoader = createStoredAssetLoader({ dataRevision: snapshot.dataRevision, cacheStorage: null });
   for (const role of ['canonicalMesh']) {
-    const spec = world.assets[role], stored = payload.get('assets/data/' + spec.url);
+    const spec = world.assets[role], stored = payload.get('assets/data/' + spec.url) || snapshot.readPinnedRuntimeAsset('assets/data/' + spec.url);
     if (!stored || spec.header[7] !== MESH_ALGORITHM_REVISION) {
       throw Error('Pinned world ' + role + ' mesh algorithm revision mismatch or missing asset');
     }
@@ -152,7 +159,7 @@ export async function stageWebPages(rootInput, stageInput, manifestInput, { skip
   }
   mkdirSync(stage,{recursive:true});
   for(const file of files){const output=resolve(stage,file.path);if(!within(stage,output))throw Error('Invalid Pages output');mkdirSync(dirname(output),{recursive:true});writeFileSync(output,payload.get(file.path));if(hash('sha256',readFileSync(output))!==file.sha256)throw Error('Staged copy mismatch');}
-  const evidence={schema:'pando-web-pages-staging',productMode:'viewer',projectId:snapshot.buildMeta.mapProject.projectId,sourceCommit,frontendInputSha256:snapshot.sourceSha256,metadataCheck:skipChecks?'skipped':'passed',fileCount:files.length,dataRepository:library.repository,dataCommit:library.revision,terrainExternalSource,terrainManifest:terrainPath,bytes:total,limitBytes:LIMIT_BYTES,excludedNativeFiles:all.filter(f=>f.path.startsWith('native/')).length,excludedSharedFiles:all.filter(f=>f.path.startsWith('shared/')).length,excludedAppFiles:all.filter(f=>f.path.startsWith('apps/')).length,files};
+  const evidence={schema:'pando-web-pages-staging',productMode:'viewer',projectId:snapshot.buildMeta.mapProject.projectId,sourceCommit,frontendInputSha256:snapshot.sourceSha256,metadataCheck:skipChecks?'skipped':'passed',fileCount:files.length,dataRepository:library.repository,dataCommit:library.revision,terrainExternalSource,terrainManifest:terrainPath,externalRuntimeData:snapshot.buildMeta.externalRuntimeData,bytes:total,limitBytes:LIMIT_BYTES,excludedNativeFiles:all.filter(f=>f.path.startsWith('native/')).length,excludedSharedFiles:all.filter(f=>f.path.startsWith('shared/')).length,excludedAppFiles:all.filter(f=>f.path.startsWith('apps/')).length,files};
   mkdirSync(dirname(manifest), { recursive: true });
   writeFileSync(manifest, JSON.stringify(evidence, null, 2) + '\n');
   return evidence;

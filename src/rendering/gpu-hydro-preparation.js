@@ -435,6 +435,7 @@ export function createGpuHydroPreparation({ createWorker, getMode, getView, getC
           baseUrl: new URL('./', hydroManifestUrl).href,
           assetRevision: hydroRevision,
           dataRevision: DATA_REVISION || hydroRevision,
+          externalRuntimeData: globalThis.PANDOLAB_BUILD_META?.externalRuntimeData || null,
           includeGeometry: wantedIncludeGeometry,
         });
       } catch(error) {

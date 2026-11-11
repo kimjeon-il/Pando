@@ -23,6 +23,7 @@ function canvasFallbackWorkerMain(self) {
     let terrainDemManifestUrl = '';
     let terrainExpectedHash = '';
     let terrainTileRequest = null, fetchTerrainTile = null, terrainExternalSource = null;
+    let externalRuntimeData = null;
     const demTiles = new Map();
     const demRequests = new Map();
     const demQueue = [];
@@ -270,12 +271,13 @@ function canvasFallbackWorkerMain(self) {
       try {
         const fetchUrl = new URL(url);
         if (expectedHash) fetchUrl.searchParams.set('v', expectedHash);
-        const response = await fetch(fetchUrl.href, {signal: controller.signal});
-        if (!response.ok) throw new Error(`DEM 매니페스트 HTTP ${response.status}`);
         const validationUrl = new URL('../modules/terrain-manifest.js', self.location.href);
         validationUrl.searchParams.set('v', assetRevision);
         const terrainModule = await import(validationUrl.href);
         const { validateTerrainManifest } = terrainModule;
+        const runtimeFetch = terrainModule.createExternalRuntimeDataFetch({meta:{externalRuntimeData}});
+        const response = await runtimeFetch(fetchUrl.href, {signal: controller.signal});
+        if (!response.ok) throw new Error(`DEM 매니페스트 HTTP ${response.status}`);
         const manifest = validateTerrainManifest(await response.json());
         if (manifest.representation !== 'dem-relief-v1') throw new Error('수치 DEM 매니페스트가 필요합니다.');
         if (expectedHash && manifest.assetsSha256 !== expectedHash) throw new Error('DEM 원본 식별값이 현재 장면과 다릅니다.');
@@ -1070,6 +1072,7 @@ function canvasFallbackWorkerMain(self) {
       const message = event.data || {};
       if (message.projectGeneration != null && Number(message.projectGeneration) < projectGeneration) return;
       if (Object.hasOwn(message, 'terrainExternalSource')) terrainExternalSource = message.terrainExternalSource;
+      if (Object.hasOwn(message, 'externalRuntimeData')) externalRuntimeData = message.externalRuntimeData;
       if (message.type === 'init') {
         hasRenderedView = false;
         features = replaceCountryFeatures(message.features || []);

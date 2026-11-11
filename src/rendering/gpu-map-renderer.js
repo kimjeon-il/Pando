@@ -1002,6 +1002,8 @@ export function createGpuMapRenderer(deps) {
         geometryRevision: geometryRevisionTracker.committedRevision(), quality: boundaryQuality,
         cacheUrl: transportMessage.type === 'replace' && sharedBoundaryCacheUrls?.[boundaryQuality]
           ? new URL(sharedBoundaryCacheUrls[boundaryQuality], PHYSICAL_DATA_BASE_URL).href : null,
+        ...(transportMessage.type === 'replace' && sharedBoundaryCacheUrls?.[boundaryQuality]
+          ? {externalRuntimeData:globalThis.PANDOLAB_BUILD_META?.externalRuntimeData || null} : {}),
         skipCacheReconcile: transportMessage.type === 'replace' && baselineCache,
       });
     }
@@ -4520,6 +4522,7 @@ export function createGpuMapRenderer(deps) {
         terrainEnabled:terrainPreparation!==null,
         terrainAssetsSha256:terrainManifest?.assetsSha256 || null,
         terrainExternalSource:globalThis.PANDOLAB_BUILD_META?.terrainExternalSource || null,
+        externalRuntimeData:globalThis.PANDOLAB_BUILD_META?.externalRuntimeData || null,
         terrainDemManifestUrl:terrainPreparation ? String(terrainManifestUrl || TERRAIN_PRIMARY_MANIFEST_URL) : null,
       };
       message.type = 'init';
@@ -5493,7 +5496,7 @@ export function createGpuMapRenderer(deps) {
       terrainSource = source;
       if(sourceChanged){physicalStyleStateRevision++;canvasLastPhysicalStyleSignature='';}
       terrainPreparation?.setManifest(terrainManifest);
-      if(sourceChanged && canvasWorker)postCanvasWorkerMessage({type:'terrain-source',terrainDemManifestUrl:String(manifestUrl),terrainAssetsSha256:manifest?.assetsSha256 || null,terrainExternalSource:globalThis.PANDOLAB_BUILD_META?.terrainExternalSource || null});
+      if(sourceChanged && canvasWorker)postCanvasWorkerMessage({type:'terrain-source',terrainDemManifestUrl:String(manifestUrl),terrainAssetsSha256:manifest?.assetsSha256 || null,terrainExternalSource:globalThis.PANDOLAB_BUILD_META?.terrainExternalSource || null,externalRuntimeData:globalThis.PANDOLAB_BUILD_META?.externalRuntimeData || null});
       if (terrainManifest?.representation === TERRAIN_DEM_FORMAT && gl && !ensureTerrainDemProgram()) {
         activateCanvasFallback('DEM 셰이더 정밀도가 부족합니다.');
       }

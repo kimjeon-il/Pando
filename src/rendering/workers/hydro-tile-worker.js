@@ -33,6 +33,7 @@ let backgroundCacheController = null;
 let backgroundCacheTimer = 0;
 let cacheCompleted = false;
 let wholeHydroBundle = null;
+let fetchRuntimeData = (...args) => fetch(...args);
 
 function resolveUrl(path) {
   const url = new URL(path, baseUrl);
@@ -73,7 +74,7 @@ async function fetchWithRetry(input, init = {}, {
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
     if (signal?.aborted) throw signal.reason || new DOMException('Aborted', 'AbortError');
     try {
-      const response = await fetch(input, { ...init, signal });
+      const response = await fetchRuntimeData(input, { ...init, signal });
       if (!response.ok && retryableStatus(response.status)) {
         const error = new Error(`HTTP ${response.status}`);
         error.httpStatus = response.status;
@@ -734,6 +735,12 @@ onmessage = async event => {
       baseUrl = message.baseUrl;
       assetRevision = message.assetRevision || manifest.version || '';
       dataRevision = message.dataRevision || assetRevision;
+      if (message.externalRuntimeData) {
+        const moduleUrl = new URL('../modules/external-runtime-data.js', self.location.href);
+        moduleUrl.searchParams.set('v', new URL(self.location.href).searchParams.get('v') || '');
+        const { createExternalRuntimeDataFetch } = await import(moduleUrl.href);
+        fetchRuntimeData = createExternalRuntimeDataFetch({meta:{externalRuntimeData:message.externalRuntimeData}});
+      } else fetchRuntimeData = (...args) => fetch(...args);
       includeGeometry = message.includeGeometry === true;
       tilePacks.clear();
       logicalPacks.clear();
@@ -750,6 +757,7 @@ onmessage = async event => {
         digest: hydroDigest,
         sharedBundle: async () => wholeHydroBundle,
         onWholeBundle: saveWholeHydroBundle,
+        verifiedExternal: !!message.externalRuntimeData,
       });
       cacheCompleted = false;
       firstViewReady = false;
@@ -759,7 +767,7 @@ onmessage = async event => {
       readGlobalIndex(await fetchGzip(manifest.container ? manifest.index : manifest.index.url));
       readFeatureMetadata(await fetchGzip(manifest.container
         ? manifest.metadata.core : manifest.metadata?.core?.url || manifest.metadata?.url));
-      rangeSupportPromise = wholeHydroBundle ? Promise.resolve(false) : detectRangeSupport();
+      rangeSupportPromise = message.externalRuntimeData ? Promise.resolve(true) : wholeHydroBundle ? Promise.resolve(false) : detectRangeSupport();
       postMessage({ type: 'ready' });
     } catch (error) {
       postMessage({ type: 'init-error', message: error?.message || String(error) });

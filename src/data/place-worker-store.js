@@ -110,7 +110,7 @@ export function createPlaceWorkerStore({ manifest: raw, baseUrl = 'http://localh
       const spec=manifest.shards[row.shard]; let full=get(`shard:${row.shard}`), bytes;
       if (!full) {
         metrics.networkCount++;
-        if (fetchBytes) { full=await fetchBytes(spec); if (full.byteLength !== spec.bytes || full.byteLength > PLACE_LIMITS.shardBytes) throw new RangeError('Invalid place shard length/budget'); }
+        if (fetchBytes) { full=await fetchBytes(spec,{signal:context.signal}); if (full.byteLength !== spec.bytes || full.byteLength > PLACE_LIMITS.shardBytes) throw new RangeError('Invalid place shard length/budget'); }
         else {
           const url=new URL(spec.url,baseUrl);
           url.searchParams.set('v',manifest.revision);

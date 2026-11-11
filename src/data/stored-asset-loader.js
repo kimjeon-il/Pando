@@ -1,6 +1,8 @@
 import { fetchWithRetry, isRetryableHttpStatus } from "../runtime/reliability-core.js";
+import { createExternalRuntimeDataFetch } from './external-runtime-data.js';
 // Shared stored-byte cache, integrity and decoding owner for packed world and catalog assets.
 export function createStoredAssetLoader({dataRevision, resolveUrl, report = () => {}, fetchFn = globalThis.fetch, cacheStorage = globalThis.caches, cachePolicy = 'revision',subtle=globalThis.crypto?.subtle}) {
+ fetchFn = createExternalRuntimeDataFetch({meta:globalThis.PANDOLAB_BUILD_META,fetchFn});
  const DATA_CACHE_PREFIX = 'pandolab-data-';
  const DATA_CACHE_NAME = DATA_CACHE_PREFIX + dataRevision;
  const IMMUTABLE_WORLD_CACHE_NAME = 'pandolab-world-content-v1';
