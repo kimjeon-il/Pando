@@ -23,7 +23,7 @@
 /* First-map decoration shares the map frame; it never captures input. */
 
 /* First page only: neutral coastline -> accepted country/border surface -> names. */
-.viewer-root[data-initial-loading='true'] #viewerLabels,
+.viewer-root[data-initial-loading='true'] #viewerLabels {
   animation: viewer-initial-labels 140ms ease-out both;
 }
 @keyframes viewer-initial-labels {
@@ -31,6 +31,7 @@
   to { opacity: 1; }
 }
 @media (prefers-reduced-motion: reduce) {
+  .viewer-root[data-initial-loading='true'] #viewerLabels { animation: none; }
 }
 
 
