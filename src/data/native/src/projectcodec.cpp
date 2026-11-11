@@ -782,9 +782,13 @@ ProjectDocument readWebDocumentValue(const V& root,const PlatformPorts& ports,bo
     for(const auto* key:{"defaultView","layerVisibility","itemVisibility"})require(!root.object.count(key),"PL-SCHEMA-FIELD: viewing state is device-only");
     unknown(d,10,root,"",{"format","schemaVersion","version","savedAt","baseDataset","landObjectModel","territorialModel","distributionModel","sourceInfo","physicalSourceInfo","documentId","territorialEntities","timelineRecords","geometries","geometryResources","labels","hydroEdits","genericFeatures","distributionLayers","distributionEntries","labelSettings","distributionSettings","layerPresentation","projectSetup","mapProjectIdentity"});
     auto header=V::obj();for(const auto& [key,value]:currentWebHeader().object){
-        if(key=="mapProjectIdentity"&&!root.object.count(key))header.object[key]=V{};
-        else header.object[key]=field(root,key);
-    }validateHeader(header,d);d.exchangeMetadata=header.encode();
+        // The map identity is optional in older v14 documents: absence and an
+        // explicit null are distinct representations and must both round-trip.
+        if(key=="mapProjectIdentity"&&!root.object.count(key))continue;
+        header.object[key]=field(root,key);
+    }
+    d.exchangeMetadata=header.encode();
+    validateExchangeMetadata(d);
     d.documentId=str(field(root,"documentId"));require(!d.documentId.empty(),"INVALID_DOCUMENT_ID");
     for(const auto& row:array(field(root,"territorialEntities")))readWebTerritorialIdentity(row,d,ports);
     for(const auto& row:array(field(root,"hydroEdits"))) {
@@ -991,9 +995,14 @@ codecjson::Value webContentValue(const ProjectSnapshot& snapshot,const ObjectRef
 }
 namespace {
 V webSnapshotValue(const ProjectDocument& d,const WebStorageContext& context) {
-    auto root=currentWebHeader();for(const auto& [key,value]:jsonObject(d.exchangeMetadata).object)root.object[key]=value;
+    const auto metadata=jsonObject(d.exchangeMetadata);
+    auto root=currentWebHeader();for(const auto& [key,value]:metadata.object)root.object[key]=value;
     if(context.version)root.object["version"]=V::str(*context.version);if(context.savedAt)root.object["savedAt"]=V::str(*context.savedAt);
-    validateHeader(root,d);root.object["format"]=V::str(context.format);root.object["schemaVersion"]=V::num(ProjectVersion);root.object["documentId"]=V::str(d.documentId);
+    validateHeader(root,d);
+    // Preserve legacy omission; the current default header's null is not an
+    // author-supplied identity and must never be invented on export.
+    if(!metadata.object.count("mapProjectIdentity"))root.object.erase("mapProjectIdentity");
+    root.object["format"]=V::str(context.format);root.object["schemaVersion"]=V::num(ProjectVersion);root.object["documentId"]=V::str(d.documentId);
     V units=V::arr(),archive=V::arr(),labels=V::arr(),hydro=V::arr(),generic=V::arr(),layers=V::arr(),entries=V::arr();
     for(const auto& u:d.units)units.array.push_back(webIdentity(d,u));
     for(const auto& [ref,shape]:d.geometries.versions()) {

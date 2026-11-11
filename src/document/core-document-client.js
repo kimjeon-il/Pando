@@ -151,7 +151,13 @@ export function createCoreDocumentClient({
       { storageJson,baselineId: options.baselineId ?? null },options),
     inspectImport: (storageJson,options = {}) => ordered('core.document-inspect-import',
       { storageJson,baselineId: options.baselineId ?? null },options),
-    setTimelineCursor: async(month, options) => {await ensureGeometryResources(month,options);return ordered('core.document-timeline-cursor', { month }, options, true, true);},
+    setTimelineCursor: async(month, options) => {
+      // Invalid calendar input must be rejected by the authoritative C++ setter,
+      // rather than leaking a geometry-preparation error for another operation.
+      if(typeof month==='string' && /^(?!0000)[0-9]{4}-(?:0[1-9]|1[0-2])$/.test(month))
+        await ensureGeometryResources(month,options);
+      return ordered('core.document-timeline-cursor', { month }, options, true, true);
+    },
     resolveWorld: (month, options) => ordered('core.document-resolve-world', { month }, options),
     projectState: options => ordered('core.document-state', {}, options),
     selectionCatalogLoad: (domain,refs,expectedEpoch,options) => ordered('core.document-selection-catalog',
