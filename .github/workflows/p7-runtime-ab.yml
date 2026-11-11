@@ -2,15 +2,13 @@ name: Optimization same-run Viewer CPU/GPU/FPS/memory A/B
 
 # Historical task acceptance or one-time publication: explicitly dispatched, not default CI.
 on:
-  # One opt-in push on the dedicated audit branch; ordinary commits never
-  # run the historical paired A/B workflow or this profiling job.
-  push:
-    branches: [work/ci-perf-20261111]
-    paths:
-      - '.github/workflows/p7-runtime-ab.yml'
-      - 'src/rendering/gpu-map-renderer.js'
-      - 'scripts/p7-browser-ab-measure.mjs'
   workflow_dispatch:
+    inputs:
+      profile_only:
+        description: Measure the current Viewer three times, including 32x globe LOD
+        type: boolean
+        required: false
+        default: false
 
 permissions:
   contents: read
@@ -21,7 +19,7 @@ concurrency:
 
 jobs:
   paired-browser:
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch' && inputs.profile_only != true
     runs-on: ubuntu-24.04
     timeout-minutes: 85
     steps:
@@ -95,7 +93,7 @@ jobs:
           retention-days: 14
 
   current-renderer-profile:
-    if: github.event_name == 'push' && contains(github.event.head_commit.message, '[renderer-profile]')
+    if: github.event_name == 'workflow_dispatch' && inputs.profile_only == true
     runs-on: ubuntu-24.04
     timeout-minutes: 75
     steps:
