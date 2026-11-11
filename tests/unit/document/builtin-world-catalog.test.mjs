@@ -5,8 +5,7 @@ import {compileBuiltinWorldCatalog, coalesceCoverageAdjustments} from "../../../
 import {assembleBuiltinWorld, selectBuiltinCountries} from "../../../src/data/builtin-world-loader.js";
 import {buildBuiltinWorldPublication,buildBuiltinWorldNamePublication} from "../../../tools/build/build-builtin-world.mjs";
 import {withExplicitView} from "../../helpers/builtin-world.mjs";
-import {gzipSync, gunzipSync} from 'node:zlib';
-import {createHash} from 'node:crypto';
+import {gunzipSync} from 'node:zlib';
 import {temporalContains, temporalMonthEnd} from "../../../src/document/temporal.js";
 import {resolveWorld} from "../../../src/document/timeline-resolver.js";
 import {createGeometryVersionStore} from "../../../src/geometry/geometry-version-store.js";
