@@ -39,7 +39,7 @@ const expected = {
 const fromHex = hex => [1,3,5].map(at => parseInt(hex.slice(at,at+2),16));
 test('land palette has eight independent sRGB stops in both themes',()=>{
   for(const theme of ['light','dark'])for(let i=0;i<paletteStops.length;i++){
-    const actual=sample(paletteStops[i],200,{theme}).land;
+    const actual=sample(paletteStops[i],212,{theme}).land;
     const target=fromHex(expected[theme][i]);
     for(let channel=0;channel<3;channel++)
       assert.ok(Math.abs(actual[channel]-target[channel])<=2,
@@ -48,22 +48,22 @@ test('land palette has eight independent sRGB stops in both themes',()=>{
 });
 test('sRGB channel interpolation uses per-interval smoothstep, not the retired elevation ramp',()=>{
   for(const theme of ['light','dark']){
-    const at0=sample(0,200,{theme}).land,mid=sample(128,200,{theme}).land,at256=sample(256,200,{theme}).land;
+    const at0=sample(0,212,{theme}).land,mid=sample(128,212,{theme}).land,at256=sample(256,212,{theme}).land;
     for(let c=0;c<3;c++)assert.ok(Math.abs(mid[c]-(at0[c]+at256[c])/2)<=2);
-    assert.deepEqual(sample(-10,200,{theme}).land,sample(0,200,{theme}).land);
-    assert.deepEqual(sample(9999,200,{theme}).land,sample(6500,200,{theme}).land);
+    assert.deepEqual(sample(-10,212,{theme}).land,sample(0,212,{theme}).land);
+    assert.deepEqual(sample(9999,212,{theme}).land,sample(6500,212,{theme}).land);
   }
 });
 test('independent sea palettes share the established depth exponent',()=>{
   const endpoints={light:['#A5D7F1','#6A9FCA'],dark:['#477E99','#1F425F']};
   for(const theme of ['light','dark']){
     for(const [i,depth] of [0,8000].entries()){
-      const color=sample(-depth,200,{theme}).ocean;
+      const color=sample(-depth,212,{theme}).ocean;
       for(let channel=0;channel<3;channel++)
         assert.ok(Math.abs(color[channel]-fromHex(endpoints[theme][i])[channel])<=2);
     }
-    const shallow=sample(-400,200,{theme}).ocean,medium=sample(-2000,200,{theme}).ocean,
-      deep=sample(-8000,200,{theme}).ocean;
+    const shallow=sample(-400,212,{theme}).ocean,medium=sample(-2000,212,{theme}).ocean,
+      deep=sample(-8000,212,{theme}).ocean;
     for(let c=0;c<3;c++)assert.ok(shallow[c]>=medium[c]&&medium[c]>=deep[c]);
   }
 });
@@ -71,7 +71,7 @@ test('political plane, original hillshade response and shared shader color unifo
   const source=globalThis.PandoLabCanvasTerrainDem;
   assert.deepEqual(sample(2500,185,{theme:'dark'}).political,sample(2500,185,{theme:'light'}).political);
   assert.ok(sample(2500,212,{theme:'dark'}).land[0]>sample(2500,128,{theme:'dark'}).land[0]);
-  assert.equal(sample(0,200,{theme:'dark',includePolitical:false}).political,null);
+  assert.equal(sample(0,212,{theme:'dark',includePolitical:false}).political,null);
   const glsl=source.colorGlsl();
   for(const name of ['uTerrainLandColors[8]','uTerrainSeaSurface','uTerrainSeaDeep','0.6','0.38','1.3'])
     assert.ok(glsl.includes(name),'GLSL contract '+name);
