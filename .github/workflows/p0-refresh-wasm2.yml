@@ -1,0 +1,87 @@
+name: P0 v14 codec WASM regeneration (temporary)
+on:
+  push:
+    branches: [work/p0-codec-compat-20261111]
+    paths:
+      - '.github/workflows/p0-refresh-wasm.yml'
+permissions:
+  contents: write
+concurrency:
+  group: p0-refresh-wasm2-20261111
+  cancel-in-progress: false
+jobs:
+  regenerate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    env:
+      EMCC_CORES: '1'
+      BINARYEN_CORES: '1'
+      NODE_OPTIONS: '--max-old-space-size=512'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: work/p0-codec-compat-20261111
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: sudo apt-get update && sudo apt-get install -y ninja-build zlib1g-dev
+      - uses: jwlawson/actions-setup-cmake@v2
+        with:
+          cmake-version: '3.31.6'
+      - uses: actions/checkout@v4
+        with:
+          repository: emscripten-core/emsdk
+          ref: db04e88298d9916fc51fcd3743045ca3eb695127
+          path: build-native/emsdk
+          persist-credentials: false
+      - name: Recompile using the repository-pinned Emscripten SDK
+        shell: bash
+        run: |
+          set -euo pipefail
+          required_version=6.0.3
+          build-native/emsdk/emsdk install "$required_version"
+          build-native/emsdk/emsdk activate "$required_version"
+          source build-native/emsdk/emsdk_env.sh
+          emcc --version | sed -n '1p' | grep -F "$required_version"
+          port_file=build-native/emsdk/upstream/emscripten/tools/ports/zlib.py
+          original='https://github.com/madler/zlib/archive/refs/tags/v{VERSION}.tar.gz'
+          canonical='https://codeload.github.com/madler/zlib/tar.gz/refs/tags/v{VERSION}'
+          grep -Fq "$original" "$port_file"
+          sed -i "s|$original|$canonical|" "$port_file"
+          grep -Fq "$canonical" "$port_file"
+          node --input-type=module <<'NODE'
+          import {readFileSync,writeFileSync} from 'node:fs';
+          const file='build-native/emsdk/upstream/emscripten/tools/ports/__init__.py';
+          const input=readFileSync(file,'utf8');
+          const old="    ext = url_filename.split('.', 1)[1]";
+          if(input.split(old).length!==2)throw Error('Unexpected pinned Emscripten port loader');
+          const next="    ext = 'tar.gz' if name == 'zlib' and url.startswith('https://codeload.github.com/madler/zlib/tar.gz/refs/tags/v') else url_filename.split('.', 1)[1]";
+          writeFileSync(file,input.replace(old,next));
+          NODE
+          emcmake cmake --preset pando-wasm
+          cmake --build --preset pando-wasm
+      - name: Package and independently check the source-matched pair
+        run: |
+          node tools/build/package-shared-core-assets.mjs --build-dir build-native/p1/pando-wasm/shared/wasm
+          node tools/build/package-shared-core-assets.mjs --build-dir assets/wasm --check
+      - name: Commit only the three verified generated artifacts to the P0 branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF" = 'refs/heads/work/p0-codec-compat-20261111'
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add assets/wasm/pandoeditor-core.js assets/wasm/pandoeditor-core.wasm assets/wasm/pandoeditor-core.manifest.json
+          if git diff --cached --quiet; then echo 'WASM artifacts already current'; exit 0; fi
+          git commit -m 'build(wasm): regenerate verified source-matched core pair'
+          git push origin HEAD:refs/heads/work/p0-codec-compat-20261111
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: p0-source-matched-wasm-${{ github.run_id }}
+          path: |
+            assets/wasm/pandoeditor-core.js
+            assets/wasm/pandoeditor-core.wasm
+            assets/wasm/pandoeditor-core.manifest.json
+          if-no-files-found: warn
