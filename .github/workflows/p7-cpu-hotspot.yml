@@ -1,0 +1,53 @@
+name: P7 focused Chromium CPU draw-call attribution
+# Single investigative branch. No main/GIS/package publication or full CI.
+on:
+  push:
+    branches: ['work/perf-cpu-attribution-20261112']
+    paths: ['.github/workflows/p7-cpu-hotspot.yml']
+permissions:
+  contents: write
+concurrency:
+  group: p7-cpu-attribution-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  profile:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - name: Prepare immutable P7 library data only
+        uses: ./.github/actions/library-data
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Check only diagnostic script grammar
+        run: node --check scripts/p7-cpu-hotspot.mjs
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Profile full 32x redraws and instanced stroke ablation
+        run: node scripts/p7-cpu-hotspot.mjs --out=validation-results/p7-cpu-hotspot-20261112/hotspot.json
+      - name: Upload raw hotspot JSON even when a scenario fails
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p7-cpu-hotspot-${{ github.sha }}
+          path: validation-results/p7-cpu-hotspot-20261112/hotspot.json
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Preserve diagnostic JSON in the isolated branch
+        if: always()
+        shell: bash
+        run: |
+          if [ ! -s validation-results/p7-cpu-hotspot-20261112/hotspot.json ]; then
+            echo "No profile created"; exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- validation-results/p7-cpu-hotspot-20261112/hotspot.json
+          if ! git diff --cached --quiet; then
+            git commit -m "data(perf): preserve focused P7 CPU hotspot evidence [skip ci]"
+            git push origin HEAD:refs/heads/work/perf-cpu-attribution-20261112
+          fi
