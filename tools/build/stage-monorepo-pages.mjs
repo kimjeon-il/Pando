@@ -10,9 +10,12 @@ import {validateWorldBundle} from '../../src/data/world-bundle-manifest.js';
 import {createStoredAssetLoader} from '../../src/data/stored-asset-loader.js';
 import {decodeCountryMesh,MESH_ALGORITHM_REVISION} from '../../src/rendering/country-mesh-codec.js';
 import {prepareLibraryData} from "../data/library-runtime.mjs";
+import {libraryCheckout} from '../data/library-context.mjs';
+import {terrainAssetDigest} from '../gis/terrain-dem-assets.mjs';
 
 const LIMIT_BYTES = 1_000_000_000;
 const REQUIRED = ['index.html', '.nojekyll'];
+const TERRAIN_SOURCE_REVISION = 'f26d0896ab393aa351938637571347baa09ebf71';
 const hash = (algorithm, bytes) => createHash(algorithm).update(bytes).digest('hex');
 const blobHash = bytes => hash('sha1', Buffer.concat([Buffer.from(`blob ${bytes.length}\0`), bytes]));
 const within = (root, target) => {
@@ -70,7 +73,26 @@ export async function stageWebPages(rootInput, stageInput, manifestInput, { skip
   // The generator and native-free staging recipe must also belong to HEAD.
   for(const file of all)if(/^(?:scripts\/|tools\/stage-monorepo-pages\.mjs$|tools\/library-(?:data|archive)\.mjs$|config\/library-data\.json$)/.test(file.path))readSourceBytes(file.path);
   const sourceCommit=execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim();
-  const snapshot=await buildFrontendSnapshot({root,sourceCommit,readSourceBytes,projectId});
+  const terrainExternalSource={revision:TERRAIN_SOURCE_REVISION};
+  const snapshot=await buildFrontendSnapshot({root,sourceCommit,readSourceBytes,projectId,terrainExternalSource});
+  const terrainPath=mapProjectResourcePath(snapshot.buildMeta.mapProject,'terrain');
+  const terrain=JSON.parse(snapshot.readPinnedRuntimeAsset(terrainPath));
+  const checkout=libraryCheckout(root), packaging=terrain.packaging;
+  if(packaging?.sourceRevision!==TERRAIN_SOURCE_REVISION || packaging.sourcePath!=='terrain/v0.13.3/manifest.json')
+    throw Error('Pinned DEM source differs from the selected external revision');
+  execFileSync('git',['merge-base','--is-ancestor',TERRAIN_SOURCE_REVISION,snapshot.dataCommit],{cwd:checkout});
+  const sourceManifest=execFileSync('git',['show',`${TERRAIN_SOURCE_REVISION}:${packaging.sourcePath}`],{cwd:checkout,maxBuffer:4*1024*1024});
+  const original=JSON.parse(sourceManifest);
+  if(hash('sha256',sourceManifest)!==packaging.sourceSha256 || original.assetsSha256!==terrain.assetsSha256)
+    throw Error('Pinned DEM source manifest identity mismatch');
+  const terrainDigest=terrainAssetDigest(), tilePaths=[];
+  for(const level of terrain.levels)for(let row=0;row<level.rows;row++)for(let column=0;column<level.columns;column++){
+    const key=`${level.id}/${column}-${row}.webp`, tile=terrain.tiles?.[key];
+    if(!tile || !Number.isSafeInteger(tile.bytes) || tile.bytes<1)throw Error('Missing DEM tile identity: '+key);
+    terrainDigest.add(key,tile.sha256);tilePaths.push(terrainPath.slice(0,terrainPath.lastIndexOf('/')+1)+key);
+  }
+  if(Object.keys(terrain.tiles||{}).length!==tilePaths.length || terrainDigest.finish(terrain.tint.sha256)!==original.assetsSha256)
+    throw Error('Pinned DEM tile inventory differs from the original source');
   if([...snapshot.viewerPaths].some(path=>path.endsWith('/assets/js/workers/core-viewer-session-worker.js')))for(const name of ['pandoeditor-core.js','pandoeditor-core.wasm','pandoeditor-core.manifest.json']){const path='assets/wasm/'+name;if(!snapshot.assets.has(path))throw Error('Missing protected Web URL: '+path);snapshot.viewerPaths.add(path);}
   // Preserve main's source-matched geometry publication gate, resolving
   // manifests through the selected project rather than retired global specs.
@@ -84,6 +106,12 @@ export async function stageWebPages(rootInput, stageInput, manifestInput, { skip
     throw Error('Prepared polygon mesh algorithm revision mismatch: expected '
       +MESH_ALGORITHM_REVISION+', received '+prepared.algorithmVersion);
   const library=prepareLibraryData({root,projectId}),payload=new Map(),files=[];
+  for(const path of tilePaths){
+    const tile=terrain.tiles[path.slice(terrainPath.lastIndexOf('/')+1)];
+    const entry=library.files[path];
+    if(!entry || entry.bytes!==tile.bytes || entry.sha256!==tile.sha256)throw Error('Pinned DEM archive identity mismatch: '+path);
+    if(!snapshot.viewerPaths.delete(path))throw Error('Missing selected DEM tile: '+path);
+  }
   for(const path of snapshot.viewerPaths){
     const generated=snapshot.assets.get(path);let bytes,sourcePath=null;
     if(generated){bytes=generated.bytes;sourcePath=generated.sourcePath;}
@@ -124,7 +152,7 @@ export async function stageWebPages(rootInput, stageInput, manifestInput, { skip
   }
   mkdirSync(stage,{recursive:true});
   for(const file of files){const output=resolve(stage,file.path);if(!within(stage,output))throw Error('Invalid Pages output');mkdirSync(dirname(output),{recursive:true});writeFileSync(output,payload.get(file.path));if(hash('sha256',readFileSync(output))!==file.sha256)throw Error('Staged copy mismatch');}
-  const evidence={schema:'pando-web-pages-staging',productMode:'viewer',projectId:snapshot.buildMeta.mapProject.projectId,sourceCommit,frontendInputSha256:snapshot.sourceSha256,metadataCheck:skipChecks?'skipped':'passed',fileCount:files.length,dataRepository:library.repository,dataCommit:library.revision,bytes:total,limitBytes:LIMIT_BYTES,excludedNativeFiles:all.filter(f=>f.path.startsWith('native/')).length,excludedSharedFiles:all.filter(f=>f.path.startsWith('shared/')).length,excludedAppFiles:all.filter(f=>f.path.startsWith('apps/')).length,files};
+  const evidence={schema:'pando-web-pages-staging',productMode:'viewer',projectId:snapshot.buildMeta.mapProject.projectId,sourceCommit,frontendInputSha256:snapshot.sourceSha256,metadataCheck:skipChecks?'skipped':'passed',fileCount:files.length,dataRepository:library.repository,dataCommit:library.revision,terrainExternalSource,terrainManifest:terrainPath,bytes:total,limitBytes:LIMIT_BYTES,excludedNativeFiles:all.filter(f=>f.path.startsWith('native/')).length,excludedSharedFiles:all.filter(f=>f.path.startsWith('shared/')).length,excludedAppFiles:all.filter(f=>f.path.startsWith('apps/')).length,files};
   mkdirSync(dirname(manifest), { recursive: true });
   writeFileSync(manifest, JSON.stringify(evidence, null, 2) + '\n');
   return evidence;
