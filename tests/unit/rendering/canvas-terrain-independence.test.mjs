@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import * as resourcePolicy from "../../../src/rendering/resource-update-policy.js";
 import {canvasWorkerFrameMatchesPhysical} from "../../../src/rendering/country-mesh-zoom-policy.js";
 import {createCanvasScenePackets} from "../../../src/rendering/gpu-canvas-scene-packets.js";
-import {terrainAssetUrl} from "../../../src/data/terrain-manifest.js";
+import {terrainTileRequest, fetchTerrainTile} from "../../../src/data/terrain-manifest.js";
 
 const workerSource = readFileSync(new URL("../../../src/rendering/workers/canvas-render-core.js", import.meta.url), 'utf8');
 const terrainCoreSource = readFileSync(new URL("../../../src/rendering/workers/canvas-terrain-dem-core.js", import.meta.url), 'utf8');
@@ -99,7 +99,8 @@ function canvasTerrainRuntime({ expectDem = false, timerPorts = null, now = () =
   new Function('self', terrainTileSource)(scope);
   scope.PandoLabResourceUpdatePolicy = resourcePolicy;
   scope.OffscreenCanvas=Canvas;
-  scope.terrainAssetUrl=terrainAssetUrl;
+  scope.terrainTileRequest=terrainTileRequest;
+  scope.fetchTerrainTile=(request, options) => fetchTerrainTile(request, {...options,fetchFn:(url, init)=>fetch(String(url),init)});
   new Function('self', 'globalThis', 'fetch', 'createImageBitmap',
     'ImageData', 'performance', workerSource.replace('    function dispose() {',
       `self.drawTerrainTriangle = drawTexturedTriangle;
@@ -119,7 +120,8 @@ function canvasTerrainRuntime({ expectDem = false, timerPorts = null, now = () =
         }
         terrainDemManifest = manifest;
         terrainDemManifestUrl = 'https://example.test/dem/manifest.json';
-        resolveTerrainAssetUrl=self.terrainAssetUrl;
+        terrainTileRequest=self.terrainTileRequest;
+        fetchTerrainTile=self.fetchTerrainTile;
         requestLatestTerrainDemand();
       };
       self.stageDemTileForTest = key => {

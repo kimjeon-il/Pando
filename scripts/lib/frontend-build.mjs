@@ -45,7 +45,7 @@ function pinnedContext(root){
  return pinnedContexts.get(key);
 }
 /** Build the one Viewer runtime shared by browser and Windows review, without output mutations. */
-export async function buildFrontendSnapshot({root=process.cwd(),sourceCommit,readPinnedData,dataPaths,readSourceBytes,resourceProfile,projectId='default-world',workerSourceTransform=(_path,source)=>source}={}){
+export async function buildFrontendSnapshot({root=process.cwd(),sourceCommit,readPinnedData,dataPaths,readSourceBytes,resourceProfile,projectId='default-world',terrainExternalSource=null,workerSourceTransform=(_path,source)=>source}={}){
  if(resourceProfile!==undefined&&!['map-data','test-fixture'].includes(resourceProfile))throw Error('Invalid frontend resource profile');
  root=resolve(root);const pinned=readPinnedData?null:pinnedContext(root);
  readPinnedData??=pinned.read;dataPaths??=pinned.dataPaths;
@@ -120,6 +120,7 @@ export async function buildFrontendSnapshot({root=process.cwd(),sourceCommit,rea
  // integrity receipt per role. No duplicate world/terrain/water catalog is
  // expanded into process-global build metadata.
  const buildMeta={appVersion,buildId,assetRevision,dataRevision,sourceCommit,dataCommit:pinned?.revision||null,...resourceProfile?{resourceProfile}:{},
+   ...(terrainExternalSource?{terrainExternalSource}:{}),
    mapProject,mapProjectManifest,projectCatalogs,
    workerAssets};
  generated('assets/js/build-meta.js','// Generated product identity.\nglobalThis.PANDOLAB_BUILD_META = Object.freeze('+JSON.stringify(buildMeta,null,2)+');\n');

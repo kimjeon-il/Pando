@@ -6,6 +6,7 @@ import * as __terrain_dep3 from "../../../src/rendering/gpu-upload-scheduler.js"
 import * as __terrain_dep4 from "../../../src/rendering/gpu-terrain-preparation.js";
 import * as __terrain_dep5 from "../../../src/rendering/map-visual-frame.js";
 import * as __terrain_dep6 from "../../../src/rendering/scene-color-cache.js";
+import { fetchTerrainTile } from '../../../src/data/terrain-manifest.js';
 const test = __terrain_dep0.default;
 const assert = __terrain_dep1.default;
 
@@ -59,7 +60,7 @@ function terrain(t){
   }));
   globalThis.createImageBitmap=async()=>({width:1024,height:1024,close(){}});
   t.after(()=>{delete globalThis.createImageBitmap;});
-  const owner=createGpuTerrainPreparation({tileUrl:spec=>`https://test/${spec.key}`,isMobile:()=>true,
+  const owner=createGpuTerrainPreparation({readTile:(spec,signal)=>fetchTerrainTile({url:`https://test/${spec.key}`},{signal}),isMobile:()=>true,
     invalidate:reason=>uploads.push(reason),geoDistance:()=>0});
   owner.setContext({gl,ready:true,scheduler:c.scheduler,projectGeneration:1,contextGeneration:1});
   owner.setManifest({representation:'raster-rgba-v1',gutter:0,levels:[

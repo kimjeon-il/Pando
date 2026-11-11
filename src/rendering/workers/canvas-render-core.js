@@ -22,7 +22,7 @@ function canvasFallbackWorkerMain(self) {
     let terrainDemManifest = null;
     let terrainDemManifestUrl = '';
     let terrainExpectedHash = '';
-    let resolveTerrainAssetUrl = null;
+    let terrainTileRequest = null, fetchTerrainTile = null, terrainExternalSource = null;
     const demTiles = new Map();
     const demRequests = new Map();
     const demQueue = [];
@@ -148,14 +148,6 @@ function canvasFallbackWorkerMain(self) {
 
     const tileSelection=self.PandoLabTerrainTileSelection;
 
-    function terrainTileUrl(spec, manifest = terrainDemManifest, manifestUrl = terrainDemManifestUrl) {
-      const relative = manifest.urlTemplate
-        .replace('{level}', String(spec.level))
-        .replace('{column}', String(spec.column))
-        .replace('{row}', String(spec.row));
-      return resolveTerrainAssetUrl(relative, { manifestUrl, revision: manifest.assetsSha256 }).href;
-    }
-
     async function readRgba(blob) {
       let bitmap;
       try { bitmap = await createImageBitmap(blob, { premultiplyAlpha: 'none', colorSpaceConversion: 'none' }); }
@@ -201,8 +193,9 @@ function canvasFallbackWorkerMain(self) {
         const previous = demFailures.get(spec.key);
         const source = terrainDemManifest;
         const controller = new AbortController();
-        const request = fetch(terrainTileUrl(spec, terrainDemManifest, terrainDemManifestUrl), { signal: controller.signal })
-          .then(response => { if (!response.ok) throw new Error(`DEM 타일 HTTP ${response.status}`); return response.blob(); })
+        const sourceUrl = terrainDemManifestUrl, externalSource = terrainExternalSource;
+        const request = (async () => fetchTerrainTile(
+          terrainTileRequest(spec, source, { manifestUrl: sourceUrl, externalSource }), { signal: controller.signal }))()
           .then(blob => prepareDemBitmap(blob, spec))
           .then(tile => {
             if (controller.signal.aborted) {
@@ -257,12 +250,14 @@ function canvasFallbackWorkerMain(self) {
         if (!response.ok) throw new Error(`DEM 매니페스트 HTTP ${response.status}`);
         const validationUrl = new URL('../modules/terrain-manifest.js', self.location.href);
         validationUrl.searchParams.set('v', assetRevision);
-        const { validateTerrainManifest, terrainAssetUrl } = await import(validationUrl.href);
+        const terrainModule = await import(validationUrl.href);
+        const { validateTerrainManifest } = terrainModule;
         const manifest = validateTerrainManifest(await response.json());
         if (manifest.representation !== 'dem-relief-v1') throw new Error('수치 DEM 매니페스트가 필요합니다.');
         if (expectedHash && manifest.assetsSha256 !== expectedHash) throw new Error('DEM 원본 식별값이 현재 장면과 다릅니다.');
         if (disposed || controller.signal.aborted) return;
-        resolveTerrainAssetUrl = terrainAssetUrl;
+        terrainTileRequest = terrainModule.terrainTileRequest;
+        fetchTerrainTile = terrainModule.fetchTerrainTile;
         terrainDemManifest = manifest;
         requestLatestTerrainDemand();
         self.postMessage({ type: 'terrain-ready', count: 0, key: 'dem-manifest' });
@@ -1048,6 +1043,7 @@ function canvasFallbackWorkerMain(self) {
     self.onmessage = event => {
       const message = event.data || {};
       if (message.projectGeneration != null && Number(message.projectGeneration) < projectGeneration) return;
+      if (Object.hasOwn(message, 'terrainExternalSource')) terrainExternalSource = message.terrainExternalSource;
       if (message.type === 'init') {
         hasRenderedView = false;
         features = replaceCountryFeatures(message.features || []);

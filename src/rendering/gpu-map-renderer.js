@@ -58,7 +58,7 @@ import { createInlineCanvasWorker } from './canvas-inline-worker.js';
 
 const rendererAssetRevision = new URL(import.meta.url).searchParams.get('v') || '';
 const [{ drawGpuBaseScene }, { prepareGpuBaseScene, prepareGpuInteractionPlan, sceneStrokeResourcePacket, commitGpuStrokeDomains }, { createGpuStrokeRenderer }, { createGpuTerrainPreparation },
-  { TERRAIN_DEM_FORMAT, terrainAssetUrl }] = await Promise.all([
+  { TERRAIN_DEM_FORMAT, terrainTileRequest, fetchTerrainTile }] = await Promise.all([
   import(`./gpu-base-scene-pass.js?v=${encodeURIComponent(rendererAssetRevision)}`),
   import(`./gpu-scene-preparation.js?v=${encodeURIComponent(rendererAssetRevision)}`),
   import(`./gpu-stroke-renderer.js?v=${encodeURIComponent(rendererAssetRevision)}`),
@@ -758,13 +758,10 @@ export function createGpuMapRenderer(deps) {
     let canvasTerrainStats = {};
     const terrainPreparation = state.resourceCapabilities?.terrain===false ? null : createGpuTerrainPreparation({
       isMobile, invalidate: invalidatePhysicalScene, geoDistance: (...args) => d3.geo.distance(...args),
-      tileUrl: spec => {
-        const relative = terrainManifest.urlTemplate.replace('{level}', String(spec.level)).replace('{column}', String(spec.column)).replace('{row}', String(spec.row));
-        return terrainAssetUrl(relative, { manifestUrl: terrainManifestUrl,
-          dataBaseUrl: PHYSICAL_DATA_BASE_URL,
-          revision: terrainManifest.representation === TERRAIN_DEM_FORMAT
-            ? terrainManifest.assetsSha256 : DATA_REVISION || terrainManifest.version || APP_VERSION });
-      },
+      readTile: (spec, signal) => fetchTerrainTile(terrainTileRequest(spec, terrainManifest, {
+        manifestUrl: terrainManifestUrl, dataBaseUrl: PHYSICAL_DATA_BASE_URL,
+        externalSource: globalThis.PANDOLAB_BUILD_META?.terrainExternalSource || null,
+      }), { signal }),
       onUnusable: reason => {
         reportOperationError(new Error('Terrain tile loading failed', { cause: new Error(reason) }),
           '지형 타일을 불러오지 못했습니다. 국가 지도는 계속 사용할 수 있습니다. 잠시 후 다시 시도하세요.', 'PL-TERRAIN-001', 0);
@@ -4509,6 +4506,7 @@ export function createGpuMapRenderer(deps) {
         sharedBoundary: canvasCountryBoundaryPacket(),
         terrainEnabled:terrainPreparation!==null,
         terrainAssetsSha256:terrainManifest?.assetsSha256 || null,
+        terrainExternalSource:globalThis.PANDOLAB_BUILD_META?.terrainExternalSource || null,
         terrainDemManifestUrl:terrainPreparation ? String(terrainManifestUrl || TERRAIN_PRIMARY_MANIFEST_URL) : null,
       };
       message.type = 'init';
@@ -5482,7 +5480,7 @@ export function createGpuMapRenderer(deps) {
       terrainSource = source;
       if(sourceChanged){physicalStyleStateRevision++;canvasLastPhysicalStyleSignature='';}
       terrainPreparation?.setManifest(terrainManifest);
-      if(sourceChanged && canvasWorker)postCanvasWorkerMessage({type:'terrain-source',terrainDemManifestUrl:String(manifestUrl),terrainAssetsSha256:manifest?.assetsSha256 || null});
+      if(sourceChanged && canvasWorker)postCanvasWorkerMessage({type:'terrain-source',terrainDemManifestUrl:String(manifestUrl),terrainAssetsSha256:manifest?.assetsSha256 || null,terrainExternalSource:globalThis.PANDOLAB_BUILD_META?.terrainExternalSource || null});
       if (terrainManifest?.representation === TERRAIN_DEM_FORMAT && gl && !ensureTerrainDemProgram()) {
         activateCanvasFallback('DEM 셰이더 정밀도가 부족합니다.');
       }
