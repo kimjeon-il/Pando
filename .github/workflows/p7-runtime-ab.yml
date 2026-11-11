@@ -8,6 +8,8 @@ on:
     branches: [work/ci-perf-20261111]
     paths:
       - '.github/workflows/p7-runtime-ab.yml'
+      - 'src/rendering/gpu-map-renderer.js'
+      - 'scripts/p7-browser-ab-measure.mjs'
   workflow_dispatch:
 
 permissions:
@@ -152,10 +154,16 @@ jobs:
             trackedGpuBufferMiB:mib(p.renderer?.gpuTrackedBuffersBytes),
             terrainCacheMiB:mib(p.renderer?.terrainCacheBytes),hydroCacheMiB:mib(p.renderer?.hydroCacheBytes),
             countryMeshRebuildCount:p.renderer?.countryMeshRebuildCount??null,
+            countryMeshBuildSuccessCount:p.renderer?.countryMeshBuildSuccessCount??null,
             countryMeshReuseCount:p.renderer?.countryMeshReuseCount??null,
+            screenLodPreparedCount:p.renderer?.screenLodPreparedCount??null,
+            screenLodUploadCount:p.renderer?.screenLodUploadCount??null,
             countryMeshPreparationMs:p.renderer?.countryMeshPreparationMs??null,
             workerMessageBytes:p.renderer?.workerMessageBytes??null
           }));
+          if(phases.some(p=>p.countryMeshRebuildCount===null||p.countryMeshBuildSuccessCount===null||
+            p.countryMeshReuseCount===null||p.screenLodPreparedCount===null||p.screenLodUploadCount===null))
+            throw Error('Renderer mesh rebuild/reuse/LOD counters must be observable, including zero.');
           console.log('RENDERER_PROFILE_MEASURED '+JSON.stringify({
             status:report.status,sourceCommit:report.identity.commit,libraryPin:report.identity.pin,
             browserVersion:report.browserVersion,gpuBackend:report.gpuBackend,replicates:report.sampleCount,

@@ -69,6 +69,10 @@ const mapSummary=stats=>{
     workerMessageBytes:s.canvasWorkerMessageBytes??null,
     countryMeshRebuildCount:s.countryMeshRebuildCount??null,
     countryMeshReuseCount:s.countryMeshReuseCount??null,
+    countryMeshBuildSuccessCount:s.countryMeshBuildSuccessCount??null,
+    screenLodPreparedCount:s.screenLodPreparedCount??null,
+    screenLodUploadCount:s.screenLodUploadCount??null,
+    screenLodBudgetRejectCount:s.screenLodBudgetRejectCount??null,
   };
 };
 const identity=()=>({commit:sha(),pin:pin(),platform:process.platform,node:process.version,
