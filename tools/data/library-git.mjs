@@ -32,13 +32,24 @@ function temporaryPackCopies(shared,packRoot,indexes){
 // Git fetch can repeat objects already present in another pack. Retain the
 // largest independent packs; repack only unique objects from overlapping packs.
 // This is bounded to Git bytes and runs under the library owner's write lock.
-export function compactDuplicatePacks(checkout,{stopAfter=null}={}){
+export function compactDuplicatePacks(checkout,{stopAfter=null,recoverAdditions=false}={}){
   const common=resolve(checkout,git(checkout,['rev-parse','--git-common-dir'])),shared=dirname(common);
   const pending=containedPath(common,'pando-git-compaction.pending.json');
   let journal=existsSync(pending)?JSON.parse(readFileSync(pending,'utf8')):null;
   if(journal){
-    const current=localObjects(shared);
-    if(JSON.stringify(gitStorageState(shared))!==JSON.stringify(journal.gitState)||!sameSet(current.map(o=>o.oid),journal.objects.map(o=>o.oid))){
+    const current=localObjects(shared),stateUnchanged=JSON.stringify(gitStorageState(shared))===JSON.stringify(journal.gitState);
+    const priorById=new Map(journal.objects.map(o=>[o.oid,o])),currentById=new Map(current.map(o=>[o.oid,o]));
+    const additions=current.filter(o=>!priorById.has(o.oid));
+    if(recoverAdditions&&journal.phase==='packs-installed'&&stateUnchanged&&additions.length
+      &&journal.objects.every(o=>{const now=currentById.get(o.oid);return now&&now.type===o.type&&now.bytes===o.bytes;})){
+      // Explicit recovery after installation: all original objects remain.
+      // Preserve additive discoveries too; normal installed-pack verification
+      // below still runs before any further cleanup. Never recover missing bytes.
+      journal.additiveRecoveries=[...(journal.additiveRecoveries||[]),{previousObjectCount:journal.objects.length,added:additions}];
+      journal.objects=current;
+      atomicStorageJSON(pending,journal);
+    }
+    if(!stateUnchanged||!sameSet(current.map(o=>o.oid),journal.objects.map(o=>o.oid))){
       // Restart only while every original source is still present and exact.
       // No changed/deleted source, missing old object or unique bytes are discarded.
       if(!journal.packs.every(item=>same(containedPath(shared,item.path),item)))throw Error('Changed compaction sources require explicit recovery; originals remain protected');
