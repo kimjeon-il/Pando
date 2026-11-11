@@ -1077,6 +1077,13 @@ export function createGpuMapRenderer(deps) {
     let displayedRenderRevision = 0;
     const frameTimes = [];
     const performanceMetrics = {
+      // Explicit zeros distinguish no canonical/LOD rebuild from an unobserved metric.
+      countryMeshRebuildCount: 0,
+      countryMeshReuseCount: 0,
+      countryMeshBuildSuccessCount: 0,
+      screenLodPreparedCount: 0,
+      screenLodUploadCount: 0,
+      screenLodBudgetRejectCount: 0,
       paletteRebuildCount: 0,
       paletteUploadCount: 0,
       paletteUploadBytes: 0,
@@ -3004,6 +3011,7 @@ export function createGpuMapRenderer(deps) {
           projectRenderBlocked = false;
           sceneColorCache.invalidate('project-mesh-ready');
           invalidateGpuFrame('project-mesh-ready');
+          performanceMetrics.countryMeshBuildSuccessCount += 1;
           updateRendererStatus(`${rendererName()} · GPU 실시간`);
           return true;
       }).catch(error => {
