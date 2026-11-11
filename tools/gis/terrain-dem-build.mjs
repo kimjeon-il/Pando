@@ -180,6 +180,7 @@ export async function repairTerrainDem({output,etopo,minLevel=0,maxLevel=5}={}, 
     for(const level of manifest.levels)await reconcileDemGutterFiles(output,level,{signal});
     const summary=await summarizeTerrainAssets(output,manifest.levels,{signal}),old=manifest.generation||{};
     delete manifest.generation;manifest.assetsSha256=summary.assetsSha256;
+    if(manifest.version==='0.14.0')manifest.tileSha256=summary.tileSha256;
     await replaceChecked(manifestPath,Buffer.from(JSON.stringify(manifest,null,2)+'\n'),original,signal);
     const priorLevels=previous.levelReports||old.levelReports||[];
     const report={completed:true,totalBytes:summary.reports.reduce((sum,item)=>sum+item.bytes,0)+(await stat(join(output,'tint.webp'))).size,
