@@ -39,7 +39,7 @@ export function quantizeTerrainMeters(original){
   const magnitude=Math.abs(original);
   const step=original<0 ? (magnitude<256?16:magnitude<1024?64:128) : (magnitude<256?16:32);
   const encoded=Math.sign(original)*halfEven(magnitude/step)*step;
-  return Math.max(-12000,Math.min(53535,encoded));
+  return encoded===0 ? 0 : Math.max(-12000,Math.min(53535,encoded));
 }
 function column(tile,x){const output=Buffer.alloc(tile.height*4);for(let y=0;y<tile.height;y++)
   output.set(tile.data.subarray((y*tile.width+x)*4,(y*tile.width+x)*4+4),y*4);return output;}
