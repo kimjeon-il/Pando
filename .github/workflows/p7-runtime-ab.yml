@@ -99,7 +99,7 @@ jobs:
   current-renderer-profile:
     if: >-
       (github.event_name == 'workflow_dispatch' && inputs.profile_only == true) ||
-      (github.event_name == 'push' && github.ref == 'refs/heads/work/renderer-profile-20261112')
+      (github.event_name == 'push' && github.ref == 'refs/heads/work/renderer-profile-20261112' && !contains(github.event.head_commit.message, '[archive-only]'))
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -200,18 +200,77 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p reports/performance/2026-11-12-renderer-profile
+          mkdir -p validation-results/renderer-profile-20261112
           shopt -s nullglob
           files=("$RUNNER_TEMP"/renderer-*.json)
           if (("${#files[@]}" == 0)); then
             echo "No measurement JSON produced; artifacts remain the source of truth."
             exit 0
           fi
-          cp "${files[@]}" reports/performance/2026-11-12-renderer-profile/
+          cp "${files[@]}" validation-results/renderer-profile-20261112/
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -- reports/performance/2026-11-12-renderer-profile/
+          git add -- validation-results/renderer-profile-20261112/
           if ! git diff --cached --quiet; then
             git commit -m "data(perf): archive 3 Chromium P7 samples and aggregate [skip ci]"
             git push origin HEAD:refs/heads/work/renderer-profile-20261112
           fi
+
+  archive-measured-json:
+    if: >-
+      github.event_name == 'push' && github.ref == 'refs/heads/work/renderer-profile-20261112' &&
+      contains(github.event.head_commit.message, '[archive-only]')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      actions: read
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Download exactly the already completed three-sample artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p validation-results/renderer-profile-20261112
+          gh run download 43110237635 --repo kimjeon-il/Pando --name renderer-profile-ec199d671aec162f118420008ac40288c329575f --dir validation-results/renderer-profile-20261112
+          for f in renderer-1.json renderer-2.json renderer-3.json renderer-aggregate.json; do
+            test -s "validation-results/renderer-profile-20261112/$f"
+          done
+      - name: Verify original JSON identity and all replicate pass results
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFileSync} from 'node:fs';
+          const dir='validation-results/renderer-profile-20261112/';
+          const read=name=>JSON.parse(readFileSync(dir+name+'.json','utf8'));
+          const aggregate=read('renderer-aggregate');
+          const source='ec199d671aec162f118420008ac40288c329575f';
+          const data='921d86aa3c03ffa0b3d5879ad30c9914c4d1b31a';
+          assert.equal(aggregate.status,'passed');
+          assert.equal(aggregate.sampleCount,3);
+          assert.equal(aggregate.identity.commit,source);
+          assert.equal(aggregate.identity.pin,data);
+          const phases=['cold-current','previous-year','same-page-return','zoom32-europe','zoom32-east-asia'];
+          assert.deepEqual(aggregate.phases.map(p=>p.phase),phases);
+          for (let i=1;i<=3;i++){
+            const s=read('renderer-'+i);
+            assert.equal(s.status,'passed');
+            assert.equal(s.identity.commit,source);
+            assert.equal(s.identity.pin,data);
+            assert.deepEqual(s.phases.map(p=>p.phase),phases);
+          }
+          console.log('P7_RAW_ARCHIVE_VALIDATED '+JSON.stringify({source,data,samples:3,phases}));
+          NODE
+      - name: Commit raw source-matched P7 JSON to the isolated branch
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- validation-results/renderer-profile-20261112/
+          git diff --cached --quiet && exit 0
+          git commit -m 'data(perf): preserve validated Chromium P7 x3 raw JSON [skip ci]'
+          git push origin HEAD:refs/heads/work/renderer-profile-20261112
