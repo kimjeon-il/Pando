@@ -138,7 +138,7 @@ jobs:
         run: |
           set -euo pipefail
           for i in 1 2 3; do
-            node scripts/p7-browser-ab-measure.mjs --label=p7 --out="$RUNNER_TEMP/renderer-$i.json"
+            node scripts/p7-browser-ab-measure.mjs --label=p7 --measure-zoom=1 --out="$RUNNER_TEMP/renderer-$i.json"
           done
           node scripts/p7-browser-ab-measure.mjs --mode=aggregate --samples="$RUNNER_TEMP/renderer-1.json,$RUNNER_TEMP/renderer-2.json,$RUNNER_TEMP/renderer-3.json" --out="$RUNNER_TEMP/renderer-aggregate.json"
           node --input-type=module <<'NODE'
@@ -154,6 +154,9 @@ jobs:
             trackedGpuBufferMiB:mib(p.renderer?.gpuTrackedBuffersBytes),
             terrainCacheMiB:mib(p.renderer?.terrainCacheBytes),hydroCacheMiB:mib(p.renderer?.hydroCacheBytes),
             countryMeshRebuildCount:p.renderer?.countryMeshRebuildCount??null,
+            screenScale:p.renderer?.screenScale??null,
+            activeMeshQuality:p.renderer?.activeMeshQuality??null,
+            screenLodTargetKey:p.renderer?.screenLodTargetKey??null,
             countryMeshBuildSuccessCount:p.renderer?.countryMeshBuildSuccessCount??null,
             countryMeshReuseCount:p.renderer?.countryMeshReuseCount??null,
             screenLodPreparedCount:p.renderer?.screenLodPreparedCount??null,

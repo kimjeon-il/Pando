@@ -70,6 +70,11 @@ const mapSummary=stats=>{
     countryMeshRebuildCount:s.countryMeshRebuildCount??null,
     countryMeshReuseCount:s.countryMeshReuseCount??null,
     countryMeshBuildSuccessCount:s.countryMeshBuildSuccessCount??null,
+    screenScale:s.screenScale??null,
+    activeMeshQuality:s.activeMeshQuality??null,
+    screenLodTargetKey:s.screenLodTargetKey??null,
+    screenLodPreparingKey:s.screenLodPreparingKey??null,
+    screenLodFailure:s.screenLodFailure??null,
     screenLodPreparedCount:s.screenLodPreparedCount??null,
     screenLodUploadCount:s.screenLodUploadCount??null,
     screenLodBudgetRejectCount:s.screenLodBudgetRejectCount??null,
@@ -203,6 +208,35 @@ async function sample(){
     await page.locator('#timelineNextYear').click({timeout:10000});
     await ready('2026-11');
     await snapshot('same-page-return',Date.now()-started);
+    if(options['measure-zoom']==='1'){
+      // Only the focused renderer profile requests maximum project-relative
+      // zoom. The historical P7 paired A/B scenario stays unchanged.
+      const zoomTo=async (longitude,phase)=>{
+        await page.evaluate(()=>globalThis.__pandoAbFps.start());
+        started=Date.now();
+        await page.evaluate(longitude=>{
+          const host=globalThis.__PANDOLAB_MAP_HOST__,view=host.getViewState();
+          host.setViewState({projection:'flat',view:{
+            ...view,flatCenter:[longitude,30],flatZoom:32,
+            globeRotation:[-longitude,-30,0],globeZoom:32
+          }});
+          host.requestRepaint('renderer-metrics-zoom32');
+        },longitude);
+        await page.waitForFunction(()=>Math.abs(
+          globalThis.__PANDOLAB_MAP_HOST__?.getViewState()?.flatZoom-32)<0.01,
+          null,{timeout:20000,polling:100});
+        await page.waitForFunction(()=>{
+          const s=globalThis.__PANDOLAB_VIEWER__?.rendererStats?.();
+          return s?.screenLodTargetKey && !s?.screenLodPreparingKey;
+        },null,{timeout:20000,polling:200}).catch(()=>{});
+        // One bounded settle interval samples the accepted visual frame as
+        // well as any expensive LOD preparation; never claim GPU timing.
+        await page.waitForTimeout(750);
+        await snapshot(phase,Date.now()-started);
+      };
+      await zoomTo(10,'zoom32-europe');
+      await zoomTo(130,'zoom32-east-asia');
+    }
     report.browserVersion=browser.version();
     report.status=report.pageErrors.length?'failed':'passed';
     if(report.pageErrors.length)report.error='Browser page errors: '+report.pageErrors.join('; ');
