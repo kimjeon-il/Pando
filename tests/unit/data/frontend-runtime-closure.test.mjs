@@ -1,3 +1,5 @@
+import fs from 'node:fs';
+import {syncBuiltinESMExports} from 'node:module';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {mkdtempSync,mkdirSync,writeFileSync,readFileSync,existsSync,rmSync} from 'node:fs';
@@ -130,4 +132,69 @@ test('pinned Viewer materialization follows selected project catalog roles witho
  assert.equal(selected['assets/data/places/old-city.bin'],undefined);
  assert.ok(selected[source.resources.territorial.catalog]);
  assert.ok(selected[hydroBin]);
+});
+
+test('GIS materialization uses an isolated private copy when hardlink creation is unavailable',t=>{
+ const directory=mkdtempSync(join(tmpdir(),'pando-link-fallback-'));
+ t.after(()=>rmSync(directory,{recursive:true,force:true}));
+ const put=(path,bytes)=>{mkdirSync(dirname(path),{recursive:true});writeFileSync(path,bytes);};
+ put(join(directory,'config/library-data.json'),JSON.stringify({repository:'fixture/data',revision:'a'.repeat(40),mounts:['assets/data']}));
+ const logical='assets/data/selected/input.json',bytes=Buffer.from('pinned original');
+ put(join(directory,'.library-data/repository',logical),bytes);
+ const sha256=createHash('sha256').update(bytes).digest('hex');
+ const index={files:{[logical]:{stored:logical,encoding:'identity',bytes:bytes.length,sha256}}};
+ const original=fs.linkSync;
+ fs.linkSync=()=>{throw Object.assign(Error('filesystem hardlinks unavailable'),{code:'EPERM',syscall:'link'});};
+ syncBuiltinESMExports();
+ let view;
+ try {view=materializeRuntimeView({root:directory,index,purpose:'gis',prefixes:['assets/data/selected']});}
+ finally {fs.linkSync=original;syncBuiltinESMExports();}
+ const target=join(view,logical),blob=join(librarySharedCheckout(directory),'.pando-store/blobs',sha256);
+ assert.deepEqual(readFileSync(target),bytes);
+ assert.notEqual(fs.statSync(target,{bigint:true}).ino,fs.statSync(blob,{bigint:true}).ino);
+ assert.equal(fs.statSync(target).nlink,1);
+ const record=JSON.parse(readFileSync(join(view,'.cache-owner.json')));
+ assert.equal(record.files[logical].storage,'private');
+ assert.equal(record.files[logical].baseSha256,sha256);
+ const nextBytes=Buffer.from('next pinned original');
+ put(join(directory,'config/library-data.json'),JSON.stringify({repository:'fixture/data',revision:'b'.repeat(40),mounts:['assets/data']}));
+ put(join(directory,'.library-data/repository',logical),nextBytes);
+ const nextIndex={files:{[logical]:{stored:logical,encoding:'identity',bytes:nextBytes.length,sha256:createHash('sha256').update(nextBytes).digest('hex')}}};
+ const nextView=materializeRuntimeView({root:directory,index:nextIndex,purpose:'gis',prefixes:['assets/data/selected'],source:view});
+ assert.deepEqual(readFileSync(join(nextView,logical)),nextBytes,'untouched copy refreshes on pin change');
+ writeFileSync(target,'local edit');
+ const edited=materializeRuntimeView({root:directory,index:nextIndex,purpose:'gis',prefixes:['assets/data/selected'],source:view});
+ assert.equal(readFileSync(join(edited,logical),'utf8'),'local edit','real private edit survives pin change');
+ assert.deepEqual(readFileSync(blob),bytes,'pool stays immutable and independent');
+ assert.equal(fs.statSync(blob).mode & 0o200,0);
+});
+for (const failure of [{code:'EACCES',syscall:'link'},{code:'EPERM',syscall:'chmod'}]) {
+ test(`materialization does not suppress ${failure.code} from ${failure.syscall}`,t=>{
+  const directory=mkdtempSync(join(tmpdir(),'pando-link-denial-'));
+  t.after(()=>rmSync(directory,{recursive:true,force:true}));
+  const put=(path,bytes)=>{mkdirSync(dirname(path),{recursive:true});writeFileSync(path,bytes);};
+  put(join(directory,'config/library-data.json'),JSON.stringify({repository:'fixture/data',revision:'a'.repeat(40),mounts:['assets/data']}));
+  const logical='assets/data/selected/input.json',bytes=Buffer.from('original');
+  put(join(directory,'.library-data/repository',logical),bytes);
+  const index={files:{[logical]:{stored:logical,encoding:'identity',bytes:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex')}}};
+  const original=fs.linkSync,error=Object.assign(Error('must propagate'),failure);
+  fs.linkSync=()=>{throw error;};syncBuiltinESMExports();
+  try {assert.throws(()=>materializeRuntimeView({root:directory,index,purpose:'gis',prefixes:['assets/data/selected']}),e=>e===error);}
+  finally {fs.linkSync=original;syncBuiltinESMExports();}
+ });
+}
+test('private copy fallback checks full selected bytes plus disk headroom before writing',t=>{
+ const directory=mkdtempSync(join(tmpdir(),'pando-copy-budget-'));
+ t.after(()=>rmSync(directory,{recursive:true,force:true}));
+ const put=(path,bytes)=>{mkdirSync(dirname(path),{recursive:true});writeFileSync(path,bytes);};
+ put(join(directory,'config/library-data.json'),JSON.stringify({repository:'fixture/data',revision:'a'.repeat(40),mounts:['assets/data']}));
+ const logical='assets/data/selected/input.json',bytes=Buffer.from('original');
+ put(join(directory,'.library-data/repository',logical),bytes);
+ const index={files:{[logical]:{stored:logical,encoding:'identity',bytes:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex')}}};
+ const originalLink=fs.linkSync,originalStat=fs.statfsSync;
+ fs.linkSync=()=>{throw Object.assign(Error('link unavailable'),{code:'EPERM',syscall:'link'});};
+ fs.statfsSync=()=>({bavail:5*1024**3,bsize:1});syncBuiltinESMExports();
+ try {assert.throws(()=>materializeRuntimeView({root:directory,index,purpose:'gis',prefixes:['assets/data/selected']}),/peak additional bytes plus 5 GiB/);}
+ finally {fs.linkSync=originalLink;fs.statfsSync=originalStat;syncBuiltinESMExports();}
+ assert.deepEqual(readFileSync(join(directory,'.library-data/repository',logical)),bytes);
 });

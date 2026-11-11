@@ -244,7 +244,7 @@ export function materializeRuntimeView({ root, index, source = null, fetch=false
     const sha256=contentHash(readFileSync(path)),prior=sourceOwner?.files?.[logical];
     // A pin change refreshes proven, untouched archive inputs. Only actual
     // private work is carried into the new view; the previous view remains.
-    if(priorPinnedView&&prior?.storage==='shared'&&prior.baseSha256===prior.sha256
+    if(priorPinnedView&&['shared','private'].includes(prior?.storage)&&prior.baseSha256===prior.sha256
       &&prior.sha256===sha256&&prior.bytes===stamp.size)return [];
     return [{ logical, path, bytes: stamp.size, sha256 }];
   });
@@ -310,12 +310,31 @@ export function materializeRuntimeView({ root, index, source = null, fetch=false
   }
   if(fetch)prefetchArchiveEntries({checkout:libraryCheckout(root),revision:config.revision,entries:incoming.filter(([path,entry])=>!existsSync(containedPath(source,path))&&!present.has(entry.sha256)).map(([,entry])=>entry),additionalBytes:additional});
   mkdirSync(pending, { recursive: true });
+  let copyFallbackBudgetChecked = false;
   const write = (logical, bytes, expected = null) => {
     const output = safeChild(pending, logical), sha256 = contentHash(bytes);
     mkdirSync(dirname(output), { recursive: true });
-    const sharedFile = expected?.sha256 === sha256 && expected.bytes === bytes.length;
-    if (sharedFile) { publishContent(shared, bytes); linkContent(shared, sha256, output); }
-    else { writeFileSync(output, bytes, { flag: 'wx' }); chmodSync(output, 0o600); }
+    let sharedFile = expected?.sha256 === sha256 && expected.bytes === bytes.length;
+    if (sharedFile) {
+      publishContent(shared, bytes);
+      try { linkContent(shared, sha256, output); }
+      catch (error) {
+        // Hardlinks are an optimization. Preserve the immutable pool and use
+        // an independent owned file if only link creation is unavailable.
+        // Ordinary write failures and existing destinations remain errors.
+        if (error.code !== 'EPERM' || error.syscall !== 'link' || existsSync(output)) throw error;
+        if (!copyFallbackBudgetChecked) {
+          const copyPeak = incoming.reduce((total, [, entry]) => total + entry.bytes, 0)
+            + sourceFiles.reduce((total, file) => total + file.bytes, 0);
+          const disk = statfsSync(shared);
+          if (!Number.isSafeInteger(copyPeak) || disk.bavail * disk.bsize < additional + copyPeak + 5 * 1024 ** 3)
+            throw Error('Private runtime copies require their peak additional bytes plus 5 GiB headroom');
+          copyFallbackBudgetChecked = true;
+        }
+        sharedFile = false;
+      }
+    }
+    if (!sharedFile) { writeFileSync(output, bytes, { flag: 'wx' }); chmodSync(output, 0o600); }
     files[logical] = { sha256, bytes: bytes.length, storage: sharedFile ? 'shared' : 'private', ...(expected ? { baseSha256: expected.sha256 } : {}) };
   };
   // Deliberately use the former visible cache, including its unfinished work.
