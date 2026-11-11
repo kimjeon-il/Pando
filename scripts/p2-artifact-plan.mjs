@@ -103,6 +103,7 @@ function validationOrPresentationOnly(changes,graph) {
     '.github/actions/native-test-prerequisites/action.yml',
     '.github/workflows/application-architecture.yml',
     '.github/workflows/generated-artifacts-p2.yml',
+    '.github/workflows/p7-runtime-ab.yml',
     'scripts/p2-publish-artifacts.mjs',
     '.github/workflows/ui-architecture.yml',
     '.github/workflows/place-runtime.yml',
