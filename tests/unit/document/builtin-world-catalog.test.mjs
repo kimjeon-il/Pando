@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import {historicalWorldCases} from "../../fixtures/historical-world-cases.mjs";
 import {compileBuiltinWorldCatalog, coalesceCoverageAdjustments} from "../../../tools/build/builtin-world-compiler.mjs";
 import {assembleBuiltinWorld, selectBuiltinCountries} from "../../../src/data/builtin-world-loader.js";
-import {buildBuiltinWorldNamePublication} from "../../../tools/build/build-builtin-world.mjs";
+import {buildBuiltinWorldPublication,buildBuiltinWorldNamePublication} from "../../../tools/build/build-builtin-world.mjs";
+import {withExplicitView} from "../../helpers/builtin-world.mjs";
 import {gzipSync, gunzipSync} from 'node:zlib';
 import {createHash} from 'node:crypto';
 import {temporalContains, temporalMonthEnd} from "../../../src/document/temporal.js";
@@ -74,24 +75,33 @@ test('explicit name-history gaps cannot inherit the latest country name or its d
 });
 
 test('name-only publication decodes only the selected country and rejects hidden non-name changes',()=>{
- const {index,countries}=fixture(),country=countries.find(row=>row.entityId==='RUS');
- const stored=gzipSync(JSON.stringify(country)),opaque=Buffer.from('unrelated immutable stored bytes');
- const descriptor=(entityId,bytes,decodedBytes)=>{
-  const hash=createHash('sha256').update(bytes).digest('hex');
-  return {entityId,file:`countries/${entityId}-sha256-${hash}.json.gz`,encoding:'gzip',sha256:hash,compressedBytes:bytes.length,decodedBytes};
- };
- const selected=descriptor('RUS',stored,Buffer.byteLength(JSON.stringify(country))),untouched=descriptor('opaque',opaque,100);
- const previous=structuredClone(index);previous.entities=[selected,untouched];
- previous.inputHashes={sourceRevisions:{'current:RUS':'before'}};
- const source=historicalWorldCases().entities.find(row=>row.entityId==='current:RUS'),updated={...source,names:{ko:'수정명'}};
+ // Preserve a genuine prior read index and immutable geometry descriptors:
+ // partial publication may update RUS but must not touch another country.
+ const input=withExplicitView(historicalWorldCases());
+ const previousFiles=buildBuiltinWorldPublication({input});
+ const previous=JSON.parse(previousFiles.get('index.json'));
+ const selected=previous.entities.find(row=>row.entityId==='RUS');
+ const untouched=previous.entities.find(row=>row.entityId==='CHN');
+ assert.ok(selected&&untouched);
+ const country=JSON.parse(gunzipSync(previousFiles.get(selected.file)));
+ const source=input.entities.find(row=>row.entityId==='current:RUS');
+ const updated={...source,names:{ko:'수정명'}};
+ let readCalls=0;
  const args={entityIds:[source.entityId],sourceIndex:{entities:[{entityId:source.entityId,sha256:'after'}]},previousIndex:previous,
-  readCountry:file=>{assert.equal(file,selected.file);return stored;},readSource:()=>updated,readPreviousSource:()=>source};
+  readCountry:file=>{readCalls++;assert.equal(file,selected.file);return previousFiles.get(file);},
+  readSource:()=>updated,readPreviousSource:()=>source};
  const files=buildBuiltinWorldNamePublication(args),nextIndex=JSON.parse(files.get('index.json'));
- const next=JSON.parse(gunzipSync(files.get(nextIndex.entities[0].file)));
+ const nextEntry=nextIndex.entities.find(row=>row.entityId==='RUS');
+ const next=JSON.parse(gunzipSync(files.get(nextEntry.file)));
  assert.equal(next.identity.properties.name,'수정명');
- assert.deepEqual(next.geometries,country.geometries);assert.deepEqual(next.timelineRecords.geometryBindings,country.timelineRecords.geometryBindings);
+ assert.deepEqual(next.geometryRefs,country.geometryRefs);
+ assert.deepEqual(next.timelineRecords.geometryBindings,country.timelineRecords.geometryBindings);
+ assert.equal(readCalls,1,'the unmodified country descriptor must not be decoded');
  assert.equal(files.has(untouched.file),false);
- assert.deepEqual(nextIndex.entities[1],untouched);
+ assert.deepEqual(nextIndex.entities.find(row=>row.entityId==='CHN'),untouched);
+ const beforeIndex=previous.entities.findIndex(row=>row.entityId==='CHN');
+ const afterIndex=nextIndex.entities.findIndex(row=>row.entityId==='CHN');
+ assert.deepEqual(nextIndex.readIndex.identities[afterIndex],previous.readIndex.identities[beforeIndex]);
  assert.throws(()=>buildBuiltinWorldNamePublication({...args,readSource:()=>({...updated,lifetime:{validFrom:'1900',validTo:null}})}),/non-name changes/);
 });
 
