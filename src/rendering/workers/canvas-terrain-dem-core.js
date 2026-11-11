@@ -1,68 +1,96 @@
 'use strict';
-// Canvas and WebGL consume one numerical elevation/stored-shade color contract.
-// This module has no fetch, cache, or document state so pixel conversion can be tested independently.
+// Canonical numeric DEM palette/shade contract shared by Canvas and WebGL.
+// The physical-land mask selects land/ocean presentation; DEM elevation sign never selects it.
 (typeof self === 'undefined' ? globalThis : self).PandoLabCanvasTerrainDem = (() => {
+  // Retain the legacy brightness adjustment exclusively for the political/monochrome plane.
   const darkBrightness = 0.84;
   const flatShade = 0.27 + 0.73 * Math.SQRT1_2;
-  const seaSurface = [0.42, 0.66, 0.82], seaDeep = [0.10, 0.24, 0.39];
-  const heightColors = [[0.43,0.62,0.39],[0.68,0.72,0.44],[0.72,0.57,0.39],[0.72,0.68,0.62],[0.96,0.95,0.90]];
+  const heightStops = Object.freeze([0, 256, 750, 1500, 2500, 3500, 4500, 6500]);
+  const rgb = hex => [1, 3, 5].map(offset => parseInt(hex.slice(offset, offset + 2), 16) / 255);
+  const palettes = Object.freeze({
+    light: {
+      land: ['#7BBE9D', '#9CD59D', '#B5E197', '#D7D19D', '#EACFAB', '#D6BAA1', '#C4B1A4', '#F2F0EA'].map(rgb),
+      seaSurface: rgb('#A5D7F1'), seaDeep: rgb('#6A9FCA'),
+    },
+    dark: {
+      land: ['#477B60', '#629260', '#87A76B', '#ABA476', '#C0AA86', '#AF9486', '#9F8C8A', '#CEC9C3'].map(rgb),
+      seaSurface: rgb('#477E99'), seaDeep: rgb('#1F425F'),
+    },
+  });
+  const paletteUniforms = Object.freeze(Object.fromEntries(Object.entries(palettes).map(([theme, value]) => [
+    theme, {
+      landColors: Float32Array.from(value.land.flat()),
+      seaSurface: Float32Array.from(value.seaSurface),
+      seaDeep: Float32Array.from(value.seaDeep),
+    },
+  ])));
+  const paletteForTheme = theme => {
+    if (theme !== 'light' && theme !== 'dark') throw new TypeError('Unknown DEM terrain theme.');
+    return paletteUniforms[theme];
+  };
   const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
-  // Three decoded RGBA planes (land, ocean, political), including DEM gutters.
+  // Three prepared RGBA planes (land, ocean, political), excluding the retained source DEM.
   const convertedBytesPerPixel = 12;
   const byte = value => Math.round(clamp(value, 0, 1) * 255);
   function smoothHeight(height, low, high) {
-    const t=clamp((height-low)/(high-low),0,1);
-    return t*t*(3-2*t);
+    const t = clamp((height - low) / (high - low), 0, 1);
+    return t * t * (3 - 2 * t);
   }
   function reliefShade(illumination) {
-    return clamp(flatShade+((0.27+0.73*illumination)-flatShade)*1.3,0.16,1);
+    return clamp(flatShade + ((0.27 + 0.73 * illumination) - flatShade) * 1.3, 0.16, 1);
   }
-  function convertTile({ dem, width, height }) {
+  function convertTile({ dem, width, height, theme = 'light', includePolitical = true }) {
     if (!Number.isInteger(width) || !Number.isInteger(height) || width < 1 || height < 1
         || dem?.length !== width * height * 4) throw new TypeError('Invalid numerical DEM tile.');
-    const land = new Uint8ClampedArray(dem.length), ocean = new Uint8ClampedArray(dem.length), political = new Uint8ClampedArray(dem.length);
+    if (theme !== 'light' && theme !== 'dark') throw new TypeError('Unknown DEM terrain theme.');
+    const colors = palettes[theme];
+    const land = new Uint8ClampedArray(dem.length), ocean = new Uint8ClampedArray(dem.length);
+    const political = includePolitical ? new Uint8ClampedArray(dem.length) : null;
     for (let offset = 0; offset < dem.length; offset += 4) {
       const heightMeters = dem[offset] * 256 + dem[offset + 1] - 12000;
       const height = Math.max(0, heightMeters);
       const shade = reliefShade(Math.max(0, (dem[offset + 2] / 255 - 0.42) / 0.58));
       const factor = clamp(shade / flatShade, 0.38, 1.3);
       const depth = Math.pow(clamp(-heightMeters / 8000, 0, 1), 0.6);
-      const h1 = smoothHeight(height, 0, 1000), h2 = smoothHeight(height, 1000, 2500),
-        h3 = smoothHeight(height, 2500, 4500), h4 = smoothHeight(height, 4500, 6500);
-      for (let channel = 0; channel < 3; channel += 1) {
-        let color = heightColors[0][channel] * (1-h1) + heightColors[1][channel] * h1;
-        color = color * (1-h2) + heightColors[2][channel] * h2;
-        color = color * (1-h3) + heightColors[3][channel] * h3;
-        color = color * (1-h4) + heightColors[4][channel] * h4;
-        land[offset + channel] = byte(color * factor);
-        ocean[offset + channel] = byte((seaSurface[channel] * (1-depth) + seaDeep[channel] * depth) * factor);
-        political[offset + channel] = byte((0.58 + 0.3 * smoothHeight(height, 0, 6000)) * factor);
+      let band = 0;
+      while (band < heightStops.length - 2 && height >= heightStops[band + 1]) band++;
+      const t = smoothHeight(height, heightStops[band], heightStops[band + 1]);
+      for (let channel = 0; channel < 3; channel++) {
+        land[offset + channel] = byte((colors.land[band][channel] * (1 - t)
+          + colors.land[band + 1][channel] * t) * factor);
+        ocean[offset + channel] = byte((colors.seaSurface[channel] * (1 - depth)
+          + colors.seaDeep[channel] * depth) * factor);
+        if (political) political[offset + channel] = byte((0.58 + 0.3 * smoothHeight(height, 0, 6000)) * factor);
       }
-      land[offset+3] = ocean[offset+3] = political[offset+3] = 255;
+      land[offset + 3] = ocean[offset + 3] = 255;
+      if (political) political[offset + 3] = 255;
     }
     return { land, ocean, political };
   }
-  // The shader is emitted from the same palette and shade contract. Neither
-  // backend infers the land mask from elevation or precolored pixels.
+  // The GLSL consumes uniforms from the same RGB stops as the Canvas conversion.
+  // Theme changes update uniforms, not the DEM texture or a second shader program.
   function colorGlsl() {
-    const vec = values => 'vec3(' + values.map(value => Number(value).toFixed(8)).join(',') + ')';
-    return `
-      vec3 numericalTerrainColor(float heightMeters, float storedShade, float landPass, float physicalStyle) {
-        float height = max(0.0, heightMeters);
-        float flatShade = 0.27 + 0.73 * 0.70710678;
-        float illumination = max(0.0, (storedShade - 0.42) / 0.58);
-        float shade = clamp(flatShade + ((0.27 + 0.73 * illumination) - flatShade) * 1.3, 0.16, 1.0);
-        float factor = clamp(shade / flatShade, 0.38, 1.3);
-        if (physicalStyle < 0.5) return vec3((0.58 + 0.3 * smoothstep(0.0, 6000.0, height)) * factor);
-        float depth = pow(clamp(-heightMeters / 8000.0, 0.0, 1.0), 0.6);
-        if (landPass < 0.5) return mix(${vec(seaSurface)}, ${vec(seaDeep)}, depth) * factor;
-        vec3 color = mix(${vec(heightColors[0])}, ${vec(heightColors[1])}, smoothstep(0.0, 1000.0, height));
-        color = mix(color, ${vec(heightColors[2])}, smoothstep(1000.0, 2500.0, height));
-        color = mix(color, ${vec(heightColors[3])}, smoothstep(2500.0, 4500.0, height));
-        color = mix(color, ${vec(heightColors[4])}, smoothstep(4500.0, 6500.0, height));
-        return color * factor;
-      }
-    `;
+    const parts = [
+      'uniform vec3 uTerrainLandColors[8];',
+      'uniform vec3 uTerrainSeaSurface;',
+      'uniform vec3 uTerrainSeaDeep;',
+      'vec3 numericalTerrainColor(float heightMeters, float storedShade, float landPass, float physicalStyle) {',
+      '  float height = max(0.0, heightMeters);',
+      '  float flatShade = 0.27 + 0.73 * 0.70710678;',
+      '  float illumination = max(0.0, (storedShade - 0.42) / 0.58);',
+      '  float shade = clamp(flatShade + ((0.27 + 0.73 * illumination) - flatShade) * 1.3, 0.16, 1.0);',
+      '  float factor = clamp(shade / flatShade, 0.38, 1.3);',
+      '  if (physicalStyle < 0.5) return vec3((0.58 + 0.3 * smoothstep(0.0, 6000.0, height)) * factor);',
+      '  float depth = pow(clamp(-heightMeters / 8000.0, 0.0, 1.0), 0.6);',
+      '  if (landPass < 0.5) return mix(uTerrainSeaSurface, uTerrainSeaDeep, depth) * factor;',
+    ];
+    for (let i = 0; i < heightStops.length - 1; i++) {
+      parts.push('  if (height < ' + heightStops[i + 1].toFixed(1) + ') return mix(uTerrainLandColors[' + i
+        + '], uTerrainLandColors[' + (i + 1) + '], smoothstep(' + heightStops[i].toFixed(1)
+        + ', ' + heightStops[i + 1].toFixed(1) + ', height)) * factor;');
+    }
+    parts.push('  return uTerrainLandColors[7] * factor;', '}');
+    return parts.join('\n');
   }
   function affineTransform(source, destination) {
     const [s0, s1, s2] = source, [d0, d1, d2] = destination;
@@ -99,5 +127,5 @@
     });
   }
   return Object.freeze({ convertTile, affineTransform, flatTileRectangle, triangleClip,
-    convertedBytesPerPixel, colorGlsl, darkBrightness });
+    convertedBytesPerPixel, colorGlsl, darkBrightness, paletteForTheme });
 })();
