@@ -216,14 +216,14 @@ async function sample(){
         started=Date.now();
         await page.evaluate(longitude=>{
           const host=globalThis.__PANDOLAB_MAP_HOST__,view=host.getViewState();
-          host.setViewState({projection:'flat',view:{
-            ...view,flatCenter:[longitude,30],flatZoom:32,
-            globeRotation:[-longitude,-30,0],globeZoom:32
+          host.setViewState({projection:'globe',view:{
+            ...view,globeRotation:[-longitude,-30,0],globeZoom:32,
+            flatCenter:[longitude,30],flatZoom:32
           }});
           host.requestRepaint('renderer-metrics-zoom32');
         },longitude);
         await page.waitForFunction(()=>Math.abs(
-          globalThis.__PANDOLAB_MAP_HOST__?.getViewState()?.flatZoom-32)<0.01,
+          globalThis.__PANDOLAB_MAP_HOST__?.getViewState()?.globeZoom-32)<0.01,
           null,{timeout:20000,polling:100});
         await page.waitForFunction(()=>{
           const s=globalThis.__PANDOLAB_VIEWER__?.rendererStats?.();
