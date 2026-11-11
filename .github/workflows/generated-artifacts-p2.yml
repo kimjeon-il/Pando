@@ -39,7 +39,6 @@ on:
       - 'pnpm-lock.yaml'
       - 'pnpm-workspace.yaml'
       - '.github/actions/library-data/**'
-      - '.github/workflows/generated-artifacts-p2.yml'
   # Opt-in, per-push compiled-core-only publication; avoids unrelated stale data families.
   # Include [p2-wasm-only] in a work-branch commit message for a focused rebuild.
   workflow_dispatch:
