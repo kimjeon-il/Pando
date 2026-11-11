@@ -678,6 +678,7 @@ export function createGpuMapRenderer(deps) {
     let oceanSubstrateBuffer = null;
     let pickProgram = null;
     let terrainDemProgram = null;
+    let terrainPaletteTheme = null;
     let hydroFillProgram = null;
     let hydroLineProgram = null;
     let hydroPickProgram = null;
@@ -1548,7 +1549,9 @@ export function createGpuMapRenderer(deps) {
         );
         primeProgramLocations(terrainDemProgram, GPU_VIEW_UNIFORM_NAMES);
         primeProgramLocations(terrainDemProgram,
-          ['uTerrain', 'uGeoBounds', 'uUvBounds', 'uPhysicalStyle', 'uDarkTheme', 'uTextureSize', 'uLandPass']);
+          ['uTerrain', 'uGeoBounds', 'uUvBounds', 'uPhysicalStyle', 'uDarkTheme', 'uTextureSize', 'uLandPass',
+            'uTerrainLandColors[0]', 'uTerrainSeaSurface', 'uTerrainSeaDeep']);
+        terrainPaletteTheme = null;
         return true;
       } catch (error) {
         terrainDemProgram = null;
@@ -1654,6 +1657,7 @@ export function createGpuMapRenderer(deps) {
       uniformLocationCache = new WeakMap();
       attributeLocationCache = new WeakMap();
       terrainDemProgram = null;
+      terrainPaletteTheme = null;
       const vertexSource = glVersion === 2 ? vertexShaderSourceWebGl2 : vertexShaderSourceWebGl1;
       fillProgram = createProgram(vertexSource, glVersion === 2 ? fillFragmentSourceWebGl2 : fillFragmentSourceWebGl1);
       const oceanVertex = `${glVersion === 2 ? '#version 300 es\n' : ''}precision highp float;
@@ -3908,7 +3912,16 @@ export function createGpuMapRenderer(deps) {
       gl.uniform4f(cachedUniformLocation(program, 'uUvBounds'), u0, v0, u1, v1);
       gl.uniform1f(cachedUniformLocation(program, 'uPhysicalStyle'),
         state.physicalSettings.terrainStyle === 'physical' ? 1 : 0);
-      gl.uniform1f(cachedUniformLocation(program, 'uDarkTheme'), getSystemTheme() === 'dark' ? 1 : 0);
+      const darkTerrainTheme = getSystemTheme() === 'dark';
+      const paletteTheme = darkTerrainTheme ? 'dark' : 'light';
+      if (terrainPaletteTheme !== paletteTheme) {
+        const palette = globalThis.PandoLabCanvasTerrainDem.paletteForTheme(paletteTheme);
+        gl.uniform3fv(cachedUniformLocation(program, 'uTerrainLandColors[0]'), palette.landColors);
+        gl.uniform3fv(cachedUniformLocation(program, 'uTerrainSeaSurface'), palette.seaSurface);
+        gl.uniform3fv(cachedUniformLocation(program, 'uTerrainSeaDeep'), palette.seaDeep);
+        terrainPaletteTheme = paletteTheme;
+      }
+      gl.uniform1f(cachedUniformLocation(program, 'uDarkTheme'), darkTerrainTheme ? 1 : 0);
       if (dem) {
         gl.uniform2f(cachedUniformLocation(program, 'uTextureSize'), sourceWidth, sourceHeight);
         gl.uniform1f(cachedUniformLocation(program, 'uLandPass'), pass === 'land' ? 1 : 0);
