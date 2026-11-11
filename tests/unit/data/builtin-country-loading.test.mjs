@@ -263,7 +263,7 @@ test('a failed query settles its outstanding failed reads before an immediate cl
 contractSuite("builtin-country-materialization", () => {
 const test = __country_dep0.default;
 const assert = __country_dep1.default;
-const { mkdtempSync, mkdirSync, writeFileSync, readFileSync, existsSync, rmSync } = __country_dep8;
+const { mkdtempSync, mkdirSync, writeFileSync, existsSync, rmSync } = __country_dep8;
 const { tmpdir } = __country_dep9;
 const { join, dirname } = __country_dep10;
 const { execFileSync } = __country_dep11;
