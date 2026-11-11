@@ -4,6 +4,34 @@ name: Web-only GitHub Pages
 on:
   push:
     branches: [main]
+    # Only a changed published Viewer/build/dependency closure can republish Pages.
+    # Tests, docs, GIS research reports and unrelated CI edits do not redeploy.
+    paths:
+      - 'src/**'
+      - 'assets/**'
+      - 'projects/**'
+      - 'config/library-data.json'
+      - 'config/generated-artifacts.json'
+      - 'config/core-source-roots.json'
+      - 'config/toolchain-versions.json'
+      - 'scripts/build-ui-bundle.mjs'
+      - 'scripts/generate-build-metadata.mjs'
+      - 'scripts/lib/frontend-*.mjs'
+      - 'scripts/lib/product-*.mjs'
+      - 'scripts/lib/worker-assets.mjs'
+      - 'scripts/lib/map-catalog-coherence.mjs'
+      - 'scripts/lib/gzip-asset-verification.mjs'
+      - 'tools/build/stage-monorepo-pages.mjs'
+      - 'tools/build/package-shared-core-assets.mjs'
+      - 'tools/data/**'
+      - 'tools/checks/verify-pages-deployment.mjs'
+      - '.github/actions/library-data/**'
+      - '.github/workflows/web-pages.yml'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - '.pnpmfile.mjs'
+      - '.nvmrc'
   workflow_dispatch:
     inputs:
       skip_checks:

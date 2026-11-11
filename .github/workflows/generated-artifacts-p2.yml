@@ -5,24 +5,40 @@ name: P2 Source-matched generated artifacts
 on:
   push:
     branches: ['work/**']
+    # Trigger generation planning only when a declared runtime source, producer,
+    # immutable artifact/pin, or its build toolchain changes.
+    # Presentation-only src/, tests, docs, reports and unrelated configuration
+    # are handled by their own focused checks, not a P2 generator run.
     paths:
       - 'src/**/native/**'
-      - 'tools/build/native/**'
-      - 'tests/native/**'
-      - 'assets/**'
-      - 'tools/**'
+      - 'src/rendering/workers/gpu-mesh-core.js'
+      - 'src/rendering/workers/polygon-raster-contract.js'
+      - 'src/rendering/polygon-mesh-codec.js'
+      - 'src/rendering/canonical-country-packet.js'
+      - 'tools/build/**'
+      - 'tools/data/**'
+      - 'tools/gis/**'
+      - 'tools/cpp/**'
+      - 'tools/lib/**'
+      - 'assets/wasm/**'
+      - 'assets/data/**'
       - 'scripts/p2-*.mjs'
       - 'scripts/lib/p2-*.mjs'
       - 'scripts/generate-build-metadata.mjs'
-      - 'index.html'
+      - 'projects/**/generation-inputs.json'
+      - 'projects/**/manifest.json'
       - '.gitattributes'
-      - 'reports/places/*.json'
       - 'CMakeLists.txt'
       - 'CMakePresets.json'
-      - 'config/**'
+      - 'cmake/**'
+      - 'config/library-data.json'
+      - 'config/generated-artifacts.json'
+      - 'config/core-source-roots.json'
+      - 'config/toolchain-versions.json'
       - 'package.json'
       - 'pnpm-lock.yaml'
       - 'pnpm-workspace.yaml'
+      - '.github/actions/library-data/**'
       - '.github/workflows/generated-artifacts-p2.yml'
   # Opt-in, per-push compiled-core-only publication; avoids unrelated stale data families.
   # Include [p2-wasm-only] in a work-branch commit message for a focused rebuild.
