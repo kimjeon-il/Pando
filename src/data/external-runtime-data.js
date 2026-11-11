@@ -28,6 +28,7 @@ export function createExternalRuntimeDataFetch({ meta, fetchFn = globalThis.fetc
   return async function fetchRuntimeData(input, init = {}) {
     const request = input instanceof Request ? input : null;
     const url = new URL(request ? request.url : input, globalThis.location?.href);
+    if (globalThis.location?.origin && url.origin !== globalThis.location.origin) return fetchFn(input, init);
     const marker = url.pathname.lastIndexOf('/assets/data/');
     if (marker < 0) return fetchFn(input, init);
     const logical = decodeURIComponent(url.pathname.slice(marker + 1));

@@ -9,6 +9,7 @@ const entry = new URL("../../src/data/workers/place-worker.js", import.meta.url)
 entry.searchParams.set('v', workerData.assetRevision);
 entry.searchParams.set('dataRevision', workerData.assetRevision);
 globalThis.PANDOLAB_BUILD_META = {assetRevision:workerData.assetRevision,dataRevision:workerData.assetRevision};
+globalThis.location = {href:entry.href};
 await import(entry.href);
 parentPort.on('message', data => globalThis.self.onmessage({ data }));
 parentPort.postMessage({ ready: true });

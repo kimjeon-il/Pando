@@ -55,6 +55,20 @@ test('mismatched bytes and unsafe archive paths fail closed',async()=>{
   await assert.rejects(missing(new URL(logical,base)),error=>error.httpStatus===404);
 });
 
+test('external project origins are not rewritten as pinned viewer resources',async()=>{
+  const original=Object.getOwnPropertyDescriptor(globalThis,'location'),calls=[];
+  Object.defineProperty(globalThis,'location',{configurable:true,value:{href:base,origin:'https://viewer.test'}});
+  try {
+    const runtimeFetch=createExternalRuntimeDataFetch({meta,fetchFn:async url=>{calls.push(String(url));return new Response(bytes);}});
+    await runtimeFetch('https://other.test/assets/data/test/content.bin');
+    await runtimeFetch(new URL(logical,base));
+    assert.equal(calls[0],'https://other.test/assets/data/test/content.bin');
+    assert.equal(calls[1],`https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/${revision}/${entry.stored}`);
+  } finally {
+    if(original)Object.defineProperty(globalThis,'location',original);else delete globalThis.location;
+  }
+});
+
 test('external hydro reads and caches a whole verified shard before selecting packs',async()=>{
   const packed=gzipSync(Buffer.from('water')), container=Buffer.concat([Buffer.from('prefix'),packed,Buffer.from('tail')]);
   const shard={id:1,url:'hydro.bin',offset:6,bytes:packed.length,fileBytes:container.length,sha256:sha(packed)};

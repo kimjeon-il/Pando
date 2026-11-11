@@ -8,7 +8,7 @@ import {buildFrontendIndex,emitFrontendModule} from './frontend-layout.mjs';
 import {renderProductHtml} from './product-html.mjs';
 import {buildUiBundles} from '../build-ui-bundle.mjs';
 import {buildWorkerAsset} from './worker-assets.mjs';
-import {collectViewerAssets} from './product-assets.mjs';
+import {collectViewerAssets,viewerDataEntryPaths} from './product-assets.mjs';
 import {collectRuntimeDataAssets} from '../../src/data/runtime-manifest-assets.js';
 import {decodeArchiveEntry,libraryCheckout,libraryConfig} from "../../tools/data/library-context.mjs";
 import {validateMapCatalogCoherence} from './map-catalog-coherence.mjs';
@@ -113,7 +113,7 @@ export async function buildFrontendSnapshot({root=process.cwd(),sourceCommit,rea
  let externalData;
  if(externalRuntimeData){
    if(!pinned)throw Error('External runtime data requires the pinned archive index');
-   const selected=collectRuntimeDataAssets({availablePaths:dataPaths,projectManifest:mapProject,
+   const selected=collectRuntimeDataAssets({availablePaths:dataPaths,entryPaths:viewerDataEntryPaths,projectManifest:mapProject,
      preparedMeshesCurrent,readManifest:path=>JSON.parse(readPinnedData(path))});
    const terrain=metadata[resource('terrain')],terrainBase=resource('terrain').replace(/[^/]+$/,'');
    for(const key of Object.keys(terrain.tiles||{}))selected.delete(terrainBase+key);
