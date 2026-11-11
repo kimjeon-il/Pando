@@ -1,6 +1,6 @@
 import { createExternalRuntimeDataFetch } from './external-runtime-data.js';
 export { createExternalRuntimeDataFetch };
-export const TERRAIN_DEM_VERSION = '0.13.3';
+export const TERRAIN_DEM_VERSION = '0.14.0';
 export const TERRAIN_DEM_FORMAT = 'dem-relief-v1';
 
 export function terrainTileRequest(spec, manifest, { manifestUrl, dataBaseUrl, externalSource = null } = {}) {
@@ -12,12 +12,12 @@ export function terrainTileRequest(spec, manifest, { manifestUrl, dataBaseUrl, e
   if (!externalSource) return { url: terrainAssetUrl(relative, { manifestUrl, dataBaseUrl, revision: manifest.assetsSha256 }) };
   const revision = externalSource.revision, packaging = manifest.packaging;
   if (!/^[a-f0-9]{40}$/.test(revision || '') || packaging?.sourceRevision !== revision
-      || packaging.sourcePath !== 'terrain/v0.13.3/manifest.json' || manifest.version !== '0.13.3')
+      || packaging.sourcePath !== `terrain/v${manifest.version}/manifest.json` || !/^\d+\.\d+\.\d+$/.test(manifest.version || ''))
     throw new Error('고정 DEM 원본 식별값이 다릅니다.');
   const entry = manifest.tiles?.[key];
   if (!entry || !Number.isSafeInteger(entry.bytes) || entry.bytes < 1 || !/^[a-f0-9]{64}$/.test(entry.sha256 || ''))
     throw new Error(`DEM 타일 무결성 정보가 없습니다: ${key}`);
-  return { url: new URL(`https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/${revision}/terrain/v0.13.3/${key}`),
+  return { url: new URL(`https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/${revision}/terrain/v${manifest.version}/${key}`),
     bytes: entry.bytes, sha256: entry.sha256 };
 }
 
