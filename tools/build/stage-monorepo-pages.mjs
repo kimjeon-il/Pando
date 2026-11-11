@@ -15,7 +15,7 @@ import {terrainAssetDigest} from '../gis/terrain-dem-assets.mjs';
 
 const LIMIT_BYTES = 1_000_000_000;
 const REQUIRED = ['index.html', '.nojekyll'];
-const TERRAIN_SOURCE_REVISION = 'f26d0896ab393aa351938637571347baa09ebf71';
+const TERRAIN_SOURCE_REVISION = '0866eb0aebb35d1355892b808de331b30c5fe52b';
 const hash = (algorithm, bytes) => createHash(algorithm).update(bytes).digest('hex');
 const blobHash = bytes => hash('sha1', Buffer.concat([Buffer.from(`blob ${bytes.length}\0`), bytes]));
 const within = (root, target) => {
@@ -78,7 +78,7 @@ export async function stageWebPages(rootInput, stageInput, manifestInput, { skip
   const terrainPath=mapProjectResourcePath(snapshot.buildMeta.mapProject,'terrain');
   const terrain=JSON.parse(snapshot.readPinnedRuntimeAsset(terrainPath));
   const checkout=libraryCheckout(root), packaging=terrain.packaging;
-  if(packaging?.sourceRevision!==TERRAIN_SOURCE_REVISION || packaging.sourcePath!=='terrain/v0.13.3/manifest.json')
+  if(packaging?.sourceRevision!==TERRAIN_SOURCE_REVISION || packaging.sourcePath!=='terrain/v0.14.0/manifest.json')
     throw Error('Pinned DEM source differs from the selected external revision');
   execFileSync('git',['merge-base','--is-ancestor',TERRAIN_SOURCE_REVISION,snapshot.dataCommit],{cwd:checkout});
   const sourceManifest=execFileSync('git',['show',`${TERRAIN_SOURCE_REVISION}:${packaging.sourcePath}`],{cwd:checkout,maxBuffer:4*1024*1024});
