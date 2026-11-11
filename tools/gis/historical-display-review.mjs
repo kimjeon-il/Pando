@@ -34,7 +34,9 @@ export function assertHistoricalDisplayChanges(next,previous){
 // This partial-source contract is deliberately separate from complete-feature/hole
 // adoption. Archived evidence is supplied by the owner; no display gate is bypassed.
 function assertOriginalSharedArcs(next,previous,review,{prefixes,archivedReview,fail}){
- const method='lossless-original-shared-arc',v=next.geometryVersions[0],old=previous.geometryVersions[0];
+ const dated=review.method==='lossless-original-current-version-shared-arc',method=dated?review.method:'lossless-original-shared-arc';
+ const v=dated?next.geometryVersions.find(v=>v.versionId===review.selectedVersion?.versionId):next.geometryVersions[0],old=dated?previous.geometryVersions.find(v=>v.versionId===review.selectedVersion?.versionId):previous.geometryVersions[0];
+ if(!v||!old)fail('explicit selected current version required');
  const hash=value=>createHash('sha256').update(JSON.stringify(value)).digest('hex');
  const point=p=>Array.isArray(p)&&p.length===2&&p.every(Number.isFinite);
  const chain=c=>Array.isArray(c)&&c.length>=2&&c.every(point)&&!isDeepStrictEqual(c[0],c.at(-1))&&c.every((p,i)=>!i||!isDeepStrictEqual(p,c[i-1]));
@@ -43,7 +45,14 @@ function assertOriginalSharedArcs(next,previous,review,{prefixes,archivedReview,
  const interval=t=>t&&index(t.polygonIndex)&&t.ringIndex===0&&index(t.startIndex)&&index(t.endIndex)&&t.startIndex<t.endIndex;
  const polygons=g=>g.type==='Polygon'?[g.coordinates]:g.coordinates;
  const sameReceipt=(a,b)=>evidence(a)&&evidence(b)&&isDeepStrictEqual(a,b);
- if(next.geometryVersions.length!==1||old.validFrom!==null||old.validTo!==null||v.validFrom!==null||v.validTo!==null||review.validFrom!==null||review.validTo!==null)fail('shared arcs require one undated current version');
+ if(!dated&&(next.geometryVersions.length!==1||old.validFrom!==null||old.validTo!==null||v.validFrom!==null||v.validTo!==null||review.validFrom!==null||review.validTo!==null))fail('shared arcs require one undated current version');
+ if(dated){
+  const selection={versionId:v.versionId,validFrom:v.validFrom,validTo:v.validTo};
+  if(!isDeepStrictEqual(review.selectedVersion,selection)||review.versionId!==v.versionId||typeof v.validFrom!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(v.validFrom)||old.validFrom!==v.validFrom||v.validTo!==null||old.validTo!==null||review.validFrom!==v.validFrom||review.validTo!==null||[next,previous].some(e=>e.geometryVersions.filter(v=>v.validTo===null).length!==1))fail('unique explicitly dated current version required');
+  const preserved=previous.geometryVersions.filter(p=>p.versionId!==v.versionId).map(p=>({versionId:p.versionId,versionSha256:hash(p),geometryResourceSha256:createHash('sha256').update(JSON.stringify(p.geometry)+'\n').digest('hex')}));
+  if(!isDeepStrictEqual(review.preservedVersions,preserved))fail('exact unselected version and resource digests required');
+  if(preserved.some(p=>prefixes.includes('assets/data/territorial-entities/source/geometries/sha256-'+p.geometryResourceSha256+'.json')))fail('unselected historical resource is read-only');
+ }
  if(review.wholeCountryRaw!==false||v.modernBoundarySupplement.wholeCountryRaw!==false||v.modernBoundarySupplement.adoptionMode!==method||review.rawCoordinateRoundtrip!==true||review.subgeometryChanges!==undefined)fail('explicit partial shared-arc attribution required');
  const attributionKeys=new Set(['sourceId','status','geometrySha256','adoptionMode','priorPreparedAttribution','sourceAdoptionReview','wholeCountryRaw']);
  for(const [key,value] of Object.entries(old.modernBoundarySupplement||{}))if(!attributionKeys.has(key)&&!isDeepStrictEqual(v.modernBoundarySupplement[key],value))fail('shared-arc prior source evidence changed: '+key);
@@ -54,8 +63,10 @@ function assertOriginalSharedArcs(next,previous,review,{prefixes,archivedReview,
  if(!topology.counterpartVersions.every(r=>identity(r)&&r.entityId!==next.entityId)||new Set(topology.counterpartVersions.map(r=>r.entityId)).size!==topology.counterpartVersions.length)fail('distinct source counterpart identities required');
  const scope=review.sourceScope;
  if(!Array.isArray(scope)||!scope.length||!scope.every(identity)||new Set(scope.map(r=>r.entityId)).size!==scope.length)fail('exact declared source scope required');
+ if(dated&&(scope.length!==2||scope.some(r=>!Object.hasOwn(r,'validFrom')||!(r.validFrom===null||typeof r.validFrom==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(r.validFrom))||r.validTo!==null)))fail('two current source versions with exact periods required');
  const resourceHash=createHash('sha256').update(JSON.stringify(v.geometry)+'\n').digest('hex');
  const selected=scope.filter(r=>r.entityId===next.entityId);
+ if(dated&&(selected.length!==1||selected[0].validFrom!==v.validFrom||selected[0].validTo!==v.validTo))fail('selected source period mismatch');
  if(selected.length!==1||selected[0].versionId!==v.versionId||selected[0].geometrySha256!==digest(v.geometry)||selected[0].geometryResourceSha256!==resourceHash)fail('selected exact source scope required');
  for(const row of scope)if(row.entityId!==next.entityId&&!topology.counterpartVersions.some(r=>isDeepStrictEqual(r,row)))fail('unreviewed source scope');
  const paths=scope.flatMap(r=>['assets/data/territorial-entities/source/countries/'+r.entityId.replace(':','-')+'.json','assets/data/territorial-entities/source/geometries/sha256-'+r.geometryResourceSha256+'.json']);
@@ -72,14 +83,14 @@ function assertOriginalSharedArcs(next,previous,review,{prefixes,archivedReview,
  while(receipt!==undefined){
   if(!evidence(receipt)||visited.has(receipt.sha256))fail('cyclic or invalid shared-arc lineage');visited.add(receipt.sha256);
   cursor=archivedReview(receipt);
-  if(cursor.schemaVersion!==1||cursor.status!=='raw-source-only-not-display-approved'||cursor.method!==method||cursor.wholeCountryRaw!==false||cursor.rawCoordinateRoundtrip!==true||cursor.entityId!==next.entityId||cursor.versionId!==v.versionId||cursor.validFrom!==null||cursor.validTo!==null||cursor.geometrySha256!==expected||!requiredHash(cursor.previousGeometrySha256)||cursor.geometrySha256===cursor.previousGeometrySha256||!sameReceipt(cursor.priorPreparedSourceReview,review.priorPreparedSourceReview))fail('broken prior shared-arc digest chain');
+  if(cursor.schemaVersion!==1||cursor.status!=='raw-source-only-not-display-approved'||cursor.method!==method||cursor.wholeCountryRaw!==false||cursor.rawCoordinateRoundtrip!==true||cursor.entityId!==next.entityId||cursor.versionId!==v.versionId||cursor.validFrom!==v.validFrom||cursor.validTo!==v.validTo||(dated&&(!isDeepStrictEqual(cursor.selectedVersion,review.selectedVersion)||!isDeepStrictEqual(cursor.preservedVersions,review.preservedVersions)))||cursor.geometrySha256!==expected||!requiredHash(cursor.previousGeometrySha256)||cursor.geometrySha256===cursor.previousGeometrySha256||!sameReceipt(cursor.priorPreparedSourceReview,review.priorPreparedSourceReview))fail('broken prior shared-arc digest chain');
   expected=cursor.previousGeometrySha256;receipt=cursor.previousSharedArcReview;
  }
  if(expected!==current.geometrySha256)fail('shared-arc chain does not reach prepared source');
  const prior=archivedReview(review.priorPreparedSourceReview),rows=prior.rows?.filter(r=>r.entityId===next.entityId&&r.versionId===v.versionId);
  if(prior.schemaVersion!==1||prior.status!=='source-topology-reviewed-conditional-on-coherent-pga-retirement'||!Array.isArray(rows)||rows.length!==1)fail('prepared source review row required');
  const row=rows[0];
- if(row.validFrom!==null||row.validTo!==null||row.candidateGeometrySha256!==expected||row.donorGeometrySha256!==expected||row.exactDonorCoordinateCopy!==true||row.periodPreserved!==true||row.candidate?.valid!==true||row.candidate.empty!==false)fail('stale prepared source review');
+ if(row.validFrom!==v.validFrom||row.validTo!==v.validTo||row.candidateGeometrySha256!==expected||row.donorGeometrySha256!==expected||row.exactDonorCoordinateCopy!==true||row.periodPreserved!==true||row.candidate?.valid!==true||row.candidate.empty!==false)fail('stale prepared source review');
  const source=archivedReview(review.source);
  if(source.schemaVersion!==1||source.method!=='exact-gpkg-wkb-chain-extraction'||typeof source.sourcePath!=='string'||!source.sourcePath||!Array.isArray(source.rows))fail('archived original feature-chain evidence required');
  const changes=review.sharedArcChanges;
@@ -96,6 +107,7 @@ function assertOriginalSharedArcs(next,previous,review,{prefixes,archivedReview,
   const sourceRows=source.rows.filter(r=>r.code===next.entityId.slice(6)&&r.WP_ID===original.featureId&&r.rawBlobSha256===original.blobSha256&&r.rawPolygon===original.polygonIndex&&r.rawRing===original.ringIndex&&isDeepStrictEqual(r.rawRange,[original.startIndex,original.endIndex]));
   if(sourceRows.length!==1||sourceRows[0].candidateExactOriginal!==true||sourceRows[0].coordinatesSha256!==original.coordinatesSha256||!isDeepStrictEqual(sourceRows[0].coordinates,coordinates))fail('chain differs from archived original feature');
   if(!counterpart||counterpart.entityId===next.entityId||!requiredHash(counterpart.previousGeometrySha256)||!topology.counterpartVersions.some(r=>r.entityId===counterpart.entityId&&r.versionId===counterpart.versionId&&r.geometrySha256===counterpart.geometrySha256)||!chain(counterpart.previousCoordinates)||!chain(counterpart.coordinates)||counterpart.previousCoordinatesSha256!==hash(counterpart.previousCoordinates)||counterpart.coordinatesSha256!==hash(counterpart.coordinates)||!isDeepStrictEqual(previousChain,[...counterpart.previousCoordinates].reverse())||!isDeepStrictEqual(coordinates,[...counterpart.coordinates].reverse()))fail('paired counterpart old/new shared chains required');
+  if(dated&&!topology.counterpartVersions.some(r=>r.entityId===counterpart.entityId&&r.versionId===counterpart.versionId&&r.validFrom===counterpart.validFrom&&r.validTo===counterpart.validTo))fail('paired counterpart exact current period required');
   const key=target.polygonIndex+':'+target.ringIndex,group=groups.get(key)||[];group.push(change);groups.set(key,group);
  }
  for(const changes of groups.values()){
@@ -117,8 +129,12 @@ function assertOriginalSharedArcs(next,previous,review,{prefixes,archivedReview,
  */
 export function assertHistoricalSourceStorageChanges(next,previous,{prefixes,readEvidence}={}){
  const versions=next.geometryVersions||[];
- for(const v of versions){const old=previous?.geometryVersions?.find(p=>p.versionId===v.versionId);if(old&&v.modernBoundarySupplement?.adoptionMode==='lossless-original-shared-arc'&&digest(old.geometry)===digest(v.geometry)&&!isDeepStrictEqual(v.modernBoundarySupplement.sourceAdoptionReview,old.modernBoundarySupplement?.sourceAdoptionReview))throw Error('Raw source adoption: unchanged shared arc cannot acquire a new receipt');}
- if(previous&&next.entityId===previous.entityId&&versions.length===previous.geometryVersions?.length&&versions.every(v=>{const old=previous.geometryVersions.find(p=>p.versionId===v.versionId);return old&&digest(old.geometry)===digest(v.geometry);}))return assertHistoricalDisplayChanges(next,previous);
+ for(const v of versions){const old=previous?.geometryVersions?.find(p=>p.versionId===v.versionId);if(old&&['lossless-original-shared-arc','lossless-original-current-version-shared-arc'].includes(v.modernBoundarySupplement?.adoptionMode)&&digest(old.geometry)===digest(v.geometry)&&!isDeepStrictEqual(v.modernBoundarySupplement.sourceAdoptionReview,old.modernBoundarySupplement?.sourceAdoptionReview))throw Error('Raw source adoption: unchanged shared arc cannot acquire a new receipt');}
+ if(previous&&next.entityId===previous.entityId&&versions.length===previous.geometryVersions?.length&&versions.every(v=>{const old=previous.geometryVersions.find(p=>p.versionId===v.versionId);return old&&digest(old.geometry)===digest(v.geometry);})){
+  // The explicit dated-current contract is not a metadata-only escape hatch.
+  if([...versions,...previous.geometryVersions].some(v=>v.modernBoundarySupplement?.adoptionMode==='lossless-original-current-version-shared-arc')&&!isDeepStrictEqual(next,previous))throw Error('Raw source adoption: dated-current unchanged geometry requires exact metadata');
+  return assertHistoricalDisplayChanges(next,previous);
+ }
  if(!versions.some(v=>v.modernBoundarySupplement?.sourceAdoptionReview))return assertHistoricalDisplayChanges(next,previous);
  const fail=message=>{throw Error('Raw source adoption: '+message);};
  const base='assets/data/territorial-entities/source/';
@@ -155,8 +171,8 @@ export function assertHistoricalSourceStorageChanges(next,previous,{prefixes,rea
  };
  const review=archivedReview(v.modernBoundarySupplement.sourceAdoptionReview);
  if(review.schemaVersion!==1||review.status!=='raw-source-only-not-display-approved'||review.entityId!==next.entityId||review.versionId!==v.versionId||review.previousGeometrySha256!==digest(old.geometry)||review.geometrySha256!==digest(v.geometry))fail('stale geometry or identity evidence');
- if(review.method==='lossless-original-shared-arc')return assertOriginalSharedArcs(next,previous,review,{prefixes,archivedReview,fail});
- if(review.sharedArcChanges!==undefined||review.previousSharedArcReview!==undefined||v.modernBoundarySupplement.adoptionMode==='lossless-original-shared-arc')fail('shared arcs cannot claim complete original feature or hole');
+ if(['lossless-original-shared-arc','lossless-original-current-version-shared-arc'].includes(review.method))return assertOriginalSharedArcs(next,previous,review,{prefixes,archivedReview,fail});
+ if(review.sharedArcChanges!==undefined||review.previousSharedArcReview!==undefined||['lossless-original-shared-arc','lossless-original-current-version-shared-arc'].includes(v.modernBoundarySupplement.adoptionMode))fail('shared arcs cannot claim complete original feature or hole');
  if(versions.length>1||v.validFrom!==null){
   if(next.sourceInfo?.geometrySha256!==undefined&&(review.sourceInfoGeometryDigestFormat!=='sha256(JSON.stringify([geometry.type, geometry.coordinates]))'
     ||next.sourceInfo.geometrySha256!==review.geometrySha256))fail('source attribution geometry hash or explicit format is stale');
