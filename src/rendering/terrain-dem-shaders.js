@@ -31,7 +31,8 @@ export function terrainDemFragmentSource(glVersion) {
       vec2 point = vUv * uTextureSize - vec2(0.5), cell = floor(point), part = fract(point);
       vec3 color = mix(mix(demColor(cell), demColor(cell + vec2(1.0, 0.0)), part.x),
         mix(demColor(cell + vec2(0.0, 1.0)), demColor(cell + vec2(1.0, 1.0)), part.x), part.y);
-      color *= mix(1.0, ${globalThis.PandoLabCanvasTerrainDem.darkBrightness.toFixed(8)}, uDarkTheme);
+      // The legacy monochrome/political presentation keeps its existing dark adjustment.
+      if (uPhysicalStyle < 0.5) color *= mix(1.0, ${globalThis.PandoLabCanvasTerrainDem.darkBrightness.toFixed(8)}, uDarkTheme);
       ${webGl2 ? 'outColor' : 'gl_FragColor'} = vec4(color, 1.0);
     }
   `;
