@@ -2,6 +2,10 @@ name: Optimization same-run Viewer CPU/GPU/FPS/memory A/B
 
 # Historical task acceptance or one-time publication: explicitly dispatched, not default CI.
 on:
+  # One bounded source-matched measurement branch; ordinary branches stay manual-only.
+  push:
+    branches: ['work/renderer-profile-20261112']
+    paths: ['.github/workflows/p7-runtime-ab.yml']
   workflow_dispatch:
     inputs:
       profile_only:
@@ -93,13 +97,17 @@ jobs:
           retention-days: 14
 
   current-renderer-profile:
-    if: github.event_name == 'workflow_dispatch' && inputs.profile_only == true
+    if: >-
+      (github.event_name == 'workflow_dispatch' && inputs.profile_only == true) ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/work/renderer-profile-20261112')
     runs-on: ubuntu-24.04
+    permissions:
+      contents: write
     timeout-minutes: 75
     steps:
       - uses: actions/checkout@v4
         with:
-          persist-credentials: false
+          persist-credentials: true
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
@@ -146,6 +154,7 @@ jobs:
           const phases=report.phases.map(p=>({
             phase:p.phase,elapsedMedianMs:p.elapsedMs,elapsedRangeMs:p.wallTimeRangeMs,
             rafFps:p.raf?.rafFps??null,rafP95GapMs:p.raf?.p95FrameGapMs??null,
+            rafP99GapMs:p.raf?.p99FrameGapMs??null,
             rafMaxGapMs:p.raf?.maxFrameGapMs??null,rendererCpuSubmitP95Ms:p.renderer?.p95CpuSubmitMs??null,
             rendererCpuSubmitP99Ms:p.renderer?.p99CpuSubmitMs??null,
             mainJsHeapMiB:mib(p.jsHeapUsedBytes),chromiumFamilyPssMiB:mib(p.chromiumProcessPssBytes),
@@ -186,3 +195,23 @@ jobs:
             ${{ runner.temp }}/renderer-aggregate.json
           if-no-files-found: warn
           retention-days: 14
+      - name: Persist all measured raw JSON and aggregate in the isolated branch
+        if: always() && github.event_name == 'push' && github.ref == 'refs/heads/work/renderer-profile-20261112'
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p reports/performance/2026-11-12-renderer-profile
+          shopt -s nullglob
+          files=("$RUNNER_TEMP"/renderer-*.json)
+          if (("${#files[@]}" == 0)); then
+            echo "No measurement JSON produced; artifacts remain the source of truth."
+            exit 0
+          fi
+          cp "${files[@]}" reports/performance/2026-11-12-renderer-profile/
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- reports/performance/2026-11-12-renderer-profile/
+          if ! git diff --cached --quiet; then
+            git commit -m "data(perf): archive 3 Chromium P7 samples and aggregate [skip ci]"
+            git push origin HEAD:refs/heads/work/renderer-profile-20261112
+          fi
