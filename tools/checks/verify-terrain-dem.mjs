@@ -17,10 +17,16 @@ export async function verifyTerrainDem({output,etopo,referenceOutput,gdalBinary,
   signal?.throwIfAborted();if(typeof output!=='string'||!output||typeof etopo!=='string'||!etopo)throw Error('Explicit DEM output and source required');
   const root=resolve(output),source=resolve(etopo),manifestBytes=await readBounded(resolve(root,'manifest.json'),16*1024*1024,signal),
     manifest=JSON.parse(manifestBytes),sourceInfo=await stat(source);
-  if(manifest?.representation!=='dem-relief-v1'||manifest.version!=='0.13.3'||manifest.shade?.quantizationStep!==4||
+  const quantized=manifest?.version==='0.14.0';
+  if(manifest?.representation!=='dem-relief-v1'||!['0.13.3','0.14.0'].includes(manifest.version)||manifest.shade?.quantizationStep!==4||
     !Array.isArray(manifest.levels)||!manifest.levels.length||!/^[a-f0-9]{64}$/.test(manifest.sources?.[0]?.sha256||'')||
     !/^[a-f0-9]{64}$/.test(manifest.tint?.sha256||'')||!/^[a-f0-9]{64}$/.test(manifest.assetsSha256||''))
     throw Error('Unexpected DEM manifest or source pins');
+  if(quantized && (manifest.elevation?.quantization?.method!=='roundHalfToEven'
+    ||manifest.elevation?.quantization?.shadeInput!=='original float32 (before quantization)'
+    ||!manifest.tileSha256||typeof manifest.tileSha256!=='object'
+    ||Object.keys(manifest.tileSha256).length!==manifest.levels.reduce((sum,level)=>sum+level.rows*level.columns,0)))
+    throw Error('Incomplete v0.14.0 DEM quantization policy or tile digest inventory');
   if((await hashTerrainFile(source,{signal})).sha256!==manifest.sources[0].sha256)throw Error('DEM source checksum mismatch');
   const options={...(demDirectory?{directory:demDirectory}:{}),signal},imageOptions={...(imageDirectory?{directory:imageDirectory}:{}),signal};
   const levelIds=new Set(),aggregate=terrainAssetDigest(),reports=[];
@@ -31,9 +37,13 @@ export async function verifyTerrainDem({output,etopo,referenceOutput,gdalBinary,
     const readReference=referenceOutput?async(column,row)=>{
       const bytes=await readBounded(resolve(referenceOutput,String(level.id),`${column}-${row}.webp`),32*1024*1024,signal);return readNativeRawWebp(bytes,imageOptions);
     }:undefined;
-    const result=await verifyTerrainDemLevel({level,readTile,readReference,shadeStep:4,
+    const result=await verifyTerrainDemLevel({level,readTile,readReference,shadeStep:4,quantized,
+      referenceShadeOnly:quantized&&!!referenceOutput,
       sourceSample:(x,y)=>sampleGdalDem({source,x,y,...(gdalBinary?{binary:gdalBinary}:{}),signal})},options);
-    for(const asset of result.assets)aggregate.add(asset.path,asset.sha256);
+    for(const asset of result.assets){
+      if(quantized && manifest.tileSha256[asset.path]!==asset.sha256)throw Error('DEM tile SHA-256 differs: '+asset.path);
+      aggregate.add(asset.path,asset.sha256);
+    }
     reports.push({level:result.level,tiles:result.tiles,bytes:result.bytes,maxTileBytes:result.maxTileBytes});
   }
   const tint=await readBounded(resolve(root,'tint.webp'),32*1024*1024,signal);
