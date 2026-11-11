@@ -20,6 +20,8 @@ export const runtimeDependencies = Object.freeze({
     'assets/js/workers/canvas-scene-composition-core.js', 'assets/js/workers/canvas-terrain-dem-core.js',
     'assets/js/workers/terrain-tile-selection-core.js', 'assets/js/workers/resource-update-policy-core.js', 'assets/js/workers/canvas-render-core.js'],
   'assets/js/workers/canvas-render-core.js': ['assets/js/modules/terrain-manifest.js'],
+  'assets/js/workers/hydro-tile-worker.js': ['assets/js/modules/external-runtime-data.js'],
+  'assets/js/workers/country-shared-boundary-worker.js': ['assets/js/modules/external-runtime-data.js'],
   'assets/js/workers/project-read-worker.js': ['assets/js/vendor/sql/sql-wasm.js', 'assets/js/vendor/sql/sql-wasm.wasm'],
 });
 export const viewerDataEntryPaths = Object.freeze([...new Set(Object.values(runtimeDependencies).flat()
@@ -27,6 +29,8 @@ export const viewerDataEntryPaths = Object.freeze([...new Set(Object.values(runt
 export const dynamicExpressions = Object.freeze({
   'assets/js/modules/core-wasm-loader.js': ['url'],
   'assets/js/workers/canvas-render-core.js': ['validationUrl.href'],
+  'assets/js/workers/hydro-tile-worker.js': ['moduleUrl.href'],
+  'assets/js/workers/country-shared-boundary-worker.js': ['dataModuleUrl.href'],
   'assets/js/workers/place-worker.js': ['storeModuleUrl.href'],
 });
 const editorOnly = /^(?:assets\/js\/(?:app|bootstrap|gis-io|gis-adapters)\.js|assets\/js\/modules\/(?:app-(?:composition|runtime-dependencies|domain-assembly|lifecycle-assembly|project-restore|project-snapshots|country-commits|generic-commands|object-commands|global-input-bindings|file-bindings|tool-bindings|editor-bindings|territorial-drafts|territory-selection-workflow|geometry-preview|history-assembly|gis-assembly|library-assembly)|editing-|editor-map-click|spatial-edit-registration|project-setup-dialog|project-file-service|import-service|export-service)|assets\/js\/workers\/(?:core-session-worker|map-edit-worker|gis-gpkg-worker|gis-geometry-worker|geometry-validation-worker|river-territory-partition-worker)\.js)/;

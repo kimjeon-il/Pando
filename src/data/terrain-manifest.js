@@ -1,3 +1,5 @@
+import { createExternalRuntimeDataFetch } from './external-runtime-data.js';
+export { createExternalRuntimeDataFetch };
 export const TERRAIN_DEM_VERSION = '0.14.0';
 export const TERRAIN_DEM_FORMAT = 'dem-relief-v1';
 

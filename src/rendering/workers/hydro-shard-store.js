@@ -1,7 +1,7 @@
 /* Shared by foreground packs and background cache writes in the hydro Worker. */
 'use strict';
 function createHydroShardStore({ fetchResponse, openCache, resolveUrl, gunzip, digest,
-  sharedBundle = null, onWholeBundle = null }) {
+  sharedBundle = null, onWholeBundle = null, verifiedExternal = false }) {
   const memory = new Map();
   const queues = new Map();
   const recoveries = new Map();
@@ -129,6 +129,7 @@ function createHydroShardStore({ fetchResponse, openCache, resolveUrl, gunzip, d
           if (recoveries.get(spec.id)?.error) throw recoveries.get(spec.id).error;
           const hit = await cached(spec);
           if (hit) return decode(spec, rows, hit.bytes, 0, hit.source);
+          if (verifiedExternal) return decode(spec, rows, await downloadFull(spec), 0, 'network-verified-shard');
           const contained = inContainer(spec);
           const bundlePart = await cachedBundlePart(spec, { shardId: spec.id, source: 'shared-container' });
           if (bundlePart) return decode(spec, rows, bundlePart, 0, 'shared-container');
