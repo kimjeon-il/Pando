@@ -797,7 +797,6 @@ export function createGpuMapRenderer(deps) {
     let countryBoundaryWorker = null;
     const countryBoundaryGeometryTransport = createCountryBoundaryGeometryTransport();
     let countryBoundaryRequestId = 0;
-    let countryBoundaryIncludesOutlines = null;
     let countrySharedBoundary = null;
     // This candidate is not visible until its complete GPU stroke resources exist.
     // Keep the last presented packet active during Worker and upload latency.
@@ -822,7 +821,6 @@ export function createGpuMapRenderer(deps) {
       if (terminate) {
         countryBoundaryWorker?.terminate(); countryBoundaryWorker = null;
         countryBoundaryGeometryTransport.reset();
-        countryBoundaryIncludesOutlines = null;
       }
     }
     function publishCountrySharedBoundary(packet) {
@@ -862,7 +860,8 @@ export function createGpuMapRenderer(deps) {
         : canonicalBoundaryFeatures;
       const nextDependencies = { source: 'country-boundary',
         content: boundaryContentKey(boundaryFeatures),
-        preparation: resourceKey(['shared-boundary-v1', boundaryQuality, activeMeshQuality==='lod'?screenLodTargetKey:'source', !shouldShowSharedCountryBorders(state.physicalSettings)]),
+        // Terrain theme is deliberately excluded: only geometry/LOD affect this packet.
+        preparation: resourceKey(['shared-boundary-v2-shared-only', boundaryQuality, activeMeshQuality==='lod'?screenLodTargetKey:'source']),
         context: gl ? [gl, renderDeviceContextRevision] : null, presentation: 'boundaries' };
       const change = resourceUpdate(countryBoundaryDependencies, nextDependencies);
       if (countryBoundaryTask && countryBoundaryTask.projectGeneration===projectGeneration
@@ -978,7 +977,6 @@ export function createGpuMapRenderer(deps) {
         baselineCache = false;
       }
       resetCountrySharedBoundary();
-      countryBoundaryIncludesOutlines = !shouldShowSharedCountryBorders(state.physicalSettings);
       performanceMetrics.countryBoundaryPrepareCount = (performanceMetrics.countryBoundaryPrepareCount || 0) + 1;
       const transportMessage = replace
         ? countryBoundaryGeometryTransport.planReplace(source)
@@ -998,7 +996,7 @@ export function createGpuMapRenderer(deps) {
       countryBoundaryWorker.postMessage({
         ...transportMessage,
         requestId: countryBoundaryRequestId, projectGeneration,
-        includeOutlines: countryBoundaryIncludesOutlines,
+        includeOutlines: false,
         geometryRevision: geometryRevisionTracker.committedRevision(), quality: boundaryQuality,
         cacheUrl: transportMessage.type === 'replace' && sharedBoundaryCacheUrls?.[boundaryQuality]
           ? new URL(sharedBoundaryCacheUrls[boundaryQuality], PHYSICAL_DATA_BASE_URL).href : null,
@@ -3878,13 +3876,9 @@ export function createGpuMapRenderer(deps) {
       // Country paint opacity depends on the active map mode.
       markPaletteDirty({ base: true });
       countryPaletteRevision += 1;
-      if (shouldShowSharedCountryBorders(state.physicalSettings)
-        && !countryBoundaryWorker && !countrySharedBoundary) prepareCountrySharedBoundary({ replace: true });
-      else if (!shouldShowSharedCountryBorders(state.physicalSettings) && countryBoundaryIncludesOutlines === false) {
-        // Reuse the Worker's prepared topology. Request coast outlines only
-        // when switching into a map mode that displays them.
-        prepareCountrySharedBoundary({ features: [] });
-      }
+      // Changing terrain style/visibility never reclassifies or regenerates
+      // borders. Reuse the same shared-only packet across all map modes.
+      if (!countryBoundaryWorker && !countrySharedBoundary) prepareCountrySharedBoundary({ replace: true });
       invalidatePhysicalScene(reason);
       return true;
     }
@@ -4022,11 +4016,6 @@ export function createGpuMapRenderer(deps) {
         for (const packet of globalThis.PandoLabCanvasSceneComposition.countryBoundaryBatches(
           countrySharedBoundary, mapTheme(), sharedOnly, countryBoundaryStyleById))
           packets.set(packet.key, packet);
-      }
-      if (!sharedOnly && mesh) {
-        for (const resource of Object.values(currentCountryStrokeResources())) {
-          if (resource?.packet) packets.set(resource.packet.key, resource.packet);
-        }
       }
       for (const packet of packets.values()) strokeRenderer.ensureResource(packet);
       return packets.size > 0;
@@ -5373,7 +5362,7 @@ export function createGpuMapRenderer(deps) {
 
     function retainSceneResources() {
       const borderPacketKeys = [countrySharedBoundary, pendingCountrySharedBoundary]
-        .flatMap(packet => packet ? [packet.key, ...(packet.outlineOverrides?.segmentCount ? [packet.outlineOverrides.key] : [])] : []).filter(Boolean);
+        .flatMap(packet => packet ? [packet.key, ...(packet.outlineOverrides?.preparedGeometry?.segmentCount ? [packet.outlineOverrides.key] : [])] : []).filter(Boolean);
       const protectedKeys = new Set([
         ...borderPacketKeys,
         ...(renderScene?.polygons || []).filter(packet => packet.protected).map(packet => packet.key),
