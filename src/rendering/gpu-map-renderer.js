@@ -4523,6 +4523,7 @@ export function createGpuMapRenderer(deps) {
         theme: mapTheme(),
         darkTheme: getSystemTheme() === 'dark',
         terrainFetchConcurrency: isMobile() ? 2 : 4,
+        terrainNaturalSurface: terrainManifest?.naturalSurface || null,
       };
     }
 

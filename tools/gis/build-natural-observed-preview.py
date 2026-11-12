@@ -155,6 +155,14 @@ def glacier_grid(archive,shape,transform):
     return high.reshape(height,4,width,4).mean(axis=(1,3)).astype('float32'),len(geometries)
 
 
+def check_polar_coverage_bounds(minimum,maximum,finite):
+    # Permit float32 average-resampling roundoff only, never nodata or invalid classes.
+    epsilon=1e-6
+    if not finite or not math.isfinite(minimum) or not math.isfinite(maximum) or minimum < -epsilon or maximum > 1+epsilon:
+        raise ValueError(f'Invalid reprojected polar coverage: min={minimum!r}, max={maximum!r}, finite={finite!r}')
+    return {'rawMinimum':minimum,'rawMaximum':maximum,'roundoffTolerance':epsilon}
+
+
 def polar_grid(path,times,shape,transform):
     import numpy as np
     import rasterio
@@ -173,9 +181,13 @@ def polar_grid(path,times,shape,transform):
         reproject(rasterio.band(src,index+1),result,src_transform=src.transform,src_crs=src.crs,
             dst_transform=transform,dst_crs='EPSG:4326',src_nodata=src.nodata,dst_nodata=0,
             resampling=Resampling.average,warp_mem_limit=64)
-        if not np.isfinite(result).all() or (result<0).any() or (result>1).any():raise ValueError('Invalid reprojected polar coverage')
+        diagnostics=check_polar_coverage_bounds(float(np.min(result)),float(np.max(result)),bool(np.isfinite(result).all()))
+        diagnostics.update(sourceNoData=None if src.nodata is None else str(src.nodata),
+            correctedRoundoffPixels=int(np.count_nonzero((result<0)|(result>1))))
+        np.clip(result,0,1,out=result)
+        print(json.dumps({'polarCoverage':diagnostics,'source':str(path),'band':index+1}),flush=True)
         if not np.any(result):raise ValueError('Polar reference ice mask is empty for review tile')
-        return result,{'band':index+1,'decimalYear':rows[index],'sourceCrs':str(src.crs)}
+        return result,{'band':index+1,'decimalYear':rows[index],'sourceCrs':str(src.crs),'coverageValidation':diagnostics}
 
 
 def build(output):

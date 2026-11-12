@@ -44,9 +44,16 @@ function canvasTerrainRuntime({ expectDem = false, timerPorts = null, now = () =
         this.ctx = {
           canvas, setTransform() {}, clearRect() {}, save() {}, restore() {}, beginPath() {},
           moveTo() {}, lineTo() {}, arc() {}, closePath() {}, stroke() {}, fill() {}, clip() {}, setLineDash() {},
-          drawImage(...args) { if (args.length === 9) drawn.push(args); if (args[0]?.probeTriangle) triangleCopies.push(args); },
+          drawImage(...args) {
+            // Count both existing image draws and real numerical scratch pixels.
+            if (args.length === 9 || (args.length===3 && args[0]?.ctx?.numericPixels>0)) drawn.push(args);
+            if (args[0]?.probeTriangle) triangleCopies.push(args);
+          },
           getImageData() { return { width:canvas.width,height:canvas.height,data: new Uint8ClampedArray(canvas.width * canvas.height * 4) }; },
-          putImageData() {},
+          putImageData(image) {
+            this.numericPixels=0;
+            for(let i=3;i<image.data.length;i+=4)if(image.data[i])this.numericPixels++;
+          },
         };
       }
       return this.ctx;
@@ -297,7 +304,8 @@ test('cooperative globe painting yields, cancels superseded views and publishes 
     view:{globeZoom:1,globeRotation:[20,0,0]} });
   const cancelled = h.messages.find(message => message.type === 'frame' && message.renderRequestId === 10);
   assert.ok(cancelled && !cancelled.bitmap, 'old render request must be released without stale pixels');
-  for (let count = 0;count < 800;count++) {
+  // Numeric scratch blocks also yield; this fake clock consumes a budget at every read.
+  for (let count = 0;count < 20000;count++) {
     const task = timers.find(timer => !timer.cancelled && !timer.ran);
     if (!task) break;
     task.ran = true;
@@ -383,7 +391,7 @@ test('Canvas terrain skips wholly offscreen triangles while keeping crossing and
   assert.equal(cropped[2], cropped[6]);
 });
 
-test('Canvas reuses immutable terrain images for repeated projection', async () => {
+test('Canvas reuses decoded DEM while repainting bounded numerical blocks for repeated projection', async () => {
   const h = canvasTerrainRuntime(); await settle();
   const view = { terrainDpr: 1, renderProjection: {scale: 100, translate: [500, 300]} };
   h.render(view);
@@ -391,7 +399,10 @@ test('Canvas reuses immutable terrain images for repeated projection', async () 
   h.drawn.length = 0;
   h.render(view);
   assert.ok(h.drawn.length > 0);
-  assert.ok(h.drawn.every(args => args[0].bitmap), 'projected tiles use immutable image bitmaps');
+  assert.ok(h.drawn.every(args => args[0].bitmap || args[0]?.ctx?.numericPixels>0),
+    'projection paints actual image or numerical pixels, not only a frame acknowledgement');
+  assert.ok(h.drawn.filter(args=>args.length===3).every(args=>args[0].width<=2048&&args[0].height<=16),
+    'numeric scratch remains bounded');
 });
 
 test('Canvas terrain demand ignores country LOD and backing DPR, but follows source DPR', async () => {
@@ -425,11 +436,13 @@ test('Canvas retains ready world tiles across zoom thresholds while target detai
   }
   render(800); await settle();
   h.drawn.length = 0; render(503);
-  const baseImages = new Set(h.drawn.map(args => args[0]));
+  const beforeDetail=h.messages.at(-1).terrainStats.terrainDetailTileCount;
   const detail = h.requests.find(request => !request.completed && /\/2\//.test(request.url));
   await h.deliver(detail);
   h.drawn.length = 0; render(503);
-  assert.ok(h.drawn.some(args => !baseImages.has(args[0])), 'ready target tiles overlay the complete world reserve');
+  assert.ok(h.drawn.length>0,'ready detailed terrain paints destination pixels');
+  assert.ok(h.messages.at(-1).terrainStats.terrainDetailTileCount>beforeDetail,
+    'the published frame includes more target detail, not only old world coverage');
   assert.equal(h.messages.at(-1).terrainStats.terrainReady, false);
   h.drawn.length = 0;
   h.render({ physicalSettings: { terrainVisible: false, terrainStyle: 'political' } });
@@ -568,7 +581,9 @@ test('Canvas keeps world coverage and the physical mask independently of politic
   await h.deliver(h.find('/0/1-0.webp'));
   h.drawn.length = 0; h.substrates.length = 0;
   h.render();
-  assert.equal(h.drawn.length, 6, 'two world tiles form a complete flat projection reserve');
+  assert.ok(h.drawn.length>0,'ready world coverage paints destination pixels');
+  assert.ok(['/0/0-0.webp','/0/1-0.webp'].every(path=>h.requests.some(request=>request.completed&&request.url.includes(path))),
+    'both actual world tile deliveries precede the published reserve frame');
   assert.equal(h.messages.at(-1).terrainComplete, false, 'detail is still progressive');
   assert.ok(h.paths.includes(h.land.geometry));
   assert.deepEqual(h.substrates.at(-1), [h.land.geometry]);
@@ -586,7 +601,8 @@ test('Canvas keeps world coverage and the physical mask independently of politic
   assert.ok(detail);
   await h.deliver(detail);
   h.drawn.length = 0; h.render();
-  assert.equal(h.drawn.length, 9, 'ready detail tiles overlay the retained two-tile world base');
+  assert.ok(h.drawn.length>0,'arriving detail paints destination pixels');
+  assert.ok(h.messages.at(-1).terrainStats.terrainDetailTileCount>0,'ready detail belongs to the published frame');
 });
 
 test('Canvas reuses physical terrain through political changes and invalidates it for camera, physical mask and tile changes', async () => {
@@ -596,14 +612,14 @@ test('Canvas reuses physical terrain through political changes and invalidates i
   h.render({fills:{VISIBLE:{fillAlpha:0,color:''}}});
   assert.equal(h.drawn.length,0,'changing object color must not reproject terrain tiles');
   h.render({view:{flatCenter:[1,0],flatZoom:1},renderProjection:{scale:350,translate:[490,300]}});
-  assert.equal(h.drawn.length,6,'camera changes redraw the terrain');
+  assert.ok(h.drawn.length>0,'camera changes redraw terrain pixels');
   h.drawn.length=0;h.render({visible:false});
-  assert.equal(h.drawn.length,6,'visibility changes redraw the land mask');
+  assert.ok(h.drawn.length>0,'visibility changes redraw land-mask pixels');
   h.drawn.length=0;h.render({visible:false,darkTheme:true});
-  assert.equal(h.drawn.length,6,'theme changes redraw the terrain');
+  assert.ok(h.drawn.length>0,'theme changes redraw terrain pixels');
   const detail=h.requests.find(request=>!request.completed && /\/2\//.test(request.url));await h.deliver(detail);
   h.drawn.length=0;h.render({visible:false,darkTheme:true});
-  assert.equal(h.drawn.length,9,'arriving detailed terrain must replace the cached preview');
+  assert.ok(h.drawn.length>0,'arriving detail paints a replacement for the cached preview');
   const child = { role:'territorial-fill', geometry:structuredClone(h.features[0].geometry), style:{fillAlpha:0} };
   h.render();h.drawn.length=0;h.render({scenePolygons:[h.land,child]});
   assert.equal(h.drawn.length,0,'new political land does not invalidate the physical mask');
@@ -612,7 +628,7 @@ test('Canvas reuses physical terrain through political changes and invalidates i
   h.render({scenePolygons:[h.land,{...child,geometry:structuredClone(child.geometry)}]});
   assert.equal(h.drawn.length,0,'replacement political geometry does not invalidate the physical mask');
   h.render({scenePolygons:[{...h.land,geometry:structuredClone(h.land.geometry)}]});
-  assert.equal(h.drawn.length,9,'replacement physical source invalidates the mask');
+  assert.ok(h.drawn.length>0,'replacement physical source invalidates and repaints the mask');
 });
 
 test('an offscreen cached numerical tile does not redraw the ready viewport terrain', async () => {

@@ -67,21 +67,30 @@
   function reliefShade(illumination) {
     return clamp(flatShade + ((0.27 + 0.73 * illumination) - flatShade) * 1.3, 0.16, 1);
   }
-  function createInterpolatedSampler({dem, width, height, theme = 'light', channel = 'land'}) {
+  function createInterpolatedSampler({dem, width, height, theme = 'light', channel = 'land', naturalSurface = null}) {
     if (!Number.isInteger(width) || !Number.isInteger(height) || width < 1 || height < 1 || dem?.length !== width * height * 4
       || !palettes[theme] || !['land', 'ocean', 'political'].includes(channel)) throw new TypeError('Invalid numerical DEM sample.');
     const colors=palettes[theme],tangents=landTangents[theme];
+    const natural=channel==='land'?naturalSurface:null;
+    if(natural&&(natural.width!==width||natural.height!==height||natural.data?.length!==width*height*4
+      ||!Number.isFinite(natural.mixWeight)||natural.mixWeight<0||natural.mixWeight>1))throw new TypeError('Invalid natural surface sample.');
     return function sample(x,y,out,offset=0){
       if(!Number.isFinite(x)||!Number.isFinite(y)||!out||!Number.isInteger(offset)||offset<0||out.length<offset+4)
         throw new TypeError('Invalid numerical DEM destination.');
       const x0=Math.floor(x),y0=Math.floor(y),fx=x-x0,fy=y-y0;
-      let elevation=0,shadeByte=0;
+      let elevation=0,shadeByte=0,naturalWeight=0,nr=0,ng=0,nb=0;
       for(let dy=0;dy<2;dy++)for(let dx=0;dx<2;dx++){
         const px=clamp(x0+dx,0,width-1),py=clamp(y0+dy,0,height-1),at=(py*width+px)*4;
         const weight=(dx?fx:1-fx)*(dy?fy:1-fy);
         let value=dem[at]*256+dem[at+1]-12000;
         if(channel==='land')value=Math.max(0,value);else if(channel==='ocean')value=Math.min(0,value);
         elevation+=value*weight;shadeByte+=dem[at+2]*weight;
+        if(natural){
+          const r=natural.data[at],g=natural.data[at+1],b=natural.data[at+2];
+          if(Math.max(r,g,b)>2.55&&!(b>r*1.12&&b>g*1.05)){
+            nr+=r*weight;ng+=g*weight;nb+=b*weight;naturalWeight+=weight;
+          }
+        }
       }
       const illumination=Math.max(0,(shadeByte/255-0.42)/0.58);
       if(channel==='political'){
@@ -95,14 +104,20 @@
           for(let i=0;i<3;i++)out[offset+i]=byte((colors.seaSurface[i]*(1-depth)+colors.seaDeep[i]*depth)*factor);
         }else{
           let band=0;while(band<heightStops.length-2&&elevation>=heightStops[band+1])band++;
-          for(let i=0;i<3;i++)out[offset+i]=byte(landColor(elevation,colors.land,tangents,band,i)*factor);
+          const weight=natural?natural.mixWeight*naturalWeight:0;
+          const gain=naturalWeight>0?(theme==='dark'?0.72:1)/(255*naturalWeight):0;
+          for(let i=0;i<3;i++){
+            const pigment=landColor(elevation,colors.land,tangents,band,i);
+            const observed=(i===0?nr:i===1?ng:nb)*gain;
+            out[offset+i]=byte((pigment*(1-weight)+observed*weight)*factor);
+          }
         }
       }
       out[offset+3]=255;return out;
     };
   }
-  function sampleInterpolated({dem,width,height,x,y,theme='light',channel='land'}) {
-    return Array.from(createInterpolatedSampler({dem,width,height,theme,channel})(x,y,new Uint8ClampedArray(4)));
+  function sampleInterpolated({dem,width,height,x,y,theme='light',channel='land',naturalSurface=null}) {
+    return Array.from(createInterpolatedSampler({dem,width,height,theme,channel,naturalSurface})(x,y,new Uint8ClampedArray(4)));
   }
   // DEM heights and shade bytes are integral. Cache exact floating-point
   // presentation inputs, not rounded colors, so the final RGBA8 is unchanged.
@@ -195,6 +210,35 @@
     parts.push('  return uTerrainLandColors[7] * factor;', '}');
     return parts.join('\n');
   }
+  // Rasterize in destination pixels. Source coordinates describe image edges;
+  // subtract half a texel before numerical sampling to share WebGL's centers.
+  // Each yielded scratch block is at most 128 KiB and can be cancelled by the
+  // existing Canvas paint owner without publishing a partially painted frame.
+  function* rasterizeInterpolatedTriangle({sample,source,destination,viewportWidth,viewportHeight,blockRows=16}) {
+    if(typeof sample!=='function'||!Number.isInteger(viewportWidth)||!Number.isInteger(viewportHeight)
+      ||viewportWidth<1||viewportHeight<1||!Number.isInteger(blockRows)||blockRows<1
+      ||source?.length!==3||destination?.length!==3
+      ||[...source,...destination].some(p=>p?.length!==2||!p.every(Number.isFinite)))throw new TypeError('Invalid numerical triangle.');
+    const [a,b,c]=destination,det=(b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0]);
+    if(Math.abs(det)<1e-10)return;
+    const x0=Math.max(0,Math.floor(Math.min(a[0],b[0],c[0]))),x1=Math.min(viewportWidth,Math.ceil(Math.max(a[0],b[0],c[0])));
+    const y0=Math.max(0,Math.floor(Math.min(a[1],b[1],c[1]))),y1=Math.min(viewportHeight,Math.ceil(Math.max(a[1],b[1],c[1])));
+    if(x0>=x1||y0>=y1)return;
+    const rows=Math.min(16,blockRows);
+    for(let top=y0;top<y1;top+=rows)for(let left=x0;left<x1;left+=2048){
+      const width=Math.min(2048,x1-left),height=Math.min(rows,y1-top),rgba=new Uint8ClampedArray(width*height*4);
+      let pixels=0;
+      for(let y=0;y<height;y++)for(let x=0;x<width;x++){
+        const px=left+x+0.5-a[0],py=top+y+0.5-a[1];
+        const u=(px*(c[1]-a[1])-py*(c[0]-a[0]))/det;
+        const v=((b[0]-a[0])*py-(b[1]-a[1])*px)/det,w=1-u-v;
+        if(u < -1e-10||v < -1e-10||w < -1e-10)continue;
+        sample(w*source[0][0]+u*source[1][0]+v*source[2][0]-0.5,
+          w*source[0][1]+u*source[1][1]+v*source[2][1]-0.5,rgba,(y*width+x)*4);pixels++;
+      }
+      yield {x:left,y:top,width,height,rgba,pixels};
+    }
+  }
   function affineTransform(source, destination) {
     const [s0, s1, s2] = source, [d0, d1, d2] = destination;
     const denominator = s0[0] * (s1[1] - s2[1]) + s1[0] * (s2[1] - s0[1]) + s2[0] * (s0[1] - s1[1]);
@@ -229,6 +273,6 @@
       return [point[0] + (previous[0] + next[0]) * distance, point[1] + (previous[1] + next[1]) * distance];
     });
   }
-  return Object.freeze({ convertTile, sampleInterpolated, createInterpolatedSampler, affineTransform, flatTileRectangle, triangleClip,
+  return Object.freeze({ convertTile, sampleInterpolated, createInterpolatedSampler, rasterizeInterpolatedTriangle, affineTransform, flatTileRectangle, triangleClip,
     convertedBytesPerPixel, colorGlsl, darkBrightness, paletteForTheme });
 })();
