@@ -23,7 +23,7 @@ export function planContractConsumerTests({
       if (visiting.has(file)) return false;
       visiting.add(file);
       if (markers.some(marker => marker.test(sourceOf(file)))) { memo.set(file, true); return true; }
-      const found = (dependencies(file) || [])
+      const found = [...(dependencies(file) || [])]
         .filter(dep => dep.startsWith('tests/helpers/') && /\.[cm]?js$/.test(dep))
         .some(dep => uses(dep, visiting));
       memo.set(file, found);
