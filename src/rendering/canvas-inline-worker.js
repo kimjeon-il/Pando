@@ -5,6 +5,7 @@ import './workers/terrain-tile-selection-core.js';
 import * as resourcePolicy from '../runtime/resource-dependency-policy.js';
 import './workers/canvas-render-core.js';
 
+// @worker-transport dedicated: In-process Canvas2D fallback emulates the Canvas Worker frame channel; it is not RPC.
 // The Canvas2D fallback uses the same scene, DEM and lifecycle implementation
 // as the real Worker. Only message transport and canvas allocation differ.
 export function createInlineCanvasWorker({ runtimeUrl }) {
