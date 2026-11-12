@@ -12,6 +12,7 @@ import {performanceCounters,performanceDelta,captureAcceptedFrame,runViewerPhase
 import {inspectFixtureCoverage,withNormalizedAdmissionBudget,withExperimentViewInvalidation,withPlaceSnapshotTrace,scaleAtZoom} from './fixture-coverage.mjs';
 import {regionalOrigin} from './gutter-fixture.mjs';
 import {candidateSequence} from './candidate-sequence.mjs';
+import {prefetchFixtureTiles} from './fixture-transfer.mjs';
 
 const region=process.argv.find(arg=>arg.startsWith('--region='))?.slice('--region='.length)||'southwest-china';
 if(!['southwest-china','thai-lowland','netherlands-coast'].includes(region))throw Error('Unknown representative region');
@@ -34,6 +35,8 @@ if(digest(fixtureBytes)!==manifestHash)throw Error('Fixture manifest hash mismat
 const fixture=JSON.parse(fixtureBytes),runs=[];
 const only=process.argv.find(arg=>arg.startsWith('--candidate='))?.slice('--candidate='.length)||null;
 const sequence=candidateSequence({smoke,cog:includeCog,screen:includeScreen,only});
+const tilePrefetch=sequence.some(candidate=>['a1','b512','screen'].includes(candidate))
+  ?await prefetchFixtureTiles({records:fixture.records,region,base}):null;
 let cogManifest,cogBytes,cogBundle,cogSource;
 if(includeCog&&(!only||only==='cog')){
   const hashes={'southwest-china':'b578c6f0e7e2df30d267c2ece476f7e889c149319595e710e6ae0110fef183ab',
@@ -61,6 +64,7 @@ if(includeScreen&&(!only||only==='screen')){
 }
 const report={schema:'pando-terrain-viewer-regional-ab-v1',identity:identity(),fixtureRevision:revision,region,
   fixtureManifestSha256:manifestHash,sequence,startedAt:new Date().toISOString(),runs,status:'running',
+  ...(tilePrefetch?{tilePrefetch:{files:tilePrefetch.files,bytes:tilePrefetch.bytes,durationMs:tilePrefetch.durationMs}}:{}),
   comparisonPolicy,normalizedBudget,
   ...(cogSource?{cogSource}:{}),
   clockPolicy:'Date offset starts at 2026-11-06; native timers and elapsed time continue normally.',
@@ -71,7 +75,7 @@ const report={schema:'pando-terrain-viewer-regional-ab-v1',identity:identity(),f
     'Only WebGL2 at desktop DPR 1 on SwiftShader; smoke mode covers one stationary 32x scene only.',
     'Warm return is same-page memory/cache reuse, not a separate browser warm-navigation measurement.',
     '512 versus 1024 varies tile partition only; an atlas or instancing optimization is not implemented.',
-    'Playwright interception proxies fixed-commit bytes; CDP network totals are partial and not real-host transfer measurements.',
+    'Verified tiles and COG bytes are prefetched outside timing and served from memory; CDP totals are partial and not real-host transfer measurements.',
     'COG runs use a simulated same-origin 206 range host; GitHub raw CORS is not fixed by this test.',
     'Screen-space D is a bounded 512-tile atlas prototype; unsupported coverage retains the existing tile path and is not counted as D.',
     'rAF intervals are scheduling proxies, not actual GPU presentation or GPU time.']};
@@ -180,9 +184,8 @@ try{
         if(!selected||!key)return route.abort('failed');
         if(key.startsWith('5/')){
           const item=selected.tiles.get(key);if(!item){run.candidateRequests.push({key,error:'outside fixture'});return route.abort('failed');}
-          const response=await fetch(base+item.file);if(!response.ok)throw Error('Fixture tile HTTP '+response.status);
-          const bytes=Buffer.from(await response.arrayBuffer());
-          if(bytes.length!==item.bytes||digest(bytes)!==item.sha256)throw Error('Fixture tile identity mismatch: '+key);
+          const bytes=tilePrefetch?.tiles.get(item.file);
+          if(!bytes||bytes.length!==item.bytes)throw Error('Verified fixture tile unavailable: '+key);
           run.candidateRequests.push({key,bytes:bytes.length,sha256:item.sha256});
           return await route.fulfill({status:200,contentType:'image/webp',body:bytes});
         }
