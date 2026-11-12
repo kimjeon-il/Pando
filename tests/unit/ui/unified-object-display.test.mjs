@@ -38,9 +38,10 @@ test('all territorial objects share one display group irrespective of kind or pa
  rows.B.properties.entityKind='regional';assert.equal(query.objectRefVisible({domain:'territorial',type:'entity',id:'B'}),false);
  state.layerVisibility.objects=false;for(const id of Object.keys(rows))assert.equal(query.objectRefVisible({domain:'territorial',type:'entity',id}),false);
 });
-test('one object style owns color, opacity and boundary controls',()=>{
- const value=normalizeLayerPresentation({styles:{objects:{opacity:.4,colorVisible:false,boundaryVisible:false}}});
- assert.equal(layerStyle(value,'objects').opacity,.4);assert.equal(layerStyle(value,'objects').colorVisible,false);assert.equal(layerStyle(value,'objects').boundaryVisible,false);
+test('one object style retains color and boundary controls but no transparency field',()=>{
+ const value=normalizeLayerPresentation({styles:{objects:{colorVisible:false,boundaryVisible:false}}});
+ assert.equal(Object.hasOwn(layerStyle(value,'objects'),'opacity'),false);assert.equal(layerStyle(value,'objects').colorVisible,false);assert.equal(layerStyle(value,'objects').boundaryVisible,false);
+ for (const target of Object.values(MAP_DISPLAY_TARGETS)) assert.equal(Object.hasOwn(target,'opacity'),false);
  for(const key of ['countries','subunits','regions'])assert.equal(Object.hasOwn(value.styles,key),false);
 });
 
@@ -53,9 +54,9 @@ test('Core preserves object visibility across temporal parent changes and only a
  await owner.client.setTimelineCursor('1914-07');await owner.client.setTimelineCursor('1916-01');
  assert.deepEqual(JSON.parse(await owner.client.storageSnapshot()),before);
  assert.equal(viewing.session.state.itemVisibility.objects.B,false);
- const edited=await owner.project.executeCommand({commandId:'presentation.apply',targets:[],payload:{action:'groupStyle',group:'objects',patch:{opacity:.4,boundaryVisible:false}}});
+ const edited=await owner.project.executeCommand({commandId:'presentation.apply',targets:[],payload:{action:'groupStyle',group:'objects',patch:{boundaryVisible:false}}});
  assert.equal(edited.ok,true,JSON.stringify(edited.error));
- assert.equal(owner.documentModel.snapshot().layerPresentation.styles.objects.opacity,.4);
+ assert.equal(Object.hasOwn(owner.documentModel.snapshot().layerPresentation.styles.objects,'opacity'),false);
  assert.equal(owner.documentModel.snapshot().layerPresentation.styles.objects.boundaryVisible,false);
  assert.equal(viewing.session.state.itemVisibility.objects.B,false);
  const saved=JSON.parse(await owner.client.storageSnapshot());assert.equal(saved.schemaVersion,14);assert.equal(saved.layerPresentation.schemaVersion,5);

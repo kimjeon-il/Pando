@@ -21,7 +21,7 @@ ProjectDocument fixture(bool collision=false) {
     TerritorialUnit unit;unit.id="A";unit.name="A";unit.kind=UnitKind::General;d.units.push_back(unit);
     const GeometryRef ref{"territorial-geometry:A",1};d.geometries.insert(ref,projectcodec::readWebGeometry(json(shape)));
     d.geometryProvenance.originalArchive.insert(ref);addStaticTerritorialRecords(d,"A",ref);
-    d.presentation.objectStyles[territorialRef("A")]={0,1,false};
+    d.presentation.objectStyles[territorialRef("A")]={0,false};
     if(collision) {
         const GeometryRef archived{"territorial-geometry:N",7};d.geometries.insert(archived,projectcodec::readWebGeometry(json(shape)));
         d.geometryProvenance.originalArchive.insert(archived);

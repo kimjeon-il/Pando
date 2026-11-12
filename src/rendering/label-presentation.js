@@ -44,7 +44,6 @@ export function createLabelPresentation({ labels,selectionDomain,reportDiagnosti
       .style('display', feature => namesVisible(feature) ? null : 'none')
       .classed('major', d => (resolvedLayout?.territorialLabelScreenAreas?.get(String(d.id || '')) || 0) >= (labels.isMobile?.() ? 3200 : 2200));
     all
-      .style('opacity', labels.layerStyle?.(state.layerPresentation, 'objectLabels').opacity)
       .classed('major', d => (resolvedLayout?.territorialLabelScreenAreas?.get(String(d.id || '')) || 0) >= (labels.isMobile?.() ? 3200 : 2200))
       .attr('transform', d => {
         const settings = labels.automaticLabelSettings?.('country', labels.labelSettings(state, 'territorial', labels.getTerritorialLabelRef(d.id).id));
@@ -82,7 +81,6 @@ export function createLabelPresentation({ labels,selectionDomain,reportDiagnosti
     const layer = labels.labelLayer;
     if (!layer) return false;
     const state = labelState();
-    const labelStyle = labels.layerStyle?.(state.layerPresentation, 'labels') || {};
     const selectionState = labels.selectionSnapshot?.() || { primaryKey: null };
     const labelRef = label => labels.normalizeObjectRef({ domain: 'label', type: label.kind || 'label', id: label.id });
     const resolvedLayout = layout;
@@ -121,8 +119,7 @@ export function createLabelPresentation({ labels,selectionDomain,reportDiagnosti
     enter.append('circle').attr('class', 'user-label-dot').attr('r', 4);
     enter.append('text').attr('class', 'user-label-text').attr('x', 7).attr('dy', '.35em');
     const all = layer.selectAll('g.user-label');
-    all.style('opacity', labelStyle.opacity)
-      .classed('selected', d => labels.selectionHas?.(labelRef(d)))
+    all.classed('selected', d => labels.selectionHas?.(labelRef(d)))
       .classed('is-primary-selection', d => labelRef(d)?.key === selectionState.primaryKey)
       .classed('is-secondary-selection', d => labels.selectionHas?.(labelRef(d)) && labelRef(d)?.key !== selectionState.primaryKey)
       .attr('transform', d => {

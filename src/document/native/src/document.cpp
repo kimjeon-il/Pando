@@ -9,7 +9,6 @@
 namespace pandoeditor {
 namespace {
 void require(bool ok,const std::string& code) { if(!ok) throw std::invalid_argument(code); }
-bool opacity(double x) { return std::isfinite(x) && x>=0 && x<=1; }
 void point(Point p) { require(std::isfinite(p.x)&&std::isfinite(p.y)&&std::abs(p.x)<=180&&std::abs(p.y)<=90,"INVALID_GEOMETRY: coordinate"); }
 void validateGeometry(const Geometry& g,bool canonical) {
     if(g.type=="Point" || g.type=="MultiPoint") {
@@ -169,7 +168,7 @@ DocumentIndex validateDocumentImpl(const ProjectDocument& d,void(*readContent)(c
         require(d.presentation.objectStyles.count(ref),"DANGLING_REF: presentation missing");
     }
     readContent(d,idx);
-    for(const auto& [ref,s]:d.presentation.objectStyles) require(idx.objects.count(ref)&&s.color<=0xffffff&&opacity(s.opacity),"INVALID_STYLE");
+    for(const auto& [ref,s]:d.presentation.objectStyles) require(idx.objects.count(ref)&&s.color<=0xffffff,"INVALID_STYLE");
     const auto records=normalizeTimelineRecords(d.timelineRecords,{timelineEntityCatalog(d),[&](const ObjectRef& owner,const GeometryRef& ref){
         const auto type=d.geometries.type(ref);return owner.domain=="territorial"?(type=="Polygon"||type=="MultiPolygon"):(type=="Polygon"||type=="MultiPolygon"||type=="LineString"||type=="MultiLineString");
     }});
@@ -203,7 +202,7 @@ std::vector<CountryView> countryViews(const ProjectDocument& d,const std::set<Ob
         d.geometries.requireReady({staticGeometryBinding(d,territorialRef(u.id)).geometryRef});
         auto ref=territorialRef(u.id); const auto& s=d.presentation.objectStyles.at(ref);
         const std::uint32_t resolvedColor=s.explicitColor?s.color:countryDefault;
-        result.push_back({u.id,(u.nameExplicit&&!u.name.empty()?u.name:u.baseName),d.geometries.get(staticGeometryBinding(d,territorialRef(u.id)).geometryRef)->polygons,resolvedColor,u.notes,s.opacity,u.locked});
+        result.push_back({u.id,(u.nameExplicit&&!u.name.empty()?u.name:u.baseName),d.geometries.get(staticGeometryBinding(d,territorialRef(u.id)).geometryRef)->polygons,resolvedColor,u.notes,u.locked});
     }
     return result;
 }

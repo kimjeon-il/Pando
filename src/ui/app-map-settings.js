@@ -135,23 +135,6 @@ export function createMapSettings({ capabilities,viewPresentation } = {}) {
       choice.append(checkbox, text);
       panel.prepend(choice);
     }
-    if (target.opacity) {
-      const field = document.createElement('label');
-      field.className = 'ui-field field-group layer-inline-style-field';
-      const title = document.createElement('span');
-      title.textContent = target.opacityLabel || '투명도';
-      const output = document.createElement('output');
-      output.dataset.layerStyleOpacityValue = group;
-      title.append(' ', output);
-      const input = document.createElement('input');
-      input.type = 'range';
-      input.className = 'ui-range-progress';
-      input.min = '0'; input.max = '100'; input.value = '100';
-      input.dataset.layerStyleOpacity = group;
-      input.setAttribute('aria-label', `${target.label} ${target.opacityLabel || '투명도'}`);
-      field.append(title, input);
-      panel.append(field);
-    }
     if (target.blendMode) {
       const field = document.createElement('label');
       field.className = 'ui-field field-group layer-inline-style-field';
@@ -406,10 +389,6 @@ export function createMapSettings({ capabilities,viewPresentation } = {}) {
       const style = (0, dependencies.applicationServicesB.layerStyle)(dependencies.projectState.state.layerPresentation, target.presentationGroup);
       const color = panel.querySelector('[data-layer-style-color]');
       if (color) color.checked = style.colorVisible;
-      const input = panel.querySelector('[data-layer-style-opacity]');
-      if (input) { input.value = String(Math.round(style.opacity * 100)); (0, dependencies.hydroModel.syncRangeProgress)(input); }
-      const output = panel.querySelector('[data-layer-style-opacity-value]');
-      if (output) output.textContent = `${Math.round(style.opacity * 100)}%`;
       const boundary = panel.querySelector('[data-layer-style-boundary]');
       if (boundary) boundary.checked = style.boundaryVisible;
       const blendMode = panel.querySelector('[data-layer-style-blend-mode]');
@@ -724,10 +703,6 @@ export function createMapSettings({ capabilities,viewPresentation } = {}) {
         await setDistributionControl('distributionBoundaryVisible', event.target.checked, 'distribution-boundary-visibility');
       }
     }));
-    listen(surface, 'input', event => {
-      const opacity = event.target.closest('[data-layer-style-opacity]');
-      if (opacity) return runViewAction(() => updateLayerPresentationStyle(opacity.dataset.layerStyleOpacity, { opacity: Number(opacity.value) / 100 }));
-    });
     renderMapDisplaySettings();
   }
 
@@ -781,7 +756,6 @@ export function createMapSettings({ capabilities,viewPresentation } = {}) {
         const bar = document.createElement('span');
         bar.className = 'distribution-legend-bar';
         bar.style.background = `linear-gradient(90deg, color-mix(in srgb, ${layer.color} 12%, transparent), color-mix(in srgb, ${layer.color} 70%, transparent))`;
-        bar.style.opacity = String((0, dependencies.applicationServicesB.layerStyle)(state.layerPresentation, 'distributions').opacity);
         row.append(title, bar, value);
         return row;
       }));

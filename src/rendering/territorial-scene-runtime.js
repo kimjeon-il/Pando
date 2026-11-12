@@ -97,7 +97,7 @@ export function createTerritorialSceneRuntime({getDependencies}={}){
         builtinGeometryCache.set(canonicalGeometry, cached);
       }
       feature.boundaryPristine = cached.unchanged;
-      if (style.opacity !== 1 || style.blendMode !== 'normal') continue;
+      if (style.blendMode !== 'normal') continue;
       if (!cached.unchanged) continue;
       features.push(feature); byId.set(id, feature); units.set(id, unit);
     }
@@ -144,7 +144,7 @@ export function createTerritorialSceneRuntime({getDependencies}={}){
       || !dependencies.layerPresentation.isLayerItemVisible(group, entityId)) return null;
     const style = dependencies.applicationServicesB.layerStyle(dependencies.projectState.state.layerPresentation,
       group, `territorial:entity:${entityId}`);
-    return style.boundaryVisible && style.opacity > 0 ? style : null;
+    return style.boundaryVisible ? style : null;
   }
 
   function initializePristineCountriesFallback() {

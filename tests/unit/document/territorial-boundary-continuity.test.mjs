@@ -105,12 +105,12 @@ test('unchanged territorial frames reuse connected boundary geometry and style c
   assert.ok(h.rawLast().length > 0);
   for (const stroke of h.rawLast()) assert.strictEqual(stroke.geometry, before.get(stroke.key));
   const styled = await testCoreProject(h.state).project.executeCommand({ commandId: 'presentation.apply', targets: [],
-    payload: { action: 'groupStyle', group: 'objects', patch: { opacity: 0.5 } } });
+    payload: { action: 'groupStyle', group: 'objects', patch: { blendMode: 'multiply' } } });
   assert.equal(styled.ok, true, styled.error?.message);
   h.render();
   assert.equal(h.requests.length, 1, 'style changes must not request topology again');
   assert.ok(h.rawLast().length > 0);
-  assert.ok(h.rawLast().every(stroke => stroke.style.alpha === 0.5));
+  assert.ok(h.rawLast().every(stroke => stroke.style.blendMode === 'multiply'));
 });
 
 test('old boundary stays published while the next topology is pending and promotes only in a render', async t => {

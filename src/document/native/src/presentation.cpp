@@ -46,14 +46,13 @@ ResolvedTerritorialPresentation resolvedTerritorialPresentation(const ProjectDoc
     const auto& p=d.presentation.webPresentation;std::set<std::string> visiting;
     std::function<ResolvedTerritorialPresentation(const TerritorialUnit&)> resolve=[&](const TerritorialUnit& u) {
         const auto gs=style(p.styles,"objects"),os=style(p.objectStyles,territorialPresentationKey(u.id));
-        ResolvedTerritorialPresentation r;r.opacity=gs.opacity.value_or(1);r.blendMode=gs.blendMode.value_or("normal");
+        ResolvedTerritorialPresentation r;r.blendMode=gs.blendMode.value_or("normal");
         if(!visiting.insert(u.id).second)throw std::invalid_argument("PRESENTATION_CYCLE");
         const auto& relation=staticParentRelation(d,u.id);
         if(u.kind==UnitKind::General&&!relation.parentId.empty()) {
             const auto parent=unit(d,territorialRef(relation.parentId));if(parent)r=resolve(*parent);
         }
         visiting.erase(u.id);
-        if(os.opacity)r.opacity=*os.opacity;else if(gs.opacity&&*gs.opacity!=1)r.opacity=*gs.opacity;
         if(os.blendMode)r.blendMode=*os.blendMode;else if(gs.blendMode==std::optional<std::string>("multiply"))r.blendMode="multiply";
         r.boundaryVisible=os.boundaryVisible.value_or(gs.boundaryVisible.value_or(true));
         r.colorVisible=gs.colorVisible.value_or(true)&&os.colorVisible.value_or(true);
@@ -61,7 +60,7 @@ ResolvedTerritorialPresentation resolvedTerritorialPresentation(const ProjectDoc
         const std::string flag="objectFlags";
         const bool visible=effectiveMapVisibility(d,territorialRef(u.id));
         r.nameVisible=visible&&groupVisible(p,name);r.flagVisible=visible&&groupVisible(p,flag);
-        r.effectiveAlpha=r.opacity*terrainAlpha;
+        r.effectiveAlpha=terrainAlpha;
         return r;
     };
     auto u=unit(d,ref);if(!u)return {};
@@ -92,7 +91,7 @@ void normalizePresentation(ProjectDocument& d,const std::string&) {
            !std::any_of(d.labels.begin(),d.labels.end(),[&](const auto& v){return i->first==ObjectRef{"label",v.id};})) i=p.labelSettings.erase(i);
         else {if(i->second.collisionGroup.empty())i->second.collisionGroup="map";++i;}
     }
-    for(auto* styles:{&p.styles,&p.objectStyles})for(auto& [key,s]:*styles){if(s.opacity&&std::isfinite(*s.opacity))s.opacity=std::clamp(*s.opacity,0.,1.);if(s.boundaryWidth)s.boundaryWidth=1;if(s.blendMode&&*s.blendMode!="multiply")s.blendMode="normal";}
+    for(auto* styles:{&p.styles,&p.objectStyles})for(auto& [key,s]:*styles){if(s.boundaryWidth)s.boundaryWidth=1;if(s.blendMode&&*s.blendMode!="multiply")s.blendMode="normal";}
 }
 void validatePresentation(const ProjectDocument& d) {
     const auto& p=d.presentation.webPresentation;
@@ -103,7 +102,7 @@ void validatePresentation(const ProjectDocument& d) {
     if(!p.overlayOrderPresent&&!p.overlayOrder.empty())throw std::invalid_argument("INVALID_OVERLAY_ORDER");
     std::set<std::string> overlays;for(const auto& group:p.overlayOrder)if((group!="genericFeatures"&&group!="distributions"&&group!="objects")||!overlays.insert(group).second)throw std::invalid_argument("INVALID_OVERLAY_ORDER");
     for(const auto* styles:{&p.styles,&p.objectStyles})for(const auto& [key,s]:*styles) {
-        if((s.opacity&&(!std::isfinite(*s.opacity)||*s.opacity<0||*s.opacity>1))||(s.boundaryWidth&&*s.boundaryWidth!=1)||(s.blendMode&&*s.blendMode!="normal"&&*s.blendMode!="multiply"))throw std::invalid_argument("INVALID_PRESENTATION_STYLE");
+        if((s.boundaryWidth&&*s.boundaryWidth!=1)||(s.blendMode&&*s.blendMode!="normal"&&*s.blendMode!="multiply"))throw std::invalid_argument("INVALID_PRESENTATION_STYLE");
     }
     for(const auto& entry:p.labelSettings) {
         const auto& ref=entry.first;const auto& s=entry.second;
@@ -167,11 +166,11 @@ std::optional<DistributionValueRange> distributionValueRange(const ProjectDocume
     }
     return range;
 }
-double distributionValueAlpha(double value,const std::optional<DistributionValueRange>& range,double opacity) {
+double distributionValueAlpha(double value,const std::optional<DistributionValueRange>& range) {
     if(!range)return 0;
     const auto span=range->max-range->min;
     const auto ratio=span>0?std::clamp((value-range->min)/span,0.,1.):1.;
-    return (0.12+0.58*ratio)*opacity;
+    return 0.12+0.58*ratio;
 }
 WebPresentation rebasePresentation(const ProjectDocument& current,const ProjectDocument& from,const ProjectDocument& to) {
     auto candidate=to;candidate.presentation.webPresentation=current.presentation.webPresentation;
