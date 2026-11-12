@@ -9,7 +9,7 @@ import {a1TerrainFragmentSource} from './a1-shader.mjs';
 import {makeViewerFixtureManifest,experimentCenter} from './viewer-fixture.mjs';
 import {serve,identity,mapSummary,chromiumProcessMemory} from '../p7-browser-ab-measure.mjs';
 import {performanceCounters,performanceDelta,captureAcceptedFrame,runViewerPhases} from './viewer-phases.mjs';
-import {inspectFixtureCoverage,withNormalizedAdmissionBudget,withExperimentViewInvalidation,withPlaceSnapshotTrace,scaleAtZoom} from './fixture-coverage.mjs';
+import {inspectFixtureCoverage,withNormalizedAdmissionBudget,withExperimentViewInvalidation,withPlaceSnapshotTrace,withTerrainOnlyCapture,scaleAtZoom} from './fixture-coverage.mjs';
 import {regionalOrigin} from './gutter-fixture.mjs';
 import {candidateSequence} from './candidate-sequence.mjs';
 import {prefetchFixtureTiles} from './fixture-transfer.mjs';
@@ -134,7 +134,12 @@ try{
           return await route.fulfill({status:200,contentType:'text/javascript',body});
         }catch(error){run.routeErrors.push(String(error));return route.abort('failed');}
       });
-      await page.addInitScript(()=>{globalThis.__pandoCaptureFrame={requested:false,result:null};});
+      await page.addInitScript(()=>{globalThis.__pandoCaptureFrame={requested:false,result:null};globalThis.__pandoTerrainCapture={requested:false,result:null};});
+      await page.route('**/assets/js/modules/gpu-base-scene-pass.js*',async route=>{
+        try{const response=await route.fetch(),body=withTerrainOnlyCapture(await response.text());
+          return await route.fulfill({status:200,contentType:'text/javascript',body});
+        }catch(error){run.routeErrors.push(String(error));return route.abort('failed');}
+      });
       await page.route('**/assets/js/modules/gpu-map-renderer.js*',async route=>{
         try{
           const response=await route.fetch();let source=await response.text();
@@ -149,7 +154,7 @@ try{
           source=source.replace(renderMarker,renderMarker+`\n      if(globalThis.__pandoCaptureFrame?.forceBase){\n        sceneColorCache.invalidate('experiment-capture');interactionOnly=false;globalThis.__pandoCaptureFrame.forceBase=false;\n      }`);
           const marker='      frameTimes.push(performance.now() - started);';
           if(!source.includes(marker))throw Error('Viewer capture point changed');
-          const capture=`      if(globalThis.__pandoCaptureFrame?.requested&&!globalThis.__pandoCaptureFrame.result\n        &&!webglContextLost&&!baseSubmissionFailed&&mapReadiness().mapReady\n        &&terrainPreparation?.stats().terrainReady&&gl.getParameter(gl.FRAMEBUFFER_BINDING)===null){\n        const pixels=new Uint8Array(pixelWidth*pixelHeight*4);\n        gl.readPixels(0,0,pixelWidth,pixelHeight,gl.RGBA,gl.UNSIGNED_BYTE,pixels);\n        globalThis.__pandoCaptureFrame.result={pixels,width:pixelWidth,height:pixelHeight,frameId:visualFrame.frameId,scale:visualFrame.scale};\n      }\n`;
+          const capture=`      if(globalThis.__pandoCaptureFrame?.requested&&!globalThis.__pandoCaptureFrame.result\n        &&!webglContextLost&&!baseSubmissionFailed&&mapReadiness().mapReady\n        &&terrainPreparation?.stats().terrainReady&&gl.getParameter(gl.FRAMEBUFFER_BINDING)===null){\n        const pixels=new Uint8Array(pixelWidth*pixelHeight*4);\n        gl.readPixels(0,0,pixelWidth,pixelHeight,gl.RGBA,gl.UNSIGNED_BYTE,pixels);\n        globalThis.__pandoCaptureFrame.result={pixels,width:pixelWidth,height:pixelHeight,frameId:visualFrame.frameId,scale:visualFrame.scale};\n        globalThis.__pandoTerrainCapture.requested=false;\n      }\n`;
           return await route.fulfill({status:200,contentType:'text/javascript',body:source.replace(marker,capture+marker)});
         }catch(error){run.routeErrors.push(String(error));return route.abort('failed');}
       });

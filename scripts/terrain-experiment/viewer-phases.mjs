@@ -13,21 +13,31 @@ export function performanceDelta(before,after){
 export async function captureAcceptedFrame(page,path,{screen=false}={}){
   const before=screen?await page.evaluate(()=>globalThis.__pandoScreen.stats.draws):null;
   await page.evaluate(()=>{globalThis.__pandoCaptureFrame.result=null;globalThis.__pandoCaptureFrame.requested=true;
+    globalThis.__pandoTerrainCapture.result=null;globalThis.__pandoTerrainCapture.requested=true;
     globalThis.__pandoCaptureFrame.forceBase=true;globalThis.__PANDOLAB_MAP_HOST__.requestRepaint('terrain-capture-accepted-frame');});
   await page.waitForFunction(()=>globalThis.__pandoCaptureFrame?.result,null,{timeout:60000,polling:100});
   const frame=await page.evaluate(async()=>{
-    const {pixels,width,height,frameId,scale}=globalThis.__pandoCaptureFrame.result,flipped=new Uint8ClampedArray(pixels.length);
-    for(let y=0;y<height;y++)flipped.set(pixels.subarray((height-1-y)*width*4,(height-y)*width*4),y*width*4);
-    const surface=new OffscreenCanvas(width,height),context=surface.getContext('2d');
-    context.putImageData(new ImageData(flipped,width,height),0,0);
-    const png=await surface.convertToBlob({type:'image/png'});
-    const data=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=reject;reader.readAsDataURL(png);});
-    return {data,width,height,frameId,scale};
+    const full=globalThis.__pandoCaptureFrame.result,terrain=globalThis.__pandoTerrainCapture.result;
+    if(!terrain||terrain.frameId!==full.frameId||terrain.width!==full.width||terrain.height!==full.height)
+      throw Error('Terrain capture does not match the accepted frame');
+    async function encode({pixels,width,height}){
+      const flipped=new Uint8ClampedArray(pixels.length);
+      for(let y=0;y<height;y++)flipped.set(pixels.subarray((height-1-y)*width*4,(height-y)*width*4),y*width*4);
+      const surface=new OffscreenCanvas(width,height),context=surface.getContext('2d');
+      context.putImageData(new ImageData(flipped,width,height),0,0);
+      const png=await surface.convertToBlob({type:'image/png'});
+      return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=reject;reader.readAsDataURL(png);});
+    }
+    return {data:await encode(full),terrainData:await encode(terrain),width:full.width,height:full.height,frameId:full.frameId,scale:full.scale};
   });
   const bytes=Buffer.from(frame.data.split(',')[1],'base64');
   if(bytes.length<1024||bytes.subarray(0,8).toString('hex')!=='89504e470d0a1a0a')throw Error('Invalid framebuffer capture');
   await writeFile(path,bytes);
   const result={width:frame.width,height:frame.height,frameId:frame.frameId,scale:frame.scale,bytes:bytes.length,sha256:digest(bytes)};
+  const terrainBytes=Buffer.from(frame.terrainData.split(',')[1],'base64');
+  if(terrainBytes.length<1024||terrainBytes.subarray(0,8).toString('hex')!=='89504e470d0a1a0a')throw Error('Invalid terrain-only capture');
+  const terrainPath=path.replace(/\.png$/,'-terrain.png');if(terrainPath===path)throw Error('Terrain capture requires a PNG path');
+  await writeFile(terrainPath,terrainBytes);result.terrainOnly={bytes:terrainBytes.length,sha256:digest(terrainBytes),frameId:frame.frameId};
   if(screen){
     const draws=await page.evaluate(()=>globalThis.__pandoScreen.stats.draws);
     if(draws<=before)throw Error('Captured frame did not invoke the screen-space pass');

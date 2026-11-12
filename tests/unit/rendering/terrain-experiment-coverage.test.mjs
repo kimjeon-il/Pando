@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {inspectFixtureCoverage,withNormalizedAdmissionBudget,withExperimentViewInvalidation,withPlaceSnapshotTrace,scaleAtZoom} from '../../../scripts/terrain-experiment/fixture-coverage.mjs';
+import {inspectFixtureCoverage,withNormalizedAdmissionBudget,withExperimentViewInvalidation,withPlaceSnapshotTrace,withTerrainOnlyCapture,scaleAtZoom} from '../../../scripts/terrain-experiment/fixture-coverage.mjs';
 
 test('preflight detects conservative visibility and budget downgrade before a Viewer run',()=>{
   const levels=size=>[
@@ -56,4 +56,12 @@ test('place snapshot trace preserves the actual label invalidation',()=>{
   const result=withPlaceSnapshotTrace(marker);
   assert.match(result,/__pandoPlaceSnapshots/);assert.match(result,/invalidateLabels\('builtin-places-ready'\)/);
   assert.throws(()=>withPlaceSnapshotTrace('changed'),/label contract changed/);
+});
+
+test('terrain-only capture is placed after land and rejects a changed scene pass',()=>{
+  const marker="renderTerrain('land');";
+  const result=withTerrainOnlyCapture(marker);
+  assert.ok(result.indexOf(marker)<result.indexOf('gl.readPixels'));
+  assert.match(result,/__pandoTerrainCapture/);
+  assert.throws(()=>withTerrainOnlyCapture('changed'),/scene contract changed/);
 });

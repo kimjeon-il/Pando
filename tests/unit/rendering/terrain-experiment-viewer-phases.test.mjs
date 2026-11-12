@@ -1,7 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {chromium} from '@playwright/test';
-import {runViewerPhases} from '../../../scripts/terrain-experiment/viewer-phases.mjs';
+import {mkdtemp,unlink,rmdir,stat} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {runViewerPhases,captureAcceptedFrame} from '../../../scripts/terrain-experiment/viewer-phases.mjs';
 
 test('terrain phase runner exercises drag, rotation, dates, theme and warm return', {timeout:30000},async()=>{
   const browser=await chromium.launch({headless:true});
@@ -42,4 +45,25 @@ test('terrain phase runner exercises drag, rotation, dates, theme and warm retur
       expectedLevel:null,panDurationMs:100,themeCycles:2,minimumFrames:1,onStart:()=>{},onPhase:async()=>{},capture:async()=>({sha256:'fixture'})});
     assert.equal(baseline.length,12);assert.ok(baseline.every(row=>row.status==='passed'));
   }finally{await browser.close();}
+});
+
+test('accepted capture saves terrain-only pixels from the same frame', {timeout:15000},async()=>{
+  const dir=await mkdtemp(join(tmpdir(),'pando-terrain-capture-')),path=join(dir,'frame.png');
+  const browser=await chromium.launch({headless:true});
+  try{
+    const page=await browser.newPage();await page.goto('about:blank');
+    await page.evaluate(()=>{
+      globalThis.__pandoCaptureFrame={};globalThis.__pandoTerrainCapture={};
+      globalThis.__PANDOLAB_MAP_HOST__={requestRepaint:()=>{
+        const pixels=new Uint8Array(64*64*4);crypto.getRandomValues(pixels);
+        globalThis.__pandoTerrainCapture.result={pixels,width:64,height:64,frameId:7};
+        globalThis.__pandoCaptureFrame.result={pixels,width:64,height:64,frameId:7,scale:10};
+      }};
+    });
+    const result=await captureAcceptedFrame(page,path);
+    assert.equal(result.frameId,7);assert.equal(result.terrainOnly.frameId,7);
+    assert.equal(result.sha256,result.terrainOnly.sha256);assert.ok((await stat(join(dir,'frame-terrain.png'))).size>1024);
+  }finally{
+    await browser.close();await unlink(path).catch(()=>{});await unlink(join(dir,'frame-terrain.png')).catch(()=>{});await rmdir(dir);
+  }
 });
