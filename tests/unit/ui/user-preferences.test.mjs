@@ -43,14 +43,14 @@ test('current preferences retain only label and composable selection settings', 
   const preferences = normalizeUserPreferences({
     version: 2,
     appearance: { theme: 'dark' },
-    labels: { country: { font: 'serif', color: '#Aa11Bb' }, place: { font: 'gothic', color: '#123456', pointColor: '#abcdef', languages: { ko: true, en: false, native: false } } },
+    labels: { country: { font: 'serif', color: '#Aa11Bb' }, place: { font: 'gothic', color: '#123456', pointColor: '#abcdef', showNativeNames: false } },
     selection: { color: '#0f1e2d', outlineVisible: false, fillStrength: 0.6 },
   });
   assert.deepEqual(preferences, {
     backgrounds:defaultUserPreferences().backgrounds,version: 2,
     timeline:{defaultWorldFollowCurrentMonth:true},
     appearance: { theme: 'dark', accentPreset: 'blue', smoothLines: true },
-    labels: { country: { font: 'serif', color: '#aa11bb' }, place: { font: 'gothic', color: '#123456', pointColor: '#abcdef', languages: { ko: true, en: false, native: false } } },
+    labels: { country: { font: 'serif', color: '#aa11bb' }, place: { font: 'gothic', color: '#123456', pointColor: '#abcdef', showNativeNames: false } },
     selection: { color: '#0f1e2d', outlineVisible: false, fillStrength: 0.6 },
   });
 });
@@ -77,12 +77,17 @@ test('invisible selection combinations restore an outline and old schema values 
   assert.deepEqual(preferences.labels, defaultUserPreferences().labels);
 });
 
-test('place language preferences persist choices and do not allow an empty selection', () => {
-  const selected = normalizeUserPreferences({ version: 2, labels: { place: { languages: { ko: false, en: true, native: true } } } });
-  assert.deepEqual(selected.labels.place.languages, { ko: false, en: true, native: true });
-  const none = normalizeUserPreferences({ version: 2, labels: { place: { languages: { ko: false, en: false, native: false } } } });
-  assert.deepEqual(none.labels.place.languages, { ko: true, en: false, native: false });
-  assert.deepEqual(defaultUserPreferences().labels.place.languages, { ko: true, en: false, native: false });
+test('native-name overlay is the only place-language preference and defaults off', () => {
+  const defaults = defaultUserPreferences().labels.place;
+  assert.equal(defaults.showNativeNames, false);
+  assert.equal(Object.hasOwn(defaults, 'languages'), false);
+  const enabled = normalizeUserPreferences({ version: 2, labels: { place: { showNativeNames: true } } });
+  assert.equal(enabled.labels.place.showNativeNames, true);
+  assert.equal(Object.hasOwn(enabled.labels.place, 'languages'), false);
+  const disabled = normalizeUserPreferences({ version: 2, labels: { place: { showNativeNames: 'true' } } });
+  assert.equal(disabled.labels.place.showNativeNames, false);
+  const oldSwitches = normalizeUserPreferences({ version: 2, labels: { place: { languages: { ko: false, en: true, native: true } } } });
+  assert.deepEqual(oldSwitches.labels.place, defaults, 'retired English/standalone native map switches cannot persist');
 });
 });
 contractSuite("app-accent", () => {
