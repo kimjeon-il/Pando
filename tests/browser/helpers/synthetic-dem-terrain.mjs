@@ -21,15 +21,25 @@ function solidPng(width,height){
 }
 
 export function syntheticDemManifest(){
+  // Match the production v0.14.0 manifest admission contract. Earlier
+  // synthetic fixtures omitted the quantization policy and full SHA inventory,
+  // so the Viewer rejected every injected DEM before rendering could begin.
+  const levels = Array.from({length:6},(_,id)=>({id,width:1350*2**id,height:675*2**id,tileSize:1024,
+    columns:Math.ceil(1350*2**id/1024),rows:Math.ceil(675*2**id/1024)}));
+  const tileSha256 = Object.fromEntries(levels.flatMap(level=>
+    Array.from({length:level.rows},(_,row)=>
+      Array.from({length:level.columns},(_,column)=>
+        [`${level.id}/${column}-${row}.webp`,'a'.repeat(64)])).flat()));
   return {version:TERRAIN_DEM_VERSION,representation:'dem-relief-v1',crs:'EPSG:4326',extent:[-180,-90,180,90],
     gutter:1,tileFormat:'lossless WebP RGBA',registration:'cell-center',sourceGridOrigin:[-180,90],
-    sourceResolutionDegrees:[1/120,1/120],elevation:{decode:'R*256+G-12000',biasMeters:12000,spacingMeters:1,validEncodedRange:[0,65535]},
+    sourceResolutionDegrees:[1/120,1/120],elevation:{decode:'R*256+G-12000',biasMeters:12000,spacingMeters:1,validEncodedRange:[0,65535],
+      quantization:{method:'roundHalfToEven',shadeInput:'original float32 (before quantization)',
+        land:[{stepMeters:16},{stepMeters:32}],ocean:[{stepMeters:16},{stepMeters:64},{stepMeters:128}]}},
     channels:{r:'encoded elevation high byte',g:'encoded elevation low byte',b:'precomputed hillshade',a:'255'},
     shade:{azimuthDegrees:315,altitudeDegrees:45,ambient:.42,diffuse:.58,polarFallbackDegrees:89.5},
     tint:{url:`terrain/v${TERRAIN_DEM_VERSION}/tint.webp`,width:4,height:2},assetsSha256:'a'.repeat(64),sources:[],
     urlTemplate:`terrain/v${TERRAIN_DEM_VERSION}/{level}/{column}-{row}.webp`,
-    levels:Array.from({length:6},(_,id)=>({id,width:1350*2**id,height:675*2**id,tileSize:1024,
-      columns:Math.ceil(1350*2**id/1024),rows:Math.ceil(675*2**id/1024)}))};
+    levels,tileSha256};
 }
 
 export async function routeSyntheticDem(surface){
