@@ -211,15 +211,32 @@ export function storeOwnedLibraryData({ root, push, prefixes, removePaths, repor
     const p=territorial+'/source/geometries/'+file.logical;
     if(included(p))assertTerritorialSourceResourceBytes(p,newBytes(p));
   }
-  let evidenceRevision,evidenceIndex;
-  const readSourceEvidence=reference=>{
-    // Non-source stores do not need an authoring-evidence snapshot.
+  let evidenceRevision,evidenceIndex,sourceSnapshot;
+  const ensureEvidenceSnapshot=()=>{
+    // Non-source stores and old admission methods never request a source census.
     if(!evidenceIndex){
       evidenceRevision=git(data.checkout,['rev-parse','HEAD']);
       evidenceIndex=JSON.parse(git(data.checkout,['show',evidenceRevision+':archive/index.json']));
     }
+  };
+  const readSourceEvidence=reference=>{
+    ensureEvidenceSnapshot();
     if(!evidenceIndex.files[reference])throw Error('Missing archived source adoption evidence: '+reference);
     return decodeArchiveEntry(data.checkout,evidenceIndex.files[reference],evidenceRevision,{fetch:false});
+  };
+  const getSourceSnapshot=()=>{
+    if(sourceSnapshot)return sourceSnapshot;
+    ensureEvidenceSnapshot();
+    git(data.checkout,['merge-base','--is-ancestor',pinnedRevision,evidenceRevision]);
+    const prefix=territorial+'/source/countries/',paths=index=>Object.keys(index.files).filter(p=>p.startsWith(prefix)).sort(),countryDescriptorPaths=paths(evidenceIndex),pinnedPaths=paths(archived);
+    if(JSON.stringify(countryDescriptorPaths)!==JSON.stringify(pinnedPaths))throw Error('Restoration snapshot: source pin/HEAD country sets differ; rebase census');
+    for(const p of countryDescriptorPaths){
+      if(evidenceIndex.files[p].sha256!==archived.files[p].sha256||evidenceIndex.files[p].bytes!==archived.files[p].bytes)throw Error('Restoration snapshot: source pin/HEAD descriptor differs; rebase census');
+      const descriptor=JSON.parse(readSourceEvidence(p));
+      for(const v of descriptor.geometryVersions||[]){const resource=territorial+'/source/'+v.geometryResource?.file,a=archived.files[resource],b=evidenceIndex.files[resource];if(!a||!b||a.sha256!==b.sha256||a.bytes!==b.bytes)throw Error('Restoration snapshot: source pin/HEAD referenced resource differs; rebase census');}
+    }
+    sourceSnapshot=Object.freeze({archiveRevision:evidenceRevision,sourcePin:pinnedRevision,countryDescriptorPaths:Object.freeze(countryDescriptorPaths)});
+    return sourceSnapshot;
   };
   // Editable source may be stored before its derived chunks are regenerated.
   // Validate the selected source itself, without recreating a second authority.
@@ -233,7 +250,7 @@ export function storeOwnedLibraryData({ root, push, prefixes, removePaths, repor
     const previous=archived.files[p]?previousSource(p):null;
     // Both gates use one fixed archived revision, never mutable report files.
     assertOriginalAuthoringSourceStorageChanges(raw,previous,{prefixes,readEvidence:readSourceEvidence});
-    assertHistoricalSourceStorageChanges(raw,previous,{prefixes,readEvidence:readSourceEvidence});
+    assertHistoricalSourceStorageChanges(raw,previous,{prefixes,readEvidence:readSourceEvidence,getSourceSnapshot});
   }
   const reviewScopes=['assets/data/territorial-entities','assets/data/builtin-world'];
   if(prefixes.some(p=>reviewScopes.some(s=>p===s||p.startsWith(s+'/')||s.startsWith(p+'/')))){
