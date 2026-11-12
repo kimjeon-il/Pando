@@ -36,18 +36,26 @@ export function terrainDemFragmentSource(glVersion) {
         mix(demValue(cell + vec2(0.0, 1.0)), demValue(cell + vec2(1.0, 1.0)), part.x), part.y);
       vec3 color = numericalTerrainColor(values.x, values.y, uLandPass, uPhysicalStyle);
       if(uPhysicalStyle>0.5 && uLandPass>0.5 && uNaturalWeight>0.0){
-        vec3 surface=${sample}(uNaturalSurface,vUv).rgb;
-        // Black is the offline invalid/water sentinel. Blue source water is
-        // also excluded for the earlier NASA-only preview; never edits land.
-        bool valid=max(surface.r,max(surface.g,surface.b))>0.01
-          && !(surface.b>surface.r*1.12 && surface.b>surface.g*1.05);
-        if(valid){
+        // Match numerical Canvas at mixed water/missing cells: classify each
+        // source texel before weighting, never interpolate black or blue source
+        // water into otherwise valid observed land.
+        vec3 surfaceSum=vec3(0.0);
+        float surfaceCoverage=0.0;
+        for(int oy=0;oy<2;oy++)for(int ox=0;ox<2;ox++){
+          vec2 stepOffset=vec2(float(ox),float(oy));
+          float w=(ox==0?1.0-part.x:part.x)*(oy==0?1.0-part.y:part.y);
+          vec3 candidate=${sample}(uNaturalSurface,(cell+stepOffset+vec2(0.5))/uTextureSize).rgb;
+          bool valid=max(candidate.r,max(candidate.g,candidate.b))>0.01
+            && !(candidate.b>candidate.r*1.12 && candidate.b>candidate.g*1.05);
+          if(valid){surfaceSum+=candidate*w;surfaceCoverage+=w;}
+        }
+        if(surfaceCoverage>0.0){
           float flat=0.27+0.73*0.70710678;
           float illumination=max(0.0,(values.y-0.42)/0.58);
           float shade=clamp(flat+((0.27+0.73*illumination)-flat)*1.3,0.16,1.0);
           float factor=clamp(shade/flat,0.38,1.3);
-          surface*=mix(1.0,0.72,uDarkTheme);
-          color=mix(color,surface*factor,clamp(uNaturalWeight,0.0,1.0));
+          vec3 surface=surfaceSum/surfaceCoverage*mix(1.0,0.72,uDarkTheme);
+          color=mix(color,surface*factor,clamp(uNaturalWeight,0.0,1.0)*surfaceCoverage);
         }
       }
       // The legacy monochrome/political presentation keeps its existing dark adjustment.
