@@ -5,6 +5,8 @@
   // Retain the legacy brightness adjustment exclusively for the political/monochrome plane.
   const darkBrightness = 0.84;
   const flatShade = 0.27 + 0.73 * Math.SQRT1_2;
+  // Monochrome relief contrast is independent of colored land/ocean palette and hillshade data.
+  const mono = Object.freeze({ low: 0.48, altitude: 0.34, illumination: 0.60, min: 0.12, max: 0.98 });
   const heightStops = Object.freeze([0, 256, 750, 1500, 2500, 3500, 4500, 6500]);
   const rgb = hex => [1, 3, 5].map(offset => parseInt(hex.slice(offset, offset + 2), 16) / 255);
   const palettes = Object.freeze({
@@ -49,18 +51,21 @@
     for (let offset = 0; offset < dem.length; offset += 4) {
       const heightMeters = dem[offset] * 256 + dem[offset + 1] - 12000;
       const height = Math.max(0, heightMeters);
-      const shade = reliefShade(Math.max(0, (dem[offset + 2] / 255 - 0.42) / 0.58));
+      const illumination = Math.max(0, (dem[offset + 2] / 255 - 0.42) / 0.58);
+      const shade = reliefShade(illumination);
       const factor = clamp(shade / flatShade, 0.38, 1.3);
       const depth = Math.pow(clamp(-heightMeters / 8000, 0, 1), 0.6);
       let band = 0;
       while (band < heightStops.length - 2 && height >= heightStops[band + 1]) band++;
       const t = smoothHeight(height, heightStops[band], heightStops[band + 1]);
+      const gray = political ? byte(clamp(mono.low + mono.altitude * smoothHeight(height, 0, 6000)
+        + mono.illumination * (illumination - Math.SQRT1_2), mono.min, mono.max)) : 0;
       for (let channel = 0; channel < 3; channel++) {
         land[offset + channel] = byte((colors.land[band][channel] * (1 - t)
           + colors.land[band + 1][channel] * t) * factor);
         ocean[offset + channel] = byte((colors.seaSurface[channel] * (1 - depth)
           + colors.seaDeep[channel] * depth) * factor);
-        if (political) political[offset + channel] = byte((0.58 + 0.3 * smoothHeight(height, 0, 6000)) * factor);
+        if (political) political[offset + channel] = gray;
       }
       land[offset + 3] = ocean[offset + 3] = 255;
       if (political) political[offset + 3] = 255;
@@ -80,7 +85,8 @@
       '  float illumination = max(0.0, (storedShade - 0.42) / 0.58);',
       '  float shade = clamp(flatShade + ((0.27 + 0.73 * illumination) - flatShade) * 1.3, 0.16, 1.0);',
       '  float factor = clamp(shade / flatShade, 0.38, 1.3);',
-      '  if (physicalStyle < 0.5) return vec3((0.58 + 0.3 * smoothstep(0.0, 6000.0, height)) * factor);',
+      `  if (physicalStyle < 0.5) return vec3(clamp(${mono.low.toFixed(2)} + ${mono.altitude.toFixed(2)} * smoothstep(0.0, 6000.0, height)`,
+      `    + ${mono.illumination.toFixed(2)} * (illumination - 0.70710678), ${mono.min.toFixed(2)}, ${mono.max.toFixed(2)}));`,
       '  float depth = pow(clamp(-heightMeters / 8000.0, 0.0, 1.0), 0.6);',
       '  if (landPass < 0.5) return mix(uTerrainSeaSurface, uTerrainSeaDeep, depth) * factor;',
     ];
