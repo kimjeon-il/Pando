@@ -9,7 +9,8 @@ export function createGpuHydroPreparation({ createWorker, getMode, getView, getC
   isMobile, DATA_REVISION, ASSET_REVISION, registerHydroPack, unregisterHydroPack,
   queueHydroRender, reportOperationError, setActionStatus, onReset, onConnect, onLoadState }) {
   const lifecycle = createGpuResourceLifecycle();
-  const metrics = { hydroUploadBytes: 0, hydroTileWindowRecomputeCount: 0, hydroTileWindowCacheHitCount: 0, hydroViewRequestCount: 0 };
+  const metrics = { hydroUploadBytes: 0, hydroTileWindowRecomputeCount: 0, hydroTileWindowCacheHitCount: 0, hydroViewRequestCount: 0,
+    hydroOffscreenUploadCompletionCount: 0, hydroUnchangedActiveViewCount: 0 };
   const loadState = {};
   let disposed = false, gl = null, glVersion = 0, projectGeneration = 0, renderDeviceContextRevision = 0, uploadScheduler = null, stagingSequence = 0, uploadEpoch = 0;
   const isWebGlRenderer = () => !!gl;
@@ -193,7 +194,15 @@ export function createGpuHydroPreparation({ createWorker, getMode, getView, getC
           if (disposed || entry.uploadKey !== key || epoch !== uploadEpoch || contextGeneration !== renderDeviceContextRevision) throw Object.assign(new Error('Stale hydro upload'), { name: 'AbortError' });
           const before = metrics.hydroUploadBytes;
           uploadHydroPack(entry, byteBudget);
-          if (entry.resources) { entry.uploadKey = null; entry.uploadQueued = false; queueHydroRender('hydro-upload-ready'); }
+          if (entry.resources) {
+            entry.uploadKey = null;
+            entry.uploadQueued = false;
+            // Cached out-of-view hydro packs remain GPU-ready for a future
+            // camera move, but must not force a full globe repaint now.
+            if (hydroActivePackIds.has(entry.id) || hydroEditEntries.includes(entry))
+              queueHydroRender('hydro-upload-ready');
+            else metrics.hydroOffscreenUploadCompletionCount += 1;
+          }
           return { bytes: metrics.hydroUploadBytes - before, done: !!entry.resources };
         },
       }).catch(error => { if (error.name !== 'AbortError') console.warn('Hydro upload failed', error); });
@@ -274,9 +283,13 @@ export function createGpuHydroPreparation({ createWorker, getMode, getView, getC
       if (message.type === 'active') {
         if (Number(message.revision || 0) < hydroAcceptedRevision) return;
         hydroAcceptedRevision = Number(message.revision || hydroAcceptedRevision);
-        hydroActivePackIds = new Set(message.packIds || []);
+        const nextActive = new Set((message.packIds || []).map(Number).filter(Number.isFinite));
+        const changed = nextActive.size !== hydroActivePackIds.size ||
+          [...nextActive].some(id => !hydroActivePackIds.has(id));
+        hydroActivePackIds = nextActive;
         pruneHydroCache();
-        queueHydroRender();
+        if (changed) queueHydroRender('hydro-active-view-changed');
+        else metrics.hydroUnchangedActiveViewCount += 1;
         return;
       }
       if (message.type === 'pack') {
