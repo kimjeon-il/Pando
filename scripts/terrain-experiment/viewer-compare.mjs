@@ -386,6 +386,12 @@ try{
       }
     }catch(error){run.status='failed';run.error=String(error?.stack||error).slice(0,5000);
       run.diagnostics=await page.evaluate(()=>globalThis.__PANDOLAB_VIEWER__?.rendererStats?.()||null).catch(()=>null);
+      run.startupDiagnostics=await page.evaluate(()=>({
+        statusReady:document.getElementById('viewerStatus')?.dataset.ready??null,
+        initialLoading:document.getElementById('viewer')?.dataset.initialLoading??null,
+        month:globalThis.__PANDOLAB_VIEWER__?.builtinMonth?.()?.month??null,
+        view:globalThis.__PANDOLAB_MAP_HOST__?.getViewState?.()??null,
+      })).catch(()=>null);
       run.captureDiagnostics=await page.evaluate(()=>{const c=globalThis.__pandoCaptureFrame,t=globalThis.__pandoTerrainCapture;
         return c?{requested:c.requested,forceBase:c.forceBase,entries:c.entries,attempts:c.attempts,lastAttempt:c.lastAttempt,
           hasFull:!!c.result,hasTerrain:!!t?.result,terrainFrameId:t?.result?.frameId??null}:null;}).catch(()=>null);
