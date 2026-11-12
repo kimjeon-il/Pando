@@ -108,7 +108,7 @@ async function serve(){
 }
 async function sample(){
   const report={schema:'pando-p7-browser-ab-v1',identity:identity(),label:options.label,
-    status:'running',startedAt:new Date().toISOString(),phases:[],pageErrors:[],error:null};
+    status:'running',startedAt:new Date().toISOString(),phases:[],pageErrors:[],screenshotErrors:[],error:null};
   let server=null,browser=null,page=null,cdp=null,processCdp=null,previousPerf=null;
   const performanceCounters=async()=>Object.fromEntries((await cdp.send('Performance.getMetrics')).metrics.map(x=>[x.name,x.value]));
   const snapshot=async(phase,elapsedMs)=>{
@@ -129,9 +129,6 @@ async function sample(){
         status:globalThis.document.getElementById('viewerStatus')?.dataset.ready};
     });
     const raf=await page.evaluate(strict=>globalThis.__pandoAbFps?.finish(strict)||null,options['strict-frames']==='1');
-    if(options['strict-frames']==='1'&&options['screenshot-dir']){
-      await page.screenshot({path:options['screenshot-dir']+'/'+phase+'.png'});
-    }
     await cdp.send('HeapProfiler.collectGarbage').catch(()=>{});
     const byName=await performanceCounters();
     const cpuMs=Object.fromEntries(['TaskDuration','ScriptDuration','LayoutDuration','RecalcStyleDuration'].map(name=>{
@@ -147,6 +144,10 @@ async function sample(){
       chromiumProcessPssBytes:processMemory?.pssBytes??null,chromiumProcessCount:processMemory?.processes??null,
       domNodes:byName.Nodes??null,jsListeners:byName.JSEventListeners??null,
       webWorkers:page.workers().length,renderer:mapSummary(view.map)});
+    if(options['strict-frames']==='1'&&options['screenshot-dir']){
+      try{await page.screenshot({path:options['screenshot-dir']+'/'+phase+'.png'});}
+      catch(error){report.screenshotErrors.push({phase,error:String(error)});}
+    }
   };
   const ready=async expected=>{
     await page.waitForFunction(month=>{
@@ -255,8 +256,9 @@ async function sample(){
       await zoomTo(130,'zoom32-east-asia');
     }
     report.browserVersion=browser.version();
-    report.status=report.pageErrors.length?'failed':'passed';
-    if(report.pageErrors.length)report.error='Browser page errors: '+report.pageErrors.join('; ');
+    report.status=report.pageErrors.length||report.screenshotErrors.length?'failed':'passed';
+    if(report.pageErrors.length||report.screenshotErrors.length)
+      report.error='Browser page/screenshot errors: '+JSON.stringify({page:report.pageErrors,screenshots:report.screenshotErrors});
   }catch(error){
     report.status='failed';report.error=String(error?.stack||error).slice(0,5000);
     if(page)report.diagnostics=await page.evaluate(()=>({
