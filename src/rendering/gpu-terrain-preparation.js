@@ -492,8 +492,15 @@ export function createGpuTerrainPreparation({ readTile, readNaturalTile = async 
     },
     setManifest(manifest) {
       visibleTileCache.clear();
-      const next = { ...dependencies, content: resourceKey(manifest) };
-      if (resourceUpdate(dependencies, next).input) reset();
+      // Optional surface-catalog admission must never dispose already uploaded
+      // numerical DEM textures or force another terrain download.
+      const {naturalSurface:unusedNatural, ...demSource} = manifest || {};
+      const next = { ...dependencies, content: resourceKey(manifest ? demSource : null) };
+      const demChanged = resourceUpdate(dependencies, next).input;
+      const surfaceChanged = resourceKey(terrainManifest?.naturalSurface ?? null)
+        !== resourceKey(manifest?.naturalSurface ?? null);
+      if (demChanged) reset();
+      else if (surfaceChanged) natural.reset();
       dependencies = next; terrainManifest = manifest;
     },
     prepare(frame, nextView) {
