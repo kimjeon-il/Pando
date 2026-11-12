@@ -40,7 +40,7 @@ export function mapPlaceLabelRowsAtMonth(place, month, { zoom = 0, showNativeNam
   // Query native-only so that a native name identical to Korean never causes
   // the second co-official name to take the primary native's place.
   const primaryNative = placeLabelRowsAtMonth(place, month, { native: true })[0];
-  const normalized = text => String(text || '').replace(/^\\(현\\)/u, '')
+  const normalized = text => String(text || '').replace(/^\(현\)/u, '')
     .normalize('NFKC').toLocaleLowerCase();
   const duplicate = rows.some(row => normalized(row.text) === normalized(primaryNative?.text));
   return { rows, secondaryRows: primaryNative && !duplicate ? [primaryNative] : [] };
