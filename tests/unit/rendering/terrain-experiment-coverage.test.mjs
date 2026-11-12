@@ -41,7 +41,7 @@ test('normalized budget is explicit and refuses a changed or ambiguous Viewer po
 
 test('experiment camera repaint invalidates the full view and refuses a changed host contract',()=>{
   const source="requestRepaint: reason => dependencies.domains.renderingDomain?.invalidateGpuFrame?.(reason || 'legacy-host-repaint'),";
-  assert.match(withExperimentViewInvalidation(source),/renderingDomain\?\.invalidateView\?/);
+  assert.match(withExperimentViewInvalidation(source),/requestRender\?\.\(\{kind:'view-settle'/);
   assert.throws(()=>withExperimentViewInvalidation('different'),/host contract changed/);
   assert.throws(()=>withExperimentViewInvalidation(source+source),/host contract changed/);
 });

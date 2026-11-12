@@ -10,7 +10,7 @@ export function withNormalizedAdmissionBudget(source){
 export function withExperimentViewInvalidation(source){
   const marker="requestRepaint: reason => dependencies.domains.renderingDomain?.invalidateGpuFrame?.(reason || 'legacy-host-repaint'),";
   if(typeof source!=='string'||source.split(marker).length!==2)throw Error('Viewer host contract changed');
-  return source.replace(marker,marker.replace('invalidateGpuFrame','invalidateView'));
+  return source.replace(marker,"requestRepaint: reason => dependencies.domains.renderingDomain?.requestRender?.({kind:'view-settle',reason:reason || 'legacy-host-repaint'}),");
 }
 const radians=value=>value*Math.PI/180;
 function distance(a,b){
