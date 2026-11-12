@@ -2,6 +2,7 @@ import { buildGpuStrokeInstances } from "./gpu-stroke-geometry.js";
 export { buildGpuStrokeInstances, GPU_STROKE_FLAGS } from "./gpu-stroke-geometry.js";
 import { isRenderDevice } from "./render-device.js";
 import { createGpuResourceBudget } from "./gpu-resource-budget.js";
+import { visibleGpuStrokeOwners, mergeGpuStrokeDrawRanges } from "./gpu-stroke-visibility.js";
 import { applyGpuBlendMode, parseGpuColor, resetGpuNormalBlend } from "./gpu-blend-utils.js";
 import { linkGpuProgram, GPU_SPHERICAL_POSITION_GLSL } from "./gpu-shader-utils.js";
 import { GPU_VIEW_UNIFORM_NAMES, setGpuViewUniforms } from "./gpu-view-uniforms.js";
@@ -327,6 +328,8 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
   let drawCount = 0;
   let drawCallCount = 0;
   let drawMs = 0;
+  let culledOwnerCount = 0;
+  let mergedDrawRangeCount = 0;
   let cacheHits = 0;
   let cacheMisses = 0;
   let failureCount = 0;
@@ -423,6 +426,13 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
     return { width, alpha };
   }
 
+  function mergedStrokeRanges(resource, ownerIds, rangeProperty = 'ownerRanges', countProperty = 'instanceCount') {
+    const ranges = resolveGpuStrokeRanges(resource, ownerIds, rangeProperty, countProperty);
+    const merged = mergeGpuStrokeDrawRanges(ranges);
+    mergedDrawRangeCount += Math.max(0, ranges.length - merged.length);
+    return merged;
+  }
+
   function drawSegments(resource, style, frameContext, ownerIds) {
     const programInfo = programs.segment;
     gl.useProgram(programInfo.program);
@@ -430,7 +440,7 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
     gl.uniform1i(programInfo.uniforms.uJoinMode, joinModeValue(style.join));
     gl.uniform1f(programInfo.uniforms.uMiterLimit, Math.max(1, Number(style.miterLimit) || 4));
     gl.uniform2f(programInfo.uniforms.uDash, Math.max(0, Number(style.dash?.[0]) || 0), Math.max(0, Number(style.dash?.[1]) || 0));
-    const ranges = resolveGpuStrokeRanges(resource, ownerIds);
+    const ranges = mergedStrokeRanges(resource, ownerIds);
     let completedDraws = 0;
     for (const range of ranges) {
       const locations = bindSegmentGeometry(resource, range.first);
@@ -452,7 +462,7 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
     applyCommonStyleUniforms(programInfo, style, frameContext);
     gl.uniform1i(programInfo.uniforms.uJoinMode, joinModeValue(style.join));
     gl.uniform1i(programInfo.uniforms.uRoundCap, style.cap === 'round' ? 1 : 0);
-    const ranges = resolveGpuStrokeRanges(resource, ownerIds, 'ownerNodeRanges', 'nodeCount');
+    const ranges = mergedStrokeRanges(resource, ownerIds, 'ownerNodeRanges', 'nodeCount');
     let completedDraws = 0;
     for (const range of ranges) {
       const locations = bindNodeGeometry(programInfo, roundCornerBuffer, 'aCorner', resource, range.first);
@@ -472,7 +482,7 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
     const programInfo = programs.bevel;
     gl.useProgram(programInfo.program);
     applyCommonStyleUniforms(programInfo, style, frameContext);
-    const ranges = resolveGpuStrokeRanges(resource, ownerIds, 'ownerNodeRanges', 'nodeCount');
+    const ranges = mergedStrokeRanges(resource, ownerIds, 'ownerNodeRanges', 'nodeCount');
     let completedDraws = 0;
     for (const range of ranges) {
       const locations = bindNodeGeometry(programInfo, bevelVertexBuffer, 'aVertexId', resource, range.first);
@@ -600,6 +610,9 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
       invalidSegmentCount: geometry.invalidSegmentCount,
       ownerRanges: geometry.ownerRanges,
       ownerNodeRanges: geometry.ownerNodeRanges,
+      // Reuse the already prepared CPU instance array only as a bounding
+      // source. No additional GPU geometry or triangulation is generated.
+      instances: geometry.instances,
       byteLength: geometry.instances.byteLength + geometry.nodes.byteLength,
     });
   }
@@ -784,13 +797,29 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
       try {
         resourceBudget.touch(key, batch?.priority);
         const style = { ...gpuStrokeStyle(scaleInteractionStroke(batch.style || {}, frameContext), frameContext), blendMode: batch.blendMode || batch.style?.blendMode || 'normal' };
+        // Country owner ranges are already grouped by style. Remove only
+        // owners conservatively outside the camera; keep packet admission
+        // and colour/stencil certification unchanged.
+        const width = Math.max(Number(style.width) || 0, Number(style.casing?.width) || 0);
+        const margin = Math.max(96, width * Math.max(4, Number(style.miterLimit) || 4)
+          + aaRadius * Math.max(1, Number(frameContext.dpr) || 1) * 4);
+        const ownerIds = visibleGpuStrokeOwners(resource, batch.ownerIds, frameContext, { paddingPx: margin });
+        if (Array.isArray(batch.ownerIds) && Array.isArray(ownerIds)) {
+          culledOwnerCount += Math.max(0, batch.ownerIds.length - ownerIds.length);
+          if (!ownerIds.length) {
+            // A prepared but offscreen batch is successfully presented with
+            // zero submissions; never misclassify it as a missing resource.
+            if (key) renderedKeys.push(key);
+            continue;
+          }
+        }
         applyGpuBlendMode(gl, style.blendMode);
         let completedDraws = 0;
         if (style.casing?.width > style.width && style.casing.alpha > 0) {
-          completedDraws += (style.coverage === 'union' ? drawCoverageStyle : drawStyle)(resource, { ...style, ...style.casing, cap: style.cap, join: style.join, dash: style.dash, miterLimit: style.miterLimit }, frameContext, batch.ownerIds);
+          completedDraws += (style.coverage === 'union' ? drawCoverageStyle : drawStyle)(resource, { ...style, ...style.casing, cap: style.cap, join: style.join, dash: style.dash, miterLimit: style.miterLimit }, frameContext, ownerIds);
         }
         if (Number(style.alpha ?? 1) > 0 && Number(style.width || 0) > 0)
-          completedDraws += (style.coverage === 'union' ? drawCoverageStyle : drawStyle)(resource, style, frameContext, batch.ownerIds);
+          completedDraws += (style.coverage === 'union' ? drawCoverageStyle : drawStyle)(resource, style, frameContext, ownerIds);
         if (completedDraws > 0) {
           if (key) renderedKeys.push(key);
         } else {
@@ -913,6 +942,8 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
       drawCount,
       drawCallCount,
       drawMs,
+      culledOwnerCount,
+      mergedDrawRangeCount,
       cacheHits,
       cacheMisses,
       failureCount,
