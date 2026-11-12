@@ -1,6 +1,6 @@
 import {createHash} from 'node:crypto';
 
-// Prepare comparable same-origin proxy responses before any candidate starts.
+// Prepare verified in-memory proxy responses before any candidate starts.
 export async function prefetchFixtureTiles({records,region,base,fetchFn=globalThis.fetch,concurrency=6}){
   if(!Array.isArray(records)||typeof region!=='string'||!region||typeof base!=='string'||typeof fetchFn!=='function'||
     !Number.isSafeInteger(concurrency)||concurrency<1)throw new TypeError('Invalid fixture prefetch configuration');
