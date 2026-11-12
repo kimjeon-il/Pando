@@ -27,24 +27,6 @@
   overflow-y: auto;
 }
 
-.preferences-section {
-  display: grid;
-  gap: var(--ui-space-3);
-}
-
-.preferences-section + .preferences-section {
-  padding-top: var(--ui-space-4);
-  border-top: 1px solid var(--border);
-}
-
-.preferences-section > h3 {
-  margin: 0;
-  color: var(--text-strong);
-  font-size: var(--ui-font-section);
-  font-weight: var(--ui-weight-bold);
-  line-height: var(--ui-line-tight);
-}
-
 .preferences-actions-spacer {
   flex: 1;
 }
@@ -291,7 +273,7 @@ body[data-layout="mobile"] .gis-wide {
 .preferences-option-group .ui-choice-row { min-width: 70px; }
 .preferences-conditional-slot[hidden] { display: none !important; }
 .preferences-conditional { display: grid; gap: var(--ui-space-2); padding: var(--ui-space-2) 0; }
-.preferences-conditional > strong, .preferences-conditional-content > strong { font-weight: var(--ui-weight-semibold); }
-.preferences-conditional .distribution-view-settings { display: grid; gap: var(--ui-space-3); }
+.preferences-conditional > strong { font-weight: var(--ui-weight-semibold); }
+.preferences-conditional .layer-setting-hint { color: var(--muted); font-size: var(--ui-font-caption); line-height: var(--ui-line-normal); }
 .preferences-conditional .ui-choice-row { min-height: var(--ui-control-height); }
 .preferences-conditional #distributionLegend { max-height: 140px; overflow-y: auto; }
