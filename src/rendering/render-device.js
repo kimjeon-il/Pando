@@ -12,9 +12,24 @@ function detectWebGlVersion(gl) {
  * All writes to these states must go through the context methods installed here.
  * A context revision always creates a fresh ledger; no state crosses recovery.
  */
-function createGlStateContract(gl, version) {
+function createGlStateContract(gl, version, contextRevision) {
   const textureUnits = new Map();
   const flags = new Map();
+  // Keep lifecycle receipts for names created by this context revision.
+  // A buffer deleted while an upload is in progress must never be rebound.
+  const bufferLifetimes = new WeakMap();
+  let bufferBindingCaptures = 0;
+  let bufferBindingRestores = 0;
+  let bufferBindingRejected = 0;
+  const markBuffer = (buffer, alive) => {
+    if (buffer && (typeof buffer === 'object' || typeof buffer === 'function'))
+      bufferLifetimes.set(buffer, { contextRevision, alive });
+  };
+  const liveBuffer = buffer => {
+    if (!buffer) return true;
+    const receipt = bufferLifetimes.get(buffer);
+    return !!receipt && receipt.contextRevision === contextRevision && receipt.alive === true;
+  };
   const tracked = {
     framebuffer: null, readFramebuffer: null, viewport: [0, 0, gl.drawingBufferWidth || 1, gl.drawingBufferHeight || 1],
     program: null, arrayBuffer: null, activeTexture: gl.TEXTURE0,
@@ -29,6 +44,9 @@ function createGlStateContract(gl, version) {
   tracked.viewport = Array.from(gl.getParameter(gl.VIEWPORT));
   tracked.program = gl.getParameter(gl.CURRENT_PROGRAM);
   tracked.arrayBuffer = gl.getParameter(gl.ARRAY_BUFFER_BINDING);
+  // Existing allocations can predate the RenderDevice (initial scene setup).
+  // The currently bound buffer is admitted exactly once for this context.
+  markBuffer(tracked.arrayBuffer, true);
   tracked.activeTexture = gl.getParameter(gl.ACTIVE_TEXTURE);
   tracked.equations = [gl.getParameter(gl.BLEND_EQUATION_RGB), gl.getParameter(gl.BLEND_EQUATION_ALPHA)];
   tracked.blendFactors = [gl.getParameter(gl.BLEND_SRC_RGB), gl.getParameter(gl.BLEND_DST_RGB),
@@ -46,7 +64,7 @@ function createGlStateContract(gl, version) {
     originals.set(method, gl[method]);
     Object.defineProperty(gl, method, { configurable: true, writable: true, value(...args) {
       const result = native(...args);
-      if (active && !gl.isContextLost?.()) update(...args);
+      if (active && !gl.isContextLost?.()) update(...args, result);
       return result;
     } });
   };
@@ -56,7 +74,20 @@ function createGlStateContract(gl, version) {
   });
   intercept('viewport', (...args) => { tracked.viewport = args; });
   intercept('useProgram', value => { tracked.program = value; });
-  intercept('bindBuffer', (target, value) => { if (target === gl.ARRAY_BUFFER) tracked.arrayBuffer = value; });
+  intercept('createBuffer', buffer => { markBuffer(buffer, true); });
+  intercept('bindBuffer', (target, value) => {
+    if (target !== gl.ARRAY_BUFFER) return;
+    // Buffers allocated before this ledger may first appear here; they are
+    // admitted only on their first binding, never after an observed deletion.
+    if (value && !bufferLifetimes.has(value)) markBuffer(value, true);
+    tracked.arrayBuffer = value;
+  });
+  intercept('deleteBuffer', value => {
+    if (!value) return;
+    markBuffer(value, false);
+    // Deletion also releases the WebGL ARRAY_BUFFER binding.
+    if (tracked.arrayBuffer === value) tracked.arrayBuffer = null;
+  });
   intercept('activeTexture', value => { tracked.activeTexture = value; });
   intercept('bindTexture', (target, value) => {
     if (target === gl.TEXTURE_2D) textureUnits.set(tracked.activeTexture, value);
@@ -74,18 +105,34 @@ function createGlStateContract(gl, version) {
     if (!active || gl.isContextLost?.()) return null;
     return {
       ...tracked,
+      contextRevision,
       viewport: [...tracked.viewport], equations: [...tracked.equations],
       blendFactors: [...tracked.blendFactors], colorMask: [...tracked.colorMask],
       clearColor: [...tracked.clearColor], textures: new Map(textureUnits), flags: new Map(flags),
     };
   }
+  function captureArrayBufferBinding() {
+    if (!active || gl.isContextLost?.()) return null;
+    bufferBindingCaptures += 1;
+    return Object.freeze({ contextRevision, buffer: tracked.arrayBuffer });
+  }
+  function restoreArrayBufferBinding(snapshot) {
+    // A stale asynchronous upload must not mutate a newly restored context.
+    if (!active || gl.isContextLost?.()) return false;
+    const sameGeneration = !!snapshot && snapshot.contextRevision === contextRevision;
+    const canRestore = sameGeneration && liveBuffer(snapshot.buffer);
+    gl.bindBuffer(gl.ARRAY_BUFFER, canRestore ? snapshot.buffer : null);
+    if (canRestore) bufferBindingRestores += 1;
+    else bufferBindingRejected += 1;
+    return !!canRestore;
+  }
   function restore(state) {
-    if (!state || !active || gl.isContextLost?.()) return;
+    if (!state || !active || gl.isContextLost?.() || state.contextRevision !== contextRevision) return;
     gl.bindFramebuffer(gl.FRAMEBUFFER, state.framebuffer);
     if (version === 2) gl.bindFramebuffer(gl.READ_FRAMEBUFFER, state.readFramebuffer);
     gl.viewport(...state.viewport);
     gl.useProgram(state.program);
-    gl.bindBuffer(gl.ARRAY_BUFFER, state.arrayBuffer);
+    gl.bindBuffer(gl.ARRAY_BUFFER, liveBuffer(state.arrayBuffer) ? state.arrayBuffer : null);
     // Restore all texture units modified by the pass, not only the active unit.
     for (const unit of new Set([...textureUnits.keys(), ...state.textures.keys()])) {
       gl.activeTexture(unit);
@@ -108,7 +155,13 @@ function createGlStateContract(gl, version) {
     }
     originals.clear();
   }
-  return Object.freeze({ capture, restore, dispose });
+  return Object.freeze({
+    capture, restore, captureArrayBufferBinding, restoreArrayBufferBinding, dispose,
+    bufferBindingStats: () => Object.freeze({
+      captures: bufferBindingCaptures, restores: bufferBindingRestores,
+      rejected: bufferBindingRejected, contextRevision,
+    }),
+  });
 }
 
 export function createRenderDevice({ gl, canvas = null, version = 0, contextRevision = 0 } = {}) {
@@ -118,12 +171,13 @@ export function createRenderDevice({ gl, canvas = null, version = 0, contextRevi
   const uintIndices = resolvedVersion === 2 || !!gl.getExtension?.('OES_element_index_uint');
   const instancing = resolvedVersion === 2 || !!gl.getExtension?.('ANGLE_instanced_arrays');
   const attributes = gl.getContextAttributes?.() || {};
-  const state = createGlStateContract(gl, resolvedVersion);
+  const revision = Math.max(0, Number(contextRevision) || 0);
+  const state = createGlStateContract(gl, resolvedVersion, revision);
   return Object.freeze({
     gl,
     canvas,
     version: resolvedVersion,
-    contextRevision: Math.max(0, Number(contextRevision) || 0),
+    contextRevision: revision,
     state,
     capabilities: Object.freeze({
       uintIndices,
