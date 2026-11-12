@@ -840,7 +840,6 @@ export function createMapSettings({ capabilities,viewPresentation } = {}) {
     get setLayerVisibility() { return setLayerVisibility; },
     get setTerrainMode() { return setTerrainMode; },
     applyMapStyle, setBackgroundSetting, setNativeNameOverlay, setDistributionControl,
-    get setPlaceLanguage() { return setPlaceLanguage; },
     get syncMapDisplayDisclosures() { return syncMapDisplayDisclosures; },
     get syncDistributionPresentationControls() { return syncDistributionPresentationControls; },
     get toggleMapDisplayDisclosure() { return toggleMapDisplayDisclosure; },

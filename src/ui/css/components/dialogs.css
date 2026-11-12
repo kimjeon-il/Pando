@@ -284,7 +284,6 @@ body[data-layout="mobile"] .gis-wide {
 /* Map bounds picking is an interaction overlay, not another dialog skin. */
 
 /* Flat settings: no independent map/screen categories or nested View submenus. */
-.preferences-fields { gap: var(--ui-space-3); }
 .preferences-setting { min-height: var(--ui-control-height); }
 .preferences-setting.ui-choice-row { justify-content: space-between; }
 .preferences-setting-choices { display: grid; gap: var(--ui-space-2); }

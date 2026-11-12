@@ -58,7 +58,7 @@ export async function composeViewer({ productMode, meta }) {
   const runtimeMeta=Object.freeze({...meta,mapProject:projectRuntime.project,...physical});
   const runtimeContext=createRuntimeContext({productMode,meta:runtimeMeta,assetBaseUrl,platform:createPlatformPorts({kind:'browser'})});
   const projection='globe';
-  let map,previousView,display,projectClock,syncStatus,presentedMonth=null;
+  let map,previousView,display,projectClock,syncStatus,preferencesDialog,presentedMonth=null;
   const inspectParams=new URLSearchParams(window.location.search);
   let inspectorController=null;
   const initialPresentation=createViewerInitialPresentation({onPresented:()=>{get('viewer').dataset.initialLoading='false';}});
@@ -388,7 +388,7 @@ export async function composeViewer({ productMode, meta }) {
     element.addEventListener('click',handler);
     actionSubscriptions.push(()=>element.removeEventListener('click',handler));
   }
-  const preferencesDialog=createPreferencesDialog({document,window,productMode,
+  preferencesDialog=createPreferencesDialog({document,window,productMode,
     returnFocus:()=>get(surfaces.isMobile()?'mobileMenuBtn':'preferencesBtn'),
     getPreferences:()=>preferencePresentation.current,getMapState:()=>map.displayState(),mapSettings:display,
     applyPreferences:value=>preferencePresentation.apply(value,{persist:true}),
