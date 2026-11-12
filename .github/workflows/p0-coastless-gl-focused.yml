@@ -36,9 +36,11 @@ jobs:
       - name: Lint only changed P0 modules
         run: |
           pnpm exec eslint src/rendering/country-shared-boundary-packet.js src/rendering/workers/country-shared-boundary-worker.js src/rendering/workers/canvas-render-core.js src/rendering/gpu-canvas-scene-packets.js src/rendering/gpu-map-renderer.js src/rendering/render-device-state.js src/rendering/render-device.js src/rendering/gpu-hydro-coverage.js src/rendering/gpu-stroke-renderer.js tests/unit/geometry/country-shared-boundary.test.mjs tests/unit/rendering/render-device-state.test.mjs
+      # The retired generator fixture countries-preview-shared-v0.36.1.json.gz is absent
+      # from the pinned current world pack; the live Worker contracts are checked instead.
       - name: Shared border, non-outline Worker, GL state and coverage unit contracts
         run: |
-          node --test tests/unit/geometry/country-shared-boundary.test.mjs tests/unit/geometry/country-shared-boundary-state.test.mjs tests/unit/rendering/country-shared-boundary-generator.test.mjs tests/unit/rendering/render-device-state.test.mjs tests/unit/rendering/gpu-stroke-renderer.test.mjs tests/unit/data/hydro-coverage-surface.test.mjs
+          node --test tests/unit/geometry/country-shared-boundary.test.mjs tests/unit/geometry/country-shared-boundary-state.test.mjs tests/unit/rendering/render-device-state.test.mjs tests/unit/rendering/gpu-stroke-renderer.test.mjs tests/unit/data/hydro-coverage-surface.test.mjs
       - name: Install Chromium for two focused WebGL pixel contracts
         run: pnpm exec playwright install --with-deps chromium
       - name: Actual WebGL1/2 hydro shader and country coverage behavior

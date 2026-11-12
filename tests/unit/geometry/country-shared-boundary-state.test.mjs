@@ -298,12 +298,14 @@ test('precomputed cache resolves source refs once and later patches reuse untouc
 });
 
 function countryWorker(t, cache, quality = 'preview') {
+  const rasterContractUrl = new URL("../../../src/rendering/workers/polygon-raster-contract.js", import.meta.url).href;
   const moduleUrl = new URL("../../../src/rendering/workers/country-shared-boundary-worker.js", import.meta.url).href;
   const wrapper = `import { parentPort, workerData } from 'node:worker_threads';
     import { gzipSync } from 'node:zlib';
     globalThis.self = { location: { href: ${JSON.stringify(moduleUrl)} }, postMessage: (...args) => parentPort.postMessage(...args) };
     if (workerData.cache) globalThis.fetch = async () => new Response(gzipSync(JSON.stringify(workerData.cache)));
     await import(${JSON.stringify(verifiedNodeCoreUrl)});
+    await import(${JSON.stringify(rasterContractUrl)});
     await import(${JSON.stringify(moduleUrl)});
     parentPort.on('message', data => self.onmessage({ data }));`;
   const worker = new Worker(new URL(`data:text/javascript,${encodeURIComponent(wrapper)}`), { workerData: { cache } });
