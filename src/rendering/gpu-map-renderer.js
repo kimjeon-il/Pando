@@ -5532,11 +5532,12 @@ export function createGpuMapRenderer(deps) {
       { source = 'dem' } = {}) {
       if(!terrainPreparation)throw new Error('Terrain resources are unavailable in this product.');
       const sourceChanged=String(manifestUrl)!==String(terrainManifestUrl) || manifest?.assetsSha256!==terrainManifest?.assetsSha256;
+      const naturalChanged=manifest?.naturalSurface!==terrainManifest?.naturalSurface;
       if(manifest && manifest.representation!==TERRAIN_DEM_FORMAT)throw new TypeError('A numerical DEM catalog is required.');
       terrainManifest = manifest?.levels?.length ? manifest : null;
       terrainManifestUrl = manifestUrl;
       terrainSource = source;
-      if(sourceChanged){physicalStyleStateRevision++;canvasLastPhysicalStyleSignature='';}
+      if(sourceChanged||naturalChanged){physicalStyleStateRevision++;canvasLastPhysicalStyleSignature='';}
       terrainPreparation?.setManifest(terrainManifest);
       if(sourceChanged && canvasWorker)postCanvasWorkerMessage({type:'terrain-source',terrainDemManifestUrl:String(manifestUrl),terrainAssetsSha256:manifest?.assetsSha256 || null,terrainExternalSource:globalThis.PANDOLAB_BUILD_META?.terrainExternalSource || null,externalRuntimeData:globalThis.PANDOLAB_BUILD_META?.externalRuntimeData || null});
       if (terrainManifest?.representation === TERRAIN_DEM_FORMAT && gl && !ensureTerrainDemProgram()) {
