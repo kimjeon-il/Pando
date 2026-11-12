@@ -67,33 +67,42 @@
   function reliefShade(illumination) {
     return clamp(flatShade + ((0.27 + 0.73 * illumination) - flatShade) * 1.3, 0.16, 1);
   }
-  function sampleInterpolated({dem, width, height, x, y, theme = 'light', channel = 'land'}) {
+  function createInterpolatedSampler({dem, width, height, theme = 'light', channel = 'land'}) {
     if (!Number.isInteger(width) || !Number.isInteger(height) || width < 1 || height < 1 || dem?.length !== width * height * 4
-      || !Number.isFinite(x) || !Number.isFinite(y) || !palettes[theme] || !['land', 'ocean', 'political'].includes(channel))
-      throw new TypeError('Invalid numerical DEM sample.');
-    const x0 = Math.floor(x), y0 = Math.floor(y), fx = x - x0, fy = y - y0;
-    let elevation = 0, shadeByte = 0;
-    for (let dy = 0; dy < 2; dy++) for (let dx = 0; dx < 2; dx++) {
-      const px = clamp(x0 + dx, 0, width - 1), py = clamp(y0 + dy, 0, height - 1), at = (py * width + px) * 4;
-      const weight = (dx ? fx : 1 - fx) * (dy ? fy : 1 - fy);
-      let value = dem[at] * 256 + dem[at + 1] - 12000;
-      if (channel === 'land') value = Math.max(0, value);
-      if (channel === 'ocean') value = Math.min(0, value);
-      elevation += value * weight; shadeByte += dem[at + 2] * weight;
-    }
-    const illumination = Math.max(0, (shadeByte / 255 - 0.42) / 0.58);
-    if (channel === 'political') {
-      const gray = byte(clamp(mono.low + mono.altitude * smoothHeight(Math.max(0, elevation), 0, 6000)
-        + mono.illumination * (illumination - Math.SQRT1_2), mono.min, mono.max));
-      return [gray, gray, gray, 255];
-    }
-    const factor = clamp(reliefShade(illumination) / flatShade, 0.38, 1.3), colors = palettes[theme];
-    if (channel === 'ocean') {
-      const depth = Math.pow(clamp(-elevation / 8000, 0, 1), 0.6);
-      return [0,1,2].map(i => byte((colors.seaSurface[i] * (1 - depth) + colors.seaDeep[i] * depth) * factor)).concat(255);
-    }
-    let band = 0; while (band < heightStops.length - 2 && elevation >= heightStops[band + 1]) band++;
-    return [0,1,2].map(i => byte(landColor(elevation, colors.land, landTangents[theme], band, i) * factor)).concat(255);
+      || !palettes[theme] || !['land', 'ocean', 'political'].includes(channel)) throw new TypeError('Invalid numerical DEM sample.');
+    const colors=palettes[theme],tangents=landTangents[theme];
+    return function sample(x,y,out,offset=0){
+      if(!Number.isFinite(x)||!Number.isFinite(y)||!out||!Number.isInteger(offset)||offset<0||out.length<offset+4)
+        throw new TypeError('Invalid numerical DEM destination.');
+      const x0=Math.floor(x),y0=Math.floor(y),fx=x-x0,fy=y-y0;
+      let elevation=0,shadeByte=0;
+      for(let dy=0;dy<2;dy++)for(let dx=0;dx<2;dx++){
+        const px=clamp(x0+dx,0,width-1),py=clamp(y0+dy,0,height-1),at=(py*width+px)*4;
+        const weight=(dx?fx:1-fx)*(dy?fy:1-fy);
+        let value=dem[at]*256+dem[at+1]-12000;
+        if(channel==='land')value=Math.max(0,value);else if(channel==='ocean')value=Math.min(0,value);
+        elevation+=value*weight;shadeByte+=dem[at+2]*weight;
+      }
+      const illumination=Math.max(0,(shadeByte/255-0.42)/0.58);
+      if(channel==='political'){
+        const gray=byte(clamp(mono.low+mono.altitude*smoothHeight(Math.max(0,elevation),0,6000)
+          +mono.illumination*(illumination-Math.SQRT1_2),mono.min,mono.max));
+        out[offset]=out[offset+1]=out[offset+2]=gray;
+      }else{
+        const factor=clamp(reliefShade(illumination)/flatShade,0.38,1.3);
+        if(channel==='ocean'){
+          const depth=Math.pow(clamp(-elevation/8000,0,1),0.6);
+          for(let i=0;i<3;i++)out[offset+i]=byte((colors.seaSurface[i]*(1-depth)+colors.seaDeep[i]*depth)*factor);
+        }else{
+          let band=0;while(band<heightStops.length-2&&elevation>=heightStops[band+1])band++;
+          for(let i=0;i<3;i++)out[offset+i]=byte(landColor(elevation,colors.land,tangents,band,i)*factor);
+        }
+      }
+      out[offset+3]=255;return out;
+    };
+  }
+  function sampleInterpolated({dem,width,height,x,y,theme='light',channel='land'}) {
+    return Array.from(createInterpolatedSampler({dem,width,height,theme,channel})(x,y,new Uint8ClampedArray(4)));
   }
   function convertTile({ dem, width, height, theme = 'light', includePolitical = true }) {
     if (!Number.isInteger(width) || !Number.isInteger(height) || width < 1 || height < 1
@@ -198,6 +207,6 @@
       return [point[0] + (previous[0] + next[0]) * distance, point[1] + (previous[1] + next[1]) * distance];
     });
   }
-  return Object.freeze({ convertTile, sampleInterpolated, affineTransform, flatTileRectangle, triangleClip,
+  return Object.freeze({ convertTile, sampleInterpolated, createInterpolatedSampler, affineTransform, flatTileRectangle, triangleClip,
     convertedBytesPerPixel, colorGlsl, darkBrightness, paletteForTheme });
 })();

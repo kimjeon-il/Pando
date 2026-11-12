@@ -46,6 +46,19 @@ test('CPU numerical sampler interpolates heights before applying the land palett
   const expected=sample(expectedHeight,212).land;
   assert.deepEqual([...actual],[...expected]);
 });
+
+test('reusable CPU sampler matches individual numerical samples across themes and masks',()=>{
+  const dem=new Uint8ClampedArray(16),heights=[-1200,256,2500,6500];
+  heights.forEach((value,i)=>{const n=value+12000;dem.set([n>>8,n&255,140+i*30,255],i*4);});
+  const core=globalThis.PandoLabCanvasTerrainDem,output=new Uint8ClampedArray(12);
+  for(const theme of ['light','dark'])for(const channel of ['land','ocean','political']){
+    const sampler=core.createInterpolatedSampler({dem,width:2,height:2,theme,channel});
+    for(const [x,y] of [[0,0],[1,1],[.2,.7],[-.5,1.5]]){
+      sampler(x,y,output,4);
+      assert.deepEqual([...output.slice(4,8)],core.sampleInterpolated({dem,width:2,height:2,x,y,theme,channel}));
+    }
+  }
+});
 test('land palette has eight independent sRGB stops in both themes',()=>{
   for(const theme of ['light','dark'])for(let i=0;i<paletteStops.length;i++){
     const actual=sample(paletteStops[i],212,{theme}).land;
