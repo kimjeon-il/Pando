@@ -355,6 +355,44 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
   let drawCallCount = 0;
   let drawMs = 0;
   let culledSegmentInstances = 0, culledNodeInstances = 0, culledBatches = 0;
+  // One immutable MapVisualFrame owns draw selections. GPU buffers and the
+  // Worker-prepared spatial index have independent, longer lifetimes.
+  let visibleFrame = null, visiblePlans = new WeakMap();
+  let visibilityCacheHits = 0, visibilityCacheMisses = 0, visibilityFrameChanges = 0;
+  const countRanges = ranges => ranges.reduce((sum, range) => sum + range.count, 0);
+  const clearVisibilityPlans = () => {
+    visibleFrame = null;
+    visiblePlans = new WeakMap();
+  };
+  function visiblePlan(resource, owners, frameContext, paddingPx) {
+    if (visibleFrame !== frameContext) {
+      clearVisibilityPlans();
+      visibleFrame = frameContext;
+      visibilityFrameChanges++;
+    }
+    let selectors = visiblePlans.get(resource);
+    if (!selectors) {
+      selectors = new Map();
+      visiblePlans.set(resource, selectors);
+    }
+    // Style can change without invalidating geometry or camera. Only owner
+    // membership and stroke clip expansion affect a visible-range selection.
+    const key = JSON.stringify([owners || null, paddingPx]);
+    const prior = selectors.get(key);
+    if (prior) { visibilityCacheHits++; return prior; }
+    const rawSegments = resolveGpuStrokeRanges(resource, owners);
+    const rawNodes = resolveGpuStrokeRanges(resource, owners, 'ownerNodeRanges', 'nodeCount');
+    const segments = mergeAdjacentStrokeRanges(resolveVisibleGpuStrokeRanges(resource, owners, frameContext,
+      'ownerRanges', 'instanceCount', paddingPx));
+    const nodes = mergeAdjacentStrokeRanges(resolveVisibleGpuStrokeRanges(resource, owners, frameContext,
+      'ownerNodeRanges', 'nodeCount', paddingPx));
+    const result = { segments, nodes, missing: !rawSegments.length && !rawNodes.length,
+      skippedSegments: Math.max(0, countRanges(rawSegments) - countRanges(segments)),
+      skippedNodes: Math.max(0, countRanges(rawNodes) - countRanges(nodes)) };
+    selectors.set(key, result);
+    visibilityCacheMisses++;
+    return result;
+  }
   let cacheHits = 0;
   let cacheMisses = 0;
   let failureCount = 0;
@@ -728,6 +766,7 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
     deleteGpuResource(resource);
     resources.delete(normalized);
     resourceBudget.remove(normalized);
+    clearVisibilityPlans();
     return true;
   }
 
@@ -805,25 +844,19 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
       }
       try {
         resourceBudget.touch(key, batch?.priority);
-        const ownerRanges = resolveGpuStrokeRanges(resource, batch.ownerIds);
-        const nodeRanges = resolveGpuStrokeRanges(resource, batch.ownerIds, 'ownerNodeRanges', 'nodeCount');
-        if (!ownerRanges.length && !nodeRanges.length) {
+        const width = Math.max(Number(batch.style?.width || 1), Number(batch.style?.casing?.width || 0));
+        const paddingPx = Math.max(STROKE_CULL_PADDING_PX,
+          width * Math.max(4, Number(batch.style?.miterLimit || 4)) + 8);
+        const plan = visiblePlan(resource, batch.ownerIds, frameContext, paddingPx);
+        if (plan.missing) {
           if (key) missingKeys.push(key);
           failures.push({ key, reason: Array.isArray(batch.ownerIds) ? 'owner-range-missing' : 'nothing-drawn' });
           failureCount += 1;
           lastFailureStage = 'draw-coverage';
           continue;
         }
-        // Merge only within this batch, where dash/opacity/casing are identical.
-        // Adjacent ranges in the same GL buffer need just one instanced draw.
-        const plan = {
-          segments: mergeAdjacentStrokeRanges(resolveVisibleGpuStrokeRanges(resource, batch.ownerIds, frameContext)),
-          nodes: mergeAdjacentStrokeRanges(resolveVisibleGpuStrokeRanges(resource, batch.ownerIds, frameContext,
-            'ownerNodeRanges', 'nodeCount')),
-        };
-        const total = ranges => ranges.reduce((sum, range) => sum + range.count, 0);
-        culledSegmentInstances += total(ownerRanges) - total(plan.segments);
-        culledNodeInstances += total(nodeRanges) - total(plan.nodes);
+        culledSegmentInstances += plan.skippedSegments;
+        culledNodeInstances += plan.skippedNodes;
         // A fully offscreen ready resource is not an upload failure.
         if (!plan.segments.length && !plan.nodes.length) {
           culledBatches += 1;
@@ -890,6 +923,7 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
     selfTestPassed = false;
     resources.clear();
     resourceBudget.clear();
+    clearVisibilityPlans();
     programs = null;
     segmentCornerBuffer = null;
     roundCornerBuffer = null;
@@ -911,6 +945,7 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
     }
     resources.clear();
     resourceBudget.clear();
+    clearVisibilityPlans();
     programs = null;
     segmentCornerBuffer = null;
     roundCornerBuffer = null;
@@ -961,6 +996,7 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
       drawCallCount,
       drawMs,
       culledSegmentInstances, culledNodeInstances, culledBatches,
+      visibilityCacheHits, visibilityCacheMisses, visibilityFrameChanges,
       cacheHits,
       cacheMisses,
       failureCount,
