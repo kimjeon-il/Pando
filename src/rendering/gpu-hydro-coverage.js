@@ -1,9 +1,11 @@
 import { linkGpuProgram } from "./gpu-shader-utils.js";
+import { createRenderDevice, isRenderDevice } from "./render-device.js";
 
 // Union coverage prevents dark joints where separately drawn river capsules overlap.
 // This is a visual-only surface: hydro IDs, source geometry and picking never use it.
 export function createGpuHydroCoverage({ maxBytes = 96 * 1024 * 1024 } = {}) {
   let gl = null, version = 0, maximum = null, unavailable = false;
+  let deviceState = null;
   let texture = null, framebuffer = null, quad = null, program = null;
   let width = 0, height = 0, renderCount = 0, fallbackCount = 0;
 
@@ -21,13 +23,19 @@ export function createGpuHydroCoverage({ maxBytes = 96 * 1024 * 1024 } = {}) {
   function dispose() {
     release();
     gl = null; version = 0; maximum = null; unavailable = false;
+    deviceState = null;
   }
 
-  function setContext(nextGl, nextVersion) {
-    if (gl === nextGl && version === nextVersion) return;
+  function setContext(nextGl, nextVersion, nextDevice = null) {
+    if (gl === nextGl && version === nextVersion &&
+      (!nextDevice || deviceState === nextDevice.state)) return;
     dispose();
     if (!nextGl) return;
-    gl = nextGl; version = nextVersion;
+    const owner = isRenderDevice(nextDevice) && nextDevice.gl === nextGl &&
+      nextDevice.version === nextVersion ? nextDevice
+      : createRenderDevice({gl: nextGl, version: nextVersion});
+    if (!owner?.state) throw new TypeError('Hydro coverage needs RenderDevice state ownership');
+    gl = nextGl; version = nextVersion; deviceState = owner.state;
     maximum = nextVersion === 2 ? nextGl.MAX : nextGl.getExtension('EXT_blend_minmax')?.MAX_EXT;
     unavailable = !Number.isFinite(maximum);
   }
@@ -36,6 +44,7 @@ export function createGpuHydroCoverage({ maxBytes = 96 * 1024 * 1024 } = {}) {
     // Context-owned names are invalid already; do not attempt driver deletion.
     texture = framebuffer = quad = program = null;
     gl = null; width = height = 0; maximum = null; unavailable = false;
+    deviceState = null;
   }
 
   function ensureTarget(nextWidth, nextHeight) {
@@ -84,49 +93,10 @@ export function createGpuHydroCoverage({ maxBytes = 96 * 1024 * 1024 } = {}) {
     }
   }
 
-  function capture() {
-    const activeTexture = gl.getParameter(gl.ACTIVE_TEXTURE);
-    const activeBinding = gl.getParameter(gl.TEXTURE_BINDING_2D);
-    gl.activeTexture(gl.TEXTURE3);
-    const texture3 = gl.getParameter(gl.TEXTURE_BINDING_2D);
-    gl.activeTexture(activeTexture);
-    return {
-      activeTexture, activeBinding, texture3,
-      framebuffer: gl.getParameter(gl.FRAMEBUFFER_BINDING),
-      readFramebuffer: version === 2 ? gl.getParameter(gl.READ_FRAMEBUFFER_BINDING) : null,
-      viewport: Array.from(gl.getParameter(gl.VIEWPORT)),
-      program: gl.getParameter(gl.CURRENT_PROGRAM),
-      arrayBuffer: gl.getParameter(gl.ARRAY_BUFFER_BINDING),
-      clearColor: Array.from(gl.getParameter(gl.COLOR_CLEAR_VALUE)),
-      colorMask: Array.from(gl.getParameter(gl.COLOR_WRITEMASK)),
-      blend: gl.isEnabled(gl.BLEND), stencil: gl.isEnabled(gl.STENCIL_TEST),
-      scissor: gl.isEnabled(gl.SCISSOR_TEST), depth: gl.isEnabled(gl.DEPTH_TEST),
-      cull: gl.isEnabled(gl.CULL_FACE),
-      equations: [gl.getParameter(gl.BLEND_EQUATION_RGB), gl.getParameter(gl.BLEND_EQUATION_ALPHA)],
-      blendFactors: [gl.getParameter(gl.BLEND_SRC_RGB), gl.getParameter(gl.BLEND_DST_RGB),
-        gl.getParameter(gl.BLEND_SRC_ALPHA), gl.getParameter(gl.BLEND_DST_ALPHA)],
-    };
-  }
-
-  function restore(saved) {
-    const enabled = (flag, value) => value ? gl.enable(flag) : gl.disable(flag);
-    gl.bindFramebuffer(gl.FRAMEBUFFER, saved.framebuffer);
-    if (version === 2) gl.bindFramebuffer(gl.READ_FRAMEBUFFER, saved.readFramebuffer);
-    gl.viewport(...saved.viewport);
-    gl.useProgram(saved.program);
-    gl.bindBuffer(gl.ARRAY_BUFFER, saved.arrayBuffer);
-    gl.activeTexture(gl.TEXTURE3);
-    gl.bindTexture(gl.TEXTURE_2D, saved.texture3);
-    gl.activeTexture(saved.activeTexture);
-    gl.bindTexture(gl.TEXTURE_2D, saved.activeBinding);
-    enabled(gl.BLEND, saved.blend); enabled(gl.STENCIL_TEST, saved.stencil);
-    enabled(gl.SCISSOR_TEST, saved.scissor); enabled(gl.DEPTH_TEST, saved.depth);
-    enabled(gl.CULL_FACE, saved.cull);
-    gl.blendEquationSeparate(...saved.equations);
-    gl.blendFuncSeparate(...saved.blendFactors);
-    gl.colorMask(...saved.colorMask);
-    gl.clearColor(...saved.clearColor);
-  }
+  // Both coverage passes borrow a single, context-generation-scoped GL state
+  // ledger. No synchronous getParameter calls occur per draw.
+  const capture = () => deviceState.capture();
+  const restore = saved => deviceState.restore(saved);
 
   function render({ width: requestedWidth, height: requestedHeight, color, paint }) {
     const w = Math.ceil(requestedWidth), h = Math.ceil(requestedHeight);

@@ -1730,7 +1730,6 @@ export function createGpuMapRenderer(deps) {
       overrideFillIndexBuffer = lifecycle.create(gl, 'Buffer');
       resetGpuNormalBlend(gl);
       gl.disable(gl.DEPTH_TEST);
-      hydroCoverage.setContext(gl, glVersion);
       pickFramebuffer = null;
       pickTexture = null;
       pickSceneKey = '';
@@ -2167,6 +2166,7 @@ export function createGpuMapRenderer(deps) {
           renderDeviceContextRevision++;
           createWebGlResources();
           renderDevice = createRenderDevice({ gl, canvas, version: glVersion, contextRevision: renderDeviceContextRevision });
+          hydroCoverage.setContext(gl, glVersion, renderDevice);
           initializeSharedGpuPasses();
         } catch (error) {
           console.error('[PL-GPU-002]', error);
@@ -2208,6 +2208,7 @@ export function createGpuMapRenderer(deps) {
         version,
         contextRevision: renderDeviceContextRevision,
       });
+      hydroCoverage.setContext(gl, glVersion, renderDevice);
       initializeSharedGpuPasses();
       lifecycle.listen(canvas, 'webglcontextlost', handleWebGlContextLost);
       lifecycle.listen(canvas, 'webglcontextrestored', handleWebGlContextRestored);
@@ -4321,7 +4322,7 @@ export function createGpuMapRenderer(deps) {
       const preparedInteraction = prepareGpuInteractionPlan({ interaction: renderInteractionState, emphasis: countryEmphasis,
         mesh, overrideMesh:activeMeshQuality==='lod'?null:overrideMesh, overrideIds: activeMeshQuality==='lod'?new Set():countryOverrideIds, countriesVisible: state.layerVisibility.objects,
         blocked: projectRenderBlocked, isPending: id => geometryRevisionTracker.isPending(id), isVisible: isCountryVisibleById }, polygonOverlayPass);
-      const fillTarget = gl.getParameter(gl.FRAMEBUFFER_BINDING);
+      const fillTarget = renderDevice.state.framebuffer();
       const fillTargetReady = preparedInteraction.hasFillItems
         && interactionFillCache.beginScene(pixelWidth, pixelHeight, '', projectGeneration);
       performanceMetrics.countryInteractionIndexCount = 0;

@@ -1,3 +1,4 @@
+import {renderDeviceState} from './render-device-state.js';
 function detectWebGlVersion(gl) {
   if (!gl) return 0;
   const webGl2 = typeof globalThis.WebGL2RenderingContext !== 'undefined'
@@ -12,11 +13,18 @@ export function createRenderDevice({ gl, canvas = null, version = 0, contextRevi
   const uintIndices = resolvedVersion === 2 || !!gl.getExtension?.('OES_element_index_uint');
   const instancing = resolvedVersion === 2 || !!gl.getExtension?.('ANGLE_instanced_arrays');
   const attributes = gl.getContextAttributes?.() || {};
+  // The only owner of the shared WebGL context admits state once per context
+  // generation. Coverage passes capture this ledger without synchronous
+  // driver queries at every frame.
+  const state = typeof gl.getParameter === 'function' &&
+    typeof gl.isEnabled === 'function' && typeof gl.activeTexture === 'function'
+    ? renderDeviceState(gl, {version: resolvedVersion, contextRevision}) : null;
   return Object.freeze({
     gl,
     canvas,
     version: resolvedVersion,
     contextRevision: Math.max(0, Number(contextRevision) || 0),
+    state,
     capabilities: Object.freeze({
       uintIndices,
       instancing,
