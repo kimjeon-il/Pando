@@ -58,7 +58,7 @@ if errors:
     raise ValueError(f'COG structure errors: {errors}')
 blob = path.read_bytes()
 chunk_size = 65536
-report = {'schema': 'pando-terrain-cog-viewer-fixture-v1', 'sourceSha256': meta['sourceSha256'],
+report = {'schema': 'pando-terrain-cog-viewer-fixture-v1', 'sourceSha256': meta['sourceSha256'], 'region': meta.get('region', 'southwest-china'),
           'baseOrigin': meta['baseOrigin'], 'filename': path.name, 'bytes': len(blob),
           'sha256': hashlib.sha256(blob).hexdigest(), 'chunkBytes': chunk_size,
           'chunks': [hashlib.sha256(blob[i:i+chunk_size]).hexdigest() for i in range(0, len(blob), chunk_size)],

@@ -14,6 +14,20 @@ on:
         type: boolean
         required: false
         default: false
+      terrain_full:
+        description: Run three interleaved repetitions per available terrain candidate
+        type: boolean
+        required: false
+        default: false
+      terrain_region:
+        description: Representative region for the terrain experiment
+        type: choice
+        required: false
+        default: southwest-china
+        options:
+          - southwest-china
+          - thai-lowland
+          - netherlands-coast
 
 permissions:
   contents: read
@@ -26,7 +40,7 @@ jobs:
   regional-terrain-smoke:
     if: github.event_name == 'workflow_dispatch' && inputs.terrain_only == true
     runs-on: ubuntu-24.04
-    timeout-minutes: 35
+    timeout-minutes: 75
     steps:
       - uses: actions/checkout@v4
         with:
@@ -39,8 +53,16 @@ jobs:
         uses: ./.github/actions/library-data
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - run: pnpm exec playwright install --with-deps chromium
-      - name: Smoke-test regional A1, B, C and D in the actual Viewer
-        run: node scripts/terrain-experiment/viewer-compare.mjs --smoke --cog --screen --out="$RUNNER_TEMP/terrain-regional-smoke"
+      - name: Measure regional candidates in the actual Viewer
+        env:
+          TERRAIN_FULL: ${{ inputs.terrain_full }}
+          TERRAIN_REGION: ${{ inputs.terrain_region }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          args=(--screen --cog "--region=$TERRAIN_REGION")
+          if [ "$TERRAIN_FULL" != 'true' ]; then args+=(--smoke); fi
+          node scripts/terrain-experiment/viewer-compare.mjs "${args[@]}" --out="$RUNNER_TEMP/terrain-regional-smoke"
       - name: Keep measurements and screenshots including failures
         if: always()
         uses: actions/upload-artifact@v4

@@ -10,6 +10,12 @@ import {createNativeDemWindowReader,inspectNativeDemSource} from '../../tools/gi
 import {quantizeSample,SAMPLE_REGIONS,SOURCE_SHA256} from './sample-quality.mjs';
 
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
+export function regionalOrigin(center,side,{alignWorld=false,block2=false}={}){
+  if(!Number.isInteger(center)||!Number.isInteger(side)||side<1||(!alignWorld&&side%2)||block2&&!alignWorld)throw Error('Invalid regional tile origin');
+  if(!alignWorld)return center-side/2;
+  const cell=Math.floor(center/side),within=center-cell*side;
+  return (cell-(block2&&within<side/2?1:0))*side;
+}
 export function cutGutterTiles(rgba,side,tileSize) {
   if(!Number.isInteger(side)||!Number.isInteger(tileSize)||side<1||tileSize<1||side%tileSize||
       !Buffer.isBuffer(rgba)||rgba.length!==(side+2)*(side+2)*4)throw Error('Invalid one-pixel-gutter source');
@@ -39,10 +45,9 @@ export async function buildGutterFixtures({source,out,regionIds=['southwest-chin
   try{
     for(const region of SAMPLE_REGIONS.filter(item=>regionIds.includes(item.id))){
       const centerX=Math.floor((region.lon+180)*level.width/360),centerY=Math.floor((90-region.lat)*level.height/180);
-      const originX=alignWorld?Math.floor(centerX/side)*side:centerX-side/2;
-      const originY=alignWorld?Math.floor(centerY/side)*side:centerY-side/2;
+      const xStart=regionalOrigin(centerX,side,{alignWorld,block2}),yStart=regionalOrigin(centerY,side,{alignWorld,block2});
       for(let blockY=0;blockY<(block2?2:1);blockY++)for(let blockX=0;blockX<(block2?2:1);blockX++){
-      const x=originX+blockX*side,y=originY+blockY*side;
+      const x=xStart+blockX*side,y=yStart+blockY*side;
       if(x+side>level.width||y+side>level.height)throw Error('Regional fixture crosses the world edge');
       // One output gutter plus a further pixel for source-based hillshade.
       const raw=await reader.read([x-2,y-2,x+side+2,y+side+2]);
@@ -73,8 +78,10 @@ export async function buildGutterFixtures({source,out,regionIds=['southwest-chin
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   const [source,out,...options]=process.argv.slice(2);
   if(!source||!out)throw Error('Expected source and new output directory');
-  if(options.some(option=>!['--align-world','--block2','--china-only'].includes(option)))throw Error('Unknown option');
+  if(options.some(option=>!['--align-world','--block2','--china-only'].includes(option)&&!option.startsWith('--regions=')))throw Error('Unknown option');
+  const regions=options.find(option=>option.startsWith('--regions='))?.slice('--regions='.length).split(',');
+  if(regions&&options.includes('--china-only'))throw Error('Specify regions only once');
   const report=await buildGutterFixtures({source,out,alignWorld:options.includes('--align-world'),block2:options.includes('--block2'),
-    ...(options.includes('--china-only')?{regionIds:['southwest-china']}:{})});
+    ...(options.includes('--china-only')?{regionIds:['southwest-china']}:regions?{regionIds:regions}:{})});
   console.log(JSON.stringify({sourceSha256:report.sourceSha256,tiles:report.records.length}));
 }

@@ -9,9 +9,11 @@ import {a1TerrainFragmentSource} from './a1-shader.mjs';
 import {makeViewerFixtureManifest} from './viewer-fixture.mjs';
 import {serve,identity,mapSummary,chromiumProcessMemory} from '../p7-browser-ab-measure.mjs';
 
-const revision='ad4872bb1289fa3ed3ea2f3951680bd56c2a2633';
-const base=`https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/${revision}/reports/development/performance/terrain-architecture-2026-11-12/p2/fixtures-viewer/webp/`;
-const manifestHash='ea21beb9d96f39b3baa19f74c7114a3de22b2d902aab96a0293efccbad01f203';
+const region=process.argv.find(arg=>arg.startsWith('--region='))?.slice('--region='.length)||'southwest-china';
+if(!['southwest-china','thai-lowland','netherlands-coast'].includes(region))throw Error('Unknown representative region');
+const revision='efd4a8f7020b87877eb2eeccc964c2e41f806b16';
+const base=`https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/${revision}/reports/development/performance/terrain-architecture-2026-11-12/p2/fixtures-centered/webp/`;
+const manifestHash='8bbd5100d45cdc160820dc5a3a2ada74815adddabae8d84311c11361e9337745';
 const digest=bytes=>createHash('sha256').update(bytes).digest('hex');
 const out=process.argv.find(arg=>arg.startsWith('--out='))?.slice(6);
 const smoke=process.argv.includes('--smoke');
@@ -24,17 +26,22 @@ if(!fixtureResponse.ok)throw Error(`Fixture manifest HTTP ${fixtureResponse.stat
 const fixtureBytes=Buffer.from(await fixtureResponse.arrayBuffer());
 if(digest(fixtureBytes)!==manifestHash)throw Error('Fixture manifest hash mismatch');
 const fixture=JSON.parse(fixtureBytes),runs=[];
-const sequence=includeScreen?(smoke?['a1','b512','cog','screen']:
+const sequence=includeScreen&&includeCog?(smoke?['a1','b512','cog','screen']:
   ['a1','b512','cog','screen','screen','cog','b512','a1','b512','screen','a1','cog']):
+  includeScreen?(smoke?['a1','b512','screen']:['a1','b512','screen','screen','b512','a1','b512','screen','a1']):
   includeCog?(smoke?['a1','b512','cog']:['a1','b512','cog','cog','b512','a1','b512','cog','a1']):
     (smoke?['a1','b512']:['a1','b512','b512','a1','a1','b512']);
-if(includeScreen&&!includeCog)throw Error('--screen requires --cog for the independent comparison sequence');
-let cogManifest,cogBytes,cogBundle;
+let cogManifest,cogBytes,cogBundle,cogSource;
 if(includeCog){
-  const root='https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/8f0eb13eac9dabaafd8be5295374b1664ab581d2/reports/development/performance/terrain-architecture-2026-11-12/p3/cog-viewer-fixture/';
+  const hashes={'southwest-china':'aae043129adf5d19a9ff3bc0122210b59058eb2dd40ee809810a0ad61e232724',
+    'thai-lowland':'ac533e6d671c42f639ca756502df1c365a001a6e51f73db882f9bd8f2a70c0b4',
+    'netherlands-coast':'9767d67c6f39dc3ca752dfc20f287b080a6b61b531a5a60c3792aafc44499c95'};
+  const settings={revision:'741665cbeca6e9a11bda3fa1d4deed1a9979bb7b',folder:`centered-${region}-cog`,hash:hashes[region]};
+  cogSource=settings;
+  const root=`https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/${settings.revision}/reports/development/performance/terrain-architecture-2026-11-12/p3/${settings.folder}/`;
   const response=await fetch(root+'manifest.json');if(!response.ok)throw Error('COG manifest download failed');
   const raw=Buffer.from(await response.arrayBuffer());
-  if(digest(raw)!=='b8eb34c52d1b6d849eae463ebf39ae4f33448d9e73f4a954a2fd661066200b14')throw Error('COG manifest hash mismatch');
+  if(digest(raw)!==settings.hash)throw Error('COG manifest hash mismatch');
   cogManifest=JSON.parse(raw);const file=await fetch(root+cogManifest.filename);if(!file.ok)throw Error('COG fixture download failed');
   cogBytes=Buffer.from(await file.arrayBuffer());
   if(cogBytes.length!==cogManifest.bytes||digest(cogBytes)!==cogManifest.sha256)throw Error('COG fixture hash mismatch');
@@ -48,8 +55,9 @@ if(includeScreen){
     resolveDir:process.cwd(),loader:'js'},bundle:true,platform:'browser',format:'iife',globalName:'PandoScreenFixture',write:false});
   screenBundle=bundle.outputFiles[0].text;
 }
-const report={schema:'pando-terrain-viewer-regional-ab-v1',identity:identity(),fixtureRevision:revision,
+const report={schema:'pando-terrain-viewer-regional-ab-v1',identity:identity(),fixtureRevision:revision,region,
   fixtureManifestSha256:manifestHash,sequence,startedAt:new Date().toISOString(),runs,status:'running',
+  ...(cogSource?{cogSource}:{}),
   clockPolicy:'Date offset starts at 2026-11-06; native timers and elapsed time continue normally.',
   limitations:['Only a bounded LOD5 region uses Q1; lower LODs use the original v0.14 tiles.',
     'Only WebGL2 and a globe 32x stationary scene; this is not complete A1/B acceptance.',
@@ -73,7 +81,7 @@ try{
       page.on('pageerror',error=>run.pageErrors.push(String(error)));
       page.on('console',message=>{if(message.type()==='error'&&run.consoleErrors.length<50)run.consoleErrors.push(message.text().slice(0,2000));});
       if(candidate==='screen'){
-        const records=fixture.records.filter(row=>row.tileSize===1024);
+        const records=fixture.records.filter(row=>row.tileSize===1024&&row.region===region);
         const origin=[Math.min(...records.map(row=>row.window[0])),Math.min(...records.map(row=>row.window[1]))];
         await page.addInitScript({content:`${screenBundle}\nglobalThis.__pandoScreen=PandoScreenFixture.createViewerScreenSpace(${JSON.stringify({origin,tileSize:512})});`});
       }
@@ -87,6 +95,9 @@ try{
             const replacement=`function renderTerrain(pass = 'land') {\n      const dark=getSystemTheme()==='dark';\n      const palette=globalThis.PandoLabCanvasTerrainDem.paletteForTheme(dark?'dark':'light');\n      if(globalThis.__pandoScreen?.draw({gl,tiles:preparedTerrain,frame:activeFrameContext || lastVisualFrame,pass,physicalStyle:state.physicalSettings.terrainStyle==='physical',dark,palette})){performanceMetrics.webGlDirectDrawCallCount++;return;}\n      for (const tile of preparedTerrain) drawTerrainTile(tile, pass);\n    }`;
             source=source.replace(marker,replacement);
           }
+          const renderMarker='    function renderWebGl(visualFrame, { interactionOnly = false } = {}) {';
+          if(!source.includes(renderMarker))throw Error('Viewer render entrypoint changed');
+          source=source.replace(renderMarker,renderMarker+`\n      if(globalThis.__pandoCaptureFrame?.forceBase){\n        sceneColorCache.invalidate('experiment-capture');interactionOnly=false;globalThis.__pandoCaptureFrame.forceBase=false;\n      }`);
           const marker='      frameTimes.push(performance.now() - started);';
           if(!source.includes(marker))throw Error('Viewer capture point changed');
           const capture=`      if(globalThis.__pandoCaptureFrame?.requested&&!globalThis.__pandoCaptureFrame.result\n        &&!webglContextLost&&!baseSubmissionFailed&&mapReadiness().mapReady\n        &&terrainPreparation?.stats().terrainReady&&gl.getParameter(gl.FRAMEBUFFER_BINDING)===null){\n        const pixels=new Uint8Array(pixelWidth*pixelHeight*4);\n        gl.readPixels(0,0,pixelWidth,pixelHeight,gl.RGBA,gl.UNSIGNED_BYTE,pixels);\n        globalThis.__pandoCaptureFrame.result={pixels,width:pixelWidth,height:pixelHeight,frameId:visualFrame.frameId,scale:visualFrame.scale};\n      }\n`;
@@ -103,7 +114,7 @@ try{
             headers:{'Content-Range':`bytes ${start}-${end}/${cogBytes.length}`,'Accept-Ranges':'bytes'}});
         });
         const init=`${cogBundle}\nglobalThis.__pandoCogReady=PandoCogFixture.openViewerCogTiles(${JSON.stringify({
-          url:'http://127.0.0.1:4173/__terrain_experiment/regional-q1.tif',cogManifest,tileManifest:fixture,tileSize:size})});`;
+          url:'http://127.0.0.1:4173/__terrain_experiment/regional-q1.tif',cogManifest,tileManifest:fixture,tileSize:size,region})});`;
         await page.addInitScript({content:init});
         await page.route('**/assets/js/modules/terrain-manifest.js*',async route=>{
           try{
@@ -123,7 +134,7 @@ try{
       await page.route('**/terrain/v0.14.0/manifest.json*',async route=>{
         try{
           const original=await route.fetch();if(!original.ok())throw Error('Original terrain manifest fetch failed');
-          selected=makeViewerFixtureManifest(await original.json(),fixture,size);manifestRequests++;
+          selected=makeViewerFixtureManifest(await original.json(),fixture,size,region);manifestRequests++;
           return await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(selected.manifest)});
         }catch(error){run.routeErrors.push(String(error));return route.abort('failed');}
       });
@@ -187,13 +198,6 @@ try{
           &&s.mapReadiness?.mapReady===true;
       },null,{timeout:180000,polling:250});
       run.readyMs=Date.now()-started;
-      if(candidate==='screen'){
-        const before=await page.evaluate(()=>globalThis.__pandoScreen.stats.draws);
-        await page.evaluate(()=>globalThis.__PANDOLAB_MAP_HOST__.requestRepaint('terrain-screen-acceptance'));
-        await page.waitForFunction(previous=>globalThis.__pandoScreen?.stats.draws>previous,before,{timeout:60000,polling:100});
-        await page.waitForFunction(()=>globalThis.__PANDOLAB_VIEWER__?.rendererStats()?.mapReadiness?.mapReady===true,
-          null,{timeout:60000,polling:250});
-      }
       await page.waitForFunction(()=>globalThis.__terrainFixtureFrames.gaps.length>=300,null,{timeout:180000,polling:250});
       run.frameGapsMs=await page.evaluate(()=>globalThis.__terrainFixtureFrames.stop());
       const sorted=[...run.frameGapsMs].sort((a,b)=>a-b),at=q=>sorted[Math.floor((sorted.length-1)*q)];
@@ -211,7 +215,7 @@ try{
       }
       run.center=selected.center;run.manifestRequests=manifestRequests;run.shaderRequests=shaderRequests;
       const screenBeforeCapture=candidate==='screen'?await page.evaluate(()=>globalThis.__pandoScreen.stats.draws):null;
-      await page.evaluate(()=>{globalThis.__pandoCaptureFrame.requested=true;
+      await page.evaluate(()=>{globalThis.__pandoCaptureFrame.requested=true;globalThis.__pandoCaptureFrame.forceBase=true;
         globalThis.__PANDOLAB_MAP_HOST__.requestRepaint('terrain-capture-accepted-frame');});
       try{
         await page.waitForFunction(()=>globalThis.__pandoCaptureFrame?.result,null,{timeout:60000,polling:100});

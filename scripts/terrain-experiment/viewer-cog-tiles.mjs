@@ -5,12 +5,13 @@ import {openVerifiedCog} from './verified-cog-reader.mjs';
 const hex=bytes=>[...new Uint8Array(bytes)].map(value=>value.toString(16).padStart(2,'0')).join('');
 const digest=async bytes=>hex(await crypto.subtle.digest('SHA-256',bytes));
 
-export async function openViewerCogTiles({url,cogManifest,tileManifest,tileSize,fetchFn=globalThis.fetch}){
+export async function openViewerCogTiles({url,cogManifest,tileManifest,tileSize,region='southwest-china',fetchFn=globalThis.fetch}){
   if(cogManifest?.schema!=='pando-terrain-cog-viewer-fixture-v1'||
     tileManifest?.schema!=='pando-terrain-gutter-webp-v1'||cogManifest.sourceSha256!==tileManifest.sourceSha256||
-    !Array.isArray(cogManifest.baseOrigin)||cogManifest.baseOrigin.length!==2||![512,1024].includes(tileSize))
+    !Array.isArray(cogManifest.baseOrigin)||cogManifest.baseOrigin.length!==2||![512,1024].includes(tileSize)||
+    (cogManifest.region||'southwest-china')!==region)
     throw new TypeError('Invalid COG Viewer fixture identities');
-  const records=tileManifest.records.filter(record=>record.tileSize===tileSize),expected=tileSize===1024?4:16;
+  const records=tileManifest.records.filter(record=>record.tileSize===tileSize&&record.region===region),expected=tileSize===1024?4:16;
   if(records.length!==expected)throw Error('Incomplete COG Viewer tile inventory');
   const byKey=new Map();
   for(const record of records){

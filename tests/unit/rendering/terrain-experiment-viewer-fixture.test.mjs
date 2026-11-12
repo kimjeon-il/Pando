@@ -11,7 +11,7 @@ function inputs(){
   const records=[];
   for(const x of [1024,2048])for(const y of [2048,3072])for(const tileSize of [512,1024])
     for(let dy=0;dy<1024;dy+=tileSize)for(let dx=0;dx<1024;dx+=tileSize)
-      records.push({level:5,window:[x,y,x+1024,y+1024],offset:[dx,dy],width:tileSize+2,height:tileSize+2,
+      records.push({region:'southwest-china',level:5,window:[x,y,x+1024,y+1024],offset:[dx,dy],width:tileSize+2,height:tileSize+2,
         tileSize,gutter:1,webpBytes:42,webpSha256:hash,file:`tile-${x}-${y}-${dx}-${dy}-${tileSize}.webp`});
   return {source,fixture:{schema:'pando-terrain-gutter-webp-v1',sourceSha256:hash,records}};
 }
@@ -24,10 +24,18 @@ test('regional A1/B fixtures keep lower LODs but fail closed outside Q1 coverage
   assert.ok(a.manifest.tiles['0/0-0.webp']);assert.equal(a.manifest.tiles['5/0-0.webp'],undefined);
   assert.equal(a.manifest.levels[5].tileSize,1024);assert.equal(b.manifest.levels[5].tileSize,512);
   assert.equal(a.manifest.version,'0.15.0');assert.notEqual(a.manifest.assetsSha256,b.manifest.assetsSha256);
-  assert.deepEqual(a.center,b.center);
+  assert.deepEqual(a.center,b.center);assert.deepEqual(a.center,[102,28]);
 });
 
 test('rejects incomplete or inconsistent candidate inventory',()=>{
   const {source,fixture}=inputs();fixture.records.splice(fixture.records.findIndex(record=>record.tileSize===512),1);
   assert.throws(()=>makeViewerFixtureManifest(source,fixture,512),/Incomplete/);
+});
+
+test('selects only the requested regional tile inventory',()=>{
+  const {source,fixture}=inputs();
+  fixture.records.push(...fixture.records.map(record=>({...record,region:'thai-lowland'})));
+  const selected=makeViewerFixtureManifest(source,fixture,512,'thai-lowland');
+  assert.equal(selected.tiles.size,16);assert.equal(selected.manifest.experiment.region,'thai-lowland');
+  assert.throws(()=>makeViewerFixtureManifest(source,fixture,512,'unknown-region'),/Incomplete/);
 });

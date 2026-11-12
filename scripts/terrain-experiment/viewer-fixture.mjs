@@ -1,15 +1,16 @@
 import {createHash} from 'node:crypto';
+import {SAMPLE_REGIONS} from './sample-quality.mjs';
 
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 const hex=value=>typeof value==='string'&&/^[0-9a-f]{64}$/.test(value);
 
 // The source manifest stays untouched. Only the bounded experimental LOD5
 // entries are available; unexpected LOD5 requests must fail, not fall back.
-export function makeViewerFixtureManifest(source,fixture,tileSize){
+export function makeViewerFixtureManifest(source,fixture,tileSize,region='southwest-china'){
   if(source?.version!=='0.14.0'||!Array.isArray(source.levels)||source.levels.length!==6||
-      !source.tiles||!hex(source.assetsSha256)||fixture?.schema!=='pando-terrain-gutter-webp-v1'||
-      !hex(fixture.sourceSha256)||![512,1024].includes(tileSize))throw Error('Invalid experiment inputs');
-  const records=fixture.records.filter(record=>record.tileSize===tileSize),expected=tileSize===512?16:4;
+      !source.tiles||!hex(source.assetsSha256)||fixture?.schema!=='pando-terrain-gutter-webp-v1'||!Array.isArray(fixture.records)||
+      !hex(fixture.sourceSha256)||![512,1024].includes(tileSize)||typeof region!=='string'||!region)throw Error('Invalid experiment inputs');
+  const records=fixture.records.filter(record=>record.tileSize===tileSize&&record.region===region),expected=tileSize===512?16:4;
   if(records.length!==expected)throw Error('Incomplete experimental regional tiles');
   const map=new Map();
   for(const record of records){
@@ -37,8 +38,12 @@ export function makeViewerFixtureManifest(source,fixture,tileSize){
   for(const [key,record] of map)result.tiles[key]={bytes:record.bytes,sha256:record.sha256};
   result.assetsSha256=sha(JSON.stringify({base:source.assetsSha256,source:fixture.sourceSha256,
     tileSize,tiles:[...map].map(([key,value])=>[key,value.sha256])}));
-  result.experiment={kind:'regional-Q1-hybrid',tileSize,sourceSha256:fixture.sourceSha256,
+  result.experiment={kind:'regional-Q1-hybrid',region,tileSize,sourceSha256:fixture.sourceSha256,
     policy:'Q1 at LOD5 in the listed region; unchanged v0.14.0 at LOD0-4',candidateTileCount:map.size};
-  const windows=records.map(record=>record.window),minX=Math.min(...windows.map(w=>w[0])),minY=Math.min(...windows.map(w=>w[1]));
-  return {manifest:result,tiles:map,center:[(minX+1024)/120-180,90-(minY+1024)/120]};
+  const target=SAMPLE_REGIONS.find(item=>item.id===region);
+  if(!target)throw Error('Experiment region has no fixed camera coordinate');
+  // A slightly eastward center keeps the full 32x viewport inside the
+  // two-column Netherlands fixture while still covering its North Sea coast.
+  const center=region==='netherlands-coast'?[5.5,target.lat]:[target.lon,target.lat];
+  return {manifest:result,tiles:map,center};
 }

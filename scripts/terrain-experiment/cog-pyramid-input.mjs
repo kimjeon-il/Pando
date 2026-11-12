@@ -8,7 +8,7 @@ import {gzipSync} from 'node:zlib';
 import {createNativeDemWindowReader,inspectNativeDemSource} from '../../tools/gis/terrain-dem-raster.mjs';
 import {quantizeSample,SOURCE_SHA256} from './sample-quality.mjs';
 
-const [sourceArg,fixtureArg,outArg]=process.argv.slice(2);
+const [sourceArg,fixtureArg,outArg,region='southwest-china']=process.argv.slice(2);
 if(!sourceArg||!fixtureArg||!outArg)throw Error('Expected source, regional fixture manifest and new output directory');
 const source=await realpath(sourceArg),before=await stat(source),digest=createHash('sha256');
 if(before.size!==1585813987)throw Error('Source length mismatch');
@@ -17,7 +17,7 @@ if(digest.digest('hex')!==SOURCE_SHA256)throw Error('Source SHA-256 mismatch');
 const metadata=await inspectNativeDemSource({source,strict:true});if(metadata.dtype!=='float32')throw Error('Float32 source required');
 const fixture=JSON.parse(await readFile(fixtureArg,'utf8'));
 if(fixture.sourceSha256!==SOURCE_SHA256||fixture.block2!==true)throw Error('Expected matching 2x2 fixture');
-const blocks=fixture.records.filter(record=>record.tileSize===1024);
+const blocks=fixture.records.filter(record=>record.tileSize===1024&&record.region===region);
 if(blocks.length!==4)throw Error('Four base tiles required');
 const minX=Math.min(...blocks.map(record=>record.window[0])),minY=Math.min(...blocks.map(record=>record.window[1]));
 // Four original cells on each side give each overview an aligned source grid.
@@ -40,6 +40,6 @@ for(const level of [5,4,3]){
   }finally{await reader.close();}
 }
 const after=await stat(source);if(after.size!==before.size||after.mtimeMs!==before.mtimeMs)throw Error('Source changed during sampling');
-const report={schema:'pando-terrain-cog-pyramid-input-v1',sourceSha256:SOURCE_SHA256,baseOrigin:[x0,y0],records};
+const report={schema:'pando-terrain-cog-pyramid-input-v1',sourceSha256:SOURCE_SHA256,region,baseOrigin:[x0,y0],records};
 await writeFile(join(out,'pyramid-input.json'),JSON.stringify(report,null,2)+'\n',{flag:'wx'});
 console.log(JSON.stringify({levels:records.length,baseOrigin:report.baseOrigin}));

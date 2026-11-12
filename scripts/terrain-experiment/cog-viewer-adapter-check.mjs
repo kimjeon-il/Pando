@@ -31,13 +31,14 @@ try{
   browser=await chromium.launch({headless:true});const page=await browser.newPage(),origin=`http://127.0.0.1:${server.address().port}`;
   await page.goto(origin);await page.addScriptTag({content:bundle.outputFiles[0].text});
   report.browserVersion=browser.version();
-  report.runs=await page.evaluate(async({origin,cogManifest,tileManifest})=>{
+  report.region=cogManifest.region||'southwest-china';
+  report.runs=await page.evaluate(async({origin,cogManifest,tileManifest,region})=>{
     const sha=async bytes=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))].map(x=>x.toString(16).padStart(2,'0')).join('');
     const results=[];
     for(const size of [1024,512]){
-      const adapter=await globalThis.CogTileExperiment.openViewerCogTiles({url:origin+'/regional-q1.tif',cogManifest,tileManifest,tileSize:size});
+      const adapter=await globalThis.CogTileExperiment.openViewerCogTiles({url:origin+'/regional-q1.tif',cogManifest,tileManifest,tileSize:size,region});
       const tiles=[];
-      const selected=tileManifest.records.filter(r=>r.tileSize===size);
+      const selected=tileManifest.records.filter(r=>r.tileSize===size&&r.region===region);
       const blobs=await Promise.all(selected.map(record=>{
         const x=(record.window[0]+record.offset[0])/size,y=(record.window[1]+record.offset[1])/size;
         return adapter.readTile(`5/${x}-${y}.webp`);
@@ -56,7 +57,7 @@ try{
       results.push({tileSize:size,tiles,counts:{...adapter.counts},range:{...adapter.statistics},outsideRejected});
     }
     return results;
-  },{origin,cogManifest,tileManifest});
+  },{origin,cogManifest,tileManifest,region:report.region});
   report.status='passed';
 }catch(error){report.status='failed';report.error=String(error?.stack||error);}
 finally{await browser?.close();await new Promise(done=>server.close(done));
