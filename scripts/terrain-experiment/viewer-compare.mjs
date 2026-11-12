@@ -84,15 +84,17 @@ try{
   report.browserVersion=browser.version();
   for(let index=0;index<sequence.length;index++){
     const candidate=sequence[index],size=['b512','screen'].includes(candidate)?512:1024;
-    const run={index:index+1,candidate,tileSize:size,status:'running',candidateRequests:[],placeNetwork:[],pageErrors:[],consoleErrors:[],routeErrors:[],error:null};
+    const run={index:index+1,candidate,tileSize:size,status:'running',candidateRequests:[],placeNetwork:[],placeWorkers:[],pageErrors:[],consoleErrors:[],routeErrors:[],error:null};
     runs.push(run);const page=await browser.newPage({viewport:{width:1280,height:800},locale:'ko-KR',timezoneId:'Asia/Seoul'});
     let selected,manifestRequests=0,shaderRequests=0,budgetRequests=0,hostRequests=0,processCdp,pageCdp,phaseName='startup';
     const network=new Map();
     try{
       page.on('pageerror',error=>run.pageErrors.push(String(error)));
       page.on('console',message=>{if(message.type()==='error'&&run.consoleErrors.length<50)run.consoleErrors.push(message.text().slice(0,2000));});
-      page.on('requestfinished',request=>{if(/\/places\//.test(request.url()))run.placeNetwork.push({url:request.url(),outcome:'finished',timing:request.timing()});});
-      page.on('requestfailed',request=>{if(/\/places\//.test(request.url()))run.placeNetwork.push({url:request.url(),outcome:'failed',failure:request.failure()?.errorText,timing:request.timing()});});
+      const placeRequest=request=>/\/places\/|place-worker|worker-rpc-host/.test(request.url());
+      page.on('worker',worker=>{if(worker.url().includes('place-worker'))run.placeWorkers.push({url:worker.url(),observedAt:new Date().toISOString()});});
+      page.on('requestfinished',request=>{if(placeRequest(request))run.placeNetwork.push({url:request.url(),outcome:'finished',timing:request.timing()});});
+      page.on('requestfailed',request=>{if(placeRequest(request))run.placeNetwork.push({url:request.url(),outcome:'failed',failure:request.failure()?.errorText,timing:request.timing()});});
       await page.route('**/assets/js/modules/map-workspace-host.js*',async route=>{
         try{const response=await route.fetch(),body=withExperimentViewInvalidation(await response.text());hostRequests++;
           return await route.fulfill({status:200,contentType:'text/javascript',body});
