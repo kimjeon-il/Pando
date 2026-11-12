@@ -224,6 +224,17 @@
       "reason": "Build selected source identities in a structuredClone of the catalog template. The source receipt still requires C++ validation and admission; no active document is writable here."
     },
     {
+      "file": "src/data/builtin-world-loader.js",
+      "functions": [
+        "loadProject"
+      ],
+      "access": [
+        "read"
+      ],
+      "owner": "Builtin project timeline read boundary",
+      "reason": "Read frozen verified builtin identities only to select active geometry through C++ timelineResolveWorld. The project is a detached load result; this path neither writes canonical storage nor constructs a parallel timeline."
+    },
+    {
       "file": "src/document/review-inspection.js",
       "functions": [
         "reviewObjectMapRef"
