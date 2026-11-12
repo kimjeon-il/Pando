@@ -175,7 +175,12 @@ export function createRenderDevice({ gl, canvas = null, version = 0, contextRevi
   const instancing = resolvedVersion === 2 || !!gl.getExtension?.('ANGLE_instanced_arrays');
   const attributes = gl.getContextAttributes?.() || {};
   const revision = Math.max(0, Number(contextRevision) || 0);
-  const state = createGlStateContract(gl, resolvedVersion, revision);
+  // Capability-only test doubles may omit driver state query methods.
+  // Real WebGL contexts always supply these; never use a partial ledger in production.
+  const state = typeof gl.getParameter === 'function' && typeof gl.isEnabled === 'function'
+    && typeof gl.activeTexture === 'function'
+    ? createGlStateContract(gl, resolvedVersion, revision)
+    : null;
   return Object.freeze({
     gl,
     canvas,
