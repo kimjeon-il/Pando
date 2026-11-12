@@ -61,3 +61,47 @@ test('overlapping unit groups and direct bindings schedule one test invocation',
  const plan=planApplicationChecks({changedFiles:[project],repository});
  assert.deepEqual(plan.unitTests,[unit],'one test entry despite multiple matching owners');
 });
+
+
+test('Worker message, API and project schema consumers follow indirect fixture references',t=>{
+ const root=mkdtempSync(join(tmpdir(),'pando-protocol-impact-'));
+ t.after(()=>rmSync(root,{recursive:true,force:true}));
+ const put=(path,source)=>{const target=join(root,path);mkdirSync(dirname(target),{recursive:true});writeFileSync(target,source);};
+ const worker='src/runtime/worker-channel.js',device='src/rendering/render-device.js';
+ const schema='src/document/project-state.js',fixture='tests/helpers/worker-port.mjs';
+ const indirect='tests/unit/runtime/worker-indirect.test.mjs',direct='tests/unit/runtime/worker-direct.test.mjs';
+ const unrelated='tests/unit/runtime/unrelated.test.mjs',project='tests/unit/document/project-fixture.test.mjs';
+ put(worker,"export const messages=['ready'];");
+ put(device,"export const contextRevision=1;");
+ put(schema,"export const schemaVersion=14;");
+ put(fixture,"export const result={type:'ready'};");
+ put(indirect,"import '../../helpers/worker-port.mjs';");
+ put(direct,"const packet={type:'ready'};");
+ put(unrelated,"const packet={type:'unrelated'};");
+ put(project,"const projectState={schemaVersion:14};");
+ const catalog={schema:'pando-application-checks-v1',
+  groups:[{id:'runtime',kind:'unit',testPatterns:['tests/unit/runtime/*.test.mjs'],inputs:[]},
+    {id:'document',kind:'unit',testPatterns:['tests/unit/document/*.test.mjs'],inputs:[]}],
+  productRoots:['src/**'],passiveInputs:[],infrastructure:[],
+  contractConsumers:[
+   {id:'worker-events',sources:[worker],testPatterns:['tests/unit/runtime/*.test.mjs'],
+    markers:['ready'],alwaysTests:[direct]},
+   {id:'render-api',sources:[device],testPatterns:['tests/unit/runtime/*.test.mjs'],
+    markers:['contextRevision'],alwaysTests:[direct]},
+   {id:'project-schema',sources:[schema],testPatterns:['tests/unit/document/*.test.mjs'],
+    markers:['schemaVersion'],alwaysTests:[project]},
+  ]};
+ const repo=loadRepository(root,{catalog,libraryFiles:{}});
+ const selected=planApplicationChecks({repository:repo,changedFiles:[worker]});
+ assert.deepEqual(selected.unitTests,[direct,indirect]);
+ assert.match(selected.reasons[indirect].join(' '),/contract:worker-events/);
+ const document=planApplicationChecks({repository:repo,changedFiles:[schema]});
+ assert.deepEqual(document.unitTests,[project]);
+ const api=planApplicationChecks({repository:repo,changedFiles:[device]});
+ assert.deepEqual(api.unitTests,[direct], 'mandatory smoke owner covers an API even when no test imports it');
+ const isolated=planApplicationChecks({repository:repo,changedFiles:[unrelated]});
+ assert.deepEqual(isolated.unitTests,[unrelated]);
+ const invalid=structuredClone(catalog);
+ invalid.contractConsumers[0].alwaysTests=['tests/unit/runtime/missing.test.mjs'];
+ assert.throws(()=>loadRepository(root,{catalog:invalid,libraryFiles:{}}),/Unknown mandatory semantic contract test/);
+});
