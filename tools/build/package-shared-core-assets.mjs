@@ -37,6 +37,7 @@ export async function packageSharedCoreAssets(rootInput,buildInput,{check=false,
   const root=resolve(rootInput),build=resolve(buildInput);
   // Reject a compiler/runtime pair built under any SDK other than the declared pin.
   const pinnedToolchain=JSON.parse(readFileSync(join(root,'config/toolchain-versions.json'),'utf8'));
+  assert.equal(pinnedToolchain.schema,'pando-development-toolchain-v1','invalid pinned toolchain schema');
   assert.match(pinnedToolchain.emscripten,/^[0-9]+[.][0-9]+[.][0-9]+$/,'invalid pinned Emscripten version');
   // Git commits this generated module with LF endings; hash the published bytes.
   const js=Buffer.from(new TextDecoder('utf-8',{fatal:true,ignoreBOM:true})
