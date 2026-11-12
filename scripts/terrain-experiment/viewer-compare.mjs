@@ -24,7 +24,7 @@ const fixture=JSON.parse(fixtureBytes),runs=[],sequence=smoke?[1024,512]:[1024,5
 const report={schema:'pando-terrain-viewer-regional-ab-v1',identity:identity(),fixtureRevision:revision,
   fixtureManifestSha256:manifestHash,sequence,startedAt:new Date().toISOString(),runs,status:'running',
   limitations:['Only a bounded LOD5 region uses Q1; lower LODs use the original v0.14 tiles.',
-    'Only WebGL2 and a flat 32x stationary scene; this is not complete A1/B acceptance.',
+    'Only WebGL2 and a globe 32x stationary scene; this is not complete A1/B acceptance.',
     '512 versus 1024 varies tile partition only; an atlas or instancing optimization is not implemented.',
     'Playwright interception proxies fixed-commit bytes, so browser network totals are not real-host transfer measurements.',
     'rAF intervals are scheduling proxies, not actual GPU presentation or GPU time.']};
@@ -85,7 +85,7 @@ try{
       const started=Date.now();
       await page.evaluate(center=>{
         const host=globalThis.__PANDOLAB_MAP_HOST__,view=host.getViewState();
-        host.setViewState({projection:'flat',view:{...view,flatCenter:center,flatZoom:32}});
+        host.setViewState({projection:'globe',view:{...view,globeRotation:[-center[0],-center[1],0],globeZoom:32}});
         host.requestRepaint('terrain-regional-fixture');
       },selected.center);
       await page.waitForFunction(()=>{
