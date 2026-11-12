@@ -1,0 +1,49 @@
+name: P0 P1 full application and actual GL recovery regression (one-shot)
+# Run the repository's entire non-manual check catalog, not just impacted checks.
+# This branch-specific admission gate is removed before squash-merging to main.
+on:
+  push:
+    branches:
+      - fix/p0-gl-state-contract-20261112
+    paths:
+      - .github/workflows/p0-p1-full-regression-once.yml
+permissions:
+  contents: read
+jobs:
+  full-application:
+    uses: ./.github/workflows/application-architecture.yml
+    with:
+      check_scope: all
+      browser_scope: default
+    permissions:
+      contents: read
+  explicit-webgl-recovery:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - uses: ./.github/actions/library-data
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Real WebGL1 and WebGL2 context-loss restore plus coverage parity
+        run: >-
+          pnpm exec playwright test
+          tests/browser/rendering/viewer-renderer-recovery.spec.mjs
+          tests/browser/geometry/hydro-sdf-webgl.spec.mjs
+          --workers=1 --retries=0 --reporter=list
+      - name: Preserve screenshots and traces on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p0-p1-gl-recovery-failure-${{ github.sha }}
+          path: |
+            test-results/
+            playwright-report/
+          if-no-files-found: warn
+          retention-days: 14
