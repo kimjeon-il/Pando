@@ -69,8 +69,25 @@ jobs:
         uses: ./.github/actions/library-data
       - name: Run only terrain resource, palette, source masks and numerical Canvas contracts
         env:
-          CHECK_SELECTION: '{"unitTests":["tests/unit/rendering/canvas-natural-numeric-path.test.mjs","tests/unit/rendering/terrain-natural-gpu.test.mjs","tests/unit/rendering/gpu-terrain-preparation.test.mjs","tests/unit/data/terrain-natural-surface.test.mjs","tests/unit/data/terrain-external-source.test.mjs","tests/unit/rendering/terrain-numeric-color.test.mjs","tests/unit/rendering/canvas-terrain-independence.test.mjs","tests/unit/rendering/canvas-dem-theme-cache.test.mjs","tests/unit/geometry/terrain-natural-masks.test.mjs","tests/unit/geometry/terrain-polar-coverage.test.mjs"],"browserSpecs":[],"commands":[],"prerequisites":[]}'
+          CHECK_SELECTION: '{"unitTests":["tests/unit/rendering/canvas-natural-numeric-path.test.mjs","tests/unit/rendering/terrain-natural-gpu.test.mjs","tests/unit/rendering/gpu-terrain-preparation.test.mjs","tests/unit/data/terrain-natural-surface.test.mjs","tests/unit/data/terrain-natural-candidate.test.mjs","tests/unit/data/terrain-external-source.test.mjs","tests/unit/rendering/terrain-numeric-color.test.mjs","tests/unit/rendering/canvas-terrain-independence.test.mjs","tests/unit/rendering/canvas-dem-theme-cache.test.mjs","tests/unit/geometry/terrain-natural-masks.test.mjs","tests/unit/geometry/terrain-polar-coverage.test.mjs"],"browserSpecs":[],"commands":[],"prerequisites":[]}'
         run: node scripts/run-application-checks.mjs --phase non-browser --output "$RUNNER_TEMP/terrain-integration/checks.json"
+      - name: Install Chromium for live optional-terrain regression
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Verify real Viewer external natural imagery and numerical Canvas pixels
+        run: |
+          pnpm exec playwright test \
+            tests/browser/rendering/terrain-natural-live-viewer.spec.mjs \
+            tests/browser/rendering/terrain-natural-parity.spec.mjs \
+            tests/browser/rendering/canvas-numeric-dem.spec.mjs \
+            --workers=1 --retries=0 --reporter=list
+      - name: Preserve actual natural-terrain frame captures and Chromium metrics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: terrain-natural-live-browser-evidence
+          path: test-results/
+          if-no-files-found: warn
+          retention-days: 14
       - name: Commit only verified canonical changes in this CI checkout
         run: |
           node --input-type=module <<'JS'
