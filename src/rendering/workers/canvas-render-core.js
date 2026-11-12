@@ -49,8 +49,21 @@ function canvasFallbackWorkerMain(self) {
     }
     function closeDemTile(tile) {
       tile.naturalSurface=null;
-      tile.land.close?.(); tile.ocean.close?.(); tile.political.close?.();
-      tile.alternate?.land.close?.(); tile.alternate?.ocean.close?.();
+      tile.land?.close?.(); tile.ocean?.close?.(); tile.political?.close?.();
+      tile.alternate?.land?.close?.(); tile.alternate?.ocean?.close?.();
+    }
+    function releaseUnusedNumericPlanes(tile) {
+      // The actual Canvas drawing path uses tile.raw and samples destination
+      // pixels numerically. Cached precolored planes are optional and must
+      // not displace the independently observed natural-color source.
+      if(!tile?.raw)return false;
+      discardDemAlternate(tile);
+      const pixels=tile.width*tile.height,bytes=pixels*12;
+      if(!tile.land||!tile.ocean||!tile.political)return false;
+      tile.land.close?.();tile.ocean.close?.();tile.political.close?.();
+      tile.land=tile.ocean=tile.political=null;
+      tile.bytes-=bytes;demCacheBytes-=bytes;
+      return true;
     }
     function discardDemAlternate(tile) {
       if (!tile.alternate) return;
@@ -553,6 +566,15 @@ function canvasFallbackWorkerMain(self) {
         try{request=terrainNaturalTileRequest(spec,terrainDemManifest);}catch{naturalFailures.add(spec.key);continue;}
         if(!request)continue;
         const bytes=(spec.pixelWidth+2)*(spec.pixelHeight+2)*4;
+        if(demCacheBytes+naturalReservedBytes+bytes>demCacheLimit){
+          // Only while the optional observed-image preview is requested,
+          // release redundant colored planes of numeric-capable visible tiles
+          // before conceding natural coverage. The source DEM stays resident.
+          for(const candidate of plan.drawSpecs){
+            if(demCacheBytes+naturalReservedBytes+bytes<=demCacheLimit)break;
+            releaseUnusedNumericPlanes(demTiles.get(candidate.key));
+          }
+        }
         if(demCacheBytes+naturalReservedBytes+bytes>demCacheLimit)continue;
         const source=terrainDemManifest,controller=new AbortController(),task={controller,bytes};
         naturalRequests.set(spec.key,task);naturalReservedBytes+=bytes;naturalRequestsStarted++;
@@ -1210,6 +1232,9 @@ function canvasFallbackWorkerMain(self) {
         if(key!==naturalCatalogKey){
           resetCanvasNatural();naturalCatalogKey=key;naturalSurfaceCatalog=incoming;
           if(terrainDemManifest)terrainDemManifest=Object.freeze({...terrainDemManifest,naturalSurface:incoming});
+          // A late optional catalog must re-evaluate visible demand even when
+          // the user does not move the camera after the primary DEM settles.
+          requestLatestTerrainDemand();
         }
       }
       if (message.type === 'init') {
