@@ -135,9 +135,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          failed=0
           for i in 1 2 3; do
-            node scripts/p7-browser-ab-measure.mjs --label=p7 --measure-zoom=1 --out="$RUNNER_TEMP/renderer-$i.json"
+            mkdir -p "$RUNNER_TEMP/renderer-screenshots/$i"
+            node scripts/p7-browser-ab-measure.mjs --label=p7 --measure-zoom=1 --strict-frames=1 --screenshot-dir="$RUNNER_TEMP/renderer-screenshots/$i" --out="$RUNNER_TEMP/renderer-$i.json" || failed=1
           done
+          if [ "$failed" -ne 0 ]; then exit 1; fi
           node scripts/p7-browser-ab-measure.mjs --mode=aggregate --samples="$RUNNER_TEMP/renderer-1.json,$RUNNER_TEMP/renderer-2.json,$RUNNER_TEMP/renderer-3.json" --out="$RUNNER_TEMP/renderer-aggregate.json"
           node --input-type=module <<'NODE'
           import {readFileSync} from 'node:fs';
@@ -184,5 +187,6 @@ jobs:
             ${{ runner.temp }}/renderer-2.json
             ${{ runner.temp }}/renderer-3.json
             ${{ runner.temp }}/renderer-aggregate.json
+            ${{ runner.temp }}/renderer-screenshots/**
           if-no-files-found: warn
           retention-days: 14

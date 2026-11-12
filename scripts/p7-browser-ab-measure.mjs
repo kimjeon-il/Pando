@@ -112,6 +112,15 @@ async function sample(){
   let server=null,browser=null,page=null,cdp=null,processCdp=null,previousPerf=null;
   const performanceCounters=async()=>Object.fromEntries((await cdp.send('Performance.getMetrics')).metrics.map(x=>[x.name,x.value]));
   const snapshot=async(phase,elapsedMs)=>{
+    if(options['strict-frames']==='1'){
+      await page.waitForFunction(()=>{
+        const stats=globalThis.__PANDOLAB_VIEWER__?.rendererStats?.();
+        return stats?.terrainReady===true&&stats.terrainTargetLevel!=null
+          &&stats.terrainRenderedLevel===stats.terrainTargetLevel&&!stats.screenLodPreparingKey;
+      },null,{polling:250,timeout:180000});
+      // A timeout is a failed measurement, never a short successful sample.
+      await page.waitForFunction(()=>globalThis.__pandoAbFps?.gaps.length>=300,null,{polling:250,timeout:180000});
+    }
     const view=await page.evaluate(()=>{
       const api=globalThis.__PANDOLAB_VIEWER__,document=api?.documentSnapshot();
       const core=api?.documentState();
@@ -119,7 +128,10 @@ async function sample(){
         entities:document?.territorialEntities?.length,geometries:document?.geometries?.length,
         status:globalThis.document.getElementById('viewerStatus')?.dataset.ready};
     });
-    const raf=await page.evaluate(()=>globalThis.__pandoAbFps?.finish()||null);
+    const raf=await page.evaluate(strict=>globalThis.__pandoAbFps?.finish(strict)||null,options['strict-frames']==='1');
+    if(options['strict-frames']==='1'&&options['screenshot-dir']){
+      await page.screenshot({path:options['screenshot-dir']+'/'+phase+'.png'});
+    }
     await cdp.send('HeapProfiler.collectGarbage').catch(()=>{});
     const byName=await performanceCounters();
     const cpuMs=Object.fromEntries(['TaskDuration','ScriptDuration','LayoutDuration','RecalcStyleDuration'].map(name=>{
@@ -157,14 +169,17 @@ async function sample(){
         started:performance.now(),active:true,last:null,gaps:[],
         glCalls:0,
         start(){this.started=performance.now();this.active=true;this.last=null;this.gaps=[];this.glCalls=0;},
-        finish(){
+        finish(includeRaw=false){
           this.active=false;
           const duration=Math.max(1,performance.now()-this.started);
           const gaps=[...this.gaps].sort((a,b)=>a-b);
           return {rafFps:Math.round(gaps.length*10000/duration)/10,
             maxFrameGapMs:gaps.length?Math.round(gaps.at(-1)*10)/10:null,
+            p50FrameGapMs:gaps.length?Math.round(gaps[Math.floor((gaps.length-1)*0.50)]*10)/10:null,
             p95FrameGapMs:gaps.length?Math.round(gaps[Math.floor((gaps.length-1)*0.95)]*10)/10:null,
-            rafFrames:gaps.length,durationMs:Math.round(duration),glDrawCalls:this.glCalls};
+            p99FrameGapMs:gaps.length?Math.round(gaps[Math.floor((gaps.length-1)*0.99)]*10)/10:null,
+            rafFrames:gaps.length,durationMs:Math.round(duration),glDrawCalls:this.glCalls,
+            ...(includeRaw?{frameGapsMs:[...this.gaps]}:{})};
         },
       };
       const tick=now=>{if(meter.active){if(meter.last!==null)meter.gaps.push(now-meter.last);meter.last=now;}requestAnimationFrame(tick);};
@@ -225,10 +240,12 @@ async function sample(){
         await page.waitForFunction(()=>Math.abs(
           globalThis.__PANDOLAB_MAP_HOST__?.getViewState()?.globeZoom-32)<0.01,
           null,{timeout:20000,polling:100});
-        await page.waitForFunction(()=>{
+        const lodReady=page.waitForFunction(()=>{
           const s=globalThis.__PANDOLAB_VIEWER__?.rendererStats?.();
           return s?.screenLodTargetKey && !s?.screenLodPreparingKey;
-        },null,{timeout:20000,polling:200}).catch(()=>{});
+        },null,{timeout:20000,polling:200});
+        if(options['strict-frames']==='1')await lodReady;
+        else await lodReady.catch(()=>{});
         // One bounded settle interval samples the accepted visual frame as
         // well as any expensive LOD preparation; never claim GPU timing.
         await page.waitForTimeout(750);
