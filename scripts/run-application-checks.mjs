@@ -65,6 +65,16 @@ export function dispatchSelectedChecks({repository,selection,command=(args)=>exe
   return {ok:true,results:[{id:'selected-native-ci',status:'passed',url:run.url,head,requestId}],externalChecks:[]};
 }
 
+// Unit suites that start a real Playwright browser need an executable in the
+// non-browser CI phase too. Installing Chromium for every unit suite is wasteful.
+export function selectedUnitTestsNeedBrowser(plan,{repository}={}) {
+  if(typeof repository?.read!=='function')return false;
+  return (plan.unitTests||[]).some(file=>{
+    const source=repository.read(file);
+    return /\b(?:from\s*|import\s*\(\s*|require\s*\(\s*)['"](?:@playwright\/test|playwright)(?:\/[^'"]+)?['"]/.test(source);
+  });
+}
+
 export function executionOutputs(plan, { repository, ...options } = {}) {
   const { phase } = executionOptions(options), required = new Set();
   const include = id => {
@@ -82,6 +92,7 @@ export function executionOutputs(plan, { repository, ...options } = {}) {
   return {
     checks: nonBrowser || count > 0, non_browser: nonBrowser, browser: count > 0, browser_count: count,
     runtime_data: runtimeData,
+    unit_browser: phase !== 'browser' && selectedUnitTestsNeedBrowser(plan,{repository}),
     browser_matrix: { include: Array.from({ length: total }, (_, i) => ({ current: i + 1, total })) },
     gis_native: phase !== 'browser' && (required.has('native-hydro-point-screen') ||
       required.has('native-territorial-recipe') || required.has('native-caspian-oracle') ||

@@ -12,6 +12,18 @@ import * as runner from "../../../scripts/run-application-checks.mjs";
 
 const executePlan=(plan,options)=>executeCiPlan(plan,{...options,environment:{GITHUB_ACTIONS:'true'}});
 
+test('Playwright imports in selected unit suites request a browser only in their non-browser phase',()=>{
+ const repository={catalog:{groups:[],prerequisites:{},metadataOnlyTests:[]},
+   read:file=>file.endsWith('with-browser.test.mjs')
+     ? "import {chromium} from '@playwright/test';" : "import test from 'node:test';"};
+ const plan={prerequisites:[],commands:[],
+   unitTests:['tests/unit/rendering/with-browser.test.mjs'],browserSpecs:[]};
+ assert.equal(executionOutputs(plan,{repository,phase:'non-browser'}).unit_browser,true);
+ assert.equal(executionOutputs(plan,{repository,phase:'browser'}).unit_browser,false);
+ assert.equal(executionOutputs({...plan,unitTests:['tests/unit/ordinary.test.mjs']},
+   {repository,phase:'non-browser'}).unit_browser,false);
+});
+
 test('only proven metadata-only unit selections omit runtime data preparation',()=>{
  const repository={catalog:{groups:[],prerequisites:{},metadataOnlyTests:['tests/unit/planner.test.mjs']}};
  const plan={prerequisites:[],commands:[],unitTests:['tests/unit/planner.test.mjs'],browserSpecs:[]};
