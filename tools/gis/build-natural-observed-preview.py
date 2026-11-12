@@ -175,7 +175,12 @@ def polar_grid(path,times,shape,transform):
         index=min(range(len(rows)),key=lambda i:abs(rows[i]-2021.0))
         if abs(rows[index]-2021.0)>0.26:raise ValueError('No observed polar mask at the chosen fixed 2021 reference')
         small=src.read(index+1,out_shape=(128,128),resampling=Resampling.nearest,masked=True)
-        values=set(np.unique(small.compressed()).tolist())
+        sampled=small.compressed()
+        # When a floating mask has no declared NoData, IEEE NaN explicitly
+        # denotes absent observation. This is NOT ice=0 classification.
+        if src.nodata is None and src.dtypes[index].startswith('float'):
+            sampled=sampled[~np.isnan(sampled)]
+        values=set(np.unique(sampled).tolist())
         if not values.issubset({0,1}):raise ValueError('Polar source is not a binary ice mask: '+str(values))
         # Floating source masks can contain IEEE NaN outside the observed
         # footprint even when TIFF nodata metadata is absent. Treat precisely
