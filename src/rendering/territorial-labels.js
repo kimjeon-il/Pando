@@ -6,6 +6,8 @@ import { isBuiltinPlaceId } from "../document/place-contract.js";
 import { mapPlaceLabelRowsAtMonth } from "../data/place-name-policy.js";
 import { temporalMonthEnd } from "../document/temporal.js";
 import { territorialLabelFlag } from "./territorial-label-flags.js";
+import { mapStylePreset } from "../ui/map-style-presets.js";
+import { territorialNativeLabelRows } from "../ui/territorial-native-label.js";
 import { effectiveTerritorialFlagUrl } from "../ui/country-flags.js";
 import { territorialPaintRole, territorialSymbolVisibility } from "../ui/layer-presentation.js";
 import { createTerritorialFillResolver } from "./territorial-fill-style.js";
@@ -174,6 +176,11 @@ export function createTerritorialLabels({ capabilities = {builtinPlaces:true,eag
     const zoom = frameContext.viewState.zoom;
     const renderCountries = (0, dependencies.countries.builtinTerritorialScene)();
     const visibility = territorialSymbolVisibility(dependencies.projectState.state);
+    const mapStyle = mapStylePreset(dependencies.preferences.userPreferences?.appearance?.mapStyle);
+    // Map themes choose symbol appearance; obsolete per-symbol visibility toggles do not override them.
+    visibility.name = dependencies.projectState.state.layerVisibility?.objects !== false;
+    visibility.flag = visibility.name && mapStyle.flags;
+    const territorialRows = new Map();
     const flagOptions = {
       zoom, enabled: true,
       isVisible: feature => visibility.flag,
@@ -186,6 +193,10 @@ export function createTerritorialLabels({ capabilities = {builtinPlaces:true,eag
       const id = String(feature.id || '');
       const group = 'objects';
       const namesVisible = visibility.name;
+      const rows = territorialNativeLabelRows(feature, dependencies.projectState.state.timelineCursor, {
+        zoom, enabled: dependencies.preferences.userPreferences?.labels?.place?.showNativeNames === true,
+      });
+      territorialRows.set(id, rows);
       const labelRef = renderCountries.labelRefs.get(id);
       if (!(0, dependencies.layerPresentation.isLayerItemVisible)(group, labelRef?.id || id)) continue;
       if (!(0, dependencies.layerPresentation.isLayerItemVisible)('objectLabels', id) || dependencies.labelPresentation.pendingCountryLabelAnchors.has(id)) continue;
@@ -203,6 +214,10 @@ export function createTerritorialLabels({ capabilities = {builtinPlaces:true,eag
       const baseMetrics = territorialLabelScreenMetrics(displayFeature, (0, dependencies.surfaces.isMobile)() ? 8 : 9, null, feature, frameContext);
       const fontSize = baseMetrics.area >= ((0, dependencies.surfaces.isMobile)() ? 3200 : 2200) ? ((0, dependencies.surfaces.isMobile)() ? 10 : 12) : (0, dependencies.surfaces.isMobile)() ? 8 : 9;
       const metrics = territorialLabelScreenMetrics(displayFeature, fontSize, baseMetrics, feature, frameContext);
+      if (rows.length > 1) {
+        metrics.textWidth = Math.max(metrics.textWidth, rows[1].text.length * fontSize);
+        metrics.textHeight += fontSize * 1.2;
+      }
       territorialLabelScreenAreas.set(id, metrics.area);
       if (namesVisible && !selected && !shouldShowTerritorialLabel(feature, metrics)) continue;
       candidates.push({
@@ -280,6 +295,7 @@ export function createTerritorialLabels({ capabilities = {builtinPlaces:true,eag
     return {
       territorialLabels: placedTerritorialLabels.map(item => item.source),
       territorialLabelNames: new Map(placedTerritorialLabels.map(item => [String(item.source.id), item.nameVisible])),
+      territorialLabelRows: new Map(placedTerritorialLabels.map(item => [String(item.source.id), territorialRows.get(String(item.source.id)) || []])),
       territorialFlags,
       userLabels: placedUserLabels.map(item => item.source),
       userLabelRows: new Map(placedUserLabels.map(item => [String(item.source.id), item.rows])),

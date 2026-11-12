@@ -332,3 +332,5 @@
   fill: none;
   stroke-width: 1.5px;
 }
+
+.country-label .user-label-secondary { font-size: .72em; font-weight: 400; opacity: .84; letter-spacing: normal; }

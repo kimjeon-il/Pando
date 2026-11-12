@@ -40,8 +40,11 @@ export function createLabelPresentation({ labels,selectionDomain,reportDiagnosti
     enter.append('text').attr('class', 'country-label').attr('dy', '.35em');
     const all = layer.selectAll('g.territorial-label-item');
     all.attr('data-label-id', feature => String(feature.id || ''));
-    all.select('text').text(feature => namesVisible(feature) ? labels.countryName?.(feature) || feature.properties?.name || '' : '')
-      .style('display', feature => namesVisible(feature) ? null : 'none')
+    all.select('text').each(function(feature) {
+      const primary = labels.countryName?.(feature) || feature.properties?.name || '';
+      const rows = resolvedLayout?.territorialLabelRows?.get(String(feature.id)) || [{ language: 'ko', text: primary }];
+      renderLabelText(labels.d3.select(this), namesVisible(feature) ? rows : [], { x: 0 });
+    }).style('display', feature => namesVisible(feature) ? null : 'none')
       .classed('major', d => (resolvedLayout?.territorialLabelScreenAreas?.get(String(d.id || '')) || 0) >= (labels.isMobile?.() ? 3200 : 2200));
     all
       .classed('major', d => (resolvedLayout?.territorialLabelScreenAreas?.get(String(d.id || '')) || 0) >= (labels.isMobile?.() ? 3200 : 2200))
@@ -61,10 +64,12 @@ export function createLabelPresentation({ labels,selectionDomain,reportDiagnosti
       const text = this.querySelector('text');
       const image = this.querySelector('image');
       if (flag?.url === image.dataset.failedUrl) flag = null;
-      text.setAttribute('x', flag && nameVisible ? (flag.width + flag.gap) / 2 : 0);
+      const shift = flag && nameVisible ? (flag.width + flag.gap) / 2 : 0;
+      text.setAttribute('x', shift);
+      for (const span of text.querySelectorAll('tspan')) span.setAttribute('x', shift);
       image.style.display = flag ? '' : 'none';
       if (flag) {
-        const width = nameVisible ? text.getComputedTextLength() : 0;
+        const width = nameVisible ? Math.max(0, ...[...text.querySelectorAll('tspan')].map(span => span.getComputedTextLength())) : 0;
         image.setAttribute('x', nameVisible ? -(width + flag.width + flag.gap) / 2 : -flag.width / 2);
         image.setAttribute('y', -flag.height / 2);
         image.setAttribute('width', flag.width); image.setAttribute('height', flag.height);

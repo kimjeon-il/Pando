@@ -47,7 +47,7 @@ test('current preferences retain only label and composable selection settings', 
   assert.deepEqual(preferences, {
     backgrounds:defaultUserPreferences().backgrounds,version: 2,
     timeline:{defaultWorldFollowCurrentMonth:true},
-    appearance: { theme: 'dark', smoothLines: true },
+    appearance: { theme: 'dark', mapStyle: 'standard', smoothLines: true },
     labels: { country: { font: 'serif', color: '#aa11bb' }, place: { font: 'gothic', color: '#123456', pointColor: '#abcdef', showNativeNames: false } },
     selection: { color: '#0f1e2d', outlineVisible: false, fillStrength: 0.6 },
   });
@@ -102,10 +102,10 @@ const { resolveMapInteractionStyle } = __unit_dep4;
 
 test('retired accent choices are discarded without changing other preferences', () => {
   const input = normalizeUserPreferences({ version: 2, appearance: { theme: 'light', accentPreset: 'purple', accentColor: '#ab12cd' }, labels: { country: { font: 'serif', color: '#123456' } }, selection: { color: '#ff0000', fillStrength: 0.8 } });
-  assert.deepEqual(input.appearance, { theme: 'light', smoothLines: true });
+  assert.deepEqual(input.appearance, { theme: 'light', mapStyle: 'standard', smoothLines: true });
   const storage = { value: null, setItem(_key, value) { this.value = value; } };
   const changed = saveUserPreferences(input, storage);
-  assert.deepEqual(JSON.parse(storage.value).appearance, { theme: 'light', smoothLines: true });
+  assert.deepEqual(JSON.parse(storage.value).appearance, { theme: 'light', mapStyle: 'standard', smoothLines: true });
   assert.deepEqual(changed.labels, input.labels);
   assert.deepEqual(changed.selection, input.selection);
 });
@@ -245,4 +245,25 @@ test('the shared resize owner unregisters viewport and DPR listeners before rest
   assert.equal(refreshes,1);assert.equal(queued,before);assert.equal(queries,3);assert.ok(disconnects>=2);
  }finally{for(const [key,descriptor]of Object.entries(saved)){if(descriptor)Object.defineProperty(globalThis,key,descriptor);else delete globalThis[key];}}
 });
+});
+
+import { territorialNativeLabelRows } from "../../../src/ui/territorial-native-label.js";
+import { mapStylePreset } from "../../../src/ui/map-style-presets.js";
+contractSuite('map styles and original-language labels', () => {
+  const test = __merge_dep0.default;
+  const assert = __merge_dep1.default;
+  test('map theme presets preserve defined terrain and symbol policies', () => {
+    assert.equal(mapStylePreset('standard').terrain, 'physical');
+    assert.equal(mapStylePreset('minimal').flags, false);
+    assert.equal(mapStylePreset('classic').cityMarker, 'outline');
+  });
+  test('original names are only shown for valid historical periods and sufficient zoom', () => {
+    const feature = { properties: { name: '한국', metadata: { nativeNames: [
+      { text: '조선', validFrom: '1801-01', validTo: '1897-09' },
+      { text: '대한제국', validFrom: '1897-10', validTo: '1910-08' },
+    ] } } };
+    assert.equal(territorialNativeLabelRows(feature, '1900-05', { zoom: 8, enabled: true })[1].text, '대한제국');
+    assert.equal(territorialNativeLabelRows(feature, '1900-05', { zoom: 7, enabled: true }).length, 1);
+    assert.equal(territorialNativeLabelRows(feature, '2000-05', { zoom: 8, enabled: true }).length, 1);
+  });
 });
