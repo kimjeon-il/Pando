@@ -1,4 +1,18 @@
 // Experimental CPU raster: never registered as a Viewer backend.
+export function createHeightShadeLookup(api,theme='light') {
+  if(!api)throw new TypeError('Numerical terrain color owner required');
+  const input=new Uint8ClampedArray(6501*4);
+  for(let h=0;h<=6500;h++){const n=h+12000,i=h*4;input[i]=n>>8;input[i+1]=n&255;input[i+2]=212;input[i+3]=255;}
+  const palette=api.convertTile({dem:input,width:6501,height:1,theme,includePolitical:false}).land;
+  const flat=.27+.73*Math.SQRT1_2;
+  const factor=shade=>{const i=Math.max(0,(shade/255-.42)/.58);return Math.max(.38,Math.min(1.3,Math.max(.16,Math.min(1,flat+((.27+.73*i)-flat)*1.3))/flat));};
+  const baseline=factor(212),lookup=new Uint32Array(6501*256),factors=Array.from({length:256},(_,s)=>factor(s)/baseline);
+  for(let h=0;h<=6500;h++)for(let shade=0;shade<256;shade++){
+    const m=factors[shade],i=h*4,r=Math.max(0,Math.min(255,Math.round(palette[i]*m))),g=Math.max(0,Math.min(255,Math.round(palette[i+1]*m))),b=Math.max(0,Math.min(255,Math.round(palette[i+2]*m)));
+    lookup[h*256+shade]=(0xff000000|(b<<16)|(g<<8)|r)>>>0;
+  }
+  return lookup;
+}
 export function createTerrainLookupSampler({api,dem,width,height,theme='light'}) {
   if(!api||dem?.length!==width*height*4||!Number.isInteger(width)||!Number.isInteger(height)||width<1||height<1)
     throw new TypeError('Invalid terrain lookup input');

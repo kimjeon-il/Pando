@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import '../../../src/rendering/workers/canvas-terrain-dem-core.js';
 import {createPchip} from '../../../scripts/terrain-experiment/quality.mjs';
-import {rasterizeTerrainTriangle,rasterizeTerrainTriangleScanline,createTerrainLookupSampler} from '../../../scripts/terrain-experiment/canvas-numeric-raster.mjs';
+import {rasterizeTerrainTriangle,rasterizeTerrainTriangleScanline,createTerrainLookupSampler,createHeightShadeLookup} from '../../../scripts/terrain-experiment/canvas-numeric-raster.mjs';
 
 const {convertTile}=globalThis.PandoLabCanvasTerrainDem;
 function sample(height,shade=212,extra={}) {
@@ -98,6 +98,35 @@ test('scanline terrain raster matches the original for clipped and reversed tria
     const count=rasterizeTerrainTriangle({sampler,pixels:a,width:8,height:6,destination,source});
     assert.equal(rasterizeTerrainTriangleScanline({sampler,pixels:b,width:8,height:6,destination,source}),count);
     assert.deepEqual(b,a);
+  }
+});
+
+test('height-shade lookup approximates the canonical palette across themes',()=>{
+  const api=globalThis.PandoLabCanvasTerrainDem;
+  for(const theme of ['light','dark']){
+    const table=createHeightShadeLookup(api,theme),pixel=new Uint8Array(4),view=new DataView(table.buffer);
+    for(const h of [0,100,255,512,999,2500,5000,6500])for(const shade of [96,140,180,212,255]){
+      const value=view.getUint32((h*256+shade)*4,true);pixel[0]=value&255;pixel[1]=(value>>8)&255;pixel[2]=(value>>16)&255;pixel[3]=value>>>24;
+      const expected=sample(h,shade,{theme}).land;
+      for(let c=0;c<4;c++)assert.ok(Math.abs(pixel[c]-expected[c])<=2,`${theme} ${h} ${shade} ${c}`);
+    }
+  }
+});
+
+test('height-shade lookup error stays bounded across sampled heights and all byte shades',()=>{
+  const api=globalThis.PandoLabCanvasTerrainDem,heights=[];
+  for(let h=0;h<=6500;h+=53)heights.push(h);heights.push(6500);
+  const dem=new Uint8ClampedArray(heights.length*256*4);
+  heights.forEach((height,index)=>{for(let shade=0;shade<256;shade++){
+    const n=height+12000,at=(index*256+shade)*4;dem.set([n>>8,n&255,shade,255],at);
+  }});
+  for(const theme of ['light','dark']){
+    const table=createHeightShadeLookup(api,theme),view=new DataView(table.buffer);
+    const expected=api.convertTile({dem,width:256,height:heights.length,theme,includePolitical:false}).land;
+    heights.forEach((height,index)=>{for(let shade=0;shade<256;shade++){
+      const value=view.getUint32((height*256+shade)*4,true),at=(index*256+shade)*4;
+      for(let c=0;c<3;c++)assert.ok(Math.abs(((value>>>(8*c))&255)-expected[at+c])<=2,`${theme} ${height} ${shade} ${c}`);
+    }});
   }
 });
 test('land palette has eight independent sRGB stops in both themes',()=>{
