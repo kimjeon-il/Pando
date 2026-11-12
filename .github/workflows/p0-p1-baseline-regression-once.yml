@@ -1,0 +1,36 @@
+name: P0 P1 original-main baseline real Chromium regression
+on:
+  push:
+    branches: [work/p0-p1-baseline-regression-20261112]
+    paths: [.github/workflows/p0-p1-baseline-regression-once.yml]
+permissions:
+  contents: read
+jobs:
+  base-gpu-recovery:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - uses: ./.github/actions/library-data
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Baseline original-main recovery regression
+        run: pnpm exec playwright test tests/browser/rendering/viewer-renderer-recovery.spec.mjs --workers=1 --retries=0 --reporter=list
+  base-viewer-functional:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - uses: ./.github/actions/library-data
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Baseline P6 desktop and mobile functional contracts
+        run: pnpm exec playwright test tests/integration/viewer-functional-p6-1.spec.mjs tests/integration/viewer-functional-p6-2.spec.mjs --workers=1 --retries=0 --reporter=list
