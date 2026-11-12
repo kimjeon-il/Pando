@@ -39,8 +39,8 @@ jobs:
         uses: ./.github/actions/library-data
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - run: pnpm exec playwright install --with-deps chromium
-      - name: Smoke-test regional A1, B and C in the actual Viewer
-        run: node scripts/terrain-experiment/viewer-compare.mjs --smoke --cog --out="$RUNNER_TEMP/terrain-regional-smoke"
+      - name: Smoke-test regional A1, B, C and D in the actual Viewer
+        run: node scripts/terrain-experiment/viewer-compare.mjs --smoke --cog --screen --out="$RUNNER_TEMP/terrain-regional-smoke"
       - name: Keep measurements and screenshots including failures
         if: always()
         uses: actions/upload-artifact@v4
