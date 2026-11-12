@@ -13,7 +13,7 @@ export async function openViewerCogTiles({url,cogManifest,tileManifest,tileSize,
     (cogManifest.region||'southwest-china')!==region||!Number.isSafeInteger(maxTileCacheBytes)||maxTileCacheBytes<0)
     throw new TypeError('Invalid COG Viewer fixture identities');
   const records=tileManifest.records.filter(record=>record.tileSize===tileSize&&record.region===region),factor=1024/tileSize;
-  if(![4*factor*factor,15*factor*factor].includes(records.length))throw Error('Incomplete COG Viewer tile inventory');
+  if(![4*factor*factor,15*factor*factor,20*factor*factor].includes(records.length))throw Error('Incomplete COG Viewer tile inventory');
   const byKey=new Map();
   for(const record of records){
     const x=record.window[0]+record.offset[0],y=record.window[1]+record.offset[1];
@@ -24,7 +24,7 @@ export async function openViewerCogTiles({url,cogManifest,tileManifest,tileSize,
   }
   const xs=[...byKey.values()].map(entry=>entry.x/tileSize),ys=[...byKey.values()].map(entry=>entry.y/tileSize);
   const width=Math.max(...xs)-Math.min(...xs)+1,height=Math.max(...ys)-Math.min(...ys)+1;
-  if(width*height!==records.length||!((width===2*factor&&height===2*factor)||(width===5*factor&&height===3*factor)))
+  if(width*height!==records.length||!((width===2*factor&&height===2*factor)||(width===5*factor&&(height===3*factor||height===4*factor))))
     throw Error('Incomplete rectangular COG Viewer tile inventory');
   const {tiff,statistics}=await openVerifiedCog({url,manifest:cogManifest,fetchFn,maxCacheBytes:maxChunkCacheBytes});
   const image=await tiff.getImage(0),cached=new Map(),counts={decodedTiles:0,reusedTiles:0,pngCacheBytes:0,tileEvictions:0,maxTileCacheBytes};

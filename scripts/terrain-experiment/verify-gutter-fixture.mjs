@@ -8,8 +8,8 @@ import {cutGutterTiles} from './gutter-fixture.mjs';
 
 const [root,out]=process.argv.slice(2);if(!root||!out)throw Error('Expected fixture directory and new report file');
 const manifest=JSON.parse(await readFile(join(root,'gutter-report.json'),'utf8'));
-if(manifest.schema!=='pando-terrain-gutter-fixture-v1'||(!manifest.block2&&!manifest.coverage5x3))throw Error('Expected a regional multi-block fixture');
-const expectedBlocks=manifest.coverage5x3?15:4,expectedBoundaries=manifest.coverage5x3?22:4;
+if(manifest.schema!=='pando-terrain-gutter-fixture-v1'||(!manifest.block2&&!manifest.coverage5x3&&!manifest.coverage5x4))throw Error('Expected a regional multi-block fixture');
+const expectedBlocks=manifest.coverage5x4?20:manifest.coverage5x3?15:4,expectedBoundaries=manifest.coverage5x4?31:manifest.coverage5x3?22:4;
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex'),results=[];
 for(const region of [...new Set(manifest.records.map(record=>record.region))]){
   const records=manifest.records.filter(record=>record.region===region),blocks=[];let subtiles=0,boundaries=0;

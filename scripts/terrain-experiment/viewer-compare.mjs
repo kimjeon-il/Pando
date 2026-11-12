@@ -18,10 +18,10 @@ const region=process.argv.find(arg=>arg.startsWith('--region='))?.slice('--regio
 if(!['southwest-china','thai-lowland','himalaya','netherlands-coast'].includes(region))throw Error('Unknown representative region');
 const projection=process.argv.find(arg=>arg.startsWith('--projection='))?.slice('--projection='.length)||'globe';
 if(!['flat','globe'].includes(projection))throw Error('Unknown experiment projection');
-const revision=region==='himalaya'?'fd49d594c831dc753026aa2ebe3dd05a0b2cb038':'11c1d4be35ec3d5aeab57393f2f947f6d810ad7d';
-const fixtureFolder=region==='himalaya'?'fixtures-himalaya':'fixtures-coverage';
-const base=`https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/${revision}/reports/development/performance/terrain-architecture-2026-11-12/p2/${fixtureFolder}/webp/`;
-const manifestHash=region==='himalaya'?'a9294ac3f548e78b47d8ef9b2444569d22ae423f916e0c1f02217f50bc44d0dc':'3093b6164d6907ce78f48e2ceade139274aea73827c124f878b721407eaa7e82';
+const revision=region==='southwest-china'?'523a446540dabc0cd69fc8e6484a0288b6999dd3':region==='himalaya'?'fd49d594c831dc753026aa2ebe3dd05a0b2cb038':'11c1d4be35ec3d5aeab57393f2f947f6d810ad7d';
+const fixturePath=region==='southwest-china'?'p4/china-5x4-fixtures':`p2/${region==='himalaya'?'fixtures-himalaya':'fixtures-coverage'}`;
+const base=`https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/${revision}/reports/development/performance/terrain-architecture-2026-11-12/${fixturePath}/webp/`;
+const manifestHash=region==='southwest-china'?'fe5c13892c0fd295e93fdeac9bf695649a382e11a0ddd6ed55ef79ac55b1d778':region==='himalaya'?'a9294ac3f548e78b47d8ef9b2444569d22ae423f916e0c1f02217f50bc44d0dc':'3093b6164d6907ce78f48e2ceade139274aea73827c124f878b721407eaa7e82';
 const digest=bytes=>createHash('sha256').update(bytes).digest('hex');
 const out=process.argv.find(arg=>arg.startsWith('--out='))?.slice(6);
 const smoke=process.argv.includes('--smoke');
@@ -51,14 +51,15 @@ if(sequence.some(candidate=>['a1','b512','screen'].includes(candidate))){
 }
 let cogManifest,cogBytes,cogBundle,cogSource;
 if(includeCog&&(!only||only==='cog')){
-  const hashes={'southwest-china':'b578c6f0e7e2df30d267c2ece476f7e889c149319595e710e6ae0110fef183ab',
+  const hashes={'southwest-china':'7b50a48bbce1b2a6439cf40ce4011e0a2a105d46765a8d4c6239583a475d92e3',
     'thai-lowland':'e49dde3cd8fff7ef1f73a401d222d517b57f092913c6e7c2f54649a7d273d8db',
     'himalaya':'69af568a879c2860032cd29452a042fcd72007a677273693705e22dde40c203d',
     'netherlands-coast':'2200c4247f04c524ad3656883bf2738b72e39f931731dc3243a16686070a739c'};
   const names={'southwest-china':'china','thai-lowland':'thai','himalaya':'himalaya','netherlands-coast':'netherlands'};
-  const settings={revision:region==='himalaya'?'fd49d594c831dc753026aa2ebe3dd05a0b2cb038':'0fc425921e1fb431ef35d9af6f5ac762f2b3a269',folder:`coverage-${names[region]}`,hash:hashes[region]};
+  const settings={revision:region==='southwest-china'?'523a446540dabc0cd69fc8e6484a0288b6999dd3':region==='himalaya'?'fd49d594c831dc753026aa2ebe3dd05a0b2cb038':'0fc425921e1fb431ef35d9af6f5ac762f2b3a269',
+    folder:region==='southwest-china'?'p4/china-5x4-fixtures/cog':`p3/coverage-${names[region]}`,hash:hashes[region]};
   cogSource=settings;
-  const root=`https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/${settings.revision}/reports/development/performance/terrain-architecture-2026-11-12/p3/${settings.folder}/`;
+  const root=`https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/${settings.revision}/reports/development/performance/terrain-architecture-2026-11-12/${settings.folder}/`;
   const response=await fetch(root+'manifest.json');if(!response.ok)throw Error('COG manifest download failed');
   const raw=Buffer.from(await response.arrayBuffer());
   if(digest(raw)!==settings.hash)throw Error('COG manifest hash mismatch');
