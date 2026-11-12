@@ -153,10 +153,6 @@ body.file-menu-open .app-root .topbar {
   z-index: 150;
 }
 
-.app-root[data-layout="mobile"] .map-display-command {
-  display: none;
-}
-
 .app-root .topbar-history {
   min-width: 0;
   display: flex;

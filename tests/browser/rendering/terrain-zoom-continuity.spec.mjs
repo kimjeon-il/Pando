@@ -80,13 +80,13 @@ featureTest.describe("terrain-inheritance", () => {
 test.use({ viewport: { width: 1280, height: 800 } });
 
 for (const renderer of ['webgl2', 'canvas']) for (const mode of ['political', 'physical']) {
-  test(`child land enters the viewport and survives paint toggles (${renderer}, ${mode})`, async ({ page }, testInfo) => {
+  test(`child land enters the viewport and follows map themes (${renderer}, ${mode})`, async ({ page }, testInfo) => {
     test.setTimeout(120_000);
     const errors = [];
     page.on('pageerror', error => errors.push(error.message));
     await page.addInitScript(({ renderer, mode }) => {
       localStorage.setItem('pandolab-user-preferences', JSON.stringify({ version: 2,
-        backgrounds: { viewer: { terrainVisible: true, terrainStyle: mode } } }));
+        appearance: { mapStyle: mode === 'physical' ? 'standard' : 'classic' } }));
       if (renderer === 'canvas') {
         const original = window.HTMLCanvasElement.prototype.getContext;
         window.HTMLCanvasElement.prototype.getContext = function(type, ...args) {
@@ -133,30 +133,27 @@ for (const renderer of ['webgl2', 'canvas']) for (const mode of ['political', 'p
     await page.mouse.up();
     await expect(page.locator('#map')).not.toHaveClass(/dragging/);
     await expect.poll(hasChild, { timeout: 5000 }).toBe(true);
-    await page.locator('#mapDisplayBtn').click();
-    await page.locator('[data-map-display-row="objects"]').click();
-    const color = page.locator('[data-layer-style-color="objects"]');
-    await expect(color).toBeChecked();
-    const replacements = () => page.evaluate(() => window.__PANDOLAB_VIEWER__.rendererStats().canvasWorkerMessagesByType['replace-data'] || 0);
-    const replacementsBefore = await replacements();
-    const receipts = [];
-    for (const visible of [false, true]) {
-      await color.locator('..').click();
-      await expect(color).toBeChecked({ checked: visible });
-      await expect.poll(() => page.evaluate(key => window.__terrainPackets.find(packet => packet.key === key)?.style.fillAlpha,
-        childKey)).toBeCloseTo(visible ? mode === 'physical' ? .22 : .68 : 0);
-      const packet = await page.evaluate(key => {
-        const item = window.__terrainPackets.find(packet => packet.key === key);
-        return { key: item.key, role: item.role, style: item.style };
-      }, childKey);
+    const originalTheme=mode==='physical'?'standard':'classic';
+    const nextTheme=mode==='physical'?'classic':'standard';
+    const receipts=[];
+    for (const theme of [nextTheme,originalTheme]) {
+      await page.locator('#preferencesBtn').click();
+      await page.locator(`input[name="preferencesMapStyle"][value="${theme}"]`).locator('..').click();
+      await page.locator('#preferencesCloseBtn').click();
+      await expect(page.locator('html')).toHaveAttribute('data-map-style',theme);
+      await expect.poll(()=>page.evaluate(key=>window.__terrainPackets.find(packet=>packet.key===key)?.style.fillAlpha,childKey))
+        .toBeCloseTo(theme==='standard'?.22:0);
+      const packet=await page.evaluate(key=>{
+        const item=window.__terrainPackets.find(packet=>packet.key===key);
+        return {key:item.key,role:item.role,style:item.style};
+      },childKey);
       expect(packet.role).toBe('territorial-fill');
-      expect(packet.style.color).toBe(visible ? '#cc3333' : '');
-      if (renderer === 'canvas') expect(await replacements(), 'paint toggles must not resend the world geometry').toBe(replacementsBefore);
-      receipts.push({ visible, packet, replacements: await replacements() });
+      expect(packet.style.color).toBe(theme==='standard'?'#cc3333':'');
+      receipts.push({theme,packet});
     }
-    expect(await page.evaluate(() => window.__PANDOLAB_VIEWER__.documentState())).toEqual(documentBefore);
+    expect(await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentState())).toEqual(documentBefore);
     expect(errors).toEqual([]);
-    await writeFile(testInfo.outputPath('child-land-and-transport.json'), JSON.stringify({ renderer, mode, receipts }, null, 2));
+    await writeFile(testInfo.outputPath('child-land-and-transport.json'),JSON.stringify({renderer,mode,receipts},null,2));
   });
 }
 });

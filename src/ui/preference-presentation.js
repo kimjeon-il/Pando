@@ -13,8 +13,9 @@ export function createPreferencePresentation({document,window,productMode,onChan
   function render(){
     const root=document.documentElement,theme=effectiveTheme(current,systemTheme==='dark');
     root.dataset.systemTheme=systemTheme;root.dataset.theme=theme;
+    root.dataset.mapStyle=current.appearance.mapStyle;
     root.dataset.smoothLines=String(current.appearance.smoothLines);
-    accent=applyAppAccent(document,current.appearance.accentPreset);
+    accent=applyAppAccent(document);
     for(const kind of ['country','place']){
       const labels=current.labels[kind];root.style.setProperty(`--${kind}-label-font-family`,FONT_STACKS[labels.font]||FONT_STACKS.default);
       const key=`--${kind}-label-color`;if(labels.color)root.style.setProperty(key,labels.color);else root.style.removeProperty(key);
@@ -31,8 +32,22 @@ export function createPreferencePresentation({document,window,productMode,onChan
   }
   function applySystemTheme(matchesDark){systemTheme=matchesDark?'dark':'light';apply(current,{persist:false,reason:'system-theme'});}
   const onSystemTheme=event=>applySystemTheme(event.matches);
+  const refreshSystemAccent=()=>{
+    if(document.visibilityState==='hidden')return;
+    const previous=accent;
+    render();
+    if(accent!==previous)onChange({reason:'system-accent',rerender:true,interactionStyle});
+  };
   render();systemThemeQuery.addEventListener('change',onSystemTheme);
-  return Object.freeze({apply,applySystemTheme,render,dispose:()=>systemThemeQuery.removeEventListener('change',onSystemTheme),
+  window.addEventListener('focus',refreshSystemAccent);
+  window.addEventListener('pageshow',refreshSystemAccent);
+  document.addEventListener('visibilitychange',refreshSystemAccent);
+  return Object.freeze({apply,applySystemTheme,render,dispose:()=>{
+    systemThemeQuery.removeEventListener('change',onSystemTheme);
+    window.removeEventListener('focus',refreshSystemAccent);
+    window.removeEventListener('pageshow',refreshSystemAccent);
+    document.removeEventListener('visibilitychange',refreshSystemAccent);
+  },
     get current(){return current;},set current(value){current=value;},get accent(){return accent;},get interactionStyle(){return interactionStyle;},
     get systemTheme(){return systemTheme;},systemThemeQuery});
 }

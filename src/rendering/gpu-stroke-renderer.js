@@ -663,7 +663,7 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
       gl.disable(gl.SCISSOR_TEST); gl.disable(gl.STENCIL_TEST);
       gl.colorMask(true, true, true, true); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
       gl.enable(gl.BLEND); gl.blendEquation(coverageMaximum); gl.blendFunc(gl.ONE, gl.ONE);
-      // Geometry contributes coverage only. Color and effective owner opacity
+      // Geometry contributes coverage only. Color and canonical stroke alpha
       // are applied once below, including at dense joins and coincident edges.
       const draws = drawStyle(resource, { ...style, color: '#ffffff', alpha: 1, blendMode: 'normal' }, frameContext, ownerIds, plan);
       if (!draws) return 0;

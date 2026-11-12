@@ -150,8 +150,11 @@ test('river and lake authored styles are retained while saved viewing visibility
   legacyHydroInput.layerVisibility = { hydro:false };
   assert.throws(() => assertCurrentProjectSchema(legacyHydroInput), /지원하지 않는 필드 layerVisibility/);
   const canonical = currentProject();
-  canonical.layerPresentation.styles = { rivers: { opacity: 0.7 }, lakes: { opacity: 0.8, boundaryVisible: true } };
+  canonical.layerPresentation.styles = { rivers: { boundaryVisible: false }, lakes: { boundaryVisible: true } };
   assert.equal(assertCurrentProjectSchema(canonical).schemaVersion, PROJECT_SCHEMA_VERSION);
+  const unsupported = currentProject();
+  unsupported.layerPresentation.styles = { rivers: { opacity: 0.7 } };
+  assert.throws(() => assertCurrentProjectSchema(unsupported), /지원하지 않는 필드 opacity/);
 });
 
 

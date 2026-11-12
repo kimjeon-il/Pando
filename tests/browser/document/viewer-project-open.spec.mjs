@@ -45,10 +45,12 @@ test('viewer menus follow project replacement while builtin sources stay availab
     for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
       await page.setViewportSize(viewport);
       await openViewingDisplay(page);
-      for (const group of ['objects', 'genericFeatures']) await expect(page.locator(`[data-map-display-group="${group}"]`)).toBeHidden();
-      for (const group of ['rivers', 'lakes', 'labels', 'terrain']) await expect(page.locator(`[data-map-display-group="${group}"]`)).toBeVisible();
-      if (index === 1) await expect(page.locator('#distributionMenuGroup')).toBeVisible();
-      else await expect(page.locator('#distributionMenuGroup')).toBeHidden();
+      await expect(page.locator('#preferencesGenericSlot')).toBeHidden();
+      for (const id of ['preferencesRiversInput','preferencesLakesInput','preferencesGraticuleInput'])
+        await expect(page.locator('#'+id)).toBeVisible();
+      await expect(page.locator('input[name="preferencesMapStyle"]')).toHaveCount(3);
+      if (index === 1) await expect(page.locator('#preferencesDistributionSlot')).toBeVisible();
+      else await expect(page.locator('#preferencesDistributionSlot')).toBeHidden();
       if (index === 1 && viewport.width === 1440 || index === 2 && viewport.width === 390)
         await page.screenshot({ path: info.outputPath(`viewer-menu-${index}-${viewport.width}.png`) });
       await closeViewingDisplay(page);
@@ -169,15 +171,13 @@ test('Canvas viewer selects a saved country polygon body without changing projec
 
   await openViewingDisplay(page);
   // The fixture contains overlapping polygons; choose A explicitly from the real hit list.
-  // Hide labels and hydro layers so the click targets the actual polygon body.
-  for (const group of ['labels', 'rivers', 'lakes']) {
+  // Preserve the map theme's names and markers; toggle only independent hydro data.
+  for (const group of ['rivers', 'lakes']) {
     await setViewingLayer(page,group,false);
   }
-  await setViewingLayer(page,'objects',true);
-  await page.locator('#objectNamesVisible').locator('..').click();
   await closeViewingDisplay(page);
   await page.locator('#resetViewBtn').click();
-  await expect(page.locator('#map text')).toHaveCount(0);
+  await expect(page.locator('#preferencesModal')).toBeHidden();
   expect((await page.evaluate(() => window.__PANDOLAB_VIEWER__.selectionSnapshot())).items).toEqual([]);
   const priorDisplayedRevision = await page.evaluate(() => window.__PANDOLAB_VIEWER__.rendererStats().displayedRevision);
   await page.evaluate(()=>{const host=window.__PANDOLAB_MAP_HOST__;host.setViewState({projection:'globe',view:{...host.getViewState(),globeRotation:[-5,-5,0],globeZoom:4}});host.requestRepaint('canvas-body-selection');});
@@ -243,4 +243,89 @@ test('a map display request waits for Worker startup and preserves caller geomet
  });
  expect(result.count).toBeGreaterThan(0);expect(result.same).toBe(true);
 });
+});
+
+featureTest.describe('unified-settings-behavior', () => {
+  const {test,expect}=__suiteDependency0;
+  const {createViewerProjectPackage}=__suiteDependency1;
+  const {createDistributionLayer,createDistributionEntry}=__suiteDependency3;
+
+  test('map and screen themes, native names and graticule share one persistent settings dialog',async({page})=>{
+    test.setTimeout(150000);
+    const errors=[];page.on('pageerror',error=>errors.push(error.message));
+    await page.setViewportSize({width:1280,height:800});
+    await page.goto('/?debug=1');
+    await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:120000});
+    await expect(page.locator('#mapDisplayBtn,#mobileDisplayBtn,#mapDisplaySurface')).toHaveCount(0);
+    const documentBefore=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot());
+    await page.locator('#preferencesBtn').click();
+    await expect(page.locator('#preferencesModal')).toBeVisible();
+    await expect(page.locator('input[name="preferencesMapStyle"]')).toHaveCount(3);
+    await expect(page.locator('#preferencesGenericSlot')).toBeHidden();
+    await expect(page.locator('#preferencesDistributionSlot')).toBeHidden();
+    await page.locator('input[name="preferencesMapStyle"][value="classic"]').locator('..').click();
+    await expect(page.locator('html')).toHaveAttribute('data-map-style','classic');
+    await expect.poll(()=>page.evaluate(()=>JSON.parse(localStorage.getItem('pandolab-user-preferences')).appearance.mapStyle)).toBe('classic');
+    await page.locator('#preferencesNativeNamesInput').locator('..').click();
+    await expect(page.locator('#preferencesNativeNamesInput')).toBeChecked();
+    await page.locator('#preferencesGraticuleInput').locator('..').click();
+    await expect(page.locator('#preferencesGraticuleInput')).not.toBeChecked();
+    await page.locator('#preferencesCloseBtn').click();
+    await expect(page.locator('#preferencesModal')).toBeHidden();
+    await expect(page.locator('#preferencesBtn')).toBeFocused();
+    await page.locator('#preferencesBtn').click();
+    await expect(page.locator('input[name="preferencesMapStyle"][value="classic"]')).toBeChecked();
+    await expect(page.locator('#preferencesNativeNamesInput')).toBeChecked();
+    await expect(page.locator('#preferencesGraticuleInput')).not.toBeChecked();
+    await page.locator('#preferencesCloseBtn').click();
+    const preferences=await page.evaluate(()=>JSON.parse(localStorage.getItem('pandolab-user-preferences')));
+    expect(preferences.labels.place.showNativeNames).toBe(true);
+    expect(preferences.backgrounds.viewer.graticule).toBe(false);
+    expect(await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot())).toEqual(documentBefore);
+    expect(errors).toEqual([]);
+  });
+
+  test('real project data reveals generic and distribution controls without a View menu or project writes',async({page})=>{
+    test.setTimeout(180000);
+    const layer=createDistributionLayer({id:crypto.randomUUID(),name:'관측 분포',color:'#4466aa'});
+    const entry=createDistributionEntry({id:crypto.randomUUID(),layerId:layer.id,mode:'geometry',value:12,
+      geometry:{type:'Polygon',coordinates:[[[0,0],[2,0],[2,2],[0,0]]]}});
+    const generic={type:'Feature',id:crypto.randomUUID(),
+      geometry:{type:'Point',coordinates:[1,1]},
+      properties:{schemaVersion:2,name:'관측 지점',notes:'',color:'#8844cc',locked:false,
+        source:{kind:'user'}}};
+    const fixture=await createViewerProjectPackage('조건부 지도',{
+      genericFeatures:[generic],distributionLayers:[layer],distributionEntries:[entry],
+    });
+    const errors=[];page.on('pageerror',error=>errors.push(error.message));
+    await page.setViewportSize({width:1280,height:800});
+    await page.goto('/?debug=1');
+    await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:120000});
+    await page.locator('#projectFileInput').setInputFiles({name:'settings.gpkg',
+      mimeType:'application/geopackage+sqlite3',buffer:fixture.bytes});
+    await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot().documentId),
+      {timeout:120000}).toBe(fixture.project.documentId);
+    const before=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot());
+    await page.locator('#preferencesBtn').click();
+    await expect(page.locator('#preferencesGenericSlot')).toBeVisible();
+    await expect(page.locator('#preferencesDistributionSlot')).toBeVisible();
+    await page.locator('#genericFeaturesVisible').locator('..').click();
+    await expect(page.locator('#genericFeaturesVisible')).not.toBeChecked();
+    await page.locator('#preferencesDistributionBlendInput').selectOption('multiply');
+    await page.locator('#distributionSingleRadio').locator('..').click();
+    await expect(page.locator('#preferencesDistributionLayerRow')).toBeVisible();
+    await expect(page.locator('#distributionActiveLayerInput')).toHaveValue(layer.id);
+    await page.locator('#distributionBoundaryVisibleInput').locator('..').click();
+    await expect(page.locator('#distributionBoundaryVisibleInput')).not.toBeChecked();
+    await expect(page.locator('#distributionLegend')).toContainText('관측 분포');
+    await page.locator('#preferencesCloseBtn').click();
+    await page.locator('#preferencesBtn').click();
+    await expect(page.locator('#genericFeaturesVisible')).not.toBeChecked();
+    await expect(page.locator('#preferencesDistributionBlendInput')).toHaveValue('multiply');
+    await expect(page.locator('#distributionSingleRadio')).toBeChecked();
+    await expect(page.locator('#distributionBoundaryVisibleInput')).not.toBeChecked();
+    await page.locator('#preferencesCloseBtn').click();
+    expect(await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot())).toEqual(before);
+    expect(errors).toEqual([]);
+  });
 });

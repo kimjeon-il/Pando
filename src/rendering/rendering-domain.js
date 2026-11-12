@@ -27,6 +27,7 @@ export function createRenderingDomain({
   projectDomain = null,
   domLayers = null,
   labelResources = null,
+  getMapStyle = () => 'standard',
   countryResources = null,
   hydroResources = null,
   territorialResources = null,
@@ -127,7 +128,7 @@ export function createRenderingDomain({
     return point;
   };
   const {renderTerritorialLabels,renderUserLabels,renderTerritorialLabelPositions,renderUserLabelPositions}=createLabelPresentation({
-    labels,selectionDomain,reportDiagnostic,projectLabelCoordinate,active,stats});
+    labels,selectionDomain,reportDiagnostic,projectLabelCoordinate,active,stats,getMapStyle});
   const pendingHighlights = new Map();
   const canPresentFrame = (frame, result, options) => !gpuMapRenderer
     || gpuMapRenderer.canPresentVisualFrame(frame, result, options);

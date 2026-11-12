@@ -3619,15 +3619,12 @@ export function createGpuMapRenderer(deps) {
       const theme = mapTheme();
       const isLake = category === 'lake' || category === 'lake-boundary';
       if (state.layerVisibility[isLake ? 'lakes' : 'rivers'] === false) return;
-      const hydroOpacity = Number.isFinite(Number(isLake ? theme.lakeOpacity : theme.riverOpacity))
-        ? Math.max(0, Math.min(1, Number(isLake ? theme.lakeOpacity : theme.riverOpacity)))
-        : 1;
-      if (hydroOpacity <= 0 || (category === 'lake-boundary' && theme.lakeBoundaryVisible === false)) return;
+      if (category === 'lake-boundary' && theme.lakeBoundaryVisible === false) return;
       const program = category === 'river' || category === 'border-river' || category === 'lake-boundary'
         ? (picking ? hydroLinePickProgram : hydroLineProgram)
         : (picking ? hydroPickProgram : hydroFillProgram);
       const rgb = hydroDisplayColor(isLake ? 'lake' : 'river', true);
-      const color = [...rgb, hydroOpacity];
+      const color = [...rgb, 1];
       const roles = category === 'river' && !picking ? ['river', 'border-river'] : [category];
       const builtin = hydroPreparation.activeIds().map(id => hydroPreparation.pack(id)).filter(Boolean);
       const edits = picking ? [] : hydroPreparation.editEntries();
@@ -3641,7 +3638,7 @@ export function createGpuMapRenderer(deps) {
         for (const entry of builtin) drawEntry(entry, color);
         for (const entry of edits) {
           const editRgb = parseColor(entry.color).map(value => value / 255);
-          drawEntry(entry, [...editRgb, hydroOpacity]);
+          drawEntry(entry, [...editRgb, 1]);
         }
         return;
       }
@@ -3654,7 +3651,7 @@ export function createGpuMapRenderer(deps) {
       for (const entry of builtin) add(entry, color);
       for (const entry of edits) {
         const editRgb = parseColor(entry.color).map(value => value / 255);
-        add(entry, [...editRgb, hydroOpacity]);
+        add(entry, [...editRgb, 1]);
       }
       const nonEmpty = entry => roles.some(role => role === 'lake-boundary'
         ? entry.resources?.lakeBoundarySegmentCount > 0
@@ -4657,7 +4654,7 @@ export function createGpuMapRenderer(deps) {
       }
       const theme = mapTheme();
       const physicalSignature = [physicalStyleStateRevision, state.layerVisibility.rivers, state.layerVisibility.lakes,
-        theme.riverOpacity, theme.lakeOpacity, theme.lakeBoundaryVisible, theme.ocean,
+        theme.lakeBoundaryVisible, theme.ocean,
         state.physicalSettings.terrainVisible, state.physicalSettings.terrainStyle].join(':');
       if (physicalSignature !== canvasLastPhysicalStyleSignature) {
         canvasLastPhysicalStyleSignature = physicalSignature;

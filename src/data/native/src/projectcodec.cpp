@@ -381,8 +381,8 @@ void readPresentation(const V& value,ProjectDocument& d) {const unsigned schema=
             require(items.kind==V::Object,"INVALID_JSON: domain styles");
             for (const auto& [id,v]:items.object) {
                 const bool automatic=schema>=4 && field(v,"color").kind==V::Null;
-                d.presentation.objectStyles.emplace(ObjectRef{domain,id},ObjectStyle{automatic?0:color(field(v,"color")),number(field(v,"opacity")),!automatic});
-                unknown(d,10,v,pointer(path,id),{"color","opacity"});
+                d.presentation.objectStyles.emplace(ObjectRef{domain,id},ObjectStyle{automatic?0:color(field(v,"color")),!automatic});
+                unknown(d,10,v,pointer(path,id),{"color"});
             }
         }
         if(schema>=5) {
@@ -394,13 +394,12 @@ void readPresentation(const V& value,ProjectDocument& d) {const unsigned schema=
                     const bool supported=std::string(name)=="styles"?(presentationGroup(key)):key.rfind("territorial:entity:",0)==0;
                     require(supported,"UNSUPPORTED_PRESENTATION_KEY");
                     PresentationStyle s;require(value.kind==V::Object,"INVALID_JSON: presentation style");
-                    if(value.object.count("opacity"))s.opacity=number(field(value,"opacity"));
                     if(value.object.count("boundaryVisible"))s.boundaryVisible=boolean(field(value,"boundaryVisible"));
                     if(value.object.count("colorVisible"))s.colorVisible=boolean(field(value,"colorVisible"));
                     if(value.object.count("labelsVisible"))s.labelsVisible=boolean(field(value,"labelsVisible"));
                     if(value.object.count("boundaryWidth"))s.boundaryWidth=number(field(value,"boundaryWidth"));
                     if(value.object.count("blendMode"))s.blendMode=str(field(value,"blendMode"));
-                    target[key]=s;unknown(d,5,value,pointer(std::string("/presentation/webPresentation/")+name,key),{"opacity","colorVisible","boundaryVisible","labelsVisible","boundaryWidth","blendMode"});
+                    target[key]=s;unknown(d,5,value,pointer(std::string("/presentation/webPresentation/")+name,key),{"colorVisible","boundaryVisible","labelsVisible","boundaryWidth","blendMode"});
                 }
             };
             readStyles("styles",out.styles);readStyles("objectStyles",out.objectStyles);
@@ -466,7 +465,7 @@ namespace {
 V webPresentationValue(const ProjectDocument& d) {
     const auto& web=d.presentation.webPresentation;
     V groups=V::obj(),overrides=V::obj(),order=V::arr(),overlayOrder=V::arr();
-    auto writeStyles=[](const auto& source,V& target){for(const auto& [key,s]:source){V v=V::obj();if(s.opacity)v.object["opacity"]=V::num(*s.opacity);if(s.colorVisible)v.object["colorVisible"]=V::boolean(*s.colorVisible);if(s.boundaryVisible)v.object["boundaryVisible"]=V::boolean(*s.boundaryVisible);if(s.labelsVisible)v.object["labelsVisible"]=V::boolean(*s.labelsVisible);if(s.boundaryWidth)v.object["boundaryWidth"]=V::num(*s.boundaryWidth);if(s.blendMode)v.object["blendMode"]=V::str(*s.blendMode);target.object[key]=v;}};
+    auto writeStyles=[](const auto& source,V& target){for(const auto& [key,s]:source){V v=V::obj();if(s.colorVisible)v.object["colorVisible"]=V::boolean(*s.colorVisible);if(s.boundaryVisible)v.object["boundaryVisible"]=V::boolean(*s.boundaryVisible);if(s.labelsVisible)v.object["labelsVisible"]=V::boolean(*s.labelsVisible);if(s.boundaryWidth)v.object["boundaryWidth"]=V::num(*s.boundaryWidth);if(s.blendMode)v.object["blendMode"]=V::str(*s.blendMode);target.object[key]=v;}};
     writeStyles(web.styles,groups);writeStyles(web.objectStyles,overrides);for(const auto& key:web.objectOrder)order.array.push_back(V::str(key));for(const auto& key:web.overlayOrder)overlayOrder.array.push_back(V::str(key));
     auto distributionSettings=object({{"renderMode",V::str(web.distributionSettings.renderMode==DistributionRenderMode::Single?"single":"overlap")},{"activeLayerId",V::str(web.distributionSettings.activeLayerId)},{"boundaryVisible",V::boolean(web.distributionSettings.boundaryVisible)}});
     auto webValue=object({{"styles",groups},{"objectStyles",overrides},{"objectOrder",order},{"overlayOrder",overlayOrder},{"distributionSettings",distributionSettings}});
@@ -540,7 +539,7 @@ void readWebTerritorialIdentity(const V& row,ProjectDocument& d,const PlatformPo
         }
         if(metadata.object.count("nameSource")){const auto& state=field(metadata,"nameSource");unknown(d,10,state,"/metadata/nameSource",{"baseName","nameExplicit"});u.baseName=str(field(state,"baseName"));u.nameExplicit=boolean(field(state,"nameExplicit"));metadata.object.erase("nameSource");}
         if(metadata.object.count("libraryOrigin")){u.libraryOrigin=libraryOrigin(field(metadata,"libraryOrigin"),d,"/metadata/libraryOrigin");metadata.object.erase("libraryOrigin");}
-        u.metadata=metadata.encode();const auto& style=field(p,"style");unknown(d,10,style,"/entity/style",{"color"});ObjectStyle nativeStyle{0,1,false};if(style.object.count("color")){nativeStyle.color=color(field(style,"color"));nativeStyle.explicitColor=true;}require(d.presentation.objectStyles.emplace(owner,nativeStyle).second,"DUPLICATE_ENTITY_ID");d.units.push_back(std::move(u));
+        u.metadata=metadata.encode();const auto& style=field(p,"style");unknown(d,10,style,"/entity/style",{"color"});ObjectStyle nativeStyle{0,false};if(style.object.count("color")){nativeStyle.color=color(field(style,"color"));nativeStyle.explicitColor=true;}require(d.presentation.objectStyles.emplace(owner,nativeStyle).second,"DUPLICATE_ENTITY_ID");d.units.push_back(std::move(u));
 }
 const char* webContentGeometryDomain(const std::string& domain) {
     if(domain=="label")return "label";
@@ -860,7 +859,7 @@ namespace {
 V webIdentity(const ProjectDocument& d,const TerritorialUnit& u) {
 const auto owner=territorialRef(u.id);auto metadata=validatedEntityMetadata(u.metadata,true);if(const auto details=d.countryDetails.find(owner);details!=d.countryDetails.end())metadata.object["capital"]=V::str(details->second.capital);if(const auto symbol=d.symbols.find(owner);symbol!=d.symbols.end()&&symbol->second.policy!=FlagPolicy::Default)metadata.object["flagDataUrl"]=symbol->second.policy==FlagPolicy::None?V{}:V::str(symbol->second.embeddedDataUrl);
         if(!u.baseName.empty()||!u.nameExplicit)metadata.object["nameSource"]=object({{"baseName",V::str(u.baseName)},{"nameExplicit",V::boolean(u.nameExplicit)}});if(u.libraryOrigin)metadata.object["libraryOrigin"]=libraryOriginValue(*u.libraryOrigin);
-        const auto& style=d.presentation.objectStyles.at(owner);require(style.opacity==1,"UNSUPPORTED_WEB_EXPORT: native entity opacity");V color=V::obj();if(style.explicitColor)color.object["color"]=colorValue(style.color);
+        const auto& style=d.presentation.objectStyles.at(owner);V color=V::obj();if(style.explicitColor)color.object["color"]=colorValue(style.color);
         return object({{"type",V::str("Feature")},{"id",V::str(u.id)},{"geometry",V{}},{"properties",object({{"schemaVersion",V::num(TerritorialIdentityVersion)},{"entityKind",V::str(u.kind==UnitKind::General?"general":"regional")},{"name",V::str(u.name)},{"notes",V::str(u.notes)},{"locked",V::boolean(u.locked)},{"style",color},{"metadata",metadata},{"sourceFolderId",V::str(u.sourceFolderId)},{"sourceEntityId",V::str(u.sourceEntityId)},{"sourceGeometryVersion",V::str(u.sourceGeometryVersion)}})}});
 }
 }

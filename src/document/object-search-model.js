@@ -1,4 +1,4 @@
-const TYPE_LABELS = Object.freeze({objects:'객체',distributions:'분포',labels:'지명',genericFeatures:'기타 객체'});
+const TYPE_LABELS = Object.freeze({objects:'객체',distributions:'분포',labels:'도시',genericFeatures:'기타 객체'});
 /** The caller supplies current-time, visible objects from the global catalog. */
 export function createObjectSearchModel({items,groups,itemRef,compare}) {
   const rows = new Map();

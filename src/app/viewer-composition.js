@@ -58,7 +58,7 @@ export async function composeViewer({ productMode, meta }) {
   const runtimeMeta=Object.freeze({...meta,mapProject:projectRuntime.project,...physical});
   const runtimeContext=createRuntimeContext({productMode,meta:runtimeMeta,assetBaseUrl,platform:createPlatformPorts({kind:'browser'})});
   const projection='globe';
-  let map,previousView,display,projectClock,syncStatus,presentedMonth=null;
+  let map,previousView,display,projectClock,syncStatus,preferencesDialog,presentedMonth=null;
   const inspectParams=new URLSearchParams(window.location.search);
   let inspectorController=null;
   const initialPresentation=createViewerInitialPresentation({onPresented:()=>{get('viewer').dataset.initialLoading='false';}});
@@ -371,15 +371,14 @@ export async function composeViewer({ productMode, meta }) {
     projectState:{get state(){return map.displayState();}},
     objectModelA:{expandedMapDisplayGroups:map.objectPresentation.expandedMapDisplayGroups},territorialModel:{entityRepository:map.entityRepository},
     applicationServicesB:{layerStyle},applicationConstantsA:{DISTRIBUTION_RENDER_MODES},
-    preferences:{saveUserPreferences,get userPreferences(){return preferencePresentation.current;},setUserPreferences:value=>{preferencePresentation.current=value;}},
+    preferences:{saveUserPreferences,get userPreferences(){return preferencePresentation.current;},setUserPreferences:value=>{preferencePresentation.current=value;},renderPreferences:()=>preferencePresentation.apply(preferencePresentation.current,{persist:false})},
     hydroModel:owners.hydroSettings,
     workspaceUiA:surfaces,workspaceUiB:surfaces,
   });
-  display.initializeLAYER_STYLE_TARGETS();
   disposables.push(display);
   const navigationBindings=createNavigationBindings();
   navigationBindings.connect({platform:{$:get},workspaceUiA:surfaces,workspaceUiB:surfaces,workspaceUiC:surfaces,surfaces,
-    mapSettingsUi:display,navigation:map.navigation,projectState:{state:map.viewState},objectPicking:map.objectPicking,
+    navigation:map.navigation,projectState:{state:map.viewState},objectPicking:map.objectPicking,
     readinessUi:notifications});
   navigationBindings.bindNavigationUI();
   disposables.push(navigationBindings);
@@ -388,9 +387,19 @@ export async function composeViewer({ productMode, meta }) {
     element.addEventListener('click',handler);
     actionSubscriptions.push(()=>element.removeEventListener('click',handler));
   }
-  const preferencesDialog=createPreferencesDialog({document,productMode,returnFocus:()=>get(surfaces.isMobile()?'mobileMenuBtn':'preferencesBtn'),getPreferences:()=>preferencePresentation.current,
-    applyPreferences:value=>preferencePresentation.apply(value,{persist:false}),beforeOpen:()=>surfaces.closeFileMenu()});
+  preferencesDialog=createPreferencesDialog({document,window,productMode,
+    returnFocus:()=>get(surfaces.isMobile()?'mobileMenuBtn':'preferencesBtn'),
+    getPreferences:()=>preferencePresentation.current,getMapState:()=>map.displayState(),mapSettings:display,
+    applyPreferences:value=>preferencePresentation.apply(value,{persist:true}),
+    onError:report,beforeOpen:()=>surfaces.closeFileMenu()});
   disposables.push(preferencesDialog);
+  const onProjectMapStyle = () => {
+    void display.applyMapStyle(preferencePresentation.current.appearance.mapStyle)
+      .then(()=>preferencesDialog?.sync())
+      .catch(error => report(error,'프로젝트 지도 테마를 적용하지 못했습니다.','PL-MAP-STYLE-PROJECT'));
+  };
+  window.addEventListener('pandolab:project-changed', onProjectMapStyle);
+  disposables.push({ dispose: () => window.removeEventListener('pandolab:project-changed', onProjectMapStyle) });
   if(inspectParams.get('debug')==='1')globalThis.__PANDOLAB_VIEWER__=Object.freeze({initialMapPresented:initialPresentation.hasPresented,productMode,documentState:()=>activeSession?.commandOwner.state(),
     documentSnapshot:()=>activeSession?.documentModel.snapshot(),resolvedWorld:()=>activeSession?.documentModel.world(),selectionSnapshot:()=>activeSession?.selectionDomain.snapshot().selection,
     diagnostics:diagnostics.snapshot,rendererStats:()=>map.renderer.getStats(),
@@ -416,5 +425,9 @@ export async function composeViewer({ productMode, meta }) {
     },
     onError:error=>{presentViewerLoadStatus(status,'지도를 불러오지 못했습니다. 새로고침해 다시 시도하세요.',{error:true});report(error,'지도를 불러오지 못했습니다.','PL-MAP-START');},reportDisposeError:error=>console.error('[PL-DISPOSE]',error)});
   await lifecycle.start();
+  // Restore the selected global map style against the newly admitted project.
+  await display.applyMapStyle(preferencePresentation.current.appearance.mapStyle).catch(error => report(error,
+    '지도 테마를 복원하지 못했습니다.', 'PL-MAP-STYLE-RESTORE'));
+  preferencesDialog.sync();
   await inspectorController?.openAfterStartup();
 }

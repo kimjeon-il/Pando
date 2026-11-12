@@ -213,7 +213,7 @@
 }
 
 @media (max-width: 799px) {
-  .app-root[data-layout="mobile"] .map-command-toolbar :is(.map-command-search, .map-display-command, .map-command-divider) {
+  .app-root[data-layout="mobile"] .map-command-toolbar :is(.map-command-search, .map-command-divider) {
     display: none;
   }
 }
@@ -229,7 +229,7 @@
 }
 
 @media (max-width: 799px) {
-  .app-root[data-layout="mobile"] :is(.surface-search, .surface-display) .object-search-results {
+  .app-root[data-layout="mobile"] .surface-search .object-search-results {
     padding-bottom: var(--ui-space-3);
   }
 }

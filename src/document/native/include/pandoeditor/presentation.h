@@ -18,13 +18,12 @@ struct ObjectRef {
 };
 enum class UnitKind;
 struct PresentationStyle {
-    std::optional<double> opacity;
     std::optional<bool> boundaryVisible, labelsVisible;
     std::optional<double> boundaryWidth;
     std::optional<std::string> blendMode;
     std::optional<bool> colorVisible;
     bool operator==(const PresentationStyle& b) const {
-        return opacity==b.opacity && boundaryVisible==b.boundaryVisible && labelsVisible==b.labelsVisible && boundaryWidth==b.boundaryWidth && blendMode==b.blendMode && colorVisible==b.colorVisible;
+        return boundaryVisible==b.boundaryVisible && labelsVisible==b.labelsVisible && boundaryWidth==b.boundaryWidth && blendMode==b.blendMode && colorVisible==b.colorVisible;
     }
 };
 struct LabelSettings {
@@ -84,9 +83,9 @@ std::vector<ObjectRef> layoutLabels(const std::vector<LabelLayoutCandidate>&,dou
                                     std::optional<LabelLayoutBounds> bounds={});
 std::vector<ObjectRef> visibleDistributionEntries(const ProjectDocument&);
 std::optional<DistributionValueRange> distributionValueRange(const ProjectDocument&,const std::string& layerId);
-double distributionValueAlpha(double value,const std::optional<DistributionValueRange>&,double resolvedOpacity=1);
+double distributionValueAlpha(double value,const std::optional<DistributionValueRange>&);
 struct ResolvedTerritorialPresentation {
-    double opacity=1, effectiveAlpha=1;
+    double effectiveAlpha=1;
     bool boundaryVisible=true, nameVisible=true, flagVisible=true, colorVisible=true;
     std::string blendMode="normal";
 };

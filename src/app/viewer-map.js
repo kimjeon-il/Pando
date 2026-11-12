@@ -113,7 +113,7 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
     countries:territorialSceneRuntime,domains:{get renderingDomain(){return renderingDomain;}},feedback:{reportOperationError:onError}}));
   renderQuality.initializeRenderQualityController();renderQuality.initializeGpuRebuildTimer();
 
-  const theme = () => resolveMapTheme({state,theme:document.documentElement.dataset.theme || 'dark'});
+  const theme = () => resolveMapTheme({state,theme:document.documentElement.dataset.theme || 'dark',mapStyle:getPreferences()?.appearance?.mapStyle});
   const schedule = () => { if(!disposed&&session&&renderingDomain)renderingDomain.invalidateView('map-view'); };
   Object.defineProperty(state,'projectReplacing',{get:()=>projectDomain.isReplacing()});
   const hydroEditById=physicalSettings.hydroEditById,hydroById=physicalSettings.hydroFeatureById;
@@ -230,6 +230,7 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
   const mapDisplay=createMapDisplayClient({getEntities:territorialScope.displayEntities,getRevision:()=>spatialIndex.mapObjectGeometryRevisions.territorial});
   renderingDomain=createRenderingDomain({gpuMapRenderer:renderer,sceneBuilder:gpuScene.renderSceneBuilder,projectDomain,selectionDomain:selectionDomain,
     mapHost:()=>mapHost.mapHost,
+    getMapStyle:()=>getPreferences()?.appearance?.mapStyle || 'standard',
     domLayers:()=>({svg:labelLayer,interactionSvg,gpuCanvas:canvas}),prepareMapDisplay:mapDisplay.prepare,disposeMapDisplay:mapDisplay.dispose,
     ...createMapRenderingResources({session:{selectionDomain,get renderingDomain(){return renderingDomain;},objectSearchController:{cancelSearch:()=>onPlacesSettled('cancel')}},ports:mergeCapabilityPorts(commonPorts,readPorts,{
     domains:{projectDomain,selectionDomain,get renderingDomain(){return renderingDomain;},objectSearchController:{cancelSearch:()=>onPlacesSettled('cancel')}},

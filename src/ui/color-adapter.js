@@ -57,7 +57,7 @@ export function countryDefaultColor(feature) {
   return Object.hasOwn(COUNTRY_DEFAULT_COLORS, id) ? COUNTRY_DEFAULT_COLORS[id] || '' : '';
 }
 
-/** Intrinsic territorial color inheritance; layer opacity/blending stays in rendering. */
+/** Intrinsic territorial color inheritance; presentation blending stays in rendering. */
 export function resolveTerritorialColor(feature, { entityRepository, countryColor = countryDefaultColor, fallback = '', colorVisible = () => true }) {
   let current = feature;
   const seen = new Set();

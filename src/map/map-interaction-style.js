@@ -91,7 +91,7 @@ export function resolveMapStrokeStyle(style, role = 'candidate') {
     const country = role === 'country' || role === 'country-internal';
     const lake = role === 'hydro-boundary', river = role === 'river';
     const width = lake ? theme.lakeBoundaryWidth : river ? theme.riverWidth : country ? theme.borderWidth : layer.boundaryWidth;
-    const alpha = lake ? theme.lakeOpacity : river ? theme.riverOpacity : country ? theme.borderAlpha : layer.opacity;
+    const alpha = country ? theme.borderAlpha : 1;
     return Object.freeze({ ...STROKE_SHAPE, ...BASE_STROKES[role], color: style.color || theme.border,
       width: BASE_STROKES[role].width * Math.max(0.5, Number(width) || 1),
       alpha: layer.boundaryVisible === false || (lake && theme.lakeBoundaryVisible === false) ? 0 : Number(alpha ?? 1),

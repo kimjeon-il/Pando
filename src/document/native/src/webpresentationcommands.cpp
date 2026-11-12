@@ -33,8 +33,7 @@ PresentationStyle patch(const V& value) {
     if(value.kind!=V::Object)throw TimelineError("CORE_COMMAND_PAYLOAD","Presentation patch must be an object.");
     PresentationStyle result;
     for(const auto& [key,item]:value.object) {
-        if(key=="opacity")result.opacity=std::clamp(webCommandNumber(item).value_or(1),0.0,1.0);
-        else if(key=="boundaryVisible")result.boundaryVisible=!falseValue(item);
+        if(key=="boundaryVisible")result.boundaryVisible=!falseValue(item);
         else if(key=="labelsVisible")result.labelsVisible=!falseValue(item);
         else if(key=="colorVisible")result.colorVisible=!falseValue(item);
         else if(key=="boundaryWidth")result.boundaryWidth=1;

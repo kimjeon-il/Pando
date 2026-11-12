@@ -201,7 +201,7 @@ test('floating date controls preserve navigation and document state across deskt
   }
   await page.locator('#preferencesBtn').click();
   await expect(page.locator('#preferencesStatusBarVisibleInput')).toHaveCount(0);
-  await page.locator('#preferencesCancelBtn').click();
+  await page.locator('#preferencesCloseBtn').click();
   for (const [width, value, selectedMonth, label] of [[1440, '1914', '7', '1914년 7월'], [1024, '1914', '7', '1914년 7월'], [800, '1914', '7', '1914년 7월'], [390, '-1', '12', '기원전 1년 12월'], [320, '10000', '3', '10000년 3월']]) {
     await page.setViewportSize({ width, height: 844 });
     await expect(button).toBeVisible();

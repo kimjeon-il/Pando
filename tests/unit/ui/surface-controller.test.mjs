@@ -25,8 +25,8 @@ function element(id = '') {
 }
 function fixture(initialLayout) {
   let layout = initialLayout;
-  const elements = Object.fromEntries(['objectSearchSurface','mapDisplaySurface','objectSearchBtn',
-    'mapDisplayBtn','mobileSearchBtn','mobileDisplayBtn','mobileFileBtn','mobileBackdrop'].map(id => [id, element(id)]));
+  const elements = Object.fromEntries(['objectSearchSurface','objectSearchBtn',
+    'mobileSearchBtn','mobileFileBtn','mobileBackdrop'].map(id => [id, element(id)]));
   const workspace = element('workspace'), body = element('body');
   const document = { body, activeElement: null, querySelector: selector => selector === '.workspace' ? workspace : null };
   return { controller: createSurfaceController({ getElement: id => elements[id], getLayout: () => layout, document }),
@@ -41,36 +41,35 @@ test('retired editor and creation surfaces cannot replace current search', () =>
   assert.equal(controller.isOpen('display'), false);
 });
 
-test('search and display replace each other and synchronize triggers', () => {
+test('one search drawer remains available across layouts and rejects the retired display surface', () => {
   for (const layout of ['wide','compact','mobile','phone-landscape']) {
     const { controller, elements } = fixture(layout);
+    assert.equal(controller.open('display'), false);
     controller.open('search'); controller.render();
-    assert.equal(elements.objectSearchBtn.getAttribute('aria-expanded'), 'true');
-    assert.equal(elements.objectSearchSurface.inert, false);
-    controller.open('display'); controller.render();
-    assert.equal(controller.isOpen('search'), false);
-    assert.equal(controller.isOpen('display'), true);
-    assert.equal(elements.mobileSearchBtn.getAttribute('aria-expanded'), 'false');
-    assert.equal(elements.mobileDisplayBtn.getAttribute('aria-expanded'), 'true');
-    controller.close('display'); controller.render();
+    assert.equal(controller.isOpen('search'), true);
     assert.equal(controller.isOpen('display'), false);
-    assert.equal(elements.mobileDisplayBtn.getAttribute('aria-expanded'), 'false');
+    assert.equal(elements.objectSearchBtn.getAttribute('aria-expanded'), 'true');
+    assert.equal(elements.mobileSearchBtn.getAttribute('aria-expanded'), 'true');
+    assert.equal(elements.objectSearchSurface.inert, false);
+    controller.close('search'); controller.render();
+    assert.equal(controller.isOpen('search'), false);
+    assert.equal(elements.mobileSearchBtn.getAttribute('aria-expanded'), 'false');
+    assert.equal(elements.objectSearchSurface.inert, true);
   }
 });
 
-test('mobile sheets expose dialog state and keep one active surface', () => {
+test('mobile search sheet keeps dialog semantics and exposes no display sheet', () => {
   const { controller, elements, body } = fixture('mobile');
   controller.open('search'); controller.render();
   assert.equal(controller.activeMobileSheet, 'search');
   assert.equal(elements.objectSearchSurface.getAttribute('role'), 'dialog');
   assert.equal(elements.objectSearchSurface.getAttribute('aria-hidden'), 'false');
-  assert.equal(elements.mapDisplaySurface.inert, true);
   assert.equal(body.classList.contains('map-sheet-open'), true);
-  controller.open('display'); controller.render();
-  assert.equal(elements.objectSearchSurface.inert, true);
-  assert.equal(elements.mapDisplaySurface.inert, false);
-  controller.close('display'); controller.render();
+  assert.equal(controller.open('display'), false);
+  assert.equal(controller.activeMobileSheet, 'search');
+  controller.close('search'); controller.render();
   assert.equal(controller.activeMobileSheet, null);
+  assert.equal(elements.objectSearchSurface.getAttribute('aria-hidden'), 'true');
   assert.equal(body.classList.contains('map-sheet-open'), false);
 });
 
@@ -95,10 +94,12 @@ const { resourceCapabilities } = __unit_dep5;
 const read=path=>readFileSync(new URL(`../../../${path}`,import.meta.url),'utf8').replaceAll('\r\n','\n');
 test('read-only Web Viewer owns current viewing controls and platform capabilities',()=>{
  const {web}=renderProductHtml(read);
- for(const id of ['mapDisplaySurface','objectSearchSurface','preferencesModal','preferencesApplyBtn','timelineControls'])
+ for(const id of ['objectSearchSurface','preferencesModal','preferencesCloseBtn','timelineControls',
+   'preferencesGraticuleInput','preferencesNativeNamesInput','preferencesRiversInput','preferencesLakesInput',
+   'preferencesGenericSlot','preferencesDistributionSlot'])
   assert.match(web,new RegExp(`id="${id}"`));
- assert.match(web,/data-map-display-group="terrain"/);
- assert.match(web,/data-map-background="graticule"/);
+ assert.match(web,/name="preferencesMapStyle"/);
+ assert.doesNotMatch(web,/id="mapDisplaySurface"|id="mapDisplayBtn"|id="mobileDisplayBtn"/);
  assert.doesNotMatch(web,/src=["'][^"']*apps\/editor\//,'retired Windows stage must not enter Web Viewer');
  assert.doesNotMatch(web,/id=["']editorSurface["']/,'retired editor DOM must remain absent');
  assert.equal(resourceCapabilities('viewer',null,{projection:'flat'}).terrain,false);

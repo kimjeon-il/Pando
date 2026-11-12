@@ -9,7 +9,7 @@ function renderLabelText(text, rows, {x = 7} = {}) {
     .text(row=>row.text);
 }
 
-export function createLabelPresentation({ labels,selectionDomain,reportDiagnostic,projectLabelCoordinate,active,stats }) {
+export function createLabelPresentation({ labels,selectionDomain,reportDiagnostic,projectLabelCoordinate,active,stats,getMapStyle=()=> 'standard' }) {
   let territorialLabelPositionBindings=[],userLabelPositionBindings=[];
   const labelState=()=>labels.getState();
   const renderTerritorialLabels = (layout, frameContext) => {
@@ -40,11 +40,13 @@ export function createLabelPresentation({ labels,selectionDomain,reportDiagnosti
     enter.append('text').attr('class', 'country-label').attr('dy', '.35em');
     const all = layer.selectAll('g.territorial-label-item');
     all.attr('data-label-id', feature => String(feature.id || ''));
-    all.select('text').text(feature => namesVisible(feature) ? labels.countryName?.(feature) || feature.properties?.name || '' : '')
-      .style('display', feature => namesVisible(feature) ? null : 'none')
+    all.select('text').each(function(feature) {
+      const primary = labels.countryName?.(feature) || feature.properties?.name || '';
+      const rows = resolvedLayout?.territorialLabelRows?.get(String(feature.id)) || [{ language: 'ko', text: primary }];
+      renderLabelText(labels.d3.select(this), namesVisible(feature) ? rows : [], { x: 0 });
+    }).style('display', feature => namesVisible(feature) ? null : 'none')
       .classed('major', d => (resolvedLayout?.territorialLabelScreenAreas?.get(String(d.id || '')) || 0) >= (labels.isMobile?.() ? 3200 : 2200));
     all
-      .style('opacity', labels.layerStyle?.(state.layerPresentation, 'objectLabels').opacity)
       .classed('major', d => (resolvedLayout?.territorialLabelScreenAreas?.get(String(d.id || '')) || 0) >= (labels.isMobile?.() ? 3200 : 2200))
       .attr('transform', d => {
         const settings = labels.automaticLabelSettings?.('country', labels.labelSettings(state, 'territorial', labels.getTerritorialLabelRef(d.id).id));
@@ -62,10 +64,12 @@ export function createLabelPresentation({ labels,selectionDomain,reportDiagnosti
       const text = this.querySelector('text');
       const image = this.querySelector('image');
       if (flag?.url === image.dataset.failedUrl) flag = null;
-      text.setAttribute('x', flag && nameVisible ? (flag.width + flag.gap) / 2 : 0);
+      const shift = flag && nameVisible ? (flag.width + flag.gap) / 2 : 0;
+      text.setAttribute('x', shift);
+      for (const span of text.querySelectorAll('tspan')) span.setAttribute('x', shift);
       image.style.display = flag ? '' : 'none';
       if (flag) {
-        const width = nameVisible ? text.getComputedTextLength() : 0;
+        const width = nameVisible ? Math.max(0, ...[...text.querySelectorAll('tspan')].map(span => span.getComputedTextLength())) : 0;
         image.setAttribute('x', nameVisible ? -(width + flag.width + flag.gap) / 2 : -flag.width / 2);
         image.setAttribute('y', -flag.height / 2);
         image.setAttribute('width', flag.width); image.setAttribute('height', flag.height);
@@ -82,7 +86,6 @@ export function createLabelPresentation({ labels,selectionDomain,reportDiagnosti
     const layer = labels.labelLayer;
     if (!layer) return false;
     const state = labelState();
-    const labelStyle = labels.layerStyle?.(state.layerPresentation, 'labels') || {};
     const selectionState = labels.selectionSnapshot?.() || { primaryKey: null };
     const labelRef = label => labels.normalizeObjectRef({ domain: 'label', type: label.kind || 'label', id: label.id });
     const resolvedLayout = layout;
@@ -121,8 +124,10 @@ export function createLabelPresentation({ labels,selectionDomain,reportDiagnosti
     enter.append('circle').attr('class', 'user-label-dot').attr('r', 4);
     enter.append('text').attr('class', 'user-label-text').attr('x', 7).attr('dy', '.35em');
     const all = layer.selectAll('g.user-label');
-    all.style('opacity', labelStyle.opacity)
-      .classed('selected', d => labels.selectionHas?.(labelRef(d)))
+    const mapStyle = getMapStyle();
+    all.select('circle.user-label-dot').attr('r', mapStyle === 'minimal' ? 2.6 : mapStyle === 'classic' ? 4.5 : 4);
+    all.select('text.user-label-text').attr('x', mapStyle === 'minimal' ? 5 : 7);
+    all.classed('selected', d => labels.selectionHas?.(labelRef(d)))
       .classed('is-primary-selection', d => labelRef(d)?.key === selectionState.primaryKey)
       .classed('is-secondary-selection', d => labels.selectionHas?.(labelRef(d)) && labelRef(d)?.key !== selectionState.primaryKey)
       .attr('transform', d => {
@@ -134,7 +139,7 @@ export function createLabelPresentation({ labels,selectionDomain,reportDiagnosti
       });
     all.select('text').each(function(label) {
       const rows = resolvedLayout.userLabelRows?.get(String(label.id)) || [{ language: 'ko', text: label.name }];
-      renderLabelText(labels.d3.select(this),rows);
+      renderLabelText(labels.d3.select(this),rows,{x:mapStyle === 'minimal' ? 5 : 7});
     });
     selection.exit().remove();
     userLabelPositionBindings = [];

@@ -17,7 +17,7 @@ GeometryRef geometry(ProjectDocument& d,const std::string& id,const char* bytes)
 void unit(ProjectDocument& d,const std::string& id,const std::string& parent="",UnitKind kind=UnitKind::General) {
     TerritorialUnit value;value.id=id;value.name=id;value.kind=kind;d.units.push_back(value);
     addStaticTerritorialRecords(d,id,geometry(d,"territorial-geometry:"+id,polygon),parent);
-    d.presentation.objectStyles[territorialRef(id)]={0,1,false};
+    d.presentation.objectStyles[territorialRef(id)]={0,false};
 }
 ProjectDocument fixture() {
     ProjectDocument d;d.documentId="web-object-removal";unit(d,"A");unit(d,"B");
@@ -39,7 +39,7 @@ ProjectDocument fixture() {
     presentation.itemVisibility["objectLabels"]={{"A",false},{"B",true}};
     presentation.itemVisibility["genericFeatures"]["G"]=false;presentation.itemVisibility["hydro"]["H1"]=false;
     presentation.itemVisibility["labels"]["P"]=false;presentation.itemVisibility["distributions"]["L"]=false;
-    presentation.objectStyles[territorialPresentationKey("A")].opacity=0.5;
+    presentation.objectStyles[territorialPresentationKey("A")].colorVisible=false;
     auto catalog=std::make_shared<PresentationCatalog>();catalog->countryLabelIds={"A","B"};catalog->hydroLayers["source"]="river";d.presentation.catalog=catalog;
     return d;
 }
@@ -73,7 +73,7 @@ void staticNonWaterRemovalDoesNotRequireTimelineCursor() {
 void fiveDomainsAtomicHistoryAndOriginalCleanup() {
     auto seed=fixture();
     for(const auto* id:{"E","T","U"}) {
-        seed.presentation.objectStyles[{"distributionEntry",id}]={0x123456,0.5,true};
+        seed.presentation.objectStyles[{"distributionEntry",id}]={0x123456,true};
     }
     Project p;p.replace(std::move(seed));p.setTimelineCursor("2026-10",false);const auto before=p.snapshot();
     const std::vector<ObjectRef> refs={{"territorial","A"},{"distributionLayer","L"},{"generic","G"},{"hydro","H1"},{"label","P"}};

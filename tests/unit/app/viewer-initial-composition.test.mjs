@@ -29,7 +29,7 @@ function fixture({hydration = Promise.resolve(), autoReady = true} = {}) {
   };
   const document = {getElementById: get, createElement: () => ({addEventListener: noop}),
     addEventListener: noop,removeEventListener: noop,visibilityState: 'visible'};
-  const window = {location: {search: '?debug=1'}, dispatchEvent: noop};
+  const window = {location: {search: '?debug=1'}, dispatchEvent: noop, addEventListener: noop, removeEventListener: noop};
   const surfaces = {isMobile: () => false, initializeWorkspaceSurfaces: noop, closeMobileSheets: noop,
     closeSurface: noop, applyLayoutMode: noop, syncOverlayState: noop, closeFileMenu: noop,
     surfaceController: {isOpen: () => false}};
@@ -62,7 +62,7 @@ function fixture({hydration = Promise.resolve(), autoReady = true} = {}) {
     createViewerAdjacentPrefetch: () => ({afterPresented: noop,interrupt: noop,dispose: noop}),
     CustomEvent: class {constructor(type) { this.type = type; }}, createViewerInitialPresentation,
     createPlatformPorts: () => ({}), createRuntimeContext: ({meta}) => ({meta, platform: {}}), createMapProjectRuntime:()=>({project:{},hydratePhysicalMetadata:async()=>({})}), territorialMembershipDelta:()=>({changed:false}),
-    createPreferencePresentation: () => ({current: {timeline:{defaultWorldFollowCurrentMonth:true}}, apply: noop}),
+    createPreferencePresentation: () => ({current: {timeline:{defaultWorldFollowCurrentMonth:true},appearance:{mapStyle:'standard'}}, apply: noop}),
     createDiagnosticLog: () => ({snapshot: () => [],push: noop}),
     createTooltipController: () => ({bind: noop}), createBrowserProjectStorage: () => ({}),
     createMapOwners: () => ({workspaceSurfaces: surfaces, physicalResources: {preparePhysicalContext:async()=>{}}, territorialLabels: {},
@@ -88,8 +88,8 @@ function fixture({hydration = Promise.resolve(), autoReady = true} = {}) {
       ports.clock = clock; return clock;
     },
     createFileController: () => ({bind: noop, openProjectPicker: noop}), createBrowserFileAccess: () => ({}),
-    createMapSettings: () => ({connect: noop, initializeLAYER_STYLE_TARGETS: noop}),
-    createNavigationBindings: () => ({connect: noop, bindNavigationUI: noop}), createPreferencesDialog: noop,
+    createMapSettings: () => ({connect: noop, applyMapStyle: async()=>false, dispose:noop}),
+    createNavigationBindings: () => ({connect: noop, bindNavigationUI: noop}), createPreferencesDialog: () => ({sync:noop,dispose:noop}),
     createEmptyState: noop, createSemanticIcon: noop, createSurfaceController: noop,
     saveUserPreferences: noop, layerStyle: noop, DISTRIBUTION_RENDER_MODES: {},
     coreSelectionRefToWeb: noop, isRecoverableLoadError: () => true,

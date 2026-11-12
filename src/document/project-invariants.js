@@ -153,7 +153,7 @@ export function validateProjectReferenceIntegrity({
     const id = text(label?.id);
     const countryId = text(label?.countryId || label?.country_id);
     if (countryId && !countryIds.has(countryId)) {
-      issues.push(issue('PL-INV-MISSING-LABEL-COUNTRY', `${id || '지명'}의 국가 ${countryId}이 존재하지 않습니다.`, [id, countryId], 'countryId'));
+      issues.push(issue('PL-INV-MISSING-LABEL-COUNTRY', `${id || '도시'}의 국가 ${countryId}이 존재하지 않습니다.`, [id, countryId], 'countryId'));
     }
   }
 
