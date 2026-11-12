@@ -5,7 +5,7 @@ export async function readDemWindowTiled(reader,box,maxWidth=4096,maxPixels=1677
     !Number.isSafeInteger(maxPixels)||maxPixels<maxWidth||maxPixels>16777216)
     throw new TypeError('Invalid bounded DEM window');
   const [x0,y0,x1,y1]=box,width=x1-x0,height=y1-y0;
-  if(width<1||height<1||height>5000||width*height>32000000)throw new RangeError('DEM window exceeds experiment bounds');
+  if(width<1||height<1||height>6500||width*height>32000000)throw new RangeError('DEM window exceeds experiment bounds');
   const result=Buffer.allocUnsafe(width*height*4);
   for(let x=x0;x<x1;x+=maxWidth){
     const count=Math.min(maxWidth,x1-x),step=Math.min(5000,Math.floor(maxPixels/count));

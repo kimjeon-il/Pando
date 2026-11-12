@@ -8,11 +8,14 @@ import {cutGutterTiles} from './gutter-fixture.mjs';
 
 const [root,out]=process.argv.slice(2);if(!root||!out)throw Error('Expected fixture directory and new report file');
 const manifest=JSON.parse(await readFile(join(root,'gutter-report.json'),'utf8'));
-if(manifest.schema!=='pando-terrain-gutter-fixture-v1'||(!manifest.block2&&!manifest.coverage5x3&&!manifest.coverage5x4))throw Error('Expected a regional multi-block fixture');
-const expectedBlocks=manifest.coverage5x4?20:manifest.coverage5x3?15:4,expectedBoundaries=manifest.coverage5x4?31:manifest.coverage5x3?22:4;
+if(manifest.schema!=='pando-terrain-gutter-fixture-v1'||(!manifest.block2&&!manifest.coverage5x3&&!manifest.coverage5x4&&!manifest.regionalExtended))throw Error('Expected a regional multi-block fixture');
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex'),results=[];
 for(const region of [...new Set(manifest.records.map(record=>record.region))]){
   const records=manifest.records.filter(record=>record.region===region),blocks=[];let subtiles=0,boundaries=0;
+  const base=records.filter(item=>item.tileSize===1024),xs=base.map(item=>item.window[0]),ys=base.map(item=>item.window[1]);
+  const columns=(Math.max(...xs)-Math.min(...xs))/1024+1,rows=(Math.max(...ys)-Math.min(...ys))/1024+1;
+  if(![[2,2],[5,3],[5,4],[5,5],[6,4]].some(([w,h])=>w===columns&&h===rows))throw Error('Unsupported region dimensions');
+  const expectedBlocks=columns*rows,expectedBoundaries=(columns-1)*rows+(rows-1)*columns;
   for(const record of records.filter(item=>item.tileSize===1024)){
     const bytes=gunzipSync(await readFile(join(root,record.file)));
     if(sha(bytes)!==record.rawSha256)throw Error('Base tile hash mismatch');

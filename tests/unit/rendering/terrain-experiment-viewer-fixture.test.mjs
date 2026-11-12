@@ -60,6 +60,16 @@ test('accepts a complete 5x4 fixture for zoomed-out regional visibility',()=>{
   assert.equal(makeViewerFixtureManifest(source,fixture,512).tiles.size,80);
 });
 
+test('accepts wider and taller complete regional fixtures',()=>{
+  for(const [columns,rows] of [[5,5],[6,4]]){
+    const {source,fixture}=inputs();fixture.records=[];
+    for(let y=2048;y<2048+rows*1024;y+=1024)for(let x=1024;x<1024+columns*1024;x+=1024)
+      fixture.records.push({region:'southwest-china',level:5,window:[x,y,x+1024,y+1024],offset:[0,0],width:1026,height:1026,
+        tileSize:1024,gutter:1,webpBytes:42,webpSha256:hash,file:`tile-${x}-${y}.webp`});
+    assert.equal(makeViewerFixtureManifest(source,fixture,1024).tiles.size,columns*rows);
+  }
+});
+
 test('all measured regions have one shared Viewer camera center',()=>{
   assert.deepEqual(experimentCenter('himalaya'),[86,28]);
   assert.deepEqual(experimentCenter('netherlands-coast'),[5.5,53]);
