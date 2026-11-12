@@ -113,7 +113,7 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
     countries:territorialSceneRuntime,domains:{get renderingDomain(){return renderingDomain;}},feedback:{reportOperationError:onError}}));
   renderQuality.initializeRenderQualityController();renderQuality.initializeGpuRebuildTimer();
 
-  const theme = () => resolveMapTheme({state,theme:document.documentElement.dataset.theme || 'dark'});
+  const theme = () => resolveMapTheme({state,theme:document.documentElement.dataset.theme || 'dark',mapStyle:getPreferences()?.appearance?.mapStyle});
   const schedule = () => { if(!disposed&&session&&renderingDomain)renderingDomain.invalidateView('map-view'); };
   Object.defineProperty(state,'projectReplacing',{get:()=>projectDomain.isReplacing()});
   const hydroEditById=physicalSettings.hydroEditById,hydroById=physicalSettings.hydroFeatureById;

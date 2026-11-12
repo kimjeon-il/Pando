@@ -290,7 +290,7 @@
 }
 
 .country-label {
-  font-family: var(--ui-font-family);
+  font-family: var(--country-label-font-family, var(--ui-font-family));
   font-size: var(--ui-font-map);
   font-weight: var(--ui-weight-semibold);
 }
@@ -300,7 +300,7 @@
 }
 
 .user-label-text {
-  font-family: var(--ui-font-family);
+  font-family: var(--place-label-font-family, var(--ui-font-family));
   font-size: var(--map-font-caption);
   font-weight: var(--ui-weight-semibold);
 }
@@ -313,4 +313,22 @@
 
 .common-interaction-outline {
   stroke: none;
+}
+
+/* Map-style variants are visual only; no object or place is removed from data. */
+:root[data-map-style="minimal"] .country-label { font-weight: 500; letter-spacing: .055em; }
+:root[data-map-style="minimal"] .user-label-text { font-weight: 500; }
+:root[data-map-style="classic"] .country-label {
+  font-family: "Noto Serif KR", "Nanum Myeongjo", "AppleMyungjo", serif;
+  letter-spacing: .14em;
+  font-weight: 600;
+}
+:root[data-map-style="classic"] .user-label-text {
+  font-family: "Noto Serif KR", "Nanum Myeongjo", "AppleMyungjo", serif;
+  font-weight: 500;
+  font-style: italic;
+}
+:root[data-map-style="classic"] .user-label-dot {
+  fill: none;
+  stroke-width: 1.5px;
 }

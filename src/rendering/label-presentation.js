@@ -119,6 +119,9 @@ export function createLabelPresentation({ labels,selectionDomain,reportDiagnosti
     enter.append('circle').attr('class', 'user-label-dot').attr('r', 4);
     enter.append('text').attr('class', 'user-label-text').attr('x', 7).attr('dy', '.35em');
     const all = layer.selectAll('g.user-label');
+    const mapStyle = globalThis.document?.documentElement?.dataset?.mapStyle || 'standard';
+    all.select('circle.user-label-dot').attr('r', mapStyle === 'minimal' ? 2.6 : mapStyle === 'classic' ? 4.5 : 4);
+    all.select('text.user-label-text').attr('x', mapStyle === 'minimal' ? 5 : 7);
     all.classed('selected', d => labels.selectionHas?.(labelRef(d)))
       .classed('is-primary-selection', d => labelRef(d)?.key === selectionState.primaryKey)
       .classed('is-secondary-selection', d => labels.selectionHas?.(labelRef(d)) && labelRef(d)?.key !== selectionState.primaryKey)
@@ -131,7 +134,7 @@ export function createLabelPresentation({ labels,selectionDomain,reportDiagnosti
       });
     all.select('text').each(function(label) {
       const rows = resolvedLayout.userLabelRows?.get(String(label.id)) || [{ language: 'ko', text: label.name }];
-      renderLabelText(labels.d3.select(this),rows);
+      renderLabelText(labels.d3.select(this),rows,{x:mapStyle === 'minimal' ? 5 : 7});
     });
     selection.exit().remove();
     userLabelPositionBindings = [];

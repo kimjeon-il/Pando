@@ -13,6 +13,7 @@ export function createPreferencePresentation({document,window,productMode,onChan
   function render(){
     const root=document.documentElement,theme=effectiveTheme(current,systemTheme==='dark');
     root.dataset.systemTheme=systemTheme;root.dataset.theme=theme;
+    root.dataset.mapStyle=current.appearance.mapStyle;
     root.dataset.smoothLines=String(current.appearance.smoothLines);
     accent=applyAppAccent(document);
     for(const kind of ['country','place']){

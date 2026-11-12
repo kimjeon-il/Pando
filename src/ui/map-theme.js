@@ -1,7 +1,9 @@
 import { layerStyle } from "./layer-presentation.js";
+import { mapStylePreset } from "./map-style-presets.js";
 import { resolveMapStrokeStyle } from "../map/map-interaction-style.js";
 import { TERRAIN_OCEAN_REPRESENTATIVE } from "../data/physical-source-configuration.js";
-export function resolveMapTheme({ state, theme }) {
+export function resolveMapTheme({ state, theme, mapStyle = 'standard' }) {
+    const preset = mapStylePreset(mapStyle);
     const terrainVisible = state?.physicalSettings?.terrainVisible !== false;
     const terrainStyle = state?.physicalSettings?.terrainStyle || 'political';
     const terrainFillAlpha = terrainVisible
@@ -23,10 +25,20 @@ export function resolveMapTheme({ state, theme }) {
       base.ocean = `#${rgb.map(component => Math.round(component).toString(16).padStart(2, '0')).join('')}`;
       base.oceanGpu = rgb.map(component => component / 255);
     }
+    // A map theme may tint the base without modifying historical territorial colors.
+    if (mapStyle === 'classic') {
+      base.defaultLand = theme === 'light' ? '#dbd3bf' : '#82796b';
+      if (!terrainVisible || terrainStyle !== 'physical') {
+        base.ocean = theme === 'light' ? '#e4ddcb' : '#34362f';
+        base.oceanGpu = theme === 'light' ? [228 / 255, 221 / 255, 203 / 255] : [52 / 255, 54 / 255, 47 / 255];
+      }
+    }
     base.baseLandAlpha = terrainVisible ? 1 : base.countryColorAlpha;
+    base.mapStyle = mapStyle;
+    base.labelFlags = preset.flags;
     const countryInkAlpha = base.borderAlpha;
     base.borderAlpha = countryStyle.boundaryVisible ? countryInkAlpha : 0;
-    base.borderWidth = countryStyle.boundaryWidth;
+    base.borderWidth = countryStyle.boundaryWidth * preset.borderScale;
     base.riverWidth = riverStyle.boundaryWidth;
     base.lakeBoundaryVisible = lakeStyle.boundaryVisible;
     base.lakeBoundaryWidth = lakeStyle.boundaryWidth;
