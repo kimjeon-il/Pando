@@ -17,12 +17,12 @@ for await(const chunk of createReadStream(source))digest.update(chunk);
 if(digest.digest('hex')!==SOURCE_SHA256)throw Error('Source SHA-256 mismatch');
 const metadata=await inspectNativeDemSource({source,strict:true});if(metadata.dtype!=='float32')throw Error('Float32 source required');
 const fixture=JSON.parse(await readFile(fixtureArg,'utf8'));
-if(fixture.sourceSha256!==SOURCE_SHA256||(!fixture.block2&&!fixture.coverage5x3))throw Error('Expected matching regional fixture');
+if(fixture.sourceSha256!==SOURCE_SHA256||(!fixture.block2&&!fixture.coverage5x3&&!fixture.coverage5x4))throw Error('Expected matching regional fixture');
 const blocks=fixture.records.filter(record=>record.tileSize===1024&&record.region===region);
-if(blocks.length!==(fixture.coverage5x3?15:4))throw Error('Incomplete base tile inventory');
+if(blocks.length!==(fixture.coverage5x4?20:fixture.coverage5x3?15:4))throw Error('Incomplete base tile inventory');
 const minX=Math.min(...blocks.map(record=>record.window[0])),minY=Math.min(...blocks.map(record=>record.window[1]));
 // Four original cells on each side give each overview an aligned source grid.
-const x0=minX-4,y0=minY-4,baseWidth=(fixture.coverage5x3?5120:2048)+8,baseHeight=(fixture.coverage5x3?3072:2048)+8;
+const x0=minX-4,y0=minY-4,baseWidth=(fixture.coverage5x3||fixture.coverage5x4?5120:2048)+8,baseHeight=(fixture.coverage5x4?4096:fixture.coverage5x3?3072:2048)+8;
 if(x0%4||y0%4||baseWidth%4||baseHeight%4)throw Error('Pyramid extent must be aligned at every level');
 const out=resolve(outArg);await mkdir(out,{recursive:false});const records=[];
 for(const level of [5,4,3]){

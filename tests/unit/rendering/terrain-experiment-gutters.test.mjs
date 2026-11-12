@@ -40,6 +40,21 @@ test('expanded regional blocks include conservative Viewer visibility for all co
   }
 });
 
+test('5x4 sample covers China at both 16x and 32x after the measured pan',()=>{
+  const [x0,y0,x1,y1]=regionalBlockWindow(102,28,{rows:4});
+  for(const size of [512,1024]){
+    const levels=[{id:4,width:21600,height:10800,tileSize:1024,columns:22,rows:11},
+      {id:5,width:43200,height:21600,tileSize:size,columns:Math.ceil(43200/size),rows:Math.ceil(21600/size)}];
+    const availableKeys=new Set();
+    for(let y=y0/size;y<y1/size;y++)for(let x=x0/size;x<x1/size;x++)availableKeys.add(`5/${x}-${y}`);
+    for(const scale of [5285.28,10570.56]){
+      const result=inspectFixtureCoverage({manifest:{levels,gutter:1},availableKeys,center:[101.17,28.57],viewport:[1280,752],scale,
+        policy:{byteBudget:192*1024*1024,bytesPerPixel:12}});
+      assert.deepEqual(result.missingKeys,[]);
+    }
+  }
+});
+
 test('representative camera views fit within centered 2x2 source regions',()=>{
   for(const [sourceLon,sourceLat,cameraLon] of [[102,28,102],[100,15,100],[86,28,86],[4,53,5.5]]){
     const side=1024,x=regionalOrigin(Math.floor((sourceLon+180)*120),side,{alignWorld:true,block2:true});
