@@ -100,8 +100,6 @@ export function createMapSettings({ capabilities,viewPresentation } = {}) {
   async function setTerrainMode(mode) {
     const physicalSettings = dependencies.hydroModel.terrainModeSettings(mode);
     if (!await viewPresentation.applyPresentation({ action: 'terrainMode', mode, physicalSettings })) return false;
-    const current=dependencies.preferences.userPreferences,viewer={...current.backgrounds.viewer,terrainVisible:physicalSettings.terrainVisible,terrainStyle:physicalSettings.terrainStyle};
-    dependencies.preferences.setUserPreferences(dependencies.preferences.saveUserPreferences({...current,backgrounds:{...current.backgrounds,viewer}}));
     dependencies.rendering.gpuMapRenderer.invalidatePhysicalStyle('terrain-mode');
     (0, dependencies.hydroModel.syncPhysicalControls)();
     syncMapDisplayDisclosures();
@@ -116,26 +114,33 @@ export function createMapSettings({ capabilities,viewPresentation } = {}) {
     const preset = mapStylePreset(normalized);
     const state = dependencies.projectState.state;
     const shouldEnableTerrain = preset.terrain !== 'none';
+    let changed = false;
     if (state.physicalSettings.terrainVisible !== shouldEnableTerrain
       || (shouldEnableTerrain && state.physicalSettings.terrainStyle !== preset.terrain)) {
       if (await setTerrainMode(preset.terrain) === false) throw new Error('지도 테마의 지형을 적용하지 못했습니다.');
+      changed = true;
     }
     for (const [key, visible] of [['objects', true], ['objectNames', true], ['objectFlags', preset.flags], ['labels', true]]) {
-      if (state.layerVisibility[key] !== visible && await setLayerVisibility(key, visible) === false)
-        throw new Error('지도 테마의 표시 항목을 적용하지 못했습니다.');
+      if (state.layerVisibility[key] !== visible) {
+        if (await setLayerVisibility(key, visible) === false)
+          throw new Error('지도 테마의 표시 항목을 적용하지 못했습니다.');
+        changed = true;
+      }
     }
     const objectStyle = dependencies.applicationServicesB.layerStyle(state.layerPresentation, 'objects');
     const colorVisible = normalized === 'standard';
     if (objectStyle.colorVisible !== colorVisible || objectStyle.boundaryVisible === false) {
       if (await updateLayerPresentationStyle('objects', { colorVisible, boundaryVisible: true }) === false)
         throw new Error('지도 테마의 객체 색상·경계를 적용하지 못했습니다.');
+      changed = true;
     }
     const current = dependencies.preferences.userPreferences;
     if (current.appearance.mapStyle !== normalized) {
       const next = { ...current, appearance: { ...current.appearance, mapStyle: normalized } };
       dependencies.preferences.setUserPreferences(persist ? dependencies.preferences.saveUserPreferences(next) : next);
+      changed = true;
     }
-    dependencies.preferences.renderPreferences?.();
+    if (changed) dependencies.preferences.renderPreferences?.();
     return true;
   }
 

@@ -267,3 +267,15 @@ contractSuite('map styles and original-language labels', () => {
     assert.equal(territorialNativeLabelRows(feature, '2000-05', { zoom: 8, enabled: true }).length, 1);
   });
 });
+
+contractSuite('map style preference ownership', () => {
+  const test = __merge_dep0.default;
+  const assert = __merge_dep1.default;
+  test('the saved map theme owns terrain style; obsolete terrain and shadow preferences cannot persist', () => {
+    const { normalizeUserPreferences } = __merge_dep2;
+    const previous = normalizeUserPreferences({version:2,appearance:{mapStyle:'classic'},backgrounds:{viewer:{terrainVisible:false,terrainStyle:'physical',graticule:false,globeShadow:true}}});
+    assert.equal(previous.appearance.mapStyle, 'classic');
+    assert.deepEqual(previous.backgrounds.viewer, {graticule:false});
+    assert.equal(normalizeUserPreferences({version:2,appearance:{mapStyle:'invalid'}}).appearance.mapStyle, 'standard');
+  });
+});

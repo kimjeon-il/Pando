@@ -1,6 +1,7 @@
 import {coreSelectionRefToWeb} from "./core-object-ref.js";
 import {projectResourceOverlay} from "./project-resource-overlay.js";
 import {loadUserPreferences} from "../ui/user-preferences.js";
+import { mapStylePreset } from "../ui/map-style-presets.js";
 import { createMapWorkScheduler } from "../runtime/map-work-scheduler.js";
 import { createEmptyTerritorialState } from "./territorial-entity-store.js";
 import { createInitialDocument } from "./initial-document.js";
@@ -51,7 +52,9 @@ export function createProjectSession({productMode='editor',readOnly=productMode=
       objectFlags: true,
     }));
 
-    const background=loadUserPreferences().backgrounds[productMode];
+    const prefs = loadUserPreferences();
+    const background = prefs.backgrounds[productMode] || prefs.backgrounds.viewer;
+    const mapStyle = mapStylePreset(prefs.appearance.mapStyle);
     (state = {
       ...createEmptyTerritorialState(),
       countryVisualPhase: 'pending',
@@ -73,8 +76,8 @@ export function createProjectSession({productMode='editor',readOnly=productMode=
       backgroundSettings:{...background},
       layerVisibility: normalizeLayerVisibility(),
       physicalSettings: {
-        terrainVisible: capabilities.terrain && background.terrainVisible,
-        terrainStyle: productMode==='viewer'?background.terrainStyle:'physical',
+        terrainVisible: capabilities.terrain && (productMode !== 'viewer' || mapStyle.terrain !== 'none'),
+        terrainStyle: productMode === 'viewer' && mapStyle.terrain !== 'none' ? mapStyle.terrain : 'physical',
         terrainStyleVersion: 1,
         hydroLayers: {
           rivers_hydro: true,
