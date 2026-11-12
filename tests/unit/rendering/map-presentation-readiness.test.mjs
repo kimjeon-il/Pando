@@ -1,5 +1,6 @@
 import { describe as featureDescribe } from 'node:test';
 import { mapPresentationTargetKey, mapBackgroundTargetKey, physicalSceneMatchesContext } from "../../../src/rendering/map-render-publication.js";
+import {createRenderDeviceFixture} from '../../helpers/render-device-fixture.mjs';
 import { visibleFlatWorldOffsets } from "../../../src/rendering/map-visual-frame.js";
 import * as __suiteDependency0 from "node:assert/strict";
 import * as __suiteDependency1 from "node:test";
@@ -12,7 +13,6 @@ import * as __suiteDependency7 from "node:assert/strict";
 import * as __suiteDependency8 from "node:test";
 import * as __suiteDependency9 from "../../../src/ui/layer-presentation.js";
 import * as __suiteDependency10 from "../../../src/rendering/selection-pass.js";
-import * as __suiteDependency11 from "../../../src/rendering/render-device.js";
 import * as __suiteDependency12 from "node:test";
 import * as __suiteDependency13 from "node:assert/strict";
 import * as __suiteDependency14 from "../../../src/ui/map-content-presentation.js";
@@ -161,7 +161,6 @@ featureDescribe("map-visual-order", () => {
   const test = __suiteDependency8.default;
   const {  mapVisualOrder, mapVisualRank, INTERACTION_ROLE_PRIORITY, SELECTION_PAINT_ORDER, overlayVisualOrder  } = __suiteDependency9;
   const {  createSelectionPass  } = __suiteDependency10;
-  const {  createRenderDevice  } = __suiteDependency11;
 test('one policy orders paint, claim, selection and SVG roles without changing overlay object order', () => {
   assert.deepEqual(mapVisualOrder('hydro'), ['lake', 'lake-boundary', 'river', 'border-river']);
   const paint = mapVisualOrder('base');
@@ -186,7 +185,7 @@ test('selection submits the actual strokes in policy order regardless of input c
       return { succeeded: true, renderedKeys: keys, missingKeys: [] };
     } };
   const pass = createSelectionPass();
-  pass.initialize(createRenderDevice({ gl: {}, version: 2 }), { strokeRenderer: renderer });
+  pass.initialize(createRenderDeviceFixture().device, { strokeRenderer: renderer });
   const geometry = { type: 'LineString', coordinates: [[0, 0], [1, 1]] };
   pass.updateData({ channels: Object.fromEntries(['primary', 'secondary', 'hover', 'candidate'].map(role =>
     [role, [{ key: role, geometryRevision: 1, geometry }]])) });

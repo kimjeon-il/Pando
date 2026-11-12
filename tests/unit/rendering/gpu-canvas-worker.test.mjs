@@ -5,12 +5,12 @@ import vm from 'node:vm';
 import { buildSync } from 'esbuild';
 import { fileURLToPath } from 'node:url';
 import { createGpuCanvasWorker } from "../../../src/rendering/gpu-canvas-worker.js";
+import {createWorkerTestPort} from '../../helpers/worker-test-port.mjs';
 
 test('failed synchronous Canvas submission does not strand a busy renderer or a pick promise', async () => {
-  const errors=[],worker={
-    postMessage(message){if(message.type==='view'||message.type==='hydro-pick')throw new Error('worker channel closed');},
-    terminate(){},
-  };
+  const errors=[],worker=createWorkerTestPort({
+    onPostMessage(message){if(message.type==='view'||message.type==='hydro-pick')throw new Error('worker channel closed');},
+  });
   const channel=createGpuCanvasWorker({worker,generation:1,acceptFrame:()=>true});
   channel.onerror=event=>errors.push(event.message);
   worker.onmessage({data:{type:'ready'}});
@@ -24,7 +24,7 @@ test('failed synchronous Canvas submission does not strand a busy renderer or a 
 
 test('bitmapless Canvas acknowledgment does not enter picture-admission callback', () => {
   let admissions=0;
-  const worker={postMessage(){},terminate(){}};
+  const worker=createWorkerTestPort();
   const channel=createGpuCanvasWorker({worker,generation:1,acceptFrame:()=>{admissions++;return true;}});
   worker.onmessage({data:{type:'ready'}});
   channel.queueFrame({type:'view',revision:1,projectGeneration:1});
@@ -34,7 +34,7 @@ test('bitmapless Canvas acknowledgment does not enter picture-admission callback
 });
 
 test('Canvas send error may retire its worker synchronously without restoring a closed pending frame', () => {
-  const worker={postMessage(){throw Error('worker closed');},terminate(){}};
+  const worker=createWorkerTestPort({onPostMessage(){throw Error('worker closed');}});
   const channel=createGpuCanvasWorker({worker,generation:1,acceptFrame:()=>true});
   channel.onerror=()=>channel.terminate();
   worker.onmessage({data:{type:'ready'}});
@@ -125,7 +125,7 @@ test('Canvas owner ignores delayed ready/error and settles picks on termination'
 
 function transport({ generation = 2, acceptFrame = () => true } = {}) {
   const sent = [], presented = [], stale = [];
-  const worker = { postMessage: message => sent.push(message), terminate() {} };
+  const worker = createWorkerTestPort({onPostMessage: message => sent.push(message)});
   const channel = createGpuCanvasWorker({ worker, generation, acceptFrame, onStale: message => stale.push(message) });
   channel.onmessage = event => { if (event.data.type === 'frame') presented.push(event.data); };
   const receive = message => worker.onmessage({ data: message });
@@ -515,7 +515,7 @@ test('pick failures reject their own request and keep the Canvas worker alive', 
 
 test('rejected unsolicited Canvas paint reports staleness without acknowledging obsolete pixels',()=>{
   const sent=[],stale=[],accepted=[];
-  const worker={postMessage:message=>sent.push(message),terminate(){}};
+  const worker=createWorkerTestPort({onPostMessage:message=>sent.push(message)});
   const channel=createGpuCanvasWorker({worker,generation:3,
     acceptFrame:message=>message.frameId===9&&message.styleRevision===4,
     onStale:message=>stale.push(message)});
@@ -537,7 +537,7 @@ test('rejected unsolicited Canvas paint reports staleness without acknowledging 
 
 test('only a renderer-authorized current physical background can bypass an older requested view revision',()=>{
   const sent=[],accepted=[],rejected=[];let revoked=0;
-  const worker={postMessage:message=>sent.push(message),terminate(){}};
+  const worker=createWorkerTestPort({onPostMessage:message=>sent.push(message)});
   const channel=createGpuCanvasWorker({
     worker,generation:1,
     acceptFrame:message=>message.backgroundOnly===true && message.backgroundPresentationKey==='same-picture',

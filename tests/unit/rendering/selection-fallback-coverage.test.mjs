@@ -1,4 +1,5 @@
 import { describe as contractSuite } from 'node:test';
+import {createRenderDeviceFixture} from '../../helpers/render-device-fixture.mjs';
 import * as __contract_dep0 from "node:test";
 import * as __contract_dep1 from "node:assert/strict";
 import * as __contract_dep2 from "../../../src/ui/selection-fallback-coverage.js";
@@ -50,7 +51,7 @@ test('pending, failed, empty and other-channel coverage retain fallback outlines
 
 test('partial selection frame retires covered outlines and retains missing objects', () => {
   const pass = createSelectionPass();
-  pass.initialize({ gl: {}, version: 2, capabilities: {} }, { strokeRenderer: {
+  pass.initialize(createRenderDeviceFixture().device, { strokeRenderer: {
     isAvailable: () => true, stats: () => ({ gpuHealth: 'healthy' }),
     drawBatches: batches => ({ succeeded: true, renderedKeys: batches.map(batch => batch.key), drawCallCount: 1 }),
   } });
@@ -71,7 +72,7 @@ test('prepared library-country GPU resource transitions from upload pending to c
   const preparedGeometry = { marker: 'worker-prepared' };
   let ready = false, draws = 0;
   const pass = createSelectionPass();
-  pass.initialize({ gl: {}, version: 2, capabilities: {} }, { strokeRenderer: {
+  pass.initialize(createRenderDeviceFixture().device, { strokeRenderer: {
     isAvailable: () => true,
     stats: () => ({}),
     drawBatches: batches => {
@@ -116,7 +117,7 @@ const { resolveMapInteractionStyle } = __contract_dep9;
 test('common entity keys survive the static boundary optimization and geometry replacement', () => {
   const key = 'territorial:entity:A';
   const pass = createSelectionPass();
-  pass.initialize({ gl: {}, version: 2, capabilities: {} }, { strokeRenderer: {
+  pass.initialize(createRenderDeviceFixture().device, { strokeRenderer: {
     isAvailable: () => true, stats: () => ({ gpuHealth: 'healthy' }),
     drawBatches: batches => ({ succeeded: true, renderedKeys: batches.map(batch => batch.key), drawCallCount: 1 }),
   } });
@@ -139,7 +140,7 @@ test('common entity keys survive the static boundary optimization and geometry r
 test('selection pass forwards union coverage for hover and both selection channels in paint order', () => {
   const draws = [];
   const pass = createSelectionPass();
-  pass.initialize({ gl: {}, version: 2, capabilities: {} }, { strokeRenderer: {
+  pass.initialize(createRenderDeviceFixture().device, { strokeRenderer: {
     isAvailable: () => true, stats: () => ({ gpuHealth: 'healthy' }),
     drawBatches: batches => {
       draws.push(...batches);
