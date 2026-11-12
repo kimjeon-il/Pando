@@ -4,6 +4,7 @@ import {chromium} from '@playwright/test';
 import {build} from 'esbuild';
 import {createServer} from 'node:http';
 import {createHash} from 'node:crypto';
+import {platform,release,arch,cpus,totalmem} from 'node:os';
 import {readFile,writeFile} from 'node:fs/promises';
 
 const [cogDir,tileDir,out,...options]=process.argv.slice(2);
@@ -30,6 +31,7 @@ const bundle=await build({stdin:{contents:"export {openViewerCogTiles} from './s
   resolveDir:process.cwd(),loader:'js'},bundle:true,platform:'browser',format:'iife',globalName:'CogTransfer',write:false});
 const server=createServer((_,response)=>response.writeHead(200,{'Content-Type':'text/html'}).end('<!doctype html><title>Terrain transfer experiment</title>'));
 const report={schema:'pando-terrain-external-transfer-v1',sourceSha256:cogManifest.sourceSha256,cogSha256:cogManifest.sha256,tileCount,chunkBytes,
+  host:{platform:platform(),release:release(),arch:arch(),cpuModel:cpus()[0]?.model,logicalCpus:cpus().length,totalMemoryBytes:totalmem()},
   dataRevision:'0fc425921e1fb431ef35d9af6f5ac762f2b3a269',cogUrl,tileBase,startedAt:new Date().toISOString(),runs:[],status:'running',
   limitations:['Single 2x2 regional sample; localhost test page, external HTTPS CDN; not the Viewer or GPU rendering.',
     'Cold means a fresh browser context; CDN edge, DNS and shared network caches are not controlled.',

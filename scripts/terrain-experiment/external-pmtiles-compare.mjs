@@ -4,6 +4,7 @@ import {chromium} from '@playwright/test';
 import {build} from 'esbuild';
 import {createHash} from 'node:crypto';
 import {createServer} from 'node:http';
+import {platform,release,arch,cpus,totalmem} from 'node:os';
 import {readFile,writeFile} from 'node:fs/promises';
 
 const [archivePath,archiveReportPath,tileDir,pmtilesJsPath,out,...options]=process.argv.slice(2);
@@ -32,6 +33,7 @@ const helper=await build({stdin:{contents:"export {createVerifiedRangeClient} fr
   resolveDir:process.cwd(),loader:'js'},bundle:true,platform:'browser',format:'iife',globalName:'VerifiedArchive',write:false});
 const server=createServer((_,response)=>response.writeHead(200,{'Content-Type':'text/html'}).end('<!doctype html><title>PMTiles transfer experiment</title>'));
 const report={schema:'pando-pmtiles-external-comparison-v1',sourceSha256:meta.sourceSha256,archiveSha256:manifest.sha256,chunkBytes,tileCount,
+  host:{platform:platform(),release:release(),arch:arch(),cpuModel:cpus()[0]?.model,logicalCpus:cpus().length,totalMemoryBytes:totalmem()},
   pmtilesJsSha256:hash(bundleBytes),archiveUrl,tileBase,startedAt:new Date().toISOString(),runs:[],status:'running',
   limitations:['Single regional LOD5 sample; local test page, external Fastly CDN; not the Viewer or GPU rendering.',
     'PMTiles addresses use a custom EPSG:4326 grid, not standard Web Mercator XYZ.',
