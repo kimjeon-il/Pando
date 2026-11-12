@@ -9,6 +9,7 @@ import {a1TerrainFragmentSource} from './a1-shader.mjs';
 import {makeViewerFixtureManifest} from './viewer-fixture.mjs';
 import {serve,identity,mapSummary,chromiumProcessMemory} from '../p7-browser-ab-measure.mjs';
 import {performanceCounters,performanceDelta,captureAcceptedFrame,runViewerPhases} from './viewer-phases.mjs';
+import {inspectFixtureCoverage} from './fixture-coverage.mjs';
 
 const region=process.argv.find(arg=>arg.startsWith('--region='))?.slice('--region='.length)||'southwest-china';
 if(!['southwest-china','thai-lowland','netherlands-coast'].includes(region))throw Error('Unknown representative region');
@@ -199,6 +200,12 @@ try{
       await writeFile(`${out}/viewer-${index+1}-${size}-initial.png`,initialScreenshot);
       try{run.initialFrameCapture=await captureAcceptedFrame(page,`${out}/viewer-${index+1}-${size}-initial-framebuffer.png`);}
       catch(error){run.initialFrameCaptureError=String(error);}
+      if(!run.initialFrameCapture)throw Error('Cannot preflight the actual Viewer camera without its initial accepted frame');
+      run.fixtureCoverage=inspectFixtureCoverage({manifest:selected.manifest,
+        availableKeys:new Set([...selected.tiles.keys()].map(key=>key.replace(/\.webp$/, ''))),
+        center:selected.center,viewport:[run.initialFrameCapture.width,run.initialFrameCapture.height],
+        scale:run.initialFrameCapture.scale*32});
+      if(!run.fixtureCoverage.valid)throw Error('Experimental fixture does not cover the actual Viewer visibility or admission policy');
       phaseName='zoom32';const countersBefore=await performanceCounters(pageCdp);
       await page.evaluate(()=>globalThis.__terrainFixtureFrames.start());
       const started=Date.now();
