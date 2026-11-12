@@ -371,7 +371,7 @@ export async function composeViewer({ productMode, meta }) {
     projectState:{get state(){return map.displayState();}},
     objectModelA:{expandedMapDisplayGroups:map.objectPresentation.expandedMapDisplayGroups},territorialModel:{entityRepository:map.entityRepository},
     applicationServicesB:{layerStyle},applicationConstantsA:{DISTRIBUTION_RENDER_MODES},
-    preferences:{saveUserPreferences,get userPreferences(){return preferencePresentation.current;},setUserPreferences:value=>{preferencePresentation.current=value;}},
+    preferences:{saveUserPreferences,get userPreferences(){return preferencePresentation.current;},setUserPreferences:value=>{preferencePresentation.current=value;},renderPreferences:()=>preferencePresentation.apply(preferencePresentation.current,{persist:false})},
     hydroModel:owners.hydroSettings,
     workspaceUiA:surfaces,workspaceUiB:surfaces,
   });

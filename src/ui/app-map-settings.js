@@ -3,6 +3,7 @@ import { MAP_DISPLAY_TARGETS } from "./map-display-catalog.js";
 import { distributionValueRange } from "../document/distribution-model.js";
 import { clearMenuPosition, createMenuPositionScheduler, exitMenuOnTab, positionRootMenu, positionSubmenu } from "./menu-presentation.js";
 import {createMapDisplayMenuState} from "./map-display-menu-state.js";
+import { mapStylePreset, normalizeMapStyle } from "./map-style-presets.js";
 
 const SYMBOL_VISIBILITY_KEYS = new Set(Object.values(TERRITORIAL_SYMBOL_KEYS));
 
@@ -106,6 +107,51 @@ export function createMapSettings({ capabilities,viewPresentation } = {}) {
     syncMapDisplayDisclosures();
     (0, dependencies.objectDisplay.invalidateObjectPresentation)();
     dependencies.domains.renderingDomain.invalidateBaseScene('terrain-mode');
+    return true;
+  }
+
+  /** Map theme visuals use the existing Core display state and terrain pipeline. */
+  async function applyMapStyle(id, { persist = true } = {}) {
+    const normalized = normalizeMapStyle(id);
+    const preset = mapStylePreset(normalized);
+    const state = dependencies.projectState.state;
+    const shouldEnableTerrain = preset.terrain !== 'none';
+    if (state.physicalSettings.terrainVisible !== shouldEnableTerrain
+      || (shouldEnableTerrain && state.physicalSettings.terrainStyle !== preset.terrain)) {
+      if (await setTerrainMode(preset.terrain) === false) throw new Error('지도 테마의 지형을 적용하지 못했습니다.');
+    }
+    for (const [key, visible] of [['objects', true], ['objectNames', true], ['objectFlags', preset.flags], ['labels', true]]) {
+      if (state.layerVisibility[key] !== visible && await setLayerVisibility(key, visible) === false)
+        throw new Error('지도 테마의 표시 항목을 적용하지 못했습니다.');
+    }
+    const objectStyle = dependencies.applicationServicesB.layerStyle(state.layerPresentation, 'objects');
+    const colorVisible = normalized === 'standard';
+    if (objectStyle.colorVisible !== colorVisible || objectStyle.boundaryVisible === false) {
+      if (await updateLayerPresentationStyle('objects', { colorVisible, boundaryVisible: true }) === false)
+        throw new Error('지도 테마의 객체 색상·경계를 적용하지 못했습니다.');
+    }
+    const current = dependencies.preferences.userPreferences;
+    if (current.appearance.mapStyle !== normalized) {
+      const next = { ...current, appearance: { ...current.appearance, mapStyle: normalized } };
+      dependencies.preferences.setUserPreferences(persist ? dependencies.preferences.saveUserPreferences(next) : next);
+    }
+    dependencies.preferences.renderPreferences?.();
+    return true;
+  }
+
+  async function setBackgroundSetting(key, visible) {
+    if (key !== 'graticule') throw new TypeError('Unsupported map background setting');
+    const state = dependencies.projectState.state;
+    if (state.backgroundSettings[key] === visible) return false;
+    state.backgroundSettings[key] = visible;
+    const current = dependencies.preferences.userPreferences;
+    dependencies.preferences.setUserPreferences(dependencies.preferences.saveUserPreferences({
+      ...current, backgrounds: { ...current.backgrounds, viewer: { ...current.backgrounds.viewer, [key]: visible } },
+    }));
+    dependencies.rendering.gpuMapRenderer.invalidateHydroVisibility();
+    dependencies.domains.renderingDomain.invalidateBaseScene('background-preference');
+    dependencies.domains.renderingDomain.invalidateLabels('background-preference');
+    dependencies.domains.objectSearchController.render();
     return true;
   }
 
@@ -786,6 +832,7 @@ export function createMapSettings({ capabilities,viewPresentation } = {}) {
     get renderMapDisplaySettings() { return renderMapDisplaySettings; },
     get setLayerVisibility() { return setLayerVisibility; },
     get setTerrainMode() { return setTerrainMode; },
+    applyMapStyle, setBackgroundSetting, setNativeNameOverlay, setDistributionControl,
     get setPlaceLanguage() { return setPlaceLanguage; },
     get syncMapDisplayDisclosures() { return syncMapDisplayDisclosures; },
     get syncDistributionPresentationControls() { return syncDistributionPresentationControls; },
