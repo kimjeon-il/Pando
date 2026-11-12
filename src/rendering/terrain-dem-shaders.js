@@ -50,10 +50,10 @@ export function terrainDemFragmentSource(glVersion) {
           if(valid){surfaceSum+=candidate*w;surfaceCoverage+=w;}
         }
         if(surfaceCoverage>0.0){
-          float flat=0.27+0.73*0.70710678;
+          float flatShade=0.27+0.73*0.70710678;
           float illumination=max(0.0,(values.y-0.42)/0.58);
-          float shade=clamp(flat+((0.27+0.73*illumination)-flat)*1.3,0.16,1.0);
-          float factor=clamp(shade/flat,0.38,1.3);
+          float shade=clamp(flatShade+((0.27+0.73*illumination)-flatShade)*1.3,0.16,1.0);
+          float factor=clamp(shade/flatShade,0.38,1.3);
           vec3 surface=surfaceSum/surfaceCoverage*mix(1.0,0.72,uDarkTheme);
           color=mix(color,surface*factor,clamp(uNaturalWeight,0.0,1.0)*surfaceCoverage);
         }
