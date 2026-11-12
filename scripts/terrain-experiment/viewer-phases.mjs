@@ -52,7 +52,7 @@ export async function runViewerPhases({page,pageCdp,processCdp,out,prefix,screen
     throw TypeError('Positive interaction duration and theme cycle count required');
   async function phase(name,action,{month,theme,zoom,terrainRadio,level=expectedLevel,requireScreen=screen}={}){
     const row={name,status:'running',frameGapsMs:[]};phases.push(row);onStart(name);await onPhase();
-    if(screen&&!requireScreen)row.screenSpaceCoverage='not-verified';
+    if(screen&&!requireScreen)row.screenSpaceCoverage=terrainRadio==='terrainNoneRadio'?'not-applicable':'not-verified';
     const countersBefore=await performanceCounters(pageCdp);
     await page.evaluate(()=>globalThis.__terrainFixtureFrames.start());const started=Date.now();
     try{

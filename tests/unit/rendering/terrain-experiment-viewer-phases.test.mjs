@@ -39,6 +39,7 @@ test('terrain phase runner exercises drag, rotation, dates, theme and warm retur
     assert.equal(phases.length,15);assert.ok(phases.every(row=>row.status==='passed'&&row.frames.count>=3));
     assert.equal(captured.filter(row=>!row.screen).length,3);assert.equal(captured.length,15);assert.ok(writes>=30);
     assert.equal(phases.find(row=>row.name==='zoom8').screenSpaceCoverage,'not-verified');
+    assert.equal(phases.find(row=>row.name==='terrain-none').screenSpaceCoverage,'not-applicable');
     assert.ok(phases.every(row=>row.candidateDiagnostics.cacheHits===42));
     assert.deepEqual(await page.evaluate(()=>globalThis.__PANDOLAB_MAP_HOST__.getViewState().globeRotation),[-102,-28,0]);
     await page.evaluate(()=>{globalThis.__terrainTestLevel=4;});
