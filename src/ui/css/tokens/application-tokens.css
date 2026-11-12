@@ -54,8 +54,6 @@
   --map-hover-stroke: var(--map-selection-halo);
   --map-hover-fill: transparent;
   --map-snap: var(--map-selection-halo);
-  --globe-shadow: #000000;
-  --globe-shadow-opacity: .55;
   --user-label-dot: #e0c26f;
   --user-label-dot-stroke: #302a1f;
   --user-label-text: #f1e4be;
@@ -205,7 +203,6 @@
   --map-label: #1c2229;
   --map-label-halo: rgba(255,255,255,.94);
   --country-selection-fill: rgba(49,94,157,.10);
-  --globe-shadow-opacity: 1;
   --user-label-dot: #315e9d;
   --user-label-dot-stroke: #ffffff;
   --user-label-text: #1f416d;

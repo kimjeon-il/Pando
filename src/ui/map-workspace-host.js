@@ -9,7 +9,6 @@ export function createMapHost({productMode='editor',readOnly=productMode==='view
   let dependencies;
   let svg;
   let interactionSvg;
-  let shadowLayer;
   let oceanLayer;
   let countryLayer;
   let hoverLayer;
@@ -266,7 +265,6 @@ export function createMapHost({productMode='editor',readOnly=productMode==='view
     dependencies.mapHostCommands.installFlatOceanLayer(baseRoot.append('rect').attr('class', 'map-ocean map-ocean-flat'));
     if(productPolicy.projection==='globe') {
       oceanLayer = baseRoot.append('circle').attr('class', 'map-ocean map-ocean-globe');
-      shadowLayer = baseRoot.append('circle').attr('class', 'globe-shadow');
     }
 
     const gpuCanvas = document.createElement('canvas');
@@ -409,7 +407,6 @@ export function createMapHost({productMode='editor',readOnly=productMode==='view
     get queueMapResize() { return queueMapResize; },
     get resizeMap() { return resizeMap; },
     get selectionLayer() { return selectionLayer; },
-    get shadowLayer() { return shadowLayer; },
     get startMapResizeObserver() { return startMapResizeObserver; },
     get svg() { return svg; },
     get syncMapHostFromState() { return syncMapHostFromState; },

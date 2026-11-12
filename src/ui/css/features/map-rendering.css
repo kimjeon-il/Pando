@@ -172,10 +172,6 @@
   stroke: none;
 }
 
-.map-base-svg.flat-projection .globe-shadow {
-  display: none;
-}
-
 .country-shape {
   stroke: var(--map-border);
   stroke-width: .72px;
@@ -245,15 +241,6 @@
   stroke-width: 3px;
   stroke-linejoin: round;
   cursor: pointer;
-}
-
-.globe-shadow {
-  fill: none;
-  stroke: var(--globe-shadow);
-  stroke-opacity: var(--globe-shadow-opacity);
-  stroke-width: 1px;
-  filter: none;
-  pointer-events: none;
 }
 
 .hydro-lakes-layer {
