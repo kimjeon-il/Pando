@@ -47,8 +47,22 @@ async function collectMemory(page){
 for(const renderer of ['webgl2','canvas']){
   test('natural external preview incrementally repaints actual '+renderer+' Viewer',async({page},testInfo)=>{
     test.setTimeout(renderer==='canvas'?260_000:200_000);
-    const errors=[],naturalRequests=[];page.on('pageerror',e=>errors.push(e.message));
-    page.on('request',req=>{if(/\/terrain\/natural\/v[^/]+\/\d+\/\d+-\d+\.webp/.test(req.url()))naturalRequests.push(req.url());});
+    const errors=[],naturalRequests=[],catalogTraffic=[],consoleDiagnostics=[];
+    page.on('pageerror',e=>errors.push(e.message));
+    page.on('console',m=>{if(/natural|terrain|shader|canvas|fallback/i.test(m.text()))
+      consoleDiagnostics.push({type:m.type(),text:m.text().slice(0,700)});});
+    page.on('request',req=>{
+      if(/\/terrain\/natural\/v[^/]+\/\d+\/\d+-\d+\.webp/.test(req.url()))naturalRequests.push(req.url());
+      if(/\/terrain\/natural\/candidates\//.test(req.url()))catalogTraffic.push({event:'request',url:req.url()});
+    });
+    page.on('response',response=>{
+      if(/\/terrain\/natural\/candidates\//.test(response.url()))
+        catalogTraffic.push({event:'response',url:response.url(),status:response.status()});
+    });
+    page.on('requestfailed',req=>{
+      if(/\/terrain\/natural\//.test(req.url()))
+        catalogTraffic.push({event:'failed',url:req.url(),failure:req.failure()?.errorText||null});
+    });
     await page.addInitScript(()=>localStorage.setItem('pandolab-user-preferences',
       JSON.stringify({version:2,appearance:{mapStyle:'standard',theme:'light'}})));
     let releaseNatural;
@@ -93,6 +107,18 @@ for(const renderer of ['webgl2','canvas']){
       expect(diff.changedPixels,'Actual surface must change the presented frame, not just cache bytes').toBeGreaterThan(100);
       expect(final.terrainNaturalFailures).toBe(0);
       expect(errors).toEqual([]);
-    }finally{holdNatural=false;releaseNatural();}
+    }finally{
+      holdNatural=false;releaseNatural();
+      let runtime=null;
+      try { runtime=await page.evaluate(()=>({
+        mapStyle:document.documentElement.dataset.mapStyle,
+        view:window.__PANDOLAB_MAP_HOST__?.getViewState?.(),
+        physicalSettings:window.__PANDOLAB_VIEWER__?.documentState?.()?.physicalSettings ?? null,
+        terrainStats:window.__PANDOLAB_VIEWER__?.rendererStats?.(),
+      })); } catch(error) { runtime={error:String(error)}; }
+      await testInfo.attach('natural-runtime-diagnostics',{body:JSON.stringify({
+        renderer,held,errors,naturalRequests,catalogTraffic,consoleDiagnostics,runtime,
+      },null,2),contentType:'application/json'});
+    }
   });
 }
