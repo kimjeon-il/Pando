@@ -84,7 +84,7 @@ try{
           if(candidate==='screen'){
             const marker="function renderTerrain(pass = 'land') {\n      for (const tile of preparedTerrain) drawTerrainTile(tile, pass);\n    }";
             if(!source.includes(marker))throw Error('Viewer terrain render contract changed');
-            const replacement=`function renderTerrain(pass = 'land') {\n      const dark=getSystemTheme()==='dark';\n      const palette=globalThis.PandoLabCanvasTerrainDem.paletteForTheme(dark?'dark':'light');\n      if(globalThis.__pandoScreen?.draw({gl,tiles:preparedTerrain,frame:activeFrameContext || lastVisualFrame,pass,physicalStyle:state.physicalSettings.terrainStyle==='physical',dark,palette}))return;\n      for (const tile of preparedTerrain) drawTerrainTile(tile, pass);\n    }`;
+            const replacement=`function renderTerrain(pass = 'land') {\n      const dark=getSystemTheme()==='dark';\n      const palette=globalThis.PandoLabCanvasTerrainDem.paletteForTheme(dark?'dark':'light');\n      if(globalThis.__pandoScreen?.draw({gl,tiles:preparedTerrain,frame:activeFrameContext || lastVisualFrame,pass,physicalStyle:state.physicalSettings.terrainStyle==='physical',dark,palette})){performanceMetrics.webGlDirectDrawCallCount++;return;}\n      for (const tile of preparedTerrain) drawTerrainTile(tile, pass);\n    }`;
             source=source.replace(marker,replacement);
           }
           const marker='      frameTimes.push(performance.now() - started);';
@@ -261,6 +261,21 @@ try{
           return {changed,total,fraction:changed/total};
         },{before:initialScreenshot.toString('base64'),after:afterScreenshot.toString('base64')});
         if(run.screenshotChange.fraction<.1)run.screenshotError='Screenshot differs too little from the initial view to establish that the zoomed frame was captured';
+        if(!run.frameCaptureError){
+          const captured=await readFile(`${out}/viewer-${index+1}-${size}-framebuffer.png`);
+          run.screenshotFrameMatch=await page.evaluate(async({screen,frame})=>{
+            const load=async data=>createImageBitmap(await (await fetch('data:image/png;base64,'+data)).blob());
+            const [a,b]=await Promise.all([load(screen),load(frame)]),rect=document.getElementById('viewerCanvas').getBoundingClientRect();
+            const canvas=new OffscreenCanvas(160,100),ctx=canvas.getContext('2d');
+            ctx.drawImage(a,rect.left,rect.top,rect.width,rect.height,0,0,160,100);const x=ctx.getImageData(0,0,160,100).data;
+            ctx.clearRect(0,0,160,100);ctx.drawImage(b,0,0,160,100);const y=ctx.getImageData(0,0,160,100).data;a.close();b.close();
+            let similar=0,total=0;for(let row=8;row<94;row++)for(let col=5;col<155;col++){
+              const i=(row*160+col)*4;if(Math.abs(x[i]-y[i])+Math.abs(x[i+1]-y[i+1])+Math.abs(x[i+2]-y[i+2])<18)similar++;total++;
+            }
+            return {similar,total,fraction:similar/total,canvasRect:{x:rect.left,y:rect.top,width:rect.width,height:rect.height}};
+          },{screen:afterScreenshot.toString('base64'),frame:captured.toString('base64')});
+          if(run.screenshotFrameMatch.fraction<.4)run.screenshotError='Screenshot does not match the accepted WebGL framebuffer';
+        }
       }
       run.status=run.pageErrors.length||run.consoleErrors.length||run.routeErrors.length||run.screenshotError||run.frameCaptureError||run.candidateRequests.some(x=>x.error)?'failed':'passed';
       if(run.status!=='passed')run.error='Screenshot, console, candidate request, route, or page error';
