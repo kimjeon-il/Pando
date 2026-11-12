@@ -36,7 +36,7 @@ export async function packageSharedCoreAssets(rootInput,buildInput,{check=false,
   if(check&&skipChecks)throw Error('Cannot combine --check and --skip-checks');
   const root=resolve(rootInput),build=resolve(buildInput);
   const pinnedToolchain=JSON.parse(readFileSync(join(root,'config/toolchain-versions.json'),'utf8'));
-  assert.match(pinnedToolchain.emscripten,/^\\d+\\.\\d+\\.\\d+$/,'invalid pinned Emscripten version');
+  assert.match(pinnedToolchain.emscripten,/^[0-9]+[.][0-9]+[.][0-9]+$/,'invalid pinned Emscripten version');
   // Git commits this generated module with LF endings; hash the published bytes.
   const js=Buffer.from(new TextDecoder('utf-8',{fatal:true,ignoreBOM:true})
     .decode(readFileSync(join(build,'pandoeditor-core.js'))).replace(/\r\n/g,'\n'));
