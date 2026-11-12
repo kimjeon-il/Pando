@@ -1,7 +1,7 @@
 // Bounded semantic references for contract tests and helper-owned doubles.
 // Import-only edges remain owned by check-impact; this covers intentionally
 // disconnected Worker messages, API fixtures and serialized schema literals.
-const escape = value => value.replace(/[.*+?^$\{\}()|[\]\\]/g, '\\$&');
+const escape = value => value.replace(/[.*+?^${}()|[\]\\]/g, '\\value.replace(/[.*+?^$\{\}()|[\]\\]/g, '\\$&')');
 const markerRegex = marker => new RegExp('(^|[^a-zA-Z0-9_$])' + escape(marker) + '($|[^a-zA-Z0-9_$])');
 
 export function planContractConsumerTests({
