@@ -212,8 +212,8 @@ async function directFallbackHarness(t, { canvasWorker = false, pendingGeometry 
     return node;
   };
   const document = { ...svg.document, addEventListener() {}, removeEventListener() {}, createElement: () => createCanvas() };
-  class FakeWorker {
-    constructor(url, options) { this.name = options.name; this.messages = []; workers.push(this); }
+  class FakeWorker extends EventTarget {
+    constructor(url, options) { super(); this.name = options.name; this.messages = []; workers.push(this); }
     postMessage(message) { this.messages.push(message); }
     terminate() { this.terminated = true; }
   }
