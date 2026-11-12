@@ -260,7 +260,7 @@ async function directFallbackHarness(t, { canvasWorker = false, pendingGeometry 
     baseResources: { getState: () => state },
     territorialResources: { getState: () => state, displayEntities: () => features },
     requestFrame: callback => queued.push(callback),
-    prepareView: ({ frameId }) => createMapVisualFrame({ frameId, viewRevision: 1, projectGeneration: 0,
+    prepareView: ({ frameId }) => createMapVisualFrame({ frameId, viewRevision: 1, projectGeneration: 3,
       viewState: { ...state, translate: [150, 100], scale: 40, dpr: 1 }, projectPath: () => 'M0,0L1,0L1,1Z',
       createCanvasPath: context => feature => {if(context.canvas===canvas&&feature?.id)drawnIds.push(feature.id);} }),
     renderers: { view: frame => {
@@ -274,6 +274,9 @@ async function directFallbackHarness(t, { canvasWorker = false, pendingGeometry 
       getInteractionStyle: resolveMapInteractionStyle, territorialEntityById: byId, territorialDisplayFeature: byId,
       mapFeatureForObjectRef: ref => byId(ref.id), countryOutlineFeature: value => value },
   });
+  // Generation zero is intentionally excluded from Canvas rendering. The
+  // harness represents an admitted project, not the pre-document boot phase.
+  renderer.resetProjectRenderState({ generation: 3 });
   // The canonical physical owner must be admitted before forcefully losing
   // WebGL; otherwise fallback cannot legally paint an incomplete background.
   renderer.setRenderScene(createRenderSceneBuilder().build({ polygons: [{
