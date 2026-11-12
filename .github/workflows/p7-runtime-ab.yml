@@ -71,7 +71,8 @@ jobs:
   regional-terrain-smoke:
     if: github.event_name == 'workflow_dispatch' && inputs.terrain_only == true
     runs-on: ubuntu-24.04
-    timeout-minutes: 120
+    # Fifteen interleaved runs now include the full interaction and capture set.
+    timeout-minutes: 240
     steps:
       - uses: actions/checkout@v4
         with:
