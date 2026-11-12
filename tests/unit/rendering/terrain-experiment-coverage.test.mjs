@@ -59,9 +59,9 @@ test('place snapshot trace preserves the actual label invalidation',()=>{
 });
 
 test('terrain-only capture is placed after land and rejects a changed scene pass',()=>{
-  const marker="renderTerrain('land');";
-  const result=withTerrainOnlyCapture(marker);
-  assert.ok(result.indexOf(marker)<result.indexOf('gl.readPixels'));
+  const source="renderTerrain('land');\n      }\n        },\n        'territorial-fill': () => {";
+  const result=withTerrainOnlyCapture(source);
+  assert.ok(result.indexOf('\n      }')<result.indexOf('gl.readPixels'));
   assert.match(result,/__pandoTerrainCapture/);
   assert.throws(()=>withTerrainOnlyCapture('changed'),/scene contract changed/);
 });

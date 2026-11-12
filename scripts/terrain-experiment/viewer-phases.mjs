@@ -59,9 +59,10 @@ export async function runViewerPhases({page,pageCdp,processCdp,out,prefix,screen
       await action();
       await page.waitForFunction(({month,theme,expectedLevel,zoom,terrainRadio})=>{
         const api=globalThis.__PANDOLAB_VIEWER__,s=api?.rendererStats();
-        return s?.mapReadiness?.mapReady===true&&s.terrainReady===true&&s.terrainTargetLevel>=0&&s.terrainRenderedLevel===s.terrainTargetLevel
+        const terrainOff=terrainRadio==='terrainNoneRadio';
+        return s?.mapReadiness?.mapReady===true&&(terrainOff||s.terrainReady===true&&s.terrainTargetLevel>=0&&s.terrainRenderedLevel===s.terrainTargetLevel
           &&(expectedLevel===null||s.terrainTargetLevel===expectedLevel)
-          &&s.terrainTargetTileCount>0&&s.terrainTargetTilesLoaded===s.terrainTargetTileCount&&!s.screenLodPreparingKey
+          &&s.terrainTargetTileCount>0&&s.terrainTargetTilesLoaded===s.terrainTargetTileCount)&&!s.screenLodPreparingKey
           &&(!zoom||Math.abs(globalThis.__PANDOLAB_MAP_HOST__.getViewState().globeZoom-zoom)<1e-6)
           &&(!terrainRadio||document.getElementById(terrainRadio)?.checked===true)
           &&(!month||(api.builtinMonth().month===month&&api.documentState()?.timelineCursor===month))
@@ -141,8 +142,11 @@ export async function runViewerPhases({page,pageCdp,processCdp,out,prefix,screen
     await page.locator('#mapDisplayBtn').click({timeout:10000});
   }
   await phase('terrain-political',()=>selectTerrain('terrainPoliticalRadio'),{terrainRadio:'terrainPoliticalRadio'});
+  await phase('terrain-none',()=>selectTerrain('terrainNoneRadio'),{terrainRadio:'terrainNoneRadio',requireScreen:false});
   await phase('terrain-physical-return',()=>selectTerrain('terrainPhysicalRadio'),{terrainRadio:'terrainPhysicalRadio'});
   const political=phases.find(row=>row.name==='terrain-political')?.frameCapture?.terrainOnly?.sha256;
+  const none=phases.find(row=>row.name==='terrain-none')?.frameCapture?.terrainOnly?.sha256;
   const physical=phases.find(row=>row.name==='terrain-physical-return')?.frameCapture?.terrainOnly?.sha256;
-  if(!political||!physical||political===physical)throw Error('Terrain modes did not produce distinct terrain pixels');
+  if(!political||!none||!physical||new Set([political,none,physical]).size!==3)
+    throw Error('Terrain modes did not produce distinct terrain pixels');
 }

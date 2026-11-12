@@ -22,10 +22,10 @@ export function withPlaceSnapshotTrace(source){
   return source.replace(marker,"onSnapshot: snapshot => { globalThis.__pandoPlaceSnapshots.push({revision:snapshot.revision,count:snapshot.records.length,signature:snapshot.signature}); return dependencies.domains.renderingDomain.invalidateLabels('builtin-places-ready'); },");
 }
 export function withTerrainOnlyCapture(source){
-  const marker="renderTerrain('land');";
+  const marker="\n        },\n        'territorial-fill': () => {";
   if(typeof source!=='string'||source.split(marker).length!==2)throw Error('Viewer terrain scene contract changed');
   const capture=`\n        if(globalThis.__pandoTerrainCapture?.requested){\n          const width=gl.drawingBufferWidth,height=gl.drawingBufferHeight,pixels=new Uint8Array(width*height*4);\n          gl.readPixels(0,0,width,height,gl.RGBA,gl.UNSIGNED_BYTE,pixels);\n          globalThis.__pandoTerrainCapture.result={pixels,width,height,frameId:activeFrameContext.frameId};\n        }`;
-  return source.replace(marker,marker+capture);
+  return source.replace(marker,capture+marker);
 }
 const radians=value=>value*Math.PI/180;
 function distance(a,b){
