@@ -94,7 +94,6 @@ export function canvasCountryGeometrySignature(features) {
 
 export function createGpuMapRenderer(deps) {
   const {
-    APP_VERSION,
     ASSET_REVISION,
     DATA_REVISION,
     sharedBoundaryCacheUrls,
