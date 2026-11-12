@@ -1885,6 +1885,7 @@ export function createGpuMapRenderer(deps) {
       hydroPreparation.setContext({ gl: null, version: glVersion, scheduler: hydroUploadScheduler,
         projectGeneration, contextGeneration: renderDeviceContextRevision });
       hydroCoverage.handleContextLost();
+      renderDevice?.state.dispose();
       lifecycle.releaseContext(gl);
       failTemporalPresentation(Object.assign(new Error('Context lost during temporal presentation'), {name:'AbortError'}));
       pendingCanonicalCommit?.reject(Object.assign(new Error('Context lost during canonical commit'), { name: 'AbortError' }));
@@ -2169,6 +2170,7 @@ export function createGpuMapRenderer(deps) {
           renderDeviceContextRevision++;
           createWebGlResources();
           renderDevice = createRenderDevice({ gl, canvas, version: glVersion, contextRevision: renderDeviceContextRevision });
+          hydroCoverage.setContext(renderDevice, glVersion);
           initializeSharedGpuPasses();
         } catch (error) {
           console.error('[PL-GPU-002]', error);
@@ -2210,6 +2212,7 @@ export function createGpuMapRenderer(deps) {
         version,
         contextRevision: renderDeviceContextRevision,
       });
+      hydroCoverage.setContext(renderDevice, version);
       initializeSharedGpuPasses();
       lifecycle.listen(canvas, 'webglcontextlost', handleWebGlContextLost);
       lifecycle.listen(canvas, 'webglcontextrestored', handleWebGlContextRestored);
@@ -5749,6 +5752,7 @@ export function createGpuMapRenderer(deps) {
       terrainPreparation?.reset();
       sceneColorCache.dispose(); interactionFillCache.dispose(); interactionStrokeCache.dispose();
       polygonOverlayPass.dispose(); strokeRenderer.dispose();
+      renderDevice?.state.dispose();
       lifecycle.releaseContext(gl);
     }
 
