@@ -85,6 +85,7 @@ const report={schema:'pando-terrain-viewer-regional-ab-v1',identity:identity(),f
     'Verified tiles and COG bytes are prefetched outside timing and served from memory through interception; request origins differ and CDP totals are not real-host transfer measurements.',
     'COG runs use a simulated same-origin 206 range host; GitHub raw CORS is not fixed by this test.',
     'Screen-space D is a bounded 512-tile atlas prototype; unsupported coverage retains the existing tile path and is not counted as D.',
+    'The 8x and 16x phases use existing lower-LOD data; screen-space D is not verified in those phases.',
     'rAF intervals are scheduling proxies, not actual GPU presentation or GPU time.']};
 let server,browser;
 try{

@@ -31,14 +31,15 @@ test('terrain phase runner exercises drag, rotation, dates, theme and warm retur
     await runViewerPhases({page,pageCdp:cdp,processCdp:null,out:'unused',prefix:'case',screen:true,center:[102,28],phases,
       panDurationMs:100,themeCycles:2,minimumFrames:3,onStart:name=>started.push(name),onPhase:async()=>{writes++;},
       capture:async(_page,path,options)=>{captured.push({path,screen:options.screen});return {sha256:'fixture'};}});
-    assert.deepEqual(started,['drag','continuous-pan','rotate','previous-year','date-return','dark','light','theme-cycle','warm-return']);
-    assert.equal(phases.length,9);assert.ok(phases.every(row=>row.status==='passed'&&row.frames.count>=3));
-    assert.ok(captured.every(row=>row.screen));assert.equal(captured.length,9);assert.ok(writes>=18);
+    assert.deepEqual(started,['drag','continuous-pan','rotate','zoom8','zoom16','zoom32-return','previous-year','date-return','dark','light','theme-cycle','warm-return']);
+    assert.equal(phases.length,12);assert.ok(phases.every(row=>row.status==='passed'&&row.frames.count>=3));
+    assert.equal(captured.filter(row=>!row.screen).length,2);assert.equal(captured.length,12);assert.ok(writes>=24);
+    assert.equal(phases.find(row=>row.name==='zoom8').screenSpaceCoverage,'not-verified');
     assert.deepEqual(await page.evaluate(()=>globalThis.__PANDOLAB_MAP_HOST__.getViewState().globeRotation),[-102,-28,0]);
     await page.evaluate(()=>{globalThis.__terrainTestLevel=4;});
     const baseline=[];
     await runViewerPhases({page,pageCdp:cdp,processCdp:null,out:'unused',prefix:'a0',screen:false,center:[102,28],phases:baseline,
       expectedLevel:null,panDurationMs:100,themeCycles:2,minimumFrames:1,onStart:()=>{},onPhase:async()=>{},capture:async()=>({sha256:'fixture'})});
-    assert.equal(baseline.length,9);assert.ok(baseline.every(row=>row.status==='passed'));
+    assert.equal(baseline.length,12);assert.ok(baseline.every(row=>row.status==='passed'));
   }finally{await browser.close();}
 });

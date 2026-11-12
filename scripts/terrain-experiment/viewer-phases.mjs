@@ -40,20 +40,22 @@ export async function runViewerPhases({page,pageCdp,processCdp,out,prefix,screen
   if(!Number.isSafeInteger(minimumFrames)||minimumFrames<1)throw TypeError('Positive frame count required');
   if(!Number.isSafeInteger(panDurationMs)||panDurationMs<1||!Number.isSafeInteger(themeCycles)||themeCycles<1)
     throw TypeError('Positive interaction duration and theme cycle count required');
-  async function phase(name,action,{month,theme}={}){
+  async function phase(name,action,{month,theme,zoom,level=expectedLevel,requireScreen=screen}={}){
     const row={name,status:'running',frameGapsMs:[]};phases.push(row);onStart(name);await onPhase();
+    if(screen&&!requireScreen)row.screenSpaceCoverage='not-verified';
     const countersBefore=await performanceCounters(pageCdp);
     await page.evaluate(()=>globalThis.__terrainFixtureFrames.start());const started=Date.now();
     try{
       await action();
-      await page.waitForFunction(({month,theme,expectedLevel})=>{
+      await page.waitForFunction(({month,theme,expectedLevel,zoom})=>{
         const api=globalThis.__PANDOLAB_VIEWER__,s=api?.rendererStats();
         return s?.mapReadiness?.mapReady===true&&s.terrainReady===true&&s.terrainTargetLevel>=0&&s.terrainRenderedLevel===s.terrainTargetLevel
           &&(expectedLevel===null||s.terrainTargetLevel===expectedLevel)
           &&s.terrainTargetTileCount>0&&s.terrainTargetTilesLoaded===s.terrainTargetTileCount&&!s.screenLodPreparingKey
+          &&(!zoom||Math.abs(globalThis.__PANDOLAB_MAP_HOST__.getViewState().globeZoom-zoom)<1e-6)
           &&(!month||(api.builtinMonth().month===month&&api.documentState()?.timelineCursor===month))
           &&(!theme||document.documentElement.dataset.theme===theme);
-      },{month:month||null,theme:theme||null,expectedLevel},{timeout:180000,polling:250});
+      },{month:month||null,theme:theme||null,expectedLevel:level,zoom:zoom||null},{timeout:180000,polling:250});
       row.readyMs=Date.now()-started;
       await page.waitForFunction(minimum=>globalThis.__terrainFixtureFrames.gaps.length>=minimum,minimumFrames,{timeout:180000,polling:250});
       row.frameGapsMs=await page.evaluate(()=>globalThis.__terrainFixtureFrames.stop());
@@ -62,7 +64,7 @@ export async function runViewerPhases({page,pageCdp,processCdp,out,prefix,screen
       row.renderer=mapSummary(await page.evaluate(()=>globalThis.__PANDOLAB_VIEWER__.rendererStats()));
       row.performance=performanceDelta(countersBefore,await performanceCounters(pageCdp));
       row.chromiumProcessMemory=await chromiumProcessMemory(processCdp);
-      row.frameCapture=await capture(page,`${out}/${prefix}-${name}-framebuffer.png`,{screen});
+      row.frameCapture=await capture(page,`${out}/${prefix}-${name}-framebuffer.png`,{screen:requireScreen});
       row.status='passed';
     }catch(error){
       row.status='failed';row.error=String(error?.stack||error).slice(0,5000);
@@ -97,6 +99,14 @@ export async function runViewerPhases({page,pageCdp,processCdp,out,prefix,screen
     host.setViewState({projection:'globe',view:{...view,globeRotation:[r[0]+.12,r[1]-.08,r[2]]}});
     host.requestRepaint('terrain-experiment-rotate');
   }));
+  const setZoom=zoom=>page.evaluate(value=>{
+    const host=globalThis.__PANDOLAB_MAP_HOST__,view=host.getViewState();
+    host.setViewState({projection:'globe',view:{...view,globeZoom:value}});
+    host.requestRepaint('terrain-experiment-zoom');
+  },zoom);
+  await phase('zoom8',()=>setZoom(8),{zoom:8,level:null,requireScreen:false});
+  await phase('zoom16',()=>setZoom(16),{zoom:16,level:null,requireScreen:false});
+  await phase('zoom32-return',()=>setZoom(32),{zoom:32});
   await phase('previous-year',()=>page.locator('#timelinePreviousYear').click({timeout:10000}),{month:'2025-12'});
   await phase('date-return',()=>page.locator('#timelineNextYear').click({timeout:10000}),{month:'2026-11'});
   await phase('dark',()=>page.emulateMedia({colorScheme:'dark',reducedMotion:'reduce'}),{theme:'dark'});
