@@ -27,7 +27,7 @@ jobs:
         run: node --test tests/unit/rendering/gpu-stroke-renderer.test.mjs
       - run: pnpm exec playwright install --with-deps chromium
       - name: Real Chromium P7 32x single-sample acceptance
-        run: node scripts/p7-browser-ab-measure.mjs --label=p0-gl-contract --out=/tmp/p0-gl-contract.json
+        run: node scripts/p7-browser-ab-measure.mjs --label=p7 --out=/tmp/p0-gl-contract.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:
