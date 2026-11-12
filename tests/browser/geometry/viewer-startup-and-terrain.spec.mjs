@@ -192,7 +192,7 @@ featureTest.describe("physical-land-time", () => {
   const {  writeFile  } = __suiteDependency4;
 test.use({ viewport: { width: 1280, height: 800 } });
 
-for (const renderer of ['canvas', 'webgl2']) test(`${renderer} keeps physical land across empty time and hidden objects with immutable Workers`, async ({ playwright }, info) => {
+for (const renderer of ['canvas', 'webgl2']) test(`${renderer} keeps physical land across empty time and theme changes with immutable Workers`, async ({ playwright }, info) => {
   test.setTimeout(180_000);
   const browser = await playwright.chromium.launch({ ...info.project.use.launchOptions,
     channel: info.project.use.channel, args: renderer === 'webgl2'
@@ -209,7 +209,7 @@ for (const renderer of ['canvas', 'webgl2']) test(`${renderer} keeps physical la
   });
   await page.addInitScript(forceCanvas => {
     localStorage.setItem('pandolab-user-preferences', JSON.stringify({ version: 2,
-      backgrounds: { viewer: { terrainVisible: true, terrainStyle: 'physical' } } }));
+      appearance: { mapStyle: 'standard' } }));
     window.__landPixels = []; window.__landWorkerUrls = []; window.__landMeshRequests = [];
     const NativeWorker = Worker;
     window.Worker = class extends NativeWorker {
@@ -320,12 +320,10 @@ for (const renderer of ['canvas', 'webgl2']) test(`${renderer} keeps physical la
         stats: Object.fromEntries(Object.entries(window.__PANDOLAB_VIEWER__.rendererStats()).filter(([key]) => /terrain|renderer|fallback/i.test(key))) })));
       throw error;
     });
-    await page.locator('#mapDisplayBtn').click();
-    await page.locator('[data-map-display-row="objects"]').click();
-    await page.locator('[data-layer-style-color="objects"]').locator('..').click();
-    await expect(page.locator('[data-layer-style-color="objects"]')).not.toBeChecked();
-    await expect.poll(() => page.evaluate(key => window.__landPaints?.[key], childKey)).toBe(0);
-    await page.locator('#mapDisplayBtn').click();
+    // Country fills stay present in the standard map theme; the theme, not
+    // an obsolete per-layer color checkbox, owns their visual appearance.
+    await expect.poll(() => page.evaluate(key => window.__landPaints?.[key], childKey))
+      .toBeGreaterThan(0);
     const settledPixel = async (style = 'physical') => {
       await page.evaluate(() => { window.__landPixels = []; window.__PANDOLAB_MAP_HOST__.requestRepaint('probe-land'); });
       await expect.poll(() => page.evaluate(style => {
@@ -358,7 +356,8 @@ for (const renderer of ['canvas', 'webgl2']) test(`${renderer} keeps physical la
     await page.locator('#timelineMonthInput').selectOption(String(Number(initialMonthNumber)));
     await page.locator('#timelineYearInput').press('Enter');
     await expect.poll(visibleCount, { timeout: 30_000 }).toBe(initialCount);
-    await expect.poll(() => page.evaluate(key => window.__landPaints?.[key], childKey)).toBe(0);
+    await expect.poll(() => page.evaluate(key => window.__landPaints?.[key], childKey))
+      .toBeGreaterThan(0);
     const restored = await settledPixel();
     console.log(renderer, 'restored', restored, await page.evaluate(() => window.__landProbeMeta));
     expect(restored).toEqual(before);
@@ -367,27 +366,24 @@ for (const renderer of ['canvas', 'webgl2']) test(`${renderer} keeps physical la
       return ['ready', 'limited'].includes(stats.mapReadiness.status) && !stats.projectRenderBlocked;
     }), { timeout: 90_000 }).toBe(true);
     await page.keyboard.press('Escape');
-    const display = page.locator('#mapDisplaySurface');
-    for (let attempt = 0; attempt < 2 && !await display.isVisible(); attempt += 1)
-      await page.locator('#mapDisplayBtn').click();
-    await expect(display).toBeVisible();
-    if (await page.locator('[data-map-display-row="objects"]').getAttribute('aria-expanded') !== 'true')
-      await page.locator('[data-map-display-row="objects"]').click();
-    await page.locator('#objectsVisible').locator('..').click();
-    await expect.poll(visibleCount).toBe(0);
-    await page.locator('#mapDisplayBtn').click();
+    // Independent hydro visibility can change without removing countries.
+    await page.locator('#preferencesBtn').click();
+    await page.locator('#preferencesRiversInput').locator('..').click();
+    await page.locator('#preferencesCloseBtn').click();
+    await expect.poll(visibleCount).toBe(initialCount);
     expect(await settledPixel()).toEqual(before);
     // Epoch counts accepted read projections, including the two cursor moves.
     const stateAfter = await page.evaluate(() => window.__PANDOLAB_VIEWER__.documentState());
     expect({ ...stateAfter, epoch: 0, storageBaselineId: 0 }).toEqual({ ...documentBefore, epoch: 0, storageBaselineId: 0 });
     expect(await page.evaluate(() => window.__PANDOLAB_VIEWER__.documentSnapshot())).toEqual(snapshotBefore);
-    await page.locator('#mapDisplayBtn').click();
-    await page.locator('[data-map-display-row="terrain"]').click();
-    await page.locator('#terrainPoliticalRadio').locator('..').click();
-    await page.locator('#mapDisplayBtn').click();
+    await page.locator('#preferencesBtn').click();
+    await page.locator('input[name="preferencesMapStyle"][value="classic"]').locator('..').click();
+    await page.locator('#preferencesCloseBtn').click();
+    await expect(page.locator('html')).toHaveAttribute('data-map-style','classic');
+    await expect.poll(() => page.evaluate(key => window.__landPaints?.[key],childKey)).toBe(0);
     const gray = await settledPixel('political');
     expect(gray[3]).toBe(255);
-    expect(Math.max(...gray.slice(0, 3)) - Math.min(...gray.slice(0, 3))).toBeLessThanOrEqual(1);
+    // The classic theme deliberately uses warm cartographic inks rather than neutral gray.
     expect(gray[0]).toBeLessThan(250);
     await page.evaluate(() => {
       const host = window.__PANDOLAB_MAP_HOST__;

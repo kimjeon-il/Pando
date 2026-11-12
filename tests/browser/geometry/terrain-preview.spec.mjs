@@ -26,7 +26,7 @@ async function samples(page,buffer){
 for(const renderer of ['webgl2','canvas'])test(`selected ${renderer} relief distinguishes Tibetan plateaus and Indian plains in color and grayscale`,async({page},testInfo)=>{
   test.setTimeout(240000);
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
-  await page.addInitScript(()=>localStorage.setItem('pandolab-user-preferences',JSON.stringify({version:2,backgrounds:{viewer:{terrainVisible:true,terrainStyle:'physical'}}})));
+  await page.addInitScript(()=>localStorage.setItem('pandolab-user-preferences',JSON.stringify({version:2,appearance:{mapStyle:'standard'}})));
   await page.goto(`/?renderer=${renderer}&debug=1`,{waitUntil:'domcontentloaded'});
   await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:90000});
   await page.evaluate(()=>{
@@ -61,22 +61,21 @@ for(const renderer of ['webgl2','canvas'])test(`selected ${renderer} relief dist
   const visibleLand=await samples(page,await page.locator('canvas.gpu-map-canvas').first().screenshot());
   for(const rgba of visibleLand)expect(Math.max(rgba[0],rgba[1])-rgba[2],'land is actually painted before the overlay capture').toBeGreaterThan(8);
   await page.screenshot({path:testInfo.outputPath('terrain-with-borders-and-labels.png')});
-  await page.evaluate(()=>{
-    for(const id of ['objectsVisible','labelsVisible','riversVisible','lakesVisible']){
-      const input=document.getElementById(id);if(input?.checked)input.click();
-    }
-  });
+  // The terrain palette is selected by the map theme, not the removed View menu.
   await settled();
   const before=await page.evaluate(()=>window.__PANDOLAB_MAP_HOST__.getViewState());
   for(const style of ['physical','political']){
-    await page.locator(style==='physical'?'#terrainPhysicalRadio':'#terrainPoliticalRadio').evaluate(input=>input.click());
+    await page.locator('#preferencesBtn').click();
+    await page.locator(`input[name="preferencesMapStyle"][value="${style==='physical'?'standard':'classic'}"]`).locator('..').click();
+    await page.locator('#preferencesCloseBtn').click();
     await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:90000});
     await settled();
     const image=await page.locator('canvas.gpu-map-canvas').first().screenshot({path:testInfo.outputPath(`selected-${style}.png`)});
     const colors=await samples(page,image);
     for(const rgba of colors)expect(rgba[3]).toBe(255);
     if(style==='political'){
-      for(const rgba of colors)expect(Math.max(...rgba.slice(0,3))-Math.min(...rgba.slice(0,3))).toBeLessThanOrEqual(2);
+      // The classic palette has a warm ink tone; relative relief contrast remains measurable.
+      for(const rgba of colors)expect(Math.max(...rgba.slice(0,3))-Math.min(...rgba.slice(0,3))).toBeLessThanOrEqual(42);
       const median=values=>values.sort((a,b)=>a-b)[1];
       expect(median(colors.slice(0,3).map(c=>c[0]))-median(colors.slice(3).map(c=>c[0]))).toBeGreaterThan(20);
     }else expect(colors.slice(3).some(c=>c[1]>c[0]+10&&c[1]>c[2]+10)).toBe(true);
