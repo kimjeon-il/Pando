@@ -147,7 +147,7 @@ export function createPlaceRuntime({ manifestUrl = new URL('../../data/places/ma
       const requestEpoch=projectEpoch;
       if (!['display', 'reference'].includes(scope)) throw new TypeError('Unknown place search scope.');
       const reference = scope === 'reference';
-      if (closed || (moving && !reference)) throw createWorkerCancellationError('지도 이동 중에는 지명 조회를 보류합니다.', 'interaction');
+      if (closed || (moving && !reference)) throw createWorkerCancellationError('지도 이동 중에는 도시 조회를 보류합니다.', 'interaction');
       signal?.throwIfAborted();
       await ensureUrbanLifetimes();
       if(requestEpoch!==projectEpoch)throw createWorkerCancellationError('Project source changed','project-replaced');
@@ -172,7 +172,7 @@ export function createPlaceRuntime({ manifestUrl = new URL('../../data/places/ma
         await admitReferences(()=>references(snapshot.records,candidate));
         if(closed || moving || requestEpoch!==projectEpoch) {
           if(!closed)await admitReferences(()=>references());
-          throw createWorkerCancellationError('지도 이동 중에는 지명 조회를 보류합니다.','interaction');
+          throw createWorkerCancellationError('지도 이동 중에는 도시 조회를 보류합니다.','interaction');
         }
         retained.clear();for(const [id,record]of candidate)retained.set(id,record);
         return { ...result, records:displayed };

@@ -180,7 +180,7 @@ export function createNavigationBindings() {
       isSearchSurfaceOpen: () => dependencies.workspaceUiB.surfaceController.isOpen('search'),
       builtinSearch: query => dependencies.labelPresentation.builtinPlaces.search(query),
       cancelBuiltinSearch: () => dependencies.labelPresentation.builtinPlaces.cancelSearch(),
-      onSearchError: error => dependencies.feedback.reportOperationError(error, '내장 지명 검색에 실패했습니다.', 'PL-PLACE-SEARCH-001'),
+      onSearchError: error => dependencies.feedback.reportOperationError(error, '내장 도시 검색에 실패했습니다.', 'PL-PLACE-SEARCH-001'),
       syncCanonicalControls: dependencies.readinessUi.syncCanonicalControls,
       selectObjectSearchItem: dependencies.navigation.selectObjectSearchItem,
       focusObjectRef: dependencies.objectOperationsA.focusObjectRef,

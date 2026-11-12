@@ -5,5 +5,5 @@ export const MAP_DISPLAY_TARGETS = Object.freeze({
   rivers: { presentationGroup: 'rivers', label: '강', opacity: true },
   lakes: { presentationGroup: 'lakes', label: '호수', opacity: true },
   genericFeatures: { presentationGroup: 'genericFeatures', label: '기타 객체', opacity: true, opacityLabel: '전체 투명도' },
-  labels: { presentationGroup: 'labels', label: '지명' },
+  labels: { presentationGroup: 'labels', label: '도시' },
 });

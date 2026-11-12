@@ -232,7 +232,7 @@ export function assertCurrentProjectSchema(input, { baseEntities = null, baseDat
   assertUniqueProjectIds(project.distributionEntries, '분포 엔트리');
   assertUniqueProjectIds(project.genericFeatures, '기타 객체');
   assertUniqueProjectIds(project.hydroEdits, '편집 수계');
-  assertUniqueProjectIds(project.labels, '지명');
+  assertUniqueProjectIds(project.labels, '도시');
 
   for (const layer of project.distributionLayers || []) {
     requireSchemaVersion(layer?.schemaVersion, `분포 레이어 ${text(layer?.id)}`, DISTRIBUTION_MODEL_SCHEMA_VERSION);
