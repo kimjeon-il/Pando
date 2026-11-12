@@ -35,7 +35,7 @@ try{
     '--enable-unsafe-swiftshader','--disable-gpu-sandbox']});
   report.browserVersion=browser.version();
   for(let index=0;index<sequence.length;index++){
-    const size=sequence[index],run={index:index+1,tileSize:size,status:'running',candidateRequests:[],pageErrors:[],error:null};
+    const size=sequence[index],run={index:index+1,tileSize:size,status:'running',candidateRequests:[],pageErrors:[],routeErrors:[],error:null};
     runs.push(run);const page=await browser.newPage({viewport:{width:1280,height:800},locale:'ko-KR',timezoneId:'Asia/Seoul'});
     let selected,manifestRequests=0,shaderRequests=0,processCdp;
     try{
@@ -46,24 +46,28 @@ try{
         return route.fulfill({status:200,contentType:'text/javascript',body});
       });
       await page.route('**/terrain/v0.14.0/manifest.json*',async route=>{
-        const original=await route.fetch();if(!original.ok())throw Error('Original terrain manifest fetch failed');
-        selected=makeViewerFixtureManifest(await original.json(),fixture,size);manifestRequests++;
-        return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(selected.manifest)});
+        try{
+          const original=await route.fetch();if(!original.ok())throw Error('Original terrain manifest fetch failed');
+          selected=makeViewerFixtureManifest(await original.json(),fixture,size);manifestRequests++;
+          return await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(selected.manifest)});
+        }catch(error){run.routeErrors.push(String(error));return route.abort('failed');}
       });
       await page.route('https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/**/terrain/v0.15.0/**',async route=>{
+        try{
         const url=new URL(route.request().url()),parts=url.pathname.split('/terrain/v0.15.0/');
         const key=parts[1];
         if(!selected||!key)return route.abort('failed');
         if(key.startsWith('5/')){
           const item=selected.tiles.get(key);if(!item){run.candidateRequests.push({key,error:'outside fixture'});return route.abort('failed');}
-          const response=await fetch(base+item.file);if(!response.ok())throw Error('Fixture tile HTTP '+response.status);
+          const response=await fetch(base+item.file);if(!response.ok)throw Error('Fixture tile HTTP '+response.status);
           const bytes=Buffer.from(await response.arrayBuffer());
           if(bytes.length!==item.bytes||digest(bytes)!==item.sha256)throw Error('Fixture tile identity mismatch: '+key);
           run.candidateRequests.push({key,bytes:bytes.length,sha256:item.sha256});
-          return route.fulfill({status:200,contentType:'image/webp',body:bytes});
+          return await route.fulfill({status:200,contentType:'image/webp',body:bytes});
         }
         const original=url.href.replace('/terrain/v0.15.0/','/terrain/v0.14.0/');
-        return route.fulfill({response:await route.fetch({url:original})});
+        return await route.fulfill({response:await route.fetch({url:original})});
+        }catch(error){run.routeErrors.push(String(error));return route.abort('failed');}
       });
       await page.addInitScript(()=>{
         const meter=globalThis.__terrainFixtureFrames={active:false,last:null,gaps:[],start(){this.active=true;this.last=null;this.gaps=[];},
@@ -103,7 +107,7 @@ try{
       run.center=selected.center;run.manifestRequests=manifestRequests;run.shaderRequests=shaderRequests;
       try{await page.screenshot({path:`${out}/viewer-${index+1}-${size}.png`,timeout:30000});}
       catch(error){run.screenshotError=String(error);}
-      run.status=run.pageErrors.length||run.screenshotError||run.candidateRequests.some(x=>x.error)?'failed':'passed';
+      run.status=run.pageErrors.length||run.routeErrors.length||run.screenshotError||run.candidateRequests.some(x=>x.error)?'failed':'passed';
       if(run.status!=='passed')run.error='Screenshot, candidate request, or page error';
     }catch(error){run.status='failed';run.error=String(error?.stack||error).slice(0,5000);
       run.diagnostics=await page.evaluate(()=>globalThis.__PANDOLAB_VIEWER__?.rendererStats?.()||null).catch(()=>null);
