@@ -83,13 +83,15 @@ try{
   report.browserVersion=browser.version();
   for(let index=0;index<sequence.length;index++){
     const candidate=sequence[index],size=['b512','screen'].includes(candidate)?512:1024;
-    const run={index:index+1,candidate,tileSize:size,status:'running',candidateRequests:[],pageErrors:[],consoleErrors:[],routeErrors:[],error:null};
+    const run={index:index+1,candidate,tileSize:size,status:'running',candidateRequests:[],placeNetwork:[],pageErrors:[],consoleErrors:[],routeErrors:[],error:null};
     runs.push(run);const page=await browser.newPage({viewport:{width:1280,height:800},locale:'ko-KR',timezoneId:'Asia/Seoul'});
-    let selected,manifestRequests=0,shaderRequests=0,processCdp,pageCdp,phaseName='startup';
+    let selected,manifestRequests=0,shaderRequests=0,budgetRequests=0,processCdp,pageCdp,phaseName='startup';
     const network=new Map();
     try{
       page.on('pageerror',error=>run.pageErrors.push(String(error)));
       page.on('console',message=>{if(message.type()==='error'&&run.consoleErrors.length<50)run.consoleErrors.push(message.text().slice(0,2000));});
+      page.on('requestfinished',request=>{if(/\/places\//.test(request.url()))run.placeNetwork.push({url:request.url(),outcome:'finished',timing:request.timing()});});
+      page.on('requestfailed',request=>{if(/\/places\//.test(request.url()))run.placeNetwork.push({url:request.url(),outcome:'failed',failure:request.failure()?.errorText,timing:request.timing()});});
       if(candidate==='screen'){
         const center=region==='southwest-china'?[102,28]:region==='thai-lowland'?[100,15]:[5.5,53];
         const origin=[regionalOrigin(Math.floor((center[0]+180)*120),1024,{alignWorld:true,block2:true}),
@@ -101,6 +103,7 @@ try{
           const response=await route.fetch(),source=await response.text();
           const marker='byteBudget: 96 * 1024 * 1024, bytesPerPixel: 12';
           if(!source.includes(marker))throw Error('Viewer DEM admission policy contract changed');
+          budgetRequests++;
           return await route.fulfill({status:200,contentType:'text/javascript',body:source.replace(marker,'byteBudget: 192 * 1024 * 1024, bytesPerPixel: 12')});
         }catch(error){run.routeErrors.push(String(error));return route.abort('failed');}
       });
@@ -211,6 +214,8 @@ try{
           &&api.builtinMonth().month==='2026-11'&&document.getElementById('viewerStatus')?.dataset.ready==='true';
       },null,{timeout:210000,polling:300});
       if(!selected||manifestRequests!==1||shaderRequests<1)throw Error('Experiment manifest or shader was not consumed');
+      if(normalizedBudget&&!budgetRequests)throw Error('Experimental normalized admission policy was not consumed');
+      run.budgetRequests=budgetRequests;
       const initialScreenshot=await page.screenshot({timeout:30000});
       await writeFile(`${out}/viewer-${index+1}-${size}-initial.png`,initialScreenshot);
       try{run.initialFrameCapture=await captureAcceptedFrame(page,`${out}/viewer-${index+1}-${size}-initial-framebuffer.png`);}
