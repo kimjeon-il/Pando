@@ -1,0 +1,64 @@
+name: P0/P1 coastless borders, viewport culling and RenderDevice focused verification
+# One-shot branch-focused test: no full suite, no GIS rebuild, no public deployment.
+on:
+  push:
+    branches: ['work/ui', 'work/remote-only']
+    paths:
+      - '.github/workflows/p0-coastless-gl-focused.yml'
+      - 'src/rendering/gpu-map-renderer.js'
+      - 'src/rendering/country-shared-boundary-packet.js'
+      - 'src/rendering/workers/country-shared-boundary-worker.js'
+      - 'src/rendering/render-device.js'
+      - 'src/rendering/gpu-hydro-coverage.js'
+      - 'src/rendering/gpu-stroke-renderer.js'
+      - 'src/rendering/gpu-stroke-visibility.js'
+      - 'src/data/workers/data-loader-worker.js'
+      - 'tests/unit/rendering/gpu-stroke-visibility.test.mjs'
+      - 'tests/unit/rendering/gpu-stroke-visibility-blocks.test.mjs'
+      - 'tests/browser/rendering/country-visibility-blocks.spec.mjs'
+      - 'tests/unit/geometry/country-shared-boundary-state.test.mjs'
+      - 'tests/unit/geometry/country-shared-boundary.test.mjs'
+permissions:
+  contents: read
+jobs:
+  focused:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - uses: ./.github/actions/library-data
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Parse only affected P0/P1 sources and tests
+        run: |
+          for f in src/rendering/country-shared-boundary-packet.js src/rendering/workers/country-shared-boundary-worker.js src/rendering/workers/canvas-render-core.js src/rendering/gpu-canvas-scene-packets.js src/rendering/gpu-map-renderer.js src/rendering/render-device.js src/rendering/gpu-hydro-coverage.js src/rendering/gpu-stroke-renderer.js src/rendering/gpu-stroke-visibility.js src/data/workers/data-loader-worker.js tests/unit/geometry/country-shared-boundary.test.mjs tests/unit/rendering/render-device-buffer-lifecycle.test.mjs tests/unit/rendering/gpu-stroke-visibility.test.mjs tests/unit/rendering/gpu-stroke-visibility-blocks.test.mjs tests/browser/rendering/country-visibility-blocks.spec.mjs; do
+            node --check "$f"
+          done
+      - name: Lint only affected P0/P1 modules
+        run: |
+          pnpm exec eslint src/rendering/country-shared-boundary-packet.js src/rendering/workers/country-shared-boundary-worker.js src/rendering/workers/canvas-render-core.js src/rendering/gpu-canvas-scene-packets.js src/rendering/gpu-map-renderer.js src/rendering/render-device.js src/rendering/gpu-hydro-coverage.js src/rendering/gpu-stroke-renderer.js src/rendering/gpu-stroke-visibility.js src/data/workers/data-loader-worker.js tests/unit/geometry/country-shared-boundary.test.mjs tests/unit/rendering/render-device-buffer-lifecycle.test.mjs tests/unit/rendering/gpu-stroke-visibility.test.mjs tests/unit/rendering/gpu-stroke-visibility-blocks.test.mjs tests/browser/rendering/country-visibility-blocks.spec.mjs
+      # The retired generator fixture countries-preview-shared-v0.36.1.json.gz is absent
+      # from the pinned current world pack; the live Worker contracts are checked instead.
+      - name: Shared border, viewport visibility, Worker and GL state unit contracts
+        run: |
+          node --test tests/unit/geometry/country-shared-boundary.test.mjs tests/unit/geometry/country-shared-boundary-state.test.mjs tests/unit/rendering/render-device-buffer-lifecycle.test.mjs tests/unit/rendering/gpu-stroke-renderer.test.mjs tests/unit/rendering/gpu-stroke-visibility.test.mjs tests/unit/rendering/gpu-stroke-visibility-blocks.test.mjs tests/unit/data/hydro-coverage-surface.test.mjs
+      - name: Install Chromium for focused WebGL coverage and regional viewport
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Actual WebGL1/2 coverage and 32x shared-border viewport culling
+        run: |
+          pnpm exec playwright test tests/browser/geometry/hydro-sdf-webgl.spec.mjs tests/browser/rendering/viewer-renderer-recovery.spec.mjs tests/browser/rendering/country-visibility-blocks.spec.mjs --workers=1 --retries=0 --grep 'real WebGL 1/2 compile|country and interaction coverage stay uniform|regional globe culls'
+      - name: Preserve focused browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p0-coastless-gl-focused-${{ github.sha }}
+          path: |
+            test-results/
+            playwright-report/
+          if-no-files-found: warn
+          retention-days: 14
