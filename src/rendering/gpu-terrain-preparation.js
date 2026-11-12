@@ -28,6 +28,11 @@ export function createGpuTerrainPreparation({ readTile, onUnusable, onTileFailur
     let terrainTargetTilesLoaded = 0;
     let terrainTargetTileKeys = new Set();
     let terrainRetentionKeys = new Set();
+    // Retention includes the whole-world safety reserve and speculative
+    // neighbours. Only tiles that can actually change the current viewport
+    // may invalidate its colour surface after an upload or failure.
+    let terrainCurrentViewKeys = new Set();
+    let ignoredOffscreenTileCompletions = 0;
     function terrainAdmissionForView(frameContext = activeFrameContext) {
       if (!terrainManifest?.levels?.length) return null;
       const physicalScale = Number(frameContext?.scale) || Number(activeFrameContext?.scale) || 1;
@@ -160,7 +165,8 @@ export function createGpuTerrainPreparation({ readTile, onUnusable, onTileFailur
           }, retryDelay + 16);
           retryTimers.add(timer);
         }
-        if (terrainRetentionKeys.has(spec.key)) invalidate('terrain-tile-failed');
+        if (view.visible && terrainCurrentViewKeys.has(spec.key)) invalidate('terrain-tile-failed');
+        else ignoredOffscreenTileCompletions += 1;
         console.warn(`지형 타일을 불러오지 못했습니다: ${spec.key}`, error);
       }).finally(() => {
         controllers.delete(controller);
@@ -244,7 +250,10 @@ export function createGpuTerrainPreparation({ readTile, onUnusable, onTileFailur
           const next = terrainUploadQueue.splice(Math.max(0, visibleIndex), 1)[0];
           const bytes = next ? next.bitmap.width * next.bitmap.height * 4 : 0;
           const uploaded = next && uploadTerrainTile(next);
-          if (uploaded && next?.spec && terrainRetentionKeys.has(next.spec.key)) invalidate('terrain-tile-ready');
+          if (uploaded && next?.spec) {
+            if (view.visible && terrainCurrentViewKeys.has(next.spec.key)) invalidate('terrain-tile-ready');
+            else ignoredOffscreenTileCompletions += 1;
+          }
           pumpTerrainFetchQueue();
           return { bytes, done: !terrainUploadQueue.length };
         },
@@ -316,12 +325,14 @@ export function createGpuTerrainPreparation({ readTile, onUnusable, onTileFailur
 
     function prepare() {
       if (!view.visible || !terrainManifest?.levels?.length || !gl || disposed) {
+        terrainCurrentViewKeys.clear();
         terrainRetentionKeys.clear();
         pruneTerrainFetchQueue();
         return [];
       }
       const frameContext = activeFrameContext;
       if (!frameContext) {
+        terrainCurrentViewKeys.clear();
         terrainRetentionKeys.clear();
         pruneTerrainFetchQueue();
         return false;
@@ -348,6 +359,14 @@ export function createGpuTerrainPreparation({ readTile, onUnusable, onTileFailur
         (level, all) => visibleTerrainTileSpecs(level, all, frameContext), key => terrainTiles.has(key));
       const fallbackSpecs = drawSpecs.filter(spec => Number(spec.level) !== Number(targetLevel.id));
       for (const spec of fallbackSpecs) terrainRetentionKeys.add(spec.key);
+      // A retained overview tile is not necessarily visible. Track only
+      // current target/fallback coverage; pending visible base tiles can also
+      // change the picture while detail is still missing.
+      const visibleBaseSpecs = missingSpecs.length && targetLevel !== baseLevel
+        ? visibleTerrainTileSpecs(baseLevel, false, frameContext) : [];
+      terrainCurrentViewKeys = new Set([
+        ...targetSpecs, ...fallbackSpecs, ...visibleBaseSpecs,
+      ].map(spec => spec.key));
       // Speculation starts only after current coverage reaches the GPU, and
       // only uses spare cache space. It must not block decoding visible tiles
       // or evict useful detail merely to fill an offscreen neighbour ring.
@@ -441,7 +460,7 @@ export function createGpuTerrainPreparation({ readTile, onUnusable, onTileFailur
     terrainTiles.clear(); terrainGridMeshes.clear();
     terrainLastLevel = -1; terrainRenderedLevel = -1;
     terrainTargetTileCount = 0; terrainTargetTilesLoaded = 0;
-    terrainTargetTileKeys.clear(); terrainRetentionKeys.clear();
+    terrainTargetTileKeys.clear(); terrainRetentionKeys.clear(); terrainCurrentViewKeys.clear();
     requiredKeys.clear(); resolutionLimited = false; preparationFailure = '';
   }
   const settled = () => [...terrainTargetTileKeys].every(key => terrainTiles.has(key) || Number(terrainTileFailures.get(key)?.attempts || 0) >= 4);
@@ -483,7 +502,8 @@ export function createGpuTerrainPreparation({ readTile, onUnusable, onTileFailur
       terrainCacheBytes: [...terrainTiles.values()].reduce((sum, tile) => sum + tile.byteLength, 0),
       terrainPendingDecodedBytes: pendingDecodedBytes,
       terrainTilesLoading: terrainTileRequests.size + terrainFetchQueue.length, terrainFetchConcurrency: terrainFetchConcurrency(),
-      terrainUploadCount, terrainFailureCount: terrainTileFailures.size }),
+      terrainUploadCount, terrainFailureCount: terrainTileFailures.size,
+      terrainIgnoredOffscreenCompletionCount: ignoredOffscreenTileCompletions }),
     dispose() { if (disposed) return; reset(); disposed = true; gl = null; uploadScheduler = null; },
   });
 }
