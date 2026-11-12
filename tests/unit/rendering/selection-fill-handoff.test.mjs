@@ -269,10 +269,17 @@ async function directFallbackHarness(t, { canvasWorker = false, pendingGeometry 
       return result;
     } },
     selectionResources: { document: svg.document, d3: svg.d3, selectionPass,
+      buildRenderableStrokeFeature: feature => feature,
       selectionLayer: svg.d3.select(selected), hoverLayer: svg.d3.select(hovered), getState: () => state,
       getInteractionStyle: resolveMapInteractionStyle, territorialEntityById: byId, territorialDisplayFeature: byId,
       mapFeatureForObjectRef: ref => byId(ref.id), countryOutlineFeature: value => value },
   });
+  // The canonical physical owner must be admitted before forcefully losing
+  // WebGL; otherwise fallback cannot legally paint an incomplete background.
+  renderer.setRenderScene(createRenderSceneBuilder().build({ polygons: [{
+    key: 'fixture:land', role: 'physical-land', geometryRevision: 0,
+    geometry: features[0].geometry, style: { color: '#eeeeee', fillAlpha: 1 },
+  }] }));
   assert.equal(await renderer.initialize({ allowPreview: false }), true);
   renderer.setSelectionPass(selectionPass);
   assert.equal(renderer.getRuntimeState().renderer, 'webgl2');
