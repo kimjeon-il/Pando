@@ -5,7 +5,7 @@ import {createHash} from 'node:crypto';
 import {mkdir,readFile,writeFile} from 'node:fs/promises';
 import {join,resolve} from 'node:path';
 import {experimentColorGlsl} from './a1-shader.mjs';
-import {terrainBrowserArgs} from './browser-options.mjs';
+import {terrainBrowserArgs,verifyTerrainRenderer} from './browser-options.mjs';
 
 const [fixtureDir,maskDir,outArg,...options]=process.argv.slice(2);
 if(!fixtureDir||!maskDir||!outArg)throw Error('Expected WebP fixture directory, physical land mask directory and new output directory');
@@ -96,6 +96,7 @@ try{
         return {version:gl.getParameter(gl.VERSION),renderer:ext?gl.getParameter(ext.UNMASKED_RENDERER_WEBGL):gl.getParameter(gl.RENDERER)};
       },{fragment,images,maskData:maskBytes.toString('base64'),origin:report.origin,center:report.center,colors:[...palette.landColors],
         seaSurface:[...palette.seaSurface],seaDeep:[...palette.seaDeep]});
+      verifyTerrainRenderer(gpuMode,info.renderer);
       const gaps=await page.evaluate(()=>new Promise((done,reject)=>{const values=[];let last=null;const started=performance.now();
         const tick=now=>{if(now-started>180000){reject(Error('Frame timeout'));return;}if(last!==null)values.push(now-last);
           last=now;globalThis.draw();if(values.length>=300)done(values);else requestAnimationFrame(tick);};requestAnimationFrame(tick);}));
