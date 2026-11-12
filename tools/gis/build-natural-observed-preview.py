@@ -177,12 +177,20 @@ def polar_grid(path,times,shape,transform):
         small=src.read(index+1,out_shape=(128,128),resampling=Resampling.nearest,masked=True)
         values=set(np.unique(small.compressed()).tolist())
         if not values.issubset({0,1}):raise ValueError('Polar source is not a binary ice mask: '+str(values))
+        # Floating source masks can contain IEEE NaN outside the observed
+        # footprint even when TIFF nodata metadata is absent. Treat precisely
+        # those NaN cells as missing *before* averaging; otherwise a single
+        # missing pixel propagates NaN into the whole destination cell.
+        # Integer masks cannot represent NaN, so retain their own metadata.
+        implicit_nan = src.nodata is None and src.dtypes[index].startswith('float')
+        source_nodata = float('nan') if implicit_nan else src.nodata
         result=np.zeros(shape,dtype=np.float32)
         reproject(rasterio.band(src,index+1),result,src_transform=src.transform,src_crs=src.crs,
-            dst_transform=transform,dst_crs='EPSG:4326',src_nodata=src.nodata,dst_nodata=0,
-            resampling=Resampling.average,warp_mem_limit=64)
+            dst_transform=transform,dst_crs='EPSG:4326',src_nodata=source_nodata,dst_nodata=0,
+            resampling=Resampling.average,warp_mem_limit=64,init_dest_nodata=True)
         diagnostics=check_polar_coverage_bounds(float(np.min(result)),float(np.max(result)),bool(np.isfinite(result).all()))
         diagnostics.update(sourceNoData=None if src.nodata is None else str(src.nodata),
+            implicitFloatNaNNoData=implicit_nan,
             correctedRoundoffPixels=int(np.count_nonzero((result<0)|(result>1))))
         np.clip(result,0,1,out=result)
         print(json.dumps({'polarCoverage':diagnostics,'source':str(path),'band':index+1}),flush=True)
