@@ -155,6 +155,7 @@ test('worker crashes reject pending requests and the next request recreates the 
   const second = await client.request('geometry.mesh', {});
   assert.equal(second.result, 'recovered');
   assert.equal(workers.length, 2);
+  assert.equal(workers[0].terminated, true, 'crashed Worker releases its port');
   assert.equal(client.stats().restarted, 1);
 });
 

@@ -99,6 +99,8 @@ test('Worker message, API and project schema consumers follow indirect fixture r
  assert.deepEqual(document.unitTests,[project]);
  const api=planApplicationChecks({repository:repo,changedFiles:[device]});
  assert.deepEqual(api.unitTests,[direct], 'mandatory smoke owner covers an API even when no test imports it');
+ const helperChanged=planApplicationChecks({repository:repo,changedFiles:[fixture]});
+ assert.deepEqual(helperChanged.unitTests,[indirect]);
  const isolated=planApplicationChecks({repository:repo,changedFiles:[unrelated]});
  assert.deepEqual(isolated.unitTests,[unrelated]);
  const invalid=structuredClone(catalog);

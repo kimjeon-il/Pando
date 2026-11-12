@@ -118,7 +118,9 @@ const currentProject = () => { const project = {
 };
 
 test('current project schema accepts only explicit current versions and UUID object IDs', () => {
-  assert.equal(assertCurrentProjectSchema(currentProject()).schemaVersion, PROJECT_SCHEMA_VERSION);
+  const current = currentProject();
+  assert.equal(current.landObjectModel.schemaVersion,createProjectStateFixture().landObjectModel.schemaVersion);
+  assert.equal(assertCurrentProjectSchema(current).schemaVersion, PROJECT_SCHEMA_VERSION);
   assert.match(createProjectObjectId(), /^[0-9a-f-]{36}$/i);
 });
 

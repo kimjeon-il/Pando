@@ -185,7 +185,7 @@ test('selection submits the actual strokes in policy order regardless of input c
       return { succeeded: true, renderedKeys: keys, missingKeys: [] };
     } };
   const pass = createSelectionPass();
-  pass.initialize(createRenderDeviceFixture().device, { strokeRenderer: renderer });
+  assert.equal(pass.initialize(createRenderDeviceFixture().device, { strokeRenderer: renderer }),true);
   const geometry = { type: 'LineString', coordinates: [[0, 0], [1, 1]] };
   pass.updateData({ channels: Object.fromEntries(['primary', 'secondary', 'hover', 'candidate'].map(role =>
     [role, [{ key: role, geometryRevision: 1, geometry }]])) });

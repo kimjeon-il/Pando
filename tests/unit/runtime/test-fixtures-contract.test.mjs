@@ -51,6 +51,7 @@ test('project state fixture delegates current versions to the real document fact
  assert.equal(a.projectSetup.sourceMode,'empty');
  assert.equal(assertCurrentProjectSchema(a),a);
  assert.notEqual(a.documentId,b.documentId);
+ assert.notStrictEqual(a.projectSetup,b.projectSetup);
  assert.notStrictEqual(a.labels,b.labels);
  a.labels.push({id:'test'});
  assert.deepEqual(b.labels,[]);

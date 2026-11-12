@@ -20,6 +20,7 @@ test('failed synchronous Canvas submission does not strand a busy renderer or a 
   await assert.rejects(channel.pick([0,0]),{code:'PL-CANVAS-WORKER-SEND'});
   assert.equal(errors.length,2);
   channel.terminate();
+  assert.equal(worker.terminated,true,'Worker port retirement is observable');
 });
 
 test('bitmapless Canvas acknowledgment does not enter picture-admission callback', () => {

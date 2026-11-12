@@ -130,7 +130,9 @@ test('hard GPU failures never retire SVG coverage even if stale rendered keys re
 
 test('real selection pass preserves ready stroke coverage alongside a missing country', () => {
   const pass = createSelectionPass();
-  pass.initialize(createRenderDeviceFixture().device, { strokeRenderer: {
+  const device = createRenderDeviceFixture().device;
+  assert.equal(device.contextRevision,1);
+  pass.initialize(device, { strokeRenderer: {
     isAvailable: () => true, stats: () => ({ gpuHealth: 'healthy', selfTestPassed: true }),
     drawBatches: batches => ({ succeeded: true, renderedKeys: batches.map(batch => batch.key), drawCallCount: 1 }),
   } });

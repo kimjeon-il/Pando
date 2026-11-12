@@ -140,7 +140,9 @@ test('common entity keys survive the static boundary optimization and geometry r
 test('selection pass forwards union coverage for hover and both selection channels in paint order', () => {
   const draws = [];
   const pass = createSelectionPass();
-  pass.initialize(createRenderDeviceFixture().device, { strokeRenderer: {
+  const device = createRenderDeviceFixture().device;
+  assert.equal(device.version,2);
+  pass.initialize(device, { strokeRenderer: {
     isAvailable: () => true, stats: () => ({ gpuHealth: 'healthy' }),
     drawBatches: batches => {
       draws.push(...batches);
