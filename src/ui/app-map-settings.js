@@ -109,7 +109,8 @@ export function createMapSettings({ capabilities,viewPresentation } = {}) {
   }
 
   /** Map theme visuals use the existing Core display state and terrain pipeline. */
-  async function applyMapStyle(id, { persist = true } = {}) {
+  let mapStyleQueue = Promise.resolve();
+  async function commitMapStyle(id, { persist = true } = {}) {
     const normalized = normalizeMapStyle(id);
     const preset = mapStylePreset(normalized);
     const state = dependencies.projectState.state;
@@ -142,6 +143,12 @@ export function createMapSettings({ capabilities,viewPresentation } = {}) {
     }
     if (changed) dependencies.preferences.renderPreferences?.();
     return true;
+  }
+
+  function applyMapStyle(id, options = {}) {
+    // Project transitions and settings changes share one Core presentation command queue.
+    mapStyleQueue = mapStyleQueue.catch(() => {}).then(() => commitMapStyle(id, options));
+    return mapStyleQueue;
   }
 
   async function setBackgroundSetting(key, visible) {
