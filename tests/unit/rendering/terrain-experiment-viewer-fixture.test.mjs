@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {makeViewerFixtureManifest} from '../../../scripts/terrain-experiment/viewer-fixture.mjs';
+import {makeViewerFixtureManifest,experimentCenter} from '../../../scripts/terrain-experiment/viewer-fixture.mjs';
 
 const hash='a'.repeat(64);
 function inputs(){
@@ -48,4 +48,10 @@ test('accepts a complete expanded 5x3 regional fixture',()=>{
         tileSize,gutter:1,webpBytes:42,webpSha256:hash,file:`tile-${x}-${y}-${dx}-${dy}-${tileSize}.webp`});
   assert.equal(makeViewerFixtureManifest(source,fixture,1024).tiles.size,15);
   assert.equal(makeViewerFixtureManifest(source,fixture,512).tiles.size,60);
+});
+
+test('all measured regions have one shared Viewer camera center',()=>{
+  assert.deepEqual(experimentCenter('himalaya'),[86,28]);
+  assert.deepEqual(experimentCenter('netherlands-coast'),[5.5,53]);
+  assert.throws(()=>experimentCenter('unknown-region'),/no fixed camera/);
 });

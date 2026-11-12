@@ -27,7 +27,7 @@ test('rejects malformed tile sources',()=>{
 });
 
 test('expanded regional blocks include conservative Viewer visibility for all comparison regions',()=>{
-  for(const [lon,lat] of [[102,28],[100,15],[5.5,53]]){
+  for(const [lon,lat] of [[102,28],[100,15],[86,28],[5.5,53]]){
     const [x0,y0,x1,y1]=regionalBlockWindow(lon,lat);
     for(const size of [512,1024]){
       const levels=[{id:4,width:21600,height:10800,tileSize:1024,columns:22,rows:11},
@@ -41,7 +41,7 @@ test('expanded regional blocks include conservative Viewer visibility for all co
 });
 
 test('representative camera views fit within centered 2x2 source regions',()=>{
-  for(const [sourceLon,sourceLat,cameraLon] of [[102,28,102],[100,15,100],[4,53,5.5]]){
+  for(const [sourceLon,sourceLat,cameraLon] of [[102,28,102],[100,15,100],[86,28,86],[4,53,5.5]]){
     const side=1024,x=regionalOrigin(Math.floor((sourceLon+180)*120),side,{alignWorld:true,block2:true});
     const y=regionalOrigin(Math.floor((90-sourceLat)*120),side,{alignWorld:true,block2:true});
     const lon=cameraLon*Math.PI/180,lat=sourceLat*Math.PI/180;

@@ -4,6 +4,12 @@ import {SAMPLE_REGIONS} from './sample-quality.mjs';
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 const hex=value=>typeof value==='string'&&/^[0-9a-f]{64}$/.test(value);
 
+export function experimentCenter(region){
+  const target=SAMPLE_REGIONS.find(item=>item.id===region);
+  if(!target)throw Error('Experiment region has no fixed camera coordinate');
+  return region==='netherlands-coast'?[5.5,target.lat]:[target.lon,target.lat];
+}
+
 // The source manifest stays untouched. Only the bounded experimental LOD5
 // entries are available; unexpected LOD5 requests must fail, not fall back.
 export function makeViewerFixtureManifest(source,fixture,tileSize,region='southwest-china'){
@@ -45,10 +51,8 @@ export function makeViewerFixtureManifest(source,fixture,tileSize,region='southw
     tileSize,tiles:[...map].map(([key,value])=>[key,value.sha256])}));
   result.experiment={kind:'regional-Q1-hybrid',region,tileSize,sourceSha256:fixture.sourceSha256,
     policy:'Q1 at LOD5 in the listed region; unchanged v0.14.0 at LOD0-4',candidateTileCount:map.size};
-  const target=SAMPLE_REGIONS.find(item=>item.id===region);
-  if(!target)throw Error('Experiment region has no fixed camera coordinate');
   // A slightly eastward center keeps the full 32x viewport inside the
   // two-column Netherlands fixture while still covering its North Sea coast.
-  const center=region==='netherlands-coast'?[5.5,target.lat]:[target.lon,target.lat];
+  const center=experimentCenter(region);
   return {manifest:result,tiles:map,center};
 }

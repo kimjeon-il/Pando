@@ -32,6 +32,7 @@ on:
         options:
           - southwest-china
           - thai-lowland
+          - himalaya
           - netherlands-coast
       terrain_candidate:
         description: Restrict a diagnostic run to one terrain candidate
