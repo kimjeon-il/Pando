@@ -1,6 +1,7 @@
 import {createHash} from 'node:crypto';
 import {writeFile} from 'node:fs/promises';
 import {mapSummary,chromiumProcessMemory} from '../p7-browser-ab-measure.mjs';
+import {setTimeout as delay} from 'node:timers/promises';
 
 const digest=bytes=>createHash('sha256').update(bytes).digest('hex');
 export async function performanceCounters(cdp){return Object.fromEntries((await cdp.send('Performance.getMetrics')).metrics.map(item=>[item.name,item.value]));}
@@ -35,8 +36,10 @@ export async function captureAcceptedFrame(page,path,{screen=false}={}){
   return result;
 }
 export async function runViewerPhases({page,pageCdp,processCdp,out,prefix,screen,center,phases,onPhase,onStart,
-  minimumFrames=300,capture=captureAcceptedFrame,expectedLevel=5}){
+  minimumFrames=300,capture=captureAcceptedFrame,expectedLevel=5,panDurationMs=10000,themeCycles=10}){
   if(!Number.isSafeInteger(minimumFrames)||minimumFrames<1)throw TypeError('Positive frame count required');
+  if(!Number.isSafeInteger(panDurationMs)||panDurationMs<1||!Number.isSafeInteger(themeCycles)||themeCycles<1)
+    throw TypeError('Positive interaction duration and theme cycle count required');
   async function phase(name,action,{month,theme}={}){
     const row={name,status:'running',frameGapsMs:[]};phases.push(row);onStart(name);await onPhase();
     const countersBefore=await performanceCounters(pageCdp);
@@ -78,6 +81,17 @@ export async function runViewerPhases({page,pageCdp,processCdp,out,prefix,screen
       return Array.isArray(current)&&current.some((value,i)=>Math.abs(value-previous[i])>1e-5);
     },before,{timeout:15000,polling:100});
   });
+  await phase('continuous-pan',async()=>{
+    const box=await page.locator('#viewerCanvas').boundingBox();if(!box)throw Error('Viewer map canvas is unavailable');
+    const x=box.x+box.width/2,y=box.y+box.height/2,start=Date.now();let step=0;
+    await page.mouse.move(x,y);await page.mouse.down();
+    try{
+      while(Date.now()-start<panDurationMs){
+        step++;await page.mouse.move(x+Math.sin(step/3)*9,y+Math.cos(step/3)*5);
+        await delay(Math.min(250,Math.max(1,panDurationMs-(Date.now()-start))));
+      }
+    }finally{await page.mouse.up();}
+  });
   await phase('rotate',()=>page.evaluate(()=>{
     const host=globalThis.__PANDOLAB_MAP_HOST__,view=host.getViewState(),r=view.globeRotation;
     host.setViewState({projection:'globe',view:{...view,globeRotation:[r[0]+.12,r[1]-.08,r[2]]}});
@@ -87,6 +101,12 @@ export async function runViewerPhases({page,pageCdp,processCdp,out,prefix,screen
   await phase('date-return',()=>page.locator('#timelineNextYear').click({timeout:10000}),{month:'2026-11'});
   await phase('dark',()=>page.emulateMedia({colorScheme:'dark',reducedMotion:'reduce'}),{theme:'dark'});
   await phase('light',()=>page.emulateMedia({colorScheme:'light',reducedMotion:'reduce'}),{theme:'light'});
+  await phase('theme-cycle',async()=>{
+    for(let i=0;i<themeCycles;i++)for(const theme of ['dark','light']){
+      await page.emulateMedia({colorScheme:theme,reducedMotion:'reduce'});
+      await page.waitForFunction(value=>document.documentElement.dataset.theme===value,theme,{timeout:15000});
+    }
+  },{theme:'light'});
   await phase('warm-return',()=>page.evaluate(target=>{
     const host=globalThis.__PANDOLAB_MAP_HOST__,view=host.getViewState();
     host.setViewState({projection:'globe',view:{...view,globeRotation:[-target[0],-target[1],0],globeZoom:32}});

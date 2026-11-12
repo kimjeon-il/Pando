@@ -29,16 +29,16 @@ test('terrain phase runner exercises drag, rotation, dates, theme and warm retur
     const cdp=await page.context().newCDPSession(page);await cdp.send('Performance.enable');
     const phases=[],started=[],captured=[];let writes=0;
     await runViewerPhases({page,pageCdp:cdp,processCdp:null,out:'unused',prefix:'case',screen:true,center:[102,28],phases,
-      minimumFrames:3,onStart:name=>started.push(name),onPhase:async()=>{writes++;},
+      panDurationMs:100,themeCycles:2,minimumFrames:3,onStart:name=>started.push(name),onPhase:async()=>{writes++;},
       capture:async(_page,path,options)=>{captured.push({path,screen:options.screen});return {sha256:'fixture'};}});
-    assert.deepEqual(started,['drag','rotate','previous-year','date-return','dark','light','warm-return']);
-    assert.equal(phases.length,7);assert.ok(phases.every(row=>row.status==='passed'&&row.frames.count>=3));
-    assert.ok(captured.every(row=>row.screen));assert.equal(captured.length,7);assert.ok(writes>=14);
+    assert.deepEqual(started,['drag','continuous-pan','rotate','previous-year','date-return','dark','light','theme-cycle','warm-return']);
+    assert.equal(phases.length,9);assert.ok(phases.every(row=>row.status==='passed'&&row.frames.count>=3));
+    assert.ok(captured.every(row=>row.screen));assert.equal(captured.length,9);assert.ok(writes>=18);
     assert.deepEqual(await page.evaluate(()=>globalThis.__PANDOLAB_MAP_HOST__.getViewState().globeRotation),[-102,-28,0]);
     await page.evaluate(()=>{globalThis.__terrainTestLevel=4;});
     const baseline=[];
     await runViewerPhases({page,pageCdp:cdp,processCdp:null,out:'unused',prefix:'a0',screen:false,center:[102,28],phases:baseline,
-      expectedLevel:null,minimumFrames:1,onStart:()=>{},onPhase:async()=>{},capture:async()=>({sha256:'fixture'})});
-    assert.equal(baseline.length,7);assert.ok(baseline.every(row=>row.status==='passed'));
+      expectedLevel:null,panDurationMs:100,themeCycles:2,minimumFrames:1,onStart:()=>{},onPhase:async()=>{},capture:async()=>({sha256:'fixture'})});
+    assert.equal(baseline.length,9);assert.ok(baseline.every(row=>row.status==='passed'));
   }finally{await browser.close();}
 });
