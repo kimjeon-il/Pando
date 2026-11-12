@@ -8,7 +8,7 @@ import { createSearchToolbarPresentation } from "./search-toolbar-presentation.j
  * Mutable bindings stay local; exported accessors retain live identity.
  */
 export function createWorkspaceSurfaces() {
-  const registeredSurfaces=['search','display'];
+  const registeredSurfaces=['search'];
   const listeners=[];
   const listen=(target,type,listener)=>{target.addEventListener(type,listener);listeners.push(()=>target.removeEventListener(type,listener));};
   let fileMenuOpen=false;
@@ -162,9 +162,9 @@ export function createWorkspaceSurfaces() {
 
   function focusSurfaceTrigger(surface) {
     const ids = isMobile()
-      ? { search: 'mobileSearchBtn', display: 'mobileDisplayBtn' }
-      : { search: 'objectSearchBtn', display: 'mapDisplayBtn' };
-    const panelId = { search: 'objectSearchSurface', display: 'mapDisplaySurface' }[surface];
+      ? { search: 'mobileSearchBtn' }
+      : { search: 'objectSearchBtn' };
+    const panelId = { search: 'objectSearchSurface' }[surface];
     const rememberedTrigger = lastOverlayTrigger?.isConnected
       && lastOverlayTrigger.getClientRects().length > 0
       && lastOverlayTrigger.getAttribute('aria-controls') === panelId
@@ -192,7 +192,7 @@ export function createWorkspaceSurfaces() {
   function closeActiveMobileSheet({ restoreFocus = false, syncHistory = true } = {}) {
     if (!isMobile() || !surfaceController.activeMobileSheet) return;
     const kind = surfaceController.activeMobileSheet;
-    const surface = { search: 'search', display: 'display' }[kind];
+    const surface = kind;
     const panel = mobileSheets.mobileSheetPanel(kind);
     surfaceController.close(surface);
     mobileSheets.resetMobileSheetSession(panel);
@@ -204,7 +204,7 @@ export function createWorkspaceSurfaces() {
 
   function closeMobileSheets(except = null, { restoreFocus = false } = {}) {
     if (isMobile()) {
-      const exceptKind = { search: 'search', display: 'display' }[except] || null;
+      const exceptKind = except === 'search' ? 'search' : null;
       if (surfaceController.activeMobileSheet && surfaceController.activeMobileSheet !== exceptKind) closeActiveMobileSheet({ restoreFocus });
       return;
     }
@@ -230,7 +230,7 @@ export function createWorkspaceSurfaces() {
     if (!surfaceController.open(surface)) return false;
     if (activeTrigger) lastOverlayTrigger = activeTrigger;
     if (isMobile()) {
-      const kind = { search: 'search', display: 'display' }[surface];
+      const kind = surface;
       const panel = mobileSheets.mobileSheetPanel(kind);
       mobileSheets.resetMobileSheetSession(panel);
       trackMobileSheetHistory(kind);
@@ -251,7 +251,7 @@ export function createWorkspaceSurfaces() {
 
   function closeSurface(surface, { restoreFocus = false, syncHistory = true } = {}) {
     if(!registeredSurfaces.includes(surface))return false;
-    const mobileKind = isMobile() ? { search: 'search', display: 'display' }[surface] : null;
+    const mobileKind = isMobile() ? surface : null;
     const mobilePanel = mobileKind ? mobileSheets.mobileSheetPanel(mobileKind) : null;
     if (!surfaceController.close(surface)) return;
     if (mobilePanel) mobileSheets.resetMobileSheetSession(mobilePanel);
@@ -307,7 +307,7 @@ export function createWorkspaceSurfaces() {
 
 
 
-    (MOBILE_SHEET_IDS = Object.freeze({search:'objectSearchSurface',display:'mapDisplaySurface'}));
+    (MOBILE_SHEET_IDS = Object.freeze({search:'objectSearchSurface'}));
     mobileSheets=createMobileSheetPresentation({document,window,getElement:dependencies.platform.$,getLayout:()=>layoutMode,panelIds:MOBILE_SHEET_IDS,
       onSync:syncOverlayState,onClose:closeActiveMobileSheet,
       onResumeLayout:()=>{if(pendingLayoutChange){pendingLayoutChange=false;applyLayoutMode();}},

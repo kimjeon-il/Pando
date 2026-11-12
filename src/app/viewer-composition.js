@@ -378,7 +378,7 @@ export async function composeViewer({ productMode, meta }) {
   disposables.push(display);
   const navigationBindings=createNavigationBindings();
   navigationBindings.connect({platform:{$:get},workspaceUiA:surfaces,workspaceUiB:surfaces,workspaceUiC:surfaces,surfaces,
-    mapSettingsUi:display,navigation:map.navigation,projectState:{state:map.viewState},objectPicking:map.objectPicking,
+    navigation:map.navigation,projectState:{state:map.viewState},objectPicking:map.objectPicking,
     readinessUi:notifications});
   navigationBindings.bindNavigationUI();
   disposables.push(navigationBindings);
