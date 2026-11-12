@@ -18,19 +18,21 @@ export function terrainDemFragmentSource(glVersion) {
     float elevation(vec4 encoded) {
       return floor(encoded.r * 255.0 + 0.5) * 256.0 + floor(encoded.g * 255.0 + 0.5) - 12000.0;
     }
-    vec3 demColor(vec2 pixel) {
+    vec2 demValue(vec2 pixel) {
       vec4 encoded = ${sample}(uTerrain, (pixel + vec2(0.5)) / uTextureSize);
-      vec3 color = numericalTerrainColor(elevation(encoded), encoded.b, uLandPass, uPhysicalStyle);
-      // Canvas stores each numerical color plane as RGBA8 before sampling.
-      return floor(clamp(color, 0.0, 1.0) * 255.0 + 0.5) / 255.0;
+      float height = elevation(encoded);
+      // Classification stays with the physical-land mask; opposite-side
+      // elevation cannot pull a land or sea color across its boundary.
+      if (uPhysicalStyle > 0.5) height = uLandPass > 0.5 ? max(height, 0.0) : min(height, 0.0);
+      return vec2(height, encoded.b);
     }
     void main() {
       if (uMode == 0 && vDepth < 0.0) discard;
-      // Apply the numeric palette per texel, then interpolate the same RGBA8
-      // colors as Canvas. Packed elevation bytes never enter interpolation.
+      // Decode each sample first; interpolating packed elevation bytes corrupts heights.
       vec2 point = vUv * uTextureSize - vec2(0.5), cell = floor(point), part = fract(point);
-      vec3 color = mix(mix(demColor(cell), demColor(cell + vec2(1.0, 0.0)), part.x),
-        mix(demColor(cell + vec2(0.0, 1.0)), demColor(cell + vec2(1.0, 1.0)), part.x), part.y);
+      vec2 values = mix(mix(demValue(cell), demValue(cell + vec2(1.0, 0.0)), part.x),
+        mix(demValue(cell + vec2(0.0, 1.0)), demValue(cell + vec2(1.0, 1.0)), part.x), part.y);
+      vec3 color = numericalTerrainColor(values.x, values.y, uLandPass, uPhysicalStyle);
       // The legacy monochrome/political presentation keeps its existing dark adjustment.
       if (uPhysicalStyle < 0.5) color *= mix(1.0, ${globalThis.PandoLabCanvasTerrainDem.darkBrightness.toFixed(8)}, uDarkTheme);
       ${webGl2 ? 'outColor' : 'gl_FragColor'} = vec4(color, 1.0);

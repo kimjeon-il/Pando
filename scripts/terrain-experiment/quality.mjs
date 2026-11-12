@@ -3,26 +3,7 @@ export const HEIGHT_STOPS = Object.freeze([0,256,750,1500,2500,3500,4500,6500]);
 export const LIGHT_LAND = Object.freeze(['#70CFA3','#9BDE91','#C3DF8C','#E6D89A',
   '#F1C6A1','#DEB09C','#C5A9A3','#F4F1EB']);
 
-export function roundHalfEven(value) {
-  if (!Number.isFinite(value)) throw new RangeError('Finite value required');
-  const lower=Math.floor(value),fraction=value-lower;
-  return fraction>0.5 || (fraction===0.5 && lower%2!==0) ? lower+1 : lower;
-}
-
-export function quantizationStep(value, policy='Q1') {
-  if (!Number.isFinite(value)) throw new RangeError('Finite elevation required');
-  if (!['Q1','Q2','Q3'].includes(policy)) throw new RangeError('Unknown quantization policy');
-  const magnitude=Math.abs(value);
-  if (value<0) return magnitude<256?16:magnitude<1024?64:128;
-  if (policy==='Q1') return magnitude<512?4:magnitude<2560?8:16;
-  if (policy==='Q2') return magnitude<512?8:16;
-  return magnitude<512?4:8;
-}
-
-export function quantizeHeight(value, policy='Q1') {
-  const step=quantizationStep(value,policy), result=roundHalfEven(Math.abs(value)/step)*step;
-  return value<0 && result!==0 ? -result : result;
-}
+export {roundHalfEven, quantizationStep, quantizeHeight} from '../../tools/gis/terrain-dem-quantization.mjs';
 
 function endpoint(h0,h1,d0,d1) {
   let value=((2*h0+h1)*d0-h0*d1)/(h0+h1);

@@ -963,6 +963,11 @@
         ".github/actions/native-test-prerequisites/action.yml"
       ]
     },
+    "native-terrain-dem-encode": {
+      "argv": ["node", "scripts/prepare-native-test-tools.mjs", "terrain-dem-encode"],
+      "env": {"PANDO_TERRAIN_DEM_ENCODE_DIRECTORY": "{root}/build-native/terrain-dem-encode/artifact"},
+      "inputs": ["tools/cpp/terrain-dem-encode/**", "tools/gis/terrain-dem-encode.mjs", "tools/gis/package-terrain-dem-encode.mjs", ".github/actions/native-test-prerequisites/action.yml"]
+    },
     "native-terrain-dem-gutters": {
       "argv": [
         "node",
@@ -1623,6 +1628,10 @@
       "requires": [
         "native-territorial-recipe"
       ]
+    },
+    {
+      "tests": ["tests/unit/geometry/terrain-dem-encode.test.mjs"],
+      "requires": ["native-terrain-dem-encode"]
     },
     {
       "tests": [

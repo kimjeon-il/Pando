@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import '../../../src/rendering/workers/canvas-terrain-dem-core.js';
+import {createPchip} from '../../../scripts/terrain-experiment/quality.mjs';
 
 const {convertTile}=globalThis.PandoLabCanvasTerrainDem;
 function sample(height,shade=212,extra={}) {
@@ -37,6 +38,14 @@ const expected = {
   dark: ['#477B60', '#629260', '#87A76B', '#ABA476', '#C0AA86', '#AF9486', '#9F8C8A', '#CEC9C3'],
 };
 const fromHex = hex => [1,3,5].map(at => parseInt(hex.slice(at,at+2),16));
+test('Canvas samples numerical heights before applying the land palette',()=>{
+  const dem=new Uint8ClampedArray(16),heights=[0,256,2500,6500];
+  heights.forEach((value,i)=>{const n=value+12000;dem.set([n>>8,n&255,212,255],i*4);});
+  const actual=globalThis.PandoLabCanvasTerrainDem.sampleInterpolated({dem,width:2,height:2,x:.5,y:.5,theme:'light',channel:'land'});
+  const expectedHeight=heights.reduce((a,b)=>a+b,0)/4;
+  const expected=sample(expectedHeight,212).land;
+  assert.deepEqual([...actual],[...expected]);
+});
 test('land palette has eight independent sRGB stops in both themes',()=>{
   for(const theme of ['light','dark'])for(let i=0;i<paletteStops.length;i++){
     const actual=sample(paletteStops[i],212,{theme}).land;
@@ -46,10 +55,16 @@ test('land palette has eight independent sRGB stops in both themes',()=>{
         theme+' stop '+paletteStops[i]+' channel '+channel);
   }
 });
-test('sRGB channel interpolation uses per-interval smoothstep, not the retired elevation ramp',()=>{
+test('sRGB land colors follow the PCHIP curve between palette stops',()=>{
   for(const theme of ['light','dark']){
-    const at0=sample(0,212,{theme}).land,mid=sample(128,212,{theme}).land,at256=sample(256,212,{theme}).land;
-    for(let c=0;c<3;c++)assert.ok(Math.abs(mid[c]-(at0[c]+at256[c])/2)<=2);
+    for(const height of [64,128,400,1000,2000,3000,4000,5500]){
+      const actual=sample(height,212,{theme}).land;
+      for(let channel=0;channel<3;channel++){
+        const values=expected[theme].map(value=>fromHex(value)[channel]);
+        const reference=createPchip(paletteStops,values)(height);
+        assert.ok(Math.abs(actual[channel]-reference)<=2,`${theme} ${height} channel ${channel}: ${actual[channel]} vs ${reference}`);
+      }
+    }
     assert.deepEqual(sample(-10,212,{theme}).land,sample(0,212,{theme}).land);
     assert.deepEqual(sample(9999,212,{theme}).land,sample(6500,212,{theme}).land);
   }

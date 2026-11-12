@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {roundHalfEven,quantizationStep,quantizeHeight,createPchip,createLandPalette,HEIGHT_STOPS,LIGHT_LAND} from '../../../scripts/terrain-experiment/quality.mjs';
 import {quantizeSample} from '../../../scripts/terrain-experiment/sample-quality.mjs';
+import {applyQ1Elevation} from '../../../tools/gis/terrain-dem-build.mjs';
 
 test('Q1/Q2/Q3 classify original elevations and use half-even ties',()=>{
   assert.deepEqual([0.5,1.5,2.5,3.5].map(roundHalfEven),[0,2,2,4]);
@@ -36,4 +37,18 @@ test('sample quality uses one original-based shade across quantization candidate
   assert.equal(new Set(rows.map(row=>row.stats.shadeSha256)).size,1);
   assert.ok(rows.every(row=>row.stats.count===4));
   assert.throws(()=>quantizeSample(Float32Array.of(NaN),2,2,level,'Q1'),/halo/);
+});
+
+test('Q1 generation recodes the original Float32 elevations while preserving native shade',()=>{
+  const heights=[0,2,6,511,512,2560,-8,-24,-256,-1024];
+  const original=Buffer.alloc(heights.length*4),rgba=Buffer.alloc(heights.length*4);
+  heights.forEach((height,i)=>{original.writeFloatLE(height,i*4);rgba.set([0,0,i,255],i*4);});
+  const before=Buffer.from(original);
+  applyQ1Elevation(original,rgba);
+  assert.deepEqual(original,before);
+  heights.forEach((height,i)=>{
+    assert.equal(rgba[i*4]*256+rgba[i*4+1]-12000,quantizeHeight(height,'Q1'));
+    assert.equal(rgba[i*4+2],i);assert.equal(rgba[i*4+3],255);
+  });
+  assert.throws(()=>applyQ1Elevation(original,rgba.subarray(4)),/length/);
 });
