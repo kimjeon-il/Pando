@@ -175,58 +175,8 @@ test('inline Canvas2D bitmap acceptance reconciles pending-startup fill ownershi
   h.verifyCanonical();
 });
 
-// Synthetic coordinates only: exercise the real Canvas Worker transport and
-// first-frame protocol without depending on browser D3's DOM environment.
-function canvasFixtureGeo() {
-  function createProjection() {
-    const properties = { scale: 1, translate: [0, 0], rotate: [0, 0, 0],
-      center: [0, 0], clipAngle: 90, clipExtent: null, precision: 0.25 };
-    const point = ([lon, lat]) => [
-      properties.translate[0] + (lon - properties.center[0]) * properties.scale,
-      properties.translate[1] - (lat - properties.center[1]) * properties.scale,
-    ];
-    point.invert = ([x, y]) => [
-      properties.center[0] + (x - properties.translate[0]) / properties.scale,
-      properties.center[1] - (y - properties.translate[1]) / properties.scale,
-    ];
-    for (const key of Object.keys(properties)) {
-      point[key] = (...args) => {
-        if (!args.length) return properties[key];
-        properties[key] = args[0];
-        return point;
-      };
-    }
-    return point;
-  }
-  function path() {
-    let projection = createProjection(), context = null;
-    const draw = feature => {
-      const geometry = feature?.type === 'Feature' ? feature.geometry : feature;
-      if (!geometry || !context) return;
-      const parts = geometry.type === 'Polygon' ? geometry.coordinates
-        : geometry.type === 'MultiPolygon' ? geometry.coordinates.flat()
-        : geometry.type === 'LineString' ? [geometry.coordinates]
-        : geometry.type === 'MultiLineString' ? geometry.coordinates : [];
-      for (const ring of parts) {
-        if (!ring.length) continue;
-        const first = projection(ring[0]);
-        context.moveTo(first[0], first[1]);
-        for (const position of ring.slice(1)) {
-          const [x, y] = projection(position);
-          context.lineTo(x, y);
-        }
-        if (geometry.type.includes('Polygon')) context.closePath();
-      }
-    };
-    draw.projection = next => { if (next === undefined) return projection; projection = next; return draw; };
-    draw.context = next => { if (next === undefined) return context; context = next; return draw; };
-    return draw;
-  }
-  return { distance: () => 0, orthographic: createProjection, equirectangular: createProjection, path };
-}
-
 async function directFallbackHarness(t, { canvasWorker = false, pendingGeometry = false, nativeVisibility = false } = {}) {
-  const globals = ['window', 'document', 'Worker', 'OffscreenCanvas', 'requestAnimationFrame', 'cancelAnimationFrame', 'd3'];
+  const globals = ['window', 'document', 'Worker', 'OffscreenCanvas', 'requestAnimationFrame', 'cancelAnimationFrame'];
   const previous = globals.map(key => [key, Object.getOwnPropertyDescriptor(globalThis, key)]);
   const svg = svgFixture(), selected = svg.root(), hovered = svg.root();
   const queued = [], timers = new Map(), workers = [], backgroundFrames = new Map();
@@ -262,12 +212,12 @@ async function directFallbackHarness(t, { canvasWorker = false, pendingGeometry 
     return node;
   };
   const document = { ...svg.document, addEventListener() {}, removeEventListener() {}, createElement: () => createCanvas() };
-  class FakeWorker extends EventTarget {
-    constructor(url, options) { super(); this.name = options.name; this.messages = []; workers.push(this); }
+  class FakeWorker {
+    constructor(url, options) { this.name = options.name; this.messages = []; workers.push(this); }
     postMessage(message) { this.messages.push(message); }
     terminate() { this.terminated = true; }
   }
-  Object.assign(globalThis, { document, d3: { geo: canvasFixtureGeo() }, window: { devicePixelRatio: 1, addEventListener() {}, removeEventListener() {} },
+  Object.assign(globalThis, { document, window: { devicePixelRatio: 1, addEventListener() {}, removeEventListener() {} },
     Worker: FakeWorker, OffscreenCanvas: canvasWorker ? class { constructor() { return createCanvas(); } } : undefined,
     requestAnimationFrame: callback => { const id = ++nextId; backgroundFrames.set(id, callback); return id; },
     cancelAnimationFrame: id => backgroundFrames.delete(id),
@@ -310,7 +260,7 @@ async function directFallbackHarness(t, { canvasWorker = false, pendingGeometry 
     baseResources: { getState: () => state },
     territorialResources: { getState: () => state, displayEntities: () => features },
     requestFrame: callback => queued.push(callback),
-    prepareView: ({ frameId }) => createMapVisualFrame({ frameId, viewRevision: 1, projectGeneration: 3,
+    prepareView: ({ frameId }) => createMapVisualFrame({ frameId, viewRevision: 1, projectGeneration: 0,
       viewState: { ...state, translate: [150, 100], scale: 40, dpr: 1 }, projectPath: () => 'M0,0L1,0L1,1Z',
       createCanvasPath: context => feature => {if(context.canvas===canvas&&feature?.id)drawnIds.push(feature.id);} }),
     renderers: { view: frame => {
@@ -319,27 +269,13 @@ async function directFallbackHarness(t, { canvasWorker = false, pendingGeometry 
       return result;
     } },
     selectionResources: { document: svg.document, d3: svg.d3, selectionPass,
-      buildRenderableStrokeFeature: feature => feature,
       selectionLayer: svg.d3.select(selected), hoverLayer: svg.d3.select(hovered), getState: () => state,
       getInteractionStyle: resolveMapInteractionStyle, territorialEntityById: byId, territorialDisplayFeature: byId,
       mapFeatureForObjectRef: ref => byId(ref.id), countryOutlineFeature: value => value },
   });
-  // Generation zero is intentionally excluded from Canvas rendering. The
-  // harness represents an admitted project, not the pre-document boot phase.
-  renderer.resetProjectRenderState({ generation: 3 });
-  // The canonical physical owner must be admitted before forcefully losing
-  // WebGL; otherwise fallback cannot legally paint an incomplete background.
-  renderer.setRenderScene(createRenderSceneBuilder().build({ polygons: [{
-    key: 'fixture:land', role: 'physical-land', geometryRevision: 0,
-    geometry: features[0].geometry, style: { color: '#eeeeee', fillAlpha: 1 },
-  }] }));
   assert.equal(await renderer.initialize({ allowPreview: false }), true);
   renderer.setSelectionPass(selectionPass);
   assert.equal(renderer.getRuntimeState().renderer, 'webgl2');
-  // A view-only GPU recovery pass reprojects existing selection coverage;
-  // make the selected/hovered paths first through the owning data pass.
-  rendering.invalidateSelection('preloss-selection-coverage');
-  for (let frame = 0; frame < 10 && queued.length; frame++) queued.shift()();
   contextLost = true; canvas.dispatch('webglcontextlost');
   assert.equal(renderer.getRuntimeState().renderer, 'webgl-recovering');
   assert.equal(queued.length, 1); queued.shift()();
@@ -436,9 +372,6 @@ for (const canvasWorker of [false, true]) test(`real ${canvasWorker ? 'Worker fa
   const h = await directFallbackHarness(t, { canvasWorker });
   assert.equal(h.nodes(fillSelector).length, 0, 'scene fills remain reserved during recovery');
   await h.transition();
-  // Inline Canvas sends its ready/bitmap messages through two microtasks.
-  // A queued frame before Worker readiness is not a presented Canvas bitmap.
-  await new Promise(resolve => setImmediate(resolve));
   assert.equal(h.renderer.getRuntimeState().renderer, 'canvas2d');
   assert.equal(h.scenePaints(), 0, 'activation must not paint outside the canonical presentation boundary');
   assert.deepEqual(h.scheduledReasons, canvasWorker ? ['canvas-terrain-failed', 'canvas-fallback-ready'] : ['canvas-fallback-ready']);
@@ -460,7 +393,6 @@ for (const canvasWorker of [false, true]) test(`real ${canvasWorker ? 'Worker fa
 test('Worker failure acknowledges pending geometry only after its scheduled Canvas2D paint', async t => {
   const h = await directFallbackHarness(t, { canvasWorker: true, pendingGeometry: true });
   await h.transition();
-  await new Promise(resolve => setImmediate(resolve));
   assert.equal(h.scenePaints(), 0);
   assert.equal(h.renderer.getStats().pendingCountryCount, 1, 'activation cannot acknowledge an unpainted geometry revision');
   h.queued.shift()();
@@ -478,7 +410,6 @@ test('Worker failure acknowledges pending geometry only after its scheduled Canv
 for(const canvasWorker of [false,true])test(`native display IDs obey canonical individual visibility in Canvas worker=${canvasWorker}`,async t=>{
   const h=await directFallbackHarness(t,{canvasWorker,nativeVisibility:true});
   await h.transition({ deferCanvasFailure: canvasWorker });
-  await new Promise(resolve => setImmediate(resolve));
   // Prepare the canonical country inputs before Worker readiness. A pending
   // preview legitimately contains no individually hidden country IDs.
   if(canvasWorker) await h.prepareCountries();
