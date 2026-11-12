@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {inspectFixtureCoverage} from '../../../scripts/terrain-experiment/fixture-coverage.mjs';
+import {inspectFixtureCoverage,withNormalizedAdmissionBudget} from '../../../scripts/terrain-experiment/fixture-coverage.mjs';
 
 test('preflight detects conservative visibility and budget downgrade before a Viewer run',()=>{
   const levels=size=>[
@@ -29,4 +29,12 @@ test('preflight detects conservative visibility and budget downgrade before a Vi
   assert.equal(small.valid,false);
   const complete=inspectFixtureCoverage({manifest:{levels:levels(512),gutter:1},availableKeys:new Set([...keys(512),...small.missingKeys]),...options});
   assert.equal(complete.valid,true);
+});
+
+test('normalized budget is explicit and refuses a changed or ambiguous Viewer policy',()=>{
+  const marker='byteBudget: 96 * 1024 * 1024, bytesPerPixel: 12';
+  assert.equal(withNormalizedAdmissionBudget(`const x={${marker}};`),
+    'const x={byteBudget: 192 * 1024 * 1024, bytesPerPixel: 12};');
+  assert.throws(()=>withNormalizedAdmissionBudget('no policy'),/contract changed/);
+  assert.throws(()=>withNormalizedAdmissionBudget(`${marker};${marker}`),/contract changed/);
 });

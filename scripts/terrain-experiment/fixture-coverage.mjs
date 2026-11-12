@@ -2,6 +2,11 @@
 import '../../src/rendering/workers/terrain-tile-selection-core.js';
 
 const selection=globalThis.PandoLabTerrainTileSelection;
+export function withNormalizedAdmissionBudget(source){
+  const marker='byteBudget: 96 * 1024 * 1024, bytesPerPixel: 12';
+  if(typeof source!=='string'||source.split(marker).length!==2)throw Error('Viewer DEM admission policy contract changed');
+  return source.replace(marker,'byteBudget: 192 * 1024 * 1024, bytesPerPixel: 12');
+}
 const radians=value=>value*Math.PI/180;
 function distance(a,b){
   const [lonA,latA]=a.map(radians),[lonB,latB]=b.map(radians);

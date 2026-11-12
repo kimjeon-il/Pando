@@ -9,7 +9,7 @@ import {a1TerrainFragmentSource} from './a1-shader.mjs';
 import {makeViewerFixtureManifest} from './viewer-fixture.mjs';
 import {serve,identity,mapSummary,chromiumProcessMemory} from '../p7-browser-ab-measure.mjs';
 import {performanceCounters,performanceDelta,captureAcceptedFrame,runViewerPhases} from './viewer-phases.mjs';
-import {inspectFixtureCoverage} from './fixture-coverage.mjs';
+import {inspectFixtureCoverage,withNormalizedAdmissionBudget} from './fixture-coverage.mjs';
 import {regionalOrigin} from './gutter-fixture.mjs';
 
 const region=process.argv.find(arg=>arg.startsWith('--region='))?.slice('--region='.length)||'southwest-china';
@@ -101,10 +101,9 @@ try{
       if(normalizedBudget)await page.route('**/terrain-tile-selection-core.js*',async route=>{
         try{
           const response=await route.fetch(),source=await response.text();
-          const marker='byteBudget: 96 * 1024 * 1024, bytesPerPixel: 12';
-          if(!source.includes(marker))throw Error('Viewer DEM admission policy contract changed');
+          const body=withNormalizedAdmissionBudget(source);
           budgetRequests++;
-          return await route.fulfill({status:200,contentType:'text/javascript',body:source.replace(marker,'byteBudget: 192 * 1024 * 1024, bytesPerPixel: 12')});
+          return await route.fulfill({status:200,contentType:'text/javascript',body});
         }catch(error){run.routeErrors.push(String(error));return route.abort('failed');}
       });
       await page.addInitScript(()=>{globalThis.__pandoCaptureFrame={requested:false,result:null};});
