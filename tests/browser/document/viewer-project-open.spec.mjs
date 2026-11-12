@@ -244,3 +244,88 @@ test('a map display request waits for Worker startup and preserves caller geomet
  expect(result.count).toBeGreaterThan(0);expect(result.same).toBe(true);
 });
 });
+
+featureTest.describe('unified-settings-behavior', () => {
+  const {test,expect}=__suiteDependency0;
+  const {createViewerProjectPackage}=__suiteDependency1;
+  const {createDistributionLayer,createDistributionEntry}=__suiteDependency3;
+
+  test('map and screen themes, native names and graticule share one persistent settings dialog',async({page})=>{
+    test.setTimeout(150000);
+    const errors=[];page.on('pageerror',error=>errors.push(error.message));
+    await page.setViewportSize({width:1280,height:800});
+    await page.goto('/?debug=1');
+    await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:120000});
+    await expect(page.locator('#mapDisplayBtn,#mobileDisplayBtn,#mapDisplaySurface')).toHaveCount(0);
+    const documentBefore=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot());
+    await page.locator('#preferencesBtn').click();
+    await expect(page.locator('#preferencesModal')).toBeVisible();
+    await expect(page.locator('input[name="preferencesMapStyle"]')).toHaveCount(3);
+    await expect(page.locator('#preferencesGenericSlot')).toBeHidden();
+    await expect(page.locator('#preferencesDistributionSlot')).toBeHidden();
+    await page.locator('input[name="preferencesMapStyle"][value="classic"]').locator('..').click();
+    await expect(page.locator('html')).toHaveAttribute('data-map-style','classic');
+    await expect.poll(()=>page.evaluate(()=>JSON.parse(localStorage.getItem('pandolab-user-preferences')).appearance.mapStyle)).toBe('classic');
+    await page.locator('#preferencesNativeNamesInput').locator('..').click();
+    await expect(page.locator('#preferencesNativeNamesInput')).toBeChecked();
+    await page.locator('#preferencesGraticuleInput').locator('..').click();
+    await expect(page.locator('#preferencesGraticuleInput')).not.toBeChecked();
+    await page.locator('#preferencesCloseBtn').click();
+    await expect(page.locator('#preferencesModal')).toBeHidden();
+    await expect(page.locator('#preferencesBtn')).toBeFocused();
+    await page.locator('#preferencesBtn').click();
+    await expect(page.locator('input[name="preferencesMapStyle"][value="classic"]')).toBeChecked();
+    await expect(page.locator('#preferencesNativeNamesInput')).toBeChecked();
+    await expect(page.locator('#preferencesGraticuleInput')).not.toBeChecked();
+    await page.locator('#preferencesCloseBtn').click();
+    const preferences=await page.evaluate(()=>JSON.parse(localStorage.getItem('pandolab-user-preferences')));
+    expect(preferences.labels.place.showNativeNames).toBe(true);
+    expect(preferences.backgrounds.viewer.graticule).toBe(false);
+    expect(await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot())).toEqual(documentBefore);
+    expect(errors).toEqual([]);
+  });
+
+  test('real project data reveals generic and distribution controls without a View menu or project writes',async({page})=>{
+    test.setTimeout(180000);
+    const layer=createDistributionLayer({id:crypto.randomUUID(),name:'관측 분포',color:'#4466aa'});
+    const entry=createDistributionEntry({id:crypto.randomUUID(),layerId:layer.id,mode:'geometry',value:12,
+      geometry:{type:'Polygon',coordinates:[[[0,0],[2,0],[2,2],[0,0]]]}});
+    const generic={type:'Feature',id:crypto.randomUUID(),
+      geometry:{type:'Point',coordinates:[1,1]},
+      properties:{schemaVersion:2,name:'관측 지점',notes:'',color:'#8844cc',locked:false,
+        source:{kind:'user'}}};
+    const fixture=await createViewerProjectPackage('조건부 지도',{
+      genericFeatures:[generic],distributionLayers:[layer],distributionEntries:[entry],
+    });
+    const errors=[];page.on('pageerror',error=>errors.push(error.message));
+    await page.setViewportSize({width:1280,height:800});
+    await page.goto('/?debug=1');
+    await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:120000});
+    await page.locator('#projectFileInput').setInputFiles({name:'settings.gpkg',
+      mimeType:'application/geopackage+sqlite3',buffer:fixture.bytes});
+    await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot().documentId),
+      {timeout:120000}).toBe(fixture.project.documentId);
+    const before=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot());
+    await page.locator('#preferencesBtn').click();
+    await expect(page.locator('#preferencesGenericSlot')).toBeVisible();
+    await expect(page.locator('#preferencesDistributionSlot')).toBeVisible();
+    await page.locator('#genericFeaturesVisible').locator('..').click();
+    await expect(page.locator('#genericFeaturesVisible')).not.toBeChecked();
+    await page.locator('#preferencesDistributionBlendInput').selectOption('multiply');
+    await page.locator('#distributionSingleRadio').locator('..').click();
+    await expect(page.locator('#preferencesDistributionLayerRow')).toBeVisible();
+    await expect(page.locator('#distributionActiveLayerInput')).toHaveValue(layer.id);
+    await page.locator('#distributionBoundaryVisibleInput').locator('..').click();
+    await expect(page.locator('#distributionBoundaryVisibleInput')).not.toBeChecked();
+    await expect(page.locator('#distributionLegend')).toContainText('관측 분포');
+    await page.locator('#preferencesCloseBtn').click();
+    await page.locator('#preferencesBtn').click();
+    await expect(page.locator('#genericFeaturesVisible')).not.toBeChecked();
+    await expect(page.locator('#preferencesDistributionBlendInput')).toHaveValue('multiply');
+    await expect(page.locator('#distributionSingleRadio')).toBeChecked();
+    await expect(page.locator('#distributionBoundaryVisibleInput')).not.toBeChecked();
+    await page.locator('#preferencesCloseBtn').click();
+    expect(await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot())).toEqual(before);
+    expect(errors).toEqual([]);
+  });
+});
