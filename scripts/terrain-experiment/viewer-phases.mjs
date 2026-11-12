@@ -47,8 +47,9 @@ export async function captureAcceptedFrame(page,path,{screen=false}={}){
   return result;
 }
 export async function runViewerPhases({page,pageCdp,processCdp,out,prefix,screen,center,phases,onPhase,onStart,
-  minimumFrames=300,capture=captureAcceptedFrame,expectedLevel=5,panDurationMs=10000,themeCycles=10,diagnostics=async()=>null}){
+  projection='globe',minimumFrames=300,capture=captureAcceptedFrame,expectedLevel=5,panDurationMs=10000,themeCycles=10,diagnostics=async()=>null}){
   if(!Number.isSafeInteger(minimumFrames)||minimumFrames<1)throw TypeError('Positive frame count required');
+  if(projection!=='globe'&&projection!=='flat')throw TypeError('Unknown phase projection');
   if(!Number.isSafeInteger(panDurationMs)||panDurationMs<1||!Number.isSafeInteger(themeCycles)||themeCycles<1)
     throw TypeError('Positive interaction duration and theme cycle count required');
   async function phase(name,action,{month,theme,zoom,terrainRadio,level=expectedLevel,requireScreen=screen}={}){
@@ -58,17 +59,17 @@ export async function runViewerPhases({page,pageCdp,processCdp,out,prefix,screen
     await page.evaluate(()=>globalThis.__terrainFixtureFrames.start());const started=Date.now();
     try{
       await action();
-      await page.waitForFunction(({month,theme,expectedLevel,zoom,terrainRadio})=>{
+      await page.waitForFunction(({month,theme,expectedLevel,zoom,terrainRadio,projection})=>{
         const api=globalThis.__PANDOLAB_VIEWER__,s=api?.rendererStats();
         const terrainOff=terrainRadio==='terrainNoneRadio';
         return s?.mapReadiness?.mapReady===true&&(terrainOff||s.terrainReady===true&&s.terrainTargetLevel>=0&&s.terrainRenderedLevel===s.terrainTargetLevel
           &&(expectedLevel===null||s.terrainTargetLevel===expectedLevel)
           &&s.terrainTargetTileCount>0&&s.terrainTargetTilesLoaded===s.terrainTargetTileCount)&&!s.screenLodPreparingKey
-          &&(!zoom||Math.abs(globalThis.__PANDOLAB_MAP_HOST__.getViewState().globeZoom-zoom)<1e-6)
+          &&(!zoom||Math.abs(globalThis.__PANDOLAB_MAP_HOST__.getViewState()[projection==='flat'?'flatZoom':'globeZoom']-zoom)<1e-6)
           &&(!terrainRadio||document.getElementById(terrainRadio)?.checked===true)
           &&(!month||(api.builtinMonth().month===month&&api.documentState()?.timelineCursor===month))
           &&(!theme||document.documentElement.dataset.theme===theme);
-      },{month:month||null,theme:theme||null,expectedLevel:level,zoom:zoom||null,terrainRadio:terrainRadio||null},{timeout:180000,polling:250});
+      },{month:month||null,theme:theme||null,expectedLevel:level,zoom:zoom||null,terrainRadio:terrainRadio||null,projection},{timeout:180000,polling:250});
       row.readyMs=Date.now()-started;
       await page.waitForFunction(minimum=>globalThis.__terrainFixtureFrames.gaps.length>=minimum,minimumFrames,{timeout:180000,polling:250});
       row.frameGapsMs=await page.evaluate(()=>globalThis.__terrainFixtureFrames.stop());
@@ -88,14 +89,14 @@ export async function runViewerPhases({page,pageCdp,processCdp,out,prefix,screen
     await onPhase();
   }
   await phase('drag',async()=>{
-    const before=await page.evaluate(()=>globalThis.__PANDOLAB_MAP_HOST__.getViewState().globeRotation);
+    const before=await page.evaluate(kind=>globalThis.__PANDOLAB_MAP_HOST__.getViewState()[kind==='flat'?'flatCenter':'globeRotation'],projection);
     const box=await page.locator('#viewerCanvas').boundingBox();if(!box)throw Error('Viewer map canvas is unavailable');
     const x=box.x+box.width/2,y=box.y+box.height/2;
     await page.mouse.move(x,y);await page.mouse.down();await page.mouse.move(x+18,y+10,{steps:6});await page.mouse.up();
-    await page.waitForFunction(previous=>{
-      const current=globalThis.__PANDOLAB_MAP_HOST__?.getViewState()?.globeRotation;
+    await page.waitForFunction(({previous,projection})=>{
+      const current=globalThis.__PANDOLAB_MAP_HOST__?.getViewState()?.[projection==='flat'?'flatCenter':'globeRotation'];
       return Array.isArray(current)&&current.some((value,i)=>Math.abs(value-previous[i])>1e-5);
-    },before,{timeout:15000,polling:100});
+    },{previous:before,projection},{timeout:15000,polling:100});
   });
   await phase('continuous-pan',async()=>{
     const box=await page.locator('#viewerCanvas').boundingBox();if(!box)throw Error('Viewer map canvas is unavailable');
@@ -108,16 +109,16 @@ export async function runViewerPhases({page,pageCdp,processCdp,out,prefix,screen
       }
     }finally{await page.mouse.up();}
   });
-  await phase('rotate',()=>page.evaluate(()=>{
+  if(projection==='globe')await phase('rotate',()=>page.evaluate(()=>{
     const host=globalThis.__PANDOLAB_MAP_HOST__,view=host.getViewState(),r=view.globeRotation;
     host.setViewState({projection:'globe',view:{...view,globeRotation:[r[0]+.12,r[1]-.08,r[2]]}});
     host.requestRepaint('terrain-experiment-rotate');
   }));
-  const setZoom=zoom=>page.evaluate(value=>{
+  const setZoom=zoom=>page.evaluate(({value,projection})=>{
     const host=globalThis.__PANDOLAB_MAP_HOST__,view=host.getViewState();
-    host.setViewState({projection:'globe',view:{...view,globeZoom:value}});
+    host.setViewState({projection,view:{...view,[projection==='flat'?'flatZoom':'globeZoom']:value}});
     host.requestRepaint('terrain-experiment-zoom');
-  },zoom);
+  },{value:zoom,projection});
   await phase('zoom8',()=>setZoom(8),{zoom:8,level:null,requireScreen:false});
   await phase('zoom16',()=>setZoom(16),{zoom:16,level:null,requireScreen:false});
   await phase('zoom32-return',()=>setZoom(32),{zoom:32});
@@ -131,11 +132,12 @@ export async function runViewerPhases({page,pageCdp,processCdp,out,prefix,screen
       await page.waitForFunction(value=>document.documentElement.dataset.theme===value,theme,{timeout:15000});
     }
   },{theme:'light'});
-  await phase('warm-return',()=>page.evaluate(target=>{
+  await phase('warm-return',()=>page.evaluate(({target,projection})=>{
     const host=globalThis.__PANDOLAB_MAP_HOST__,view=host.getViewState();
-    host.setViewState({projection:'globe',view:{...view,globeRotation:[-target[0],-target[1],0],globeZoom:32}});
+    const camera=projection==='flat'?{flatCenter:target,flatZoom:32}:{globeRotation:[-target[0],-target[1],0],globeZoom:32};
+    host.setViewState({projection,view:{...view,...camera}});
     host.requestRepaint('terrain-experiment-warm-return');
-  },center));
+  },{target:center,projection}));
   async function selectTerrain(radio){
     await page.locator('#mapDisplayBtn').click({timeout:10000});
     await page.locator('[data-map-display-row="terrain"]').click({timeout:10000});

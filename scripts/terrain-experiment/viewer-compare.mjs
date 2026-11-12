@@ -16,6 +16,8 @@ import {prefetchFixtureTiles} from './fixture-transfer.mjs';
 
 const region=process.argv.find(arg=>arg.startsWith('--region='))?.slice('--region='.length)||'southwest-china';
 if(!['southwest-china','thai-lowland','himalaya','netherlands-coast'].includes(region))throw Error('Unknown representative region');
+const projection=process.argv.find(arg=>arg.startsWith('--projection='))?.slice('--projection='.length)||'globe';
+if(!['flat','globe'].includes(projection))throw Error('Unknown experiment projection');
 const revision=region==='himalaya'?'fd49d594c831dc753026aa2ebe3dd05a0b2cb038':'11c1d4be35ec3d5aeab57393f2f947f6d810ad7d';
 const fixtureFolder=region==='himalaya'?'fixtures-himalaya':'fixtures-coverage';
 const base=`https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/${revision}/reports/development/performance/terrain-architecture-2026-11-12/p2/${fixtureFolder}/webp/`;
@@ -73,7 +75,7 @@ if(includeScreen&&(!only||only==='screen')){
     resolveDir:process.cwd(),loader:'js'},bundle:true,platform:'browser',format:'iife',globalName:'PandoScreenFixture',write:false});
   screenBundle=bundle.outputFiles[0].text;
 }
-const report={schema:'pando-terrain-viewer-regional-ab-v1',identity:identity(),fixtureRevision:revision,region,
+const report={schema:'pando-terrain-viewer-regional-ab-v1',identity:identity(),fixtureRevision:revision,region,projection,
   fixtureManifestSha256:manifestHash,sequence,startedAt:new Date().toISOString(),runs,status:'running',
   ...(tilePrefetch?{tilePrefetch:{files:tilePrefetch.files,bytes:tilePrefetch.bytes,durationMs:tilePrefetch.durationMs}}:{}),
   comparisonPolicy,normalizedBudget,
@@ -255,17 +257,25 @@ try{
       if(!hostRequests)throw Error('Experimental full-view camera invalidation was not consumed');
       if(normalizedBudget&&candidate!=='a0'&&!budgetRequests)throw Error('Experimental normalized admission policy was not consumed');
       run.budgetRequests=budgetRequests;
+      if(projection==='flat'){
+        await page.evaluate(center=>{const host=globalThis.__PANDOLAB_MAP_HOST__,view=host.getViewState();
+          host.setViewState({projection:'flat',view:{...view,flatCenter:center,flatZoom:1}});
+          host.requestRepaint('terrain-experiment-flat-initial');},selected.center);
+        await page.waitForFunction(()=>{const host=globalThis.__PANDOLAB_MAP_HOST__,s=globalThis.__PANDOLAB_VIEWER__?.rendererStats();
+          return host?.getViewState()?.flatZoom===1&&s?.mapReadiness?.mapReady===true&&s.terrainReady===true&&!s.screenLodPreparingKey;
+        },null,{timeout:180000,polling:250});
+      }
       const initialScreenshot=await page.screenshot({timeout:30000});
       await writeFile(`${out}/viewer-${index+1}-${size}-initial.png`,initialScreenshot);
       try{run.initialFrameCapture=await captureAcceptedFrame(page,`${out}/viewer-${index+1}-${size}-initial-framebuffer.png`);}
       catch(error){run.initialFrameCaptureError=String(error);}
       if(!run.initialFrameCapture)throw Error('Cannot preflight the actual Viewer camera without its initial accepted frame');
-      const initialZoom=await page.evaluate(()=>globalThis.__PANDOLAB_MAP_HOST__.getViewState().globeZoom);
+      const initialZoom=await page.evaluate(kind=>globalThis.__PANDOLAB_MAP_HOST__.getViewState()[kind==='flat'?'flatZoom':'globeZoom'],projection);
       const predictedScale=scaleAtZoom(run.initialFrameCapture.scale,initialZoom,32);
       if(candidate!=='a0')run.fixtureCoverage=inspectFixtureCoverage({manifest:selected.manifest,
         availableKeys:new Set([...selected.tiles.keys()].map(key=>key.replace(/\.webp$/, ''))),
         center:selected.center,viewport:[run.initialFrameCapture.width,run.initialFrameCapture.height],
-        scale:predictedScale,policy:comparisonPolicy});
+        scale:predictedScale,projection,policy:comparisonPolicy});
       if(candidate!=='a0'){
         run.fixtureCoverage.initialZoom=initialZoom;run.fixtureCoverage.predictedScale=predictedScale;
         if(!run.fixtureCoverage.valid)throw Error('Experimental fixture does not cover the actual Viewer visibility or admission policy');
@@ -273,11 +283,12 @@ try{
       phaseName='zoom32';const countersBefore=await performanceCounters(pageCdp);
       await page.evaluate(()=>globalThis.__terrainFixtureFrames.start());
       const started=Date.now();
-      await page.evaluate(center=>{
+      await page.evaluate(({center,projection})=>{
         const host=globalThis.__PANDOLAB_MAP_HOST__,view=host.getViewState();
-        host.setViewState({projection:'globe',view:{...view,globeRotation:[-center[0],-center[1],0],globeZoom:32}});
+        const camera=projection==='flat'?{flatCenter:center,flatZoom:32}:{globeRotation:[-center[0],-center[1],0],globeZoom:32};
+        host.setViewState({projection,view:{...view,...camera}});
         host.requestRepaint('terrain-regional-fixture');
-      },selected.center);
+      },{center:selected.center,projection});
       await page.waitForFunction(current=>{
         const s=globalThis.__PANDOLAB_VIEWER__?.rendererStats();
         return (current==='a0'?s?.terrainTargetLevel>=0&&s.terrainRenderedLevel===s.terrainTargetLevel:s?.terrainTargetLevel===5&&s.terrainRenderedLevel===5)&&s.terrainTargetTileCount>0
@@ -355,6 +366,7 @@ try{
       if(run.status==='passed'&&(!smoke||phaseSmoke)){
         run.status='running';run.phases=[];
         await runViewerPhases({page,pageCdp,processCdp,out,prefix:`viewer-${index+1}-${size}`,screen:candidate==='screen',center:selected.center,
+          projection,
           expectedLevel:candidate==='a0'?null:5,phases:run.phases,onStart:name=>{phaseName=name;},
           diagnostics:()=>page.evaluate(async current=>{
             if(current==='screen')return {screen:{...globalThis.__pandoScreen.stats}};

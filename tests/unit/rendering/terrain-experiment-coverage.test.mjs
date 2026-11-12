@@ -31,6 +31,14 @@ test('preflight detects conservative visibility and budget downgrade before a Vi
   assert.equal(complete.valid,true);
 });
 
+test('preflight uses the flat Viewer tile selection for a flat camera',()=>{
+  const level={id:5,width:43200,height:21600,tileSize:512,columns:85,rows:43};
+  const keys=new Set();for(let y=0;y<43;y++)for(let x=0;x<85;x++)keys.add(`5/${x}-${y}`);
+  const result=inspectFixtureCoverage({manifest:{levels:[level],gutter:1},availableKeys:keys,
+    center:[102,28],viewport:[1280,752],scale:10570.56,projection:'flat'});
+  assert.equal(result.requestedTiles,12);assert.equal(result.valid,true);
+});
+
 test('normalized budget is explicit and refuses a changed or ambiguous Viewer policy',()=>{
   const marker='byteBudget: 96 * 1024 * 1024, bytesPerPixel: 12';
   assert.equal(withNormalizedAdmissionBudget(`const x={${marker}};`),

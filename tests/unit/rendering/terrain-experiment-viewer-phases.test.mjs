@@ -47,6 +47,19 @@ test('terrain phase runner exercises drag, rotation, dates, theme and warm retur
     await runViewerPhases({page,pageCdp:cdp,processCdp:null,out:'unused',prefix:'a0',screen:false,center:[102,28],phases:baseline,
       expectedLevel:null,panDurationMs:100,themeCycles:2,minimumFrames:1,onStart:()=>{},onPhase:async()=>{},capture:async p=>({sha256:'fixture',terrainOnly:{sha256:await p.evaluate(()=>document.querySelector('#terrainPoliticalRadio').checked?'political':document.querySelector('#terrainNoneRadio').checked?'none':'physical')}})});
     assert.equal(baseline.length,15);assert.ok(baseline.every(row=>row.status==='passed'));
+    await page.evaluate(()=>{
+      const host=globalThis.__PANDOLAB_MAP_HOST__;
+      host.setViewState({projection:'flat',view:{...host.getViewState(),flatCenter:[102,28],flatZoom:32}});
+      document.getElementById('viewerCanvas').addEventListener('pointermove',event=>{
+        if(event.buttons){const view=host.getViewState();view.flatCenter[0]+=.02;host.setViewState({projection:'flat',view});}
+      });
+    });
+    const flat=[];
+    await runViewerPhases({page,pageCdp:cdp,processCdp:null,out:'unused',prefix:'flat',screen:false,center:[102,28],phases:flat,projection:'flat',
+      expectedLevel:null,panDurationMs:100,themeCycles:2,minimumFrames:1,onStart:()=>{},onPhase:async()=>{},capture:async p=>({sha256:'fixture',terrainOnly:{sha256:await p.evaluate(()=>document.querySelector('#terrainPoliticalRadio').checked?'political':document.querySelector('#terrainNoneRadio').checked?'none':'physical')}})});
+    assert.equal(flat.length,14);assert.ok(flat.every(row=>row.status==='passed'));
+    assert.equal(flat.some(row=>row.name==='rotate'),false);
+    assert.deepEqual(await page.evaluate(()=>globalThis.__PANDOLAB_MAP_HOST__.getViewState().flatCenter),[102,28]);
   }finally{await browser.close();}
 });
 
