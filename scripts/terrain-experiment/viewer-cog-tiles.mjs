@@ -5,11 +5,12 @@ import {openVerifiedCog} from './verified-cog-reader.mjs';
 const hex=bytes=>[...new Uint8Array(bytes)].map(value=>value.toString(16).padStart(2,'0')).join('');
 const digest=async bytes=>hex(await crypto.subtle.digest('SHA-256',bytes));
 
-export async function openViewerCogTiles({url,cogManifest,tileManifest,tileSize,region='southwest-china',fetchFn=globalThis.fetch}){
+export async function openViewerCogTiles({url,cogManifest,tileManifest,tileSize,region='southwest-china',fetchFn=globalThis.fetch,
+  maxChunkCacheBytes=32*1024*1024,maxTileCacheBytes=32*1024*1024}){
   if(cogManifest?.schema!=='pando-terrain-cog-viewer-fixture-v1'||
     tileManifest?.schema!=='pando-terrain-gutter-webp-v1'||cogManifest.sourceSha256!==tileManifest.sourceSha256||
     !Array.isArray(cogManifest.baseOrigin)||cogManifest.baseOrigin.length!==2||![512,1024].includes(tileSize)||
-    (cogManifest.region||'southwest-china')!==region)
+    (cogManifest.region||'southwest-china')!==region||!Number.isSafeInteger(maxTileCacheBytes)||maxTileCacheBytes<0)
     throw new TypeError('Invalid COG Viewer fixture identities');
   const records=tileManifest.records.filter(record=>record.tileSize===tileSize&&record.region===region),expected=tileSize===1024?4:16;
   if(records.length!==expected)throw Error('Incomplete COG Viewer tile inventory');
@@ -21,11 +22,11 @@ export async function openViewerCogTiles({url,cogManifest,tileManifest,tileSize,
     const key=`5/${x/tileSize}-${y/tileSize}.webp`;
     if(byKey.has(key))throw Error('Duplicate COG tile');byKey.set(key,{record,x,y});
   }
-  const {tiff,statistics}=await openVerifiedCog({url,manifest:cogManifest,fetchFn});
-  const image=await tiff.getImage(0),cached=new Map(),counts={decodedTiles:0,reusedTiles:0};
+  const {tiff,statistics}=await openVerifiedCog({url,manifest:cogManifest,fetchFn,maxCacheBytes:maxChunkCacheBytes});
+  const image=await tiff.getImage(0),cached=new Map(),counts={decodedTiles:0,reusedTiles:0,pngCacheBytes:0,tileEvictions:0,maxTileCacheBytes};
   return {statistics,counts,async readTile(key,{signal}={}){
     signal?.throwIfAborted();
-    if(cached.has(key)){counts.reusedTiles++;return cached.get(key);}
+    if(cached.has(key)){counts.reusedTiles++;const value=cached.get(key);cached.delete(key);cached.set(key,value);return value;}
     const entry=byKey.get(key);if(!entry)throw Error('COG tile is outside the selected regional fixture');
     const {record,x,y}=entry,[originX,originY]=cogManifest.baseOrigin;
     const left=x-originX-1,top=y-originY-1,right=left+record.width,bottom=top+record.height;
@@ -40,6 +41,14 @@ export async function openViewerCogTiles({url,cogManifest,tileManifest,tileSize,
     if(!context)throw Error('PNG encoding context unavailable');
     context.putImageData(new ImageData(rgba,record.width,record.height),0,0);
     const png=await surface.convertToBlob({type:'image/png'});signal?.throwIfAborted();
-    counts.decodedTiles++;cached.set(key,png);return png;
+    counts.decodedTiles++;
+    if(png.size<=maxTileCacheBytes){
+      if(cached.has(key)){counts.pngCacheBytes-=cached.get(key).size;cached.delete(key);}
+      while(counts.pngCacheBytes+png.size>maxTileCacheBytes&&cached.size){
+        const oldest=cached.keys().next().value;counts.pngCacheBytes-=cached.get(oldest).size;cached.delete(oldest);counts.tileEvictions++;
+      }
+      counts.pngCacheBytes+=png.size;cached.set(key,png);
+    }
+    return png;
   }};
 }

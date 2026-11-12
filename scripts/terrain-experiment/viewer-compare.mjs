@@ -8,6 +8,7 @@ import {setTimeout as delay} from 'node:timers/promises';
 import {a1TerrainFragmentSource} from './a1-shader.mjs';
 import {makeViewerFixtureManifest} from './viewer-fixture.mjs';
 import {serve,identity,mapSummary,chromiumProcessMemory} from '../p7-browser-ab-measure.mjs';
+import {performanceCounters,performanceDelta,captureAcceptedFrame,runViewerPhases} from './viewer-phases.mjs';
 
 const region=process.argv.find(arg=>arg.startsWith('--region='))?.slice('--region='.length)||'southwest-china';
 if(!['southwest-china','thai-lowland','netherlands-coast'].includes(region))throw Error('Unknown representative region');
@@ -60,9 +61,10 @@ const report={schema:'pando-terrain-viewer-regional-ab-v1',identity:identity(),f
   ...(cogSource?{cogSource}:{}),
   clockPolicy:'Date offset starts at 2026-11-06; native timers and elapsed time continue normally.',
   limitations:['Only a bounded LOD5 region uses Q1; lower LODs use the original v0.14 tiles.',
-    'Only WebGL2 and a globe 32x stationary scene; this is not complete A1/B acceptance.',
+    'Only WebGL2 at desktop DPR 1 on SwiftShader; smoke mode covers one stationary 32x scene only.',
+    'Warm return is same-page memory/cache reuse, not a separate browser warm-navigation measurement.',
     '512 versus 1024 varies tile partition only; an atlas or instancing optimization is not implemented.',
-    'Playwright interception proxies fixed-commit bytes, so browser network totals are not real-host transfer measurements.',
+    'Playwright interception proxies fixed-commit bytes; CDP network totals are partial and not real-host transfer measurements.',
     'COG runs use a simulated same-origin 206 range host; GitHub raw CORS is not fixed by this test.',
     'Screen-space D is a bounded 512-tile atlas prototype; unsupported coverage retains the existing tile path and is not counted as D.',
     'rAF intervals are scheduling proxies, not actual GPU presentation or GPU time.']};
@@ -76,7 +78,8 @@ try{
     const candidate=sequence[index],size=['b512','screen'].includes(candidate)?512:1024;
     const run={index:index+1,candidate,tileSize:size,status:'running',candidateRequests:[],pageErrors:[],consoleErrors:[],routeErrors:[],error:null};
     runs.push(run);const page=await browser.newPage({viewport:{width:1280,height:800},locale:'ko-KR',timezoneId:'Asia/Seoul'});
-    let selected,manifestRequests=0,shaderRequests=0,processCdp;
+    let selected,manifestRequests=0,shaderRequests=0,processCdp,pageCdp,phaseName='startup';
+    const network=new Map();
     try{
       page.on('pageerror',error=>run.pageErrors.push(String(error)));
       page.on('console',message=>{if(message.type()==='error'&&run.consoleErrors.length<50)run.consoleErrors.push(message.text().slice(0,2000));});
@@ -174,6 +177,16 @@ try{
       });
       await page.emulateMedia({colorScheme:'light',reducedMotion:'reduce'});
       processCdp=await browser.newBrowserCDPSession();
+      pageCdp=await page.context().newCDPSession(page);
+      await pageCdp.send('Performance.enable');await pageCdp.send('Network.enable');
+      pageCdp.on('Network.requestWillBeSent',event=>{
+        if(/\/terrain\/|\/__terrain_experiment\//.test(event.request.url))
+          network.set(event.requestId,{url:event.request.url,method:event.request.method,phase:phaseName});
+      });
+      pageCdp.on('Network.responseReceived',event=>{const row=network.get(event.requestId);if(row)Object.assign(row,
+        {status:event.response.status,fromDiskCache:event.response.fromDiskCache,fromServiceWorker:event.response.fromServiceWorker});});
+      pageCdp.on('Network.loadingFinished',event=>{const row=network.get(event.requestId);if(row)row.encodedBytes=event.encodedDataLength;});
+      pageCdp.on('Network.loadingFailed',event=>{const row=network.get(event.requestId);if(row)row.failure=event.errorText;});
       await page.goto('http://127.0.0.1:4173/?debug=1&renderer=webgl2',{waitUntil:'domcontentloaded',timeout:120000});
       await page.waitForFunction(()=>{
         const api=globalThis.__PANDOLAB_VIEWER__,s=api?.rendererStats();
@@ -184,6 +197,9 @@ try{
       if(!selected||manifestRequests!==1||shaderRequests<1)throw Error('Experiment manifest or shader was not consumed');
       const initialScreenshot=await page.screenshot({timeout:30000});
       await writeFile(`${out}/viewer-${index+1}-${size}-initial.png`,initialScreenshot);
+      try{run.initialFrameCapture=await captureAcceptedFrame(page,`${out}/viewer-${index+1}-${size}-initial-framebuffer.png`);}
+      catch(error){run.initialFrameCaptureError=String(error);}
+      phaseName='zoom32';const countersBefore=await performanceCounters(pageCdp);
       await page.evaluate(()=>globalThis.__terrainFixtureFrames.start());
       const started=Date.now();
       await page.evaluate(center=>{
@@ -203,6 +219,7 @@ try{
       const sorted=[...run.frameGapsMs].sort((a,b)=>a-b),at=q=>sorted[Math.floor((sorted.length-1)*q)];
       run.frames={count:sorted.length,p50Ms:at(.5),p95Ms:at(.95),p99Ms:at(.99)};
       run.renderer=mapSummary(await page.evaluate(()=>globalThis.__PANDOLAB_VIEWER__.rendererStats()));
+      run.performance=performanceDelta(countersBefore,await performanceCounters(pageCdp));
       run.chromiumProcessMemory=await chromiumProcessMemory(processCdp);
       if(candidate==='screen'){
         run.screen=await page.evaluate(()=>({...globalThis.__pandoScreen.stats}));
@@ -214,29 +231,8 @@ try{
         if(!run.cog.counts.decodedTiles)throw Error('COG did not supply any visible tile');
       }
       run.center=selected.center;run.manifestRequests=manifestRequests;run.shaderRequests=shaderRequests;
-      const screenBeforeCapture=candidate==='screen'?await page.evaluate(()=>globalThis.__pandoScreen.stats.draws):null;
-      await page.evaluate(()=>{globalThis.__pandoCaptureFrame.requested=true;globalThis.__pandoCaptureFrame.forceBase=true;
-        globalThis.__PANDOLAB_MAP_HOST__.requestRepaint('terrain-capture-accepted-frame');});
       try{
-        await page.waitForFunction(()=>globalThis.__pandoCaptureFrame?.result,null,{timeout:60000,polling:100});
-        const frame=await page.evaluate(async()=>{
-          const {pixels,width,height,frameId,scale}=globalThis.__pandoCaptureFrame.result,flipped=new Uint8ClampedArray(pixels.length);
-          for(let y=0;y<height;y++)flipped.set(pixels.subarray((height-1-y)*width*4,(height-y)*width*4),y*width*4);
-          const surface=new OffscreenCanvas(width,height),context=surface.getContext('2d');
-          context.putImageData(new ImageData(flipped,width,height),0,0);
-          const png=await surface.convertToBlob({type:'image/png'});
-          const data=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=reject;reader.readAsDataURL(png);});
-          return {data,width,height,frameId,scale};
-        });
-        const bytes=Buffer.from(frame.data.split(',')[1],'base64');
-        if(bytes.length<1024||bytes.subarray(0,8).toString('hex')!=='89504e470d0a1a0a')throw Error('Invalid framebuffer capture');
-        await writeFile(`${out}/viewer-${index+1}-${size}-framebuffer.png`,bytes);
-        run.frameCapture={width:frame.width,height:frame.height,frameId:frame.frameId,scale:frame.scale,bytes:bytes.length,sha256:digest(bytes)};
-        if(candidate==='screen'){
-          const draws=await page.evaluate(()=>globalThis.__pandoScreen.stats.draws);
-          if(draws<=screenBeforeCapture)throw Error('Captured frame did not invoke the screen-space pass');
-          run.frameCapture.screenDraws=draws;
-        }
+        run.frameCapture=await captureAcceptedFrame(page,`${out}/viewer-${index+1}-${size}-framebuffer.png`,{screen:candidate==='screen'});
       }catch(error){run.frameCaptureError=String(error);}
       const screenshotPath=`${out}/viewer-${index+1}-${size}.png`,screenshotCdp=await page.context().newCDPSession(page);
       try{
@@ -281,11 +277,20 @@ try{
           if(run.screenshotFrameMatch.fraction<.4)run.screenshotError='Screenshot does not match the accepted WebGL framebuffer';
         }
       }
-      run.status=run.pageErrors.length||run.consoleErrors.length||run.routeErrors.length||run.screenshotError||run.frameCaptureError||run.candidateRequests.some(x=>x.error)?'failed':'passed';
+      run.status=run.pageErrors.length||run.consoleErrors.length||run.routeErrors.length||run.screenshotError||
+        run.initialFrameCaptureError||run.frameCaptureError||run.candidateRequests.some(x=>x.error)?'failed':'passed';
       if(run.status!=='passed')run.error='Screenshot, console, candidate request, route, or page error';
+      if(run.status==='passed'&&!smoke){
+        run.status='running';run.phases=[];
+        await runViewerPhases({page,pageCdp,processCdp,out,prefix:`viewer-${index+1}-${size}`,screen:candidate==='screen',center:selected.center,
+          phases:run.phases,onStart:name=>{phaseName=name;},onPhase:()=>writeFile(`${out}/report.json`,JSON.stringify(report,null,2)+'\n')});
+        if(run.pageErrors.length||run.consoleErrors.length||run.routeErrors.length||run.candidateRequests.some(x=>x.error)){
+          run.status='failed';run.error='Console, candidate request, route, or page error during interaction phases';
+        }else run.status='passed';
+      }
     }catch(error){run.status='failed';run.error=String(error?.stack||error).slice(0,5000);
       run.diagnostics=await page.evaluate(()=>globalThis.__PANDOLAB_VIEWER__?.rendererStats?.()||null).catch(()=>null);
-    }finally{await processCdp?.detach().catch(()=>{});await page.close();
+    }finally{run.network=[...network.values()];await pageCdp?.detach().catch(()=>{});await processCdp?.detach().catch(()=>{});await page.close();
       await writeFile(`${out}/report.json`,JSON.stringify(report,null,2)+'\n');}
   }
   report.status=runs.length===sequence.length&&runs.every(run=>run.status==='passed')?'passed':'failed';

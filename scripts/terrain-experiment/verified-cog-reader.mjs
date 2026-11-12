@@ -5,12 +5,13 @@ const hex=bytes=>[...new Uint8Array(bytes)].map(value=>value.toString(16).padSta
 const digest=async bytes=>hex(await crypto.subtle.digest('SHA-256',bytes));
 const validHash=value=>typeof value==='string'&&/^[a-f0-9]{64}$/.test(value);
 
-export function createVerifiedRangeClient({url,manifest,fetchFn=globalThis.fetch}={}){
+export function createVerifiedRangeClient({url,manifest,fetchFn=globalThis.fetch,maxCacheBytes=32*1024*1024}={}){
   if(typeof url!=='string'||!url||typeof fetchFn!=='function'||!manifest||
     !Number.isSafeInteger(manifest.bytes)||manifest.bytes<1||!Number.isSafeInteger(manifest.chunkBytes)||manifest.chunkBytes<1||
     !Array.isArray(manifest.chunks)||manifest.chunks.length!==Math.ceil(manifest.bytes/manifest.chunkBytes)||
-    manifest.chunks.some(value=>!validHash(value))||!validHash(manifest.sha256))throw new TypeError('Invalid COG chunk manifest');
-  const cache=new Map(),pending=new Map(),statistics={requests:0,networkBytes:0,cacheHits:0,inflightHits:0};
+    manifest.chunks.some(value=>!validHash(value))||!validHash(manifest.sha256)||
+    !Number.isSafeInteger(maxCacheBytes)||maxCacheBytes<0)throw new TypeError('Invalid COG chunk manifest or cache budget');
+  const cache=new Map(),pending=new Map(),statistics={requests:0,networkBytes:0,cacheHits:0,inflightHits:0,cachedBytes:0,evictions:0,maxCacheBytes};
   async function fetchChunk(index,signal){
     const start=index*manifest.chunkBytes,end=Math.min(manifest.bytes,start+manifest.chunkBytes)-1;
     statistics.requests++;
@@ -21,11 +22,18 @@ export function createVerifiedRangeClient({url,manifest,fetchFn=globalThis.fetch
     const bytes=new Uint8Array(await response.arrayBuffer());statistics.networkBytes+=bytes.length;
     if(bytes.length!==end-start+1)throw Error('COG range length mismatch');
     if(await digest(bytes)!==manifest.chunks[index])throw Error('COG range SHA-256 mismatch');
-    signal?.throwIfAborted();cache.set(index,bytes);return bytes;
+    signal?.throwIfAborted();
+    if(bytes.length<=maxCacheBytes){
+      while(statistics.cachedBytes+bytes.length>maxCacheBytes&&cache.size){
+        const oldest=cache.keys().next().value;statistics.cachedBytes-=cache.get(oldest).length;cache.delete(oldest);statistics.evictions++;
+      }
+      if(!cache.has(index))statistics.cachedBytes+=bytes.length;cache.set(index,bytes);
+    }
+    return bytes;
   }
   function chunk(index,signal){
     signal?.throwIfAborted();
-    if(cache.has(index)){statistics.cacheHits++;return Promise.resolve(cache.get(index));}
+    if(cache.has(index)){statistics.cacheHits++;const value=cache.get(index);cache.delete(index);cache.set(index,value);return Promise.resolve(value);}
     let entry=pending.get(index);
     if(entry)statistics.inflightHits++;
     else{

@@ -18,7 +18,7 @@ test('verified COG range assembles exact bytes and reuses authenticated chunks',
   const first=await client.request({headers:{Range:'bytes=120-260'}});
   assert.equal(first.getHeader('content-range'),'bytes 120-260/1000');
   assert.deepEqual(new Uint8Array(await first.getData()),bytes.slice(120,261));
-  assert.equal(client.statistics.requests,3);
+  assert.equal(client.statistics.requests,3);assert.equal(client.statistics.cachedBytes,384);
   const second=await client.request({headers:{Range:'bytes=121-129'}});
   assert.deepEqual(new Uint8Array(await second.getData()),bytes.slice(121,130));
   assert.equal(client.statistics.requests,3);assert.equal(client.statistics.cacheHits,2);
@@ -70,4 +70,11 @@ test('a fully cancelled chunk can be requested again without a poisoned cache',a
   await assert.rejects(first,/cancelled last consumer/);
   const retry=await client.request({headers:{Range:'bytes=0-31'}});
   assert.deepEqual(new Uint8Array(await retry.getData()),bytes.slice(0,32));assert.equal(calls,2);
+});
+
+test('COG verified chunk cache obeys its byte budget and evicts least recently used data',async()=>{
+  const client=createVerifiedRangeClient({url:'https://example.test/data.tif',manifest,fetchFn:serve(),maxCacheBytes:128});
+  for(const range of ['bytes=0-15','bytes=128-143','bytes=0-15'])await client.request({headers:{Range:range}});
+  assert.equal(client.statistics.requests,3);assert.equal(client.statistics.evictions,2);
+  assert.equal(client.statistics.cachedBytes,128);assert.equal(client.statistics.maxCacheBytes,128);
 });
