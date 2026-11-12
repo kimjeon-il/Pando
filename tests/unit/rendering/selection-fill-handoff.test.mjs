@@ -176,7 +176,7 @@ test('inline Canvas2D bitmap acceptance reconciles pending-startup fill ownershi
 });
 
 async function directFallbackHarness(t, { canvasWorker = false, pendingGeometry = false, nativeVisibility = false } = {}) {
-  const globals = ['window', 'document', 'Worker', 'OffscreenCanvas', 'requestAnimationFrame', 'cancelAnimationFrame'];
+  const globals = ['window', 'document', 'Worker', 'OffscreenCanvas', 'requestAnimationFrame', 'cancelAnimationFrame', 'd3'];
   const previous = globals.map(key => [key, Object.getOwnPropertyDescriptor(globalThis, key)]);
   const svg = svgFixture(), selected = svg.root(), hovered = svg.root();
   const queued = [], timers = new Map(), workers = [], backgroundFrames = new Map();
@@ -217,7 +217,7 @@ async function directFallbackHarness(t, { canvasWorker = false, pendingGeometry 
     postMessage(message) { this.messages.push(message); }
     terminate() { this.terminated = true; }
   }
-  Object.assign(globalThis, { document, window: { devicePixelRatio: 1, addEventListener() {}, removeEventListener() {} },
+  Object.assign(globalThis, { document, d3: { geo: { distance: () => 0 } }, window: { devicePixelRatio: 1, addEventListener() {}, removeEventListener() {} },
     Worker: FakeWorker, OffscreenCanvas: canvasWorker ? class { constructor() { return createCanvas(); } } : undefined,
     requestAnimationFrame: callback => { const id = ++nextId; backgroundFrames.set(id, callback); return id; },
     cancelAnimationFrame: id => backgroundFrames.delete(id),
