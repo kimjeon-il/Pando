@@ -175,6 +175,56 @@ test('inline Canvas2D bitmap acceptance reconciles pending-startup fill ownershi
   h.verifyCanonical();
 });
 
+// Synthetic coordinates only: exercise the real Canvas Worker transport and
+// first-frame protocol without depending on browser D3's DOM environment.
+function canvasFixtureGeo() {
+  function createProjection() {
+    const properties = { scale: 1, translate: [0, 0], rotate: [0, 0, 0],
+      center: [0, 0], clipAngle: 90, clipExtent: null, precision: 0.25 };
+    const point = ([lon, lat]) => [
+      properties.translate[0] + (lon - properties.center[0]) * properties.scale,
+      properties.translate[1] - (lat - properties.center[1]) * properties.scale,
+    ];
+    point.invert = ([x, y]) => [
+      properties.center[0] + (x - properties.translate[0]) / properties.scale,
+      properties.center[1] - (y - properties.translate[1]) / properties.scale,
+    ];
+    for (const key of Object.keys(properties)) {
+      point[key] = (...args) => {
+        if (!args.length) return properties[key];
+        properties[key] = args[0];
+        return point;
+      };
+    }
+    return point;
+  }
+  function path() {
+    let projection = createProjection(), context = null;
+    const draw = feature => {
+      const geometry = feature?.type === 'Feature' ? feature.geometry : feature;
+      if (!geometry || !context) return;
+      const parts = geometry.type === 'Polygon' ? geometry.coordinates
+        : geometry.type === 'MultiPolygon' ? geometry.coordinates.flat()
+        : geometry.type === 'LineString' ? [geometry.coordinates]
+        : geometry.type === 'MultiLineString' ? geometry.coordinates : [];
+      for (const ring of parts) {
+        if (!ring.length) continue;
+        const first = projection(ring[0]);
+        context.moveTo(first[0], first[1]);
+        for (const position of ring.slice(1)) {
+          const [x, y] = projection(position);
+          context.lineTo(x, y);
+        }
+        if (geometry.type.includes('Polygon')) context.closePath();
+      }
+    };
+    draw.projection = next => { if (next === undefined) return projection; projection = next; return draw; };
+    draw.context = next => { if (next === undefined) return context; context = next; return draw; };
+    return draw;
+  }
+  return { distance: () => 0, orthographic: createProjection, equirectangular: createProjection, path };
+}
+
 async function directFallbackHarness(t, { canvasWorker = false, pendingGeometry = false, nativeVisibility = false } = {}) {
   const globals = ['window', 'document', 'Worker', 'OffscreenCanvas', 'requestAnimationFrame', 'cancelAnimationFrame', 'd3'];
   const previous = globals.map(key => [key, Object.getOwnPropertyDescriptor(globalThis, key)]);
@@ -217,7 +267,7 @@ async function directFallbackHarness(t, { canvasWorker = false, pendingGeometry 
     postMessage(message) { this.messages.push(message); }
     terminate() { this.terminated = true; }
   }
-  Object.assign(globalThis, { document, d3: { geo: { distance: () => 0 } }, window: { devicePixelRatio: 1, addEventListener() {}, removeEventListener() {} },
+  Object.assign(globalThis, { document, d3: { geo: canvasFixtureGeo() }, window: { devicePixelRatio: 1, addEventListener() {}, removeEventListener() {} },
     Worker: FakeWorker, OffscreenCanvas: canvasWorker ? class { constructor() { return createCanvas(); } } : undefined,
     requestAnimationFrame: callback => { const id = ++nextId; backgroundFrames.set(id, callback); return id; },
     cancelAnimationFrame: id => backgroundFrames.delete(id),
@@ -289,8 +339,7 @@ async function directFallbackHarness(t, { canvasWorker = false, pendingGeometry 
   // A view-only GPU recovery pass reprojects existing selection coverage;
   // make the selected/hovered paths first through the owning data pass.
   rendering.invalidateSelection('preloss-selection-coverage');
-  if (queued.length) queued.shift()();
-  if (queued.length) queued.shift()();
+  for (let frame = 0; frame < 10 && queued.length; frame++) queued.shift()();
   contextLost = true; canvas.dispatch('webglcontextlost');
   assert.equal(renderer.getRuntimeState().renderer, 'webgl-recovering');
   assert.equal(queued.length, 1); queued.shift()();
