@@ -53,3 +53,40 @@ The canonical application check runner remains `application-architecture.yml`.
 automatic application checks (including on `work/remote-only`) instead of
 duplicating them. The workflow inventory audit is both an early CI preflight
 and an affected check group. Full-catalog verification remains opt-in.
+
+## P0 contract-consumer selection and shared test ports (2026-11-12)
+
+The affected-check planner retains the import-based reverse graph as its first
+owner. It adds one bounded semantic layer defined in
+`scripts/contracts/application-checks.json` under `contractConsumers`:
+render-device API, Worker RPC envelope, Canvas Worker messages and serialized
+project schema. Each registration specifies changed production `sources`,
+test file discovery `testPatterns`, narrow string/identifier `markers`,
+and at least one `alwaysTests` contract owner. When a production source
+changes, the planner selects matching tests even if a test fabricated the
+Worker payload or schema fields without importing the source module. It
+follows imports through `tests/helpers/**` for fixtures; no unrelated product
+imports are converted into semantic matches. Mandatory owners prevent a new
+or removed message field from silently leaving a modified protocol unchecked.
+
+Contract markers are intentionally a conservative **file-level dependency
+signal**, not semantic API-diff parsing or proof of protocol compatibility.
+Explicit checked versions and real behavioral assertions remain the
+authority. Unknown mandatory owner files cause check planning to fail.
+Manual test suites remain opt-in, and explicit exact selections are unchanged.
+
+Current test factories, without copied business model or protocol reducers:
+
+- `tests/helpers/render-device-fixture.mjs` delegates capability resolution to
+  production `createRenderDevice`; only the WebGL context is a controlled port.
+- `tests/helpers/worker-test-port.mjs` captures postMessage transfers and
+  termination, but does not implement Worker RPC or Canvas logic.
+- `tests/helpers/project-state-fixture.mjs` delegates defaults and schema
+  versions to production `createInitialDocument`, returning detached
+  instances. Individual tests retain deliberate invalid-input variants.
+
+The focused regression suites check indirect message references, project
+schema selection, explicit mandatory smoke owners, port isolation and
+production factory behavior. Do not add a global mock reset, a second schema
+implementation, or an unconditional all-suite check in response to a contract
+change.
