@@ -249,11 +249,20 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
     pendingUploads.clear();
   };
   function drainUploads(byteLimit = Infinity) {
-    if (!gl || contextLost) return;
+    if (!gl || contextLost || gl.isContextLost?.()) return;
     if (isInputActive() || globalThis.document?.hidden || globalThis.navigator?.scheduling?.isInputPending?.()) return scheduleUpload();
     const started = performance.now();
     let budget = Math.min(byteLimit, Math.max(64 * 1024, Number(getUploadBudget()) || 4 * 1024 * 1024));
-    const savedBuffer = gl.getParameter(gl.ARRAY_BUFFER_BINDING);
+    const uploadDevice = device;
+    const uploadGl = gl;
+    // RenderDevice supplies the binding and its context-generation receipt.
+    // Never synchronously query ARRAY_BUFFER_BINDING or call gl.isBuffer().
+    const savedBinding = uploadDevice?.state?.captureArrayBufferBinding?.();
+    if (!savedBinding) {
+      cancelUploads();
+      onError?.({ stage: 'stroke-staging-upload', error: new Error('RenderDevice buffer-binding receipt unavailable') });
+      return;
+    }
     try {
       for (const [key, job] of pendingUploads) {
         while (job.part < 2 && budget > 0 && performance.now() - started < 4) {
@@ -290,7 +299,10 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
       cancelUploads();
       onError?.({ stage: 'stroke-staging-upload', error });
     } finally {
-      if (gl) gl.bindBuffer(gl.ARRAY_BUFFER, savedBuffer && gl.isBuffer(savedBuffer) ? savedBuffer : null);
+      // A deleted buffer is restored as null. Context-loss/recovery must not
+      // let an older upload rebind a name into the new device generation.
+      if (device === uploadDevice && gl === uploadGl)
+        uploadDevice.state.restoreArrayBufferBinding(savedBinding);
       scheduleUpload();
     }
   }
