@@ -16,8 +16,9 @@ import {prefetchFixtureTiles} from './fixture-transfer.mjs';
 
 const region=process.argv.find(arg=>arg.startsWith('--region='))?.slice('--region='.length)||'southwest-china';
 if(!['southwest-china','thai-lowland','himalaya','netherlands-coast'].includes(region))throw Error('Unknown representative region');
-const projection=process.argv.find(arg=>arg.startsWith('--projection='))?.slice('--projection='.length)||'globe';
-if(!['flat','globe'].includes(projection))throw Error('Unknown experiment projection');
+const projection='globe'; // The Viewer product policy permits globe only.
+if(process.argv.some(arg=>arg.startsWith('--projection=')&&arg!=='--projection=globe'))
+  throw Error('The Viewer product supports only globe projection; flat requires a separate editor experiment');
 const revision=region==='southwest-china'?'523a446540dabc0cd69fc8e6484a0288b6999dd3':'86bc6dc7cfbc5485ca384d34c516750e3576170f';
 const fixturePath=region==='southwest-china'?'p4/china-5x4-fixtures':'p4/regions-extended-fixtures';
 const base=`https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/${revision}/reports/development/performance/terrain-architecture-2026-11-12/${fixturePath}/webp/`;
@@ -256,14 +257,6 @@ try{
       if(!hostRequests)throw Error('Experimental full-view camera invalidation was not consumed');
       if(normalizedBudget&&candidate!=='a0'&&!budgetRequests)throw Error('Experimental normalized admission policy was not consumed');
       run.budgetRequests=budgetRequests;
-      if(projection==='flat'){
-        await page.evaluate(center=>{const host=globalThis.__PANDOLAB_MAP_HOST__,view=host.getViewState();
-          host.setViewState({projection:'flat',view:{...view,flatCenter:center,flatZoom:1}});
-          host.requestRepaint('terrain-experiment-flat-initial');},selected.center);
-        await page.waitForFunction(()=>{const host=globalThis.__PANDOLAB_MAP_HOST__,s=globalThis.__PANDOLAB_VIEWER__?.rendererStats();
-          return host?.getViewState()?.flatZoom===1&&s?.mapReadiness?.mapReady===true&&s.terrainReady===true&&!s.screenLodPreparingKey;
-        },null,{timeout:180000,polling:250});
-      }
       const initialScreenshot=await page.screenshot({timeout:30000});
       await writeFile(`${out}/viewer-${index+1}-${size}-initial.png`,initialScreenshot);
       try{run.initialFrameCapture=await captureAcceptedFrame(page,`${out}/viewer-${index+1}-${size}-initial-framebuffer.png`);}

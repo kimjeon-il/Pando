@@ -39,14 +39,6 @@ on:
           - thai-lowland
           - himalaya
           - netherlands-coast
-      terrain_projection:
-        description: Viewer projection for the regional terrain experiment
-        type: choice
-        required: false
-        default: globe
-        options:
-          - globe
-          - flat
       terrain_candidate:
         description: Restrict a diagnostic run to one terrain candidate
         type: choice
@@ -90,13 +82,12 @@ jobs:
           TERRAIN_FULL: ${{ inputs.terrain_full }}
           TERRAIN_PHASE_SMOKE: ${{ inputs.terrain_phase_smoke }}
           TERRAIN_REGION: ${{ inputs.terrain_region }}
-          TERRAIN_PROJECTION: ${{ inputs.terrain_projection }}
           TERRAIN_NORMALIZED_BUDGET: ${{ inputs.terrain_normalized_budget }}
           TERRAIN_CANDIDATE: ${{ inputs.terrain_candidate }}
         shell: bash
         run: |
           set -euo pipefail
-          args=(--screen --cog "--region=$TERRAIN_REGION" "--projection=$TERRAIN_PROJECTION")
+          args=(--screen --cog "--region=$TERRAIN_REGION")
           if [ "$TERRAIN_NORMALIZED_BUDGET" = 'true' ]; then args+=(--normalized-budget); fi
           if [ "$TERRAIN_CANDIDATE" != 'all' ] && [ -n "$TERRAIN_CANDIDATE" ]; then args+=("--candidate=$TERRAIN_CANDIDATE"); fi
           if [ "$TERRAIN_FULL" != 'true' ]; then args+=(--smoke); fi
