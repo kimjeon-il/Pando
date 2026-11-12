@@ -12,7 +12,7 @@ export function placeLabelDimensions(value) {
   const texts = rows.map(row => String(typeof row === 'string' ? row : row?.text || ''));
   const metrics = PLACE_LABEL_METRICS;
   const width = Math.max(metrics.minimumWidth, ...texts.map(text => [...text].reduce(
-    (sum, char) => sum + (/[^\u0000-\u024f]/u.test(char) ? metrics.otherCharWidth : metrics.latinCharWidth),
+    (sum, char) => sum + (char.codePointAt(0) > 0x024f ? metrics.otherCharWidth : metrics.latinCharWidth),
     metrics.textPadding,
   )));
   return { width, height: metrics.firstLineHeight + Math.max(0, texts.length - 1) * metrics.extraLineHeight };
