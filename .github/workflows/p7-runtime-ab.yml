@@ -20,7 +20,7 @@ on:
         required: false
         default: false
       terrain_normalized_budget:
-        description: Use the documented 192 MiB experimental DEM visibility budget for every candidate
+        description: Use 192 MiB for experimental candidates; A0 retains the product budget
         type: boolean
         required: false
         default: false
