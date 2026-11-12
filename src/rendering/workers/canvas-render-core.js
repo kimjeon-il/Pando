@@ -273,7 +273,8 @@ function canvasFallbackWorkerMain(self) {
         if (expectedHash) fetchUrl.searchParams.set('v', expectedHash);
         const validationUrl = new URL('../modules/terrain-manifest.js', self.location.href);
         validationUrl.searchParams.set('v', assetRevision);
-        const terrainModule = await import(validationUrl.href);
+        const terrainModule = await (typeof self.importTerrainManifestModule === 'function'
+          ? self.importTerrainManifestModule(validationUrl.href) : import(validationUrl.href));
         const { validateTerrainManifest } = terrainModule;
         const runtimeFetch = terrainModule.createExternalRuntimeDataFetch({meta:{externalRuntimeData}});
         const response = await runtimeFetch(fetchUrl.href, {signal: controller.signal});
