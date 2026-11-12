@@ -9,7 +9,7 @@
   const rgb = hex => [1, 3, 5].map(offset => parseInt(hex.slice(offset, offset + 2), 16) / 255);
   const palettes = Object.freeze({
     light: {
-      land: ['#7BBE9D', '#9CD59D', '#B5E197', '#D7D19D', '#EACFAB', '#D6BAA1', '#C4B1A4', '#F2F0EA'].map(rgb),
+      land: ['#70CFA3', '#9BDE91', '#C3DF8C', '#E6D89A', '#F1C6A1', '#DEB09C', '#C5A9A3', '#F4F1EB'].map(rgb),
       seaSurface: rgb('#A5D7F1'), seaDeep: rgb('#6A9FCA'),
     },
     dark: {
