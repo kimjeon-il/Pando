@@ -95,9 +95,13 @@ jobs:
             echo 'Already source-matched: no artifact changes to push.'
             exit 0
           fi
-          staged="$(git diff --cached --name-only)"
-          expected="$(printf 'assets/wasm/pandoeditor-core.js\nassets/wasm/pandoeditor-core.manifest.json\nassets/wasm/pandoeditor-core.wasm')"
-          test "$staged" = "$expected"
+          while IFS= read -r staged_path; do
+            case "$staged_path" in
+              assets/wasm/pandoeditor-core.js|assets/wasm/pandoeditor-core.wasm|assets/wasm/pandoeditor-core.manifest.json) ;;
+              *) echo "Unexpected staged file: $staged_path"; exit 1 ;;
+            esac
+          done < <(git diff --cached --name-only)
+          git diff --cached --name-only | grep -Fxq assets/wasm/pandoeditor-core.manifest.json
           remote_head="$(git ls-remote origin "refs/heads/$GITHUB_REF_NAME" | cut -f1)"
           test "$remote_head" = "$GITHUB_SHA" || { echo 'Branch advanced; refuse stale binary publication'; exit 1; }
           git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'build(wasm): regenerate source-matched P0 core JS, binary and manifest'
