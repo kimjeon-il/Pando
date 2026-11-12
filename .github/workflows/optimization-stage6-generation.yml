@@ -1,12 +1,9 @@
-name: Optimization stage 6 generation and immutable reuse contracts
+name: "[HISTORICAL] Optimization stage 6 generation and immutable reuse contracts"
 # Verify only immutable source reuse, project-specific generator mapping and Viewer closure.
 # Synthetic catalogs are validated against the production descriptor layout.
 # Only selected generator tests and lint; no complete GIS or mesh build.
 # Adversarial 5-8 audit rerun: legacy index receipt fallback, immutable reuse and project generation ownership.
 on:
-  push:
-    branches: [work/optimization]
-    paths: ['.github/workflows/optimization-stage6-generation.yml']
   workflow_dispatch:
 permissions:
   contents: read
