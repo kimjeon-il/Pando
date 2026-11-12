@@ -2,6 +2,7 @@
 // "checks" job remains the sole pass/fail gate.
 import {readdirSync,readFileSync,mkdirSync,writeFileSync,existsSync} from 'node:fs';
 import {resolve,dirname,basename} from 'node:path';
+import {fileURLToPath} from 'node:url';
 import {summarizeCheckDiagnostics,diagnoseCheckFailure} from './lib/check-failure-diagnostics.mjs';
 
 export function aggregateCheckEvidence(directory,{head=null,pipeline={},dataRevision=null}={}) {
@@ -59,5 +60,5 @@ function main(args=process.argv.slice(2),env=process.env){
   console.log(JSON.stringify({sourceCommit:data.sourceCommit,status:data.status,counts:data.counts,phaseReceipts:data.phaseReceipts}));
   return data;
 }
-if(process.argv[1]&&resolve(process.argv[1])===new URL(import.meta.url).pathname)
+if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url))
   try{main();}catch(error){console.error(error.stack);process.exitCode=1;}

@@ -30,6 +30,10 @@ try{
   viewer.assertOperation('core.document-state');
   viewer.assertOperation('core.document-timeline-cursor');
   try {
+    createProductModePolicy('viewer',{readOnly:false});
+    fail('Viewer incorrectly accepted mutable construction');
+  } catch(error) { if(!(error instanceof TypeError))fail('Unexpected mutable Viewer refusal'); }
+  try {
     viewer.assertOperation('generic.delete');
     fail('Read-only viewer permitted an authored document writer');
   } catch(error) {

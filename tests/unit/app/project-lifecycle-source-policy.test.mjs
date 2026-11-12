@@ -15,6 +15,7 @@ test('selected reader remains authoritative regardless of the persisted sourceMo
   const baseline={baselineId:17,setup:{sourceMode:'project'}};
   const builtin=createProjectOpenAdapter({source:'builtin',read:async()=>baseline});
   assert.equal(builtin.requiresSettledReplacement,true);
+  assert.equal(Object.isFrozen(await builtin.prepare()),true);
   assert.deepEqual(await builtin.prepare(),{source:'builtin',reason:'builtin',value:baseline,releaseCandidate:null});
   await assert.rejects(createProjectOpenAdapter({source:'project',read:async()=>({baselineId:17})}).prepare(),
     /cannot impersonate/);

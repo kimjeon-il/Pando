@@ -90,6 +90,7 @@ export function validateReviewUi(kind,{html:providedHtml}={}) {
    // CSS partition rules remain static safeguards.
    const viewer=createProductModePolicy('viewer',{readOnly:true});
    viewer.assertOperation('core.document-state');
+   viewer.assertOperation('core.document-selection-snapshot');
    try{
      viewer.assertOperation('core.document-undo');
      fail('Viewer policy exposed an authored Core mutation');

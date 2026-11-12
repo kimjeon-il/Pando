@@ -27,6 +27,7 @@ try {
   const sandbox=Object.create(null);
   vm.runInNewContext(buildMetaSource,sandbox,{filename:'assets/js/build-meta.js',timeout:1000});
   buildMeta=sandbox.PANDOLAB_BUILD_META||null;
+  if(!Object.isFrozen(buildMeta))failures.push('Generated identity is not immutable');
 } catch (error) { failures.push('Generated build metadata could not execute: '+error.message); }
 
 expect(/^\d+\.\d+\.\d+$/.test(appVersion), `package.json version이 유효하지 않습니다: ${appVersion}`);

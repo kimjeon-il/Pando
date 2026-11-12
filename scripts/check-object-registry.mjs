@@ -37,6 +37,7 @@ for(const id of ['editorSurface','drawCountryBtn','objectDeleteBtn','reconcileEn
  if(html.includes('id="'+id+'"'))fail('Retired editing UI leaked into the Viewer: '+id);
 }
 viewer.assertOperation('core.document-state');
+viewer.assertOperation('core.document-selection-snapshot');
 // The actual Viewer composition is checked by runtime-boundary and browser
 // tests; an exact call-site spelling is not an object-registry contract.
 if(errors.length){

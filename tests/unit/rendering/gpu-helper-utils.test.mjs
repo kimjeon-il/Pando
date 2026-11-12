@@ -255,6 +255,7 @@ test('real recovery deadline reserves Canvas fallback without claiming a false d
   assert.equal(owner.snapshot().phase,'awaiting-canvas','Canvas readiness is not an accepted picture');
   assert.equal(owner.completeFallback(fallback),true);
   assert.equal(owner.snapshot().phase,'canvas');
+  assert.equal(owner.fallbackTicket(),null,'a presented Canvas picture retires its pending ticket');
   assert.deepEqual(fallbackFailures,[]);
   owner.dispose();
 });

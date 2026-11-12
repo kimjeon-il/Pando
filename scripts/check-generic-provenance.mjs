@@ -47,6 +47,12 @@ for (const retired of ['genericFeatureConversionSection', 'convertGenericFeature
 // The documented project header is emitted and validated by production
 // factories. Renaming internal validator helpers cannot invalidate this gate.
 const project=createInitialDocument({appVersion:'provenance-contract'});
+try {
+  assertCurrentProjectSchema({...project,schemaVersion:0});
+  fail('An obsolete project schema was accepted as current');
+} catch(error) {
+  if(error?.code!=='PL-SCHEMA-OLD')fail('Unexpected obsolete schema refusal: '+error.message);
+}
 try{
   const validated=assertCurrentProjectSchema(project);
   if(validated.landObjectModel?.purpose!=='lossless-fallback'
