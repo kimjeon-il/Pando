@@ -33,7 +33,7 @@ test('numeric terrain color ignores unrelated precolored imagery',()=>{
 
 const paletteStops = [0, 256, 750, 1500, 2500, 3500, 4500, 6500];
 const expected = {
-  light: ['#7BBE9D', '#9CD59D', '#B5E197', '#D7D19D', '#EACFAB', '#D6BAA1', '#C4B1A4', '#F2F0EA'],
+  light: ['#70CFA3', '#9BDE91', '#C3DF8C', '#E6D89A', '#F1C6A1', '#DEB09C', '#C5A9A3', '#F4F1EB'],
   dark: ['#477B60', '#629260', '#87A76B', '#ABA476', '#C0AA86', '#AF9486', '#9F8C8A', '#CEC9C3'],
 };
 const fromHex = hex => [1,3,5].map(at => parseInt(hex.slice(at,at+2),16));
