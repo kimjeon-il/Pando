@@ -23,7 +23,7 @@ const __unit_dep5 = __merge_dep5;
 contractSuite("user-preferences", () => {
 const test = __unit_dep0.default;
 const assert = __unit_dep1.default;
-const { defaultUserPreferences, normalizeUserPreferences } = __unit_dep2;
+const { defaultUserPreferences, normalizeUserPreferences, saveUserPreferences, loadUserPreferences } = __unit_dep2;
 
 test('background preferences contain no separate source visibility switches', () => {
   const normalized = normalizeUserPreferences({ version: 2, backgrounds: { viewer: { builtinHydro: false, builtinPlaces: false } } });
@@ -88,6 +88,11 @@ test('native-name overlay is the only place-language preference and defaults off
   assert.equal(disabled.labels.place.showNativeNames, false);
   const oldSwitches = normalizeUserPreferences({ version: 2, labels: { place: { languages: { ko: false, en: true, native: true } } } });
   assert.deepEqual(oldSwitches.labels.place, defaults, 'retired English/standalone native map switches cannot persist');
+  const storage = { value: null, getItem() { return this.value; }, setItem(_key, value) { this.value = value; } };
+  const persisted = saveUserPreferences({ ...enabled, labels: { ...enabled.labels,
+    place: { ...enabled.labels.place, showNativeNames: true } } }, storage);
+  assert.equal(persisted.labels.place.showNativeNames, true);
+  assert.equal(loadUserPreferences(storage).labels.place.showNativeNames, true);
 });
 });
 contractSuite("app-accent", () => {
