@@ -11,7 +11,13 @@ export async function waitForViewerReady(page){
       &&api.builtinMonth().month==='2026-11'&&document.getElementById('viewerStatus')?.dataset.ready==='true';};
   const start=Date.now();let timedOut=false;
   try{await page.waitForFunction(ready,null,{timeout:210000,polling:300});}
-  catch(error){if(error?.name!=='TimeoutError'||!await page.evaluate(ready))throw error;timedOut=true;}
+  catch(error){
+    if(error?.name!=='TimeoutError')throw error;
+    timedOut=true;
+    if(!await page.evaluate(ready)){
+      try{await page.waitForFunction(ready,null,{timeout:10000,polling:300});}catch{throw error;}
+    }
+  }
   return {waitMs:Date.now()-start,timedOut};
 }
 export async function performanceCounters(cdp){return Object.fromEntries((await cdp.send('Performance.getMetrics')).metrics.map(item=>[item.name,item.value]));}

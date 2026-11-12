@@ -10,6 +10,9 @@ test('startup timeout is retained only if all Viewer readiness conditions subseq
   const timeout=()=>{const error=new Error('readiness timeout');error.name='TimeoutError';throw error;};
   const ready=await waitForViewerReady({waitForFunction:async()=>timeout(),evaluate:async()=>true});
   assert.equal(ready.timedOut,true);assert.ok(ready.waitMs>=0);
+  let attempts=0;
+  const late=await waitForViewerReady({waitForFunction:async()=>{if(++attempts===1)timeout();},evaluate:async()=>false});
+  assert.equal(late.timedOut,true);assert.equal(attempts,2);
   await assert.rejects(()=>waitForViewerReady({waitForFunction:async()=>timeout(),evaluate:async()=>false}),/readiness timeout/);
 });
 
