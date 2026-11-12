@@ -34,15 +34,15 @@ for(const renderer of ['webgl2','canvas'])test(`selected ${renderer} relief dist
     host.setViewState({projection:'globe',view:{flatCenter:[85,31],flatZoom:1,globeRotation:[-85,-31,0],globeZoom:5.5}});
     host.requestRepaint('selected-terrain-quality');
   });
-  await expect.poll(()=>page.evaluate(()=>{
+  await expect.poll(()=>page.evaluate(expectedVersion=>{
     const s=window.__PANDOLAB_VIEWER__.rendererStats();
     // At the highest admitted source level, 'limited' is the correct ready
     // status, not a DEM failure. Check actual terrain admission separately.
     return s.terrainReady&&s.mapReadiness.terrainReady
-      &&['ready','limited'].includes(s.mapReadiness.status)&&s.terrainDatasetVersion===TERRAIN_DEM_VERSION
+      &&['ready','limited'].includes(s.mapReadiness.status)&&s.terrainDatasetVersion===expectedVersion
       &&Math.abs(s.screenScale-window.__PANDOLAB_MAP_HOST__.getViewState().scale)<1
       &&(s.renderer==='webgl2'||s.renderer==='canvas-worker');
-  }),{timeout:150000}).toBe(true).catch(async error=>{
+  },TERRAIN_DEM_VERSION),{timeout:150000}).toBe(true).catch(async error=>{
     console.log('TERRAIN_QUALITY_FAILURE',JSON.stringify(await page.evaluate(()=>{
       const s=window.__PANDOLAB_VIEWER__.rendererStats();
       return {renderer:s.renderer,readiness:s.mapReadiness,terrain:Object.fromEntries(Object.entries(s).filter(([key])=>key.startsWith('terrain')))};
