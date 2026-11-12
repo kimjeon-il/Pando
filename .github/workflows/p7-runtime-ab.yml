@@ -64,7 +64,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: p7-runtime-ab-${{ github.ref }}
+  # Each projection runs on its own isolated runner and evidence stream.
+  group: p7-runtime-ab-${{ github.ref }}-${{ inputs.terrain_projection || 'globe' }}
   cancel-in-progress: true
 
 jobs:
