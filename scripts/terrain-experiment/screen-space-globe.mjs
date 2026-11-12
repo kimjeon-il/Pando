@@ -5,9 +5,12 @@ import {createHash} from 'node:crypto';
 import {mkdir,readFile,writeFile} from 'node:fs/promises';
 import {join,resolve} from 'node:path';
 import {experimentColorGlsl} from './a1-shader.mjs';
+import {terrainBrowserArgs} from './browser-options.mjs';
 
-const [fixtureDir,maskDir,outArg]=process.argv.slice(2);
+const [fixtureDir,maskDir,outArg,...options]=process.argv.slice(2);
 if(!fixtureDir||!maskDir||!outArg)throw Error('Expected WebP fixture directory, physical land mask directory and new output directory');
+if(options.length>1||options.some(option=>!option.startsWith('--gpu=')))throw Error('Unknown screen-space globe option');
+const gpuMode=options[0]?.slice('--gpu='.length)||'swiftshader';
 const meta=JSON.parse(await readFile(join(fixtureDir,'manifest.json'))),records=meta.records.filter(row=>row.tileSize===1024);
 if(records.length!==4)throw Error('Four regional 1024 tiles required');
 const minX=Math.min(...records.map(row=>row.window[0])),minY=Math.min(...records.map(row=>row.window[1]));
@@ -46,11 +49,11 @@ const fragment=`#version 300 es
     color=vec4(numericalTerrainColor(sampleValue.x,sampleValue.y,land,uPhysicalStyle),1.0);
   }`;
 const palette=globalThis.PandoLabCanvasTerrainDem.paletteForTheme('light');
-const browser=await chromium.launch({headless:true,args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
+const browser=await chromium.launch({headless:true,args:terrainBrowserArgs(gpuMode)});
 const report={schema:'pando-screen-space-globe-fixture-v1',sourceSha256:meta.sourceSha256,
   origin:[minX,minY],center:[(minX+1024)/120-180,90-(minY+1024)/120],tiles:images.map(({x,y,sha256})=>({x,y,sha256})),
   landMaskSha256:mask.sha256,landMaskSourceSha256:mask.sourceSha256,
-  browserVersion:browser.version(),runs:[],status:'running',
+  browserVersion:browser.version(),gpuMode,runs:[],status:'running',
   limitations:['Standalone 2x2 regional fixture, not the Pando Viewer or the complete D candidate.',
     'Physical-land mask is rasterized at the DEM grid with no antialiasing, not proven equivalent to the Viewer vector stencil.',
     'No atlas eviction, misses, dates, theme or picking.',
