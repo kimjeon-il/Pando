@@ -17,6 +17,7 @@ test('real WebGL 1/2 compile and link SDF color and pick shaders without changin
   const reports = await page.evaluate(async () => {
     const { hydroSdfShaderSources } = await import('/assets/js/modules/gpu-hydro-sdf.js');
     const { createGpuHydroCoverage } = await import('/assets/js/modules/gpu-hydro-coverage.js');
+    const { createRenderDevice } = await import('/assets/js/modules/render-device.js');
     const { linkGpuProgram } = await import('/assets/js/modules/gpu-shader-utils.js');
     const output = [];
     for (const version of [2, 1]) {
@@ -32,11 +33,19 @@ test('real WebGL 1/2 compile and link SDF color and pick shaders without changin
       try {
         color = linkGpuProgram(gl, sources.vertex, sources.fragment, { label: `hydro-sdf-color-gl${version}` });
         pick = linkGpuProgram(gl, sources.vertex, sources.pick, { label: `hydro-sdf-pick-gl${version}` });
+        let driverStateReads = 0;
+        const nativeGetParameter = gl.getParameter.bind(gl);
+        gl.getParameter = (...args) => { driverStateReads++; return nativeGetParameter(...args); };
+        const owner = createRenderDevice({gl, version, contextRevision: 1});
         const coverage = createGpuHydroCoverage();
-        coverage.setContext(gl, version);
+        coverage.setContext(gl, version, owner);
+        const readsBeforeRender = driverStateReads;
         const union = coverage.render({ width: 128, height: 128, color: [0.1, 0.4, 0.9, 0.65], paint() {} });
+        const second = coverage.render({ width: 128, height: 128, color: [0.1, 0.4, 0.9, 0.65], paint() {} });
+        const hotPathStateReads = driverStateReads - readsBeforeRender;
         const error = gl.getError();
-        output.push({ version, available: true, compiled: true, union, error,
+        output.push({ version, available: true, compiled: true, union, second, error,
+          tracked: owner.state.tracked, hotPathStateReads,
           supported: coverage.stats().maximumBlend });
         coverage.dispose();
       } catch (error) {
@@ -54,7 +63,12 @@ test('real WebGL 1/2 compile and link SDF color and pick shaders without changin
     expect(row.available, `WebGL${row.version}`).toBe(true);
     expect(row.compiled, `${row.message || 'shader compilation'}`).toBe(true);
     expect(row.error).toBe(0);
-    if (row.supported) expect(row.union).toBe(true);
+    if (row.supported) {
+      expect(row.union).toBe(true);
+      expect(row.second).toBe(true);
+      expect(row.tracked, 'real WebGL context must support RenderDevice ledger').toBe(true);
+      expect(row.hotPathStateReads, 'coverage frames must not query driver state').toBe(0);
+    }
   }
   expect(reports[0].supported, 'WebGL2 has MAX blending').toBe(true);
 });
