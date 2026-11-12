@@ -50,6 +50,7 @@ if(includeScreen){
 }
 const report={schema:'pando-terrain-viewer-regional-ab-v1',identity:identity(),fixtureRevision:revision,
   fixtureManifestSha256:manifestHash,sequence,startedAt:new Date().toISOString(),runs,status:'running',
+  clockPolicy:'Date offset starts at 2026-11-06; native timers and elapsed time continue normally.',
   limitations:['Only a bounded LOD5 region uses Q1; lower LODs use the original v0.14 tiles.',
     'Only WebGL2 and a globe 32x stationary scene; this is not complete A1/B acceptance.',
     '512 versus 1024 varies tile partition only; an atlas or instancing optimization is not implemented.',
@@ -149,7 +150,17 @@ try{
         const tick=now=>{if(meter.active){if(meter.last!==null)meter.gaps.push(now-meter.last);meter.last=now;}requestAnimationFrame(tick);};
         requestAnimationFrame(tick);
       });
-      await page.clock.setFixedTime(new Date('2026-11-06T03:00:00+09:00'));
+      // Keep wall-clock dates reproducible without Playwright's virtual timer
+      // scheduler changing Worker RPC and retry timing in the measured app.
+      await page.addInitScript(()=>{
+        const NativeDate=Date,offset=NativeDate.parse('2026-11-06T03:00:00+09:00')-NativeDate.now();
+        function ExperimentDate(...args){
+          if(new.target)return Reflect.construct(NativeDate,args.length?args:[NativeDate.now()+offset],new.target===ExperimentDate?NativeDate:new.target);
+          return new NativeDate(NativeDate.now()+offset).toString();
+        }
+        Object.setPrototypeOf(ExperimentDate,NativeDate);ExperimentDate.prototype=NativeDate.prototype;
+        ExperimentDate.now=()=>NativeDate.now()+offset;globalThis.Date=ExperimentDate;
+      });
       await page.emulateMedia({colorScheme:'light',reducedMotion:'reduce'});
       processCdp=await browser.newBrowserCDPSession();
       await page.goto('http://127.0.0.1:4173/?debug=1&renderer=webgl2',{waitUntil:'domcontentloaded',timeout:120000});
