@@ -23,6 +23,7 @@ const manifestHash=region==='himalaya'?'a9294ac3f548e78b47d8ef9b2444569d22ae423f
 const digest=bytes=>createHash('sha256').update(bytes).digest('hex');
 const out=process.argv.find(arg=>arg.startsWith('--out='))?.slice(6);
 const smoke=process.argv.includes('--smoke');
+const phaseSmoke=process.argv.includes('--phase-smoke');
 const includeCog=process.argv.includes('--cog');
 const includeScreen=process.argv.includes('--screen');
 const normalizedBudget=process.argv.includes('--normalized-budget');
@@ -35,6 +36,7 @@ const fixtureBytes=Buffer.from(await fixtureResponse.arrayBuffer());
 if(digest(fixtureBytes)!==manifestHash)throw Error('Fixture manifest hash mismatch');
 const fixture=JSON.parse(fixtureBytes),runs=[];
 const only=process.argv.find(arg=>arg.startsWith('--candidate='))?.slice('--candidate='.length)||null;
+if(phaseSmoke&&(!smoke||!only))throw Error('Phase smoke requires --smoke and one explicit candidate');
 const sequence=candidateSequence({smoke,cog:includeCog,screen:includeScreen,only});
 let tilePrefetch=null;
 if(sequence.some(candidate=>['a1','b512','screen'].includes(candidate))){
@@ -81,7 +83,7 @@ const report={schema:'pando-terrain-viewer-regional-ab-v1',identity:identity(),f
     'A0 is a separate existing-data baseline served by the existing local server; it does not use Q1, the experiment shader, a modified admission budget, or the in-memory fixture proxy.',
     ...(normalizedBudget?['A1/B/C/D use an experiment-only 192MiB visible DEM admission limit; A0 retains the product default of 96MiB and may select a coarser level.']:[]),
     'Programmatic camera setup triggers the full view invalidation in this experiment so label layout follows the camera.',
-    'Only WebGL2 at desktop DPR 1 on SwiftShader; smoke mode covers one stationary 32x scene only.',
+    `Only WebGL2 at desktop DPR 1 on SwiftShader; ${smoke&&!phaseSmoke?'smoke mode covers one stationary 32x scene only':'interaction phases are included'}.`,
     'Warm return is same-page memory/cache reuse, not a separate browser warm-navigation measurement.',
     '512 versus 1024 varies tile partition only; an atlas or instancing optimization is not implemented.',
     'Verified tiles and COG bytes are prefetched outside timing and served from memory through interception; request origins differ and CDP totals are not real-host transfer measurements.',
@@ -134,7 +136,7 @@ try{
           return await route.fulfill({status:200,contentType:'text/javascript',body});
         }catch(error){run.routeErrors.push(String(error));return route.abort('failed');}
       });
-      await page.addInitScript(()=>{globalThis.__pandoCaptureFrame={requested:false,result:null};globalThis.__pandoTerrainCapture={requested:false,result:null};});
+      await page.addInitScript(()=>{globalThis.__pandoCaptureFrame={requested:false,result:null,entries:0,attempts:0,lastAttempt:null};globalThis.__pandoTerrainCapture={requested:false,result:null};});
       await page.route('**/assets/js/modules/gpu-base-scene-pass.js*',async route=>{
         try{const response=await route.fetch(),body=withTerrainOnlyCapture(await response.text());
           return await route.fulfill({status:200,contentType:'text/javascript',body});
@@ -151,10 +153,10 @@ try{
           }
           const renderMarker='    function renderWebGl(visualFrame, { interactionOnly = false } = {}) {';
           if(!source.includes(renderMarker))throw Error('Viewer render entrypoint changed');
-          source=source.replace(renderMarker,renderMarker+`\n      if(globalThis.__pandoCaptureFrame?.forceBase){\n        sceneColorCache.invalidate('experiment-capture');interactionOnly=false;globalThis.__pandoCaptureFrame.forceBase=false;\n      }`);
+          source=source.replace(renderMarker,renderMarker+`\n      if(globalThis.__pandoCaptureFrame?.requested)globalThis.__pandoCaptureFrame.entries++;\n      if(globalThis.__pandoCaptureFrame?.forceBase){\n        sceneColorCache.invalidate('experiment-capture');interactionOnly=false;globalThis.__pandoCaptureFrame.forceBase=false;\n      }`);
           const marker='      frameTimes.push(performance.now() - started);';
           if(!source.includes(marker))throw Error('Viewer capture point changed');
-          const capture=`      if(globalThis.__pandoCaptureFrame?.requested&&!globalThis.__pandoCaptureFrame.result\n        &&!webglContextLost&&!baseSubmissionFailed&&mapReadiness().mapReady\n        &&(!state.physicalSettings.terrainVisible||terrainPreparation?.stats().terrainReady)&&gl.getParameter(gl.FRAMEBUFFER_BINDING)===null){\n        const pixels=new Uint8Array(pixelWidth*pixelHeight*4);\n        gl.readPixels(0,0,pixelWidth,pixelHeight,gl.RGBA,gl.UNSIGNED_BYTE,pixels);\n        globalThis.__pandoCaptureFrame.result={pixels,width:pixelWidth,height:pixelHeight,frameId:visualFrame.frameId,scale:visualFrame.scale};\n        globalThis.__pandoTerrainCapture.requested=false;\n      }\n`;
+          const capture=`      if(globalThis.__pandoCaptureFrame?.requested&&!globalThis.__pandoCaptureFrame.result){\n        const diagnostic={webglContextLost,baseSubmissionFailed,mapReady:mapReadiness().mapReady,terrainVisible:state.physicalSettings.terrainVisible,terrainReady:terrainPreparation?.stats().terrainReady,defaultFramebuffer:gl.getParameter(gl.FRAMEBUFFER_BINDING)===null,baseResult:!!baseResult,frameId:visualFrame.frameId};\n        globalThis.__pandoCaptureFrame.attempts++;globalThis.__pandoCaptureFrame.lastAttempt=diagnostic;\n        if(!diagnostic.webglContextLost&&!diagnostic.baseSubmissionFailed&&diagnostic.mapReady\n          &&(!diagnostic.terrainVisible||diagnostic.terrainReady)&&diagnostic.defaultFramebuffer){\n          const pixels=new Uint8Array(pixelWidth*pixelHeight*4);\n          gl.readPixels(0,0,pixelWidth,pixelHeight,gl.RGBA,gl.UNSIGNED_BYTE,pixels);\n          globalThis.__pandoCaptureFrame.result={pixels,width:pixelWidth,height:pixelHeight,frameId:visualFrame.frameId,scale:visualFrame.scale};\n          globalThis.__pandoTerrainCapture.requested=false;\n        }\n      }\n`;
           return await route.fulfill({status:200,contentType:'text/javascript',body:source.replace(marker,capture+marker)});
         }catch(error){run.routeErrors.push(String(error));return route.abort('failed');}
       });
@@ -350,7 +352,7 @@ try{
       run.status=run.pageErrors.length||run.consoleErrors.length||run.routeErrors.length||run.screenshotError||
         run.initialFrameCaptureError||run.frameCaptureError||run.candidateRequests.some(x=>x.error)?'failed':'passed';
       if(run.status!=='passed')run.error='Screenshot, console, candidate request, route, or page error';
-      if(run.status==='passed'&&!smoke){
+      if(run.status==='passed'&&(!smoke||phaseSmoke)){
         run.status='running';run.phases=[];
         await runViewerPhases({page,pageCdp,processCdp,out,prefix:`viewer-${index+1}-${size}`,screen:candidate==='screen',center:selected.center,
           expectedLevel:candidate==='a0'?null:5,phases:run.phases,onStart:name=>{phaseName=name;},
@@ -366,6 +368,9 @@ try{
       }
     }catch(error){run.status='failed';run.error=String(error?.stack||error).slice(0,5000);
       run.diagnostics=await page.evaluate(()=>globalThis.__PANDOLAB_VIEWER__?.rendererStats?.()||null).catch(()=>null);
+      run.captureDiagnostics=await page.evaluate(()=>{const c=globalThis.__pandoCaptureFrame,t=globalThis.__pandoTerrainCapture;
+        return c?{requested:c.requested,forceBase:c.forceBase,entries:c.entries,attempts:c.attempts,lastAttempt:c.lastAttempt,
+          hasFull:!!c.result,hasTerrain:!!t?.result,terrainFrameId:t?.result?.frameId??null}:null;}).catch(()=>null);
     }finally{run.placeSnapshots=await page.evaluate(()=>globalThis.__pandoPlaceSnapshots||[]).catch(()=>[]);
       run.network=[...network.values()];await pageCdp?.detach().catch(()=>{});await processCdp?.detach().catch(()=>{});await page.close();
       await writeFile(`${out}/report.json`,JSON.stringify(report,null,2)+'\n');}

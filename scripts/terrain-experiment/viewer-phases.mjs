@@ -13,6 +13,7 @@ export function performanceDelta(before,after){
 export async function captureAcceptedFrame(page,path,{screen=false}={}){
   const before=screen?await page.evaluate(()=>globalThis.__pandoScreen.stats.draws):null;
   await page.evaluate(()=>{globalThis.__pandoCaptureFrame.result=null;globalThis.__pandoCaptureFrame.requested=true;
+    globalThis.__pandoCaptureFrame.entries=0;globalThis.__pandoCaptureFrame.attempts=0;globalThis.__pandoCaptureFrame.lastAttempt=null;
     globalThis.__pandoTerrainCapture.result=null;globalThis.__pandoTerrainCapture.requested=true;
     globalThis.__pandoCaptureFrame.forceBase=true;globalThis.__PANDOLAB_MAP_HOST__.requestRepaint('terrain-capture-accepted-frame');});
   await page.waitForFunction(()=>globalThis.__pandoCaptureFrame?.result,null,{timeout:60000,polling:100});

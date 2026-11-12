@@ -19,6 +19,11 @@ on:
         type: boolean
         required: false
         default: false
+      terrain_phase_smoke:
+        description: Run all interaction phases once for one selected candidate
+        type: boolean
+        required: false
+        default: false
       terrain_normalized_budget:
         description: Use 192 MiB for experimental candidates; A0 retains the product budget
         type: boolean
@@ -74,6 +79,7 @@ jobs:
       - name: Measure regional candidates in the actual Viewer
         env:
           TERRAIN_FULL: ${{ inputs.terrain_full }}
+          TERRAIN_PHASE_SMOKE: ${{ inputs.terrain_phase_smoke }}
           TERRAIN_REGION: ${{ inputs.terrain_region }}
           TERRAIN_NORMALIZED_BUDGET: ${{ inputs.terrain_normalized_budget }}
           TERRAIN_CANDIDATE: ${{ inputs.terrain_candidate }}
@@ -84,6 +90,7 @@ jobs:
           if [ "$TERRAIN_NORMALIZED_BUDGET" = 'true' ]; then args+=(--normalized-budget); fi
           if [ "$TERRAIN_CANDIDATE" != 'all' ] && [ -n "$TERRAIN_CANDIDATE" ]; then args+=("--candidate=$TERRAIN_CANDIDATE"); fi
           if [ "$TERRAIN_FULL" != 'true' ]; then args+=(--smoke); fi
+          if [ "$TERRAIN_PHASE_SMOKE" = 'true' ]; then args+=(--phase-smoke); fi
           node scripts/terrain-experiment/viewer-compare.mjs "${args[@]}" --out="$RUNNER_TEMP/terrain-regional-smoke"
       - name: Keep measurements and screenshots including failures
         if: always()
