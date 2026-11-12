@@ -32,7 +32,25 @@ function canvasFallbackWorkerMain(self) {
     let demActiveFetches = 0;
     let demCacheBytes = 0;
     const demCacheLimit = self.PandoLabTerrainTileSelection.demVisiblePolicy.byteBudget;
+    function closeDemTile(tile) {
+      tile.land.close?.(); tile.ocean.close?.(); tile.political.close?.();
+      tile.alternate?.land.close?.(); tile.alternate?.ocean.close?.();
+    }
+    function discardDemAlternate(tile) {
+      if (!tile.alternate) return;
+      tile.alternate.land.close?.(); tile.alternate.ocean.close?.();
+      demCacheBytes -= tile.alternate.bytes; tile.bytes -= tile.alternate.bytes; tile.alternate = null;
+    }
     function pruneDemTiles() {
+      // Alternate theme bitmaps are optional; release them before evicting
+      // decoded tiles and causing an avoidable fetch or decode on the next view.
+      if (demCacheBytes > demCacheLimit) {
+        const withAlternates = [...demTiles.values()].filter(tile => tile.alternate).sort((a,b) => a.lastUsed-b.lastUsed);
+        for (const tile of withAlternates) {
+          if (demCacheBytes <= demCacheLimit) break;
+          discardDemAlternate(tile);
+        }
+      }
       while (demCacheBytes > demCacheLimit) {
         let oldest = null;
         for (const entry of demTiles) {
@@ -41,7 +59,7 @@ function canvasFallbackWorkerMain(self) {
         }
         if (!oldest) break;
         demCacheBytes -= oldest[1].bytes;
-        oldest[1].land.close(); oldest[1].ocean.close(); oldest[1].political.close();
+        closeDemTile(oldest[1]);
         demTiles.delete(oldest[0]);
       }
     }
@@ -188,13 +206,25 @@ function canvasFallbackWorkerMain(self) {
 
     function applyDemPresentationTheme(tile, theme) {
       if (tile.theme === theme || !tile.raw) return;
+      if (tile.alternate?.theme === theme) {
+        const {land, ocean} = tile;
+        tile.land = tile.alternate.land; tile.ocean = tile.alternate.ocean;
+        tile.alternate.land = land; tile.alternate.ocean = ocean; tile.alternate.theme = tile.theme;
+        tile.theme = theme;
+        return;
+      }
       const converted = self.PandoLabCanvasTerrainDem.convertTile({
         dem: tile.raw, width: tile.width, height: tile.height, theme, includePolitical: false,
       });
       const land = demPlaneBitmap(converted.land, tile.width, tile.height);
       const ocean = demPlaneBitmap(converted.ocean, tile.width, tile.height);
-      tile.land.close?.();
-      tile.ocean.close?.();
+      const alternateBytes = tile.width * tile.height * 8;
+      if (!tile.alternate && demCacheBytes + alternateBytes <= demCacheLimit) {
+        tile.alternate = {land:tile.land, ocean:tile.ocean, theme:tile.theme, bytes:alternateBytes};
+        tile.bytes += alternateBytes; demCacheBytes += alternateBytes;
+      } else {
+        tile.land.close?.(); tile.ocean.close?.();
+      }
       tile.land = land;
       tile.ocean = ocean;
       tile.theme = theme;
@@ -260,7 +290,7 @@ function canvasFallbackWorkerMain(self) {
         for (const request of demRequests.values()) request.controller.abort();
         demRequests.clear(); demQueue.length = 0; demQueuedKeys.clear(); demFailures.clear();
         wantedDemKeys.clear(); terrainProtectedKeys.clear();
-        for (const tile of demTiles.values()) { tile.land.close?.(); tile.ocean.close?.(); tile.political.close?.(); }
+        for (const tile of demTiles.values()) closeDemTile(tile);
         demTiles.clear(); demCacheBytes = 0; terrainDemManifest = null; demManifestAttempts = 0;
       }
       demManifestLoading = true;
@@ -1247,7 +1277,7 @@ function canvasFallbackWorkerMain(self) {
       manifestController?.abort();
       for (const request of demRequests.values()) request.controller.abort();
       demQueue.length = 0; demQueuedKeys.clear();
-      for (const tile of demTiles.values()) { tile.land.close?.(); tile.ocean.close?.(); tile.political.close?.(); }
+      for (const tile of demTiles.values()) closeDemTile(tile);
       demTiles.clear(); demCacheBytes = 0;
       hydroPort?.close?.();
       self.onmessage = null;
