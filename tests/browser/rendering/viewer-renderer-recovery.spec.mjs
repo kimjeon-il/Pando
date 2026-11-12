@@ -122,8 +122,11 @@ test('real WebGL strokes retain A through partial uploads and present all of B b
     const strokeRenderer = createGpuStrokeRenderer({ onError: value => errors.push({ stage: value.stage, message: value.error?.message }),
       onResourceReady: key => ready.push(key) });
     if (!strokeRenderer.initialize(createRenderDevice({ gl, canvas }))) throw new Error('Real stroke initialization failed');
+    // Force genuinely partial GPU uploads. A default 2 MiB frame can finish
+    // both tiny fixture strokes in one drain and invalidate the intended
+    // first-ready-versus-second-pending regression scenario.
     const scheduler = createGpuUploadScheduler({ requestFrame: callback => (callbacks.push(callback), callbacks.length), cancelFrame() {},
-      isHidden: () => false, isInputPending: () => false });
+      isHidden: () => false, isInputPending: () => false, getByteBudget: () => 4 });
     const presentedStrokeDomains = new Map(), builder = createRenderSceneBuilder();
     const scene = (revision, sign) => builder.build({ strokes: [2, 4].map((latitude, index) => ({ key: `boundary:${index}`,
       domain: 'territorial-boundaries', geometryRevision: revision, geometry: { type: 'LineString', coordinates: [[-3, sign * latitude], [3, sign * latitude]] },
