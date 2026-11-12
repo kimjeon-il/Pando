@@ -253,7 +253,7 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
     if (isInputActive() || globalThis.document?.hidden || globalThis.navigator?.scheduling?.isInputPending?.()) return scheduleUpload();
     const started = performance.now();
     let budget = Math.min(byteLimit, Math.max(64 * 1024, Number(getUploadBudget()) || 4 * 1024 * 1024));
-    const savedBuffer = gl.getParameter(gl.ARRAY_BUFFER_BINDING);
+    const savedBuffer = device.state.capture().arrayBuffer;
     try {
       for (const [key, job] of pendingUploads) {
         while (job.part < 2 && budget > 0 && performance.now() - started < 4) {
@@ -335,53 +335,10 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
     else instancing.drawArraysInstancedANGLE(gl.TRIANGLES, 0, count, instances);
   };
 
-  function captureState() {
-    const activeTexture = gl.getParameter(gl.ACTIVE_TEXTURE);
-    const texture = gl.getParameter(gl.TEXTURE_BINDING_2D);
-    gl.activeTexture(gl.TEXTURE0);
-    const texture0 = gl.getParameter(gl.TEXTURE_BINDING_2D);
-    gl.activeTexture(activeTexture);
-    return {
-      framebuffer: gl.getParameter(gl.FRAMEBUFFER_BINDING),
-      readFramebuffer: device.version === 2 ? gl.getParameter(gl.READ_FRAMEBUFFER_BINDING) : null,
-      viewport: Array.from(gl.getParameter(gl.VIEWPORT)),
-      program: gl.getParameter(gl.CURRENT_PROGRAM),
-      arrayBuffer: gl.getParameter(gl.ARRAY_BUFFER_BINDING),
-      activeTexture, texture, texture0,
-      blend: gl.isEnabled(gl.BLEND),
-      depth: gl.isEnabled(gl.DEPTH_TEST),
-      cull: gl.isEnabled(gl.CULL_FACE),
-      scissor: gl.isEnabled(gl.SCISSOR_TEST),
-      stencil: gl.isEnabled(gl.STENCIL_TEST),
-      equations: [gl.getParameter(gl.BLEND_EQUATION_RGB), gl.getParameter(gl.BLEND_EQUATION_ALPHA)],
-      blendFactors: [gl.getParameter(gl.BLEND_SRC_RGB), gl.getParameter(gl.BLEND_DST_RGB),
-        gl.getParameter(gl.BLEND_SRC_ALPHA), gl.getParameter(gl.BLEND_DST_ALPHA)],
-      colorMask: Array.from(gl.getParameter(gl.COLOR_WRITEMASK)),
-      clearColor: Array.from(gl.getParameter(gl.COLOR_CLEAR_VALUE)),
-    };
-  }
-
-  function restoreState(state) {
-    const enabled = (cap, value) => value ? gl.enable(cap) : gl.disable(cap);
-    gl.bindFramebuffer(gl.FRAMEBUFFER, state.framebuffer);
-    if (device.version === 2) gl.bindFramebuffer(gl.READ_FRAMEBUFFER, state.readFramebuffer);
-    gl.viewport(...state.viewport);
-    gl.useProgram(state.program);
-    gl.bindBuffer(gl.ARRAY_BUFFER, state.arrayBuffer);
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, state.texture0);
-    gl.activeTexture(state.activeTexture);
-    gl.bindTexture(gl.TEXTURE_2D, state.texture);
-    enabled(gl.BLEND, state.blend);
-    enabled(gl.DEPTH_TEST, state.depth);
-    enabled(gl.CULL_FACE, state.cull);
-    enabled(gl.SCISSOR_TEST, state.scissor);
-    enabled(gl.STENCIL_TEST, state.stencil);
-    gl.blendEquationSeparate(...state.equations);
-    gl.blendFuncSeparate(...state.blendFactors);
-    gl.colorMask(...state.colorMask);
-    gl.clearColor(...state.clearColor);
-  }
+  // RenderDevice owns the shared context state. Coverage and self-test keep
+  // exact caller bindings without querying the driver on every draw.
+  const captureState = () => device.state.capture();
+  const restoreState = saved => device.state.restore(saved);
 
   function setViewUniforms(programInfo, frameContext, worldOffset) {
     return setGpuViewUniforms(gl, { frameContext, worldOffset, getLocation: name => programInfo.uniforms[name] });
@@ -702,7 +659,7 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
 
   function initialize(nextDevice, preparedPrograms = null) {
     dispose();
-    if (!isRenderDevice(nextDevice) || !nextDevice.capabilities.instancing) return false;
+    if (!isRenderDevice(nextDevice) || !nextDevice.capabilities.instancing || !nextDevice.state) return false;
     device = nextDevice;
     gl = nextDevice.gl;
     instancing = nextDevice.version === 2 ? gl : gl.getExtension('ANGLE_instanced_arrays');
