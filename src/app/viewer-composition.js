@@ -375,7 +375,6 @@ export async function composeViewer({ productMode, meta }) {
     hydroModel:owners.hydroSettings,
     workspaceUiA:surfaces,workspaceUiB:surfaces,
   });
-  display.initializeLAYER_STYLE_TARGETS();
   disposables.push(display);
   const navigationBindings=createNavigationBindings();
   navigationBindings.connect({platform:{$:get},workspaceUiA:surfaces,workspaceUiB:surfaces,workspaceUiC:surfaces,surfaces,
@@ -396,7 +395,8 @@ export async function composeViewer({ productMode, meta }) {
   disposables.push(preferencesDialog);
   const onProjectMapStyle = () => {
     void display.applyMapStyle(preferencePresentation.current.appearance.mapStyle)
-      .catch(error => report(error, '프로젝트 지도 테마를 적용하지 못했습니다.', 'PL-MAP-STYLE-PROJECT'));
+      .then(()=>preferencesDialog?.sync())
+      .catch(error => report(error,'프로젝트 지도 테마를 적용하지 못했습니다.','PL-MAP-STYLE-PROJECT'));
   };
   window.addEventListener('pandolab:project-changed', onProjectMapStyle);
   disposables.push({ dispose: () => window.removeEventListener('pandolab:project-changed', onProjectMapStyle) });

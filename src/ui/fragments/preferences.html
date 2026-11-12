@@ -1,7 +1,7 @@
 <div id="preferencesModal" class="ui-dialog hidden" role="dialog" aria-modal="true" aria-labelledby="preferencesTitle">
   <div class="ui-dialog-backdrop"></div>
   <section class="ui-dialog-card preferences-card">
-    <header class="ui-dialog-header"><div><h2 id="preferencesTitle">설정</h2></div></header>
+    <header class="ui-dialog-header"><h2 id="preferencesTitle">설정</h2></header>
     <div class="preferences-fields">
       <div class="preferences-setting preferences-setting-choices" role="group" aria-labelledby="preferencesMapStyleTitle">
         <strong id="preferencesMapStyleTitle">지도 테마</strong>
@@ -14,8 +14,31 @@
       <label class="ui-choice-row ui-toggle preferences-setting"><span>원어명 병기</span><input id="preferencesNativeNamesInput" type="checkbox" /></label>
       <label class="ui-choice-row ui-toggle preferences-setting"><span>강</span><input id="preferencesRiversInput" type="checkbox" checked /></label>
       <label class="ui-choice-row ui-toggle preferences-setting"><span>호수</span><input id="preferencesLakesInput" type="checkbox" checked /></label>
-      <div id="preferencesGenericSlot" class="preferences-conditional-slot"></div>
-      <div id="preferencesDistributionSlot" class="preferences-conditional-slot"></div>
+      <div id="preferencesGenericSlot" class="preferences-conditional-slot" hidden>
+        <div class="preferences-conditional" role="group" aria-label="기타 객체">
+          <strong>기타 객체</strong>
+          <label class="ui-choice-row ui-toggle"><span>표시</span><input id="genericFeaturesVisible" type="checkbox" checked /></label>
+        </div>
+      </div>
+      <div id="preferencesDistributionSlot" class="preferences-conditional-slot" hidden>
+        <div class="preferences-conditional" role="group" aria-label="분포">
+          <strong>분포</strong>
+          <label class="ui-choice-row ui-toggle"><span>표시</span><input id="distributionsVisible" type="checkbox" checked /></label>
+          <label class="ui-field field-group" for="preferencesDistributionBlendInput"><span>겹침 방식</span>
+            <select id="preferencesDistributionBlendInput"><option value="normal">일반</option><option value="multiply">곱하기</option></select>
+          </label>
+          <div class="preferences-option-group" role="radiogroup" aria-label="분포 표시 기준">
+            <label class="ui-choice-row"><input id="distributionOverlapRadio" type="radio" name="distributionLayerMode" value="overlap" checked /><span>여러 분포 겹쳐 보기</span></label>
+            <label class="ui-choice-row"><input id="distributionSingleRadio" type="radio" name="distributionLayerMode" value="single" /><span>분포 하나만 보기</span></label>
+          </div>
+          <label class="ui-field field-group" for="distributionActiveLayerInput" id="preferencesDistributionLayerRow"><span>표시 대상</span>
+            <select id="distributionActiveLayerInput"></select>
+          </label>
+          <div id="distributionLegend" class="distribution-legend" aria-label="분포 범례"></div>
+          <small id="distributionLayerModeHint" class="layer-setting-hint"></small>
+          <label class="ui-choice-row ui-toggle"><span>분포 경계</span><input id="distributionBoundaryVisibleInput" type="checkbox" checked /></label>
+        </div>
+      </div>
       <label class="ui-choice-row ui-toggle preferences-setting"><span>경위도선</span><input id="preferencesGraticuleInput" type="checkbox" checked /></label>
       <label class="ui-choice-row ui-toggle preferences-setting"><span>경계선 부드럽게</span><input id="preferencesSmoothLinesInput" type="checkbox" checked /></label>
       <div class="preferences-setting preferences-theme" role="group" aria-labelledby="preferencesThemeTitle">
@@ -28,6 +51,7 @@
         </div>
       </div>
     </div>
-    <div class="ui-dialog-actions"><button id="preferencesResetBtn" class="ui-button btn ghost" type="button">기본값 복원</button><span class="preferences-actions-spacer"></span><button id="preferencesCloseBtn" class="ui-button btn" type="button">닫기</button></div>
+    <div class="ui-dialog-actions"><button id="preferencesResetBtn" class="ui-button btn ghost" type="button">기본값 복원</button>
+      <span class="preferences-actions-spacer"></span><button id="preferencesCloseBtn" class="ui-button btn" type="button">닫기</button></div>
   </section>
 </div>
