@@ -45,10 +45,12 @@ test('viewer menus follow project replacement while builtin sources stay availab
     for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
       await page.setViewportSize(viewport);
       await openViewingDisplay(page);
-      for (const group of ['objects', 'genericFeatures']) await expect(page.locator(`[data-map-display-group="${group}"]`)).toBeHidden();
-      for (const group of ['rivers', 'lakes', 'labels', 'terrain']) await expect(page.locator(`[data-map-display-group="${group}"]`)).toBeVisible();
-      if (index === 1) await expect(page.locator('#distributionMenuGroup')).toBeVisible();
-      else await expect(page.locator('#distributionMenuGroup')).toBeHidden();
+      await expect(page.locator('#preferencesGenericSlot')).toBeHidden();
+      for (const id of ['preferencesRiversInput','preferencesLakesInput','preferencesGraticuleInput'])
+        await expect(page.locator('#'+id)).toBeVisible();
+      await expect(page.locator('input[name="preferencesMapStyle"]')).toHaveCount(3);
+      if (index === 1) await expect(page.locator('#preferencesDistributionSlot')).toBeVisible();
+      else await expect(page.locator('#preferencesDistributionSlot')).toBeHidden();
       if (index === 1 && viewport.width === 1440 || index === 2 && viewport.width === 390)
         await page.screenshot({ path: info.outputPath(`viewer-menu-${index}-${viewport.width}.png`) });
       await closeViewingDisplay(page);
@@ -169,15 +171,13 @@ test('Canvas viewer selects a saved country polygon body without changing projec
 
   await openViewingDisplay(page);
   // The fixture contains overlapping polygons; choose A explicitly from the real hit list.
-  // Hide labels and hydro layers so the click targets the actual polygon body.
-  for (const group of ['labels', 'rivers', 'lakes']) {
+  // Preserve the map theme's names and markers; toggle only independent hydro data.
+  for (const group of ['rivers', 'lakes']) {
     await setViewingLayer(page,group,false);
   }
-  await setViewingLayer(page,'objects',true);
-  await page.locator('#objectNamesVisible').locator('..').click();
   await closeViewingDisplay(page);
   await page.locator('#resetViewBtn').click();
-  await expect(page.locator('#map text')).toHaveCount(0);
+  await expect(page.locator('#preferencesModal')).toBeHidden();
   expect((await page.evaluate(() => window.__PANDOLAB_VIEWER__.selectionSnapshot())).items).toEqual([]);
   const priorDisplayedRevision = await page.evaluate(() => window.__PANDOLAB_VIEWER__.rendererStats().displayedRevision);
   await page.evaluate(()=>{const host=window.__PANDOLAB_MAP_HOST__;host.setViewState({projection:'globe',view:{...host.getViewState(),globeRotation:[-5,-5,0],globeZoom:4}});host.requestRepaint('canvas-body-selection');});

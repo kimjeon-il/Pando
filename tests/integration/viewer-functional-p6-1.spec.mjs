@@ -125,7 +125,7 @@ test('P6-1 desktop startup, camera, year navigation, direct input and themes', a
         const swatch = page.locator(`#preferencesModal [data-preference-theme="${theme}"]`);
         await swatch.click();
         await expect(swatch).toHaveAttribute('aria-pressed', 'true');
-        await page.locator('#preferencesApplyBtn').click();
+        await page.locator('#preferencesCloseBtn').click();
         await expect(page.locator('#preferencesModal')).toBeHidden();
         await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
         await expect(page.locator('#map')).toHaveCSS('background-color', background);
