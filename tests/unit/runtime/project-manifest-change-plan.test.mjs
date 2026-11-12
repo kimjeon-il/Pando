@@ -107,3 +107,46 @@ test('Worker message, API and project schema consumers follow indirect fixture r
  invalid.contractConsumers[0].alwaysTests=['tests/unit/runtime/missing.test.mjs'];
  assert.throws(()=>loadRepository(root,{catalog:invalid,libraryFiles:{}}),/Unknown mandatory semantic contract test/);
 });
+
+
+test('CI native prerequisite impact excludes local-only workflow dispatch imports',t=>{
+ const root=mkdtempSync(join(tmpdir(),'pando-native-dispatch-'));
+ t.after(()=>rmSync(root,{recursive:true,force:true}));
+ const put=(file,value)=>{
+  const target=join(root,file);
+  mkdirSync(dirname(target),{recursive:true});
+  writeFileSync(target,value);
+ };
+ const testFile='tests/unit/runtime/native-contract.test.mjs';
+ const prepare='scripts/prepare-native-test-tools.mjs';
+ const plan='scripts/plan-application-checks.mjs';
+ const runner='scripts/run-application-checks.mjs';
+ const native='tools/native/codec.cpp';
+ put(testFile,"import test from 'node:test'; test('native fixture',()=>{});\n");
+ put(prepare,[
+  "export async function prepare() {",
+  "  if (process.env.GITHUB_ACTIONS !== 'true') {",
+  "    await import('./plan-application-checks.mjs');",
+  "    await import('./run-application-checks.mjs');",
+  "  }",
+  "}",
+ ].join('\n'));
+ put(plan,'export const plan = true;\n');
+ put(runner,'export const dispatch = true;\n');
+ put(native,'int main() { return 0; }\n');
+ const catalog={schema:'pando-application-checks-v1',groups:[{
+  id:'native',kind:'unit',testPatterns:[testFile],inputs:[],
+ }],prerequisites:{'native-codec':{
+  argv:['node',prepare,'codec'],inputs:[native],
+ }},unitPrerequisites:[{tests:[testFile],requires:['native-codec']}],
+  productRoots:[],infrastructure:[],bindings:[]};
+ const repository=loadRepository(root,{catalog,libraryFiles:{}});
+ const localOnly=planApplicationChecks({repository,changedFiles:[plan,runner]});
+ assert.deepEqual(localOnly.unitTests,[],
+  'planner or local dispatch edits must not compile unrelated native tests');
+ for(const changed of [prepare,native]) {
+  const selected=planApplicationChecks({repository,changedFiles:[changed]});
+  assert.deepEqual(selected.unitTests,[testFile],
+   'actual native tool or source changes still select their focused contract');
+ }
+});
