@@ -7,7 +7,7 @@ permissions:
   contents: read
 jobs:
   base-gpu-recovery:
-    if: "!contains(github.event.head_commit.message, '[terrain-only]') && !contains(github.event.head_commit.message, '[unit-only]')"
+    if: "!contains(github.event.head_commit.message, '[terrain-only]') && !contains(github.event.head_commit.message, '[unit-only]') && !contains(github.event.head_commit.message, '[geometry-only]')"
     runs-on: ubuntu-24.04
     timeout-minutes: 35
     steps:
@@ -22,7 +22,7 @@ jobs:
       - name: Baseline original-main recovery regression
         run: pnpm exec playwright test tests/browser/rendering/viewer-renderer-recovery.spec.mjs --workers=1 --retries=0 --reporter=list
   base-viewer-functional:
-    if: "!contains(github.event.head_commit.message, '[terrain-only]') && !contains(github.event.head_commit.message, '[unit-only]')"
+    if: "!contains(github.event.head_commit.message, '[terrain-only]') && !contains(github.event.head_commit.message, '[unit-only]') && !contains(github.event.head_commit.message, '[geometry-only]')"
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
@@ -79,3 +79,25 @@ jobs:
           tests/unit/rendering/hydro-reliability-source.test.mjs
           tests/unit/rendering/map-presentation-readiness.test.mjs
           tests/unit/rendering/selection-fill-handoff.test.mjs
+  base-geometry-worker:
+    if: contains(github.event.head_commit.message, '[geometry-only]')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - uses: ./.github/actions/library-data
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Original main geometry Worker and startup regression
+        run: >-
+          pnpm exec playwright test
+          tests/browser/geometry/terrain-preview.spec.mjs
+          tests/browser/geometry/viewer-boundary-p4-5.spec.mjs
+          tests/browser/geometry/viewer-startup-and-terrain.spec.mjs
+          tests/browser/rendering/country-prepared-scene.spec.mjs
+          --grep 'selected webgl2 relief|selected canvas relief|P4-5 real viewer WebGL boundary|matching boundary Worker protocol|W2-P3 real Viewer reuses|Web publishes sharp|keeps physical land across empty time|historical Soviet scope'
+          --workers=1 --retries=0 --reporter=list
