@@ -44,7 +44,7 @@ test.describe('P1 actual Places Worker and GPU recovery diagnosis',()=>{
             }));
           const value=await client.request('place.search',{query:'zz',manifestUrl,presentation:null});
           const bootstrap=await unknown;
-          return {ok:true,bootstrap,resultType:typeof value,records:value?.records?.length??null,
+          return {ok:true,bootstrap,resultType:typeof value.result,records:value.result?.records?.length??null,
             stats:client.stats(),durationMs:performance.now()-started,
             workerPath:url.pathname,manifestPath:new URL(manifestUrl).pathname};
         }catch(error){
