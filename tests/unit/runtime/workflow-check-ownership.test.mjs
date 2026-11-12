@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {mkdtempSync,writeFileSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-import {auditWorkflowCheckOwners} from '../../../tools/checks/audit-workflow-check-owners.mjs';
+import {auditWorkflowCheckOwners,auditWorkflowInventory} from '../../../tools/checks/audit-workflow-check-owners.mjs';
 import {scheduleViewerPreview} from '../../../scripts/viewer-preview-plan.mjs';
 import {readFileSync} from 'node:fs';
 import YAML from 'yaml';
@@ -11,7 +11,7 @@ import YAML from 'yaml';
 test('preview delegates only unfiltered automatic pushes to the canonical application workflow',()=>{
  const applicationWorkflow=YAML.parse(readFileSync(new URL('../../../.github/workflows/application-architecture.yml',import.meta.url),'utf8'));
  const selection={preview:true,browser:true,contracts:true};
- for(const branch of ['work/ui','work/gis','work/objects','work/places']){
+ for(const branch of ['work/ui','work/gis','work/objects','work/places','work/remote-only']){
   assert.ok(applicationWorkflow.on.push.branches.includes(branch));
   assert.equal(scheduleViewerPreview(selection,{branch,applicationWorkflow}).contracts,false);
   assert.equal(scheduleViewerPreview(selection,{branch,applicationWorkflow,event:'workflow_dispatch'}).contracts,true);
@@ -40,4 +40,34 @@ test('workflow ownership audit preserves independent specialized jobs and detect
  const second=auditWorkflowCheckOwners(dir);
  assert.equal(second.duplicateJobs.length,1);
  assert.deepEqual(second.issues,[]);
+});
+
+test('all 76 workflows are classified under one current, opt-in, or historical owner',()=>{
+ const dir=new URL('../../../.github/workflows/',import.meta.url);
+ const manifest=new URL('../../../scripts/contracts/workflow-inventory.json',import.meta.url);
+ const result=auditWorkflowInventory(dir.pathname,manifest.pathname);
+ assert.equal(result.ok,true,JSON.stringify(result.issues));
+ assert.equal(result.workflowCount,76);
+ assert.deepEqual(result.counts,{continuous:16,manual:41,historical:19});
+ assert.equal(result.canonicalApplication,'application-architecture.yml');
+});
+
+test('workflow inventory rejects new unclassified files and opt-in auto events',t=>{
+ const dir=mkdtempSync(join(tmpdir(),'pando-inventory-'));
+ t.after(()=>rmSync(dir,{recursive:true,force:true}));
+ const manifest=join(dir,'inventory.json');
+ const put=(name,body)=>writeFileSync(join(dir,name+'.yml'),body);
+ const write=manual=>writeFileSync(manifest,JSON.stringify({
+  schema:'pando-workflow-inventory-v1',canonicalApplication:'application-architecture.yml',
+  continuous:{'application-architecture.yml':'current application checks'},
+  manual,historical:[],
+ }));
+ put('application-architecture','on:\n  push:\n    branches: [main]\njobs:\n  check:\n    runs-on: ubuntu-latest\n    steps:\n      - run: echo check\n');
+ put('review','on:\n  workflow_dispatch:\njobs:\n  audit:\n    runs-on: ubuntu-latest\n    steps:\n      - run: echo audit\n');
+ write(['review.yml']);
+ assert.equal(auditWorkflowInventory(dir,manifest).ok,true);
+ put('review','on:\n  push:\n    branches: [main]\n  workflow_dispatch:\njobs:\n  audit:\n    runs-on: ubuntu-latest\n    steps:\n      - run: echo audit\n');
+ assert.match(JSON.stringify(auditWorkflowInventory(dir,manifest).issues),/automatic triggers/);
+ write([]);
+ assert.match(JSON.stringify(auditWorkflowInventory(dir,manifest).issues),/missing from canonical inventory/);
 });

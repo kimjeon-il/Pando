@@ -857,8 +857,9 @@
       "kind": "command",
       "inputs": [
         ".github/workflows/**",
-        "tools/checks/audit-workflow-check-owners.mjs",
-        "scripts/contracts/application-checks.json"
+        "scripts/contracts/application-checks.json",
+        "scripts/contracts/workflow-inventory.json",
+        "tools/checks/audit-workflow-check-owners.mjs"
       ],
       "argv": [
         "node",
@@ -1464,6 +1465,7 @@
       ],
       "inputs": [
         ".github/workflows/**",
+        "scripts/contracts/workflow-inventory.json",
         "tools/checks/audit-workflow-check-owners.mjs"
       ]
     },
