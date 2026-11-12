@@ -3,21 +3,33 @@
 import {chromium} from '@playwright/test';
 import {build} from 'esbuild';
 import {createServer} from 'node:http';
+import {createHash} from 'node:crypto';
 import {readFile,writeFile} from 'node:fs/promises';
 
-const [cogDir,tileDir,out]=process.argv.slice(2);
-if(!cogDir||!tileDir||!out)throw Error('Expected existing COG directory, WebP directory and new report path');
-const cogManifest=JSON.parse(await readFile(`${cogDir}/manifest.json`));
+const [cogDir,tileDir,out,...options]=process.argv.slice(2);
+if(!cogDir||!tileDir||!out||options.length>2||options.some(value=>!value.startsWith('--chunk=')&&!value.startsWith('--tiles=')))
+  throw Error('Expected existing COG directory, WebP directory, new report path and optional --chunk/--tiles');
+let cogManifest=JSON.parse(await readFile(`${cogDir}/manifest.json`));
 const tileManifest=JSON.parse(await readFile(`${tileDir}/manifest.json`));
 if(cogManifest.sourceSha256!==tileManifest.sourceSha256||cogManifest.region!=='southwest-china')throw Error('Sample identities differ');
-const records=tileManifest.records.filter(r=>r.region==='southwest-china'&&r.tileSize===1024);
-if(records.length!==4)throw Error('Expected four 1024 sample tiles');
+const allRecords=tileManifest.records.filter(r=>r.region==='southwest-china'&&r.tileSize===1024);
+if(allRecords.length!==4)throw Error('Expected four 1024 sample tiles');
+const tileCount=Number(options.find(value=>value.startsWith('--tiles='))?.slice('--tiles='.length)||4);
+const chunkBytes=Number(options.find(value=>value.startsWith('--chunk='))?.slice('--chunk='.length)||65536);
+if(![1,4].includes(tileCount)||![65536,524288].includes(chunkBytes))throw Error('Unsupported sample size');
+const records=allRecords.slice(0,tileCount);
+if(chunkBytes!==cogManifest.chunkBytes){
+  const bytes=await readFile(`${cogDir}/${cogManifest.filename}`),hash=data=>createHash('sha256').update(data).digest('hex');
+  if(bytes.length!==cogManifest.bytes||hash(bytes)!==cogManifest.sha256)throw Error('COG source identity mismatch');
+  const chunks=[];for(let i=0;i<bytes.length;i+=chunkBytes)chunks.push(hash(bytes.subarray(i,i+chunkBytes)));
+  cogManifest={...cogManifest,chunkBytes,chunks};
+}
 const base='https://cdn.jsdelivr.net/gh/kimjeon-il/PandoLab-library-data@0fc425921e1fb431ef35d9af6f5ac762f2b3a269/reports/development/performance/terrain-architecture-2026-11-12/';
 const cogUrl=base+'p3/centered-southwest-china-cog/regional-q1.tif',tileBase=base+'p2/fixtures-centered/webp/';
 const bundle=await build({stdin:{contents:"export {openViewerCogTiles} from './scripts/terrain-experiment/viewer-cog-tiles.mjs';",
   resolveDir:process.cwd(),loader:'js'},bundle:true,platform:'browser',format:'iife',globalName:'CogTransfer',write:false});
 const server=createServer((_,response)=>response.writeHead(200,{'Content-Type':'text/html'}).end('<!doctype html><title>Terrain transfer experiment</title>'));
-const report={schema:'pando-terrain-external-transfer-v1',sourceSha256:cogManifest.sourceSha256,cogSha256:cogManifest.sha256,
+const report={schema:'pando-terrain-external-transfer-v1',sourceSha256:cogManifest.sourceSha256,cogSha256:cogManifest.sha256,tileCount,chunkBytes,
   dataRevision:'0fc425921e1fb431ef35d9af6f5ac762f2b3a269',cogUrl,tileBase,startedAt:new Date().toISOString(),runs:[],status:'running',
   limitations:['Single 2x2 regional sample; localhost test page, external HTTPS CDN; not the Viewer or GPU rendering.',
     'Cold means a fresh browser context; CDN edge, DNS and shared network caches are not controlled.',
