@@ -35,12 +35,22 @@ test.describe('P1 actual Places Worker and GPU recovery diagnosis',()=>{
         const client=createWorkerRpcClient({createWorker:()=>new Worker(url,{type:'module'}),
           defaultTimeoutMs:15_000});
         try{
+          // Two requests sent immediately into a cold module Worker must both
+          // reach the RPC host even while its metadata import is pending.
+          const unknown=client.request('place.startup-unknown',{manifestUrl})
+            .then(()=>({ok:false,reason:'unknown operation was accepted'}),error=>({
+              ok:error.code==='PL-WORKER-RPC-UNKNOWN-OPERATION',
+              code:error.code,category:error.category,
+            }));
           const value=await client.request('place.search',{query:'zz',manifestUrl,presentation:null});
-          return {ok:true,resultType:typeof value,records:value?.records?.length??null,
-            durationMs:performance.now()-started,workerPath:url.pathname,manifestPath:new URL(manifestUrl).pathname};
+          const bootstrap=await unknown;
+          return {ok:true,bootstrap,resultType:typeof value,records:value?.records?.length??null,
+            stats:client.stats(),durationMs:performance.now()-started,
+            workerPath:url.pathname,manifestPath:new URL(manifestUrl).pathname};
         }catch(error){
           return {ok:false,code:error.code,category:error.category,message:String(error.message),
-            durationMs:performance.now()-started,workerPath:url.pathname,manifestPath:new URL(manifestUrl).pathname};
+            stats:client.stats(),durationMs:performance.now()-started,
+            workerPath:url.pathname,manifestPath:new URL(manifestUrl).pathname};
         }finally{client.stop();}
       });
       evidence.rpc=rpc;
@@ -50,7 +60,10 @@ test.describe('P1 actual Places Worker and GPU recovery diagnosis',()=>{
         return s?{ready:s.mapReadiness?.mapReady,backend:s.renderer,projectGeneration:s.projectGeneration}:null;
       });
       expect(rpc.ok,JSON.stringify(rpc)).toBe(true);
+      expect(rpc.bootstrap?.ok,JSON.stringify(rpc)).toBe(true);
+      expect(rpc.bootstrap?.category).toBe('PROTOCOL');
       expect(rpc.records).toBeGreaterThanOrEqual(0);
+      expect(rpc.stats?.timedOut).toBe(0);
       expect(evidence.errors.filter(row=>row.includes('PL-PLACE-LOAD-001'))).toEqual([]);
       expect(evidence.map?.ready).toBe(true);
     }finally{await writeFile(info.outputPath('p1-place-worker.json'),JSON.stringify(evidence,null,2));}
