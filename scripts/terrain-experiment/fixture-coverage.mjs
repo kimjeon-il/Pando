@@ -2,6 +2,10 @@
 import '../../src/rendering/workers/terrain-tile-selection-core.js';
 
 const selection=globalThis.PandoLabTerrainTileSelection;
+export function scaleAtZoom(scale,currentZoom,targetZoom){
+  if(![scale,currentZoom,targetZoom].every(value=>Number.isFinite(value)&&value>0))throw new RangeError('Positive scale and zoom required');
+  return scale*targetZoom/currentZoom;
+}
 export function withNormalizedAdmissionBudget(source){
   const marker='byteBudget: 96 * 1024 * 1024, bytesPerPixel: 12';
   if(typeof source!=='string'||source.split(marker).length!==2)throw Error('Viewer DEM admission policy contract changed');

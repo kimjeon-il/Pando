@@ -9,7 +9,7 @@ import {a1TerrainFragmentSource} from './a1-shader.mjs';
 import {makeViewerFixtureManifest} from './viewer-fixture.mjs';
 import {serve,identity,mapSummary,chromiumProcessMemory} from '../p7-browser-ab-measure.mjs';
 import {performanceCounters,performanceDelta,captureAcceptedFrame,runViewerPhases} from './viewer-phases.mjs';
-import {inspectFixtureCoverage,withNormalizedAdmissionBudget,withExperimentViewInvalidation} from './fixture-coverage.mjs';
+import {inspectFixtureCoverage,withNormalizedAdmissionBudget,withExperimentViewInvalidation,scaleAtZoom} from './fixture-coverage.mjs';
 import {regionalOrigin} from './gutter-fixture.mjs';
 
 const region=process.argv.find(arg=>arg.startsWith('--region='))?.slice('--region='.length)||'southwest-china';
@@ -227,10 +227,13 @@ try{
       try{run.initialFrameCapture=await captureAcceptedFrame(page,`${out}/viewer-${index+1}-${size}-initial-framebuffer.png`);}
       catch(error){run.initialFrameCaptureError=String(error);}
       if(!run.initialFrameCapture)throw Error('Cannot preflight the actual Viewer camera without its initial accepted frame');
+      const initialZoom=await page.evaluate(()=>globalThis.__PANDOLAB_MAP_HOST__.getViewState().globeZoom);
+      const predictedScale=scaleAtZoom(run.initialFrameCapture.scale,initialZoom,32);
       run.fixtureCoverage=inspectFixtureCoverage({manifest:selected.manifest,
         availableKeys:new Set([...selected.tiles.keys()].map(key=>key.replace(/\.webp$/, ''))),
         center:selected.center,viewport:[run.initialFrameCapture.width,run.initialFrameCapture.height],
-        scale:run.initialFrameCapture.scale*32,policy:comparisonPolicy});
+        scale:predictedScale,policy:comparisonPolicy});
+      run.fixtureCoverage.initialZoom=initialZoom;run.fixtureCoverage.predictedScale=predictedScale;
       if(!run.fixtureCoverage.valid)throw Error('Experimental fixture does not cover the actual Viewer visibility or admission policy');
       phaseName='zoom32';const countersBefore=await performanceCounters(pageCdp);
       await page.evaluate(()=>globalThis.__terrainFixtureFrames.start());
@@ -266,6 +269,7 @@ try{
       run.center=selected.center;run.manifestRequests=manifestRequests;run.shaderRequests=shaderRequests;
       try{
         run.frameCapture=await captureAcceptedFrame(page,`${out}/viewer-${index+1}-${size}-framebuffer.png`,{screen:candidate==='screen'});
+        if(Math.abs(run.frameCapture.scale-predictedScale)>Math.max(0.01,predictedScale*1e-5))throw Error('Actual 32x scale differs from preflight camera');
       }catch(error){run.frameCaptureError=String(error);}
       const screenshotPath=`${out}/viewer-${index+1}-${size}.png`,screenshotCdp=await page.context().newCDPSession(page);
       try{

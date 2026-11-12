@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {inspectFixtureCoverage,withNormalizedAdmissionBudget,withExperimentViewInvalidation} from '../../../scripts/terrain-experiment/fixture-coverage.mjs';
+import {inspectFixtureCoverage,withNormalizedAdmissionBudget,withExperimentViewInvalidation,scaleAtZoom} from '../../../scripts/terrain-experiment/fixture-coverage.mjs';
 
 test('preflight detects conservative visibility and budget downgrade before a Viewer run',()=>{
   const levels=size=>[
@@ -44,4 +44,9 @@ test('experiment camera repaint invalidates the full view and refuses a changed 
   assert.match(withExperimentViewInvalidation(source),/requestRender\?\.\(\{kind:'view-settle'/);
   assert.throws(()=>withExperimentViewInvalidation('different'),/host contract changed/);
   assert.throws(()=>withExperimentViewInvalidation(source+source),/host contract changed/);
+});
+
+test('preflight accounts for the initial non-unit globe zoom',()=>{
+  assert.ok(Math.abs(scaleAtZoom(412.9125,1.25,32)-10570.56)<1e-8);
+  assert.throws(()=>scaleAtZoom(10,0,32),/zoom/);
 });
