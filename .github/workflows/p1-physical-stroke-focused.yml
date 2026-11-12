@@ -1,5 +1,5 @@
 name: P0/P1 targeted uploads, physical redraw and country stroke acceptance
-# One isolated branch-only run after the three requested changes are complete.
+# Focused rerun after aligning the existing Hydro mock with RenderDevice state ownership.
 # No full CI matrix, generated-asset build, Pages publication or main merge.
 on:
   push:
