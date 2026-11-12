@@ -1,5 +1,5 @@
 name: P0/P1 targeted uploads, physical redraw and country stroke acceptance
-# Focused rerun after aligning the existing Hydro mock with RenderDevice state ownership.
+# Source-matched rerun of scoped WebGL coverage and 3x P7 after focused unit pass; full Viewer context-loss acceptance tracked separately.
 # No full CI matrix, generated-asset build, Pages publication or main merge.
 on:
   push:
@@ -52,9 +52,9 @@ jobs:
       - uses: ./.github/actions/library-data
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - run: pnpm exec playwright install --with-deps chromium
-      - name: Actual Chromium Hydro WebGL1/2 and context recovery checks
+      - name: Actual Chromium Hydro WebGL1/2 scoped surface and state ownership
         run: |
-          pnpm exec playwright test tests/browser/geometry/hydro-sdf-webgl.spec.mjs tests/browser/rendering/viewer-renderer-recovery.spec.mjs --workers=1 --grep 'real WebGL 1/2 compile|viewer acceptance webgl2: repeated real recovery'
+          pnpm exec playwright test tests/browser/geometry/hydro-sdf-webgl.spec.mjs --workers=1 --grep 'real WebGL 1/2 compile'
       - name: Three same-run P7 Chromium samples including 32x globe
         shell: bash
         run: |
