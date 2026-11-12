@@ -3,15 +3,14 @@ import * as __merge_dep0 from "node:test";
 import * as __merge_dep1 from "node:assert/strict";
 import * as __merge_dep2 from "../../../src/ui/user-preferences.js";
 import * as __merge_dep3 from "../../../src/ui/app-accent.js";
-import * as __merge_dep4 from "../../../src/ui/accent-presets.js";
-import * as __merge_dep5 from "../../../src/map/map-interaction-style.js";
-import * as __merge_dep6 from "node:fs";
-import * as __merge_dep7 from "../../../src/document/core-document-read-model.js";
-import * as __merge_dep8 from "../../../src/ui/map-workspace-host.js";
-import * as __merge_dep9 from "../../../src/rendering/render-quality.js";
-import * as __merge_dep10 from "../../../src/document/territorial-entity-store.js";
-import * as __merge_dep11 from "../../../src/geometry/geometry-version-store.js";
-import * as __merge_dep12 from "../../../src/ui/physical-settings.js";
+import * as __merge_dep4 from "../../../src/map/map-interaction-style.js";
+import * as __merge_dep5 from "node:fs";
+import * as __merge_dep6 from "../../../src/document/core-document-read-model.js";
+import * as __merge_dep7 from "../../../src/ui/map-workspace-host.js";
+import * as __merge_dep8 from "../../../src/rendering/render-quality.js";
+import * as __merge_dep9 from "../../../src/document/territorial-entity-store.js";
+import * as __merge_dep10 from "../../../src/geometry/geometry-version-store.js";
+import * as __merge_dep11 from "../../../src/ui/physical-settings.js";
 contractSuite("user-preferences", () => {
 const { describe : contractSuite } = __merge_dep0;
 const __unit_dep0 = __merge_dep0;
@@ -19,7 +18,6 @@ const __unit_dep1 = __merge_dep1;
 const __unit_dep2 = __merge_dep2;
 const __unit_dep3 = __merge_dep3;
 const __unit_dep4 = __merge_dep4;
-const __unit_dep5 = __merge_dep5;
 contractSuite("user-preferences", () => {
 const test = __unit_dep0.default;
 const assert = __unit_dep1.default;
@@ -49,7 +47,7 @@ test('current preferences retain only label and composable selection settings', 
   assert.deepEqual(preferences, {
     backgrounds:defaultUserPreferences().backgrounds,version: 2,
     timeline:{defaultWorldFollowCurrentMonth:true},
-    appearance: { theme: 'dark', accentPreset: 'blue', smoothLines: true },
+    appearance: { theme: 'dark', smoothLines: true },
     labels: { country: { font: 'serif', color: '#aa11bb' }, place: { font: 'gothic', color: '#123456', pointColor: '#abcdef', showNativeNames: false } },
     selection: { color: '#0f1e2d', outlineVisible: false, fillStrength: 0.6 },
   });
@@ -98,24 +96,43 @@ test('native-name overlay is the only place-language preference and defaults off
 contractSuite("app-accent", () => {
 const test = __unit_dep0.default;
 const assert = __unit_dep1.default;
-const { accentTokens } = __unit_dep3;
-const { resolveAccentPreset } = __unit_dep4;
+const { accentTokens, applyAppAccent, parseSystemAccentColor, readSystemAccentColor } = __unit_dep3;
 const { normalizeUserPreferences, saveUserPreferences } = __unit_dep2;
-const { resolveMapInteractionStyle } = __unit_dep5;
+const { resolveMapInteractionStyle } = __unit_dep4;
 
-test('accent preset normalizes independently from preserved label and selection settings', () => {
-  for (const value of [undefined, null, 'invalid', '#123', '#123456ff']) assert.equal(normalizeUserPreferences({ version: 2, appearance: { accentPreset: value } }).appearance.accentPreset, 'blue');
-  const input = normalizeUserPreferences({ version: 2, appearance: { theme: 'light', accentPreset: 'purple' }, labels: { country: { font: 'serif', color: '#123456' } }, selection: { color: '#ff0000', fillStrength: 0.8 } });
-  assert.equal(input.appearance.accentPreset, 'purple');
-  const changed = saveUserPreferences({ ...input, appearance: { ...input.appearance, accentPreset: 'pink' } }, { setItem() {} });
-  assert.equal(changed.appearance.accentPreset, 'pink');
-  assert.deepEqual(changed.labels, input.labels); assert.deepEqual(changed.selection, input.selection);
+test('retired accent choices are discarded without changing other preferences', () => {
+  const input = normalizeUserPreferences({ version: 2, appearance: { theme: 'light', accentPreset: 'purple', accentColor: '#ab12cd' }, labels: { country: { font: 'serif', color: '#123456' } }, selection: { color: '#ff0000', fillStrength: 0.8 } });
+  assert.deepEqual(input.appearance, { theme: 'light', smoothLines: true });
+  const storage = { value: null, setItem(_key, value) { this.value = value; } };
+  const changed = saveUserPreferences(input, storage);
+  assert.deepEqual(JSON.parse(storage.value).appearance, { theme: 'light', smoothLines: true });
+  assert.deepEqual(changed.labels, input.labels);
+  assert.deepEqual(changed.selection, input.selection);
 });
 
-test('accent presets resolve to an appropriate color for each theme', () => {
-  assert.equal(resolveAccentPreset('blue', 'light'), '#316fd3');
-  assert.equal(resolveAccentPreset('blue', 'dark'), '#70a6ff');
-  assert.equal(resolveAccentPreset('missing', 'dark'), null);
+test('CSS system accent parsing rejects unavailable and translucent values', () => {
+  assert.equal(parseSystemAccentColor('rgb(42, 120, 201)'), '#2a78c9');
+  assert.equal(parseSystemAccentColor('rgb(42 120 201)'), '#2a78c9');
+  assert.equal(parseSystemAccentColor('#AABBCC'), '#aabbcc');
+  assert.equal(parseSystemAccentColor('AccentColor'), null);
+  assert.equal(parseSystemAccentColor('rgba(20, 30, 40, 0.3)'), null);
+});
+
+test('system accent is projected to the UI with a stable fallback and contrasting text', () => {
+  const values = new Map();
+  let computedColor = 'rgb(255, 220, 20)', removed = 0;
+  const root = { dataset: { theme: 'light' }, style: { setProperty(key, value) { values.set(key, value); } }, appendChild() {} };
+  const doc = { documentElement: root, createElement() { return { style: { color: '' }, remove() { removed++; } }; },
+    defaultView: { getComputedStyle() { return { color: computedColor }; } } };
+  assert.equal(readSystemAccentColor(doc), '#ffdc14');
+  assert.equal(applyAppAccent(doc), '#ffdc14');
+  assert.equal(values.get('--design-color-accent-text'), '#000000');
+  computedColor = 'not-a-css-color';
+  assert.equal(applyAppAccent(doc), '#316fd3');
+  root.dataset.theme = 'dark';
+  assert.equal(applyAppAccent(doc), '#70a6ff');
+  assert.equal(values.get('--design-color-accent-text'), '#000000');
+  assert.equal(removed, 4);
 });
 
 test('changing accent preserves every non-color interaction rule', () => {
@@ -129,8 +146,8 @@ test('changing accent preserves every non-color interaction rule', () => {
   }
 });
 
-test('accent tokens retain chosen hue and always use white button text', () => {
-  assert.equal(accentTokens('#ffffff')['accent-text'], '#ffffff');
+test('accent tokens preserve the platform hue while choosing readable foreground text', () => {
+  assert.equal(accentTokens('#ffffff')['accent-text'], '#000000');
   assert.equal(accentTokens('#000000')['accent-text'], '#ffffff');
   assert.equal(accentTokens('#8b5cf6').accent, '#8b5cf6');
   assert.ok(!('danger' in accentTokens('#8b5cf6')));
@@ -139,14 +156,14 @@ test('accent tokens retain chosen hue and always use white button text', () => {
 });
 contractSuite("shared-view-policy", () => {
 const test = __merge_dep0.default;
-const { readFileSync } = __merge_dep6;
-const { createCoreDocumentReadModel } = __merge_dep7;
-const { createMapHost } = __merge_dep8;
+const { readFileSync } = __merge_dep5;
+const { createCoreDocumentReadModel } = __merge_dep6;
+const { createMapHost } = __merge_dep7;
 const assert = __merge_dep1.default;
-const { createRenderQuality } = __merge_dep9;
-const { createTerritorialEntityStore } = __merge_dep10;
-const { createGeometryVersionStore } = __merge_dep11;
-const { createHydroSettings } = __merge_dep12;
+const { createRenderQuality } = __merge_dep8;
+const { createTerritorialEntityStore } = __merge_dep9;
+const { createGeometryVersionStore } = __merge_dep10;
+const { createHydroSettings } = __merge_dep11;
 
 test('terrain intents retain the last enabled mode and reject unknown modes',()=>{
  const settings={terrainVisible:true,terrainStyle:'physical',hydroLayers:{rivers_hydro:false}};

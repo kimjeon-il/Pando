@@ -17,8 +17,6 @@ export function createPreferencesDialog({ document, productMode, getPreferences,
     get('preferencesThemeInput').value = appearance.theme;
     for (const button of modal.querySelectorAll('[data-preference-theme]'))
       button.setAttribute('aria-pressed', String(button.dataset.preferenceTheme === appearance.theme));
-    for (const button of modal.querySelectorAll('[data-preference-accent]'))
-      button.setAttribute('aria-pressed', String(button.dataset.preferenceAccent === appearance.accentPreset));
     get('preferencesSmoothLinesInput').checked = appearance.smoothLines;
   };
   const preview = appearance => { applyPreferences({ ...getPreferences(), appearance }); sync(); };
@@ -42,8 +40,6 @@ export function createPreferencesDialog({ document, productMode, getPreferences,
   listen(get('preferencesResetBtn'), 'click', () => preview(defaultUserPreferences().appearance));
   for (const button of modal.querySelectorAll('[data-preference-theme]'))
     listen(button, 'click', () => preview({ ...getPreferences().appearance, theme: button.dataset.preferenceTheme }));
-  for (const button of modal.querySelectorAll('[data-preference-accent]'))
-    listen(button, 'click', () => preview({ ...getPreferences().appearance, accentPreset: button.dataset.preferenceAccent }));
   for (const [id, key] of [['preferencesSmoothLinesInput','smoothLines']])
     listen(get(id), 'change', () => preview({ ...getPreferences().appearance, [key]: get(id).checked }));
   listen(modal, 'keydown', event => {

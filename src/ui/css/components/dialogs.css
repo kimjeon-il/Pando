@@ -49,11 +49,6 @@
   flex: 1;
 }
 
-.preferences-accent {
-  display: grid;
-  gap: var(--ui-space-3);
-}
-
 .gis-crs-summary {
   min-height: var(--ui-control-height);
   display: flex;

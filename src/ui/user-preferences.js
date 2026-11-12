@@ -1,5 +1,3 @@
-import { ACCENT_PRESET_IDS, accentPresetForColor } from "./accent-presets.js";
-
 const STORAGE_KEY = 'pandolab-user-preferences';
 
 const THEMES = new Set(['system', 'light', 'dark']);
@@ -8,7 +6,7 @@ const COLOR_PATTERN = /^#[0-9a-f]{6}$/i;
 
 const DEFAULTS = Object.freeze({
   version: 2,
-  appearance: Object.freeze({ theme: 'system', accentPreset: 'blue', smoothLines: true }),
+  appearance: Object.freeze({ theme: 'system', smoothLines: true }),
   labels: Object.freeze({
     country: Object.freeze({ font: 'default', color: null }),
     place: Object.freeze({ font: 'default', color: null, pointColor: null, showNativeNames: false }),
@@ -36,7 +34,7 @@ export function defaultUserPreferences() {
   return {
     backgrounds:{viewer:{terrainVisible:true,terrainStyle:'physical',graticule:true,globeShadow:true}},
     version: DEFAULTS.version,
-    appearance: { theme: DEFAULTS.appearance.theme, accentPreset: DEFAULTS.appearance.accentPreset, smoothLines: DEFAULTS.appearance.smoothLines },
+    appearance: { theme: DEFAULTS.appearance.theme, smoothLines: DEFAULTS.appearance.smoothLines },
     labels: {
       country: { font: DEFAULTS.labels.country.font, color: DEFAULTS.labels.country.color },
       place: {
@@ -67,9 +65,6 @@ export function normalizeUserPreferences(value) {
     timeline: {defaultWorldFollowCurrentMonth:source.timeline?.defaultWorldFollowCurrentMonth!==false},
     appearance: {
       theme,
-      accentPreset: ACCENT_PRESET_IDS.includes(source.appearance?.accentPreset)
-        ? source.appearance.accentPreset
-        : accentPresetForColor(source.appearance?.accentColor) || defaults.appearance.accentPreset,
       smoothLines: source.appearance?.smoothLines !== false,
     },
     labels: {
