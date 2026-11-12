@@ -1,3 +1,4 @@
+# Rerun real SwiftShader natural-pixel parity after reserved-keyword correction; keep strict checks.
 name: Terrain focused work-gis integration and source-matched staging
 on:
   push:
