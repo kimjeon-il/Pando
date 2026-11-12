@@ -1,11 +1,6 @@
 name: P7 runtime rendering and timeline regressions
 
 on:
-  push:
-    branches: [work/optimization]
-    paths:
-      - '.github/workflows/p7-rendering-regression.yml'
-      - 'assets/wasm/**'
   workflow_dispatch:
 
 permissions:
