@@ -50,7 +50,7 @@ test('three visible lines form one tall collision box',()=>{
 test('map labels always keep Korean, never add English, and only offer native at 8x', () => {
   const record = place();
   assert.equal(PLACE_NATIVE_LABEL_MIN_ZOOM, 8);
-  const labels = (zoom, showNativeNames) => mapPlaceLabelRowsAtMonth(record, '2026-10', { zoom, showNativeNames });
+  const labels = (zoom, showNativeNames) => mapPlaceLabelRowsAtMonth(record, '2026-12', { zoom, showNativeNames });
   assert.deepEqual(labels(8, false).rows.map(row => row.text), ['키이우']);
   assert.deepEqual(labels(8, false).secondaryRows, []);
   assert.deepEqual(labels(7.99, true).secondaryRows, []);
@@ -79,7 +79,7 @@ test('historical original name follows the project month and only one co-officia
 test('equal Korean and primary native names do not show the second co-official name instead', () => {
   const record = place({ name: '서울', nameNative: '서울', nameNativeExtras: ['Seoul'],
     nameTimeline: [] });
-  const label = mapPlaceLabelRowsAtMonth(record, '2026-10', { zoom: 32, showNativeNames: true });
+  const label = mapPlaceLabelRowsAtMonth(record, '2026-12', { zoom: 32, showNativeNames: true });
   assert.deepEqual(label.rows.map(row => row.text), ['서울']);
   assert.deepEqual(label.secondaryRows, []);
 });
