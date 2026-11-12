@@ -6,8 +6,11 @@ import {createServer} from 'node:http';
 import {readFile,mkdir,writeFile} from 'node:fs/promises';
 import {join,resolve} from 'node:path';
 
-const [cogDir,tileDir,outArg]=process.argv.slice(2);
-if(!cogDir||!tileDir||!outArg)throw Error('Expected COG directory, WebP fixture directory and new output');
+const [cogDir,tileDir,outArg,...options]=process.argv.slice(2);
+if(!cogDir||!tileDir||!outArg||options.length>1||options.some(value=>!value.startsWith('--url=')))
+  throw Error('Expected COG directory, WebP fixture directory, new output and optional --url');
+const externalUrl=options[0]?.slice('--url='.length)||null;
+if(externalUrl&&new URL(externalUrl).protocol!=='https:')throw Error('External COG source must use HTTPS');
 const cogManifest=JSON.parse(await readFile(join(cogDir,'manifest.json'))),tileManifest=JSON.parse(await readFile(join(tileDir,'manifest.json')));
 const bytes=await readFile(join(cogDir,cogManifest.filename));
 if(bytes.length!==cogManifest.bytes)throw Error('COG length mismatch');
@@ -24,7 +27,7 @@ const server=createServer((request,response)=>{
   response.writeHead(206,{'Content-Type':'image/tiff','Content-Range':`bytes ${start}-${end}/${bytes.length}`,
     'Content-Length':end-start+1}).end(bytes.subarray(start,end+1));
 });
-let browser;const report={schema:'pando-cog-viewer-adapter-check-v1',cogSha256:cogManifest.sha256,
+let browser;const report={schema:'pando-cog-viewer-adapter-check-v1',cogSha256:cogManifest.sha256,sourceUrl:externalUrl,hostMode:externalUrl?'external-https':'local-range-fixture',
   sourceSha256:cogManifest.sourceSha256,status:'running'};
 try{
   await new Promise((yes,no)=>server.once('error',no).listen(0,'127.0.0.1',yes));
@@ -32,11 +35,11 @@ try{
   await page.goto(origin);await page.addScriptTag({content:bundle.outputFiles[0].text});
   report.browserVersion=browser.version();
   report.region=cogManifest.region||'southwest-china';
-  report.runs=await page.evaluate(async({origin,cogManifest,tileManifest,region})=>{
+  report.runs=await page.evaluate(async({origin,externalUrl,cogManifest,tileManifest,region})=>{
     const sha=async bytes=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))].map(x=>x.toString(16).padStart(2,'0')).join('');
     const results=[];
     for(const size of [1024,512]){
-      const adapter=await globalThis.CogTileExperiment.openViewerCogTiles({url:origin+'/regional-q1.tif',cogManifest,tileManifest,tileSize:size,region});
+      const adapter=await globalThis.CogTileExperiment.openViewerCogTiles({url:externalUrl||origin+'/regional-q1.tif',cogManifest,tileManifest,tileSize:size,region});
       const tiles=[];
       const selected=tileManifest.records.filter(r=>r.tileSize===size&&r.region===region);
       const blobs=await Promise.all(selected.map(record=>{
@@ -57,7 +60,7 @@ try{
       results.push({tileSize:size,tiles,counts:{...adapter.counts},range:{...adapter.statistics},outsideRejected});
     }
     return results;
-  },{origin,cogManifest,tileManifest,region:report.region});
+  },{origin,externalUrl,cogManifest,tileManifest,region:report.region});
   report.status='passed';
 }catch(error){report.status='failed';report.error=String(error?.stack||error);}
 finally{await browser?.close();await new Promise(done=>server.close(done));
