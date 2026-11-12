@@ -11,7 +11,7 @@ function fixture(t) {
   t.after(()=>rmSync(root,{recursive:true,force:true}));
   for(const p of ['src/document/native','src/geometry/native','tools/build/native','config'])mkdirSync(join(root,p),{recursive:true});
   writeFileSync(join(root,'config/core-source-roots.json'),JSON.stringify({schema:'pando-core-source-roots-v1',roots:['src/document/native','src/geometry/native','tools/build/native']}));
-  writeFileSync(join(root,'config/toolchain-versions.json'),JSON.stringify({emscripten:'6.0.3'}));
+  writeFileSync(join(root,'config/toolchain-versions.json'),JSON.stringify({schema:'pando-development-toolchain-v1',emscripten:'6.0.3'}));
   writeFileSync(join(root,'tools/build/native/CMakeLists.txt'),'project(core)\n');
   writeFileSync(join(root,'src/document/native/model.cpp'),'int model=1;\n');
   const build=join(root,'build');mkdirSync(build);
@@ -29,9 +29,9 @@ test('packages paired byte hashes and detects changed sources and missing output
   assert.equal(manifest.compiler.version,'6.0.3');
   assert.equal(manifest.inputs.length,3);
   assert.deepEqual(await packageSharedCoreAssets(root,build,{check:true}),manifest);
-  writeFileSync(join(root,'config/toolchain-versions.json'),JSON.stringify({emscripten:'6.0.4'}));
+  writeFileSync(join(root,'config/toolchain-versions.json'),JSON.stringify({schema:'pando-development-toolchain-v1',emscripten:'6.0.4'}));
   await assert.rejects(packageSharedCoreAssets(root,build),/core compiler version mismatch/);
-  writeFileSync(join(root,'config/toolchain-versions.json'),JSON.stringify({emscripten:'6.0.3'}));
+  writeFileSync(join(root,'config/toolchain-versions.json'),JSON.stringify({schema:'pando-development-toolchain-v1',emscripten:'6.0.3'}));
   writeFileSync(join(root,'assets/wasm/pandoeditor-core.wasm'),Buffer.from('changed'));
   await assert.rejects(packageSharedCoreAssets(root,build,{check:true}),error=>{
     assert.match(error.message,/WASM binary artifact stale/);
