@@ -2,6 +2,7 @@ import { describe as contractSuite } from 'node:test';
 import * as __hydro_dep0 from "node:test";
 import * as __hydro_dep1 from "node:assert/strict";
 import * as __hydro_dep2 from "../../../src/rendering/gpu-hydro-coverage.js";
+import { createRenderDevice } from "../../../src/rendering/render-device.js";
 
 import * as __hydro_dep4 from "../../../src/data/hydro-tile-window.js";
 import * as __hydro_dep5 from "../../../src/data/physical-resources.js";
@@ -84,8 +85,9 @@ function fakeGl(supportMax = true) {
 
 test('coverage surface uses MAX union and restores the previous scene framebuffer', () => {
   const gl=fakeGl();
+  const device=createRenderDevice({gl,version:2,contextRevision:1});
   const coverage=createGpuHydroCoverage();
-  coverage.setContext(gl,2);
+  coverage.setContext(device,2);
   let count=0;
   assert.equal(coverage.render({width:128,height:128,color:[0.1,0.3,0.7,0.6],paint(){count++;}}),true);
   assert.equal(coverage.render({width:128,height:128,color:[0.1,0.3,0.7,0.6],paint(){count++;}}),true);
@@ -97,21 +99,27 @@ test('coverage surface uses MAX union and restores the previous scene framebuffe
   assert.ok(gl.calls.some(call=>call[0]==='equation'&&call[1]===gl.MAX));
   assert.equal(gl.calls.filter(call=>call[0]==='draw').length,2);
   coverage.dispose();
+  device.state.dispose();
   assert.equal(coverage.stats().bufferBytes,0);
 });
 
 test('unavailable WebGL1 MAX blending and budget overflow return to direct SDF', () => {
   const gl=fakeGl(false), coverage=createGpuHydroCoverage({maxBytes:16});
-  coverage.setContext(gl,1);
+  const device1=createRenderDevice({gl,version:1,contextRevision:1});
+  coverage.setContext(device1,1);
   let painted=false;
   assert.equal(coverage.render({width:2,height:2,color:[1,1,1,1],paint(){painted=true;}}),false);
   assert.equal(painted,false);
   assert.equal(coverage.stats().fallbackCount,1);
   const gl2=fakeGl();
-  coverage.setContext(gl2,2);
+  const device2=createRenderDevice({gl:gl2,version:2,contextRevision:2});
+  coverage.setContext(device2,2);
   assert.equal(coverage.render({width:3,height:3,color:[1,1,1,1],paint(){painted=true;}}),false);
   assert.equal(painted,false);
   assert.equal(coverage.stats().fallbackCount,2);
+  coverage.dispose();
+  device1.state.dispose();
+  device2.state.dispose();
 });
 });
 contractSuite("hydro-tile-window", () => {
