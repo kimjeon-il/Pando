@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {inspectFixtureCoverage,withNormalizedAdmissionBudget} from '../../../scripts/terrain-experiment/fixture-coverage.mjs';
+import {inspectFixtureCoverage,withNormalizedAdmissionBudget,withExperimentViewInvalidation} from '../../../scripts/terrain-experiment/fixture-coverage.mjs';
 
 test('preflight detects conservative visibility and budget downgrade before a Viewer run',()=>{
   const levels=size=>[
@@ -37,4 +37,11 @@ test('normalized budget is explicit and refuses a changed or ambiguous Viewer po
     'const x={byteBudget: 192 * 1024 * 1024, bytesPerPixel: 12};');
   assert.throws(()=>withNormalizedAdmissionBudget('no policy'),/contract changed/);
   assert.throws(()=>withNormalizedAdmissionBudget(`${marker};${marker}`),/contract changed/);
+});
+
+test('experiment camera repaint invalidates the full view and refuses a changed host contract',()=>{
+  const source="requestRepaint: reason => dependencies.domains.renderingDomain?.invalidateGpuFrame?.(reason || 'legacy-host-repaint'),";
+  assert.match(withExperimentViewInvalidation(source),/renderingDomain\?\.invalidateView\?/);
+  assert.throws(()=>withExperimentViewInvalidation('different'),/host contract changed/);
+  assert.throws(()=>withExperimentViewInvalidation(source+source),/host contract changed/);
 });

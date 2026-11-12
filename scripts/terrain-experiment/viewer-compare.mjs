@@ -9,7 +9,7 @@ import {a1TerrainFragmentSource} from './a1-shader.mjs';
 import {makeViewerFixtureManifest} from './viewer-fixture.mjs';
 import {serve,identity,mapSummary,chromiumProcessMemory} from '../p7-browser-ab-measure.mjs';
 import {performanceCounters,performanceDelta,captureAcceptedFrame,runViewerPhases} from './viewer-phases.mjs';
-import {inspectFixtureCoverage,withNormalizedAdmissionBudget} from './fixture-coverage.mjs';
+import {inspectFixtureCoverage,withNormalizedAdmissionBudget,withExperimentViewInvalidation} from './fixture-coverage.mjs';
 import {regionalOrigin} from './gutter-fixture.mjs';
 
 const region=process.argv.find(arg=>arg.startsWith('--region='))?.slice('--region='.length)||'southwest-china';
@@ -68,6 +68,7 @@ const report={schema:'pando-terrain-viewer-regional-ab-v1',identity:identity(),f
   clockPolicy:'Date offset starts at 2026-11-06; native timers and elapsed time continue normally.',
   limitations:['Only a bounded LOD5 region uses Q1; lower LODs use the original v0.14 tiles.',
     ...(normalizedBudget?['All candidates use an experiment-only 192MiB visible DEM admission limit; the product default is 96MiB and may select a coarser level.']:[]),
+    'Programmatic camera setup triggers the full view invalidation in this experiment so label layout follows the camera.',
     'Only WebGL2 at desktop DPR 1 on SwiftShader; smoke mode covers one stationary 32x scene only.',
     'Warm return is same-page memory/cache reuse, not a separate browser warm-navigation measurement.',
     '512 versus 1024 varies tile partition only; an atlas or instancing optimization is not implemented.',
@@ -85,13 +86,18 @@ try{
     const candidate=sequence[index],size=['b512','screen'].includes(candidate)?512:1024;
     const run={index:index+1,candidate,tileSize:size,status:'running',candidateRequests:[],placeNetwork:[],pageErrors:[],consoleErrors:[],routeErrors:[],error:null};
     runs.push(run);const page=await browser.newPage({viewport:{width:1280,height:800},locale:'ko-KR',timezoneId:'Asia/Seoul'});
-    let selected,manifestRequests=0,shaderRequests=0,budgetRequests=0,processCdp,pageCdp,phaseName='startup';
+    let selected,manifestRequests=0,shaderRequests=0,budgetRequests=0,hostRequests=0,processCdp,pageCdp,phaseName='startup';
     const network=new Map();
     try{
       page.on('pageerror',error=>run.pageErrors.push(String(error)));
       page.on('console',message=>{if(message.type()==='error'&&run.consoleErrors.length<50)run.consoleErrors.push(message.text().slice(0,2000));});
       page.on('requestfinished',request=>{if(/\/places\//.test(request.url()))run.placeNetwork.push({url:request.url(),outcome:'finished',timing:request.timing()});});
       page.on('requestfailed',request=>{if(/\/places\//.test(request.url()))run.placeNetwork.push({url:request.url(),outcome:'failed',failure:request.failure()?.errorText,timing:request.timing()});});
+      await page.route('**/assets/js/modules/map-workspace-host.js*',async route=>{
+        try{const response=await route.fetch(),body=withExperimentViewInvalidation(await response.text());hostRequests++;
+          return await route.fulfill({status:200,contentType:'text/javascript',body});
+        }catch(error){run.routeErrors.push(String(error));return route.abort('failed');}
+      });
       if(candidate==='screen'){
         const center=region==='southwest-china'?[102,28]:region==='thai-lowland'?[100,15]:[5.5,53];
         const origin=[regionalOrigin(Math.floor((center[0]+180)*120),1024,{alignWorld:true,block2:true}),
@@ -213,6 +219,7 @@ try{
           &&api.builtinMonth().month==='2026-11'&&document.getElementById('viewerStatus')?.dataset.ready==='true';
       },null,{timeout:210000,polling:300});
       if(!selected||manifestRequests!==1||shaderRequests<1)throw Error('Experiment manifest or shader was not consumed');
+      if(!hostRequests)throw Error('Experimental full-view camera invalidation was not consumed');
       if(normalizedBudget&&!budgetRequests)throw Error('Experimental normalized admission policy was not consumed');
       run.budgetRequests=budgetRequests;
       const initialScreenshot=await page.screenshot({timeout:30000});

@@ -7,6 +7,11 @@ export function withNormalizedAdmissionBudget(source){
   if(typeof source!=='string'||source.split(marker).length!==2)throw Error('Viewer DEM admission policy contract changed');
   return source.replace(marker,'byteBudget: 192 * 1024 * 1024, bytesPerPixel: 12');
 }
+export function withExperimentViewInvalidation(source){
+  const marker="requestRepaint: reason => dependencies.domains.renderingDomain?.invalidateGpuFrame?.(reason || 'legacy-host-repaint'),";
+  if(typeof source!=='string'||source.split(marker).length!==2)throw Error('Viewer host contract changed');
+  return source.replace(marker,marker.replace('invalidateGpuFrame','invalidateView'));
+}
 const radians=value=>value*Math.PI/180;
 function distance(a,b){
   const [lonA,latA]=a.map(radians),[lonB,latB]=b.map(radians);
