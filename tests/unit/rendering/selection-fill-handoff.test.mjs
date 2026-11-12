@@ -286,6 +286,11 @@ async function directFallbackHarness(t, { canvasWorker = false, pendingGeometry 
   assert.equal(await renderer.initialize({ allowPreview: false }), true);
   renderer.setSelectionPass(selectionPass);
   assert.equal(renderer.getRuntimeState().renderer, 'webgl2');
+  // A view-only GPU recovery pass reprojects existing selection coverage;
+  // make the selected/hovered paths first through the owning data pass.
+  rendering.invalidateSelection('preloss-selection-coverage');
+  if (queued.length) queued.shift()();
+  if (queued.length) queued.shift()();
   contextLost = true; canvas.dispatch('webglcontextlost');
   assert.equal(renderer.getRuntimeState().renderer, 'webgl-recovering');
   assert.equal(queued.length, 1); queued.shift()();
@@ -382,6 +387,9 @@ for (const canvasWorker of [false, true]) test(`real ${canvasWorker ? 'Worker fa
   const h = await directFallbackHarness(t, { canvasWorker });
   assert.equal(h.nodes(fillSelector).length, 0, 'scene fills remain reserved during recovery');
   await h.transition();
+  // Inline Canvas sends its ready/bitmap messages through two microtasks.
+  // A queued frame before Worker readiness is not a presented Canvas bitmap.
+  await new Promise(resolve => setImmediate(resolve));
   assert.equal(h.renderer.getRuntimeState().renderer, 'canvas2d');
   assert.equal(h.scenePaints(), 0, 'activation must not paint outside the canonical presentation boundary');
   assert.deepEqual(h.scheduledReasons, canvasWorker ? ['canvas-terrain-failed', 'canvas-fallback-ready'] : ['canvas-fallback-ready']);
@@ -403,6 +411,7 @@ for (const canvasWorker of [false, true]) test(`real ${canvasWorker ? 'Worker fa
 test('Worker failure acknowledges pending geometry only after its scheduled Canvas2D paint', async t => {
   const h = await directFallbackHarness(t, { canvasWorker: true, pendingGeometry: true });
   await h.transition();
+  await new Promise(resolve => setImmediate(resolve));
   assert.equal(h.scenePaints(), 0);
   assert.equal(h.renderer.getStats().pendingCountryCount, 1, 'activation cannot acknowledge an unpainted geometry revision');
   h.queued.shift()();
@@ -420,6 +429,7 @@ test('Worker failure acknowledges pending geometry only after its scheduled Canv
 for(const canvasWorker of [false,true])test(`native display IDs obey canonical individual visibility in Canvas worker=${canvasWorker}`,async t=>{
   const h=await directFallbackHarness(t,{canvasWorker,nativeVisibility:true});
   await h.transition({ deferCanvasFailure: canvasWorker });
+  await new Promise(resolve => setImmediate(resolve));
   // Prepare the canonical country inputs before Worker readiness. A pending
   // preview legitimately contains no individually hidden country IDs.
   if(canvasWorker) await h.prepareCountries();
