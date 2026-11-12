@@ -10,17 +10,20 @@ import {makeViewerFixtureManifest} from './viewer-fixture.mjs';
 import {serve,identity,mapSummary,chromiumProcessMemory} from '../p7-browser-ab-measure.mjs';
 import {performanceCounters,performanceDelta,captureAcceptedFrame,runViewerPhases} from './viewer-phases.mjs';
 import {inspectFixtureCoverage} from './fixture-coverage.mjs';
+import {regionalOrigin} from './gutter-fixture.mjs';
 
 const region=process.argv.find(arg=>arg.startsWith('--region='))?.slice('--region='.length)||'southwest-china';
 if(!['southwest-china','thai-lowland','netherlands-coast'].includes(region))throw Error('Unknown representative region');
-const revision='efd4a8f7020b87877eb2eeccc964c2e41f806b16';
-const base=`https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/${revision}/reports/development/performance/terrain-architecture-2026-11-12/p2/fixtures-centered/webp/`;
-const manifestHash='8bbd5100d45cdc160820dc5a3a2ada74815adddabae8d84311c11361e9337745';
+const revision='11c1d4be35ec3d5aeab57393f2f947f6d810ad7d';
+const base=`https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/${revision}/reports/development/performance/terrain-architecture-2026-11-12/p2/fixtures-coverage/webp/`;
+const manifestHash='3093b6164d6907ce78f48e2ceade139274aea73827c124f878b721407eaa7e82';
 const digest=bytes=>createHash('sha256').update(bytes).digest('hex');
 const out=process.argv.find(arg=>arg.startsWith('--out='))?.slice(6);
 const smoke=process.argv.includes('--smoke');
 const includeCog=process.argv.includes('--cog');
 const includeScreen=process.argv.includes('--screen');
+const normalizedBudget=process.argv.includes('--normalized-budget');
+const comparisonPolicy={byteBudget:(normalizedBudget?192:96)*1024*1024,bytesPerPixel:12};
 if(!out)throw Error('Explicit --out directory required');
 await mkdir(out,{recursive:false});
 const fixtureResponse=await fetch(base+'manifest.json');
@@ -35,10 +38,11 @@ const sequence=includeScreen&&includeCog?(smoke?['a1','b512','cog','screen']:
     (smoke?['a1','b512']:['a1','b512','b512','a1','a1','b512']);
 let cogManifest,cogBytes,cogBundle,cogSource;
 if(includeCog){
-  const hashes={'southwest-china':'aae043129adf5d19a9ff3bc0122210b59058eb2dd40ee809810a0ad61e232724',
-    'thai-lowland':'ac533e6d671c42f639ca756502df1c365a001a6e51f73db882f9bd8f2a70c0b4',
-    'netherlands-coast':'9767d67c6f39dc3ca752dfc20f287b080a6b61b531a5a60c3792aafc44499c95'};
-  const settings={revision:'741665cbeca6e9a11bda3fa1d4deed1a9979bb7b',folder:`centered-${region}-cog`,hash:hashes[region]};
+  const hashes={'southwest-china':'b578c6f0e7e2df30d267c2ece476f7e889c149319595e710e6ae0110fef183ab',
+    'thai-lowland':'e49dde3cd8fff7ef1f73a401d222d517b57f092913c6e7c2f54649a7d273d8db',
+    'netherlands-coast':'2200c4247f04c524ad3656883bf2738b72e39f931731dc3243a16686070a739c'};
+  const names={'southwest-china':'china','thai-lowland':'thai','netherlands-coast':'netherlands'};
+  const settings={revision:'0fc425921e1fb431ef35d9af6f5ac762f2b3a269',folder:`coverage-${names[region]}`,hash:hashes[region]};
   cogSource=settings;
   const root=`https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/${settings.revision}/reports/development/performance/terrain-architecture-2026-11-12/p3/${settings.folder}/`;
   const response=await fetch(root+'manifest.json');if(!response.ok)throw Error('COG manifest download failed');
@@ -59,9 +63,11 @@ if(includeScreen){
 }
 const report={schema:'pando-terrain-viewer-regional-ab-v1',identity:identity(),fixtureRevision:revision,region,
   fixtureManifestSha256:manifestHash,sequence,startedAt:new Date().toISOString(),runs,status:'running',
+  comparisonPolicy,normalizedBudget,
   ...(cogSource?{cogSource}:{}),
   clockPolicy:'Date offset starts at 2026-11-06; native timers and elapsed time continue normally.',
   limitations:['Only a bounded LOD5 region uses Q1; lower LODs use the original v0.14 tiles.',
+    ...(normalizedBudget?['All candidates use an experiment-only 192MiB visible DEM admission limit; the product default is 96MiB and may select a coarser level.']:[]),
     'Only WebGL2 at desktop DPR 1 on SwiftShader; smoke mode covers one stationary 32x scene only.',
     'Warm return is same-page memory/cache reuse, not a separate browser warm-navigation measurement.',
     '512 versus 1024 varies tile partition only; an atlas or instancing optimization is not implemented.',
@@ -85,10 +91,19 @@ try{
       page.on('pageerror',error=>run.pageErrors.push(String(error)));
       page.on('console',message=>{if(message.type()==='error'&&run.consoleErrors.length<50)run.consoleErrors.push(message.text().slice(0,2000));});
       if(candidate==='screen'){
-        const records=fixture.records.filter(row=>row.tileSize===1024&&row.region===region);
-        const origin=[Math.min(...records.map(row=>row.window[0])),Math.min(...records.map(row=>row.window[1]))];
+        const center=region==='southwest-china'?[102,28]:region==='thai-lowland'?[100,15]:[5.5,53];
+        const origin=[regionalOrigin(Math.floor((center[0]+180)*120),1024,{alignWorld:true,block2:true}),
+          regionalOrigin(Math.floor((90-center[1])*120),1024,{alignWorld:true,block2:true})];
         await page.addInitScript({content:`${screenBundle}\nglobalThis.__pandoScreen=PandoScreenFixture.createViewerScreenSpace(${JSON.stringify({origin,tileSize:512})});`});
       }
+      if(normalizedBudget)await page.route('**/terrain-tile-selection-core.js*',async route=>{
+        try{
+          const response=await route.fetch(),source=await response.text();
+          const marker='byteBudget: 96 * 1024 * 1024, bytesPerPixel: 12';
+          if(!source.includes(marker))throw Error('Viewer DEM admission policy contract changed');
+          return await route.fulfill({status:200,contentType:'text/javascript',body:source.replace(marker,'byteBudget: 192 * 1024 * 1024, bytesPerPixel: 12')});
+        }catch(error){run.routeErrors.push(String(error));return route.abort('failed');}
+      });
       await page.addInitScript(()=>{globalThis.__pandoCaptureFrame={requested:false,result:null};});
       await page.route('**/assets/js/modules/gpu-map-renderer.js*',async route=>{
         try{
@@ -204,7 +219,7 @@ try{
       run.fixtureCoverage=inspectFixtureCoverage({manifest:selected.manifest,
         availableKeys:new Set([...selected.tiles.keys()].map(key=>key.replace(/\.webp$/, ''))),
         center:selected.center,viewport:[run.initialFrameCapture.width,run.initialFrameCapture.height],
-        scale:run.initialFrameCapture.scale*32});
+        scale:run.initialFrameCapture.scale*32,policy:comparisonPolicy});
       if(!run.fixtureCoverage.valid)throw Error('Experimental fixture does not cover the actual Viewer visibility or admission policy');
       phaseName='zoom32';const countersBefore=await performanceCounters(pageCdp);
       await page.evaluate(()=>globalThis.__terrainFixtureFrames.start());

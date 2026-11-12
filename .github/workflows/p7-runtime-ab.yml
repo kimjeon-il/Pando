@@ -19,6 +19,11 @@ on:
         type: boolean
         required: false
         default: false
+      terrain_normalized_budget:
+        description: Use the documented 192 MiB experimental DEM visibility budget for every candidate
+        type: boolean
+        required: false
+        default: false
       terrain_region:
         description: Representative region for the terrain experiment
         type: choice
@@ -57,10 +62,12 @@ jobs:
         env:
           TERRAIN_FULL: ${{ inputs.terrain_full }}
           TERRAIN_REGION: ${{ inputs.terrain_region }}
+          TERRAIN_NORMALIZED_BUDGET: ${{ inputs.terrain_normalized_budget }}
         shell: bash
         run: |
           set -euo pipefail
           args=(--screen --cog "--region=$TERRAIN_REGION")
+          if [ "$TERRAIN_NORMALIZED_BUDGET" = 'true' ]; then args+=(--normalized-budget); fi
           if [ "$TERRAIN_FULL" != 'true' ]; then args+=(--smoke); fi
           node scripts/terrain-experiment/viewer-compare.mjs "${args[@]}" --out="$RUNNER_TEMP/terrain-regional-smoke"
       - name: Keep measurements and screenshots including failures

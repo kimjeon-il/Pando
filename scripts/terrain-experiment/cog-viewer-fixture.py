@@ -22,8 +22,8 @@ for rec in meta['records']:
         raise ValueError('Pyramid input identity mismatch')
     layers.append(np.frombuffer(raw, dtype=np.uint8).reshape(rec['height'], rec['width'], 4))
 output.mkdir()
-size = meta['records'][0]['width']
-memory = gdal.GetDriverByName('MEM').Create('', size, size, 3, gdal.GDT_Byte)
+width, height = meta['records'][0]['width'], meta['records'][0]['height']
+memory = gdal.GetDriverByName('MEM').Create('', width, height, 3, gdal.GDT_Byte)
 x, y = meta['baseOrigin']
 memory.SetGeoTransform((-180+x/120, 1/120, 0, 90-y/120, 0, -1/120))
 spatial = osr.SpatialReference()

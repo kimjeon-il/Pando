@@ -10,8 +10,8 @@ export function makeViewerFixtureManifest(source,fixture,tileSize,region='southw
   if(source?.version!=='0.14.0'||!Array.isArray(source.levels)||source.levels.length!==6||
       !source.tiles||!hex(source.assetsSha256)||fixture?.schema!=='pando-terrain-gutter-webp-v1'||!Array.isArray(fixture.records)||
       !hex(fixture.sourceSha256)||![512,1024].includes(tileSize)||typeof region!=='string'||!region)throw Error('Invalid experiment inputs');
-  const records=fixture.records.filter(record=>record.tileSize===tileSize&&record.region===region),expected=tileSize===512?16:4;
-  if(records.length!==expected)throw Error('Incomplete experimental regional tiles');
+  const records=fixture.records.filter(record=>record.tileSize===tileSize&&record.region===region),factor=1024/tileSize;
+  if(![4*factor*factor,15*factor*factor].includes(records.length))throw Error('Incomplete experimental regional tiles');
   const map=new Map();
   for(const record of records){
     const {window,offset,width,height,gutter,webpBytes,webpSha256,file}=record;
@@ -25,6 +25,11 @@ export function makeViewerFixtureManifest(source,fixture,tileSize,region='southw
     if(map.has(key))throw Error('Duplicate experiment tile');
     map.set(key,{file,bytes:webpBytes,sha256:webpSha256});
   }
+  const columns=records.map(record=>(record.window[0]+record.offset[0])/tileSize);
+  const rows=records.map(record=>(record.window[1]+record.offset[1])/tileSize);
+  const width=Math.max(...columns)-Math.min(...columns)+1,height=Math.max(...rows)-Math.min(...rows)+1;
+  if(width*height!==records.length||!((width===2*factor&&height===2*factor)||(width===5*factor&&height===3*factor)))
+    throw Error('Incomplete rectangular experimental regional tiles');
   const result=structuredClone(source),level=result.levels[5];
   level.tileSize=tileSize;level.columns=Math.ceil(level.width/tileSize);level.rows=Math.ceil(level.height/tileSize);
   result.version='0.15.0';

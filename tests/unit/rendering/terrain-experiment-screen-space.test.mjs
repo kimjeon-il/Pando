@@ -55,6 +55,8 @@ test('D pass preserves geographic gradient, stencil and atlas state', {timeout:6
       for(const [x,y] of [[16,16],[48,16],[16,48],[48,48],[32,32]]){
         const value=new Uint8Array(4);gl.readPixels(x,y,1,1,gl.RGBA,gl.UNSIGNED_BYTE,value);samples.push({x,y,pixel:[...value]});
       }
+      const offAtlas={...tiles[0],spec:{...tiles[0].spec,column:60}};
+      const withVisibleMargin=pass.draw({...input,tiles:[...tiles,offAtlas]});
       const missing=pass.draw({...input,tiles:tiles.slice(0,1)});
       gl.stencilMask(0xff);gl.clearStencil(0);gl.clear(gl.STENCIL_BUFFER_BIT);gl.enable(gl.SCISSOR_TEST);
       gl.scissor(0,0,32,64);gl.clearStencil(1);gl.clear(gl.STENCIL_BUFFER_BIT);gl.disable(gl.SCISSOR_TEST);
@@ -62,11 +64,11 @@ test('D pass preserves geographic gradient, stencil and atlas state', {timeout:6
       gl.stencilFunc(gl.NOTEQUAL,1,0xff);pass.draw({...input,pass:'ocean'});
       const land=new Uint8Array(4),ocean=new Uint8Array(4);
       gl.readPixels(16,32,1,1,gl.RGBA,gl.UNSIGNED_BYTE,land);gl.readPixels(48,32,1,1,gl.RGBA,gl.UNSIGNED_BYTE,ocean);
-      return {first,second,missing,restored,pixel:[...out],samples,origin,frame,land:[...land],ocean:[...ocean],stats:{...pass.stats},error:gl.getError()};
+      return {first,second,withVisibleMargin,missing,restored,pixel:[...out],samples,origin,frame,land:[...land],ocean:[...ocean],stats:{...pass.stats},error:gl.getError()};
     });
-    assert.equal(result.first,true);assert.equal(result.second,true);assert.equal(result.missing,false);
+    assert.equal(result.first,true);assert.equal(result.second,true);assert.equal(result.withVisibleMargin,true);assert.equal(result.missing,false);
     assert.equal(result.restored,true);
-    assert.equal(result.stats.atlasBuilds,1);assert.equal(result.stats.draws,4);assert.equal(result.error,0);
+    assert.equal(result.stats.atlasBuilds,1);assert.equal(result.stats.draws,5);assert.equal(result.error,0);
     const flat=.27+.73*Math.SQRT1_2,illumination=Math.max(0,(212/255-.42)/.58);
     const shade=Math.max(.16,Math.min(1,flat+((.27+.73*illumination)-flat)*1.3));
     const factor=Math.max(.38,Math.min(1.3,shade/flat)),palette=createLandPalette();

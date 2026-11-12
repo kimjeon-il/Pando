@@ -54,7 +54,9 @@ export function createViewerScreenSpace({origin,tileSize=512}={}){
   const contexts=new WeakMap(),stats={draws:0,fallbacks:0,atlasBuilds:0,atlasBytes:0};
   return {stats,draw({gl,tiles,frame,pass,physicalStyle,dark,palette}){
     if(!gl||typeof gl.createVertexArray!=='function'||!frame||frame.mode!==0||!Array.isArray(tiles)||!palette){stats.fallbacks++;return false;}
-    const candidates=tiles.filter(tile=>tile.spec?.level===5&&tile.spec.pixelWidth===tileSize&&tile.spec.pixelHeight===tileSize&&tile.gutter===1);
+    const candidates=tiles.filter(tile=>tile.spec?.level===5&&tile.spec.pixelWidth===tileSize&&tile.spec.pixelHeight===tileSize&&tile.gutter===1
+      &&tile.spec.column*tileSize>=origin[0]&&tile.spec.column*tileSize+tileSize<=origin[0]+2048
+      &&tile.spec.row*tileSize>=origin[1]&&tile.spec.row*tileSize+tileSize<=origin[1]+2048);
     const byKey=new Map(candidates.map(tile=>[`${tile.spec.column},${tile.spec.row}`,tile]));
     if(!byKey.size){stats.fallbacks++;return false;}
     let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;

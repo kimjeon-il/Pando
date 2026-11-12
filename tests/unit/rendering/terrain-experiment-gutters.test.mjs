@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {cutGutterTiles,regionalOrigin} from '../../../scripts/terrain-experiment/gutter-fixture.mjs';
+import {cutGutterTiles,regionalOrigin,regionalBlockWindow} from '../../../scripts/terrain-experiment/gutter-fixture.mjs';
+import {inspectFixtureCoverage} from '../../../scripts/terrain-experiment/fixture-coverage.mjs';
 import {globePixelToLonLat} from '../../../scripts/terrain-experiment/viewer-screen-space.mjs';
 
 test('512-style subdivision preserves both shared gutter pixels and core',()=>{
@@ -23,6 +24,20 @@ test('512-style subdivision preserves both shared gutter pixels and core',()=>{
 test('rejects malformed tile sources',()=>{
   assert.throws(()=>cutGutterTiles(Buffer.alloc(16),8,4));
   assert.throws(()=>cutGutterTiles(Buffer.alloc(400),8,3));
+});
+
+test('expanded regional blocks include conservative Viewer visibility for all comparison regions',()=>{
+  for(const [lon,lat] of [[102,28],[100,15],[5.5,53]]){
+    const [x0,y0,x1,y1]=regionalBlockWindow(lon,lat);
+    for(const size of [512,1024]){
+      const levels=[{id:4,width:21600,height:10800,tileSize:1024,columns:22,rows:11},
+        {id:5,width:43200,height:21600,tileSize:size,columns:Math.ceil(43200/size),rows:Math.ceil(21600/size)}];
+      const availableKeys=new Set();
+      for(let y=y0/size;y<y1/size;y++)for(let x=x0/size;x<x1/size;x++)availableKeys.add(`5/${x}-${y}`);
+      const report=inspectFixtureCoverage({manifest:{levels,gutter:1},availableKeys,center:[lon,lat],viewport:[1280,752],scale:10570.56});
+      assert.deepEqual(report.missingKeys,[],`${lon},${lat},${size}`);
+    }
+  }
 });
 
 test('representative camera views fit within centered 2x2 source regions',()=>{

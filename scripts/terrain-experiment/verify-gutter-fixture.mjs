@@ -8,7 +8,8 @@ import {cutGutterTiles} from './gutter-fixture.mjs';
 
 const [root,out]=process.argv.slice(2);if(!root||!out)throw Error('Expected fixture directory and new report file');
 const manifest=JSON.parse(await readFile(join(root,'gutter-report.json'),'utf8'));
-if(manifest.schema!=='pando-terrain-gutter-fixture-v1'||manifest.block2!==true)throw Error('Expected regional 2x2 fixtures');
+if(manifest.schema!=='pando-terrain-gutter-fixture-v1'||(!manifest.block2&&!manifest.coverage5x3))throw Error('Expected a regional multi-block fixture');
+const expectedBlocks=manifest.coverage5x3?15:4,expectedBoundaries=manifest.coverage5x3?22:4;
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex'),results=[];
 for(const region of [...new Set(manifest.records.map(record=>record.region))]){
   const records=manifest.records.filter(record=>record.region===region),blocks=[];let subtiles=0,boundaries=0;
@@ -24,7 +25,7 @@ for(const region of [...new Set(manifest.records.map(record=>record.region))]){
       subtiles++;
     }
   }
-  if(blocks.length!==4||subtiles!==16)throw Error('Incomplete region');
+  if(blocks.length!==expectedBlocks||subtiles!==expectedBlocks*4)throw Error('Incomplete region');
   for(const a of blocks)for(const b of blocks){
     const [ax,ay]=a.record.window,[bx,by]=b.record.window;
     if(ay===by&&bx===ax+1024){
@@ -37,7 +38,7 @@ for(const region of [...new Set(manifest.records.map(record=>record.region))]){
       boundaries++;
     }
   }
-  if(boundaries!==4)throw Error('Missing shared boundaries');
+  if(boundaries!==expectedBoundaries)throw Error('Missing shared boundaries');
   results.push({region,baseTiles:blocks.length,subtiles,sharedBoundaries:boundaries,exact:true});
 }
 await writeFile(out,JSON.stringify({schema:'pando-gutter-fixture-verification-v1',sourceSha256:manifest.sourceSha256,results},null,2)+'\n',{flag:'wx'});

@@ -18,6 +18,10 @@ test('preflight detects conservative visibility and budget downgrade before a Vi
   assert.equal(large.admittedLevel,4);
   assert.ok(large.missingKeys.length>0);
   assert.equal(large.valid,false);
+  const normalized=inspectFixtureCoverage({manifest:{levels:levels(1024),gutter:1},availableKeys:new Set([...keys(1024),...large.missingKeys]),
+    policy:{byteBudget:192*1024*1024,bytesPerPixel:12},...options});
+  assert.equal(normalized.admittedLevel,5);
+  assert.equal(normalized.valid,true);
   const small=inspectFixtureCoverage({manifest:{levels:levels(512),gutter:1},availableKeys:keys(512),...options});
   assert.equal(small.requestedTiles,17);
   assert.equal(small.admittedLevel,5);
