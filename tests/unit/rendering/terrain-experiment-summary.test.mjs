@@ -13,3 +13,16 @@ test('comparison summary keeps failures visible and only aggregates three valid 
   assert.equal(c.score,null);assert.equal(c.hardGate,'not-assessed');
   assert.equal(result.groups.find(x=>x.candidate==='a1'&&x.scene==='drag').metrics.p99Ms.median,4);
 });
+
+test('comparison flags differing LOD and unverified screen-space phases',()=>{
+  const row=(candidate,level,coverage)=>({candidate,status:'passed',frames:{count:300},renderer:{terrainRenderedLevel:level},
+    frameCapture:{screenDraws:candidate==='screen'?2:undefined},
+    phases:[{name:'zoom16',status:'passed',frames:{count:300},renderer:{terrainRenderedLevel:level},screenSpaceCoverage:coverage}]});
+  const report={schema:'pando-terrain-viewer-regional-ab-v1',region:'x',runs:[
+    ...Array.from({length:3},()=>row('a1',4)),...Array.from({length:3},()=>row('b512',5)),
+    ...Array.from({length:3},()=>row('screen',4,'not-verified'))]};
+  const result=summarizeComparison(report);
+  assert.equal(result.groups.find(x=>x.candidate==='b512'&&x.scene==='zoom16').lodCompatibleWithA1,false);
+  assert.equal(result.groups.find(x=>x.candidate==='screen'&&x.scene==='zoom16').lodCompatibleWithA1,false);
+  assert.equal(result.groups.find(x=>x.candidate==='screen'&&x.scene==='zoom32').lodCompatibleWithA1,true);
+});
