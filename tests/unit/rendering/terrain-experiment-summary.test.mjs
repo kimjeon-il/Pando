@@ -26,3 +26,10 @@ test('comparison flags differing LOD and unverified screen-space phases',()=>{
   assert.equal(result.groups.find(x=>x.candidate==='screen'&&x.scene==='zoom16').lodCompatibleWithA1,false);
   assert.equal(result.groups.find(x=>x.candidate==='screen'&&x.scene==='zoom32').lodCompatibleWithA1,true);
 });
+
+test('batched candidate without proof of drawing is excluded from same-LOD comparison',()=>{
+  const row=candidate=>({candidate,status:'passed',frames:{count:300},renderer:{terrainRenderedLevel:5}});
+  const result=summarizeComparison({schema:'pando-terrain-viewer-regional-ab-v1',region:'x',runs:[
+    ...Array.from({length:3},()=>row('a1')),...Array.from({length:3},()=>row('batch'))]});
+  assert.equal(result.groups.find(x=>x.candidate==='batch').lodCompatibleWithA1,false);
+});
