@@ -109,3 +109,82 @@ export function validateTerrainManifest(manifest) {
   }
   return Object.freeze({ ...manifest, representation: format });
 }
+
+// Natural imagery has its own immutable edition, but uses the same tile grid,
+// ordinary file fetch, byte-length and SHA-256 contract as the numerical DEM.
+export function validateNaturalSurfaceManifest(value, dem) {
+  const invalid = message => { throw new TypeError('Invalid natural terrain: ' + message); };
+  const hash = value => typeof value === 'string' && /^[a-f0-9]{64}$/.test(value);
+  const version = value?.version;
+  if (!value || value.schema !== 'pando-natural-surface-v1'
+      || typeof version !== 'string' || !/^\d+\.\d+\.\d+(?:-[a-z0-9]+(?:\.[a-z0-9]+)*)?$/.test(version)
+      || !/^[a-f0-9]{40}$/.test(value.sourceRevision || '')
+      || value.pathPrefix !== `terrain/natural/v${version}`) invalid('immutable edition');
+  if (value.crs !== 'EPSG:4326' || value.crs !== dem?.crs
+      || JSON.stringify(value.extent) !== '[-180,-90,180,90]'
+      || JSON.stringify(value.extent) !== JSON.stringify(dem.extent)
+      || value.registration !== 'cell-center' || value.registration !== dem.registration
+      || value.gutter !== 1 || value.gutter !== dem.gutter) invalid('grid registration');
+  if (value.tileFormat !== 'lossless WebP RGBA' || value.alpha !== 255 || value.colorSpace !== 'sRGB'
+      || value.shadeIncluded !== false || value.historicalReconstruction !== false
+      || !['preview','validated'].includes(value.status)
+      || !/^\d{4}-(0[1-9]|1[0-2])$/.test(value.referenceDate || '')
+      || !Number.isFinite(value.mixWeight) || value.mixWeight < 0 || value.mixWeight > 1) invalid('surface interpretation');
+  if (!Array.isArray(value.sources) || !value.sources.length || value.sources.some(source =>
+    !source || typeof source.id !== 'string' || !source.id || !hash(source.sha256)
+    || typeof source.url !== 'string' || !source.url.startsWith('https://')
+    || typeof source.observation !== 'string' || !source.observation
+    || typeof source.license !== 'string' || !source.license)) invalid('provenance');
+  if (!Array.isArray(value.levels) || !value.levels.length || !Array.isArray(dem.levels)
+      || value.levels.length !== dem.levels.length) invalid('LOD inventory');
+  const levels = value.levels.map((level, index) => {
+    const expected = dem.levels[index];
+    if (!level || !expected || ['id','width','height','tileSize','columns','rows'].some(key =>
+      !Number.isSafeInteger(level[key]) || level[key] !== expected[key])
+      || level.id !== index || level.width < 1 || level.height < 1 || level.tileSize < 1 || level.tileSize > 1024
+      || level.columns !== Math.ceil(level.width / level.tileSize)
+      || level.rows !== Math.ceil(level.height / level.tileSize)) invalid('LOD ' + index);
+    return Object.freeze({...level});
+  });
+  if (!value.tiles || typeof value.tiles !== 'object' || Array.isArray(value.tiles)) invalid('tile inventory');
+  const tiles = {};
+  for (const [key, entry] of Object.entries(value.tiles)) {
+    const match = /^(0|[1-9]\d*)\/(0|[1-9]\d*)-(0|[1-9]\d*)\.webp$/.exec(key);
+    if (!match) invalid('tile path');
+    const [, id, column, row] = match.map(Number), level = levels[id];
+    if (!level || !Number.isSafeInteger(column) || !Number.isSafeInteger(row)
+        || column >= level.columns || row >= level.rows) invalid('tile bounds');
+    const width = Math.min(level.tileSize, level.width - column * level.tileSize) + 2;
+    const height = Math.min(level.tileSize, level.height - row * level.tileSize) + 2;
+    if (!entry || !Number.isSafeInteger(entry.bytes) || entry.bytes < 1 || entry.bytes > 32 * 1024 * 1024
+        || !hash(entry.sha256) || entry.pixelWidth !== width || entry.pixelHeight !== height) invalid('tile identity: ' + key);
+    tiles[key] = Object.freeze({...entry});
+  }
+  if (!Object.keys(tiles).length) invalid('empty tile inventory');
+  return Object.freeze({...value, extent:Object.freeze([...value.extent]), levels:Object.freeze(levels),
+    tiles:Object.freeze(tiles), sources:Object.freeze(value.sources.map(source => Object.freeze({...source})))});
+}
+
+const naturalAdmissions = new WeakMap();
+export function terrainNaturalTileRequest(spec, manifest, {
+  physicalStyle = 'physical', terrainVisible = true, pass = 'land',
+} = {}) {
+  if (!terrainVisible || physicalStyle !== 'physical' || pass !== 'land' || !manifest?.naturalSurface) return null;
+  if (![spec?.level,spec?.column,spec?.row].every(value => Number.isSafeInteger(value) && value >= 0))
+    throw new TypeError('Invalid natural terrain tile coordinates');
+  let admitted = naturalAdmissions.get(manifest);
+  if (!admitted || admitted.input !== manifest.naturalSurface) {
+    admitted = {input:manifest.naturalSurface, value:validateNaturalSurfaceManifest(manifest.naturalSurface,manifest)};
+    naturalAdmissions.set(manifest,admitted);
+  }
+  const surface = admitted.value, key = `${spec.level}/${spec.column}-${spec.row}.webp`;
+  const entry = surface.tiles[key];
+  // Sparse preview coverage is intentional, never an endless missing-tile retry.
+  if (!entry) return null;
+  if (spec.pixelWidth !== undefined && entry.pixelWidth !== spec.pixelWidth + 2
+      || spec.pixelHeight !== undefined && entry.pixelHeight !== spec.pixelHeight + 2)
+    throw new TypeError('Natural terrain source dimensions differ from DEM');
+  return {url:new URL(`https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/${surface.sourceRevision}/${surface.pathPrefix}/${key}`),
+    bytes:entry.bytes,sha256:entry.sha256,pixelWidth:entry.pixelWidth,pixelHeight:entry.pixelHeight,
+    mixWeight:surface.mixWeight,sourceRevision:surface.sourceRevision};
+}
