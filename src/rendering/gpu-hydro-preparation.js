@@ -3,6 +3,16 @@ import { createHydroTileWindow, hydroTileSpecsForWindow } from "../data/hydro-ti
 import { createHydroViewRequests } from "../data/hydro-view-requests.js";
 import { resourceKey, resourceUpdate } from "./resource-update-policy.js";
 
+// Pack visibility is controlled by the active Worker viewport, never by the
+// fact that a pack was retained in the GPU cache.
+export function hydroPackAffectsCurrentView(entry, activePackIds, editEntries = []) {
+  return !!entry && (activePackIds.has(entry.id) || editEntries.includes(entry));
+}
+
+export function hydroActivePackSetChanged(previous, next) {
+  return previous.size !== next.size || [...next].some(id => !previous.has(id));
+}
+
 // Owns hydro transport, revision gates, RPC settlement, pack cache and upload
 // lifetimes. Application feature registration and UI presentation are callbacks.
 export function createGpuHydroPreparation({ createWorker, getMode, getView, getCacheBudget, getProtectedPackIds,
@@ -199,7 +209,7 @@ export function createGpuHydroPreparation({ createWorker, getMode, getView, getC
             entry.uploadQueued = false;
             // Cached out-of-view hydro packs remain GPU-ready for a future
             // camera move, but must not force a full globe repaint now.
-            if (hydroActivePackIds.has(entry.id) || hydroEditEntries.includes(entry))
+            if (hydroPackAffectsCurrentView(entry, hydroActivePackIds, hydroEditEntries))
               queueHydroRender('hydro-upload-ready');
             else metrics.hydroOffscreenUploadCompletionCount += 1;
           }
@@ -284,8 +294,7 @@ export function createGpuHydroPreparation({ createWorker, getMode, getView, getC
         if (Number(message.revision || 0) < hydroAcceptedRevision) return;
         hydroAcceptedRevision = Number(message.revision || hydroAcceptedRevision);
         const nextActive = new Set((message.packIds || []).map(Number).filter(Number.isFinite));
-        const changed = nextActive.size !== hydroActivePackIds.size ||
-          [...nextActive].some(id => !hydroActivePackIds.has(id));
+        const changed = hydroActivePackSetChanged(hydroActivePackIds, nextActive);
         hydroActivePackIds = nextActive;
         pruneHydroCache();
         if (changed) queueHydroRender('hydro-active-view-changed');
