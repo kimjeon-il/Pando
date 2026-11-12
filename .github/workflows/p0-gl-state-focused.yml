@@ -1,5 +1,6 @@
 name: P0 shared RenderDevice GL state focused acceptance
 # Opt-in branch-local verification. No main push, full-suite fanout or generated-artifact publication.
+# Second focused attempt: remove an existing unused renderer binding before behavioral checks.
 on:
   push:
     branches: ['work/p0-gl-state-20261112']
