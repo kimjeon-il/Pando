@@ -33,6 +33,9 @@ export function summarizeComparison(report){
       failed,invalidOrIncomplete:group.rows.length-valid.length-failed,metrics,hardGate:'not-assessed',score:null};
   });
   return {schema:'pando-terrain-viewer-summary-v1',region:report.region,identity:report.identity,sourceStatus:report.status,
+    fixtureRevision:report.fixtureRevision??null,fixtureManifestSha256:report.fixtureManifestSha256??null,
+    cogSource:report.cogSource??null,tilePrefetch:report.tilePrefetch??null,comparisonPolicy:report.comparisonPolicy??null,
+    normalizedBudget:report.normalizedBudget??null,
     minimumValidRepetitions:3,limitations:[...(report.limitations||[]),'Medians summarize per-run statistics; they are not pooled frame percentiles or confidence intervals.',
       'Hard gates and scores require independent visual, failure, hardware, and operational evidence.'],groups};
 }
