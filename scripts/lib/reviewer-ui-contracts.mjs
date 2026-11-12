@@ -1,6 +1,6 @@
 // R1 canonical UI checks for the shipped read-only Web Viewer.
 // The former editor HTML/DOM is an archived source, not a product contract.
-import {readFileSync,statSync} from 'node:fs';
+import {readFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {renderProductHtml} from './product-html.mjs';
