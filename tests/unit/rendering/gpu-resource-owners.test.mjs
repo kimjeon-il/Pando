@@ -247,7 +247,7 @@ test('project changes revoke pending country presentation without reintroducing 
     layerVisibility: { objects: true } };
   const renderer = createGpuMapRenderer({ state, runtimeAssetUrl: path => path,
     getPhysicalContextState: () => ({ ready: true, error: null, landRevision: null, waterRevision: null }),
-    mapWorkScheduler: { cancel() {} }, rendererUi: {},
+    mapWorkScheduler: { cancel() {} }, rendererUi: {}, isMobile: () => false,
     renderCountryBoundaryFeatures: () => [], countryBoundaryStyleById: () => null, scheduleGpuFrame: () => {} });
   try {
     renderer.resetProjectRenderState({ generation: 1 });
