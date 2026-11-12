@@ -4,9 +4,9 @@ import { workerBuildMeta } from '../../runtime/worker-asset-url.js';
 const storeModuleUrl=new URL("../place-worker-store.js",import.meta.url);
 const revision=new URL(import.meta.url).searchParams.get('v');
 if (!revision) throw new TypeError('Place Worker requires its deployment revision');
-if (!globalThis.PANDOLAB_BUILD_META) await import(`../../../assets/js/build-meta.js?v=${encodeURIComponent(revision)}`);
-const buildMeta=workerBuildMeta(self.location.href,globalThis.PANDOLAB_BUILD_META);
-const runtimeFetch=createExternalRuntimeDataFetch({meta:buildMeta});
+// Install the RPC listener synchronously. A module Worker can otherwise
+// receive and drop its first message while top-level metadata import awaits.
+const ensureBuildMeta=()=>globalThis.PANDOLAB_BUILD_META?Promise.resolve():import(`../../../assets/js/build-meta.js?v=${encodeURIComponent(revision)}`);
 storeModuleUrl.searchParams.set('v',revision);
 let store=null, manifestUrl=null, loading=null;
 async function getStore(url,context) {
@@ -14,6 +14,9 @@ async function getStore(url,context) {
   if (!loading || manifestUrl !== url) {
     manifestUrl=url;
     loading=(async () => {
+      await ensureBuildMeta();
+      const buildMeta=workerBuildMeta(self.location.href,globalThis.PANDOLAB_BUILD_META);
+      const runtimeFetch=createExternalRuntimeDataFetch({meta:buildMeta});
       const { createPlaceWorkerStore, readPlaceResponse }=await import(storeModuleUrl.href);
       const requestUrl=new URL(url);
       requestUrl.searchParams.set('v',revision);
