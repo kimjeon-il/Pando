@@ -123,3 +123,20 @@ export function strokeVisibilityBlockIntersectsFrame(bounds, frame, paddingPx = 
     return right >= -padding && left <= width + padding;
   });
 }
+
+/** Merge only touching/overlapping GPU ranges inside one style batch.
+ * Deliberately never bridge a gap: doing so would paint a hidden owner. */
+export function mergeAdjacentStrokeRanges(ranges = []) {
+  if (ranges.length < 2) return ranges;
+  const ordered = [...ranges].sort((a, b) => a.first - b.first || a.count - b.count);
+  const merged = [];
+  for (const range of ordered) {
+    if (!Number.isSafeInteger(range?.first) || !Number.isSafeInteger(range?.count)
+      || range.first < 0 || range.count <= 0) continue;
+    const previous = merged.at(-1);
+    if (previous && range.first <= previous.first + previous.count)
+      previous.count = Math.max(previous.first + previous.count, range.first + range.count) - previous.first;
+    else merged.push({ first: range.first, count: range.count });
+  }
+  return merged;
+}

@@ -1,5 +1,5 @@
 import { buildGpuStrokeInstances } from "./gpu-stroke-geometry.js";
-import { strokeVisibilityBlockIntersectsFrame, STROKE_CULL_PADDING_PX } from "./gpu-stroke-visibility.js";
+import { strokeVisibilityBlockIntersectsFrame, STROKE_CULL_PADDING_PX, mergeAdjacentStrokeRanges } from "./gpu-stroke-visibility.js";
 export { buildGpuStrokeInstances, GPU_STROKE_FLAGS } from "./gpu-stroke-geometry.js";
 import { isRenderDevice } from "./render-device.js";
 import { createGpuResourceBudget } from "./gpu-resource-budget.js";
@@ -814,10 +814,12 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
           lastFailureStage = 'draw-coverage';
           continue;
         }
+        // Merge only within this batch, where dash/opacity/casing are identical.
+        // Adjacent ranges in the same GL buffer need just one instanced draw.
         const plan = {
-          segments: resolveVisibleGpuStrokeRanges(resource, batch.ownerIds, frameContext),
-          nodes: resolveVisibleGpuStrokeRanges(resource, batch.ownerIds, frameContext,
-            'ownerNodeRanges', 'nodeCount'),
+          segments: mergeAdjacentStrokeRanges(resolveVisibleGpuStrokeRanges(resource, batch.ownerIds, frameContext)),
+          nodes: mergeAdjacentStrokeRanges(resolveVisibleGpuStrokeRanges(resource, batch.ownerIds, frameContext,
+            'ownerNodeRanges', 'nodeCount')),
         };
         const total = ranges => ranges.reduce((sum, range) => sum + range.count, 0);
         culledSegmentInstances += total(ownerRanges) - total(plan.segments);
