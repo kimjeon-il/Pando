@@ -3,6 +3,8 @@
 import {chromium} from '@playwright/test';
 import {spawn,execFileSync} from 'node:child_process';
 import {readFileSync,writeFileSync} from 'node:fs';
+import {resolve} from 'node:path';
+import {fileURLToPath} from 'node:url';
 import {setTimeout as delay} from 'node:timers/promises';
 
 const options=Object.fromEntries(process.argv.slice(2).map(arg=>{
@@ -28,7 +30,7 @@ function medianObject(values) {
   }
   return values.every(value=>JSON.stringify(value)===JSON.stringify(values[0]))?values[0]:null;
 }
-async function chromiumProcessMemory(cdp) {
+export async function chromiumProcessMemory(cdp) {
   if(!cdp)return null;
   try{
     const {processInfo}=await cdp.send('SystemInfo.getProcessInfo');
@@ -43,7 +45,7 @@ async function chromiumProcessMemory(cdp) {
     return {pssBytes:bytes,processes:processes.length};
   }catch{return null;} // Never substitute zero for an unavailable process metric.
 }
-const mapSummary=stats=>{
+export const mapSummary=stats=>{
   const s=stats||{};
   return {
     p95CpuSubmitMs:s.p95CpuSubmitMs??null,
@@ -80,14 +82,14 @@ const mapSummary=stats=>{
     screenLodBudgetRejectCount:s.screenLodBudgetRejectCount??null,
   };
 };
-const identity=()=>({commit:sha(),pin:pin(),platform:process.platform,node:process.version,
+export const identity=()=>({commit:sha(),pin:pin(),platform:process.platform,node:process.version,
   scenario:'Chromium SwiftShader; 1280x800; light UI; 2026-11-06 clock; 1 fresh browser per revision; same runner',
   viewport:[1280,800],cachePolicy:'separate fresh browser instances; browser default cache; same-page date-return reuse',
   memoryPolicy:'V8 main page used heap via CDP after GC; Chromium process-family PSS via Linux procfs when available (includes workers/WASM in process memory, excludes GPU VRAM).',
   cpuPolicy:'CDP TaskDuration and ScriptDuration are renderer task/script time (not system-wide CPU percent).',
   framePolicy:'requestAnimationFrame pacing is a scheduling FPS proxy, not measured GPU presentation rate.',
   gpuPolicy:'GPU draw-call and buffer counts from renderer; actual VRAM/utilization/kernel timing not measured.'});
-async function serve(){
+export async function serve(){
   const child=spawn(process.execPath,['tests/browser/server.mjs'],{cwd:process.cwd(),
     env:{...process.env,PANDOLAB_TEST_PORT:'4173'},stdio:['ignore','pipe','pipe']});
   let output='';
@@ -371,6 +373,8 @@ function compare(){
   }
   if(!comparable)process.exitCode=1;
 }
-if(options.mode==='compare')compare();
-else if(options.mode==='aggregate')aggregate();
-else await sample();
+if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
+  if(options.mode==='compare')compare();
+  else if(options.mode==='aggregate')aggregate();
+  else await sample();
+}

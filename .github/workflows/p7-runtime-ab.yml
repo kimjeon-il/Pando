@@ -9,6 +9,11 @@ on:
         type: boolean
         required: false
         default: false
+      terrain_only:
+        description: Run the isolated regional terrain A1 and tile-size smoke experiment
+        type: boolean
+        required: false
+        default: false
 
 permissions:
   contents: read
@@ -18,8 +23,35 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  regional-terrain-smoke:
+    if: github.event_name == 'workflow_dispatch' && inputs.terrain_only == true
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - name: Prepare exact pinned library inputs (no regeneration)
+        uses: ./.github/actions/library-data
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Smoke-test the two regional tile partitions in the actual Viewer
+        run: node scripts/terrain-experiment/viewer-compare.mjs --smoke --out="$RUNNER_TEMP/terrain-regional-smoke"
+      - name: Keep measurements and screenshots including failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: terrain-regional-smoke-${{ github.sha }}
+          path: ${{ runner.temp }}/terrain-regional-smoke/**
+          if-no-files-found: warn
+          retention-days: 14
+
   paired-browser:
-    if: github.event_name == 'workflow_dispatch' && inputs.profile_only != true
+    if: github.event_name == 'workflow_dispatch' && inputs.profile_only != true && inputs.terrain_only != true
     runs-on: ubuntu-24.04
     timeout-minutes: 85
     steps:
@@ -93,7 +125,7 @@ jobs:
           retention-days: 14
 
   current-renderer-profile:
-    if: github.event_name == 'workflow_dispatch' && inputs.profile_only == true
+    if: github.event_name == 'workflow_dispatch' && inputs.profile_only == true && inputs.terrain_only != true
     runs-on: ubuntu-24.04
     timeout-minutes: 75
     steps:
