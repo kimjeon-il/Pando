@@ -1,22 +1,33 @@
 <div id="preferencesModal" class="ui-dialog hidden" role="dialog" aria-modal="true" aria-labelledby="preferencesTitle">
-    <div class="ui-dialog-backdrop"></div>
-    <section class="ui-dialog-card preferences-card">
-      <header class="ui-dialog-header"><div><h2 id="preferencesTitle">환경설정</h2></div></header>
-      <div class="preferences-fields">
-        <section class="preferences-section" aria-labelledby="preferencesAppearanceTitle">
-          <h3 id="preferencesAppearanceTitle">화면</h3>
-          <div class="preferences-theme" role="group" aria-labelledby="preferencesThemeTitle">
-            <strong id="preferencesThemeTitle">테마</strong>
-            <input id="preferencesThemeInput" type="hidden" value="system" />
-            <div class="preferences-theme-swatches">
-              <button type="button" class="ui-button preferences-theme-chip" data-preference-theme="light" aria-label="밝은 테마" data-tooltip="밝은 테마" aria-pressed="false"></button>
-              <button type="button" class="ui-button preferences-theme-chip" data-preference-theme="dark" aria-label="어두운 테마" data-tooltip="어두운 테마" aria-pressed="false"></button>
-              <button type="button" class="ui-button preferences-theme-chip" data-preference-theme="system" aria-label="시스템 설정" data-tooltip="시스템 설정" aria-pressed="true"></button>
-            </div>
-          </div>
-          <div class="preferences-display"><label class="ui-choice-row ui-toggle"><input id="preferencesSmoothLinesInput" type="checkbox" checked /><span>경계선 부드럽게</span></label></div>
-        </section>
+  <div class="ui-dialog-backdrop"></div>
+  <section class="ui-dialog-card preferences-card">
+    <header class="ui-dialog-header"><div><h2 id="preferencesTitle">설정</h2></div></header>
+    <div class="preferences-fields">
+      <div class="preferences-setting preferences-setting-choices" role="group" aria-labelledby="preferencesMapStyleTitle">
+        <strong id="preferencesMapStyleTitle">지도 테마</strong>
+        <div class="preferences-option-group" role="radiogroup" aria-label="지도 테마">
+          <label class="ui-choice-row"><input type="radio" name="preferencesMapStyle" value="standard" checked /><span>표준</span></label>
+          <label class="ui-choice-row"><input type="radio" name="preferencesMapStyle" value="minimal" /><span>간결</span></label>
+          <label class="ui-choice-row"><input type="radio" name="preferencesMapStyle" value="classic" /><span>고전</span></label>
+        </div>
       </div>
-      <div class="ui-dialog-actions"><button id="preferencesResetBtn" class="ui-button btn ghost" type="button">기본값 복원</button><span class="preferences-actions-spacer"></span><button id="preferencesCancelBtn" class="ui-button btn ghost" type="button">취소</button><button id="preferencesApplyBtn" class="ui-button btn" type="button">적용</button></div>
-    </section>
-  </div>
+      <label class="ui-choice-row ui-toggle preferences-setting"><span>원어명 병기</span><input id="preferencesNativeNamesInput" type="checkbox" /></label>
+      <label class="ui-choice-row ui-toggle preferences-setting"><span>강</span><input id="preferencesRiversInput" type="checkbox" checked /></label>
+      <label class="ui-choice-row ui-toggle preferences-setting"><span>호수</span><input id="preferencesLakesInput" type="checkbox" checked /></label>
+      <div id="preferencesGenericSlot" class="preferences-conditional-slot"></div>
+      <div id="preferencesDistributionSlot" class="preferences-conditional-slot"></div>
+      <label class="ui-choice-row ui-toggle preferences-setting"><span>경위도선</span><input id="preferencesGraticuleInput" type="checkbox" checked /></label>
+      <label class="ui-choice-row ui-toggle preferences-setting"><span>경계선 부드럽게</span><input id="preferencesSmoothLinesInput" type="checkbox" checked /></label>
+      <div class="preferences-setting preferences-theme" role="group" aria-labelledby="preferencesThemeTitle">
+        <strong id="preferencesThemeTitle">화면 테마</strong>
+        <input id="preferencesThemeInput" type="hidden" value="system" />
+        <div class="preferences-theme-swatches">
+          <button type="button" class="ui-button preferences-theme-chip" data-preference-theme="light" aria-label="라이트" data-tooltip="라이트" aria-pressed="false"></button>
+          <button type="button" class="ui-button preferences-theme-chip" data-preference-theme="dark" aria-label="다크" data-tooltip="다크" aria-pressed="false"></button>
+          <button type="button" class="ui-button preferences-theme-chip" data-preference-theme="system" aria-label="시스템" data-tooltip="시스템" aria-pressed="true"></button>
+        </div>
+      </div>
+    </div>
+    <div class="ui-dialog-actions"><button id="preferencesResetBtn" class="ui-button btn ghost" type="button">기본값 복원</button><span class="preferences-actions-spacer"></span><button id="preferencesCloseBtn" class="ui-button btn" type="button">닫기</button></div>
+  </section>
+</div>

@@ -388,9 +388,18 @@ export async function composeViewer({ productMode, meta }) {
     element.addEventListener('click',handler);
     actionSubscriptions.push(()=>element.removeEventListener('click',handler));
   }
-  const preferencesDialog=createPreferencesDialog({document,productMode,returnFocus:()=>get(surfaces.isMobile()?'mobileMenuBtn':'preferencesBtn'),getPreferences:()=>preferencePresentation.current,
-    applyPreferences:value=>preferencePresentation.apply(value,{persist:false}),beforeOpen:()=>surfaces.closeFileMenu()});
+  const preferencesDialog=createPreferencesDialog({document,window,productMode,
+    returnFocus:()=>get(surfaces.isMobile()?'mobileMenuBtn':'preferencesBtn'),
+    getPreferences:()=>preferencePresentation.current,getMapState:()=>map.displayState(),mapSettings:display,
+    applyPreferences:value=>preferencePresentation.apply(value,{persist:true}),
+    onError:report,beforeOpen:()=>surfaces.closeFileMenu()});
   disposables.push(preferencesDialog);
+  const onProjectMapStyle = () => {
+    void display.applyMapStyle(preferencePresentation.current.appearance.mapStyle)
+      .catch(error => report(error, '프로젝트 지도 테마를 적용하지 못했습니다.', 'PL-MAP-STYLE-PROJECT'));
+  };
+  window.addEventListener('pandolab:project-changed', onProjectMapStyle);
+  disposables.push({ dispose: () => window.removeEventListener('pandolab:project-changed', onProjectMapStyle) });
   if(inspectParams.get('debug')==='1')globalThis.__PANDOLAB_VIEWER__=Object.freeze({initialMapPresented:initialPresentation.hasPresented,productMode,documentState:()=>activeSession?.commandOwner.state(),
     documentSnapshot:()=>activeSession?.documentModel.snapshot(),resolvedWorld:()=>activeSession?.documentModel.world(),selectionSnapshot:()=>activeSession?.selectionDomain.snapshot().selection,
     diagnostics:diagnostics.snapshot,rendererStats:()=>map.renderer.getStats(),
@@ -416,5 +425,9 @@ export async function composeViewer({ productMode, meta }) {
     },
     onError:error=>{presentViewerLoadStatus(status,'지도를 불러오지 못했습니다. 새로고침해 다시 시도하세요.',{error:true});report(error,'지도를 불러오지 못했습니다.','PL-MAP-START');},reportDisposeError:error=>console.error('[PL-DISPOSE]',error)});
   await lifecycle.start();
+  // Restore the selected global map style against the newly admitted project.
+  await display.applyMapStyle(preferencePresentation.current.appearance.mapStyle).catch(error => report(error,
+    '지도 테마를 복원하지 못했습니다.', 'PL-MAP-STYLE-RESTORE'));
+  preferencesDialog.sync();
   await inspectorController?.openAfterStartup();
 }

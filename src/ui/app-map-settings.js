@@ -475,7 +475,7 @@ export function createMapSettings({ capabilities,viewPresentation } = {}) {
     });
     const distributionSettings = (0, dependencies.platform.$)('distributionViewSettings');
     const distributionExpanded = menuDesktop && menuState.path.includes('distribution');
-    if (distributionSettings) distributionSettings.hidden = menuDesktop && !distributionExpanded;
+    if (distributionSettings && !distributionSettings.closest('#preferencesModal')) distributionSettings.hidden = menuDesktop && !distributionExpanded;
     (0, dependencies.platform.$)('distributionMenuTrigger')?.setAttribute('aria-expanded', String(distributionExpanded));
     surface?.classList.toggle('view-menu-desktop', menuDesktop);
     syncDesktopMenuChecks();
@@ -513,7 +513,7 @@ export function createMapSettings({ capabilities,viewPresentation } = {}) {
   }
 
   function renderMapDisplaySettings() {
-    for (const input of document.querySelectorAll('#mapDisplaySurface input[data-layer-visibility]')) {
+    for (const input of document.querySelectorAll('#mapDisplaySurface input[data-layer-visibility], #preferencesModal input[data-layer-visibility]')) {
       input.checked = dependencies.projectState.state.layerVisibility[input.dataset.layerVisibility] !== false;
     }
     for (const input of document.querySelectorAll('[data-territorial-symbol]')) {
@@ -733,7 +733,7 @@ export function createMapSettings({ capabilities,viewPresentation } = {}) {
     listen(surface, 'scroll', () => {
       if (desktopMenuOpen()) desktopViewMenuPositioner.schedule();
     }, true);
-    listen(surface, 'change', event => runViewAction(async () => {
+    const handleAdvancedDisplayChange = event => runViewAction(async () => {
       syncDesktopMenuChecks();
       const boundary = event.target.closest('[data-layer-style-boundary]');
       if (boundary) await updateLayerPresentationStyle(boundary.dataset.layerStyleBoundary, { boundaryVisible: boundary.checked });
@@ -748,7 +748,9 @@ export function createMapSettings({ capabilities,viewPresentation } = {}) {
       if (event.target.id === 'distributionBoundaryVisibleInput') {
         await setDistributionControl('distributionBoundaryVisible', event.target.checked, 'distribution-boundary-visibility');
       }
-    }));
+    });
+    listen(surface, 'change', handleAdvancedDisplayChange);
+    listen(document.getElementById('preferencesModal'), 'change', handleAdvancedDisplayChange);
     renderMapDisplaySettings();
   }
 
