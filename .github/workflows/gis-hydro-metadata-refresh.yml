@@ -2,10 +2,6 @@ name: Refresh Hydro Worker and build metadata
 # Source-planned Worker dependencies are validated before any generated files are committed.
 
 on:
-  push:
-    branches: [ work/gis ]
-    paths:
-      - '.github/workflows/gis-hydro-metadata-refresh.yml'
   workflow_dispatch:
 
 permissions:

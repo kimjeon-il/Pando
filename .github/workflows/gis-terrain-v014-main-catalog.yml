@@ -1,8 +1,5 @@
-name: GIS v0.14.0 private source archive catalog integration into library main
+name: "[HISTORICAL] GIS v0.14.0 private source archive catalog integration into library main"
 on:
-  push:
-    branches: [work/gis]
-    paths: ['.github/workflows/gis-terrain-v014-main-catalog.yml']
   workflow_dispatch:
 permissions:
   contents: read
