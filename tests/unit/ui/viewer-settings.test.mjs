@@ -125,3 +125,33 @@ test('an unsuccessful map-theme command does not poison later updates',async()=>
   assert.equal(f.prefs.appearance.mapStyle,'classic');
   f.settings.dispose();
 });
+
+test('map-theme updates are serialized and the final user selection wins',async()=>{
+  const f=viewingFixture();
+  const changes = [
+    f.settings.applyMapStyle('classic'),
+    f.settings.applyMapStyle('minimal'),
+    f.settings.applyMapStyle('standard'),
+  ];
+  await Promise.all(changes);
+  assert.equal(f.prefs.appearance.mapStyle,'standard');
+  assert.equal(f.state.physicalSettings.terrainVisible,true);
+  assert.equal(f.state.physicalSettings.terrainStyle,'physical');
+  assert.equal(f.state.layerVisibility.objectFlags,true);
+  assert.equal(f.state.layerPresentation.styles.objects.colorVisible,true);
+  f.settings.dispose();
+});
+
+test('conditional display settings do not change map-theme or data ownership',async()=>{
+  const f=viewingFixture();
+  const initial = structuredClone(f.state.distributionEntries);
+  await f.settings.applyMapStyle('classic');
+  await f.settings.setLayerVisibility('genericFeatures',false);
+  await f.settings.setLayerVisibility('distributions',false);
+  await f.settings.setDistributionControl('distributionBoundaryVisible',false);
+  assert.equal(f.prefs.appearance.mapStyle,'classic');
+  assert.equal(f.state.layerVisibility.genericFeatures,false);
+  assert.equal(f.state.layerVisibility.distributions,false);
+  assert.deepEqual(f.state.distributionEntries,initial);
+  f.settings.dispose();
+});

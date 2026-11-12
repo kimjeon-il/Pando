@@ -87,6 +87,12 @@ export function createPreferencesDialog({ document, window = globalThis.window, 
     }).then(sync);
     return pending;
   }
+  // Read values synchronously. A queued operation must not observe a later
+  // DOM update or the sync() of an earlier operation.
+  const queueInput = (input, action) => {
+    const value = input.type === 'checkbox' ? input.checked : input.value;
+    return schedule(() => action(value));
+  };
   function applyAppearance(patch) {
     const current = getPreferences();
     applyPreferences({...current,appearance:{...current.appearance,...patch}});
@@ -114,20 +120,28 @@ export function createPreferencesDialog({ document, window = globalThis.window, 
     listen(button,'click',()=>applyAppearance({theme:button.dataset.preferenceTheme}));
   listen(get('preferencesSmoothLinesInput'),'change',event=>applyAppearance({smoothLines:event.currentTarget.checked}));
   for (const input of modal.querySelectorAll('input[name="preferencesMapStyle"]'))
-    listen(input,'change',event => {if(event.currentTarget.checked) schedule(()=>mapSettings.applyMapStyle(event.currentTarget.value));});
-  listen(get('preferencesNativeNamesInput'),'change',event=>schedule(()=>mapSettings.setNativeNameOverlay(event.currentTarget.checked)));
+    listen(input,'change',event => {
+      if (event.currentTarget.checked) queueInput(event.currentTarget,value=>mapSettings.applyMapStyle(value));
+    });
+  listen(get('preferencesNativeNamesInput'),'change',event=>
+    queueInput(event.currentTarget,value=>mapSettings.setNativeNameOverlay(value)));
   for (const [id,group] of [['preferencesRiversInput','rivers'],['preferencesLakesInput','lakes'],
     ['genericFeaturesVisible','genericFeatures'],['distributionsVisible','distributions']])
-    listen(get(id),'change',event=>schedule(()=>mapSettings.setLayerVisibility(group,event.currentTarget.checked)));
-  listen(get('preferencesGraticuleInput'),'change',event=>schedule(()=>mapSettings.setBackgroundSetting('graticule',event.currentTarget.checked)));
-  listen(get('preferencesDistributionBlendInput'),'change',event =>
-    schedule(()=>mapSettings.updateLayerPresentationStyle('distributions',{blendMode:event.currentTarget.value})));
+    listen(get(id),'change',event=>
+      queueInput(event.currentTarget,value=>mapSettings.setLayerVisibility(group,value)));
+  listen(get('preferencesGraticuleInput'),'change',event=>
+    queueInput(event.currentTarget,value=>mapSettings.setBackgroundSetting('graticule',value)));
+  listen(get('preferencesDistributionBlendInput'),'change',event=>
+    queueInput(event.currentTarget,value=>mapSettings.updateLayerPresentationStyle('distributions',{blendMode:value})));
   for (const input of modal.querySelectorAll('input[name="distributionLayerMode"]'))
-    listen(input,'change',event=>{if(event.currentTarget.checked) schedule(()=>mapSettings.setDistributionControl('distributionRenderMode',event.currentTarget.value));});
-  listen(get('distributionActiveLayerInput'),'change',event =>
-    schedule(()=>mapSettings.setDistributionControl('distributionActiveLayer',event.currentTarget.value)));
-  listen(get('distributionBoundaryVisibleInput'),'change',event =>
-    schedule(()=>mapSettings.setDistributionControl('distributionBoundaryVisible',event.currentTarget.checked)));
+    listen(input,'change',event => {
+      if (event.currentTarget.checked)
+        queueInput(event.currentTarget,value=>mapSettings.setDistributionControl('distributionRenderMode',value));
+    });
+  listen(get('distributionActiveLayerInput'),'change',event=>
+    queueInput(event.currentTarget,value=>mapSettings.setDistributionControl('distributionActiveLayer',value)));
+  listen(get('distributionBoundaryVisibleInput'),'change',event=>
+    queueInput(event.currentTarget,value=>mapSettings.setDistributionControl('distributionBoundaryVisible',value)));
   listen(get('preferencesResetBtn'),'click',()=>schedule(async() => {
     const defaults = defaultUserPreferences(), current = getPreferences();
     applyPreferences({...current,appearance:defaults.appearance,labels:{...current.labels,place:{
