@@ -1518,6 +1518,15 @@
         "tools/build/build-world-bundle.mjs",
         "config/generated-artifacts.json"
       ]
+    },
+    {
+      "tests": [
+        "tests/unit/runtime/project-manifest-change-plan.test.mjs"
+      ],
+      "inputs": [
+        "scripts/lib/check-contract-impact.mjs",
+        "scripts/contracts/application-checks.json"
+      ]
     }
   ],
   "runtimeBases": {},
@@ -1675,5 +1684,97 @@
     "tests/unit/runtime/check-runner.test.mjs",
     "tests/unit/runtime/workflow-check-ownership.test.mjs",
     "tests/unit/runtime/project-manifest-change-plan.test.mjs"
+  ],
+  "contractConsumers": [
+    {
+      "id": "render-device-api",
+      "sources": [
+        "src/rendering/render-device.js"
+      ],
+      "testPatterns": [
+        "tests/unit/rendering/*selection*.test.mjs",
+        "tests/unit/rendering/map-presentation-readiness.test.mjs",
+        "tests/unit/rendering/gpu-*.test.mjs"
+      ],
+      "markers": [
+        "createRenderDevice",
+        "isRenderDevice",
+        "contextRevision",
+        "renderDevice",
+        "capabilities"
+      ],
+      "alwaysTests": [
+        "tests/unit/rendering/map-presentation-readiness.test.mjs"
+      ]
+    },
+    {
+      "id": "worker-rpc-envelope",
+      "sources": [
+        "src/runtime/worker-rpc.js",
+        "src/runtime/workers/worker-rpc-host.js"
+      ],
+      "testPatterns": [
+        "tests/unit/runtime/worker-*.test.mjs",
+        "tests/unit/rendering/*worker*.test.mjs"
+      ],
+      "markers": [
+        "WORKER_RPC_PROTOCOL",
+        "protocolVersion",
+        "requestId",
+        "projectRevision",
+        "cancel"
+      ],
+      "alwaysTests": [
+        "tests/unit/runtime/worker-rpc.test.mjs"
+      ]
+    },
+    {
+      "id": "canvas-worker-messages",
+      "sources": [
+        "src/rendering/gpu-canvas-worker.js",
+        "src/rendering/workers/canvas-render-worker.js",
+        "src/rendering/canvas-inline-worker.js"
+      ],
+      "testPatterns": [
+        "tests/unit/rendering/*worker*.test.mjs",
+        "tests/unit/rendering/selection-fill-handoff.test.mjs"
+      ],
+      "markers": [
+        "reset-generation",
+        "replace-data",
+        "renderRequestId",
+        "terrain-warning",
+        "ready",
+        "frame"
+      ],
+      "alwaysTests": [
+        "tests/unit/rendering/gpu-canvas-worker.test.mjs"
+      ]
+    },
+    {
+      "id": "project-document-schema",
+      "sources": [
+        "src/document/project-state.js",
+        "src/document/initial-document.js",
+        "src/document/project-setup.js",
+        "src/runtime/version-contract.js"
+      ],
+      "testPatterns": [
+        "tests/unit/document/*project*.test.mjs",
+        "tests/unit/data/*project*.test.mjs",
+        "tests/unit/document/*schema*.test.mjs"
+      ],
+      "markers": [
+        "PROJECT_SCHEMA_VERSION",
+        "projectSetup",
+        "distributionSettings",
+        "layerPresentation",
+        "territorialEntities",
+        "schemaVersion"
+      ],
+      "alwaysTests": [
+        "tests/unit/document/project-state.test.mjs"
+      ]
+    }
   ]
 }
