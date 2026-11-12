@@ -50,22 +50,23 @@ export async function runViewerPhases({page,pageCdp,processCdp,out,prefix,screen
   if(!Number.isSafeInteger(minimumFrames)||minimumFrames<1)throw TypeError('Positive frame count required');
   if(!Number.isSafeInteger(panDurationMs)||panDurationMs<1||!Number.isSafeInteger(themeCycles)||themeCycles<1)
     throw TypeError('Positive interaction duration and theme cycle count required');
-  async function phase(name,action,{month,theme,zoom,level=expectedLevel,requireScreen=screen}={}){
+  async function phase(name,action,{month,theme,zoom,terrainRadio,level=expectedLevel,requireScreen=screen}={}){
     const row={name,status:'running',frameGapsMs:[]};phases.push(row);onStart(name);await onPhase();
     if(screen&&!requireScreen)row.screenSpaceCoverage='not-verified';
     const countersBefore=await performanceCounters(pageCdp);
     await page.evaluate(()=>globalThis.__terrainFixtureFrames.start());const started=Date.now();
     try{
       await action();
-      await page.waitForFunction(({month,theme,expectedLevel,zoom})=>{
+      await page.waitForFunction(({month,theme,expectedLevel,zoom,terrainRadio})=>{
         const api=globalThis.__PANDOLAB_VIEWER__,s=api?.rendererStats();
         return s?.mapReadiness?.mapReady===true&&s.terrainReady===true&&s.terrainTargetLevel>=0&&s.terrainRenderedLevel===s.terrainTargetLevel
           &&(expectedLevel===null||s.terrainTargetLevel===expectedLevel)
           &&s.terrainTargetTileCount>0&&s.terrainTargetTilesLoaded===s.terrainTargetTileCount&&!s.screenLodPreparingKey
           &&(!zoom||Math.abs(globalThis.__PANDOLAB_MAP_HOST__.getViewState().globeZoom-zoom)<1e-6)
+          &&(!terrainRadio||document.getElementById(terrainRadio)?.checked===true)
           &&(!month||(api.builtinMonth().month===month&&api.documentState()?.timelineCursor===month))
           &&(!theme||document.documentElement.dataset.theme===theme);
-      },{month:month||null,theme:theme||null,expectedLevel:level,zoom:zoom||null},{timeout:180000,polling:250});
+      },{month:month||null,theme:theme||null,expectedLevel:level,zoom:zoom||null,terrainRadio:terrainRadio||null},{timeout:180000,polling:250});
       row.readyMs=Date.now()-started;
       await page.waitForFunction(minimum=>globalThis.__terrainFixtureFrames.gaps.length>=minimum,minimumFrames,{timeout:180000,polling:250});
       row.frameGapsMs=await page.evaluate(()=>globalThis.__terrainFixtureFrames.stop());
@@ -133,4 +134,15 @@ export async function runViewerPhases({page,pageCdp,processCdp,out,prefix,screen
     host.setViewState({projection:'globe',view:{...view,globeRotation:[-target[0],-target[1],0],globeZoom:32}});
     host.requestRepaint('terrain-experiment-warm-return');
   },center));
+  async function selectTerrain(radio){
+    await page.locator('#mapDisplayBtn').click({timeout:10000});
+    await page.locator('[data-map-display-row="terrain"]').click({timeout:10000});
+    await page.locator(`label[for="${radio}"]`).click({timeout:10000});
+    await page.locator('#mapDisplayBtn').click({timeout:10000});
+  }
+  await phase('terrain-political',()=>selectTerrain('terrainPoliticalRadio'),{terrainRadio:'terrainPoliticalRadio'});
+  await phase('terrain-physical-return',()=>selectTerrain('terrainPhysicalRadio'),{terrainRadio:'terrainPhysicalRadio'});
+  const political=phases.find(row=>row.name==='terrain-political')?.frameCapture?.terrainOnly?.sha256;
+  const physical=phases.find(row=>row.name==='terrain-physical-return')?.frameCapture?.terrainOnly?.sha256;
+  if(!political||!physical||political===physical)throw Error('Terrain modes did not produce distinct terrain pixels');
 }

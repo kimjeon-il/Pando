@@ -11,7 +11,7 @@ test('terrain phase runner exercises drag, rotation, dates, theme and warm retur
   try{
     const page=await browser.newPage({viewport:{width:400,height:300}});
     await page.emulateMedia({colorScheme:'light',reducedMotion:'reduce'});
-    await page.setContent('<!doctype html><canvas id="viewerCanvas" width="120" height="120"></canvas><button id="timelinePreviousYear">previous</button><button id="timelineNextYear">next</button>');
+    await page.setContent('<!doctype html><canvas id="viewerCanvas" width="120" height="120"></canvas><button id="timelinePreviousYear">previous</button><button id="timelineNextYear">next</button><button id="mapDisplayBtn">view</button><button data-map-display-row="terrain">terrain</button><label for="terrainPoliticalRadio">political</label><input type="radio" name="terrainStyle" id="terrainPoliticalRadio"><label for="terrainPhysicalRadio">physical</label><input type="radio" name="terrainStyle" id="terrainPhysicalRadio" checked>');
     await page.evaluate(()=>{
       let month='2026-11',view={globeRotation:[-102,-28,0],globeZoom:32};
       document.documentElement.dataset.theme='light';
@@ -34,18 +34,18 @@ test('terrain phase runner exercises drag, rotation, dates, theme and warm retur
     await runViewerPhases({page,pageCdp:cdp,processCdp:null,out:'unused',prefix:'case',screen:true,center:[102,28],phases,
       panDurationMs:100,themeCycles:2,minimumFrames:3,onStart:name=>started.push(name),onPhase:async()=>{writes++;},
       diagnostics:async()=>({cacheHits:42}),
-      capture:async(_page,path,options)=>{captured.push({path,screen:options.screen});return {sha256:'fixture'};}});
-    assert.deepEqual(started,['drag','continuous-pan','rotate','zoom8','zoom16','zoom32-return','previous-year','date-return','dark','light','theme-cycle','warm-return']);
-    assert.equal(phases.length,12);assert.ok(phases.every(row=>row.status==='passed'&&row.frames.count>=3));
-    assert.equal(captured.filter(row=>!row.screen).length,2);assert.equal(captured.length,12);assert.ok(writes>=24);
+      capture:async(_page,path,options)=>{captured.push({path,screen:options.screen});return {sha256:'fixture',terrainOnly:{sha256:await _page.evaluate(()=>document.querySelector('#terrainPoliticalRadio').checked?'political':'physical')}};}});
+    assert.deepEqual(started,['drag','continuous-pan','rotate','zoom8','zoom16','zoom32-return','previous-year','date-return','dark','light','theme-cycle','warm-return','terrain-political','terrain-physical-return']);
+    assert.equal(phases.length,14);assert.ok(phases.every(row=>row.status==='passed'&&row.frames.count>=3));
+    assert.equal(captured.filter(row=>!row.screen).length,2);assert.equal(captured.length,14);assert.ok(writes>=28);
     assert.equal(phases.find(row=>row.name==='zoom8').screenSpaceCoverage,'not-verified');
     assert.ok(phases.every(row=>row.candidateDiagnostics.cacheHits===42));
     assert.deepEqual(await page.evaluate(()=>globalThis.__PANDOLAB_MAP_HOST__.getViewState().globeRotation),[-102,-28,0]);
     await page.evaluate(()=>{globalThis.__terrainTestLevel=4;});
     const baseline=[];
     await runViewerPhases({page,pageCdp:cdp,processCdp:null,out:'unused',prefix:'a0',screen:false,center:[102,28],phases:baseline,
-      expectedLevel:null,panDurationMs:100,themeCycles:2,minimumFrames:1,onStart:()=>{},onPhase:async()=>{},capture:async()=>({sha256:'fixture'})});
-    assert.equal(baseline.length,12);assert.ok(baseline.every(row=>row.status==='passed'));
+      expectedLevel:null,panDurationMs:100,themeCycles:2,minimumFrames:1,onStart:()=>{},onPhase:async()=>{},capture:async p=>({sha256:'fixture',terrainOnly:{sha256:await p.evaluate(()=>document.querySelector('#terrainPoliticalRadio').checked?'political':'physical')}})});
+    assert.equal(baseline.length,14);assert.ok(baseline.every(row=>row.status==='passed'));
   }finally{await browser.close();}
 });
 
