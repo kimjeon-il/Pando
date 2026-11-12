@@ -74,6 +74,7 @@
     "@playwright/test": "1.62.1",
     "esbuild": "0.25.10",
     "eslint": "10.9.1",
+    "geotiff": "3.0.5",
     "postcss": "8.5.30",
     "topojson-client": "3.1.0",
     "topojson-server": "3.0.1",

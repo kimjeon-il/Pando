@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // P7-based, opt-in regional A1/512 tile experiment. No production assets change.
 import {chromium} from '@playwright/test';
+import {build} from 'esbuild';
 import {createHash} from 'node:crypto';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {setTimeout as delay} from 'node:timers/promises';
@@ -14,19 +15,36 @@ const manifestHash='ea21beb9d96f39b3baa19f74c7114a3de22b2d902aab96a0293efccbad01
 const digest=bytes=>createHash('sha256').update(bytes).digest('hex');
 const out=process.argv.find(arg=>arg.startsWith('--out='))?.slice(6);
 const smoke=process.argv.includes('--smoke');
+const includeCog=process.argv.includes('--cog');
 if(!out)throw Error('Explicit --out directory required');
 await mkdir(out,{recursive:false});
 const fixtureResponse=await fetch(base+'manifest.json');
 if(!fixtureResponse.ok)throw Error(`Fixture manifest HTTP ${fixtureResponse.status}`);
 const fixtureBytes=Buffer.from(await fixtureResponse.arrayBuffer());
 if(digest(fixtureBytes)!==manifestHash)throw Error('Fixture manifest hash mismatch');
-const fixture=JSON.parse(fixtureBytes),runs=[],sequence=smoke?[1024,512]:[1024,512,512,1024,1024,512];
+const fixture=JSON.parse(fixtureBytes),runs=[];
+const sequence=includeCog?(smoke?['a1','b512','cog']:['a1','b512','cog','cog','b512','a1','b512','cog','a1']):
+  (smoke?['a1','b512']:['a1','b512','b512','a1','a1','b512']);
+let cogManifest,cogBytes,cogBundle;
+if(includeCog){
+  const root='https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/8f0eb13eac9dabaafd8be5295374b1664ab581d2/reports/development/performance/terrain-architecture-2026-11-12/p3/cog-viewer-fixture/';
+  const response=await fetch(root+'manifest.json');if(!response.ok)throw Error('COG manifest download failed');
+  const raw=Buffer.from(await response.arrayBuffer());
+  if(digest(raw)!=='b8eb34c52d1b6d849eae463ebf39ae4f33448d9e73f4a954a2fd661066200b14')throw Error('COG manifest hash mismatch');
+  cogManifest=JSON.parse(raw);const file=await fetch(root+cogManifest.filename);if(!file.ok)throw Error('COG fixture download failed');
+  cogBytes=Buffer.from(await file.arrayBuffer());
+  if(cogBytes.length!==cogManifest.bytes||digest(cogBytes)!==cogManifest.sha256)throw Error('COG fixture hash mismatch');
+  const bundle=await build({stdin:{contents:"export {openViewerCogTiles} from './scripts/terrain-experiment/viewer-cog-tiles.mjs';",
+    resolveDir:process.cwd(),loader:'js'},bundle:true,platform:'browser',format:'iife',globalName:'PandoCogFixture',write:false});
+  cogBundle=bundle.outputFiles[0].text;
+}
 const report={schema:'pando-terrain-viewer-regional-ab-v1',identity:identity(),fixtureRevision:revision,
   fixtureManifestSha256:manifestHash,sequence,startedAt:new Date().toISOString(),runs,status:'running',
   limitations:['Only a bounded LOD5 region uses Q1; lower LODs use the original v0.14 tiles.',
     'Only WebGL2 and a globe 32x stationary scene; this is not complete A1/B acceptance.',
     '512 versus 1024 varies tile partition only; an atlas or instancing optimization is not implemented.',
     'Playwright interception proxies fixed-commit bytes, so browser network totals are not real-host transfer measurements.',
+    'COG runs use a simulated same-origin 206 range host; GitHub raw CORS is not fixed by this test.',
     'rAF intervals are scheduling proxies, not actual GPU presentation or GPU time.']};
 let server,browser;
 try{
@@ -35,11 +53,34 @@ try{
     '--enable-unsafe-swiftshader','--disable-gpu-sandbox']});
   report.browserVersion=browser.version();
   for(let index=0;index<sequence.length;index++){
-    const size=sequence[index],run={index:index+1,tileSize:size,status:'running',candidateRequests:[],pageErrors:[],routeErrors:[],error:null};
+    const candidate=sequence[index],size=candidate==='b512'?512:1024;
+    const run={index:index+1,candidate,tileSize:size,status:'running',candidateRequests:[],pageErrors:[],routeErrors:[],error:null};
     runs.push(run);const page=await browser.newPage({viewport:{width:1280,height:800},locale:'ko-KR',timezoneId:'Asia/Seoul'});
     let selected,manifestRequests=0,shaderRequests=0,processCdp;
     try{
       page.on('pageerror',error=>run.pageErrors.push(String(error)));
+      if(candidate==='cog'){
+        await page.route('**/__terrain_experiment/regional-q1.tif',route=>{
+          const match=/^bytes=(\d+)-(\d+)$/.exec(route.request().headers().range||'');
+          if(!match)return route.fulfill({status:416,body:''});
+          const start=Number(match[1]),end=Math.min(Number(match[2]),cogBytes.length-1);
+          if(start>=cogBytes.length||end<start)return route.fulfill({status:416,body:''});
+          return route.fulfill({status:206,contentType:'image/tiff',body:cogBytes.subarray(start,end+1),
+            headers:{'Content-Range':`bytes ${start}-${end}/${cogBytes.length}`,'Accept-Ranges':'bytes'}});
+        });
+        const init=`${cogBundle}\nglobalThis.__pandoCogReady=PandoCogFixture.openViewerCogTiles(${JSON.stringify({
+          url:'http://127.0.0.1:4173/__terrain_experiment/regional-q1.tif',cogManifest,tileManifest:fixture,tileSize:size})});`;
+        await page.addInitScript({content:init});
+        await page.route('**/assets/js/modules/terrain-manifest.js*',async route=>{
+          try{
+            const response=await route.fetch(),source=await response.text();
+            const marker='export async function fetchTerrainTile(request, { signal, fetchFn = fetch } = {}) {';
+            if(!source.includes(marker))throw Error('Terrain tile source contract changed');
+            const injection=`\n  if(globalThis.__pandoCogReady&&new URL(request.url).pathname.includes('/terrain/v0.15.0/5/')){\n    const key='5/'+new URL(request.url).pathname.split('/5/').pop();\n    return (await globalThis.__pandoCogReady).readTile(key,{signal});\n  }\n`;
+            return await route.fulfill({status:200,contentType:'text/javascript',body:source.replace(marker,marker+injection)});
+          }catch(error){run.routeErrors.push(String(error));return route.abort('failed');}
+        });
+      }
       await page.route('**/assets/js/modules/terrain-dem-shaders.js*',route=>{
         shaderRequests++;
         const body=`export function terrainDemFragmentSource(v){if(v===1)return ${JSON.stringify(a1TerrainFragmentSource(1))};if(v===2)return ${JSON.stringify(a1TerrainFragmentSource(2))};throw Error('WebGL version');}`;
@@ -104,9 +145,26 @@ try{
       run.frames={count:sorted.length,p50Ms:at(.5),p95Ms:at(.95),p99Ms:at(.99)};
       run.renderer=mapSummary(await page.evaluate(()=>globalThis.__PANDOLAB_VIEWER__.rendererStats()));
       run.chromiumProcessMemory=await chromiumProcessMemory(processCdp);
+      if(candidate==='cog'){
+        run.cog=await page.evaluate(async()=>{const adapter=await globalThis.__pandoCogReady;
+          return {counts:{...adapter.counts},range:{...adapter.statistics}};});
+        if(!run.cog.counts.decodedTiles)throw Error('COG did not supply any visible tile');
+      }
       run.center=selected.center;run.manifestRequests=manifestRequests;run.shaderRequests=shaderRequests;
-      try{await page.screenshot({path:`${out}/viewer-${index+1}-${size}.png`,timeout:30000});}
-      catch(error){run.screenshotError=String(error);}
+      const screenshotPath=`${out}/viewer-${index+1}-${size}.png`,screenshotCdp=await page.context().newCDPSession(page);
+      try{
+        let timer;
+        const capture=await Promise.race([screenshotCdp.send('Page.captureScreenshot',{
+          format:'png',fromSurface:false,captureBeyondViewport:false}),
+        new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('CDP screenshot timed out')),45000);})]).finally(()=>clearTimeout(timer));
+        const bytes=Buffer.from(capture.data,'base64');
+        if(bytes.length<1024||bytes.subarray(0,8).toString('hex')!=='89504e470d0a1a0a')throw Error('Invalid screenshot payload');
+        await writeFile(screenshotPath,bytes);run.screenshotMethod='CDP Page.captureScreenshot fromSurface=false';
+      }catch(error){
+        run.screenshotCdpError=String(error);
+        try{await page.screenshot({path:screenshotPath,timeout:30000});run.screenshotMethod='Playwright page.screenshot';}
+        catch(fallback){run.screenshotError=String(fallback);}
+      }finally{await screenshotCdp.detach().catch(()=>{});}
       run.status=run.pageErrors.length||run.routeErrors.length||run.screenshotError||run.candidateRequests.some(x=>x.error)?'failed':'passed';
       if(run.status!=='passed')run.error='Screenshot, candidate request, or page error';
     }catch(error){run.status='failed';run.error=String(error?.stack||error).slice(0,5000);
@@ -121,5 +179,5 @@ finally{
   await browser?.close().catch(()=>{});
   if(server){server.kill('SIGTERM');await Promise.race([new Promise(done=>server.once('exit',done)),delay(5000)]);if(server.exitCode===null)server.kill('SIGKILL');}
 }
-console.log('TERRAIN_REGIONAL_EXPERIMENT '+JSON.stringify({status:report.status,runs:runs.map(run=>({tileSize:run.tileSize,status:run.status,error:run.error?.slice(0,200)}))}));
+console.log('TERRAIN_REGIONAL_EXPERIMENT '+JSON.stringify({status:report.status,runs:runs.map(run=>({candidate:run.candidate,tileSize:run.tileSize,status:run.status,error:run.error?.slice(0,200)}))}));
 if(report.status!=='passed')process.exitCode=1;
