@@ -9,4 +9,6 @@ test('current renderer is included once in smoke and three times in the balanced
   assert.equal(full.length,15);
   for(const name of smoke)assert.equal(full.filter(candidate=>candidate===name).length,3);
   assert.notDeepEqual(full.slice(0,5),full.slice(5,10));
+  assert.deepEqual(candidateSequence({smoke:true,cog:true,screen:true,only:'a0'}),['a0']);
+  assert.throws(()=>candidateSequence({smoke:true,only:'cog'}),/unavailable/);
 });

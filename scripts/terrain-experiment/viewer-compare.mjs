@@ -32,9 +32,10 @@ if(!fixtureResponse.ok)throw Error(`Fixture manifest HTTP ${fixtureResponse.stat
 const fixtureBytes=Buffer.from(await fixtureResponse.arrayBuffer());
 if(digest(fixtureBytes)!==manifestHash)throw Error('Fixture manifest hash mismatch');
 const fixture=JSON.parse(fixtureBytes),runs=[];
-const sequence=candidateSequence({smoke,cog:includeCog,screen:includeScreen});
+const only=process.argv.find(arg=>arg.startsWith('--candidate='))?.slice('--candidate='.length)||null;
+const sequence=candidateSequence({smoke,cog:includeCog,screen:includeScreen,only});
 let cogManifest,cogBytes,cogBundle,cogSource;
-if(includeCog){
+if(includeCog&&(!only||only==='cog')){
   const hashes={'southwest-china':'b578c6f0e7e2df30d267c2ece476f7e889c149319595e710e6ae0110fef183ab',
     'thai-lowland':'e49dde3cd8fff7ef1f73a401d222d517b57f092913c6e7c2f54649a7d273d8db',
     'netherlands-coast':'2200c4247f04c524ad3656883bf2738b72e39f931731dc3243a16686070a739c'};
@@ -53,7 +54,7 @@ if(includeCog){
   cogBundle=bundle.outputFiles[0].text;
 }
 let screenBundle;
-if(includeScreen){
+if(includeScreen&&(!only||only==='screen')){
   const bundle=await build({stdin:{contents:"export {createViewerScreenSpace} from './scripts/terrain-experiment/viewer-screen-space.mjs';",
     resolveDir:process.cwd(),loader:'js'},bundle:true,platform:'browser',format:'iife',globalName:'PandoScreenFixture',write:false});
   screenBundle=bundle.outputFiles[0].text;
