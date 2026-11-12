@@ -1,5 +1,6 @@
 import {numericalTerrainFixture} from './numerical-terrain-fixture.mjs';
 import {terrainAssetDigest} from '../../tools/gis/terrain-dem-assets.mjs';
+import {sharedSourceManifest} from '../../tools/build/package-shared-core-assets.mjs';
 import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, renameSync, readdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -54,12 +55,26 @@ export async function pagesRepositoryFixture(t, { sceneRevision = 6, preparedRev
   put(root, 'native/CMakeLists.txt', 'project(native)');
   put(root, 'tools/build/native/core/CMakeLists.txt', 'project(shared)');
   put(root, 'src/document/native/src/project.cpp', '// native and wasm source');
+  put(root,'config/core-source-roots.json',JSON.stringify({
+    schema:'pando-core-source-roots-v1',roots:['src/document/native'],
+  }));
+  put(root,'config/toolchain-versions.json',JSON.stringify({emscripten:'6.0.3'}));
   put(root, 'apps/editor/src-tauri/src/lib.rs', '// native shell source');
   put(root, 'apps/editor/src-tauri/gen/android/build.gradle.kts', '// Android build');
   put(root, 'assets/js/workers/core-session-worker.js', '// required core worker');
   put(root, 'assets/wasm/pandoeditor-core.js', 'export default function Core() {}');
   put(root, 'assets/wasm/pandoeditor-core.wasm', Buffer.from([0, 97, 115, 109, 1, 0, 0, 0]));
-  put(root, 'assets/wasm/pandoeditor-core.manifest.json', '{}');
+  const compiled=sharedSourceManifest(root);
+  const js=readFileSync(join(root,'assets/wasm/pandoeditor-core.js'));
+  const wasm=readFileSync(join(root,'assets/wasm/pandoeditor-core.wasm'));
+  put(root,'assets/wasm/pandoeditor-core.manifest.json',JSON.stringify({
+    schema:'pandoeditor-core-wasm',abiVersion:1,sourceSha256:compiled.sourceSha256,
+    compiler:{name:'emscripten',version:'6.0.3'},inputs:compiled.inputs,
+    assets:{
+      js:{file:'pandoeditor-core.js',sha256:createHash('sha256').update(js).digest('hex')},
+      wasm:{file:'pandoeditor-core.wasm',sha256:createHash('sha256').update(wasm).digest('hex')},
+    },
+  }));
   /* The frontend builder, rather than this fixture, owns generated Workers. */
   const index=buildFrontendIndex(root);
   const worker = await buildWorkerAsset({root,entry:'assets/js/workers/core-viewer-session-worker.js',readSource:path=>{

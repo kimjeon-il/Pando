@@ -121,3 +121,31 @@ Viewer frame was published, and the real browser acceptance remains mandatory
 for those cases.
 
 Focused triage tests: \`tests/unit/runtime/check-failure-diagnostics.test.mjs\`.
+
+## P2 affected CI and pre-deployment identity (2026-11-12)
+
+The existing Application Architecture planner selects changed tests, their
+indirect consumers, contract owner assertions and prerequisites. It never
+runs the whole catalog by default. CI stages only the active Viewer dependency
+closure and verifies its registered input pins; unrelated working directories
+and historical GIS generation do not become deployment inputs.
+
+`tools/checks/verify-pages-identity.mjs` now owns the mandatory P2
+code/WASM/data identity gate for Pages. After `stage-monorepo-pages.mjs
+--finalize`, the **upload-before-deploy** gate verifies the exact Git HEAD
+and app version, generated immutable build metadata, project-selected
+catalog SHA-256 digests and computed data revision, pinned library commit,
+compiled WASM JS/binary byte digests and source/ABI/compiler identity against
+the checkout. The gate writes `deploymentIdentity` into the same immutable
+`pages-evidence.json`. The deploy job verifies that receipt against its
+checked-out main commit and data pin **before** `actions/deploy-pages`.
+`skip_checks` cannot disable either identity gate. A missing member or a
+mismatch fails closed, without rebuilding or changing the pinned input.
+
+The DEM original source revision comes from the selected project catalog's
+signed/hashed packaging rather than an older hardcoded release. The
+prepublication source revision must be an ancestor of the pinned library
+commit, and the original manifest and every selected DEM tile identity
+still participate in the existing source-matched staging gate. Tests:
+`tests/unit/document/pages-deployment-identity.test.mjs` plus the current
+staging contract in `monorepo-pages-staging.test.mjs`.
