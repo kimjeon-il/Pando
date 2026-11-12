@@ -4,11 +4,12 @@ import {chromium} from '@playwright/test';
 import {a1TerrainFragmentSource} from '../../../scripts/terrain-experiment/a1-shader.mjs';
 import {createLandPalette} from '../../../scripts/terrain-experiment/quality.mjs';
 
-test('experimental A1 WebGL decodes before interpolation and applies PCHIP', {timeout:60000}, async()=>{
+test('WebGL1 and WebGL2 match the CPU numerical sampler and PCHIP', {timeout:60000}, async()=>{
   const browser=await chromium.launch({headless:true,args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
   try{
     const page=await browser.newPage(),heights=[-1000,256,2500,6500],samples=[[0,0],[1,0],[0,1],[1,1],[.2,.7],[.5,.5],[.8,.1],[.5,0,false]];
-    const palette=globalThis.PandoLabCanvasTerrainDem.paletteForTheme('light');
+    for(const theme of ['light','dark']){
+    const palette=globalThis.PandoLabCanvasTerrainDem.paletteForTheme(theme);
     for(const version of [1,2]){
       const output=await page.evaluate(({fragment,version,heights,samples,colors,seaSurface,seaDeep})=>{
         const canvas=document.createElement('canvas');canvas.width=canvas.height=1;
@@ -40,7 +41,8 @@ test('experimental A1 WebGL decodes before interpolation and applies PCHIP', {ti
         if(gl.getError()!==gl.NO_ERROR)throw Error('WebGL readback failed');return values;
       },{fragment:a1TerrainFragmentSource(version),version,heights,samples,colors:[...palette.landColors],
         seaSurface:[...palette.seaSurface],seaDeep:[...palette.seaDeep]});
-      const pchip=createLandPalette(),flat=.27+.73*Math.SQRT1_2,illumination=Math.max(0,(212/255-.42)/.58);
+      const stops=Array.from({length:8},(_,index)=>'#'+Array.from(palette.landColors.slice(index*3,index*3+3),value=>Math.round(value*255).toString(16).padStart(2,'0')).join(''));
+      const pchip=createLandPalette(stops),flat=.27+.73*Math.SQRT1_2,illumination=Math.max(0,(212/255-.42)/.58);
       const shade=Math.max(.16,Math.min(1,flat+((.27+.73*illumination)-flat)*1.3));
       const factor=Math.max(.38,Math.min(1.3,shade/flat));
       for(let i=0;i<samples.length;i++){
@@ -50,7 +52,12 @@ test('experimental A1 WebGL decodes before interpolation and applies PCHIP', {ti
         const rgb=land===false?[...palette.seaSurface].map((value,c)=>255*(value*(1-depth)+palette.seaDeep[c]*depth)):pchip(height);
         const expected=rgb.map(value=>Math.round(Math.max(0,Math.min(255,value*factor))));
         for(let c=0;c<3;c++)assert.ok(Math.abs(output[i][c]-expected[c])<=2,`WebGL${version} sample ${i} channel ${c}: ${output[i][c]} vs ${expected[c]}`);
+        const dem=new Uint8ClampedArray(16);
+        heights.forEach((value,index)=>{const encoded=value+12000;dem.set([encoded>>8,encoded&255,212,255],index*4);});
+        const cpu=globalThis.PandoLabCanvasTerrainDem.sampleInterpolated({dem,width:2,height:2,x,y,theme,channel:land===false?'ocean':'land'});
+        for(let c=0;c<3;c++)assert.ok(Math.abs(output[i][c]-cpu[c])<=2,`CPU vs WebGL${version} sample ${i} channel ${c}: ${cpu[c]} vs ${output[i][c]}`);
       }
+    }
     }
   }finally{await browser.close();}
 });

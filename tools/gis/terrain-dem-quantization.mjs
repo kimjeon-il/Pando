@@ -19,4 +19,3 @@ export function quantizeHeight(value, policy='Q1') {
   const step=quantizationStep(value,policy), result=roundHalfEven(Math.abs(value)/step)*step;
   return value<0 && result!==0 ? -result : result;
 }
-

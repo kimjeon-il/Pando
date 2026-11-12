@@ -38,7 +38,7 @@ const expected = {
   dark: ['#477B60', '#629260', '#87A76B', '#ABA476', '#C0AA86', '#AF9486', '#9F8C8A', '#CEC9C3'],
 };
 const fromHex = hex => [1,3,5].map(at => parseInt(hex.slice(at,at+2),16));
-test('Canvas samples numerical heights before applying the land palette',()=>{
+test('CPU numerical sampler interpolates heights before applying the land palette',()=>{
   const dem=new Uint8ClampedArray(16),heights=[0,256,2500,6500];
   heights.forEach((value,i)=>{const n=value+12000;dem.set([n>>8,n&255,212,255],i*4);});
   const actual=globalThis.PandoLabCanvasTerrainDem.sampleInterpolated({dem,width:2,height:2,x:.5,y:.5,theme:'light',channel:'land'});
