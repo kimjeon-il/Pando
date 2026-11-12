@@ -311,7 +311,7 @@ export function createTerritorialLabels({ capabilities = {builtinPlaces:true,eag
       },
       onSettled: () => { dependencies.domains.objectSearchController.render(); },
       onSnapshot: () => dependencies.domains.renderingDomain.invalidateLabels('builtin-places-ready'),
-      onError: error => dependencies.feedback.reportOperationError(error, '내장 도시을 불러오지 못했습니다.', 'PL-PLACE-LOAD-001'),
+      onError: error => dependencies.feedback.reportOperationError(error, '내장 도시를 불러오지 못했습니다.', 'PL-PLACE-LOAD-001'),
     });
   }
 
