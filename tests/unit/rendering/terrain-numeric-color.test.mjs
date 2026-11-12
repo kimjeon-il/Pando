@@ -80,3 +80,25 @@ test('political plane, original hillshade response and shared shader color unifo
   assert.equal(uniforms.seaSurface.length,3);
   assert.equal(uniforms.seaDeep.length,3);
 });
+
+
+test('monochrome land relief has stronger slope contrast without recoloring the source DEM',()=>{
+  for (const height of [0, 1000, 3000, 6000]) {
+    const shadow=sample(height,128).political;
+    const middle=sample(height,212).political;
+    const highlight=sample(height,252).political;
+    assert.ok(shadow[0] < middle[0] && middle[0] < highlight[0], 'shade order at '+height);
+    assert.ok((highlight[0]-shadow[0]) * 0.55 >= 65,
+      'national tint must preserve visible grayscale relief at '+height);
+    for (const value of [shadow,middle,highlight])
+      assert.equal(value[0],value[1]), assert.equal(value[1],value[2]);
+    const color=sample(height,128).land;
+    assert.deepEqual(color,sample(height,128,{includePolitical:false}).land,
+      'grayscale contrast must not alter colored relief');
+  }
+  const shader=globalThis.PandoLabCanvasTerrainDem.colorGlsl();
+  assert.match(shader,/physicalStyle < 0\.5/);
+  assert.match(shader,/0\.48 \+ 0\.34 \* smoothstep/);
+  assert.match(shader,/0\.60 \* \(illumination - 0\.70710678\)/);
+  assert.match(shader,/0\.12, 0\.98/);
+});
