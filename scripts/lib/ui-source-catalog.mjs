@@ -12,7 +12,6 @@ const sourceEntries = Object.freeze([
   Object.freeze({ role: 'topbar', path: 'assets/css/components/topbar.css' }),
   Object.freeze({ role: 'panels', path: 'assets/css/components/panels.css' }),
   Object.freeze({ role: 'menus', path: 'assets/css/components/menus.css' }),
-  Object.freeze({ role: 'view-menu', path: 'assets/css/components/view-menu.css' }),
   Object.freeze({ role: 'mobile-sheets', path: 'assets/css/components/mobile-sheets.css' }),
   Object.freeze({ role: 'feedback', path: 'assets/css/components/feedback.css' }),
   Object.freeze({ role: 'map-display', path: 'assets/css/components/map-display.css' }),
