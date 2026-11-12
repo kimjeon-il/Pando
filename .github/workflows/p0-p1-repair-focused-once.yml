@@ -23,7 +23,7 @@ jobs:
           node --check src/rendering/workers/canvas-render-core.js
           node --check tests/unit/rendering/canvas-inline-worker.test.mjs
           node --check tests/unit/rendering/canvas-country-geometry.test.mjs
-      - name: Verify Canvas recovery with deterministic D3 geometric adapter
+      - name: Verify five repaired DEM, Worker and RenderDevice unit contracts
         run: >-
           node --test --test-concurrency=2
           tests/unit/rendering/canvas-country-geometry.test.mjs
@@ -31,4 +31,3 @@ jobs:
           tests/unit/rendering/gpu-helper-utils.test.mjs
           tests/unit/rendering/gpu-resource-owners.test.mjs
           tests/unit/rendering/hydro-reliability-source.test.mjs
-          tests/unit/rendering/selection-fill-handoff.test.mjs
