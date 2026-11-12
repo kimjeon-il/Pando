@@ -61,6 +61,23 @@ test('reusable CPU sampler matches individual numerical samples across themes an
   }
 });
 
+test('prepared tile colors match numerical sampling for varied integer elevations and shades',()=>{
+  const width=64,height=32,dem=new Uint8ClampedArray(width*height*4);
+  for(let i=0;i<width*height;i++){const value=((i*97)%18001)-12000,encoded=value+12000,at=i*4;
+    dem.set([encoded>>8,encoded&255,(i*43)%256,255],at);}
+  const api=globalThis.PandoLabCanvasTerrainDem;
+  for(const theme of ['light','dark']){
+    const actual=api.convertTile({dem,width,height,theme});
+    for(const channel of ['land','ocean','political']){
+      const sample=api.createInterpolatedSampler({dem,width,height,theme,channel}),expected=new Uint8ClampedArray(4);
+      for(let i=0;i<width*height;i++){
+        sample(i%width,Math.floor(i/width),expected);
+        assert.deepEqual(actual[channel].slice(i*4,i*4+4),expected,`${theme} ${channel} pixel ${i}`);
+      }
+    }
+  }
+});
+
 test('numerical terrain raster preserves viewport clipping and interpolates height before color',()=>{
   const dem=new Uint8ClampedArray(16),heights=[0,256,2500,6500];
   heights.forEach((value,i)=>{const n=value+12000;dem.set([n>>8,n&255,212,255],i*4);});

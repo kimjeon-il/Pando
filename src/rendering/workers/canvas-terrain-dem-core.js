@@ -104,26 +104,48 @@
   function sampleInterpolated({dem,width,height,x,y,theme='light',channel='land'}) {
     return Array.from(createInterpolatedSampler({dem,width,height,theme,channel})(x,y,new Uint8ClampedArray(4)));
   }
+  // DEM heights and shade bytes are integral. Cache exact floating-point
+  // presentation inputs, not rounded colors, so the final RGBA8 is unchanged.
+  let tilePresentationTables = null;
+  const tileLandTables = Object.create(null);
+  function getTilePresentationTables(theme) {
+    if (!tilePresentationTables) {
+      const illumination=new Float64Array(256),factor=new Float64Array(256),depth=new Float64Array(8001),altitude=new Float64Array(6001);
+      for(let i=0;i<256;i++){
+        illumination[i]=Math.max(0,(i/255-0.42)/0.58);
+        factor[i]=clamp(reliefShade(illumination[i])/flatShade,0.38,1.3);
+      }
+      for(let i=0;i<depth.length;i++)depth[i]=Math.pow(i/8000,0.6);
+      for(let i=0;i<altitude.length;i++)altitude[i]=smoothHeight(i,0,6000);
+      tilePresentationTables={illumination,factor,depth,altitude};
+    }
+    if (!tileLandTables[theme]) {
+      const table=new Float64Array(6501*3),colors=palettes[theme].land,tangents=landTangents[theme];
+      let band=0;
+      for(let height=0;height<=6500;height++){
+        while(band<heightStops.length-2&&height>=heightStops[band+1])band++;
+        for(let channel=0;channel<3;channel++)table[height*3+channel]=landColor(height,colors,tangents,band,channel);
+      }
+      tileLandTables[theme]=table;
+    }
+    return {...tilePresentationTables,land:tileLandTables[theme]};
+  }
   function convertTile({ dem, width, height, theme = 'light', includePolitical = true }) {
     if (!Number.isInteger(width) || !Number.isInteger(height) || width < 1 || height < 1
         || dem?.length !== width * height * 4) throw new TypeError('Invalid numerical DEM tile.');
     if (theme !== 'light' && theme !== 'dark') throw new TypeError('Unknown DEM terrain theme.');
-    const colors = palettes[theme];
+    const colors = palettes[theme],tables=getTilePresentationTables(theme);
     const land = new Uint8ClampedArray(dem.length), ocean = new Uint8ClampedArray(dem.length);
     const political = includePolitical ? new Uint8ClampedArray(dem.length) : null;
     for (let offset = 0; offset < dem.length; offset += 4) {
       const heightMeters = dem[offset] * 256 + dem[offset + 1] - 12000;
       const height = Math.max(0, heightMeters);
-      const illumination = Math.max(0, (dem[offset + 2] / 255 - 0.42) / 0.58);
-      const shade = reliefShade(illumination);
-      const factor = clamp(shade / flatShade, 0.38, 1.3);
-      const depth = Math.pow(clamp(-heightMeters / 8000, 0, 1), 0.6);
-      let band = 0;
-      while (band < heightStops.length - 2 && height >= heightStops[band + 1]) band++;
-      const gray = political ? byte(clamp(mono.low + mono.altitude * smoothHeight(height, 0, 6000)
+      const illumination = tables.illumination[dem[offset + 2]],factor=tables.factor[dem[offset + 2]];
+      const depth = tables.depth[Math.min(8000,Math.max(0,-heightMeters))],landIndex=Math.min(6500,height)*3;
+      const gray = political ? byte(clamp(mono.low + mono.altitude * tables.altitude[Math.min(6000,height)]
         + mono.illumination * (illumination - Math.SQRT1_2), mono.min, mono.max)) : 0;
       for (let channel = 0; channel < 3; channel++) {
-        land[offset + channel] = byte(landColor(height, colors.land, landTangents[theme], band, channel) * factor);
+        land[offset + channel] = byte(tables.land[landIndex + channel] * factor);
         ocean[offset + channel] = byte((colors.seaSurface[channel] * (1 - depth)
           + colors.seaDeep[channel] * depth) * factor);
         if (political) political[offset + channel] = gray;
