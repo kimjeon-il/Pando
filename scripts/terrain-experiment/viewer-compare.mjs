@@ -9,16 +9,15 @@ import {a1TerrainFragmentSource} from './a1-shader.mjs';
 import {makeViewerFixtureManifest,experimentCenter} from './viewer-fixture.mjs';
 import {serve,identity,mapSummary,chromiumProcessMemory} from '../p7-browser-ab-measure.mjs';
 import {performanceCounters,performanceDelta,captureAcceptedFrame,runViewerPhases} from './viewer-phases.mjs';
-import {inspectFixtureCoverage,withNormalizedAdmissionBudget,withExperimentViewInvalidation,withPlaceSnapshotTrace,withTerrainOnlyCapture,scaleAtZoom} from './fixture-coverage.mjs';
+import {inspectFixtureCoverage,withNormalizedAdmissionBudget,withExperimentViewInvalidation,withExperimentFlatStartup,withPlaceSnapshotTrace,withTerrainOnlyCapture,scaleAtZoom} from './fixture-coverage.mjs';
 import {regionalOrigin} from './gutter-fixture.mjs';
 import {candidateSequence} from './candidate-sequence.mjs';
 import {prefetchFixtureTiles} from './fixture-transfer.mjs';
 
 const region=process.argv.find(arg=>arg.startsWith('--region='))?.slice('--region='.length)||'southwest-china';
 if(!['southwest-china','thai-lowland','himalaya','netherlands-coast'].includes(region))throw Error('Unknown representative region');
-const projection='globe'; // The Viewer product policy permits globe only.
-if(process.argv.some(arg=>arg.startsWith('--projection=')&&arg!=='--projection=globe'))
-  throw Error('The Viewer product supports only globe projection; flat requires a separate editor experiment');
+const projection=process.argv.find(arg=>arg.startsWith('--projection='))?.slice('--projection='.length)||'globe';
+if(!['flat','globe'].includes(projection))throw Error('Unknown experiment projection');
 const revision=region==='southwest-china'?'523a446540dabc0cd69fc8e6484a0288b6999dd3':'86bc6dc7cfbc5485ca384d34c516750e3576170f';
 const fixturePath=region==='southwest-china'?'p4/china-5x4-fixtures':'p4/regions-extended-fixtures';
 const base=`https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/${revision}/reports/development/performance/terrain-architecture-2026-11-12/${fixturePath}/webp/`;
@@ -82,6 +81,7 @@ const report={schema:'pando-terrain-viewer-regional-ab-v1',identity:identity(),f
   ...(cogSource?{cogSource}:{}),
   clockPolicy:'Date offset starts at 2026-11-06; native timers and elapsed time continue normally.',
   limitations:['Only a bounded LOD5 region uses Q1; lower LODs use the original v0.14 tiles.',
+    ...(projection==='flat'?['Experimental flat Viewer bootstrap overrides the current product startup; flat is not a current Viewer feature.']:[]),
     'A0 is a separate existing-data baseline served by the existing local server; it does not use Q1, the experiment shader, a modified admission budget, or the in-memory fixture proxy.',
     ...(normalizedBudget?['A1/B/C/D use an experiment-only 192MiB visible DEM admission limit; A0 retains the product default of 96MiB and may select a coarser level.']:[]),
     'Programmatic camera setup triggers the full view invalidation in this experiment so label layout follows the camera.',
@@ -104,7 +104,7 @@ try{
     const run={index:index+1,candidate,tileSize:candidate==='a0'?null:size,admissionBudgetMiB:candidate==='a0'?96:(normalizedBudget?192:96),status:'running',candidateRequests:[],placeNetwork:[],placeWorkers:[],pageErrors:[],consoleErrors:[],routeErrors:[],error:null};
     runs.push(run);const page=await browser.newPage({viewport:{width:1280,height:800},locale:'ko-KR',timezoneId:'Asia/Seoul'});
     let selected=candidate==='a0'?{center:experimentCenter(region)}:null;
-    let manifestRequests=0,shaderRequests=0,budgetRequests=0,hostRequests=0,processCdp,pageCdp,phaseName='startup';
+    let manifestRequests=0,shaderRequests=0,budgetRequests=0,hostRequests=0,flatStartupRequests=0,processCdp,pageCdp,phaseName='startup';
     const network=new Map();
     try{
       page.on('pageerror',error=>run.pageErrors.push(String(error)));
@@ -114,6 +114,11 @@ try{
       page.on('requestfinished',request=>{if(placeRequest(request))run.placeNetwork.push({url:request.url(),outcome:'finished',timing:request.timing()});});
       page.on('requestfailed',request=>{if(placeRequest(request))run.placeNetwork.push({url:request.url(),outcome:'failed',failure:request.failure()?.errorText,timing:request.timing()});});
       await page.addInitScript(()=>{globalThis.__pandoPlaceSnapshots=[];});
+      if(projection==='flat')await page.route('**/assets/js/modules/viewer-composition.js*',async route=>{
+        try{const response=await route.fetch(),body=withExperimentFlatStartup(await response.text());flatStartupRequests++;
+          return await route.fulfill({status:200,contentType:'text/javascript',body});
+        }catch(error){run.routeErrors.push(String(error));return route.abort('failed');}
+      });
       await page.route('**/assets/js/modules/territorial-labels.js*',async route=>{
         try{const response=await route.fetch(),body=withPlaceSnapshotTrace(await response.text());
           return await route.fulfill({status:200,contentType:'text/javascript',body});
@@ -255,8 +260,17 @@ try{
         run.terrainDatasetVersion=original;
       }
       if(!hostRequests)throw Error('Experimental full-view camera invalidation was not consumed');
+      if(projection==='flat'&&flatStartupRequests!==1)throw Error('Experimental flat startup was not consumed exactly once');
       if(normalizedBudget&&candidate!=='a0'&&!budgetRequests)throw Error('Experimental normalized admission policy was not consumed');
       run.budgetRequests=budgetRequests;
+      if(projection==='flat'){
+        await page.evaluate(center=>{const host=globalThis.__PANDOLAB_MAP_HOST__,view=host.getViewState();
+          host.setViewState({projection:'flat',view:{...view,flatCenter:center,flatZoom:1}});
+          host.requestRepaint('terrain-experiment-flat-initial');},selected.center);
+        await page.waitForFunction(()=>{const host=globalThis.__PANDOLAB_MAP_HOST__,s=globalThis.__PANDOLAB_VIEWER__?.rendererStats();
+          return host?.getViewState()?.flatZoom===1&&s?.mapReadiness?.mapReady===true&&s.terrainReady===true&&!s.screenLodPreparingKey;
+        },null,{timeout:180000,polling:250});
+      }
       const initialScreenshot=await page.screenshot({timeout:30000});
       await writeFile(`${out}/viewer-${index+1}-${size}-initial.png`,initialScreenshot);
       try{run.initialFrameCapture=await captureAcceptedFrame(page,`${out}/viewer-${index+1}-${size}-initial-framebuffer.png`);}

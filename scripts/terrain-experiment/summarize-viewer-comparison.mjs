@@ -43,7 +43,7 @@ export function summarizeComparison(report){
       !!baseline&&baseline.passed>=3&&group.passed>=3&&group.screenVerified&&
       levels.every(Number.isFinite)&&new Set(levels).size===1;
   }
-  return {schema:'pando-terrain-viewer-summary-v1',region:report.region,identity:report.identity,sourceStatus:report.status,
+  return {schema:'pando-terrain-viewer-summary-v1',region:report.region,projection:report.projection??'unknown',identity:report.identity,sourceStatus:report.status,
     fixtureRevision:report.fixtureRevision??null,fixtureManifestSha256:report.fixtureManifestSha256??null,
     cogSource:report.cogSource??null,tilePrefetch:report.tilePrefetch??null,comparisonPolicy:report.comparisonPolicy??null,
     normalizedBudget:report.normalizedBudget??null,

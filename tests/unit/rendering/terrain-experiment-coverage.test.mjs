@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {inspectFixtureCoverage,withNormalizedAdmissionBudget,withExperimentViewInvalidation,withPlaceSnapshotTrace,withTerrainOnlyCapture,scaleAtZoom} from '../../../scripts/terrain-experiment/fixture-coverage.mjs';
+import {inspectFixtureCoverage,withNormalizedAdmissionBudget,withExperimentViewInvalidation,withPlaceSnapshotTrace,withTerrainOnlyCapture,withExperimentFlatStartup,scaleAtZoom} from '../../../scripts/terrain-experiment/fixture-coverage.mjs';
 
 test('preflight detects conservative visibility and budget downgrade before a Viewer run',()=>{
   const levels=size=>[
@@ -72,4 +72,11 @@ test('terrain-only capture is placed after land and rejects a changed scene pass
   assert.ok(result.indexOf('\n      }')<result.indexOf('gl.readPixels'));
   assert.match(result,/__pandoTerrainCapture/);
   assert.throws(()=>withTerrainOnlyCapture('changed'),/scene contract changed/);
+});
+
+test('flat experiment explicitly changes only the Viewer startup projection',()=>{
+  const source="const projection='globe';";
+  assert.equal(withExperimentFlatStartup(source),"const projection='flat';");
+  assert.throws(()=>withExperimentFlatStartup('changed'),/startup projection contract/);
+  assert.throws(()=>withExperimentFlatStartup(source+source),/startup projection contract/);
 });

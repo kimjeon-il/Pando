@@ -16,6 +16,11 @@ export function withExperimentViewInvalidation(source){
   if(typeof source!=='string'||source.split(marker).length!==2)throw Error('Viewer host contract changed');
   return source.replace(marker,"requestRepaint: reason => dependencies.domains.renderingDomain?.requestRender?.({kind:'view-settle',reason:reason || 'legacy-host-repaint'}),");
 }
+export function withExperimentFlatStartup(source){
+  const marker="const projection='globe';";
+  if(typeof source!=='string'||source.split(marker).length!==2)throw Error('Viewer startup projection contract changed');
+  return source.replace(marker,"const projection='flat';");
+}
 export function withPlaceSnapshotTrace(source){
   const marker="onSnapshot: () => dependencies.domains.renderingDomain.invalidateLabels('builtin-places-ready'),";
   if(typeof source!=='string'||source.split(marker).length!==2)throw Error('Viewer label contract changed');
