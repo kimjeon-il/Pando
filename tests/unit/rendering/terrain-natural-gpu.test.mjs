@@ -88,3 +88,25 @@ test('hiding terrain cancels optional fetch without destroying DEM',async t=>{
   assert.equal(f.owner.stats().terrainNaturalCacheBytes,0);
   assert.ok(f.owner.stats().terrainCacheBytes>=240);
 });
+
+
+test('optional catalog admission retains uploaded DEM and invalidates only natural source',async t=>{
+  const f=fixture(t);await f.readyDem();await settle();
+  const initial=f.owner.stats();
+  const originalNatural=f.natural[0];
+  const changed={...f.manifest,naturalSurface:{...f.manifest.naturalSurface,
+    sourceRevision:'c'.repeat(40)}};
+  f.owner.setManifest(changed);
+  assert.equal(originalNatural.signal.aborted,true,'old natural request must be cancelled');
+  const prepared=f.owner.prepare(frame,view);
+  await settle();
+  assert.equal(prepared.length,1,'already prepared DEM remains drawable');
+  assert.equal(f.owner.stats().terrainUploadCount,initial.terrainUploadCount);
+  assert.equal(f.owner.stats().terrainTilesLoaded,initial.terrainTilesLoaded);
+  assert.equal(f.requests.length,1,'adding/changing optional natural metadata never re-fetches DEM');
+  assert.equal(f.natural.length,2,'new natural identity is requested once');
+  originalNatural.resolve({});await f.drain();
+  assert.equal(f.owner.stats().terrainNaturalTilesLoaded,0,'late old surface must be ignored');
+  f.natural[1].resolve({});await f.drain();
+  assert.ok(f.owner.prepare(frame,view)[0].naturalTexture);
+});
