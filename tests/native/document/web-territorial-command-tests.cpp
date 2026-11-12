@@ -145,6 +145,7 @@ void parentAndCopyUseFrozenServiceAdmission() {
     assert(p.document().presentation.objectStyles.at(territorialRef("R")).explicitColor);
     assert(apply(p,"territorial.copy-region",json(R"({"sourceId":"A","id":"automatic"})")).changed());
     assert(!p.document().presentation.objectStyles.at(territorialRef("automatic")).explicitColor);
+    assert(p.document().presentation.objectStyles.at(territorialRef("automatic")).color==0);
     expectCode(p,"territorial.parent",json(R"({"id":"A","parentId":""})"),"locked");
     expectCode(p,"territorial.parent",json(R"({"id":"R","parentId":"A"})"),"unsupported-parent-type");
     expectCode(p,"territorial.parent",json(R"({"id":"missing","parentId":"A"})"),"not-found");
