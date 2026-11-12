@@ -10,8 +10,8 @@ import {createObjectSearchModel,visibleObjectSearchRows} from "../../../src/docu
 
 async function hydroRendererFixture(t) {
   const workers = [];
-  class FakeWorker {
-    constructor() { workers.push(this); this.messages = []; }
+  class FakeWorker extends EventTarget {
+    constructor() { super(); workers.push(this); this.messages = []; }
     postMessage(message) { this.messages.push(message); }
     terminate() { this.terminated = true; }
     send(data) { this.onmessage({ data }); }
