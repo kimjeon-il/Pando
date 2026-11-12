@@ -355,19 +355,32 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
   let drawCallCount = 0;
   let drawMs = 0;
   let culledSegmentInstances = 0, culledNodeInstances = 0, culledBatches = 0;
-  // One immutable MapVisualFrame owns draw selections. GPU buffers and the
-  // Worker-prepared spatial index have independent, longer lifetimes.
-  let visibleFrame = null, visiblePlans = new WeakMap();
+  // Camera-derived selections survive style-only frames; canonical geometry
+  // and GPU resource generations remain separate immutable cache identities.
+  let visibleViewKey = null, visiblePlans = new WeakMap();
+  let lastKeyFrame = null, lastCameraKey = null;
   let visibilityCacheHits = 0, visibilityCacheMisses = 0, visibilityFrameChanges = 0;
   const countRanges = ranges => ranges.reduce((sum, range) => sum + range.count, 0);
   const clearVisibilityPlans = () => {
-    visibleFrame = null;
+    visibleViewKey = null;
     visiblePlans = new WeakMap();
+    lastKeyFrame = null;
+    lastCameraKey = null;
   };
+  function cameraVisibilityKey(frame) {
+    if (lastKeyFrame !== frame) {
+      lastKeyFrame = frame;
+      lastCameraKey = JSON.stringify([frame?.mode, frame?.cssViewport, frame?.cssTranslate,
+        frame?.cssScale, frame?.flatCenter, frame?.worldOffsets,
+        frame?.rowX, frame?.rowY, frame?.rowZ]);
+    }
+    return lastCameraKey;
+  }
   function visiblePlan(resource, owners, frameContext, paddingPx) {
-    if (visibleFrame !== frameContext) {
-      clearVisibilityPlans();
-      visibleFrame = frameContext;
+    const nextKey = cameraVisibilityKey(frameContext);
+    if (visibleViewKey !== nextKey) {
+      visiblePlans = new WeakMap();
+      visibleViewKey = nextKey;
       visibilityFrameChanges++;
     }
     let selectors = visiblePlans.get(resource);
