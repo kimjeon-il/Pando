@@ -152,6 +152,11 @@ jobs:
         uses: ./.github/actions/native-test-prerequisites
         with:
           requirements: ${{ steps.plan.outputs.native_requirements }}
+      - name: Prepare Chromium only for unit tests that launch a real browser
+        if: steps.plan.outputs.unit_browser == 'true'
+        run: |
+          pnpm exec playwright install-deps chromium
+          pnpm exec playwright install chromium
       - name: Execute selected commands and unit tests once
         env: *a5
         run: node scripts/run-application-checks.mjs --phase non-browser --output

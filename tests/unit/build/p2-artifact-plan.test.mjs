@@ -434,6 +434,29 @@ test('a concurrent remote commit survives the final publication guard',async t=>
 });
 
 
+test('P2 terrain and Hydro owners follow the active project catalog instead of an obsolete version',t=>{
+ const f=fixture(t);
+ const project=JSON.parse(readFileSync(new URL('../../../projects/default-world/manifest.json',import.meta.url),'utf8'));
+ f.put('projects/default-world/manifest.json',JSON.stringify(project));
+ const families=['terrain','hydro'].map(id=>({id,resolve:id,inputs:[],outputs:[],generate:[],validate:[],dependencies:[]}));
+ f.put('config/generated-artifacts.json',JSON.stringify({schema:'pandolab-generated-artifact-graph',schemaVersion:1,families}));
+ const terrain=project.resources.terrain.catalog,hydro=project.resources.rivers.catalog;
+ f.put(terrain,JSON.stringify({sources:{source:{url:'https://example.invalid/dem',sha256:'a'.repeat(64)}}}));
+ f.put(hydro,JSON.stringify({sources:{source:{url:'https://example.invalid/hydro',sha256:'b'.repeat(64)}}}));
+ const current=artifactGraph(f.root);
+ assert.deepEqual(current.map(x=>x.outputs),[
+   [terrain.slice(0,terrain.lastIndexOf('/')+1)],
+   [hydro.slice(0,hydro.lastIndexOf('/')+1)]
+ ]);
+ assert.equal(current[0].provenance[0].sha256,'a'.repeat(64));
+ assert.equal(current[1].provenance[0].sha256,'b'.repeat(64));
+ project.resources.terrain.catalog='assets/data/terrain/v0.15.0/manifest.json';
+ f.put('projects/default-world/manifest.json',JSON.stringify(project));
+ assert.throws(()=>artifactGraph(f.root),/ENOENT/,'missing newly selected catalog must fail closed');
+ f.put(project.resources.terrain.catalog,JSON.stringify({sources:{}}));
+ assert.equal(artifactGraph(f.root)[0].outputs[0],'assets/data/terrain/v0.15.0/');
+});
+
 test('world bundle ownership follows the current manifest rather than every cached object', t => {
   const f=fixture(t);
   f.put('assets/data/world/build-input.json',JSON.stringify({legacyPreviewManifest:'legacy.json'}));

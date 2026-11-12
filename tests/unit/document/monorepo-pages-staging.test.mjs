@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 
 const script = fileURLToPath(new URL("../../../tools/build/stage-monorepo-pages.mjs", import.meta.url));
+const identityScript=fileURLToPath(new URL('../../../tools/checks/verify-pages-identity.mjs',import.meta.url));
 import {pagesRepositoryFixture as fixture,put,run} from "../../helpers/frontend-pages-fixture.mjs";
 
 test('stages committed viewer assets while excluding editor and repository source', async t => {
@@ -62,6 +63,25 @@ test('final evidence describes the staged files and their current hashes', async
     assert.equal(file.bytes, bytes.length);
     assert.equal(file.sha256, createHash('sha256').update(bytes).digest('hex'));
   }
+});
+
+test('final staged Viewer identity binds current source, WASM, and selected data before publication',async t=>{
+  const {root,stage,manifest}=await fixture(t);
+  const source=run('git',['rev-parse','HEAD'],root).stdout.trim();
+  const stageResult=run(process.execPath,[script,'--root',root,'--stage',stage,'--manifest',manifest],root);
+  assert.equal(stageResult.status,0,stageResult.stderr);
+  const finalized=run(process.execPath,[script,'--finalize','--stage',stage,'--manifest',manifest],root);
+  assert.equal(finalized.status,0,finalized.stderr);
+  const admitted=run(process.execPath,[identityScript,'--root',root,'--stage',stage,
+    '--manifest',manifest,'--expect-commit',source],root);
+  assert.equal(admitted.status,0,admitted.stderr);
+  const evidence=JSON.parse(readFileSync(manifest,'utf8'));
+  assert.equal(evidence.deploymentIdentity.verified,true);
+  assert.equal(evidence.deploymentIdentity.sourceCommit,source);
+  assert.equal(evidence.deploymentIdentity.dataCommit,evidence.dataCommit);
+  assert.match(evidence.deploymentIdentity.coreSourceSha256,/^[a-f0-9]{64}$/);
+  assert.equal(run(process.execPath,[identityScript,'--root',root,'--manifest',manifest,
+    '--expect-commit',source,'--receipt-only'],root).status,0);
 });
 
 test('storage HEAD and a stale publication channel cannot replace the committed data pin', async t => {

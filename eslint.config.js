@@ -76,6 +76,14 @@ export default [
     rules: { 'no-unused-vars': ['error', { args: 'none', caughtErrors: 'none', ignoreRestSiblings: true }] },
   },
   {
+    // These Node-owned files contain page.evaluate/addInitScript callbacks.
+    // Only the browser callback uses DOM/WebGL globals; preserve Node lint
+    // rules while avoiding false 'no-undef' errors for browser-side code.
+    files: ['scripts/terrain-experiment/**/*.mjs','scripts/p7-browser-ab-measure.mjs',
+      'tests/unit/rendering/terrain-experiment*.test.mjs'],
+    languageOptions: { globals: { ...nodeGlobals, ...browserGlobals } },
+  },
+  {
     files: ['tests/browser/**/*.mjs', 'tests/integration/**/*.mjs'],
     languageOptions: { globals: { ...nodeGlobals, ...browserGlobals } },
   },
