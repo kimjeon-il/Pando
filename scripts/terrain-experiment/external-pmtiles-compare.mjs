@@ -8,8 +8,8 @@ import {platform,release,arch,cpus,totalmem} from 'node:os';
 import {readFile,writeFile} from 'node:fs/promises';
 
 const [archivePath,archiveReportPath,tileDir,pmtilesJsPath,out,...options]=process.argv.slice(2);
-if(!archivePath||!archiveReportPath||!tileDir||!pmtilesJsPath||!out||options.length>2||options.some(value=>!value.startsWith('--chunk=')&&!value.startsWith('--tiles=')))
-  throw Error('Expected archive, report, WebP directory, official JS bundle, new output and optional --chunk/--tiles');
+if(!archivePath||!archiveReportPath||!tileDir||!pmtilesJsPath||!out||options.length>3||options.some(value=>!value.startsWith('--chunk=')&&!value.startsWith('--tiles=')&&!value.startsWith('--coalesce=')))
+  throw Error('Expected archive, report, WebP directory, official JS bundle, new output and optional --chunk/--tiles/--coalesce');
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 const archive=await readFile(archivePath),meta=JSON.parse(await readFile(archiveReportPath));
 const tileManifest=JSON.parse(await readFile(`${tileDir}/manifest.json`)),bundleBytes=await readFile(pmtilesJsPath);
@@ -24,6 +24,8 @@ if(![1,4].includes(tileCount))throw Error('Unsupported sample tile count');
 const records=allRecords.slice(0,tileCount);
 const chunkBytes=Number(options.find(value=>value.startsWith('--chunk='))?.slice('--chunk='.length)||65536);
 if(![65536,524288].includes(chunkBytes))throw Error('Unsupported verified chunk size');
+const maxCoalescedChunks=Number(options.find(value=>value.startsWith('--coalesce='))?.slice('--coalesce='.length)||1);
+if(![1,8].includes(maxCoalescedChunks))throw Error('Unsupported coalescing');
 const chunks=[];for(let i=0;i<archive.length;i+=chunkBytes)chunks.push(hash(archive.subarray(i,i+chunkBytes)));
 const manifest={bytes:archive.length,sha256:hash(archive),chunkBytes,chunks};
 const base='https://fastly.jsdelivr.net/gh/kimjeon-il/PandoLab-library-data@';
@@ -32,7 +34,7 @@ const archiveUrl=base+'0ec9535b4210338d437ef428be1dce2e852b6a3e/reports/developm
 const helper=await build({stdin:{contents:"export {createVerifiedRangeClient} from './scripts/terrain-experiment/verified-cog-reader.mjs';",
   resolveDir:process.cwd(),loader:'js'},bundle:true,platform:'browser',format:'iife',globalName:'VerifiedArchive',write:false});
 const server=createServer((_,response)=>response.writeHead(200,{'Content-Type':'text/html'}).end('<!doctype html><title>PMTiles transfer experiment</title>'));
-const report={schema:'pando-pmtiles-external-comparison-v1',sourceSha256:meta.sourceSha256,archiveSha256:manifest.sha256,chunkBytes,tileCount,
+const report={schema:'pando-pmtiles-external-comparison-v1',sourceSha256:meta.sourceSha256,archiveSha256:manifest.sha256,chunkBytes,tileCount,maxCoalescedChunks,
   host:{platform:platform(),release:release(),arch:arch(),cpuModel:cpus()[0]?.model,logicalCpus:cpus().length,totalMemoryBytes:totalmem()},
   pmtilesJsSha256:hash(bundleBytes),archiveUrl,tileBase,startedAt:new Date().toISOString(),runs:[],status:'running',
   limitations:['Single regional LOD5 sample; local test page, external Fastly CDN; not the Viewer or GPU rendering.',
@@ -49,13 +51,13 @@ try{
     try{
       await page.goto(`http://127.0.0.1:${server.address().port}/`);
       await page.addScriptTag({content:bundleBytes.toString('utf8')});await page.addScriptTag({content:helper.outputFiles[0].text});
-      const samples=await page.evaluate(async({candidate,manifest,archiveUrl,tileBase,records,zoom})=>{
+      const samples=await page.evaluate(async({candidate,manifest,archiveUrl,tileBase,records,zoom,maxCoalescedChunks})=>{
         const sha=async bytes=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),v=>v.toString(16).padStart(2,'0')).join('');
         const cache=new Map();let client=null,reader=null;const results=[];
         for(const phase of ['cold','warm']){
           performance.clearResourceTimings();const started=performance.now();
           if(candidate==='pmtiles'&&!reader){
-            client=VerifiedArchive.createVerifiedRangeClient({url:archiveUrl,manifest});
+            client=VerifiedArchive.createVerifiedRangeClient({url:archiveUrl,manifest,maxCoalescedChunks});
             reader=new pmtiles.PMTiles({getKey:()=>archiveUrl,async getBytes(offset,length,signal){
               const response=await client.request({headers:{Range:`bytes=${offset}-${offset+length-1}`},signal});return {data:await response.getData()};}});
           }
@@ -75,7 +77,7 @@ try{
             encodedBodyBytes:resources.reduce((sum,item)=>sum+item.encodedBodySize,0),blobCacheEntries:cache.size,...(client?{range:{...client.statistics}}:{})});
         }
         return results;
-      },{candidate,manifest,archiveUrl,tileBase,records,zoom:reference.archiveZoom});
+      },{candidate,manifest,archiveUrl,tileBase,records,zoom:reference.archiveZoom,maxCoalescedChunks});
       report.runs.push({index:index+1,candidate,status:'passed',samples});
     }catch(error){report.runs.push({index:index+1,candidate,status:'failed',error:String(error?.stack||error)});}
     finally{await context.close();}

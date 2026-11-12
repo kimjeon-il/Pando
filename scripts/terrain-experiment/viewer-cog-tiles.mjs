@@ -6,7 +6,7 @@ const hex=bytes=>[...new Uint8Array(bytes)].map(value=>value.toString(16).padSta
 const digest=async bytes=>hex(await crypto.subtle.digest('SHA-256',bytes));
 
 export async function openViewerCogTiles({url,cogManifest,tileManifest,tileSize,region='southwest-china',fetchFn=globalThis.fetch,
-  maxChunkCacheBytes=32*1024*1024,maxTileCacheBytes=32*1024*1024}){
+  maxChunkCacheBytes=32*1024*1024,maxTileCacheBytes=32*1024*1024,maxCoalescedChunks=1}){
   if(cogManifest?.schema!=='pando-terrain-cog-viewer-fixture-v1'||
     tileManifest?.schema!=='pando-terrain-gutter-webp-v1'||cogManifest.sourceSha256!==tileManifest.sourceSha256||
     !Array.isArray(cogManifest.baseOrigin)||cogManifest.baseOrigin.length!==2||![512,1024].includes(tileSize)||
@@ -26,7 +26,7 @@ export async function openViewerCogTiles({url,cogManifest,tileManifest,tileSize,
   const width=Math.max(...xs)-Math.min(...xs)+1,height=Math.max(...ys)-Math.min(...ys)+1;
   if(width*height!==records.length||![[2,2],[5,3],[5,4],[5,5],[6,4]].some(([w,h])=>width===w*factor&&height===h*factor))
     throw Error('Incomplete rectangular COG Viewer tile inventory');
-  const {tiff,statistics}=await openVerifiedCog({url,manifest:cogManifest,fetchFn,maxCacheBytes:maxChunkCacheBytes});
+  const {tiff,statistics}=await openVerifiedCog({url,manifest:cogManifest,fetchFn,maxCacheBytes:maxChunkCacheBytes,maxCoalescedChunks});
   const image=await tiff.getImage(0),cached=new Map(),counts={decodedTiles:0,reusedTiles:0,pngCacheBytes:0,tileEvictions:0,maxTileCacheBytes};
   return {statistics,counts,async readTile(key,{signal}={}){
     signal?.throwIfAborted();
