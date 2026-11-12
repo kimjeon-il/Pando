@@ -1,0 +1,57 @@
+name: P0 P1 terrain v0.14 browser contract repair
+# Two isolated real Chromium scenarios. No generated build/Pages/whole CI.
+on:
+  push:
+    branches: [fix/p0-gl-state-contract-20261112]
+    paths: [.github/workflows/p0-p1-terrain-repair-once.yml]
+permissions:
+  contents: read
+jobs:
+  quality:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 21
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - uses: ./.github/actions/library-data
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Real v0.14 Himalayan/Indian physical and grayscale pixel checks
+        run: >-
+          pnpm exec playwright test tests/browser/geometry/terrain-preview.spec.mjs
+          --grep 'selected .* relief distinguishes'
+          --workers=1 --retries=0 --reporter=list
+      - name: Retain failure traces
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p0-p1-terrain-quality-failure-${{ github.sha }}
+          path: test-results/
+          if-no-files-found: warn
+  streaming:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 21
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - uses: ./.github/actions/library-data
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Complete synthetic v0.14 tiles and interactive streaming
+        run: >-
+          pnpm exec playwright test tests/browser/rendering/terrain-zoom-continuity.spec.mjs
+          --grep 'retains numerical terrain during delayed detail|current-view detail reaches an actual WebGL frame'
+          --workers=1 --retries=0 --reporter=list
+      - name: Retain failure traces
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p0-p1-terrain-stream-failure-${{ github.sha }}
+          path: test-results/
+          if-no-files-found: warn
