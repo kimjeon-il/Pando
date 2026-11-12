@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {chromium} from '@playwright/test';
 import {build} from 'esbuild';
-import {globePixelToLonLat} from '../../../scripts/terrain-experiment/viewer-screen-space.mjs';
+import {globePixelToLonLat,flatPixelToLonLat} from '../../../scripts/terrain-experiment/viewer-screen-space.mjs';
 import {createLandPalette} from '../../../scripts/terrain-experiment/quality.mjs';
 
 test('screen-space globe inverse matches the Viewer orthographic rows',()=>{
@@ -17,6 +17,14 @@ test('screen-space globe inverse matches the Viewer orthographic rows',()=>{
   assert.equal(globePixelToLonLat(frame,501,150),null);
 });
 
+test('flat inverse matches the Viewer equirectangular projection',()=>{
+  const frame={mode:1,translate:[200,150],scale:300,flatCenter:[100*Math.PI/180,20*Math.PI/180]};
+  for(const [lon,lat] of [[100,20],[105,15],[95,25]]){
+    const actual=flatPixelToLonLat(frame,200+300*(lon-100)*Math.PI/180,150-300*(lat-20)*Math.PI/180);
+    assert.ok(Math.abs(actual[0]-lon)<1e-9&&Math.abs(actual[1]-lat)<1e-9);
+  }
+  assert.equal(flatPixelToLonLat(frame,200,150+300*120*Math.PI/180),null);
+});
 test('D pass preserves geographic gradient, stencil and atlas state', {timeout:60000},async()=>{
   const bundled=await build({stdin:{contents:"export {createViewerScreenSpace} from './scripts/terrain-experiment/viewer-screen-space.mjs';",
     resolveDir:process.cwd(),loader:'js'},bundle:true,platform:'browser',format:'iife',globalName:'ScreenExperiment',write:false});
@@ -64,11 +72,16 @@ test('D pass preserves geographic gradient, stencil and atlas state', {timeout:6
       gl.stencilFunc(gl.NOTEQUAL,1,0xff);pass.draw({...input,pass:'ocean'});
       const land=new Uint8Array(4),ocean=new Uint8Array(4);
       gl.readPixels(16,32,1,1,gl.RGBA,gl.UNSIGNED_BYTE,land);gl.readPixels(48,32,1,1,gl.RGBA,gl.UNSIGNED_BYTE,ocean);
-      return {first,second,withVisibleMargin,missing,restored,pixel:[...out],samples,origin,frame,land:[...land],ocean:[...ocean],stats:{...pass.stats},error:gl.getError()};
+      gl.disable(gl.STENCIL_TEST);
+      const flatFrame={...frame,mode:1,flatCenter:[l,b]},flatDraw=pass.draw({...input,frame:flatFrame}),flatSamples=[];
+      for(const [x,y] of [[16,16],[48,16],[16,48],[48,48],[32,32]]){
+        const value=new Uint8Array(4);gl.readPixels(x,y,1,1,gl.RGBA,gl.UNSIGNED_BYTE,value);flatSamples.push({x,y,pixel:[...value]});
+      }
+      return {first,second,withVisibleMargin,missing,restored,pixel:[...out],samples,flatDraw,flatSamples,flatFrame,origin,frame,land:[...land],ocean:[...ocean],stats:{...pass.stats},error:gl.getError()};
     });
     assert.equal(result.first,true);assert.equal(result.second,true);assert.equal(result.withVisibleMargin,true);assert.equal(result.missing,false);
     assert.equal(result.restored,true);
-    assert.equal(result.stats.atlasBuilds,1);assert.equal(result.stats.draws,5);assert.equal(result.error,0);
+    assert.equal(result.flatDraw,true);assert.equal(result.stats.atlasBuilds,1);assert.equal(result.stats.draws,6);assert.equal(result.error,0);
     const flat=.27+.73*Math.SQRT1_2,illumination=Math.max(0,(212/255-.42)/.58);
     const shade=Math.max(.16,Math.min(1,flat+((.27+.73*illumination)-flat)*1.3));
     const factor=Math.max(.38,Math.min(1.3,shade/flat)),palette=createLandPalette();
@@ -78,6 +91,13 @@ test('D pass preserves geographic gradient, stencil and atlas state', {timeout:6
       const height=1000+2*(worldX-.5-(result.origin[0]+1024))+3*(worldY-.5-(result.origin[1]+1024));
       const expected=palette(height).map(value=>Math.round(value*factor));
       for(let i=0;i<3;i++)assert.ok(Math.abs(sample.pixel[i]-expected[i])<=2,`${sample.x},${sample.y} channel ${i}: ${sample.pixel[i]} vs ${expected[i]}`);
+    }
+    for(const sample of result.flatSamples){
+      const [lon,lat]=flatPixelToLonLat(result.flatFrame,sample.x+.5,64-(sample.y+.5));
+      const worldX=(lon+180)*120,worldY=(90-lat)*120;
+      const height=1000+2*(worldX-.5-(result.origin[0]+1024))+3*(worldY-.5-(result.origin[1]+1024));
+      const expected=palette(height).map(value=>Math.round(value*factor));
+      for(let i=0;i<3;i++)assert.ok(Math.abs(sample.pixel[i]-expected[i])<=2,`flat ${sample.x},${sample.y} channel ${i}: ${sample.pixel[i]} vs ${expected[i]}`);
     }
     assert.equal(result.pixel[3],255);
     assert.notDeepEqual(result.land,result.ocean);

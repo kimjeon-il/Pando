@@ -8,12 +8,18 @@ export function globePixelToLonLat(frame,x,y){
   return [Math.atan2(p[1],p[0])*180/Math.PI,Math.asin(Math.max(-1,Math.min(1,p[2])))*180/Math.PI];
 }
 
+export function flatPixelToLonLat(frame,x,y){
+  const lon=frame.flatCenter[0]+(x-frame.translate[0])/frame.scale;
+  const lat=frame.flatCenter[1]-(y-frame.translate[1])/frame.scale;
+  if(lat < -Math.PI/2 || lat > Math.PI/2)return null;
+  return [((lon+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)*180/Math.PI-180,lat*180/Math.PI];
+}
 const vertex=`#version 300 es
   void main(){vec2 p=vec2((gl_VertexID<<1)&2,gl_VertexID&2);gl_Position=vec4(p*2.0-1.0,0,1);}`;
 const fragment=`#version 300 es
   precision highp float;precision highp int;
   uniform sampler2D uTerrain;uniform vec2 uViewport;uniform vec2 uTranslate;uniform float uScale;
-  uniform vec3 uRowX;uniform vec3 uRowY;uniform vec3 uRowZ;uniform vec2 uOrigin;
+  uniform vec3 uRowX;uniform vec3 uRowY;uniform vec3 uRowZ;uniform vec2 uOrigin;uniform vec2 uFlatCenter;uniform int uMode;
   uniform float uPhysicalStyle;uniform float uLandPass;uniform float uDarkTheme;
   out vec4 outColor;
   ${experimentColorGlsl()}
@@ -22,9 +28,15 @@ const fragment=`#version 300 es
     if(uPhysicalStyle>0.5)h=uLandPass>0.5?max(h,0.0):min(h,0.0);return vec2(h,e.b);}
   void main(){
     vec2 pixel=vec2(gl_FragCoord.x,uViewport.y-gl_FragCoord.y),ray=(pixel-uTranslate)/uScale;
-    float r=dot(ray,ray);if(r>=1.0)discard;
-    vec3 p=ray.x*uRowX+ray.y*uRowY+sqrt(1.0-r)*uRowZ;
-    float lon=degrees(atan(p.y,p.x)),lat=degrees(asin(clamp(p.z,-1.0,1.0)));
+    float lon,lat;
+    if(uMode==0){
+      float r=dot(ray,ray);if(r>=1.0)discard;
+      vec3 p=ray.x*uRowX+ray.y*uRowY+sqrt(1.0-r)*uRowZ;
+      lon=degrees(atan(p.y,p.x));lat=degrees(asin(clamp(p.z,-1.0,1.0)));
+    }else{
+      lon=degrees(mod(uFlatCenter.x+ray.x+3.141592653589793,6.283185307179586)-3.141592653589793);
+      lat=degrees(uFlatCenter.y-ray.y);if(abs(lat)>90.0)discard;
+    }
     vec2 point=vec2((lon+180.0)*120.0,(90.0-lat)*120.0)-uOrigin+vec2(0.5);
     if(any(lessThan(point,vec2(1.0)))||any(greaterThan(point,vec2(2048.0))))discard;
     ivec2 cell=ivec2(floor(point));vec2 f=fract(point);
@@ -53,7 +65,7 @@ export function createViewerScreenSpace({origin,tileSize=512}={}){
     throw TypeError('D requires the aligned 512 regional fixture');
   const contexts=new WeakMap(),stats={draws:0,fallbacks:0,atlasBuilds:0,atlasBytes:0};
   return {stats,draw({gl,tiles,frame,pass,physicalStyle,dark,palette}){
-    if(!gl||typeof gl.createVertexArray!=='function'||!frame||frame.mode!==0||!Array.isArray(tiles)||!palette){stats.fallbacks++;return false;}
+    if(!gl||typeof gl.createVertexArray!=='function'||!frame||(frame.mode!==0&&frame.mode!==1)||!Array.isArray(tiles)||!palette){stats.fallbacks++;return false;}
     const candidates=tiles.filter(tile=>tile.spec?.level===5&&tile.spec.pixelWidth===tileSize&&tile.spec.pixelHeight===tileSize&&tile.gutter===1
       &&tile.spec.column*tileSize>=origin[0]&&tile.spec.column*tileSize+tileSize<=origin[0]+2048
       &&tile.spec.row*tileSize>=origin[1]&&tile.spec.row*tileSize+tileSize<=origin[1]+2048);
@@ -61,7 +73,7 @@ export function createViewerScreenSpace({origin,tileSize=512}={}){
     if(!byKey.size){stats.fallbacks++;return false;}
     let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
     for(let y=0;y<=16;y++)for(let x=0;x<=16;x++){
-      const ll=globePixelToLonLat(frame,frame.viewport[0]*x/16,frame.viewport[1]*y/16);if(!ll)continue;
+      const ll=(frame.mode===0?globePixelToLonLat:flatPixelToLonLat)(frame,frame.viewport[0]*x/16,frame.viewport[1]*y/16);if(!ll)continue;
       const px=(ll[0]+180)*120,py=(90-ll[1])*120;
       minX=Math.min(minX,px);maxX=Math.max(maxX,px);minY=Math.min(minY,py);maxY=Math.max(maxY,py);
     }
@@ -94,7 +106,7 @@ export function createViewerScreenSpace({origin,tileSize=512}={}){
       gl.bindTexture(gl.TEXTURE_2D,state.atlas);gl.useProgram(state.program);gl.bindVertexArray(state.vao);
       const u=name=>gl.getUniformLocation(state.program,name);
       gl.uniform1i(u('uTerrain'),1);gl.uniform2fv(u('uViewport'),frame.viewport);gl.uniform2fv(u('uTranslate'),frame.translate);
-      gl.uniform1f(u('uScale'),frame.scale);gl.uniform3fv(u('uRowX'),frame.rowX);gl.uniform3fv(u('uRowY'),frame.rowY);gl.uniform3fv(u('uRowZ'),frame.rowZ);
+      gl.uniform1f(u('uScale'),frame.scale);gl.uniform1i(u('uMode'),frame.mode);gl.uniform2fv(u('uFlatCenter'),frame.flatCenter||[0,0]);gl.uniform3fv(u('uRowX'),frame.rowX);gl.uniform3fv(u('uRowY'),frame.rowY);gl.uniform3fv(u('uRowZ'),frame.rowZ);
       gl.uniform2fv(u('uOrigin'),origin);gl.uniform1f(u('uPhysicalStyle'),physicalStyle?1:0);gl.uniform1f(u('uLandPass'),pass==='land'?1:0);
       gl.uniform1f(u('uDarkTheme'),dark?1:0);gl.uniform3fv(u('uTerrainLandColors[0]'),palette.landColors);
       gl.uniform3fv(u('uTerrainSeaSurface'),palette.seaSurface);gl.uniform3fv(u('uTerrainSeaDeep'),palette.seaDeep);
