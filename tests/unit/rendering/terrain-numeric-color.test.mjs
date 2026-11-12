@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import '../../../src/rendering/workers/canvas-terrain-dem-core.js';
 import {createPchip} from '../../../scripts/terrain-experiment/quality.mjs';
-import {rasterizeTerrainTriangle} from '../../../scripts/terrain-experiment/canvas-numeric-raster.mjs';
+import {rasterizeTerrainTriangle,createTerrainLookupSampler} from '../../../scripts/terrain-experiment/canvas-numeric-raster.mjs';
 
 const {convertTile}=globalThis.PandoLabCanvasTerrainDem;
 function sample(height,shade=212,extra={}) {
@@ -73,6 +73,21 @@ test('numerical terrain raster preserves viewport clipping and interpolates heig
   assert.deepEqual([...pixels.slice(0,4)],expected);
   assert.equal(pixels[(3*4+3)*4+3],0);
   assert.ok(pixels[(1*4+1)*4+3]===255);
+});
+
+test('experimental lookup sampler remains close to exact land colors over varied elevations and shade',()=>{
+  const dem=new Uint8ClampedArray(16),heights=[-300,256,2500,6500];
+  heights.forEach((value,i)=>{const n=value+12000;dem.set([n>>8,n&255,96+i*43,255],i*4);});
+  const api=globalThis.PandoLabCanvasTerrainDem;
+  for(const theme of ['light','dark']){
+    const fast=createTerrainLookupSampler({api,dem,width:2,height:2,theme});
+    const exact=api.createInterpolatedSampler({dem,width:2,height:2,theme,channel:'land'});
+    const a=new Uint8ClampedArray(4),b=new Uint8ClampedArray(4);
+    for(let y=0;y<=1;y+=.1)for(let x=0;x<=1;x+=.1){
+      fast(x,y,a);exact(x,y,b);
+      for(let channel=0;channel<3;channel++)assert.ok(Math.abs(a[channel]-b[channel])<=2,`${theme} ${x},${y} ${channel}`);
+    }
+  }
 });
 test('land palette has eight independent sRGB stops in both themes',()=>{
   for(const theme of ['light','dark'])for(let i=0;i<paletteStops.length;i++){
