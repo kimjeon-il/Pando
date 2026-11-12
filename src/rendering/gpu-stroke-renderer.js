@@ -2,6 +2,7 @@ import { buildGpuStrokeInstances } from "./gpu-stroke-geometry.js";
 export { buildGpuStrokeInstances, GPU_STROKE_FLAGS } from "./gpu-stroke-geometry.js";
 import { isRenderDevice } from "./render-device.js";
 import { createGpuResourceBudget } from "./gpu-resource-budget.js";
+import { visibleGpuStrokeOwners, mergeGpuStrokeDrawRanges } from "./gpu-stroke-visibility.js";
 import { applyGpuBlendMode, parseGpuColor, resetGpuNormalBlend } from "./gpu-blend-utils.js";
 import { linkGpuProgram, GPU_SPHERICAL_POSITION_GLSL } from "./gpu-shader-utils.js";
 import { GPU_VIEW_UNIFORM_NAMES, setGpuViewUniforms } from "./gpu-view-uniforms.js";
@@ -249,11 +250,20 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
     pendingUploads.clear();
   };
   function drainUploads(byteLimit = Infinity) {
-    if (!gl || contextLost) return;
+    if (!gl || contextLost || gl.isContextLost?.()) return;
     if (isInputActive() || globalThis.document?.hidden || globalThis.navigator?.scheduling?.isInputPending?.()) return scheduleUpload();
     const started = performance.now();
     let budget = Math.min(byteLimit, Math.max(64 * 1024, Number(getUploadBudget()) || 4 * 1024 * 1024));
-    const savedBuffer = gl.getParameter(gl.ARRAY_BUFFER_BINDING);
+    const uploadDevice = device;
+    const uploadGl = gl;
+    // RenderDevice supplies the binding and its context-generation receipt.
+    // Never synchronously query ARRAY_BUFFER_BINDING or call gl.isBuffer().
+    const savedBinding = uploadDevice?.state?.captureArrayBufferBinding?.();
+    if (!savedBinding) {
+      cancelUploads();
+      onError?.({ stage: 'stroke-staging-upload', error: new Error('RenderDevice buffer-binding receipt unavailable') });
+      return;
+    }
     try {
       for (const [key, job] of pendingUploads) {
         while (job.part < 2 && budget > 0 && performance.now() - started < 4) {
@@ -290,7 +300,10 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
       cancelUploads();
       onError?.({ stage: 'stroke-staging-upload', error });
     } finally {
-      if (gl) gl.bindBuffer(gl.ARRAY_BUFFER, savedBuffer && gl.isBuffer(savedBuffer) ? savedBuffer : null);
+      // A deleted buffer is restored as null. Context-loss/recovery must not
+      // let an older upload rebind a name into the new device generation.
+      if (device === uploadDevice && gl === uploadGl)
+        uploadDevice.state.restoreArrayBufferBinding(savedBinding);
       scheduleUpload();
     }
   }
@@ -315,6 +328,8 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
   let drawCount = 0;
   let drawCallCount = 0;
   let drawMs = 0;
+  let culledOwnerCount = 0;
+  let mergedDrawRangeCount = 0;
   let cacheHits = 0;
   let cacheMisses = 0;
   let failureCount = 0;
@@ -335,52 +350,15 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
     else instancing.drawArraysInstancedANGLE(gl.TRIANGLES, 0, count, instances);
   };
 
+  // The shared RenderDevice owns the complete GL state ledger. Coverage
+  // passes never synchronously query the driver for a state snapshot.
   function captureState() {
-    const activeTexture = gl.getParameter(gl.ACTIVE_TEXTURE);
-    const texture = gl.getParameter(gl.TEXTURE_BINDING_2D);
-    gl.activeTexture(gl.TEXTURE0);
-    const texture0 = gl.getParameter(gl.TEXTURE_BINDING_2D);
-    gl.activeTexture(activeTexture);
-    return {
-      framebuffer: gl.getParameter(gl.FRAMEBUFFER_BINDING),
-      readFramebuffer: device.version === 2 ? gl.getParameter(gl.READ_FRAMEBUFFER_BINDING) : null,
-      viewport: Array.from(gl.getParameter(gl.VIEWPORT)),
-      program: gl.getParameter(gl.CURRENT_PROGRAM),
-      arrayBuffer: gl.getParameter(gl.ARRAY_BUFFER_BINDING),
-      activeTexture, texture, texture0,
-      blend: gl.isEnabled(gl.BLEND),
-      depth: gl.isEnabled(gl.DEPTH_TEST),
-      cull: gl.isEnabled(gl.CULL_FACE),
-      scissor: gl.isEnabled(gl.SCISSOR_TEST),
-      stencil: gl.isEnabled(gl.STENCIL_TEST),
-      equations: [gl.getParameter(gl.BLEND_EQUATION_RGB), gl.getParameter(gl.BLEND_EQUATION_ALPHA)],
-      blendFactors: [gl.getParameter(gl.BLEND_SRC_RGB), gl.getParameter(gl.BLEND_DST_RGB),
-        gl.getParameter(gl.BLEND_SRC_ALPHA), gl.getParameter(gl.BLEND_DST_ALPHA)],
-      colorMask: Array.from(gl.getParameter(gl.COLOR_WRITEMASK)),
-      clearColor: Array.from(gl.getParameter(gl.COLOR_CLEAR_VALUE)),
-    };
+    if (!device?.state) throw new Error('Stroke coverage requires a RenderDevice state contract');
+    return device.state.capture();
   }
 
-  function restoreState(state) {
-    const enabled = (cap, value) => value ? gl.enable(cap) : gl.disable(cap);
-    gl.bindFramebuffer(gl.FRAMEBUFFER, state.framebuffer);
-    if (device.version === 2) gl.bindFramebuffer(gl.READ_FRAMEBUFFER, state.readFramebuffer);
-    gl.viewport(...state.viewport);
-    gl.useProgram(state.program);
-    gl.bindBuffer(gl.ARRAY_BUFFER, state.arrayBuffer);
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, state.texture0);
-    gl.activeTexture(state.activeTexture);
-    gl.bindTexture(gl.TEXTURE_2D, state.texture);
-    enabled(gl.BLEND, state.blend);
-    enabled(gl.DEPTH_TEST, state.depth);
-    enabled(gl.CULL_FACE, state.cull);
-    enabled(gl.SCISSOR_TEST, state.scissor);
-    enabled(gl.STENCIL_TEST, state.stencil);
-    gl.blendEquationSeparate(...state.equations);
-    gl.blendFuncSeparate(...state.blendFactors);
-    gl.colorMask(...state.colorMask);
-    gl.clearColor(...state.clearColor);
+  function restoreState(saved) {
+    device?.state.restore(saved);
   }
 
   function setViewUniforms(programInfo, frameContext, worldOffset) {
@@ -448,6 +426,13 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
     return { width, alpha };
   }
 
+  function mergedStrokeRanges(resource, ownerIds, rangeProperty = 'ownerRanges', countProperty = 'instanceCount') {
+    const ranges = resolveGpuStrokeRanges(resource, ownerIds, rangeProperty, countProperty);
+    const merged = mergeGpuStrokeDrawRanges(ranges);
+    mergedDrawRangeCount += Math.max(0, ranges.length - merged.length);
+    return merged;
+  }
+
   function drawSegments(resource, style, frameContext, ownerIds) {
     const programInfo = programs.segment;
     gl.useProgram(programInfo.program);
@@ -455,7 +440,7 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
     gl.uniform1i(programInfo.uniforms.uJoinMode, joinModeValue(style.join));
     gl.uniform1f(programInfo.uniforms.uMiterLimit, Math.max(1, Number(style.miterLimit) || 4));
     gl.uniform2f(programInfo.uniforms.uDash, Math.max(0, Number(style.dash?.[0]) || 0), Math.max(0, Number(style.dash?.[1]) || 0));
-    const ranges = resolveGpuStrokeRanges(resource, ownerIds);
+    const ranges = mergedStrokeRanges(resource, ownerIds);
     let completedDraws = 0;
     for (const range of ranges) {
       const locations = bindSegmentGeometry(resource, range.first);
@@ -477,7 +462,7 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
     applyCommonStyleUniforms(programInfo, style, frameContext);
     gl.uniform1i(programInfo.uniforms.uJoinMode, joinModeValue(style.join));
     gl.uniform1i(programInfo.uniforms.uRoundCap, style.cap === 'round' ? 1 : 0);
-    const ranges = resolveGpuStrokeRanges(resource, ownerIds, 'ownerNodeRanges', 'nodeCount');
+    const ranges = mergedStrokeRanges(resource, ownerIds, 'ownerNodeRanges', 'nodeCount');
     let completedDraws = 0;
     for (const range of ranges) {
       const locations = bindNodeGeometry(programInfo, roundCornerBuffer, 'aCorner', resource, range.first);
@@ -497,7 +482,7 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
     const programInfo = programs.bevel;
     gl.useProgram(programInfo.program);
     applyCommonStyleUniforms(programInfo, style, frameContext);
-    const ranges = resolveGpuStrokeRanges(resource, ownerIds, 'ownerNodeRanges', 'nodeCount');
+    const ranges = mergedStrokeRanges(resource, ownerIds, 'ownerNodeRanges', 'nodeCount');
     let completedDraws = 0;
     for (const range of ranges) {
       const locations = bindNodeGeometry(programInfo, bevelVertexBuffer, 'aVertexId', resource, range.first);
@@ -625,6 +610,9 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
       invalidSegmentCount: geometry.invalidSegmentCount,
       ownerRanges: geometry.ownerRanges,
       ownerNodeRanges: geometry.ownerNodeRanges,
+      // Reuse the already prepared CPU instance array only as a bounding
+      // source. No additional GPU geometry or triangulation is generated.
+      instances: geometry.instances,
       byteLength: geometry.instances.byteLength + geometry.nodes.byteLength,
     });
   }
@@ -809,13 +797,29 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
       try {
         resourceBudget.touch(key, batch?.priority);
         const style = { ...gpuStrokeStyle(scaleInteractionStroke(batch.style || {}, frameContext), frameContext), blendMode: batch.blendMode || batch.style?.blendMode || 'normal' };
+        // Country owner ranges are already grouped by style. Remove only
+        // owners conservatively outside the camera; keep packet admission
+        // and colour/stencil certification unchanged.
+        const width = Math.max(Number(style.width) || 0, Number(style.casing?.width) || 0);
+        const margin = Math.max(96, width * Math.max(4, Number(style.miterLimit) || 4)
+          + aaRadius * Math.max(1, Number(frameContext.dpr) || 1) * 4);
+        const ownerIds = visibleGpuStrokeOwners(resource, batch.ownerIds, frameContext, { paddingPx: margin });
+        if (Array.isArray(batch.ownerIds) && Array.isArray(ownerIds)) {
+          culledOwnerCount += Math.max(0, batch.ownerIds.length - ownerIds.length);
+          if (!ownerIds.length) {
+            // A prepared but offscreen batch is successfully presented with
+            // zero submissions; never misclassify it as a missing resource.
+            if (key) renderedKeys.push(key);
+            continue;
+          }
+        }
         applyGpuBlendMode(gl, style.blendMode);
         let completedDraws = 0;
         if (style.casing?.width > style.width && style.casing.alpha > 0) {
-          completedDraws += (style.coverage === 'union' ? drawCoverageStyle : drawStyle)(resource, { ...style, ...style.casing, cap: style.cap, join: style.join, dash: style.dash, miterLimit: style.miterLimit }, frameContext, batch.ownerIds);
+          completedDraws += (style.coverage === 'union' ? drawCoverageStyle : drawStyle)(resource, { ...style, ...style.casing, cap: style.cap, join: style.join, dash: style.dash, miterLimit: style.miterLimit }, frameContext, ownerIds);
         }
         if (Number(style.alpha ?? 1) > 0 && Number(style.width || 0) > 0)
-          completedDraws += (style.coverage === 'union' ? drawCoverageStyle : drawStyle)(resource, style, frameContext, batch.ownerIds);
+          completedDraws += (style.coverage === 'union' ? drawCoverageStyle : drawStyle)(resource, style, frameContext, ownerIds);
         if (completedDraws > 0) {
           if (key) renderedKeys.push(key);
         } else {
@@ -938,6 +942,8 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
       drawCount,
       drawCallCount,
       drawMs,
+      culledOwnerCount,
+      mergedDrawRangeCount,
       cacheHits,
       cacheMisses,
       failureCount,

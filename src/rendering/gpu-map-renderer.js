@@ -758,7 +758,13 @@ export function createGpuMapRenderer(deps) {
     let terrainSource = 'dem';
     let canvasTerrainStats = {};
     const terrainPreparation = state.resourceCapabilities?.terrain===false ? null : createGpuTerrainPreparation({
-      isMobile, invalidate: invalidatePhysicalScene, geoDistance: (...args) => d3.geo.distance(...args),
+      isMobile, invalidate: reason => {
+        // DEM completion may arrive in bursts beside hydro pack uploads.
+        // Keep explicit user actions immediate, coalesce resource settlement.
+        if (reason === 'terrain-tile-ready' || reason === 'terrain-tile-failed' || reason === 'terrain-upload-failed')
+          return queuePhysicalResourceInvalidation(reason);
+        return invalidatePhysicalScene(reason);
+      }, geoDistance: (...args) => d3.geo.distance(...args),
       readTile: (spec, signal) => fetchTerrainTile(terrainTileRequest(spec, terrainManifest, {
         manifestUrl: terrainManifestUrl, dataBaseUrl: PHYSICAL_DATA_BASE_URL,
         externalSource: globalThis.PANDOLAB_BUILD_META?.terrainExternalSource || null,
@@ -1885,6 +1891,7 @@ export function createGpuMapRenderer(deps) {
       hydroPreparation.setContext({ gl: null, version: glVersion, scheduler: hydroUploadScheduler,
         projectGeneration, contextGeneration: renderDeviceContextRevision });
       hydroCoverage.handleContextLost();
+      renderDevice?.state.dispose();
       lifecycle.releaseContext(gl);
       failTemporalPresentation(Object.assign(new Error('Context lost during temporal presentation'), {name:'AbortError'}));
       pendingCanonicalCommit?.reject(Object.assign(new Error('Context lost during canonical commit'), { name: 'AbortError' }));
@@ -2169,6 +2176,7 @@ export function createGpuMapRenderer(deps) {
           renderDeviceContextRevision++;
           createWebGlResources();
           renderDevice = createRenderDevice({ gl, canvas, version: glVersion, contextRevision: renderDeviceContextRevision });
+          hydroCoverage.setContext(renderDevice, glVersion);
           initializeSharedGpuPasses();
         } catch (error) {
           console.error('[PL-GPU-002]', error);
@@ -2210,6 +2218,7 @@ export function createGpuMapRenderer(deps) {
         version,
         contextRevision: renderDeviceContextRevision,
       });
+      hydroCoverage.setContext(renderDevice, version);
       initializeSharedGpuPasses();
       lifecycle.listen(canvas, 'webglcontextlost', handleWebGlContextLost);
       lifecycle.listen(canvas, 'webglcontextrestored', handleWebGlContextRestored);
@@ -3666,13 +3675,52 @@ export function createGpuMapRenderer(deps) {
       }
     }
 
-    let hydroRenderFrame = 0;
+    // One bounded invalidation owner for DEM and Hydro resource completions.
+    // The RenderCoordinator already coalesces dirty masks, but coalescing
+    // resource admission before invalidating the colour scene prevents
+    // redundant full-scene globe draws within one upload burst.
+    const PHYSICAL_RESOURCE_BATCH_MS = 36;
+    let physicalResourceBatch = null;
+    function queuePhysicalResourceInvalidation(reason = 'physical-resource-ready') {
+      if (disposed) return false;
+      const generation = projectGeneration, context = renderDeviceContextRevision;
+      let batch = physicalResourceBatch;
+      if (batch && (batch.generation !== generation || batch.context !== context)) {
+        if (batch.timeout !== null) lifecycle.cancelTimeout(batch.timeout);
+        if (batch.frame !== null) lifecycle.cancelFrame(batch.frame);
+        physicalResourceBatch = null;
+        batch = null;
+      }
+      if (batch) {
+        batch.reasons.add(reason);
+        performanceMetrics.physicalResourceCoalescedCount =
+          (performanceMetrics.physicalResourceCoalescedCount || 0) + 1;
+        return true;
+      }
+      batch = { generation, context, reasons: new Set([reason]), timeout: null, frame: null };
+      physicalResourceBatch = batch;
+      batch.timeout = lifecycle.timeout(() => {
+        batch.timeout = null;
+        batch.frame = lifecycle.frame(() => {
+          batch.frame = null;
+          if (physicalResourceBatch !== batch) return;
+          physicalResourceBatch = null;
+          // Never replay old-source uploads into a newer project or GL context.
+          if (disposed || batch.generation !== projectGeneration || batch.context !== renderDeviceContextRevision) return;
+          performanceMetrics.physicalResourceFlushCount =
+            (performanceMetrics.physicalResourceFlushCount || 0) + 1;
+          performanceMetrics.physicalResourceLastReasons = [...batch.reasons];
+          invalidatePhysicalScene('physical-resources-ready');
+        });
+      }, PHYSICAL_RESOURCE_BATCH_MS);
+      return true;
+    }
+
     function queueHydroRender(reason = 'hydro-ready') {
-      if (hydroRenderFrame) return;
-      hydroRenderFrame = lifecycle.frame(() => {
-        hydroRenderFrame = 0;
-        invalidatePhysicalScene(reason);
-      });
+      // Visibility/style and source replacement must remain immediate.
+      if (reason === 'hydro-visibility' || reason === 'hydro-manifest')
+        return invalidatePhysicalScene(reason);
+      return queuePhysicalResourceInvalidation(reason);
     }
 
     function aggregateHydroDescriptors(logicalId) {
@@ -5749,6 +5797,7 @@ export function createGpuMapRenderer(deps) {
       terrainPreparation?.reset();
       sceneColorCache.dispose(); interactionFillCache.dispose(); interactionStrokeCache.dispose();
       polygonOverlayPass.dispose(); strokeRenderer.dispose();
+      renderDevice?.state.dispose();
       lifecycle.releaseContext(gl);
     }
 

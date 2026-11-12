@@ -35,6 +35,10 @@ export function createInlineCanvasWorker({ runtimeUrl }) {
     PandoLabCanvasTerrainDem: globalThis.PandoLabCanvasTerrainDem,
     PandoLabTerrainTileSelection: globalThis.PandoLabTerrainTileSelection,
     PandoLabResourceUpdatePolicy: resourcePolicy,
+    // Inline transport runs in the main document. Import the same canonical
+    // terrain module directly, not the Worker-relative public URL (which
+    // cannot be imported as a Node URL by the deterministic inline harness).
+    importTerrainManifestModule: () => import('../data/terrain-manifest.js'),
     postMessage(data) {
       if (!live) { data.bitmap?.close?.(); return; }
       queueMicrotask(() => {

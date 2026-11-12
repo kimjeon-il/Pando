@@ -44,7 +44,11 @@ test('historical Soviet scope remains ready across reload, date return and real 
     await page.goto('/?debug=1&renderer=webgl2', { waitUntil: 'domcontentloaded' });
     await ready();
     const bindings = await page.evaluate(async () => {
-      const response = await fetch(globalThis.PANDOLAB_BUILD_META.builtinWorld.url);
+      // The built-in map now belongs to a single project manifest; the
+      // historical standalone builtinWorld build-meta field was retired.
+      const catalog = globalThis.PANDOLAB_BUILD_META?.mapProject?.resources?.territorial?.catalog;
+      if (!catalog) throw Error('Selected project has no territorial catalog');
+      const response = await fetch(new URL(catalog, location.href));
       if (!response.ok) throw Error('Pinned builtin scope index unavailable');
       const index = await response.json();
       return ['state:soviet-union', 'state:soviet-union-ukrainian-ssr'].map(id => {

@@ -363,7 +363,7 @@ for (const operation of ['feature', 'query']) {
 test('hydro owner owns readiness, restart RPC settlement, stale delivery and request payloads', async t => {
   const { owner, workers, messages, manifest } = fixture(t);
   const ready = owner.setManifest(manifest, 'https://example.test/hydro/index.json');
-  assert.deepEqual(messages[0], { type: 'init', manifest, baseUrl: 'https://example.test/hydro/', assetRevision: 'data-123456789012', dataRevision: 'data', includeGeometry: false });
+  assert.deepEqual(messages[0], { type: 'init', manifest, baseUrl: 'https://example.test/hydro/', assetRevision: 'data-123456789012', dataRevision: 'data', externalRuntimeData: null, includeGeometry: false });
   workers[0].onmessage({ data: { type: 'ready' } });
   assert.equal(await ready, true);
   assert.equal(messages[1].type, 'view');
