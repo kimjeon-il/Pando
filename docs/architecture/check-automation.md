@@ -90,3 +90,34 @@ schema selection, explicit mandatory smoke owners, port isolation and
 production factory behavior. Do not add a global mock reset, a second schema
 implementation, or an unconditional all-suite check in response to a contract
 change.
+
+## P1 failure triage and behavior-first checks (2026-11-12)
+
+The runner is still scripts/run-application-checks.mjs. It now captures process
+logs for human review (while printing them to CI), emits
+\`diagnostics\` with a bounded \`pando-check-failure-diagnostics-v1\` summary,
+and classifies verified prerequisites as stale test registrations, source-matched
+artifact mismatches, or environment/setup problems. A failed assertion, a
+pending Canvas frame or a Worker timeout is **undetermined** without independent
+verification of the current observable product contract. Review can certify a
+functional regression; the classifier never rewrites expectations.
+
+The Application Architecture aggregate still alone controls pass/fail. CI
+collects selected phase JSON artifacts, emits a machine-readable combined
+\`pando-ci-check-diagnostics-v1\` artifact, and adds category totals to the
+Actions step summary. Missing or malformed receipts and failed selection are
+unknown failures, never silent successes.
+
+P1 behavior migration replaces GPU initializer source-shape assertions with
+the real recovery lifecycle's current/stale frame and Canvas fallbacks,
+project source regular-expression matching with live reader/Places/label APIs,
+command ownership token checks with real Core admission/read-only behavior,
+and UI/provenance/version brittle source markers with public product policy,
+canonical document state and generated metadata execution. Exact archive hash,
+native ABI, immutability and lifecycle failure assertions remain in their
+independent owners. A subset of deeper GPU source-extraction fixtures still
+exists for specialized recovery cases; they are not evidence that the actual
+Viewer frame was published, and the real browser acceptance remains mandatory
+for those cases.
+
+Focused triage tests: \`tests/unit/runtime/check-failure-diagnostics.test.mjs\`.
