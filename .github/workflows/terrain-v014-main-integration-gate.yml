@@ -6,6 +6,7 @@ on:
       - config/library-data.json
       - .github/workflows/terrain-v014-main-integration-gate.yml
       - tools/gis/terrain-natural-runtime-edits.json
+      - tools/gis/terrain-natural-integration-fixes.json
   workflow_dispatch:
 permissions:
   contents: write
@@ -35,50 +36,54 @@ jobs:
           import assert from 'node:assert/strict';
           import {existsSync,readFileSync,writeFileSync,unlinkSync} from 'node:fs';
           import {execFileSync} from 'node:child_process';
-          const path='tools/gis/terrain-natural-runtime-edits.json';
-          if(!existsSync(path))process.exit(0);
+          const patches=['tools/gis/terrain-natural-runtime-edits.json','tools/gis/terrain-natural-integration-fixes.json'].filter(existsSync);
+          if(!patches.length)process.exit(0);
           assert.equal(process.env.GITHUB_REF,'refs/heads/work/gis');
-          const patch=JSON.parse(readFileSync(path,'utf8'));
-          assert.equal(patch.schema,'pando-scoped-source-edit-v1');
           const allowed=new Set(['src/rendering/gpu-terrain-preparation.js','src/rendering/gpu-natural-surface-cache.js',
             'src/rendering/gpu-map-renderer.js','src/rendering/terrain-dem-shaders.js',
             'src/rendering/workers/canvas-render-core.js','src/rendering/workers/canvas-terrain-dem-core.js',
-            'tests/unit/rendering/terrain-natural-gpu.test.mjs','tests/unit/rendering/canvas-natural-numeric-path.test.mjs']);
-          const edited=[];
-          for(const file of patch.files){
-            assert(allowed.has(file.path),'Unapproved source edit');
-            let text=readFileSync(file.path,'utf8');
-            for(const edit of file.edits){
-              assert.equal(text.split(edit.before).length,2,'Source anchor drift: '+file.path+' '+edit.before);
-              text=text.replace(edit.before,edit.after);
+            'tests/unit/rendering/terrain-natural-gpu.test.mjs','tests/unit/rendering/canvas-natural-numeric-path.test.mjs',
+            'tests/unit/rendering/canvas-terrain-independence.test.mjs','tools/gis/build-natural-observed-preview.py']);
+          const edited=new Map();
+          for(const path of patches){
+            const patch=JSON.parse(readFileSync(path,'utf8'));assert.equal(patch.schema,'pando-scoped-source-edit-v1');
+            for(const file of patch.files){
+              assert(allowed.has(file.path),'Unapproved source edit');
+              let text=edited.get(file.path)??readFileSync(file.path,'utf8');
+              for(const edit of file.edits){
+                assert.equal(text.split(edit.before).length,2,'Source anchor drift: '+file.path+' '+edit.before);
+                text=text.replace(edit.before,edit.after);
+              }
+              edited.set(file.path,text);
             }
-            edited.push([file.path,text]);
           }
-          for(const [file,text] of edited){writeFileSync(file,text);execFileSync(process.execPath,['--check',file]);}
-          writeFileSync(process.env.RUNNER_TEMP+'/terrain-integration/applied-edits.json',JSON.stringify({base:process.env.GITHUB_SHA,paths:edited.map(row=>row[0])},null,2));
-          unlinkSync(path);
+          for(const [file,text] of edited){
+            writeFileSync(file,text);
+            if(file.endsWith('.py'))execFileSync('python3',['-c','import sys;compile(open(sys.argv[1]).read(),sys.argv[1],"exec")',file]);
+            else execFileSync(process.execPath,['--check',file]);
+          }
+          writeFileSync(process.env.RUNNER_TEMP+'/terrain-integration/applied-edits.json',JSON.stringify({base:process.env.GITHUB_SHA,paths:[...edited.keys()],patches},null,2));
+          for(const path of patches)unlinkSync(path);
           JS
       - name: Mount only existing pinned Viewer data
         uses: ./.github/actions/library-data
-      - name: Run only terrain resource, palette, natural source and numerical Canvas contracts
+      - name: Run only terrain resource, palette, source masks and numerical Canvas contracts
         env:
-          CHECK_SELECTION: '{"unitTests":["tests/unit/rendering/canvas-natural-numeric-path.test.mjs","tests/unit/rendering/terrain-natural-gpu.test.mjs","tests/unit/rendering/gpu-terrain-preparation.test.mjs","tests/unit/data/terrain-natural-surface.test.mjs","tests/unit/data/terrain-external-source.test.mjs","tests/unit/rendering/terrain-numeric-color.test.mjs","tests/unit/rendering/canvas-terrain-independence.test.mjs","tests/unit/rendering/canvas-dem-theme-cache.test.mjs"],"browserSpecs":[],"commands":[],"prerequisites":[]}'
+          CHECK_SELECTION: '{"unitTests":["tests/unit/rendering/canvas-natural-numeric-path.test.mjs","tests/unit/rendering/terrain-natural-gpu.test.mjs","tests/unit/rendering/gpu-terrain-preparation.test.mjs","tests/unit/data/terrain-natural-surface.test.mjs","tests/unit/data/terrain-external-source.test.mjs","tests/unit/rendering/terrain-numeric-color.test.mjs","tests/unit/rendering/canvas-terrain-independence.test.mjs","tests/unit/rendering/canvas-dem-theme-cache.test.mjs","tests/unit/geometry/terrain-natural-masks.test.mjs","tests/unit/geometry/terrain-polar-coverage.test.mjs"],"browserSpecs":[],"commands":[],"prerequisites":[]}'
         run: node scripts/run-application-checks.mjs --phase non-browser --output "$RUNNER_TEMP/terrain-integration/checks.json"
-      - name: Commit only verified canonical runtime changes in this CI checkout
+      - name: Commit only verified canonical changes in this CI checkout
         run: |
-          set -euo pipefail
           node --input-type=module <<'JS'
           import {existsSync,readFileSync} from 'node:fs';
           import {execFileSync} from 'node:child_process';
           const evidence=process.env.RUNNER_TEMP+'/terrain-integration/applied-edits.json';
           if(!existsSync(evidence))process.exit(0);
-          const paths=JSON.parse(readFileSync(evidence,'utf8')).paths;
+          const {paths,patches}=JSON.parse(readFileSync(evidence,'utf8'));
           const git=args=>execFileSync('git',args,{stdio:'inherit'});
           git(['diff','--exit-code','--','config/library-data.json','projects/default-world/manifest.json']);
-          git(['add','--',...paths,'tools/gis/terrain-natural-runtime-edits.json']);
-          git(['diff','--cached','--check']);
+          git(['add','--',...paths,...patches]);git(['diff','--cached','--check']);
           git(['-c','user.name=Pando terrain integration','-c','user.email=pando-terrain@users.noreply.github.com',
-            'commit','-m','feat(terrain): connect verified natural surface and numerical Canvas display path']);
+            'commit','-m','feat(terrain): integrate verified numerical Canvas path and strict observed-mask range handling']);
           JS
       - name: Preserve source-matched staging, data identity and external tile policy
         run: |
@@ -120,7 +125,7 @@ jobs:
           JS
       - name: Retain focused receipts and source diff on failure or success
         if: always()
-        run: git diff HEAD -- src/rendering tests/unit/rendering > "$RUNNER_TEMP/terrain-integration/pending.diff"
+        run: git diff HEAD -- src/rendering tests/unit/rendering tools/gis > "$RUNNER_TEMP/terrain-integration/pending.diff"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
