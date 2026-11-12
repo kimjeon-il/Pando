@@ -109,13 +109,58 @@ function assertOmittedOriginalRestoration(next,previous,review,{prefixes,archive
  if(seen.size!==reviewedVersions.size||seenContacts.size!==reviewedContacts.size||!eq([...zero].sort(),[...universe.zeroCurrent].sort())||!eq(multiple,universe.multipleCurrent)||contacts.countryDescriptorCount!==paths.length||contacts.currentVersionCount!==seen.size||contacts.zeroCurrentCount!==zero.length||contacts.bboxCandidateVersions!==seenContacts.size||!eq(contacts.multipleCurrent,multiple))reject('current universe/contact coverage differs');
  if(s.geometrySha256!==digest(v.geometry)||next.sourceInfo?.geometryVersionId!==v.versionId||next.sourceInfo?.geometrySha256!==digest(v.geometry)||review.sourceInfoGeometryDigestFormat!=='sha256(JSON.stringify([geometry.type, geometry.coordinates]))')reject('current complete-original attribution mismatch');
 }
+/** First raw append may establish an anchor only from an immutable prepared
+ * adoption and already-pinned original/prepared scope evidence. New reports
+ * cannot authenticate one another by merely refreshing their own hashes. */
+function assertInitialPreparedAppend(next,previous,review,scope,source,{archivedReview,getSourceSnapshot,fail}){
+ const reject=m=>fail('initial prepared append: '+m),eq=isDeepStrictEqual,hash=b=>createHash('sha256').update(b).digest('hex');
+ const old=previous.geometryVersions[0],v=next.geometryVersions[0],prior=old.modernBoundarySupplement,s=v.modernBoundarySupplement;
+ const marker={schemaVersion:1,method:'initial-ordinary-prepared-source-append',rawFeatureId:source.featureId,rawBlobSha256:source.rawBlobSha256};
+ if(!eq(review.initialPreparedAppend,marker)||!eq(s.initialPreparedAppend,marker)||Object.hasOwn(prior,'wholeCountryRaw')||Object.hasOwn(prior,'initialPreparedAppend')||prior.pairedSourceReview!==undefined||prior.existingComponentSourceReview!==undefined||prior.priorPreparedAttribution!==undefined)reject('explicit first prepared-source transition required');
+ if(prior.sourceId!=='approved-current-world-display-20261107'||prior.status!=='approved-prepared-current-source-adoption'||prior.featureId!==next.entityId.slice(6)||prior.geometrySha256!==digest(old.geometry)||!requiredHash(prior.sourceFileSha256)||!requiredHash(prior.upstream?.recordedSourceFileSha256)||!requiredHash(prior.sourceReview?.sha256))reject('immutable approved prepared attribution required');
+ const added=new Set(['sourceId','status','geometrySha256','adoptionMode','priorPreparedAttribution','sourceAdoptionReview','detachedComponentAppend','wholeCountryRaw','initialPreparedAppend']);
+ for(const k of Object.keys(s))if(!Object.hasOwn(prior,k)&&!added.has(k))reject('unreviewed new attribution: '+k);
+ const proof=archivedReview(scope.initialPreparedSource);
+ if(proof.schemaVersion!==1||proof.method!==marker.method||!eq(proof.originalSource,review.source))reject('typed initial prepared proof required');
+ if(typeof getSourceSnapshot!=='function')reject('authoritative pinned evidence provider required');
+ const snapshot=getSourceSnapshot();
+ if(snapshot?.sourcePin!==scope.revision||typeof snapshot.readPinnedEvidence!=='function')reject('authoritative pinned evidence provider required');
+ const pinned=receipt=>{
+  if(!evidence(receipt)||!/^reports\/(?:[\w.-]+\/)*[\w.-]+\.json$/.test(receipt.reference)||receipt.reference.split('/').some(p=>p==='.'||p==='..'))reject('canonical pinned report path required');
+  const bytes=snapshot.readPinnedEvidence(receipt.reference);
+  if(!Buffer.isBuffer(bytes)||hash(bytes)!==receipt.sha256)reject('scope evidence absent or different at source pin');
+  const current=archivedReview(receipt);if(!eq(current,JSON.parse(bytes)))reject('scope evidence changed after source pin');return current;
+ };
+ const originalScope=pinned(proof.originalScopeAnchor),preparedScope=pinned(proof.preparedScopeAnchor);
+ const rowOf=report=>{const rows=report.rows?.filter(r=>r.code===next.entityId.slice(6));if(rows?.length!==1)reject('one pinned country scope row required');const r=rows[0];if(r.versionId!==v.versionId||r.validFrom!==null||r.validTo!==null||r.descriptorSha256!==scope.target.descriptorSha256||r.resourceSha256!==scope.target.resourceSha256)reject('pinned country scope preimage mismatch');return r;};
+ const originalRow=rowOf(originalScope),preparedRow=rowOf(preparedScope),raw=originalRow.originalFeatures;
+ if(raw?.length!==1||raw[0].WP_ID!==source.featureId||raw[0].GENC_3!==next.entityId.slice(6)||raw[0].US_Recog!=='Independent'||raw[0].Map_Disp!==null||raw[0].blobSha256!==source.rawBlobSha256||raw[0].wkbSha256!==source.rawWkbSha256)reject('immutable original feature/blob anchor mismatch');
+ const prepared=archivedReview(proof.preparedFeature),donor=archivedReview(proof.approvedDonorFeature),root=archivedReview(proof.preparedAdoptionRoot),props=p=>Object.fromEntries(Object.entries(p||{}).filter(([k])=>k!=='fid'));
+ if(prepared.schemaVersion!==1||prepared.method!=='actual-recovered-prepared-feature'||prepared.featureId!==source.featureId||prepared.fileSha256!==prior.upstream.recordedSourceFileSha256||!eq(props(prepared.properties),props(source.properties))||preparedRow.WP_ID!==source.featureId||preparedRow.preparedBlobSha256!==prepared.blobSha256||preparedRow.currentStrictArraysEqualDonor!==true||preparedRow.currentEqualsDonorWhole!==true||preparedRow.donorEqualsPreparedWhole!==true||preparedRow.currentEqualsPreparedWhole!==true)reject('actual same-UUID prepared source binding required');
+ if(donor.id!==next.entityId.slice(6)||!eq(donor.geometry,old.geometry)||proof.preparedAdoptionRoot.sha256!==prior.sourceReview.sha256)reject('immutable prepared donor/root mismatch');
+ const roots=root.rows?.filter(r=>r.entityId===next.entityId&&r.versionId===v.versionId),r=roots?.[0];
+ if(root.schemaVersion!==1||root.status!=='source-topology-reviewed-conditional-on-coherent-pga-retirement'||roots?.length!==1||r.validFrom!==null||r.validTo!==null||r.candidateGeometrySha256!==digest(old.geometry)||r.donorGeometrySha256!==digest(old.geometry)||r.exactDonorCoordinateCopy!==true||r.periodPreserved!==true||r.candidate?.valid!==true||r.candidate.empty!==false)reject('prepared adoption root row mismatch');
+ // Re-encode the actual prepared GeoPackage blob without rounding or repair.
+ const g=prepared.geometry,ps=g?.coordinates;let size=9;const box=[Infinity,-Infinity,Infinity,-Infinity];
+ if(g?.type!=='MultiPolygon'||Object.keys(g).length!==2||!Array.isArray(ps)||!ps.length)reject('exact prepared MultiPolygon required');
+ for(const p of ps){if(!Array.isArray(p)||!p.length)reject('prepared polygon rings required');size+=9;for(const ring of p){if(!Array.isArray(ring)||ring.length<4||!eq(ring[0],ring.at(-1)))reject('closed prepared ring required');size+=4+ring.length*16;for(const q of ring){if(!Array.isArray(q)||q.length!==2||!q.every(Number.isFinite)||Math.abs(q[0])>180||Math.abs(q[1])>90)reject('finite prepared coordinates required');box[0]=Math.min(box[0],q[0]);box[1]=Math.max(box[1],q[0]);box[2]=Math.min(box[2],q[1]);box[3]=Math.max(box[3],q[1]);}}}
+ const str=prepared.rawBlobBase64;
+ if(size>64*1024*1024||typeof str!=='string'||str.length>90000000||!/^[A-Za-z0-9+/]+={0,2}$/.test(str)||!requiredHash(prepared.blobSha256)||!requiredHash(prepared.wkbSha256))reject('bounded actual prepared blob required');
+ const blob=Buffer.from(str,'base64');if(blob.length!==size+40||blob.toString('base64')!==str||hash(blob)!==prepared.blobSha256||blob[0]!==71||blob[1]!==80||blob[2]!==0||blob[3]!==3||blob.readInt32LE(4)!==4326||box.some((x,i)=>blob.readDoubleLE(8+i*8)!==x))reject('actual prepared header/SRID/hash/envelope mismatch');
+ const wkb=Buffer.alloc(size);let at=0;const u=n=>{wkb.writeUInt32LE(n,at);at+=4;},head=t=>{wkb[at++]=1;u(t);};head(6);u(ps.length);for(const p of ps){head(3);u(p.length);for(const ring of p){u(ring.length);for(const [x,y]of ring){wkb.writeDoubleLE(x,at);wkb.writeDoubleLE(y,at+8);at+=16;}}}if(!blob.subarray(40).equals(wkb)||hash(wkb)!==prepared.wkbSha256)reject('actual prepared WKB differs');
+ // Explicit bijections avoid topology tolerances and quadratic ring searching.
+ const before=old.geometry.coordinates,map=proof.preparedCorrespondence,seen=new Set();
+ if(!Array.isArray(map)||map.length!==before.length||ps.length!==before.length)reject('complete prepared component correspondence required');
+ for(let i=0;i<before.length;i++){const c=map[i],j=c?.preparedComponent;if(c?.currentComponent!==i||!Number.isSafeInteger(j)||j<0||j>=ps.length||seen.has(j)||!Array.isArray(c.rings)||c.rings.length!==before[i].length||ps[j].length!==before[i].length)reject('bijective prepared component mapping required');seen.add(j);const rings=new Set();for(let k=0;k<before[i].length;k++){const m=c.rings[k],b=m?.preparedRing,a=before[i][k];if(m?.currentRing!==k||!Number.isSafeInteger(b)||b<0||b>=ps[j].length||rings.has(b)||(k===0)!==(b===0)||!Number.isSafeInteger(m.offset)||m.offset<0||m.offset>=a.length-1||typeof m.reverse!=='boolean'||ps[j][b].length!==a.length)reject('bijective prepared ring mapping required');rings.add(b);const n=a.length-1;if(!eq(a[0],a.at(-1)))reject('closed current ring required');for(let t=0;t<n;t++)if(!eq(a[t],ps[j][b][(m.offset+(m.reverse?-t:t)+n)%n]))reject('prepared/current binary64 coordinates differ');}}
+}
 /** Partial append is deliberately independent of all whole-feature completion gates. */
 function assertDetachedComponentAppend(next,previous,review,{prefixes,archivedReview,readEvidence,getSourceSnapshot,fail}){
  const reject=m=>fail('detached-component append: '+m),eq=isDeepStrictEqual,hash=b=>createHash('sha256').update(b).digest('hex'),base='assets/data/territorial-entities/source/';
  const method='lossless-original-detached-component-append',marker={schemaVersion:1,method:'append-original-detached-components'},v=next.geometryVersions[0],old=previous.geometryVersions[0],s=v.modernBoundarySupplement,prior=old.modernBoundarySupplement;
  if(prefixes.length!==2||new Set(prefixes).size!==2||previous.geometryVersions.length!==1||next.geometryVersions.length!==1||old.validFrom!==null||old.validTo!==null||v.validFrom!==null||v.validTo!==null||old.historicalProvenance!=null||review.validFrom!==null||review.validTo!==null)reject('one ordinary undated version and two source paths required');
  if(previous.parentEntityId!==''||next.parentEntityId!==''||previous.instantiation?.mode!=='independent'||next.instantiation?.mode!=='independent'||!/^state:[A-Z]{3}$/.test(next.entityId))reject('existing independent identity required');
- if(!eq(s.detachedComponentAppend,marker)||!eq(review.detachedComponentAppend,marker)||s.adoptionMode!==method||review.method!==method||prior?.wholeCountryRaw!==false||s.wholeCountryRaw!==false||review.wholeCountryRaw!==false||Object.hasOwn(s,'wholeFeatureCompletion')||Object.hasOwn(review,'wholeFeatureCompletion')||review.rawCoordinateRoundtrip!==true||s.status!=='raw-source-only-not-display-approved')reject('explicit partial append without whole-country completion required');
+ const initial=Object.hasOwn(review,'initialPreparedAppend');
+ if(!eq(s.detachedComponentAppend,marker)||!eq(review.detachedComponentAppend,marker)||s.adoptionMode!==method||review.method!==method||(!initial&&prior?.wholeCountryRaw!==false)||s.wholeCountryRaw!==false||review.wholeCountryRaw!==false||Object.hasOwn(s,'wholeFeatureCompletion')||Object.hasOwn(review,'wholeFeatureCompletion')||review.rawCoordinateRoundtrip!==true||s.status!=='raw-source-only-not-display-approved')reject('explicit partial append without whole-country completion required');
  const changed=new Set(['sourceId','status','geometrySha256','adoptionMode','priorPreparedAttribution','sourceAdoptionReview','detachedComponentAppend']);
  for(const [k,value]of Object.entries(prior))if(!changed.has(k)&&!eq(s[k],value))reject('existing attribution/index evidence changed: '+k);
  const scope=archivedReview(review.detachedAppendScope),source=archivedReview(review.source);
@@ -125,8 +170,13 @@ function assertDetachedComponentAppend(next,previous,review,{prefixes,archivedRe
  if(source.schemaVersion!==1||source.method!=='exact-gpkg-original-feature'||typeof source.sourcePath!=='string'||!source.sourcePath)reject('actual original source required');
  const props=source.properties;
  if(props?.WP_ID!==source.featureId||props.WP_PAR_ID!==source.featureId||props.GENC_3!==next.entityId.slice(6)||props.US_Recog!=='Independent'||props.Map_Disp!==null||props.Show_Disp!==null)reject('original ownership/identity mismatch');
- const anchors=[prior.pairedSourceReview,prior.existingComponentSourceReview].filter(x=>x&&typeof x.rawFeatureId==='string'&&typeof x.rawBlobSha256==='string');
- if(!anchors.length||anchors.some(x=>x.rawFeatureId!==source.featureId||x.rawBlobSha256!==source.rawBlobSha256))reject('immutable prior raw feature/blob anchor mismatch');
+ if(initial)assertInitialPreparedAppend(next,previous,review,scope,source,{archivedReview,getSourceSnapshot,fail});
+ else{
+  if(Object.hasOwn(scope,'initialPreparedSource')||(!Object.hasOwn(prior,'initialPreparedAppend')&&Object.hasOwn(s,'initialPreparedAppend')))reject('initial prepared proof cannot be acquired without initial admission');
+  const first=prior.initialPreparedAppend;if(first!==undefined&&!eq(first,{schemaVersion:1,method:'initial-ordinary-prepared-source-append',rawFeatureId:source.featureId,rawBlobSha256:source.rawBlobSha256}))reject('immutable initial prepared raw anchor mismatch');
+  const anchors=[prior.pairedSourceReview,prior.existingComponentSourceReview,first].filter(x=>x&&typeof x.rawFeatureId==='string'&&typeof x.rawBlobSha256==='string');
+  if(!anchors.length||anchors.some(x=>x.rawFeatureId!==source.featureId||x.rawBlobSha256!==source.rawBlobSha256))reject('immutable prior raw feature/blob anchor mismatch');
+ }
  function polygons(g,bounded=false){if(!g||!['Polygon','MultiPolygon'].includes(g.type)||!Array.isArray(g.coordinates))reject('polygon coordinate payload required');const ps=g.type==='Polygon'?[g.coordinates]:g.coordinates;if(!ps.length)reject('empty polygon payload');for(const p of ps){if(!Array.isArray(p)||!p.length)reject('empty polygon');for(const r of p){if(!Array.isArray(r)||r.length<4||r.some(a=>!Array.isArray(a)||a.length!==2||!a.every(Number.isFinite)||bounded&&(Math.abs(a[0])>180||Math.abs(a[1])>90))||!eq(r[0],r.at(-1)))reject('closed finite rings required');}}return ps;}
  function bounds(ps){const b=[Infinity,Infinity,-Infinity,-Infinity];for(const p of ps)for(const r of p)for(const [x,y]of r){b[0]=Math.min(b[0],x);b[1]=Math.min(b[1],y);b[2]=Math.max(b[2],x);b[3]=Math.max(b[3],y);}return b;}
  const raw=polygons(source.geometry,true),before=polygons(old.geometry,true),after=polygons(v.geometry,true);
@@ -326,7 +376,7 @@ function assertOriginalExistingComponents(next,previous,review,{prefixes,archive
  * this does not approve historical reconstruction or derived display geometry.
  */
 export function assertHistoricalSourceStorageChanges(next,previous,{prefixes,readEvidence,getSourceSnapshot}={}){
- const appendMarked=v=>v?.modernBoundarySupplement&&(Object.hasOwn(v.modernBoundarySupplement,'detachedComponentAppend')||v.modernBoundarySupplement.adoptionMode==='lossless-original-detached-component-append');
+ const appendMarked=v=>v?.modernBoundarySupplement&&(Object.hasOwn(v.modernBoundarySupplement,'detachedComponentAppend')||Object.hasOwn(v.modernBoundarySupplement,'initialPreparedAppend')||v.modernBoundarySupplement.adoptionMode==='lossless-original-detached-component-append');
  if(next.geometryVersions?.some(v=>appendMarked(v)&&!v.modernBoundarySupplement.sourceAdoptionReview))throw Error('Raw source adoption: detached-component append: initial append receipt is required');
  if(next.geometryVersions?.some(appendMarked)&&previous&&next.geometryVersions.length===previous.geometryVersions?.length&&next.geometryVersions.every((v,i)=>v.versionId===previous.geometryVersions[i].versionId&&digest(v.geometry)===digest(previous.geometryVersions[i].geometry))&&!isDeepStrictEqual(next,previous))throw Error('Raw source adoption: detached-component append: unchanged geometry cannot acquire or alter append attribution');
  if(previous?.geometryVersions?.some(appendMarked)){
@@ -351,7 +401,7 @@ export function assertHistoricalSourceStorageChanges(next,previous,{prefixes,rea
   for(const v of versions){const old=previous.geometryVersions.find(p=>p.versionId===v.versionId),r=v.modernBoundarySupplement?.sourceAdoptionReview;if(r&&!isDeepStrictEqual(r,old.modernBoundarySupplement?.sourceAdoptionReview)){
    if(!evidence(r)||!/^reports\/(?:[\w.-]+\/)*[\w.-]+\.json$/.test(r.reference)||r.reference.split('/').includes('..')||typeof readEvidence!=='function')throw Error('Raw source adoption: changed unchanged-geometry receipt requires archived evidence');
    const bytes=readEvidence(r.reference);if(!Buffer.isBuffer(bytes)||createHash('sha256').update(bytes).digest('hex')!==r.sha256)throw Error('Raw source adoption: changed unchanged-geometry receipt is not archived');
-   const claim=JSON.parse(bytes);if(claim.method==='lossless-original-detached-component-append'||claim.detachedAppendScope!==undefined||claim.detachedComponentAppend!==undefined)throw Error('Raw source adoption: detached-component append: unchanged geometry cannot acquire append receipt');
+   const claim=JSON.parse(bytes);if(claim.method==='lossless-original-detached-component-append'||claim.detachedAppendScope!==undefined||claim.detachedComponentAppend!==undefined||claim.initialPreparedAppend!==undefined)throw Error('Raw source adoption: detached-component append: unchanged geometry cannot acquire append receipt');
   }}
   // Completion evidence binds every field except ordinary display names.
   // Unchanged coordinates must not become an ownership/date/provenance or
@@ -406,7 +456,7 @@ export function assertHistoricalSourceStorageChanges(next,previous,{prefixes,rea
   else assertWholeFeatureCompletion(next,previous,review,{prefixes,archivedReview,fail});
  }
  if(review.method==='lossless-original-detached-component-append')return assertDetachedComponentAppend(next,previous,review,{prefixes,archivedReview,readEvidence,getSourceSnapshot,fail});
- if(review.detachedAppendScope!==undefined||v.modernBoundarySupplement.detachedComponentAppend!==undefined||v.modernBoundarySupplement.adoptionMode==='lossless-original-detached-component-append')fail('detached append cannot claim another method');
+ if(review.detachedAppendScope!==undefined||review.initialPreparedAppend!==undefined||v.modernBoundarySupplement.initialPreparedAppend!==undefined||v.modernBoundarySupplement.detachedComponentAppend!==undefined||v.modernBoundarySupplement.adoptionMode==='lossless-original-detached-component-append')fail('detached append cannot claim another method');
  if(review.method==='lossless-original-existing-component')return assertOriginalExistingComponents(next,previous,review,{prefixes,archivedReview,fail});
  if(review.componentChanges!==undefined||review.previousComponentReview!==undefined||v.modernBoundarySupplement.adoptionMode==='lossless-original-existing-component')fail('components cannot claim another source method');
  if(['lossless-original-shared-arc','lossless-original-current-version-shared-arc'].includes(review.method))return assertOriginalSharedArcs(next,previous,review,{prefixes,archivedReview,fail});

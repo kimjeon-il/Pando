@@ -254,7 +254,15 @@ export function storeOwnedLibraryData({ root, push, prefixes, removePaths, repor
       const descriptor=JSON.parse(readSourceEvidence(p));
       for(const v of descriptor.geometryVersions||[]){const resource=territorial+'/source/'+v.geometryResource?.file,a=archived.files[resource],b=evidenceIndex.files[resource];if(!a||!b||a.sha256!==b.sha256||a.bytes!==b.bytes)throw Error('Restoration snapshot: source pin/HEAD referenced resource differs; rebase census');}
     }
-    sourceSnapshot=Object.freeze({archiveRevision:evidenceRevision,sourcePin:pinnedRevision,countryDescriptorPaths:Object.freeze(countryDescriptorPaths)});
+    // Initial raw adoption must authenticate its old scope anchor at the source
+    // pin, not at a report-only descendant or in mutable local report files.
+    const readPinnedEvidence=reference=>{
+      if(typeof reference!=='string'||!/^reports\/(?:[\w.-]+\/)*[\w.-]+\.json$/.test(reference)||reference.split('/').some(p=>p==='.'||p==='..'))throw Error('Restoration snapshot: exact pinned report JSON path required');
+      const entry=archived.files[reference];
+      if(!entry)throw Error('Restoration snapshot: missing pinned report evidence: '+reference);
+      return decodeArchiveEntry(data.checkout,entry,pinnedRevision,{fetch:false});
+    };
+    sourceSnapshot=Object.freeze({archiveRevision:evidenceRevision,sourcePin:pinnedRevision,countryDescriptorPaths:Object.freeze(countryDescriptorPaths),readPinnedEvidence});
     return sourceSnapshot;
   };
   // Editable source may be stored before its derived chunks are regenerated.
