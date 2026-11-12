@@ -78,3 +78,28 @@ Canvas Worker remains the non-WebGL fallback and is intentionally a specialized 
 ## Guardrails
 
 `pnpm check:renderer-v2` verifies the single-context rule, shared stroke renderer, connected topology and analytic AA markers, immutable RenderScene cache contract, view-only coordinator mask and Worker mesh transferables. It is part of `pnpm check:architecture` and therefore CI.
+
+
+## RenderDevice-owned GL state scope (P0, 2026-11-12)
+
+`render-device-state.js` is the context-generation owner for the GL state
+required by hydro coverage and shared stroke coverage: draw/read framebuffer,
+viewport, program, array-buffer binding, active 2D texture bindings, blend
+equations/factors, color mask/clear color and enable flags. `RenderDevice.state`
+admits the actual state once and follows native GL mutator calls on the shared
+context; `capture()` and `restore()` use that ledger instead of calling
+`gl.getParameter()` on each coverage draw. `framebuffer()` exposes the
+current draw target to the interaction pass without a synchronous readback.
+
+State is scoped to the real GL object and `contextRevision`. A re-created
+context must be admitted before reuse, and snapshots from older revisions
+cannot be restored. If a platform prohibits method instrumentation, the
+state owner must fall back to exact GL snapshots rather than guessing state
+or risking a visual regression; the normal Chromium/WebGL1/2 acceptance
+requires the tracked path and zero per-coverage driver queries.
+
+Coverage still restores arbitrary incoming GL state (including blend masks
+and both framebuffer bindings), not a hard-coded assumed default. The existing
+single-RenderDevice and context-loss recovery invariants remain mandatory.
+Unrelated synchronous queries in mesh upload scheduling and `gl.isBuffer()`
+are independent follow-up work, not part of this GL coverage P0.
