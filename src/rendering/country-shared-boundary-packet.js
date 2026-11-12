@@ -1,4 +1,5 @@
 import { buildGpuStrokeInstances } from "./gpu-stroke-geometry.js";
+import { prepareGpuStrokeVisibilityBlocks } from "./gpu-stroke-visibility.js";
 import { boundaryInteriorComparison, buildTerritorialInternalBoundarySegments, createPreparedBoundaryStore,
   attachBoundarySegmentReferences, topologyNodeKey, mergeSharedBoundaryContributions } from "../geometry/boundary-topology.js";
 import { createBoundarySpatialIndex, segmentBounds } from "../geometry/boundary-spatial-index.js";
@@ -348,7 +349,13 @@ function prepareStrokePacket(segments, maxEdgeDegrees, measure = (_, operation) 
     throw Object.assign(new Error('Incomplete compiled shared-border render packet.'),
       { code: 'PL-BOUNDARY-PACKET' });
   }
-  return { ...packet, preparedGeometry: measure(label + '-gpu-instances', () =>
+  const prepared = measure(label + '-gpu-instances', () =>
     buildGpuStrokeInstances(packet.startsEnds, packet.chainPhase, packet.ownerRanges),
-  {segments: packet.segments.length}) };
+  {segments: packet.segments.length});
+  // Build conservative country-border culling metadata once in this Worker.
+  // Other strokes and canonical editing geometry remain unchanged.
+  const spatial = label === 'contact-stroke' ? measure(label + '-visible-blocks', () =>
+    prepareGpuStrokeVisibilityBlocks(prepared), { segments: packet.segments.length }) : null;
+  return { ...packet, preparedGeometry: spatial
+    ? Object.freeze({ ...prepared, visibilityBlocks: spatial }) : prepared };
 }

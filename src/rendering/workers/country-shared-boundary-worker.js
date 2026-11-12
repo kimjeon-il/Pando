@@ -118,7 +118,7 @@ function packetResidentEstimate(packet) {
   return [packet, packet.outlineOverrides].reduce((sum, part) =>
     sum + part.startsEnds.byteLength + part.chainPhase.byteLength
       + part.preparedGeometry.instances.byteLength + part.preparedGeometry.nodes.byteLength
-      + part.segments.length * 128, 0);
+      + part.segments.length * 128 + (part.preparedGeometry.visibilityBlocks?.estimatedBytes || 0), 0);
 }
 function copyTransferredArrays(packet) {
   const copy = data => data.byteLength ? data.slice() : data;
