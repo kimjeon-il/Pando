@@ -1,5 +1,5 @@
 import { linkGpuProgram } from "./gpu-shader-utils.js";
-import { createRenderDevice, isRenderDevice } from "./render-device.js";
+import { isRenderDevice } from "./render-device.js";
 
 // Union coverage prevents dark joints where separately drawn river capsules overlap.
 // This is a visual-only surface: hydro IDs, source geometry and picking never use it.
