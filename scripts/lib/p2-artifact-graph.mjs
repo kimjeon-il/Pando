@@ -11,6 +11,7 @@ import {libraryConfig,libraryCheckout,decodeArchiveEntry,libraryReportRoot,libra
 import {prepareLibraryData,withLibraryOutputs} from "../../tools/data/library-runtime.mjs";
 import {reportPath} from "../../tools/data/report-paths.mjs";
 import {contentAddress} from "../../tools/build/build-world-bundle.mjs";
+import {mapProjectResourcePath} from '../../src/data/map-project-manifest.js';
 
 export const GRAPH_PATH='config/generated-artifacts.json';
 export const RECEIPT_PATH='assets/data/generated-artifacts/p2-manifest.json';
@@ -153,7 +154,10 @@ export function artifactGraph(root,{archive=null,readGeneratedJson=p=>archive&&p
       }
     }
     if(f.resolve==='hydro'||f.resolve==='terrain') {
-      const manifest=f.resolve==='hydro'?'assets/data/hydro/v0.13.4/manifest.json':'assets/data/terrain/v0.13.3/manifest.json';
+      // Read the project-selected catalog. A stale versioned path must never
+      // be treated as a missing generated artifact or silently regenerated.
+      const project=json(root,'projects/default-world/manifest.json');
+      const manifest=mapProjectResourcePath(project,f.resolve==='hydro'?'rivers':'terrain');
       f.outputs.push(dirname(manifest).replaceAll('\\','/')+'/');
       f.provenance=provenance(readGeneratedJson(manifest).sources);
     }
