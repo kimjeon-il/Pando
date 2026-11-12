@@ -1,0 +1,35 @@
+{
+  "schema":"pando-scoped-source-edit-v1",
+  "purpose":"Apply reviewed edits to large canonical source files in the existing CI checkout; no production pin or main changes.",
+  "files":[
+    {"path":"src/rendering/gpu-terrain-preparation.js","edits":[
+      {"before":"import { resourceKey, resourceUpdate } from \"./resource-update-policy.js\";","after":"import { resourceKey, resourceUpdate } from \"./resource-update-policy.js\";\nimport {createGpuNaturalSurfaceCache} from './gpu-natural-surface-cache.js';\nimport {terrainNaturalTileRequest,fetchTerrainTile} from '../data/terrain-manifest.js';"},
+      {"before":"export function createGpuTerrainPreparation({ readTile, onUnusable, onTileFailure, isMobile, invalidate, geoDistance }) {","after":"export function createGpuTerrainPreparation({ readTile, readNaturalTile = async (spec,manifest,signal) => {\n  const request=terrainNaturalTileRequest(spec,manifest);\n  return request ? fetchTerrainTile(request,{signal}) : null;\n}, onUnusable, onTileFailure, isMobile, invalidate, geoDistance }) {\n  const natural=createGpuNaturalSurfaceCache({readTile:readNaturalTile,invalidate});"},
+      {"before":"        const terrainBudget = Math.max(8 * 1024 * 1024, Number(cacheBudgetBytes) || 128 * 1024 * 1024);","after":"        const terrainBudget = Math.max(8 * 1024 * 1024, Number(cacheBudgetBytes) || 128 * 1024 * 1024);\n        natural.trim(Math.max(0,terrainBudget-terrainBytes-pendingDecodedBytes));"},
+      {"before":"let spareBytes = Math.max(0, cacheBudgetBytes - residentBytes - pendingDecodedBytes);","after":"let spareBytes = Math.max(0, cacheBudgetBytes - residentBytes - pendingDecodedBytes - natural.bytes() - natural.pendingBytes());"},
+      {"before":"  function reset() {\n    for (const key of uploadKeys)","after":"  function reset() {\n    natural.reset();\n    for (const key of uploadKeys)"},
+      {"before":"    prepare(frame, nextView) { activeFrameContext = frame; view = nextView; cacheBudgetBytes = nextView.cacheBudgetBytes; return prepare() || []; },","after":"    prepare(frame, nextView) {\n      activeFrameContext=frame;view=nextView;cacheBudgetBytes=nextView.cacheBudgetBytes;\n      const prepared=prepare()||[];\n      const demBytes=[...terrainTiles.values()].reduce((n,t)=>n+t.byteLength,0);\n      natural.prepare(prepared,{gl,scheduler:uploadScheduler,manifest:terrainManifest,contextGeneration:contextRevision,\n        enabled:!!view.visible&&view.physicalStyle==='physical',requiredReady:readiness().terrainReady,\n        budgetBytes:Math.max(0,cacheBudgetBytes-demBytes-pendingDecodedBytes)});\n      return prepared;\n    },"},
+      {"before":"    retry() {\n      for (const timer of retryTimers)","after":"    retry() {\n      natural.retry();\n      for (const timer of retryTimers)"},
+      {"before":"      terrainCacheBytes: [...terrainTiles.values()].reduce((sum, tile) => sum + tile.byteLength, 0),","after":"      terrainCacheBytes: [...terrainTiles.values()].reduce((sum, tile) => sum + tile.byteLength, 0)+natural.bytes(),\n      ...natural.stats(),"}
+    ]},
+    {"path":"src/rendering/gpu-natural-surface-cache.js","edits":[
+      {"before":"let generation=0,gl=null,scheduler=null,manifest=null,enabled=false,budget=0;","after":"let generation=0,contextGeneration=0,gl=null,scheduler=null,manifest=null,enabled=false,budget=0;"},
+      {"before":"const task={spec,bytes,generation,controller:","after":"const task={spec,bytes,generation,contextGeneration,controller:"},
+      {"before":"contextGeneration:task.generation,priority:30,","after":"contextGeneration:task.contextGeneration,priority:30,"},
+      {"before":"gl=options.gl;scheduler=options.scheduler;manifest=options.manifest;","after":"gl=options.gl;scheduler=options.scheduler;manifest=options.manifest;contextGeneration=options.contextGeneration;"}
+    ]},
+    {"path":"src/rendering/gpu-map-renderer.js","edits":[
+      {"before":"if (reason === 'terrain-tile-ready' || reason === 'terrain-tile-failed' || reason === 'terrain-upload-failed')","after":"if (reason === 'terrain-tile-ready' || reason === 'terrain-tile-failed' || reason === 'terrain-upload-failed' || reason === 'terrain-natural-ready')"},
+      {"before":"'uTerrainLandColors[0]', 'uTerrainSeaSurface', 'uTerrainSeaDeep']);","after":"'uTerrainLandColors[0]', 'uTerrainSeaSurface', 'uTerrainSeaDeep', 'uNaturalSurface', 'uNaturalWeight']);"},
+      {"before":"function drawTerrainTile({ spec, texture, grid, gutter }, pass = 'land') {","after":"function drawTerrainTile({ spec, texture, grid, gutter, naturalTexture = null, naturalMixWeight = 0 }, pass = 'land') {"},
+      {"before":"      gl.uniform1i(cachedUniformLocation(program, 'uTerrain'), 1);","after":"      gl.uniform1i(cachedUniformLocation(program, 'uTerrain'), 1);\n      gl.activeTexture(gl.TEXTURE2);\n      gl.bindTexture(gl.TEXTURE_2D,naturalTexture||texture);\n      gl.uniform1i(cachedUniformLocation(program,'uNaturalSurface'),2);\n      gl.uniform1f(cachedUniformLocation(program,'uNaturalWeight'),\n        naturalTexture&&pass==='land'&&state.physicalSettings.terrainStyle==='physical'?naturalMixWeight:0);\n      gl.activeTexture(gl.TEXTURE1);"}
+    ]},
+    {"path":"src/rendering/terrain-dem-shaders.js","edits":[
+      {"before":"    uniform sampler2D uTerrain;","after":"    uniform sampler2D uTerrain;\n    uniform sampler2D uNaturalSurface;\n    uniform float uNaturalWeight;"},
+      {"before":"      vec3 color = numericalTerrainColor(values.x, values.y, uLandPass, uPhysicalStyle);","after":"      vec3 color = numericalTerrainColor(values.x, values.y, uLandPass, uPhysicalStyle);\n      if(uPhysicalStyle>0.5 && uLandPass>0.5 && uNaturalWeight>0.0){\n        vec3 surface=${sample}(uNaturalSurface,vUv).rgb;\n        // Black is the offline invalid/water sentinel. Blue source water is\n        // also excluded for the earlier NASA-only preview; never edits land.\n        bool valid=max(surface.r,max(surface.g,surface.b))>0.01\n          && !(surface.b>surface.r*1.12 && surface.b>surface.g*1.05);\n        if(valid){\n          float flat=0.27+0.73*0.70710678;\n          float illumination=max(0.0,(values.y-0.42)/0.58);\n          float shade=clamp(flat+((0.27+0.73*illumination)-flat)*1.3,0.16,1.0);\n          float factor=clamp(shade/flat,0.38,1.3);\n          surface*=mix(1.0,0.72,uDarkTheme);\n          color=mix(color,surface*factor,clamp(uNaturalWeight,0.0,1.0));\n        }\n      }"}
+    ]},
+    {"path":"tests/unit/rendering/terrain-natural-gpu.test.mjs","edits":[
+      {"before":"while(!job.step().done){}}};","after":"while(!job.step().done){/* Drain the shared scheduler. */}}};"}
+    ]}
+  ]
+}
