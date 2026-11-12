@@ -32,15 +32,17 @@ export function summarizeComparison(report){
     const detailLevels=valid.map(({scene})=>scene.renderer?.terrainRenderedLevel??null);
     const screenVerified=group.candidate!=='screen'||valid.every(({scene})=>
       scene.screenSpaceCoverage!=='not-verified'&&scene.screenSpaceCoverage!=='not-applicable'&&scene.frameCapture?.screenDraws>0);
+    const batchVerified=group.candidate!=='batch'||valid.every(({scene})=>
+      scene.batchCoverage!=='not-verified'&&scene.batchCoverage!=='not-applicable'&&scene.frameCapture?.batchDraws>0);
     return {candidate:group.candidate,scene:group.scene,total:group.rows.length,passed:valid.length,
-      detailLevels,screenVerified,
+      detailLevels,screenVerified,batchVerified,
       failed,invalidOrIncomplete:group.rows.length-valid.length-failed,metrics,hardGate:'not-assessed',score:null};
   });
   for(const group of groups){
     const baseline=groups.find(item=>item.candidate==='a1'&&item.scene===group.scene);
     const levels=[...(baseline?.detailLevels||[]),...group.detailLevels];
     group.lodCompatibleWithA1=group.candidate==='a0'?null:
-      !!baseline&&baseline.passed>=3&&group.passed>=3&&group.screenVerified&&
+      !!baseline&&baseline.passed>=3&&group.passed>=3&&group.screenVerified&&group.batchVerified&&
       levels.every(Number.isFinite)&&new Set(levels).size===1;
   }
   return {schema:'pando-terrain-viewer-summary-v1',region:report.region,projection:report.projection??'unknown',identity:report.identity,sourceStatus:report.status,
@@ -48,7 +50,7 @@ export function summarizeComparison(report){
     cogSource:report.cogSource??null,tilePrefetch:report.tilePrefetch??null,comparisonPolicy:report.comparisonPolicy??null,
     normalizedBudget:report.normalizedBudget??null,
     minimumValidRepetitions:3,limitations:[...(report.limitations||[]),'Medians summarize per-run statistics; they are not pooled frame percentiles or confidence intervals.',
-      'LOD compatibility checks only the recorded detail level and verified D drawing; it does not prove matching color or overall quality.',
+      'LOD compatibility checks the recorded detail level and verified D/B batch drawing; it does not prove matching color or overall quality.',
       'Hard gates and scores require independent visual, failure, hardware, and operational evidence.'],groups};
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){

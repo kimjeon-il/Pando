@@ -4,7 +4,14 @@ import {chromium} from '@playwright/test';
 import {mkdtemp,unlink,rmdir,stat} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-import {runViewerPhases,captureAcceptedFrame} from '../../../scripts/terrain-experiment/viewer-phases.mjs';
+import {runViewerPhases,captureAcceptedFrame,waitForViewerReady} from '../../../scripts/terrain-experiment/viewer-phases.mjs';
+
+test('startup timeout is retained only if all Viewer readiness conditions subsequently hold',async()=>{
+  const timeout=()=>{const error=new Error('readiness timeout');error.name='TimeoutError';throw error;};
+  const ready=await waitForViewerReady({waitForFunction:async()=>timeout(),evaluate:async()=>true});
+  assert.equal(ready.timedOut,true);assert.ok(ready.waitMs>=0);
+  await assert.rejects(()=>waitForViewerReady({waitForFunction:async()=>timeout(),evaluate:async()=>false}),/readiness timeout/);
+});
 
 test('terrain phase runner exercises drag, rotation, dates, theme and warm return', {timeout:30000},async()=>{
   const browser=await chromium.launch({headless:true});

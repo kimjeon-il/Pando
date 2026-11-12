@@ -8,7 +8,7 @@ import {setTimeout as delay} from 'node:timers/promises';
 import {a1TerrainFragmentSource} from './a1-shader.mjs';
 import {makeViewerFixtureManifest,experimentCenter} from './viewer-fixture.mjs';
 import {serve,identity,mapSummary,chromiumProcessMemory} from '../p7-browser-ab-measure.mjs';
-import {performanceCounters,performanceDelta,captureAcceptedFrame,runViewerPhases} from './viewer-phases.mjs';
+import {performanceCounters,performanceDelta,captureAcceptedFrame,runViewerPhases,waitForViewerReady} from './viewer-phases.mjs';
 import {inspectFixtureCoverage,withNormalizedAdmissionBudget,withExperimentViewInvalidation,withExperimentFlatStartup,withPlaceSnapshotTrace,withTerrainOnlyCapture,scaleAtZoom} from './fixture-coverage.mjs';
 import {regionalOrigin} from './gutter-fixture.mjs';
 import {candidateSequence} from './candidate-sequence.mjs';
@@ -28,6 +28,7 @@ const smoke=process.argv.includes('--smoke');
 const phaseSmoke=process.argv.includes('--phase-smoke');
 const includeCog=process.argv.includes('--cog');
 const includeScreen=process.argv.includes('--screen');
+const includeBatch=process.argv.includes('--batch');
 const normalizedBudget=process.argv.includes('--normalized-budget');
 const comparisonPolicy={byteBudget:(normalizedBudget?192:96)*1024*1024,bytesPerPixel:12};
 if(!out)throw Error('Explicit --out directory required');
@@ -39,9 +40,9 @@ if(digest(fixtureBytes)!==manifestHash)throw Error('Fixture manifest hash mismat
 const fixture=JSON.parse(fixtureBytes),runs=[];
 const only=process.argv.find(arg=>arg.startsWith('--candidate='))?.slice('--candidate='.length)||null;
 if(phaseSmoke&&(!smoke||!only))throw Error('Phase smoke requires --smoke and one explicit candidate');
-const sequence=candidateSequence({smoke,cog:includeCog,screen:includeScreen,only});
+const sequence=candidateSequence({smoke,cog:includeCog,screen:includeScreen,batch:includeBatch,only});
 let tilePrefetch=null;
-if(sequence.some(candidate=>['a1','b512','screen'].includes(candidate))){
+if(sequence.some(candidate=>['a1','b512','batch','screen'].includes(candidate))){
   try{tilePrefetch=await prefetchFixtureTiles({records:fixture.records,region,base});}
   catch(error){
     await writeFile(`${out}/preflight-error.json`,JSON.stringify({status:'failed',stage:'tile-prefetch',region,
@@ -74,6 +75,12 @@ if(includeScreen&&(!only||only==='screen')){
     resolveDir:process.cwd(),loader:'js'},bundle:true,platform:'browser',format:'iife',globalName:'PandoScreenFixture',write:false});
   screenBundle=bundle.outputFiles[0].text;
 }
+let batchBundle;
+if(includeBatch&&(!only||only==='batch')){
+  const bundle=await build({stdin:{contents:"export {createTerrainTileBatch} from './scripts/terrain-experiment/viewer-tile-batch.mjs';",
+    resolveDir:process.cwd(),loader:'js'},bundle:true,platform:'browser',format:'iife',globalName:'PandoBatchFixture',write:false});
+  batchBundle=bundle.outputFiles[0].text;
+}
 const report={schema:'pando-terrain-viewer-regional-ab-v1',identity:identity(),fixtureRevision:revision,region,projection,
   fixtureManifestSha256:manifestHash,sequence,startedAt:new Date().toISOString(),runs,status:'running',
   ...(tilePrefetch?{tilePrefetch:{files:tilePrefetch.files,bytes:tilePrefetch.bytes,durationMs:tilePrefetch.durationMs}}:{}),
@@ -83,11 +90,12 @@ const report={schema:'pando-terrain-viewer-regional-ab-v1',identity:identity(),f
   limitations:['Only a bounded LOD5 region uses Q1; lower LODs use the original v0.14 tiles.',
     ...(projection==='flat'?['Experimental flat Viewer bootstrap overrides the current product startup; flat is not a current Viewer feature.']:[]),
     'A0 is a separate existing-data baseline served by the existing local server; it does not use Q1, the experiment shader, a modified admission budget, or the in-memory fixture proxy.',
-    ...(normalizedBudget?['A1/B/C/D use an experiment-only 192MiB visible DEM admission limit; A0 retains the product default of 96MiB and may select a coarser level.']:[]),
+    ...(normalizedBudget?['A1/B512/batch/C/D use an experiment-only 192MiB visible DEM admission limit; A0 retains the product default of 96MiB and may select a coarser level.']:[]),
     'Programmatic camera setup triggers the full view invalidation in this experiment so label layout follows the camera.',
     `Only WebGL2 at desktop DPR 1 on SwiftShader; ${smoke&&!phaseSmoke?'smoke mode covers one stationary 32x scene only':'interaction phases are included'}.`,
     'Warm return is same-page memory/cache reuse, not a separate browser warm-navigation measurement.',
-    '512 versus 1024 varies tile partition only; an atlas or instancing optimization is not implemented.',
+    'The b512 candidate varies tile partition only; batch separately adds bounded WebGL2 atlas and instancing.',
+    'B batch supports only 512 LOD5 tiles; other levels use the existing path and are not counted as batch.',
     'Verified tiles and COG bytes are prefetched outside timing and served from memory through interception; request origins differ and CDP totals are not real-host transfer measurements.',
     'COG runs use a simulated same-origin 206 range host; GitHub raw CORS is not fixed by this test.',
     'Screen-space D is a bounded 512-tile atlas prototype; unsupported coverage retains the existing tile path and is not counted as D.',
@@ -100,7 +108,7 @@ try{
     '--enable-unsafe-swiftshader','--disable-gpu-sandbox']});
   report.browserVersion=browser.version();
   for(let index=0;index<sequence.length;index++){
-    const candidate=sequence[index],size=['b512','screen'].includes(candidate)?512:1024;
+    const candidate=sequence[index],size=['b512','batch','screen'].includes(candidate)?512:1024;
     const run={index:index+1,candidate,tileSize:candidate==='a0'?null:size,admissionBudgetMiB:candidate==='a0'?96:(normalizedBudget?192:96),status:'running',candidateRequests:[],placeNetwork:[],placeWorkers:[],pageErrors:[],consoleErrors:[],routeErrors:[],error:null};
     runs.push(run);const page=await browser.newPage({viewport:{width:1280,height:800},locale:'ko-KR',timezoneId:'Asia/Seoul'});
     let selected=candidate==='a0'?{center:experimentCenter(region)}:null;
@@ -135,6 +143,7 @@ try{
           regionalOrigin(Math.floor((90-center[1])*120),1024,{alignWorld:true,block2:true})];
         await page.addInitScript({content:`${screenBundle}\nglobalThis.__pandoScreen=PandoScreenFixture.createViewerScreenSpace(${JSON.stringify({origin,tileSize:512})});`});
       }
+      if(candidate==='batch')await page.addInitScript({content:`${batchBundle}\nglobalThis.__pandoBatch=PandoBatchFixture.createTerrainTileBatch();`});
       if(normalizedBudget&&candidate!=='a0')await page.route('**/terrain-tile-selection-core.js*',async route=>{
         try{
           const response=await route.fetch(),source=await response.text();
@@ -156,6 +165,12 @@ try{
             const marker="function renderTerrain(pass = 'land') {\n      for (const tile of preparedTerrain) drawTerrainTile(tile, pass);\n    }";
             if(!source.includes(marker))throw Error('Viewer terrain render contract changed');
             const replacement=`function renderTerrain(pass = 'land') {\n      const dark=getSystemTheme()==='dark';\n      const palette=globalThis.PandoLabCanvasTerrainDem.paletteForTheme(dark?'dark':'light');\n      if(globalThis.__pandoScreen?.draw({gl,tiles:preparedTerrain,frame:activeFrameContext || lastVisualFrame,pass,physicalStyle:state.physicalSettings.terrainStyle==='physical',dark,palette})){performanceMetrics.webGlDirectDrawCallCount++;return;}\n      for (const tile of preparedTerrain) drawTerrainTile(tile, pass);\n    }`;
+            source=source.replace(marker,replacement);
+          }
+          if(candidate==='batch'){
+            const marker="function renderTerrain(pass = 'land') {\n      for (const tile of preparedTerrain) drawTerrainTile(tile, pass);\n    }";
+            if(!source.includes(marker))throw Error('Viewer batched terrain render contract changed');
+            const replacement=`function renderTerrain(pass = 'land') {\n      const dark=getSystemTheme()==='dark',palette=globalThis.PandoLabCanvasTerrainDem.paletteForTheme(dark?'dark':'light');\n      const before=globalThis.__pandoBatch.stats.draws;\n      if(globalThis.__pandoBatch.draw({gl,tiles:preparedTerrain,frame:activeFrameContext||lastVisualFrame,pass,physicalStyle:state.physicalSettings.terrainStyle==='physical',dark,palette,vertexSource:terrainVertexSourceWebGl2,fragmentSource:terrainDemFragmentSource(2),setViewUniforms})){performanceMetrics.webGlDirectDrawCallCount+=globalThis.__pandoBatch.stats.draws-before;return;}\n      for(const tile of preparedTerrain)drawTerrainTile(tile,pass);\n    }`;
             source=source.replace(marker,replacement);
           }
           const renderMarker='    function renderWebGl(visualFrame, { interactionOnly = false } = {}) {';
@@ -247,12 +262,7 @@ try{
       pageCdp.on('Network.loadingFinished',event=>{const row=network.get(event.requestId);if(row)row.encodedBytes=event.encodedDataLength;});
       pageCdp.on('Network.loadingFailed',event=>{const row=network.get(event.requestId);if(row)row.failure=event.errorText;});
       await page.goto('http://127.0.0.1:4173/?debug=1&renderer=webgl2',{waitUntil:'domcontentloaded',timeout:120000});
-      await page.waitForFunction(()=>{
-        const api=globalThis.__PANDOLAB_VIEWER__,s=api?.rendererStats();
-        return s?.canonicalMeshReady===true&&s.countriesPublishedGeneration===s.projectGeneration&&s.projectGeneration>0
-          &&s.mapReadiness?.mapReady===true&&s.terrainReady===true
-          &&api.builtinMonth().month==='2026-11'&&document.getElementById('viewerStatus')?.dataset.ready==='true';
-      },null,{timeout:210000,polling:300});
+      run.startupWait=await waitForViewerReady(page);
       if(!selected||(candidate!=='a0'&&(manifestRequests!==1||shaderRequests<1)))throw Error('Experiment manifest or shader was not consumed');
       if(candidate==='a0'){
         const original=await page.evaluate(()=>globalThis.__PANDOLAB_VIEWER__.rendererStats().terrainDatasetVersion);
@@ -313,6 +323,10 @@ try{
         run.screen=await page.evaluate(()=>({...globalThis.__pandoScreen.stats}));
         if(!run.screen.draws)throw Error('Screen-space D did not draw a frame');
       }
+      if(candidate==='batch'){
+        run.batch=await page.evaluate(()=>({...globalThis.__pandoBatch.stats}));
+        if(!run.batch.draws)throw Error('B batched tile candidate did not draw a frame');
+      }
       if(candidate==='cog'){
         run.cog=await page.evaluate(async()=>{const adapter=await globalThis.__pandoCogReady;
           return {counts:{...adapter.counts},range:{...adapter.statistics}};});
@@ -320,7 +334,7 @@ try{
       }
       run.center=selected.center;run.manifestRequests=manifestRequests;run.shaderRequests=shaderRequests;
       try{
-        run.frameCapture=await captureAcceptedFrame(page,`${out}/viewer-${index+1}-${size}-framebuffer.png`,{screen:candidate==='screen'});
+        run.frameCapture=await captureAcceptedFrame(page,`${out}/viewer-${index+1}-${size}-framebuffer.png`,{screen:candidate==='screen',batch:candidate==='batch'});
         if(Math.abs(run.frameCapture.scale-predictedScale)>Math.max(0.01,predictedScale*1e-5))throw Error('Actual 32x scale differs from preflight camera');
       }catch(error){run.frameCaptureError=String(error);}
       const screenshotPath=`${out}/viewer-${index+1}-${size}.png`,screenshotCdp=await page.context().newCDPSession(page);
@@ -371,11 +385,12 @@ try{
       if(run.status!=='passed')run.error='Screenshot, console, candidate request, route, or page error';
       if(run.status==='passed'&&(!smoke||phaseSmoke)){
         run.status='running';run.phases=[];
-        await runViewerPhases({page,pageCdp,processCdp,out,prefix:`viewer-${index+1}-${size}`,screen:candidate==='screen',center:selected.center,
+        await runViewerPhases({page,pageCdp,processCdp,out,prefix:`viewer-${index+1}-${size}`,screen:candidate==='screen',batch:candidate==='batch',center:selected.center,
           projection,
           expectedLevel:candidate==='a0'?null:5,phases:run.phases,onStart:name=>{phaseName=name;},
           diagnostics:()=>page.evaluate(async current=>{
             if(current==='screen')return {screen:{...globalThis.__pandoScreen.stats}};
+            if(current==='batch')return {batch:{...globalThis.__pandoBatch.stats}};
             if(current==='cog'){const adapter=await globalThis.__pandoCogReady;return {counts:{...adapter.counts},range:{...adapter.statistics}};}
             return null;
           },candidate),

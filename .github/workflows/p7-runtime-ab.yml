@@ -24,6 +24,11 @@ on:
         type: boolean
         required: false
         default: false
+      terrain_batch:
+        description: Include the experimental 512-tile instancing candidate
+        type: boolean
+        required: false
+        default: false
       terrain_normalized_budget:
         description: Use 192 MiB for experimental candidates; A0 retains the product budget
         type: boolean
@@ -57,6 +62,7 @@ on:
           - a0
           - a1
           - b512
+          - batch
           - cog
           - screen
 
@@ -90,6 +96,7 @@ jobs:
         env:
           TERRAIN_FULL: ${{ inputs.terrain_full }}
           TERRAIN_PHASE_SMOKE: ${{ inputs.terrain_phase_smoke }}
+          TERRAIN_BATCH: ${{ inputs.terrain_batch }}
           TERRAIN_REGION: ${{ inputs.terrain_region }}
           TERRAIN_PROJECTION: ${{ inputs.terrain_projection }}
           TERRAIN_NORMALIZED_BUDGET: ${{ inputs.terrain_normalized_budget }}
@@ -98,6 +105,7 @@ jobs:
         run: |
           set -euo pipefail
           args=(--screen --cog "--region=$TERRAIN_REGION" "--projection=$TERRAIN_PROJECTION")
+          if [ "$TERRAIN_BATCH" = 'true' ] || [ "$TERRAIN_CANDIDATE" = 'batch' ]; then args+=(--batch); fi
           if [ "$TERRAIN_NORMALIZED_BUDGET" = 'true' ]; then args+=(--normalized-budget); fi
           if [ "$TERRAIN_CANDIDATE" != 'all' ] && [ -n "$TERRAIN_CANDIDATE" ]; then args+=("--candidate=$TERRAIN_CANDIDATE"); fi
           if [ "$TERRAIN_FULL" != 'true' ]; then args+=(--smoke); fi

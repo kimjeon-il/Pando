@@ -4,14 +4,25 @@ import {mapSummary,chromiumProcessMemory} from '../p7-browser-ab-measure.mjs';
 import {setTimeout as delay} from 'node:timers/promises';
 
 const digest=bytes=>createHash('sha256').update(bytes).digest('hex');
+export async function waitForViewerReady(page){
+  const ready=()=>{const api=globalThis.__PANDOLAB_VIEWER__,s=api?.rendererStats();
+    return s?.canonicalMeshReady===true&&s.countriesPublishedGeneration===s.projectGeneration&&s.projectGeneration>0
+      &&s.mapReadiness?.mapReady===true&&s.terrainReady===true
+      &&api.builtinMonth().month==='2026-11'&&document.getElementById('viewerStatus')?.dataset.ready==='true';};
+  const start=Date.now();let timedOut=false;
+  try{await page.waitForFunction(ready,null,{timeout:210000,polling:300});}
+  catch(error){if(error?.name!=='TimeoutError'||!await page.evaluate(ready))throw error;timedOut=true;}
+  return {waitMs:Date.now()-start,timedOut};
+}
 export async function performanceCounters(cdp){return Object.fromEntries((await cdp.send('Performance.getMetrics')).metrics.map(item=>[item.name,item.value]));}
 export function performanceDelta(before,after){
   const ms=Object.fromEntries(['TaskDuration','ScriptDuration','LayoutDuration','RecalcStyleDuration']
     .map(key=>[key,Number.isFinite(before[key])&&Number.isFinite(after[key])?(after[key]-before[key])*1000:null]));
   return {cpuMs:ms,jsHeapUsedBytes:after.JSHeapUsedSize??null,jsHeapTotalBytes:after.JSHeapTotalSize??null};
 }
-export async function captureAcceptedFrame(page,path,{screen=false}={}){
+export async function captureAcceptedFrame(page,path,{screen=false,batch=false}={}){
   const before=screen?await page.evaluate(()=>globalThis.__pandoScreen.stats.draws):null;
+  const batchBefore=batch?await page.evaluate(()=>globalThis.__pandoBatch.stats.draws):null;
   const started=Date.now();let captureWaitTimedOut=false;
   await page.evaluate(()=>{globalThis.__pandoCaptureFrame.result=null;globalThis.__pandoCaptureFrame.requested=true;
     globalThis.__pandoCaptureFrame.entries=0;globalThis.__pandoCaptureFrame.attempts=0;globalThis.__pandoCaptureFrame.lastAttempt=null;
@@ -51,17 +62,23 @@ export async function captureAcceptedFrame(page,path,{screen=false}={}){
     if(draws<=before)throw Error('Captured frame did not invoke the screen-space pass');
     result.screenDraws=draws;
   }
+  if(batch){
+    const draws=await page.evaluate(()=>globalThis.__pandoBatch.stats.draws);
+    if(draws<=batchBefore)throw Error('Captured frame did not invoke the batched tile pass');
+    result.batchDraws=draws;
+  }
   return result;
 }
-export async function runViewerPhases({page,pageCdp,processCdp,out,prefix,screen,center,phases,onPhase,onStart,
+export async function runViewerPhases({page,pageCdp,processCdp,out,prefix,screen,batch=false,center,phases,onPhase,onStart,
   projection='globe',minimumFrames=300,capture=captureAcceptedFrame,expectedLevel=5,panDurationMs=10000,themeCycles=10,diagnostics=async()=>null}){
   if(!Number.isSafeInteger(minimumFrames)||minimumFrames<1)throw TypeError('Positive frame count required');
   if(projection!=='globe'&&projection!=='flat')throw TypeError('Unknown phase projection');
   if(!Number.isSafeInteger(panDurationMs)||panDurationMs<1||!Number.isSafeInteger(themeCycles)||themeCycles<1)
     throw TypeError('Positive interaction duration and theme cycle count required');
-  async function phase(name,action,{month,theme,zoom,terrainRadio,level=expectedLevel,requireScreen=screen}={}){
+  async function phase(name,action,{month,theme,zoom,terrainRadio,level=expectedLevel,requireScreen=screen,requireBatch=batch}={}){
     const row={name,status:'running',frameGapsMs:[]};phases.push(row);onStart(name);await onPhase();
     if(screen&&!requireScreen)row.screenSpaceCoverage=terrainRadio==='terrainNoneRadio'?'not-applicable':'not-verified';
+    if(batch&&!requireBatch)row.batchCoverage=terrainRadio==='terrainNoneRadio'?'not-applicable':'not-verified';
     const countersBefore=await performanceCounters(pageCdp);
     await page.evaluate(()=>globalThis.__terrainFixtureFrames.start());const started=Date.now();
     try{
@@ -85,7 +102,7 @@ export async function runViewerPhases({page,pageCdp,processCdp,out,prefix,screen
       row.renderer=mapSummary(await page.evaluate(()=>globalThis.__PANDOLAB_VIEWER__.rendererStats()));
       row.performance=performanceDelta(countersBefore,await performanceCounters(pageCdp));
       row.chromiumProcessMemory=await chromiumProcessMemory(processCdp);
-      row.frameCapture=await capture(page,`${out}/${prefix}-${name}-framebuffer.png`,{screen:requireScreen});
+      row.frameCapture=await capture(page,`${out}/${prefix}-${name}-framebuffer.png`,{screen:requireScreen,batch:requireBatch});
       row.candidateDiagnostics=await diagnostics();
       row.status='passed';
     }catch(error){
@@ -126,8 +143,8 @@ export async function runViewerPhases({page,pageCdp,processCdp,out,prefix,screen
     host.setViewState({projection,view:{...view,[projection==='flat'?'flatZoom':'globeZoom']:value}});
     host.requestRepaint('terrain-experiment-zoom');
   },{value:zoom,projection});
-  await phase('zoom8',()=>setZoom(8),{zoom:8,level:null,requireScreen:false});
-  await phase('zoom16',()=>setZoom(16),{zoom:16,level:null,requireScreen:false});
+  await phase('zoom8',()=>setZoom(8),{zoom:8,level:null,requireScreen:false,requireBatch:false});
+  await phase('zoom16',()=>setZoom(16),{zoom:16,level:null,requireScreen:false,requireBatch:false});
   await phase('zoom32-return',()=>setZoom(32),{zoom:32});
   await phase('previous-year',()=>page.locator('#timelinePreviousYear').click({timeout:10000}),{month:'2025-12'});
   await phase('date-return',()=>page.locator('#timelineNextYear').click({timeout:10000}),{month:'2026-11'});
@@ -152,7 +169,7 @@ export async function runViewerPhases({page,pageCdp,processCdp,out,prefix,screen
     await page.locator('#mapDisplayBtn').click({timeout:10000});
   }
   await phase('terrain-political',()=>selectTerrain('terrainPoliticalRadio'),{terrainRadio:'terrainPoliticalRadio'});
-  await phase('terrain-none',()=>selectTerrain('terrainNoneRadio'),{terrainRadio:'terrainNoneRadio',requireScreen:false});
+  await phase('terrain-none',()=>selectTerrain('terrainNoneRadio'),{terrainRadio:'terrainNoneRadio',requireScreen:false,requireBatch:false});
   await phase('terrain-physical-return',()=>selectTerrain('terrainPhysicalRadio'),{terrainRadio:'terrainPhysicalRadio'});
   const political=phases.find(row=>row.name==='terrain-political')?.frameCapture?.terrainOnly?.sha256;
   const none=phases.find(row=>row.name==='terrain-none')?.frameCapture?.terrainOnly?.sha256;
