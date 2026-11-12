@@ -302,7 +302,10 @@ function countryWorker(t, cache, quality = 'preview') {
   const moduleUrl = new URL("../../../src/rendering/workers/country-shared-boundary-worker.js", import.meta.url).href;
   const wrapper = `import { parentPort, workerData } from 'node:worker_threads';
     import { gzipSync } from 'node:zlib';
-    globalThis.self = { location: { href: ${JSON.stringify(moduleUrl)} }, postMessage: (...args) => parentPort.postMessage(...args) };
+    // Match browser Worker identity so classic script contracts attach to globalThis.
+    globalThis.self = globalThis;
+    self.location = { href: ${JSON.stringify(moduleUrl)} };
+    self.postMessage = (...args) => parentPort.postMessage(...args);
     if (workerData.cache) globalThis.fetch = async () => new Response(gzipSync(JSON.stringify(workerData.cache)));
     await import(${JSON.stringify(verifiedNodeCoreUrl)});
     await import(${JSON.stringify(rasterContractUrl)});
@@ -407,16 +410,21 @@ test('the real Worker coalesces rapid replace patches and deletions while preser
   const old = [rectangle('A', 0, 0, 1, 1), rectangle('B', 1, 0, 2, 1), rectangle('OLD_ONLY', 100, 0, 101, 1)];
   const cache = { version: 1, quality: 'preview', signatures: Object.fromEntries(old.map(row => [row.id, countryGeometrySignature(row)])),
     segments: serializeCountrySharedBoundarySegments(buildCountrySharedBoundarySegments(old)) };
+  const rasterContractUrl = new URL("../../../src/rendering/workers/polygon-raster-contract.js", import.meta.url).href;
   const moduleUrl = new URL("../../../src/rendering/workers/country-shared-boundary-worker.js", import.meta.url).href;
   const wrapper = `import { parentPort, workerData } from 'node:worker_threads';
     import { gzipSync } from 'node:zlib';
     let release;
-    globalThis.self = { location: { href: ${JSON.stringify(moduleUrl)} }, postMessage: (...args) => parentPort.postMessage(...args) };
+    // Match browser Worker identity so classic script contracts attach to globalThis.
+    globalThis.self = globalThis;
+    self.location = { href: ${JSON.stringify(moduleUrl)} };
+    self.postMessage = (...args) => parentPort.postMessage(...args);
     globalThis.fetch = async () => {
       parentPort.postMessage({ type: 'cache-stalled' });
       return new Promise(resolve => { release = () => resolve(new Response(gzipSync(JSON.stringify(workerData.cache)))); });
     };
     await import(${JSON.stringify(verifiedNodeCoreUrl)});
+    await import(${JSON.stringify(rasterContractUrl)});
     await import(${JSON.stringify(moduleUrl)});
     parentPort.on('message', data => data.type === 'release-cache' ? release() : self.onmessage({ data }));`;
   const worker = new Worker(new URL(`data:text/javascript,${encodeURIComponent(wrapper)}`), { workerData: { cache } });
