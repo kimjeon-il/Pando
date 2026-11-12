@@ -59,12 +59,15 @@ function createGlStateContract(gl, version, contextRevision) {
 
   const originals = new Map();
   let active = true;
-  const intercept = (method, update) => {
+  const intercept = (method, update, { resultOnly = false } = {}) => {
     const native = gl[method].bind(gl);
     originals.set(method, gl[method]);
     Object.defineProperty(gl, method, { configurable: true, writable: true, value(...args) {
       const result = native(...args);
-      if (active && !gl.isContextLost?.()) update(...args, result);
+      if (active && !gl.isContextLost?.()) {
+        if (resultOnly) update(result);
+        else update(...args);
+      }
       return result;
     } });
   };
@@ -74,7 +77,7 @@ function createGlStateContract(gl, version, contextRevision) {
   });
   intercept('viewport', (...args) => { tracked.viewport = args; });
   intercept('useProgram', value => { tracked.program = value; });
-  intercept('createBuffer', buffer => { markBuffer(buffer, true); });
+  intercept('createBuffer', buffer => { markBuffer(buffer, true); }, { resultOnly: true });
   intercept('bindBuffer', (target, value) => {
     if (target !== gl.ARRAY_BUFFER) return;
     // Buffers allocated before this ledger may first appear here; they are
