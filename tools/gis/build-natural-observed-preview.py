@@ -282,10 +282,34 @@ def build(output):
     print(json.dumps(receipt,indent=2))
 
 
+def polar_nan_self_test():
+    """Exercise the real rasterio reprojection path, not just a bounds helper."""
+    import tempfile
+    import numpy as np
+    import rasterio
+    from rasterio.transform import from_origin
+    data=np.array([[1,1,np.nan,0],[1,np.nan,0,0],[0,0,1,np.nan],[0,0,1,1]],dtype='float32')
+    with tempfile.TemporaryDirectory(prefix='pando-natural-polar-') as directory:
+        path=Path(directory)/'ice.tif'
+        source_transform=from_origin(0,4,1,1)
+        with rasterio.open(path,'w',driver='GTiff',height=4,width=4,count=1,
+              dtype='float32',crs='EPSG:4326',transform=source_transform) as dst:
+            dst.write(data,1)
+        result,receipt=polar_grid(path,'2021.000',(2,2),from_origin(0,4,2,2))
+        if not np.array_equal(result,np.array([[1,0],[0,1]],dtype='float32')):
+            raise AssertionError('NaN nodata contaminated valid polar coverage')
+        if not receipt['coverageValidation']['implicitFloatNaNNoData']:
+            raise AssertionError('Explicit IEEE NaN missing-data rule was not used')
+        print(json.dumps({'polarNaNMissingSource':True,'outputCoverage':result.tolist(),
+          'strictFiniteOutput':bool(np.isfinite(result).all())}))
+
+
 def main():
     parser=argparse.ArgumentParser();parser.add_argument('--output',required=True);parser.add_argument('--probe',action='store_true')
+    parser.add_argument('--self-test-polar',action='store_true')
     args=parser.parse_args()
-    if args.probe:probe(args.output)
+    if args.self_test_polar:polar_nan_self_test()
+    elif args.probe:probe(args.output)
     else:build(args.output)
 
 if __name__=='__main__':main()
