@@ -799,7 +799,8 @@ function canvasFallbackWorkerMain(self) {
     function renderCountryBoundaries(message, projection, dpr, target = context, reserve = false) {
       if (message.surfacePresentation.quality === 'pending' || countrySharedBoundary?.sourceQuality !== message.surfacePresentation.quality) return;
       const theme = message.theme, path = createCanvasPath(projection, target);
-      const sharedOnly = message.physicalSettings?.terrainVisible && message.physicalSettings?.terrainStyle === 'physical';
+      // All terrain styles (including 'none') use the identical shared-boundary packet.
+      const sharedOnly = true;
       target.save(); target.setTransform(dpr, 0, 0, dpr, 0, 0);
       target.globalAlpha = reserve ? 1 : theme.borderAlpha;
       target.strokeStyle = theme.border;

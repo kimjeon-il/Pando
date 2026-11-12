@@ -7,8 +7,10 @@ import { sharedCalculationCore } from "../document/temporal.js";
 import { computeCountrySharedContacts } from "../geometry/country-contact-core.js";
 import { assembleStrokeWithGroupReuse } from "./country-stroke-group-reuse.js";
 
-export function shouldShowSharedCountryBorders(settings) {
-  return settings?.terrainVisible === true && settings?.terrainStyle === 'physical';
+// Every ordinary map style renders shared land borders, not per-object coastal outlines.
+// This is a presentation policy: canonical polygon/coast geometry is unchanged.
+export function shouldShowSharedCountryBorders() {
+  return true;
 }
 
 export function visibleCountrySharedSegments(segments = [], isVisible = () => true) {

@@ -104,10 +104,11 @@ test('artificial dateline edges do not become country borders', () => {
   assert.deepEqual(buildCountrySharedBoundarySegments([east, west]), []);
 });
 
-test('physical style alone switches the base border to the shared packet', () => {
+test('every terrain style uses shared borders without ordinary coast outlines', () => {
   assert.equal(shouldShowSharedCountryBorders({ terrainVisible: true, terrainStyle: 'physical' }), true);
-  assert.equal(shouldShowSharedCountryBorders({ terrainVisible: false, terrainStyle: 'physical' }), false);
-  assert.equal(shouldShowSharedCountryBorders({ terrainVisible: true, terrainStyle: 'political' }), false);
+  assert.equal(shouldShowSharedCountryBorders({ terrainVisible: false, terrainStyle: 'physical' }), true);
+  assert.equal(shouldShowSharedCountryBorders({ terrainVisible: true, terrainStyle: 'political' }), true);
+  assert.equal(shouldShowSharedCountryBorders({ terrainVisible: false, terrainStyle: 'none' }), true);
 });
 
 test('one hidden owner keeps a shared border, while two hidden owners remove it', () => {
