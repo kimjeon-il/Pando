@@ -15,7 +15,12 @@ function programFor(gl,vertexSource,fragmentSource){
 
 export function createTerrainTileBatch({maxAtlasBytes=64*1024*1024}={}){
   const contexts=new WeakMap(),stats={draws:0,instances:0,atlasBuilds:0,atlasBytes:0,fallbacks:0};
-  return {stats,draw({gl,tiles,frame,pass,physicalStyle,dark,palette,vertexSource,fragmentSource,setViewUniforms}){
+  return {stats,dispose(gl){
+    const state=contexts.get(gl);if(!state)return false;
+    for(const atlas of state.atlases)gl.deleteTexture(atlas);
+    gl.deleteFramebuffer(state.framebuffer);gl.deleteBuffer(state.instances);gl.deleteVertexArray(state.vao);gl.deleteProgram(state.program);
+    contexts.delete(gl);stats.atlasBytes=0;return true;
+  },draw({gl,tiles,frame,pass,physicalStyle,dark,palette,vertexSource,fragmentSource,setViewUniforms}){
     const side=514,atlasSide=side*3,atlasBytes=atlasSide*atlasSide*4;
     if(!gl||typeof gl.drawElementsInstanced!=='function'||!frame||!palette||typeof setViewUniforms!=='function'||
       !Array.isArray(tiles)||!tiles.length||tiles.some(tile=>tile.spec?.level!==5||tile.spec.pixelWidth!==512||tile.spec.pixelHeight!==512||tile.gutter!==1||!tile.grid||!tile.texture)||

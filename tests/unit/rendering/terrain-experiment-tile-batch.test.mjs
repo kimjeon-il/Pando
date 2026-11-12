@@ -63,12 +63,13 @@ test('batched terrain tiles match separate draws and preserve cached atlases', {
       const restored=before.program===gl.getParameter(gl.CURRENT_PROGRAM)&&before.vao===gl.getParameter(gl.VERTEX_ARRAY_BINDING)&&before.array===gl.getParameter(gl.ARRAY_BUFFER_BINDING)
         &&before.active===gl.getParameter(gl.ACTIVE_TEXTURE)&&before.read===gl.getParameter(gl.READ_FRAMEBUFFER_BINDING);
       const constrained=globalThis.TileBatch.createTerrainTileBatch({maxAtlasBytes:0}),fallback=constrained.draw(input);
+      batch.dispose(gl);const disposedBytes=batch.stats.atlasBytes,recreated=batch.draw(input);
       let max=0,changed=0;for(let i=0;i<actual.length;i++){const d=Math.abs(actual[i]-reference[i]);max=Math.max(max,d);if(d>2)changed++;}
-      return {first,second,restored,fallback,max,changed,stats:{...batch.stats},error:gl.getError()};
+      return {first,second,restored,fallback,disposedBytes,recreated,max,changed,stats:{...batch.stats},error:gl.getError()};
     },{fragment:a1TerrainFragmentSource(2),palette:{landColors:[...palette.landColors],seaSurface:[...palette.seaSurface],seaDeep:[...palette.seaDeep]}});
     assert.equal(result.first,true);assert.equal(result.second,true);assert.equal(result.error,0);
     assert.equal(result.restored,true);assert.equal(result.fallback,false);
-    assert.equal(result.changed,0);assert.ok(result.max<=2);assert.equal(result.stats.atlasBuilds,1);
-    assert.equal(result.stats.draws,2);assert.equal(result.stats.instances,4);
+    assert.equal(result.changed,0);assert.ok(result.max<=2);assert.equal(result.disposedBytes,0);assert.equal(result.recreated,true);
+    assert.equal(result.stats.atlasBuilds,2);assert.equal(result.stats.draws,3);assert.equal(result.stats.instances,6);
   }finally{await browser.close();}
 });
