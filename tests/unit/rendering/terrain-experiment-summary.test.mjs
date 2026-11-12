@@ -33,3 +33,11 @@ test('batched candidate without proof of drawing is excluded from same-LOD compa
     ...Array.from({length:3},()=>row('a1')),...Array.from({length:3},()=>row('batch'))]});
   assert.equal(result.groups.find(x=>x.candidate==='batch').lodCompatibleWithA1,false);
 });
+
+test('paired batch comparison requires the same LOD and actual batch draws',()=>{
+  const row=(candidate,level)=>({candidate,status:'passed',frames:{count:300},renderer:{terrainRenderedLevel:level},
+    frameCapture:{batchDraws:candidate==='batch'?3:undefined}});
+  const result=summarizeComparison({schema:'pando-terrain-viewer-regional-ab-v1',region:'x',runs:[
+    ...Array.from({length:3},()=>row('b512',5)),...Array.from({length:3},()=>row('batch',5))]});
+  assert.equal(result.groups.find(x=>x.candidate==='batch').lodCompatibleWithB512,true);
+});

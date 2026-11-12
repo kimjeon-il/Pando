@@ -44,6 +44,10 @@ export function summarizeComparison(report){
     group.lodCompatibleWithA1=group.candidate==='a0'?null:
       !!baseline&&baseline.passed>=3&&group.passed>=3&&group.screenVerified&&group.batchVerified&&
       levels.every(Number.isFinite)&&new Set(levels).size===1;
+    const tileBaseline=groups.find(item=>item.candidate==='b512'&&item.scene===group.scene);
+    const tileLevels=[...(tileBaseline?.detailLevels||[]),...group.detailLevels];
+    group.lodCompatibleWithB512=group.candidate==='batch'&&!!tileBaseline&&tileBaseline.passed>=3&&group.passed>=3&&
+      group.batchVerified&&tileLevels.every(Number.isFinite)&&new Set(tileLevels).size===1;
   }
   return {schema:'pando-terrain-viewer-summary-v1',region:report.region,projection:report.projection??'unknown',identity:report.identity,sourceStatus:report.status,
     fixtureRevision:report.fixtureRevision??null,fixtureManifestSha256:report.fixtureManifestSha256??null,

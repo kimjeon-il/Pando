@@ -13,4 +13,6 @@ test('current renderer is included once in smoke and three times in the balanced
   assert.throws(()=>candidateSequence({smoke:true,only:'cog'}),/unavailable/);
   assert.deepEqual(candidateSequence({smoke:true,batch:true,only:'batch'}),['batch']);
   assert.equal(candidateSequence({batch:true}).filter(candidate=>candidate==='batch').length,3);
+  assert.deepEqual(candidateSequence({batch:true,tilePair:true}),['b512','batch','batch','b512','b512','batch']);
+  assert.throws(()=>candidateSequence({tilePair:true,only:'a0'}),/pair/);
 });

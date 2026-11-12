@@ -29,6 +29,7 @@ const phaseSmoke=process.argv.includes('--phase-smoke');
 const includeCog=process.argv.includes('--cog');
 const includeScreen=process.argv.includes('--screen');
 const includeBatch=process.argv.includes('--batch');
+const tilePair=process.argv.includes('--tile-pair');
 const normalizedBudget=process.argv.includes('--normalized-budget');
 const comparisonPolicy={byteBudget:(normalizedBudget?192:96)*1024*1024,bytesPerPixel:12};
 if(!out)throw Error('Explicit --out directory required');
@@ -40,7 +41,7 @@ if(digest(fixtureBytes)!==manifestHash)throw Error('Fixture manifest hash mismat
 const fixture=JSON.parse(fixtureBytes),runs=[];
 const only=process.argv.find(arg=>arg.startsWith('--candidate='))?.slice('--candidate='.length)||null;
 if(phaseSmoke&&(!smoke||!only))throw Error('Phase smoke requires --smoke and one explicit candidate');
-const sequence=candidateSequence({smoke,cog:includeCog,screen:includeScreen,batch:includeBatch,only});
+const sequence=candidateSequence({smoke,cog:includeCog,screen:includeScreen,batch:includeBatch,tilePair,only});
 let tilePrefetch=null;
 if(sequence.some(candidate=>['a1','b512','batch','screen'].includes(candidate))){
   try{tilePrefetch=await prefetchFixtureTiles({records:fixture.records,region,base});}
@@ -51,7 +52,7 @@ if(sequence.some(candidate=>['a1','b512','batch','screen'].includes(candidate)))
   }
 }
 let cogManifest,cogBytes,cogBundle,cogSource;
-if(includeCog&&(!only||only==='cog')){
+if(sequence.includes('cog')){
   const hashes={'southwest-china':'7b50a48bbce1b2a6439cf40ce4011e0a2a105d46765a8d4c6239583a475d92e3',
     'thai-lowland':'3eb83a450b442e4243cd2a8290764aff440765b9cc821cf9447daba2b84e3a6a',
     'himalaya':'969ed916f8a1ceb8cf321901bf83e1f89f2ff7a9970ace3bdfdbe4a03eca8d60',
@@ -70,13 +71,13 @@ if(includeCog&&(!only||only==='cog')){
   cogBundle=bundle.outputFiles[0].text;
 }
 let screenBundle;
-if(includeScreen&&(!only||only==='screen')){
+if(sequence.includes('screen')){
   const bundle=await build({stdin:{contents:"export {createViewerScreenSpace} from './scripts/terrain-experiment/viewer-screen-space.mjs';",
     resolveDir:process.cwd(),loader:'js'},bundle:true,platform:'browser',format:'iife',globalName:'PandoScreenFixture',write:false});
   screenBundle=bundle.outputFiles[0].text;
 }
 let batchBundle;
-if(includeBatch&&(!only||only==='batch')){
+if(sequence.includes('batch')){
   const bundle=await build({stdin:{contents:"export {createTerrainTileBatch} from './scripts/terrain-experiment/viewer-tile-batch.mjs';",
     resolveDir:process.cwd(),loader:'js'},bundle:true,platform:'browser',format:'iife',globalName:'PandoBatchFixture',write:false});
   batchBundle=bundle.outputFiles[0].text;

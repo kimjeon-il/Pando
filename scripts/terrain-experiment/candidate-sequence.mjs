@@ -1,5 +1,6 @@
-export function candidateSequence({smoke=false,cog=false,screen=false,batch=false,only=null}={}){
-  const candidates=['a0','a1','b512',...(batch?['batch']:[]),...(cog?['cog']:[]),...(screen?['screen']:[])];
+export function candidateSequence({smoke=false,cog=false,screen=false,batch=false,tilePair=false,only=null}={}){
+  if(tilePair&&(!batch||only))throw Error('Tile pair requires batch and no single candidate');
+  const candidates=tilePair?['b512','batch']:['a0','a1','b512',...(batch?['batch']:[]),...(cog?['cog']:[]),...(screen?['screen']:[])];
   if(only!==null){
     if(!candidates.includes(only))throw Error('Requested terrain candidate is unavailable');
     return smoke?[only]:[only,only,only];
