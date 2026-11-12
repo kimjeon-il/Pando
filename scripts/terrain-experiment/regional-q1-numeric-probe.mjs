@@ -31,7 +31,9 @@ try{
       const canvas=new OffscreenCanvas(bitmap.width,bitmap.height),context=canvas.getContext('2d',{willReadFrequently:true});context.drawImage(bitmap,0,0);bitmap.close();
       const dem=context.getImageData(0,0,canvas.width,canvas.height).data;
       let decoded='';for(let i=0;i<dem.length;i+=32768)decoded+=String.fromCharCode(...dem.subarray(i,i+32768));
-      const samplers=Object.fromEntries(['light','dark'].map(theme=>[theme,api.createInterpolatedSampler({dem,width:canvas.width,height:canvas.height,theme,channel:'land'})])),items=[];
+      const themes=['light','dark'];
+      const samplers=Object.fromEntries(themes.map(theme=>[theme,api.createInterpolatedSampler({dem,width:canvas.width,height:canvas.height,theme,channel:'land'})]));
+      const planes=Object.fromEntries(themes.map(theme=>[theme,api.convertTile({dem,width:canvas.width,height:canvas.height,theme,includePolitical:false}).land])),items=[];
       let seed=0x156ce7;const random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/0x100000000;};
       const positions=[[100.25,100.75],[400.5,400.5],[512.25,512.75],[800.6,200.3]];
       for(let i=0;i<256;i++)positions.push([1+random()*(canvas.width-3),1+random()*(canvas.height-3)]);
@@ -39,7 +41,14 @@ try{
         const ix=Math.floor(x),iy=Math.floor(y),fx=x-ix,fy=y-iy;let height=0,shade=0;
         for(let dy=0;dy<2;dy++)for(let dx=0;dx<2;dx++){const i=((iy+dy)*canvas.width+ix+dx)*4,weight=(dx?fx:1-fx)*(dy?fy:1-fy);
           height+=Math.max(0,dem[i]*256+dem[i+1]-12000)*weight;shade+=dem[i+2]*weight;}
-        for(const [theme,sample] of Object.entries(samplers)){const color=new Uint8ClampedArray(4);sample(x,y,color);items.push({x,y,height,shade,theme,rgb:Array.from(color.slice(0,3))});}
+        for(const [theme,sample] of Object.entries(samplers)){
+          const color=new Uint8ClampedArray(4),precolored=[0,0,0];sample(x,y,color);
+          for(let dy=0;dy<2;dy++)for(let dx=0;dx<2;dx++){
+            const i=((iy+dy)*canvas.width+ix+dx)*4,weight=(dx?fx:1-fx)*(dy?fy:1-fy);
+            for(let channel=0;channel<3;channel++)precolored[channel]+=planes[theme][i+channel]*weight;
+          }
+          items.push({x,y,height,shade,theme,rgb:Array.from(color.slice(0,3)),precoloredRgb:precolored.map(Math.round)});
+        }
       }
       rows.push({region:record.region,file:record.file,webpSha256:record.webpSha256,expectedRawSha256:record.rawSha256,decoded:btoa(decoded),items});
     }return {userAgent:navigator.userAgent,rows};
@@ -51,8 +60,9 @@ try{
     const illumination=Math.max(0,(sample.shade/255-.42)/.58),relief=Math.max(.16,Math.min(1,flat+((.27+.73*illumination)-flat)*1.3));
     const factor=Math.max(.38,Math.min(1.3,relief/flat)),expected=palettes[sample.theme](sample.height).map(value=>Math.round(Math.max(0,Math.min(255,value*factor))));
     sample.expectedRgb=expected;sample.maxDifference=Math.max(...expected.map((value,index)=>Math.abs(value-sample.rgb[index])));
+    sample.precoloredDifference=Math.max(...sample.rgb.map((value,index)=>Math.abs(value-sample.precoloredRgb[index])));
     if(sample.maxDifference>2)throw Error('Numerical color differs: '+row.region);
   }
   await writeFile(resolve(output),JSON.stringify({schema:'regional-q1-numeric-probe-v1',sourceSha256:source,scope:'four immutable representative tiles; CPU synthetic sample only, no Viewer, land mask or GPU',...result},null,2)+'\n',{flag:'wx'});
-  console.log(JSON.stringify(result.rows.map(({region,items})=>({region,samples:items.length,maxDifference:Math.max(...items.map(item=>item.maxDifference))}))));
+  console.log(JSON.stringify(result.rows.map(({region,items})=>({region,samples:items.length,maxDifference:Math.max(...items.map(item=>item.maxDifference)),precoloredMax:Math.max(...items.map(item=>item.precoloredDifference)),precoloredOver2:items.filter(item=>item.precoloredDifference>2).length}))));
 }finally{await browser.close();}
