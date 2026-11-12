@@ -79,7 +79,15 @@ test('accepted capture saves terrain-only pixels from the same frame', {timeout:
     const result=await captureAcceptedFrame(page,path);
     assert.equal(result.frameId,7);assert.equal(result.terrainOnly.frameId,7);
     assert.equal(result.sha256,result.terrainOnly.sha256);assert.ok((await stat(join(dir,'frame-terrain.png'))).size>1024);
+    const wait=page.waitForFunction.bind(page);
+    page.waitForFunction=async()=>{const error=new Error('synthetic timeout after accepted frame');error.name='TimeoutError';throw error;};
+    const late=await captureAcceptedFrame(page,join(dir,'late.png'));
+    assert.equal(late.frameId,7);assert.equal(late.terrainOnly.frameId,7);assert.equal(late.captureWaitTimedOut,true);
+    await page.evaluate(()=>{globalThis.__PANDOLAB_MAP_HOST__.requestRepaint=()=>{};});
+    await assert.rejects(()=>captureAcceptedFrame(page,join(dir,'missing.png')),/synthetic timeout/);
+    page.waitForFunction=wait;
   }finally{
-    await browser.close();await unlink(path).catch(()=>{});await unlink(join(dir,'frame-terrain.png')).catch(()=>{});await rmdir(dir);
+    await browser.close();await unlink(path).catch(()=>{});await unlink(join(dir,'frame-terrain.png')).catch(()=>{});
+    await unlink(join(dir,'late.png')).catch(()=>{});await unlink(join(dir,'late-terrain.png')).catch(()=>{});await rmdir(dir);
   }
 });

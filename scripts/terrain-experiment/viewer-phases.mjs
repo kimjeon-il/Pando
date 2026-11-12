@@ -12,11 +12,17 @@ export function performanceDelta(before,after){
 }
 export async function captureAcceptedFrame(page,path,{screen=false}={}){
   const before=screen?await page.evaluate(()=>globalThis.__pandoScreen.stats.draws):null;
+  const started=Date.now();let captureWaitTimedOut=false;
   await page.evaluate(()=>{globalThis.__pandoCaptureFrame.result=null;globalThis.__pandoCaptureFrame.requested=true;
     globalThis.__pandoCaptureFrame.entries=0;globalThis.__pandoCaptureFrame.attempts=0;globalThis.__pandoCaptureFrame.lastAttempt=null;
     globalThis.__pandoTerrainCapture.result=null;globalThis.__pandoTerrainCapture.requested=true;
     globalThis.__pandoCaptureFrame.forceBase=true;globalThis.__PANDOLAB_MAP_HOST__.requestRepaint('terrain-capture-accepted-frame');});
-  await page.waitForFunction(()=>globalThis.__pandoCaptureFrame?.result,null,{timeout:60000,polling:100});
+  try{await page.waitForFunction(()=>globalThis.__pandoCaptureFrame?.result,null,{timeout:60000,polling:100});}
+  catch(error){
+    if(error?.name!=='TimeoutError'||!await page.evaluate(()=>!!globalThis.__pandoCaptureFrame?.result))throw error;
+    captureWaitTimedOut=true;
+  }
+  const captureWaitMs=Date.now()-started;
   const frame=await page.evaluate(async()=>{
     const full=globalThis.__pandoCaptureFrame.result,terrain=globalThis.__pandoTerrainCapture.result;
     if(!terrain||terrain.frameId!==full.frameId||terrain.width!==full.width||terrain.height!==full.height)
@@ -34,7 +40,8 @@ export async function captureAcceptedFrame(page,path,{screen=false}={}){
   const bytes=Buffer.from(frame.data.split(',')[1],'base64');
   if(bytes.length<1024||bytes.subarray(0,8).toString('hex')!=='89504e470d0a1a0a')throw Error('Invalid framebuffer capture');
   await writeFile(path,bytes);
-  const result={width:frame.width,height:frame.height,frameId:frame.frameId,scale:frame.scale,bytes:bytes.length,sha256:digest(bytes)};
+  const result={width:frame.width,height:frame.height,frameId:frame.frameId,scale:frame.scale,bytes:bytes.length,sha256:digest(bytes),
+    captureWaitMs,captureWaitTimedOut};
   const terrainBytes=Buffer.from(frame.terrainData.split(',')[1],'base64');
   if(terrainBytes.length<1024||terrainBytes.subarray(0,8).toString('hex')!=='89504e470d0a1a0a')throw Error('Invalid terrain-only capture');
   const terrainPath=path.replace(/\.png$/,'-terrain.png');if(terrainPath===path)throw Error('Terrain capture requires a PNG path');
