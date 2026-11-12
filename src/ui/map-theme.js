@@ -4,8 +4,9 @@ import { TERRAIN_OCEAN_REPRESENTATIVE } from "../data/physical-source-configurat
 export function resolveMapTheme({ state, theme }) {
     const terrainVisible = state?.physicalSettings?.terrainVisible !== false;
     const terrainStyle = state?.physicalSettings?.terrainStyle || 'political';
+    // Colored relief retains its own palette. Monochrome relief admits a restrained national tint.
     const terrainFillAlpha = terrainVisible
-      ? (terrainStyle === 'physical' ? 0.22 : 0.68)
+      ? (terrainStyle === 'physical' ? 0 : 0.45)
       : null;
     const countryStyle = state?.layerPresentation ? layerStyle(state.layerPresentation, 'objects') : { opacity: 1, boundaryVisible: true, boundaryWidth: 1 };
     const riverStyle = state?.layerPresentation ? layerStyle(state.layerPresentation, 'rivers') : { opacity: 1, boundaryVisible: true, boundaryWidth: 1 };
