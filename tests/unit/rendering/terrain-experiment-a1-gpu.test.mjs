@@ -7,7 +7,7 @@ import {createLandPalette} from '../../../scripts/terrain-experiment/quality.mjs
 test('experimental A1 WebGL decodes before interpolation and applies PCHIP', {timeout:60000}, async()=>{
   const browser=await chromium.launch({headless:true,args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
   try{
-    const page=await browser.newPage(),heights=[0,256,2500,6500],samples=[[0,0],[1,0],[0,1],[1,1],[.2,.7],[.5,.5],[.8,.1]];
+    const page=await browser.newPage(),heights=[-1000,256,2500,6500],samples=[[0,0],[1,0],[0,1],[1,1],[.2,.7],[.5,.5],[.8,.1],[.5,0,false]];
     const palette=globalThis.PandoLabCanvasTerrainDem.paletteForTheme('light');
     for(const version of [1,2]){
       const output=await page.evaluate(({fragment,version,heights,samples,colors,seaSurface,seaDeep})=>{
@@ -35,7 +35,7 @@ test('experimental A1 WebGL decodes before interpolation and applies PCHIP', {ti
         gl.uniform1f(u('uPhysicalStyle'),1);gl.uniform1f(u('uLandPass'),1);gl.uniform1f(u('uDarkTheme'),0);
         gl.uniform3fv(u('uTerrainLandColors[0]'),new Float32Array(colors));
         gl.uniform3fv(u('uTerrainSeaSurface'),new Float32Array(seaSurface));gl.uniform3fv(u('uTerrainSeaDeep'),new Float32Array(seaDeep));
-        const values=samples.map(([x,y])=>{gl.uniform2f(u('uv'),(x+.5)/2,(y+.5)/2);gl.drawArrays(gl.TRIANGLES,0,6);
+        const values=samples.map(([x,y,land])=>{gl.uniform1f(u('uLandPass'),land===false?0:1);gl.uniform2f(u('uv'),(x+.5)/2,(y+.5)/2);gl.drawArrays(gl.TRIANGLES,0,6);
           const result=new Uint8Array(4);gl.readPixels(0,0,1,1,gl.RGBA,gl.UNSIGNED_BYTE,result);return [...result];});
         if(gl.getError()!==gl.NO_ERROR)throw Error('WebGL readback failed');return values;
       },{fragment:a1TerrainFragmentSource(version),version,heights,samples,colors:[...palette.landColors],
@@ -44,8 +44,11 @@ test('experimental A1 WebGL decodes before interpolation and applies PCHIP', {ti
       const shade=Math.max(.16,Math.min(1,flat+((.27+.73*illumination)-flat)*1.3));
       const factor=Math.max(.38,Math.min(1.3,shade/flat));
       for(let i=0;i<samples.length;i++){
-        const [x,y]=samples[i],height=(heights[0]*(1-x)+heights[1]*x)*(1-y)+(heights[2]*(1-x)+heights[3]*x)*y;
-        const expected=pchip(height).map(value=>Math.round(Math.max(0,Math.min(255,value*factor))));
+        const [x,y,land]=samples[i],clamped=heights.map(value=>land===false?Math.min(value,0):Math.max(value,0));
+        const height=(clamped[0]*(1-x)+clamped[1]*x)*(1-y)+(clamped[2]*(1-x)+clamped[3]*x)*y;
+        const depth=Math.pow(Math.max(0,Math.min(1,-height/8000)),.6);
+        const rgb=land===false?[...palette.seaSurface].map((value,c)=>255*(value*(1-depth)+palette.seaDeep[c]*depth)):pchip(height);
+        const expected=rgb.map(value=>Math.round(Math.max(0,Math.min(255,value*factor))));
         for(let c=0;c<3;c++)assert.ok(Math.abs(output[i][c]-expected[c])<=2,`WebGL${version} sample ${i} channel ${c}: ${output[i][c]} vs ${expected[c]}`);
       }
     }

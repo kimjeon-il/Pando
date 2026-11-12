@@ -41,7 +41,7 @@ function pchipGlsl(){
   `;
 }
 
-function colorGlsl(){
+export function experimentColorGlsl(){
   const source=globalThis.PandoLabCanvasTerrainDem.colorGlsl(),marker='vec3 numericalTerrainColor(';
   const at=source.indexOf(marker),land=source.indexOf('  if (height < 256.0)',at),end=source.indexOf('  return uTerrainLandColors[7] * factor;',land);
   if(at<0||land<0||end<0)throw Error('Production terrain color contract changed');
@@ -58,10 +58,15 @@ export function a1TerrainFragmentSource(version){
     uniform sampler2D uTerrain;uniform vec2 uTextureSize;uniform int uMode;
     uniform float uPhysicalStyle;uniform float uLandPass;uniform float uDarkTheme;
     ${gl2?'out vec4 outColor;':''}
-    ${colorGlsl()}
+    ${experimentColorGlsl()}
     vec2 demValue(vec2 pixel){
       vec4 encoded=${sample}(uTerrain,(pixel+vec2(0.5))/uTextureSize);
-      return vec2(floor(encoded.r*255.0+0.5)*256.0+floor(encoded.g*255.0+0.5)-12000.0,encoded.b);
+      float height=floor(encoded.r*255.0+0.5)*256.0+floor(encoded.g*255.0+0.5)-12000.0;
+      // The existing physical-land pass owns classification. Clamp each
+      // sample for that pass before interpolation so opposite-side heights
+      // do not pull a coastal land/sea color across the mask.
+      if(uPhysicalStyle>0.5)height=uLandPass>0.5?max(height,0.0):min(height,0.0);
+      return vec2(height,encoded.b);
     }
     void main(){
       if(uMode==0&&vDepth<0.0)discard;

@@ -33,3 +33,41 @@ test('verified COG rejects full, malformed or corrupted responses',async()=>{
     assert.equal(client.statistics.cacheHits,0);
   }
 });
+
+test('concurrent COG reads share a request without coupling caller cancellation',async()=>{
+  let calls=0;
+  const delayed=async(url,options)=>{
+    calls++;
+    await new Promise((yes,no)=>{
+      const timer=setTimeout(yes,25);
+      options.signal.addEventListener('abort',()=>{clearTimeout(timer);no(options.signal.reason);},{once:true});
+    });
+    return serve()(url,options);
+  };
+  const client=createVerifiedRangeClient({url:'https://example.test/data.tif',manifest,fetchFn:delayed});
+  const controller=new AbortController();
+  const cancelled=client.request({headers:{Range:'bytes=0-31'},signal:controller.signal});
+  const survivor=client.request({headers:{Range:'bytes=5-15'}});
+  controller.abort(new Error('cancelled first consumer'));
+  await assert.rejects(cancelled,/cancelled first consumer/);
+  assert.deepEqual(new Uint8Array(await (await survivor).getData()),bytes.slice(5,16));
+  assert.equal(calls,1);assert.equal(client.statistics.inflightHits,1);
+});
+
+test('a fully cancelled chunk can be requested again without a poisoned cache',async()=>{
+  let calls=0;
+  const delayed=async(url,options)=>{
+    calls++;
+    await new Promise((yes,no)=>{
+      const timer=setTimeout(yes,25);
+      options.signal.addEventListener('abort',()=>{clearTimeout(timer);no(options.signal.reason);},{once:true});
+    });
+    return serve()(url,options);
+  };
+  const client=createVerifiedRangeClient({url:'https://example.test/data.tif',manifest,fetchFn:delayed}),controller=new AbortController();
+  const first=client.request({headers:{Range:'bytes=0-31'},signal:controller.signal});
+  controller.abort(new Error('cancelled last consumer'));
+  await assert.rejects(first,/cancelled last consumer/);
+  const retry=await client.request({headers:{Range:'bytes=0-31'}});
+  assert.deepEqual(new Uint8Array(await retry.getData()),bytes.slice(0,32));assert.equal(calls,2);
+});

@@ -37,9 +37,14 @@ try{
     for(const size of [1024,512]){
       const adapter=await globalThis.CogTileExperiment.openViewerCogTiles({url:origin+'/regional-q1.tif',cogManifest,tileManifest,tileSize:size});
       const tiles=[];
-      for(const record of tileManifest.records.filter(r=>r.tileSize===size)){
+      const selected=tileManifest.records.filter(r=>r.tileSize===size);
+      const blobs=await Promise.all(selected.map(record=>{
+        const x=(record.window[0]+record.offset[0])/size,y=(record.window[1]+record.offset[1])/size;
+        return adapter.readTile(`5/${x}-${y}.webp`);
+      }));
+      for(const [index,record] of selected.entries()){
         const x=(record.window[0]+record.offset[0])/size,y=(record.window[1]+record.offset[1])/size,key=`5/${x}-${y}.webp`;
-        const blob=await adapter.readTile(key),bitmap=await createImageBitmap(blob,{premultiplyAlpha:'none',colorSpaceConversion:'none'});
+        const blob=blobs[index],bitmap=await createImageBitmap(blob,{premultiplyAlpha:'none',colorSpaceConversion:'none'});
         const surface=new OffscreenCanvas(record.width,record.height),ctx=surface.getContext('2d');ctx.drawImage(bitmap,0,0);bitmap.close();
         const actual=await sha(ctx.getImageData(0,0,record.width,record.height).data);
         if(actual!==record.rawSha256)throw Error('PNG round-trip differs: '+key);

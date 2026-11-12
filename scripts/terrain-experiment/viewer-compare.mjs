@@ -3,7 +3,7 @@
 import {chromium} from '@playwright/test';
 import {build} from 'esbuild';
 import {createHash} from 'node:crypto';
-import {mkdir,writeFile} from 'node:fs/promises';
+import {mkdir,readFile,writeFile} from 'node:fs/promises';
 import {setTimeout as delay} from 'node:timers/promises';
 import {a1TerrainFragmentSource} from './a1-shader.mjs';
 import {makeViewerFixtureManifest} from './viewer-fixture.mjs';
@@ -54,11 +54,12 @@ try{
   report.browserVersion=browser.version();
   for(let index=0;index<sequence.length;index++){
     const candidate=sequence[index],size=candidate==='b512'?512:1024;
-    const run={index:index+1,candidate,tileSize:size,status:'running',candidateRequests:[],pageErrors:[],routeErrors:[],error:null};
+    const run={index:index+1,candidate,tileSize:size,status:'running',candidateRequests:[],pageErrors:[],consoleErrors:[],routeErrors:[],error:null};
     runs.push(run);const page=await browser.newPage({viewport:{width:1280,height:800},locale:'ko-KR',timezoneId:'Asia/Seoul'});
     let selected,manifestRequests=0,shaderRequests=0,processCdp;
     try{
       page.on('pageerror',error=>run.pageErrors.push(String(error)));
+      page.on('console',message=>{if(message.type()==='error'&&run.consoleErrors.length<50)run.consoleErrors.push(message.text().slice(0,2000));});
       if(candidate==='cog'){
         await page.route('**/__terrain_experiment/regional-q1.tif',route=>{
           const match=/^bytes=(\d+)-(\d+)$/.exec(route.request().headers().range||'');
@@ -126,6 +127,8 @@ try{
           &&api.builtinMonth().month==='2026-11'&&document.getElementById('viewerStatus')?.dataset.ready==='true';
       },null,{timeout:210000,polling:300});
       if(!selected||manifestRequests!==1||shaderRequests<1)throw Error('Experiment manifest or shader was not consumed');
+      const initialScreenshot=await page.screenshot({timeout:30000});
+      await writeFile(`${out}/viewer-${index+1}-${size}-initial.png`,initialScreenshot);
       await page.evaluate(()=>globalThis.__terrainFixtureFrames.start());
       const started=Date.now();
       await page.evaluate(center=>{
@@ -136,7 +139,8 @@ try{
       await page.waitForFunction(()=>{
         const s=globalThis.__PANDOLAB_VIEWER__?.rendererStats();
         return s?.terrainTargetLevel===5&&s.terrainRenderedLevel===5&&s.terrainTargetTileCount>0
-          &&s.terrainTargetTilesLoaded===s.terrainTargetTileCount&&s.terrainReady===true&&!s.screenLodPreparingKey;
+          &&s.terrainTargetTilesLoaded===s.terrainTargetTileCount&&s.terrainReady===true&&!s.screenLodPreparingKey
+          &&s.mapReadiness?.mapReady===true;
       },null,{timeout:180000,polling:250});
       run.readyMs=Date.now()-started;
       await page.waitForFunction(()=>globalThis.__terrainFixtureFrames.gaps.length>=300,null,{timeout:180000,polling:250});
@@ -165,8 +169,22 @@ try{
         try{await page.screenshot({path:screenshotPath,timeout:30000});run.screenshotMethod='Playwright page.screenshot';}
         catch(fallback){run.screenshotError=String(fallback);}
       }finally{await screenshotCdp.detach().catch(()=>{});}
-      run.status=run.pageErrors.length||run.routeErrors.length||run.screenshotError||run.candidateRequests.some(x=>x.error)?'failed':'passed';
-      if(run.status!=='passed')run.error='Screenshot, candidate request, or page error';
+      if(!run.screenshotError){
+        const afterScreenshot=await readFile(screenshotPath);
+        run.screenshotChange=await page.evaluate(async({before,after})=>{
+          const load=async data=>createImageBitmap(await (await fetch('data:image/png;base64,'+data)).blob());
+          const [a,b]=await Promise.all([load(before),load(after)]),canvas=new OffscreenCanvas(160,100),ctx=canvas.getContext('2d');
+          ctx.drawImage(a,0,0,160,100);const x=ctx.getImageData(0,0,160,100).data;
+          ctx.clearRect(0,0,160,100);ctx.drawImage(b,0,0,160,100);const y=ctx.getImageData(0,0,160,100).data;a.close();b.close();
+          let changed=0,total=0;for(let row=8;row<94;row++)for(let col=5;col<155;col++){
+            const i=(row*160+col)*4;if(Math.abs(x[i]-y[i])+Math.abs(x[i+1]-y[i+1])+Math.abs(x[i+2]-y[i+2])>30)changed++;total++;
+          }
+          return {changed,total,fraction:changed/total};
+        },{before:initialScreenshot.toString('base64'),after:afterScreenshot.toString('base64')});
+        if(run.screenshotChange.fraction<.1)run.screenshotError='Screenshot differs too little from the initial view to establish that the zoomed frame was captured';
+      }
+      run.status=run.pageErrors.length||run.consoleErrors.length||run.routeErrors.length||run.screenshotError||run.candidateRequests.some(x=>x.error)?'failed':'passed';
+      if(run.status!=='passed')run.error='Screenshot, console, candidate request, route, or page error';
     }catch(error){run.status='failed';run.error=String(error?.stack||error).slice(0,5000);
       run.diagnostics=await page.evaluate(()=>globalThis.__PANDOLAB_VIEWER__?.rendererStats?.()||null).catch(()=>null);
     }finally{await processCdp?.detach().catch(()=>{});await page.close();

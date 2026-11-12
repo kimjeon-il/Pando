@@ -118,7 +118,8 @@ async function sample(){
       await page.waitForFunction(()=>{
         const stats=globalThis.__PANDOLAB_VIEWER__?.rendererStats?.();
         return stats?.terrainReady===true&&stats.terrainTargetLevel!=null
-          &&stats.terrainRenderedLevel===stats.terrainTargetLevel&&!stats.screenLodPreparingKey;
+          &&stats.terrainRenderedLevel===stats.terrainTargetLevel&&!stats.screenLodPreparingKey
+          &&stats.mapReadiness?.mapReady===true;
       },null,{polling:250,timeout:180000});
       // A timeout is a failed measurement, never a short successful sample.
       await page.waitForFunction(()=>globalThis.__pandoAbFps?.gaps.length>=300,null,{polling:250,timeout:180000});
