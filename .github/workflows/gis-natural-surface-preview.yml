@@ -1,3 +1,5 @@
+## Re-run the bounded representative source acceptance with the repaired float32 polar coverage tolerance.
+## This task must preserve source hashes, immutable revision pins and historical source dates.
 name: GIS natural-surface observed masks and immutable external loading
 on:
   push:
