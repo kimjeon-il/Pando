@@ -226,6 +226,16 @@ export function resolveVisibleGpuStrokeRanges(resource, ownerIds, frameContext,
   const unrestricted = resolveGpuStrokeRanges(resource, ownerIds, rangeProperty, countProperty);
   const index = resource?.visibilityBlocks;
   if (!Array.isArray(ownerIds) || index?.version !== 1 || !frameContext) return unrestricted;
+  const viewport = frameContext.cssViewport, translate = frameContext.cssTranslate;
+  const projection = frameContext.mode === 0
+    ? [frameContext.rowX, frameContext.rowY, frameContext.rowZ]
+    : frameContext.mode === 1 ? [frameContext.flatCenter, frameContext.worldOffsets] : null;
+  if (!Array.isArray(viewport) || viewport.length !== 2
+    || !Array.isArray(translate) || translate.length !== 2
+    || ![...viewport, ...translate, frameContext.cssScale].every(Number.isFinite)
+    || viewport.some(value => value <= 0) || frameContext.cssScale <= 0
+    || !projection || projection.some(value => !Array.isArray(value)
+      || !value.length || !value.every(Number.isFinite))) return unrestricted;
   const groups = index[rangeProperty === 'ownerNodeRanges' ? 'nodes' : 'segments'];
   if (!groups) return unrestricted;
   const visible = [];
