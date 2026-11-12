@@ -62,7 +62,7 @@ export async function runSamples({source,out,size=256,regions=SAMPLE_REGIONS.map
   if(!Number.isSafeInteger(size)||size<16||size>1024)throw Error('Sample side must be 16..1024');
   if(!regions.length||regions.some(id=>!SAMPLE_REGIONS.some(region=>region.id===id))||new Set(regions).size!==regions.length)throw Error('Invalid sample regions');
   if(!policies.length||policies.some(id=>!['Q1','Q2','Q3'].includes(id))||new Set(policies).size!==policies.length)throw Error('Invalid policies');
-  if(!levelIds.length||levelIds.some(id=>![2,5].includes(id))||new Set(levelIds).size!==levelIds.length)throw Error('Invalid sample levels');
+  if(!levelIds.length||levelIds.some(id=>!Number.isInteger(id)||id<0||id>5)||new Set(levelIds).size!==levelIds.length)throw Error('Invalid sample levels');
   source=await realpath(source);out=resolve(out);
   const before=await stat(source);
   if(before.size!==1585813987)throw Error('Source length mismatch');
@@ -71,7 +71,7 @@ export async function runSamples({source,out,size=256,regions=SAMPLE_REGIONS.map
   const metadata=await inspectNativeDemSource({source,strict:true});
   if(metadata.dtype!=='float32')throw Error('Float32 source required');
   await mkdir(out,{recursive:false});
-  const records=[],levels=[{id:2,width:5400,height:2700},{id:5,width:43200,height:21600}].filter(level=>levelIds.includes(level.id));
+  const records=[],levels=Array.from({length:6},(_,id)=>({id,width:1350*2**id,height:675*2**id})).filter(level=>levelIds.includes(level.id));
   for(const level of levels){
     const reader=await createNativeDemWindowReader({source,width:level.width,height:level.height,strict:true});
     try{for(const region of SAMPLE_REGIONS.filter(item=>regions.includes(item.id))){
