@@ -1,6 +1,5 @@
 import { TERRITORIAL_SYMBOL_KEYS } from "./layer-presentation.js";
 import { MAP_DISPLAY_TARGETS } from "./map-display-catalog.js";
-import { PLACE_LANGUAGES, togglePlaceLanguage } from "../document/place-contract.js";
 import { distributionValueRange } from "../document/distribution-model.js";
 import { clearMenuPosition, createMenuPositionScheduler, exitMenuOnTab, positionRootMenu, positionSubmenu } from "./menu-presentation.js";
 import {createMapDisplayMenuState} from "./map-display-menu-state.js";
@@ -65,24 +64,20 @@ export function createMapSettings({ capabilities,viewPresentation } = {}) {
     if (visible && key === 'labels') await dependencies.layerResources.preparePlaces({force:true});
   }
 
-  function syncPlaceLanguageChecks() {
-    const languages = dependencies.preferences.userPreferences.labels.place.languages;
-    for (const input of document.querySelectorAll('[data-place-language]')) {
-      input.checked = languages[input.dataset.placeLanguage] === true;
-      input.disabled = input.checked && PLACE_LANGUAGES.filter(language => languages[language] === true).length === 1;
-    }
+  function syncNativeNameControl() {
+    const input = document.querySelector('[data-place-native-names]');
+    if (input) input.checked = dependencies.preferences.userPreferences.labels.place.showNativeNames === true;
   }
 
-  function setPlaceLanguage(language, enabled) {
+  function setNativeNameOverlay(enabled) {
     const current = dependencies.preferences.userPreferences;
-    const next = togglePlaceLanguage(current.labels.place.languages, language, enabled);
-    if (!next) return false;
+    if (current.labels.place.showNativeNames === enabled) return false;
     const preferences = dependencies.preferences.saveUserPreferences({
-      ...current, labels: { ...current.labels, place: { ...current.labels.place, languages: next } },
+      ...current, labels: { ...current.labels, place: { ...current.labels.place, showNativeNames: enabled } },
     });
     dependencies.preferences.setUserPreferences(preferences);
-    syncPlaceLanguageChecks();
-    dependencies.domains.renderingDomain.invalidateLabels('place-language-visibility');
+    syncNativeNameControl();
+    dependencies.domains.renderingDomain.invalidateLabels('place-native-overlay');
     return true;
   }
 
@@ -421,7 +416,7 @@ export function createMapSettings({ capabilities,viewPresentation } = {}) {
       if (blendMode) blendMode.value = style.blendMode;
     });
 
-    syncPlaceLanguageChecks();
+    syncNativeNameControl();
     const layoutReady = syncDesktopMenuLayout(requestedDesktop);
     const menuDesktop = layoutReady ? requestedDesktop : desktop;
     document.querySelectorAll('[data-map-display-row]').forEach(trigger => {
@@ -555,8 +550,8 @@ export function createMapSettings({ capabilities,viewPresentation } = {}) {
     for (const [group, id] of visibilityInputs) {
       listen((0, dependencies.platform.$)(id), 'change', event => runViewAction(() => setLayerVisibility(group, event.currentTarget.checked)));
     }
-    for (const input of surface.querySelectorAll('[data-place-language]')) {
-      listen(input, 'change', event => setPlaceLanguage(event.currentTarget.dataset.placeLanguage, event.currentTarget.checked));
+    for (const input of surface.querySelectorAll('[data-place-native-names]')) {
+      listen(input, 'change', event => setNativeNameOverlay(event.currentTarget.checked));
     }
     for (const input of surface.querySelectorAll('[data-territorial-symbol]')) {
       listen(input, 'change', event => runViewAction(() => setLayerVisibility(event.currentTarget.dataset.territorialSymbol, event.currentTarget.checked)));
