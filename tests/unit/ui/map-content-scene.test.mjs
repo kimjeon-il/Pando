@@ -140,8 +140,6 @@ const __suiteDependency2 = __dep12;
 const __suiteDependency3 = __dep13;
 const __suiteDependency4 = __dep14;
 const __suiteDependency5 = __dep15;
-const __suiteDependency6 = __dep1;
-const __suiteDependency7 = __dep0;
 
 const __suiteDependency10 = __dep0;
 
