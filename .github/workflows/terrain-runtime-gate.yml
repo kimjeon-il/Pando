@@ -3,6 +3,7 @@ name: Project-selected terrain and Canvas contract
 on:
   pull_request:
     paths:
+      - 'assets/wasm/**'
       - 'projects/**'
       - 'src/rendering/**terrain**'
       - 'src/rendering/gpu-map-renderer.js'
@@ -14,6 +15,7 @@ on:
   push:
     branches: [main, work/optimization]
     paths:
+      - 'assets/wasm/**'
       - 'projects/**'
       - 'src/rendering/**terrain**'
       - 'src/rendering/gpu-map-renderer.js'
