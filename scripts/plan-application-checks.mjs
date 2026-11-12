@@ -204,6 +204,13 @@ export function loadRepository(root = process.cwd(), { catalog, libraryFiles } =
       else return;
       if (target.startsWith('../')) throw Error('Dependency outside repository: ' + file);
       target=sourcePath(target);
+      // The native prerequisite executes these local-dispatch imports only
+      // outside GitHub Actions. They are not native CI runtime dependencies:
+      // tracing them selected all native SDK suites for planner-only changes.
+      // Local dispatch correctness is covered by the check-runner unit suite.
+      if (file === 'scripts/prepare-native-test-tools.mjs' &&
+          (target === 'scripts/plan-application-checks.mjs' ||
+            target === 'scripts/run-application-checks.mjs')) return;
       if (strict && !exists(target)) throw Error(`Missing dependency ${target} in ${file}`);
       if (exists(target)) found.add(target);
     }
