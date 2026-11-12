@@ -1,0 +1,55 @@
+name: P0 P1 GPU staging and historical project scope repair
+on:
+  push:
+    branches: [fix/p0-gl-state-contract-20261112]
+    paths: [.github/workflows/p0-p1-gpu-scope-repair-once.yml]
+permissions:
+  contents: read
+jobs:
+  gpu-partial-staging:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 16
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - uses: ./.github/actions/library-data
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Real GPU staging never publishes a half-updated stroke domain
+        run: >-
+          pnpm exec playwright test
+          tests/browser/rendering/viewer-renderer-recovery.spec.mjs
+          --grep 'real WebGL strokes retain A'
+          --workers=1 --retries=0 --reporter=list
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p0-p1-gpu-staging-failure-${{ github.sha }}
+          path: test-results/
+          if-no-files-found: warn
+  historical-project:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - uses: ./.github/actions/library-data
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Selected project's historical territorial catalog and WebGL recovery
+        run: >-
+          pnpm exec playwright test
+          tests/browser/rendering/country-prepared-scene.spec.mjs
+          --workers=1 --retries=0 --reporter=list
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p0-p1-historical-scope-failure-${{ github.sha }}
+          path: test-results/
+          if-no-files-found: warn
