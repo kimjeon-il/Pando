@@ -8,6 +8,8 @@ export function terrainDemFragmentSource(glVersion) {
     ${webGl2 ? 'in' : 'varying'} vec2 vUv;
     ${webGl2 ? 'in' : 'varying'} float vDepth;
     uniform sampler2D uTerrain;
+    uniform sampler2D uNaturalSurface;
+    uniform float uNaturalWeight;
     uniform vec2 uTextureSize;
     uniform int uMode;
     uniform float uPhysicalStyle;
@@ -33,6 +35,21 @@ export function terrainDemFragmentSource(glVersion) {
       vec2 values = mix(mix(demValue(cell), demValue(cell + vec2(1.0, 0.0)), part.x),
         mix(demValue(cell + vec2(0.0, 1.0)), demValue(cell + vec2(1.0, 1.0)), part.x), part.y);
       vec3 color = numericalTerrainColor(values.x, values.y, uLandPass, uPhysicalStyle);
+      if(uPhysicalStyle>0.5 && uLandPass>0.5 && uNaturalWeight>0.0){
+        vec3 surface=${sample}(uNaturalSurface,vUv).rgb;
+        // Black is the offline invalid/water sentinel. Blue source water is
+        // also excluded for the earlier NASA-only preview; never edits land.
+        bool valid=max(surface.r,max(surface.g,surface.b))>0.01
+          && !(surface.b>surface.r*1.12 && surface.b>surface.g*1.05);
+        if(valid){
+          float flat=0.27+0.73*0.70710678;
+          float illumination=max(0.0,(values.y-0.42)/0.58);
+          float shade=clamp(flat+((0.27+0.73*illumination)-flat)*1.3,0.16,1.0);
+          float factor=clamp(shade/flat,0.38,1.3);
+          surface*=mix(1.0,0.72,uDarkTheme);
+          color=mix(color,surface*factor,clamp(uNaturalWeight,0.0,1.0));
+        }
+      }
       // The legacy monochrome/political presentation keeps its existing dark adjustment.
       if (uPhysicalStyle < 0.5) color *= mix(1.0, ${globalThis.PandoLabCanvasTerrainDem.darkBrightness.toFixed(8)}, uDarkTheme);
       ${webGl2 ? 'outColor' : 'gl_FragColor'} = vec4(color, 1.0);

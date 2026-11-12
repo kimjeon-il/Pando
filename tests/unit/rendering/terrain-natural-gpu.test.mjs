@@ -22,7 +22,7 @@ function fixture(t,{naturalFailure=false,bytes=240}={}){
   const manifest={representation:'dem-relief-v1',gutter:1,levels:[{id:0,width:8,height:4,columns:1,rows:1,tileSize:8}],
     naturalSurface:{sourceRevision:'a'.repeat(40),mixWeight:0.65,tiles:{'0/0-0.webp':{bytes,sha256:'b'.repeat(64),pixelWidth:10,pixelHeight:6}}}};
   owner.setManifest(manifest);t.after(()=>owner.dispose());
-  const drain=async()=>{for(let n=0;n<8;n++){await settle();if(!jobs.length)break;for(const job of jobs.splice(0))while(!job.step().done){}}};
+  const drain=async()=>{for(let n=0;n<8;n++){await settle();if(!jobs.length)break;for(const job of jobs.splice(0))while(!job.step().done){/* Drain the shared scheduler. */}}};
   const readyDem=async(v=view)=>{owner.prepare(frame,v);await settle();for(const request of requests)request.resolve({});await drain();return owner.prepare(frame,v);};
   return {owner,manifest,events,requests,natural,jobs,deleted,drain,readyDem};
 }

@@ -760,7 +760,7 @@ export function createGpuMapRenderer(deps) {
       isMobile, invalidate: reason => {
         // DEM completion may arrive in bursts beside hydro pack uploads.
         // Keep explicit user actions immediate, coalesce resource settlement.
-        if (reason === 'terrain-tile-ready' || reason === 'terrain-tile-failed' || reason === 'terrain-upload-failed')
+        if (reason === 'terrain-tile-ready' || reason === 'terrain-tile-failed' || reason === 'terrain-upload-failed' || reason === 'terrain-natural-ready')
           return queuePhysicalResourceInvalidation(reason);
         return invalidatePhysicalScene(reason);
       }, geoDistance: (...args) => d3.geo.distance(...args),
@@ -1559,7 +1559,7 @@ export function createGpuMapRenderer(deps) {
         primeProgramLocations(terrainDemProgram, GPU_VIEW_UNIFORM_NAMES);
         primeProgramLocations(terrainDemProgram,
           ['uTerrain', 'uGeoBounds', 'uUvBounds', 'uPhysicalStyle', 'uDarkTheme', 'uTextureSize', 'uLandPass',
-            'uTerrainLandColors[0]', 'uTerrainSeaSurface', 'uTerrainSeaDeep']);
+            'uTerrainLandColors[0]', 'uTerrainSeaSurface', 'uTerrainSeaDeep', 'uNaturalSurface', 'uNaturalWeight']);
         terrainPaletteTheme = null;
         return true;
       } catch (error) {
@@ -3926,7 +3926,7 @@ export function createGpuMapRenderer(deps) {
       return true;
     }
 
-    function drawTerrainTile({ spec, texture, grid, gutter }, pass = 'land') {
+    function drawTerrainTile({ spec, texture, grid, gutter, naturalTexture = null, naturalMixWeight = 0 }, pass = 'land') {
       const dem = terrainManifest?.representation === TERRAIN_DEM_FORMAT;
       const program = terrainDemProgram;
       if (!program) {
@@ -3944,6 +3944,12 @@ export function createGpuMapRenderer(deps) {
       gl.activeTexture(gl.TEXTURE1);
       gl.bindTexture(gl.TEXTURE_2D, texture);
       gl.uniform1i(cachedUniformLocation(program, 'uTerrain'), 1);
+      gl.activeTexture(gl.TEXTURE2);
+      gl.bindTexture(gl.TEXTURE_2D,naturalTexture||texture);
+      gl.uniform1i(cachedUniformLocation(program,'uNaturalSurface'),2);
+      gl.uniform1f(cachedUniformLocation(program,'uNaturalWeight'),
+        naturalTexture&&pass==='land'&&state.physicalSettings.terrainStyle==='physical'?naturalMixWeight:0);
+      gl.activeTexture(gl.TEXTURE1);
 
       const [west, north, east, south] = spec.bounds;
       gl.uniform4f(cachedUniformLocation(program, 'uGeoBounds'), west, north, east, south);

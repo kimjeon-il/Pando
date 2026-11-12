@@ -1,8 +1,14 @@
 import { resourceKey, resourceUpdate } from "./resource-update-policy.js";
+import {createGpuNaturalSurfaceCache} from './gpu-natural-surface-cache.js';
+import {terrainNaturalTileRequest,fetchTerrainTile} from '../data/terrain-manifest.js';
 import "./workers/terrain-tile-selection-core.js";
 // Owns terrain requests, retries, decoded bitmaps, upload queue, textures and grids.
 // prepare() returns ready draw records; drawing never initiates preparation.
-export function createGpuTerrainPreparation({ readTile, onUnusable, onTileFailure, isMobile, invalidate, geoDistance }) {
+export function createGpuTerrainPreparation({ readTile, readNaturalTile = async (spec,manifest,signal) => {
+  const request=terrainNaturalTileRequest(spec,manifest);
+  return request ? fetchTerrainTile(request,{signal}) : null;
+}, onUnusable, onTileFailure, isMobile, invalidate, geoDistance }) {
+  const natural=createGpuNaturalSurfaceCache({readTile:readNaturalTile,invalidate});
   const PI = Math.PI;
   let gl = null, uploadScheduler = null, ready = false, disposed = false;
   let epoch = 0, projectGeneration = 0, contextRevision = 0;
@@ -213,6 +219,7 @@ export function createGpuTerrainPreparation({ readTile, onUnusable, onTileFailur
         terrainUploadCount += 1;
         let terrainBytes = [...terrainTiles.values()].reduce((sum, entry) => sum + Number(entry.byteLength || 0), 0);
         const terrainBudget = Math.max(8 * 1024 * 1024, Number(cacheBudgetBytes) || 128 * 1024 * 1024);
+        natural.trim(Math.max(0,terrainBudget-terrainBytes-pendingDecodedBytes));
         while (terrainBytes > terrainBudget) {
           let oldest = null;
           for (const item of terrainTiles.entries()) {
@@ -373,7 +380,7 @@ export function createGpuTerrainPreparation({ readTile, onUnusable, onTileFailur
       const prefetchSpecs = [];
       if (baseReady && !missingSpecs.length) {
         const residentBytes = [...terrainTiles.values()].reduce((sum, tile) => sum + tile.byteLength, 0);
-        let spareBytes = Math.max(0, cacheBudgetBytes - residentBytes - pendingDecodedBytes);
+        let spareBytes = Math.max(0, cacheBudgetBytes - residentBytes - pendingDecodedBytes - natural.bytes() - natural.pendingBytes());
         for (const spec of terrainNeighbourSpecs(targetLevel, targetSpecs)) {
           if (terrainTargetTileKeys.has(spec.key) || terrainTiles.has(spec.key)) continue;
           const bytes = (spec.pixelWidth + 2 * terrainManifest.gutter) * (spec.pixelHeight + 2 * terrainManifest.gutter) * 4;
@@ -441,6 +448,7 @@ export function createGpuTerrainPreparation({ readTile, onUnusable, onTileFailur
     }
   }
   function reset() {
+    natural.reset();
     for (const key of uploadKeys) uploadScheduler?.cancelKey?.(key);
     uploadKeys.clear();
     epoch++;
@@ -488,18 +496,28 @@ export function createGpuTerrainPreparation({ readTile, onUnusable, onTileFailur
       if (resourceUpdate(dependencies, next).input) reset();
       dependencies = next; terrainManifest = manifest;
     },
-    prepare(frame, nextView) { activeFrameContext = frame; view = nextView; cacheBudgetBytes = nextView.cacheBudgetBytes; return prepare() || []; },
+    prepare(frame, nextView) {
+      activeFrameContext=frame;view=nextView;cacheBudgetBytes=nextView.cacheBudgetBytes;
+      const prepared=prepare()||[];
+      const demBytes=[...terrainTiles.values()].reduce((n,t)=>n+t.byteLength,0);
+      natural.prepare(prepared,{gl,scheduler:uploadScheduler,manifest:terrainManifest,contextGeneration:contextRevision,
+        enabled:!!view.visible&&view.physicalStyle==='physical',requiredReady:readiness().terrainReady,
+        budgetBytes:Math.max(0,cacheBudgetBytes-demBytes-pendingDecodedBytes)});
+      return prepared;
+    },
     request: requestTerrainTile,
     scheduleUpload: scheduleTerrainUpload,
     settled, reset,
     retry() {
+      natural.retry();
       for (const timer of retryTimers) clearTimeout(timer);
       retryTimers.clear(); terrainTileFailures.clear(); preparationFailure = ''; unusableReported = false; tileFailureReported = false;
       invalidate('terrain-retry');
     },
     stats: () => ({ ...readiness(), terrainLevel: terrainLastLevel, terrainRenderedLevel, terrainTargetTileCount, terrainTargetTilesLoaded,
       terrainTargetTilesSettled: settled(), terrainTilesLoaded: terrainTiles.size,
-      terrainCacheBytes: [...terrainTiles.values()].reduce((sum, tile) => sum + tile.byteLength, 0),
+      terrainCacheBytes: [...terrainTiles.values()].reduce((sum, tile) => sum + tile.byteLength, 0)+natural.bytes(),
+      ...natural.stats(),
       terrainPendingDecodedBytes: pendingDecodedBytes,
       terrainTilesLoading: terrainTileRequests.size + terrainFetchQueue.length, terrainFetchConcurrency: terrainFetchConcurrency(),
       terrainUploadCount, terrainFailureCount: terrainTileFailures.size,

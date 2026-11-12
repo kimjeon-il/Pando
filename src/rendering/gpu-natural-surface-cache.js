@@ -2,7 +2,7 @@
 // DEM readiness, evict required DEM, or create another visibility/LOD policy.
 export function createGpuNaturalSurfaceCache({readTile,invalidate}) {
   const tiles=new Map(),pending=new Map(),failures=new Map(),missing=new Set();
-  let generation=0,gl=null,scheduler=null,manifest=null,enabled=false,budget=0;
+  let generation=0,contextGeneration=0,gl=null,scheduler=null,manifest=null,enabled=false,budget=0;
   let visible=new Set(),prepared=[],allowRequests=false,uploads=0,requests=0;
   const resident=()=>[...tiles.values()].reduce((n,t)=>n+t.bytes,0);
   const reserved=()=>[...pending.values()].reduce((n,t)=>n+t.bytes,0);
@@ -63,7 +63,7 @@ export function createGpuNaturalSurfaceCache({readTile,invalidate}) {
     if(!entry||tiles.has(key)||pending.has(key)||missing.has(key)||failures.has(key))return;
     const bytes=(spec.pixelWidth+2*manifest.gutter)*(spec.pixelHeight+2*manifest.gutter)*4;
     if(bytes>budget-resident()-reserved())return;
-    const task={spec,bytes,generation,controller:new AbortController(),bitmap:null,uploadKey:`natural:${generation}:${key}`};
+    const task={spec,bytes,generation,contextGeneration,controller:new AbortController(),bitmap:null,uploadKey:`natural:${generation}:${key}`};
     pending.set(key,task);requests++;
     task.promise=Promise.resolve().then(()=>readTile(spec,manifest,task.controller.signal)).then(async blob=>{
       if(!current(task))return;
@@ -73,7 +73,7 @@ export function createGpuNaturalSurfaceCache({readTile,invalidate}) {
       task.bitmap=bitmap;
       if(bitmap.width!==spec.pixelWidth+2*manifest.gutter||bitmap.height!==spec.pixelHeight+2*manifest.gutter)
         throw Error('Natural terrain dimensions differ from DEM: '+key);
-      await scheduler.enqueueUpload({key:task.uploadKey,contextGeneration:task.generation,priority:30,
+      await scheduler.enqueueUpload({key:task.uploadKey,contextGeneration:task.contextGeneration,priority:30,
         allowDuringInteraction:true,dispose:()=>close(task),step:()=>upload(task)});
     }).catch(error=>{
       if(current(task))failures.set(key,String(error?.message||error));
@@ -97,7 +97,7 @@ export function createGpuNaturalSurfaceCache({readTile,invalidate}) {
   return Object.freeze({
     prepare(records,options) {
       if(gl&&gl!==options.gl)reset();
-      gl=options.gl;scheduler=options.scheduler;manifest=options.manifest;
+      gl=options.gl;scheduler=options.scheduler;manifest=options.manifest;contextGeneration=options.contextGeneration;
       enabled=!!options.enabled;allowRequests=!!options.requiredReady;
       prepared=records;visible=new Set(enabled?records.map(record=>record.spec.key):[]);
       for(const task of [...pending.values()])if(!visible.has(task.spec.key))cancel(task);
