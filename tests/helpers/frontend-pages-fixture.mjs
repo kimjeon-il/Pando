@@ -1,4 +1,6 @@
 import {numericalTerrainFixture} from './numerical-terrain-fixture.mjs';
+import {terrainAssetDigest} from '../../tools/gis/terrain-dem-assets.mjs';
+import {sharedSourceManifest} from '../../tools/build/package-shared-core-assets.mjs';
 import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, renameSync, readdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -37,26 +39,42 @@ export async function pagesRepositoryFixture(t, { sceneRevision = 6, preparedRev
   put(root, 'assets/js/workers/core-viewer-session-worker.js', '// fixed viewer worker');
   put(root, 'assets/js/app.js', '// editor only');
   put(root,'package.json','{"version":"1.0.0"}');
-  put(root,'projects/default-world/manifest.json',readFileSync(new URL('../../projects/default-world/manifest.json',import.meta.url)));
+  // A synthetic edition: the real Viewer continues using the selected project.
+  const project=JSON.parse(readFileSync(new URL('../../projects/default-world/manifest.json',import.meta.url)));
+  project.resources.terrain.catalog='assets/data/terrain/v0.13.0/manifest.json';
+  put(root,'projects/default-world/manifest.json',JSON.stringify(project));
   put(root,'apps/editor/templates/index.html','<h1>Editor</h1><script type="module" src="assets/js/app.js"></script>');
   put(root,'src/rendering/resource-update-policy.js','export const policy=true;');
   // The generated classic Worker policy is compiled from this real runtime owner.
   put(root,'src/runtime/resource-dependency-policy.js',readFileSync(new URL('../../src/runtime/resource-dependency-policy.js',import.meta.url)));
   for(const path of new Set([...UI_VIEWER_SOURCES,'assets/css/app.css','assets/css/viewer.css']))put(root,path.replace('assets/css/','src/ui/css/'),'.fixture { color:red; }');
   put(root, '.nojekyll', '');
-  put(root, 'assets/data/terrain/v0.13.3/manifest.json', '{"tiles":{}}');
   put(root, 'assets/data/hydro/v0.13.4/manifest.json', '{"schema":"pandolab-water-shards-v5","version":"0.13.4","container":{"url":"hydro.bin"},"shards":[]}');
   put(root, 'assets/data/hydro/v0.13.4/hydro.bin', 'fixture packfile');
   put(root, 'reports/a.md', 'report');
   put(root, 'native/CMakeLists.txt', 'project(native)');
   put(root, 'tools/build/native/core/CMakeLists.txt', 'project(shared)');
   put(root, 'src/document/native/src/project.cpp', '// native and wasm source');
+  put(root,'config/core-source-roots.json',JSON.stringify({
+    schema:'pando-core-source-roots-v1',roots:['src/document/native'],
+  }));
+  put(root,'config/toolchain-versions.json',JSON.stringify({emscripten:'6.0.3'}));
   put(root, 'apps/editor/src-tauri/src/lib.rs', '// native shell source');
   put(root, 'apps/editor/src-tauri/gen/android/build.gradle.kts', '// Android build');
   put(root, 'assets/js/workers/core-session-worker.js', '// required core worker');
   put(root, 'assets/wasm/pandoeditor-core.js', 'export default function Core() {}');
   put(root, 'assets/wasm/pandoeditor-core.wasm', Buffer.from([0, 97, 115, 109, 1, 0, 0, 0]));
-  put(root, 'assets/wasm/pandoeditor-core.manifest.json', '{}');
+  const compiled=sharedSourceManifest(root);
+  const js=readFileSync(join(root,'assets/wasm/pandoeditor-core.js'));
+  const wasm=readFileSync(join(root,'assets/wasm/pandoeditor-core.wasm'));
+  put(root,'assets/wasm/pandoeditor-core.manifest.json',JSON.stringify({
+    schema:'pandoeditor-core-wasm',abiVersion:1,sourceSha256:compiled.sourceSha256,
+    compiler:{name:'emscripten',version:'6.0.3'},inputs:compiled.inputs,
+    assets:{
+      js:{file:'pandoeditor-core.js',sha256:createHash('sha256').update(js).digest('hex')},
+      wasm:{file:'pandoeditor-core.wasm',sha256:createHash('sha256').update(wasm).digest('hex')},
+    },
+  }));
   /* The frontend builder, rather than this fixture, owns generated Workers. */
   const index=buildFrontendIndex(root);
   const worker = await buildWorkerAsset({root,entry:'assets/js/workers/core-viewer-session-worker.js',readSource:path=>{
@@ -101,7 +119,22 @@ export async function pagesRepositoryFixture(t, { sceneRevision = 6, preparedRev
   put(root,'assets/data/world/current.json',JSON.stringify({schema:'pandolab-world-bundle',schemaVersion:1,
     source:{sha256,countryCount:1,url:'source.json'},defaultClassification:{countries:{}},
     derivation:{coordinateCount:4,meshAlgorithmRevision:sceneRevision},assets}));
-  put(root,'assets/data/terrain/v0.13.3/manifest.json',JSON.stringify(numericalTerrainFixture()));
+  const dem=numericalTerrainFixture(),tileBytes=Buffer.from([17]),tintBytes=Buffer.from([42]);
+  const tileSha=createHash('sha256').update(tileBytes).digest('hex');
+  const tintSha=createHash('sha256').update(tintBytes).digest('hex');
+  const demDigest=terrainAssetDigest(),tilePaths=[];
+  dem.tint.url='terrain/v0.13.0/tint.webp';dem.tint.sha256=tintSha;
+  for(const level of dem.levels)for(let row=0;row<level.rows;row++)
+    for(let column=0;column<level.columns;column++){
+      const key=level.id+'/'+column+'-'+row+'.webp';
+      dem.tiles[key]={bytes:tileBytes.length,sha256:tileSha};
+      tilePaths.push('assets/data/terrain/v0.13.0/'+key);
+      demDigest.add(key,tileSha);
+    }
+  dem.assetsSha256=demDigest.finish(tintSha);
+  put(root,'assets/data/terrain/v0.13.0/manifest.json',JSON.stringify(dem));
+  put(root,'assets/data/terrain/v0.13.0/fixture-tile.webp',tileBytes);
+  put(root,'assets/data/terrain/v0.13.0/tint.webp',tintBytes);
   const landSource=Buffer.from(JSON.stringify({type:'MultiPolygon',coordinates:[[[[0,0],[0,1],[1,1],[1,0],[0,0]]]]}));
   const landCompressed=gzipSync(landSource,{level:9,mtime:0});
   const landAsset={url:'assets/data/physical-land/land.bin',encoding:'gzip',
@@ -126,6 +159,15 @@ export async function pagesRepositoryFixture(t, { sceneRevision = 6, preparedRev
   run('git', ['config', 'user.email', 'test@example.invalid'], data);
   mkdirSync(join(data, 'assets'), { recursive: true });
   renameSync(join(root, 'assets/data'), join(data, 'assets/data'));
+  const originalSource=readFileSync(join(data,'assets/data/terrain/v0.13.0/manifest.json'));
+  put(data,'terrain/v0.13.0/manifest.json',originalSource);
+  run('git',['add','.'],data);
+  assert.equal(run('git',['commit','-qm','original synthetic DEM source'],data).status,0);
+  const sourceRevision=run('git',['rev-parse','HEAD'],data).stdout.trim();
+  put(data,'assets/data/terrain/v0.13.0/manifest.json',JSON.stringify({...dem,packaging:{
+    sourceRevision,sourcePath:'terrain/v0.13.0/manifest.json',
+    sourceSha256:createHash('sha256').update(originalSource).digest('hex'),
+  }}));
   const dataFiles = {};
   function list(directory, prefix) {
     for (const entry of readdirSync(directory, { withFileTypes: true })) {
@@ -135,6 +177,8 @@ export async function pagesRepositoryFixture(t, { sceneRevision = 6, preparedRev
     }
   }
   list(join(data, 'assets/data'), 'assets/data');
+  const sharedTile=dataFiles['assets/data/terrain/v0.13.0/fixture-tile.webp'];
+  for(const tile of tilePaths)dataFiles[tile]={...sharedTile};
   put(data, 'archive/index.json', JSON.stringify({ files: dataFiles }));
   run('git', ['add', '.'], data); run('git', ['commit', '-qm', 'paired data'], data);
   const revision = run('git', ['rev-parse', 'HEAD'], data).stdout.trim();

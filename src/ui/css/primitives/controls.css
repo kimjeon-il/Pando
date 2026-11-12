@@ -1024,7 +1024,7 @@ html {
   stroke-linejoin: round;
 }
 
-.ui-button.preferences-accent-chip {
+.ui-button.preferences-theme-chip {
   --ui-control-bg: var(--swatch);
   --ui-control-bg-hover: var(--swatch);
   --ui-control-bg-pressed: var(--swatch);
@@ -1050,18 +1050,18 @@ html {
   justify-content: start;
 }
 
-.ui-button.preferences-accent-chip:focus-visible {
+.ui-button.preferences-theme-chip:focus-visible {
   background: var(--swatch);
   outline: 2px solid var(--text-strong);
   outline-offset: var(--design-focus-offset);
 }
 
-.ui-button.preferences-accent-chip[aria-pressed="true"] {
+.ui-button.preferences-theme-chip[aria-pressed="true"] {
   border: 2px solid var(--accent);
   outline: none;
 }
 
-.ui-button.preferences-accent-chip[aria-pressed="true"]:focus-visible {
+.ui-button.preferences-theme-chip[aria-pressed="true"]:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: var(--design-focus-offset);
 }
@@ -1071,24 +1071,10 @@ html {
 .preferences-theme-chip[data-preference-theme="system"] { --swatch: linear-gradient(90deg, #f8fafc 0 50%, #1c2229 50% 100%); }
 
 
-.preferences-accent-chip[data-preference-accent="red"] { --swatch: #d43d45; }
-.preferences-accent-chip[data-preference-accent="orange"] { --swatch: #dc781d; }
-.preferences-accent-chip[data-preference-accent="green"] { --swatch: #2c9857; }
-.preferences-accent-chip[data-preference-accent="teal"] { --swatch: #168f8b; }
-.preferences-accent-chip[data-preference-accent="blue"] { --swatch: #316fd3; }
-.preferences-accent-chip[data-preference-accent="purple"] { --swatch: #7856d6; }
-.preferences-accent-chip[data-preference-accent="pink"] { --swatch: #cc4b83; }
 
-html[data-theme="dark"] .preferences-accent-chip[data-preference-accent="red"] { --swatch: #ff7078; }
-html[data-theme="dark"] .preferences-accent-chip[data-preference-accent="orange"] { --swatch: #f4a24c; }
-html[data-theme="dark"] .preferences-accent-chip[data-preference-accent="green"] { --swatch: #58c97f; }
-html[data-theme="dark"] .preferences-accent-chip[data-preference-accent="teal"] { --swatch: #3ac5bb; }
-html[data-theme="dark"] .preferences-accent-chip[data-preference-accent="blue"] { --swatch: #70a6ff; }
-html[data-theme="dark"] .preferences-accent-chip[data-preference-accent="purple"] { --swatch: #ad8cff; }
-html[data-theme="dark"] .preferences-accent-chip[data-preference-accent="pink"] { --swatch: #ef78ab; }
 
 @media (max-width: 799px) {
-  .ui-button.preferences-accent-chip {
+  .ui-button.preferences-theme-chip {
     width: var(--ui-preferences-chip-size-mobile);
     min-width: var(--ui-preferences-chip-size-mobile);
     min-height: var(--ui-preferences-chip-size-mobile);

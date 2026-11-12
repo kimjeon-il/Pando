@@ -10,8 +10,8 @@ import {createObjectSearchModel,visibleObjectSearchRows} from "../../../src/docu
 
 async function hydroRendererFixture(t) {
   const workers = [];
-  class FakeWorker {
-    constructor() { workers.push(this); this.messages = []; }
+  class FakeWorker extends EventTarget {
+    constructor() { super(); workers.push(this); this.messages = []; }
     postMessage(message) { this.messages.push(message); }
     terminate() { this.terminated = true; }
     send(data) { this.onmessage({ data }); }
@@ -24,7 +24,8 @@ async function hydroRendererFixture(t) {
     view: { flatCenter: [0, 0], globeRotation: [0, 0, 0] }, physicalLoadState: {},
     hydroFeatureCache: new Map(), hydroFeatureByFid: new Map(), hydroFragmentsByLogicalId: new Map(),
     physicalSettings: { hiddenHydroIds: {} }, hydroEdits: [], stateRevision: 0, selected: null };
-  const renderer = createGpuMapRenderer({ state, runtimeAssetUrl: path => path, isMobile: () => false,
+  const renderer = createGpuMapRenderer({ state, // A real Viewer resolves Worker paths to absolute URLs before shared-Core admission.
+  runtimeAssetUrl: path => new URL(path, 'https://example.test/assets/js/').href, isMobile: () => false,
     renderCountryBoundaryFeatures: () => [], countryBoundaryStyleById: () => null,
     flatProjection: { scale: () => 100, translate: () => [50, 50], center: () => [0, 0] }, hydroVisibilityThreshold: () => 1,
     hydroFeatureById: id => state.hydroFeatureCache.get(id), prepareHydroFeature: feature => feature,

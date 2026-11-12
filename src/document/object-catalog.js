@@ -95,9 +95,9 @@ export function createObjectCatalog({ isObjectVisible } = {}) {
     }
     return projectResourceOverlay('label',dependencies.projectState.state.labels).project.map(label => ({
       id: String(label.id),
-      name: label.name || '이름 없는 지명',
+      name: label.name || '이름 없는 도시',
       icon: 'place',
-      meta: label.kind || '지명',
+      meta: label.kind || '도시',
       selected: dependencies.projectState.state.selected?.domain === 'label' && dependencies.projectState.state.selected.id === String(label.id),
     }));
   }

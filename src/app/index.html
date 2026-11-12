@@ -52,7 +52,6 @@
         <div class="topbar-file-actions">
           <button id="mobileFileBtn" class="ui-button file-menu-btn topbar-command topbar-text-command" type="button" aria-label="파일 메뉴 열기" data-tooltip="파일 메뉴 열기" aria-haspopup="menu" aria-controls="fileMenu" aria-expanded="false">파일</button>
         </div>
-        <button id="mapDisplayBtn" class="ui-button topbar-command topbar-text-command map-display-command" type="button" aria-controls="mapDisplaySurface" aria-expanded="false">보기</button>
         <button id="reviewPanelBtn" class="ui-button topbar-command topbar-text-command" type="button" aria-controls="reviewPanel" aria-expanded="false" hidden>점검</button>
         <button id="preferencesBtn" class="ui-button topbar-command topbar-text-command" type="button" aria-haspopup="dialog">설정</button>
       </div>
@@ -91,7 +90,6 @@
 
       <!-- include:object-search -->
 
-      <!-- include:map-display -->
       <aside id="reviewPanel" class="viewer-review-panel ui-floating-surface" aria-labelledby="reviewPanelTitle" hidden>
         <div class="viewer-review-header">
           <div><h2 id="reviewPanelTitle">통합 점검기</h2><p>읽기 전용 지도·변경 검수·성능·오류 진단</p></div>
@@ -202,7 +200,6 @@
     </div>
     <nav id="mobileGlobalMenu" class="ui-menu ui-popover ui-floating-surface ui-menu-list mobile-global-menu" role="menu" aria-label="모바일 메뉴" hidden>
         <button id="mobileMenuFileBtn" class="ui-button ui-menu-item" type="button" role="menuitem" aria-haspopup="menu"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-folder-open"/></svg><span>파일</span><svg class="ui-icon ui-menu-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
-        <button id="mobileDisplayBtn" class="ui-button ui-menu-item" type="button" role="menuitem" aria-controls="mapDisplaySurface" aria-expanded="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-tune"/></svg><span>보기</span></button>
         <button id="mobileReviewBtn" class="ui-button ui-menu-item" type="button" role="menuitem" aria-controls="reviewPanel" aria-expanded="false" hidden><span>통합 점검</span></button>
         <button id="mobilePreferencesBtn" class="ui-button ui-menu-item" type="button" role="menuitem"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-gear"/></svg><span>설정</span></button>
       </nav>

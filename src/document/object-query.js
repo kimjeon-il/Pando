@@ -97,7 +97,7 @@ export function createObjectQuery(dependencies) {
     const name = label && isBuiltinPlaceId(ref.id)
       ? placeLabelRowsAtMonth(label, dependencies.projectState.state.timelineCursor, dependencies.preferences.userPreferences.labels.place.languages)[0]?.text
       : label?.name;
-    return { name: name || ref.id, type: '지명', detail: labelKind[label?.kind] || '지명' };
+    return { name: name || ref.id, type: '도시', detail: labelKind[label?.kind] || '도시' };
   }
 
   function focusObjectRef(value, { announce = true } = {}) {

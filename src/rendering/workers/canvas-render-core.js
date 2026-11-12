@@ -273,7 +273,8 @@ function canvasFallbackWorkerMain(self) {
         if (expectedHash) fetchUrl.searchParams.set('v', expectedHash);
         const validationUrl = new URL('../modules/terrain-manifest.js', self.location.href);
         validationUrl.searchParams.set('v', assetRevision);
-        const terrainModule = await import(validationUrl.href);
+        const terrainModule = await (typeof self.importTerrainManifestModule === 'function'
+          ? self.importTerrainManifestModule(validationUrl.href) : import(validationUrl.href));
         const { validateTerrainManifest } = terrainModule;
         const runtimeFetch = terrainModule.createExternalRuntimeDataFetch({meta:{externalRuntimeData}});
         const response = await runtimeFetch(fetchUrl.href, {signal: controller.signal});
@@ -626,16 +627,12 @@ function canvasFallbackWorkerMain(self) {
         const properties = feature.properties || {};
         const isLake = properties.category === 'lake';
         const featureColor = properties.editorColor || waterColor;
-        const hydroOpacity = Number.isFinite(Number(isLake ? message.theme?.lakeOpacity : message.theme?.riverOpacity))
-          ? Math.max(0, Math.min(1, Number(isLake ? message.theme?.lakeOpacity : message.theme?.riverOpacity)))
-          : 1;
-        if (hydroOpacity <= 0) continue;
         const isBorder = properties.border_aligned === true || (Number(properties.__flags || 0) & 1) !== 0;
         if (isLake) {
           if (!['lake', 'lake-boundary'].includes(role)) continue;
           context.beginPath();
           geoPath(feature);
-          context.globalAlpha = reserve ? 1 : hydroOpacity;
+          context.globalAlpha = 1;
           context.fillStyle = featureColor;
           if (role === 'lake') context.fill();
           if (role === 'lake-boundary' && message.theme?.lakeBoundaryVisible !== false) {
@@ -654,7 +651,7 @@ function canvasFallbackWorkerMain(self) {
         const parts = lineParts(feature.geometry);
         const profiles = properties.stroke_widths || [];
         const fallback = Math.max(0.55, Math.min(2.6, Number(properties.stroke_width || 0.8)));
-        context.globalAlpha = reserve ? 1 : hydroOpacity;
+        context.globalAlpha = 1;
         context.strokeStyle = featureColor;
         for (let partIndex = 0; partIndex < parts.length; partIndex += 1) {
           const part = parts[partIndex];
@@ -799,7 +796,8 @@ function canvasFallbackWorkerMain(self) {
     function renderCountryBoundaries(message, projection, dpr, target = context, reserve = false) {
       if (message.surfacePresentation.quality === 'pending' || countrySharedBoundary?.sourceQuality !== message.surfacePresentation.quality) return;
       const theme = message.theme, path = createCanvasPath(projection, target);
-      const sharedOnly = message.physicalSettings?.terrainVisible && message.physicalSettings?.terrainStyle === 'physical';
+      // Ordinary country borders never include sea/coast outlines, in any terrain style.
+      const sharedOnly = true;
       target.save(); target.setTransform(dpr, 0, 0, dpr, 0, 0);
       target.globalAlpha = reserve ? 1 : theme.borderAlpha;
       target.strokeStyle = theme.border;

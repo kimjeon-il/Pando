@@ -1,4 +1,6 @@
 import {deflateSync} from 'node:zlib';
+import {createHash} from 'node:crypto';
+import {readFileSync} from 'node:fs';
 import {TERRAIN_DEM_VERSION} from "../../../src/data/terrain-manifest.js";
 
 const crc32=bytes=>{
@@ -20,20 +22,45 @@ function solidPng(width,height){
   return Buffer.concat([Buffer.from([137,80,78,71,13,10,26,10]),chunk('IHDR',header),chunk('IDAT',deflateSync(raw)),chunk('IEND',Buffer.alloc(0))]);
 }
 
+const pinnedRevision = JSON.parse(readFileSync(new URL('../../../config/library-data.json',import.meta.url),'utf8')).revision;
+const syntheticPngCache = new Map();
+const syntheticPng = (width,height) => {
+  const key = width + 'x' + height;
+  if (!syntheticPngCache.has(key)) {
+    const bytes = solidPng(width,height);
+    syntheticPngCache.set(key,{bytes,sha256:createHash('sha256').update(bytes).digest('hex')});
+  }
+  return syntheticPngCache.get(key);
+};
+
 export function syntheticDemManifest(){
+  // The real Viewer owns a pinned external v0.14 source. Signed test tiles
+  // must satisfy its exact revision, length and SHA admission contract.
+  const levels=Array.from({length:6},(_,id)=>({id,width:1350*2**id,height:675*2**id,tileSize:1024,
+    columns:Math.ceil(1350*2**id/1024),rows:Math.ceil(675*2**id/1024)}));
+  const tiles={},tileSha256={};
+  for(const level of levels)for(let row=0;row<level.rows;row++)for(let column=0;column<level.columns;column++){
+    const width=Math.min(level.tileSize,level.width-column*level.tileSize)+2;
+    const height=Math.min(level.tileSize,level.height-row*level.tileSize)+2;
+    const key=`${level.id}/${column}-${row}.webp`,image=syntheticPng(width,height);
+    tileSha256[key]=image.sha256;
+    tiles[key]={bytes:image.bytes.byteLength,sha256:image.sha256};
+  }
   return {version:TERRAIN_DEM_VERSION,representation:'dem-relief-v1',crs:'EPSG:4326',extent:[-180,-90,180,90],
     gutter:1,tileFormat:'lossless WebP RGBA',registration:'cell-center',sourceGridOrigin:[-180,90],
-    sourceResolutionDegrees:[1/120,1/120],elevation:{decode:'R*256+G-12000',biasMeters:12000,spacingMeters:1,validEncodedRange:[0,65535]},
+    sourceResolutionDegrees:[1/120,1/120],elevation:{decode:'R*256+G-12000',biasMeters:12000,spacingMeters:1,validEncodedRange:[0,65535],
+      quantization:{method:'roundHalfToEven',shadeInput:'original float32 (before quantization)',
+        land:[{stepMeters:16},{stepMeters:32}],ocean:[{stepMeters:16},{stepMeters:64},{stepMeters:128}]}},
     channels:{r:'encoded elevation high byte',g:'encoded elevation low byte',b:'precomputed hillshade',a:'255'},
     shade:{azimuthDegrees:315,altitudeDegrees:45,ambient:.42,diffuse:.58,polarFallbackDegrees:89.5},
-    tint:{url:`terrain/v${TERRAIN_DEM_VERSION}/tint.webp`,width:4,height:2},assetsSha256:'a'.repeat(64),sources:[],
+    tint:{url:`terrain/v${TERRAIN_DEM_VERSION}/tint.webp`,width:4,height:2},
+    assetsSha256:'a'.repeat(64),sources:[],
     urlTemplate:`terrain/v${TERRAIN_DEM_VERSION}/{level}/{column}-{row}.webp`,
-    levels:Array.from({length:6},(_,id)=>({id,width:1350*2**id,height:675*2**id,tileSize:1024,
-      columns:Math.ceil(1350*2**id/1024),rows:Math.ceil(675*2**id/1024)}))};
-}
+    levels,tileSha256,tiles,packaging:{sourceRevision:pinnedRevision,sourcePath:`terrain/v${TERRAIN_DEM_VERSION}/manifest.json`}};
+};
 
 export async function routeSyntheticDem(surface){
-  const manifest=syntheticDemManifest(),images=new Map();
+  const manifest=syntheticDemManifest();
   await surface.route('**/terrain/**',async route=>{
     const path=new URL(route.request().url()).pathname;
     if(path.endsWith('/manifest.json'))return route.fulfill({json:manifest});
@@ -46,9 +73,7 @@ export async function routeSyntheticDem(surface){
       height=Math.min(level.tileSize,level.height-Number(match[3])*level.tileSize)+2;
     }else if(!path.endsWith('/tint.webp'))throw new Error(`Unexpected DEM asset ${path}`);
     if(width<1||height<1)throw new Error(`Invalid DEM tile ${path}`);
-    const key=`${width}x${height}`;
-    if(!images.has(key))images.set(key,solidPng(width,height));
-    await route.fulfill({contentType:'image/png',body:images.get(key)});
+    await route.fulfill({contentType:'image/png',body:syntheticPng(width,height).bytes});
   });
   return manifest;
 }

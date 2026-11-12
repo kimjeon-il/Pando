@@ -1,5 +1,4 @@
-import { ACCENT_PRESET_IDS, accentPresetForColor } from "./accent-presets.js";
-import { DEFAULT_PLACE_LANGUAGES, normalizePlaceLanguages } from "../document/place-contract.js";
+import { DEFAULT_MAP_STYLE, normalizeMapStyle } from "./map-style-presets.js";
 
 const STORAGE_KEY = 'pandolab-user-preferences';
 
@@ -9,10 +8,10 @@ const COLOR_PATTERN = /^#[0-9a-f]{6}$/i;
 
 const DEFAULTS = Object.freeze({
   version: 2,
-  appearance: Object.freeze({ theme: 'system', accentPreset: 'blue', smoothLines: true }),
+  appearance: Object.freeze({ theme: 'system', mapStyle: DEFAULT_MAP_STYLE, smoothLines: true }),
   labels: Object.freeze({
     country: Object.freeze({ font: 'default', color: null }),
-    place: Object.freeze({ font: 'default', color: null, pointColor: null, languages: DEFAULT_PLACE_LANGUAGES }),
+    place: Object.freeze({ font: 'default', color: null, pointColor: null, showNativeNames: false }),
   }),
   selection: Object.freeze({ color: null, outlineVisible: true, fillStrength: 0.35 }),
   timeline: Object.freeze({defaultWorldFollowCurrentMonth:true}),
@@ -35,16 +34,16 @@ function normalizeLabelFont(value, fallback) {
 
 export function defaultUserPreferences() {
   return {
-    backgrounds:{viewer:{terrainVisible:true,terrainStyle:'physical',graticule:true,globeShadow:true}},
+    backgrounds:{viewer:{graticule:true}},
     version: DEFAULTS.version,
-    appearance: { theme: DEFAULTS.appearance.theme, accentPreset: DEFAULTS.appearance.accentPreset, smoothLines: DEFAULTS.appearance.smoothLines },
+    appearance: { theme: DEFAULTS.appearance.theme, mapStyle: DEFAULTS.appearance.mapStyle, smoothLines: DEFAULTS.appearance.smoothLines },
     labels: {
       country: { font: DEFAULTS.labels.country.font, color: DEFAULTS.labels.country.color },
       place: {
         font: DEFAULTS.labels.place.font,
         color: DEFAULTS.labels.place.color,
         pointColor: DEFAULTS.labels.place.pointColor,
-        languages: { ...DEFAULTS.labels.place.languages },
+        showNativeNames: DEFAULTS.labels.place.showNativeNames,
       },
     },
     timeline: {defaultWorldFollowCurrentMonth:DEFAULTS.timeline.defaultWorldFollowCurrentMonth},
@@ -63,14 +62,12 @@ export function normalizeUserPreferences(value) {
   const fillStrength = normalizeFillStrength(source.selection?.fillStrength, defaults.selection.fillStrength);
   const outlineVisible = source.selection?.outlineVisible !== false;
   return {
-    backgrounds:{viewer:Object.fromEntries(Object.entries(defaults.backgrounds.viewer).map(([key,value])=>[key,key==='terrainStyle'?(['political','physical'].includes(source.backgrounds?.viewer?.[key])?source.backgrounds.viewer[key]:value):typeof source.backgrounds?.viewer?.[key]==='boolean'?source.backgrounds.viewer[key]:value]))},
+    backgrounds:{viewer:{graticule:source.backgrounds?.viewer?.graticule !== false}},
     version: DEFAULTS.version,
     timeline: {defaultWorldFollowCurrentMonth:source.timeline?.defaultWorldFollowCurrentMonth!==false},
     appearance: {
       theme,
-      accentPreset: ACCENT_PRESET_IDS.includes(source.appearance?.accentPreset)
-        ? source.appearance.accentPreset
-        : accentPresetForColor(source.appearance?.accentColor) || defaults.appearance.accentPreset,
+      mapStyle: normalizeMapStyle(source.appearance?.mapStyle),
       smoothLines: source.appearance?.smoothLines !== false,
     },
     labels: {
@@ -82,7 +79,7 @@ export function normalizeUserPreferences(value) {
         font: normalizeLabelFont(source.labels?.place?.font, defaults.labels.place.font),
         color: normalizeColor(source.labels?.place?.color),
         pointColor: normalizeColor(source.labels?.place?.pointColor),
-        languages: source.labels?.place?.languages == null ? { ...defaults.labels.place.languages } : normalizePlaceLanguages(source.labels.place.languages),
+        showNativeNames: source.labels?.place?.showNativeNames === true,
       },
     },
     selection: {

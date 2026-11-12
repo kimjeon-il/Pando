@@ -27,7 +27,6 @@ struct ApplyTerritorialMutation { TerritorialMutationPlan plan; std::optional<Ge
 struct CountryProperties {
     std::string name, memo;
     std::uint32_t color=0;
-    double opacity=1;
     bool operator==(const CountryProperties& other) const;
 };
 struct CountryEdit { std::string id; CountryProperties properties; };

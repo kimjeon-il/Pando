@@ -21,16 +21,14 @@ export function createTerritorialFillResolver({ state, entityRepository, terrain
     const style = layerStyle(presentation, group, `territorial:entity:${id}`);
     const explicit = presentation?.objectStyles?.[`territorial:entity:${id}`] || {};
     const groupStyle = presentation?.styles?.[group] || {};
-    const opacity = inherited ? explicit.opacity ?? (groupStyle.opacity !== undefined && groupStyle.opacity !== 1
-      ? style.opacity : inherited.opacity) : style.opacity;
     const blendMode = inherited ? explicit.blendMode ?? (groupStyle.blendMode === 'multiply' ? 'multiply' : inherited.blendMode) : style.blendMode;
     const color = colorVisible(entity) ? resolveLayerDisplayColor(presentation, group, {
       objectKey: `territorial:entity:${id}`, explicitColor: properties.style?.color,
       inheritedColor: resolveTerritorialColor(entity, { entityRepository, colorVisible, fallback: '' }), fallbackColor: '',
     }) : '';
     const substrate = !independent && !parent && !color ? mapSubstrate : null;
-    const result = Object.freeze({ color: color || substrate?.color || '', opacity, blendMode,
-      fillAlpha: color ? opacity * terrainAlpha : substrate?.fillAlpha || 0,
+    const result = Object.freeze({ color: color || substrate?.color || '', blendMode,
+      fillAlpha: color ? terrainAlpha : substrate?.fillAlpha || 0,
       depth: inherited ? inherited.depth + 1 : 0,
       ownerId: independent ? '' : inherited?.ownerId || id, parentId: String(properties.parentId || '') });
     visiting.delete(id);

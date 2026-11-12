@@ -150,7 +150,7 @@ export function createObjectSearchController({
     results.replaceChildren();
     renderedSearchRefs = rows.map(item => item.ref).filter(Boolean);
     if (query && rows.length) { results.append(...rows.map(rowFor)); if (builtinTruncated) results.append(createEmptyState('검색 결과를 일부 표시했습니다.', '이름의 앞부분을 더 입력해 범위를 좁히세요.')); }
-    else if (query) results.append(createEmptyState('검색 결과가 없습니다.', '내장 지명은 두 글자 이상으로 이름의 앞부분을 검색하세요.'));
+    else if (query) results.append(createEmptyState('검색 결과가 없습니다.', '내장 도시는 두 글자 이상으로 이름의 앞부분을 검색하세요.'));
     commands.syncCanonicalControls?.(results);
     syncSelection();
     renderedDependencies = next;
@@ -180,7 +180,7 @@ export function createObjectSearchController({
       builtinTruncated = result.truncated === true;
       builtinRows = result.records.slice(0, PLACE_LIMITS.searchResults).map(record => {
         const ref = normalizeObjectRef({ domain: 'label', type: record.kind, id: record.id });
-        return { ...record, key: ref.key, ref, layerGroup: 'labels', kind: 'object', meta: '내장 지명' };
+        return { ...record, key: ref.key, ref, layerGroup: 'labels', kind: 'object', meta: '내장 도시' };
       });
       commitRows(query, combinedRows(query));
     }).catch(error => {

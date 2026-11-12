@@ -15,3 +15,17 @@
 - [검사 통합 작업 기록](../development/testing/validation-consolidation-2026-11-07.md)은 테스트 삭제/변경의 당시 결정과 검증 한계이며 현재 유효한 CI allowlist가 아닙니다.
 - 실제 검사 그룹·전제 조건·명령은 여전히 [application-checks.json](../../scripts/contracts/application-checks.json)에서 결정하며, 기존 단계별 계획의 `must`를 전부 현재 의무로 자동 승격하지 않습니다.
 
+
+## Actions 워크플로 분류 (2026-11-12)
+
+[현재 워크플로 분류 정본](../../scripts/contracts/workflow-inventory.json)은
+당시 76개를 상시 16개, 수동 41개, 과거 전용 19개로 분류했습니다.
+분류 수치는 과거 작업 기준선이고, 실제 파일 목록과 분류 일치 여부는
+`tools/checks/audit-workflow-check-owners.mjs`와
+`scripts/check-test-consolidation.mjs`에서 매번 동적으로 확인합니다.
+
+일반 단위·브라우저 검사 실행기는
+`application-architecture.yml` 하나를 정본으로 사용합니다.
+상시로 남긴 다른 워크플로는 C++/GIS 네이티브 검사, 고유한 브라우저
+수용 검증, 생성물·자료 게시, Preview, Pages 배포와 외부 자료 동기화입니다.
+과거 전용은 수동 재현을 위해 보존하되 현재 배포의 통과 근거로 쓰지 않습니다.

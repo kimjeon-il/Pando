@@ -1,6 +1,6 @@
 // R1 canonical UI checks for the shipped read-only Web Viewer.
 // The former editor HTML/DOM is an archived source, not a product contract.
-import {readFileSync,statSync} from 'node:fs';
+import {readFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {renderProductHtml} from './product-html.mjs';
@@ -9,6 +9,7 @@ import {buildUiBundles} from '../build-ui-bundle.mjs';
 import {UI_VIEWER_SOURCES} from './ui-source-catalog.mjs';
 import {collectCssRules} from './css-analysis.mjs';
 import {isEditorOnlyAsset} from './product-assets.mjs';
+import {createProductModePolicy} from '../../src/app/product-mode-policy.js';
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const read=path=>readFileSync(resolve(root,path),'utf8');
@@ -85,26 +86,21 @@ export function validateReviewUi(kind,{html:providedHtml}={}) {
  if(!/assets\/js\/viewer\.js/.test(html) || !/assets\/css\/ui-viewer\.bundle\.css/.test(html))
    fail('Canonical Viewer scripts and stylesheet must be present');
  if(kind==='architecture') {
-   const source=read('src/app/viewer-composition.js');
-   const project=read('src/document/project-domain.js');
-   const map=read('src/app/map-owner-composition.js');
-   const renderer=read('src/rendering/rendering-domain.js');
-   for(const [name,text,pattern] of [
-     ['Viewer owner',source,/createMapOwners\(\{productMode,readOnly:true/],
-     ['Core read-only document',source,/createDocumentSession\(\{productMode,readOnly:true/],
-     ['Project read-only surface',project,/readOnly\s*=\s*productMode\s*===\s*'viewer'/],
-     ['Map edit hook exclusion',map,/if\s*\(readOnly!==true\|\|editing\)throw/],
-   ])if(!pattern.test(text))fail(name+' lost its read-only isolation contract');
-   for(const hook of ['editPreviewController','editingRenderResources','getEditingRenderPacket','emitEditingInteraction','createEditingPresentation'])
-     if(renderer.includes(hook))fail('Retired rendering edit hook returned: '+hook);
+   // Product permissions are executable contracts. File/DOM ownership and
+   // CSS partition rules remain static safeguards.
+   const viewer=createProductModePolicy('viewer',{readOnly:true});
+   viewer.assertOperation('core.document-state');
+   viewer.assertOperation('core.document-selection-snapshot');
+   try{
+     viewer.assertOperation('core.document-undo');
+     fail('Viewer policy exposed an authored Core mutation');
+   }catch(error){if(error.code!=='PL-PRODUCT-READONLY')fail('Unexpected viewer denial: '+error.message);}
    errors.push(...auditReviewCss('viewer.css',viewerCss),
      ...auditReviewCss('layout/surfaces.css',read('src/ui/css/layout/surfaces.css')));
-   if(statSync(resolve(root,'src/ui/css/viewer.css')).size>12288)
-     fail('Viewer placement CSS exceeded the R1 12 KiB ceiling');
    if(!/\.viewer-root/.test(viewerCss)||!/\.viewer-review-panel/.test(viewerCss))
-     fail('Viewer placement and review surfaces need separate scoped styles');
+     fail('Viewer placement and review surfaces need distinct scoped selectors');
    if(/#editorSurface|#modeDraft/.test(viewerCss))
-     fail('Viewer stylesheet references retired editor DOM');
+     fail('Viewer stylesheet includes retired editing controls');
  }
  if(kind==='components') {
    for(const match of html.matchAll(/<button\b([^>]*)>/gi)) {

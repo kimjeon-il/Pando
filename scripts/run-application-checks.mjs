@@ -8,6 +8,7 @@ import { planUnitTestBatches } from './lib/unit-test-batches.mjs';
 import { collectChanges } from './lib/check-changes.mjs';
 import { loadRepository, planApplicationChecks } from './plan-application-checks.mjs';
 import {assertRemoteOnlyNativeAllowed} from './lib/remote-only-native-policy.mjs';
+import {diagnoseCheckFailure,summarizeCheckDiagnostics} from './lib/check-failure-diagnostics.mjs';
 
 function executionOptions({ phase = 'all', shard = null } = {}) {
   if (!['all', 'non-browser', 'browser'].includes(phase)) throw Error('Invalid execution phase: ' + phase);
@@ -64,6 +65,16 @@ export function dispatchSelectedChecks({repository,selection,command=(args)=>exe
   return {ok:true,results:[{id:'selected-native-ci',status:'passed',url:run.url,head,requestId}],externalChecks:[]};
 }
 
+// Unit suites that start a real Playwright browser need an executable in the
+// non-browser CI phase too. Installing Chromium for every unit suite is wasteful.
+export function selectedUnitTestsNeedBrowser(plan,{repository}={}) {
+  if(typeof repository?.read!=='function')return false;
+  return (plan.unitTests||[]).some(file=>{
+    const source=repository.read(file);
+    return /\b(?:from\s*|import\s*\(\s*|require\s*\(\s*)['"](?:@playwright\/test|playwright)(?:\/[^'"]+)?['"]/.test(source);
+  });
+}
+
 export function executionOutputs(plan, { repository, ...options } = {}) {
   const { phase } = executionOptions(options), required = new Set();
   const include = id => {
@@ -81,6 +92,7 @@ export function executionOutputs(plan, { repository, ...options } = {}) {
   return {
     checks: nonBrowser || count > 0, non_browser: nonBrowser, browser: count > 0, browser_count: count,
     runtime_data: runtimeData,
+    unit_browser: phase !== 'browser' && selectedUnitTestsNeedBrowser(plan,{repository}),
     browser_matrix: { include: Array.from({ length: total }, (_, i) => ({ current: i + 1, total })) },
     gis_native: phase !== 'browser' && (required.has('native-hydro-point-screen') ||
       required.has('native-territorial-recipe') || required.has('native-caspian-oracle') ||
@@ -89,8 +101,16 @@ export function executionOutputs(plan, { repository, ...options } = {}) {
   };
 }
 
-export function executePlan(plan, { repository, phase = 'all', shard = null, unitTestArgs = [], environment:executionEnvironment=process.env,remote=dispatchSelectedChecks, run = (argv, options) => spawnSync(
-  argv[0] === 'node' ? process.execPath : argv[0], argv.slice(1), { ...options, stdio: 'inherit', shell: false }) } = {}) {
+export function executePlan(plan, { repository, phase = 'all', shard = null, unitTestArgs = [], environment:executionEnvironment=process.env,remote=dispatchSelectedChecks, run = (argv, options) => {
+  // Preserve ordinary CI stdout/stderr while retaining bounded evidence to
+  // distinguish a broken artifact/setup from an unverified assertion.
+  const result = spawnSync(argv[0] === 'node' ? process.execPath : argv[0],
+    argv.slice(1), { ...options, stdio: ['ignore','pipe','pipe'],
+      encoding:'utf8', maxBuffer:32*1024*1024, shell:false });
+  if(result.stdout)process.stdout.write(result.stdout);
+  if(result.stderr)process.stderr.write(result.stderr);
+  return result;
+} } = {}) {
   const execution = executionOptions({ phase, shard });
   if (!Array.isArray(unitTestArgs) || unitTestArgs.some(arg => typeof arg !== 'string'))
     throw Error('Invalid unit test arguments');
@@ -129,8 +149,15 @@ export function executePlan(plan, { repository, phase = 'all', shard = null, uni
         assertRemoteOnlyNativeAllowed({root:repository.root,environment:executionEnvironment,operation:'application native prerequisite '+id});
       const response = run(argv, { cwd: repository.root, env: { ...executionEnvironment, ...env } });
       result = { id, argv, status: response.status === 0 && !response.error ? 'passed' : 'failed',
-        exitCode: response.status, error: response.error?.message };
-    } catch (error) { result = { id, argv, status: 'failed', error: error.message }; }
+        exitCode: response.status, error: response.error?.message,
+        ...(id==='unit'||id==='browser'?{files:argv.filter(arg=>/^tests\/(?:unit|browser)\//.test(arg))}:{}) };
+      if(result.status==='failed')result.diagnosis=diagnoseCheckFailure({
+        ...result,stdout:response.stdout,stderr:response.stderr,
+      });
+    } catch (error) {
+      result = { id, argv, status:'failed', error:error.message,
+        diagnosis:diagnoseCheckFailure({status:'failed',error:error.code?error.code+': '+error.message:error.message}) };
+    }
     completed.set(key, result); results.push(result); return result;
   }
   function prerequisite(id) {
@@ -179,7 +206,23 @@ export function executePlan(plan, { repository, phase = 'all', shard = null, uni
     else command('browser', ['node', 'node_modules/@playwright/test/cli.js', 'test', ...plan.browserSpecs, '--workers=1', ...(shard ? ['--shard', shard] : [])]);
   }
   const evidence=scratch&&existsSync(join(scratch,'web-evidence.json'))?readFileSync(join(scratch,'web-evidence.json'),'utf8'):null;
-  return { execution, ok: results.every(result => result.status === 'passed'), results, stagingEvidence:evidence,externalChecks: (plan.externalChecks || []).map(check => ({ ...check, status: 'not-executed-by-application-runner' })) };
+  for(const result of results)if(result.status==='blocked'){
+    const cause=(result.prerequisites||[]).map(id=>results.find(row=>row.id===id&&row.status==='failed'))
+      .find(Boolean);
+    result.diagnosis=cause?.diagnosis && cause.diagnosis.kind!=='undetermined'
+      ? {...cause.diagnosis,confidence:'inherited',rule:'blocked-by-'+cause.diagnosis.rule}
+      : diagnoseCheckFailure(result);
+  }
+  let dataRevision=null;
+  if(repository.root&&existsSync(resolve(repository.root,'config/library-data.json'))){
+    try{dataRevision=JSON.parse(readFileSync(resolve(repository.root,'config/library-data.json'),'utf8')).revision||null;}
+    catch{ /* An invalid library pin is diagnosed by its owning prerequisite. */ }
+  }
+  const diagnostics=summarizeCheckDiagnostics(results,{
+    phase,sourceCommit:plan.comparison?.head||null,dataRevision,
+  });
+  return { execution, ok: results.every(result => result.status === 'passed'),
+    results,diagnostics,stagingEvidence:evidence,externalChecks: (plan.externalChecks || []).map(check => ({ ...check, status: 'not-executed-by-application-runner' })) };
   }finally{if(scratch)rmSync(scratch,{recursive:true});}
 }
 
@@ -238,12 +281,19 @@ export function main(args = process.argv.slice(2), env = process.env) {
   if (value('--output')) writeFileSync(value('--output'), JSON.stringify(result, null, 2) + '\n');
   if (result.status === 'executed') {
     console.log(JSON.stringify({ [execution.phase === 'all' ? 'applicationChecksPassed' : 'applicationPhasePassed']: result.ok,
-      execution, results: result.results, externalChecks: result.externalChecks }, null, 2));
+      execution, results: result.results, diagnostics:result.diagnostics,
+      externalChecks: result.externalChecks }, null, 2));
     if (!result.ok) process.exitCode = 1;
   }
   return result;
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
-  try { main(); } catch (error) { console.error(error.stack); process.exitCode = 1; }
+  try { main(); } catch (error) {
+    console.error(error.stack);
+    console.error(JSON.stringify({checkDiagnosis:diagnoseCheckFailure({
+      status:'failed',error:(error.code||'')+' '+error.message,
+    })}));
+    process.exitCode = 1;
+  }
 }

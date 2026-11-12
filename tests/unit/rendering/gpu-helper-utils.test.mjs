@@ -7,7 +7,7 @@ import * as __dep3 from "../../../src/rendering/gpu-shader-utils.js";
 import * as __dep4 from "../../../src/rendering/gpu-view-uniforms.js";
 import * as __dep5 from "../../../src/rendering/scene-color-cache.js";
 import * as __dep8 from "../../helpers/gpu-recovery-source-harness.mjs";
-import * as __dep9 from "../../../scripts/lib/renderer-v2-architecture.mjs";
+import {createGpuContextRecovery} from "../../../src/rendering/gpu-context-recovery.js";
 import * as __dep10 from "../../../src/rendering/gpu-hydro-preparation.js";
 const assert = __dep0.default;
 const test = __dep1.default;
@@ -186,34 +186,78 @@ contractSuite("gpu-shared-pass-initialization", () => {
 const assert = __dep0.default;
 const test = __dep1.default;
 const { fixture } = __dep8;
-const { auditSharedGpuPassInitialization } = __dep9;
 
 // The renderer's structural boundary is checked by check-renderer-v2.
-test('shared initialization architecture rejects another device, copied resources, unawaited calls and ignored failures',()=>{
-  const polygon="if (await enqueue('polygon', () => polygonOverlayPass.initialize(entry.device)) !== true) throw Error('polygon');";
-  const stroke="if (await strokeRenderer.initializeProgressively(entry.device, enqueue) !== true) throw Error('stroke');";
-  const selection="if (entry.selection && await enqueue('selection', () => entry.selection.initialize(entry.device, { strokeRenderer, polygonPass: polygonOverlayPass })) !== true) throw Error('selection');";
-  const source=`function initializeSharedGpuPasses() {
-    const entry = { device: renderDevice, selection: selectionPass };
-    const initialize = async () => { ${polygon} ${stroke} ${selection} };
-  }`;
-  assert.deepEqual(auditSharedGpuPassInitialization(source),[]);
-  assert.deepEqual(auditSharedGpuPassInitialization(source.replace(/throw Error\('([^']+)'\);/g,"{ throw Error('$1'); }")),[]);
-  const changed=[
-    source.replace('device: renderDevice','device: anotherDevice'),
-    source.replace('selection: selectionPass','selection: anotherSelection'),
-    source.replace('{ strokeRenderer, polygonPass:', '{ strokeRenderer: copiedStrokeRenderer, polygonPass:'),
-    source.replace('polygonPass: polygonOverlayPass','polygonPass: copiedPolygonPass'),
-    source.replace('entry.selection.initialize(', 'entry.selection.initialize?.('),
-    source.replace("await enqueue('selection'", "enqueue('selection'"),
-    source.replace(selection,selection.replace('!== true','=== false')),
-    source.replace("throw Error('selection')","return false"),
-    source.replace(`${polygon} ${stroke} ${selection}`,`${selection} ${polygon} ${stroke}`),
-  ];
-  for(const mutation of changed){
-    assert.notEqual(mutation,source,'Each negative case must change the contract.');
-    assert.notDeepEqual(auditSharedGpuPassInitialization(mutation),[]);
-  }
+test('real recovery owner commits only an accepted current frame after context loss',async()=>{
+  let current={generation:1},tick=0,nextId=0;
+  const timers=new Map(),admissions=[],disposals=[],success=[];
+  const owner=createGpuContextRecovery({
+    capture:()=>current,isTargetCurrent:identity=>identity===current,
+    prepare:async ticket=>({generation:ticket.identity.generation}),
+    commit:(_ticket,candidate)=>(admissions.push(candidate),true),
+    discard:candidate=>disposals.push(candidate),
+    onCommitted:ticket=>success.push(ticket),onFailure:error=>{throw error;},
+    now:()=>tick,
+    schedule:(callback,delay)=>{const id=++nextId;timers.set(id,{callback,delay});return id;},
+    clearSchedule:id=>timers.delete(id),
+  });
+  owner.beginLoss();
+  assert.equal(owner.snapshot().phase,'waiting-context');
+  await owner.request();
+  const first=owner.preparedTicket();
+  assert.ok(first);
+  assert.equal(owner.snapshot().phase,'awaiting-frame');
+  assert.deepEqual(admissions,[{generation:1}]);
+  assert.equal(owner.complete(first),true);
+  assert.equal(owner.snapshot().phase,'complete');
+  assert.equal(owner.complete(first),false,'one frame cannot certify recovery twice');
+  owner.beginLoss();
+  await owner.request();
+  const stale=owner.preparedTicket();
+  current={generation:2};
+  await owner.supersede('new-project-generation');
+  const replacement=owner.preparedTicket();
+  assert.ok(replacement);
+  assert.notStrictEqual(replacement,stale);
+  assert.equal(owner.isCurrent(stale),false);
+  assert.equal(owner.complete(stale),false,'retired project frame cannot publish current GPU recovery');
+  assert.equal(owner.complete(replacement),true);
+  assert.equal(owner.snapshot().phase,'complete');
+  assert.equal(success.length,3);
+  owner.dispose();
+  assert.equal(owner.snapshot().disposed,true);
+});
+
+test('real recovery deadline reserves Canvas fallback without claiming a false displayed frame',()=>{
+  let clock=0,id=0;
+  const timers=new Map(),failures=[],fallbackFailures=[];
+  const owner=createGpuContextRecovery({
+    capture:()=>({generation:1}),isTargetCurrent:()=>true,
+    prepare:async()=>({}),commit:()=>true,discard:()=>{},
+    onCommitted:()=>{},onFailure:error=>failures.push(error),
+    onFallbackFailure:error=>fallbackFailures.push(error),
+    now:()=>clock,
+    schedule:(callback,delay)=>{const key=++id;timers.set(key,{callback,delay});return key;},
+    clearSchedule:key=>timers.delete(key),
+  });
+  owner.beginLoss();
+  const scheduled=[...timers.values()][0];
+  assert.ok(scheduled);
+  clock=scheduled.delay+1;
+  scheduled.callback();
+  assert.equal(failures.length,1);
+  assert.match(failures[0].code,/PL-GPU-RECOVERY-CONTEXT-TIMEOUT/);
+  assert.equal(owner.snapshot().phase,'awaiting-canvas');
+  const fallback=owner.fallbackTicket();
+  assert.ok(fallback);
+  assert.equal(owner.beginFallback('Canvas',fallback),fallback);
+  assert.equal(owner.fallbackUsable(fallback),true);
+  assert.equal(owner.snapshot().phase,'awaiting-canvas','Canvas readiness is not an accepted picture');
+  assert.equal(owner.completeFallback(fallback),true);
+  assert.equal(owner.snapshot().phase,'canvas');
+  assert.equal(owner.fallbackTicket(),null,'a presented Canvas picture retires its pending ticket');
+  assert.deepEqual(fallbackFailures,[]);
+  owner.dispose();
 });
 
 test('scheduled polygon, stroke and selection passes share the exact GPU device and resource owners',async t=>{
@@ -363,7 +407,7 @@ for (const operation of ['feature', 'query']) {
 test('hydro owner owns readiness, restart RPC settlement, stale delivery and request payloads', async t => {
   const { owner, workers, messages, manifest } = fixture(t);
   const ready = owner.setManifest(manifest, 'https://example.test/hydro/index.json');
-  assert.deepEqual(messages[0], { type: 'init', manifest, baseUrl: 'https://example.test/hydro/', assetRevision: 'data-123456789012', dataRevision: 'data', includeGeometry: false });
+  assert.deepEqual(messages[0], { type: 'init', manifest, baseUrl: 'https://example.test/hydro/', assetRevision: 'data-123456789012', dataRevision: 'data', externalRuntimeData: null, includeGeometry: false });
   workers[0].onmessage({ data: { type: 'ready' } });
   assert.equal(await ready, true);
   assert.equal(messages[1].type, 'view');

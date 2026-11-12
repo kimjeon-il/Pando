@@ -1,10 +1,6 @@
-name: Optimization stage 5 project lifecycle focused contracts
+name: "[HISTORICAL] Optimization stage 5 project lifecycle focused contracts"
 # Adversarial 5-8 audit rerun: exact source-owned and generation-safe regression probes only.
 on:
-  push:
-    branches: [work/optimization]
-    paths:
-      - '.github/workflows/optimization-stage5-lifecycle.yml'
   workflow_dispatch:
 permissions:
   contents: read

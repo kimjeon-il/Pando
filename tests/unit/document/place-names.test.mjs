@@ -3,6 +3,7 @@ import test from 'node:test';
 import { normalizePlace, normalizePlaceLanguages, togglePlaceLanguage } from "../../../src/document/place-contract.js";
 import { resolvePlaceLabelRows, placeLabelRowsAtMonth } from "../../../src/ui/place-name-display.js";
 import { placeLabelDimensions, layoutLabels } from "../../../src/rendering/label-layout.js";
+import { mapPlaceLabelRowsAtMonth, PLACE_NATIVE_LABEL_MIN_ZOOM } from "../../../src/data/place-name-policy.js";
 
 const place = changes => normalizePlace({source:'geonames',sourceId:'703448',name:'키이우',nameEn:'Kyiv',nameNative:'Київ',
   kind:'capital',coordinates:[30.52,50.45],nameTimeline:[{fromYear:1801,ko:'키예프'},{fromDate:'1991-08-24',ko:'키이우'}],...changes});
@@ -44,6 +45,63 @@ test('three visible lines form one tall collision box',()=>{
   assert.equal(multi.height,47);assert.ok(multi.width>=single.width);
   assert.deepEqual(layoutLabels([{key:'a',point:[100,100],...multi,priority:90,collisionGroup:'place'},
     {key:'b',point:[100,120],...single,priority:40,collisionGroup:'place'}]).map(item=>item.key),['a']);
+});
+
+test('map labels always keep Korean, never add English, and only offer native at 8x', () => {
+  const record = place();
+  assert.equal(PLACE_NATIVE_LABEL_MIN_ZOOM, 8);
+  const labels = (zoom, showNativeNames) => mapPlaceLabelRowsAtMonth(record, '2099-12', { zoom, showNativeNames });
+  assert.deepEqual(labels(8, false).rows.map(row => row.text), ['키이우']);
+  assert.deepEqual(labels(8, false).secondaryRows, []);
+  assert.deepEqual(labels(7.99, true).secondaryRows, []);
+  assert.deepEqual(labels(8, true).rows.map(row => row.text), ['키이우']);
+  assert.deepEqual(labels(8, true).secondaryRows.map(row => row.text), ['Київ']);
+  assert.deepEqual(labels(32, true).secondaryRows.map(row => row.text), ['Київ']);
+  assert.deepEqual(mapPlaceLabelRowsAtMonth(record, '-0044-03', { zoom: 32, showNativeNames: true }),
+    { rows: [], secondaryRows: [] });
+});
+
+test('historical original name follows the project month and only one co-official form reaches the map', () => {
+  const record = place({ name: '니코시아', nameNative: 'Λευκωσία',
+    nameNativeExtras: ['Lefkoşa'], nameTimeline: [
+      { fromYear: 1801, ko: '레프코샤', native: 'لفقوشه' },
+      { fromDate: '1878-07-05', native: 'لفقوشه', nativeExtras: ['Nicosia', 'Λευκωσία'] },
+      { fromDate: '1960-08-16', ko: '니코시아', native: 'Λευκωσία', nativeExtras: ['Lefkoşa'] },
+    ] });
+  const rows = month => mapPlaceLabelRowsAtMonth(record, month, { zoom: 8, showNativeNames: true });
+  assert.deepEqual(rows('1878-06').secondaryRows.map(x => x.text), ['لفقوشه']);
+  assert.deepEqual(rows('1960-09').secondaryRows.map(x => x.text), ['Λευκωσία']);
+  assert.deepEqual(rows('1960-09').rows.map(x => x.text), ['니코시아']);
+  assert.deepEqual(resolvePlaceLabelRows(record, { ko: true, en: true, native: true }, '1960-09-30')
+    .map(x => x.text), ['니코시아', '(현)Kyiv', 'Λευκωσία', 'Lefkoşa']);
+});
+
+test('equal Korean and primary native names do not show the second co-official name instead', () => {
+  const record = place({ name: '서울', nameNative: '서울', nameNativeExtras: ['Seoul'],
+    nameTimeline: [] });
+  const label = mapPlaceLabelRowsAtMonth(record, '2099-12', { zoom: 32, showNativeNames: true });
+  assert.deepEqual(label.rows.map(row => row.text), ['서울']);
+  assert.deepEqual(label.secondaryRows, []);
+  const historicFallback = mapPlaceLabelRowsAtMonth(record, '1900-01', { zoom: 32, showNativeNames: true });
+  assert.deepEqual(historicFallback.secondaryRows, [],
+    'native duplicates must stay suppressed even when both names carry current-name markers');
+});
+
+test('native lines only expand into free space, never suppress an already placed Korean name', () => {
+  const primaryRows = [{ language: 'ko', text: '서울' }];
+  const native = [{ language: 'native', text: 'Seoul' }];
+  const target = { key: 'seoul', point: [100, 100], priority: 90,
+    rows: primaryRows, secondaryRows: native, collisionGroup: 'place',
+    ...placeLabelDimensions(primaryRows) };
+  const neighbor = { key: 'other', point: [100, 125], priority: 80,
+    rows: [{ language: 'ko', text: '서울시' }], collisionGroup: 'place',
+    ...placeLabelDimensions('서울시') };
+  const crowded = layoutLabels([neighbor, target], { zoom: 8, padding: 3 });
+  assert.deepEqual(crowded.map(row => row.key), ['seoul', 'other']);
+  assert.deepEqual(crowded[0].rows.map(row => row.text), ['서울']);
+  const free = layoutLabels([{ ...neighbor, point: [100, 200] }, target], { zoom: 8, padding: 3 });
+  assert.deepEqual(free[0].rows.map(row => row.text), ['서울', 'Seoul']);
+  assert.equal(free[0].height, 33);
 });
 
 test('year-only and exact naming dates retain distinct precision in the codec contract', () => {

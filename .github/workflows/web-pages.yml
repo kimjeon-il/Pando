@@ -25,6 +25,7 @@ on:
       - 'tools/build/package-shared-core-assets.mjs'
       - 'tools/data/**'
       - 'tools/checks/verify-pages-deployment.mjs'
+      - 'tools/checks/verify-pages-identity.mjs'
       - '.github/actions/library-data/**'
       - '.github/workflows/web-pages.yml'
       - 'package.json'
@@ -70,6 +71,11 @@ jobs:
           node tools/build/stage-monorepo-pages.mjs --root . --stage "$RUNNER_TEMP/pages-site" --manifest "$RUNNER_TEMP/pages-evidence.json" "${args[@]}"
       - name: Record the final viewer and pinned data artifact
         run: node tools/build/stage-monorepo-pages.mjs --finalize --stage "$RUNNER_TEMP/pages-site" --manifest "$RUNNER_TEMP/pages-evidence.json"
+      - name: Gate code, WASM, and pinned project data before Pages upload
+        run: node tools/checks/verify-pages-identity.mjs --root .
+          --stage "$RUNNER_TEMP/pages-site"
+          --manifest "$RUNNER_TEMP/pages-evidence.json"
+          --expect-commit "$GITHUB_SHA"
       - uses: actions/upload-pages-artifact@v4
         with:
           path: ${{ runner.temp }}/pages-site
@@ -114,6 +120,11 @@ jobs:
         with:
           name: pages-evidence-${{ github.sha }}
           path: ${{ runner.temp }}/pages-verification
+      - name: Confirm the approved code-WASM-data receipt before Pages deployment
+        if: steps.current.outputs.deploy == 'true'
+        run: node tools/checks/verify-pages-identity.mjs --root .
+          --manifest "$RUNNER_TEMP/pages-verification/pages-evidence.json"
+          --expect-commit "$GITHUB_SHA" --receipt-only
       - id: deployment
         if: steps.current.outputs.deploy == 'true'
         uses: actions/deploy-pages@v4

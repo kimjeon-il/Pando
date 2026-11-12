@@ -78,11 +78,11 @@ const entityStore = createTerritorialEntityStore({ documentModel:testCoreProject
   }
 });
 
-test('children inherit only assigned colors and retain their opacity and blend', async () => {
+test('children inherit assigned colors and blend without a separate opacity multiplier', async () => {
   const parent = { ...subunit, properties: { ...subunit.properties, style: {} } };
   const child = createTerritorialFeature({ id: 'C', entityKind: 'general', parentId: 'S', geometry });
   const state = { territorialEntities: [country, parent, child],
-    layerPresentation: normalizeLayerPresentation({ styles: { objects: { opacity: 0.5, blendMode: 'multiply' } },
+    layerPresentation: normalizeLayerPresentation({ styles: { objects: { blendMode: 'multiply' } },
       objectStyles: { 'territorial:entity:A': { colorVisible: true } } }) };
   await initializeTestTerritorialState(state);
 const entityStore = createTerritorialEntityStore({ documentModel:testCoreProject(state).documentModel,commandOwner:testCoreProject(state).client });
@@ -92,7 +92,7 @@ const entityStore = createTerritorialEntityStore({ documentModel:testCoreProject
   await executeTerritorialTestCommand(state,'territorial.metadata',{ id:'A',field:'color',value:'#aa0000' ,valuePresent:true});
   resolve = createTerritorialFillResolver({ state, entityRepository, terrainAlpha: 0.22 });
   assert.equal(resolve(child).color, '#aa0000');
-  assert.equal(resolve(child).fillAlpha, 0.11);
+  assert.equal(resolve(child).fillAlpha, 0.22);
   assert.equal(resolve(child).blendMode, 'multiply');
   await testCoreProject(state).project.executeCommand({ commandId:'presentation.apply',targets:[],
     payload:{ action:'groupStyle',group:'objects',patch:{ colorVisible:false } } });
@@ -115,25 +115,27 @@ const entityStore = createTerritorialEntityStore({ documentModel:testCoreProject
 
 test('an independent region uses common object settings without inheriting its parent overrides', async () => {
   const state = { territorialEntities: [country, region], layerPresentation: normalizeLayerPresentation({ styles: {
-    objects: { opacity: 0.8, blendMode: 'normal' },
-  },objectStyles:{'territorial:entity:A':{opacity:0.25,blendMode:'multiply'}} }) };
+    objects: { blendMode: 'normal' },
+  },objectStyles:{'territorial:entity:A':{blendMode:'multiply'}} }) };
   await initializeTestTerritorialState(state);
   const entityRepository = createTerritorialEntityRepository({ entityStore: createTerritorialEntityStore({ documentModel:testCoreProject(state).documentModel,commandOwner:testCoreProject(state).client }) });
   const material = createTerritorialFillResolver({ state, entityRepository })(region);
-  assert.equal(material.opacity, 0.8);
+  assert.equal(Object.hasOwn(material, 'opacity'), false);
+   assert.equal(material.fillAlpha, 1);
   assert.equal(material.blendMode, 'normal');
   assert.equal(material.ownerId, '');
   assert.equal(material.depth, 0);
 });
 
-test('a direct child inherits the actual parent material, including per-object opacity and blend', async () => {
+test('a direct child inherits the actual parent blend without a per-object opacity control', async () => {
   const state = { territorialEntities: [country, subunit], layerPresentation: normalizeLayerPresentation({ objectStyles: {
-    'territorial:entity:A': { opacity: 0.4, blendMode: 'multiply' },
+    'territorial:entity:A': { blendMode: 'multiply' },
   } }) };
   await initializeTestTerritorialState(state);
   const entityRepository = createTerritorialEntityRepository({ entityStore: createTerritorialEntityStore({ documentModel:testCoreProject(state).documentModel,commandOwner:testCoreProject(state).client }) });
   const material = createTerritorialFillResolver({ state, entityRepository })(subunit);
-  assert.equal(material.opacity, 0.4);
+  assert.equal(material.fillAlpha, 1);
+   assert.equal(Object.hasOwn(material, 'opacity'), false);
   assert.equal(material.blendMode, 'multiply');
   assert.equal(material.depth, 1);
   assert.equal(material.ownerId, 'A');
@@ -366,7 +368,7 @@ async function fixture() {
   const state={territorialEntities:entities,
     itemVisibility:{objects:{source:false,kept:false,moved:false,'moved-child':false,crossed:false,unrelated:false}},
     layerPresentation:normalizeLayerPresentation({objectStyles:Object.fromEntries(['source','kept','moved','moved-child','crossed','unrelated']
-      .map((id,index)=>[`territorial:entity:${id}`,{opacity:(index+1)/10}]))})};
+      .map((id,index)=>[`territorial:entity:${id}`,{boundaryVisible:index%2===0}]))})};
   await initializeTestTerritorialState(state);
   return {state,...testCoreProject(state)};
 }

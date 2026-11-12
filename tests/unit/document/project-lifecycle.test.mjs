@@ -7,7 +7,7 @@ import * as __dep4 from "node:crypto";
 import * as __dep6 from "../../helpers/core-command-services/save-state-controller.mjs";
 import * as __dep7 from "../../helpers/core-project.mjs";
 import * as __dep8 from "../../helpers/current-command-fixture.mjs";
-import * as __dep9 from "../../../src/document/initial-document.js";
+import {createProjectStateFixture} from '../../helpers/project-state-fixture.mjs';
 contractSuite("project-lifecycle", () => {
 const assert = __dep0.default;
 const test = __dep1.default;
@@ -152,9 +152,8 @@ test('creation period rejects out-of-range navigation and keeps project records 
 contractSuite("project-opening", () => {
 const test = __dep1.default;
 const assert = __dep0.default;
-const { createInitialDocument } = __dep9;
 const { createNodeCoreProject } = __dep7;
-const seed=()=>createInitialDocument({appVersion:'0.36.0',baseDataset:'initial'});
+const seed=()=>createProjectStateFixture({appVersion:'0.36.0',baseDataset:'initial'});
 const project=name=>({...seed(),baseDataset:name});
 
 test('common project opening keeps the last request and validates through the readonly Core boundary',async()=>{

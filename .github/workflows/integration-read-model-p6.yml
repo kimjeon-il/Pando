@@ -1,12 +1,5 @@
 name: P6 integration fixture contracts
 on:
-  push:
-    branches: [work/ui]
-    paths:
-      - tests/unit/document/core-document-read-model.test.mjs
-      - tests/unit/rendering/country-shared-boundary-generator.test.mjs
-      - src/document/core-document-read-model.js
-      - .github/workflows/integration-read-model-p6.yml
   workflow_dispatch:
 permissions:
   contents: read

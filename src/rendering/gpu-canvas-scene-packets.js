@@ -92,8 +92,11 @@ export function createCanvasScenePackets() {
     if (!boundary) return null;
     const { segments, startsEnds, ownerRanges, internalOwners, outlineOwnerIds, outlineOverrides, geometryRevision, sourceQuality } = boundary;
     return { segments, startsEnds, ownerRanges, internalOwners, outlineOwnerIds, geometryRevision, sourceQuality,
-      outlineOverrides: { startsEnds: outlineOverrides.startsEnds, ownerRanges: outlineOverrides.ownerRanges,
-        ownerIds: outlineOverrides.ownerIds, internalOwners: outlineOverrides.internalOwners } };
+      // No empty coast packet is cloned through the Canvas Worker style channel.
+      ...(outlineOverrides?.startsEnds?.length ? { outlineOverrides: {
+        startsEnds: outlineOverrides.startsEnds, ownerRanges: outlineOverrides.ownerRanges,
+        ownerIds: outlineOverrides.ownerIds, internalOwners: outlineOverrides.internalOwners,
+      } } : {}) };
   }
 
   return Object.freeze({ delta, scenePolygons, physicalPolygons, sceneStrokes, countryBoundary,

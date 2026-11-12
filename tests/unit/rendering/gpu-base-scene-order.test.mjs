@@ -1,5 +1,6 @@
 import { describe as contractSuite } from 'node:test';
 import {createGpuUploadScheduler} from '../../../src/rendering/gpu-upload-scheduler.js';
+import {createRenderDevice} from '../../../src/rendering/render-device.js';
 import * as __render_dep0 from "node:assert/strict";
 import * as __render_dep1 from "node:test";
 import * as __render_dep3 from "../../../src/rendering/gpu-scene-preparation.js";
@@ -355,7 +356,9 @@ test('same-key stroke revision and LOD replacements are prepared before draw', (
     return () => {};
   } });
   const pass = createGpuStrokeRenderer();
-  assert.equal(pass.initialize({ gl, version: 2, capabilities: { instancing: true } }), true);
+  // Coverage now uses the real shared RenderDevice state contract.
+  const device = createRenderDevice({ gl, version: 2, contextRevision: 1 });
+  assert.equal(pass.initialize(device), true);
   const original = { key: 'edited-stroke', geometryRevision: 1, lod: 'low', style: { width: 2 }, startsEnds: new Float32Array([0, 0, 1, 1]) };
   for (const packet of [original, { ...original, geometryRevision: 2 }, { ...original, geometryRevision: 2, lod: 'high' }]) {
     const sourceKey = `${packet.key}:${packet.geometryRevision}:${packet.lod}`;

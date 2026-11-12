@@ -137,7 +137,7 @@ async function fixture({engineFailure=false,mapFailure=false,suppressReadyCertif
   let preparationObserver=noop;
   window.addEventListener('pandolab:ready',()=>ready++);
   const controller=()=>({bind:noop,dispose:()=>disposed++,connect:noop,enhanceAll:noop,sync:noop,resetProject:noop,syncNow:noop,
-    render:noop,cancelSearch:noop,syncSelection:noop,completeHydration:async()=>{},initializeLAYER_STYLE_TARGETS:noop,bindNavigationUI:noop});
+    render:noop,cancelSearch:noop,syncSelection:noop,completeHydration:async()=>{},bindNavigationUI:noop});
   const state={timelineCursor:'1953-07'},snapshot={documentId:'test',projectSetup:{}};
   const session={commandOwner:{load:async()=>{if(++loads===1&&engineFailure)throw network();},state:()=>state,dispose:()=>disposed++},
     documentModel:{snapshot:()=>snapshot,get:()=>null}};
@@ -162,7 +162,7 @@ async function fixture({engineFailure=false,mapFailure=false,suppressReadyCertif
     createPlatformPorts:()=>({}),createRuntimeContext:({meta})=>({meta,platform:{}}),createBrowserFileAccess:()=>({}),connectMapOwner:noop,
     createBrowserProjectStorage:()=>({}),initialBoundsView:noop,
     createNotificationPresentation:()=>({...controller(),reportOperationError:noop}),createApplicationLifecycle,createViewerInitialPresentation,
-    createPreferencePresentation:()=>({...controller(),current:{timeline:{defaultWorldFollowCurrentMonth:true}}}),
+    createPreferencePresentation:()=>({...controller(),current:{timeline:{defaultWorldFollowCurrentMonth:true},appearance:{mapStyle:'standard'}}}),
     createMapOwners:()=>({workspaceSurfaces:surfaces,mapHost:{queueMapResize:noop},physicalResources:{loadHydroData:noop},
       territorialLabels:{preparePlaces:noop},builtinSession:{}}),
     saveUserPreferences:noop,createDiagnosticLog:()=>({snapshot:()=>[]}),isRecoverableLoadError,
@@ -174,7 +174,9 @@ async function fixture({engineFailure=false,mapFailure=false,suppressReadyCertif
       timelineNavigation:()=>({range:null}),requireTimelineMonth:noop,
       open:async reader=>{openRevision++;await reader();return true;}}),
     createInitialDocument:()=>snapshot,createViewerMap:options=>{maps++;preparationObserver=options.onMapPreparationStatus;return map;},createFileController:ports=>{openUserProject=ports.openProject;return controller();},readProjectFile:noop,
-    createMapSettings:controller,layerStyle:noop,DISTRIBUTION_RENDER_MODES:{},createSurfaceController:noop,createPreferencesDialog:noop,
+    createMapSettings:()=>({...controller(),applyMapStyle:async()=>false}),layerStyle:noop,
+     DISTRIBUTION_RENDER_MODES:{},createSurfaceController:noop,
+     createPreferencesDialog:()=>({...controller(),sync:noop}),
     createProjectMonthClock:options=>{
       let committed=null;
       const apply=async()=> {

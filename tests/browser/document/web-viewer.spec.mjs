@@ -31,11 +31,11 @@ test(`existing UI loads, searches and navigates without document writes at ${vie
   await page.locator('#objectSearchResults button').first().click();
   await expect(page.locator('#viewerSelectionStatus')).toContainText('대한민국');
   await openViewingDisplay(page);
-  await setViewingLayer(page,'objects',false);
-  await setViewingLayer(page,'objects',true);
-  await expect(page.locator('#mapDisplaySurface')).toContainText('객체');
-  await expect(page.locator('#countriesVisible,#subunitsVisible,#regionsVisible')).toHaveCount(0);
-  const bounds=await page.locator('#mapDisplaySurface').boundingBox();
+  await setViewingLayer(page,'rivers',false);
+  await setViewingLayer(page,'rivers',true);
+  await expect(page.locator('#preferencesModal')).toContainText('지도 테마');
+  await expect(page.locator('#mapDisplaySurface,#mapDisplayBtn,#countriesVisible,#subunitsVisible,#regionsVisible')).toHaveCount(0);
+  const bounds=await page.locator('.preferences-card').boundingBox();
   expect(bounds.x).toBeGreaterThanOrEqual(0);
   expect(bounds.x+bounds.width).toBeLessThanOrEqual(viewport.width);
   expect(bounds.y+bounds.height).toBeLessThanOrEqual(viewport.height);
@@ -96,8 +96,8 @@ test('existing surfaces preserve project and selection across portrait, tablet a
     await expect(page.locator('#viewerInfoPanel')).toHaveCount(0);
     await page.keyboard.press('Escape');
     await openViewingDisplay(page);
-    await page.locator('#mapDisplaySurface').evaluate(element => Promise.all(element.getAnimations().map(animation => animation.finished)));
-    const panel=await page.locator('#mapDisplaySurface').boundingBox();
+    await page.locator('.preferences-card').evaluate(element => Promise.all(element.getAnimations().map(animation => animation.finished)));
+    const panel=await page.locator('.preferences-card').boundingBox();
     expect(panel.x).toBeGreaterThanOrEqual(0);expect(panel.y).toBeGreaterThanOrEqual(0);
     expect(panel.x+panel.width).toBeLessThanOrEqual(viewport.width);
     expect(panel.y+panel.height).toBeLessThanOrEqual(viewport.height);

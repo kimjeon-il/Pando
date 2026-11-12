@@ -44,7 +44,7 @@ export const MAP_OBJECT_TYPES = Object.freeze({
     domain: MAP_OBJECT_DOMAINS.LABEL,
     type: 'label',
     category: 'features',
-    label: '지명',
+    label: '도시',
     icon: 'icon-place',
     layerGroup: 'labels',
     presentationGroup: 'labels',

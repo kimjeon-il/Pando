@@ -19,16 +19,12 @@ export function createNavigationBindings() {
   }
 
   function toggleWorkspaceSurface(surface, trigger) {
-    const wasOpen = surface === 'display' && dependencies.workspaceUiB.surfaceController.isOpen('display');
     (0, dependencies.workspaceUiC.toggleSurface)(surface, trigger);
-    if (surface === 'display' && wasOpen) (0, dependencies.mapSettingsUi.closeDesktopViewMenuGroup)();
-    if (surface === 'display') (0, dependencies.mapSettingsUi.renderMapDisplaySettings)();
   }
 
   function bindNavigationUI() {
     if (bound || disposed) return;
     bound = true;
-    (0, dependencies.mapSettingsUi.bindMapDisplayUI)();
     let mobileMenuOpen=false;
     const mobileMenu = () => (0, dependencies.platform.$)('mobileGlobalMenu');
     const closeMobileMenu = ({ restoreFocus = false } = {}) => {
@@ -47,22 +43,14 @@ export function createNavigationBindings() {
       (0, dependencies.platform.$)('mobileMenuBtn')?.setAttribute('aria-expanded', 'true');
       requestAnimationFrame(() => { if (!disposed) menu.querySelector('[role="menuitem"]:not(:disabled)')?.focus({ preventScroll: true }); });
     };
-    let displayPointerStartedInside = false;
     let searchToolbarPointer = false;
-    const closeDesktopDisplayMenu = () => {
-      const display = (0, dependencies.platform.$)('mapDisplaySurface');
-      if (isMobileWorkspaceLayout(dependencies.surfaces.layoutMode) || !display||!dependencies.workspaceUiB.surfaceController.isOpen('display')) return;
-      (0, dependencies.mapSettingsUi.closeDesktopViewMenuGroup)();
-      (0, dependencies.workspaceUiA.closeSurface)('display', { restoreFocus: false });
-    };
     listen(document, 'keydown',event=>{
       if(event.key!=='Escape'||event.defaultPrevented||document.querySelector('.ui-modal:not(.hidden),[aria-modal="true"]:not(.hidden):not([hidden])'))return;
       if(mobileMenuOpen){closeMobileMenu({restoreFocus:true});event.preventDefault();event.stopImmediatePropagation();return;}
       if(dependencies.workspaceUiB.isFileMenuOpen){dependencies.workspaceUiA.closeFileMenu({restoreFocus:true});event.preventDefault();event.stopImmediatePropagation();return;}
-      for(const surface of ['search','display'])if(dependencies.workspaceUiB.surfaceController.isOpen(surface)){dependencies.workspaceUiA.closeSurface(surface,{restoreFocus:true});event.preventDefault();event.stopImmediatePropagation();return;}
+      for(const surface of ['search'])if(dependencies.workspaceUiB.surfaceController.isOpen(surface)){dependencies.workspaceUiA.closeSurface(surface,{restoreFocus:true});event.preventDefault();event.stopImmediatePropagation();return;}
     });
     listen(document, 'pointerdown', event => {
-      displayPointerStartedInside = !!event.target.closest('#mapDisplaySurface');
       searchToolbarPointer = !!event.target.closest('#resetViewBtn');
       if (!event.target.closest('#notificationCloseBtn')) (0, dependencies.readinessUi.clearErrorNotification)();
     }, true);
@@ -71,14 +59,10 @@ export function createNavigationBindings() {
         (0, dependencies.workspaceUiA.closeFileMenu)();
       }
       if (!e.target.closest('#mobileGlobalMenu, #mobileMenuBtn')) closeMobileMenu();
-      if (!e.target.closest('#mapDisplaySurface, #mapDisplayBtn') && !(e.detail && displayPointerStartedInside)) {
-        closeDesktopDisplayMenu();
-      }
     });
 
     listen((0, dependencies.platform.$)('mobileFileBtn'), 'click', event => {
       event.stopPropagation();
-      closeDesktopDisplayMenu();
       (0, dependencies.workspaceUiB.toggleFileMenu)();
     });
     listen((0, dependencies.platform.$)('mobileMenuBtn'), 'click', event => {
@@ -136,7 +120,6 @@ export function createNavigationBindings() {
     });
     listen(document, 'pointerup', () => { searchToolbarPointer = false; });
     listen(document, 'pointercancel', () => { searchToolbarPointer = false; });
-    listen((0, dependencies.platform.$)('mapDisplayBtn'), 'click', event => toggleWorkspaceSurface('display', event.currentTarget));
     listen((0, dependencies.platform.$)('objectLockBtn'), 'click', async () => {
       try { await dependencies.objectOperationsA.batchToggleLocked(); }
       catch (error) { dependencies.feedback.reportOperationError(error, '객체 잠금을 변경하지 못했습니다.', 'PL-OBJECT-LOCK-001', 4200); }
@@ -152,12 +135,7 @@ export function createNavigationBindings() {
     });
     Object.values(dependencies.workspaceUiA.MOBILE_SHEET_IDS).forEach(id => (0, dependencies.workspaceUiA.bindMobileSheetSurface)((0, dependencies.platform.$)(id)));
     listen((0, dependencies.platform.$)('mobileSearchBtn'), 'click', event => toggleWorkspaceSurface('search', event.currentTarget));
-    listen((0, dependencies.platform.$)('mobileDisplayBtn'), 'click', event => {
-      closeMobileMenu();
-      toggleWorkspaceSurface('display', event.currentTarget);
-    });
     listen((0, dependencies.platform.$)('objectSearchCloseBtn'), 'click', () => (0, dependencies.workspaceUiA.closeSurface)('search', { restoreFocus: true }));
-    listen((0, dependencies.platform.$)('mapDisplayCloseBtn'), 'click', () => (0, dependencies.workspaceUiA.closeSurface)('display', { restoreFocus: true }));
     listen(document, 'pointerdown', event => {
       const scrollbarOwner = event.target.closest('.ui-overlay-scrollbar')?.getAttribute('aria-controls');
       if (dependencies.workspaceUiB.surfaceController.isOpen('search')
@@ -180,7 +158,7 @@ export function createNavigationBindings() {
       isSearchSurfaceOpen: () => dependencies.workspaceUiB.surfaceController.isOpen('search'),
       builtinSearch: query => dependencies.labelPresentation.builtinPlaces.search(query),
       cancelBuiltinSearch: () => dependencies.labelPresentation.builtinPlaces.cancelSearch(),
-      onSearchError: error => dependencies.feedback.reportOperationError(error, '내장 지명 검색에 실패했습니다.', 'PL-PLACE-SEARCH-001'),
+      onSearchError: error => dependencies.feedback.reportOperationError(error, '내장 도시 검색에 실패했습니다.', 'PL-PLACE-SEARCH-001'),
       syncCanonicalControls: dependencies.readinessUi.syncCanonicalControls,
       selectObjectSearchItem: dependencies.navigation.selectObjectSearchItem,
       focusObjectRef: dependencies.objectOperationsA.focusObjectRef,

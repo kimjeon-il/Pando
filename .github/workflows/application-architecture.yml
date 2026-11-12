@@ -73,6 +73,7 @@ on:
       - work/places
       - work/objects
       - work/ui
+      - work/remote-only
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name != 'workflow_dispatch' &&
     github.run_attempt == 1 && format('{0}-{1}', github.event_name,
@@ -151,6 +152,11 @@ jobs:
         uses: ./.github/actions/native-test-prerequisites
         with:
           requirements: ${{ steps.plan.outputs.native_requirements }}
+      - name: Prepare Chromium only for unit tests that launch a real browser
+        if: steps.plan.outputs.unit_browser == 'true'
+        run: |
+          pnpm exec playwright install-deps chromium
+          pnpm exec playwright install chromium
       - name: Execute selected commands and unit tests once
         env: *a5
         run: node scripts/run-application-checks.mjs --phase non-browser --output
@@ -254,3 +260,36 @@ jobs:
           }
           console.log(JSON.stringify({ applicationChecksPassed: true, nonBrowser, browser, browserShards: total }));
           NODE
+
+      # The existing aggregate remains the only pass/fail gate. Diagnosis is
+      # evidence for repair, never an automatic pass or a test expectation edit.
+      - name: Checkout current diagnostic analyzer
+        if: always()
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          ref: ${{ inputs.head_sha || github.event.pull_request.head.sha || github.sha }}
+      - name: Download selected phase receipts
+        if: always() && needs.changes.result == 'success'
+        uses: actions/download-artifact@v4
+        with:
+          pattern: application-checks-*-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/application-check-evidence
+          merge-multiple: true
+      - name: Summarize failure causes without changing gate status
+        if: always()
+        env:
+          HEAD_SHA: ${{ inputs.head_sha || github.event.pull_request.head.sha || github.sha }}
+          SELECTION_RESULT: ${{ needs.changes.result }}
+          NON_BROWSER_RESULT: ${{ needs.non-browser.result }}
+          BROWSER_RESULT: ${{ needs.browser.result }}
+        run: node scripts/summarize-check-diagnostics.mjs
+          --input-dir "$RUNNER_TEMP/application-check-evidence"
+          --output "$RUNNER_TEMP/application-check-diagnostics.json"
+      - name: Preserve structured failure diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: application-check-diagnostics-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/application-check-diagnostics.json
+          if-no-files-found: warn

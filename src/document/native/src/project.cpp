@@ -98,7 +98,7 @@ bool territorialDataChanged(const ProjectDocument& before,const TerritorialUnit&
        std::tie(next.name,next.notes,next.kind,next.locked,next.baseName,next.nameExplicit,next.libraryOrigin,next.metadata,next.sourceFolderId,next.sourceEntityId,next.sourceGeometryVersion))return true;
     const auto oldOwner=territorialRef(old.id),newOwner=territorialRef(next.id);
     const auto& oldStyle=before.presentation.objectStyles.at(oldOwner);const auto& newStyle=after.presentation.objectStyles.at(newOwner);
-    if(std::tie(oldStyle.color,oldStyle.opacity,oldStyle.explicitColor)!=std::tie(newStyle.color,newStyle.opacity,newStyle.explicitColor))return true;
+    if(std::tie(oldStyle.color,oldStyle.explicitColor)!=std::tie(newStyle.color,newStyle.explicitColor))return true;
     const auto oldCapital=before.countryDetails.find(oldOwner),newCapital=after.countryDetails.find(newOwner);
     if((oldCapital==before.countryDetails.end())!=(newCapital==after.countryDetails.end()))return true;
     if(oldCapital!=before.countryDetails.end()&&oldCapital->second.capital!=newCapital->second.capital)return true;

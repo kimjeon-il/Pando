@@ -1,8 +1,5 @@
 name: Focused real browser project runtime regression
 on:
-  push:
-    branches: [work/optimization]
-    paths: [.github/workflows/project-runtime-browser-focused.yml]
   workflow_dispatch:
 permissions:
   contents: read

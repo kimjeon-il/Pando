@@ -1,9 +1,7 @@
-name: Focused browser project replacement diagnostics
+name: "[HISTORICAL] Focused browser project replacement diagnostics"
 # Recheck latest optimization runtime with the shipping renderer after conflict reconciliation.
 on:
-  push:
-    branches: [work/optimization-main-merge-20261110]
-    paths: [.github/workflows/main-integration-browser-debug.yml]
+  workflow_dispatch:
 permissions:
   contents: write
 jobs:

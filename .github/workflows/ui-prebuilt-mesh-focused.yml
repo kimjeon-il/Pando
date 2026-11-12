@@ -1,8 +1,5 @@
 name: UI prebuilt mesh scoped verification
 on:
-  push:
-    branches: [work/ui]
-    paths: ['.github/workflows/ui-prebuilt-mesh-focused.yml']
   workflow_dispatch:
 permissions: {contents: read}
 defaults:
