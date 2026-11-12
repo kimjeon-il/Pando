@@ -1,4 +1,6 @@
 import {renderProductHtml} from './lib/product-html.mjs';
+import {createInitialDocument} from '../src/document/initial-document.js';
+import {assertCurrentProjectSchema} from '../src/document/project-state.js';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
@@ -42,16 +44,16 @@ for (const retired of ['genericFeatureConversionSection', 'convertGenericFeature
   if (staticUiSource.includes('id="'+retired+'"'))
     fail('Retired GIS editing UI entered the Viewer: '+retired);
 }
-const projectStateSource = read('src/document/project-state.js');
-for (const marker of ['validateSourceProvenance', 'GENERIC_PROPERTY_KEYS']) {
-  if (!projectStateSource.includes(marker)) fail(`project schema is missing Generic/provenance validation marker: ${marker}`);
-}
-const serializerSource = read('tools/gis/project-template-compiler.js');
-for (const marker of ["purpose: 'lossless-fallback'", 'directCreation: false', 'sourceProvenanceSchemaVersion']) {
-  if (!serializerSource.includes(marker)) fail(`serializer is missing Generic fallback contract marker: ${marker}`);
-}
-const invariantsSource = read('src/document/project-invariants.js');
-if (!invariantsSource.includes('PL-INV-GENERIC-SOURCE')) fail('runtime project invariants do not validate Generic source provenance');
+// The documented project header is emitted and validated by production
+// factories. Renaming internal validator helpers cannot invalidate this gate.
+const project=createInitialDocument({appVersion:'provenance-contract'});
+try{
+  const validated=assertCurrentProjectSchema(project);
+  if(validated.landObjectModel?.purpose!=='lossless-fallback'
+     ||validated.landObjectModel.directCreation!==false
+     ||validated.landObjectModel.sourceProvenanceSchemaVersion!==SOURCE_PROVENANCE_SCHEMA_VERSION)
+    fail('Current serialized document no longer admits Generic Feature provenance as a lossless fallback');
+}catch(error){fail('Current project provenance schema rejected its own generated document: '+error.message);}
 
 if (failures.length) {
   console.error(`Generic/provenance architecture audit failed with ${failures.length} issue(s):`);
