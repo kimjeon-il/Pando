@@ -3,6 +3,14 @@ import assert from 'node:assert/strict';
 import { createInlineCanvasWorker } from '../../../src/rendering/canvas-inline-worker.js';
 
 const drain = () => new Promise(resolve => setImmediate(resolve));
+async function waitForAsyncManifest(predicate) {
+  const limit = Date.now() + 5000;
+  while (Date.now() < limit) {
+    if (predicate()) return;
+    await new Promise(resolve => setTimeout(resolve, 5));
+  }
+  assert.fail('Inline DEM manifest did not enter the canonical fetch pipeline');
+}
 const runtimeUrl = 'https://example.test/assets/js/workers/canvas-render-worker.js?v=test';
 
 test('inline Canvas uses the shared worker protocol and isolates submitted scene data', async () => {
@@ -39,7 +47,7 @@ test('terminating inline Canvas aborts pending manifest work and queued delivery
   worker.onmessage = event => received.push(event.data);
   try {
     worker.postMessage({type:'init',features:[],terrainDemManifestUrl:'https://example.test/dem.json'});
-    await drain();
+    await waitForAsyncManifest(() => !!signal);
     assert.equal(signal.aborted,false);
     worker.postMessage({type:'replace-data',features:[],ids:['late']});
     worker.terminate(); worker.terminate();
@@ -60,16 +68,16 @@ test('project catalog replacement aborts an older pending numerical source', asy
   const worker=createInlineCanvasWorker({runtimeUrl});
   try {
     worker.postMessage({type:'init',projectGeneration:1,features:[],terrainDemManifestUrl:'https://example.test/a.json'});
-    await drain();
+    await waitForAsyncManifest(() => requests.length === 1);
     worker.postMessage({type:'reset-generation',projectGeneration:2});
     worker.postMessage({type:'terrain-source',projectGeneration:2,terrainDemManifestUrl:'https://example.test/b.json'});
-    await drain();
+    await waitForAsyncManifest(() => requests.length === 2);
     assert.deepEqual(requests.map(request=>request.url),['https://example.test/a.json','https://example.test/b.json']);
     assert.equal(requests[0].signal.aborted,true);
     assert.equal(requests[1].signal.aborted,false);
     const update={type:'terrain-source',projectGeneration:2,terrainDemManifestUrl:'https://example.test/b.json',terrainAssetsSha256:'changed-content'};
     worker.postMessage(update);
-    await drain();
+    await waitForAsyncManifest(() => requests.length === 3);
     assert.equal(requests[1].signal.aborted,true,'same URL with another content identity invalidates old work');
     assert.equal(requests[2].url,'https://example.test/b.json?v=changed-content');
     worker.postMessage(update);
