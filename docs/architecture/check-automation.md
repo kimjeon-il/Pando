@@ -33,3 +33,23 @@ Prerequisites run before consumers. Identical commands share results only within
 Application Architecture owns automatic PR/main application checks. P3 runs the same command on work-branch/artifact-result SHAs after existing P2 ordering. UI and place workflows remain explicit manual entrypoints without copied automatic test lists. Map analysis and ordinary import use the same selector; the Node OCR/Pillow runtime group explicitly requires its existing local environment. Manual default Application Architecture covers all automatic groups; focused scopes and P1/P3 manual choices remain explicit. P2 auto dispatch remains affected-only.
 
 Native C++ builds and GIS source checks are separate from the general application runner. `.github/workflows/gis-source-p4.yml` runs Node-based source/zero-Python checks on selected pushes and pull requests; its C++ historical geometry scope is manual. The GIS Node migration and native C++ workflows have separate evidence. An application pass does not certify those independent checks, original-data reconstruction or actual device behavior. No hooks, save watcher, publishing or branch protection configuration is installed.
+
+## Workflow ownership and trigger consolidation (2026-11-12)
+
+The exhaustive workflow registry is `scripts/contracts/workflow-inventory.json`.
+Its 2026-11-12 baseline partitions 76 workflows into 16 continuous, 41 manual
+and 19 historical. Counts are **not** fixed by the registry audit; new/retired
+files must be classified explicitly. Manual and historical workflows cannot
+acquire automatic events without being promoted and reviewed.
+
+Independent native/GIS source builds, publication, cross-device acceptance,
+preview staging, and Pages deployment retain their specialized gates.
+18 obsolete one-off or overlapping automatic `push` routes were changed to
+opt-in `workflow_dispatch`, retaining their original job bodies for forensic
+reproduction. Historical evidence is not a current green check.
+
+The canonical application check runner remains `application-architecture.yml`.
+`viewer-preview` discovers its unfiltered branch trigger list and delegates
+automatic application checks (including on `work/remote-only`) instead of
+duplicating them. The workflow inventory audit is both an early CI preflight
+and an affected check group. Full-catalog verification remains opt-in.

@@ -42,13 +42,17 @@ test('workflow ownership audit preserves independent specialized jobs and detect
  assert.deepEqual(second.issues,[]);
 });
 
-test('all 76 workflows are classified under one current, opt-in, or historical owner',()=>{
+test('every workflow has one current, opt-in, or historical owner without fixed counts',()=>{
  const dir=new URL('../../../.github/workflows/',import.meta.url);
  const manifest=new URL('../../../scripts/contracts/workflow-inventory.json',import.meta.url);
+ const catalog=JSON.parse(readFileSync(manifest,'utf8'));
  const result=auditWorkflowInventory(dir.pathname,manifest.pathname);
  assert.equal(result.ok,true,JSON.stringify(result.issues));
- assert.equal(result.workflowCount,76);
- assert.deepEqual(result.counts,{continuous:16,manual:41,historical:19});
+ assert.deepEqual(result.counts,{
+  continuous:Object.keys(catalog.continuous).length,
+  manual:catalog.manual.length,historical:catalog.historical.length,
+ });
+ assert.equal(result.workflowCount,Object.values(result.counts).reduce((a,b)=>a+b,0));
  assert.equal(result.canonicalApplication,'application-architecture.yml');
 });
 
