@@ -172,8 +172,13 @@ test('both renderers use lower visibility for internal borders and preserve soli
     assert.ok(dashed.some(batch => batch.ownerIds.includes('CHN|HKG')));
     assert.ok(batches.some(batch => !(batch.style.dash?.[0] > 0)));
     assert.ok(countryBoundaryBatches(packet, theme, sharedOnly, id => id !== 'HKG' ? { opacity: 1 } : null).every(batch => !(batch.style.dash?.[0] > 0)));
-    const transparent = countryBoundaryBatches(packet, theme, sharedOnly, id => ({ opacity: id === 'HKG' ? 0.4 : 1 }));
-    assert.equal(transparent.find(batch => batch.style.dash?.[0] > 0).style.alpha, 0.4);
+    // The current presentation contract no longer accepts object opacity;
+    // hiding a fill color must not remove the independently visible border.
+    const noFill = countryBoundaryBatches(packet, theme, sharedOnly,
+      id => ({ colorVisible: id !== 'HKG', boundaryVisible: true }));
+    assert.ok(noFill.some(batch => batch.style.dash?.[0] > 0 && batch.ownerIds.includes('CHN|HKG')));
+    assert.equal(noFill.find(batch => batch.style.dash?.[0] > 0).style.alpha,
+      theme.strokes['country-internal'].alpha);
   }
   const calls = [];
   const context = { save() {}, restore() {}, beginPath() {}, stroke() { calls.push('stroke'); }, setLineDash(dash) { calls.push([...dash]); } };
