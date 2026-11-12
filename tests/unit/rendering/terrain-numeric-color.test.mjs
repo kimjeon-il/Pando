@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import '../../../src/rendering/workers/canvas-terrain-dem-core.js';
 import {createPchip} from '../../../scripts/terrain-experiment/quality.mjs';
-import {rasterizeTerrainTriangle,createTerrainLookupSampler} from '../../../scripts/terrain-experiment/canvas-numeric-raster.mjs';
+import {rasterizeTerrainTriangle,rasterizeTerrainTriangleScanline,createTerrainLookupSampler} from '../../../scripts/terrain-experiment/canvas-numeric-raster.mjs';
 
 const {convertTile}=globalThis.PandoLabCanvasTerrainDem;
 function sample(height,shade=212,extra={}) {
@@ -87,6 +87,17 @@ test('experimental lookup sampler remains close to exact land colors over varied
       fast(x,y,a);exact(x,y,b);
       for(let channel=0;channel<3;channel++)assert.ok(Math.abs(a[channel]-b[channel])<=2,`${theme} ${x},${y} ${channel}`);
     }
+  }
+});
+
+test('scanline terrain raster matches the original for clipped and reversed triangles',()=>{
+  const dem=new Uint8ClampedArray([46,224,212,255,47,10,180,255,48,20,190,255,49,30,220,255]);
+  const sampler=globalThis.PandoLabCanvasTerrainDem.createInterpolatedSampler({dem,width:2,height:2});
+  for(const destination of [[[0,0],[8,0],[0,6]],[[-2,1],[7,0],[3,8]],[[7.1,5.4],[1.2,-1],[10.1,0.2]]]){
+    const source=[[0,0],[1,0],[0,1]],a=new Uint8ClampedArray(8*6*4),b=new Uint8ClampedArray(a.length);
+    const count=rasterizeTerrainTriangle({sampler,pixels:a,width:8,height:6,destination,source});
+    assert.equal(rasterizeTerrainTriangleScanline({sampler,pixels:b,width:8,height:6,destination,source}),count);
+    assert.deepEqual(b,a);
   }
 });
 test('land palette has eight independent sRGB stops in both themes',()=>{
