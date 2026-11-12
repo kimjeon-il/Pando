@@ -121,17 +121,19 @@ function packetResidentEstimate(packet) {
       + part.segments.length * 128, 0);
 }
 function copyTransferredArrays(packet) {
-  const copyPart = part => ({...part, startsEnds: part.startsEnds.slice(),
+  const copy = data => data.byteLength ? data.slice() : data;
+  const copyPart = part => ({...part, startsEnds: copy(part.startsEnds),
     preparedGeometry: {...part.preparedGeometry,
-      instances: part.preparedGeometry.instances.slice(),
-      nodes: part.preparedGeometry.nodes.slice()}});
+      instances: copy(part.preparedGeometry.instances),
+      nodes: copy(part.preparedGeometry.nodes)}});
   return {...copyPart(packet), outlineOverrides: copyPart(packet.outlineOverrides)};
 }
 function transferBuffers(packet) {
-  return [packet.startsEnds.buffer, packet.preparedGeometry.instances.buffer,
-    packet.preparedGeometry.nodes.buffer, packet.outlineOverrides.startsEnds.buffer,
-    packet.outlineOverrides.preparedGeometry.instances.buffer,
-    packet.outlineOverrides.preparedGeometry.nodes.buffer];
+  // Empty coast arrays have no resource payload and must never be transferred.
+  // In particular, shared zero-length views retained by the Worker stay attached.
+  return [packet, packet.outlineOverrides].flatMap(part =>
+    [part.startsEnds, part.preparedGeometry.instances, part.preparedGeometry.nodes]
+      .filter(array => array.byteLength > 0).map(array => array.buffer));
 }
 
 const yieldToMessages = () => new Promise(resolve => setTimeout(resolve, 0));

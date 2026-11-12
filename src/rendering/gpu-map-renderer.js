@@ -5373,7 +5373,7 @@ export function createGpuMapRenderer(deps) {
 
     function retainSceneResources() {
       const borderPacketKeys = [countrySharedBoundary, pendingCountrySharedBoundary]
-        .flatMap(packet => packet ? [packet.key, packet.outlineOverrides?.key] : []).filter(Boolean);
+        .flatMap(packet => packet ? [packet.key, ...(packet.outlineOverrides?.segmentCount ? [packet.outlineOverrides.key] : [])] : []).filter(Boolean);
       const protectedKeys = new Set([
         ...borderPacketKeys,
         ...(renderScene?.polygons || []).filter(packet => packet.protected).map(packet => packet.key),

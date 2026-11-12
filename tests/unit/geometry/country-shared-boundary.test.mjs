@@ -45,6 +45,13 @@ test('one shared packet owns parent and child outlines with the same coast polic
   assert.ok(terrain.segments.length);
   assert.ok(terrain.segments.every(segment => segment.start[0] === 2 && segment.end[0] === 2));
   assert.equal(terrain.outlineOverrides.segments.length, 0);
+  assert.equal(terrain.outlineOverrides.preparedGeometry.segmentCount, 0);
+  const stages = [];
+  prepareCountrySharedBoundaryPacket(contacts, features, { includeOutlines: false,
+    profile: (stage) => stages.push(stage) });
+  assert.ok(!stages.includes('hierarchy-classification'), 'hidden coasts must not classify child coast contacts');
+  assert.ok(!stages.includes('outline-scan-including-wasm'), 'hidden coasts must not scan source polygon outlines');
+  assert.ok(!stages.includes('outline-stroke-wasm-bridge'), 'hidden coasts must not call WASM outline assembler');
   const outline = prepareCountrySharedBoundaryPacket(contacts, features, { includeOutlines: true });
   assert.ok(outline.outlineOverrides.segments.some(segment => segment.ownerIds.includes('CHILD') && segment.start[0] === 3 && segment.end[0] === 3));
   assert.deepEqual(outline.outlineOverrides.internalOwners.CHILD, ['CHILD']);
