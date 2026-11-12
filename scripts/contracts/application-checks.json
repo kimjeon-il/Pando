@@ -1527,6 +1527,21 @@
         "scripts/lib/check-contract-impact.mjs",
         "scripts/contracts/application-checks.json"
       ]
+    },
+    {
+      "tests": [
+        "tests/unit/document/pages-deployment-identity.test.mjs"
+      ],
+      "inputs": [
+        "tools/checks/verify-pages-identity.mjs",
+        ".github/workflows/web-pages.yml",
+        "tools/build/package-shared-core-assets.mjs",
+        "tools/build/stage-monorepo-pages.mjs",
+        "config/library-data.json",
+        "config/core-source-roots.json",
+        "config/toolchain-versions.json",
+        "projects/**/manifest.json"
+      ]
     }
   ],
   "runtimeBases": {},

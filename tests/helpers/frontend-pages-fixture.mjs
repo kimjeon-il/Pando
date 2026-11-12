@@ -10,6 +10,7 @@ import { encodeCountryMesh } from '../../src/rendering/country-mesh-codec.js';
 import {UI_VIEWER_SOURCES} from '../../scripts/lib/ui-source-catalog.mjs';
 import { buildWorkerAsset } from '../../scripts/lib/worker-assets.mjs';
 import {buildFrontendIndex,emitFrontendModule} from '../../scripts/lib/frontend-layout.mjs';
+import {sharedSourceManifest} from '../../tools/build/package-shared-core-assets.mjs';
 
 export const put = (root, path, value) => {
   if(path==='index.html')path='src/app/index.html';
@@ -51,12 +52,26 @@ export async function pagesRepositoryFixture(t, { sceneRevision = 6, preparedRev
   put(root, 'native/CMakeLists.txt', 'project(native)');
   put(root, 'tools/build/native/core/CMakeLists.txt', 'project(shared)');
   put(root, 'src/document/native/src/project.cpp', '// native and wasm source');
+  put(root,'config/core-source-roots.json',JSON.stringify({
+    schema:'pando-core-source-roots-v1',roots:['src/document/native'],
+  }));
+  put(root,'config/toolchain-versions.json',JSON.stringify({emscripten:'6.0.3'}));
   put(root, 'apps/editor/src-tauri/src/lib.rs', '// native shell source');
   put(root, 'apps/editor/src-tauri/gen/android/build.gradle.kts', '// Android build');
   put(root, 'assets/js/workers/core-session-worker.js', '// required core worker');
   put(root, 'assets/wasm/pandoeditor-core.js', 'export default function Core() {}');
   put(root, 'assets/wasm/pandoeditor-core.wasm', Buffer.from([0, 97, 115, 109, 1, 0, 0, 0]));
-  put(root, 'assets/wasm/pandoeditor-core.manifest.json', '{}');
+  const compiledSource=sharedSourceManifest(root);
+  const compiledJs=readFileSync(join(root,'assets/wasm/pandoeditor-core.js'));
+  const compiledWasm=readFileSync(join(root,'assets/wasm/pandoeditor-core.wasm'));
+  put(root,'assets/wasm/pandoeditor-core.manifest.json',JSON.stringify({
+    schema:'pandoeditor-core-wasm',abiVersion:1,sourceSha256:compiledSource.sourceSha256,
+    compiler:{name:'emscripten',version:'6.0.3'},inputs:compiledSource.inputs,
+    assets:{
+      js:{file:'pandoeditor-core.js',sha256:createHash('sha256').update(compiledJs).digest('hex')},
+      wasm:{file:'pandoeditor-core.wasm',sha256:createHash('sha256').update(compiledWasm).digest('hex')},
+    },
+  }));
   /* The frontend builder, rather than this fixture, owns generated Workers. */
   const index=buildFrontendIndex(root);
   const worker = await buildWorkerAsset({root,entry:'assets/js/workers/core-viewer-session-worker.js',readSource:path=>{
