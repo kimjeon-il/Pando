@@ -3,12 +3,14 @@ import { placeLabelDimensions } from "./label-layout.js";
 import { createPlaceRuntime } from "../data/place-runtime.js";
 import {projectResourceOverlay} from "../document/project-resource-overlay.js";
 import { isBuiltinPlaceId } from "../document/place-contract.js";
-import { placeLabelRowsAtMonth } from "../ui/place-name-display.js";
+import { mapPlaceLabelRowsAtMonth } from "../data/place-name-policy.js";
 import { temporalMonthEnd } from "../document/temporal.js";
 import { territorialLabelFlag } from "./territorial-label-flags.js";
 import { effectiveTerritorialFlagUrl } from "../ui/country-flags.js";
 import { territorialPaintRole, territorialSymbolVisibility } from "../ui/layer-presentation.js";
 import { createTerritorialFillResolver } from "./territorial-fill-style.js";
+
+const PLACE_SEARCH_LANGUAGES = Object.freeze({ ko: true, en: true, native: true });
 
 /** TerritorialLabels: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
@@ -44,7 +46,7 @@ export function createTerritorialLabels({ capabilities = {builtinPlaces:true,eag
     const projectionFrame = { mode: frame.mode, cssTranslate: frame.cssTranslate, cssScale: frame.cssScale, cssViewport: frame.cssViewport,
       safeInset: frame.safeInset, flatCenter: frame.flatCenter, worldOffsets: frame.worldOffsets,
       rows: { rowX: frame.rowX, rowY: frame.rowY, rowZ: frame.rowZ } };
-    return { projection: state.projection, threshold: currentMapZoom(), mapDate: placeMapDate(), presentation: {month:state.timelineCursor,languages:dependencies.preferences.userPreferences.labels.place.languages}, width: state.size.width, height: state.size.height,
+    return { projection: state.projection, threshold: currentMapZoom(), mapDate: placeMapDate(), presentation: {month:state.timelineCursor,languages:PLACE_SEARCH_LANGUAGES}, width: state.size.width, height: state.size.height,
       scale: frame.cssScale, flatCenter: state.view.flatCenter, rotation: state.view.globeRotation, projectionFrame };
   }
 
@@ -221,7 +223,7 @@ export function createTerritorialLabels({ capabilities = {builtinPlaces:true,eag
       {isReferenceActive:builtinPlaces.isActive});
     const builtinIds = new Set(resources.library.map(label => label.id));
     const labelSources = resources.records;
-    const placeLanguages = dependencies.preferences.userPreferences.labels.place.languages;
+    const showNativeNames = dependencies.preferences.userPreferences.labels.place.showNativeNames === true;
     if (dependencies.projectState.state.layerVisibility.labels) for (const label of labelSources) {
       const selected = selectedIds.has(String(label.id));
       if (!selected && !builtinIds.has(label.id) && !indexedLabelIds.has(String(label.id))) continue;
@@ -236,12 +238,13 @@ export function createTerritorialLabels({ capabilities = {builtinPlaces:true,eag
       const point = frameContext.projectVisibleCoordinate(coordinate);
       if (!point) continue;
       const priority = builtinDisplay ? Number(builtinDisplay.priority) : (settings.priority ?? (label.kind === 'capital' ? dependencies.labelPresentation.LABEL_PRIORITIES.capital : label.kind === 'city' ? dependencies.labelPresentation.LABEL_PRIORITIES.majorCity : label.kind === 'region' ? dependencies.labelPresentation.LABEL_PRIORITIES.administrative : dependencies.labelPresentation.LABEL_PRIORITIES.place));
-      const rows = isBuiltinPlaceId(label.id)
-        ? placeLabelRowsAtMonth(label, dependencies.projectState.state.timelineCursor, placeLanguages)
-        : [{ language: 'ko', text: label.name }];
+      const names = builtinDisplay
+        ? mapPlaceLabelRowsAtMonth(label, dependencies.projectState.state.timelineCursor, { zoom, showNativeNames })
+        : { rows: [{ language: 'ko', text: label.name }], secondaryRows: [] };
+      const { rows, secondaryRows } = names;
       if (!rows.length) continue;
       candidates.push({
-        key: (0, dependencies.labelPresentation.labelKey)('label', label.id), sourceType: 'label', source: label, point, rows,
+        key: (0, dependencies.labelPresentation.labelKey)('label', label.id), sourceType: 'label', source: label, point, rows, secondaryRows,
         ...placeLabelDimensions(rows),
         priority, minZoom, maxZoom: settings.maxZoom,
         pinned: settings.pinned, collisionGroup: settings.collisionGroup,
@@ -296,7 +299,7 @@ export function createTerritorialLabels({ capabilities = {builtinPlaces:true,eag
     const placeManifestRef='../'+(placeCatalog||'assets/data/places/manifest.json').slice('assets/'.length);
     const placeLifetimeRef='../'+(placeLifetimesCatalog||'assets/data/places/urban-lifetimes-v1.json').slice('assets/'.length);
     builtinPlaces = createPlaceRuntime({
-      getPresentation:()=>({month:dependencies.projectState.state.timelineCursor,languages:dependencies.preferences.userPreferences.labels.place.languages}),
+      getPresentation:()=>({month:dependencies.projectState.state.timelineCursor,languages:PLACE_SEARCH_LANGUAGES}),
       admitReferences:refs=>dependencies.domains.projectDomain.admitSelectionCatalog('placeBuiltin',refs),
       manifestUrl: dependencies.platform.runtimeAssetUrl(placeManifestRef).href,
       urbanLifetimesUrl: dependencies.platform.runtimeAssetUrl(placeLifetimeRef).href,
