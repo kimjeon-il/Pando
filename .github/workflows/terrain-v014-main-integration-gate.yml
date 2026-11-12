@@ -1,10 +1,17 @@
-name: Terrain v0.14.0 focused main integration / source-matched Pages dry-run
+name: Terrain focused work-gis integration and source-matched staging
 on:
   push:
     branches: [work/gis]
-    paths: ['config/library-data.json']
+    paths:
+      - config/library-data.json
+      - .github/workflows/terrain-v014-main-integration-gate.yml
+      - tools/gis/terrain-natural-runtime-edits.json
+  workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
+concurrency:
+  group: terrain-focused-work-gis-integration
+  cancel-in-progress: false
 jobs:
   terrain-v014-stage:
     if: github.repository == 'kimjeon-il/Pando' && github.ref == 'refs/heads/work/gis'
@@ -16,46 +23,103 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version-file: .nvmrc
       - uses: pnpm/action-setup@v4
         with:
-          version: '11.19.0'
           run_install: false
       - run: pnpm install --frozen-lockfile --ignore-scripts
-      - name: Mount only source-pinned Viewer runtime data
-        uses: ./.github/actions/library-data
-      - name: Narrow numeric / external tile / Canvas / asset SHA contracts
+      - name: Apply reviewed source edits without touching main, data pins or unrelated files
         run: |
-          node --test tests/unit/data/terrain-external-source.test.mjs \
-            tests/unit/geometry/terrain-dem-assets.test.mjs \
-            tests/unit/rendering/terrain-numeric-color.test.mjs \
-            tests/unit/rendering/canvas-terrain-independence.test.mjs
-      - name: Verify source pins, build metadata and no bundled tiles
+          mkdir -p "$RUNNER_TEMP/terrain-integration"
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import {existsSync,readFileSync,writeFileSync,unlinkSync} from 'node:fs';
+          import {execFileSync} from 'node:child_process';
+          const path='tools/gis/terrain-natural-runtime-edits.json';
+          if(!existsSync(path))process.exit(0);
+          assert.equal(process.env.GITHUB_REF,'refs/heads/work/gis');
+          const patch=JSON.parse(readFileSync(path,'utf8'));
+          assert.equal(patch.schema,'pando-scoped-source-edit-v1');
+          const allowed=new Set(['src/rendering/gpu-terrain-preparation.js','src/rendering/gpu-natural-surface-cache.js',
+            'src/rendering/gpu-map-renderer.js','src/rendering/terrain-dem-shaders.js',
+            'tests/unit/rendering/terrain-natural-gpu.test.mjs']);
+          const edited=[];
+          for(const file of patch.files){
+            assert(allowed.has(file.path),'Unapproved source edit');
+            let text=readFileSync(file.path,'utf8');
+            for(const edit of file.edits){
+              assert.equal(text.split(edit.before).length,2,'Source anchor drift: '+file.path+' '+edit.before);
+              text=text.replace(edit.before,edit.after);
+            }
+            edited.push([file.path,text]);
+          }
+          for(const [file,text] of edited){writeFileSync(file,text);execFileSync(process.execPath,['--check',file]);}
+          writeFileSync(process.env.RUNNER_TEMP+'/terrain-integration/applied-edits.json',JSON.stringify({base:process.env.GITHUB_SHA,paths:edited.map(row=>row[0])},null,2));
+          unlinkSync(path);
+          JS
+      - name: Mount only existing pinned Viewer data
+        uses: ./.github/actions/library-data
+      - name: Run only terrain resource, palette, external loader and Canvas contracts
+        env:
+          CHECK_SELECTION: '{"unitTests":["tests/unit/rendering/terrain-natural-gpu.test.mjs","tests/unit/rendering/gpu-terrain-preparation.test.mjs","tests/unit/data/terrain-natural-surface.test.mjs","tests/unit/data/terrain-external-source.test.mjs","tests/unit/geometry/terrain-dem-assets.test.mjs","tests/unit/rendering/terrain-numeric-color.test.mjs","tests/unit/rendering/canvas-terrain-independence.test.mjs","tests/unit/rendering/canvas-dem-theme-cache.test.mjs"],"browserSpecs":[],"commands":[],"prerequisites":[]}'
+        run: node scripts/run-application-checks.mjs --phase non-browser --output "$RUNNER_TEMP/terrain-integration/checks.json"
+      - name: Commit only verified canonical runtime changes in this CI checkout
+        run: |
+          set -euo pipefail
+          if test -f "$RUNNER_TEMP/terrain-integration/applied-edits.json"; then
+            git diff --exit-code -- config/library-data.json projects/default-world/manifest.json
+            git add -- src/rendering/gpu-terrain-preparation.js src/rendering/gpu-natural-surface-cache.js \
+              src/rendering/gpu-map-renderer.js src/rendering/terrain-dem-shaders.js \
+              tests/unit/rendering/terrain-natural-gpu.test.mjs tools/gis/terrain-natural-runtime-edits.json
+            git diff --cached --check
+            git -c user.name='Pando terrain integration' -c user.email='pando-terrain@users.noreply.github.com' \
+              commit -m 'feat(terrain): connect optional visible natural tiles to existing GPU preparation and shading'
+          fi
+      - name: Preserve source-matched staging, data identity and external tile policy
         run: |
           set -euo pipefail
           node scripts/generate-build-metadata.mjs --check --product=viewer
           node tools/build/stage-monorepo-pages.mjs --root . \
             --stage "$RUNNER_TEMP/terrain-v014-stage" \
-            --manifest "$RUNNER_TEMP/terrain-v014-stage-receipt.json"
+            --manifest "$RUNNER_TEMP/terrain-integration/stage.json"
           node --input-type=module <<'JS'
           import {readFileSync} from 'node:fs';
           import assert from 'node:assert/strict';
-          const meta=JSON.parse(readFileSync(process.env.RUNNER_TEMP+'/terrain-v014-stage-receipt.json','utf8'));
-          const filePaths=meta.files.map(file=>file.path);
+          const meta=JSON.parse(readFileSync(process.env.RUNNER_TEMP+'/terrain-integration/stage.json','utf8'));
           assert.equal(meta.terrainExternalSource?.revision,'0866eb0aebb35d1355892b808de331b30c5fe52b');
           assert.equal(meta.terrainManifest,'assets/data/terrain/v0.14.0/manifest.json');
-          assert(!filePaths.some(path=>/^assets\/data\/terrain\/v0\.14\.0\/\d+\//.test(path)),
-            'DEM binary tiles must remain external');
-          assert(meta.bytes<=1_000_000_000,'Pages artifact exceeds size limit');
-          console.log('TERRAIN_V014_STAGE_VERIFIED='+JSON.stringify({
-            appCommit:meta.sourceCommit,dataCommit:meta.dataCommit,terrain:meta.terrainManifest,
-            external:meta.terrainExternalSource,siteBytes:meta.bytes,fileCount:meta.fileCount}));
+          assert(!meta.files.some(file=>/^assets\/data\/terrain\/v0\.14\.0\/\d+\//.test(file.path)));
+          assert(meta.bytes<=1_000_000_000);
+          console.log('TERRAIN_STAGE_VERIFIED='+JSON.stringify({appCommit:meta.sourceCommit,dataCommit:meta.dataCommit,bytes:meta.bytes}));
           JS
-      - name: Keep only small staging metadata receipt
+      - name: Fast-forward only the unchanged work/gis branch after checks
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import {execFileSync} from 'node:child_process';
+          import {existsSync,writeFileSync} from 'node:fs';
+          if(!existsSync(process.env.RUNNER_TEMP+'/terrain-integration/applied-edits.json'))process.exit(0);
+          const env={...process.env,GIT_CONFIG_COUNT:'1',GIT_CONFIG_KEY_0:'http.https://github.com/.extraheader',
+            GIT_CONFIG_VALUE_0:'AUTHORIZATION: basic '+Buffer.from('x-access-token:'+process.env.GH_TOKEN).toString('base64')};
+          const git=args=>execFileSync('git',args,{env,encoding:'utf8',timeout:300000}).trim();
+          assert.equal(process.env.GITHUB_REF,'refs/heads/work/gis');
+          assert.equal(git(['ls-remote','--exit-code','origin','refs/heads/work/gis']).split(/\s+/)[0],process.env.GITHUB_SHA,
+            'Concurrent branch edit: keep evidence, never force push');
+          const next=git(['rev-parse','HEAD']);git(['push','origin','HEAD:refs/heads/work/gis']);
+          assert.equal(git(['ls-remote','--exit-code','origin','refs/heads/work/gis']).split(/\s+/)[0],next);
+          writeFileSync(process.env.RUNNER_TEMP+'/terrain-integration/verified-commit.txt',next+'\n');
+          console.log('VERIFIED_WORK_GIS='+next);
+          JS
+      - name: Retain focused receipts and source diff on failure or success
         if: always()
-        uses: actions/upload-artifact@v4
+        run: git diff HEAD -- src/rendering tests/unit/rendering > "$RUNNER_TEMP/terrain-integration/pending.diff"
+      - uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: terrain-v014-main-stage-receipt
-          path: ${{ runner.temp }}/terrain-v014-stage-receipt.json
+          name: terrain-natural-runtime-integration
+          path: ${{ runner.temp }}/terrain-integration/*
           if-no-files-found: warn
           retention-days: 14
