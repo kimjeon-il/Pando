@@ -230,6 +230,7 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
   const mapDisplay=createMapDisplayClient({getEntities:territorialScope.displayEntities,getRevision:()=>spatialIndex.mapObjectGeometryRevisions.territorial});
   renderingDomain=createRenderingDomain({gpuMapRenderer:renderer,sceneBuilder:gpuScene.renderSceneBuilder,projectDomain,selectionDomain:selectionDomain,
     mapHost:()=>mapHost.mapHost,
+    getMapStyle:()=>getPreferences()?.appearance?.mapStyle || 'standard',
     domLayers:()=>({svg:labelLayer,interactionSvg,gpuCanvas:canvas}),prepareMapDisplay:mapDisplay.prepare,disposeMapDisplay:mapDisplay.dispose,
     ...createMapRenderingResources({session:{selectionDomain,get renderingDomain(){return renderingDomain;},objectSearchController:{cancelSearch:()=>onPlacesSettled('cancel')}},ports:mergeCapabilityPorts(commonPorts,readPorts,{
     domains:{projectDomain,selectionDomain,get renderingDomain(){return renderingDomain;},objectSearchController:{cancelSearch:()=>onPlacesSettled('cancel')}},

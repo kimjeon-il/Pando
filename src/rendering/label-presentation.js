@@ -9,7 +9,7 @@ function renderLabelText(text, rows, {x = 7} = {}) {
     .text(row=>row.text);
 }
 
-export function createLabelPresentation({ labels,selectionDomain,reportDiagnostic,projectLabelCoordinate,active,stats }) {
+export function createLabelPresentation({ labels,selectionDomain,reportDiagnostic,projectLabelCoordinate,active,stats,getMapStyle=()=> 'standard' }) {
   let territorialLabelPositionBindings=[],userLabelPositionBindings=[];
   const labelState=()=>labels.getState();
   const renderTerritorialLabels = (layout, frameContext) => {
@@ -124,7 +124,7 @@ export function createLabelPresentation({ labels,selectionDomain,reportDiagnosti
     enter.append('circle').attr('class', 'user-label-dot').attr('r', 4);
     enter.append('text').attr('class', 'user-label-text').attr('x', 7).attr('dy', '.35em');
     const all = layer.selectAll('g.user-label');
-    const mapStyle = globalThis.document?.documentElement?.dataset?.mapStyle || 'standard';
+    const mapStyle = getMapStyle();
     all.select('circle.user-label-dot').attr('r', mapStyle === 'minimal' ? 2.6 : mapStyle === 'classic' ? 4.5 : 4);
     all.select('text.user-label-text').attr('x', mapStyle === 'minimal' ? 5 : 7);
     all.classed('selected', d => labels.selectionHas?.(labelRef(d)))
