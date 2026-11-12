@@ -35,8 +35,15 @@ if(digest(fixtureBytes)!==manifestHash)throw Error('Fixture manifest hash mismat
 const fixture=JSON.parse(fixtureBytes),runs=[];
 const only=process.argv.find(arg=>arg.startsWith('--candidate='))?.slice('--candidate='.length)||null;
 const sequence=candidateSequence({smoke,cog:includeCog,screen:includeScreen,only});
-const tilePrefetch=sequence.some(candidate=>['a1','b512','screen'].includes(candidate))
-  ?await prefetchFixtureTiles({records:fixture.records,region,base}):null;
+let tilePrefetch=null;
+if(sequence.some(candidate=>['a1','b512','screen'].includes(candidate))){
+  try{tilePrefetch=await prefetchFixtureTiles({records:fixture.records,region,base});}
+  catch(error){
+    await writeFile(`${out}/preflight-error.json`,JSON.stringify({status:'failed',stage:'tile-prefetch',region,
+      fixtureRevision:revision,error:String(error?.stack||error)},null,2)+'\n');
+    throw error;
+  }
+}
 let cogManifest,cogBytes,cogBundle,cogSource;
 if(includeCog&&(!only||only==='cog')){
   const hashes={'southwest-china':'b578c6f0e7e2df30d267c2ece476f7e889c149319595e710e6ae0110fef183ab',
