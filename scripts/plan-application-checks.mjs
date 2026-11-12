@@ -2,6 +2,7 @@ import {buildFrontendIndex,emitFrontendModule,frontendGeneratedOwners} from './l
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { posix, resolve } from 'node:path';
 import { createCheckImpactIndex } from './lib/check-impact.mjs';
+import { planContractConsumerTests } from './lib/check-contract-impact.mjs';
 import { fileURLToPath } from 'node:url';
 import { parseJavaScript, walkJavaScript } from './lib/source-analysis.mjs';
 import { runtimeDependencies, dynamicExpressions } from './lib/product-assets.mjs';
@@ -114,6 +115,19 @@ export function loadRepository(root = process.cwd(), { catalog, libraryFiles } =
       throw Error('Missing registered test: ' + pattern);
   }
   for (const file of catalog.metadataOnlyTests || []) if (!file.startsWith('tests/unit/') || !owners.has(file)) throw Error('Invalid metadata-only test: ' + file);
+  const contracts = new Set();
+  for (const contract of catalog.contractConsumers || []) {
+    if (typeof contract.id !== 'string' || !contract.id || contracts.has(contract.id) ||
+      !Array.isArray(contract.sources) || !contract.sources.length ||
+      !Array.isArray(contract.testPatterns) || !contract.testPatterns.length ||
+      !Array.isArray(contract.markers) || !contract.markers.length ||
+      [...contract.sources, ...contract.testPatterns, ...contract.markers].some(item => typeof item !== 'string' || !item))
+      throw Error('Invalid semantic contract: ' + contract.id);
+    contracts.add(contract.id);
+    for (const file of contract.alwaysTests || [])
+      if (!owners.has(file) || !matches(file, contract.testPatterns))
+        throw Error('Unknown mandatory semantic contract test: ' + file);
+  }
   const unitRequirements = new Map(tests.filter(file => file.startsWith('tests/unit/'))
     .map(file => [file, new Set(owners.get(file).requires || [])]));
   for (const binding of catalog.unitPrerequisites || []) {
@@ -335,6 +349,19 @@ export function planApplicationChecks({ changedFiles = [], repository, groups: r
         (group.requires || []).forEach(id => prerequisites.add(id));
       }
     }
+  }
+  const contractConsumers = planContractConsumerTests({
+    contracts: repo.catalog.contractConsumers || [], changedFiles: changed,
+    tests: repo.tests, read: repo.read, dependencies: repo.dependencies, matchesPattern,
+  });
+  for (const [file, why] of contractConsumers) {
+    const owner = repo.owners.get(file);
+    if (!owner || (owner.mode === 'manual' && !requestedGroups.includes(owner.id)) ||
+      (requestedGroups.length && !requestedGroups.includes(owner.id))) continue;
+    selected.add(file);
+    reasons[file] = [...new Set([...(reasons[file] || []), ...why])];
+    why.forEach(reason => matchedProduct.add(reason.slice(reason.lastIndexOf(':') + 1)));
+    (owner.requires || []).forEach(id => prerequisites.add(id));
   }
   for (const file of changed) {
     if (!requestedGroups.length && matches(file, repo.catalog.productRoots) && !matchedProduct.has(file) && !infrastructure
