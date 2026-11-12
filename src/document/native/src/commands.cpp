@@ -469,7 +469,7 @@ void applyTerritorial(ProjectDocument& d,const ApplyTerritorialMutation& action)
             GeometryRef geometry{"geometry-"+in.id,1};unsigned n=1;while(d.geometries.get(geometry))geometry={"geometry-"+in.id+"-"+std::to_string(n++),1};d.geometries.insert(geometry,in.geometry);
             TerritorialUnit unit;unit.id=in.id;unit.name=in.name;unit.baseName=in.kind==UnitKind::General?in.name:"";unit.nameExplicit=true;unit.notes=in.notes;unit.kind=in.kind;d.units.push_back(unit);
             addStaticTerritorialRecords(d,in.id,geometry,in.parent?in.parent->id:"",in.coverageMode.empty()?"explicit":in.coverageMode);
-            const auto ref=territorialRef(in.id);d.presentation.objectStyles.emplace(ref,ObjectStyle{in.explicitColor.value_or(0),1,in.explicitColor.has_value()});
+            const auto ref=territorialRef(in.id);d.presentation.objectStyles.emplace(ref,ObjectStyle{in.explicitColor.value_or(0),in.explicitColor.has_value()});
         } else if constexpr(std::is_same_v<T,DeleteTerritorialIntent>) {
             std::set<ObjectRef> removed(in.targets.begin(),in.targets.end());std::vector<std::string> ids;
             for(const auto& ref:removed){ids.push_back(ref.id);d.presentation.objectStyles.erase(ref);}
@@ -542,7 +542,7 @@ void applyTerritorial(ProjectDocument& d,const ApplyTerritorialMutation& action)
             patch();GeometryRef geometry{"geometry-"+in.createdId,1};unsigned suffix=1;while(d.geometries.get(geometry))geometry={"geometry-"+in.createdId+"-"+std::to_string(suffix++),1};d.geometries.insertCanonical(geometry,createdGeometry);
             TerritorialUnit createdUnit;createdUnit.id=in.createdId;createdUnit.name=trimWebText(in.createdName);createdUnit.nameExplicit=true;createdUnit.kind=sourceKind;d.units.push_back(std::move(createdUnit));
             addStaticTerritorialRecords(d,in.createdId,geometry,parent.parentId,parent.parentId.empty()?"explicit":"partition");const auto createdRef=territorialRef(in.createdId);
-            d.presentation.objectStyles.emplace(createdRef,ObjectStyle{0,1,false});
+            d.presentation.objectStyles.emplace(createdRef,ObjectStyle{0,false});
             for(const auto& id:reparented)if(std::any_of(d.units.begin(),d.units.end(),[&](const auto& child){return child.id==id;}))staticParentRelation(d,id).parentId=in.createdId;
             if(!root) {
                 auto& web=d.presentation.webPresentation;
@@ -1575,7 +1575,7 @@ PrepareResult CommandProcessor::prepareRequest(const ProjectSnapshot& project,co
                         in.parent?in.parent->id:"",in.coverageMode.empty()?"explicit":in.coverageMode});
                     const auto object=territorialRef(in.id);
                     candidate.presentation.objectStyles.emplace(object,
-                        ObjectStyle{in.explicitColor.value_or(0),1,in.explicitColor.has_value()});
+                        ObjectStyle{in.explicitColor.value_or(0),in.explicitColor.has_value()});
                 } else {
                     require(!deletion->targets.empty(),CommandError::InvalidTargets,"empty timeline deletion");
                     const std::set<ObjectRef> unique(deletion->targets.begin(),deletion->targets.end());
