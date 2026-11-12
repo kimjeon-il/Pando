@@ -46,7 +46,7 @@ export async function captureAcceptedFrame(page,path,{screen=false}={}){
   return result;
 }
 export async function runViewerPhases({page,pageCdp,processCdp,out,prefix,screen,center,phases,onPhase,onStart,
-  minimumFrames=300,capture=captureAcceptedFrame,expectedLevel=5,panDurationMs=10000,themeCycles=10}){
+  minimumFrames=300,capture=captureAcceptedFrame,expectedLevel=5,panDurationMs=10000,themeCycles=10,diagnostics=async()=>null}){
   if(!Number.isSafeInteger(minimumFrames)||minimumFrames<1)throw TypeError('Positive frame count required');
   if(!Number.isSafeInteger(panDurationMs)||panDurationMs<1||!Number.isSafeInteger(themeCycles)||themeCycles<1)
     throw TypeError('Positive interaction duration and theme cycle count required');
@@ -75,6 +75,7 @@ export async function runViewerPhases({page,pageCdp,processCdp,out,prefix,screen
       row.performance=performanceDelta(countersBefore,await performanceCounters(pageCdp));
       row.chromiumProcessMemory=await chromiumProcessMemory(processCdp);
       row.frameCapture=await capture(page,`${out}/${prefix}-${name}-framebuffer.png`,{screen:requireScreen});
+      row.candidateDiagnostics=await diagnostics();
       row.status='passed';
     }catch(error){
       row.status='failed';row.error=String(error?.stack||error).slice(0,5000);

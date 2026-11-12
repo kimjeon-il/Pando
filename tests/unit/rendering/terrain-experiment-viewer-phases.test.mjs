@@ -33,11 +33,13 @@ test('terrain phase runner exercises drag, rotation, dates, theme and warm retur
     const phases=[],started=[],captured=[];let writes=0;
     await runViewerPhases({page,pageCdp:cdp,processCdp:null,out:'unused',prefix:'case',screen:true,center:[102,28],phases,
       panDurationMs:100,themeCycles:2,minimumFrames:3,onStart:name=>started.push(name),onPhase:async()=>{writes++;},
+      diagnostics:async()=>({cacheHits:42}),
       capture:async(_page,path,options)=>{captured.push({path,screen:options.screen});return {sha256:'fixture'};}});
     assert.deepEqual(started,['drag','continuous-pan','rotate','zoom8','zoom16','zoom32-return','previous-year','date-return','dark','light','theme-cycle','warm-return']);
     assert.equal(phases.length,12);assert.ok(phases.every(row=>row.status==='passed'&&row.frames.count>=3));
     assert.equal(captured.filter(row=>!row.screen).length,2);assert.equal(captured.length,12);assert.ok(writes>=24);
     assert.equal(phases.find(row=>row.name==='zoom8').screenSpaceCoverage,'not-verified');
+    assert.ok(phases.every(row=>row.candidateDiagnostics.cacheHits===42));
     assert.deepEqual(await page.evaluate(()=>globalThis.__PANDOLAB_MAP_HOST__.getViewState().globeRotation),[-102,-28,0]);
     await page.evaluate(()=>{globalThis.__terrainTestLevel=4;});
     const baseline=[];

@@ -353,7 +353,13 @@ try{
       if(run.status==='passed'&&!smoke){
         run.status='running';run.phases=[];
         await runViewerPhases({page,pageCdp,processCdp,out,prefix:`viewer-${index+1}-${size}`,screen:candidate==='screen',center:selected.center,
-          expectedLevel:candidate==='a0'?null:5,phases:run.phases,onStart:name=>{phaseName=name;},onPhase:()=>writeFile(`${out}/report.json`,JSON.stringify(report,null,2)+'\n')});
+          expectedLevel:candidate==='a0'?null:5,phases:run.phases,onStart:name=>{phaseName=name;},
+          diagnostics:()=>page.evaluate(async current=>{
+            if(current==='screen')return {screen:{...globalThis.__pandoScreen.stats}};
+            if(current==='cog'){const adapter=await globalThis.__pandoCogReady;return {counts:{...adapter.counts},range:{...adapter.statistics}};}
+            return null;
+          },candidate),
+          onPhase:()=>writeFile(`${out}/report.json`,JSON.stringify(report,null,2)+'\n')});
         if(run.pageErrors.length||run.consoleErrors.length||run.routeErrors.length||run.candidateRequests.some(x=>x.error)){
           run.status='failed';run.error='Console, candidate request, route, or page error during interaction phases';
         }else run.status='passed';
