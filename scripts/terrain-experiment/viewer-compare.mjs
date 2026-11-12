@@ -11,6 +11,7 @@ import {serve,identity,mapSummary,chromiumProcessMemory} from '../p7-browser-ab-
 import {performanceCounters,performanceDelta,captureAcceptedFrame,runViewerPhases} from './viewer-phases.mjs';
 import {inspectFixtureCoverage,withNormalizedAdmissionBudget,withExperimentViewInvalidation,scaleAtZoom} from './fixture-coverage.mjs';
 import {regionalOrigin} from './gutter-fixture.mjs';
+import {candidateSequence} from './candidate-sequence.mjs';
 
 const region=process.argv.find(arg=>arg.startsWith('--region='))?.slice('--region='.length)||'southwest-china';
 if(!['southwest-china','thai-lowland','netherlands-coast'].includes(region))throw Error('Unknown representative region');
@@ -31,11 +32,7 @@ if(!fixtureResponse.ok)throw Error(`Fixture manifest HTTP ${fixtureResponse.stat
 const fixtureBytes=Buffer.from(await fixtureResponse.arrayBuffer());
 if(digest(fixtureBytes)!==manifestHash)throw Error('Fixture manifest hash mismatch');
 const fixture=JSON.parse(fixtureBytes),runs=[];
-const sequence=includeScreen&&includeCog?(smoke?['a1','b512','cog','screen']:
-  ['a1','b512','cog','screen','screen','cog','b512','a1','b512','screen','a1','cog']):
-  includeScreen?(smoke?['a1','b512','screen']:['a1','b512','screen','screen','b512','a1','b512','screen','a1']):
-  includeCog?(smoke?['a1','b512','cog']:['a1','b512','cog','cog','b512','a1','b512','cog','a1']):
-    (smoke?['a1','b512']:['a1','b512','b512','a1','a1','b512']);
+const sequence=candidateSequence({smoke,cog:includeCog,screen:includeScreen});
 let cogManifest,cogBytes,cogBundle,cogSource;
 if(includeCog){
   const hashes={'southwest-china':'b578c6f0e7e2df30d267c2ece476f7e889c149319595e710e6ae0110fef183ab',
@@ -67,7 +64,8 @@ const report={schema:'pando-terrain-viewer-regional-ab-v1',identity:identity(),f
   ...(cogSource?{cogSource}:{}),
   clockPolicy:'Date offset starts at 2026-11-06; native timers and elapsed time continue normally.',
   limitations:['Only a bounded LOD5 region uses Q1; lower LODs use the original v0.14 tiles.',
-    ...(normalizedBudget?['All candidates use an experiment-only 192MiB visible DEM admission limit; the product default is 96MiB and may select a coarser level.']:[]),
+    'A0 is a separate existing-data baseline and does not use Q1, the experiment shader or a modified admission budget.',
+    ...(normalizedBudget?['A1/B/C/D use an experiment-only 192MiB visible DEM admission limit; A0 retains the product default of 96MiB and may select a coarser level.']:[]),
     'Programmatic camera setup triggers the full view invalidation in this experiment so label layout follows the camera.',
     'Only WebGL2 at desktop DPR 1 on SwiftShader; smoke mode covers one stationary 32x scene only.',
     'Warm return is same-page memory/cache reuse, not a separate browser warm-navigation measurement.',
@@ -84,9 +82,10 @@ try{
   report.browserVersion=browser.version();
   for(let index=0;index<sequence.length;index++){
     const candidate=sequence[index],size=['b512','screen'].includes(candidate)?512:1024;
-    const run={index:index+1,candidate,tileSize:size,status:'running',candidateRequests:[],placeNetwork:[],placeWorkers:[],pageErrors:[],consoleErrors:[],routeErrors:[],error:null};
+    const run={index:index+1,candidate,tileSize:candidate==='a0'?null:size,admissionBudgetMiB:candidate==='a0'?96:(normalizedBudget?192:96),status:'running',candidateRequests:[],placeNetwork:[],placeWorkers:[],pageErrors:[],consoleErrors:[],routeErrors:[],error:null};
     runs.push(run);const page=await browser.newPage({viewport:{width:1280,height:800},locale:'ko-KR',timezoneId:'Asia/Seoul'});
-    let selected,manifestRequests=0,shaderRequests=0,budgetRequests=0,hostRequests=0,processCdp,pageCdp,phaseName='startup';
+    let selected=candidate==='a0'?{center:region==='southwest-china'?[102,28]:region==='thai-lowland'?[100,15]:[5.5,53]}:null;
+    let manifestRequests=0,shaderRequests=0,budgetRequests=0,hostRequests=0,processCdp,pageCdp,phaseName='startup';
     const network=new Map();
     try{
       page.on('pageerror',error=>run.pageErrors.push(String(error)));
@@ -106,7 +105,7 @@ try{
           regionalOrigin(Math.floor((90-center[1])*120),1024,{alignWorld:true,block2:true})];
         await page.addInitScript({content:`${screenBundle}\nglobalThis.__pandoScreen=PandoScreenFixture.createViewerScreenSpace(${JSON.stringify({origin,tileSize:512})});`});
       }
-      if(normalizedBudget)await page.route('**/terrain-tile-selection-core.js*',async route=>{
+      if(normalizedBudget&&candidate!=='a0')await page.route('**/terrain-tile-selection-core.js*',async route=>{
         try{
           const response=await route.fetch(),source=await response.text();
           const body=withNormalizedAdmissionBudget(source);
@@ -155,19 +154,19 @@ try{
           }catch(error){run.routeErrors.push(String(error));return route.abort('failed');}
         });
       }
-      await page.route('**/assets/js/modules/terrain-dem-shaders.js*',route=>{
+      if(candidate!=='a0')await page.route('**/assets/js/modules/terrain-dem-shaders.js*',route=>{
         shaderRequests++;
         const body=`export function terrainDemFragmentSource(v){if(v===1)return ${JSON.stringify(a1TerrainFragmentSource(1))};if(v===2)return ${JSON.stringify(a1TerrainFragmentSource(2))};throw Error('WebGL version');}`;
         return route.fulfill({status:200,contentType:'text/javascript',body});
       });
-      await page.route('**/terrain/v0.14.0/manifest.json*',async route=>{
+      if(candidate!=='a0')await page.route('**/terrain/v0.14.0/manifest.json*',async route=>{
         try{
           const original=await route.fetch();if(!original.ok())throw Error('Original terrain manifest fetch failed');
           selected=makeViewerFixtureManifest(await original.json(),fixture,size,region);manifestRequests++;
           return await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(selected.manifest)});
         }catch(error){run.routeErrors.push(String(error));return route.abort('failed');}
       });
-      await page.route('https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/**/terrain/v0.15.0/**',async route=>{
+      if(candidate!=='a0')await page.route('https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/**/terrain/v0.15.0/**',async route=>{
         try{
         const url=new URL(route.request().url()),parts=url.pathname.split('/terrain/v0.15.0/');
         const key=parts[1];
@@ -220,9 +219,14 @@ try{
           &&s.mapReadiness?.mapReady===true&&s.terrainReady===true
           &&api.builtinMonth().month==='2026-11'&&document.getElementById('viewerStatus')?.dataset.ready==='true';
       },null,{timeout:210000,polling:300});
-      if(!selected||manifestRequests!==1||shaderRequests<1)throw Error('Experiment manifest or shader was not consumed');
+      if(!selected||(candidate!=='a0'&&(manifestRequests!==1||shaderRequests<1)))throw Error('Experiment manifest or shader was not consumed');
+      if(candidate==='a0'){
+        const original=await page.evaluate(()=>globalThis.__PANDOLAB_VIEWER__.rendererStats().terrainDatasetVersion);
+        if(original!=='0.14.0')throw Error('A0 did not consume the current pinned DEM');
+        run.terrainDatasetVersion=original;
+      }
       if(!hostRequests)throw Error('Experimental full-view camera invalidation was not consumed');
-      if(normalizedBudget&&!budgetRequests)throw Error('Experimental normalized admission policy was not consumed');
+      if(normalizedBudget&&candidate!=='a0'&&!budgetRequests)throw Error('Experimental normalized admission policy was not consumed');
       run.budgetRequests=budgetRequests;
       const initialScreenshot=await page.screenshot({timeout:30000});
       await writeFile(`${out}/viewer-${index+1}-${size}-initial.png`,initialScreenshot);
@@ -231,12 +235,14 @@ try{
       if(!run.initialFrameCapture)throw Error('Cannot preflight the actual Viewer camera without its initial accepted frame');
       const initialZoom=await page.evaluate(()=>globalThis.__PANDOLAB_MAP_HOST__.getViewState().globeZoom);
       const predictedScale=scaleAtZoom(run.initialFrameCapture.scale,initialZoom,32);
-      run.fixtureCoverage=inspectFixtureCoverage({manifest:selected.manifest,
+      if(candidate!=='a0')run.fixtureCoverage=inspectFixtureCoverage({manifest:selected.manifest,
         availableKeys:new Set([...selected.tiles.keys()].map(key=>key.replace(/\.webp$/, ''))),
         center:selected.center,viewport:[run.initialFrameCapture.width,run.initialFrameCapture.height],
         scale:predictedScale,policy:comparisonPolicy});
-      run.fixtureCoverage.initialZoom=initialZoom;run.fixtureCoverage.predictedScale=predictedScale;
-      if(!run.fixtureCoverage.valid)throw Error('Experimental fixture does not cover the actual Viewer visibility or admission policy');
+      if(candidate!=='a0'){
+        run.fixtureCoverage.initialZoom=initialZoom;run.fixtureCoverage.predictedScale=predictedScale;
+        if(!run.fixtureCoverage.valid)throw Error('Experimental fixture does not cover the actual Viewer visibility or admission policy');
+      }
       phaseName='zoom32';const countersBefore=await performanceCounters(pageCdp);
       await page.evaluate(()=>globalThis.__terrainFixtureFrames.start());
       const started=Date.now();
@@ -245,12 +251,12 @@ try{
         host.setViewState({projection:'globe',view:{...view,globeRotation:[-center[0],-center[1],0],globeZoom:32}});
         host.requestRepaint('terrain-regional-fixture');
       },selected.center);
-      await page.waitForFunction(()=>{
+      await page.waitForFunction(current=>{
         const s=globalThis.__PANDOLAB_VIEWER__?.rendererStats();
-        return s?.terrainTargetLevel===5&&s.terrainRenderedLevel===5&&s.terrainTargetTileCount>0
+        return (current==='a0'?s?.terrainTargetLevel>=0&&s.terrainRenderedLevel===s.terrainTargetLevel:s?.terrainTargetLevel===5&&s.terrainRenderedLevel===5)&&s.terrainTargetTileCount>0
           &&s.terrainTargetTilesLoaded===s.terrainTargetTileCount&&s.terrainReady===true&&!s.screenLodPreparingKey
           &&s.mapReadiness?.mapReady===true;
-      },null,{timeout:180000,polling:250});
+      },candidate,{timeout:180000,polling:250});
       run.readyMs=Date.now()-started;
       await page.waitForFunction(()=>globalThis.__terrainFixtureFrames.gaps.length>=300,null,{timeout:180000,polling:250});
       run.frameGapsMs=await page.evaluate(()=>globalThis.__terrainFixtureFrames.stop());
@@ -322,7 +328,7 @@ try{
       if(run.status==='passed'&&!smoke){
         run.status='running';run.phases=[];
         await runViewerPhases({page,pageCdp,processCdp,out,prefix:`viewer-${index+1}-${size}`,screen:candidate==='screen',center:selected.center,
-          phases:run.phases,onStart:name=>{phaseName=name;},onPhase:()=>writeFile(`${out}/report.json`,JSON.stringify(report,null,2)+'\n')});
+          expectedLevel:candidate==='a0'?null:5,phases:run.phases,onStart:name=>{phaseName=name;},onPhase:()=>writeFile(`${out}/report.json`,JSON.stringify(report,null,2)+'\n')});
         if(run.pageErrors.length||run.consoleErrors.length||run.routeErrors.length||run.candidateRequests.some(x=>x.error)){
           run.status='failed';run.error='Console, candidate request, route, or page error during interaction phases';
         }else run.status='passed';

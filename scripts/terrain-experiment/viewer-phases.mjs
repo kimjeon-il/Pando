@@ -35,7 +35,7 @@ export async function captureAcceptedFrame(page,path,{screen=false}={}){
   return result;
 }
 export async function runViewerPhases({page,pageCdp,processCdp,out,prefix,screen,center,phases,onPhase,onStart,
-  minimumFrames=300,capture=captureAcceptedFrame}){
+  minimumFrames=300,capture=captureAcceptedFrame,expectedLevel=5}){
   if(!Number.isSafeInteger(minimumFrames)||minimumFrames<1)throw TypeError('Positive frame count required');
   async function phase(name,action,{month,theme}={}){
     const row={name,status:'running',frameGapsMs:[]};phases.push(row);onStart(name);await onPhase();
@@ -43,13 +43,14 @@ export async function runViewerPhases({page,pageCdp,processCdp,out,prefix,screen
     await page.evaluate(()=>globalThis.__terrainFixtureFrames.start());const started=Date.now();
     try{
       await action();
-      await page.waitForFunction(({month,theme})=>{
+      await page.waitForFunction(({month,theme,expectedLevel})=>{
         const api=globalThis.__PANDOLAB_VIEWER__,s=api?.rendererStats();
-        return s?.mapReadiness?.mapReady===true&&s.terrainReady===true&&s.terrainTargetLevel===5&&s.terrainRenderedLevel===5
+        return s?.mapReadiness?.mapReady===true&&s.terrainReady===true&&s.terrainTargetLevel>=0&&s.terrainRenderedLevel===s.terrainTargetLevel
+          &&(expectedLevel===null||s.terrainTargetLevel===expectedLevel)
           &&s.terrainTargetTileCount>0&&s.terrainTargetTilesLoaded===s.terrainTargetTileCount&&!s.screenLodPreparingKey
           &&(!month||(api.builtinMonth().month===month&&api.documentState()?.timelineCursor===month))
           &&(!theme||document.documentElement.dataset.theme===theme);
-      },{month:month||null,theme:theme||null},{timeout:180000,polling:250});
+      },{month:month||null,theme:theme||null,expectedLevel},{timeout:180000,polling:250});
       row.readyMs=Date.now()-started;
       await page.waitForFunction(minimum=>globalThis.__terrainFixtureFrames.gaps.length>=minimum,minimumFrames,{timeout:180000,polling:250});
       row.frameGapsMs=await page.evaluate(()=>globalThis.__terrainFixtureFrames.stop());

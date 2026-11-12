@@ -18,7 +18,7 @@ test('terrain phase runner exercises drag, rotation, dates, theme and warm retur
       document.getElementById('viewerCanvas').addEventListener('pointermove',event=>{if(event.buttons)view.globeRotation[0]+=.02;});
       globalThis.__PANDOLAB_MAP_HOST__={getViewState:()=>structuredClone(view),setViewState:next=>{view=next.view;},requestRepaint:()=>true};
       globalThis.__PANDOLAB_VIEWER__={builtinMonth:()=>({month}),documentState:()=>({timelineCursor:month}),rendererStats:()=>({
-        mapReadiness:{mapReady:true,status:'ready'},terrainReady:true,terrainTargetLevel:5,terrainRenderedLevel:5,
+        mapReadiness:{mapReady:true,status:'ready'},terrainReady:true,terrainTargetLevel:globalThis.__terrainTestLevel||5,terrainRenderedLevel:globalThis.__terrainTestLevel||5,
         terrainTargetTileCount:1,terrainTargetTilesLoaded:1,screenLodPreparingKey:null,
       })};
       const meter=globalThis.__terrainFixtureFrames={active:false,last:null,gaps:[],start(){this.active=true;this.last=null;this.gaps=[];},
@@ -35,5 +35,10 @@ test('terrain phase runner exercises drag, rotation, dates, theme and warm retur
     assert.equal(phases.length,7);assert.ok(phases.every(row=>row.status==='passed'&&row.frames.count>=3));
     assert.ok(captured.every(row=>row.screen));assert.equal(captured.length,7);assert.ok(writes>=14);
     assert.deepEqual(await page.evaluate(()=>globalThis.__PANDOLAB_MAP_HOST__.getViewState().globeRotation),[-102,-28,0]);
+    await page.evaluate(()=>{globalThis.__terrainTestLevel=4;});
+    const baseline=[];
+    await runViewerPhases({page,pageCdp:cdp,processCdp:null,out:'unused',prefix:'a0',screen:false,center:[102,28],phases:baseline,
+      expectedLevel:null,minimumFrames:1,onStart:()=>{},onPhase:async()=>{},capture:async()=>({sha256:'fixture'})});
+    assert.equal(baseline.length,7);assert.ok(baseline.every(row=>row.status==='passed'));
   }finally{await browser.close();}
 });
