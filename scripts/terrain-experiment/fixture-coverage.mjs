@@ -16,6 +16,11 @@ export function withExperimentViewInvalidation(source){
   if(typeof source!=='string'||source.split(marker).length!==2)throw Error('Viewer host contract changed');
   return source.replace(marker,"requestRepaint: reason => dependencies.domains.renderingDomain?.requestRender?.({kind:'view-settle',reason:reason || 'legacy-host-repaint'}),");
 }
+export function withPlaceSnapshotTrace(source){
+  const marker="onSnapshot: () => dependencies.domains.renderingDomain.invalidateLabels('builtin-places-ready'),";
+  if(typeof source!=='string'||source.split(marker).length!==2)throw Error('Viewer label contract changed');
+  return source.replace(marker,"onSnapshot: snapshot => { globalThis.__pandoPlaceSnapshots.push({revision:snapshot.revision,count:snapshot.records.length,signature:snapshot.signature}); return dependencies.domains.renderingDomain.invalidateLabels('builtin-places-ready'); },");
+}
 const radians=value=>value*Math.PI/180;
 function distance(a,b){
   const [lonA,latA]=a.map(radians),[lonB,latB]=b.map(radians);

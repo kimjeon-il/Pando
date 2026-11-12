@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {inspectFixtureCoverage,withNormalizedAdmissionBudget,withExperimentViewInvalidation,scaleAtZoom} from '../../../scripts/terrain-experiment/fixture-coverage.mjs';
+import {inspectFixtureCoverage,withNormalizedAdmissionBudget,withExperimentViewInvalidation,withPlaceSnapshotTrace,scaleAtZoom} from '../../../scripts/terrain-experiment/fixture-coverage.mjs';
 
 test('preflight detects conservative visibility and budget downgrade before a Viewer run',()=>{
   const levels=size=>[
@@ -49,4 +49,11 @@ test('experiment camera repaint invalidates the full view and refuses a changed 
 test('preflight accounts for the initial non-unit globe zoom',()=>{
   assert.ok(Math.abs(scaleAtZoom(412.9125,1.25,32)-10570.56)<1e-8);
   assert.throws(()=>scaleAtZoom(10,0,32),/zoom/);
+});
+
+test('place snapshot trace preserves the actual label invalidation',()=>{
+  const marker="onSnapshot: () => dependencies.domains.renderingDomain.invalidateLabels('builtin-places-ready'),";
+  const result=withPlaceSnapshotTrace(marker);
+  assert.match(result,/__pandoPlaceSnapshots/);assert.match(result,/invalidateLabels\('builtin-places-ready'\)/);
+  assert.throws(()=>withPlaceSnapshotTrace('changed'),/label contract changed/);
 });

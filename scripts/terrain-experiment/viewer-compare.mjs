@@ -9,7 +9,7 @@ import {a1TerrainFragmentSource} from './a1-shader.mjs';
 import {makeViewerFixtureManifest} from './viewer-fixture.mjs';
 import {serve,identity,mapSummary,chromiumProcessMemory} from '../p7-browser-ab-measure.mjs';
 import {performanceCounters,performanceDelta,captureAcceptedFrame,runViewerPhases} from './viewer-phases.mjs';
-import {inspectFixtureCoverage,withNormalizedAdmissionBudget,withExperimentViewInvalidation,scaleAtZoom} from './fixture-coverage.mjs';
+import {inspectFixtureCoverage,withNormalizedAdmissionBudget,withExperimentViewInvalidation,withPlaceSnapshotTrace,scaleAtZoom} from './fixture-coverage.mjs';
 import {regionalOrigin} from './gutter-fixture.mjs';
 import {candidateSequence} from './candidate-sequence.mjs';
 
@@ -95,6 +95,12 @@ try{
       page.on('worker',worker=>{if(worker.url().includes('place-worker'))run.placeWorkers.push({url:worker.url(),observedAt:new Date().toISOString()});});
       page.on('requestfinished',request=>{if(placeRequest(request))run.placeNetwork.push({url:request.url(),outcome:'finished',timing:request.timing()});});
       page.on('requestfailed',request=>{if(placeRequest(request))run.placeNetwork.push({url:request.url(),outcome:'failed',failure:request.failure()?.errorText,timing:request.timing()});});
+      await page.addInitScript(()=>{globalThis.__pandoPlaceSnapshots=[];});
+      await page.route('**/assets/js/modules/territorial-labels.js*',async route=>{
+        try{const response=await route.fetch(),body=withPlaceSnapshotTrace(await response.text());
+          return await route.fulfill({status:200,contentType:'text/javascript',body});
+        }catch(error){run.routeErrors.push(String(error));return route.abort('failed');}
+      });
       await page.route('**/assets/js/modules/map-workspace-host.js*',async route=>{
         try{const response=await route.fetch(),body=withExperimentViewInvalidation(await response.text());hostRequests++;
           return await route.fulfill({status:200,contentType:'text/javascript',body});
@@ -336,7 +342,8 @@ try{
       }
     }catch(error){run.status='failed';run.error=String(error?.stack||error).slice(0,5000);
       run.diagnostics=await page.evaluate(()=>globalThis.__PANDOLAB_VIEWER__?.rendererStats?.()||null).catch(()=>null);
-    }finally{run.network=[...network.values()];await pageCdp?.detach().catch(()=>{});await processCdp?.detach().catch(()=>{});await page.close();
+    }finally{run.placeSnapshots=await page.evaluate(()=>globalThis.__pandoPlaceSnapshots||[]).catch(()=>[]);
+      run.network=[...network.values()];await pageCdp?.detach().catch(()=>{});await processCdp?.detach().catch(()=>{});await page.close();
       await writeFile(`${out}/report.json`,JSON.stringify(report,null,2)+'\n');}
   }
   report.status=runs.length===sequence.length&&runs.every(run=>run.status==='passed')?'passed':'failed';
