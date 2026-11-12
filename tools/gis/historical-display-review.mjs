@@ -7,6 +7,41 @@ const digest=geometry=>createHash('sha256').update(JSON.stringify([geometry.type
 const requiredHash=value=>typeof value==='string'&&/^[a-f0-9]{64}$/.test(value);
 const historical=version=>version.validFrom!=null||version.validTo!=null||!!version.historicalProvenance;
 const evidence=value=>value&&typeof value.reference==='string'&&value.reference.length>0&&requiredHash(value.sha256);
+/** Explicit completion of one already-partial current feature. This is not a
+ * general relaxation of source caveats or a first-adoption contract. No imports
+ * from the original-authoring owner: that owner depends on this module. */
+function assertWholeFeatureCompletion(next,previous,review,{prefixes,archivedReview,fail}){
+ const reject=m=>fail('whole-feature completion: '+m),v=next.geometryVersions[0],old=previous.geometryVersions[0],s=v.modernBoundarySupplement,prior=old.modernBoundarySupplement;
+ const marker={schemaVersion:1,method:'partial-to-whole-original-single-component'};
+ if(prefixes.length!==2||new Set(prefixes).size!==2)reject('exact descriptor and original resource scope required');
+ if(next.geometryVersions.length!==1||previous.geometryVersions.length!==1||v.validFrom!==null||v.validTo!==null||old.validFrom!==null||old.validTo!==null||review.validFrom!==null||review.validTo!==null)reject('one undated current version required');
+ if(!isDeepStrictEqual(s.wholeFeatureCompletion,marker)||!isDeepStrictEqual(review.wholeFeatureCompletion,marker)||!prior||typeof prior!=='object'||!Object.hasOwn(prior,'wholeCountryRaw')||prior.wholeCountryRaw!==false||s.wholeCountryRaw!==true||review.wholeCountryRaw!==true)reject('explicit false-to-true completion markers required');
+ if(review.method!=='lossless-original-feature'||s.adoptionMode!==review.method||review.rawCoordinateRoundtrip!==true||s.status!=='raw-source-only-not-display-approved')reject('whole original source-only method required');
+ if(next.parentEntityId!==''||previous.parentEntityId!==''||next.instantiation?.mode!=='independent'||previous.instantiation?.mode!=='independent'||!/^state:[A-Z]{3}$/.test(next.entityId))reject('existing independent country identity required');
+ const allowed=new Set(['sourceId','status','geometrySha256','adoptionMode','priorPreparedAttribution','sourceAdoptionReview','wholeCountryRaw']);
+ for(const [key,value]of Object.entries(prior))if(!allowed.has(key)&&(!Object.hasOwn(s,key)||!isDeepStrictEqual(s[key],value)))reject('prior attribution/caveat changed: '+key);
+ const ringOf=(g,original)=>{
+  if(!g||!['Polygon','MultiPolygon'].includes(g.type)||original&&g.type!=='MultiPolygon'||Object.keys(g).length!==2||!Object.hasOwn(g,'coordinates'))reject('exact polygon geometry fields required');
+  const polys=g.type==='Polygon'?[g.coordinates]:g.coordinates;
+  if(!Array.isArray(polys)||polys.length!==1||!Array.isArray(polys[0])||polys[0].length!==1||!Array.isArray(polys[0][0])||polys[0][0].length<4)reject('one component with zero holes required');
+  const ring=polys[0][0];if(ring.length>4000000||ring.some(p=>!Array.isArray(p)||p.length!==2||!p.every(Number.isFinite)||Math.abs(p[0])>180||Math.abs(p[1])>90)||!isDeepStrictEqual(ring[0],ring.at(-1)))reject('closed finite bounded original ring required');
+  return ring;
+ };
+ ringOf(old.geometry,false);const ring=ringOf(v.geometry,true),source=archivedReview(review.source),properties=source?.properties;
+ if(source?.schemaVersion!==1||source.method!=='exact-gpkg-original-feature'||typeof source.featureId!=='string'||!source.featureId||!requiredHash(source.rawBlobSha256)||!requiredHash(source.rawWkbSha256)||!isDeepStrictEqual(source.geometry,v.geometry))reject('strict complete original geometry evidence required');
+ if(properties?.WP_ID!==source.featureId||properties.WP_PAR_ID!==source.featureId||properties.GENC_3!==next.entityId.slice(6)||properties.US_Recog!=='Independent'||properties.Map_Disp!==null||properties.Show_Disp!==null)reject('original identity/independence/ownership mismatch');
+ if(typeof source.sourcePath!=='string'||!source.sourcePath||!requiredHash(source.sourceFileReceipt?.gpkgSha256)||s.rawSourceFile!==source.sourcePath||s.rawSourceFileSha256!==source.sourceFileReceipt.gpkgSha256||s.rawFeatureId!==source.featureId||!isDeepStrictEqual(s.rawOriginalSource,review.source)||typeof s.sourceFileRole!=='string'||!s.sourceFileRole.trim())reject('separate exact new raw attribution required');
+ if(typeof source.rawBlobBase64!=='string'||source.rawBlobBase64.length>90000000||!/^[A-Za-z0-9+/]+={0,2}$/.test(source.rawBlobBase64))reject('canonical original blob required');
+ const blob=Buffer.from(source.rawBlobBase64,'base64');
+ if(blob.length<53||blob.length>64*1024*1024||blob.toString('base64')!==source.rawBlobBase64||createHash('sha256').update(blob).digest('hex')!==source.rawBlobSha256||blob[0]!==71||blob[1]!==80||blob[2]!==0||blob[3]!==3||blob.readInt32LE(4)!==4326)reject('supported original GeoPackage header/hash required');
+ let minx=Infinity,maxx=-Infinity,miny=Infinity,maxy=-Infinity;for(const [x,y]of ring){minx=Math.min(minx,x);maxx=Math.max(maxx,x);miny=Math.min(miny,y);maxy=Math.max(maxy,y);}
+ const bounds=[minx,maxx,miny,maxy];for(let i=0;i<4;i++)if(!Number.isFinite(blob.readDoubleLE(8+i*8))||blob.readDoubleLE(8+i*8)!==bounds[i])reject('original envelope differs from candidate bounds');
+ // Exact 2D singleton MultiPolygon WKB. No rounding, repair, ring rotation,
+ // JSON numeric serialization or WKB coordinate parser can change binary64.
+ const wkb=Buffer.alloc(22+ring.length*16);wkb[0]=1;wkb.writeUInt32LE(6,1);wkb.writeUInt32LE(1,5);wkb[9]=1;wkb.writeUInt32LE(3,10);wkb.writeUInt32LE(1,14);wkb.writeUInt32LE(ring.length,18);for(let i=0;i<ring.length;i++){wkb.writeDoubleLE(ring[i][0],22+i*16);wkb.writeDoubleLE(ring[i][1],30+i*16);}
+ if(!blob.subarray(40).equals(wkb)||createHash('sha256').update(wkb).digest('hex')!==source.rawWkbSha256)reject('candidate is not byte-exact original WKB');
+ if(s.geometrySha256!==digest(v.geometry)||next.sourceInfo?.geometryVersionId!==v.versionId||next.sourceInfo?.geometrySha256!==digest(v.geometry)||review.sourceInfoGeometryDigestFormat!=='sha256(JSON.stringify([geometry.type, geometry.coordinates]))')reject('current source geometry attribution mismatch');
+}
 /** Evidence is an input-bound review receipt, never inferred from point density. */
 export function assertHistoricalDisplayReview(entityId,version){
  const review=version.historicalProvenance?.displayDetailReview;
@@ -168,8 +203,22 @@ function assertOriginalExistingComponents(next,previous,review,{prefixes,archive
  */
 export function assertHistoricalSourceStorageChanges(next,previous,{prefixes,readEvidence}={}){
  const versions=next.geometryVersions||[];
+ for(const v of versions){
+  const old=previous?.geometryVersions?.find(p=>p.versionId===v.versionId),s=v.modernBoundarySupplement,prior=old?.modernBoundarySupplement,marked=!!s&&Object.hasOwn(s,'wholeFeatureCompletion')||!!prior&&Object.hasOwn(prior,'wholeFeatureCompletion');
+  if(prior?.wholeCountryRaw===false&&s?.wholeCountryRaw===true&&(!s?.sourceAdoptionReview||!Object.hasOwn(s,'wholeFeatureCompletion')))throw Error('Raw source adoption: whole-feature completion: explicit completion receipt required');
+  if(marked&&!s?.sourceAdoptionReview)throw Error('Raw source adoption: whole-feature completion: completion receipt cannot be removed');
+  if(old&&digest(old.geometry)===digest(v.geometry)&&((marked&&!isDeepStrictEqual(s,prior))||(prior&&Object.hasOwn(prior,'wholeCountryRaw')&&!isDeepStrictEqual(s?.wholeCountryRaw,prior.wholeCountryRaw))))throw Error('Raw source adoption: whole-feature completion: unchanged geometry cannot alter completion attribution');
+ }
+
  for(const v of versions){const old=previous?.geometryVersions?.find(p=>p.versionId===v.versionId);if(old&&['lossless-original-shared-arc','lossless-original-current-version-shared-arc','lossless-original-existing-component'].includes(v.modernBoundarySupplement?.adoptionMode)&&digest(old.geometry)===digest(v.geometry)&&!isDeepStrictEqual(v.modernBoundarySupplement.sourceAdoptionReview,old.modernBoundarySupplement?.sourceAdoptionReview))throw Error('Raw source adoption: unchanged shared arc cannot acquire a new receipt');}
  if(previous&&next.entityId===previous.entityId&&versions.length===previous.geometryVersions?.length&&versions.every(v=>{const old=previous.geometryVersions.find(p=>p.versionId===v.versionId);return old&&digest(old.geometry)===digest(v.geometry);})){
+  // Completion evidence binds every field except ordinary display names.
+  // Unchanged coordinates must not become an ownership/date/provenance or
+  // source-hash escape hatch after a successful completion.
+  if([...versions,...previous.geometryVersions].some(v=>v.modernBoundarySupplement&&Object.hasOwn(v.modernBoundarySupplement,'wholeFeatureCompletion'))){
+   const immutable=e=>{const copy=structuredClone(e);delete copy.names;return copy;};
+   if(!isDeepStrictEqual(immutable(next),immutable(previous)))throw Error('Raw source adoption: whole-feature completion: unchanged geometry permits names-only metadata edits');
+  }
   // The explicit dated-current contract is not a metadata-only escape hatch.
   if([...versions,...previous.geometryVersions].some(v=>['lossless-original-current-version-shared-arc','lossless-original-existing-component'].includes(v.modernBoundarySupplement?.adoptionMode))&&!isDeepStrictEqual(next,previous))throw Error('Raw source adoption: dated-current unchanged geometry requires exact metadata');
   return assertHistoricalDisplayChanges(next,previous);
@@ -199,7 +248,8 @@ export function assertHistoricalSourceStorageChanges(next,previous,{prefixes,rea
  if(!v.modernBoundarySupplement?.sourceAdoptionReview)fail('selected source adoption receipt required');
  if(!isDeepStrictEqual(v.modernBoundarySupplement.priorPreparedAttribution,old.modernBoundarySupplement))fail('prior source attribution must be preserved');
  const replacedAttribution=new Set(['sourceId','status','sourceFile','rawLayer','sourceWP_IDs','rawBlobSha256','geometrySha256','adoptionMode','sourceProperties','priorPreparedAttribution','sourceAdoptionReview']);
- for(const [key,value] of Object.entries(old.modernBoundarySupplement||{}))if(!replacedAttribution.has(key)&&!isDeepStrictEqual(v.modernBoundarySupplement[key],value))fail('source caveat changed: '+key);
+ const deferredWholeCompletion=old.modernBoundarySupplement?.wholeCountryRaw===false&&v.modernBoundarySupplement.wholeCountryRaw===true&&Object.hasOwn(v.modernBoundarySupplement,'wholeFeatureCompletion');
+ for(const [key,value] of Object.entries(old.modernBoundarySupplement||{}))if(!(key==='wholeCountryRaw'&&deferredWholeCompletion)&&!replacedAttribution.has(key)&&!isDeepStrictEqual(v.modernBoundarySupplement[key],value))fail('source caveat changed: '+key);
  const resourceHash=createHash('sha256').update(JSON.stringify(v.geometry)+'\n').digest('hex');
  if(!prefixes.includes(base+'countries/'+next.entityId.replace(':','-')+'.json')||!prefixes.includes(base+'geometries/sha256-'+resourceHash+'.json'))fail('paired descriptor and exact geometry resource required');
  const archivedReview=receipt=>{
@@ -210,6 +260,7 @@ export function assertHistoricalSourceStorageChanges(next,previous,{prefixes,rea
  };
  const review=archivedReview(v.modernBoundarySupplement.sourceAdoptionReview);
  if(review.schemaVersion!==1||review.status!=='raw-source-only-not-display-approved'||review.entityId!==next.entityId||review.versionId!==v.versionId||review.previousGeometrySha256!==digest(old.geometry)||review.geometrySha256!==digest(v.geometry))fail('stale geometry or identity evidence');
+ if(deferredWholeCompletion||Object.hasOwn(v.modernBoundarySupplement,'wholeFeatureCompletion')||Object.hasOwn(review,'wholeFeatureCompletion'))assertWholeFeatureCompletion(next,previous,review,{prefixes,archivedReview,fail});
  if(review.method==='lossless-original-existing-component')return assertOriginalExistingComponents(next,previous,review,{prefixes,archivedReview,fail});
  if(review.componentChanges!==undefined||review.previousComponentReview!==undefined||v.modernBoundarySupplement.adoptionMode==='lossless-original-existing-component')fail('components cannot claim another source method');
  if(['lossless-original-shared-arc','lossless-original-current-version-shared-arc'].includes(review.method))return assertOriginalSharedArcs(next,previous,review,{prefixes,archivedReview,fail});
