@@ -6,8 +6,8 @@
 const owners = new WeakMap();
 
 function readState(gl, version) {
-  const parameter = name => gl.getParameter(name);
-  const activeTexture = parameter(gl.ACTIVE_TEXTURE);
+  const parameter = name => name === undefined ? null : gl.getParameter(name);
+  const activeTexture = parameter(gl.ACTIVE_TEXTURE) ?? gl.TEXTURE0 ?? gl.TEXTURE3;
   const textures = new Map([[activeTexture, parameter(gl.TEXTURE_BINDING_2D)]]);
   for (const unit of [gl.TEXTURE0, gl.TEXTURE3]) {
     if (!Number.isFinite(unit) || textures.has(unit)) continue;
@@ -19,11 +19,11 @@ function readState(gl, version) {
     activeTexture, textures,
     framebuffer: parameter(gl.FRAMEBUFFER_BINDING),
     readFramebuffer: version === 2 ? parameter(gl.READ_FRAMEBUFFER_BINDING) : null,
-    viewport: Array.from(parameter(gl.VIEWPORT)),
+    viewport: Array.from(parameter(gl.VIEWPORT) ?? [0, 0, gl.drawingBufferWidth || 1, gl.drawingBufferHeight || 1]),
     program: parameter(gl.CURRENT_PROGRAM),
     arrayBuffer: parameter(gl.ARRAY_BUFFER_BINDING),
-    clearColor: Array.from(parameter(gl.COLOR_CLEAR_VALUE)),
-    colorMask: Array.from(parameter(gl.COLOR_WRITEMASK)),
+    clearColor: Array.from(parameter(gl.COLOR_CLEAR_VALUE) ?? [0, 0, 0, 0]),
+    colorMask: Array.from(parameter(gl.COLOR_WRITEMASK) ?? [true, true, true, true]),
     blend: gl.isEnabled(gl.BLEND),
     stencil: gl.isEnabled(gl.STENCIL_TEST),
     scissor: gl.isEnabled(gl.SCISSOR_TEST),
@@ -36,10 +36,13 @@ function readState(gl, version) {
     ],
   };
 }
-function cloneState(state) {
+function cloneState(state, gl) {
+  const { textures, ...fields } = state;
   return {
-    ...state,
-    textures: new Map(state.textures),
+    ...fields,
+    texture: textures.get(state.activeTexture) ?? null,
+    texture0: textures.get(gl.TEXTURE0) ?? null,
+    texture3: textures.get(gl.TEXTURE3) ?? null,
     viewport: [...state.viewport], clearColor: [...state.clearColor],
     colorMask: [...state.colorMask], equations: [...state.equations],
     blendFactors: [...state.blendFactors],
@@ -130,7 +133,7 @@ export function renderDeviceState(gl, { version = 2, contextRevision = 0 } = {})
     get contextRevision() { return admittedRevision; },
     capture() {
       captures += 1;
-      return Object.freeze({ ...cloneState(read()), contextRevision: admittedRevision });
+      return Object.freeze({ ...cloneState(read(), gl), contextRevision: admittedRevision });
     },
     framebuffer() { return read().framebuffer; },
     restore(saved) {
@@ -147,7 +150,8 @@ export function renderDeviceState(gl, { version = 2, contextRevision = 0 } = {})
       for (const unit of [gl.TEXTURE0, gl.TEXTURE3, saved.activeTexture]) {
         if (!Number.isFinite(unit)) continue;
         gl.activeTexture(unit);
-        gl.bindTexture(gl.TEXTURE_2D, saved.textures.get(unit) ?? null);
+        gl.bindTexture(gl.TEXTURE_2D, unit === saved.activeTexture ? saved.texture
+          : unit === gl.TEXTURE3 ? saved.texture3 : saved.texture0);
       }
       gl.activeTexture(saved.activeTexture);
       enabled(gl.BLEND, saved.blend);
