@@ -7,6 +7,7 @@ permissions:
   contents: read
 jobs:
   base-gpu-recovery:
+    if: "!contains(github.event.head_commit.message, '[terrain-only]')"
     runs-on: ubuntu-24.04
     timeout-minutes: 35
     steps:
@@ -21,6 +22,7 @@ jobs:
       - name: Baseline original-main recovery regression
         run: pnpm exec playwright test tests/browser/rendering/viewer-renderer-recovery.spec.mjs --workers=1 --retries=0 --reporter=list
   base-viewer-functional:
+    if: "!contains(github.event.head_commit.message, '[terrain-only]')"
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
@@ -36,3 +38,22 @@ jobs:
         run: |
           pnpm exec playwright test --config tests/integration/viewer-functional-p6-1.config.mjs --workers=1 --retries=0
           pnpm exec playwright test --config tests/integration/viewer-functional-p6-2.config.mjs --workers=1 --retries=0
+  base-terrain-continuity:
+    if: contains(github.event.head_commit.message, '[terrain-only]')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - uses: ./.github/actions/library-data
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Original main DEM/Canvas continuous terrain readiness baseline
+        run: >-
+          pnpm exec playwright test
+          tests/browser/rendering/terrain-zoom-continuity.spec.mjs
+          --grep 'retains numerical terrain during delayed detail|current-view detail reaches an actual WebGL frame'
+          --workers=1 --retries=0 --reporter=list
