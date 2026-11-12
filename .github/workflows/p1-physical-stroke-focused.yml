@@ -1,0 +1,115 @@
+name: P0/P1 targeted uploads, physical redraw and country stroke acceptance
+# One isolated branch-only run after the three requested changes are complete.
+# No full CI matrix, generated-asset build, Pages publication or main merge.
+on:
+  push:
+    branches: ['fix/p0-gl-state-contract-20261112']
+    paths: ['.github/workflows/p1-physical-stroke-focused.yml']
+permissions:
+  contents: write
+concurrency:
+  group: p1-physical-stroke-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  focused-unit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Parse only P0/P1 touched source and focused tests
+        shell: bash
+        run: |
+          for f in src/rendering/render-device.js src/rendering/gpu-stroke-renderer.js src/rendering/gpu-stroke-visibility.js src/rendering/gpu-hydro-coverage.js src/rendering/gpu-hydro-preparation.js src/rendering/gpu-terrain-preparation.js src/rendering/gpu-map-renderer.js scripts/p7-browser-ab-measure.mjs tests/unit/rendering/render-device-buffer-lifecycle.test.mjs tests/unit/rendering/gpu-stroke-visibility.test.mjs tests/unit/rendering/gpu-hydro-preparation-view.test.mjs tests/unit/rendering/gpu-terrain-preparation.test.mjs; do
+            node --check "$f"
+          done
+      - name: Only P0 upload lifecycle, P1 DEM/Hydro and stroke tests
+        run: >-
+          node --test
+          tests/unit/rendering/render-device-buffer-lifecycle.test.mjs
+          tests/unit/rendering/gpu-stroke-visibility.test.mjs
+          tests/unit/rendering/gpu-hydro-preparation-view.test.mjs
+          tests/unit/rendering/gpu-terrain-preparation.test.mjs
+          tests/unit/rendering/gpu-stroke-renderer.test.mjs
+          tests/unit/data/hydro-coverage-surface.test.mjs
+
+  chromium:
+    needs: focused-unit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 65
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - uses: ./.github/actions/library-data
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Actual Chromium Hydro WebGL1/2 and context recovery checks
+        run: |
+          pnpm exec playwright test tests/browser/geometry/hydro-sdf-webgl.spec.mjs tests/browser/rendering/viewer-renderer-recovery.spec.mjs --workers=1 --grep 'real WebGL 1/2 compile|viewer acceptance webgl2: repeated real recovery'
+      - name: Three same-run P7 Chromium samples including 32x globe
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p validation-results/p1-physical-stroke-20261112
+          for i in 1 2 3; do
+            node scripts/p7-browser-ab-measure.mjs --label=p7 --measure-zoom=1 --out="validation-results/p1-physical-stroke-20261112/p7-$i.json"
+          done
+          node scripts/p7-browser-ab-measure.mjs --mode=aggregate --samples=validation-results/p1-physical-stroke-20261112/p7-1.json,validation-results/p1-physical-stroke-20261112/p7-2.json,validation-results/p1-physical-stroke-20261112/p7-3.json --out=validation-results/p1-physical-stroke-20261112/p7-aggregate.json
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFileSync} from 'node:fs';
+          const p=JSON.parse(readFileSync('validation-results/p1-physical-stroke-20261112/p7-aggregate.json','utf8'));
+          assert.equal(p.status,'passed');
+          assert.equal(p.sampleCount,3);
+          assert.deepEqual(p.phases.map(v=>v.phase),
+            ['cold-current','previous-year','same-page-return','zoom32-europe','zoom32-east-asia']);
+          assert.ok(p.phases.every(v=>Number.isFinite(v.renderer.strokeCulledOwnerCount)
+            && Number.isFinite(v.renderer.strokeMergedDrawRangeCount)
+            && Number.isFinite(v.renderer.physicalResourceFlushCount)
+            && Number.isFinite(v.renderer.terrainIgnoredOffscreenCompletionCount)));
+          console.log('P1_GLOBE_3X '+JSON.stringify({status:p.status,commit:p.identity.commit,
+            pin:p.identity.pin,browser:p.browserVersion,
+            phases:p.phases.map(v=>({phase:v.phase,ms:v.elapsedMs,cpuP95:v.renderer.p95CpuSubmitMs,
+              cpuP99:v.renderer.p99CpuSubmitMs,strokeCalls:v.renderer.strokeDrawCalls,
+              ownersCulled:v.renderer.strokeCulledOwnerCount,
+              drawRangesMerged:v.renderer.strokeMergedDrawRangeCount,
+              resourceFlushes:v.renderer.physicalResourceFlushCount,
+              coalesced:v.renderer.physicalResourceCoalescedCount,
+              terrainOffscreen:v.renderer.terrainIgnoredOffscreenCompletionCount,
+              hydroOffscreen:v.renderer.hydroOffscreenUploadCompletionCount}))}));
+          NODE
+      - name: Preserve raw P7 and browser evidence, even for a failed sample
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p1-physical-stroke-${{ github.sha }}
+          path: |
+            validation-results/p1-physical-stroke-20261112/
+            test-results/
+            playwright-report/
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Commit source-matched measurements only to the feature branch
+        if: always()
+        shell: bash
+        run: |
+          if [ ! -s validation-results/p1-physical-stroke-20261112/p7-aggregate.json ]; then
+            echo 'Missing aggregate; upload artifact retains partial evidence.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- validation-results/p1-physical-stroke-20261112/
+          if ! git diff --cached --quiet; then
+            git commit -m 'data(perf): retain P0/P1 source-matched P7 x3 [skip ci]'
+            git push origin HEAD:refs/heads/fix/p0-gl-state-contract-20261112
+          fi
