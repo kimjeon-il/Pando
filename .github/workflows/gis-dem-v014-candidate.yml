@@ -1,8 +1,5 @@
-name: GIS v0.14.0 DEM sample compression then complete 1280-tile candidate
+name: "[HISTORICAL] GIS v0.14.0 DEM sample compression then complete 1280-tile candidate"
 on:
-  push:
-    branches: [work/gis]
-    paths: ['.github/workflows/gis-dem-v014-candidate.yml']
   workflow_dispatch:
 permissions:
   contents: read

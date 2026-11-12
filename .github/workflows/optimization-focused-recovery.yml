@@ -1,10 +1,6 @@
-name: Optimization final focused JS contracts
+name: "[HISTORICAL] Optimization final focused JS contracts"
 # Covers the repaired source-owned Worker runtime and project contracts only.
 on:
-  push:
-    branches: [work/optimization]
-    paths:
-      - '.github/workflows/optimization-focused-recovery.yml'
   workflow_dispatch:
 permissions:
   contents: read

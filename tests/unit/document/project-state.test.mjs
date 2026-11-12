@@ -1,4 +1,5 @@
 import { readPortabilityProjectSeed } from "../../helpers/portability-project-seed.mjs";
+import {createProjectStateFixture} from '../../helpers/project-state-fixture.mjs';
 import { describe as contractSuite } from 'node:test';
 import * as __dep0 from "../../../src/document/territorial-entity-store.js";
 import * as __dep1 from "../../helpers/timeline-project.mjs";
@@ -88,16 +89,8 @@ test('shared project fields receive current defaults without sharing mutable val
 
 const uuid = number => `00000000-0000-4000-8000-${String(number).padStart(12, '0')}`;
 const currentProject = () => { const project = {
-  format: 'pandolab-project-state',documentId:uuid(99),projectSetup:{initialMonth:'2026-10',timelineRange:null,initialMapBounds:null,sourceMode:'builtin'},distributionSettings:{renderMode:'overlap',activeLayerId:'',boundaryVisible:true},
-  schemaVersion: PROJECT_SCHEMA_VERSION,
-  landObjectModel: {
-    schemaVersion: 2,
-    coastlineAuthority: 'territorialEntities',
-    purpose: 'lossless-fallback',
-    directCreation: false,
-    sourceProvenanceSchemaVersion: 1,
-    canonicalProperties: ['name', 'notes', 'color', 'locked', 'source'],
-  },
+  ...createProjectStateFixture({initialMonth:'2026-10',sourceMode:'builtin',documentId:uuid(99)}),
+  distributionSettings:{renderMode:'overlap',activeLayerId:'',boundaryVisible:true},
   territorialModel: { schemaVersion: 6 },
   distributionModel: { schemaVersion: 3 },
   layerPresentation: { schemaVersion: 5, overlayOrder: [], styles: {} },
@@ -125,7 +118,9 @@ const currentProject = () => { const project = {
 };
 
 test('current project schema accepts only explicit current versions and UUID object IDs', () => {
-  assert.equal(assertCurrentProjectSchema(currentProject()).schemaVersion, PROJECT_SCHEMA_VERSION);
+  const current = currentProject();
+  assert.equal(current.landObjectModel.schemaVersion,createProjectStateFixture().landObjectModel.schemaVersion);
+  assert.equal(assertCurrentProjectSchema(current).schemaVersion, PROJECT_SCHEMA_VERSION);
   assert.match(createProjectObjectId(), /^[0-9a-f-]{36}$/i);
 });
 

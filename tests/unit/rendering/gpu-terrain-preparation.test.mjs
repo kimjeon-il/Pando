@@ -19,7 +19,7 @@ test('GPU and Canvas share one tile geometry, neighbours and viewport selection 
     core.visible(level,input).map(row=>row.bounds));
 });
 
-function fixture(t, onUnusable = () => {}, { mobile = false, geoDistance = () => 0, tintUrl, onTileFailure = () => {} } = {}) {
+function fixture(t, onUnusable = () => {}, { mobile = false, geoDistance = () => 0, tintUrl, onTileFailure = () => {}, invalidate = () => {} } = {}) {
   const requests = [];
   const jobs = [];
   const deleted = [];
@@ -35,7 +35,7 @@ function fixture(t, onUnusable = () => {}, { mobile = false, geoDistance = () =>
     onUnusable,
     onTileFailure,
     isMobile: () => mobile,
-    invalidate: () => {},
+    invalidate,
     geoDistance,
   });
   owner.setContext({ gl, ready: true, projectGeneration: 1, contextGeneration: 1,
@@ -566,4 +566,42 @@ test('numerical DEM never fetches tint and ready height tiles suffice for physic
   owner.prepare(frame,view);
   assert.equal(owner.stats().terrainReady,true);
   assert.equal(owner.stats().terrainCacheBytes,requests.length*1024*1024*4);
+});
+
+test('offscreen DEM world-reserve uploads never invalidate the current camera', async t => {
+  const changes = [];
+  const { owner, requests, jobs } = fixture(t, () => {}, { invalidate: reason => changes.push(reason) });
+  t.after(() => owner.dispose());
+  const previousBitmap = globalThis.createImageBitmap;
+  globalThis.createImageBitmap = async () => ({ width:1024, height:1024, close() {} });
+  t.after(() => {
+    if (previousBitmap) globalThis.createImageBitmap = previousBitmap;
+    else delete globalThis.createImageBitmap;
+  });
+  const manifest = { representation:'dem-relief-v1', gutter:0,
+    levels:[{id:0,width:4096,height:2048,columns:4,rows:2,tileSize:1024}] };
+  owner.setManifest(manifest);
+  const frame = { mode:1,scale:2000,dpr:1,viewport:[500,400],
+    viewState:{projection:'flat',projectionCenter:[0,0]} };
+  const view = { visible:true,physicalStyle:'political',projection:'flat',
+    flatCenter:[0,0],width:500,height:400,devicePixelRatio:1,
+    cacheBudgetBytes:128*1024*1024 };
+  owner.prepare(frame,view);
+  const visible = new Set(globalThis.PandoLabTerrainTileSelection.visible(manifest.levels[0],{
+    includeAll:false,viewport:frame.viewport,scale:frame.scale,projection:'flat',flatCenter:[0,0],
+  }).map(spec=>spec.key));
+  const offscreen = requests.find(row => !visible.has(new URL(row.url).pathname.slice(1)));
+  assert.ok(offscreen, 'world base reserve includes a queued tile outside this viewport');
+  offscreen.resolve({ok:true,blob:async()=>({})});
+  await settle();
+  for(const job of jobs.splice(0))while(!job.step().done) { /* Focused simulated GPU upload. */ }
+  assert.equal(changes.includes('terrain-tile-ready'),false);
+  assert.ok(owner.stats().terrainIgnoredOffscreenCompletionCount > 0);
+  await settle();
+  const current = requests.find(row => visible.has(new URL(row.url).pathname.slice(1)));
+  assert.ok(current, 'at least one current-view tile was requested');
+  current.resolve({ok:true,blob:async()=>({})});
+  await settle();
+  for(const job of jobs.splice(0))while(!job.step().done) { /* Focused visible upload. */ }
+  assert.ok(changes.includes('terrain-tile-ready'), 'current-view DEM remains admitted');
 });

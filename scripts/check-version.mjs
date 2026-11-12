@@ -1,5 +1,6 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
+import vm from 'node:vm';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {buildFrontendSnapshot} from './lib/frontend-build.mjs';
@@ -19,9 +20,15 @@ const productEntries = [
   { path: 'index.html', mode: 'viewer', entry: 'assets/js/viewer.js' },
 ];
 const buildMetaSource = read('assets/js/build-meta.js');
-const metaMatch = buildMetaSource.match(/PANDOLAB_BUILD_META\s*=\s*Object\.freeze\((\{[\s\S]*?\})\);/);
 let buildMeta = null;
-try { buildMeta = JSON.parse(metaMatch?.[1] || 'null'); } catch { /* report below */ }
+try {
+  // Evaluate only the generated metadata script in a restricted, timed scope.
+  // It is checked as the browser receives it, without coupling to formatting.
+  const sandbox=Object.create(null);
+  vm.runInNewContext(buildMetaSource,sandbox,{filename:'assets/js/build-meta.js',timeout:1000});
+  buildMeta=sandbox.PANDOLAB_BUILD_META||null;
+  if(!Object.isFrozen(buildMeta))failures.push('Generated identity is not immutable');
+} catch (error) { failures.push('Generated build metadata could not execute: '+error.message); }
 
 expect(/^\d+\.\d+\.\d+$/.test(appVersion), `package.json version이 유효하지 않습니다: ${appVersion}`);
 expect(buildMeta && buildMeta.appVersion === appVersion, 'build-meta.js의 appVersion이 package.json과 다릅니다.');

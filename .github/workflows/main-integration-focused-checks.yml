@@ -1,9 +1,7 @@
-name: Focused integration of optimization with main
+name: "[HISTORICAL] Focused integration of optimization with main"
 # Verify integration after the latest optimization parent was merged.
 on:
-  push:
-    branches: [work/optimization-main-merge-20261110]
-    paths: [.github/workflows/main-integration-focused-checks.yml]
+  workflow_dispatch:
 permissions:
   contents: write
 jobs:

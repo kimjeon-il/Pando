@@ -273,7 +273,8 @@ function canvasFallbackWorkerMain(self) {
         if (expectedHash) fetchUrl.searchParams.set('v', expectedHash);
         const validationUrl = new URL('../modules/terrain-manifest.js', self.location.href);
         validationUrl.searchParams.set('v', assetRevision);
-        const terrainModule = await import(validationUrl.href);
+        const terrainModule = await (typeof self.importTerrainManifestModule === 'function'
+          ? self.importTerrainManifestModule(validationUrl.href) : import(validationUrl.href));
         const { validateTerrainManifest } = terrainModule;
         const runtimeFetch = terrainModule.createExternalRuntimeDataFetch({meta:{externalRuntimeData}});
         const response = await runtimeFetch(fetchUrl.href, {signal: controller.signal});
@@ -799,7 +800,8 @@ function canvasFallbackWorkerMain(self) {
     function renderCountryBoundaries(message, projection, dpr, target = context, reserve = false) {
       if (message.surfacePresentation.quality === 'pending' || countrySharedBoundary?.sourceQuality !== message.surfacePresentation.quality) return;
       const theme = message.theme, path = createCanvasPath(projection, target);
-      const sharedOnly = message.physicalSettings?.terrainVisible && message.physicalSettings?.terrainStyle === 'physical';
+      // Ordinary country borders never include sea/coast outlines, in any terrain style.
+      const sharedOnly = true;
       target.save(); target.setTransform(dpr, 0, 0, dpr, 0, 0);
       target.globalAlpha = reserve ? 1 : theme.borderAlpha;
       target.strokeStyle = theme.border;

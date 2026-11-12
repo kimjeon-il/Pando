@@ -94,7 +94,6 @@ export function canvasCountryGeometrySignature(features) {
 
 export function createGpuMapRenderer(deps) {
   const {
-    APP_VERSION,
     ASSET_REVISION,
     DATA_REVISION,
     sharedBoundaryCacheUrls,
@@ -758,7 +757,13 @@ export function createGpuMapRenderer(deps) {
     let terrainSource = 'dem';
     let canvasTerrainStats = {};
     const terrainPreparation = state.resourceCapabilities?.terrain===false ? null : createGpuTerrainPreparation({
-      isMobile, invalidate: invalidatePhysicalScene, geoDistance: (...args) => d3.geo.distance(...args),
+      isMobile, invalidate: reason => {
+        // DEM completion may arrive in bursts beside hydro pack uploads.
+        // Keep explicit user actions immediate, coalesce resource settlement.
+        if (reason === 'terrain-tile-ready' || reason === 'terrain-tile-failed' || reason === 'terrain-upload-failed')
+          return queuePhysicalResourceInvalidation(reason);
+        return invalidatePhysicalScene(reason);
+      }, geoDistance: (...args) => d3.geo.distance(...args),
       readTile: (spec, signal) => fetchTerrainTile(terrainTileRequest(spec, terrainManifest, {
         manifestUrl: terrainManifestUrl, dataBaseUrl: PHYSICAL_DATA_BASE_URL,
         externalSource: globalThis.PANDOLAB_BUILD_META?.terrainExternalSource || null,
@@ -797,7 +802,6 @@ export function createGpuMapRenderer(deps) {
     let countryBoundaryWorker = null;
     const countryBoundaryGeometryTransport = createCountryBoundaryGeometryTransport();
     let countryBoundaryRequestId = 0;
-    let countryBoundaryIncludesOutlines = null;
     let countrySharedBoundary = null;
     // This candidate is not visible until its complete GPU stroke resources exist.
     // Keep the last presented packet active during Worker and upload latency.
@@ -822,7 +826,6 @@ export function createGpuMapRenderer(deps) {
       if (terminate) {
         countryBoundaryWorker?.terminate(); countryBoundaryWorker = null;
         countryBoundaryGeometryTransport.reset();
-        countryBoundaryIncludesOutlines = null;
       }
     }
     function publishCountrySharedBoundary(packet) {
@@ -862,7 +865,8 @@ export function createGpuMapRenderer(deps) {
         : canonicalBoundaryFeatures;
       const nextDependencies = { source: 'country-boundary',
         content: boundaryContentKey(boundaryFeatures),
-        preparation: resourceKey(['shared-boundary-v1', boundaryQuality, activeMeshQuality==='lod'?screenLodTargetKey:'source', !shouldShowSharedCountryBorders(state.physicalSettings)]),
+        // All terrain modes reuse the same country geometry packet.
+        preparation: resourceKey(['shared-boundary-v2-shared-only', boundaryQuality, activeMeshQuality==='lod'?screenLodTargetKey:'source']),
         context: gl ? [gl, renderDeviceContextRevision] : null, presentation: 'boundaries' };
       const change = resourceUpdate(countryBoundaryDependencies, nextDependencies);
       if (countryBoundaryTask && countryBoundaryTask.projectGeneration===projectGeneration
@@ -978,7 +982,6 @@ export function createGpuMapRenderer(deps) {
         baselineCache = false;
       }
       resetCountrySharedBoundary();
-      countryBoundaryIncludesOutlines = !shouldShowSharedCountryBorders(state.physicalSettings);
       performanceMetrics.countryBoundaryPrepareCount = (performanceMetrics.countryBoundaryPrepareCount || 0) + 1;
       const transportMessage = replace
         ? countryBoundaryGeometryTransport.planReplace(source)
@@ -998,7 +1001,7 @@ export function createGpuMapRenderer(deps) {
       countryBoundaryWorker.postMessage({
         ...transportMessage,
         requestId: countryBoundaryRequestId, projectGeneration,
-        includeOutlines: countryBoundaryIncludesOutlines,
+        includeOutlines: false,
         geometryRevision: geometryRevisionTracker.committedRevision(), quality: boundaryQuality,
         cacheUrl: transportMessage.type === 'replace' && sharedBoundaryCacheUrls?.[boundaryQuality]
           ? new URL(sharedBoundaryCacheUrls[boundaryQuality], PHYSICAL_DATA_BASE_URL).href : null,
@@ -1885,6 +1888,7 @@ export function createGpuMapRenderer(deps) {
       hydroPreparation.setContext({ gl: null, version: glVersion, scheduler: hydroUploadScheduler,
         projectGeneration, contextGeneration: renderDeviceContextRevision });
       hydroCoverage.handleContextLost();
+      renderDevice?.state.dispose();
       lifecycle.releaseContext(gl);
       failTemporalPresentation(Object.assign(new Error('Context lost during temporal presentation'), {name:'AbortError'}));
       pendingCanonicalCommit?.reject(Object.assign(new Error('Context lost during canonical commit'), { name: 'AbortError' }));
@@ -2169,6 +2173,7 @@ export function createGpuMapRenderer(deps) {
           renderDeviceContextRevision++;
           createWebGlResources();
           renderDevice = createRenderDevice({ gl, canvas, version: glVersion, contextRevision: renderDeviceContextRevision });
+          hydroCoverage.setContext(renderDevice, glVersion);
           initializeSharedGpuPasses();
         } catch (error) {
           console.error('[PL-GPU-002]', error);
@@ -2210,6 +2215,7 @@ export function createGpuMapRenderer(deps) {
         version,
         contextRevision: renderDeviceContextRevision,
       });
+      hydroCoverage.setContext(renderDevice, version);
       initializeSharedGpuPasses();
       lifecycle.listen(canvas, 'webglcontextlost', handleWebGlContextLost);
       lifecycle.listen(canvas, 'webglcontextrestored', handleWebGlContextRestored);
@@ -3666,13 +3672,52 @@ export function createGpuMapRenderer(deps) {
       }
     }
 
-    let hydroRenderFrame = 0;
+    // One bounded invalidation owner for DEM and Hydro resource completions.
+    // The RenderCoordinator already coalesces dirty masks, but coalescing
+    // resource admission before invalidating the colour scene prevents
+    // redundant full-scene globe draws within one upload burst.
+    const PHYSICAL_RESOURCE_BATCH_MS = 36;
+    let physicalResourceBatch = null;
+    function queuePhysicalResourceInvalidation(reason = 'physical-resource-ready') {
+      if (disposed) return false;
+      const generation = projectGeneration, context = renderDeviceContextRevision;
+      let batch = physicalResourceBatch;
+      if (batch && (batch.generation !== generation || batch.context !== context)) {
+        if (batch.timeout !== null) lifecycle.cancelTimeout(batch.timeout);
+        if (batch.frame !== null) lifecycle.cancelFrame(batch.frame);
+        physicalResourceBatch = null;
+        batch = null;
+      }
+      if (batch) {
+        batch.reasons.add(reason);
+        performanceMetrics.physicalResourceCoalescedCount =
+          (performanceMetrics.physicalResourceCoalescedCount || 0) + 1;
+        return true;
+      }
+      batch = { generation, context, reasons: new Set([reason]), timeout: null, frame: null };
+      physicalResourceBatch = batch;
+      batch.timeout = lifecycle.timeout(() => {
+        batch.timeout = null;
+        batch.frame = lifecycle.frame(() => {
+          batch.frame = null;
+          if (physicalResourceBatch !== batch) return;
+          physicalResourceBatch = null;
+          // Never replay old-source uploads into a newer project or GL context.
+          if (disposed || batch.generation !== projectGeneration || batch.context !== renderDeviceContextRevision) return;
+          performanceMetrics.physicalResourceFlushCount =
+            (performanceMetrics.physicalResourceFlushCount || 0) + 1;
+          performanceMetrics.physicalResourceLastReasons = [...batch.reasons];
+          invalidatePhysicalScene('physical-resources-ready');
+        });
+      }, PHYSICAL_RESOURCE_BATCH_MS);
+      return true;
+    }
+
     function queueHydroRender(reason = 'hydro-ready') {
-      if (hydroRenderFrame) return;
-      hydroRenderFrame = lifecycle.frame(() => {
-        hydroRenderFrame = 0;
-        invalidatePhysicalScene(reason);
-      });
+      // Visibility/style and source replacement must remain immediate.
+      if (reason === 'hydro-visibility' || reason === 'hydro-manifest')
+        return invalidatePhysicalScene(reason);
+      return queuePhysicalResourceInvalidation(reason);
     }
 
     function aggregateHydroDescriptors(logicalId) {
@@ -3878,13 +3923,8 @@ export function createGpuMapRenderer(deps) {
       // Country paint opacity depends on the active map mode.
       markPaletteDirty({ base: true });
       countryPaletteRevision += 1;
-      if (shouldShowSharedCountryBorders(state.physicalSettings)
-        && !countryBoundaryWorker && !countrySharedBoundary) prepareCountrySharedBoundary({ replace: true });
-      else if (!shouldShowSharedCountryBorders(state.physicalSettings) && countryBoundaryIncludesOutlines === false) {
-        // Reuse the Worker's prepared topology. Request coast outlines only
-        // when switching into a map mode that displays them.
-        prepareCountrySharedBoundary({ features: [] });
-      }
+      // Terrain styles only affect appearance, never the shared-border topology.
+      if (!countryBoundaryWorker && !countrySharedBoundary) prepareCountrySharedBoundary({ replace: true });
       invalidatePhysicalScene(reason);
       return true;
     }
@@ -4022,11 +4062,6 @@ export function createGpuMapRenderer(deps) {
         for (const packet of globalThis.PandoLabCanvasSceneComposition.countryBoundaryBatches(
           countrySharedBoundary, mapTheme(), sharedOnly, countryBoundaryStyleById))
           packets.set(packet.key, packet);
-      }
-      if (!sharedOnly && mesh) {
-        for (const resource of Object.values(currentCountryStrokeResources())) {
-          if (resource?.packet) packets.set(resource.packet.key, resource.packet);
-        }
       }
       for (const packet of packets.values()) strokeRenderer.ensureResource(packet);
       return packets.size > 0;
@@ -4332,7 +4367,9 @@ export function createGpuMapRenderer(deps) {
       const preparedInteraction = prepareGpuInteractionPlan({ interaction: renderInteractionState, emphasis: countryEmphasis,
         mesh, overrideMesh:activeMeshQuality==='lod'?null:overrideMesh, overrideIds: activeMeshQuality==='lod'?new Set():countryOverrideIds, countriesVisible: state.layerVisibility.objects,
         blocked: projectRenderBlocked, isPending: id => geometryRevisionTracker.isPending(id), isVisible: isCountryVisibleById }, polygonOverlayPass);
-      const fillTarget = gl.getParameter(gl.FRAMEBUFFER_BINDING);
+      const fillTarget = renderDevice?.state
+        ? (renderDevice.state.capture()?.framebuffer ?? null)
+        : gl.getParameter(gl.FRAMEBUFFER_BINDING);
       const fillTargetReady = preparedInteraction.hasFillItems
         && interactionFillCache.beginScene(pixelWidth, pixelHeight, '', projectGeneration);
       performanceMetrics.countryInteractionIndexCount = 0;
@@ -5373,7 +5410,8 @@ export function createGpuMapRenderer(deps) {
 
     function retainSceneResources() {
       const borderPacketKeys = [countrySharedBoundary, pendingCountrySharedBoundary]
-        .flatMap(packet => packet ? [packet.key, packet.outlineOverrides?.key] : []).filter(Boolean);
+        .flatMap(packet => packet ? [packet.key,
+          ...(packet.outlineOverrides?.preparedGeometry?.segmentCount ? [packet.outlineOverrides.key] : [])] : []).filter(Boolean);
       const protectedKeys = new Set([
         ...borderPacketKeys,
         ...(renderScene?.polygons || []).filter(packet => packet.protected).map(packet => packet.key),
@@ -5749,6 +5787,7 @@ export function createGpuMapRenderer(deps) {
       terrainPreparation?.reset();
       sceneColorCache.dispose(); interactionFillCache.dispose(); interactionStrokeCache.dispose();
       polygonOverlayPass.dispose(); strokeRenderer.dispose();
+      renderDevice?.state.dispose();
       lifecycle.releaseContext(gl);
     }
 

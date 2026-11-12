@@ -7,6 +7,7 @@ const ASSET_REVISION = String(buildMeta.assetRevision || workerAssetRevision);
 const DATA_REVISION = String(buildMeta.dataRevision || '');
 if (!DATA_REVISION) throw new Error('데이터 빌드 메타데이터가 없습니다.');
 const { decodePreparedCountryScene, preparedCountrySceneKey } = await import(`../../rendering/country-mesh-codec.js?v=${encodeURIComponent(ASSET_REVISION)}`);
+const { prepareGpuStrokeVisibilityBlocks } = await import(`../../rendering/gpu-stroke-visibility.js?v=${encodeURIComponent(ASSET_REVISION)}`);
 let manifest = null;
 const { createStoredAssetLoader } = await import(`../stored-asset-loader.js?v=${encodeURIComponent(ASSET_REVISION)}`);
 const { parseVerifiedWorldBundle, worldAssetUrl } = await import(`../world-bundle-manifest.js?v=${encodeURIComponent(ASSET_REVISION)}`);
@@ -45,6 +46,16 @@ async function loadPreparedScene(sceneIdentity) {
     throw error;
   }
   const scene=result.value, buffers=new Set();
+  // Older immutable prepared-world assets predate P1 stroke culling. Derive
+  // their viewport index here in the loader Worker, never on the UI thread.
+  // The SHA-verified scene and its canonical boundary coordinates stay intact.
+  const original = scene.boundaryPacket;
+  const prepared = original.preparedGeometry;
+  const index = prepared?.visibilityBlocks?.version === 1
+    ? prepared.visibilityBlocks : prepareGpuStrokeVisibilityBlocks(prepared);
+  const boundaryPacket = index
+    ? { ...original, preparedGeometry: { ...prepared, visibilityBlocks: index } }
+    : original;
   const collect=value=>{
     if(value instanceof ArrayBuffer)buffers.add(value);
     else if(ArrayBuffer.isView(value))buffers.add(value.buffer);
@@ -52,7 +63,7 @@ async function loadPreparedScene(sceneIdentity) {
   };
   collect(scene);
   self.postMessage({type:'builtin-mesh-ready',meshBuffer:scene.meshBuffer,
-    preparedStroke:scene.preparedStroke,spatialBlocks:scene.spatialBlocks,boundaryPacket:scene.boundaryPacket,
+    preparedStroke:scene.preparedStroke,spatialBlocks:scene.spatialBlocks,boundaryPacket,
     identity:{hash:spec.sha256,sceneKey:key,dataRevision:DATA_REVISION,
       countryIds:scene.countryIds,header:[...new Uint32Array(scene.meshBuffer,0,12)]}},[...buffers]);
 }

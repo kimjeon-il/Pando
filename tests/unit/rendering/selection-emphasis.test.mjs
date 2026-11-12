@@ -1,4 +1,5 @@
 import { describe as contractSuite } from 'node:test';
+import {createRenderDeviceFixture} from '../../helpers/render-device-fixture.mjs';
 
 import * as __dep1 from "node:assert/strict";
 
@@ -129,7 +130,9 @@ test('hard GPU failures never retire SVG coverage even if stale rendered keys re
 
 test('real selection pass preserves ready stroke coverage alongside a missing country', () => {
   const pass = createSelectionPass();
-  pass.initialize({ gl: {}, version: 2, capabilities: {} }, { strokeRenderer: {
+  const device = createRenderDeviceFixture().device;
+  assert.equal(device.contextRevision,1);
+  pass.initialize(device, { strokeRenderer: {
     isAvailable: () => true, stats: () => ({ gpuHealth: 'healthy', selfTestPassed: true }),
     drawBatches: batches => ({ succeeded: true, renderedKeys: batches.map(batch => batch.key), drawCallCount: 1 }),
   } });
@@ -153,7 +156,7 @@ test('real polygon pass retires fills only for objects whose every resource was 
     'enableVertexAttribArray', 'vertexAttribPointer', 'uniform2f', 'uniform1f', 'uniform3fv', 'uniform1i',
     'drawElements', 'disableVertexAttribArray']) gl[method] = () => {};
   const pass = createGpuPolygonOverlayPass();
-  assert.equal(pass.initialize({ gl, version: 2, capabilities: { uintIndices: true } }), true);
+  assert.equal(pass.initialize(createRenderDeviceFixture({gl}).device), true);
   pass.ensureResource({ key: 'ready', positions: new Float32Array([0, 0, 1, 0, 0, 1]), indices: new Uint32Array([0, 1, 2]) });
   const result = pass.drawResourceItems([{ key: 'ready' }, { key: 'pending' }],
     { viewport: [100, 100], translate: [0, 0], flatCenter: [0, 0], scale: 1, mode: 1 });

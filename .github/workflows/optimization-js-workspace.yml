@@ -1,8 +1,6 @@
-name: Optimization JS workspace preparation
+name: "[HISTORICAL] Optimization JS workspace preparation"
 on:
-  push:
-    branches: [work/optimization]
-    paths: [.github/workflows/optimization-js-workspace.yml]
+  workflow_dispatch:
 permissions:
   contents: read
 jobs:

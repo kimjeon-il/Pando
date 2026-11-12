@@ -1,8 +1,6 @@
-name: UI same-run cold and warm startup comparison
+name: "[HISTORICAL] UI same-run cold and warm startup comparison"
 on:
-  push:
-    branches: [work/ui]
-    paths: ['.github/workflows/ui-startup-ab.yml']
+  workflow_dispatch:
 permissions: {contents: read}
 jobs:
   paired:

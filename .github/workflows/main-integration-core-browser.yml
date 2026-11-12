@@ -1,8 +1,6 @@
-name: Source-matched core and focused Viewer roundtrip for main integration
+name: "[HISTORICAL] Source-matched core and focused Viewer roundtrip for main integration"
 on:
-  push:
-    branches: [work/optimization-main-merge-20261110]
-    paths: [.github/workflows/main-integration-core-browser.yml]
+  workflow_dispatch:
 permissions:
   contents: write
 jobs:

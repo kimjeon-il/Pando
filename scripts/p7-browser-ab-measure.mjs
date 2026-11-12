@@ -54,6 +54,16 @@ const mapSummary=stats=>{
     gpuTrackedBuffersBytes:Object.values(s.meshVariantBytes||{}).reduce((n,v)=>n+(Number(v)||0),0)
       +(Number(s.stroke?.activeBufferBytes)||0)+(Number(s.polygonOverlay?.activeBufferBytes)||0),
     gpuSceneCacheDraws:s.sceneCacheFullDrawCount??null,
+    // Resource and stroke P1 counters remain cumulative per page; raw
+    // phases let the acceptance report compute exact phase-to-phase deltas.
+    physicalResourceFlushCount:s.physicalResourceFlushCount??0,
+    physicalResourceCoalescedCount:s.physicalResourceCoalescedCount??0,
+    terrainIgnoredOffscreenCompletionCount:s.terrainIgnoredOffscreenCompletionCount??0,
+    hydroOffscreenUploadCompletionCount:s.hydroOffscreenUploadCompletionCount??0,
+    hydroUnchangedActiveViewCount:s.hydroUnchangedActiveViewCount??0,
+    strokeCulledOwnerCount:s.stroke?.culledOwnerCount??0,
+    strokeMergedDrawRangeCount:s.stroke?.mergedDrawRangeCount??0,
+    strokeDrawCalls:s.stroke?.drawCallCount??null,
     countryMeshPreparationMs:s.lastMeshPreparation?.totalMs??null,
     countryTriangulationMs:s.lastMeshPreparation?.triangulationMs??null,
     countryStrokePreparationMs:s.lastMeshPreparation?.strokeMs??null,

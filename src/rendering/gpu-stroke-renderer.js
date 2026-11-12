@@ -2,6 +2,8 @@ import { buildGpuStrokeInstances } from "./gpu-stroke-geometry.js";
 export { buildGpuStrokeInstances, GPU_STROKE_FLAGS } from "./gpu-stroke-geometry.js";
 import { isRenderDevice } from "./render-device.js";
 import { createGpuResourceBudget } from "./gpu-resource-budget.js";
+import { visibleGpuStrokeOwners, mergeGpuStrokeDrawRanges,
+  strokeVisibilityBlockIntersectsFrame, STROKE_CULL_PADDING_PX } from "./gpu-stroke-visibility.js";
 import { applyGpuBlendMode, parseGpuColor, resetGpuNormalBlend } from "./gpu-blend-utils.js";
 import { linkGpuProgram, GPU_SPHERICAL_POSITION_GLSL } from "./gpu-shader-utils.js";
 import { GPU_VIEW_UNIFORM_NAMES, setGpuViewUniforms } from "./gpu-view-uniforms.js";
@@ -219,6 +221,60 @@ export function resolveGpuStrokeRanges(resource, ownerIds = null, rangeProperty 
   return Object.freeze(ranges);
 }
 
+/** Worker-prepared blocks narrow a visible country's GPU ranges further.
+ * Unverified metadata, unknown cameras and gaps fail open to original ranges. */
+export function resolveVisibleGpuStrokeRanges(resource, ownerIds, frameContext,
+  rangeProperty = 'ownerRanges', countProperty = 'instanceCount', paddingPx = STROKE_CULL_PADDING_PX) {
+  const unrestricted = resolveGpuStrokeRanges(resource, ownerIds, rangeProperty, countProperty);
+  const index = resource?.visibilityBlocks;
+  if (!Array.isArray(ownerIds) || index?.version !== 1 || !frameContext) return unrestricted;
+  const viewport = frameContext.cssViewport, translate = frameContext.cssTranslate;
+  const projection = frameContext.mode === 0
+    ? [frameContext.rowX, frameContext.rowY, frameContext.rowZ]
+    : frameContext.mode === 1 ? [frameContext.flatCenter, frameContext.worldOffsets] : null;
+  if (!Array.isArray(viewport) || viewport.length !== 2
+    || !Array.isArray(translate) || translate.length !== 2
+    || ![...viewport, ...translate, frameContext.cssScale].every(Number.isFinite)
+    || viewport.some(value => value <= 0) || frameContext.cssScale <= 0
+    || !projection || projection.some(value => !Array.isArray(value)
+      || !value.length || !value.every(Number.isFinite))) return unrestricted;
+  const groups = index[rangeProperty === 'ownerNodeRanges' ? 'nodes' : 'segments'];
+  if (!groups) return unrestricted;
+  const visible = [];
+  const seen = new Set();
+  const maximum = Math.max(0, Math.trunc(Number(resource?.[countProperty]) || 0));
+  for (const rawId of ownerIds) {
+    const id = String(rawId || '');
+    if (!id || seen.has(id)) continue;
+    seen.add(id);
+    const owner = resource?.[rangeProperty]?.[id];
+    const first = Math.max(0, Math.trunc(Number(owner?.first) || 0));
+    const count = Math.min(Math.max(0, Math.trunc(Number(owner?.count) || 0)), maximum - first);
+    if (!count || first >= maximum) continue;
+    const group = groups[id];
+    if (!group || group.first !== first || group.count !== count || !Array.isArray(group.blocks)) {
+      visible.push({ first, count });
+      continue;
+    }
+    if (!strokeVisibilityBlockIntersectsFrame(group.bounds, frameContext, paddingPx)) continue;
+    const blocks = [];
+    let next = first, valid = true;
+    for (const block of group.blocks) {
+      if (!Number.isSafeInteger(block.first) || !Number.isSafeInteger(block.count)
+        || block.first !== next || block.count <= 0 || block.first + block.count > first + count) {
+        valid = false;
+        break;
+      }
+      next = block.first + block.count;
+      if (strokeVisibilityBlockIntersectsFrame(block.bounds, frameContext, paddingPx))
+        blocks.push({ first: block.first, count: block.count });
+    }
+    if (!valid || next !== first + count) visible.push({ first, count });
+    else visible.push(...blocks);
+  }
+  return visible;
+}
+
 function joinModeValue(join) {
   if (join === 'miter') return 1;
   if (join === 'bevel') return 2;
@@ -249,11 +305,20 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
     pendingUploads.clear();
   };
   function drainUploads(byteLimit = Infinity) {
-    if (!gl || contextLost) return;
+    if (!gl || contextLost || gl.isContextLost?.()) return;
     if (isInputActive() || globalThis.document?.hidden || globalThis.navigator?.scheduling?.isInputPending?.()) return scheduleUpload();
     const started = performance.now();
     let budget = Math.min(byteLimit, Math.max(64 * 1024, Number(getUploadBudget()) || 4 * 1024 * 1024));
-    const savedBuffer = gl.getParameter(gl.ARRAY_BUFFER_BINDING);
+    const uploadDevice = device;
+    const uploadGl = gl;
+    // RenderDevice supplies the binding and its context-generation receipt.
+    // Never synchronously query ARRAY_BUFFER_BINDING or call gl.isBuffer().
+    const savedBinding = uploadDevice?.state?.captureArrayBufferBinding?.();
+    if (!savedBinding) {
+      cancelUploads();
+      onError?.({ stage: 'stroke-staging-upload', error: new Error('RenderDevice buffer-binding receipt unavailable') });
+      return;
+    }
     try {
       for (const [key, job] of pendingUploads) {
         while (job.part < 2 && budget > 0 && performance.now() - started < 4) {
@@ -290,7 +355,10 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
       cancelUploads();
       onError?.({ stage: 'stroke-staging-upload', error });
     } finally {
-      if (gl) gl.bindBuffer(gl.ARRAY_BUFFER, savedBuffer && gl.isBuffer(savedBuffer) ? savedBuffer : null);
+      // A deleted buffer is restored as null. Context-loss/recovery must not
+      // let an older upload rebind a name into the new device generation.
+      if (device === uploadDevice && gl === uploadGl)
+        uploadDevice.state.restoreArrayBufferBinding(savedBinding);
       scheduleUpload();
     }
   }
@@ -315,6 +383,56 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
   let drawCount = 0;
   let drawCallCount = 0;
   let drawMs = 0;
+  let culledOwnerCount = 0;
+  let mergedDrawRangeCount = 0;
+  let culledSegmentInstances = 0, culledNodeInstances = 0, culledBatches = 0;
+  let visibilityCacheHits = 0, visibilityCacheMisses = 0, visibilityFrameChanges = 0;
+  // View selections are disposable; the Worker index and GPU buffer are not.
+  let viewKey = null, viewSelections = new WeakMap();
+  let previousFrame = null, previousCameraKey = null;
+  const total = ranges => ranges.reduce((n, range) => n + range.count, 0);
+  const clearViewSelections = () => {
+    viewKey = null;
+    viewSelections = new WeakMap();
+    previousFrame = null;
+    previousCameraKey = null;
+  };
+  function cameraKey(frame) {
+    if (previousFrame !== frame) {
+      previousFrame = frame;
+      previousCameraKey = JSON.stringify([frame?.mode, frame?.cssViewport, frame?.cssTranslate,
+        frame?.cssScale, frame?.flatCenter, frame?.worldOffsets,
+        frame?.rowX, frame?.rowY, frame?.rowZ]);
+    }
+    return previousCameraKey;
+  }
+  function visiblePlan(resource, owners, frame, paddingPx) {
+    const next = cameraKey(frame);
+    if (viewKey !== next) {
+      viewSelections = new WeakMap();
+      viewKey = next;
+      visibilityFrameChanges += 1;
+    }
+    let selectors = viewSelections.get(resource);
+    if (!selectors) { selectors = new Map(); viewSelections.set(resource, selectors); }
+    const key = JSON.stringify([owners || null, paddingPx]);
+    const cached = selectors.get(key);
+    if (cached) { visibilityCacheHits += 1; return cached; }
+    const allSegments = resolveGpuStrokeRanges(resource, owners);
+    const allNodes = resolveGpuStrokeRanges(resource, owners, 'ownerNodeRanges', 'nodeCount');
+    const segments = resolveVisibleGpuStrokeRanges(resource, owners, frame,
+      'ownerRanges', 'instanceCount', paddingPx);
+    const nodes = resolveVisibleGpuStrokeRanges(resource, owners, frame,
+      'ownerNodeRanges', 'nodeCount', paddingPx);
+    const result = {
+      segments, nodes, missing: !allSegments.length && !allNodes.length,
+      skippedSegments: Math.max(0, total(allSegments) - total(segments)),
+      skippedNodes: Math.max(0, total(allNodes) - total(nodes)),
+    };
+    selectors.set(key, result);
+    visibilityCacheMisses += 1;
+    return result;
+  }
   let cacheHits = 0;
   let cacheMisses = 0;
   let failureCount = 0;
@@ -335,52 +453,15 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
     else instancing.drawArraysInstancedANGLE(gl.TRIANGLES, 0, count, instances);
   };
 
+  // The shared RenderDevice owns the complete GL state ledger. Coverage
+  // passes never synchronously query the driver for a state snapshot.
   function captureState() {
-    const activeTexture = gl.getParameter(gl.ACTIVE_TEXTURE);
-    const texture = gl.getParameter(gl.TEXTURE_BINDING_2D);
-    gl.activeTexture(gl.TEXTURE0);
-    const texture0 = gl.getParameter(gl.TEXTURE_BINDING_2D);
-    gl.activeTexture(activeTexture);
-    return {
-      framebuffer: gl.getParameter(gl.FRAMEBUFFER_BINDING),
-      readFramebuffer: device.version === 2 ? gl.getParameter(gl.READ_FRAMEBUFFER_BINDING) : null,
-      viewport: Array.from(gl.getParameter(gl.VIEWPORT)),
-      program: gl.getParameter(gl.CURRENT_PROGRAM),
-      arrayBuffer: gl.getParameter(gl.ARRAY_BUFFER_BINDING),
-      activeTexture, texture, texture0,
-      blend: gl.isEnabled(gl.BLEND),
-      depth: gl.isEnabled(gl.DEPTH_TEST),
-      cull: gl.isEnabled(gl.CULL_FACE),
-      scissor: gl.isEnabled(gl.SCISSOR_TEST),
-      stencil: gl.isEnabled(gl.STENCIL_TEST),
-      equations: [gl.getParameter(gl.BLEND_EQUATION_RGB), gl.getParameter(gl.BLEND_EQUATION_ALPHA)],
-      blendFactors: [gl.getParameter(gl.BLEND_SRC_RGB), gl.getParameter(gl.BLEND_DST_RGB),
-        gl.getParameter(gl.BLEND_SRC_ALPHA), gl.getParameter(gl.BLEND_DST_ALPHA)],
-      colorMask: Array.from(gl.getParameter(gl.COLOR_WRITEMASK)),
-      clearColor: Array.from(gl.getParameter(gl.COLOR_CLEAR_VALUE)),
-    };
+    if (!device?.state) throw new Error('Stroke coverage requires a RenderDevice state contract');
+    return device.state.capture();
   }
 
-  function restoreState(state) {
-    const enabled = (cap, value) => value ? gl.enable(cap) : gl.disable(cap);
-    gl.bindFramebuffer(gl.FRAMEBUFFER, state.framebuffer);
-    if (device.version === 2) gl.bindFramebuffer(gl.READ_FRAMEBUFFER, state.readFramebuffer);
-    gl.viewport(...state.viewport);
-    gl.useProgram(state.program);
-    gl.bindBuffer(gl.ARRAY_BUFFER, state.arrayBuffer);
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, state.texture0);
-    gl.activeTexture(state.activeTexture);
-    gl.bindTexture(gl.TEXTURE_2D, state.texture);
-    enabled(gl.BLEND, state.blend);
-    enabled(gl.DEPTH_TEST, state.depth);
-    enabled(gl.CULL_FACE, state.cull);
-    enabled(gl.SCISSOR_TEST, state.scissor);
-    enabled(gl.STENCIL_TEST, state.stencil);
-    gl.blendEquationSeparate(...state.equations);
-    gl.blendFuncSeparate(...state.blendFactors);
-    gl.colorMask(...state.colorMask);
-    gl.clearColor(...state.clearColor);
+  function restoreState(saved) {
+    device?.state.restore(saved);
   }
 
   function setViewUniforms(programInfo, frameContext, worldOffset) {
@@ -448,14 +529,23 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
     return { width, alpha };
   }
 
-  function drawSegments(resource, style, frameContext, ownerIds) {
+  function mergedStrokeRanges(resource, ownerIds, rangeProperty = 'ownerRanges',
+    countProperty = 'instanceCount', plan = null) {
+    const ranges = plan ? (rangeProperty === 'ownerNodeRanges' ? plan.nodes : plan.segments)
+      : resolveGpuStrokeRanges(resource, ownerIds, rangeProperty, countProperty);
+    const merged = mergeGpuStrokeDrawRanges(ranges);
+    mergedDrawRangeCount += Math.max(0, ranges.length - merged.length);
+    return merged;
+  }
+
+  function drawSegments(resource, style, frameContext, ownerIds, plan = null) {
     const programInfo = programs.segment;
     gl.useProgram(programInfo.program);
     applyCommonStyleUniforms(programInfo, style, frameContext);
     gl.uniform1i(programInfo.uniforms.uJoinMode, joinModeValue(style.join));
     gl.uniform1f(programInfo.uniforms.uMiterLimit, Math.max(1, Number(style.miterLimit) || 4));
     gl.uniform2f(programInfo.uniforms.uDash, Math.max(0, Number(style.dash?.[0]) || 0), Math.max(0, Number(style.dash?.[1]) || 0));
-    const ranges = resolveGpuStrokeRanges(resource, ownerIds);
+    const ranges = mergedStrokeRanges(resource, ownerIds, 'ownerRanges', 'instanceCount', plan);
     let completedDraws = 0;
     for (const range of ranges) {
       const locations = bindSegmentGeometry(resource, range.first);
@@ -470,14 +560,14 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
     return completedDraws;
   }
 
-  function drawRoundNodes(resource, style, frameContext, ownerIds) {
+  function drawRoundNodes(resource, style, frameContext, ownerIds, plan = null) {
     if (!resource.nodeCount) return 0;
     const programInfo = programs.round;
     gl.useProgram(programInfo.program);
     applyCommonStyleUniforms(programInfo, style, frameContext);
     gl.uniform1i(programInfo.uniforms.uJoinMode, joinModeValue(style.join));
     gl.uniform1i(programInfo.uniforms.uRoundCap, style.cap === 'round' ? 1 : 0);
-    const ranges = resolveGpuStrokeRanges(resource, ownerIds, 'ownerNodeRanges', 'nodeCount');
+    const ranges = mergedStrokeRanges(resource, ownerIds, 'ownerNodeRanges', 'nodeCount', plan);
     let completedDraws = 0;
     for (const range of ranges) {
       const locations = bindNodeGeometry(programInfo, roundCornerBuffer, 'aCorner', resource, range.first);
@@ -492,12 +582,12 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
     return completedDraws;
   }
 
-  function drawBevelJoins(resource, style, frameContext, ownerIds) {
+  function drawBevelJoins(resource, style, frameContext, ownerIds, plan = null) {
     if (!resource.nodeCount || style.join === 'round') return 0;
     const programInfo = programs.bevel;
     gl.useProgram(programInfo.program);
     applyCommonStyleUniforms(programInfo, style, frameContext);
-    const ranges = resolveGpuStrokeRanges(resource, ownerIds, 'ownerNodeRanges', 'nodeCount');
+    const ranges = mergedStrokeRanges(resource, ownerIds, 'ownerNodeRanges', 'nodeCount', plan);
     let completedDraws = 0;
     for (const range of ranges) {
       const locations = bindNodeGeometry(programInfo, bevelVertexBuffer, 'aVertexId', resource, range.first);
@@ -512,12 +602,12 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
     return completedDraws;
   }
 
-  function drawStyle(resource, style, frameContext, ownerIds = null) {
-    let draws = drawSegments(resource, style, frameContext, ownerIds);
+  function drawStyle(resource, style, frameContext, ownerIds = null, plan = null) {
+    let draws = drawSegments(resource, style, frameContext, ownerIds, plan);
     // Solid join/cap patches would fill the gaps of densely segmented dashes.
     if (style.dash?.[0] > 0 && style.dash?.[1] > 0) return draws;
-    draws += drawRoundNodes(resource, style, frameContext, ownerIds);
-    draws += drawBevelJoins(resource, style, frameContext, ownerIds);
+    draws += drawRoundNodes(resource, style, frameContext, ownerIds, plan);
+    draws += drawBevelJoins(resource, style, frameContext, ownerIds, plan);
     return draws;
   }
 
@@ -564,7 +654,7 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
     } catch (error) { disposeCoverage(); throw error; }
   }
 
-  function drawCoverageStyle(resource, style, frameContext, ownerIds) {
+  function drawCoverageStyle(resource, style, frameContext, ownerIds, plan = null) {
     const saved = captureState();
     try {
       ensureCoverage(frameContext.viewport[0], frameContext.viewport[1]);
@@ -575,7 +665,7 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
       gl.enable(gl.BLEND); gl.blendEquation(coverageMaximum); gl.blendFunc(gl.ONE, gl.ONE);
       // Geometry contributes coverage only. Color and effective owner opacity
       // are applied once below, including at dense joins and coincident edges.
-      const draws = drawStyle(resource, { ...style, color: '#ffffff', alpha: 1, blendMode: 'normal' }, frameContext, ownerIds);
+      const draws = drawStyle(resource, { ...style, color: '#ffffff', alpha: 1, blendMode: 'normal' }, frameContext, ownerIds, plan);
       if (!draws) return 0;
       gl.bindFramebuffer(gl.FRAMEBUFFER, saved.framebuffer); gl.viewport(...saved.viewport);
       if (saved.scissor) gl.enable(gl.SCISSOR_TEST);
@@ -625,6 +715,10 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
       invalidSegmentCount: geometry.invalidSegmentCount,
       ownerRanges: geometry.ownerRanges,
       ownerNodeRanges: geometry.ownerNodeRanges,
+      visibilityBlocks: geometry.visibilityBlocks || null,
+      // Reuse the already prepared CPU instance array only as a bounding
+      // source. No additional GPU geometry or triangulation is generated.
+      instances: geometry.instances,
       byteLength: geometry.instances.byteLength + geometry.nodes.byteLength,
     });
   }
@@ -731,6 +825,7 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
     deleteGpuResource(resource);
     resources.delete(normalized);
     resourceBudget.remove(normalized);
+    clearViewSelections();
     return true;
   }
 
@@ -809,13 +904,50 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
       try {
         resourceBudget.touch(key, batch?.priority);
         const style = { ...gpuStrokeStyle(scaleInteractionStroke(batch.style || {}, frameContext), frameContext), blendMode: batch.blendMode || batch.style?.blendMode || 'normal' };
+        // The legacy owner-only index remains the fallback for other strokes.
+        // Prepared shared-border packets already contain finer Worker-built
+        // owner/block bounds; never rescan their vertices on the main thread.
+        const width = Math.max(Number(style.width) || 0, Number(style.casing?.width) || 0);
+        const margin = Math.max(96, width * Math.max(4, Number(style.miterLimit) || 4)
+          + aaRadius * Math.max(1, Number(frameContext.dpr) || 1) * 4);
+        const ownerIds = resource.visibilityBlocks?.version === 1
+          ? batch.ownerIds
+          : visibleGpuStrokeOwners(resource, batch.ownerIds, frameContext, { paddingPx: margin });
+        if (Array.isArray(batch.ownerIds) && Array.isArray(ownerIds)) {
+          culledOwnerCount += Math.max(0, batch.ownerIds.length - ownerIds.length);
+          if (!ownerIds.length) {
+            // A prepared but offscreen batch is successfully presented with
+            // zero submissions; never misclassify it as a missing resource.
+            if (key) renderedKeys.push(key);
+            continue;
+          }
+        }
+        // Both passes use the same geometry selector, independent of style
+        // changes and viewport-independent GPU allocations.
+        const cssMargin = Math.max(STROKE_CULL_PADDING_PX,
+          margin / Math.max(1, Number(frameContext.dpr) || 1) + 8);
+        const plan = visiblePlan(resource, ownerIds, frameContext, cssMargin);
+        if (plan.missing) {
+          if (key) missingKeys.push(key);
+          failures.push({ key, reason: Array.isArray(ownerIds) ? 'owner-range-missing' : 'nothing-drawn' });
+          failureCount += 1;
+          lastFailureStage = 'draw-coverage';
+          continue;
+        }
+        culledSegmentInstances += plan.skippedSegments;
+        culledNodeInstances += plan.skippedNodes;
+        if (!plan.segments.length && !plan.nodes.length) {
+          culledBatches += 1;
+          if (key) renderedKeys.push(key);
+          continue;
+        }
         applyGpuBlendMode(gl, style.blendMode);
         let completedDraws = 0;
         if (style.casing?.width > style.width && style.casing.alpha > 0) {
-          completedDraws += (style.coverage === 'union' ? drawCoverageStyle : drawStyle)(resource, { ...style, ...style.casing, cap: style.cap, join: style.join, dash: style.dash, miterLimit: style.miterLimit }, frameContext, batch.ownerIds);
+          completedDraws += (style.coverage === 'union' ? drawCoverageStyle : drawStyle)(resource, { ...style, ...style.casing, cap: style.cap, join: style.join, dash: style.dash, miterLimit: style.miterLimit }, frameContext, ownerIds, plan);
         }
         if (Number(style.alpha ?? 1) > 0 && Number(style.width || 0) > 0)
-          completedDraws += (style.coverage === 'union' ? drawCoverageStyle : drawStyle)(resource, style, frameContext, batch.ownerIds);
+          completedDraws += (style.coverage === 'union' ? drawCoverageStyle : drawStyle)(resource, style, frameContext, ownerIds, plan);
         if (completedDraws > 0) {
           if (key) renderedKeys.push(key);
         } else {
@@ -868,6 +1000,7 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
     selfTestPassed = false;
     resources.clear();
     resourceBudget.clear();
+    clearViewSelections();
     programs = null;
     segmentCornerBuffer = null;
     roundCornerBuffer = null;
@@ -889,6 +1022,7 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
     }
     resources.clear();
     resourceBudget.clear();
+    clearViewSelections();
     programs = null;
     segmentCornerBuffer = null;
     roundCornerBuffer = null;
@@ -938,6 +1072,10 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
       drawCount,
       drawCallCount,
       drawMs,
+      culledOwnerCount,
+      mergedDrawRangeCount,
+      culledSegmentInstances, culledNodeInstances, culledBatches,
+      visibilityCacheHits, visibilityCacheMisses, visibilityFrameChanges,
       cacheHits,
       cacheMisses,
       failureCount,
