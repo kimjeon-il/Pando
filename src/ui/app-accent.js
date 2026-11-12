@@ -1,6 +1,5 @@
 // UI accent follows the browser-exposed platform AccentColor when available.
 // Browsers can deliberately return a generic color to prevent fingerprinting.
-const TOKEN_NAMES = ['accent', 'accent-2', 'accent-surface', 'accent-surface-hover', 'accent-border', 'accent-text', 'focus-ring'];
 const FALLBACK_ACCENTS = Object.freeze({ light: '#316fd3', dark: '#70a6ff' });
 const channels = hex => [1, 3, 5].map(index => Number.parseInt(hex.slice(index, index + 2), 16));
 const mix = (hex, amount) => '#' + channels(hex).map(value => Math.round(value * (1 - amount)).toString(16).padStart(2, '0')).join('');
