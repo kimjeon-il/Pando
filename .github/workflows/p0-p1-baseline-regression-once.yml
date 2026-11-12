@@ -7,7 +7,7 @@ permissions:
   contents: read
 jobs:
   base-gpu-recovery:
-    if: "!contains(github.event.head_commit.message, '[terrain-only]')"
+    if: "!contains(github.event.head_commit.message, '[terrain-only]') && !contains(github.event.head_commit.message, '[unit-only]')"
     runs-on: ubuntu-24.04
     timeout-minutes: 35
     steps:
@@ -22,7 +22,7 @@ jobs:
       - name: Baseline original-main recovery regression
         run: pnpm exec playwright test tests/browser/rendering/viewer-renderer-recovery.spec.mjs --workers=1 --retries=0 --reporter=list
   base-viewer-functional:
-    if: "!contains(github.event.head_commit.message, '[terrain-only]')"
+    if: "!contains(github.event.head_commit.message, '[terrain-only]') && !contains(github.event.head_commit.message, '[unit-only]')"
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
@@ -57,3 +57,25 @@ jobs:
           tests/browser/rendering/terrain-zoom-continuity.spec.mjs
           --grep 'retains numerical terrain during delayed detail|current-view detail reaches an actual WebGL frame'
           --workers=1 --retries=0 --reporter=list
+  base-unit-regression:
+    if: contains(github.event.head_commit.message, '[unit-only]')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Baseline current-main affected unit contracts
+        run: >-
+          node --test --test-concurrency=2
+          tests/unit/document/selection-domain-core.test.mjs
+          tests/unit/rendering/canvas-country-geometry.test.mjs
+          tests/unit/rendering/canvas-inline-worker.test.mjs
+          tests/unit/rendering/gpu-helper-utils.test.mjs
+          tests/unit/rendering/gpu-resource-owners.test.mjs
+          tests/unit/rendering/hydro-reliability-source.test.mjs
+          tests/unit/rendering/map-presentation-readiness.test.mjs
+          tests/unit/rendering/selection-fill-handoff.test.mjs
