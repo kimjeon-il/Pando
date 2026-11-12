@@ -23,7 +23,7 @@ jobs:
           node --check src/rendering/workers/canvas-render-core.js
           node --check tests/unit/rendering/canvas-inline-worker.test.mjs
           node --check tests/unit/rendering/canvas-country-geometry.test.mjs
-      - name: Verify repaired unit suites with Canvas and Worker lifecycle
+      - name: Verify canonical Canvas fallback and current Worker lifecycle suites
         run: >-
           node --test --test-concurrency=2
           tests/unit/rendering/canvas-country-geometry.test.mjs
