@@ -1,0 +1,104 @@
+name: P0 source-matched WASM restoration (one-shot)
+# Temporary one-shot repair: regenerates only the current branch's committed core JS/WASM/manifest.
+on:
+  push:
+    branches:
+      - fix/ci-contract-regressions-20261112-bd4ce10
+    paths:
+      - .github/workflows/p0-source-matched-wasm-once.yml
+permissions:
+  contents: write
+concurrency:
+  group: p0-wasm-restore-fix-ci-20261112
+  cancel-in-progress: false
+jobs:
+  rebuild:
+    if: github.ref == 'refs/heads/fix/ci-contract-regressions-20261112-bd4ce10'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    env:
+      EMCC_CORES: '1'
+      BINARYEN_CORES: '1'
+      NODE_OPTIONS: '--max-old-space-size=512'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install WASM preset dependencies
+        run: sudo apt-get update && sudo apt-get install -y ninja-build zlib1g-dev
+      - name: Read the pinned compiler and SDK
+        id: pin
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import {appendFileSync} from 'node:fs';
+          import {pinnedToolchain} from './scripts/lib/check-changes.mjs';
+          const p=pinnedToolchain();
+          appendFileSync(process.env.GITHUB_OUTPUT,
+            'cmake='+p.cmake+'\nemscripten='+p.emscripten+'\nemsdk='+p.emsdkCommit+'\n');
+          NODE
+      - uses: jwlawson/actions-setup-cmake@v2
+        with:
+          cmake-version: ${{ steps.pin.outputs.cmake }}
+      - uses: actions/checkout@v4
+        with:
+          repository: emscripten-core/emsdk
+          ref: ${{ steps.pin.outputs.emsdk }}
+          path: build-native/emsdk
+          persist-credentials: false
+      - name: Build exact C++ source with pinned Emscripten
+        shell: bash
+        env:
+          EMSDK_VERSION: ${{ steps.pin.outputs.emscripten }}
+        run: |
+          set -euo pipefail
+          pinned_version="$EMSDK_VERSION"
+          build-native/emsdk/emsdk install "$pinned_version"
+          build-native/emsdk/emsdk activate "$pinned_version"
+          source build-native/emsdk/emsdk_env.sh
+          emcc --version | sed -n '1p' | grep -F "$pinned_version"
+          port_file=build-native/emsdk/upstream/emscripten/tools/ports/zlib.py
+          original='https://github.com/madler/zlib/archive/refs/tags/v{VERSION}.tar.gz'
+          canonical='https://codeload.github.com/madler/zlib/tar.gz/refs/tags/v{VERSION}'
+          grep -Fq "$original" "$port_file"
+          sed -i "s|$original|$canonical|" "$port_file"
+          grep -Fq "$canonical" "$port_file"
+          node --input-type=module <<'NODE'
+          import {readFileSync,writeFileSync} from 'node:fs';
+          const path='build-native/emsdk/upstream/emscripten/tools/ports/__init__.py';
+          const source=readFileSync(path,'utf8');
+          const old="    ext = url_filename.split('.', 1)[1]";
+          if(source.split(old).length!==2)throw Error('Unexpected pinned Emscripten port loader');
+          const replacement="    ext = 'tar.gz' if name == 'zlib' and url.startswith('https://codeload.github.com/madler/zlib/tar.gz/refs/tags/v') else url_filename.split('.', 1)[1]";
+          writeFileSync(path,source.replace(old,replacement));
+          NODE
+          emcmake cmake --preset pando-wasm
+          cmake --build --preset pando-wasm
+      - name: Package and verify source-matched runtime
+        run: |
+          set -euo pipefail
+          node tools/build/package-shared-core-assets.mjs --build-dir build-native/p1/pando-wasm/shared/wasm
+          node tools/build/package-shared-core-assets.mjs --build-dir build-native/p1/pando-wasm/shared/wasm --check
+          node scripts/check-core-prerequisite.mjs
+      - name: Commit only the verified generated runtime pair
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = "fix/ci-contract-regressions-20261112-bd4ce10"
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          git add assets/wasm/pandoeditor-core.js assets/wasm/pandoeditor-core.wasm assets/wasm/pandoeditor-core.manifest.json
+          git diff --cached --check
+          if git diff --cached --quiet; then
+            echo 'Already source-matched: no artifact changes to push.'
+            exit 0
+          fi
+          staged="$(git diff --cached --name-only)"
+          expected="$(printf 'assets/wasm/pandoeditor-core.js\nassets/wasm/pandoeditor-core.manifest.json\nassets/wasm/pandoeditor-core.wasm')"
+          test "$staged" = "$expected"
+          remote_head="$(git ls-remote origin "refs/heads/$GITHUB_REF_NAME" | cut -f1)"
+          test "$remote_head" = "$GITHUB_SHA" || { echo 'Branch advanced; refuse stale binary publication'; exit 1; }
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'build(wasm): regenerate source-matched P0 core JS, binary and manifest'
+          git push origin "HEAD:refs/heads/$GITHUB_REF_NAME"
