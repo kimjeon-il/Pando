@@ -5,7 +5,6 @@ import * as __merge_dep2 from "node:fs";
 import * as __merge_dep3 from "../../helpers/core-project.mjs";
 import * as __merge_dep4 from "node:test";
 import * as __merge_dep5 from "node:assert/strict";
-import * as __merge_dep6 from "../../../src/ui/map-display-catalog.js";
 import * as __merge_dep7 from "../../../src/ui/layer-presentation.js";
 import * as __merge_dep8 from "../../../src/document/object-query.js";
 import * as __merge_dep9 from "../../../src/document/object-ref-identity.js";
@@ -21,7 +20,6 @@ const { readFileSync } = __merge_dep2;
 const { createNodeCoreProject } = __merge_dep3;
 const test = __merge_dep4.default;
 const assert = __merge_dep5.default;
-const { MAP_DISPLAY_TARGETS } = __merge_dep6;
 const { normalizeLayerPresentation, layerStyle } = __merge_dep7;
 const { createObjectQuery } = __merge_dep8;
 const { normalizeObjectRef } = __merge_dep9;
@@ -30,7 +28,7 @@ test('all territorial objects share one display group irrespective of kind or pa
  const rows={A:{id:'A',properties:{entityKind:'general',parentId:''}},B:{id:'B',properties:{entityKind:'general',parentId:'A'}},R:{id:'R',properties:{entityKind:'regional',parentId:'A'}}};
  const state={timelineCursor:'1914-06',layerVisibility:{objects:true},itemVisibility:{objects:{B:false}}};
  const query=createObjectQuery({selectionServices:{normalizeObjectRef},projectState:{state},territorialModel:{entityRepository:{get:id=>rows[id]}},layerPresentation:{isLayerItemVisible:(group,id)=>state.itemVisibility[group]?.[id]!==false}});
- assert.deepEqual(Object.keys(MAP_DISPLAY_TARGETS).filter(key=>['objects','countries','subunits','regions'].includes(key)),['objects']);
+ assert.deepEqual(Object.keys(normalizeLayerPresentation().styles).filter(key=>['objects','countries','subunits','regions'].includes(key)),['objects']);
  for(const id of Object.keys(rows)){const ref={domain:'territorial',type:'entity',id};assert.equal(query.layerGroupForObjectRef(ref),'objects');}
  for(const id of ['A','R'])assert.equal(query.objectRefVisible({domain:'territorial',type:'entity',id}),true);
  assert.equal(query.objectRefVisible({domain:'territorial',type:'entity',id:'B'}),false);
@@ -41,7 +39,6 @@ test('all territorial objects share one display group irrespective of kind or pa
 test('one object style retains color and boundary controls but no transparency field',()=>{
  const value=normalizeLayerPresentation({styles:{objects:{colorVisible:false,boundaryVisible:false}}});
  assert.equal(Object.hasOwn(layerStyle(value,'objects'),'opacity'),false);assert.equal(layerStyle(value,'objects').colorVisible,false);assert.equal(layerStyle(value,'objects').boundaryVisible,false);
- for (const target of Object.values(MAP_DISPLAY_TARGETS)) assert.equal(Object.hasOwn(target,'opacity'),false);
  for(const key of ['countries','subunits','regions'])assert.equal(Object.hasOwn(value.styles,key),false);
 });
 
