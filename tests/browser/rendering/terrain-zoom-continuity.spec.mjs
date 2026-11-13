@@ -32,10 +32,16 @@ featureTest.describe('terrain-zoom-continuity',()=>{
       if(!page.isClosed())await route.fallback();
     });
     const errors=[];page.on('pageerror',error=>errors.push(error.message));
+    const browserWarnings=[];
+    page.on('console',message=>{if(['error','warning'].includes(message.type()))browserWarnings.push(message.text().slice(0,380));});
+    page.on('requestfailed',request=>browserWarnings.push('REQUEST '+request.url().slice(0,250)+' '+request.failure()?.errorText));
     const stats=()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__.rendererStats());
     try {
       await page.goto('/?renderer='+renderer+'&debug=1',{waitUntil:'domcontentloaded'});
-      await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__?.rendererStats().mapReadiness.terrainReady),{timeout:90000}).toBe(true);
+      await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__?.rendererStats().mapReadiness.terrainReady),{timeout:90000}).toBe(true).catch(async error=>{
+        console.log('TERRAIN_BOOT_DIAGNOSTIC '+JSON.stringify({renderer,errors,logs:browserWarnings.slice(-35),stats:await stats().catch(reason=>({failure:reason.message}))}).slice(0,14500));
+        throw error;
+      });
       expect((await stats()).renderer).toBe(renderer==='canvas'?'canvas-worker':renderer);
       await page.evaluate(()=>{
         const host=window.__PANDOLAB_MAP_HOST__;
@@ -359,7 +365,10 @@ test('current-view detail reaches an actual WebGL frame while the pointer remain
   });
   await page.goto('/?debug=1',{waitUntil:'domcontentloaded'});
   await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:60000});
-  await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__.rendererStats().mapReadiness.status),{timeout:30000}).toBe('ready');
+  await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__.rendererStats().mapReadiness.status),{timeout:30000}).toBe('ready').catch(async error=>{
+    console.log('TERRAIN_INTERACTION_BOOT_DIAGNOSTIC '+JSON.stringify({viewport,errors,stats:await page.evaluate(()=>window.__PANDOLAB_VIEWER__.rendererStats())}).slice(0,13000));
+    throw error;
+  });
   const box=await page.locator('#map').boundingBox();await page.mouse.move(box.x+box.width/2,box.y+box.height/2);await page.mouse.down();await page.mouse.move(box.x+box.width/2+8,box.y+box.height/2);
   try{
     await page.locator('#map').evaluate(map=>{const r=map.getBoundingClientRect();map.dispatchEvent(new window.WheelEvent('wheel',{bubbles:true,cancelable:true,clientX:r.left+r.width/2,clientY:r.top+r.height/2,deltaY:-1800}));});
