@@ -18,7 +18,35 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  canvas-preflight:
+    name: Canvas Worker real startup preflight
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - uses: ./.github/actions/library-data
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Verify real Canvas Worker rather than silently substitute inline fallback
+        run: |
+          node --check scripts/p1-gpu-zoom-ab.mjs
+          node scripts/p1-gpu-zoom-ab.mjs --backend=canvas --startup-only=1 --out="$RUNNER_TEMP/p1-canvas-preflight.json"
+      - name: Keep canvas fallback cause on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p1-canvas-worker-preflight-${{ github.sha }}
+          path: ${{ runner.temp }}/p1-canvas-preflight.json
+          if-no-files-found: warn
+          retention-days: 14
   source-paired:
+    needs: canvas-preflight
     name: ${{ matrix.backend }} full zoom matrix
     runs-on: ubuntu-24.04
     timeout-minutes: 180
