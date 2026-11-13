@@ -18,7 +18,7 @@ from pathlib import Path
 
 VERSION='0.1.0-preview.2'
 BASE_REV='c3d761ffc6d3cd54300e6fb491901551d8de3b54'
-BASE_ROOT=f'https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/{BASE_REV}/terrain/natural/v0.1.0-preview.1/'
+BASE_ROOT=f'https://raw.githubusercontent.com/kimjeon-il/PandoLab-library/{BASE_REV}/terrain/natural/v0.1.0-preview.1/'
 WC_ROOT='https://esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/'
 RGI_URL='https://ihp-wins.unesco.org/dataset/33a5017a-e6e9-43cc-82d6-62da7fbb74d8/resource/070f3115-9792-4173-926c-600af1cf97f6/download/rgi2000-v7.0-g-15_south_asia_east.zip'
 POLAR={

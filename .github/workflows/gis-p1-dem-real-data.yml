@@ -28,7 +28,7 @@ jobs:
       - name: Checkout only full actual published DEM directory from pinned release
         uses: actions/checkout@v4
         with:
-          repository: kimjeon-il/PandoLab-library-data
+          repository: kimjeon-il/PandoLab-library
           ref: 91c127ddbae902405de6e35b38940a59a8c0d021
           path: .pando-p1-dem
           persist-credentials: false

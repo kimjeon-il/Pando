@@ -90,7 +90,7 @@ test('E4 can compare again after cancelling an in-flight source request',async({
   let requested;
   const requestStarted=new Promise(resolve=>{requested=resolve;});
   let first=true;
-  await page.route('https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/**',async route=>{
+  await page.route('https://raw.githubusercontent.com/kimjeon-il/PandoLab-library/**',async route=>{
     if(first){first=false;requested();await firstRequest;}
     const body=[...model.responses].find(([digest])=>route.request().url().includes(digest))?.[1];
     await route.fulfill({status:200,contentType:'application/json',body,headers:{'access-control-allow-origin':'*'}}).catch(()=>{});
@@ -115,7 +115,7 @@ test('E4 review opens matching immutable revisions, draws verified source previe
   test.setTimeout(180000);
   const model=dataFixture(),errors=[];
   page.on('pageerror',error=>errors.push(error.message));
-  await page.route('https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/**',async route=>{
+  await page.route('https://raw.githubusercontent.com/kimjeon-il/PandoLab-library/**',async route=>{
     const url=route.request().url(),body=[...model.responses].find(([digest])=>url.includes(digest))?.[1];
     await route.fulfill({status:200,contentType:'application/json',body,
       headers:{'access-control-allow-origin':'*'}});
@@ -134,7 +134,7 @@ test('E4 review opens matching immutable revisions, draws verified source previe
   await expect(page.locator('#reviewSelectedObject')).toHaveText('state:EXAMPLE_A');
   await expect(page.locator('#reviewFocusBtn')).toBeDisabled();
   await expect(page.locator('#reviewSourceLinks a').first()).toHaveAttribute('href',
-    /github\.com\/kimjeon-il\/PandoLab-library-data\/blob\/c{40}\/reports\/borders\//);
+    /github\.com\/kimjeon-il\/PandoLab-library\/blob\/c{40}\/reports\/borders\//);
   await page.locator('#reviewFetchGeometry').click();
   await expect(page.locator('#reviewCompareStatus')).toContainText('원본 SHA-256 검증 완료',{timeout:20000});
   await expect(page.locator('#reviewGeometryPreviews')).toBeVisible();

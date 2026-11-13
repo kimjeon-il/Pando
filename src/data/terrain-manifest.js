@@ -17,7 +17,7 @@ export function terrainTileRequest(spec, manifest, { manifestUrl, dataBaseUrl, e
   const entry = manifest.tiles?.[key];
   if (!entry || !Number.isSafeInteger(entry.bytes) || entry.bytes < 1 || !/^[a-f0-9]{64}$/.test(entry.sha256 || ''))
     throw new Error(`DEM 타일 무결성 정보가 없습니다: ${key}`);
-  return { url: new URL(`https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/${revision}/terrain/v${manifest.version}/${key}`),
+  return { url: new URL(`https://raw.githubusercontent.com/kimjeon-il/PandoLab-library/${revision}/terrain/v${manifest.version}/${key}`),
     bytes: entry.bytes, sha256: entry.sha256 };
 }
 
@@ -209,7 +209,7 @@ export function terrainNaturalTileRequest(spec, manifest, {
   if (spec.pixelWidth !== undefined && entry.pixelWidth !== spec.pixelWidth + 2
       || spec.pixelHeight !== undefined && entry.pixelHeight !== spec.pixelHeight + 2)
     throw new TypeError('Natural terrain source dimensions differ from DEM');
-  return {url:new URL(`https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/${surface.sourceRevision}/${surface.pathPrefix}/${key}`),
+  return {url:new URL(`https://raw.githubusercontent.com/kimjeon-il/PandoLab-library/${surface.sourceRevision}/${surface.pathPrefix}/${key}`),
     bytes:entry.bytes,sha256:entry.sha256,pixelWidth:entry.pixelWidth,pixelHeight:entry.pixelHeight,
     mixWeight:surface.mixWeight,sourceRevision:surface.sourceRevision};
 }

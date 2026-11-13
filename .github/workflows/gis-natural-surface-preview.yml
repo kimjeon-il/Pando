@@ -41,7 +41,7 @@ jobs:
       - name: Checkout existing data branch metadata only
         uses: actions/checkout@v4
         with:
-          repository: kimjeon-il/PandoLab-library-data
+          repository: kimjeon-il/PandoLab-library
           ref: work/gis
           path: .natural-library
           fetch-depth: 1
@@ -137,7 +137,7 @@ jobs:
           import {validateNaturalSurfaceManifest,terrainNaturalTileRequest,fetchTerrainTile} from './src/data/terrain-manifest.js';
           const root=process.env.RUNNER_TEMP+'/natural-proof';
           const revision=readFileSync(root+'/library-revision.txt','utf8').trim();
-          const url=`https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/${revision}/${process.env.CANDIDATE_PATH}/manifest.json`;
+          const url=`https://raw.githubusercontent.com/kimjeon-il/PandoLab-library/${revision}/${process.env.CANDIDATE_PATH}/manifest.json`;
           const response=await fetch(url,{signal:AbortSignal.timeout(30000)});assert(response.ok);
           const raw=await response.json();
           assert.deepEqual(raw,JSON.parse(readFileSync(process.env.RUNNER_TEMP+'/natural-observed/manifest.json','utf8')));

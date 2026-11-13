@@ -24,7 +24,7 @@ jobs:
           echo "sha=$(cat "$RUNNER_TEMP/current-hydro-pin")" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@v4
         with:
-          repository: kimjeon-il/PandoLab-library-data
+          repository: kimjeon-il/PandoLab-library
           ref: ${{ steps.pinned.outputs.sha }}
           path: .pando-hydro-followup-source
           persist-credentials: false

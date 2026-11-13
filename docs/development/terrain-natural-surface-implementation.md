@@ -5,7 +5,7 @@ Spec: user-approved Pando_B_natural_relief_implementation_spec_2026-11-12.md (20
 Base: b6a1981495db2928c326ec0278d9ff6f8f55e968; latest main bd4ce107179da483bbfbad64036ef400adaeda66 is already an ancestor.
 
 ## Goal and architecture
-Add optional, unshaded natural-surface WebP tiles to the existing B DEM tile pipeline. Assets live only in kimjeon-il/PandoLab-library-data. Immutable Git revision, byte length and SHA-256 validation must match existing terrain fetch behavior. Preserve LUTs, alternate-theme bitmaps, visible tile selection and current fallback terrain.
+Add optional, unshaded natural-surface WebP tiles to the existing B DEM tile pipeline. Assets live only in kimjeon-il/PandoLab-library. Immutable Git revision, byte length and SHA-256 validation must match existing terrain fetch behavior. Preserve LUTs, alternate-theme bitmaps, visible tile selection and current fallback terrain.
 
 ## Constraints
 - Existing physicalLand determines geometry; source imagery never edits coastlines.

@@ -28,7 +28,7 @@ jobs:
           echo "sha=$(node -p "require('./config/library-data.json').revision")" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@v4
         with:
-          repository: kimjeon-il/PandoLab-library-data
+          repository: kimjeon-il/PandoLab-library
           ref: ${{ steps.data.outputs.sha }}
           path: .pando-hydro-source-pinned
           persist-credentials: false

@@ -21,7 +21,7 @@ test('external data resolves fixed archive bytes, verifies them, and preserves l
   }});
   const response=await runtimeFetch(new URL(logical,base));
   assert.deepEqual(Buffer.from(await response.arrayBuffer()),bytes);
-  assert.equal(calls[0].url,`https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/${revision}/${entry.stored}`);
+  assert.equal(calls[0].url,`https://raw.githubusercontent.com/kimjeon-il/PandoLab-library/${revision}/${entry.stored}`);
   await runtimeFetch(new URL('assets/data/projects/world/manifest.json',base));
   assert.equal(calls[1].url,new URL('assets/data/projects/world/manifest.json',base).href);
   await assert.rejects(runtimeFetch(new URL('assets/data/test/missing.bin',base)),/Missing pinned/);
@@ -63,7 +63,7 @@ test('external project origins are not rewritten as pinned viewer resources',asy
     await runtimeFetch('https://other.test/assets/data/test/content.bin');
     await runtimeFetch(new URL(logical,base));
     assert.equal(calls[0],'https://other.test/assets/data/test/content.bin');
-    assert.equal(calls[1],`https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/${revision}/${entry.stored}`);
+    assert.equal(calls[1],`https://raw.githubusercontent.com/kimjeon-il/PandoLab-library/${revision}/${entry.stored}`);
   } finally {
     if(original)Object.defineProperty(globalThis,'location',original);else delete globalThis.location;
   }

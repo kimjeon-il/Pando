@@ -13,7 +13,7 @@ runs:
     - if: inputs.inputs-revision != ''
       uses: actions/checkout@v4
       with:
-        repository: kimjeon-il/PandoLab-library-data
+        repository: kimjeon-il/PandoLab-library
         ref: ${{ inputs.inputs-revision }}
         path: .pando-inputs/${{ inputs.inputs-target }}
         persist-credentials: false
