@@ -1,0 +1,66 @@
+name: GIS Canvas numerical stage 3 focused acceptance
+on:
+  push:
+    branches: [work/gis]
+    paths:
+      - .github/workflows/gis-canvas-numeric-stage3.yml
+      - tests/browser/rendering/terrain-zoom-continuity.spec.mjs
+      - tests/browser/rendering/canvas-globe-performance.spec.mjs
+      - tests/browser/rendering/canvas-numeric-ab.spec.mjs
+      - tests/unit/rendering/canvas-frame-publication.test.mjs
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: pando-canvas-numeric-stage3
+  cancel-in-progress: true
+jobs:
+  canvas-3:
+    if: github.repository == 'kimjeon-il/Pando' && github.ref == 'refs/heads/work/gis'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/library-data
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: 3-4 identify stale theme assertions vs actual delayed-LOD publication
+        run: |
+          pnpm exec playwright test tests/browser/rendering/terrain-zoom-continuity.spec.mjs \
+            --grep 'terrain-zoom-continuity|terrain-inheritance|terrain-interaction-streaming' \
+            --workers=1 --retries=0 --output=test-results/canvas-stage3-4
+      - name: 3-6 prove superseded camera, date, canceled paints cannot publish stale pixels
+        run: |
+          node --test tests/unit/rendering/canvas-frame-publication.test.mjs
+          node --test --test-name-pattern 'cooperative globe painting|temporal Canvas transitions|temporal frames without physical land|physical terrain recomposites|P7 Canvas resource redraws' \
+            tests/unit/rendering/canvas-terrain-independence.test.mjs
+          pnpm exec playwright test tests/browser/document/viewer-calendar.spec.mjs \
+            --grep 'temporal map holds its last complete canvas-worker frame' \
+            --workers=1 --retries=0 --output=test-results/canvas-stage3-6
+      - name: 3-5 compare equal-camera Worker frame CPU, memory and rAF scheduling
+        run: |
+          pnpm exec playwright test tests/browser/rendering/canvas-numeric-ab.spec.mjs \
+            --workers=1 --retries=0 --output=test-results/canvas-stage3-5
+      - name: Final minimal WebGL-Canvas parity and flat-globe checks
+        run: |
+          pnpm exec playwright test \
+            tests/browser/rendering/canvas-numeric-dem.spec.mjs \
+            tests/browser/rendering/terrain-natural-parity.spec.mjs \
+            tests/browser/rendering/terrain-dem-shader.spec.mjs \
+            tests/browser/rendering/canvas-globe-performance.spec.mjs \
+            --workers=1 --retries=0 --output=test-results/canvas-stage3-final
+      - name: Preserve only the focused stage 3 receipts and relevant screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gis-canvas-numeric-stage3-${{ github.run_id }}
+          path: |
+            test-results/canvas-stage3-*
+          if-no-files-found: warn
+          retention-days: 14

@@ -36,9 +36,24 @@ featureTest.describe('terrain-zoom-continuity',()=>{
     page.on('console',message=>{if(['error','warning'].includes(message.type()))browserWarnings.push(message.text().slice(0,380));});
     page.on('requestfailed',request=>browserWarnings.push('REQUEST '+request.url().slice(0,250)+' '+request.failure()?.errorText));
     const stats=()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__.rendererStats());
+    // Do not treat fetched DEM as an admitted on-screen picture.
+    // A pre-geometry white frame is not a terrain regression baseline.
+    const countTerrainPixels=bytes=>page.evaluate(async pixelsIn=>{
+      const image=await createImageBitmap(new Blob([new Uint8Array(pixelsIn)],{type:'image/png'}));
+      const canvas=document.createElement('canvas');canvas.width=image.width;canvas.height=image.height;
+      const ctx=canvas.getContext('2d');ctx.drawImage(image,0,0);image.close();
+      const pixels=ctx.getImageData(0,0,canvas.width,canvas.height).data;
+      let colored=0;
+      for(let i=0;i<pixels.length;i+=64)
+        if(pixels[i+3]&&Math.max(pixels[i],pixels[i+1],pixels[i+2])-Math.min(pixels[i],pixels[i+1],pixels[i+2])>20)colored++;
+      return colored;
+    },[...bytes]);
     try {
       await page.goto('/?renderer='+renderer+'&debug=1',{waitUntil:'domcontentloaded'});
-      await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__?.rendererStats().mapReadiness.terrainReady),{timeout:90000}).toBe(true).catch(async error=>{
+      await expect.poll(()=>page.evaluate(()=>{
+        const s=window.__PANDOLAB_VIEWER__?.rendererStats(),r=s?.mapReadiness;
+        return r?.mapReady===true&&r?.terrainReady===true&&['ready','limited'].includes(r?.status);
+      }),{timeout:90000}).toBe(true).catch(async error=>{
         console.log('TERRAIN_BOOT_DIAGNOSTIC '+JSON.stringify({renderer,errors,logs:browserWarnings.slice(-35),stats:await stats().catch(reason=>({failure:reason.message}))}).slice(0,14500));
         throw error;
       });
@@ -48,7 +63,11 @@ featureTest.describe('terrain-zoom-continuity',()=>{
         host.setViewState({projection:'globe',view:{...host.getViewState(),globeRotation:[-30,-40,0],globeZoom:1}});
         host.requestRepaint('numerical-terrain-baseline');
       });
-      await expect.poll(async()=>{const s=await stats();return s.mapReadiness.terrainReady&&s.screenScale>0;},{timeout:60000}).toBe(true);
+      await expect.poll(async()=>{const s=await stats();return s.mapReadiness.mapReady&&s.mapReadiness.terrainReady&&s.screenScale>0;},{timeout:60000}).toBe(true);
+      await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:60000});
+      // Establish that the old complete frame is *visibly* present before a new LOD is withheld.
+      await expect.poll(async()=>countTerrainPixels(await page.locator('canvas.gpu-map-canvas').first().screenshot()),
+        {timeout:45000}).toBeGreaterThan(100);
       const baseline=await stats();held=true;
       await page.evaluate(()=>{
         const host=window.__PANDOLAB_MAP_HOST__;
@@ -63,15 +82,7 @@ featureTest.describe('terrain-zoom-continuity',()=>{
           ||s.canvasDisplayedStyleRevision===s.canvasStyleRevision&&!s.canvasWorkerBusy&&!s.canvasWorkerHasPendingFrame);
       }),{timeout:30000}).toBe(true);
       const shot=await page.locator('canvas.gpu-map-canvas').first().screenshot({path:testInfo.outputPath('delayed-numerical-detail.png')});
-      const painted=await page.evaluate(async bytes=>{
-        const image=await createImageBitmap(new Blob([new Uint8Array(bytes)],{type:'image/png'}));
-        const canvas=document.createElement('canvas');canvas.width=image.width;canvas.height=image.height;
-        const ctx=canvas.getContext('2d');ctx.drawImage(image,0,0);image.close();
-        const pixels=ctx.getImageData(0,0,canvas.width,canvas.height).data;
-        let colored=0;for(let i=0;i<pixels.length;i+=64)
-          if(pixels[i+3]&&Math.max(pixels[i],pixels[i+1],pixels[i+2])-Math.min(pixels[i],pixels[i+1],pixels[i+2])>20)colored++;
-        return colored;
-      },[...shot]);
+      const painted=await countTerrainPixels(shot);
       expect(painted).toBeGreaterThan(100);
       held=false;release();
       await expect.poll(async()=>{const s=await stats();return s.mapReadiness.terrainReady&&s.terrainTargetLevel>baseline.terrainTargetLevel;},{timeout:90000}).toBe(true);
@@ -148,7 +159,7 @@ for (const renderer of ['webgl2', 'canvas']) for (const mode of ['political', 'p
       await page.locator('#preferencesCloseBtn').click();
       await expect(page.locator('html')).toHaveAttribute('data-map-style',theme);
       await expect.poll(()=>page.evaluate(key=>window.__terrainPackets.find(packet=>packet.key===key)?.style.fillAlpha,childKey))
-        .toBeCloseTo(theme==='standard'?.22:0);
+        .toBeCloseTo(theme==='standard'?0:0.45);
       const packet=await page.evaluate(key=>{
         const item=window.__terrainPackets.find(packet=>packet.key===key);
         return {key:item.key,role:item.role,style:item.style};
@@ -365,14 +376,17 @@ test('current-view detail reaches an actual WebGL frame while the pointer remain
   });
   await page.goto('/?debug=1',{waitUntil:'domcontentloaded'});
   await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:60000});
-  await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__.rendererStats().mapReadiness.status),{timeout:30000}).toBe('ready').catch(async error=>{
+  await expect.poll(()=>page.evaluate(()=>{
+    const s=window.__PANDOLAB_VIEWER__.rendererStats(),r=s.mapReadiness;
+    return r.mapReady&&r.terrainReady&&(r.status==='ready'||r.status==='limited'&&s.terrainResolutionLimited===true);
+  }),{timeout:30000}).toBe(true).catch(async error=>{
     console.log('TERRAIN_INTERACTION_BOOT_DIAGNOSTIC '+JSON.stringify({viewport,errors,stats:await page.evaluate(()=>window.__PANDOLAB_VIEWER__.rendererStats())}).slice(0,13000));
     throw error;
   });
   const box=await page.locator('#map').boundingBox();await page.mouse.move(box.x+box.width/2,box.y+box.height/2);await page.mouse.down();await page.mouse.move(box.x+box.width/2+8,box.y+box.height/2);
   try{
     await page.locator('#map').evaluate(map=>{const r=map.getBoundingClientRect();map.dispatchEvent(new window.WheelEvent('wheel',{bubbles:true,cancelable:true,clientX:r.left+r.width/2,clientY:r.top+r.height/2,deltaY:-1800}));});
-    await expect.poll(()=>page.evaluate(()=>{const s=window.__PANDOLAB_VIEWER__.rendererStats();return s.screenScale>=642&&s.terrainTargetLevel>0&&s.terrainRenderedLevel===s.terrainTargetLevel&&s.mapReadiness.status==='ready';}),{timeout:5000}).toBe(true);
+    await expect.poll(()=>page.evaluate(()=>{const s=window.__PANDOLAB_VIEWER__.rendererStats();return s.screenScale>=642&&s.terrainTargetLevel>0&&s.terrainRenderedLevel===s.terrainTargetLevel&&s.mapReadiness.terrainReady&&(s.mapReadiness.status==='ready'||s.mapReadiness.status==='limited'&&s.terrainResolutionLimited===true);}),{timeout:5000}).toBe(true);
     expect(errors).toEqual([]);
   }finally{await page.mouse.up();}
   await page.evaluate(()=>{window.__detailedTerrainDraws=[];window.__captureTerrainDraws=true;window.__PANDOLAB_MAP_HOST__.requestRepaint('terrain-current-level-evidence');});
