@@ -7,6 +7,7 @@
     "builtin-country-deployment.yml": "Source-matched country publication and pinned data admission",
     "generated-artifacts-p2.yml": "Changed runtime asset generation and immutable publication",
     "gis-native-hydro.yml": "Independent Hydro native source build and focused verification",
+    "gis-natural-global-world.yml": "One-time six-LOD natural-color source candidate producer; immutable external work/gis only, never a runtime pin or deployment",
     "gis-natural-surface-preview.yml": "Bounded natural-surface candidate generation, external work/gis storage and immutable readback; delegates selected checks to the canonical runner",
     "gis-natural-viewer-gate.yml": "Focused real-browser external natural tile acceptance with screenshots and WebGL/Canvas parity; distinct from application source-matched checks",
     "hydro-calibration-native.yml": "Independent Hydro calibration C++ verification",

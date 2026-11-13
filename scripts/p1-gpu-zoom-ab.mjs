@@ -14,7 +14,7 @@ const args = Object.fromEntries(process.argv.slice(2).filter(s => s.startsWith('
 const out = args.out;
 const backend = args.backend || 'webgl2';
 const gpuMode = args.gpu || 'swiftshader';
-const zooms = args.zooms === 'smoke' ? [1, 2, 4, 8, 16, 32] : Array.from({length:32}, (_, i) => i + 1);
+const zooms = args['startup-only'] === '1' ? [] : args.zooms === 'smoke' ? [1, 2, 4, 8, 16, 32] : Array.from({length:32}, (_, i) => i + 1);
 const projections = ['globe', 'flat'];
 const referencePin = () => JSON.parse(readFileSync('config/library-data.json', 'utf8')).revision;
 const sourceSha = () => execFileSync('git', ['rev-parse', 'HEAD'], {encoding:'utf8'}).trim();
@@ -123,7 +123,7 @@ async function measure() {
     zooms, projections, viewport:[1280,800], frozenClock:'2026-11-06T03:00:00+09:00',
     device:deviceIdentity(), browserVersion:null, gpu:null,
     startedAt:new Date().toISOString(), finishedAt:null, status:'running',
-    coldStartMs:null, rows:[], errors:[], unsupported:[],
+    coldStartMs:null, rows:[], errors:[], browserWarnings:[], unsupported:[], runtimeDiagnostics:null,
     limitations:[
       'A source checkout on a GitHub-hosted runner is not a verified physical user device.',
       'rAF intervals are scheduling cadence, not GPU-presented frames or true GPU FPS.',
@@ -145,6 +145,10 @@ async function measure() {
       timezoneId:'Asia/Seoul',locale:'ko-KR',reducedMotion:'reduce'});
     page = await context.newPage();
     page.on('pageerror', e => report.errors.push('pageerror: '+String(e)));
+    page.on('console', msg => {
+      if (['error','warning'].includes(msg.type()) && report.browserWarnings.length < 16)
+        report.browserWarnings.push(msg.type()+': '+msg.text().slice(0,550));
+    });
     await page.addInitScript(() => {
       const p = globalThis.__p1ZoomProbe = {
         last:null,gaps:[],longTasks:[],active:false,
@@ -192,8 +196,22 @@ async function measure() {
         devicePixelRatio:window.devicePixelRatio,
         canvasWidth:canvas?.width??null,canvasHeight:canvas?.height??null};
     }, backend);
+    report.runtimeDiagnostics=await page.evaluate(() => {
+      const s=globalThis.__PANDOLAB_VIEWER__?.rendererStats?.();
+      return {
+        renderer:s?.renderer,forcedRenderer:s?.forcedRenderer,
+        fallbackReason:s?.fallbackReason,canvasWorkerLastError:s?.canvasWorkerLastError,
+        canvasWorkerMessagesByType:s?.canvasWorkerMessagesByType,
+        canvasWorkerLastStaleReason:s?.canvasWorkerLastStaleReason,
+        canvasWorkerStaleReasonCounts:s?.canvasWorkerStaleReasonCounts,
+        mapReadiness:s?.mapReadiness?.status,
+        gpuRecovery:s?.gpuRecovery,
+        workerCount:globalThis.__PANDOLAB_VIEWER__ ? null : null
+      };
+    });
     if (report.gpu.actualRenderer !== expectedMode(backend))
-      throw Error('Requested '+backend+' but actual runtime is '+report.gpu.actualRenderer+'; no fallback-as-success');
+      throw Error('Requested '+backend+' but actual runtime is '+report.gpu.actualRenderer+
+        '; diagnostics='+JSON.stringify(report.runtimeDiagnostics).slice(0,1700));
     if (backend.startsWith('webgl') && !report.gpu.version?.includes(backend==='webgl2'?'WebGL 2.0':'WebGL 1.0'))
       throw Error('Requested GPU version unavailable: ' + JSON.stringify(report.gpu));
     const counters = async () => Object.fromEntries(
@@ -211,7 +229,11 @@ async function measure() {
           s.canvasDisplayedStyleRevision === s.canvasStyleRevision));
     }, {projection,zoom,mode:expectedMode(backend)}, {timeout:110000,polling:150});
 
-    for (const projection of projections) {
+    if(args['startup-only']==='1'){
+      report.status=report.errors.length?'failed':'passed';
+      console.log('P1_GPU_STARTUP_PROBE '+JSON.stringify({backend,source:report.sourceCommit,
+        status:report.status,diagnostics:report.runtimeDiagnostics,warnings:report.browserWarnings}));
+    } else for (const projection of projections) {
       let unsupported = null;
       for (const zoom of zooms) {
         if (unsupported) {
@@ -284,14 +306,18 @@ async function measure() {
           gpuTrackedBufferBytes:row.stats?.gpuTrackedBufferBytes,error:row.error}).slice(0,1200));
       }
     }
-    const good = report.rows.filter(r=>r.status==='passed').length;
-    const partial = report.rows.filter(r=>r.status==='unsupported').length;
-    report.status=report.errors.length?'failed':(good===zooms.length*projections.length?'passed':
-      (good>0 && partial ? 'partial':'failed'));
+    if(args['startup-only']!=='1') {
+      const good = report.rows.filter(r=>r.status==='passed').length;
+      const partial = report.rows.filter(r=>r.status==='unsupported').length;
+      report.status=report.errors.length?'failed':(good===zooms.length*projections.length?'passed':
+        (good>0 && partial ? 'partial':'failed'));
+    }
   } catch (e) {
     benchmarkError=String(e?.stack||e).slice(0,4000);
     report.errors.push(benchmarkError);
     report.status='failed';
+    console.log('P1_GPU_FATAL '+JSON.stringify({backend,source:report.sourceCommit,
+      error:benchmarkError,diagnostics:report.runtimeDiagnostics,warnings:report.browserWarnings}).slice(0,3700));
   } finally {
     report.finishedAt=new Date().toISOString();
     report.actualCells=report.rows.filter(r=>r.status==='passed').length;

@@ -4953,6 +4953,20 @@ export function createGpuMapRenderer(deps) {
               performanceMetrics.canvasWorkerStaleFrameCount += 1;
               const why=canvasFrameRejectionReason(message) || 'transport-revision';
               performanceMetrics.canvasWorkerLastStaleReason=why;
+              if (why === 'physical') {
+                const physical = currentCanvasPhysical().context;
+                performanceMetrics.canvasWorkerLastStalePhysical = {
+                  expectedReady: physical?.ready === true,
+                  expectedLandRevision: physical?.landRevision ?? null,
+                  expectedWaterRevision: physical?.waterRevision ?? null,
+                  receivedLandCount: message.physicalLandCount ?? null,
+                  receivedLandRevision: message.physicalLandRevision ?? null,
+                  receivedWaterCount: message.physicalWaterCount ?? null,
+                  receivedWaterRevision: message.physicalWaterRevision ?? null,
+                  surfaceGeometryQuality: surfacePresentation.geometryQuality,
+                  activeMeshQuality,
+                };
+              }
               performanceMetrics.canvasWorkerStaleReasonCounts ||= {};
               performanceMetrics.canvasWorkerStaleReasonCounts[why] =
                 (performanceMetrics.canvasWorkerStaleReasonCounts[why] || 0) + 1;
