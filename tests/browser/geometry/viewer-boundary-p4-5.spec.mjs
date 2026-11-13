@@ -247,6 +247,16 @@ test('matching boundary Worker protocol error rolls back the dated Core document
         {body:JSON.stringify({version,gpu,identity},null,2),contentType:'application/json'});
     }finally{await session.detach();}
   }
+  // The current and previous calendar years have identical country geometry;
+  // no boundary Worker would be needed and no Worker failure could be injected.
+  // Cross the verified 1948 KOR/PRK lifetime boundary instead.
+  await page.locator('#timelineDateButton').click();
+  await page.locator('#timelineViewUnit').selectOption('month');
+  await page.locator('#timelineYearInput').fill('1948');
+  await page.locator('#timelineMonthInput').selectOption('11');
+  await page.locator('#timelineYearInput').press('Enter');
+  await expect.poll(()=>page.evaluate(()=>globalThis.__PANDOLAB_VIEWER__?.builtinMonth()?.month),
+    {timeout:120000}).toBe('1948-11');
   const before=await settledMap(page);
   expect(before.ready).toBe('true');
   expect(before.boundaryReady).toBe(true);
@@ -309,7 +319,7 @@ test('matching boundary Worker protocol error rolls back the dated Core document
     // The fault is armed only for one generation. After rollback, retry the
     // same year switch without a reload and demand a real new dated frame.
     await page.locator('#timelinePreviousYear').click({timeout:30000});
-    const target=String(Number(before.month.slice(0,4))-1)+'-12';
+    const target=String(Number(before.month.slice(0,4))-1)+'-'+before.month.slice(5);
     await expect.poll(async()=>{
       const result=await currentMap(page);
       return result.month===target&&result.cursor===target&&
