@@ -16,7 +16,8 @@ void existingCountryOverlapIsNotValidatedByProjectAdmission() {
         TerritorialUnit unit;unit.id=id;unit.name=id;unit.kind=UnitKind::General;doc.units.push_back(unit);
         const GeometryRef ref{"geometry:"+id,1};doc.geometries.insert(ref,shape);
         doc.geometryProvenance.originalArchive.insert(ref);addStaticTerritorialRecords(doc,id,ref);
-        doc.presentation.objectStyles[territorialRef(id)]={0,1,false};
+        ObjectStyle style;style.color=0;style.explicitColor=false;
+        doc.presentation.objectStyles[territorialRef(id)]=style;
     }
     Project project;project.replace(doc);
     const auto revision=project.revision();
