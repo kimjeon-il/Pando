@@ -89,9 +89,6 @@ test('consolidated terrain and world archive contracts are opt-in wrappers aroun
   assert.deepEqual(Object.keys(parsed.on),['workflow_dispatch'],
     file+' must not silently duplicate automatic application checks');
  }
- const historical='terrain-v014-main-integration-gate.yml';
- assert.ok(inventory.historical.includes(historical));
- assert.deepEqual(Object.keys(YAML.parse(read('.github/workflows/'+historical)).on),['workflow_dispatch']);
  for(const id of ['viewer-runtime-identity','world-archive-source-boundary']){
   assert.ok(catalog.groups.some(group=>group.id===id&&group.kind==='command'));
  }

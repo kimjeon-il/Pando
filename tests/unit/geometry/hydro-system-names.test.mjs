@@ -3,8 +3,7 @@ import {readFileSync} from 'node:fs';
 import test from 'node:test';
 import {createHydroSystemNamer,nameHydroSystems} from "../../../tools/gis/hydro-system-names.mjs";
 
-const replacements=JSON.parse(readFileSync('tools/gis/hydro-independent-name-replacements.json','utf8'));
-const document={schemaVersion:1,replacements:[replacements.replacements[0]]};
+const document=JSON.parse(readFileSync(new URL('../../fixtures/hydro-independent-review-mini.json',import.meta.url),'utf8'));
 test('system names preserve reviewed precedence, source IDs and tributary names',()=>{
   const name=createHydroSystemNamer({aliases:{'Reviewed':'검토강'},systemOverrides:{},independentDocument:{schemaVersion:1,replacements:[]}});
   const result=name({systemId:42,chainIndexes:[0,1],mainstemIndex:0,neNames:{0:'Yalu River',1:'Reviewed'},

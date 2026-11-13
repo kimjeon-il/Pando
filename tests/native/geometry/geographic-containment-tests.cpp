@@ -1,4 +1,5 @@
 #include <pandoeditor/geometrypredicates.h>
+#include <pandoeditor/projectcodec.h>
 #include <algorithm>
 #include <cassert>
 #include <cmath>
@@ -66,6 +67,49 @@ struct Checker {
 };
 }
 int main() {
+    { const auto parent=projectcodec::readWebGeometry(codecjson::parse(R"fixture({"type":"Polygon","coordinates":[[[0,0],[0,10],[10,10],[10,0],[0,0]]]})fixture"));
+      const auto child=projectcodec::readWebGeometry(codecjson::parse(R"fixture({"type":"Polygon","coordinates":[[[1,1],[1,3],[3,3],[3,1],[1,1]]]})fixture"));
+      assert(geometryContains(parent,child)==true); } // contained
+    { const auto parent=projectcodec::readWebGeometry(codecjson::parse(R"fixture({"type":"Polygon","coordinates":[[[0,0],[0,10],[10,10],[10,0],[0,0]]]})fixture"));
+      const auto child=projectcodec::readWebGeometry(codecjson::parse(R"fixture({"type":"Polygon","coordinates":[[[9,1],[9,3],[11,3],[11,1],[9,1]]]})fixture"));
+      assert(geometryContains(parent,child)==false); } // outside
+    { const auto parent=projectcodec::readWebGeometry(codecjson::parse(R"fixture({"type":"Polygon","coordinates":[[[0,0],[0,10],[10,10],[10,0],[0,0]]]})fixture"));
+      const auto child=projectcodec::readWebGeometry(codecjson::parse(R"fixture({"type":"Polygon","coordinates":[[[10,1],[10,3],[11,3],[11,1],[10,1]]]})fixture"));
+      assert(geometryContains(parent,child)==false); } // touching
+    { const auto parent=projectcodec::readWebGeometry(codecjson::parse(R"fixture({"type":"Polygon","coordinates":[[[0,0],[0,10],[10,10],[10,0],[0,0]]]})fixture"));
+      const auto child=projectcodec::readWebGeometry(codecjson::parse(R"fixture({"type":"Polygon","coordinates":[[[0,0],[0,10],[10,10],[10,0],[0,0]]]})fixture"));
+      assert(geometryContains(parent,child)==true); } // identical
+    { const auto parent=projectcodec::readWebGeometry(codecjson::parse(R"fixture({"type":"Polygon","coordinates":[[[0,0],[0,10],[10,10],[10,0],[0,0]],[[4,4],[4,6],[6,6],[6,4],[4,4]]]})fixture"));
+      const auto child=projectcodec::readWebGeometry(codecjson::parse(R"fixture({"type":"Polygon","coordinates":[[[4.2,4.2],[4.2,5.8],[5.8,5.8],[5.8,4.2],[4.2,4.2]]]})fixture"));
+      assert(geometryContains(parent,child)==false); } // hole-excludes-child
+    { const auto parent=projectcodec::readWebGeometry(codecjson::parse(R"fixture({"type":"Polygon","coordinates":[[[0,0],[0,10],[10,10],[10,0],[0,0]],[[4,4],[4,6],[6,6],[6,4],[4,4]]]})fixture"));
+      const auto child=projectcodec::readWebGeometry(codecjson::parse(R"fixture({"type":"Polygon","coordinates":[[[1,1],[1,2],[2,2],[2,1],[1,1]]]})fixture"));
+      assert(geometryContains(parent,child)==true); } // around-hole
+    { const auto parent=projectcodec::readWebGeometry(codecjson::parse(R"fixture({"type":"Polygon","coordinates":[[[0,0],[0,10],[10,10],[10,0],[0,0]]]})fixture"));
+      const auto child=projectcodec::readWebGeometry(codecjson::parse(R"fixture({"type":"MultiPolygon","coordinates":[[[[1,1],[1,2],[2,2],[2,1],[1,1]]],[[[7,7],[7,8],[8,8],[8,7],[7,7]]]]})fixture"));
+      assert(geometryContains(parent,child)==true); } // multipolygon-contained
+    { const auto parent=projectcodec::readWebGeometry(codecjson::parse(R"fixture({"type":"Polygon","coordinates":[[[0,0],[0,10],[10,10],[10,0],[0,0]]]})fixture"));
+      const auto child=projectcodec::readWebGeometry(codecjson::parse(R"fixture({"type":"MultiPolygon","coordinates":[[[[1,1],[1,2],[2,2],[2,1],[1,1]]],[[[17,7],[17,8],[18,8],[18,7],[17,7]]]]})fixture"));
+      assert(geometryContains(parent,child)==false); } // multipolygon-outside
+    { const auto parent=projectcodec::readWebGeometry(codecjson::parse(R"fixture({"type":"Polygon","coordinates":[[[178,-4],[178,4],[-178,4],[-178,-4],[178,-4]]]})fixture"));
+      const auto child=projectcodec::readWebGeometry(codecjson::parse(R"fixture({"type":"Polygon","coordinates":[[[179,-2],[179,2],[-179,2],[-179,-2],[179,-2]]]})fixture"));
+      assert(geometryContains(parent,child)==true); } // raw-antimeridian
+    { const auto parent=projectcodec::readWebGeometry(codecjson::parse(R"fixture({"type":"MultiPolygon","coordinates":[[[[178,-4],[178,4],[180,4],[180,-4],[178,-4]]],[[[-180,-4],[-180,4],[-178,4],[-178,-4],[-180,-4]]]]})fixture"));
+      const auto child=projectcodec::readWebGeometry(codecjson::parse(R"fixture({"type":"Polygon","coordinates":[[[179,-2],[179,2],[-179,2],[-179,-2],[179,-2]]]})fixture"));
+      assert(geometryContains(parent,child)==true); } // split-antimeridian
+    { const auto parent=projectcodec::readWebGeometry(codecjson::parse(R"fixture({"type":"Polygon","coordinates":[[[178,-4],[178,4],[-178,4],[-178,-4],[178,-4]]]})fixture"));
+      const auto child=projectcodec::readWebGeometry(codecjson::parse(R"fixture({"type":"MultiPolygon","coordinates":[[[[179,-2],[179,2],[180,2],[180,-2],[179,-2]]],[[[-180,-2],[-180,2],[-179,2],[-179,-2],[-180,-2]]]]})fixture"));
+      assert(geometryContains(parent,child)==true); } // raw-with-split-child
+    { const auto parent=projectcodec::readWebGeometry(codecjson::parse(R"fixture({"type":"Polygon","coordinates":[[[178,-4],[178,4],[-178,4],[-178,-4],[178,-4]]]})fixture"));
+      const auto child=projectcodec::readWebGeometry(codecjson::parse(R"fixture({"type":"Polygon","coordinates":[[[179,3],[179,5],[-179,5],[-179,3],[179,3]]]})fixture"));
+      assert(geometryContains(parent,child)==false); } // antimeridian-outside
+    { const auto parent=projectcodec::readWebGeometry(codecjson::parse(R"fixture({"type":"Polygon","coordinates":[[[-180,-80],[-180,80],[180,80],[180,-80],[-180,-80]],[[179,-1],[179,1],[-179,1],[-179,-1],[179,-1]]]})fixture"));
+      const auto child=projectcodec::readWebGeometry(codecjson::parse(R"fixture({"type":"Polygon","coordinates":[[[-0.5,-0.5],[-0.5,0.5],[0.5,0.5],[0.5,-0.5],[-0.5,-0.5]]]})fixture"));
+      assert(geometryContains(parent,child)==true); } // world-with-seam-hole
+    { const auto parent=projectcodec::readWebGeometry(codecjson::parse(R"fixture({"type":"Polygon","coordinates":[[[-180,-80],[-180,80],[180,80],[180,-80],[-180,-80]],[[179,-1],[179,1],[-179,1],[-179,-1],[179,-1]]]})fixture"));
+      const auto child=projectcodec::readWebGeometry(codecjson::parse(R"fixture({"type":"Polygon","coordinates":[[[179.2,-0.5],[179.2,0.5],[179.8,0.5],[179.8,-0.5],[179.2,-0.5]]]})fixture"));
+      assert(geometryContains(parent,child)==false); } // seam-hole-excludes-child
+
     Checker cases;
     // Small ordinary and periodic seam cases: both date-line split and
     // unwrapped x>180 layouts must preserve exact geographical predicates.
