@@ -9,7 +9,6 @@ import * as __contract_dep5 from "../../../src/document/project-state.js";
 import * as __contract_dep6 from "../../../tools/gis/project-template-compiler.js";
 import * as __contract_dep7 from "../../fixtures/timeline-storage-cases.mjs";
 import * as __contract_dep8 from "../../helpers/timeline-project.mjs";
-import * as __contract_dep9 from "../../helpers/core-command-services/save-state-controller.mjs";
 contractSuite('project-timeline-domain',async()=>{
 const assert = __contract_dep0.default;
 const test = __contract_dep1.default;
@@ -103,8 +102,7 @@ contractSuite("timeline-project-activation", () => {
 const test = __contract_dep1.default;
 const assert = __contract_dep0.default;
 const { createProjectTemplateCompiler } = __contract_dep6;
-const { createSaveStateController } = __contract_dep9;
-const { projectForStorage, staticAutosaveProject } = __contract_dep8;
+const { projectForStorage, staticProjectDocument } = __contract_dep8;
 const { createNodeCoreProject } = __contract_dep4;
 
 
@@ -115,16 +113,15 @@ function project(staticOnly=false) {
   return {...structuredClone(createProjectTemplateCompiler({appVersion:'0.34.0',baseDataset:'base',distributionModes:['territorial','geometry'],
     terrainDataset:'terrain',hydroDataset:'hydro',readSnapshot:()=>source}).buildProject()),mapProjectIdentity:null};
 }
-async function session(t,input=staticAutosaveProject()) {
+async function session(t,input=staticProjectDocument()) {
   const effects=[],presentation={render:'current-render',session:'current-session',target:'original.pando'};let owner;
-  const saveState=createSaveStateController({getDocumentState:()=>owner ? owner.client.state():null,onChange:()=>effects.push('save-publication')});
-  owner=await createNodeCoreProject(input,{saveState,
+  owner=await createNodeCoreProject(input,{
     replaceSnapshot:source=>{effects.push('replace');assert.equal(source,owner.documentModel.snapshot());return true;},
     onReplacementState:()=>{effects.push('ui');presentation.render='replaced';},
     onProjectReset:()=>{effects.push('reset');presentation.session='replaced';},
     persistence:{cancelPending:()=>effects.push('cancel'),queueProject:()=>effects.push('autosave')},
-  });t.after(()=>owner.dispose());saveState.markOpenedFile();effects.length=0;
-  return {...owner,domain:owner.project,effects,presentation,saveState,current:owner.project.snapshot};
+  });t.after(()=>owner.dispose());effects.length=0;
+  return {...owner,domain:owner.project,effects,presentation,current:owner.project.snapshot};
 }
 
 test('valid dated project activates through the actual Core with its full records intact',async t=>{
@@ -133,9 +130,9 @@ test('valid dated project activates through the actual Core with its full record
   assert.ok(s.effects.includes('replace'));assert.equal(s.client.state().canUndo,false);
 });
 test('a bad geometry archive fails before any document, device or presentation publication',async t=>{
-  const s=await session(t),broken=project(true),before=s.current(),clock=s.client.state(),io=s.saveState.checkpoint();broken.geometries=[];
+  const s=await session(t),broken=project(true),before=s.current(),clock=s.client.state();broken.geometries=[];
   await assert.rejects(()=>s.domain.load(broken),{code:'TIMELINE_GEOMETRY'});
-  assert.equal(s.current(),before);assert.deepEqual(s.client.state(),clock);assert.deepEqual(s.effects,[]);assert.deepEqual(s.saveState.checkpoint(),io);
+  assert.equal(s.current(),before);assert.deepEqual(s.client.state(),clock);assert.deepEqual(s.effects,[]);
 });
 test('static activation retains every unbound historical geometry version',async t=>{
   const s=await session(t),source=project(true);await s.domain.load(source);
@@ -160,7 +157,7 @@ test('malformed candidates preserve the real Core content, selection, history, d
   await s.domain.executeCommand({commandId:'territorial.metadata',targets:[{domain:'territorial',id:'A'}],
     payload:{id:'A',field:'name',valuePresent:true,value:'edited'}});
   await s.client.selectionApply({action:'replace',ref:{domain:'territorial',type:'entity',id:'A'}});
-  const before=s.current(),clock=s.client.state(),selection=await s.client.selectionSnapshot(),io=s.saveState.checkpoint(),display=structuredClone(s.presentation);
+  const before=s.current(),clock=s.client.state(),selection=await s.client.selectionSnapshot(),display=structuredClone(s.presentation);
   s.effects.length=0;
   const mutations=[row=>row.geometries.push(structuredClone(row.geometries[0])),
     row=>{row.timelineRecords.geometryBindings[0].geometryRef.version=99;},
@@ -171,7 +168,7 @@ test('malformed candidates preserve the real Core content, selection, history, d
   for(const mutate of mutations) {
     const bad=structuredClone(original);mutate(bad);await assert.rejects(()=>s.domain.load(bad));
     assert.equal(s.current(),before);assert.deepEqual(s.client.state(),clock);assert.deepEqual(await s.client.selectionSnapshot(),selection);
-    assert.deepEqual(s.effects,[]);assert.deepEqual(s.saveState.checkpoint(),io);assert.deepEqual(s.presentation,display);
+    assert.deepEqual(s.effects,[]);assert.deepEqual(s.presentation,display);
     assert.equal(s.domain.getGeneration(),0);assert.equal(s.domain.isReplacing(),false);
   }
   assert.equal(await s.domain.undo(),true);assert.deepEqual(s.current(),original);

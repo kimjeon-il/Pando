@@ -13,9 +13,9 @@ export async function webCoreContractTrace() {
   };
   try {
     observe('initial', null);
-    observe('normal', await fixture.service.updateMetadata('A', 'name', 'Beta'));
-    observe('noop', await fixture.service.updateMetadata('A', 'name', 'Beta'));
-    observe('error', await fixture.service.updateMetadata('missing', 'name', 'Other'));
+    observe('normal', await fixture.project.executeCommand({commandId:'territorial.metadata',targets:[{domain:'territorial',id:'A'}],payload:{id:'A',field:'name',valuePresent:true,value:'Beta'}}));
+    observe('noop', await fixture.project.executeCommand({commandId:'territorial.metadata',targets:[{domain:'territorial',id:'A'}],payload:{id:'A',field:'name',valuePresent:true,value:'Beta'}}));
+    observe('error', await fixture.project.executeCommand({commandId:'territorial.metadata',targets:[{domain:'territorial',id:'missing'}],payload:{id:'missing',field:'name',valuePresent:true,value:'Other'}}));
     const candidate = await fixture.project.prepareCommand({ commandId: 'territorial.field',
       targets: [{ domain: 'territorial', id: 'A' }], payload: { id: 'A', field: 'notes', value: 'must not be published' } });
     if (!candidate.ok || !candidate.candidateId) throw new Error('Expected a retained cancellation candidate.');

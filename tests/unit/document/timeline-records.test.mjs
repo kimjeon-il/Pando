@@ -91,7 +91,7 @@ const test = __merge_dep0.default;
 const assert = __merge_dep1.default;
 const { createTerritorialFeature } = __merge_dep5;
 const { snapshotTimelineStorage } = __merge_dep6;
-const { initializeTestTerritorialState, testCoreProject, executeTerritorialTestCommand, staticAutosaveProject } = __merge_dep7;
+const { initializeTestTerritorialState, testCoreProject, executeTerritorialTestCommand, staticProjectDocument } = __merge_dep7;
 
 const geometry = { type: 'Polygon', coordinates: [[[0,0],[0,2],[2,2],[2,0],[0,0]]] };
 const feature = (id, options = {}) => createTerritorialFeature({ id, name: id, entityKind: 'general', geometry, ...options });
@@ -152,7 +152,7 @@ test('cancelled prepared geometry never appends a version to the current archive
 
 test('static insertion retains arbitrary restored IDs and allocates records without global collisions', async () => {
   const o=await owner([feature('A')]);
-  const snapshot=structuredClone(staticAutosaveProject({},[feature('A')]));
+  const snapshot=structuredClone(staticProjectDocument({},[feature('A')]));
   snapshot.timelineRecords.lifetimes[0].id = 'lifetime:B';
   snapshot.timelineRecords.geometryBindings[0].id = 'parent:B';
   snapshot.timelineRecords.parentRelations[0].id = 'geometry:B';
@@ -243,7 +243,7 @@ test('ending an entity removes future records but preserves earlier month covera
 });
 });
 contractSuite("timeline-live-view", () => {
-const { initializeTestTerritorialState, testCoreProject, staticAutosaveProject, executeTerritorialTestCommand } = __merge_dep7;
+const { initializeTestTerritorialState, testCoreProject, staticProjectDocument, executeTerritorialTestCommand } = __merge_dep7;
 const assert = __merge_dep1.default;
 const test = __merge_dep0.default;
 const { readFileSync } = __merge_dep9;
@@ -289,7 +289,7 @@ test('dated store edits split geometry and parent at the selected month without 
 
 test('explicit month editing versions a static project and rejects invalid parent atomically', async () => {
   const shape = { type: 'Polygon', coordinates: [[[0,0],[2,0],[2,2],[0,2],[0,0]]] };
-  const source = staticAutosaveProject({},[createTerritorialFeature({ id:'A', entityKind: 'general', name: 'A', geometry: shape })]);
+  const source = staticProjectDocument({},[createTerritorialFeature({ id:'A', entityKind: 'general', name: 'A', geometry: shape })]);
   const state = createEmptyTerritorialState();
   await initializeTestTerritorialState(state,null,{project:source});
   const store=testCoreProject(state).entityStore;
@@ -309,7 +309,7 @@ test('explicit month editing versions a static project and rejects invalid paren
 });
 
 test('dated creation and deletion change lifetime without erasing earlier geometry', async () => {
-  const source = staticAutosaveProject({},[createTerritorialFeature({ id:'A', entityKind: 'general', name: 'A',
+  const source = staticProjectDocument({},[createTerritorialFeature({ id:'A', entityKind: 'general', name: 'A',
     geometry: { type: 'Polygon', coordinates: [[[0,0],[2,0],[2,2],[0,2],[0,0]]] } })]);
   const state = createEmptyTerritorialState();
   await initializeTestTerritorialState(state,null,{project:source});

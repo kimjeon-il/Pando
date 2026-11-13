@@ -4,18 +4,14 @@ import * as __dep0 from "node:assert/strict";
 import * as __dep1 from "node:test";
 import * as __dep3 from "node:zlib";
 import * as __dep4 from "node:crypto";
-import * as __dep6 from "../../helpers/core-command-services/save-state-controller.mjs";
 import * as __dep7 from "../../helpers/core-project.mjs";
-import * as __dep8 from "../../helpers/current-command-fixture.mjs";
 import {createProjectStateFixture} from '../../helpers/project-state-fixture.mjs';
 contractSuite("project-lifecycle", () => {
 const assert = __dep0.default;
 const test = __dep1.default;
 const { gzipSync } = __dep3;
 const { createHash } = __dep4;
-const { createSaveStateController } = __dep6;
 const { createNodeCoreProject } = __dep7;
-const { createCommandFixture } = __dep8;
 
 const seed=() => readPortabilityProjectSeed();
 async function fixture(t,{ replaceSnapshot,recovery=null }={}) {
@@ -23,9 +19,8 @@ async function fixture(t,{ replaceSnapshot,recovery=null }={}) {
   const baseline={ kind: 'stored-asset',sourceBytes,encoding: 'gzip',compressedBytes: sourceBytes.byteLength,decodedBytes: decoded.byteLength,
     baseDataset: initial.baseDataset,sourceMonth: '2026-10',fingerprint: createHash('sha256').update(sourceBytes).digest('hex') };
   let owner;
-  const saveState=createSaveStateController({ getDocumentState: () => owner?.client.state() ?? null });
   owner=await createNodeCoreProject(initial,{
-    appVersion: 'fixture',saveState,
+    appVersion: 'fixture',
     prepareNewProject: async () => { events.push('prepare');const accepted=await owner.project.admitStorageBaseline(baseline);return { baselineId:accepted.storageBaselineId,builtinMeshReady: true }; },
     replaceSnapshot: async (...args) => { events.push('replace');return replaceSnapshot ? replaceSnapshot(...args):true; },
     restoreReplacement: () => events.push('rollback'),createProjectFile: value => value,
@@ -35,20 +30,20 @@ async function fixture(t,{ replaceSnapshot,recovery=null }={}) {
     invalidateProject: () => events.push('render'),invalidateHistory: () => events.push('render'),
   });
   t.after(() => owner.dispose());
-  return { ...owner,domain: owner.project,saveState,events,initial };
+  return { ...owner,domain: owner.project,events,initial };
 }
 const rename=(domain,name) => domain.executeCommand({ commandId: 'territorial.metadata',targets: [{ domain: 'territorial',id: 'A' }],
   payload: { id: 'A',field: 'name',valuePresent: true,value: name } });
 
 test('load/new publish one event, render and autosave after Core replacement and remain clean',async t => {
-  const { domain,client,saveState,events,initial }=await fixture(t);
+  const { domain,client,events,initial }=await fixture(t);
   await rename(domain,'Before open');events.length=0;
   await domain.load(initial);
   assert.deepEqual(events,['cancel-pending','reset','replace','event','render','autosave']);
-  assert.equal(client.state().canUndo,false);assert.equal(saveState.snapshot().hasUnsavedChanges,false);
+  assert.equal(client.state().canUndo,false);assert.equal(client.state().dirty,false);
   events.length=0;await domain.createProject({initialMonth:'2026-10',timelineRange:null,initialMapBounds:null,sourceMode:'builtin'});
   assert.deepEqual(events,['prepare','cancel-pending','reset','replace','clear-autosave','event','render','autosave']);
-  assert.deepEqual(domain.snapshot().timelineRecords,initial.timelineRecords);assert.equal(saveState.snapshot().file,'never-saved');
+  assert.deepEqual(domain.snapshot().timelineRecords,initial.timelineRecords);assert.equal(client.state().dirty,false);
 });
 
 test('failed platform replacement restores the canonical full project and history without success effects',async t => {
@@ -81,14 +76,14 @@ test('whole Core undo/redo emit one lifecycle sequence and empty history has no 
 });
 
 test('undo and redo retain the Core saved checkpoint of the complete document',async t => {
-  const owner=await createCommandFixture();t.after(() => owner.dispose());
-  const { service,domain,saveState }=owner;
-  await service.updateMetadata('A','name','Beta');await owner.markSaved();
-  await service.updateMetadata('A','name','Gamma');assert.equal(saveState.snapshot().documentDirty,true);
-  assert.equal(await domain.undo(),true);assert.equal(saveState.snapshot().documentDirty,false);
-  assert.equal(await domain.undo(),true);assert.equal(saveState.snapshot().documentDirty,true);
-  assert.equal(await domain.redo(),true);assert.equal(saveState.snapshot().documentDirty,false);
-  assert.equal(await domain.redo(),true);assert.equal(saveState.snapshot().documentDirty,true);
+  const owner=await fixture(t);
+  const { domain,client }=owner;
+  await rename(domain,'Beta');await owner.client.markSaved(owner.client.state().epoch);
+  await rename(domain,'Gamma');assert.equal(client.state().documentDirty,true);
+  assert.equal(await domain.undo(),true);assert.equal(client.state().documentDirty,false);
+  assert.equal(await domain.undo(),true);assert.equal(client.state().documentDirty,true);
+  assert.equal(await domain.redo(),true);assert.equal(client.state().documentDirty,false);
+  assert.equal(await domain.redo(),true);assert.equal(client.state().documentDirty,true);
 });
 
 test('invalid file preparation changes no live model, history, generation or platform effects',async t => {
@@ -100,22 +95,22 @@ test('invalid file preparation changes no live model, history, generation or pla
 });
 
 test('file save owns I/O status and detached Core output without history/render/autosave effects',async t => {
-  const { domain,saveState,events }=await fixture(t);await rename(domain,'Saved name');events.length=0;
-  const before=saveState.checkpoint(),project=domain.snapshot();
+  const { domain,client,events }=await fixture(t);await rename(domain,'Saved name');events.length=0;
+  const before=client.state(),project=domain.snapshot();
   await assert.rejects(domain.save(() => { throw Object.assign(new Error('cancel'),{ name: 'AbortError' }); }));
-  assert.deepEqual(saveState.checkpoint(),before);
+  assert.deepEqual(client.state(),before);
   assert.equal(await domain.save(body => { body.territorialEntities[0].properties.name='Detached file';return { downloaded: true }; }),true);
-  assert.equal(domain.snapshot(),project);assert.equal(saveState.snapshot().file,'download-created');
+  assert.equal(domain.snapshot(),project);assert.equal(client.state().dirty,false);
   assert.equal(domain.canUndo(),true);assert.deepEqual(events,[]);
 });
 
 test('new edits during a held device write stay dirty and duplicate saves do not dispatch',async t => {
-  const { domain,saveState }=await fixture(t);let finish,signalWriting;
+  const { domain,client }=await fixture(t);let finish,signalWriting;
   const held=new Promise(resolve => { finish=resolve; }),writing=new Promise(resolve => { signalWriting=resolve; });
   const pending=domain.save(async () => { signalWriting();await held;return { downloaded: false }; });await writing;
   assert.equal(await domain.save(() => assert.fail('duplicate writer')),false);
   await rename(domain,'Changed during export');finish();await pending;
-  assert.equal(saveState.snapshot().hasUnsavedChanges,true);assert.equal(saveState.snapshot().file,'dirty');
+  assert.equal(client.state().dirty,true);
 });
 
 const setup=(overrides={})=>({ initialMonth:'1914-07',timelineRange:{start:'1900-01',end:'1920-12'},initialMapBounds:null,sourceMode:'builtin',...overrides });

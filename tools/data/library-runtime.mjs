@@ -6,7 +6,7 @@ import {fileURLToPath} from "node:url";
 import {atomicStorageJSON,containedPath,contentFiles,contentHash,contentPath,linkContent,makePrivate,publishContent,removeContentLink} from "./library-content.mjs";
 import {runtimeArchiveIndex} from "./library-runtime-index.mjs";
 import {mapProjectManifestSourcePath,validateMapProjectManifest} from '../../src/data/map-project-manifest.js';
-import {defaultRoot,gitOptions,git,libraryConfig,libraryCheckout,libraryMaterializedRoot,libraryRuntimeLeasePaths,libraryReportRoot,librarySharedCheckout,libraryOwnerId,safeChild,decodeArchiveEntry,prefetchArchiveEntries,withLibraryLock,withCheckoutLock,setMetadataCheckout} from "./library-context.mjs";
+import {defaultRoot,gitOptions,git,libraryConfig,libraryCheckout,libraryMaterializedRoot,libraryRuntimeLeasePaths,libraryReportRoot,librarySharedCheckout,libraryOwnerId,safeChild,decodeArchiveEntry,prefetchArchiveEntries,withLibraryLock,withCheckoutLock,setMetadataCheckout,libraryCodeDirectories} from "./library-context.mjs";
 import {excludeReportStorage,reportContext} from "./library-reports.mjs";
 
 function pristineCache(directory, files) {
@@ -145,7 +145,7 @@ export function compactOwnedCheckout(checkout, apply) {
   });
   const shared = dirname(resolve(checkout, git(checkout, ['rev-parse', '--git-common-dir'])));
   const keepReports = checkout === shared && existsSync(resolve(shared, 'reports/.owners.json'));
-  const excluded = tree.filter(item => item.path.includes('/') && item.path !== 'archive/index.json' && !(keepReports && item.path.startsWith('reports/')));
+  const excluded = tree.filter(item => item.path.includes('/') && item.path !== 'archive/index.json' && !(checkout===shared && libraryCodeDirectories.includes(item.path.split('/')[0])) && !(keepReports && item.path.startsWith('reports/')));
   const parents = [...new Set(excluded.map(item => item.path.split('/')[0]))];
   const unknown = parents.length ? git(checkout, ['ls-files', '--others', '-z', '--', ...parents]) : '';
   if (unknown) return { ...result, reason: 'Excluded directories contain untracked or ignored files.' };

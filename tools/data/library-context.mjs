@@ -234,12 +234,13 @@ export function discardDeadLibraryLock(path) {
   unlinkSync(path);return true;
 }
 
+export const libraryCodeDirectories = Object.freeze(['tools', 'tests', 'scripts', 'config', '.github']);
 const sparseMetadata = ['/*', '!/*/', '/archive/', '!/archive/*', '/archive/index.json'];
 
 export function setMetadataCheckout(checkout,{fetch=false}={}) {
   const shared = dirname(resolve(checkout, git(checkout, ['rev-parse', '--git-common-dir'])));
   const keepReports = checkout === shared && existsSync(resolve(shared, 'reports/.owners.json'));
-  const patterns=[...sparseMetadata],directories=new Set();
+  const patterns=[...sparseMetadata,...(checkout===shared?libraryCodeDirectories.map(path=>'/'+path+'/'):[])],directories=new Set();
   const literal=path=>path.replace(/[\\*?[\]]/g,'\\$&');
   const includeDirectory=path=>{if(directories.has(path))return;const parent=path.slice(0,path.lastIndexOf('/'));if(parent)includeDirectory(parent);directories.add(path);patterns.push('/'+literal(path)+'/','!/'+literal(path)+'/*');};
   const reports=resolve(shared,'reports');
