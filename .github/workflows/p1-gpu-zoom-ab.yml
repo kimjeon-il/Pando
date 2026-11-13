@@ -48,6 +48,7 @@ jobs:
         run: |
           set -euo pipefail
           node --check scripts/p1-gpu-zoom-ab.mjs
+          node --test tests/unit/rendering/p1-gpu-zoom-report.test.mjs
           test "$(git rev-parse HEAD)" = "$CANDIDATE_SHA"
           test "$BASE_SHA" != "$CANDIDATE_SHA"
           node --input-type=module <<'NODE'
