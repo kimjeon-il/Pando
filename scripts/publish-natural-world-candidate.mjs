@@ -25,10 +25,15 @@ function command(args,authenticated=false) {
   const env={...process.env};
   if(authenticated){
     if(!token)throw Error('Scoped external library write token unavailable');
-    env.GIT_CONFIG_COUNT='1';
-    env.GIT_CONFIG_KEY_0='http.https://github.com/.extraheader';
-    env.GIT_CONFIG_VALUE_0='AUTHORIZATION: basic '+
-      Buffer.from('x-access-token:'+token).toString('base64');
+    // A token-bearing URL or process argument would leak into failed git
+    // subprocess diagnostics. Let an ephemeral askpass helper read the token
+    // from the CI environment without putting credentials in argv/logs.
+    const helper=resolve(root,'natural-world-askpass.sh');
+    if(!existsSync(helper))writeFileSync(helper,
+      '#!/bin/sh\\ncase "$1" in\\n  *sername*) printf "x-access-token\\n";;\\n  *assword*) printf "%s\\n" "$LIBRARY_TOKEN";;\\n  *) exit 1;;\\nesac\\n',
+      {mode:0o700});
+    env.GIT_ASKPASS=helper;
+    env.GIT_TERMINAL_PROMPT='0';
   }
   return execFileSync('git',['-C',base,...args],{env,encoding:'utf8',timeout:900_000,maxBuffer:16*1024*1024}).trim();
 }
