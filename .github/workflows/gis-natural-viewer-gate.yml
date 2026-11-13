@@ -6,6 +6,9 @@ on:
       - .github/workflows/gis-natural-viewer-gate.yml
       - tests/browser/rendering/terrain-natural-live-viewer.spec.mjs
       - tests/browser/rendering/terrain-natural-parity.spec.mjs
+      - tests/browser/rendering/terrain-natural-observed-viewer.spec.mjs
+      - src/data/terrain-natural-candidate.js
+      - src/data/physical-source-configuration.js
       - src/rendering/gpu-natural-surface-cache.js
       - src/rendering/gpu-terrain-preparation.js
       - src/rendering/gpu-map-renderer.js
@@ -33,11 +36,10 @@ jobs:
       - uses: pnpm/action-setup@v4
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - run: pnpm exec playwright install --with-deps chromium
-      - name: Real external natural tile, sparse seam and shader parity browser acceptance
+      - name: Focused observed RGI7 and polar ice actual Viewer proof
         run: |
           pnpm exec playwright test \
-            tests/browser/rendering/terrain-natural-live-viewer.spec.mjs \
-            tests/browser/rendering/terrain-natural-parity.spec.mjs \
+            tests/browser/rendering/terrain-natural-observed-viewer.spec.mjs \
             --workers=1 --retries=0 --output=test-results/natural-viewer
       - name: Preserve screenshots, HTTP diagnostics and browser traces
         if: always()
