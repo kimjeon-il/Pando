@@ -72,6 +72,26 @@ jobs:
           pnpm exec playwright test \
             tests/browser/rendering/terrain-natural-observed-viewer.spec.mjs \
             --workers=1 --retries=0 --output=test-results/natural-viewer
+      - name: Canvas real paint CPU profile for the approved candidate
+        if: ${{ contains(github.event.head_commit.message, '[canvas-paint-ab]') }}
+        run: |
+          pnpm exec playwright test \
+            tests/browser/rendering/canvas-globe-performance.spec.mjs \
+            --grep 'physical' --workers=1 --retries=0 \
+            --output=test-results/canvas-profile-candidate
+      - name: Match the same Canvas paint scenario to pinned main baseline
+        if: ${{ contains(github.event.head_commit.message, '[canvas-paint-ab]') }}
+        env:
+          BASE_CANVAS_SHA: b9a2cf4bb651397de79cb009398c13883a32a9d3
+        run: |
+          set -euo pipefail
+          test -z "$(git diff --name-only)"
+          git fetch --depth=1 origin "$BASE_CANVAS_SHA"
+          git -c advice.detachedHead=false switch --detach "$BASE_CANVAS_SHA"
+          pnpm exec playwright test \
+            tests/browser/rendering/canvas-globe-performance.spec.mjs \
+            --grep 'physical' --workers=1 --retries=0 \
+            --output=test-results/canvas-profile-main
       - name: Preserve screenshots, HTTP diagnostics and browser traces
         if: always()
         uses: actions/upload-artifact@v4
@@ -81,6 +101,8 @@ jobs:
             test-results/natural-viewer/
             test-results/canvas-numeric/
             test-results/canvas-live/
+            test-results/canvas-profile-candidate/
+            test-results/canvas-profile-main/
             test-results/
           if-no-files-found: warn
           retention-days: 14
