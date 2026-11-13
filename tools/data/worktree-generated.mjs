@@ -8,8 +8,8 @@ import {fileHash} from "./library-git.mjs";
 const schema='pando-generated-cleanup-v1';
 const presentPath=path=>{try{lstatSync(path);return true;}catch(error){if(error.code==='ENOENT')return false;throw error;}};
 const identity=path=>{const s=lstatSync(path,{bigint:true});return `${s.dev}:${s.ino}:${s.size}:${s.mtimeNs}`;};
-const scopePattern=/^(?:apps\/editor\/(?:src-tauri\/(?:target|gen\/android\/(?:app\/build|build|\.gradle)))(?:\/|$)|apps\/web-shell(?:\/|$)|(?:apps\/editor\/)?node_modules\/\.pnpm(?:\/|$)|assets\/(?:worker-runtime(?:\/|$)|css\/ui(?:-modal|-viewer)?\.bundle\.css$|js\/(?:build-meta\.js$|workers\/resource-update-policy-core\.js$))|(?:index\.html|\.nojekyll)$|build-native\/(?:p9|core-ci-webgl|predicate-comparison|wasm|cache-probe)(?:\/|$)|\.superpowers\/sdd\/[^/]+(?:\/|$)|test-results(?:\/|$))/;
-const dependencyPattern=/^(?:(?:apps\/editor\/)?node_modules\/\.pnpm|apps\/web-shell\/node_modules(?:\.before-[^/]+)?)(?:\/|$)/;
+const scopePattern=/^(?:node_modules\/\.pnpm(?:\/|$)|assets\/(?:worker-runtime(?:\/|$)|css\/ui(?:-modal|-viewer)?\.bundle\.css$|js\/(?:build-meta\.js$|workers\/resource-update-policy-core\.js$))|(?:index\.html|\.nojekyll)$|build-native\/(?:p9|core-ci-webgl|predicate-comparison|wasm|cache-probe)(?:\/|$)|\.superpowers\/sdd\/[^/]+(?:\/|$)|test-results(?:\/|$))/;
+const dependencyPattern=/^node_modules\/\.pnpm(?:\/|$)/;
 const evidencePattern=/^build-native\/(?:reference-analysis(?:\/|$)|reference-release(?:\/|$)|ui-main-sync-20261021(?:\/|$)|(?:editable-library-|polygon-quality-|resource-update-)[^/]+\.(?:log|png|md|txt)$|macro-source-preview\.png$|library-merge-paths\.txt$)/;
 const compilerPatterns={
  'ci-toolchain':/^(?:emsdk-6\.0\.3|llvm-mingw-20261020|micromamba\/root\/pkgs)(?:\/|$)/,
@@ -47,6 +47,7 @@ function retirementPath(root,path){
 function validate(root,path,roots,protectedPaths=[],compilerScopes=[],action='delete'){
  if(!roots.includes(resolve(root)))throw Error('Unknown worktree scope');
  const target=retirementPath(root,path),rel=relative(root,target).replaceAll('\\','/');
+ if(protectedPaths.some(p=>p===target||p.startsWith(target+sep)))throw Error(`Protected source or WIP: ${target}`);
  if(!scopePattern.test(rel)&&!evidencePattern.test(rel)&&!compilerScopes.some(scope=>resolve(scope.root)===resolve(root)&&compilerPatterns[scope.kind]?.test(rel)&&(scope.kind!=='pc-evidence'||action==='relocate')))throw Error(`Unknown generated scope: ${rel}`);
  if(protectedPaths.some(p=>p===target||p.startsWith(target+sep)))throw Error(`Protected source or WIP: ${target}`);
  return target;
@@ -54,7 +55,7 @@ function validate(root,path,roots,protectedPaths=[],compilerScopes=[],action='de
 function assertIdle(roots,consumers,targets=roots){
  const norm=p=>String(p||'').replaceAll('\\','/').toLowerCase();
  for(const c of consumers)for(const root of targets){const r=norm(root),build=/^(cargo|rustc|rust-lld|cmake|ninja|msbuild|gradle|emulator|qemu-system-[\w-]+)\.exe$/i.test(c.Name||'')||(/^java(?:w)?\.exe$/i.test(c.Name||'')&&/gradle/i.test(c.CommandLine||''));if(norm(c.ExecutablePath).startsWith(r+'/')||norm(c.CommandLine).includes(r)||c.globalBuild||build)throw Error(`Active consumer blocks cleanup: ${c.ProcessId||''} ${c.Name||''}`);}
- for(const root of roots)for(const p of ['apps/editor/.stage-lock','.library-data/prepare.lock'])if(existsSync(containedPath(root,p)))throw Error(`Active consumer lock: ${root}/${p}`);
+ for(const root of roots)for(const p of ['.library-data/prepare.lock'])if(existsSync(containedPath(root,p)))throw Error(`Active consumer lock: ${root}/${p}`);
 }
 function destination(entry,relocationRoots){
  const base=relocationRoots.find(p=>{const rel=relative(resolve(p),resolve(entry.destination));return rel&&!rel.startsWith('..')&&!resolve(entry.destination).startsWith(resolve(entry.root)+'/');});

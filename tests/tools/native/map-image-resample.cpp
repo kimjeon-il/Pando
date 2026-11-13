@@ -1,4 +1,4 @@
-#include "resample.h"
+#include "../../../tools/cpp/map-image/resample.h"
 #include <cstdint>
 #include <fstream>
 #include <iostream>

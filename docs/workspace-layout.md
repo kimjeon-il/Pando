@@ -10,7 +10,7 @@ The Web Viewer is the only shipping product. [Module ownership](app-module-owner
 | `assets/` | Static release inputs, fonts, brand icons and verified WASM; `assets/data` is a library mount |
 | `tools/build/native/` | Product native build orchestration and source identity; compilation runs in CI |
 | `tools/build/compiler-cache.cmake` | Host cache integration outside product native identity; this does not install a compiler |
-| `tools/cpp/` | GIS command-line generator implementations, their native dependencies and tests; these are tools, not Viewer source |
+| `tools/cpp/` | GIS command-line generator implementations and native dependencies; their C++ checks live in `tests/tools/native/`, not product source |
 | `tools/gis/`, `tools/data/`, `tools/checks/` | GIS adapters, library/storage operations and scoped audits |
 | `scripts/` | Development, frontend generation, CI selection and execution; `scripts/contracts/` owns executable check contracts |
 | `tests/` | Unit/browser checks, helpers and fixed fixtures |
