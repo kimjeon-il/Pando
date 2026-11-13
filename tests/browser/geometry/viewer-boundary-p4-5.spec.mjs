@@ -326,6 +326,10 @@ test('matching boundary Worker protocol error rolls back the dated Core document
       events:await page.evaluate(()=>globalThis.__W5Rollback.events),
     }).slice(0,16000));
   }finally{
+    console.log('BOUNDARY_ROLLBACK_FAILURE_DIAGNOSTIC '+JSON.stringify(await page.evaluate(()=>({
+      probe:globalThis.__W5Rollback,stats:globalThis.__PANDOLAB_VIEWER__?.rendererStats(),
+      errorText:document.querySelector('#timelineDateError')?.textContent
+    }))).slice(0,14000));
     await info.attach('w2-p5-rollback-observations',{
       body:JSON.stringify({before,after,afterRetry,errors,
         events:await page.evaluate(()=>globalThis.__W5Rollback.events)},null,2),
@@ -519,6 +523,10 @@ test('W2-P3 real Viewer reuses attached Worker packet copies for identical dated
       semanticUnchanged:true,pixelsUnchanged:true});
     console.log('W2_P6_3_REAL_RESYNC_SUPERSESSION '+JSON.stringify({invalidId,burst,latest,accepted,recovery,semanticUnchanged:true,pixelsUnchanged:true}));
   }finally{
+    console.log('BOUNDARY_PACKET_REUSE_DIAGNOSTIC '+JSON.stringify(await page.evaluate(()=>({
+      packets:globalThis.__W2P3_PACKETS__,transport:globalThis.__W2P6_TRANSPORT__,
+      accepted:globalThis.__W2P6_ACCEPTED__,stats:globalThis.__PANDOLAB_VIEWER__?.rendererStats()
+    }))).slice(0,17000));
     await info.attach('w2-p3-real-boundary-cache',{body:JSON.stringify({initial,previous,records,errors},null,2),contentType:'application/json'});
     if(process.env.PANDOLAB_W3_EVIDENCE)await writeFile(
       join(process.env.PANDOLAB_W3_EVIDENCE,`viewer-resync-supersession-${Date.now()}.json`),
