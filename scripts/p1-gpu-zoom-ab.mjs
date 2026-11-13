@@ -13,6 +13,7 @@ const args = Object.fromEntries(process.argv.slice(2).filter(s => s.startsWith('
 }));
 const out = args.out;
 const backend = args.backend || 'webgl2';
+const gpuMode = args.gpu || 'swiftshader';
 const zooms = args.zooms === 'smoke' ? [1, 2, 4, 8, 16, 32] : Array.from({length:32}, (_, i) => i + 1);
 const projections = ['globe', 'flat'];
 const referencePin = () => JSON.parse(readFileSync('config/library-data.json', 'utf8')).revision;
@@ -107,16 +108,17 @@ function expectedMode(mode) {
   return mode === 'canvas' ? 'canvas-worker' : mode;
 }
 const identity = report => ({
-  sourceCommit:report.sourceCommit, dataPin:report.dataPin,
+  sourceCommit:report.sourceCommit, dataPin:report.dataPin, gpuMode:report.gpuMode,
   browserVersion:report.browserVersion, gpu:report.gpu,
   backend:report.backend, zooms:report.zooms,
   viewport:report.viewport, device:report.device, frozenClock:report.frozenClock
 });
 async function measure() {
   if (!['webgl2','webgl1','canvas'].includes(backend)) throw Error('Invalid --backend');
+  if (!['swiftshader','native'].includes(gpuMode)) throw Error('Invalid --gpu');
   const report = {
     schema:'pando-p1-gpu-zoom-ab-v1', sourceCommit:sourceSha(), dataPin:referencePin(),
-    backend, expectedRuntimeBackend:expectedMode(backend),
+    backend, gpuMode, expectedRuntimeBackend:expectedMode(backend),
     zooms, projections, viewport:[1280,800], frozenClock:'2026-11-06T03:00:00+09:00',
     device:deviceIdentity(), browserVersion:null, gpu:null,
     startedAt:new Date().toISOString(), finishedAt:null, status:'running',
@@ -134,9 +136,9 @@ async function measure() {
   let benchmarkError = null;
   try {
     server = await serve();
-    browser = await chromium.launch({headless:true,args:[
-      '--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader','--disable-gpu-sandbox'
-    ], timeout:90000});
+    browser = await chromium.launch({headless:true,args:gpuMode==='swiftshader'
+      ? ['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader','--disable-gpu-sandbox']
+      : [], timeout:90000});
     report.browserVersion = browser.version();
     context = await browser.newContext({viewport:{width:1280,height:800},deviceScaleFactor:1,
       timezoneId:'Asia/Seoul',locale:'ko-KR',reducedMotion:'reduce'});
@@ -308,7 +310,7 @@ function compare() {
   const json=value=>JSON.stringify(value);
   if(base.schema!=='pando-p1-gpu-zoom-ab-v1'||next.schema!==base.schema)issues.push('schema-mismatch');
   if(base.sourceCommit===next.sourceCommit)issues.push('same-commit-not-ab');
-  for(const key of ['dataPin','backend','expectedRuntimeBackend','viewport','frozenClock','browserVersion','zooms','projections'])
+  for(const key of ['dataPin','backend','gpuMode','expectedRuntimeBackend','viewport','frozenClock','browserVersion','zooms','projections'])
     if(json(base[key])!==json(next[key]))issues.push('different-'+key);
   if(base.device?.platform!==next.device?.platform || base.device?.cpuModel!==next.device?.cpuModel ||
     base.device?.logicalCpus!==next.device?.logicalCpus)issues.push('different-host-class');
