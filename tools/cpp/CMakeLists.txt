@@ -128,22 +128,6 @@ if(PANDO_BUILD_HYDRO_POINT_SCREEN)
     endif()
 endif()
 
-option(PANDO_BUILD_TERRITORIAL_RECIPE "Build the GEOS/PROJ historical recipe engine" OFF)
-if(PANDO_BUILD_TERRITORIAL_RECIPE)
-    find_package(PkgConfig REQUIRED)
-    pkg_check_modules(GEOS REQUIRED IMPORTED_TARGET geos)
-    pkg_check_modules(PROJ REQUIRED IMPORTED_TARGET proj)
-    add_executable(pando-territorial-recipe
-        build-territorial-recipe.cpp
-        ../../src/data/native/src/losslessjson.cpp
-        ../../src/geometry/native/src/sphericalpolygon.cpp)
-    target_include_directories(pando-territorial-recipe PRIVATE ../../src/document/native/include ../../src/geometry/native/include ../../src/map/native/include ../../src/rendering/native/include ../../src/data/native/include ../../src/runtime/native/include)
-    target_link_libraries(pando-territorial-recipe PRIVATE PkgConfig::GEOS PkgConfig::PROJ)
-    if(MSVC)
-        target_compile_options(pando-territorial-recipe PRIVATE /utf-8)
-    endif()
-endif()
-
 # Historical Python recipes use the same pure C++ normalizer as Web and App.
 # This target needs neither GEOS nor Zlib on the Windows generation runner.
 add_executable(pando-spherical-polygon-normalize

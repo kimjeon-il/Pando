@@ -19,15 +19,9 @@ runs:
       shell: bash
       run: sudo apt-get update && sudo apt-get install -y cmake ninja-build g++ make unzip pkg-config
     - name: Install Zlib headers only for selected native Core regressions
-      if: contains(fromJSON(inputs.requirements), 'polygon-mesh-tests') || contains(fromJSON(inputs.requirements), 'document-session-tests')
+      if: contains(fromJSON(inputs.requirements), 'polygon-mesh-tests') || contains(fromJSON(inputs.requirements), 'document-session-tests') || contains(fromJSON(inputs.requirements), 'geometry-cleanup-tests')
       shell: bash
       run: sudo apt-get install -y zlib1g-dev
-    - name: Prepare the existing pinned GEOS and PROJ recipe environment
-      if: steps.capacity.outputs.recipe_environment == 'true'
-      uses: mamba-org/setup-micromamba@v3
-      with:
-        environment-file: tools/cpp/territorial-recipe-environment.yml
-        init-shell: bash
     - name: Prepare the existing pinned DEM GDAL environment
       if: steps.capacity.outputs.gdal_environment == 'true'
       id: dem-gdal

@@ -241,3 +241,17 @@ test('polygon difference is stable for nearly coincident boundaries without muta
   assert.ok(first.length>0);
 });
 }
+
+// General geometric regressions use the current Core, independent of retired exchange APIs.
+const polygonOperationCases=JSON.parse((await import('node:fs')).readFileSync(new URL('../../fixtures/geometry/polygon-operation-cases.json',import.meta.url),'utf8'));
+const canonicalRings=polygons=>polygons.map(polygon=>polygon.map(ring=>{
+ const points=ring.slice(0,-1).map(point=>JSON.stringify(point));
+ const rotations=values=>values.map((_,index)=>[...values.slice(index),...values.slice(0,index)].join(';'));
+ return [...rotations(points),...rotations([...points].reverse())].sort()[0];
+}).sort()).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b)));
+for(const row of polygonOperationCases)test('current polygon operation '+row.id,()=>{
+ const before=structuredClone(row.operands);
+ const result=globalThis.PandoLabSphericalCore.polygonOperation(row.operation,row.operands.map(g=>g.coordinates),false);
+ assert.deepEqual(canonicalRings(result),canonicalRings(row.expected));
+ assert.deepEqual(row.operands,before);
+});
