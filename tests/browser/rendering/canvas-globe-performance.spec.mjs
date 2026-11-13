@@ -94,9 +94,10 @@ for (const mode of ['physical', 'political']) {
       await page.locator(`input[name="preferencesMapStyle"][value="${theme}"]`).locator('..').click();
       await page.locator('#preferencesCloseBtn').click();
       await expect(page.locator('html')).toHaveAttribute('data-map-style',theme);
-      // Current terrain policy: colored physical relief has no country tint;
-      // monochrome/political relief retains 45% country tint.
-      const expectedAlpha = theme === 'standard' ? 0 : .45;
+      // This selected HKG child has an explicitly transparent territorial
+      // fill in both styles. Global country tint (0% physical / 45%
+      // monochrome) does not override its per-object fill-alpha policy.
+      const expectedAlpha = 0;
       const expectedTerrain = theme === 'standard' ? 'physical' : 'political';
       try {
         await expect.poll(() => page.evaluate(({key,alpha,terrain}) => {
