@@ -122,11 +122,11 @@ for(const mode of ['worker','inline']){
         PandoLabCanvasTerrainDem,PandoLabTerrainTileSelection,PandoLabResourceUpdatePolicy,
         postMessage(){},set onmessage(value){},
         set paintNumericalGradientFixture(value){globalThis.paintGradient=value;}
-      });`;
+      });globalThis.disposeGradient=dispose;`;
       if(mode==='inline'){
         (0,eval)(dependencies+'\n;'+renderer+'\n;'+bootstrap);
         try{return await globalThis.paintGradient();}
-        finally{dispose();}
+        finally{globalThis.disposeGradient();}
       }
       const code=dependencies+'\n;'+renderer+'\n;'+bootstrap+
         '\n(async()=>{try{postMessage({result:await paintGradient()});}catch(error){postMessage({error:error.stack});}finally{dispose();}})();';
