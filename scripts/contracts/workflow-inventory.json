@@ -13,6 +13,7 @@
     "hydro-packfile-runtime-gate.yml": "Atomic range and Hydro packet acceptance",
     "library-data-auto-sync.yml": "Bounded scheduled/event-driven library sync",
     "object-timeline-regression.yml": "Source-matched timeline Core behavior",
+    "p1-gpu-zoom-ab.yml": "Source-paired P1-1 zoom performance measurements on work/ui only; no publication or application release gating",
     "place-curated-release.yml": "Curated place data generation and publication",
     "shared-core.yml": "Separate native C++ source build and WASM identity",
     "viewer-functional-acceptance.yml": "Independent desktop/mobile real browser acceptance",
