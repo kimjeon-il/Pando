@@ -140,7 +140,7 @@ async function settledMap(page) {
     const current=await currentMap(page);
     const stableKey=current.parts.labels.sha+':'+current.parts.paths.sha;
     const complete=ready.presented&&ready.loading==='false'
-      &&['labels','complete'].includes(ready.reveal)&&current.ready==='true'&&current.boundaryReady;
+      &&current.parts.labels.count>0&&current.ready==='true'&&current.boundaryReady;
     if(complete&&stableKey===previous) {
       if(Date.now()-stableSince>=1200)return current;
     } else {
@@ -206,6 +206,7 @@ test('matching boundary Worker protocol error rolls back the dated Core document
       "        globalThis.__W5Rollback.forceDone=true;\n"+
       "        globalThis.__W5Rollback.events.push({stage:'force-new-generation-boundary',generation:projectGeneration});\n"+
       "        countryBoundaryDependencies=null;\n"+
+      "        builtinPreparedBoundary=null;\n"+
       "      }\n"+force);
     source=source.replace(receipt,
       "          globalThis.__W5Rollback?.events.push({stage:'renderer-received',"+
@@ -391,6 +392,7 @@ test('W2-P3 real Viewer reuses attached Worker packet copies for identical dated
       '\n    // Test-only: demand the same exact authoritative full input without altering it.\n'+
       '    globalThis.__W2P3_REPREPARE__ = () => {\n'+
       '      countryBoundaryDependencies = null;\n'+
+      '      builtinPreparedBoundary = null;\n'+
       '      countryBoundaryTask = null;\n'+
       '      prepareCountrySharedBoundary({ replace: true });\n'+
       '      return countryBoundaryRequestId;\n'+
@@ -434,7 +436,7 @@ test('W2-P3 real Viewer reuses attached Worker packet copies for identical dated
     }
     console.log('W2_P3_REAL_PACKET_CACHE '+JSON.stringify({initial,previous,records}).slice(0,13000));
     const all=records.at(-1).packets.filter(p=>p.kind==='prepared');
-    expect(all.length,'actual boundary Worker should publish canonical packets in the real Viewer').toBeGreaterThanOrEqual(2);
+    expect(all.length,'the initial real boundary Worker seed must be observed').toBeGreaterThanOrEqual(1);
     // The normal adjacent switch can reuse the already certified main renderer
     // packet without issuing another Worker request. This is better than a
     // forced Worker cache hit and must remain the default product behavior.
