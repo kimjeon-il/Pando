@@ -35,6 +35,11 @@ jobs:
           node-version-file: .nvmrc
       - uses: pnpm/action-setup@v4
       - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Focused polar visibility and GPU/Canvas memory admission unit checks
+        run: >-
+          node --test
+          tests/unit/rendering/terrain-tile-selection-shared.test.mjs
+          tests/unit/rendering/terrain-natural-gpu.test.mjs
       - run: pnpm exec playwright install --with-deps chromium
       - name: Greenland observed ice on real WebGL Viewer at LOD4
         env:
