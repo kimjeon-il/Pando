@@ -1,3 +1,9 @@
+import{hasEuropePairedCoast,assertEuropePairedCoast}from'./europe-paired-coast-source-review.mjs';
+import{hasIrnGulfLiteral,assertIrnGulfLiteral}from'./irn-historical-gulf-source-review.mjs';
+import{hasArcticLiteral,assertArcticLiteral}from'./arctic-historical-mainland-source-review.mjs';
+import{hasKoreanHistoricalCoast,assertKoreanHistoricalCoast}from'./korean-historical-coast-source-review.mjs';
+import{hasDeu1914Combined,assertDeu1914Combined}from'./deu1914-combined-source-review.mjs';
+import{hasRegisteredFiveUnion,assertRegisteredFiveUnion}from'./registered-five-union-source-review.mjs';
 import{hasProtectedSsrCopy,assertProtectedSsrCopy}from'./protected-current-ssr-copy-source-review.mjs';
 import{hasRegisteredCzeSvkUnion,assertRegisteredCzeSvkUnion}from'./registered-cze-svk-union-source-review.mjs';
 import {hasPatagoniaComposition,assertPatagoniaComposition} from './patagonia-protected-source-review.mjs';
@@ -392,6 +398,11 @@ function assertOriginalExistingComponents(next,previous,review,{prefixes,archive
  * this does not approve historical reconstruction or derived display geometry.
  */
 export function assertHistoricalSourceStorageChanges(next,previous,{prefixes,readEvidence,getSourceSnapshot}={}){
+ if(hasEuropePairedCoast(next)||hasEuropePairedCoast(previous))return assertEuropePairedCoast(next,previous,{prefixes,readEvidence,getSourceSnapshot});
+ if(hasIrnGulfLiteral(next)||hasIrnGulfLiteral(previous))return assertIrnGulfLiteral(next,previous,{prefixes,readEvidence,getSourceSnapshot});
+ if(hasArcticLiteral(next)||hasArcticLiteral(previous))return assertArcticLiteral(next,previous,{prefixes,readEvidence,getSourceSnapshot});
+ if(hasKoreanHistoricalCoast(next)||hasKoreanHistoricalCoast(previous))return assertKoreanHistoricalCoast(next,previous,{prefixes,readEvidence,getSourceSnapshot});
+ if(hasDeu1914Combined(next)||hasDeu1914Combined(previous))return assertDeu1914Combined(next,previous,{prefixes,readEvidence,getSourceSnapshot});
  if(hasProtectedSsrCopy(next)||hasProtectedSsrCopy(previous))return assertProtectedSsrCopy(next,previous,{prefixes,readEvidence,getSourceSnapshot});
  if(hasRegisteredCurrentOutlineReuse(next)||hasRegisteredCurrentOutlineReuse(previous))return assertRegisteredCurrentOutlineCopy(next,previous,{prefixes,readEvidence,getSourceSnapshot});
  if(hasProtectedOriginalArcs(next)||hasProtectedOriginalArcs(previous))return assertProtectedOriginalArcs(next,previous,{prefixes,readEvidence,getSourceSnapshot});
@@ -401,6 +412,7 @@ export function assertHistoricalSourceStorageChanges(next,previous,{prefixes,rea
  if(hasFixedScopeCorrection(next,previous))return assertFixedScopeCorrection(next,previous,{prefixes,readEvidence,getSourceSnapshot});
  if(hasThirteenScopeCorrection(next,previous))return assertThirteenScopeCorrection(next,previous,{prefixes,readEvidence,getSourceSnapshot});
  if(hasRegisteredCzeSvkUnion(next)||hasRegisteredCzeSvkUnion(previous))return assertRegisteredCzeSvkUnion(next,previous,{prefixes,readEvidence,getSourceSnapshot});
+ if(hasRegisteredFiveUnion(next)||hasRegisteredFiveUnion(previous))return assertRegisteredFiveUnion(next,previous,{prefixes,readEvidence,getSourceSnapshot});
  if(hasHistoricalSourceReuse(next)||hasHistoricalSourceReuse(previous))return assertHistoricalModernCopy(next,previous,{prefixes,readEvidence,getSourceSnapshot});
  if(hasSelectedOriginalComposition(next)||hasSelectedOriginalComposition(previous))return assertSelectedOriginalComposition(next,previous,{prefixes,readEvidence,getSourceSnapshot});
  if(hasPatagoniaComposition(next)||hasPatagoniaComposition(previous))return assertPatagoniaComposition(next,previous,{prefixes,readEvidence,getSourceSnapshot});
