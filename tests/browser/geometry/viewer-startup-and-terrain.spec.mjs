@@ -281,8 +281,9 @@ for (const renderer of ['canvas', 'webgl2']) test(`${renderer} keeps physical la
       window.__landPaints = Object.fromEntries((renderScene?.polygons || []).filter(packet => packet.role === 'territorial-fill')
         .map(packet => [packet.key, packet.style.fillAlpha]));`) });
   });
-  if (renderer === 'canvas') await page.route('**/workers/canvas-render-worker.js*', async route => {
+  if (renderer === 'canvas') await page.route('**/workers/canvas-render-core.js*', async route => {
     const response = await route.fetch(), source = await response.text();
+    // Instrument the imported implementation rather than its six-line Worker bootstrap.
     const anchor = 'const bitmap = canvas.transferToImageBitmap();';
     expect(source).toContain(anchor);
     const capture = `const landProbe = Array.from(context.getImageData(...createProjection(message, width, height)([114.15, 22.35]).map(value => Math.round(value * dpr)), 1, 1).data);
