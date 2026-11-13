@@ -394,11 +394,12 @@ test('W2-P3 real Viewer reuses attached Worker packet copies for identical dated
     if(src.split(diagnosticPort).length!==2)throw Error('Boundary diagnostic port changed');
     src=src.replace(diagnosticPort,diagnosticPort+
       '\n    // Test-only: demand the same exact authoritative full input without altering it.\n'+
-      '    globalThis.__W2P3_REPREPARE__ = () => {\n'+
+      '    globalThis.__W2P3_REPREPARE__ = (resetTransport = false) => {\n'+
       '      countryBoundaryDependencies = null;\n'+
       '      builtinPreparedBoundary = null;\n'+
       '      countryBoundaryTask = null;\n'+
-      '      prepareCountrySharedBoundary({ replace: true });\n'+
+      '      if (resetTransport) countryBoundaryGeometryTransport.reset();\n'+
+      '      prepareCountrySharedBoundary({ replace: true, baselineCache: false });\n'+
       '      return countryBoundaryRequestId;\n'+
       '    };');
     await route.fulfill({response,body:src});
@@ -439,14 +440,23 @@ test('W2-P3 real Viewer reuses attached Worker packet copies for identical dated
       records.push(row);
     }
     console.log('W2_P3_REAL_PACKET_CACHE '+JSON.stringify({initial,previous,records}).slice(0,13000));
-    const all=records.at(-1).packets.filter(p=>p.kind==='prepared');
-    expect(all.length,'the initial real boundary Worker seed must be observed').toBeGreaterThanOrEqual(1);
-    // The normal adjacent switch can reuse the already certified main renderer
-    // packet without issuing another Worker request. This is better than a
-    // forced Worker cache hit and must remain the default product behavior.
-    const beforeReprepare=all.length;
+    let all=records.at(-1).packets.filter(p=>p.kind==='prepared');
     const currentGeneration=records.at(-1).stats.currentGeneration;
     const expectedSegments=records.at(-1).stats.countrySharedBoundarySegmentCount;
+    // A verified prepared scene can bypass full Worker construction. A cache
+    // test must first establish and observe a genuine acknowledged Worker base.
+    if (!all.some(p=>p.packetCacheHit===false&&p.segments===expectedSegments)) {
+      const seedId=await page.evaluate(()=>globalThis.__W2P3_REPREPARE__(true));
+      await expect.poll(()=>page.evaluate(({seedId,expectedSegments})=>globalThis.__W2P3_PACKETS__
+        .some(p=>p.kind==='prepared'&&p.requestId===seedId&&p.segments===expectedSegments),
+      {seedId,expectedSegments}),{timeout:90000}).toBe(true);
+      const seed=await page.evaluate(id=>globalThis.__W2P6_TRANSPORT__.find(p=>p.requestId===id),seedId);
+      expect(seed?.type,'a full Worker transport must seed the cache').toBe('replace');
+      all=await page.evaluate(()=>globalThis.__W2P3_PACKETS__.filter(p=>p.kind==='prepared'));
+    }
+    // Normal date changes may correctly reuse the already certified renderer
+    // packet. Verify a real Worker hit only after a controlled full seed.
+    const beforeReprepare=all.length;
     const forcedId=await page.evaluate(()=>globalThis.__W2P3_REPREPARE__());
     await expect.poll(()=>page.evaluate(id=>globalThis.__W2P3_PACKETS__
       .filter(p=>p.kind==='prepared'&&p.requestId===id).length,forcedId),{timeout:60000}).toBe(1);
