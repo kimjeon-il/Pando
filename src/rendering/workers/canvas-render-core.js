@@ -27,7 +27,8 @@ function canvasFallbackWorkerMain(self) {
     let terrainNaturalTileRequest=null, terrainNaturalFadeEdges=null,naturalSurfaceCatalog=null,naturalCatalogKey='';
     const naturalRequests=new Map(),naturalFailures=new Set();
     let naturalReservedBytes=0,naturalRevision=0,naturalRequestsStarted=0;
-    let numericalScratch=null,numericalPixels=0,numericalScratchPeakBytes=0;
+    let numericalScratch=null,numericalScratchContext=null,numericalPixels=0,numericalScratchPeakBytes=0;
+    let numericalScratchAllocations=0,numericalBlocks=0;
     const demTiles = new Map();
     const demRequests = new Map();
     const demQueue = [];
@@ -384,16 +385,29 @@ function canvasFallbackWorkerMain(self) {
       const points=destination.map(p=>[p[0]*dpr,p[1]*dpr]);
       for(const block of self.PandoLabCanvasTerrainDem.rasterizeInterpolatedTriangle({
         sample:image.sample,source,destination:points,viewportWidth:canvas.width,viewportHeight:canvas.height})){
-        numericalScratchPeakBytes=Math.max(numericalScratchPeakBytes,block.rgba.byteLength*2);
         if(block.pixels){
-          if(!numericalScratch)numericalScratch=new OffscreenCanvas(block.width,block.height);
-          if(numericalScratch.width!==block.width)numericalScratch.width=block.width;
-          if(numericalScratch.height!==block.height)numericalScratch.height=block.height;
-          numericalScratch.getContext('2d').putImageData(new ImageData(block.rgba,block.width,block.height),0,0);
+          // Never resize the scratch backing down for the final narrow block
+          // of a triangle. Resizing reallocates its backing and invalidates
+          // the 2D context state on every projection/tile, disproportionately
+          // hurting Canvas when the visible height spans many rows.
+          if(!numericalScratch || numericalScratch.width<block.width || numericalScratch.height<block.height){
+            const width=Math.max(numericalScratch?.width||0,block.width);
+            const height=Math.max(numericalScratch?.height||0,block.height);
+            numericalScratch=new OffscreenCanvas(width,height);
+            numericalScratchContext=numericalScratch.getContext('2d');
+            numericalScratchAllocations++;
+          }
+          numericalScratchPeakBytes=Math.max(numericalScratchPeakBytes,
+            block.rgba.byteLength+numericalScratch.width*numericalScratch.height*4);
+          numericalScratchContext.putImageData(new ImageData(block.rgba,block.width,block.height),0,0);
           context.save();
-          try{context.setTransform(1,0,0,1,0,0);context.drawImage(numericalScratch,block.x,block.y);}
-          finally{context.restore();}
+          try{
+            context.setTransform(1,0,0,1,0,0);
+            context.drawImage(numericalScratch,0,0,block.width,block.height,
+              block.x,block.y,block.width,block.height);
+          }finally{context.restore();}
           numericalPixels+=block.pixels;
+          numericalBlocks++;
         }
         yield;
       }
@@ -690,6 +704,8 @@ function canvasFallbackWorkerMain(self) {
         terrainNaturalTilesLoaded:[...demTiles.values()].filter(t=>t.naturalSurface).length,
         terrainNaturalFailures:naturalFailures.size,canvasTerrainNumericPixels:numericalPixels,
         canvasTerrainNumericScratchPeakBytes:numericalScratchPeakBytes,
+        canvasTerrainNumericScratchAllocations:numericalScratchAllocations,
+        canvasTerrainNumericBlocks:numericalBlocks,
       };
     }
 
@@ -1409,7 +1425,7 @@ function canvasFallbackWorkerMain(self) {
     };
     function dispose() {
       resetCanvasNatural();
-      if(numericalScratch){numericalScratch.width=1;numericalScratch.height=1;numericalScratch=null;}
+      if(numericalScratch){numericalScratch.width=1;numericalScratch.height=1;numericalScratch=null;numericalScratchContext=null;}
       if (disposed) return;
       disposed = true;
       cancelActivePaint();
