@@ -37,13 +37,9 @@ concurrency:
 jobs:
   functional:
     if: github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && (inputs.scope == 'functional' || inputs.scope == ''))
-    name: Viewer ${{ matrix.profile }}
+    name: Viewer desktop and touch
     runs-on: ubuntu-24.04
     timeout-minutes: 25
-    strategy:
-      fail-fast: false
-      matrix:
-        profile: [p6-1, p6-2]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -61,13 +57,13 @@ jobs:
       - name: Install Chromium and system dependencies
         run: pnpm exec playwright install --with-deps chromium
       - name: Execute real desktop or mobile viewer acceptance
-        run: pnpm exec playwright test --config tests/integration/viewer-functional-${{ matrix.profile }}.config.mjs --workers=1 --retries=0
+        run: pnpm exec playwright test tests/browser/document/web-viewer.spec.mjs --grep 'desktop acceptance|touch acceptance' --workers=1 --retries=0
       - name: Preserve functional screenshots and failure traces
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: viewer-functional-${{ matrix.profile }}-${{ github.sha }}
-          path: test-results/viewer-functional-${{ matrix.profile }}/
+          name: viewer-functional-${{ github.sha }}
+          path: test-results/
           if-no-files-found: warn
           retention-days: 7
 
@@ -133,7 +129,7 @@ jobs:
       - name: Verify real viewer/editor map rendering, selection and project open
         run: >-
           pnpm exec playwright test
-          tests/browser/document/viewer-review-e4.spec.mjs
+          tests/browser/document/viewer-review.spec.mjs
           tests/browser/document/viewer-project-open.spec.mjs
           --workers=1 --retries=0 --reporter=list
       - name: Preserve failed browser evidence
@@ -295,7 +291,7 @@ jobs:
           src/ui/notification-presentation.js
           tests/unit/ui/notification-priority.test.mjs
           tests/unit/document/review-inspection.test.mjs
-          tests/browser/document/viewer-review-e4.spec.mjs
+          tests/browser/document/viewer-review.spec.mjs
       - name: Verify E2/E3 handoff, source mapping and hash-verified file imports
         run: >-
           node --test
@@ -328,7 +324,7 @@ jobs:
       - name: Exercise E4 panel, source SHA geometry, correction export and fixed GeoPackage project-open regression
         run: >-
           pnpm exec playwright test
-          tests/browser/document/viewer-review-e4.spec.mjs
+          tests/browser/document/viewer-review.spec.mjs
           --workers=1 --retries=0 --reporter=list
       - name: Preserve failed E4 screenshots and traces
         if: failure()

@@ -80,7 +80,7 @@ P4 관련 회귀검사: `tests/unit/project-resource-overlay.test.mjs`,
 - 지도 객체 선택·초점 이동은 허용하되 **프로젝트 편집 명령, 저장, GitHub 반영, 검수 결과의 자동 승인**은 허용하지 않는다. 진단/수정 요청 JSON은 로컬로만 내보내며 GIS 위상 검증을 실행했다고 주장하지 않는다.
 - 퇴역 Windows 검수기 호환 테스트용 `nativeReview` 진입은 추후 레거시 제거 단계 전까지 기존 회귀검사 용도로만 유지한다. 별도 제품으로 확장하거나 웹에 네이티브 쓰기 권한을 제공하지 않는다.
 
-회귀검사: `tests/unit/ui/viewer-inspector-controller.test.mjs`, `tests/unit/viewer-inspector.test.mjs`, `tests/browser/viewer-inspector.spec.mjs`, `tests/browser/document/viewer-review-e4.spec.mjs`, `tests/browser/document/viewer-project-open.spec.mjs`. 기존 브라우저 초기 국가 메시 게시 지연은 별도 미해결 문제로 추적한다.
+회귀검사: `tests/unit/ui/viewer-inspector-controller.test.mjs`, `tests/unit/viewer-inspector.test.mjs`, `tests/browser/viewer-inspector.spec.mjs`, `tests/browser/document/viewer-review.spec.mjs`, `tests/browser/document/viewer-project-open.spec.mjs`. 기존 브라우저 초기 국가 메시 게시 지연은 별도 미해결 문제로 추적한다.
 
 ## P1 후속: 참조 데이터의 프로젝트 시점 통합 (2026-11-07, `work/optimization`)
 

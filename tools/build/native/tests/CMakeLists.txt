@@ -234,10 +234,6 @@ else()
 endif()
 add_test(NAME boundary_packet_tests COMMAND boundary_packet_tests)
 set_tests_properties(boundary_packet_tests PROPERTIES TIMEOUT 10)
-add_executable(polygon_clipping_probe "${PANDOEDITOR_REPOSITORY_ROOT}/tests/native/geometry/polygon-clipping-probe.cpp")
-target_link_libraries(polygon_clipping_probe PRIVATE Pandoeditor::Core)
-add_executable(cut_geometry_probe "${PANDOEDITOR_REPOSITORY_ROOT}/tests/native/geometry/cut-geometry-probe.cpp")
-target_link_libraries(cut_geometry_probe PRIVATE Pandoeditor::Core)
 
 add_executable(reference_image_core_tests "${PANDOEDITOR_REPOSITORY_ROOT}/tests/native/document/reference-image-tests.cpp")
 target_link_libraries(reference_image_core_tests PRIVATE Pandoeditor::Core)
@@ -245,8 +241,6 @@ target_compile_definitions(reference_image_core_tests PRIVATE PANDO_REFERENCE_FI
 add_test(NAME reference_image_core_tests COMMAND reference_image_core_tests)
 set_tests_properties(reference_image_core_tests PROPERTIES TIMEOUT 20)
 
-add_executable(river_partition_probe "${PANDOEDITOR_REPOSITORY_ROOT}/tests/native/geometry/river-partition-probe.cpp")
-target_link_libraries(river_partition_probe PRIVATE Pandoeditor::Core)
 
 add_executable(hydro_timeline_tests "${PANDOEDITOR_REPOSITORY_ROOT}/tests/native/document/hydro-timeline-tests.cpp")
 target_link_libraries(hydro_timeline_tests PRIVATE Pandoeditor::Core)
@@ -266,3 +260,12 @@ else()
     target_compile_options(geographic_containment_tests PRIVATE -UNDEBUG)
 endif()
 add_test(NAME geographic_containment_tests COMMAND geographic_containment_tests)
+
+# Small synthetic inputs only; algorithms live in the product Core.
+find_program(PANDO_NODE_EXECUTABLE node REQUIRED)
+add_executable(calculation_driver "${PANDOEDITOR_REPOSITORY_ROOT}/tests/native/geometry/calculation-driver.cpp")
+target_link_libraries(calculation_driver PRIVATE Pandoeditor::Core)
+add_test(NAME calculation_contracts COMMAND "${PANDO_NODE_EXECUTABLE}" "${PANDOEDITOR_REPOSITORY_ROOT}/tests/native/geometry/calculation-contracts.mjs" $<TARGET_FILE:calculation_driver>)
+set_tests_properties(calculation_contracts PROPERTIES TIMEOUT 90)
+add_executable(document_session_driver "${PANDOEDITOR_REPOSITORY_ROOT}/tests/native/document/document-session-driver.cpp")
+target_link_libraries(document_session_driver PRIVATE Pandoeditor::Core)

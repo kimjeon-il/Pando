@@ -89,7 +89,7 @@ jobs:
           node-version-file: '.nvmrc'
       - name: Test source fingerprint, rebuild selection, publication guard
         if: github.event_name == 'push' || inputs.verification == 'full'
-        run: node --test tests/unit/build/p2-artifact-plan.test.mjs tests/unit/document/shared-core-assets.test.mjs tests/unit/data/p2-publication-paths.test.mjs tests/unit/data/library-data.test.mjs
+        run: node --test tests/unit/build/artifact-plan.test.mjs tests/unit/document/shared-core-assets.test.mjs tests/unit/data/publication-paths.test.mjs tests/unit/data/library-data.test.mjs
       - name: Read the declared place-report generation inputs
         run: node tools/data/report-paths.mjs reports/places read
       - name: Select only stale source-derived assets
@@ -238,7 +238,7 @@ jobs:
         shell: bash
         run: |
           node --test tests/unit/document/shared-core-assets.test.mjs tests/unit/runtime/core-wasm-loader.test.mjs
-          PANDOEDITOR_WASM_MODULE="$PWD/assets/wasm/pandoeditor-core.js" node --test tests/native/document/wasm-document-session.test.mjs tests/native/document/p5-spherical-area-wasm.test.mjs tests/native/document/p5-temporal-wasm.test.mjs tests/native/document/p5-timeline-wasm.test.mjs tests/native/document/p5-boundary-chains-wasm.test.mjs tests/native/document/p5-boundary-packet-wasm.test.mjs tests/native/document/p5-boundary-interiors-wasm.test.mjs tests/native/document/p5-boundary-overlap-wasm.test.mjs tests/native/document/p5-boundary-refinement-wasm.test.mjs tests/native/document/p5-boundary-split-wasm.test.mjs tests/native/document/p5-country-contact-wasm.test.mjs tests/unit/geometry/boundary-lines.test.mjs
+          PANDOEDITOR_WASM_MODULE="$PWD/assets/wasm/pandoeditor-core.js" node --test tests/native/document/wasm-document-session.test.mjs tests/native/geometry/spherical-area-wasm.test.mjs tests/native/document/temporal-wasm.test.mjs tests/native/document/timeline-wasm.test.mjs tests/native/geometry/boundary-chains-wasm.test.mjs tests/native/geometry/boundary-packet-wasm.test.mjs tests/native/geometry/boundary-interiors-wasm.test.mjs tests/native/geometry/boundary-overlap-wasm.test.mjs tests/native/geometry/boundary-refinement-wasm.test.mjs tests/native/geometry/boundary-split-wasm.test.mjs tests/native/geometry/country-contact-wasm.test.mjs tests/unit/geometry/boundary-lines.test.mjs
 
       - name: Verify P6 product calculation adapters
         if: inputs.verification == 'full'

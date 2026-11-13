@@ -104,7 +104,9 @@ export function executionOutputs(plan, { repository, ...options } = {}) {
   const total = Math.min(8, Math.ceil(count / 4));
   const metadataOnly = new Set(repository?.catalog.metadataOnlyTests || []);
   const runtimeData = phase !== 'non-browser' && count > 0 || phase !== 'browser' && (
-    plan.commands.length > 0 || Boolean(plan.explicitPrerequisites?.length) || plan.unitTests.some(file => !metadataOnly.has(file)));
+    plan.commands.some(id => repository.catalog.groups.find(group => group.id === id)?.runtimeData !== false)
+    || (plan.explicitPrerequisites || []).some(id => repository.catalog.prerequisites[id]?.runtimeData !== false)
+    || plan.unitTests.some(file => !metadataOnly.has(file)));
   return {
     checks: nonBrowser || count > 0, non_browser: nonBrowser, browser: count > 0, browser_count: count,
     runtime_data: runtimeData,

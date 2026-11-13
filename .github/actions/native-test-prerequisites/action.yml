@@ -19,7 +19,7 @@ runs:
       shell: bash
       run: sudo apt-get update && sudo apt-get install -y cmake ninja-build g++ make unzip pkg-config
     - name: Install Zlib headers only for selected native Core regressions
-      if: contains(fromJSON(inputs.requirements), 'polygon-mesh-tests') || contains(fromJSON(inputs.requirements), 'document-session-tests') || contains(fromJSON(inputs.requirements), 'geometry-cleanup-tests')
+      if: contains(fromJSON(inputs.requirements), 'polygon-mesh-tests') || contains(fromJSON(inputs.requirements), 'document-session-tests') || contains(fromJSON(inputs.requirements), 'geometry-cleanup-tests') || contains(fromJSON(inputs.requirements), 'calculation-driver') || contains(fromJSON(inputs.requirements), 'document-session-driver')
       shell: bash
       run: sudo apt-get install -y zlib1g-dev
     - name: Prepare the existing pinned DEM GDAL environment
