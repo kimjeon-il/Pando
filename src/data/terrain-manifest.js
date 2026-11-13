@@ -165,6 +165,29 @@ export function validateNaturalSurfaceManifest(value, dem) {
     tiles:Object.freeze(tiles), sources:Object.freeze(value.sources.map(source => Object.freeze({...source})))});
 }
 
+// The natural surface may have deliberately sparse regional preview coverage.
+// Feather *only* boundaries lacking an adjacent natural tile. Complete regions
+// stay seamless and all-world outer latitude edges are not artificially faded.
+// Order: west, east, north, south.
+export function naturalSurfaceFadeEdges(spec, manifest) {
+  const surface=manifest?.naturalSurface,level=surface?.levels?.[spec?.level],tiles=surface?.tiles;
+  if(!level || !tiles) return Object.freeze([0,0,0,0]);
+  const {column,row}=spec;
+  if(!Number.isSafeInteger(column)||!Number.isSafeInteger(row)||column<0||row<0
+    ||column>=level.columns||row>=level.rows) throw new TypeError('Invalid natural tile neighbour coordinates');
+  const exists=(x,y)=>{
+    if(y<0||y>=level.rows)return false;
+    const wrapped=(x+level.columns)%level.columns;
+    return Boolean(tiles[`${level.id}/${wrapped}-${y}.webp`]);
+  };
+  return Object.freeze([
+    exists(column-1,row)?0:1,
+    exists(column+1,row)?0:1,
+    row===0||exists(column,row-1)?0:1,
+    row===level.rows-1||exists(column,row+1)?0:1,
+  ]);
+}
+
 const naturalAdmissions = new WeakMap();
 export function terrainNaturalTileRequest(spec, manifest, {
   physicalStyle = 'physical', terrainVisible = true, pass = 'land',
