@@ -55,6 +55,17 @@ export function createGpuTerrainPreparation({ readTile, readNaturalTile = async 
     const tileSelection=globalThis.PandoLabTerrainTileSelection;
     const visibleTileCache=tileSelection.createVisibilityCache({ distance: geoDistance });
     const terrainNeighbourSpecs=tileSelection.neighbours;
+    function visibleNaturalReserve(specs) {
+      if (!view.visible || view.physicalStyle !== 'physical' || !terrainManifest?.naturalSurface) return 0;
+      let total=0,selected=0;
+      for(const spec of specs){
+        if(selected===2)break;
+        if(!terrainManifest.naturalSurface.tiles[`${spec.level}/${spec.column}-${spec.row}.webp`])continue;
+        total+=(spec.pixelWidth+2*terrainManifest.gutter)*(spec.pixelHeight+2*terrainManifest.gutter)*4;
+        selected++;
+      }
+      return total;
+    }
     function visibleTerrainTileSpecs(level,includeAll=false,frameContext=activeFrameContext) {
       const rotation=frameContext?.viewState?.rotation||view.rotation;
       const viewport=frameContext?.viewport||[view.width,view.height];
@@ -380,7 +391,12 @@ export function createGpuTerrainPreparation({ readTile, readNaturalTile = async 
       const prefetchSpecs = [];
       if (baseReady && !missingSpecs.length) {
         const residentBytes = [...terrainTiles.values()].reduce((sum, tile) => sum + tile.byteLength, 0);
-        let spareBytes = Math.max(0, cacheBudgetBytes - residentBytes - pendingDecodedBytes - natural.bytes() - natural.pendingBytes());
+        // Optional observed imagery needs room before speculative DEM neighbours.
+        // Reserve at most two visible natural tiles, but never reduce target DEM
+        // completeness or add memory above the existing fixed terrain budget.
+        const unusedNaturalReserve=Math.max(0,visibleNaturalReserve(targetSpecs)-natural.bytes()-natural.pendingBytes());
+        let spareBytes = Math.max(0, cacheBudgetBytes - residentBytes - pendingDecodedBytes
+          - natural.bytes() - natural.pendingBytes() - unusedNaturalReserve);
         for (const spec of terrainNeighbourSpecs(targetLevel, targetSpecs)) {
           if (terrainTargetTileKeys.has(spec.key) || terrainTiles.has(spec.key)) continue;
           const bytes = (spec.pixelWidth + 2 * terrainManifest.gutter) * (spec.pixelHeight + 2 * terrainManifest.gutter) * 4;
@@ -506,7 +522,27 @@ export function createGpuTerrainPreparation({ readTile, readNaturalTile = async 
     prepare(frame, nextView) {
       activeFrameContext=frame;view=nextView;cacheBudgetBytes=nextView.cacheBudgetBytes;
       const prepared=prepare()||[];
-      const demBytes=[...terrainTiles.values()].reduce((n,t)=>n+t.byteLength,0);
+      let demBytes=[...terrainTiles.values()].reduce((n,t)=>n+t.byteLength,0);
+      const unusedNaturalReserve=Math.max(0,visibleNaturalReserve(prepared.map(record=>record.spec))
+        -natural.bytes()-natural.pendingBytes());
+      const desiredDemCeiling=Math.max(0,cacheBudgetBytes-pendingDecodedBytes-unusedNaturalReserve
+        -natural.bytes()-natural.pendingBytes());
+      // A natural request can start before speculative DEM neighbours finish.
+      // Remove only *offscreen* DEM textures, never target/fallback terrain.
+      // This prevents subsequent DEM uploads from aborting every natural request
+      // in a 64 MiB cache while preserving the same total GPU budget.
+      if(unusedNaturalReserve>0 && gl && demBytes>desiredDemCeiling){
+        const removable=[...terrainTiles.entries()]
+          .filter(([key])=>!terrainCurrentViewKeys.has(key))
+          .sort((a,b)=>Number(b[0].split('/')[0])-Number(a[0].split('/')[0])
+            || a[1].lastUsed-b[1].lastUsed);
+        for(const [key,entry] of removable){
+          if(demBytes<=desiredDemCeiling)break;
+          if(!gl.isContextLost?.())gl.deleteTexture(entry.texture);
+          terrainTiles.delete(key);
+          demBytes-=entry.byteLength;
+        }
+      }
       natural.prepare(prepared,{gl,scheduler:uploadScheduler,manifest:terrainManifest,contextGeneration:contextRevision,
         enabled:!!view.visible&&view.physicalStyle==='physical',requiredReady:readiness().terrainReady,
         budgetBytes:Math.max(0,cacheBudgetBytes-demBytes-pendingDecodedBytes)});
