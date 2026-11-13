@@ -1,3 +1,4 @@
+import {hasOriginalComposition,assertOriginalComposition} from './original-composition-source-review.mjs';
 import {hasHistoricalSourceReuse,assertHistoricalModernCopy} from './historical-modern-copy-source-review.mjs';
 import {hasWholeOriginalBatch,assertWholeOriginalBatch} from './whole-original-source-review.mjs';
 import fs from 'node:fs';
@@ -379,6 +380,7 @@ function assertOriginalExistingComponents(next,previous,review,{prefixes,archive
  */
 export function assertHistoricalSourceStorageChanges(next,previous,{prefixes,readEvidence,getSourceSnapshot}={}){
  if(hasHistoricalSourceReuse(next)||hasHistoricalSourceReuse(previous))return assertHistoricalModernCopy(next,previous,{prefixes,readEvidence,getSourceSnapshot});
+ if(hasOriginalComposition(next)||hasOriginalComposition(previous))return assertOriginalComposition(next,previous,{prefixes,readEvidence});
  if(hasWholeOriginalBatch(next)||hasWholeOriginalBatch(previous))return assertWholeOriginalBatch(next,previous,{prefixes,readEvidence});
  const appendMarked=v=>v?.modernBoundarySupplement&&(Object.hasOwn(v.modernBoundarySupplement,'detachedComponentAppend')||Object.hasOwn(v.modernBoundarySupplement,'initialPreparedAppend')||v.modernBoundarySupplement.adoptionMode==='lossless-original-detached-component-append');
  if(next.geometryVersions?.some(v=>appendMarked(v)&&!v.modernBoundarySupplement.sourceAdoptionReview))throw Error('Raw source adoption: detached-component append: initial append receipt is required');
