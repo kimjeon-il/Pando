@@ -101,6 +101,10 @@ export function createMapPresentationSession({
   function failTemporalPresentation(error) {
     if (!temporalPending()) return;
     temporalTicket.error = error;
+    // The date change awaits the generation's certified visible frame. A
+    // Worker error must reject that waiter immediately so the caller can
+    // restore its prior C++ cursor instead of hanging behind a failed ticket.
+    rejectMapPresentationWaiters(error);
     onTemporalFailure(error);
   }
   function waitForTemporalPresentation() {
