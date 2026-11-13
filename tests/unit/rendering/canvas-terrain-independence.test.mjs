@@ -119,6 +119,10 @@ function canvasTerrainRuntime({ expectDem = false, timerPorts = null, now = () =
         finally { drawTexturedTriangle = oldDraw; terrainDemManifest = oldManifest; }
       };
       self.currentRenderState = () => lastRenderMessage;
+      self.numericCacheForTest = () => [...demTiles.entries()].map(([key,tile])=>({
+        key,bytes:tile.bytes,rawBytes:tile.raw?.byteLength||0,
+        eagerLand:!!tile.land,eagerOcean:!!tile.ocean,eagerPolitical:!!tile.political,
+      }));
       self.stageDemForTest = manifest => {
         if(terrainDemManifest!==manifest){
           for(const entry of demRequests.values())entry.controller.abort();
@@ -168,6 +172,7 @@ function canvasTerrainRuntime({ expectDem = false, timerPorts = null, now = () =
   return {
     messages, requests, drawn, paths, substrates, features, land, send, triangleCopies,
     currentRenderState: () => scope.currentRenderState(),
+    numericCache: () => scope.numericCacheForTest(),
     stageDem: manifest => scope.stageDemForTest(manifest),
     stageDemTile: key => scope.stageDemTileForTest(key),
     traceGrid: (...args) => scope.traceTerrainGrid(...args),
@@ -401,8 +406,19 @@ test('Canvas reuses decoded DEM while repainting bounded numerical blocks for re
   assert.ok(h.drawn.length > 0);
   assert.ok(h.drawn.every(args => args[0].bitmap || args[0]?.ctx?.numericPixels>0),
     'projection paints actual image or numerical pixels, not only a frame acknowledgement');
-  assert.ok(h.drawn.filter(args=>args.length===3).every(args=>args[0].width<=2048&&args[0].height<=16),
-    'numeric scratch remains bounded');
+  assert.ok(h.drawn.filter(args=>args[0]?.ctx?.numericPixels>0).every(args=>
+    args.length===9 && args[3]<=2048 && args[4]<=16),
+    'reused numeric backing draws only the populated 2048x16 maximum block');
+  const decoded=h.numericCache();
+  assert.ok(decoded.length>0);
+  assert.ok(decoded.every(row=>row.bytes===row.rawBytes && row.rawBytes>0
+    && !row.eagerLand && !row.eagerOcean && !row.eagerPolitical),
+    'normal Canvas tiles must retain original DEM only; never eagerly allocate unused theme planes');
+  const metrics=h.messages.filter(msg=>msg.type==='frame').at(-1).terrainStats;
+  assert.ok(metrics.canvasTerrainNumericPixels>0);
+  assert.ok(metrics.canvasTerrainNumericScratchPeakBytes<=256*1024);
+  assert.ok(metrics.canvasTerrainNumericScratchAllocations<=2);
+  assert.ok(metrics.canvasTerrainNumericBlocks>0);
 });
 
 test('Canvas terrain demand ignores country LOD and backing DPR, but follows source DPR', async () => {
