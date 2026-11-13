@@ -260,7 +260,9 @@ test('matching boundary Worker protocol error rolls back the dated Core document
   const before=await settledMap(page);
   expect(before.ready).toBe('true');
   expect(before.boundaryReady).toBe(true);
-  const targetGeneration=before.generation+1;
+  // Dated cursor changes stay in the same project generation until an error
+  // forces a rollback/replacement. Inject into that active generation.
+  const targetGeneration=before.generation;
   await page.evaluate(generation=>{globalThis.__W5Rollback.targetGeneration=generation;},targetGeneration);
   // Screenshot only the GPU canvas: alert toasts and the timeline form are
   // expected UI differences after failure, not changes to rendered map pixels.
