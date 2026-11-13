@@ -31,6 +31,25 @@ async function imageDifference(page,first,second){
     return {changedPixels:changed,maxChannelDifference:maxDiff,comparedPixels:left.width*left.height};
   },{a:[...first],b:[...second]});
 }
+async function sampleFramePacing(page,durationMs=1200) {
+  return page.evaluate(durationMs=>new Promise(resolve=>{
+    const gaps=[];let first=null,last=null;
+    function frame(now){
+      if(first===null)first=now;
+      if(last!==null)gaps.push(now-last);
+      last=now;
+      if(now-first>=durationMs){
+        const sorted=gaps.sort((a,b)=>a-b);
+        const pct=p=>sorted.length?Math.round(sorted[Math.floor((sorted.length-1)*p)]*100)/100:null;
+        resolve({rafFrames:sorted.length,durationMs:Math.round(now-first),
+          gapP50Ms:pct(0.5),gapP95Ms:pct(0.95),gapP99Ms:pct(0.99),
+          gapMaxMs:sorted.length?Math.round(sorted.at(-1)*100)/100:null,
+          interpretation:'requestAnimationFrame scheduling proxy, not GPU presentation frame time'});
+      }else requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }),durationMs);
+}
 async function collectMemory(page){
   const session=await page.context().newCDPSession(page);
   try{
@@ -89,6 +108,8 @@ for(const renderer of ['webgl2','canvas']){
       // The DEM and physicalLand must already paint while the optional sample is held.
       const baseline=metrics(await read());
       expect(baseline.terrainReady).toBe(true);
+      const baselineMemory=await collectMemory(page);
+      const baselineFramePacing=await sampleFramePacing(page);
       await screen().screenshot({path:testInfo.outputPath(renderer+'-palette-before-natural.png')}).then(async()=>{});
       const before=await screen().screenshot();
       holdNatural=false;releaseNatural();
@@ -98,8 +119,10 @@ for(const renderer of ['webgl2','canvas']){
       const after=await screen().screenshot({path:testInfo.outputPath(renderer+'-natural-after.png')});
       const diff=await imageDifference(page,before,after);
       const final=metrics(await read()),memory=await collectMemory(page);
+      const finalFramePacing=await sampleFramePacing(page);
       const result={schema:'pando-live-natural-preview-v1',environment:'Chromium SwiftShader (not real GPU)',
-        appRevision:process.env.GITHUB_SHA??null,renderer,baseline,final,memory,
+        appRevision:process.env.GITHUB_SHA??null,renderer,baseline,final,
+        baselineMemory,memory,baselineFramePacing,finalFramePacing,
         naturalHttpRequests:naturalRequests.length,naturalHttpRequestUrls:naturalRequests,heldNaturalRequests:held,
         screenshotDifference:diff,pageErrors:errors,actualViewer:true,externalCandidate:'v0.1.0-preview.1',
         measuredPhysicalGpuMemory:false,measuredPhysicalGpuFrameTime:false};
