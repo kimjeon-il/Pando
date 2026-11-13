@@ -5,7 +5,6 @@ import { spawn, execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { cpus, arch, platform } from 'node:os';
-import { createHash } from 'node:crypto';
 import { setTimeout as delay } from 'node:timers/promises';
 
 const args = Object.fromEntries(process.argv.slice(2).filter(s => s.startsWith('--')).map(s => {
@@ -306,7 +305,6 @@ function compare() {
   const base=JSON.parse(readFileSync(args.baseline,'utf8'));
   const next=JSON.parse(readFileSync(args.candidate,'utf8'));
   const issues=[];
-  const expected=zooms; // Actual zoom list checked directly against both input files.
   const json=value=>JSON.stringify(value);
   if(base.schema!=='pando-p1-gpu-zoom-ab-v1'||next.schema!==base.schema)issues.push('schema-mismatch');
   if(base.sourceCommit===next.sourceCommit)issues.push('same-commit-not-ab');
