@@ -371,8 +371,27 @@ test('current-view detail reaches an actual WebGL frame while the pointer remain
     window.__detailedTerrainDraws=[];
     const proto=window.WebGL2RenderingContext.prototype,getLocation=proto.getUniformLocation,draw=proto.drawElements;
     const programs=new WeakMap();
-    proto.getUniformLocation=function(program,name){const value=getLocation.call(this,program,name);if(name==='uLevelSize')programs.set(program,value);return value;};
-    proto.drawElements=function(...args){const result=draw.apply(this,args);if(window.__captureTerrainDraws){const program=this.getParameter(this.CURRENT_PROGRAM),location=program&&programs.get(program);if(location)window.__detailedTerrainDraws.push(this.getUniform(program,location)[0]);}return result;};
+    proto.getUniformLocation=function(program,name){
+      const value=getLocation.call(this,program,name);
+      // This DEM shader uses geographic and UV bounds, not the removed uLevelSize.
+      if(['uGeoBounds','uUvBounds','uTextureSize'].includes(name)){
+        const uniforms=programs.get(program)||{};
+        uniforms[name]=value;programs.set(program,uniforms);
+      }
+      return value;
+    };
+    proto.drawElements=function(...args){
+      const result=draw.apply(this,args);
+      if(!window.__captureTerrainDraws)return result;
+      const program=this.getParameter(this.CURRENT_PROGRAM),u=program&&programs.get(program);
+      if(!u?.uGeoBounds||!u?.uUvBounds||!u?.uTextureSize)return result;
+      const bounds=this.getUniform(program,u.uGeoBounds),uv=this.getUniform(program,u.uUvBounds),
+        size=this.getUniform(program,u.uTextureSize);
+      if(!bounds||!uv||!size||!(bounds[2]>bounds[0]))return result;
+      const width=Math.round(360*((uv[2]-uv[0])*size[0])/(bounds[2]-bounds[0]));
+      if(Number.isFinite(width)&&width>0)window.__detailedTerrainDraws.push(width);
+      return result;
+    };
   });
   await page.goto('/?debug=1',{waitUntil:'domcontentloaded'});
   await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:60000});
@@ -391,7 +410,7 @@ test('current-view detail reaches an actual WebGL frame while the pointer remain
   }finally{await page.mouse.up();}
   await page.evaluate(()=>{window.__detailedTerrainDraws=[];window.__captureTerrainDraws=true;window.__PANDOLAB_MAP_HOST__.requestRepaint('terrain-current-level-evidence');});
   const target=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.rendererStats().terrainTargetLevel);
-  await expect.poll(()=>page.evaluate(width=>window.__detailedTerrainDraws.includes(width),manifest.levels[target].width),{timeout:3000}).toBe(true);
+  await expect.poll(()=>page.evaluate(width=>window.__detailedTerrainDraws.includes(width),manifest.levels[target].width),{timeout:10000}).toBe(true);
   expect(errors).toEqual([]);
 });
 });

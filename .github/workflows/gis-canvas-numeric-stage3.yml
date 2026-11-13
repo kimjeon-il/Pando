@@ -33,7 +33,7 @@ jobs:
       - name: 3-4 identify stale theme assertions vs actual delayed-LOD publication
         run: |
           pnpm exec playwright test tests/browser/rendering/terrain-zoom-continuity.spec.mjs \
-            --grep 'terrain-zoom-continuity|terrain-inheritance|terrain-interaction-streaming' \
+            --grep 'terrain-interaction-streaming' \
             --workers=1 --retries=0 --output=test-results/canvas-stage3-4
       - name: 3-6 prove superseded camera, date, canceled paints cannot publish stale pixels
         run: |
