@@ -33,12 +33,18 @@ test('real WebGL 1/2 compile and link SDF color and pick shaders without changin
       try {
         color = linkGpuProgram(gl, sources.vertex, sources.fragment, { label: `hydro-sdf-color-gl${version}` });
         pick = linkGpuProgram(gl, sources.vertex, sources.pick, { label: `hydro-sdf-pick-gl${version}` });
+        let driverStateReads = 0;
+        const nativeGetParameter = gl.getParameter.bind(gl);
+        gl.getParameter = (...args) => { driverStateReads++; return nativeGetParameter(...args); };
         const coverage = createGpuHydroCoverage();
         const device = createRenderDevice({gl,version,contextRevision:1});
         coverage.setContext(device, version);
+        const readsBeforeRender = driverStateReads;
         const union = coverage.render({ width: 128, height: 128, color: [0.1, 0.4, 0.9, 0.65], paint() {} });
+        const second = coverage.render({ width: 128, height: 128, color: [0.1, 0.4, 0.9, 0.65], paint() {} });
+        const hotPathStateReads = driverStateReads - readsBeforeRender;
         const error = gl.getError();
-        output.push({ version, available: true, compiled: true, union, error,
+        output.push({ version, available: true, compiled: true, union, second, hotPathStateReads, error,
           supported: coverage.stats().maximumBlend });
         coverage.dispose();
         device?.state?.dispose?.();
@@ -57,7 +63,11 @@ test('real WebGL 1/2 compile and link SDF color and pick shaders without changin
     expect(row.available, `WebGL${row.version}`).toBe(true);
     expect(row.compiled, `${row.message || 'shader compilation'}`).toBe(true);
     expect(row.error).toBe(0);
-    if (row.supported) expect(row.union).toBe(true);
+    if (row.supported) {
+      expect(row.union).toBe(true);
+      expect(row.second).toBe(true);
+      expect(row.hotPathStateReads, 'coverage frames must not query GL driver state').toBe(0);
+    }
   }
   expect(reports[0].supported, 'WebGL2 has MAX blending').toBe(true);
 });

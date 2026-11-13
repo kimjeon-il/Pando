@@ -1,0 +1,74 @@
+name: P0 GL state three-sample P7 Chromium profiler
+# One shot: same P7 instrument and source-matched pinned data, no full test suite.
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: p0-gl-state-p7-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  renderer:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - uses: ./.github/actions/library-data
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: P7 baseline-identical 32x and year switching three replicates
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p validation-results/p0-gl-state-20261112
+          for i in 1 2 3; do
+            node scripts/p7-browser-ab-measure.mjs --label=p7 --measure-zoom=1 --out="validation-results/p0-gl-state-20261112/p7-$i.json"
+          done
+          node scripts/p7-browser-ab-measure.mjs --mode=aggregate \
+            --samples=validation-results/p0-gl-state-20261112/p7-1.json,validation-results/p0-gl-state-20261112/p7-2.json,validation-results/p0-gl-state-20261112/p7-3.json \
+            --out=validation-results/p0-gl-state-20261112/p7-aggregate.json
+          node --input-type=module <<'NODE'
+          import {readFileSync} from 'node:fs';
+          const p=JSON.parse(readFileSync('validation-results/p0-gl-state-20261112/p7-aggregate.json','utf8'));
+          if(p.status!=='passed'||p.sampleCount!==3)throw Error('Invalid P7 three-replicate aggregate');
+          console.log('P0_GL_STATE_3X_MEASURED '+JSON.stringify({
+            commit:p.identity.commit,pin:p.identity.pin,browser:p.browserVersion,
+            samples:p.sampleCount,
+            phases:p.phases.map(x=>({phase:x.phase,ms:x.elapsedMs,range:x.wallTimeRangeMs,
+              cpuP95:x.renderer?.p95CpuSubmitMs,cpuP99:x.renderer?.p99CpuSubmitMs,
+              rafP95:x.raf?.p95FrameGapMs,rafP99:x.raf?.p99FrameGapMs,
+              jsHeapBytes:x.jsHeapUsedBytes,pssBytes:x.chromiumProcessPssBytes,
+              meshRebuild:x.renderer?.countryMeshRebuildCount,meshReuse:x.renderer?.countryMeshReuseCount,
+              lodPrepared:x.renderer?.screenLodPreparedCount,lodUploaded:x.renderer?.screenLodUploadCount,
+              activeMesh:x.renderer?.activeMeshQuality})),
+          }));
+          NODE
+      - name: Preserve source-matched raw JSON even when a replicate fails
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p0-gl-state-p7-x3-${{ github.sha }}
+          path: validation-results/p0-gl-state-20261112/
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Retain measured JSON on the isolated work branch
+        if: always()
+        shell: bash
+        run: |
+          if [ ! -s validation-results/p0-gl-state-20261112/p7-aggregate.json ]; then
+            echo "Only partial raw evidence exists; artifact owns that failure."
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- validation-results/p0-gl-state-20261112/
+          if ! git diff --cached --quiet; then
+            git commit -m "data(perf): retain P7 GL state x3 raw measurements [skip ci]"
+            git push origin HEAD:refs/heads/work/p0-gl-state-20261112
+          fi
