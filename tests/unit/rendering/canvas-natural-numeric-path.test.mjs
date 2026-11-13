@@ -146,7 +146,7 @@ test('numerical Canvas 512px raster is bounded in memory and measured without a 
       rendered+=block.pixels;blocks++;peak=Math.max(peak,block.rgba.byteLength);
     }
     duration.push(performance.now()-start);pixels.push(rendered);
-    assert.equal(rendered,512*513/2,'triangular pixel coverage is deterministic');
+    assert.equal(rendered,512*511/2,'top-left ownership excludes the diagonal, which belongs to its neighbour');
     assert.equal(blocks,32);
     assert.ok(peak<=128*1024,'one numerical scratch block stays under 128 KiB');
   }
