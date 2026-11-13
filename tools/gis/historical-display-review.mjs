@@ -7,6 +7,7 @@ import {hasFixedScopeCorrection,assertFixedScopeCorrection} from './fixed-scope-
 import {hasFinScopeCorrection,assertFinScopeCorrection} from './fin-scope-correction-source-review.mjs';
 import {hasOriginalRetainedComposition,assertOriginalRetainedComposition} from './original-retained-composition-source-review.mjs';
 import {hasOriginalComposition,assertOriginalComposition} from './original-composition-source-review.mjs';
+import {hasRegisteredCurrentOutlineReuse,assertRegisteredCurrentOutlineCopy} from './registered-current-outline-source-review.mjs';
 import {hasHistoricalSourceReuse,assertHistoricalModernCopy} from './historical-modern-copy-source-review.mjs';
 import {hasWholeOriginalBatch,assertWholeOriginalBatch} from './whole-original-source-review.mjs';
 import fs from 'node:fs';
@@ -392,6 +393,7 @@ export function assertHistoricalSourceStorageChanges(next,previous,{prefixes,rea
  if(hasFinScopeCorrection(next,previous))return assertFinScopeCorrection(next,previous,{prefixes,readEvidence,getSourceSnapshot});
  if(hasFixedScopeCorrection(next,previous))return assertFixedScopeCorrection(next,previous,{prefixes,readEvidence,getSourceSnapshot});
  if(hasThirteenScopeCorrection(next,previous))return assertThirteenScopeCorrection(next,previous,{prefixes,readEvidence,getSourceSnapshot});
+ if(hasRegisteredCurrentOutlineReuse(next)||hasRegisteredCurrentOutlineReuse(previous))return assertRegisteredCurrentOutlineCopy(next,previous,{prefixes,readEvidence,getSourceSnapshot});
  if(hasHistoricalSourceReuse(next)||hasHistoricalSourceReuse(previous))return assertHistoricalModernCopy(next,previous,{prefixes,readEvidence,getSourceSnapshot});
  if(hasSelectedOriginalComposition(next)||hasSelectedOriginalComposition(previous))return assertSelectedOriginalComposition(next,previous,{prefixes,readEvidence,getSourceSnapshot});
  if(hasOriginalRetainedComposition(next)||hasOriginalRetainedComposition(previous))return assertOriginalRetainedComposition(next,previous,{prefixes,readEvidence,getSourceSnapshot});
