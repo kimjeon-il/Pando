@@ -1377,9 +1377,7 @@
         "tests/unit/runtime/runtime-performance-contract.test.mjs"
       ],
       "inputs": [
-        "config/performance-baseline-v1.json",
-        "config/performance-budget.json",
-        "scripts/assemble-performance-evidence.mjs"
+        "src/runtime/runtime-performance-metrics.js"
       ]
     },
     {

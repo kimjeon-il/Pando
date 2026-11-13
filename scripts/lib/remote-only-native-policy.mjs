@@ -11,7 +11,7 @@ export function remoteOnlyBranch({root=process.cwd(),environment=process.env,bra
   // Explicit test branches can be injected without inspecting unrelated checkouts.
   if(branch!==undefined)return branch==='work/remote-only';
   // A tracked marker protects detached-HEAD checkouts as well as named branches.
-  const marker=resolve(root,'config/remote-only-policy.json');
+  const marker=resolve(root,'docs/policies/native-execution.json');
   if(existsSync(marker)){
     const value=JSON.parse(readFileSync(marker,'utf8'));
     if(value.schema!=='pando-remote-only-policy-v1'||

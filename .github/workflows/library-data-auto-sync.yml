@@ -7,8 +7,8 @@ on:
       - 'scripts/lib/library-auto-*.mjs'
       - 'tests/unit/**/library-auto-*.test.mjs'
       - 'tools/data/library-data.mjs'
-      - 'config/library-auto-sync.json'
-      - 'config/library-auto-work-gis-request.json'
+      - 'docs/policies/library-publication.json'
+      - 'scripts/requests/library-work-gis.json'
       - '.github/workflows/library-data-auto-sync.yml'
   workflow_dispatch:
     inputs:
@@ -43,7 +43,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - run: node --test tests/unit/library-auto-{sync,inputs,publication,runtime,executor,github}.test.mjs tests/unit/data/library-data-scope.test.mjs tests/unit/data/library-data-auth.test.mjs
+      - run: node --test tests/unit/data/library-auto-{publication,runtime,executor,github}.test.mjs tests/unit/data/library-data-scope.test.mjs tests/unit/data/library-data-auth.test.mjs
   gate:
     if: github.repository == 'kimjeon-il/Pando'
     runs-on: ubuntu-24.04
@@ -88,7 +88,7 @@ jobs:
               if (!/^(?!0{40}$)[a-f0-9]{40}$/.test(process.env.DATA_REVISION || '')) throw new Error('Invalid data revision');
             }
             if (context.eventName === 'workflow_run' && context.payload.workflow_run.head_branch !== 'main') throw new Error('Invalid recovery branch');
-            const policy = JSON.parse(fs.readFileSync('config/library-auto-sync.json', 'utf8'));
+            const policy = JSON.parse(fs.readFileSync('docs/policies/library-publication.json', 'utf8'));
             if (Object.keys(policy).length !== 1 || typeof policy.productionEnabled !== 'boolean') throw new Error('Invalid policy');
             const enabled = policy.productionEnabled === true;
             core.setOutput('revision', revision);

@@ -1,5 +1,5 @@
 // Optional work/gis-only exact-input request; ordinary notifications are unchanged.
-export const REQUEST_PATH='config/library-auto-work-gis-request.json';
+export const REQUEST_PATH='scripts/requests/library-work-gis.json';
 const SHA=/^(?!0{40}$)[a-f0-9]{40}$/;
 function fail(code){throw Object.assign(Error(code),{code});}
 export function resolveWorkGisRequest({repository,ref,before,after,changedPaths,request}){
