@@ -193,7 +193,20 @@ def polar_grid(path,times,shape,transform):
         reproject(rasterio.band(src,index+1),result,src_transform=src.transform,src_crs=src.crs,
             dst_transform=transform,dst_crs='EPSG:4326',src_nodata=source_nodata,dst_nodata=0,
             resampling=Resampling.average,warp_mem_limit=64,init_dest_nodata=True)
-        diagnostics=check_polar_coverage_bounds(float(np.min(result)),float(np.max(result)),bool(np.isfinite(result).all()))
+        finite_mask=np.isfinite(result)
+        if not bool(finite_mask.all()):
+            observed=result[finite_mask]
+            print('POLAR_REPROJECT_DIAGNOSTIC='+json.dumps({
+                'source':str(path),'dtype':src.dtypes[index],
+                'sourceNodata':None if src.nodata is None else str(src.nodata),
+                'implicitFloatNaNNoData':implicit_nan,'sourceCrs':str(src.crs),
+                'targetShape':list(shape),'nonfinitePixels':int(np.count_nonzero(~finite_mask)),
+                'finitePixels':int(np.count_nonzero(finite_mask)),
+                'finiteMinimum':float(np.min(observed)) if observed.size else None,
+                'finiteMaximum':float(np.max(observed)) if observed.size else None,
+                'sampleClasses':[str(value) for value in sorted(values)],
+            }),flush=True)
+        diagnostics=check_polar_coverage_bounds(float(np.min(result)),float(np.max(result)),bool(finite_mask.all()))
         diagnostics.update(sourceNoData=None if src.nodata is None else str(src.nodata),
             implicitFloatNaNNoData=implicit_nan,
             correctedRoundoffPixels=int(np.count_nonzero((result<0)|(result>1))))
