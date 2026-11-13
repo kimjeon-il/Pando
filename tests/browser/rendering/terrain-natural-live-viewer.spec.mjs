@@ -11,6 +11,7 @@ function metrics(s) {
     'terrainTargetTileCount','terrainTargetTilesLoaded','terrainResolutionLimited',
     'terrainNaturalTilesLoaded','terrainNaturalCacheBytes','terrainNaturalPendingBytes',
     'terrainNaturalUploadCount','terrainNaturalRequests','terrainNaturalFailures',
+    'terrainNaturalSourceRevision','terrainMemoryBudgetBytes','terrainDemCacheBytes',
     'terrainCacheBytes','terrainPendingDecodedBytes','terrainFetchConcurrency',
     'canvasTerrainNumericPixels','canvasTerrainNumericScratchPeakBytes',
     'p95CpuSubmitMs','p99CpuSubmitMs','webGlLastFrameSceneDrawCalls'].map(k=>[k,s?.[k]??null]));
@@ -65,8 +66,14 @@ async function collectMemory(page){
       scriptDurationSeconds:counters.ScriptDuration??null};
   }finally{await session.detach().catch(()=>{});}
 }
-for(const renderer of ['webgl2','canvas']){
-  test('natural external preview incrementally repaints actual '+renderer+' Viewer',async({page},testInfo)=>{
+const PINNED_NATURAL_SOURCE='c3d761ffc6d3cd54300e6fb491901551d8de3b54';
+const PINNED_NATURAL_CATALOG='82edd7181c158940c482d6621a403bd8667fda72';
+const targetRegions=[
+  {name:'china-southwest',rotation:[-106,-30,0],tile:'4/16-3.webp'},
+  {name:'himalaya',rotation:[-86,-28,0],tile:'4/15-3.webp'},
+];
+for(const renderer of ['webgl2','canvas'])for(const region of (renderer==='webgl2'?targetRegions:targetRegions.slice(0,1))){
+  test('natural external preview incrementally repaints actual '+renderer+' Viewer in '+region.name,async({page},testInfo)=>{
     test.setTimeout(renderer==='canvas'?260_000:200_000);
     const errors=[],naturalRequests=[],catalogTraffic=[],consoleDiagnostics=[];
     page.on('pageerror',e=>errors.push(e.message));
@@ -100,11 +107,11 @@ for(const renderer of ['webgl2','canvas']){
       await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:100000});
       await expect.poll(async()=>{const s=await read();return s?.renderer;},{timeout:20000})
         .toBe(renderer==='canvas'?'canvas-worker':'webgl2');
-      await page.evaluate(()=>{
+      await page.evaluate(rotation=>{
         const host=window.__PANDOLAB_MAP_HOST__,v=host.getViewState();
-        host.setViewState({projection:'globe',view:{...v,globeRotation:[-106,-30,0],globeZoom:16}});
+        host.setViewState({projection:'globe',view:{...v,globeRotation:rotation,globeZoom:16}});
         host.requestRepaint('natural-preview-region');
-      });
+      },region.rotation);
       await expect.poll(async()=>{const s=await read();return s?.terrainTargetLevel===4&&s?.terrainReady;},{timeout:100000}).toBe(true);
       await expect.poll(()=>held,{timeout:25000}).toBeGreaterThan(0);
       // The DEM and physicalLand must already paint while the optional sample is held.
@@ -112,24 +119,33 @@ for(const renderer of ['webgl2','canvas']){
       expect(baseline.terrainReady).toBe(true);
       const baselineMemory=await collectMemory(page);
       const baselineFramePacing=await sampleFramePacing(page);
-      await screen().screenshot({path:testInfo.outputPath(renderer+'-palette-before-natural.png')}).then(async()=>{});
+      await screen().screenshot({path:testInfo.outputPath(renderer+'-'+region.name+'-palette-before-natural.png')}).then(async()=>{});
       const before=await screen().screenshot();
       holdNatural=false;releaseNatural();
       await expect.poll(async()=>Number((await read())?.terrainNaturalTilesLoaded||0),{timeout:100000}).toBeGreaterThan(0);
       await expect.poll(async()=>Number((await read())?.terrainNaturalCacheBytes||0),{timeout:20000}).toBeGreaterThan(0);
       await page.waitForTimeout(450);
-      const after=await screen().screenshot({path:testInfo.outputPath(renderer+'-natural-after.png')});
+      const after=await screen().screenshot({path:testInfo.outputPath(renderer+'-'+region.name+'-natural-after.png')});
       const diff=await imageDifference(page,before,after);
       const final=metrics(await read()),memory=await collectMemory(page);
       const finalFramePacing=await sampleFramePacing(page);
       const result={schema:'pando-live-natural-preview-v1',environment:'Chromium SwiftShader (not real GPU)',
-        appRevision:process.env.GITHUB_SHA??null,renderer,baseline,final,
+        appRevision:process.env.GITHUB_SHA??null,renderer,region:region.name,
+        expectedSourceRevision:PINNED_NATURAL_SOURCE,baseline,final,
         baselineMemory,memory,baselineFramePacing,finalFramePacing,
         naturalHttpRequests:naturalRequests.length,naturalHttpRequestUrls:naturalRequests,heldNaturalRequests:held,
         screenshotDifference:diff,pageErrors:errors,actualViewer:true,externalCandidate:'v0.1.0-preview.1',
         measuredPhysicalGpuMemory:false,measuredPhysicalGpuFrameTime:false};
       await testInfo.attach('live-natural-performance',{body:JSON.stringify(result,null,2),contentType:'application/json'});
       expect(diff.changedPixels,'Actual surface must change the presented frame, not just cache bytes').toBeGreaterThan(100);
+      expect(naturalRequests.some(url=>url.includes('/'+PINNED_NATURAL_SOURCE+'/')&&url.endsWith('/'+region.tile))).toBe(true);
+      expect(catalogTraffic.some(row=>row.event==='response'&&row.status===200&&row.url.includes('/'+PINNED_NATURAL_CATALOG+'/'))).toBe(true);
+      if(renderer==='webgl2'){
+        expect(final.terrainNaturalSourceRevision).toBe(PINNED_NATURAL_SOURCE);
+        expect(final.terrainMemoryBudgetBytes).toBeGreaterThan(0);
+        expect(final.terrainCacheBytes+final.terrainPendingDecodedBytes+final.terrainNaturalPendingBytes)
+          .toBeLessThanOrEqual(final.terrainMemoryBudgetBytes);
+      }
       expect(final.terrainNaturalFailures).toBe(0);
       expect(errors).toEqual([]);
     }finally{

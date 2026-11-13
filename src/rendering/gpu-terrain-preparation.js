@@ -557,9 +557,12 @@ export function createGpuTerrainPreparation({ readTile, readNaturalTile = async 
       retryTimers.clear(); terrainTileFailures.clear(); preparationFailure = ''; unusableReported = false; tileFailureReported = false;
       invalidate('terrain-retry');
     },
-    stats: () => ({ ...readiness(), terrainLevel: terrainLastLevel, terrainRenderedLevel, terrainTargetTileCount, terrainTargetTilesLoaded,
+    stats: () => ({ ...readiness(), terrainMemoryBudgetBytes: cacheBudgetBytes,
+      terrainNaturalSourceRevision: terrainManifest?.naturalSurface?.sourceRevision || null,
+      terrainLevel: terrainLastLevel, terrainRenderedLevel, terrainTargetTileCount, terrainTargetTilesLoaded,
       terrainTargetTilesSettled: settled(), terrainTilesLoaded: terrainTiles.size,
       terrainCacheBytes: [...terrainTiles.values()].reduce((sum, tile) => sum + tile.byteLength, 0)+natural.bytes(),
+      terrainDemCacheBytes: [...terrainTiles.values()].reduce((sum, tile) => sum + tile.byteLength, 0),
       ...natural.stats(),
       terrainPendingDecodedBytes: pendingDecodedBytes,
       terrainTilesLoading: terrainTileRequests.size + terrainFetchQueue.length, terrainFetchConcurrency: terrainFetchConcurrency(),

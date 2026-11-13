@@ -28,6 +28,7 @@ test('actual WebGL natural interpolation matches numerical Canvas on valid, wate
     upload(0,dem);gl.uniform1i(uniform('uTerrain'),0);gl.uniform1i(uniform('uNaturalSurface'),1);
     gl.uniform2f(uniform('uTextureSize'),2,2);gl.uniform1i(uniform('uMode'),1);
     gl.uniform1f(uniform('uPhysicalStyle'),1);gl.uniform1f(uniform('uLandPass'),1);gl.uniform1f(uniform('uNaturalWeight'),0.65);
+    gl.uniform4f(uniform('uNaturalFadeEdges'),0,0,0,0);
     const cases={mixed:[100,150,80,255,0,0,0,255,10,60,160,255,235,243,247,255],
       allValid:[100,150,80,255,170,185,100,255,200,180,150,255,235,243,247,255],allInvalid:new Array(16).fill(0)};
     const rows=[];
@@ -44,9 +45,29 @@ test('actual WebGL natural interpolation matches numerical Canvas on valid, wate
       }
       gl.deleteTexture(texture);
     }
-    const error=gl.getError();return {rows,error,max:Math.max(...rows.map(r=>r.max))};
+    // Test real shader-side boundary feather independently of interior parity.
+    const natural=upload(1,new Uint8Array(cases.allValid));
+    const palette=lib.paletteForTheme('light');
+    gl.uniform3fv(uniform('uTerrainLandColors[0]'),palette.landColors);
+    gl.uniform3fv(uniform('uTerrainSeaSurface'),palette.seaSurface);
+    gl.uniform3fv(uniform('uTerrainSeaDeep'),palette.seaDeep);
+    gl.uniform1f(uniform('uDarkTheme'),0);
+    gl.uniform2f(uniform('uSampleUv'),0.5,0.5);
+    const draw=edges=>{
+      gl.uniform4f(uniform('uNaturalFadeEdges'),...edges);
+      gl.drawArrays(gl.TRIANGLES,0,3);
+      const bytes=new Uint8Array(4);
+      gl.readPixels(0,0,1,1,gl.RGBA,gl.UNSIGNED_BYTE,bytes);
+      return [...bytes];
+    };
+    const interior=draw([0,0,0,0]),feathered=draw([1,1,1,1]);
+    gl.deleteTexture(natural);
+    const featherDifference=Math.max(...interior.slice(0,3).map((v,i)=>Math.abs(v-feathered[i])));
+    const error=gl.getError();return {rows,error,max:Math.max(...rows.map(r=>r.max)),
+      interior,feathered,featherDifference};
   },{fragment});
   await info.attach('natural-gpu-cpu-parity',{body:JSON.stringify(result,null,2),contentType:'application/json'});
   expect(result.error).toBe(0);
   expect(result.max,JSON.stringify(result.rows.filter(row=>row.max>1))).toBeLessThanOrEqual(1);
+  expect(result.featherDifference,'missing neighbour must feather back to DEM palette').toBeGreaterThan(3);
 });

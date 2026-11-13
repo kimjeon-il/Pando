@@ -39,6 +39,8 @@ test('natural GPU work waits for visible DEM and never replaces DEM readiness',a
   const complete=f.owner.prepare(frame,view);
   assert.ok(complete[0].naturalTexture,'uploaded natural texture reaches drawing records');
   assert.equal(complete[0].naturalMixWeight,0.65);
+  assert.equal(f.owner.stats().terrainNaturalSourceRevision,'a'.repeat(40));
+  assert.equal(f.owner.stats().terrainMemoryBudgetBytes,32*1024*1024);
   assert.equal(f.owner.stats().terrainNaturalCacheBytes,240);
   assert.equal(f.owner.stats().terrainCacheBytes,480,'DEM and optional texture use one declared budget');
   assert.ok(f.events.includes('terrain-natural-ready'));
@@ -132,6 +134,8 @@ test('32/64/128 MiB device budgets include both DEM and optional natural residen
       assert.ok(stats.terrainCacheBytes+stats.terrainPendingDecodedBytes+stats.terrainNaturalPendingBytes<=local.cacheBudgetBytes);
       assert.equal(stats.terrainNaturalCacheBytes,240);
       assert.equal(stats.terrainCacheBytes,480);
+      assert.equal(stats.terrainDemCacheBytes,240);
+      assert.equal(stats.terrainMemoryBudgetBytes,local.cacheBudgetBytes);
     });
   }
 });
