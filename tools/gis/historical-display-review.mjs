@@ -391,13 +391,13 @@ function assertOriginalExistingComponents(next,previous,review,{prefixes,archive
  * this does not approve historical reconstruction or derived display geometry.
  */
 export function assertHistoricalSourceStorageChanges(next,previous,{prefixes,readEvidence,getSourceSnapshot}={}){
+ if(hasRegisteredCurrentOutlineReuse(next)||hasRegisteredCurrentOutlineReuse(previous))return assertRegisteredCurrentOutlineCopy(next,previous,{prefixes,readEvidence,getSourceSnapshot});
  if(hasProtectedOriginalArcs(next)||hasProtectedOriginalArcs(previous))return assertProtectedOriginalArcs(next,previous,{prefixes,readEvidence,getSourceSnapshot});
  if(hasFixedFourOriginal(next))return assertFixedFourOriginal(next,previous,{prefixes,readEvidence,getSourceSnapshot});
  if(hasJpnScopeCorrection(next,previous))return assertJpnScopeCorrection(next,previous,{prefixes,readEvidence,getSourceSnapshot});
  if(hasFinScopeCorrection(next,previous))return assertFinScopeCorrection(next,previous,{prefixes,readEvidence,getSourceSnapshot});
  if(hasFixedScopeCorrection(next,previous))return assertFixedScopeCorrection(next,previous,{prefixes,readEvidence,getSourceSnapshot});
  if(hasThirteenScopeCorrection(next,previous))return assertThirteenScopeCorrection(next,previous,{prefixes,readEvidence,getSourceSnapshot});
- if(hasRegisteredCurrentOutlineReuse(next)||hasRegisteredCurrentOutlineReuse(previous))return assertRegisteredCurrentOutlineCopy(next,previous,{prefixes,readEvidence,getSourceSnapshot});
  if(hasRegisteredCzeSvkUnion(next)||hasRegisteredCzeSvkUnion(previous))return assertRegisteredCzeSvkUnion(next,previous,{prefixes,readEvidence,getSourceSnapshot});
  if(hasHistoricalSourceReuse(next)||hasHistoricalSourceReuse(previous))return assertHistoricalModernCopy(next,previous,{prefixes,readEvidence,getSourceSnapshot});
  if(hasSelectedOriginalComposition(next)||hasSelectedOriginalComposition(previous))return assertSelectedOriginalComposition(next,previous,{prefixes,readEvidence,getSourceSnapshot});
