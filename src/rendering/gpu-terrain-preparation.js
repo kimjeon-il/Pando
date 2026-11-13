@@ -14,6 +14,10 @@ export function createGpuTerrainPreparation({ readTile, readNaturalTile = async 
   let epoch = 0, projectGeneration = 0, contextRevision = 0;
   let activeFrameContext = null, view = {};
   let terrainManifest = null, cacheBudgetBytes = 128 * 1024 * 1024, terrainUploadCount = 0;
+  // RGBA8 DEM and optional natural source textures each occupy four bytes per
+  // stored texel. Canvas's three converted colour planes remain 12 bytes/texel.
+  const gpuDemBytesPerPixel = 4;
+  let terrainAdmissionBytes = 0, terrainAdmissionReserveBytes = 0;
   let dependencies = { source: 'terrain', content: 'null', preparation: 'terrain-v1', context: null, presentation: 'tiles' };
   let pendingDecodedBytes = 0, unusableReported = false, tileFailureReported = false;
   let requiredKeys = new Set(), resolutionLimited = false, preparationFailure = '';
@@ -46,8 +50,29 @@ export function createGpuTerrainPreparation({ readTile, readNaturalTile = async 
       const frameDpr = Math.max(1, Number(frameContext.dpr));
       const sourceDpr = Math.min(isMobile() ? 2 : 3, Math.max(1, Number(view.devicePixelRatio || 1)));
       const desiredWidth = Math.max(1, 2 * PI * (physicalScale / frameDpr) * sourceDpr);
+      const baseLevel = terrainManifest.levels[0], gutter = Number(terrainManifest.gutter || 0);
+      // Actual full-world fallback is always retained independently of view.
+      // Account for every partial edge tile (rather than assuming all tiles
+      // have 1024x1024 texels). It costs GPU RGBA8 bytes, not Canvas planes.
+      let baseBytes = 0;
+      for (let row = 0; row < baseLevel.rows; row++)
+        for (let column = 0; column < baseLevel.columns; column++) {
+          const w = Math.min(baseLevel.tileSize, baseLevel.width - column * baseLevel.tileSize);
+          const h = Math.min(baseLevel.tileSize, baseLevel.height - row * baseLevel.tileSize);
+          baseBytes += (w + 2 * gutter) * (h + 2 * gutter) * gpuDemBytesPerPixel;
+        }
       const choice = tileSelection.admitVisibleTiles(terrainManifest, desiredWidth,
-        level => visibleTerrainTileSpecs(level, false, frameContext));
+        level => visibleTerrainTileSpecs(level, false, frameContext), {
+          byteBudget: cacheBudgetBytes,
+          bytesPerPixel: gpuDemBytesPerPixel,
+          // Count base textures once, then reserve up to two immediately
+          // visible natural tiles if a matching source exists at this LOD.
+          // Missing coverage costs no GPU bytes and cannot lower detail.
+          reserveBytes: (level, specs) => (level.id === baseLevel.id ? 0 : baseBytes)
+            + visibleNaturalReserve(specs),
+        });
+      terrainAdmissionBytes = choice.bytes;
+      terrainAdmissionReserveBytes = choice.reserveBytes;
       resolutionLimited = choice.resolutionLimited;
       return choice;
     }
@@ -486,6 +511,7 @@ export function createGpuTerrainPreparation({ readTile, readNaturalTile = async 
     terrainTargetTileCount = 0; terrainTargetTilesLoaded = 0;
     terrainTargetTileKeys.clear(); terrainRetentionKeys.clear(); terrainCurrentViewKeys.clear();
     requiredKeys.clear(); resolutionLimited = false; preparationFailure = '';
+    terrainAdmissionBytes = 0; terrainAdmissionReserveBytes = 0;
   }
   const settled = () => [...terrainTargetTileKeys].every(key => terrainTiles.has(key) || Number(terrainTileFailures.get(key)?.attempts || 0) >= 4);
   function readiness() {
@@ -558,6 +584,9 @@ export function createGpuTerrainPreparation({ readTile, readNaturalTile = async 
       invalidate('terrain-retry');
     },
     stats: () => ({ ...readiness(), terrainMemoryBudgetBytes: cacheBudgetBytes,
+      terrainAdmissionBytes, terrainAdmissionReserveBytes,
+      terrainAdmissionTotalBytes: terrainAdmissionBytes + terrainAdmissionReserveBytes,
+      terrainAdmissionBytesPerPixel: gpuDemBytesPerPixel,
       terrainNaturalSourceRevision: terrainManifest?.naturalSurface?.sourceRevision || null,
       terrainLevel: terrainLastLevel, terrainRenderedLevel, terrainTargetTileCount, terrainTargetTilesLoaded,
       terrainTargetTilesSettled: settled(), terrainTilesLoaded: terrainTiles.size,
