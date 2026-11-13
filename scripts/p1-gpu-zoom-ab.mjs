@@ -390,8 +390,10 @@ function compare() {
     const delta=(name)=>ok&&finite(b[name])&&finite(c[name])&&b[name]>0
       ? rounded((c[name]-b[name])/b[name]*100) : null;
     cells.push({projection:b.projection,zoom:b.zoom,baselineStatus:b.status,
-      candidateStatus:c?.status??'missing',comparable:ok,reason:ok?null:
-        (b.reason||c?.reason||b.error||c?.error||'missing-verified-frame'),
+      candidateStatus:c?.status??'missing',comparable:ok,
+      baselineReason:ok?null:(b.reason||b.error||'missing-verified-frame'),
+      candidateReason:ok?null:(c?.reason||c?.error||'missing-verified-frame'),
+      reason:ok?null:(b.reason||c?.reason||b.error||c?.error||'missing-verified-frame'),
       baselineMs:ok?b.elapsedMs:null,candidateMs:ok?c.elapsedMs:null,
       transitionDeltaPercent:delta('elapsedMs'),cpuDeltaPercent:delta('cpuTaskMs'),
       baselineRafP95Ms:ok?b.raf?.rafP95GapMs??null:null,
@@ -408,7 +410,8 @@ function compare() {
   const allGlobePaired=base.zooms.every(zoom=>paired.some(row=>row.projection==='globe'&&row.zoom===zoom));
   const flatUnsupported=missing.length===base.zooms.length && missing.every(row=>
     row.projection==='flat' && row.baselineStatus==='unsupported' &&
-    row.candidateStatus==='unsupported' && row.reason===expectedFlatReason);
+    row.candidateStatus==='unsupported' &&
+    row.baselineReason===expectedFlatReason && row.candidateReason===expectedFlatReason);
   const properSceneProof=[base,next].every(sample=>sample.rows.filter(row=>row.status==='passed')
     .every(row=>/^[0-9a-f]{64}$/.test(row.frameSha256||'')));
   if(!properSceneProof)issues.push('missing-visible-frame-hash');
