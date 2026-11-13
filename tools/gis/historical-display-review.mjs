@@ -1,3 +1,4 @@
+import{hasRegisteredCzeSvkUnion,assertRegisteredCzeSvkUnion}from'./registered-cze-svk-union-source-review.mjs';
 import {hasFixedFourOriginal,assertFixedFourOriginal} from './fixed-four-original-source-review.mjs';
 import {hasSelectedOriginalComposition,assertSelectedOriginalComposition} from './selected-original-composition-source-review.mjs';
 import {hasRetainedCoast,assertRetainedCoast} from './retained-coast-source-review.mjs';
@@ -396,6 +397,7 @@ export function assertHistoricalSourceStorageChanges(next,previous,{prefixes,rea
  if(hasFixedScopeCorrection(next,previous))return assertFixedScopeCorrection(next,previous,{prefixes,readEvidence,getSourceSnapshot});
  if(hasThirteenScopeCorrection(next,previous))return assertThirteenScopeCorrection(next,previous,{prefixes,readEvidence,getSourceSnapshot});
  if(hasRegisteredCurrentOutlineReuse(next)||hasRegisteredCurrentOutlineReuse(previous))return assertRegisteredCurrentOutlineCopy(next,previous,{prefixes,readEvidence,getSourceSnapshot});
+ if(hasRegisteredCzeSvkUnion(next)||hasRegisteredCzeSvkUnion(previous))return assertRegisteredCzeSvkUnion(next,previous,{prefixes,readEvidence,getSourceSnapshot});
  if(hasHistoricalSourceReuse(next)||hasHistoricalSourceReuse(previous))return assertHistoricalModernCopy(next,previous,{prefixes,readEvidence,getSourceSnapshot});
  if(hasSelectedOriginalComposition(next)||hasSelectedOriginalComposition(previous))return assertSelectedOriginalComposition(next,previous,{prefixes,readEvidence,getSourceSnapshot});
  if(hasOriginalRetainedComposition(next)||hasOriginalRetainedComposition(previous))return assertOriginalRetainedComposition(next,previous,{prefixes,readEvidence,getSourceSnapshot});
