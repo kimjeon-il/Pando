@@ -85,7 +85,10 @@ test('Web publishes sharp ocean and land before countries, then reuses prepared 
       return state.countriesPublishedGeneration === state.projectGeneration
         && state.firstCountryPublishedMs !== null
         && (state.surfaceDraw?.countryIndexCount || 0) > 0;
-    }, { timeout: 30000 }).toBe(true);
+    }, { timeout: 30000 }).toBe(true).catch(async error=>{
+      console.log('INITIAL_COUNTRY_PUBLICATION_DIAGNOSTIC '+JSON.stringify({stats:await stats(),errors}).slice(0,15000));
+      throw error;
+    });
     const early = await stats();
     expect(early.surfacePresentation.quality).toBe('canonical');
     expect(early.mapReadiness.mapReady).toBe(true);
