@@ -47,13 +47,15 @@ test('immutable observed WorldCover, mountain glacier and polar ice preview reac
     };
     await page.route('**/terrain/natural/v0.1.0-preview.2/*/*.webp*',handler);
     try{
-      if(region.name==='greenland')await page.setViewportSize({width:760,height:520});
+      // Keep the same viewport and zoom as the verified Himalayan sample.
+      // The smaller polar viewport and 24x zoom could leave mandatory DEM
+      // tiles unready, masking the observed-ice compositing result.
       await page.goto('/?debug=1&renderer=webgl2&naturalTerrain=observed',{waitUntil:'domcontentloaded'});
       await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:110000});
       await page.evaluate(rotation=>{
         const host=window.__PANDOLAB_MAP_HOST__,view=host.getViewState();
         host.setViewState({projection:'globe',view:{...view,globeRotation:rotation,
-          globeZoom:rotation[1]===-76?24:16}});
+          globeZoom:16}});
         host.requestRepaint('observed-natural-region');
       },region.rotation);
       const stats=()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__?.rendererStats());
