@@ -15,8 +15,6 @@ import {mapImageSourceFiles} from '../../tools/map-image/native-resample.mjs';
 
 export const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 export const TASK_SOURCES = Object.freeze({
-  'historical-border':'tools/gis/build-german-1914-base.mjs',
-  'historical-coast':'tools/gis/build-german-1914-base.mjs',
   'terrain-dem':'tools/gis/terrain-dem-build.mjs',
   'hydro-tiles':'tools/gis/build-hydro.mjs',
   'hydro-packfile':'tools/build/build-hydro-packfile.mjs',
@@ -32,7 +30,7 @@ export function buildCommand(task,args=[],{root=ROOT}={}){
   if(!rel||rel==='..'||rel.startsWith('..'+sep)||isAbsolute(rel))
     throw Error('GIS source path escaped repository');
   const passthrough=args[0]==='--'?args.slice(1):args;
-  return [process.execPath,source,...(task==='historical-coast'?['--modern-coast']:[]),...passthrough];
+  return [process.execPath,source,...passthrough];
 }
 export function parseArguments(args=process.argv.slice(2)){
   let task=null,execute=false,raw=[];

@@ -118,7 +118,7 @@ jobs:
           persist-credentials: true
       - uses: actions/checkout@v4
         with:
-          repository: kimjeon-il/PandoLab-library-data
+          repository: kimjeon-il/PandoLab-library
           ref: ${{ needs.gate.outputs.branch }}
           path: .library-data/repository
           fetch-depth: 0

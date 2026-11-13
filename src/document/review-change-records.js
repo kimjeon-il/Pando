@@ -1,7 +1,7 @@
 import { normalizeTemporalInterval, parseTemporal } from "./temporal.js";
 
 export const REVIEW_BUNDLE_SCHEMA_VERSION = 1;
-export const REVIEW_DATA_REPOSITORY = 'kimjeon-il/PandoLab-library-data';
+export const REVIEW_DATA_REPOSITORY = 'kimjeon-il/PandoLab-library';
 
 const kinds = Object.freeze(['geometry', 'name', 'flag', 'parent', 'lifetime']);
 const checkNames = Object.freeze(['source-integrity', 'temporal', 'schema', 'geometry-topology', 'parent-graph']);

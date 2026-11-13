@@ -35,4 +35,4 @@
 
 반대로 국가/영토 카탈로그, Hydro, 지명 존속기간, DEM–육지 출처 연결 등 필수 자료가 없거나 잘못된 경우는 계속 빌드를 거부한다. 구형 준비 메시를 위한 별도 지도 파일이나 GIS 원본 복제는 생성하지 않는다.
 
-`PandoLab-library-data`의 핀, Pages 전송 SHA, 기존 Pages 스테이징/배포 절차에는 변경이 없다.
+`PandoLab-library`의 핀, Pages 전송 SHA, 기존 Pages 스테이징/배포 절차에는 변경이 없다.
