@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createGpuTerrainPreparation} from '../../../src/rendering/gpu-terrain-preparation.js';
+import {createGpuNaturalSurfaceCache} from '../../../src/rendering/gpu-natural-surface-cache.js';
 import {readFileSync} from 'node:fs';
 
 const settle=async()=>{for(let i=0;i<24;i++)await Promise.resolve();};
@@ -176,4 +177,46 @@ test('WebGL context-loss generation releases optional natural cache without stal
   f.owner.setContext({gl:f.gl,ready:true,projectGeneration:1,contextGeneration:3,scheduler:f.scheduler});
   assert.equal(f.owner.stats().terrainNaturalCacheBytes,0,'no stale texture admitted after restore');
   assert.equal(f.owner.stats().terrainUploadCount,1,'lost generations must not record a replacement upload');
+});
+
+test('rapid pan aborts offscreen natural fetch and never uploads its late result',async t=>{
+  const old=globalThis.createImageBitmap,read=[],jobs=[],deleted=[],events=[];
+  globalThis.createImageBitmap=async()=>({width:10,height:6,close(){}});
+  t.after(()=>{if(old)globalThis.createImageBitmap=old;else delete globalThis.createImageBitmap;});
+  let next=0;
+  const gl={createTexture:()=>({id:++next}),deleteTexture:x=>deleted.push(x),
+    getParameter:()=>0,isContextLost:()=>false};
+  for(const name of ['bindTexture','pixelStorei','texParameteri','texImage2D'])gl[name]=()=>{};
+  const scheduler={enqueueUpload:job=>new Promise(resolve=>jobs.push({job,resolve})),cancelKey:()=>{}};
+  const cache=createGpuNaturalSurfaceCache({readTile:(spec,manifest,signal)=>
+    new Promise(resolve=>read.push({spec,signal,resolve})),invalidate:reason=>events.push(reason)});
+  t.after(()=>cache.reset());
+  const spec=column=>({key:'0/'+column+'-0',level:0,column,row:0,pixelWidth:8,pixelHeight:4});
+  const a=spec(0),b=spec(1),options={
+    gl,scheduler,contextGeneration:1,enabled:true,requiredReady:true,budgetBytes:32*1024*1024,
+    manifest:{gutter:1,naturalSurface:{mixWeight:0.65,
+      levels:[{id:0,width:16,height:4,tileSize:8,columns:2,rows:1}],
+      tiles:{'0/0-0.webp':{},'0/1-0.webp':{}}}},
+  };
+  cache.prepare([{spec:a}],options);await settle();
+  assert.equal(read.length,1);
+  cache.prepare([{spec:b}],options);await settle();
+  assert.equal(read.length,2);
+  assert.equal(read[0].signal.aborted,true);
+  read[0].resolve({});await settle();
+  assert.equal(jobs.length,0,'a late offscreen decode must not queue a GPU texture');
+  read[1].resolve({});await settle();
+  for(const {job,resolve} of jobs.splice(0)){assert.equal(job.step().done,true);resolve();}
+  await settle();
+  const drawn=[{spec:b}];cache.prepare(drawn,options);
+  assert.ok(drawn[0].naturalTexture);
+  assert.equal(cache.stats().terrainNaturalTilesLoaded,1);
+  assert.equal(cache.stats().terrainNaturalUploadCount,1);
+  assert.equal(cache.stats().terrainNaturalRequests,2);
+  assert.equal(cache.pendingBytes(),0);
+  assert.ok(cache.bytes()<=options.budgetBytes);
+  assert.deepEqual(events,['terrain-natural-ready']);
+  cache.reset();
+  assert.equal(cache.bytes(),0);
+  assert.equal(deleted.length,1,'only the actually uploaded texture is deleted');
 });
