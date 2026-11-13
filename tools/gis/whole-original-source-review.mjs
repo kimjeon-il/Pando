@@ -18,15 +18,16 @@ export function assertWholeOriginalBlobSize(rawBytes,base64Characters){
 export const hasWholeOriginalBatch=e=>e?.geometryVersions?.some(v=>v.modernBoundarySupplement?.adoptionMode===wholeOriginalBatchMethod);
 
 
-/** One already-mapped null-GENC original, not a generic MapTint identity rule. */
+/** Explicit existing original identity exceptions, never a generic code fallback. */
 
 function originalCodeMatches(source,next,review,descriptor,archived){
 
  const p=source.properties,code=next.entityId.slice(6);
 
  if(p?.GENC_3===code)return review.identityFallback===undefined;
+ if(code==='KOS'&&p?.GENC_3==='XKS')return existingKosovoAlias(source,review,descriptor,archived);
 
- // A conflicting non-null GENC code can never fall back to a colour code.
+ // Other conflicting non-null GENC codes can never fall back to a colour code.
 
  if(p?.GENC_3!==null||code!=='ESP'||p.MapTint_3!=='ESP'||source.featureId!=='804cb3c1-195d-48d8-97e5-0439f624b231')return false;
 
@@ -52,6 +53,19 @@ function originalCodeMatches(source,next,review,descriptor,archived){
 
 
 
+
+
+/** Project KOS and original XKS: preserve an existing identity, not a sovereignty decision. */
+function existingKosovoAlias(source,review,descriptor,archived){
+ if(source.properties?.MapTint_3!=='XKS'||source.properties?.GENC_2!=='XK'||source.properties?.MapTint_2!=='XK'||source.featureId!=='2cbbfcc8-094d-458c-ac11-e3d97dc44581'||review.identityFallback?.method!=='existing-kos-xks-single-original-code-alias')return false;
+ const mapping=archived(review.identityFallback.mapping),rows=mapping.rows?.filter(x=>x.code==='KOS'&&x.versionId===review.versionId);
+ if(rows?.length!==1)return false;
+ const row=rows[0],feature=row.originalFeatures?.[0],version=descriptor.geometryVersions.find(x=>x.versionId===review.versionId);
+ return row.assembly==='single original feature'&&row.descriptorSha256===review.previousDescriptorSha256&&row.validFrom===review.validFrom&&row.validTo===review.validTo
+  &&row.resourcePath===base+version.geometryResource.file&&row.resourceSha256===version.geometryResource.sha256
+  &&row.originalFeatures.length===1&&feature.WP_ID===source.featureId&&feature.GENC_3==='XKS'&&feature.US_Recog==='Independent'&&feature.Map_Disp===null
+  &&feature.blobSha256===source.rawBlobSha256&&feature.wkbSha256===source.rawWkbSha256;
+}
 
 // Exactly three existing dependent children. Operational instantiation is not sovereignty.
 const dependentTuples=Object.freeze({

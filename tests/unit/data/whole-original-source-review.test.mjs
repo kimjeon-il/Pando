@@ -108,3 +108,36 @@ for(const [name,mutate]of Object.entries({
  'parent writes':f=>{f.batch.members.push({entityId:f.parent.entityId,descriptor:f.parentPath,resource:base+f.parent.geometryVersions[0].geometryResource.file,previousDescriptorSha256:f.scope.parentDescriptorSha256});f.prefixes.push(f.parentPath,base+f.parent.geometryVersions[0].geometryResource.file);},
 })){test('dependent contract rejects '+name,()=>{const f=dependencyFixture();mutate(f);f.refresh();assert.throws(()=>assertHistoricalSourceStorageChanges(f.next,f.previous,f),/Whole original batch:/);});}
 test('dependent scope cannot become generic independent or other dependency bypass',()=>{const f=fixture();f.proof.dependencyScope={method:'preserve-existing-dependent-parent'};f.refresh();assert.throws(()=>assertHistoricalSourceStorageChanges(f.next,f.previous,f),/dependent scope/);const g=fixture();g.next.parentEntityId=g.previous.parentEntityId='state:GBR';assert.throws(()=>assertHistoricalSourceStorageChanges(g.next,g.previous,g),/independent identity/);});
+function kosFixture(){
+ const f=fixture('KOS'),s=f.next.geometryVersions[0].modernBoundarySupplement;
+ f.source.featureId=f.source.properties.WP_ID=f.source.properties.WP_PAR_ID=s.rawFeatureId='2cbbfcc8-094d-458c-ac11-e3d97dc44581';
+ Object.assign(f.source.properties,{GENC_3:'XKS',MapTint_3:'XKS',GENC_2:'XK',MapTint_2:'XK'});
+ const descriptor=JSON.parse(f.archive.get(base+'countries/state-KOS.json'));
+ f.mapping={rows:[{code:'KOS',assembly:'single original feature',versionId:f.proof.versionId,descriptorSha256:f.proof.previousDescriptorSha256,validFrom:null,validTo:null,resourcePath:base+descriptor.geometryVersions[0].geometryResource.file,resourceSha256:descriptor.geometryVersions[0].geometryResource.sha256,originalFeatures:[{WP_ID:f.source.featureId,GENC_3:'XKS',US_Recog:'Independent',Map_Disp:null,blobSha256:f.source.rawBlobSha256,wkbSha256:f.source.rawWkbSha256}]}]};
+ const refresh=f.refresh;f.refresh=()=>{const b=Buffer.from(JSON.stringify(f.mapping));f.archive.set('reports/kos-existing-map.json',b);f.proof.identityFallback={method:'existing-kos-xks-single-original-code-alias',mapping:{reference:'reports/kos-existing-map.json',sha256:hash(b)}};refresh();};f.refresh();return f;
+}
+test('KOS project code accepts only the existing whole XKS UUID and exact archived preimage',()=>{const f=kosFixture();assert.equal(assertHistoricalSourceStorageChanges(f.next,f.previous,f),1);assert.equal(f.next.entityId,'state:KOS');assert.equal(f.source.properties.GENC_3,'XKS');});
+for(const [name,mutate]of Object.entries({
+ 'arbitrary nonnull GENC':f=>{f.source.properties.GENC_3='SRB';},
+ 'null GENC':f=>{f.source.properties.GENC_3=null;},
+ 'MapTint3 mismatch':f=>{f.source.properties.MapTint_3='SRB';},
+ 'GENC2 mismatch':f=>{f.source.properties.GENC_2='RS';},
+ 'MapTint2 mismatch':f=>{f.source.properties.MapTint_2='RS';},
+ 'wrong UUID':f=>{f.source.featureId=f.source.properties.WP_ID=f.source.properties.WP_PAR_ID=f.next.geometryVersions[0].modernBoundarySupplement.rawFeatureId='wrong';f.mapping.rows[0].originalFeatures[0].WP_ID='wrong';},
+ 'wrong baseline code':f=>{f.mapping.rows[0].originalFeatures[0].GENC_3='KOS';},
+ 'wrong baseline blob':f=>{f.mapping.rows[0].originalFeatures[0].blobSha256=hash('wrong');},
+ 'wrong baseline WKB':f=>{f.mapping.rows[0].originalFeatures[0].wkbSha256=hash('wrong');},
+ 'stale descriptor':f=>{f.mapping.rows[0].descriptorSha256=hash('wrong');},
+ 'stale resource':f=>{f.mapping.rows[0].resourceSha256=hash('wrong');},
+ 'wrong resource path':f=>{f.mapping.rows[0].resourcePath='other.json';},
+ 'duplicate baseline rows':f=>{f.mapping.rows.push(structuredClone(f.mapping.rows[0]));},
+ 'multiple raw features':f=>{f.mapping.rows[0].originalFeatures.push(structuredClone(f.mapping.rows[0].originalFeatures[0]));},
+ 'nonself raw parent':f=>{f.source.properties.WP_PAR_ID='SRB';},
+ 'changed project parent':f=>{f.next.parentEntityId='state:SRB';},
+ 'changed sovereignty interpretation':f=>{f.source.properties.US_Recog='Dependency or Area of Special Sovereignty';},
+ 'changed lifetime':f=>{f.next.lifetime.validFrom='2008';},
+ 'changed metadata':f=>{f.next.names.en='Changed';},
+ 'changed current period':f=>{f.next.geometryVersions[0].validFrom='2008';},
+})){test('KOS alias rejects '+name,()=>{const f=kosFixture();mutate(f);f.refresh();assert.throws(()=>assertHistoricalSourceStorageChanges(f.next,f.previous,f),/Whole original batch:/);});}
+test('arbitrary project AAA cannot alias XKS even with KOS receipt',()=>{const f=fixture('AAA');Object.assign(f.source.properties,{GENC_3:'XKS',MapTint_3:'XKS',GENC_2:'XK',MapTint_2:'XK'});f.source.featureId=f.source.properties.WP_ID=f.source.properties.WP_PAR_ID=f.next.geometryVersions[0].modernBoundarySupplement.rawFeatureId='2cbbfcc8-094d-458c-ac11-e3d97dc44581';f.proof.identityFallback={method:'existing-kos-xks-single-original-code-alias',mapping:{reference:'reports/absent.json',sha256:hash('absent')}};f.refresh();assert.throws(()=>assertHistoricalSourceStorageChanges(f.next,f.previous,f),/identity mismatch/);});
+test('KOS alias requires hash-checked archived baseline, not mutable report claim',()=>{const f=kosFixture();f.archive.set('reports/kos-existing-map.json',Buffer.from('{}'));assert.throws(()=>assertHistoricalSourceStorageChanges(f.next,f.previous,f),/archive evidence hash mismatch/);});
