@@ -85,10 +85,10 @@ test('existing surfaces preserve project and selection across portrait, tablet a
     await page.setViewportSize(viewport);
     // Exercise the shipped controls, not frozen HTML button IDs or CSS pixels.
     const visibleButtons=await page.locator('button.ui-button:visible').evaluateAll(nodes=>nodes.map(node=>{
-      const bounds=node.getBoundingClientRect();return {width:bounds.width,height:bounds.height};
+      const bounds=node.getBoundingClientRect();return {id:node.id,classes:node.className,width:bounds.width,height:bounds.height};
     }));
     expect(visibleButtons.length).toBeGreaterThan(0);
-    for(const bounds of visibleButtons){expect(bounds.width).toBeGreaterThan(0);expect(bounds.height).toBeGreaterThan(0);}
+    for(const bounds of visibleButtons){expect(bounds.width,JSON.stringify(bounds)).toBeGreaterThan(0);expect(bounds.height,JSON.stringify(bounds)).toBeGreaterThan(0);}
     await page.locator('#objectSearchBtn').click();
     await page.locator('#objectSearchInput').fill('화면 검증 지도');
     await page.locator('#objectSearchResults button').filter({hasText:'화면 검증 지도'}).first().click();
