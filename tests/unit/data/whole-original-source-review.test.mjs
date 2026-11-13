@@ -36,3 +36,11 @@ test('admitted receipt cannot be removed through old unchanged fastpath',()=>{co
 test('archived complete blob needs no unavailable whole-file receipt',()=>{const f=fixture();delete f.source.sourceFileReceipt;delete f.next.geometryVersions[0].modernBoundarySupplement.rawSourceFileSha256;f.refresh();assert.equal(assertHistoricalSourceStorageChanges(f.next,f.previous,f),1);});
 test('whole-file hash cannot be invented without archived receipt',()=>{const f=fixture();delete f.source.sourceFileReceipt;f.refresh();assert.throws(()=>assertHistoricalSourceStorageChanges(f.next,f.previous,f),/file receipt mismatch/);});
 test('supplied whole-file receipt must remain bound',()=>{const f=fixture();delete f.next.geometryVersions[0].modernBoundarySupplement.rawSourceFileSha256;f.refresh();assert.throws(()=>assertHistoricalSourceStorageChanges(f.next,f.previous,f),/file receipt mismatch/);});
+
+test('complete original resource bounds include large originals without large test allocations',async()=>{
+ const {assertWholeOriginalBlobSize}=await import('../../../tools/gis/whole-original-source-review.mjs');
+ const mib=1024*1024;
+ for(const size of [64*mib+1,70*mib,107*mib,221*mib,256*mib])assert.doesNotThrow(()=>assertWholeOriginalBlobSize(size,4*Math.ceil(size/3)));
+ assert.doesNotThrow(()=>assertWholeOriginalBlobSize(0,360*mib));
+ for(const [raw,encoded]of [[256*mib+1,0],[0,360*mib+1],[-1,0],[0,-1],[NaN,0],[0,Infinity],[1.5,0]])assert.throws(()=>assertWholeOriginalBlobSize(raw,encoded),/bounded original blob/);
+});

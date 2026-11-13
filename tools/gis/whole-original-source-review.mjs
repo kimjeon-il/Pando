@@ -5,6 +5,13 @@ const hash=b=>createHash('sha256').update(b).digest('hex');
 const digest=g=>hash(JSON.stringify([g.type,g.coordinates]));
 const base='assets/data/territorial-entities/source/';
 export const wholeOriginalBatchMethod='exact-original-current-batch';
+/** Explicit bounds for large complete originals (including CAN and USA).
+ * Zero raw bytes allows checking the encoded length before allocating a Buffer.
+ * This is only a resource guard; the full blob/hash/WKB checks remain mandatory.
+ */
+export function assertWholeOriginalBlobSize(rawBytes,base64Characters){
+ if(!Number.isSafeInteger(rawBytes)||rawBytes<0||rawBytes>256*1024*1024||!Number.isSafeInteger(base64Characters)||base64Characters<0||base64Characters>360*1024*1024)throw Error('Whole original batch: bounded original blob required');
+}
 export const hasWholeOriginalBatch=e=>e?.geometryVersions?.some(v=>v.modernBoundarySupplement?.adoptionMode===wholeOriginalBatchMethod);
 /** Source-only transaction contract. Deliberately no inter-country topology claim.
  * An archived batch enumerates exact immutable resources, not a broad directory lease.
@@ -43,8 +50,9 @@ export function assertWholeOriginalBatch(next,previous,{prefixes,readEvidence}={
  // receipt is optional, but cannot be invented or discarded when supplied.
  const fileHash=source.sourceFileReceipt?.gpkgSha256;
  if(fileHash!==undefined?(!sha(fileHash)||s.rawSourceFileSha256!==fileHash):s.rawSourceFileSha256!==undefined)fail('raw source file receipt mismatch');
- if(typeof source.rawBlobBase64!=='string'||source.rawBlobBase64.length>90000000)fail('bounded original blob required');
- const blob=Buffer.from(source.rawBlobBase64,'base64');if(blob.length<53||blob.length>64*1024*1024||blob.toString('base64')!==source.rawBlobBase64||hash(blob)!==source.rawBlobSha256||blob[0]!==71||blob[1]!==80||blob[2]!==0||blob[3]!==3||blob.readInt32LE(4)!==4326)fail('original GeoPackage header/hash mismatch');
+ if(typeof source.rawBlobBase64!=='string')fail('bounded original blob required');
+ assertWholeOriginalBlobSize(0,source.rawBlobBase64.length);
+ const blob=Buffer.from(source.rawBlobBase64,'base64');assertWholeOriginalBlobSize(blob.length,source.rawBlobBase64.length);if(blob.length<53||blob.toString('base64')!==source.rawBlobBase64||hash(blob)!==source.rawBlobSha256||blob[0]!==71||blob[1]!==80||blob[2]!==0||blob[3]!==3||blob.readInt32LE(4)!==4326)fail('original GeoPackage header/hash mismatch');
  const g=v.geometry;if(g.type!=='MultiPolygon'||Object.keys(g).length!==2||!Array.isArray(g.coordinates)||!g.coordinates.length)fail('exact original MultiPolygon required');
  let size=9,minx=Infinity,maxx=-Infinity,miny=Infinity,maxy=-Infinity;
  for(const poly of g.coordinates){if(!Array.isArray(poly)||!poly.length)fail('empty polygon');size+=9;for(const ring of poly){if(!Array.isArray(ring)||ring.length<4||!eq(ring[0],ring.at(-1)))fail('closed original rings required');size+=4+ring.length*16;for(const p of ring){if(!Array.isArray(p)||p.length!==2||!p.every(Number.isFinite)||Math.abs(p[0])>180||Math.abs(p[1])>90)fail('bounded finite coordinates required');minx=Math.min(minx,p[0]);maxx=Math.max(maxx,p[0]);miny=Math.min(miny,p[1]);maxy=Math.max(maxy,p[1]);}}}
