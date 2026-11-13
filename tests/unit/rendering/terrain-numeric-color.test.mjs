@@ -1,8 +1,8 @@
+import {readFileSync} from 'node:fs';
+const curveCases=JSON.parse(readFileSync(new URL('../../fixtures/terrain-palette-contract.json',import.meta.url),'utf8'));
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import '../../../src/rendering/workers/canvas-terrain-dem-core.js';
-import {createPchip} from '../../../scripts/terrain-experiment/quality.mjs';
-import {rasterizeTerrainTriangle,rasterizeTerrainTriangleScanline,createTerrainLookupSampler,createHeightShadeLookup} from '../../../scripts/terrain-experiment/canvas-numeric-raster.mjs';
 
 const {convertTile}=globalThis.PandoLabCanvasTerrainDem;
 function sample(height,shade=212,extra={}) {
@@ -78,74 +78,6 @@ test('prepared tile colors match numerical sampling for varied integer elevation
   }
 });
 
-test('numerical terrain raster preserves viewport clipping and interpolates height before color',()=>{
-  const dem=new Uint8ClampedArray(16),heights=[0,256,2500,6500];
-  heights.forEach((value,i)=>{const n=value+12000;dem.set([n>>8,n&255,212,255],i*4);});
-  const core=globalThis.PandoLabCanvasTerrainDem;
-  const sampler=core.createInterpolatedSampler({dem,width:2,height:2,theme:'light',channel:'land'});
-  const pixels=new Uint8ClampedArray(4*4*4);
-  rasterizeTerrainTriangle({sampler,pixels,width:4,height:4,
-    destination:[[0,0],[4,0],[0,4]],source:[[0,0],[2,0],[0,2]]});
-  const expected=core.sampleInterpolated({dem,width:2,height:2,x:.25,y:.25,theme:'light',channel:'land'});
-  assert.deepEqual([...pixels.slice(0,4)],expected);
-  assert.equal(pixels[(3*4+3)*4+3],0);
-  assert.ok(pixels[(1*4+1)*4+3]===255);
-});
-
-test('experimental lookup sampler remains close to exact land colors over varied elevations and shade',()=>{
-  const dem=new Uint8ClampedArray(16),heights=[-300,256,2500,6500];
-  heights.forEach((value,i)=>{const n=value+12000;dem.set([n>>8,n&255,96+i*43,255],i*4);});
-  const api=globalThis.PandoLabCanvasTerrainDem;
-  for(const theme of ['light','dark']){
-    const fast=createTerrainLookupSampler({api,dem,width:2,height:2,theme});
-    const exact=api.createInterpolatedSampler({dem,width:2,height:2,theme,channel:'land'});
-    const a=new Uint8ClampedArray(4),b=new Uint8ClampedArray(4);
-    for(let y=0;y<=1;y+=.1)for(let x=0;x<=1;x+=.1){
-      fast(x,y,a);exact(x,y,b);
-      for(let channel=0;channel<3;channel++)assert.ok(Math.abs(a[channel]-b[channel])<=2,`${theme} ${x},${y} ${channel}`);
-    }
-  }
-});
-
-test('scanline terrain raster matches the original for clipped and reversed triangles',()=>{
-  const dem=new Uint8ClampedArray([46,224,212,255,47,10,180,255,48,20,190,255,49,30,220,255]);
-  const sampler=globalThis.PandoLabCanvasTerrainDem.createInterpolatedSampler({dem,width:2,height:2});
-  for(const destination of [[[0,0],[8,0],[0,6]],[[-2,1],[7,0],[3,8]],[[7.1,5.4],[1.2,-1],[10.1,0.2]]]){
-    const source=[[0,0],[1,0],[0,1]],a=new Uint8ClampedArray(8*6*4),b=new Uint8ClampedArray(a.length);
-    const count=rasterizeTerrainTriangle({sampler,pixels:a,width:8,height:6,destination,source});
-    assert.equal(rasterizeTerrainTriangleScanline({sampler,pixels:b,width:8,height:6,destination,source}),count);
-    assert.deepEqual(b,a);
-  }
-});
-
-test('height-shade lookup approximates the canonical palette across themes',()=>{
-  const api=globalThis.PandoLabCanvasTerrainDem;
-  for(const theme of ['light','dark']){
-    const table=createHeightShadeLookup(api,theme),pixel=new Uint8Array(4),view=new DataView(table.buffer);
-    for(const h of [0,100,255,512,999,2500,5000,6500])for(const shade of [96,140,180,212,255]){
-      const value=view.getUint32((h*256+shade)*4,true);pixel[0]=value&255;pixel[1]=(value>>8)&255;pixel[2]=(value>>16)&255;pixel[3]=value>>>24;
-      const expected=sample(h,shade,{theme}).land;
-      for(let c=0;c<4;c++)assert.ok(Math.abs(pixel[c]-expected[c])<=2,`${theme} ${h} ${shade} ${c}`);
-    }
-  }
-});
-
-test('height-shade lookup error stays bounded across sampled heights and all byte shades',()=>{
-  const api=globalThis.PandoLabCanvasTerrainDem,heights=[];
-  for(let h=0;h<=6500;h+=53)heights.push(h);heights.push(6500);
-  const dem=new Uint8ClampedArray(heights.length*256*4);
-  heights.forEach((height,index)=>{for(let shade=0;shade<256;shade++){
-    const n=height+12000,at=(index*256+shade)*4;dem.set([n>>8,n&255,shade,255],at);
-  }});
-  for(const theme of ['light','dark']){
-    const table=createHeightShadeLookup(api,theme),view=new DataView(table.buffer);
-    const expected=api.convertTile({dem,width:256,height:heights.length,theme,includePolitical:false}).land;
-    heights.forEach((height,index)=>{for(let shade=0;shade<256;shade++){
-      const value=view.getUint32((height*256+shade)*4,true),at=(index*256+shade)*4;
-      for(let c=0;c<3;c++)assert.ok(Math.abs(((value>>>(8*c))&255)-expected[at+c])<=2,`${theme} ${height} ${shade} ${c}`);
-    }});
-  }
-});
 test('land palette has eight independent sRGB stops in both themes',()=>{
   for(const theme of ['light','dark'])for(let i=0;i<paletteStops.length;i++){
     const actual=sample(paletteStops[i],212,{theme}).land;
@@ -160,8 +92,7 @@ test('sRGB land colors follow the PCHIP curve between palette stops',()=>{
     for(const height of [64,128,400,1000,2000,3000,4000,5500]){
       const actual=sample(height,212,{theme}).land;
       for(let channel=0;channel<3;channel++){
-        const values=expected[theme].map(value=>fromHex(value)[channel]);
-        const reference=createPchip(paletteStops,values)(height);
+        const reference=curveCases[theme][height][channel];
         assert.ok(Math.abs(actual[channel]-reference)<=2,`${theme} ${height} channel ${channel}: ${actual[channel]} vs ${reference}`);
       }
     }

@@ -2,7 +2,6 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const HISTORY = new Set(['p0-overview.md', 'p1-reconciliation.md', 'p2-maintenance.md', 'mixed-policy-audit.md']);
 const SKIP_CHECKS = new Set(['README.md', 'maintenance.md']);
 const DOMAIN_SOURCE = /^(?:src|scripts|tools|config|projects)\/.+/u;
 const MARKDOWN_LINK = /!?\[[^\]\r\n]+\]\(([^)\r\n]+)\)/gu;
@@ -79,7 +78,7 @@ export function checkPolicyLinks(root = resolve(fileURLToPath(new URL('..', impo
       if (!existsSync(target)) { error(path, 'missing link target: ' + link.raw); continue; }
       links++;
       const source = relative(root, target).split(sep).join('/');
-      if (path.startsWith('docs/policies/') && !HISTORY.has(path.split('/').at(-1)) &&
+      if (path.startsWith('docs/policies/') &&
         source.startsWith('docs/') && source.endsWith('.md') &&
         !source.startsWith('docs/policies/') && !scheduled.has(source)) {
         scheduled.add(source); checkFiles.push(source);
@@ -87,7 +86,7 @@ export function checkPolicyLinks(root = resolve(fileURLToPath(new URL('..', impo
       if (DOMAIN_SOURCE.test(source)) codeReferences++;
       if (path === index) listed.add(source);
     }
-    if (!path.startsWith('docs/policies/') || HISTORY.has(path.split('/').at(-1))) continue;
+    if (!path.startsWith('docs/policies/')) continue;
     const name = path.split('/').at(-1);
     if (!SKIP_CHECKS.has(name)) {
       const referencedCode = entries.filter(link => !link.invalid).some(link => {

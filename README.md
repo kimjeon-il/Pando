@@ -13,7 +13,7 @@ v0.34.0부터 분포는 고정된 언어·민족·종교 분류 대신 이름·�
 참고하세요. 개발 에이전트의 필수 규칙은 [AGENTS.md](AGENTS.md)에 정리되어 있습니다.
 작업별로 브랜치·워크트리를 새로 만들거나 작업 종료 시 자동 삭제하지 않습니다.
 
-저장소 전반의 정책·규칙 위치, 현재 정본과 구형 참조 정리 상태는 [정책·규칙 중앙 색인](docs/policies/README.md)에서 확인합니다. [P0 원본](docs/policies/inventory.p0.json)과 [P1 정리 기록](docs/policies/p1-reconciliation.md)은 별도로 보존합니다.
+저장소 전반의 정책·규칙 위치, 현재 정본과 구형 참조 정리 상태는 [정책·규칙 중앙 색인](docs/policies/README.md)에서 확인합니다. [현행 계약](docs/policies/validation.md)과 [현행 계약](docs/policies/validation.md)은 별도로 보존합니다.
 
 조사·검증 보고서는 [보고서 색인](https://github.com/kimjeon-il/PandoLab-library-data/blob/f4ae4d70579b8c799fba2e507e1a948b7e1e42c2/reports/README.md)에서 분야와 상태별로 찾을 수 있습니다.
 

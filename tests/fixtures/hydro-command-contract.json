@@ -1,0 +1,85 @@
+[
+  {
+    "id": "33000000-0000-4000-8000-000000000031",
+    "expected": {
+      "type": "Feature",
+      "id": "33000000-0000-4000-8000-000000000031",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            1,
+            2
+          ],
+          [
+            3,
+            4
+          ]
+        ]
+      },
+      "properties": {
+        "category": "river",
+        "name": "  River\r\n ",
+        "notes": "  raw notes  ",
+        "color": "#ABCDEF",
+        "unknown": {
+          "nested": [
+            null,
+            0,
+            "kept"
+          ]
+        },
+        "pandolab_domain": "hydro",
+        "pandolab_schema_version": 1,
+        "pandolab_id": "33000000-0000-4000-8000-000000000031",
+        "editorColor": "#3b82c4"
+      }
+    }
+  },
+  {
+    "id": "33000000-0000-4000-8000-000000000032",
+    "expected": {
+      "type": "Feature",
+      "id": "33000000-0000-4000-8000-000000000032",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              1,
+              2
+            ],
+            [
+              3,
+              2
+            ],
+            [
+              3,
+              4
+            ],
+            [
+              1,
+              2
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "category": "lake",
+        "name": "42",
+        "notes": "",
+        "editorColor": "#a0b1c2",
+        "color": 17,
+        "unknown": [
+          "array",
+          {
+            "x": true
+          }
+        ],
+        "pandolab_domain": "hydro",
+        "pandolab_schema_version": 1,
+        "pandolab_id": "33000000-0000-4000-8000-000000000032"
+      }
+    }
+  }
+]
