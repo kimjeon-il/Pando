@@ -150,7 +150,7 @@ for(const renderer of ['webgl2','canvas'])for(const region of (renderer==='webgl
       expect(errors).toEqual([]);
     }finally{
       holdNatural=false;releaseNatural();
-      let runtime=null;
+      let runtime;
       try { runtime=await page.evaluate(()=>({
         mapStyle:document.documentElement.dataset.mapStyle,
         view:window.__PANDOLAB_MAP_HOST__?.getViewState?.(),
