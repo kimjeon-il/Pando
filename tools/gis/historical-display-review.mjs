@@ -8,6 +8,7 @@ import {hasFinScopeCorrection,assertFinScopeCorrection} from './fin-scope-correc
 import {hasOriginalRetainedComposition,assertOriginalRetainedComposition} from './original-retained-composition-source-review.mjs';
 import {hasOriginalComposition,assertOriginalComposition} from './original-composition-source-review.mjs';
 import {hasRegisteredCurrentOutlineReuse,assertRegisteredCurrentOutlineCopy} from './registered-current-outline-source-review.mjs';
+import {hasProtectedOriginalArcs,assertProtectedOriginalArcs} from './protected-original-arc-source-review.mjs';
 import {hasHistoricalSourceReuse,assertHistoricalModernCopy} from './historical-modern-copy-source-review.mjs';
 import {hasWholeOriginalBatch,assertWholeOriginalBatch} from './whole-original-source-review.mjs';
 import fs from 'node:fs';
@@ -388,6 +389,7 @@ function assertOriginalExistingComponents(next,previous,review,{prefixes,archive
  * this does not approve historical reconstruction or derived display geometry.
  */
 export function assertHistoricalSourceStorageChanges(next,previous,{prefixes,readEvidence,getSourceSnapshot}={}){
+ if(hasProtectedOriginalArcs(next)||hasProtectedOriginalArcs(previous))return assertProtectedOriginalArcs(next,previous,{prefixes,readEvidence,getSourceSnapshot});
  if(hasFixedFourOriginal(next))return assertFixedFourOriginal(next,previous,{prefixes,readEvidence,getSourceSnapshot});
  if(hasJpnScopeCorrection(next,previous))return assertJpnScopeCorrection(next,previous,{prefixes,readEvidence,getSourceSnapshot});
  if(hasFinScopeCorrection(next,previous))return assertFinScopeCorrection(next,previous,{prefixes,readEvidence,getSourceSnapshot});
