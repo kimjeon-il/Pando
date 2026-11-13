@@ -55,7 +55,7 @@
       "kind": "unit",
       "testPatterns": [
         "tests/unit/data/file-access-contract.test.mjs",
-        "tests/unit/data/p6-project-persistence.test.mjs",
+        "tests/unit/data/project-persistence.test.mjs",
         "tests/unit/document/timeline-geopackage.test.mjs"
       ],
       "inputs": [
@@ -76,7 +76,7 @@
         "tests/browser/**/*-memory.spec.mjs",
         "tests/browser/**/performance-*.spec.mjs",
         "tests/browser/rendering/canvas-globe-performance.spec.mjs",
-        "tests/browser/runtime/p3-remote-preview.spec.mjs",
+        "tests/browser/runtime/remote-preview.spec.mjs",
         "tests/browser/document/codespaces-live.spec.mjs"
       ],
       "inputs": []
@@ -736,9 +736,9 @@
       "argv": [
         "node",
         "--test",
-        "tests/native/document/p5-country-contact-wasm.test.mjs",
-        "tests/native/document/p5-boundary-split-wasm.test.mjs",
-        "tests/native/document/p5-polygon-mesh-wasm.test.mjs"
+        "tests/native/geometry/country-contact-wasm.test.mjs",
+        "tests/native/geometry/boundary-split-wasm.test.mjs",
+        "tests/native/geometry/polygon-mesh-wasm.test.mjs"
       ],
       "requires": [
         "core-assets"
@@ -961,6 +961,60 @@
       "requires": [
         "native-geometry-cleanup-tests"
       ]
+    },
+    {
+      "id": "calculation-contracts-native",
+      "kind": "command",
+      "mode": "manual",
+      "reason": "Focused current Core transport/contract with synthetic fixtures only.",
+      "inputs": [
+        "tests/native/geometry/calculation-driver.cpp",
+        "tests/native/geometry/calculation-contracts.mjs",
+        "tests/fixtures/geometry/calculation-contracts/**",
+        "tests/native/document/document-session-driver.cpp",
+        "tests/native/document/temporal-transport-equivalence.test.mjs",
+        "tests/helpers/temporal-transport.mjs",
+        "tools/build/native/tests/CMakeLists.txt"
+      ],
+      "argv": [
+        "ctest",
+        "--test-dir",
+        "build-native/geometry-core",
+        "-C",
+        "Release",
+        "--output-on-failure",
+        "--no-tests=error",
+        "-R",
+        "^calculation_contracts$"
+      ],
+      "requires": [
+        "native-calculation-driver"
+      ],
+      "runtimeData": false
+    },
+    {
+      "id": "temporal-transport-native",
+      "kind": "command",
+      "mode": "manual",
+      "reason": "Focused current Core transport/contract with synthetic fixtures only.",
+      "inputs": [
+        "tests/native/geometry/calculation-driver.cpp",
+        "tests/native/geometry/calculation-contracts.mjs",
+        "tests/fixtures/geometry/calculation-contracts/**",
+        "tests/native/document/document-session-driver.cpp",
+        "tests/native/document/temporal-transport-equivalence.test.mjs",
+        "tests/helpers/temporal-transport.mjs",
+        "tools/build/native/tests/CMakeLists.txt"
+      ],
+      "argv": [
+        "node",
+        "--test",
+        "tests/native/document/temporal-transport-equivalence.test.mjs"
+      ],
+      "requires": [
+        "native-document-session-driver"
+      ],
+      "runtimeData": false
     }
   ],
   "prerequisites": {
@@ -1212,6 +1266,22 @@
         "tests/native/geometry/gis-country-merge-native.cpp",
         "tests/native/geometry/geographic-containment-tests.cpp"
       ]
+    },
+    "native-calculation-driver": {
+      "argv": [
+        "node",
+        "scripts/prepare-native-test-tools.mjs",
+        "calculation-driver"
+      ],
+      "runtimeData": false
+    },
+    "native-document-session-driver": {
+      "argv": [
+        "node",
+        "scripts/prepare-native-test-tools.mjs",
+        "document-session-driver"
+      ],
+      "runtimeData": false
     }
   },
   "productRoots": [
@@ -1428,7 +1498,7 @@
     },
     {
       "tests": [
-        "tests/browser/geometry/viewer-boundary-p4-5.spec.mjs"
+        "tests/browser/geometry/viewer-boundary.spec.mjs"
       ],
       "inputs": [
         "src/**/*boundary*.js",
@@ -1460,7 +1530,7 @@
     },
     {
       "tests": [
-        "tests/browser/document/viewer-review-e4.spec.mjs"
+        "tests/browser/document/viewer-review.spec.mjs"
       ],
       "inputs": [
         "src/**/review-*.js"

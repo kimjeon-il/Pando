@@ -13,8 +13,8 @@
 외부 자료 구성:
 
 - `assets/data/territorial-entities/source/countries/`: 객체 편집의 유일한 정본 descriptor. `geometry-resources-v1` 형식에서 신원·기간·관계·출처와 논리 형상 버전을 소유하며, 좌표는 `source/geometries/sha256-<내용 해시>.json`의 불변 자원을 참조한다. 서로 다른 객체가 같은 좌표를 공유해도 논리 버전과 출처는 구분한다. 생성 청크와 국가 런타임은 이를 검증·복원한 객체에서 파생한다. 이름·설명 변경은 좌표 파일을 다시 쓰지 않는다. 선택 GIS 준비는 descriptor를 읽고 해당 좌표만 추가로 준비한다.
-- `library.json`, `objects/<sha256>.json`: 과거 pin의 이전·복구 입력이다. 현행 저장·자동 입력·E3 검수는 이를 정본으로 읽거나 다시 쓰지 않는다. 별도 `territorial-source-migration.mjs --checkpoint=<경로>`가 원본을 덮어쓰지 않고 source와 필드·형상 identity를 대조한다.
-- 작성용 inline 좌표를 분리하는 명시적 이전은 `node tools/data/territorial-source-migration.mjs --factor-geometries [--apply [--push]] --checkpoint=<결과 경로>`를 사용한다. 저장 전에 모든 원래 객체를 정확히 복원·비교하며, 작업 중인 바이트가 pin이나 검증된 변환 결과와 다르면 보존하고 실패한다. 구 형식은 이전 입력으로만 읽으며 현재 로더의 대체 경로로 사용하지 않는다. E3 검수는 descriptor와 선택 좌표의 독립 전송·내용 해시를 모두 검증한다.
+- `library.json`, `objects/<sha256>.json`는 과거 pin의 복구 입력이다. 현행 저장·자동 입력·E3 검수는 이를 정본으로 읽거나 다시 쓰지 않는다.
+- 현행 source는 descriptor와 내용 해시로 식별한 좌표 자원을 저장한다. `territorial-source-codec.mjs`와 `territorial-entity-sources.mjs`가 정확한 좌표·객체 식별·선택 읽기·원자성을 소유한다. E3 검수는 descriptor와 선택 좌표의 독립 전송·내용 해시를 검증한다.
 - `assets/data/`: 현재 실행 의존 자료의 정확한 바이트. 기존 압축·해시·정밀도를 유지한다.
 - 물리 육지의 `regional-land-v1` 자원은 기반 육지와 승인된 지역 교체를 참조한다. Polygon·ring 순서, 기반 좌표 구간, 유효 기간과 결과 내용 해시를 보존한다. 준비 메시의 `prepared-mesh-delta-v1`은 기반 메시의 바이트 구간과 변경 바이트를 조립하며, 원래 부동소수점 값과 삼각형 인덱스가 정확히 복원되는지 검증한다. 좌표 단순화나 재삼각분할을 수행하지 않는다. 현재 준비·배포 경로는 기반과 교체 payload만 선택하고, 이전 전체 산출물과 과거 pin은 archive에 보존한다.
 - 국가 런타임의 `descriptor-geometries-v1` 목록은 전체 시대의 국가 descriptor와 `geometryAssets`를 구분한다. descriptor에는 신원·기간·관계와 논리 지오메트리 참조를 두고, 좌표는 내용별 독립 gzip payload로 공유한다. 전송 SHA-256과 해독한 좌표 내용 SHA-256은 별개다. 큰 descriptor의 전송 part는 좌표 지연 로딩 계약으로 사용하지 않는다. 메타데이터만 갱신할 때 좌표 payload와 메시를 다시 쓰지 않는다.

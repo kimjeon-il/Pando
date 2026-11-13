@@ -8,6 +8,8 @@ const native=(target,directory,sourceModule,sourceExport,packageScript,commands,
 });
 
 export const nativeTestRecipes=Object.freeze({
+  'calculation-driver':{commands:[configure('tools/build/native','build-native/geometry-core','-DCMAKE_BUILD_TYPE=Release','-DBUILD_TESTING=ON'),build('build-native/geometry-core',['calculation_driver'])]},
+  'document-session-driver':{commands:[configure('tools/build/native','build-native/core','-DCMAKE_BUILD_TYPE=Release','-DBUILD_TESTING=ON'),build('build-native/core',['document_session_driver'])]},
   'geometry-cleanup-tests':{commands:[configure('tools/build/native','build-native/geometry-core','-DCMAKE_BUILD_TYPE=Release','-DBUILD_TESTING=ON'),build('build-native/geometry-core',['gis_country_merge_tests','geographic_containment_tests'])]},
   // Reuse fixed CMake owners; CTest runs as its separate registered check.
   // No artifact packaging is needed for these in-job test executables.
