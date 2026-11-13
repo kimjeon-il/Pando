@@ -159,7 +159,7 @@ for (const renderer of ['webgl2', 'canvas']) for (const mode of ['political', 'p
       await page.locator('#preferencesCloseBtn').click();
       await expect(page.locator('html')).toHaveAttribute('data-map-style',theme);
       await expect.poll(()=>page.evaluate(key=>window.__terrainPackets.find(packet=>packet.key===key)?.style.fillAlpha,childKey))
-        .toBeCloseTo(theme==='standard'?0:0.45);
+        .toBeCloseTo(0); // This child has no classic color; standard physical terrain tint is also 0.
       const packet=await page.evaluate(key=>{
         const item=window.__terrainPackets.find(packet=>packet.key===key);
         return {key:item.key,role:item.role,style:item.style};

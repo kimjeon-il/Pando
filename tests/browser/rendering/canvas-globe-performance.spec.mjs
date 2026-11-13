@@ -89,7 +89,7 @@ for (const mode of ['physical', 'political']) {
       await page.locator(`input[name="preferencesMapStyle"][value="${theme}"]`).locator('..').click();
       await page.locator('#preferencesCloseBtn').click();
       await expect(page.locator('html')).toHaveAttribute('data-map-style',theme);
-      const expectedAlpha = theme === 'standard' ? 0 : 0.45;
+      const expectedAlpha = 0; // physical: untinted; classic child: empty inherited fill.
       const expectedTerrain = theme === 'standard' ? 'physical' : 'political';
       await expect.poll(() => page.evaluate(({key,alpha,terrain}) => {
         const frame=window.__canvasProfiles.at(-1),stats=window.__PANDOLAB_VIEWER__.rendererStats();
