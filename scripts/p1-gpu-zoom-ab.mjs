@@ -310,6 +310,8 @@ function compare() {
   const json=value=>JSON.stringify(value);
   if(base.schema!=='pando-p1-gpu-zoom-ab-v1'||next.schema!==base.schema)issues.push('schema-mismatch');
   if(base.sourceCommit===next.sourceCommit)issues.push('same-commit-not-ab');
+  if(base.status==='failed'||next.status==='failed'||base.status==='running'||next.status==='running')
+    issues.push('source-measurement-failed');
   for(const key of ['dataPin','backend','gpuMode','expectedRuntimeBackend','viewport','frozenClock','browserVersion','zooms','projections'])
     if(json(base[key])!==json(next[key]))issues.push('different-'+key);
   if(base.device?.platform!==next.device?.platform || base.device?.cpuModel!==next.device?.cpuModel ||
