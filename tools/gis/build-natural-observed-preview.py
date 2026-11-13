@@ -342,7 +342,7 @@ def polar_nan_self_test():
         if corrected!=2 or not np.array_equal(south,np.array([[1,0],[1,0]],dtype='float32')):
             raise AssertionError('South-pole one-pixel outside-latitude gutter was not replicated')
         interior=np.array([[1,float('nan')],[0,0]],dtype='float32')
-        if repair_polar_outside_latitude_gutter(interior,south_transform)!=0:
+        if repair_polar_outside_latitude_gutter(interior,from_origin(0,-89.75,1,1/60))!=0:
             raise AssertionError('In-range missing data was silently repaired')
         if bool(np.isfinite(interior).all()):
             raise AssertionError('Interior NaN must remain a hard source-quality failure')
