@@ -1,3 +1,4 @@
+import {hasWholeOriginalBatch,assertWholeOriginalBatch} from './whole-original-source-review.mjs';
 import fs from 'node:fs';
 import {pathToFileURL} from 'node:url';
 import {createHash} from 'node:crypto';
@@ -376,6 +377,7 @@ function assertOriginalExistingComponents(next,previous,review,{prefixes,archive
  * this does not approve historical reconstruction or derived display geometry.
  */
 export function assertHistoricalSourceStorageChanges(next,previous,{prefixes,readEvidence,getSourceSnapshot}={}){
+ if(hasWholeOriginalBatch(next)||hasWholeOriginalBatch(previous))return assertWholeOriginalBatch(next,previous,{prefixes,readEvidence});
  const appendMarked=v=>v?.modernBoundarySupplement&&(Object.hasOwn(v.modernBoundarySupplement,'detachedComponentAppend')||Object.hasOwn(v.modernBoundarySupplement,'initialPreparedAppend')||v.modernBoundarySupplement.adoptionMode==='lossless-original-detached-component-append');
  if(next.geometryVersions?.some(v=>appendMarked(v)&&!v.modernBoundarySupplement.sourceAdoptionReview))throw Error('Raw source adoption: detached-component append: initial append receipt is required');
  if(next.geometryVersions?.some(appendMarked)&&previous&&next.geometryVersions.length===previous.geometryVersions?.length&&next.geometryVersions.every((v,i)=>v.versionId===previous.geometryVersions[i].versionId&&digest(v.geometry)===digest(previous.geometryVersions[i].geometry))&&!isDeepStrictEqual(next,previous))throw Error('Raw source adoption: detached-component append: unchanged geometry cannot acquire or alter append attribution');
