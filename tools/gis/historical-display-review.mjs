@@ -1,4 +1,5 @@
 import{hasRegisteredCzeSvkUnion,assertRegisteredCzeSvkUnion}from'./registered-cze-svk-union-source-review.mjs';
+import {hasPatagoniaComposition,assertPatagoniaComposition} from './patagonia-protected-source-review.mjs';
 import {hasFixedFourOriginal,assertFixedFourOriginal} from './fixed-four-original-source-review.mjs';
 import {hasSelectedOriginalComposition,assertSelectedOriginalComposition} from './selected-original-composition-source-review.mjs';
 import {hasRetainedCoast,assertRetainedCoast} from './retained-coast-source-review.mjs';
@@ -400,6 +401,7 @@ export function assertHistoricalSourceStorageChanges(next,previous,{prefixes,rea
  if(hasRegisteredCzeSvkUnion(next)||hasRegisteredCzeSvkUnion(previous))return assertRegisteredCzeSvkUnion(next,previous,{prefixes,readEvidence,getSourceSnapshot});
  if(hasHistoricalSourceReuse(next)||hasHistoricalSourceReuse(previous))return assertHistoricalModernCopy(next,previous,{prefixes,readEvidence,getSourceSnapshot});
  if(hasSelectedOriginalComposition(next)||hasSelectedOriginalComposition(previous))return assertSelectedOriginalComposition(next,previous,{prefixes,readEvidence,getSourceSnapshot});
+ if(hasPatagoniaComposition(next)||hasPatagoniaComposition(previous))return assertPatagoniaComposition(next,previous,{prefixes,readEvidence,getSourceSnapshot});
  if(hasOriginalRetainedComposition(next)||hasOriginalRetainedComposition(previous))return assertOriginalRetainedComposition(next,previous,{prefixes,readEvidence,getSourceSnapshot});
  if(hasRetainedCoast(next)||hasRetainedCoast(previous))return assertRetainedCoast(next,previous,{prefixes,readEvidence});
  if(hasOriginalComposition(next)||hasOriginalComposition(previous))return assertOriginalComposition(next,previous,{prefixes,readEvidence,getSourceSnapshot});
