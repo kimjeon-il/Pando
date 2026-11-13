@@ -13,6 +13,24 @@ export function assertWholeOriginalBlobSize(rawBytes,base64Characters){
  if(!Number.isSafeInteger(rawBytes)||rawBytes<0||rawBytes>256*1024*1024||!Number.isSafeInteger(base64Characters)||base64Characters<0||base64Characters>360*1024*1024)throw Error('Whole original batch: bounded original blob required');
 }
 export const hasWholeOriginalBatch=e=>e?.geometryVersions?.some(v=>v.modernBoundarySupplement?.adoptionMode===wholeOriginalBatchMethod);
+
+/** One already-mapped null-GENC original, not a generic MapTint identity rule. */
+function originalCodeMatches(source,next,review,descriptor,archived){
+ const p=source.properties,code=next.entityId.slice(6);
+ if(p?.GENC_3===code)return review.identityFallback===undefined;
+ // A conflicting non-null GENC code can never fall back to a colour code.
+ if(p?.GENC_3!==null||code!=='ESP'||p.MapTint_3!=='ESP'||source.featureId!=='804cb3c1-195d-48d8-97e5-0439f624b231')return false;
+ const fallback=review.identityFallback;
+ if(fallback?.method!=='existing-esp-single-original-null-genc')return false;
+ const mapping=archived(fallback.mapping),rows=mapping.rows?.filter(x=>x.code===code&&x.versionId===review.versionId);
+ if(rows?.length!==1)return false;
+ const row=rows[0],feature=row.originalFeatures?.[0],version=descriptor.geometryVersions.find(x=>x.versionId===review.versionId);
+ return row.descriptorSha256===review.previousDescriptorSha256&&row.validFrom===review.validFrom&&row.validTo===review.validTo
+  &&row.resourcePath===base+version.geometryResource.file&&row.resourceSha256===version.geometryResource.sha256
+  &&row.originalFeatures.length===1&&feature.WP_ID===source.featureId&&feature.GENC_3===null&&feature.US_Recog==='Independent'&&feature.Map_Disp===null
+  &&feature.blobSha256===source.rawBlobSha256&&feature.wkbSha256===source.rawWkbSha256;
+}
+
 /** Source-only transaction contract. Deliberately no inter-country topology claim.
  * An archived batch enumerates exact immutable resources, not a broad directory lease.
  * Every changed descriptor is independently checked by the store against its preimage.
@@ -44,7 +62,7 @@ export function assertWholeOriginalBatch(next,previous,{prefixes,readEvidence}={
  if(!Array.isArray(prefixes)||new Set(prefixes).size!==prefixes.length||!eq([...prefixes].sort(),[...new Set(scope)].sort()))fail('exact batch source-only scope required');
  const member=batch.members.find(m=>m.entityId===next.entityId);if(!member||member.resource!==resource||member.previousDescriptorSha256!==hash(pre))fail('batch target preimage mismatch');
  const p=source.properties;
- if(source.schemaVersion!==1||source.method!=='exact-gpkg-original-feature'||typeof source.featureId!=='string'||p?.WP_ID!==source.featureId||p.WP_PAR_ID!==source.featureId||p.GENC_3!==next.entityId.slice(6)||p.US_Recog!=='Independent'||p.Map_Disp!==null||p.Show_Disp!==null||!eq(source.geometry,v.geometry))fail('original complete feature identity mismatch');
+ if(source.schemaVersion!==1||source.method!=='exact-gpkg-original-feature'||typeof source.featureId!=='string'||p?.WP_ID!==source.featureId||p.WP_PAR_ID!==source.featureId||!originalCodeMatches(source,next,r,descriptor,archived)||p.US_Recog!=='Independent'||p.Map_Disp!==null||p.Show_Disp!==null||!eq(source.geometry,v.geometry))fail('original complete feature identity mismatch');
  if(typeof source.sourcePath!=='string'||!source.sourcePath||s.rawSourceFile!==source.sourcePath||s.rawFeatureId!==source.featureId||!eq(s.rawOriginalSource,r.source))fail('raw archive provenance mismatch');
  // The archived full feature blob is the provenance authority. A whole-file
  // receipt is optional, but cannot be invented or discarded when supplied.
