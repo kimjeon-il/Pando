@@ -390,13 +390,17 @@ function canvasFallbackWorkerMain(self) {
           // of a triangle. Resizing reallocates its backing and invalidates
           // the 2D context state on every projection/tile, disproportionately
           // hurting Canvas when the visible height spans many rows.
-          if(!numericalScratch || numericalScratch.width<block.width || numericalScratch.height<block.height){
-            const width=Math.max(numericalScratch?.width||0,block.width);
-            const height=Math.max(numericalScratch?.height||0,block.height);
-            numericalScratch=new OffscreenCanvas(width,height);
+          if(!numericalScratch){
+            // The numerical triangle generator guarantees at most 2048
+            // columns by 16 rows. Preallocate one viewport-bounded scratch
+            // backing instead of growing it at each differently sized globe
+            // triangle (19 reallocations were observed in one live frame).
+            numericalScratch=new OffscreenCanvas(Math.min(2048,canvas.width),16);
             numericalScratchContext=numericalScratch.getContext('2d');
             numericalScratchAllocations++;
           }
+          if(block.width>numericalScratch.width||block.height>numericalScratch.height)
+            throw new RangeError('Numerical Canvas scratch block exceeded its bounded viewport');
           numericalScratchPeakBytes=Math.max(numericalScratchPeakBytes,
             block.rgba.byteLength+numericalScratch.width*numericalScratch.height*4);
           numericalScratchContext.putImageData(new ImageData(block.rgba,block.width,block.height),0,0);
