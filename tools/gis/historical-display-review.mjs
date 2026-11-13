@@ -1,3 +1,4 @@
+import {hasJpnScopeCorrection,assertJpnScopeCorrection} from './jpn-scope-correction-source-review.mjs';
 import {hasThirteenScopeCorrection,assertThirteenScopeCorrection} from './thirteen-scope-correction-source-review.mjs';
 import {hasFixedScopeCorrection,assertFixedScopeCorrection} from './fixed-scope-correction-source-review.mjs';
 import {hasFinScopeCorrection,assertFinScopeCorrection} from './fin-scope-correction-source-review.mjs';
@@ -383,6 +384,7 @@ function assertOriginalExistingComponents(next,previous,review,{prefixes,archive
  * this does not approve historical reconstruction or derived display geometry.
  */
 export function assertHistoricalSourceStorageChanges(next,previous,{prefixes,readEvidence,getSourceSnapshot}={}){
+ if(hasJpnScopeCorrection(next,previous))return assertJpnScopeCorrection(next,previous,{prefixes,readEvidence,getSourceSnapshot});
  if(hasFinScopeCorrection(next,previous))return assertFinScopeCorrection(next,previous,{prefixes,readEvidence,getSourceSnapshot});
  if(hasFixedScopeCorrection(next,previous))return assertFixedScopeCorrection(next,previous,{prefixes,readEvidence,getSourceSnapshot});
  if(hasThirteenScopeCorrection(next,previous))return assertThirteenScopeCorrection(next,previous,{prefixes,readEvidence,getSourceSnapshot});
