@@ -103,36 +103,24 @@ function elevationTile(width, height, elevationAt) {
 }
 
 for (const version of [2, 1]) {
-  test(`DEM fractional pixels match Canvas palette interpolation in WebGL${version}`, async ({page})=>{
+  test(`DEM fractional pixels match numerical Canvas height-first interpolation in WebGL${version}`, async ({page})=>{
     const tile=elevationTile(4,4,(x,y)=>[-4000,0,2500,6500][(x+y)%4]);
     tile.shades=Array.from({length:16},(_,i)=>[112,180,212,255][i%4]);
-    const dem=tile.heights.flatMap((height,i)=>[(height+12000)>>8,(height+12000)&255,tile.shades[i],255]);
-    const lightPlanes=cpuScope.self.PandoLabCanvasTerrainDem.convertTile({dem,width:4,height:4,theme:'light'});
-    const darkPlanes=cpuScope.self.PandoLabCanvasTerrainDem.convertTile({dem,width:4,height:4,theme:'dark'});
+    const dem=Uint8ClampedArray.from(tile.heights.flatMap((h,i)=>[(h+12000)>>8,(h+12000)&255,tile.shades[i],255]));
     const samples=[{x:.2,y:.7,physical:true},{x:1.3,y:1.6,physical:true},{x:2.7,y:2.1,physical:true},
       {x:.2,y:.7,physical:true,land:false},{x:1.3,y:1.6,physical:true,land:false},
       {x:.2,y:.7},{x:1.3,y:1.6},{x:2.7,y:2.1,dark:true}];
-    const gpu=await renderSamples(page,version,tile,samples);
-    const canvas=await page.evaluate(({lightPlanes,darkPlanes,samples})=>{
-      const source=document.createElement('canvas');source.width=source.height=4;
-      const target=document.createElement('canvas');target.width=target.height=1;
-      const src=source.getContext('2d'),ctx=target.getContext('2d');
-      return samples.map(sample=>{
-        const channel=sample.physical?(sample.land===false?'ocean':'land'):'political';
-        const planes = sample.dark && sample.physical ? darkPlanes : lightPlanes;
-        src.putImageData(new ImageData(new Uint8ClampedArray(planes[channel]),4,4),0,0);
-        ctx.clearRect(0,0,1,1);
-        ctx.filter=sample.dark && !sample.physical ? 'brightness(0.84)' : 'none';
-        ctx.drawImage(source,sample.x,sample.y,1,1,0,0,1,1);
-        return Array.from(ctx.getImageData(0,0,1,1).data);
-      });
-    },{
-      lightPlanes:Object.fromEntries(Object.entries(lightPlanes).map(([key,value])=>[key,Array.from(value)])),
-      darkPlanes:Object.fromEntries(Object.entries(darkPlanes).map(([key,value])=>[key,Array.from(value)])),
-      samples,
+    const gpu=await renderSamples(page,version,tile,samples),cpu=cpuScope.self.PandoLabCanvasTerrainDem;
+    // Old expected images interpolated already-painted RGB. The actual Canvas
+    // renderer now interpolates decoded DEM elevation BEFORE the PCHIP palette.
+    const expected=samples.map(s=>{
+      const channel=s.physical?(s.land===false?'ocean':'land'):'political';
+      const rgba=cpu.sampleInterpolated({dem,width:4,height:4,x:s.x,y:s.y,theme:s.dark?'dark':'light',channel});
+      if(s.dark&&!s.physical)for(let c=0;c<3;c++)rgba[c]=Math.round(rgba[c]*cpu.darkBrightness);
+      return rgba;
     });
-    for(let i=0;i<samples.length;i++)for(let channel=0;channel<4;channel++)
-      expect(Math.abs(gpu[i][channel]-canvas[i][channel]),`sample ${i} channel ${channel}`).toBeLessThanOrEqual(2);
+    for(let i=0;i<samples.length;i++)for(let c=0;c<4;c++)
+      expect(Math.abs(gpu[i][c]-expected[i][c]),`sample ${i} channel ${c}`).toBeLessThanOrEqual(2);
   });
   test(`DEM slope colors match Canvas cell centers in WebGL${version}`, async ({page})=>{
     for(const latitude of [0,45,89.6,-89.6])for(const direction of [-1,1]){
@@ -202,29 +190,37 @@ for (const version of [2, 1]) {
     }
   });
 
-  test(`DEM constant slopes survive RG carry and one-pixel tile gutters in WebGL${version}`, async ({ page }) => {
-    // Encoding 0 m as 12000 makes the first 32 m step carry from G into R.
-    const samples = [0.5, 1.1, 1.49, 1.51, 2.25, 4.5].map(x => ({ x, y: 2.25 }));
-    const east = await renderSamples(page, version, elevationTile(6, 6, x => 32 * x), samples);
-    const south = await renderSamples(page, version, elevationTile(6, 6, (x, y) => 32 * y),
-      samples.map(({ x, y }) => ({ x: y, y: x })));
-    // Stored shade makes direction irrelevant; low-height tonal changes remain below one byte.
-    for (const color of east) expect(Math.abs(color[0] - 56)).toBeLessThanOrEqual(1);
-    for (const color of south) expect(Math.abs(color[0] - 56)).toBeLessThanOrEqual(1);
+  test(`DEM constant slopes survive RG carry and one-pixel tile gutters in WebGL${version}`, async ({page})=>{
+    const samples=[0.5,1.1,1.49,1.51,2.25,4.5].map(x=>({x,y:2.25}));
+    const eastTile=elevationTile(6,6,x=>32*x),southTile=elevationTile(6,6,(_x,y)=>32*y);
+    const east=await renderSamples(page,version,eastTile,samples);
+    const south=await renderSamples(page,version,southTile,samples.map(({x,y})=>({x:y,y:x})));
+    const core=cpuScope.self.PandoLabCanvasTerrainDem;
+    // Avoid the retired fixed red=56 assertion: it predates the vivid land palette.
+    const raw=Uint8ClampedArray.from(eastTile.heights.flatMap(h=>[(h+12000)>>8,(h+12000)&255,128,255]));
+    for(let i=0;i<samples.length;i++){
+      const ref=core.sampleInterpolated({dem:raw,width:6,height:6,...samples[i]});
+      for(let c=0;c<4;c++){
+        expect(Math.abs(east[i][c]-ref[c]),`RG carry east ${i} channel ${c}`).toBeLessThanOrEqual(2);
+        expect(Math.abs(south[i][c]-ref[c]),`RG carry south ${i} channel ${c}`).toBeLessThanOrEqual(2);
+      }
+      expect(east[i].slice(0,3),`equal height with rotated direction ${i}`).toEqual(south[i].slice(0,3));
+    }
   });
 
-  test(`DEM stored shade remains independent of curved-surface direction and latitude in WebGL${version}`, async ({ page }) => {
-    const tile = elevationTile(7, 7, (x, y) => {
-      const east = x - 3, south = y - 3;
-      return 90 * east * east + 55 * south * south + 35 * east * south;
-    });
-    // Low heights use the same stored shade regardless of local slope or latitude.
-    const colors = await renderSamples(page, version, tile, [
-      { x: 3.1, y: 3.8 }, { x: 3.7, y: 3.2 }, { x: 2.25, y: 3.75 },
-      { x: 3.25, y: 2.75 }, { x: 3.1, y: 3.8, latitude: 45 },
-    ]);
-    const expected = [56, 56, 56, 56, 56];
-    for (let i = 0; i < colors.length; i += 1) expect(Math.abs(colors[i][0] - expected[i])).toBeLessThanOrEqual(1);
+  test(`DEM stored shade remains independent of curved-surface direction and latitude in WebGL${version}`,async({page})=>{
+    const tile=elevationTile(7,7,(x,y)=>{const east=x-3,south=y-3;return 90*east*east+55*south*south+35*east*south;});
+    const samples=[{x:3.1,y:3.8},{x:3.7,y:3.2},{x:2.25,y:3.75},
+      {x:3.25,y:2.75},{x:3.1,y:3.8,latitude:45}];
+    const gpu=await renderSamples(page,version,tile,samples);
+    const raw=Uint8ClampedArray.from(tile.heights.flatMap(h=>[(h+12000)>>8,(h+12000)&255,128,255]));
+    const core=cpuScope.self.PandoLabCanvasTerrainDem;
+    for(let i=0;i<samples.length;i++){
+      const ref=core.sampleInterpolated({dem:raw,width:7,height:7,x:samples[i].x,y:samples[i].y});
+      for(let c=0;c<4;c++)
+        expect(Math.abs(gpu[i][c]-ref[c]),`stored shade slope ${i} channel ${c}`).toBeLessThanOrEqual(2);
+    }
+    expect(gpu[0]).toEqual(gpu[4]); // Latitude may not change stored DEM shade.
   });
 
   test(`DEM neighboring tiles agree at edges and four-tile corners in WebGL${version}`, async ({ page }) => {

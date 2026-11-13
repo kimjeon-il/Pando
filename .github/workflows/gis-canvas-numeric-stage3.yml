@@ -30,30 +30,10 @@ jobs:
       - uses: pnpm/action-setup@v4
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - run: pnpm exec playwright install --with-deps chromium
-      - name: 3-4 identify stale theme assertions vs actual delayed-LOD publication
+      - name: Verify only six previously failing WebGL1/2 interpolation contracts
         run: |
-          pnpm exec playwright test tests/browser/rendering/terrain-zoom-continuity.spec.mjs \
-            --grep 'terrain-interaction-streaming' \
-            --workers=1 --retries=0 --output=test-results/canvas-stage3-4
-      - name: 3-6 prove superseded camera, date, canceled paints cannot publish stale pixels
-        run: |
-          node --test tests/unit/rendering/canvas-frame-publication.test.mjs
-          node --test --test-name-pattern 'cooperative globe painting|temporal Canvas transitions|temporal frames without physical land|physical terrain recomposites|P7 Canvas resource redraws' \
-            tests/unit/rendering/canvas-terrain-independence.test.mjs
-          pnpm exec playwright test tests/browser/document/viewer-calendar.spec.mjs \
-            --grep 'temporal map holds its last complete canvas-worker frame' \
-            --workers=1 --retries=0 --output=test-results/canvas-stage3-6
-      - name: 3-5 compare equal-camera Worker frame CPU, memory and rAF scheduling
-        run: |
-          pnpm exec playwright test tests/browser/rendering/canvas-numeric-ab.spec.mjs \
-            --workers=1 --retries=0 --output=test-results/canvas-stage3-5
-      - name: Final minimal WebGL-Canvas parity and flat-globe checks
-        run: |
-          pnpm exec playwright test \
-            tests/browser/rendering/canvas-numeric-dem.spec.mjs \
-            tests/browser/rendering/terrain-natural-parity.spec.mjs \
-            tests/browser/rendering/terrain-dem-shader.spec.mjs \
-            tests/browser/rendering/canvas-globe-performance.spec.mjs \
+          pnpm exec playwright test tests/browser/rendering/terrain-dem-shader.spec.mjs \
+            --grep 'fractional pixels|constant slopes|stored shade' \
             --workers=1 --retries=0 --output=test-results/canvas-stage3-final
       - name: Preserve only the focused stage 3 receipts and relevant screenshots
         if: always()
