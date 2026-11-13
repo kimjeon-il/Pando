@@ -109,7 +109,14 @@
       const gutter = Number(manifest.gutter || 0);
       const bytes = specs.reduce((sum, spec) => sum
         + (spec.pixelWidth + 2 * gutter) * (spec.pixelHeight + 2 * gutter) * policy.bytesPerPixel, 0);
-      if (bytes <= policy.byteBudget) return { level, specs, bytes,
+      // Canvas retains its 12-byte decoded colour-plane footprint. The GPU
+      // supplies its own 4-byte RGBA8 texture cost and must also reserve base
+      // coverage and any visible optional natural-colour textures.
+      const reserveBytes = typeof policy.reserveBytes === 'function'
+        ? policy.reserveBytes(level, specs) : Number(policy.reserveBytes || 0);
+      if (!Number.isFinite(reserveBytes) || reserveBytes < 0) throw new Error('Invalid terrain memory reservation.');
+      if (bytes + reserveBytes <= policy.byteBudget) return { level, specs, bytes, reserveBytes,
+        totalBytes: bytes + reserveBytes,
         resolutionLimited: requested.resolutionLimited || level !== requested.level };
     }
     throw new Error('Visible numerical DEM exceeds the shared memory admission budget.');
