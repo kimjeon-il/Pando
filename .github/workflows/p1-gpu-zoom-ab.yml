@@ -1,0 +1,102 @@
+name: P1-1 source-paired GPU zoom A/B (1-32, WebGL1/2/Canvas)
+
+# Evaluation only. New measurement code must never publish Pages.
+on:
+  push:
+    branches:
+      - work/ui
+    paths:
+      - scripts/p1-gpu-zoom-ab.mjs
+      - .github/workflows/p1-gpu-zoom-ab.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: p1-gpu-zoom-ab-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  source-paired:
+    name: ${{ matrix.backend }} full zoom matrix
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        backend: [webgl2, webgl1, canvas]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - uses: ./.github/actions/library-data
+      - name: Install current branch test tools
+        run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Install controlled Chromium backend
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Validate benchmark syntax and immutable source pairing
+        env:
+          BASE_SHA: 0ffeedb34050e9042afbabbd3f29b9b8b57493f1
+          CANDIDATE_SHA: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check scripts/p1-gpu-zoom-ab.mjs
+          test "$(git rev-parse HEAD)" = "$CANDIDATE_SHA"
+          test "$BASE_SHA" != "$CANDIDATE_SHA"
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {execFileSync} from 'node:child_process';
+          import {readFileSync} from 'node:fs';
+          const previous=JSON.parse(execFileSync('git',['show',process.env.BASE_SHA+':config/library-data.json'],{encoding:'utf8'}));
+          const next=JSON.parse(readFileSync('config/library-data.json','utf8'));
+          assert.equal(previous.revision,next.revision,'P1_GPU_AB_DATA_PIN_MISMATCH');
+          console.log('P1_GPU_AB_DATA_PIN_MATCH '+next.revision);
+          NODE
+      - name: Execute full 32 zooms on actual Viewer at both source commits
+        shell: bash
+        env:
+          BASE_SHA: 0ffeedb34050e9042afbabbd3f29b9b8b57493f1
+          CANDIDATE_SHA: ${{ github.sha }}
+          BACKEND: ${{ matrix.backend }}
+        run: |
+          set -uo pipefail
+          # Keep instrumentation bit-for-bit identical when checking out both revisions.
+          cp scripts/p1-gpu-zoom-ab.mjs scripts/.p1-gpu-zoom-ab.tmp.mjs
+          trap 'rm -f scripts/.p1-gpu-zoom-ab.tmp.mjs' EXIT
+          for label in baseline candidate; do
+            sha="$BASE_SHA"
+            if [ "$label" = candidate ]; then sha="$CANDIDATE_SHA"; fi
+            git switch --detach "$sha" || exit 1
+            # Source revisions use distinct lockfiles. Never benchmark with the wrong installed dependencies.
+            pnpm install --frozen-lockfile --ignore-scripts || exit 1
+            node scripts/.p1-gpu-zoom-ab.tmp.mjs --backend="$BACKEND" --zooms=all               --out="$RUNNER_TEMP/p1-gpu-$BACKEND-$label.json"
+            code=$?
+            echo "$code" > "$RUNNER_TEMP/p1-gpu-$BACKEND-$label-exit.txt"
+            echo "P1_GPU_$BACKEND-$label=$code"
+          done
+          git switch --detach "$CANDIDATE_SHA" || exit 1
+          node scripts/.p1-gpu-zoom-ab.tmp.mjs --mode=compare             --baseline="$RUNNER_TEMP/p1-gpu-$BACKEND-baseline.json"             --candidate="$RUNNER_TEMP/p1-gpu-$BACKEND-candidate.json"             --out="$RUNNER_TEMP/p1-gpu-$BACKEND-comparison.json"
+          compare_code=$?
+          echo "$compare_code" > "$RUNNER_TEMP/p1-gpu-$BACKEND-comparison-exit.txt"
+          echo "P1_GPU_$BACKEND-COMPARISON=$compare_code"
+          # A partial matrix is intentionally not a passed acceptance.
+          test "$(cat "$RUNNER_TEMP/p1-gpu-$BACKEND-baseline-exit.txt")" = 0 &&
+          test "$(cat "$RUNNER_TEMP/p1-gpu-$BACKEND-candidate-exit.txt")" = 0 &&
+          test "$compare_code" = 0
+      - name: Retain source-bound raw numbers, failures and honest unsupported cells
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p1-gpu-zoom-${{ matrix.backend }}-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/p1-gpu-${{ matrix.backend }}-*.json
+            ${{ runner.temp }}/p1-gpu-${{ matrix.backend }}-*.txt
+          if-no-files-found: warn
+          retention-days: 14
