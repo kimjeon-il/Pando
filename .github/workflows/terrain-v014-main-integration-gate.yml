@@ -1,8 +1,6 @@
-name: Terrain v0.14.0 focused main integration / source-matched Pages dry-run
+name: '[HISTORICAL] Terrain v0.14.0 main integration / source-matched Pages dry-run
 on:
-  push:
-    branches: [work/gis]
-    paths: ['config/library-data.json']
+  workflow_dispatch:
 permissions:
   contents: read
 jobs:

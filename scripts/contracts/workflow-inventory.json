@@ -1,7 +1,7 @@
 {
   "schema": "pando-workflow-inventory-v1",
   "canonicalApplication": "application-architecture.yml",
-  "policy": "Continuous: automatic distinct verification or publish/sync. Manual: explicit targeted execution only. Historical: archived evidence, manually reproducible but never a current release gate. Current application tests are selected only by application-architecture.yml.",
+  "policy": "Continuous: independent automatic source-build, data admission, preview, publication or sync; application tests are executed automatically only by application-architecture.yml. Manual: explicit targeted replay of a focused check. Historical: frozen original evidence, opt-in only and never a current release gate.",
   "continuous": {
     "application-architecture.yml": "Canonical changed-file application checks",
     "builtin-country-deployment.yml": "Source-matched country publication and pinned data admission",
@@ -13,12 +13,9 @@
     "object-timeline-regression.yml": "Source-matched timeline Core behavior",
     "place-curated-release.yml": "Curated place data generation and publication",
     "shared-core.yml": "Separate native C++ source build and WASM identity",
-    "terrain-runtime-gate.yml": "Terrain-specific runtime acceptance and source identity",
-    "terrain-v014-main-integration-gate.yml": "Terrain data pin admission on work/gis",
     "viewer-functional-acceptance.yml": "Independent desktop/mobile real browser acceptance",
     "viewer-preview.yml": "Preview artifact producer; delegates application checks",
-    "web-pages.yml": "Production Pages deployment and live acceptance",
-    "world-archive-retirement-integrity.yml": "Project-scoped source archive admission"
+    "web-pages.yml": "Production Pages deployment and live acceptance"
   },
   "manual": [
     "active-hydro-optimization-gate.yml",
@@ -59,9 +56,11 @@
     "p7-rendering-regression.yml",
     "p7-runtime-ab.yml",
     "project-runtime-browser-focused.yml",
+    "terrain-runtime-gate.yml",
     "ui-prebuilt-mesh-focused.yml",
     "viewer-gpu-backend-cross.yml",
-    "viewer-startup-cold-warm-profile.yml"
+    "viewer-startup-cold-warm-profile.yml",
+    "world-archive-retirement-integrity.yml"
   ],
   "historical": [
     "gis-baikonur-current-runtime-audit.yml",
@@ -82,6 +81,11 @@
     "optimization-js-workspace.yml",
     "optimization-stage5-lifecycle.yml",
     "optimization-stage6-generation.yml",
+    "terrain-v014-main-integration-gate.yml",
     "ui-startup-ab.yml"
-  ]
+  ],
+  "delegatedToCanonical": {
+    "terrain-runtime-gate.yml": "Application Architecture selects terrain unit contracts and Viewer runtime metadata identity by changed source paths.",
+    "world-archive-retirement-integrity.yml": "Application Architecture selects world manifest/closure tests, externally stored assets boundary and Viewer source-pinned identity."
+  }
 }

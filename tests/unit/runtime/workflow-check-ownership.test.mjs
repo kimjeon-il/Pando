@@ -7,6 +7,7 @@ import {auditWorkflowCheckOwners,auditWorkflowInventory} from '../../../tools/ch
 import {scheduleViewerPreview} from '../../../scripts/viewer-preview-plan.mjs';
 import {readFileSync} from 'node:fs';
 import YAML from 'yaml';
+import {assertNoTrackedLibraryAssets} from '../../../scripts/check-world-archive-closure.mjs';
 
 test('preview delegates only unfiltered automatic pushes to the canonical application workflow',()=>{
  const applicationWorkflow=YAML.parse(readFileSync(new URL('../../../.github/workflows/application-architecture.yml',import.meta.url),'utf8'));
@@ -74,4 +75,38 @@ test('workflow inventory rejects new unclassified files and opt-in auto events',
  assert.match(JSON.stringify(auditWorkflowInventory(dir,manifest).issues),/automatic triggers/);
  write([]);
  assert.match(JSON.stringify(auditWorkflowInventory(dir,manifest).issues),/missing from canonical inventory/);
+});
+
+test('consolidated terrain and world archive contracts are opt-in wrappers around canonical checks',()=>{
+ const root=new URL('../../../',import.meta.url);
+ const read=path=>readFileSync(new URL(path,root),'utf8');
+ const inventory=JSON.parse(read('scripts/contracts/workflow-inventory.json'));
+ const catalog=JSON.parse(read('scripts/contracts/application-checks.json'));
+ for(const file of Object.keys(inventory.delegatedToCanonical)){
+  assert.ok(inventory.manual.includes(file));
+  const parsed=YAML.parse(read('.github/workflows/'+file));
+  assert.deepEqual(Object.keys(parsed.on),['workflow_dispatch'],
+    file+' must not silently duplicate automatic application checks');
+ }
+ const historical='terrain-v014-main-integration-gate.yml';
+ assert.ok(inventory.historical.includes(historical));
+ assert.deepEqual(Object.keys(YAML.parse(read('.github/workflows/'+historical)).on),['workflow_dispatch']);
+ for(const id of ['viewer-runtime-identity','world-archive-source-boundary']){
+  assert.ok(catalog.groups.some(group=>group.id===id&&group.kind==='command'));
+ }
+ const boundTests=new Set(catalog.bindings.flatMap(binding=>binding.tests||[]));
+ for(const file of [
+  'tests/unit/rendering/terrain-tile-selection-shared.test.mjs',
+  'tests/unit/rendering/canvas-terrain-independence.test.mjs',
+  'tests/unit/rendering/gpu-base-scene-order.test.mjs',
+  'tests/unit/data/map-project-manifest.test.mjs',
+  'tests/unit/data/frontend-runtime-closure.test.mjs',
+ ])assert.ok(boundTests.has(file),'Missing canonical test binding: '+file);
+});
+
+test('external GIS runtime assets cannot be committed into the application repository',()=>{
+ assert.equal(assertNoTrackedLibraryAssets([]),true);
+ assert.throws(()=>assertNoTrackedLibraryAssets(['assets/data/terrain/synthetic-tile.bin']),/tracked/);
+ assert.throws(()=>assertNoTrackedLibraryAssets(['assets/data/hydro/part.bin']),/tracked/);
+ assert.throws(()=>assertNoTrackedLibraryAssets(null),/Invalid/);
 });
