@@ -258,6 +258,7 @@ jobs:
           const phases=report.phases.map(p=>({
             phase:p.phase,elapsedMedianMs:p.elapsedMs,elapsedRangeMs:p.wallTimeRangeMs,
             rafFps:p.raf?.rafFps??null,rafP95GapMs:p.raf?.p95FrameGapMs??null,
+            rafP99GapMs:p.raf?.p99FrameGapMs??null,
             rafMaxGapMs:p.raf?.maxFrameGapMs??null,rendererCpuSubmitP95Ms:p.renderer?.p95CpuSubmitMs??null,
             rendererCpuSubmitP99Ms:p.renderer?.p99CpuSubmitMs??null,
             mainJsHeapMiB:mib(p.jsHeapUsedBytes),chromiumFamilyPssMiB:mib(p.chromiumProcessPssBytes),
