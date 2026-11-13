@@ -8,6 +8,7 @@
     "generated-artifacts-p2.yml": "Changed runtime asset generation and immutable publication",
     "gis-native-hydro.yml": "Independent Hydro native source build and focused verification",
     "gis-natural-surface-preview.yml": "Bounded natural-surface candidate generation, external work/gis storage and immutable readback; delegates selected checks to the canonical runner",
+    "gis-natural-viewer-gate.yml": "Focused real-browser external natural tile acceptance with screenshots and WebGL/Canvas parity; distinct from application source-matched checks",
     "hydro-calibration-native.yml": "Independent Hydro calibration C++ verification",
     "hydro-packfile-runtime-gate.yml": "Atomic range and Hydro packet acceptance",
     "library-data-auto-sync.yml": "Bounded scheduled/event-driven library sync",
