@@ -6,7 +6,7 @@
 
 | 기존 문서 | 새 안내와 처리 |
 | --- | --- |
-| [작업공간 배치](../workspace-layout.md) | `src/` 단일 Viewer 구조로 현행 참조를 정리; 옛 `apps/viewer`·`apps/editor`·`shared/core` 배치표와 명령은 역사 자료로 보존 |
+| [작업공간 배치](../workspace-layout.md) | `src/` 단일 Viewer 구조로 현행 참조를 정리; 옛 Web/App 배치표와 명령은 라이브러리 비공개 원문으로 분리 보존 |
 | [원격 개발 P1](../development/remote-development.md) | 폐기 Windows 검수기 설명과 없어진 `apps/editor/README.md` 링크를 더 이상 현행 지시로 취급하지 않음 |
 | [앱 리팩터링 인벤토리](../architecture/app-refactor-inventory.md) | 삭제된 `platform-boundaries.md`, 구형 `app.js` 대신 현재 Viewer 모듈 소유자 안내; Phase 06 원문 보존 |
 | [공통 Core 명령](../architecture/shared-core-command-boundary.md) | 옛 `shared/core` 대신 `src/document/native/` 기준 정본 명시; 이전 앱 입력·검증은 과거 기록으로 한정 |

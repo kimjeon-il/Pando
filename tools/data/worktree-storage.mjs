@@ -9,7 +9,7 @@ import { previewGeneratedCleanup, applyGeneratedCleanup } from "./worktree-gener
 import { snapshotGitStorage, repackLocalObjects } from "./library-git.mjs";
 import {assertRemoteOnlyNativeAllowed,remoteOnlyBranch} from "../../scripts/lib/remote-only-native-policy.mjs";
 
-const repository=resolve(dirname(fileURLToPath(import.meta.url)),'..');
+const repository=resolve(dirname(fileURLToPath(import.meta.url)),'../..');
 const schema='pando-worktree-storage-v1';
 export const cacheLimit=2*1024**3;
 const stageMarker='.pandolab-web-shell-stage';

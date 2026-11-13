@@ -12,7 +12,7 @@ import {
   promoteManifest,
 } from "../lib/promote-hydro-names.mjs";
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const hydroRoot = path.join(root, 'assets', 'data', 'hydro');
 // Legacy name promotion is strictly archival. Never recreate retired versions under assets/data/hydro.
 const archiveIndex = process.argv.indexOf('--archive-root');

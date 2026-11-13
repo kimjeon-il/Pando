@@ -17,7 +17,7 @@
 
 ## 다른 파일에 섞인 운영·아키텍처 규칙
 
-- [현재·구형 작업공간 배치](../workspace-layout.md): `src/` 기준의 현행 경로와 과거 `apps/`/Windows 구성, 유지보수 기록을 구분합니다.
+- [현재 작업공간 배치](../workspace-layout.md): `src/` 기준의 현행 소스·도구·생성물 소유권을 설명합니다.
 - [상설 워크트리 저장공간](../worktree-storage.md), [C 드라이브 유지 관리](../c-drive-maintenance.md): 삭제 전 참조·잠금·복구 원칙은 [AGENTS.md](../../AGENTS.md)의 보호 규정과 함께 적용하며, 개별 도구 사용 예시는 별도 권한을 뜻하지 않습니다.
 - [원격 개발 P1 검증 기록](../development/remote-development.md): 과거 네이티브 검수/워크플로 경로는 현재 재실행 지침이 아닙니다.
 - [Worker RPC 계약](../architecture/worker-rpc.md): 새 RPC 클라이언트/호스트의 소유권과 취소·오류 계약은 `src/runtime/`에 있으며, 배포 `assets/js/` URL과 원본 소스 경로를 구분합니다.

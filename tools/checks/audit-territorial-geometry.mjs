@@ -6,7 +6,7 @@ import { spawnSync } from 'node:child_process';
 import { isDeepStrictEqual } from 'node:util';
 import { fileURLToPath } from 'node:url';
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const countryDirectory = path.join(root, 'assets/data/territorial-entities/source/countries');
 const check = process.argv.includes('--check');
 const write = process.argv.includes('--write');
