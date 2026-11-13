@@ -14,6 +14,7 @@ function metrics(s) {
     'terrainNaturalSourceRevision','terrainMemoryBudgetBytes','terrainDemCacheBytes',
     'terrainCacheBytes','terrainPendingDecodedBytes','terrainFetchConcurrency',
     'canvasTerrainNumericPixels','canvasTerrainNumericScratchPeakBytes',
+    'canvasTerrainNumericScratchAllocations','canvasTerrainNumericBlocks',
     'p95CpuSubmitMs','p99CpuSubmitMs','webGlLastFrameSceneDrawCalls'].map(k=>[k,s?.[k]??null]));
 }
 async function imageDifference(page,first,second){
@@ -150,6 +151,22 @@ for(const renderer of ['webgl2','canvas'])for(const region of (renderer==='webgl
         expect(final.terrainMemoryBudgetBytes).toBeGreaterThan(0);
         expect(final.terrainCacheBytes+final.terrainPendingDecodedBytes+final.terrainNaturalPendingBytes)
           .toBeLessThanOrEqual(final.terrainMemoryBudgetBytes);
+      }
+      if(renderer==='canvas'){
+        expect(final.canvasTerrainNumericPixels).toBeGreaterThan(0);
+        expect(final.canvasTerrainNumericBlocks).toBeGreaterThan(0);
+        expect(final.canvasTerrainNumericScratchPeakBytes).toBeLessThanOrEqual(256*1024);
+        expect(final.canvasTerrainNumericScratchAllocations).toBeLessThanOrEqual(8);
+        // Worker DEM + optional pigment uses one declared Canvas budget.
+        expect(final.terrainCacheBytes).toBeLessThanOrEqual(96*1024*1024);
+        console.log('CANVAS_NUMERIC_VIEWER_PROOF='+JSON.stringify({
+          region:region.name,numericPixels:final.canvasTerrainNumericPixels,
+          numericBlocks:final.canvasTerrainNumericBlocks,
+          scratchPeakBytes:final.canvasTerrainNumericScratchPeakBytes,
+          scratchAllocations:final.canvasTerrainNumericScratchAllocations,
+          terrainCacheBytes:final.terrainCacheBytes,
+          baselineFramePacing,finalFramePacing,
+        }));
       }
       expect(final.terrainNaturalFailures).toBe(0);
       expect(errors).toEqual([]);
