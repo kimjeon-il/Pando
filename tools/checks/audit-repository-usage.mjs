@@ -44,7 +44,7 @@ function classifyTarget(from, raw) {
   else if (value.startsWith('workers/')) path = outputOwners.get('assets/js/' + value) || value;
   else if (value.startsWith('assets/js/')) path = outputOwners.get(value) || value;
   else if (value.startsWith('/assets/')) path = outputOwners.get(value.slice(1)) || value.slice(1);
-  else if (/^(?:src|tools|scripts|tests|assets|config|contracts|projects|docs|\.github|cmake|design)\//.test(value)) path = value;
+  else if (/^(?:src|tools|scripts|tests|assets|config|contracts|projects|docs|\.github|cmake)\//.test(value)) path = value;
   else if (value.startsWith('./') || value.startsWith('../')) {
     path = posix.normalize(posix.join(posix.dirname(from), value));
     // new URL(relative, import.meta.url) is sometimes authored for the

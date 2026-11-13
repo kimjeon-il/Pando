@@ -7,7 +7,7 @@
 | GeoNames 후보 포괄·제외 | [후보 선별 코드](../../tools/lib/geonames-policy.mjs) | 수록 가능성 판단. 기존 후보 선정 임계값 보존 |
 | 조사·게시 승인 | [지명 자료·검증 기록](../place-runtime.md), [지명 승인·동기화 계약](../place-sync-contract.md) | 조사 통과와 자동 런타임 게시를 혼동하지 않음 |
 | 도시 5등급 표시 | [인구·공간 점수 구현](../../tools/build/place-display-rank.mjs), [정책 적용 기록](../place-runtime.md) | 인구 우선, 주변 밀집 감점·고립 가점. 과거 계수 원문은 미복원; 임시 보정값 |
-| 지명 식별자·이름·타일 | [지명 코드 계약](../../src/document/place-contract.js), [PLAC v3](../../contracts/places/v3.json), [코덱](../../src/data/place-codec.js) | [PLAC v2](../../contracts/places/v2.json)는 회귀·과거 입력 |
+| 지명 식별자·이름·타일 | [지명 코드 계약](../../src/document/place-contract.js), [PLAC v3 고정 검증 예제](../../tests/fixtures/places/plac-v3.json), [코덱](../../src/data/place-codec.js) | 실행 형식은 코드 정본, JSON은 검증용 고정 예제. 미사용 v2는 현재 트리에서 제거 |
 | 역사명 선택 | [지명 이름 규칙 코드](../../src/data/place-name-policy.js) | 역사적 이름 변화와 도시 등급은 별개 |
 | 도시 라벨 가능 기간 | [라벨 유효기간 코드](../../src/data/place-lifetime-policy.js) | 지명·취락의 물리적 존재 전체를 뜻하지 않음 |
 | 조회·화면 | [지명 Worker 저장소](../../src/data/place-worker-store.js) | 화면 수치·우선순위는 승인된 실제 게시 자료 기준 |

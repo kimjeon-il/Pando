@@ -6,7 +6,7 @@ import { createHash } from 'node:crypto';
 import { gunzipSync } from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 
-const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const DEFAULT_MAX_BYTES = 1_000_000;
 const DEFAULT_MAX_ENTITIES = 12;
 const HELP = `World data inspector (read-only)

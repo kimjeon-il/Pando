@@ -54,7 +54,7 @@
 - 코드 기준 `main@7cd224bd198c014d2215e35a93452702227d8314`; 데이터 핀 `3673ce501c5c2479356414816b5c5daa0ca3e6c6`.
 - Git tree 기준 추적 파일 **2,993개**, `shared/frontend` 767, `shared/core` 117, `shared/wasm` 10, `apps/viewer` 13, `apps/editor` 23, `tools` 423, `scripts` 76, `tests` 1,156, `.github/workflows` 137, 기타 271개.
 - 재측정: `node scripts/check-runtime-boundaries.mjs --baseline-json`은 체크아웃된 커밋의 Git tree 파일 수·크기와 실제 Viewer 경계 검사에서 순회한 정적 모듈 수를 JSON으로 출력한다. 일반 실행은 기존 검증과 출력이 그대로다.
-- 브라우저 초기 로딩·날짜 전환 지연·프레임 시간·GPU·WASM/JS 메모리·전송량은 **이 정적 검사로 측정할 수 없다**. 2026-10-17의 `config/performance-baseline-v1.json` 수치는 다른 커밋의 역사적 증거이며 최신 `main` 성능 기준선이 아니다. 동일 장비·환경·데이터 핀에 대한 런타임 실측은 별도로 필요하다.
+- 브라우저 초기 로딩·날짜 전환 지연·프레임 시간·GPU·WASM/JS 메모리·전송량은 **이 정적 검사로 측정할 수 없다**. 라이브러리 비공개 보존본으로 이전한 2026-10-17 성능 측정 수치는 다른 커밋의 역사적 증거이며 최신 `main` 성능 기준선이 아니다. 동일 장비·환경·데이터 핀에 대한 런타임 실측은 별도로 필요하다.
 
 ## P4: 참조 자료와 프로젝트 작성 객체의 공통 조회 오버레이
 

@@ -58,9 +58,9 @@ test('PLAC v3 round-trips native extras and dated three-name transitions', () =>
 });
 
 
-test('Web PLAC v3 bytes match the shared Nicosia hex vector used by the Qt decoder', async () => {
+test('PLAC v3 bytes match the frozen Nicosia regression vector', async () => {
   const { readFile } = await import('node:fs/promises');
-  const file = new URL("../../../contracts/places/v3.json", import.meta.url);
+  const file = new URL("../../fixtures/places/plac-v3.json", import.meta.url);
   const contract = JSON.parse(await readFile(file, 'utf8'));
   assert.equal(contract.wire.version, 3);
   assert.equal(contract.wire.recordBytes, 72);

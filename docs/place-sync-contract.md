@@ -26,7 +26,7 @@
 
 - 검수 정본은 기존 `defaultNativeNames[]` 및 `displayTimeline[].nativeNames[]` (각 원어명에 `text/language/script`)를 유지한다. 이것을 중복 저장하지 않고 실행용으로 변환할 때 첫 번째 원어명의 `text`를 `nameNative`, 나머지 최대 두 원어명의 `text`를 `nameNativeExtras[]`로 내보낸다.
 - 변경구간마다 `nameTimeline[].native` 와 `nameTimeline[].nativeExtras[]`를 한 번에 기록한다. 원어 대표값을 변경하면서 이전 시기의 추가명 목록을 실수로 이어받지 않는다. 추가 원어가 없는 시기는 `nativeExtras: []`이다.
-- PLAC v3 레코드는 72바이트·문자열 오프셋 9개, 신규 슬롯은 `nameNativeExtrasText`(추가 원어명 최대 2개인 UTF-8 JSON 문자열 배열)이다. 기록순서·바이트 오프셋은 `contracts/places/v3.json`을 따른다. 시간별 `nativeExtras[]`는 기존 JSON 타임라인 문자열 슬롯 내부에 저장한다.
+- PLAC v3 레코드는 72바이트·문자열 오프셋 9개, 신규 슬롯은 `nameNativeExtrasText`(추가 원어명 최대 2개인 UTF-8 JSON 문자열 배열)이다. 기록순서·바이트 오프셋은 `src/document/place-contract.js`의 정본을 따른다. 시간별 `nativeExtras[]`는 기존 JSON 타임라인 문자열 슬롯 내부에 저장한다.
 - 행 중복 제거는 KO, EN, 원어(최대 3개) 순서로 문자열 공백 정리/NFKC/대소문자 무시 후 수행한다. 영어·원어가 같아도 데이터에서는 언어별 이름을 그대로 보존한다. 웹 SVG는 원어 행이 여러 개일 수 있으므로 언어코드가 아닌 인덱스로 `tspan`을 결합하며 앱도 동일한 행을 출력한다.
 - 현재 런타임은 검수 자료의 모든 원어명 언어코드와 시대별 국가·영토 경계를 자동 해석하지 않는다. **검수 JSON → 실행용 타일 생성/배포** 및 **지도 날짜 연결**은 별도 작업이다. `work/places` 브랜치만 수정하며 `main`은 변경하지 않는다.
 
@@ -74,7 +74,7 @@
 | 책임 | 현행 소유자 | 별도 상태·제한 |
 | --- | --- | --- |
 | 역사적 도시 정체·명칭 검수 | 외부 `PandoLab-library-data/reports/places/tier1-major-cities-*.json` 및 관련 정책 JSON | 원자료 검수·편집 원칙; 자동 게시나 역사 인구 인증과 구별 |
-| 지명 ID·언어 토글·PLAC v3 필드 | [`src/document/place-contract.js`](../src/document/place-contract.js), [`contracts/places/v3.json`](../contracts/places/v3.json) | `v2.json`은 과거 회귀 판본 |
+| 지명 ID·언어 토글·PLAC v3 필드 | [`src/document/place-contract.js`](../src/document/place-contract.js), [`tests/fixtures/places/plac-v3.json`](../tests/fixtures/places/plac-v3.json) | `v2.json`은 과거 회귀 판본 |
 | 타일 인코딩·조회·검색 | [`src/data/place-codec.js`](../src/data/place-codec.js), [`src/data/place-worker-store.js`](../src/data/place-worker-store.js), [`src/data/place-runtime.js`](../src/data/place-runtime.js) | Worker와 원본 조회 자료는 프로젝트 편집 저장소가 아님 |
 | 시대별 이름 선택·지도 라벨 | [`src/data/place-name-policy.js`](../src/data/place-name-policy.js), [`src/rendering/territorial-labels.js`](../src/rendering/territorial-labels.js) | 이름 변화와 도시 표시 자격은 다른 규칙 |
 | 후보 도시 선별·승인 | [`tools/lib/geonames-policy.mjs`](../tools/lib/geonames-policy.mjs), 승인된 자료·매니페스트 | 새로운 후보를 별도 승인 없이 게시하지 않음 |
@@ -100,11 +100,13 @@
 **단일 코드 정본**이다. UI와 환경설정에서 같은 언어 정규화/토글 함수를 사용한다.
 포맷 상수를 `place-codec.js` 등에 별도로 하드코딩하지 않는다.
 
-## 기계 판독 가능한 교환 파일
+## 실행 형식과 고정 검증 예제
 
-**현행 실행 계약은** [`contracts/places/v3.json`](../contracts/places/v3.json) 및 `src/document/place-contract.js`의 PLAC v3 정의다. v2는 고정 회귀·과거 교환 증거로 유지한다.
+**현행 실행 형식의 정본은** `src/document/place-contract.js`이며, 고정 검증 예제는 [`tests/fixtures/places/plac-v3.json`](../tests/fixtures/places/plac-v3.json)에 둔다. 미사용 v2는 현재 트리에서 제거했으며 과거 바이트는 라이브러리 비공개 보존본과 Git 이력에 남아 있다.
 
 ### PLAC v2 원래 교환 설계 (역사 기록)
+
+아래 옛 경로는 당시 커밋 기준이다. 원본 JSON은 라이브러리의 `private-evidence/retired-contracts/contracts-cleanup-20261113/`에 보존하며 현재 실행 경로가 아니다.
 
 `contracts/places/v2.json`에는 다음 정보를 하나로 묶는다.
 
@@ -119,7 +121,7 @@
 - 검증된 데이터 사례에 대한 입력·정규화 결과·원시 v2 타일 hex·
   선택 언어/시점별 기대 행·웹 예상 충돌 상자.
 
-현재 PLAC v3 검사는 `contracts/places/v3.json`의 사례를 해당
+현재 PLAC v3 검사는 `tests/fixtures/places/plac-v3.json`의 사례를 해당
 `reports/places/tier1-major-cities-batch*.json` 검수 원본과 직접 대조한다.
 검수 원본의 대표명·좌표·역사 명칭이 어긋나면 검사에 실패한다.
 
@@ -137,9 +139,9 @@ pnpm check:place-sync
 node --test tests/unit/data/place-codec.test.mjs tests/unit/document/place-names.test.mjs tests/unit/place-layout.test.mjs tests/unit/ui/user-preferences.test.mjs
 ```
 
-`contracts/places/v3.json`의 기대 행과 바이트는 검수된 고정값이다.
+`tests/fixtures/places/plac-v3.json`의 기대 행과 바이트는 검수된 고정값이다.
 검사는 현재 인코딩·정규화·표시 결과와 검수 원본을 이 값들과 비교한다.
-이전 `v2.json`은 고정 회귀 입력으로 유지하며 현재 계약 검사에서 재생성하지 않는다.
+이전 `v2.json`은 현행 검사 입력이 아니므로 현재 트리에서 제거했다.
 
 ## 2026-10-11 독립 앱 이식 계획 (역사 기록; 현재 제품의 작업 지시 아님)
 

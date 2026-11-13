@@ -16,12 +16,6 @@ export function auditConsolidatedTestRegistry(repository = loadRepository()) {
   const inventory = auditWorkflowInventory(resolve(repository.root,'.github/workflows'),
     resolve(repository.root,'scripts/contracts/workflow-inventory.json'));
   const missingReferences = [], missingBindings = [], emptyUnitSuites = [];
-  const missingActivePerformanceTests = [];
-  if (repository.exists('config/performance-baseline-v1.json')) {
-    const manifest = JSON.parse(repository.read('config/performance-baseline-v1.json'));
-    for (const suite of manifest.activeSuites || []) for (const file of suite.tests || [])
-      if (!repository.exists(file)) missingActivePerformanceTests.push({suite: suite.id, file});
-  }
   for (const file of repository.files.filter(registrationSources)) {
     for (const match of repository.read(file).matchAll(explicitTest))
       if (!repository.exists(match[0])) missingReferences.push({file, reference: match[0]});
@@ -39,7 +33,6 @@ export function auditConsolidatedTestRegistry(repository = loadRepository()) {
     invalidWorkflowReferences: workflow,
     invalidWorkflowInventory: inventory.issues,
     missingDirectTestReferences: missingReferences,
-    missingActivePerformanceTests,
     missingBindings,
     emptyUnitSuites,
   };
