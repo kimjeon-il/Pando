@@ -36,7 +36,9 @@ jobs:
       - uses: pnpm/action-setup@v4
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - run: pnpm exec playwright install --with-deps chromium
-      - name: Focused observed RGI7 and polar ice actual Viewer proof
+      - name: Greenland observed ice on real WebGL Viewer at LOD4
+        env:
+          PANDO_GREENLAND_ONLY: '1'
         run: |
           pnpm exec playwright test \
             tests/browser/rendering/terrain-natural-observed-viewer.spec.mjs \
