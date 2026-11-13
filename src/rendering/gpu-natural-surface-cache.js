@@ -27,7 +27,15 @@ export function createGpuNaturalSurfaceCache({readTile,invalidate}) {
       cancel(task);
     }
     const ordered=[...tiles.entries()].sort((a,b)=>Number(visible.has(a[0]))-Number(visible.has(b[0]))||a[1].used-b[1].used);
-    for(const [key] of ordered){if(resident()+reserved()<=budget)break;remove(key);}
+    let evicted = false;
+    for(const [key] of ordered) {
+      if(resident()+reserved()<=budget)break;
+      remove(key);
+      evicted = true;
+    }
+    // A previously published color frame cannot retain an evicted texture,
+    // including when its offscreen neighbour was the source of its feather.
+    if(evicted && enabled)invalidate('terrain-natural-evicted');
   }
   function current(task) {
     return task.generation===generation&&!task.controller.signal.aborted&&enabled&&visible.has(task.spec.key)
@@ -108,7 +116,7 @@ export function createGpuNaturalSurfaceCache({readTile,invalidate}) {
         if(natural)natural.used=performance.now();
         record.naturalTexture=natural?.texture||null;
         record.naturalMixWeight=natural?manifest.naturalSurface.mixWeight:0;
-        record.naturalFadeEdges=natural?naturalSurfaceFadeEdges(record.spec,manifest):[0,0,0,0];
+        record.naturalFadeEdges=natural?naturalSurfaceFadeEdges(record.spec,manifest,key=>tiles.has(key)):[0,0,0,0];
       }
     },
     trim,reset,

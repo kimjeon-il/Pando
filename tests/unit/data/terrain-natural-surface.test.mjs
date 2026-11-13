@@ -86,3 +86,24 @@ test('bad coordinates are rejected without a network call',()=>{
   for(const patch of [{column:-1},{level:0.5},{row:NaN}])
     assert.throws(()=>terrainNaturalTileRequest({...spec,...patch},manifest));
 });
+
+test('optional surface feather uses actual GPU residency without changing the archived catalog',()=>{
+  const {naturalSurfaceFadeEdges}=api();
+  const world={...dem,levels:[{id:0,width:3072,height:675,tileSize:1024,columns:3,rows:1}]};
+  const catalog={...surface(),levels:world.levels,tiles:{...surface().tiles,
+    '0/1-0.webp':{bytes:body.length,sha256:digest,pixelWidth:1026,pixelHeight:677}}};
+  const loaded={...world,naturalSurface:catalog};
+  assert.deepEqual([...naturalSurfaceFadeEdges(spec,loaded)],[1,0,0,0],'declared neighbouring tile');
+  assert.deepEqual([...naturalSurfaceFadeEdges(spec,loaded,()=>false)],[1,1,0,0],'not-yet-uploaded tile');
+  assert.deepEqual([...naturalSurfaceFadeEdges(spec,loaded,key=>key==='0/1-0.webp')],[1,0,0,0]);
+  assert.throws(()=>naturalSurfaceFadeEdges(spec,loaded,true),/residency/);
+});
+
+test('HTTP errors and aborts stay optional and never become zero-filled natural tiles',async()=>{
+  const {fetchTerrainTile,terrainNaturalTileRequest}=api();
+  const manifest={...dem,naturalSurface:surface()},request=terrainNaturalTileRequest(spec,manifest);
+  await assert.rejects(fetchTerrainTile(request,{fetchFn:async()=>new Response('unavailable',{status:503})}),/HTTP 503/);
+  const controller=new AbortController();controller.abort();
+  await assert.rejects(fetchTerrainTile(request,{signal:controller.signal,
+    fetchFn:async(_url,{signal})=>{if(signal.aborted)throw new DOMException('cancelled','AbortError');}}),/cancelled/);
+});

@@ -169,7 +169,8 @@ export function validateNaturalSurfaceManifest(value, dem) {
 // Feather *only* boundaries lacking an adjacent natural tile. Complete regions
 // stay seamless and all-world outer latitude edges are not artificially faded.
 // Order: west, east, north, south.
-export function naturalSurfaceFadeEdges(spec, manifest) {
+export function naturalSurfaceFadeEdges(spec, manifest, isResident = null) {
+  if (isResident !== null && typeof isResident !== 'function') throw new TypeError('Invalid natural texture residency predicate');
   const surface=manifest?.naturalSurface,level=surface?.levels?.[spec?.level],tiles=surface?.tiles;
   if(!level || !tiles) return Object.freeze([0,0,0,0]);
   const {column,row}=spec;
@@ -178,7 +179,8 @@ export function naturalSurfaceFadeEdges(spec, manifest) {
   const exists=(x,y)=>{
     if(y<0||y>=level.rows)return false;
     const wrapped=(x+level.columns)%level.columns;
-    return Boolean(tiles[`${level.id}/${wrapped}-${y}.webp`]);
+    const key = `${level.id}/${wrapped}-${y}.webp`;
+    return Boolean(tiles[key]) && (isResident === null || isResident(key));
   };
   return Object.freeze([
     exists(column-1,row)?0:1,

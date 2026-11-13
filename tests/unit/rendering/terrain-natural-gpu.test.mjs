@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createGpuTerrainPreparation} from '../../../src/rendering/gpu-terrain-preparation.js';
+import {readFileSync} from 'node:fs';
 
 const settle=async()=>{for(let i=0;i<24;i++)await Promise.resolve();};
 const frame={mode:1,scale:1,dpr:1,viewport:[8,4],viewState:{projection:'flat',projectionCenter:[0,0]}};
@@ -109,4 +110,46 @@ test('optional catalog admission retains uploaded DEM and invalidates only natur
   assert.equal(f.owner.stats().terrainNaturalTilesLoaded,0,'late old surface must be ignored');
   f.natural[1].resolve({});await f.drain();
   assert.ok(f.owner.prepare(frame,view)[0].naturalTexture);
+});
+
+test('the real terrain draw path uploads sparse natural edge uniforms every draw',()=>{
+  const source=readFileSync(new URL('../../../src/rendering/gpu-map-renderer.js',import.meta.url),'utf8');
+  assert.match(source,/gl\.uniform4f\(cachedUniformLocation\(program,'uNaturalFadeEdges'\)/);
+  assert.match(source,/hasNatural \? naturalFadeEdges\[0\] : 0/);
+  assert.match(source,/hasNatural \? naturalFadeEdges\[3\] : 0/);
+});
+
+test('32/64/128 MiB device budgets include both DEM and optional natural residency',async t=>{
+  for(const mebibytes of [32,64,128]){
+    await t.test(mebibytes+' MiB',async t2=>{
+      const f=fixture(t2),local={...view,cacheBudgetBytes:mebibytes*1024*1024};
+      await f.readyDem(local);
+      assert.equal(f.natural.length,1);
+      f.natural[0].resolve({});await f.drain();
+      f.owner.prepare(frame,local);
+      const stats=f.owner.stats();
+      assert.equal(stats.terrainReady,true);
+      assert.ok(stats.terrainCacheBytes+stats.terrainPendingDecodedBytes+stats.terrainNaturalPendingBytes<=local.cacheBudgetBytes);
+      assert.equal(stats.terrainNaturalCacheBytes,240);
+      assert.equal(stats.terrainCacheBytes,480);
+    });
+  }
+});
+
+test('tightening the shared budget evicts optional surface, invalidates it and retains required DEM',async t=>{
+  const f=fixture(t);
+  await f.readyDem();f.natural[0].resolve({});await f.drain();
+  assert.ok(f.owner.prepare(frame,view)[0].naturalTexture);
+  const before=f.owner.stats().terrainUploadCount;
+  const prepared=f.owner.prepare(frame,{...view,cacheBudgetBytes:240});
+  assert.equal(prepared[0].naturalTexture,null);
+  const stats=f.owner.stats();
+  assert.equal(stats.terrainCacheBytes,240);
+  assert.equal(stats.terrainNaturalCacheBytes,0);
+  assert.equal(stats.terrainUploadCount,before);
+  assert.equal(stats.terrainReady,true);
+  assert.ok(f.deleted.length>0);
+  assert.ok(f.events.includes('terrain-natural-evicted'));
+  f.owner.prepare(frame,{...view,cacheBudgetBytes:240});
+  assert.equal(f.natural.length,1,'no repeated natural requests while out of budget');
 });

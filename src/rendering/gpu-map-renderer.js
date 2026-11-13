@@ -1559,7 +1559,7 @@ export function createGpuMapRenderer(deps) {
         primeProgramLocations(terrainDemProgram, GPU_VIEW_UNIFORM_NAMES);
         primeProgramLocations(terrainDemProgram,
           ['uTerrain', 'uGeoBounds', 'uUvBounds', 'uPhysicalStyle', 'uDarkTheme', 'uTextureSize', 'uLandPass',
-            'uTerrainLandColors[0]', 'uTerrainSeaSurface', 'uTerrainSeaDeep', 'uNaturalSurface', 'uNaturalWeight']);
+            'uTerrainLandColors[0]', 'uTerrainSeaSurface', 'uTerrainSeaDeep', 'uNaturalSurface', 'uNaturalWeight', 'uNaturalFadeEdges']);
         terrainPaletteTheme = null;
         return true;
       } catch (error) {
@@ -3926,7 +3926,7 @@ export function createGpuMapRenderer(deps) {
       return true;
     }
 
-    function drawTerrainTile({ spec, texture, grid, gutter, naturalTexture = null, naturalMixWeight = 0 }, pass = 'land') {
+    function drawTerrainTile({ spec, texture, grid, gutter, naturalTexture = null, naturalMixWeight = 0, naturalFadeEdges = [0,0,0,0] }, pass = 'land') {
       const dem = terrainManifest?.representation === TERRAIN_DEM_FORMAT;
       const program = terrainDemProgram;
       if (!program) {
@@ -3947,8 +3947,13 @@ export function createGpuMapRenderer(deps) {
       gl.activeTexture(gl.TEXTURE2);
       gl.bindTexture(gl.TEXTURE_2D,naturalTexture||texture);
       gl.uniform1i(cachedUniformLocation(program,'uNaturalSurface'),2);
-      gl.uniform1f(cachedUniformLocation(program,'uNaturalWeight'),
-        naturalTexture&&pass==='land'&&state.physicalSettings.terrainStyle==='physical'?naturalMixWeight:0);
+      const hasNatural = !!naturalTexture && pass === 'land' && state.physicalSettings.terrainStyle === 'physical';
+      gl.uniform1f(cachedUniformLocation(program,'uNaturalWeight'), hasNatural ? naturalMixWeight : 0);
+      // Sparse coverage and not-yet-uploaded neighbours must fade into DEM;
+      // always write this uniform so a previous tile cannot leak its edges.
+      gl.uniform4f(cachedUniformLocation(program,'uNaturalFadeEdges'),
+        hasNatural ? naturalFadeEdges[0] : 0, hasNatural ? naturalFadeEdges[1] : 0,
+        hasNatural ? naturalFadeEdges[2] : 0, hasNatural ? naturalFadeEdges[3] : 0);
       gl.activeTexture(gl.TEXTURE1);
 
       const [west, north, east, south] = spec.bounds;
