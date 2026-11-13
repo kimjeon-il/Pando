@@ -404,10 +404,21 @@ function compare() {
       candidateFullSceneDraws:ok?c.deltaCounters?.fullSceneDraws??null:null});
   }
   const paired=cells.filter(r=>r.comparable),missing=cells.filter(r=>!r.comparable);
+  const expectedFlatReason='Flat projection is prohibited by the actual Viewer product policy';
+  const allGlobePaired=base.zooms.every(zoom=>paired.some(row=>row.projection==='globe'&&row.zoom===zoom));
+  const flatUnsupported=missing.length===base.zooms.length && missing.every(row=>
+    row.projection==='flat' && row.baselineStatus==='unsupported' &&
+    row.candidateStatus==='unsupported' && row.reason===expectedFlatReason);
+  const properSceneProof=[base,next].every(sample=>sample.rows.filter(row=>row.status==='passed')
+    .every(row=>/^[0-9a-f]{64}$/.test(row.frameSha256||'')));
+  if(!properSceneProof)issues.push('missing-visible-frame-hash');
+  const supportedScopeComplete=issues.length===0&&allGlobePaired&&flatUnsupported;
   const result={
     schema:'pando-p1-gpu-zoom-comparison-v1',
-    status:issues.length?'invalid':missing.length?'partial':'complete',
-    comparable:issues.length===0, issues, reference:identity(base),candidate:identity(next),
+    status:issues.length?'invalid':missing.length?(supportedScopeComplete?'globe-complete-flat-unavailable':'incomplete'):'complete',
+    comparable:issues.length===0, issues, sourceScopeAccepted:supportedScopeComplete,
+    unsupportedProjection:flatUnsupported?'flat':null,
+    reference:identity(base),candidate:identity(next),
     pairedCells:paired.length,unsupportedOrFailedCells:missing.length,
     rows:cells,
     summary:{
@@ -421,7 +432,7 @@ function compare() {
     limitations:[
       'GitHub Actions GPU/CPU are hosted runner measurements, not verified physical-user-device numbers.',
       'One source-paired sweep per zoom; no statistical significance or approved FPS threshold.',
-      'Flat projection cells are unmeasured where the immutable globe Viewer rejects flat.',
+      'Globe-only verification can pass while flat remains unavailable: this is not full P1-1 completion.',
       'A negative transition delta indicates a faster candidate, not proof of GPU acceleration.',
       'rAF p95 is not native compositor present latency; GPU VRAM is unavailable.'
     ]
@@ -447,8 +458,8 @@ function compare() {
         ' | '+(x.comparable?'paired':'not measured')+' |')];
     writeFileSync(process.env.GITHUB_STEP_SUMMARY,lines.join('\n')+'\n',{flag:'a'});
   }
-  // A partial matrix is NOT acceptance: do not turn missing flat samples into success.
-  if(result.status!=='complete')process.exitCode=1;
+  // Only the explicitly supported globe product may pass scoped CI. Flat stays unavailable.
+  if(!['complete','globe-complete-flat-unavailable'].includes(result.status))process.exitCode=1;
 }
 if(args.mode==='compare')compare();
 else await measure();
