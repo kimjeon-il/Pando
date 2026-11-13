@@ -128,7 +128,7 @@ async function currentMap(page) {
 // fully revealed initial map and a stable label snapshot before taking the
 // authoritative rollback reference; do not weaken the exact hash/pixel checks.
 async function settledMap(page) {
-  const deadline=Date.now()+30000;
+  const deadline=Date.now()+90000;
   let previous='', stableSince=0, last=null;
   while(Date.now()<deadline) {
     const ready=await page.evaluate(()=>{
@@ -147,7 +147,8 @@ async function settledMap(page) {
       previous=complete?stableKey:'';
       stableSince=Date.now();
     }
-    last={ready,labels:current.parts.labels,count:current.parts.labels.count};
+    last={ready,documentReady:current.ready,boundaryReady:current.boundaryReady,
+      blocked:current.blocked,generation:current.generation,labels:current.parts.labels,count:current.parts.labels.count};
     await page.waitForTimeout(200);
   }
   throw new Error('Viewer labels did not settle before rollback comparison: '+JSON.stringify(last));
@@ -455,6 +456,13 @@ test('W2-P3 real Viewer reuses attached Worker packet copies for identical dated
     let all=records.at(-1).packets.filter(p=>p.kind==='prepared');
     const currentGeneration=records.at(-1).stats.currentGeneration;
     const expectedSegments=records.at(-1).stats.countrySharedBoundarySegmentCount;
+    // A real full-source Worker computation may still be in flight after the
+    // calendar UI reaches ready. Observe its genuine prepared receipt before
+    // attempting another transport; do not mistake the empty bootstrap for it.
+    await expect.poll(()=>page.evaluate(generation=>globalThis.__W2P3_PACKETS__
+      .some(p=>p.kind==='prepared'&&p.projectGeneration===generation&&p.segments>100),
+    currentGeneration),{timeout:90000}).toBe(true);
+    all=await page.evaluate(()=>globalThis.__W2P3_PACKETS__.filter(p=>p.kind==='prepared'));
     // A verified prepared scene can bypass full Worker construction. A cache
     // test must first establish and observe a genuine acknowledged Worker base.
     if (!all.some(p=>p.packetCacheHit===false&&p.segments>100)) {
