@@ -63,3 +63,32 @@ test('invalid source water cannot leak black or blue color into the physical-lan
   invalid.data.set([10,60,160,255],0);
   assert.deepEqual(core.sampleInterpolated({...options,naturalSurface:invalid}),core.sampleInterpolated(options));
 });
+
+
+test('Canvas respects sparse coverage edges but never feathers an uploaded natural neighbour',()=>{
+  const width=130,height=4,elevation=750,encoded=elevation+12000;
+  const dem=new Uint8ClampedArray(width*height*4);
+  const natural=new Uint8ClampedArray(width*height*4);
+  for(let i=0;i<dem.length;i+=4){
+    dem.set([encoded>>8,encoded&255,212,255],i);
+    natural.set([210,80,50,255],i);
+  }
+  const params={dem,width,height,theme:'light',channel:'land'};
+  const base={...params,naturalSurface:{data:natural,width,height,mixWeight:0.65}};
+  const faded={...params,naturalSurface:{...base.naturalSurface,fadeEdges:[1,0,0,0]}};
+  const plain=core.sampleInterpolated({...params,x:0.5,y:1});
+  assert.deepEqual(core.sampleInterpolated({...faded,x:0.5,y:1}),plain,
+    'uncovered west tile boundary must exactly retain the DEM palette');
+  const middle=core.sampleInterpolated({...faded,x:31.5,y:1});
+  const unfeathered=core.sampleInterpolated({...base,x:31.5,y:1});
+  assert.notDeepEqual(middle,plain);
+  assert.notDeepEqual(middle,unfeathered);
+  assert.deepEqual(core.sampleInterpolated({...faded,x:80.5,y:1}),
+    core.sampleInterpolated({...base,x:80.5,y:1}),
+    'natural color must remain unmodified away from the missing boundary');
+  assert.deepEqual(core.sampleInterpolated({...params,x:31.5,y:1,
+      naturalSurface:{...base.naturalSurface,fadeEdges:[0,0,0,0]}}),
+    unfeathered,'present neighbours disable the internal fade');
+  assert.throws(()=>core.createInterpolatedSampler({...params,
+    naturalSurface:{...base.naturalSurface,fadeEdges:[1,2,0,0]}}),/edge flags/);
+});
