@@ -30,7 +30,7 @@ function command(args,authenticated=false) {
     // from the CI environment without putting credentials in argv/logs.
     const helper=resolve(root,'natural-world-askpass.sh');
     if(!existsSync(helper))writeFileSync(helper,
-      '#!/bin/sh\\ncase "$1" in\\n  *sername*) printf "x-access-token\\n";;\\n  *assword*) printf "%s\\n" "$LIBRARY_TOKEN";;\\n  *) exit 1;;\\nesac\\n',
+      '#!/bin/sh\ncase "$1" in\n  *sername*) echo x-access-token;;\n  *assword*) echo "$LIBRARY_TOKEN";;\n  *) exit 1;;\nesac\n',
       {mode:0o700});
     env.GIT_ASKPASS=helper;
     env.GIT_TERMINAL_PROMPT='0';
