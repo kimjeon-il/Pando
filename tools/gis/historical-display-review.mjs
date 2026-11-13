@@ -1,3 +1,4 @@
+import {hasSelectedOriginalComposition,assertSelectedOriginalComposition} from './selected-original-composition-source-review.mjs';
 import {hasRetainedCoast,assertRetainedCoast} from './retained-coast-source-review.mjs';
 import {hasJpnScopeCorrection,assertJpnScopeCorrection} from './jpn-scope-correction-source-review.mjs';
 import {hasThirteenScopeCorrection,assertThirteenScopeCorrection} from './thirteen-scope-correction-source-review.mjs';
@@ -390,6 +391,7 @@ export function assertHistoricalSourceStorageChanges(next,previous,{prefixes,rea
  if(hasFixedScopeCorrection(next,previous))return assertFixedScopeCorrection(next,previous,{prefixes,readEvidence,getSourceSnapshot});
  if(hasThirteenScopeCorrection(next,previous))return assertThirteenScopeCorrection(next,previous,{prefixes,readEvidence,getSourceSnapshot});
  if(hasHistoricalSourceReuse(next)||hasHistoricalSourceReuse(previous))return assertHistoricalModernCopy(next,previous,{prefixes,readEvidence,getSourceSnapshot});
+ if(hasSelectedOriginalComposition(next)||hasSelectedOriginalComposition(previous))return assertSelectedOriginalComposition(next,previous,{prefixes,readEvidence,getSourceSnapshot});
  if(hasOriginalRetainedComposition(next)||hasOriginalRetainedComposition(previous))return assertOriginalRetainedComposition(next,previous,{prefixes,readEvidence,getSourceSnapshot});
  if(hasRetainedCoast(next)||hasRetainedCoast(previous))return assertRetainedCoast(next,previous,{prefixes,readEvidence});
  if(hasOriginalComposition(next)||hasOriginalComposition(previous))return assertOriginalComposition(next,previous,{prefixes,readEvidence,getSourceSnapshot});
