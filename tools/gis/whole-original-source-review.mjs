@@ -1,3 +1,4 @@
+import {assertExistingWholeScope} from './whole-existing-scope.mjs';
 import {jsonByteChunks,parseJsonBuffer} from '../data/buffer-json.mjs';
 import {readChunkedOriginalBlob,chunkedOriginalLayout} from '../data/chunked-original-source.mjs';
 import {createHash} from 'node:crypto';
@@ -109,7 +110,7 @@ export function assertWholeOriginalBatch(next,previous,{prefixes,readEvidence}={
  // The version selected by the existing authoring data must already be current;
  // this contract cannot select a historical reconstruction for modern replacement.
  if((next.geometryVersions.length>1||v.validFrom!==null)&&(previous.metadata?.representativeGeometryVersionId!==v.versionId||previous.sourceInfo?.geometryVersionId!==v.versionId||old.historicalProvenance?.currentGeometrySource?.status!=='approved-prepared-current-source-adoption'))fail('existing representative current-source anchor required');
- const preserved=e=>{const c={...e,geometryVersions:e.geometryVersions.map(t=>t.versionId===v.versionId?Object.fromEntries(Object.entries(t).filter(([k])=>!['geometry','sourceId','modernBoundarySupplement'].includes(k))):t)};if(c.sourceInfo){c.sourceInfo={...c.sourceInfo};for(const k of ['sourceId','title','geometrySha256','geometryVersionId'])delete c.sourceInfo[k];}return c;};
+ const preserved=e=>{const c={...e,geometryVersions:e.geometryVersions.map(t=>t.versionId===v.versionId?Object.fromEntries(Object.entries(t).filter(([k])=>!['geometry','modernBoundarySupplement'].includes(k))):t)};if(c.sourceInfo){c.sourceInfo={...c.sourceInfo};for(const k of ['geometrySha256','geometryVersionId'])delete c.sourceInfo[k];}return c;};
  if(!eq(preserved(next),preserved(previous)))fail('identity, dates, ownership, history or metadata changed');
  const r=archived(s.sourceAdoptionReview),source=archived(r.source),batch=archived(r.batch);
  if(r.schemaVersion!==1||r.method!==wholeOriginalBatchMethod||r.status!==s.status||r.entityId!==next.entityId||r.versionId!==v.versionId||r.validFrom!==v.validFrom||r.validTo!==null||r.geometrySha256!==digest(v.geometry)||r.previousGeometrySha256!==digest(old.geometry)||r.rawCoordinateRoundtrip!==true||r.wholeCountryRaw!==true)fail('stale review identity or geometry');
@@ -142,6 +143,7 @@ export function assertWholeOriginalBatch(next,previous,{prefixes,readEvidence}={
  for(const poly of g.coordinates){if(!Array.isArray(poly)||!poly.length)fail('empty polygon');size+=9;for(const ring of poly){if(!Array.isArray(ring)||ring.length<4||!eq(ring[0],ring.at(-1)))fail('closed original rings required');size+=4+ring.length*16;for(const p of ring){if(!Array.isArray(p)||p.length!==2||!p.every(Number.isFinite)||Math.abs(p[0])>180||Math.abs(p[1])>90)fail('bounded finite coordinates required');minx=Math.min(minx,p[0]);maxx=Math.max(maxx,p[0]);miny=Math.min(miny,p[1]);maxy=Math.max(maxy,p[1]);}}}
  if(size!==blob.length-40)fail('original WKB length mismatch');const bytes=Buffer.alloc(size);let i=0;const u=n=>{bytes.writeUInt32LE(n,i);i+=4;},header=t=>{bytes[i++]=1;u(t);};header(6);u(g.coordinates.length);for(const poly of g.coordinates){header(3);u(poly.length);for(const ring of poly){u(ring.length);for(const [x,y]of ring){bytes.writeDoubleLE(x,i);bytes.writeDoubleLE(y,i+8);i+=16;}}}
  if(!blob.subarray(40).equals(bytes)||hash(bytes)!==source.rawWkbSha256||[minx,maxx,miny,maxy].some((x,i)=>x!==blob.readDoubleLE(8+i*8)))fail('candidate is not byte-exact original WKB/envelope');
+ assertExistingWholeScope({review:r,source,previous,version:old,descriptor,archived});
  if(s.geometrySha256!==digest(g)||next.sourceInfo?.geometrySha256!==digest(g)||next.sourceInfo?.geometryVersionId!==v.versionId)fail('source geometry attribution mismatch');
  return 1;
 }

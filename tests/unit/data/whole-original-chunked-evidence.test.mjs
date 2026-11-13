@@ -1,3 +1,4 @@
+import {annotateScopeRoot,attachExistingWholeScope} from './helpers/whole-original-scope-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
@@ -7,6 +8,7 @@ const hash=b=>createHash('sha256').update(b).digest('hex'),digest=g=>hash(JSON.s
 function fixture(code='AAA'){
  const ring=[[0,0],[2,0],[2,2],[0,0]],geometry={type:'MultiPolygon',coordinates:[[ring]]};
  const previous={schemaVersion:2,entityId:'state:'+code,parentEntityId:'',instantiation:{mode:'independent'},names:{en:'A'},lifetime:{validFrom:'1900',validTo:null},sourceInfo:{geometryVersionId:'modern'},geometryVersions:[{versionId:'modern',validFrom:null,validTo:null,geometry:{type:'MultiPolygon',coordinates:[[[[0,0],[1,0],[1,1],[0,0]]]]},modernBoundarySupplement:{adoptionMode:'lossless-original-detached-component-append',wholeCountryRaw:false,caveat:'retain'}}]};
+ annotateScopeRoot(previous);
  const next=structuredClone(previous),v=next.geometryVersions[0];v.geometry=geometry;
  const archive=new Map(),put=(name,value)=>{const b=Buffer.from(JSON.stringify(value));archive.set(name,b);return {reference:name,sha256:hash(b)};};
  const encoded=encodeTerritorialSource(previous),target=base+'countries/state-'+code+'.json',pre=Buffer.from(JSON.stringify(encoded.descriptor));archive.set(target,pre);for(const [p,b]of encoded.geometries)archive.set(base+p,b);
@@ -17,7 +19,7 @@ function fixture(code='AAA'){
  const proof={schemaVersion:1,method,status:'raw-source-only-not-display-approved',entityId:next.entityId,versionId:v.versionId,validFrom:null,validTo:null,previousDescriptorSha256:hash(pre),previousGeometrySha256:digest(previous.geometryVersions[0].geometry),geometrySha256:digest(geometry),rawCoordinateRoundtrip:true,wholeCountryRaw:true,topology,source:sourceRef,batch:put('reports/batch.json',batch)};
  v.modernBoundarySupplement={adoptionMode:method,status:proof.status,wholeCountryRaw:true,topology,priorPreparedAttribution:structuredClone(previous.geometryVersions[0].modernBoundarySupplement),rawSourceFile:source.sourcePath,rawSourceFileSha256:source.sourceFileReceipt.gpkgSha256,rawFeatureId:source.featureId,rawOriginalSource:sourceRef,geometrySha256:digest(geometry)};
  next.sourceInfo={...next.sourceInfo,geometrySha256:digest(geometry)};
- const refresh=()=>{proof.source=put('reports/source.json',source);v.modernBoundarySupplement.rawOriginalSource=proof.source;proof.batch=put('reports/batch.json',batch);v.modernBoundarySupplement.sourceAdoptionReview=put('reports/proof.json',proof);};refresh();
+ const refresh=()=>{proof.source=put('reports/source.json',source);v.modernBoundarySupplement.rawOriginalSource=proof.source;proof.batch=put('reports/batch.json',batch);attachExistingWholeScope({previous,source,proof,archive});v.modernBoundarySupplement.sourceAdoptionReview=put('reports/proof.json',proof);};refresh();
  return {next,previous,source,proof,batch,archive,refresh,prefixes:batch.members.flatMap(m=>[m.descriptor,m.resource]),readEvidence:p=>archive.get(p)};
 }
 import{buildChunkedBlobEvidence}from'../../../tools/data/chunked-original-source.mjs';
