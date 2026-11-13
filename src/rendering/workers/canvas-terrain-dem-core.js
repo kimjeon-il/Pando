@@ -39,6 +39,27 @@
     }));
   }
   const landTangents = Object.freeze(Object.fromEntries(Object.entries(palettes).map(([theme, value]) => [theme, paletteTangents(value.land)])));
+  // The full PCHIP curve is a cubic on each of seven height bands. Build its
+  // exact Hermite coefficients once per theme and evaluate with Horner form
+  // after bilinearly interpolating the *height*. This preserves the continuous
+  // PCHIP contract, unlike rounding a fractional height to an integer LUT,
+  // without recomputing three tangent/basis polynomials for every screen pixel.
+  const landCubicBands=Object.freeze(Object.fromEntries(Object.entries(palettes).map(([theme,colors])=>[
+    theme, Object.freeze(heightStops.slice(0,-1).map((_,band)=>{
+      const h=heightStops[band+1]-heightStops[band],out=new Float64Array(12);
+      for(let channel=0;channel<3;channel++){
+        const first=colors.land[band][channel],last=colors.land[band+1][channel];
+        const m0=h*landTangents[theme][band][channel];
+        const m1=h*landTangents[theme][band+1][channel];
+        const at=channel*4;
+        out[at]=2*(first-last)+m0+m1;
+        out[at+1]=3*(last-first)-2*m0-m1;
+        out[at+2]=m0;
+        out[at+3]=first;
+      }
+      return out;
+    }))
+  ])));
   function landColor(height, colors, tangents, band, channel) {
     const width = heightStops[band + 1] - heightStops[band];
     const t = clamp((height - heightStops[band]) / width, 0, 1), t2 = t * t, t3 = t2 * t;
@@ -70,7 +91,7 @@
   function createInterpolatedSampler({dem, width, height, theme = 'light', channel = 'land', naturalSurface = null}) {
     if (!Number.isInteger(width) || !Number.isInteger(height) || width < 1 || height < 1 || dem?.length !== width * height * 4
       || !palettes[theme] || !['land', 'ocean', 'political'].includes(channel)) throw new TypeError('Invalid numerical DEM sample.');
-    const colors=palettes[theme],tangents=landTangents[theme];
+    const colors=palettes[theme],cubicBands=landCubicBands[theme];
     const natural=channel==='land'?naturalSurface:null;
     if(natural&&(natural.width!==width||natural.height!==height||natural.data?.length!==width*height*4
       ||!Number.isFinite(natural.mixWeight)||natural.mixWeight<0||natural.mixWeight>1))throw new TypeError('Invalid natural surface sample.');
@@ -108,6 +129,8 @@
           for(let i=0;i<3;i++)out[offset+i]=byte((colors.seaSurface[i]*(1-depth)+colors.seaDeep[i]*depth)*factor);
         }else{
           let band=0;while(band<heightStops.length-2&&elevation>=heightStops[band+1])band++;
+          const t=clamp((elevation-heightStops[band])/(heightStops[band+1]-heightStops[band]),0,1);
+          const cubic=cubicBands[band];
           // Match the GPU's sparse-coverage feather only at edges without an
           // already uploaded natural neighbour. The decoded DEM still owns
           // every invalid/water texel and the physical-land clip owns geometry.
@@ -123,7 +146,8 @@
           const weight=natural?natural.mixWeight*naturalWeight*feather:0;
           const gain=naturalWeight>0?(theme==='dark'?0.72:1)/(255*naturalWeight):0;
           for(let i=0;i<3;i++){
-            const pigment=landColor(elevation,colors.land,tangents,band,i);
+            const at=i*4;
+            const pigment=((cubic[at]*t+cubic[at+1])*t+cubic[at+2])*t+cubic[at+3];
             const observed=(i===0?nr:i===1?ng:nb)*gain;
             out[offset+i]=byte((pigment*(1-weight)+observed*weight)*factor);
           }
