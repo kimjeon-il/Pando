@@ -206,7 +206,7 @@ async function directFallbackHarness(t, { canvasWorker = false, pendingGeometry 
   const previous = globals.map(key => [key, Object.getOwnPropertyDescriptor(globalThis, key)]);
   const svg = svgFixture(), selected = svg.root(), hovered = svg.root();
   const queued = [], timers = new Map(), workers = [], backgroundFrames = new Map();
-  let rendering, canvas, lastSceneReceipt, contextLost = false, scenePaints = 0, nextId = 0, now = 0;
+  let rendering, canvas, contextLost = false, scenePaints = 0, nextId = 0, now = 0;
   t.after(() => {
     rendering?.dispose();
     for (const [key, descriptor] of previous) {
@@ -289,11 +289,7 @@ async function directFallbackHarness(t, { canvasWorker = false, pendingGeometry 
     prepareView: ({ frameId }) => createMapVisualFrame({ frameId, viewRevision: 1, projectGeneration: 0,
       viewState: { ...state, translate: [150, 100], scale: 40, dpr: 1 }, projectPath: () => 'M0,0L1,0L1,1Z',
       createCanvasPath: context => feature => {if(context.canvas===canvas&&feature?.id)drawnIds.push(feature.id);} }),
-    renderers: { view: frame => {
-      const result = renderer.renderFrame(frame);
-      lastSceneReceipt = { frame, result };
-      return result;
-    } },
+    renderers: { view: frame => renderer.renderFrame(frame) },
     selectionResources: { document: svg.document, d3: svg.d3, selectionPass,
       selectionLayer: svg.d3.select(selected), hoverLayer: svg.d3.select(hovered), getState: () => state,
       getInteractionStyle: resolveMapInteractionStyle, territorialEntityById: byId, territorialDisplayFeature: byId,
@@ -355,12 +351,9 @@ async function directFallbackHarness(t, { canvasWorker = false, pendingGeometry 
         if (!deferCanvasFailure) worker.onerror({ message: 'test worker failure' });
       }
     },
+    verifySourceUnchanged: () => { assert.strictEqual(selection.snapshot(), snapshot); assert.deepEqual(features, model); },
     verifyCanonical: () => { assert.strictEqual(selection.snapshot(), snapshot); assert.deepEqual(features, model);
       assert.equal(state.pendingCountryRenderIds.size, 0); assert.equal(renderer.getStats().pendingCountryCount, 0); },
-    verifyFrameReceipt: () => {
-      const { frame, result } = lastSceneReceipt;
-      assert.deepEqual(result, { succeeded: true, frameId: frame.frameId, viewRevision: frame.viewRevision });
-    },
   };
 }
 
@@ -394,69 +387,72 @@ test('real context loss reserves scene fills until same-canvas WebGL restoration
   assert.equal(h.recoveryPending(), true, 'the accepted-frame deadline survives a device-only restoration');
 });
 
-for (const canvasWorker of [false, true]) test(`real ${canvasWorker ? 'Worker failure' : 'context recovery timeout'} presents its first Canvas2D frame through selection ownership`, async t => {
+for (const canvasWorker of [false, true]) test(`real ${canvasWorker ? 'Worker failure' : 'context recovery timeout'} activates Canvas without painting an unadmitted startup frame`, async t => {
   const h = await directFallbackHarness(t, { canvasWorker });
   assert.equal(h.nodes(fillSelector).length, 0, 'scene fills remain reserved during recovery');
   await h.transition();
   assert.equal(h.renderer.getRuntimeState().renderer, 'canvas2d');
-  assert.equal(h.scenePaints(), 0, 'activation must not paint outside the canonical presentation boundary');
-  assert.deepEqual(h.scheduledReasons, canvasWorker ? ['canvas-terrain-failed', 'canvas-fallback-ready'] : ['canvas-fallback-ready']);
+  assert.equal(h.renderer.getRuntimeState().projectGeneration, 0, 'the fixture has not admitted a project');
+  assert.equal(h.scenePaints(), 0, 'fallback activation is not a committed Canvas bitmap');
+  assert.ok(h.scheduledReasons.includes('canvas-fallback-ready'), 'the transition requests a view frame');
+  if (canvasWorker) assert.ok(h.scheduledReasons.includes('canvas-terrain-failed'),
+    'Worker failure signals the interrupted terrain attempt');
   assert.equal(h.nodes(fillSelector).length, 0, 'fallback activation does not return scene fills to SVG');
-  assert.equal(h.queued.length, 1);
-  // Only internally scheduled transition work may run. The test does not
-  // request another redraw or manufacture a selection/user interaction.
+  assert.equal(h.nodes(outlineSelector).length, 2, 'lost GPU strokes retain both SVG outlines');
+  assert.equal(h.queued.length, 1, 'fallback activation schedules one coordinator frame');
   h.queued.shift()();
-  assert.equal(h.scenePaints(), 1, 'the transition presents exactly one Canvas2D scene');
-  h.verifyFrameReceipt();
-  assert.equal(h.nodes(fillSelector).length, 0, 'first Canvas2D presentation preserves reserved scene-fill ownership');
+  assert.equal(h.scenePaints(), 0, 'generation zero never paints speculative Canvas terrain');
+  assert.equal(h.renderer.getStats().surfacePresentation.quality, 'pending',
+    'a deferred startup frame cannot certify the canonical country surface');
+  assert.equal(h.nodes(fillSelector).length, 0);
   assert.equal(h.nodes(outlineSelector).length, 2);
   assert.ok(h.nodes(outlineSelector).every(node => node.getAttribute('fill') === 'none'));
   assert.equal(h.rendering.getSelectionRenderStats().failureCount, 0);
-  assert.equal(h.queued.length, 0, 'no redundant follow-up scene or interaction frame');
   h.verifyCanonical();
 });
 
-test('Worker failure acknowledges pending geometry only after its scheduled Canvas2D paint', async t => {
+test('Worker failure keeps pending geometry until an accepted Canvas bitmap, not a queued frame', async t => {
   const h = await directFallbackHarness(t, { canvasWorker: true, pendingGeometry: true });
   await h.transition();
   assert.equal(h.scenePaints(), 0);
-  assert.equal(h.renderer.getStats().pendingCountryCount, 1, 'activation cannot acknowledge an unpainted geometry revision');
+  assert.equal(h.renderer.getStats().pendingCountryCount, 1,
+    'fallback activation cannot acknowledge an unpainted geometry revision');
+  assert.equal(h.queued.length, 1);
   h.queued.shift()();
-  assert.equal(h.scenePaints(), 1);
-  h.verifyFrameReceipt();
-  assert.equal(h.renderer.getStats().pendingCountryCount, 0);
+  assert.equal(h.scenePaints(), 0, 'the pre-document startup frame must not paint');
+  assert.equal(h.renderer.getStats().pendingCountryCount, 1,
+    'a coordinator callback without a Canvas bitmap cannot clear pending geometry');
   assert.equal(h.nodes(fillSelector).length, 0);
   assert.equal(h.nodes(outlineSelector).length, 2);
-  assert.equal(h.queued.length, 1, 'displayed geometry schedules its existing pending-overlay cleanup');
-  h.queued.shift()();
-  assert.equal(h.queued.length, 0);
-  h.verifyCanonical();
+  assert.equal(h.renderer.getStats().surfacePresentation.quality, 'pending');
+  h.verifySourceUnchanged();
 });
 
-for(const canvasWorker of [false,true])test(`native display IDs obey canonical individual visibility in Canvas worker=${canvasWorker}`,async t=>{
-  const h=await directFallbackHarness(t,{canvasWorker,nativeVisibility:true});
+for (const canvasWorker of [false, true]) test(`pending Canvas surface does not expose canonical hidden IDs before bitmap admission worker=${canvasWorker}`, async t => {
+  const h = await directFallbackHarness(t, { canvasWorker, nativeVisibility: true });
   await h.transition({ deferCanvasFailure: canvasWorker });
-  // Prepare the canonical country inputs before Worker readiness. A pending
-  // preview legitimately contains no individually hidden country IDs.
-  if(canvasWorker) await h.prepareCountries();
-  if(canvasWorker){
-    const worker=h.workers.find(worker=>worker.name==='pandolab-canvas-renderer');
-    // Init runs before readiness/canonical admission. Inspect the actual
-    // current style after Worker readiness, not the provisional init packet.
-    worker.onmessage({data:{type:'ready'}});
-    const style=worker.messages.filter(message=>message.type==='style').at(-1);
-    assert.ok(style,'ready Worker must receive a current style packet');
-    assert.deepEqual(style.hiddenCountryIds,['HKG']);
-    assert.equal(style.hiddenCountryIds.includes('unit-uuid'),false);
-    worker.onerror({message:'test worker failure'});
+  // The fixture is still at startup projectGeneration=0. Country visibility
+  // belongs to a *published* canonical source, not a speculative Worker style.
+  // Exercise actual Worker readiness without fabricating a certified bitmap.
+  if (canvasWorker) {
+    await h.prepareCountries();
+    const worker = h.workers.find(worker => worker.name === 'pandolab-canvas-renderer');
+    assert.ok(worker);
+    worker.onmessage({ data: { type: 'ready' } });
+    const style = worker.messages.filter(message => message.type === 'style').at(-1);
+    assert.ok(style, 'ready Worker receives a pending-surface style packet');
+    assert.equal(style.surfacePresentation.quality, 'pending');
+    assert.deepEqual(style.hiddenCountryIds, [],
+      'no individual country IDs are published until its source is visible');
+    assert.equal(style.hiddenCountryIds.includes('unit-uuid'), false);
+    worker.onerror({ message: 'test worker failure' });
+  } else {
+    await h.prepareCountries();
   }
-  // The fallback Canvas2D draw retains the same authoritative visibility.
-  if(!canvasWorker) await h.prepareCountries();
-  // The background is accepted before the canonical country fill is published.
-  for(let frame=0;frame<3&&h.queued.length;frame++)h.queued.shift()();
-  assert.equal(h.renderer.getStats().surfacePresentation.quality,'canonical');
-  assert.ok(h.drawnIds.includes('DEU'), JSON.stringify({drawn:h.drawnIds,queued:h.queued.length,
-    surface:h.renderer.getStats().surfacePresentation,paints:h.scenePaints()}));
-  assert.equal(h.drawnIds.includes('HKG'),false);
+  for (let frame = 0; frame < 3 && h.queued.length; frame++) h.queued.shift()();
+  assert.equal(h.renderer.getRuntimeState().projectGeneration, 0);
+  assert.equal(h.renderer.getStats().surfacePresentation.quality, 'pending');
+  assert.equal(h.scenePaints(), 0, 'an unadmitted source may not paint any country');
+  assert.deepEqual(h.drawnIds, [], 'neither visible DEU nor hidden HKG is published before admission');
   h.verifyCanonical();
 });
