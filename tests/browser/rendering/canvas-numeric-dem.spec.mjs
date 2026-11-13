@@ -19,7 +19,7 @@ const fixture = `self.paintNumericalFixture = async heightMeters => {
   const encoded=heightMeters+12000,dem=new Uint8ClampedArray(6*4*4);
   for(let i=0;i<dem.length;i+=4) dem.set([encoded>>8,encoded&255,212,255],i);
   const colors=self.PandoLabCanvasTerrainDem.convertTile({dem,width:6,height:4});
-  const tile={lastUsed:0};
+  const tile={lastUsed:0,raw:dem,width:6,height:4};
   for(const channel of ['land','ocean','political']) tile[channel]=await createImageBitmap(new ImageData(colors[channel],6,4));
   demTiles.set('test',tile);
   const packet={role:'physical-land',polygonOffsets:new Uint32Array([0,1]),ringOffsets:new Uint32Array([0,5]),
@@ -31,6 +31,7 @@ const fixture = `self.paintNumericalFixture = async heightMeters => {
   for(const step of renderTerrain(message,projection,128,64,1,plan)) { }
   const pixel=(x,y)=>Array.from(context.getImageData(x,y,1,1).data);
   const result={land:pixel(64,32),ocean:pixel(30,32),beyondCoast:pixel(73,32),
+    numericDestinationPixels:numericalPixels,
     expectedLand:Array.from(colors.land.slice(0,4)),expectedOcean:Array.from(colors.ocean.slice(0,4))};
   // Four adjacent numeric tiles meet off the pixel grid. White underneath
   // exposes any fractional edge hole independently of the DEM's own colors.
@@ -75,6 +76,7 @@ for (const mode of ['worker', 'inline']) {
       }); } finally {worker.terminate();URL.revokeObjectURL(url);}
     }, { dependencies, renderer, mode });
     for (const result of results) {
+      expect(result.numericDestinationPixels).toBeGreaterThan(0);
       expect(result.land).toEqual(result.expectedLand);
       expect(result.ocean).toEqual(result.expectedOcean);
       expect(result.beyondCoast).toEqual(result.expectedOcean);
