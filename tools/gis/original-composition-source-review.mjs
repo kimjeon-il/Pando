@@ -1,3 +1,4 @@
+import {approvedFamilyCodes,assertApprovedFamilyComposition} from './approved-family-composition-source-review.mjs';
 import {createHash} from 'node:crypto';
 import {isDeepStrictEqual as eq} from 'node:util';
 import {jsonByteChunks,parseJsonBuffer} from '../data/buffer-json.mjs';
@@ -15,7 +16,8 @@ const families=Object.freeze({
 });
 export const hasOriginalComposition=e=>e?.geometryVersions?.some(v=>v.modernBoundarySupplement?.adoptionMode===originalCompositionMethod);
 /** Whole original polygons from an already selected family; never a new territorial selection. */
-export function assertOriginalComposition(next,previous,{prefixes,readEvidence}={}){
+export function assertOriginalComposition(next,previous,{prefixes,readEvidence,getSourceSnapshot}={}){
+ if(approvedFamilyCodes.includes(next?.entityId?.slice(6)))return assertApprovedFamilyComposition(next,previous,{prefixes,readEvidence,getSourceSnapshot});
  const fail=m=>{throw Error('Original composition: '+m);};
  const archived=ref=>{if(!ref||!/^reports\/(?:[\w.-]+\/)*[\w.-]+\.json$/.test(ref.reference||'')||ref.reference.split('/').includes('..')||!sha(ref.sha256)||typeof readEvidence!=='function')fail('archived receipt required');const b=readEvidence(ref.reference);if(!Buffer.isBuffer(b)||hash(b)!==ref.sha256)fail('archive receipt mismatch');return parseJsonBuffer(b);};
  const one=(report,code,label)=>{const rows=report?.rows?.filter(r=>r.code===code);if(rows?.length!==1)fail('one '+label+' row required');return rows[0];};

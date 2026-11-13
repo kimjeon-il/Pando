@@ -390,7 +390,7 @@ export function assertHistoricalSourceStorageChanges(next,previous,{prefixes,rea
  if(hasThirteenScopeCorrection(next,previous))return assertThirteenScopeCorrection(next,previous,{prefixes,readEvidence,getSourceSnapshot});
  if(hasHistoricalSourceReuse(next)||hasHistoricalSourceReuse(previous))return assertHistoricalModernCopy(next,previous,{prefixes,readEvidence,getSourceSnapshot});
  if(hasOriginalRetainedComposition(next)||hasOriginalRetainedComposition(previous))return assertOriginalRetainedComposition(next,previous,{prefixes,readEvidence,getSourceSnapshot});
- if(hasOriginalComposition(next)||hasOriginalComposition(previous))return assertOriginalComposition(next,previous,{prefixes,readEvidence});
+ if(hasOriginalComposition(next)||hasOriginalComposition(previous))return assertOriginalComposition(next,previous,{prefixes,readEvidence,getSourceSnapshot});
  if(hasWholeOriginalBatch(next)||hasWholeOriginalBatch(previous))return assertWholeOriginalBatch(next,previous,{prefixes,readEvidence});
  const appendMarked=v=>v?.modernBoundarySupplement&&(Object.hasOwn(v.modernBoundarySupplement,'detachedComponentAppend')||Object.hasOwn(v.modernBoundarySupplement,'initialPreparedAppend')||v.modernBoundarySupplement.adoptionMode==='lossless-original-detached-component-append');
  if(next.geometryVersions?.some(v=>appendMarked(v)&&!v.modernBoundarySupplement.sourceAdoptionReview))throw Error('Raw source adoption: detached-component append: initial append receipt is required');
