@@ -237,6 +237,16 @@
       ||[...source,...destination].some(p=>p?.length!==2||!p.every(Number.isFinite)))throw new TypeError('Invalid numerical triangle.');
     const [a,b,c]=destination,det=(b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0]);
     if(Math.abs(det)<1e-10)return;
+    // A shared edge is owned by exactly one adjacent triangle. Inclusive
+    // barycentric boundaries used to paint both diagonals, which becomes a
+    // visible double-blend when future pixels use fractional coverage.
+    // Reverse the edge direction for clockwise input; preserve coverage for
+    // either winding and make the rule independent of tile arrival order.
+    const topLeft=(p,q)=>{
+      const start=det>0?p:q,end=det>0?q:p;
+      return end[1]<start[1] || (end[1]===start[1]&&end[0]>start[0]);
+    };
+    const edgeU=topLeft(c,a),edgeV=topLeft(a,b),edgeW=topLeft(b,c);
     const x0=Math.max(0,Math.floor(Math.min(a[0],b[0],c[0]))),x1=Math.min(viewportWidth,Math.ceil(Math.max(a[0],b[0],c[0])));
     const y0=Math.max(0,Math.floor(Math.min(a[1],b[1],c[1]))),y1=Math.min(viewportHeight,Math.ceil(Math.max(a[1],b[1],c[1])));
     if(x0>=x1||y0>=y1)return;
@@ -248,7 +258,9 @@
         const px=left+x+0.5-a[0],py=top+y+0.5-a[1];
         const u=(px*(c[1]-a[1])-py*(c[0]-a[0]))/det;
         const v=((b[0]-a[0])*py-(b[1]-a[1])*px)/det,w=1-u-v;
-        if(u < -1e-10||v < -1e-10||w < -1e-10)continue;
+        if(u < -1e-10||v < -1e-10||w < -1e-10
+          || (Math.abs(u)<=1e-10&&!edgeU) || (Math.abs(v)<=1e-10&&!edgeV)
+          || (Math.abs(w)<=1e-10&&!edgeW))continue;
         sample(w*source[0][0]+u*source[1][0]+v*source[2][0]-0.5,
           w*source[0][1]+u*source[1][1]+v*source[2][1]-0.5,rgba,(y*width+x)*4);pixels++;
       }
