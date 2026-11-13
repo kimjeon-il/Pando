@@ -74,6 +74,10 @@
     const natural=channel==='land'?naturalSurface:null;
     if(natural&&(natural.width!==width||natural.height!==height||natural.data?.length!==width*height*4
       ||!Number.isFinite(natural.mixWeight)||natural.mixWeight<0||natural.mixWeight>1))throw new TypeError('Invalid natural surface sample.');
+    const fade=natural?.fadeEdges||[0,0,0,0];
+    if(fade.length!==4||[...fade].some(v=>v!==0&&v!==1))throw new TypeError('Invalid natural coverage edge flags');
+    const fadeNeeded=fade.some(Boolean);
+    const smooth64=v=>{const t=clamp(v/64,0,1);return t*t*(3-2*t);};
     return function sample(x,y,out,offset=0){
       if(!Number.isFinite(x)||!Number.isFinite(y)||!out||!Number.isInteger(offset)||offset<0||out.length<offset+4)
         throw new TypeError('Invalid numerical DEM destination.');
@@ -104,7 +108,19 @@
           for(let i=0;i<3;i++)out[offset+i]=byte((colors.seaSurface[i]*(1-depth)+colors.seaDeep[i]*depth)*factor);
         }else{
           let band=0;while(band<heightStops.length-2&&elevation>=heightStops[band+1])band++;
-          const weight=natural?natural.mixWeight*naturalWeight:0;
+          // Match the GPU's sparse-coverage feather only at edges without an
+          // already uploaded natural neighbour. The decoded DEM still owns
+          // every invalid/water texel and the physical-land clip owns geometry.
+          let feather=1;
+          if(fadeNeeded){
+            const xx=clamp(x-0.5,0,Math.max(0,width-2));
+            const yy=clamp(y-0.5,0,Math.max(0,height-2));
+            if(fade[0])feather*=smooth64(xx);
+            if(fade[1])feather*=smooth64(Math.max(0,width-2)-xx);
+            if(fade[2])feather*=smooth64(yy);
+            if(fade[3])feather*=smooth64(Math.max(0,height-2)-yy);
+          }
+          const weight=natural?natural.mixWeight*naturalWeight*feather:0;
           const gain=naturalWeight>0?(theme==='dark'?0.72:1)/(255*naturalWeight):0;
           for(let i=0;i<3;i++){
             const pigment=landColor(elevation,colors.land,tangents,band,i);
