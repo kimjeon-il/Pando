@@ -89,7 +89,9 @@ for (const mode of ['physical', 'political']) {
       await page.locator(`input[name="preferencesMapStyle"][value="${theme}"]`).locator('..').click();
       await page.locator('#preferencesCloseBtn').click();
       await expect(page.locator('html')).toHaveAttribute('data-map-style',theme);
-      const expectedAlpha = theme === 'standard' ? .22 : 0;
+      // Current terrain policy: colored physical relief has no country tint;
+      // monochrome/political relief retains 45% country tint.
+      const expectedAlpha = theme === 'standard' ? 0 : .45;
       const expectedTerrain = theme === 'standard' ? 'physical' : 'political';
       await expect.poll(() => page.evaluate(({key,alpha,terrain}) => {
         const frame=window.__canvasProfiles.at(-1),stats=window.__PANDOLAB_VIEWER__.rendererStats();
