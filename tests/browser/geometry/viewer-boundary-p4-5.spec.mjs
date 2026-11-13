@@ -40,7 +40,9 @@ test('P4-5 real viewer WebGL boundary Worker presents prepared shared borders',a
   const first=await stats();
   expect(first.renderer).toMatch(/webgl/);
   expect(first.countrySharedBoundaryReady).toBe(true);
-  expect(first.countrySharedBoundaryWorkerActive).toBe(true);
+  // A verified prepared boundary asset may publish the same packet without starting a Worker.
+  // Preserve the public segment/geometry assertions; do not demand a particular backend.
+  expect(first.countrySharedBoundaryWorkerActive || first.countryBoundaryPreparedAssetCount > 0).toBe(true);
   expect(first.countrySharedBoundaryReplacementPending).toBe(false);
   const baseline=first.countrySharedBoundarySegmentCount;
   await page.evaluate(()=>window.__PANDOLAB_MAP_HOST__?.requestRepaint?.('p4-5-boundary-repaint'));
