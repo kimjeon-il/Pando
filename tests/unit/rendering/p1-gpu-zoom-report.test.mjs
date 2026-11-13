@@ -15,9 +15,10 @@ const fake=(source,delta=0,pin='a'.repeat(40))=>({
   device:{platform:'linux',cpuModel:'synthetic fixture',logicalCpus:4,physicalDeviceVerified:false},
   gpu:{actualRenderer:'webgl2',unmaskedRenderer:'synthetic SwiftShader fixture'},
   rows:['globe','flat'].flatMap(projection=>zooms.map(zoom=>projection==='flat'
-    ? {projection,zoom,status:'unsupported',reason:'Fixture Viewer rejects flat'}
+    ? {projection,zoom,status:'unsupported',reason:'Flat projection is prohibited by the actual Viewer product policy'}
     : {projection,zoom,status:'passed',elapsedMs:100+delta+zoom,cpuTaskMs:10+delta,
-      raf:{rafP95GapMs:16},stats:{gpuTrackedBufferBytes:100000}}))
+      raf:{rafP95GapMs:16},stats:{gpuTrackedBufferBytes:100000},
+      frameSha256:zoom.toString(16).padStart(64,'0')}))
 });
 function run(base,next){
   const dir=mkdtempSync(join(tmpdir(),'pando-p1-report-'));
@@ -32,11 +33,13 @@ function run(base,next){
     return {exit:execution.status,output:JSON.parse(readFileSync(out,'utf8')),stderr:execution.stderr};
   }finally{rmSync(dir,{recursive:true,force:true});}
 }
-test('real globe rows pair but unsupported flat never becomes zero or a false success',()=>{
+test('verified globe scope passes, but unsupported flat is explicit and never becomes zero',()=>{
   const {exit,output}=run(fake('1'.repeat(40)),fake('2'.repeat(40),-10));
-  assert.equal(exit,1);
-  assert.equal(output.status,'partial');
+  assert.equal(exit,0);
+  assert.equal(output.status,'globe-complete-flat-unavailable');
   assert.equal(output.comparable,true);
+  assert.equal(output.sourceScopeAccepted,true);
+  assert.equal(output.unsupportedProjection,'flat');
   assert.equal(output.pairedCells,32);
   assert.equal(output.unsupportedOrFailedCells,32);
   assert.equal(output.summary.flatPaired,0);
@@ -63,4 +66,21 @@ test('a failed source sample cannot be disguised as a valid comparison',()=>{
   assert.equal(exit,1);
   assert.equal(output.status,'invalid');
   assert.ok(output.issues.includes('source-measurement-failed'));
+});
+
+test('unknown unsupported projection is never silently accepted',()=>{
+  const b=fake('1'.repeat(40)),c=fake('2'.repeat(40));
+  c.rows.find(r=>r.projection==='flat').reason='Missing critical renderer';
+  const {exit,output}=run(b,c);
+  assert.equal(exit,1);
+  assert.equal(output.status,'incomplete');
+  assert.equal(output.sourceScopeAccepted,false);
+});
+test('missing visible pixel certificate invalidates even numeric-complete globe rows',()=>{
+  const b=fake('1'.repeat(40)),c=fake('2'.repeat(40));
+  b.rows.find(r=>r.projection==='globe'&&r.zoom===8).frameSha256=null;
+  const {exit,output}=run(b,c);
+  assert.equal(exit,1);
+  assert.equal(output.status,'invalid');
+  assert.ok(output.issues.includes('missing-visible-frame-hash'));
 });
