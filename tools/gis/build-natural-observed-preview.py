@@ -163,6 +163,27 @@ def check_polar_coverage_bounds(minimum,maximum,finite):
     return {'rawMinimum':minimum,'rawMaximum':maximum,'roundoffTolerance':epsilon}
 
 
+def repair_polar_outside_latitude_gutter(result,transform):
+    """Copy only the 1-pixel texture gutters beyond +/-90 deg latitude.
+
+    Latitude outside the legal Earth domain has no observed ice coverage.
+    This is edge replication for texture sampling, not an interior NoData fill.
+    Any interior NaN remains a hard source-data failure.
+    """
+    import numpy as np
+    if result.shape[0]<2:raise ValueError('Polar texture requires an interior row')
+    repaired=0
+    for row,near in ((0,1),(result.shape[0]-1,result.shape[0]-2)):
+        center_lat=transform.f+(row+0.5)*transform.e
+        if center_lat > 90.0+1e-8 or center_lat < -90.0-1e-8:
+            near_lat=transform.f+(near+0.5)*transform.e
+            if not (-90.0<=near_lat<=90.0) or not bool(np.isfinite(result[near]).all()):
+                raise ValueError('Polar edge gutter has no valid adjacent observed interior')
+            repaired+=int(np.count_nonzero(~np.isfinite(result[row])))
+            result[row]=result[near]
+    return repaired
+
+
 def polar_grid(path,times,shape,transform):
     import numpy as np
     import rasterio
@@ -193,6 +214,7 @@ def polar_grid(path,times,shape,transform):
         reproject(rasterio.band(src,index+1),result,src_transform=src.transform,src_crs=src.crs,
             dst_transform=transform,dst_crs='EPSG:4326',src_nodata=source_nodata,dst_nodata=0,
             resampling=Resampling.average,warp_mem_limit=64,init_dest_nodata=True)
+        polar_gutter_nan_pixels=repair_polar_outside_latitude_gutter(result,transform)
         finite_mask=np.isfinite(result)
         if not bool(finite_mask.all()):
             observed=result[finite_mask]
@@ -209,6 +231,7 @@ def polar_grid(path,times,shape,transform):
         diagnostics=check_polar_coverage_bounds(float(np.min(result)),float(np.max(result)),bool(finite_mask.all()))
         diagnostics.update(sourceNoData=None if src.nodata is None else str(src.nodata),
             implicitFloatNaNNoData=implicit_nan,
+            polarGutterNonfinitePixelsReplicated=polar_gutter_nan_pixels,
             correctedRoundoffPixels=int(np.count_nonzero((result<0)|(result>1))))
         np.clip(result,0,1,out=result)
         print(json.dumps({'polarCoverage':diagnostics,'source':str(path),'band':index+1}),flush=True)
@@ -313,8 +336,19 @@ def polar_nan_self_test():
             raise AssertionError('NaN nodata contaminated valid polar coverage')
         if not receipt['coverageValidation']['implicitFloatNaNNoData']:
             raise AssertionError('Explicit IEEE NaN missing-data rule was not used')
+        south=np.array([[1,0],[float('nan'),float('nan')]],dtype='float32')
+        south_transform=from_origin(0,-89.99166666666666,1,1/60)
+        corrected=repair_polar_outside_latitude_gutter(south,south_transform)
+        if corrected!=2 or not np.array_equal(south,np.array([[1,0],[1,0]],dtype='float32')):
+            raise AssertionError('South-pole one-pixel outside-latitude gutter was not replicated')
+        interior=np.array([[1,float('nan')],[0,0]],dtype='float32')
+        if repair_polar_outside_latitude_gutter(interior,south_transform)!=0:
+            raise AssertionError('In-range missing data was silently repaired')
+        if bool(np.isfinite(interior).all()):
+            raise AssertionError('Interior NaN must remain a hard source-quality failure')
         print(json.dumps({'polarNaNMissingSource':True,'outputCoverage':result.tolist(),
-          'strictFiniteOutput':bool(np.isfinite(result).all())}))
+          'strictFiniteOutput':bool(np.isfinite(result).all()),
+          'southPolarGutterPixels':corrected,'interiorNaNStillRejected':True}))
 
 
 def main():
