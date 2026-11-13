@@ -1,3 +1,4 @@
+import {hasFixedFourOriginal,assertFixedFourOriginal} from './fixed-four-original-source-review.mjs';
 import {hasSelectedOriginalComposition,assertSelectedOriginalComposition} from './selected-original-composition-source-review.mjs';
 import {hasRetainedCoast,assertRetainedCoast} from './retained-coast-source-review.mjs';
 import {hasJpnScopeCorrection,assertJpnScopeCorrection} from './jpn-scope-correction-source-review.mjs';
@@ -386,6 +387,7 @@ function assertOriginalExistingComponents(next,previous,review,{prefixes,archive
  * this does not approve historical reconstruction or derived display geometry.
  */
 export function assertHistoricalSourceStorageChanges(next,previous,{prefixes,readEvidence,getSourceSnapshot}={}){
+ if(hasFixedFourOriginal(next))return assertFixedFourOriginal(next,previous,{prefixes,readEvidence,getSourceSnapshot});
  if(hasJpnScopeCorrection(next,previous))return assertJpnScopeCorrection(next,previous,{prefixes,readEvidence,getSourceSnapshot});
  if(hasFinScopeCorrection(next,previous))return assertFinScopeCorrection(next,previous,{prefixes,readEvidence,getSourceSnapshot});
  if(hasFixedScopeCorrection(next,previous))return assertFixedScopeCorrection(next,previous,{prefixes,readEvidence,getSourceSnapshot});
