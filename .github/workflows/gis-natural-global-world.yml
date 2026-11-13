@@ -1,0 +1,112 @@
+name: UI world natural-color candidate (six LODs, no deployment)
+on:
+  push:
+    branches: [work/ui]
+    paths:
+      - .github/workflows/gis-natural-global-world.yml
+      - tools/gis/build-natural-global-tiles.py
+      - scripts/publish-natural-world-candidate.mjs
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: pando-ui-natural-world
+  cancel-in-progress: false
+jobs:
+  world:
+    if: github.repository == 'kimjeon-il/Pando' && github.ref == 'refs/heads/work/ui'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    env:
+      OUT_EDITION: terrain/natural/v0.2.0-world.1
+      CATALOG: terrain/natural/candidates/v0.2.0-world.1.json
+      NASA_HASH: dea8b4dc8a4f93f5f8bce0c8c85a508a178e7901e9ed8e6bf86e6ce7ef6d61e2
+      PATCH_REV: 4c84e22ccdfa8549ed42f3c8080c3914aa9d05f8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Check source and generator with only the required test
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'Pillow==11.3.0'
+          python tools/gis/build-natural-global-tiles.py --self-test
+          mkdir -p "$RUNNER_TEMP/natural-world-proof"
+          test "$(df -PB1 "$RUNNER_TEMP" | awk 'NR==2{print $4}')" -gt 8589934592
+      - name: Checkout existing external work/gis metadata, not GIS archive blobs
+        uses: actions/checkout@v4
+        with:
+          repository: kimjeon-il/PandoLab-library-data
+          ref: work/gis
+          path: .natural-library
+          fetch-depth: 1
+          persist-credentials: false
+          filter: blob:none
+          sparse-checkout: README.md
+          sparse-checkout-cone-mode: false
+      - name: Require new immutable edition and clean external checkout
+        env:
+          LIBRARY_TOKEN: \${{ secrets.PANDOLAB_LIBRARY_WRITE_TOKEN }}
+        run: |
+          set -euo pipefail
+          test -n "$LIBRARY_TOKEN"
+          test -z "$(git -C .natural-library status --porcelain)"
+          ! git -C .natural-library cat-file -e "HEAD:$OUT_EDITION" 2>/dev/null
+          ! git -C .natural-library cat-file -e "HEAD:$CATALOG" 2>/dev/null
+          git -C .natural-library rev-parse HEAD > "$RUNNER_TEMP/natural-world-proof/library-before.txt"
+      - name: Download only the pinned original and nine observed correction tiles
+        run: |
+          set -euo pipefail
+          curl -fLsS --retry 2 --max-time 180 --max-filesize 41943040 \
+            "https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/c3d761ffc6d3cd54300e6fb491901551d8de3b54/terrain/natural/sources/$NASA_HASH.jpg" \
+            -o "$RUNNER_TEMP/natural-world-source.jpg"
+          echo "$NASA_HASH  $RUNNER_TEMP/natural-world-source.jpg" | sha256sum -c
+          mkdir -p "$RUNNER_TEMP/natural-world-observed"
+          curl -fLsS --retry 2 --max-time 50 \
+            "https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/$PATCH_REV/terrain/natural/v0.1.0-preview.2/manifest.json" \
+            -o "$RUNNER_TEMP/natural-world-observed/manifest.json"
+          python - <<'PY'
+          import json,os,hashlib,urllib.request,pathlib
+          root=pathlib.Path(os.environ['RUNNER_TEMP'])/'natural-world-observed'
+          manifest=json.loads((root/'manifest.json').read_text())
+          if manifest['version']!='0.1.0-preview.2' or len(manifest['tiles'])!=9:
+              raise ValueError('Observed candidate identity changed')
+          for key,entry in manifest['tiles'].items():
+              url='https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/'+os.environ['PATCH_REV']+'/terrain/natural/v0.1.0-preview.2/'+key
+              blob=urllib.request.urlopen(url,timeout=60).read()
+              if len(blob)!=entry['bytes'] or hashlib.sha256(blob).hexdigest()!=entry['sha256']:
+                  raise ValueError('Invalid immutable observed tile '+key)
+              path=root/key;path.parent.mkdir(parents=True,exist_ok=True);path.write_bytes(blob)
+          print('OBSERVED_9_TILE_HASHES_OK')
+          PY
+      - name: Generate all-world LOD0-5 WebP tiles without new invented high-resolution detail
+        run: |
+          set -euo pipefail
+          python tools/gis/build-natural-global-tiles.py \
+            --source "$RUNNER_TEMP/natural-world-source.jpg" \
+            --source-sha256 "$NASA_HASH" \
+            --observed-manifest "$RUNNER_TEMP/natural-world-observed/manifest.json" \
+            --observed-root "$RUNNER_TEMP/natural-world-observed" \
+            --output "$RUNNER_TEMP/natural-world-candidate" \
+            | tee "$RUNNER_TEMP/natural-world-proof/generation.json"
+          cp "$RUNNER_TEMP/natural-world-candidate/generation-receipt.json" \
+            "$RUNNER_TEMP/natural-world-proof/generation-receipt.json"
+          test "$(du -sb "$RUNNER_TEMP/natural-world-candidate" | cut -f1)" -lt 2147483648
+          du -sh "$RUNNER_TEMP/natural-world-candidate"
+      - name: Commit source edition and separately pinned catalog on existing external work/gis
+        env:
+          LIBRARY_TOKEN: \${{ secrets.PANDOLAB_LIBRARY_WRITE_TOKEN }}
+        run: node scripts/publish-natural-world-candidate.mjs publish
+      - name: Verify representative network readback via existing terrain tile fetch
+        run: node scripts/publish-natural-world-candidate.mjs verify
+      - name: Retain bounded source, hash and validation evidence only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: world-natural-preview-evidence
+          path: \${{ runner.temp }}/natural-world-proof/
+          if-no-files-found: warn
+          retention-days: 14
