@@ -261,3 +261,40 @@ test('realistic 1024px natural tile reservation never exceeds 32/64/128 MiB opti
     });
   }
 });
+
+
+test('adjacent uploaded natural tiles have no artificial interior fade, but uncovered boundaries do',async t=>{
+  const previous=globalThis.createImageBitmap;
+  globalThis.createImageBitmap=async()=>({width:10,height:6,close(){}});
+  t.after(()=>{if(previous)globalThis.createImageBitmap=previous;else delete globalThis.createImageBitmap;});
+  const jobs=[],deleted=[];let id=0;
+  const gl={createTexture:()=>({id:++id}),deleteTexture:tex=>deleted.push(tex),
+    getParameter:()=>0,isContextLost:()=>false};
+  for(const name of ['bindTexture','pixelStorei','texParameteri','texImage2D'])gl[name]=()=>{};
+  const scheduler={enqueueUpload:job=>new Promise((resolve,reject)=>jobs.push({job,resolve,reject})),cancelKey:()=>{}};
+  const manifest={gutter:1,naturalSurface:{mixWeight:.65,
+    levels:[{id:0,width:24,height:4,tileSize:8,columns:3,rows:1}],
+    tiles:{'0/0-0.webp':{},'0/1-0.webp':{}}}};
+  const spec=column=>({key:'0/'+column+'-0',level:0,column,row:0,pixelWidth:8,pixelHeight:4});
+  const records=[{spec:spec(0)},{spec:spec(1)}];
+  const cache=createGpuNaturalSurfaceCache({readTile:async()=>({}),invalidate:()=>{}});
+  t.after(()=>cache.reset());
+  const options={gl,scheduler,manifest,contextGeneration:1,enabled:true,requiredReady:true,budgetBytes:32*1024*1024};
+  cache.prepare(records,options);
+  for(let iteration=0;iteration<10;iteration++){
+    await settle();
+    for(const item of jobs.splice(0)){
+      try{item.job.step();item.resolve();}catch(error){item.reject(error);throw error;}
+    }
+    if(cache.stats().terrainNaturalTilesLoaded===2)break;
+  }
+  cache.prepare(records,options);
+  assert.equal(cache.stats().terrainNaturalTilesLoaded,2);
+  assert.deepEqual(records[0].naturalFadeEdges,[1,0,0,0],
+    'uploaded east neighbour must remove internal east fade; west remains uncovered');
+  assert.deepEqual(records[1].naturalFadeEdges,[0,1,0,0],
+    'uploaded west neighbour must remove internal west fade; east remains uncovered');
+  assert.equal(cache.stats().terrainNaturalRequests,2);
+  cache.reset();
+  assert.equal(deleted.length,2);
+});
