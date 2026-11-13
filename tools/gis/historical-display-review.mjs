@@ -1,3 +1,4 @@
+import {hasFixedScopeCorrection,assertFixedScopeCorrection} from './fixed-scope-correction-source-review.mjs';
 import {hasFinScopeCorrection,assertFinScopeCorrection} from './fin-scope-correction-source-review.mjs';
 import {hasOriginalRetainedComposition,assertOriginalRetainedComposition} from './original-retained-composition-source-review.mjs';
 import {hasOriginalComposition,assertOriginalComposition} from './original-composition-source-review.mjs';
@@ -382,6 +383,7 @@ function assertOriginalExistingComponents(next,previous,review,{prefixes,archive
  */
 export function assertHistoricalSourceStorageChanges(next,previous,{prefixes,readEvidence,getSourceSnapshot}={}){
  if(hasFinScopeCorrection(next,previous))return assertFinScopeCorrection(next,previous,{prefixes,readEvidence,getSourceSnapshot});
+ if(hasFixedScopeCorrection(next,previous))return assertFixedScopeCorrection(next,previous,{prefixes,readEvidence,getSourceSnapshot});
  if(hasHistoricalSourceReuse(next)||hasHistoricalSourceReuse(previous))return assertHistoricalModernCopy(next,previous,{prefixes,readEvidence,getSourceSnapshot});
  if(hasOriginalRetainedComposition(next)||hasOriginalRetainedComposition(previous))return assertOriginalRetainedComposition(next,previous,{prefixes,readEvidence,getSourceSnapshot});
  if(hasOriginalComposition(next)||hasOriginalComposition(previous))return assertOriginalComposition(next,previous,{prefixes,readEvidence});
