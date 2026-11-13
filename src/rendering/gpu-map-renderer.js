@@ -498,7 +498,8 @@ export function createGpuMapRenderer(deps) {
       surfacePresentation = resolveMapSurfacePresentation({canonicalReady:canonicalMeshReady,
         backgroundPresented:temporalPending() || countriesPublishedGeneration===projectGeneration
           || !!backgroundPresentedKey && backgroundPresentedKey===backgroundTargetKey(),
-        recoveryDrawing:gpuRecovery.snapshot().active && isWebGlRenderer() && canonicalMeshReady
+        recoveryDrawing:(gpuRecovery.snapshot().active && isWebGlRenderer()
+          || !!gpuRecovery.fallbackTicket() && isCanvasRenderer()) && canonicalMeshReady
           && !projectRenderBlocked && !!renderScene});
       const lodKey=ensureCountryDisplayLod({cssScale});
       const accepted=meshVariants.get('lod');
