@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {reconcileLibraryData,createAutoPublicationReceipt,validateAutoPublicationReceipt} from "../../../scripts/lib/library-auto-publication.mjs";
 const sha=c=>c.repeat(40), hash=c=>c.repeat(64);
-const request={dataRepository:'kimjeon-il/PandoLab-library-data',dataBranch:'main',dataSha:sha('a'),appRepository:'kimjeon-il/Pando',appBranch:'main',appSha:sha('b'),production:true};
+const request={dataRepository:'kimjeon-il/PandoLab-library',dataBranch:'main',dataSha:sha('a'),appRepository:'kimjeon-il/Pando',appBranch:'main',appSha:sha('b'),production:true};
 function fixture({phase=0,fail,branch='main',production=true,move=false,stuck=false}={}){
  const req={...request,dataBranch:branch,appBranch:branch,production};let p=phase;const calls=[];
  const desired={...req,inputFingerprint:hash('c'),generatorIdentity:hash('d'),supported:true};

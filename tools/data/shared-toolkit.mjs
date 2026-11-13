@@ -12,7 +12,7 @@ const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 const json=value=>JSON.stringify(value,null,2)+'\n';
 function checkedPath(root,path){
   if(typeof path!=='string'||isAbsolute(path)||path.includes('\\')||path.split('/').some(p=>!p||p==='.'||p==='..')||
-    !/^(tools|scripts|shared|docs|build-native)\//.test(path))throw Error('Shared toolkit path ownership violation: '+path);
+    !/^(tools|scripts|shared|src|docs|build-native)\//.test(path)&&!/^assets\/wasm\//.test(path))throw Error('Shared toolkit path ownership violation: '+path);
   return resolve(root,path);
 }
 function contract(pin){
@@ -93,7 +93,9 @@ export async function installSharedToolkit({root,bytes,pin}){
 // Explicit retirement of a consumer's previously pinned generated dependency.
 // The caller supplies the old pin from committed source, never from the marker.
 // Missing files are allowed only to resume an interrupted verified retirement.
-export async function retireSharedToolkit({root,pin}){
+export async function retireSharedToolkit({root,pin,replacement}){
+  const next=replacement?decode(replacement.bytes,replacement.pin):null;
+  const nextFiles=new Map((next?.files||[]).map(row=>[row.path,row]));
   root=resolve(root);contract(pin);await noLinks(root);
   const lockPath=join(root,'.shared-toolkit.lock'),lock=await open(lockPath,'wx');
   try{
@@ -114,13 +116,13 @@ export async function retireSharedToolkit({root,pin}){
       const tracked=execFileSync('git',['ls-files','--',...marker.files.map(row=>row.path)],{cwd:root,encoding:'utf8',maxBuffer:1024**2});
       if(tracked.trim())throw Error('Shared retirement would remove tracked source: '+tracked.trim());
     }
-    let logicalBytes=0;
+    let logicalBytes=0;const retained=new Set();
     for(const row of marker.files){
       checkedPath(root,row.path);await noLinks(root,row.path);
-      try{const data=await readFile(join(root,row.path));if(data.length!==row.bytes||hash(data)!==row.sha256)throw Error('Shared retirement found a modified file: '+row.path);logicalBytes+=data.length;}
+      try{const data=await readFile(join(root,row.path));if(data.length!==row.bytes||hash(data)!==row.sha256)throw Error('Shared retirement found a modified file: '+row.path);const current=nextFiles.get(row.path);if(current?.bytes===row.bytes&&current.sha256===row.sha256)retained.add(row.path);else logicalBytes+=data.length;}
       catch(error){if(error.code!=='ENOENT')throw error;}
     }
-    for(const row of marker.files)try{await unlink(join(root,row.path));}catch(error){if(error.code!=='ENOENT')throw error;}
-    await unlink(join(root,'.shared-toolkit.json'));return {retired:true,files:marker.files.length,logicalBytes};
+    for(const row of marker.files)if(!retained.has(row.path))try{await unlink(join(root,row.path));}catch(error){if(error.code!=='ENOENT')throw error;}
+    await unlink(join(root,'.shared-toolkit.json'));return {retired:true,files:marker.files.length-retained.size,retainedFiles:retained.size,logicalBytes};
   }finally{await lock.close();await unlink(lockPath);}
 }

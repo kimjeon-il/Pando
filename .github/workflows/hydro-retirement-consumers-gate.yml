@@ -31,7 +31,7 @@ jobs:
         uses: ./.github/actions/library-data
       - uses: actions/checkout@v4
         with:
-          repository: kimjeon-il/PandoLab-library-data
+          repository: kimjeon-il/PandoLab-library
           ref: 81c45d11d1265e287dd21aaf0127c1112aca1176
           path: original-name-research
           persist-credentials: false

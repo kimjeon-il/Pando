@@ -4,7 +4,7 @@
 
 > **현행 제품(2026-11-11 확인):** 단일 Pando Web Viewer. 독립 `apps/editor` 제품은 폐기되었다. 명칭 선정·검수, PLAC 바이너리, 도시 후보, 표시 순위, 도시 유효기간은 각각 별도 소유자를 유지한다. 아래 날짜별 검수·동기화·앱 이식 기록은 보존하지만 **독립 앱 개발 지시나 현재 미구현 판정으로 사용하지 않는다**.
 >
-> **외부 편집 규칙 상태:** `PandoLab-library-data/reports/places/historical-display-policy.json`과 `korean-map-label-policy.json`은 조사 시 `staged-*` 상태였다. 이 JSON의 편집 원칙이 현재 지도 런타임에 전부 집행된다고 간주하지 않는다. 코드·매니페스트 및 승인 데이터가 현재 게시의 실효 기준이다.
+> **외부 편집 규칙 상태:** `PandoLab-library/reports/places/historical-display-policy.json`과 `korean-map-label-policy.json`은 조사 시 `staged-*` 상태였다. 이 JSON의 편집 원칙이 현재 지도 런타임에 전부 집행된다고 간주하지 않는다. 코드·매니페스트 및 승인 데이터가 현재 게시의 실효 기준이다.
 >
 > **2026-11-12 지도 라벨 표시 원칙:** 한국어명은 기본 고정이며, 사용자가 **원어명 병기**를 선택한 경우에만 8배 이상에서 대표 원어 한 줄을 보조 표시한다. 영어명과 추가 공식 원어는 데이터·검색·상세정보에 남긴다. 원어 보조 행이 화면에서 충돌하면 한국어명은 유지하고 보조 행만 생략한다. 아래 2026-10 역사 자료의 3개 언어 토글·복수 원어 직접 표시는 과거 개발 계약으로 보존하며 현재 Viewer 동작을 뜻하지 않는다.
 
@@ -73,7 +73,7 @@
 
 | 책임 | 현행 소유자 | 별도 상태·제한 |
 | --- | --- | --- |
-| 역사적 도시 정체·명칭 검수 | 외부 `PandoLab-library-data/reports/places/tier1-major-cities-*.json` 및 관련 정책 JSON | 원자료 검수·편집 원칙; 자동 게시나 역사 인구 인증과 구별 |
+| 역사적 도시 정체·명칭 검수 | 외부 `PandoLab-library/reports/places/tier1-major-cities-*.json` 및 관련 정책 JSON | 원자료 검수·편집 원칙; 자동 게시나 역사 인구 인증과 구별 |
 | 지명 ID·언어 토글·PLAC v3 필드 | [`src/document/place-contract.js`](../src/document/place-contract.js), [`tests/fixtures/places/plac-v3.json`](../tests/fixtures/places/plac-v3.json) | `v2.json`은 과거 회귀 판본 |
 | 타일 인코딩·조회·검색 | [`src/data/place-codec.js`](../src/data/place-codec.js), [`src/data/place-worker-store.js`](../src/data/place-worker-store.js), [`src/data/place-runtime.js`](../src/data/place-runtime.js) | Worker와 원본 조회 자료는 프로젝트 편집 저장소가 아님 |
 | 시대별 이름 선택·지도 라벨 | [`src/data/place-name-policy.js`](../src/data/place-name-policy.js), [`src/rendering/territorial-labels.js`](../src/rendering/territorial-labels.js) | 이름 변화와 도시 표시 자격은 다른 규칙 |

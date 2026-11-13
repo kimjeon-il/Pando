@@ -51,7 +51,7 @@ function openDataRoot(folder){
   const root=realpathSync(resolve(folder));
   if(!existsSync(join(root,'.git')))error('E3 requires an existing prepared data-library Git checkout.');
   const remote=git(root,'remote','get-url','origin').toString('utf8').trim();
-  if(!/(^https:\/\/github\.com\/kimjeon-il\/PandoLab-library-data(?:\.git)?$|^git@github\.com:kimjeon-il\/PandoLab-library-data\.git$)/.test(remote))
+  if(!/(^https:\/\/github\.com\/kimjeon-il\/PandoLab-library(?:\.git)?$|^git@github\.com:kimjeon-il\/PandoLab-library\.git$)/.test(remote))
     error('E3 refuses a different external data repository: '+remote);
   return root;
 }

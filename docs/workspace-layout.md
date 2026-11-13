@@ -11,13 +11,15 @@ The Web Viewer is the only shipping product. [Module ownership](app-module-owner
 | `tools/build/native/` | Product native build orchestration and source identity; compilation runs in CI |
 | `tools/build/compiler-cache.cmake` | Host cache integration outside product native identity; this does not install a compiler |
 | `tools/cpp/` | GIS command-line generator implementations and native dependencies; their C++ checks live in `tests/tools/native/`, not product source |
-| `tools/gis/`, `tools/data/`, `tools/checks/` | GIS adapters, library/storage operations and scoped audits |
+| `tools/gis/`, `tools/data/`, `tools/checks/` | Viewer runtime generation, common geometry and paired-data preparation/storage support |
 | `scripts/` | Development, frontend generation, CI selection and execution; `scripts/contracts/` owns executable check contracts |
 | `tests/` | Unit/browser checks, helpers and fixed fixtures |
 | `config/` | Runtime data pin, source roots, artifact graph and tool versions |
 | `docs/policies/` | Policy navigation and domain rules, including machine-readable execution/publication policy |
 | `docs/architecture/`, `docs/development/` | Maintained architecture and developer instructions |
 | `projects/`, `reports/` | Pinned project declarations and the central report-originals mount; data remains library-owned |
+
+QGIS integration, historical-source authoring, source recipes and repository-history administration live in [PandoLab-library](https://github.com/kimjeon-il/PandoLab-library). Its own source checkout owns their tests and CI; branch-specific runtime data pins and mounts remain independent.
 
 ## Source paths and public URLs
 
