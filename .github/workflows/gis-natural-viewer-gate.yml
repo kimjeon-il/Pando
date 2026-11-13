@@ -50,6 +50,8 @@ jobs:
           node --test
           tests/unit/rendering/terrain-tile-selection-shared.test.mjs
           tests/unit/rendering/terrain-natural-gpu.test.mjs
+          tests/unit/rendering/canvas-natural-numeric-path.test.mjs
+          tests/unit/rendering/canvas-terrain-independence.test.mjs
       - name: Focused Canvas interpolation, edge ownership, theme and cancellation unit contracts
         run: >-
           node --test
