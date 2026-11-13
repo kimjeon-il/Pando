@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { normalizeTerritorialLibraryEntity, selectGeometryVersion } from "../../../tools/gis/territorial-library.js";
 import { restoreTimelineStorage, snapshotTimelineStorage } from "../../../src/document/timeline-storage.js";
-import { createProjectSerializer } from "../../helpers/legacy-project-autosave.mjs";
+import { createProjectTemplateCompiler } from "../../../tools/gis/project-template-compiler.js";
 import { assertCurrentProjectSchema } from "../../../src/document/project-state.js";
 import { projectForStorage,initializeTestTerritorialState,testCoreProject } from "../../helpers/timeline-project.mjs";
 
@@ -25,17 +25,14 @@ function storageInput(entity) {
     parentRelations:[{id:'parent-existing',objectRef:{domain:"territorial",id:logicalId},parentId:'',coverageMode:'explicit',...entity.lifetime}],
   },geometries:[...entity.geometryVersions.map(v=>({...refs.get(v.versionId),geojson:v.geometry})),{id:'unreferenced',version:4,geojson:polygon(4)}]}};
 }
-test('catalog versions retain explicit identities, records and whole archive through production full/delta saves',()=>{
-  const catalog=completeCatalog(),row=storageInput(catalog),before=structuredClone(catalog);
-  const restored=restoreTimelineStorage(row.input,row.entities);
-  assert.deepEqual(snapshotTimelineStorage(restored.records,restored.geometries,row.entities),row.input);
-  const snapshot=projectForStorage(row);
-  for(const fullAutosave of [true,false]){
-    const serializer=createProjectSerializer({appVersion:'test',baseDataset:'test-base',distributionModes:['territorial','geometry'],terrainDataset:'test',hydroDataset:'test',readSnapshot:()=>({...snapshot,fullAutosave,baseDatasetFingerprint:'1'.repeat(64),entityDelta:{changed:snapshot.territorialEntities,removedIds:[]}})});
-    const saved=serializer.buildAutosave();
-    assert.equal(saved.schemaVersion,14);assert.equal(saved.timelineRecords.schemaVersion,3);
+test('catalog versions retain explicit identities, records and whole archive through current Core saves',async t=>{
+  const catalog=completeCatalog(),row=storageInput(catalog),before=structuredClone(catalog),snapshot=projectForStorage(row);
+  const input=createProjectTemplateCompiler({appVersion:'test',distributionModes:['territorial','geometry'],readSnapshot:()=>snapshot}).buildProject();
+  const state={territorialEntities:[]};await initializeTestTerritorialState(state,t,{project:input,platformPorts:{appVersion:"test"}});
+  const owner=testCoreProject(state);
+  for(const saved of [(await owner.project.buildFileSnapshot()).project,(await owner.project.buildAutosave()).project]){
+    assertCurrentProjectSchema(saved);
     assert.deepEqual(saved.timelineRecords,row.input.records);assert.deepEqual(saved.geometries,row.input.geometries);
-    assertCurrentProjectSchema(saved,fullAutosave?{}:{baseEntities:snapshot.territorialEntities,baseDataset:'test-base',baseDatasetFingerprint:'1'.repeat(64)});
     const reopened=restoreTimelineStorage({schemaVersion:1,records:saved.timelineRecords,geometries:saved.geometries},row.entities);
     assert.deepEqual(snapshotTimelineStorage(reopened.records,reopened.geometries,row.entities),row.input);
   }
@@ -43,7 +40,7 @@ test('catalog versions retain explicit identities, records and whole archive thr
 });
 test('complex catalog storage activates in the current Core without losing its historical identities',async()=>{
   const row=storageInput(completeCatalog()),snapshot=projectForStorage(row);
-  const input=createProjectSerializer({appVersion:'test',distributionModes:['territorial','geometry'],readSnapshot:()=>snapshot}).buildProject();
+  const input=createProjectTemplateCompiler({appVersion:'test',distributionModes:['territorial','geometry'],readSnapshot:()=>snapshot}).buildProject();
   const state={territorialEntities:[]};await initializeTestTerritorialState(state,null,{project:input});
   const store=testCoreProject(state).entityStore;
   assert.deepEqual(store.identities().map(entity=>entity.id),snapshot.territorialEntities.map(entity=>entity.id));

@@ -4,6 +4,7 @@ import {resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {loadRepository} from './plan-application-checks.mjs';
 import {auditWorkflowReferences} from './lib/workflow-reference-integrity.mjs';
+import {auditWorkflowInventory} from '../tools/checks/audit-workflow-check-owners.mjs';
 
 const explicitTest = /tests\/(?:unit|browser|native|integration|cpp)\/[\w./-]+\.(?:test|spec)\.mjs/g;
 const registrationSources = path => path === 'package.json' ||
@@ -12,13 +13,9 @@ const registrationSources = path => path === 'package.json' ||
 
 export function auditConsolidatedTestRegistry(repository = loadRepository()) {
   const workflow = auditWorkflowReferences(repository.root);
+  const inventory = auditWorkflowInventory(resolve(repository.root,'.github/workflows'),
+    resolve(repository.root,'scripts/contracts/workflow-inventory.json'));
   const missingReferences = [], missingBindings = [], emptyUnitSuites = [];
-  const missingActivePerformanceTests = [];
-  if (repository.exists('config/performance-baseline-v1.json')) {
-    const manifest = JSON.parse(repository.read('config/performance-baseline-v1.json'));
-    for (const suite of manifest.activeSuites || []) for (const file of suite.tests || [])
-      if (!repository.exists(file)) missingActivePerformanceTests.push({suite: suite.id, file});
-  }
   for (const file of repository.files.filter(registrationSources)) {
     for (const match of repository.read(file).matchAll(explicitTest))
       if (!repository.exists(match[0])) missingReferences.push({file, reference: match[0]});
@@ -34,8 +31,8 @@ export function auditConsolidatedTestRegistry(repository = loadRepository()) {
   }
   const issues = {
     invalidWorkflowReferences: workflow,
+    invalidWorkflowInventory: inventory.issues,
     missingDirectTestReferences: missingReferences,
-    missingActivePerformanceTests,
     missingBindings,
     emptyUnitSuites,
   };

@@ -87,10 +87,6 @@ static std::vector<std::uint8_t> resizeChannels(const std::vector<std::uint8_t>&
 std::vector<std::uint8_t> resizeRgb(const std::vector<std::uint8_t>& input,int width,int height,int outputWidth,int outputHeight){
     return resizeChannels(input,width,height,outputWidth,outputHeight,3,width,height);
 }
-std::vector<std::uint8_t> resizePhysicalRgb(const std::vector<std::uint8_t>& input,int width,int height,int outputWidth,int outputHeight){
-    if(outputWidth>width||outputHeight>height)throw std::invalid_argument("Physical terrain resize cannot enlarge sources");
-    return resizeChannels(input,width,height,outputWidth,outputHeight,3,width,height,30000,Filter::lanczos,240000000);
-}
 std::vector<std::uint8_t> resizeRgba(const std::vector<std::uint8_t>& input,int width,int height,int outputWidth,int outputHeight){
     validate(width,height);validate(outputWidth,outputHeight);
     if(input.size()!=static_cast<std::size_t>(width)*height*4)throw std::invalid_argument("RGBA input byte length differs from dimensions");

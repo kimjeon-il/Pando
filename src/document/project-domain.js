@@ -242,7 +242,7 @@ export function createProjectDomain({
       const stale=()=>Object.assign(new Error('Temporal candidate belongs to an older project request.'),
         {code:'PL-CORE-STALE',name:'AbortError',cancelled:true});
       if(!current())throw stale();
-      // A date change never rebuilds or re-identifies the active document.
+      // A date change never rebuilds or re-identifies the accepted project.
       // Legacy transition requests must use the common C++ cursor instead.
       if(transition)throw Object.assign(
         new TypeError('Project date changes must reuse the accepted C++ timeline cursor.'),
@@ -691,8 +691,6 @@ export function createProjectDomain({
       resolveAutosaveRecovery: persistence?.resolveRecovery,
       completeAutosaveRecovery: persistence?.completeRecovery,
       loadAutosave: project => load(project),
-      restorePreview: persistence?.restorePreview,
-      ensurePreview: persistence?.ensurePreview,
       flushAutosave: () => persistence?.persist(),
     }:{}),
   });

@@ -4,6 +4,7 @@ import { isBuiltinPlaceId, normalizePlace, PLACE_LIMITS } from "../document/plac
 import { resourceKey, resourceUpdate } from "../runtime/resource-dependency-policy.js";
 import { placeLabelRowsAtMonth } from "./place-name-policy.js";
 import { indexPlaceUrbanLifetimes,placeUrbanLabelActiveAtMonth } from "./place-lifetime-policy.js";
+import { createExternalRuntimeDataFetch } from './external-runtime-data.js';
 const EMPTY = Object.freeze({ revision: 0, signature: 'empty', records: Object.freeze([]) });
 
 /** Canonical owner of the builtin label snapshot and Worker lifecycle. */
@@ -22,7 +23,7 @@ export function createPlaceRuntime({ manifestUrl = new URL('../../data/places/ma
     if(rpc&&!loadUrbanLifetimes)return null;
     if(!lifetimeTask)lifetimeTask=(async()=>{
       const value=loadUrbanLifetimes?await loadUrbanLifetimes():await(async()=>{
-        const response=await fetch(lifetimeUrl);
+        const response=await createExternalRuntimeDataFetch({meta:globalThis.PANDOLAB_BUILD_META})(lifetimeUrl);
         if(!response.ok)throw new Error('Place-lifetime library HTTP '+response.status);
         const length=Number(response.headers.get('Content-Length')||0);
         if(length>256*1024)throw new RangeError('Place-lifetime policy exceeds byte budget');
@@ -146,7 +147,7 @@ export function createPlaceRuntime({ manifestUrl = new URL('../../data/places/ma
       const requestEpoch=projectEpoch;
       if (!['display', 'reference'].includes(scope)) throw new TypeError('Unknown place search scope.');
       const reference = scope === 'reference';
-      if (closed || (moving && !reference)) throw createWorkerCancellationError('지도 이동 중에는 지명 조회를 보류합니다.', 'interaction');
+      if (closed || (moving && !reference)) throw createWorkerCancellationError('지도 이동 중에는 도시 조회를 보류합니다.', 'interaction');
       signal?.throwIfAborted();
       await ensureUrbanLifetimes();
       if(requestEpoch!==projectEpoch)throw createWorkerCancellationError('Project source changed','project-replaced');
@@ -171,7 +172,7 @@ export function createPlaceRuntime({ manifestUrl = new URL('../../data/places/ma
         await admitReferences(()=>references(snapshot.records,candidate));
         if(closed || moving || requestEpoch!==projectEpoch) {
           if(!closed)await admitReferences(()=>references());
-          throw createWorkerCancellationError('지도 이동 중에는 지명 조회를 보류합니다.','interaction');
+          throw createWorkerCancellationError('지도 이동 중에는 도시 조회를 보류합니다.','interaction');
         }
         retained.clear();for(const [id,record]of candidate)retained.set(id,record);
         return { ...result, records:displayed };

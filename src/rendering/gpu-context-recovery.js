@@ -54,14 +54,17 @@ export function createGpuContextRecovery({ capture, isTargetCurrent, prepare, co
     if (terminal) stop.abort(abortError(reason));
   }
   function reserveFallback(reason) {
-    if (disposed || fallback) return null;
+    if (disposed || fallback && phase !== 'canvas') return null;
+    // A previously certified Canvas picture does not prevent recovering from
+    // a subsequent Canvas Worker failure. Only the new frame can certify it.
+    if (phase === 'canvas') fallback = null;
     account();
     const monitor = active; // Initial forced-Canvas startup is not a GPU loss recovery.
     active = false; requested = false;
     invalidate(reason, true);
     current = null;
     const ticket = Object.freeze({ recoveryId, revision, kind: 'canvas' });
-    fallback = { ticket, claimed: false, usable: false, monitor };
+    fallback = { ticket, claimed: false, usable: false, monitor, retries: 0 };
     phase = 'awaiting-canvas'; canvasMs = 0;
     arm();
     return ticket;
@@ -249,6 +252,18 @@ export function createGpuContextRecovery({ capture, isTargetCurrent, prepare, co
       return ticket;
     },
     fallbackTicket: () => phase === 'awaiting-canvas' ? fallback?.ticket || null : null,
+    retryFallback(ticket) {
+      // A Worker transport failure may change the backend once to inline
+      // Canvas, but a retired or duplicate ticket cannot claim another frame.
+      if (!ownsFallback(ticket) || phase !== 'awaiting-canvas' || !fallback.claimed
+        || fallback.retries > 0) return false;
+      account();
+      fallback.claimed = false;
+      fallback.usable = false;
+      fallback.retries++;
+      arm();
+      return true;
+    },
     fallbackUsable(ticket) {
       if (!ownsFallback(ticket) || phase !== 'awaiting-canvas') return false;
       fallback.usable = true; settleDevice(null); return true;

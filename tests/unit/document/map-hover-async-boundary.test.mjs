@@ -425,16 +425,18 @@ const { createTerritorialScopeResolver } = __merge_dep17;
 
 const square = x => ({ type: 'Polygon', coordinates: [[[x, 0], [x, 10], [x + 10, 10], [x + 10, 0], [x, 0]]] });
 
-test('territorial spatial candidates and display follow canonical store hydration', async () => {
-  const preview = createTerritorialFeature({ id: 'A', entityKind: 'general', geometry: square(20) });
+test('territorial spatial candidates and display follow canonical store hydration', async t => {
+  const initial = createTerritorialFeature({ id: 'A', entityKind: 'general', geometry: square(20) });
   const canonical = createTerritorialFeature({ id: 'A', entityKind: 'general', geometry: square(0) });
-  const state = { territorialEntities: [preview], countryVisualPhase: 'preview',
+  const state = { territorialEntities: [initial], countryVisualPhase: 'canonical',
     labels: [], genericFeatures: [], hydroEdits: [] };
   await initializeTestTerritorialState(state);
-const entityStore = createTerritorialEntityStore({ documentModel:testCoreProject(state).documentModel,commandOwner:testCoreProject(state).client });
+  const spatial = createSpatialIndex();
+  const entityStore = createTerritorialEntityStore({ documentModel:testCoreProject(state).documentModel,commandOwner:testCoreProject(state).client,
+    onEntitiesReplaced:(_entities,{propertyOnly})=>{if(!propertyOnly)spatial.mapObjectGeometryRevisions.territorial++;} });
+  t.after(()=>entityStore.dispose());
   const entityRepository = createTerritorialEntityRepository({ entityStore });
   const territorialScope = createTerritorialScopeResolver({ entityRepository, getState: () => state, clipper: () => null });
-  const spatial = createSpatialIndex();
   spatial.connect({ projectState: { state }, territorialModel: { entityRepository }, objectModelB: { territorialScope },
     domains: { renderingDomain: { getDistributionRenderRows: () => [] } },
     spatialFactories: { createMapObjectSpatialIndex }, cutGeometry: { coordinateBounds: coordinates => {
@@ -455,11 +457,7 @@ const entityStore = createTerritorialEntityStore({ documentModel:testCoreProject
   assert.deepEqual(territorialScope.displayFeature('A').geometry, canonical.geometry);
   assert.deepEqual(candidates(0), ['A']);
   assert.deepEqual(candidates(20), []);
-  state.countryVisualPhase = 'canonical';
-  spatial.rebuildMapObjectSpatialIndex();
-  assert.deepEqual(candidates(0), ['A']);
-  state.countryVisualPhase = 'preview';
-  spatial.rebuildMapObjectSpatialIndex();
+  assert.equal(spatial.rebuildMapObjectSpatialIndex(), false, 'unchanged geometry reuses its spatial records');
   assert.deepEqual(candidates(0), ['A']);
   assert.deepEqual(candidates(20), []);
   assert.deepEqual(entityRepository.get('A').geometry, canonical.geometry);

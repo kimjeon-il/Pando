@@ -1,11 +1,7 @@
 import assert from 'node:assert/strict';
-import fs from 'node:fs';
 import test from 'node:test';
-import vm from 'node:vm';
 import { validateCollection } from "../../../tools/gis/geometry-validation.js";
 import {GIS_GEOMETRY_TIMEOUT_MS,createGisGeometryValidator} from "../../../tools/gis/gis-geometry-validator.js";
-import {createImportService} from "../../helpers/core-gis-compat/import-service.mjs";
-import {createGisCoreFixture} from "../../helpers/gis-core-fixture.mjs";
 import { createGisWorkerHarness } from "../helpers/gis-worker-harness.mjs";
 
 function feature(id, coordinates) {
@@ -98,32 +94,7 @@ test('GIS validator rejects timed out work, disposes its worker and permits a fr
   assert.equal(builds, 2);
 });
 
-test('current territorial import validates the complete batch and publishes only changed root IDs', async () => {
-  const context = vm.createContext({});
-  vm.runInContext(fs.readFileSync(new URL("../../../assets/js-vendor/polygon-clipping.min.js", import.meta.url), 'utf8'), context);
-  const {store,repository,events,rootPatches:patches,committer}=await createGisCoreFixture([],{runtime:{uid:()=> 'source',polygonClipping:context.polygonClipping}});
-  let result = { targetType: 'general', collection: { type: 'FeatureCollection', features: [
-    feature('A', square), { ...feature('child', square), properties: { parent_id: 'A' } },
-  ] } };
-  const service = createImportService({ openImportWizard: async () => result, getWizardOptions: () => ({}),
-    getProjectGeneration: () => 7, validateStructuredGeometry: () => assert.fail('territorial validation belongs to the transaction') });
-  const planned = await service.openFiles([{ name: 'entities.geojson' }]);
-  assert.equal(planned.status, 'planned');
-  assert.equal(planned.plan.kind, 'territorial');
-  assert.equal(planned.plan.projectGeneration, 7);
-  assert.deepEqual(await committer.commitTerritorialImport(planned.plan.payload.result, 'entities.geojson'), ['A', 'child']);
-  assert.equal(repository.get('child').properties.parentId, 'A');
-  assert.deepEqual(repository.get('A').geometry, feature('A', square).geometry);
-  assert.deepEqual(patches, [['A']]);
-  assert.deepEqual(events, ['history', 'save']);
-  const before = store.snapshot();
-  result = { targetType: 'general', collection: { features: [feature('new', square), feature('new', square)] } };
-  const duplicate = await service.openFiles([{ name: 'duplicates.geojson' }]);
-  await assert.rejects(committer.commitTerritorialImport(duplicate.plan.payload.result, 'duplicates.geojson'), /duplicate|Duplicate|ID가 중복/);
-  assert.deepEqual(store.snapshot(), before);
-  assert.deepEqual(patches, [['A']]);
-  assert.deepEqual(events, ['history', 'save']);
-});
+
 
 test('library pair scope checks new land against every donor without skipping donor shape validation', () => {
   const disjoint = square.map(ring => ring.map(([x,y]) => [x+12,y]));

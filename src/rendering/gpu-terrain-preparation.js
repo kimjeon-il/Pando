@@ -1,15 +1,21 @@
 import { resourceKey, resourceUpdate } from "./resource-update-policy.js";
+import {createGpuNaturalSurfaceCache} from './gpu-natural-surface-cache.js';
+import {terrainNaturalTileRequest,fetchTerrainTile} from '../data/terrain-manifest.js';
 import "./workers/terrain-tile-selection-core.js";
 // Owns terrain requests, retries, decoded bitmaps, upload queue, textures and grids.
 // prepare() returns ready draw records; drawing never initiates preparation.
-export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, onTileFailure, isMobile, invalidate, geoDistance }) {
+export function createGpuTerrainPreparation({ readTile, readNaturalTile = async (spec,manifest,signal) => {
+  const request=terrainNaturalTileRequest(spec,manifest);
+  return request ? fetchTerrainTile(request,{signal}) : null;
+}, onUnusable, onTileFailure, isMobile, invalidate, geoDistance }) {
+  const natural=createGpuNaturalSurfaceCache({readTile:readNaturalTile,invalidate});
   const PI = Math.PI;
   let gl = null, uploadScheduler = null, ready = false, disposed = false;
   let epoch = 0, projectGeneration = 0, contextRevision = 0;
   let activeFrameContext = null, view = {};
   let terrainManifest = null, cacheBudgetBytes = 128 * 1024 * 1024, terrainUploadCount = 0;
   let dependencies = { source: 'terrain', content: 'null', preparation: 'terrain-v1', context: null, presentation: 'tiles' };
-  let tint = null, tintFallback = null, tintPending = false, pendingDecodedBytes = 0, unusableReported = false, tileFailureReported = false;
+  let pendingDecodedBytes = 0, unusableReported = false, tileFailureReported = false;
   let requiredKeys = new Set(), resolutionLimited = false, preparationFailure = '';
   const controllers = new Set(), retryTimers = new Set(), uploadKeys = new Set();
   const isWebGlRenderer = () => ready;
@@ -28,22 +34,38 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, onTi
     let terrainTargetTilesLoaded = 0;
     let terrainTargetTileKeys = new Set();
     let terrainRetentionKeys = new Set();
-    function terrainLevelForView(frameContext = activeFrameContext) {
+    // Retention includes the whole-world safety reserve and speculative
+    // neighbours. Only tiles that can actually change the current viewport
+    // may invalidate its colour surface after an upload or failure.
+    let terrainCurrentViewKeys = new Set();
+    let ignoredOffscreenTileCompletions = 0;
+    function terrainAdmissionForView(frameContext = activeFrameContext) {
       if (!terrainManifest?.levels?.length) return null;
       const physicalScale = Number(frameContext?.scale) || Number(activeFrameContext?.scale) || 1;
       // Render DPR reduction must not degrade the selected source terrain.
       const frameDpr = Math.max(1, Number(frameContext.dpr));
       const sourceDpr = Math.min(isMobile() ? 2 : 3, Math.max(1, Number(view.devicePixelRatio || 1)));
       const desiredWidth = Math.max(1, 2 * PI * (physicalScale / frameDpr) * sourceDpr);
-      const choice = tileSelection.chooseLevel(terrainManifest, desiredWidth);
+      const choice = tileSelection.admitVisibleTiles(terrainManifest, desiredWidth,
+        level => visibleTerrainTileSpecs(level, false, frameContext));
       resolutionLimited = choice.resolutionLimited;
-      return choice.level;
+      return choice;
     }
 
     const tileSelection=globalThis.PandoLabTerrainTileSelection;
     const visibleTileCache=tileSelection.createVisibilityCache({ distance: geoDistance });
-    const terrainTileSpec=tileSelection.tileSpec;
     const terrainNeighbourSpecs=tileSelection.neighbours;
+    function visibleNaturalReserve(specs) {
+      if (!view.visible || view.physicalStyle !== 'physical' || !terrainManifest?.naturalSurface) return 0;
+      let total=0,selected=0;
+      for(const spec of specs){
+        if(selected===2)break;
+        if(!terrainManifest.naturalSurface.tiles[`${spec.level}/${spec.column}-${spec.row}.webp`])continue;
+        total+=(spec.pixelWidth+2*terrainManifest.gutter)*(spec.pixelHeight+2*terrainManifest.gutter)*4;
+        selected++;
+      }
+      return total;
+    }
     function visibleTerrainTileSpecs(level,includeAll=false,frameContext=activeFrameContext) {
       const rotation=frameContext?.viewState?.rotation||view.rotation;
       const viewport=frameContext?.viewport||[view.width,view.height];
@@ -112,9 +134,7 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, onTi
       controllers.add(controller);
       terrainActiveFetches += 1;
       const request = (async () => {
-        const response = await fetch(tileUrl(spec), { signal: controller.signal });
-        if (!response.ok) throw new Error(`지형 타일 HTTP ${response.status}`);
-        const blob = await response.blob();
+        const blob = await readTile(spec, controller.signal);
         let bitmap;
         try { bitmap = await createImageBitmap(blob, { premultiplyAlpha: 'none', colorSpaceConversion: 'none' }); }
         catch (error) {
@@ -162,7 +182,8 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, onTi
           }, retryDelay + 16);
           retryTimers.add(timer);
         }
-        if (terrainRetentionKeys.has(spec.key)) invalidate('terrain-tile-failed');
+        if (view.visible && terrainCurrentViewKeys.has(spec.key)) invalidate('terrain-tile-failed');
+        else ignoredOffscreenTileCompletions += 1;
         console.warn(`지형 타일을 불러오지 못했습니다: ${spec.key}`, error);
       }).finally(() => {
         controllers.delete(controller);
@@ -205,18 +226,11 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, onTi
           if (oldColorSpace !== undefined) gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, oldColorSpace);
           bitmap.close?.();
         }
-        if (next.tint) {
-          if (tint) gl.deleteTexture(tint.texture);
-          if (tintFallback) gl.deleteTexture(tintFallback.texture);
-          tintFallback = null;
-          tint = { texture, byteLength };
-          tintPending = false;
-          invalidate('terrain-tint-ready');
-        } else terrainTiles.set(spec.key, { texture, lastUsed: performance.now(), byteLength });
+        terrainTiles.set(spec.key, { texture, lastUsed: performance.now(), byteLength });
         terrainUploadCount += 1;
         let terrainBytes = [...terrainTiles.values()].reduce((sum, entry) => sum + Number(entry.byteLength || 0), 0);
-        terrainBytes += tint?.byteLength || tintFallback?.byteLength || 0;
         const terrainBudget = Math.max(8 * 1024 * 1024, Number(cacheBudgetBytes) || 128 * 1024 * 1024);
+        natural.trim(Math.max(0,terrainBudget-terrainBytes-pendingDecodedBytes));
         while (terrainBytes > terrainBudget) {
           let oldest = null;
           for (const item of terrainTiles.entries()) {
@@ -250,11 +264,14 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, onTi
         step: () => {
           if (uploadEpoch !== epoch || disposed) throw Object.assign(new Error('Stale terrain upload'), { name: 'AbortError' });
           // Decoded neighbours cannot stand ahead of current-view coverage.
-          const visibleIndex = terrainUploadQueue.findIndex(item => item.tint || requiredKeys.has(item.spec?.key));
+          const visibleIndex = terrainUploadQueue.findIndex(item => requiredKeys.has(item.spec?.key));
           const next = terrainUploadQueue.splice(Math.max(0, visibleIndex), 1)[0];
           const bytes = next ? next.bitmap.width * next.bitmap.height * 4 : 0;
           const uploaded = next && uploadTerrainTile(next);
-          if (uploaded && next?.spec && terrainRetentionKeys.has(next.spec.key)) invalidate('terrain-tile-ready');
+          if (uploaded && next?.spec) {
+            if (view.visible && terrainCurrentViewKeys.has(next.spec.key)) invalidate('terrain-tile-ready');
+            else ignoredOffscreenTileCompletions += 1;
+          }
           pumpTerrainFetchQueue();
           return { bytes, done: !terrainUploadQueue.length };
         },
@@ -326,20 +343,20 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, onTi
 
     function prepare() {
       if (!view.visible || !terrainManifest?.levels?.length || !gl || disposed) {
+        terrainCurrentViewKeys.clear();
         terrainRetentionKeys.clear();
         pruneTerrainFetchQueue();
         return [];
       }
-      if (terrainManifest.representation === 'dem-relief-v1' && view.physicalStyle === 'physical') requestTint();
       const frameContext = activeFrameContext;
       if (!frameContext) {
+        terrainCurrentViewKeys.clear();
         terrainRetentionKeys.clear();
         pruneTerrainFetchQueue();
         return false;
       }
-      if (terrainManifest.representation === 'dem-relief-v1') prepareTintFallback();
-      const targetLevel = terrainLevelForView(frameContext);
-      const targetSpecs = visibleTerrainTileSpecs(targetLevel, false, frameContext);
+      const admission = terrainAdmissionForView(frameContext);
+      const targetLevel = admission.level, targetSpecs = admission.specs;
       // Keep one complete world base, independent of camera/country detail.
       // It is also the coverage reserve when rotating into an uncached region.
       const baseLevel = terrainManifest.levels[0];
@@ -356,23 +373,30 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, onTi
       // over the missing target regions, including when zooming out, and pin
       // exactly those draw resources against eviction during replacement uploads.
       const missingSpecs = targetSpecs.filter(spec => !terrainTiles.has(spec.key));
-      const fallbackSpecs = missingSpecs.length
-        ? [...(baseLevel.id !== targetLevel.id && baseReady ? baseSpecs : []),
-          ...terrainManifest.levels.filter(level => level.id !== targetLevel.id && level.id !== baseLevel.id)
-          .flatMap(level => visibleTerrainTileSpecs(level, false, frameContext))
-          .filter(spec => terrainTiles.has(spec.key) && missingSpecs.some(target =>
-            spec.bounds[0] < target.bounds[2] && spec.bounds[2] > target.bounds[0]
-            && spec.bounds[3] < target.bounds[1] && spec.bounds[1] > target.bounds[3]))]
-        : [];
+      const drawSpecs = tileSelection.readyDrawSpecs(terrainManifest, targetLevel, targetSpecs,
+        (level, all) => visibleTerrainTileSpecs(level, all, frameContext), key => terrainTiles.has(key));
+      const fallbackSpecs = drawSpecs.filter(spec => Number(spec.level) !== Number(targetLevel.id));
       for (const spec of fallbackSpecs) terrainRetentionKeys.add(spec.key);
+      // A retained overview tile is not necessarily visible. Track only
+      // current target/fallback coverage; pending visible base tiles can also
+      // change the picture while detail is still missing.
+      const visibleBaseSpecs = missingSpecs.length && targetLevel !== baseLevel
+        ? visibleTerrainTileSpecs(baseLevel, false, frameContext) : [];
+      terrainCurrentViewKeys = new Set([
+        ...targetSpecs, ...fallbackSpecs, ...visibleBaseSpecs,
+      ].map(spec => spec.key));
       // Speculation starts only after current coverage reaches the GPU, and
       // only uses spare cache space. It must not block decoding visible tiles
       // or evict useful detail merely to fill an offscreen neighbour ring.
       const prefetchSpecs = [];
-      const tintReady = terrainManifest.representation !== 'dem-relief-v1' || view.physicalStyle !== 'physical' || !!tint;
-      if (baseReady && !missingSpecs.length && tintReady) {
-        const residentBytes = [...terrainTiles.values()].reduce((sum, tile) => sum + tile.byteLength, tint?.byteLength || tintFallback?.byteLength || 0);
-        let spareBytes = Math.max(0, cacheBudgetBytes - residentBytes - pendingDecodedBytes);
+      if (baseReady && !missingSpecs.length) {
+        const residentBytes = [...terrainTiles.values()].reduce((sum, tile) => sum + tile.byteLength, 0);
+        // Optional observed imagery needs room before speculative DEM neighbours.
+        // Reserve at most two visible natural tiles, but never reduce target DEM
+        // completeness or add memory above the existing fixed terrain budget.
+        const unusedNaturalReserve=Math.max(0,visibleNaturalReserve(targetSpecs)-natural.bytes()-natural.pendingBytes());
+        let spareBytes = Math.max(0, cacheBudgetBytes - residentBytes - pendingDecodedBytes
+          - natural.bytes() - natural.pendingBytes() - unusedNaturalReserve);
         for (const spec of terrainNeighbourSpecs(targetLevel, targetSpecs)) {
           if (terrainTargetTileKeys.has(spec.key) || terrainTiles.has(spec.key)) continue;
           const bytes = (spec.pixelWidth + 2 * terrainManifest.gutter) * (spec.pixelHeight + 2 * terrainManifest.gutter) * 4;
@@ -411,7 +435,6 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, onTi
       const prepared = [];
       // Camera scale selects detail, never visibility. Ready tiles replace
       // cached coverage only after their upload has completed.
-      const drawSpecs = [...fallbackSpecs, ...targetSpecs];
       for (const spec of drawSpecs) {
         const tile = terrainTiles.get(spec.key);
         if (!tile) continue;
@@ -433,52 +456,6 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, onTi
       return prepared;
     }
 
-    function prepareTintFallback() {
-      if (tint || tintFallback) return;
-      const texture = gl.createTexture();
-      if (!texture) throw new Error('Terrain tint texture allocation failed');
-      try {
-        gl.bindTexture(gl.TEXTURE_2D, texture);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        // Neutral flat-surface shade until the color image is GPU-ready.
-        // Both styles keep a valid tint sampler and share the same height tiles.
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([212, 212, 212, 255]));
-      } catch (error) { gl.deleteTexture(texture); throw error; }
-      tintFallback = { texture, byteLength: 4 };
-    }
-
-    function requestTint() {
-      if (!tintUrl || tint || tintPending) return;
-      tintPending = true;
-      const requestEpoch = epoch;
-      const controller = new AbortController();
-      controllers.add(controller);
-      void (async () => {
-        const response = await fetch(tintUrl(), { signal: controller.signal });
-        if (!response.ok) throw new Error(`지형 색채 HTTP ${response.status}`);
-        const bitmap = await createImageBitmap(await response.blob(), { premultiplyAlpha: 'none', colorSpaceConversion: 'none' });
-        if (requestEpoch !== epoch || disposed) { bitmap.close?.(); return; }
-        if (bitmap.width !== terrainManifest.tint.width || bitmap.height !== terrainManifest.tint.height) {
-          bitmap.close?.(); throw new Error('지형 tint 크기가 manifest와 다릅니다.');
-        }
-        pendingDecodedBytes += bitmap.width * bitmap.height * 4;
-        terrainUploadQueue.push({ tint: true, bitmap });
-        scheduleTerrainUpload();
-      })().catch(error => {
-        if (requestEpoch === epoch && !controller.signal.aborted) {
-          tintPending = false;
-          console.warn('DEM terrain tint unavailable', error);
-          preparationFailure = String(error?.message || error);
-          invalidate('terrain-tint-failed');
-          if (!unusableReported) { unusableReported = true; onUnusable?.(String(error?.message || error)); }
-        }
-      }).finally(() => controllers.delete(controller));
-    }
-
-
   function discardUploads(queue = terrainUploadQueue) {
     for (const item of queue.splice(0)) {
       if (item.spec) terrainTileQueuedKeys.delete(item.spec.key);
@@ -487,6 +464,7 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, onTi
     }
   }
   function reset() {
+    natural.reset();
     for (const key of uploadKeys) uploadScheduler?.cancelKey?.(key);
     uploadKeys.clear();
     epoch++;
@@ -498,27 +476,24 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, onTi
     terrainFetchQueue.length = 0; terrainFetchQueuedEntries.clear();
     terrainTileQueuedKeys.clear(); terrainTileRequests.clear(); terrainTileFailures.clear();
     terrainActiveFetches = 0;
-    tintPending = false; pendingDecodedBytes = 0; unusableReported = false; tileFailureReported = false;
+    pendingDecodedBytes = 0; unusableReported = false; tileFailureReported = false;
     if (gl && !gl.isContextLost?.()) {
       for (const tile of terrainTiles.values()) gl.deleteTexture(tile.texture);
-      if (tint) gl.deleteTexture(tint.texture);
-      if (tintFallback) gl.deleteTexture(tintFallback.texture);
       for (const grid of terrainGridMeshes.values()) { gl.deleteBuffer(grid.vertexBuffer); gl.deleteBuffer(grid.indexBuffer); }
     }
-    tint = null; tintFallback = null; terrainTiles.clear(); terrainGridMeshes.clear();
+    terrainTiles.clear(); terrainGridMeshes.clear();
     terrainLastLevel = -1; terrainRenderedLevel = -1;
     terrainTargetTileCount = 0; terrainTargetTilesLoaded = 0;
-    terrainTargetTileKeys.clear(); terrainRetentionKeys.clear();
+    terrainTargetTileKeys.clear(); terrainRetentionKeys.clear(); terrainCurrentViewKeys.clear();
     requiredKeys.clear(); resolutionLimited = false; preparationFailure = '';
   }
   const settled = () => [...terrainTargetTileKeys].every(key => terrainTiles.has(key) || Number(terrainTileFailures.get(key)?.attempts || 0) >= 4);
   function readiness() {
-    const tintRequired = terrainManifest?.representation === 'dem-relief-v1' && view.physicalStyle === 'physical' && !!tintUrl;
     return {
-      terrainReady: requiredKeys.size > 0 && [...requiredKeys].every(key => terrainTiles.has(key)) && (!tintRequired || !!tint),
+      terrainReady: requiredKeys.size > 0 && [...requiredKeys].every(key => terrainTiles.has(key)),
       terrainFailed: !!preparationFailure || [...requiredKeys].some(key => !terrainTiles.has(key) && Number(terrainTileFailures.get(key)?.attempts || 0) >= 4),
       terrainResolutionLimited: resolutionLimited,
-      terrainTargetKey: `${projectGeneration}:${contextRevision}:${epoch}:${terrainLastLevel}:${[...requiredKeys].sort().join(',')}:${tintRequired}`,
+      terrainTargetKey: `${projectGeneration}:${contextRevision}:${epoch}:${terrainLastLevel}:${[...requiredKeys].sort().join(',')}`,
     };
   }
   return Object.freeze({
@@ -533,26 +508,66 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, onTi
     },
     setManifest(manifest) {
       visibleTileCache.clear();
-      const next = { ...dependencies, content: resourceKey(manifest) };
-      if (resourceUpdate(dependencies, next).input) reset();
+      // Optional surface-catalog admission must never dispose already uploaded
+      // numerical DEM textures or force another terrain download.
+      const {naturalSurface:unusedNatural, ...demSource} = manifest || {};
+      const next = { ...dependencies, content: resourceKey(manifest ? demSource : null) };
+      const demChanged = resourceUpdate(dependencies, next).input;
+      const surfaceChanged = resourceKey(terrainManifest?.naturalSurface ?? null)
+        !== resourceKey(manifest?.naturalSurface ?? null);
+      if (demChanged) reset();
+      else if (surfaceChanged) natural.reset();
       dependencies = next; terrainManifest = manifest;
     },
-    prepare(frame, nextView) { activeFrameContext = frame; view = nextView; cacheBudgetBytes = nextView.cacheBudgetBytes; return prepare() || []; },
+    prepare(frame, nextView) {
+      activeFrameContext=frame;view=nextView;cacheBudgetBytes=nextView.cacheBudgetBytes;
+      const prepared=prepare()||[];
+      let demBytes=[...terrainTiles.values()].reduce((n,t)=>n+t.byteLength,0);
+      const unusedNaturalReserve=Math.max(0,visibleNaturalReserve(prepared.map(record=>record.spec))
+        -natural.bytes()-natural.pendingBytes());
+      const desiredDemCeiling=Math.max(0,cacheBudgetBytes-pendingDecodedBytes-unusedNaturalReserve
+        -natural.bytes()-natural.pendingBytes());
+      // A natural request can start before speculative DEM neighbours finish.
+      // Remove only *offscreen* DEM textures, never target/fallback terrain.
+      // This prevents subsequent DEM uploads from aborting every natural request
+      // in a 64 MiB cache while preserving the same total GPU budget.
+      if(unusedNaturalReserve>0 && gl && demBytes>desiredDemCeiling){
+        const removable=[...terrainTiles.entries()]
+          .filter(([key])=>!terrainCurrentViewKeys.has(key))
+          .sort((a,b)=>Number(b[0].split('/')[0])-Number(a[0].split('/')[0])
+            || a[1].lastUsed-b[1].lastUsed);
+        for(const [key,entry] of removable){
+          if(demBytes<=desiredDemCeiling)break;
+          if(!gl.isContextLost?.())gl.deleteTexture(entry.texture);
+          terrainTiles.delete(key);
+          demBytes-=entry.byteLength;
+        }
+      }
+      natural.prepare(prepared,{gl,scheduler:uploadScheduler,manifest:terrainManifest,contextGeneration:contextRevision,
+        enabled:!!view.visible&&view.physicalStyle==='physical',requiredReady:readiness().terrainReady,
+        budgetBytes:Math.max(0,cacheBudgetBytes-demBytes-pendingDecodedBytes)});
+      return prepared;
+    },
     request: requestTerrainTile,
-    tintTexture: () => tint?.texture || tintFallback?.texture || null,
     scheduleUpload: scheduleTerrainUpload,
     settled, reset,
     retry() {
+      natural.retry();
       for (const timer of retryTimers) clearTimeout(timer);
       retryTimers.clear(); terrainTileFailures.clear(); preparationFailure = ''; unusableReported = false; tileFailureReported = false;
       invalidate('terrain-retry');
     },
-    stats: () => ({ ...readiness(), terrainLevel: terrainLastLevel, terrainRenderedLevel, terrainTargetTileCount, terrainTargetTilesLoaded,
+    stats: () => ({ ...readiness(), terrainMemoryBudgetBytes: cacheBudgetBytes,
+      terrainNaturalSourceRevision: terrainManifest?.naturalSurface?.sourceRevision || null,
+      terrainLevel: terrainLastLevel, terrainRenderedLevel, terrainTargetTileCount, terrainTargetTilesLoaded,
       terrainTargetTilesSettled: settled(), terrainTilesLoaded: terrainTiles.size,
-      terrainCacheBytes: [...terrainTiles.values()].reduce((sum, tile) => sum + tile.byteLength, tint?.byteLength || tintFallback?.byteLength || 0),
-      terrainPendingDecodedBytes: pendingDecodedBytes, terrainTintReady: !!tint,
+      terrainCacheBytes: [...terrainTiles.values()].reduce((sum, tile) => sum + tile.byteLength, 0)+natural.bytes(),
+      terrainDemCacheBytes: [...terrainTiles.values()].reduce((sum, tile) => sum + tile.byteLength, 0),
+      ...natural.stats(),
+      terrainPendingDecodedBytes: pendingDecodedBytes,
       terrainTilesLoading: terrainTileRequests.size + terrainFetchQueue.length, terrainFetchConcurrency: terrainFetchConcurrency(),
-      terrainUploadCount, terrainFailureCount: terrainTileFailures.size }),
+      terrainUploadCount, terrainFailureCount: terrainTileFailures.size,
+      terrainIgnoredOffscreenCompletionCount: ignoredOffscreenTileCompletions }),
     dispose() { if (disposed) return; reset(); disposed = true; gl = null; uploadScheduler = null; },
   });
 }

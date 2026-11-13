@@ -1,14 +1,14 @@
 # Shared Core command boundary
 
-현재 문서·검증·명령·이력의 소유자는 `shared/core`의 `DocumentSession`과
-`Project`다. 웹과 앱은 전용 Worker의 WASM으로 같은 C++ 소스를 실행한다. 이전 JavaScript pipeline과 transaction runner는 제거했다.
-이번 이전의 기준은 현재 웹 동작이며, 원본 `9300609` 검증 자료는 별도로 보존한다.
+현재 문서·검증·명령·이력의 정본은 `src/document/native/`의 C++ `DocumentSession`·`Project`와 `src/document/project-domain.js`가 연결한 Core 경계다. 단일 Web Viewer가 C++/WASM을 사용하며 독립된 Windows/Android 앱과 이전 `shared/core` 디렉터리는 폐기됐다. 이전 JavaScript pipeline과 transaction runner는 현행 명령 정본이 아니다.
+
+> **기록 구분:** 아래 입력/편집/확정·저장 동작은 당시 공통 Core 전환의 의미 계약과 이행 기록이다. 사용자의 읽기 전용 Viewer가 편집 UI를 제공한다는 뜻이 아니다. 원본 `9300609` 검증 자료는 별도로 보존한다. 현재 코드 소유자는 [프로젝트 정본 계약](project-data-ownership.md) 및 [Viewer 구성](../../src/app/viewer-composition.js)을 기준으로 확인한다.
 
 ## 입력과 조회
 
 UI는 기존 object adapter, 기능 서비스, 편집 workflow에서 입력을 수집한다.
 웹 `ProjectDomain`은 application 명령을 순서대로 처리하고 Core에 전달한다.
-앱은 `apps/editor`의 웹 입력·Worker 경로와 플랫폼 저장 어댑터를 사용한다.
+당시 독립 앱은 `apps/editor`의 웹 입력·Worker 경로와 플랫폼 저장 어댑터를 사용했다. 현행 Viewer에는 이 별도 앱 경로가 없다.
 서비스·UI·렌더러는 문서, revision, 이력 또는 dirty를 직접 수정하지 않는다.
 
 `TerritorialEntityStore`와 Repository는 승인된 읽기 모델과 현재 월의
@@ -56,6 +56,6 @@ builtin place/hydro ID와 자료 출처는 기존 로더가 사실을 공급하�
 `check-runtime-boundaries`는 실제 capability 연결과 의존 방향을 검사한다.
 같은 소스·컴파일러·ABI의 JS/WASM 쌍을 manifest 해시로 확인한다.
 
-현재 작업에서는 앱, BAT, 포터블, offscreen 및 실제 Qt/브라우저 UI를 실행하지
+당시 작업에서는 앱, BAT, 포터블, offscreen 및 실제 Qt/브라우저 UI를 실행하지
 않는다. 실행하지 않은 사용자 화면과 시작 응답성은 통과로 표시하지 않는다.
-검증 근거는 [DEV-066 보고서](https://github.com/kimjeon-il/PandoLab-library-data/blob/f4ae4d70579b8c799fba2e507e1a948b7e1e42c2/reports/development/testing/shared-core-startup-implementation-2026-10-12.md)에 기록한다.
+검증 근거는 [DEV-066 보고서](https://github.com/kimjeon-il/PandoLab-library/blob/f4ae4d70579b8c799fba2e507e1a948b7e1e42c2/reports/development/testing/shared-core-startup-implementation-2026-10-12.md)에 기록한다.

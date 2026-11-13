@@ -221,6 +221,18 @@ export function createMapRenderCoordinator({
       }
 
       if (!canPresentFrame(viewState, viewFrameResult)) {
+        // A lost WebGL context cannot publish a scene or new view. Its missing
+        // selection strokes still need current-view SVG fallback coverage.
+        // Never use this escape hatch for a project/date/camera transition:
+        // those continue to preserve the previously accepted presentation.
+        if ((mask & MAP_RENDER_DIRTY.SELECTION_DATA)
+          && !(mask & (MAP_RENDER_DIRTY.VIEW | MAP_RENDER_DIRTY.VIEW_PRESENTATION
+            | MAP_RENDER_DIRTY.SELECTION_VIEW))
+          && !(requestedMask & (MAP_RENDER_DIRTY.PROJECT | MAP_RENDER_DIRTY.PROJECTION
+            | MAP_RENDER_DIRTY.RESIZE))
+          && renderers.canRenderRecoverySelection?.(viewState) === true) {
+          callRenderer('selectionRecovery', rendererTimes, viewState);
+        }
         deferredPresentationMask |= mask & presentationMask;
         return { deferred: true, renderRevision };
       }

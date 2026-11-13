@@ -1,20 +1,37 @@
-export const TERRAIN_RASTER_VERSION = '0.13.3-p2';
-export const TERRAIN_RASTER_DATASET = 'ETOPO 2022 DEM derived preview';
-export const TERRAIN_DEM_VERSION = '0.13.3';
+import { createExternalRuntimeDataFetch } from './external-runtime-data.js';
+export { createExternalRuntimeDataFetch };
+export const TERRAIN_DEM_VERSION = '0.14.0';
 export const TERRAIN_DEM_FORMAT = 'dem-relief-v1';
-export const TERRAIN_RASTER_FORMAT = 'raster-rgba-v1';
 
-export function terrainRasterManifestUrl(baseUrl, revision = '') {
-  const url = new URL(`terrain-preview/v${TERRAIN_RASTER_VERSION}/manifest.json`, baseUrl);
-  if (revision) url.searchParams.set('v', revision);
-  return url;
+export function terrainTileRequest(spec, manifest, { manifestUrl, dataBaseUrl, externalSource = null } = {}) {
+  const key = `${spec.level}/${spec.column}-${spec.row}.webp`;
+  if (![spec.level, spec.column, spec.row].every(Number.isSafeInteger)
+      || [spec.level, spec.column, spec.row].some(value => value < 0)) throw new Error('잘못된 DEM 타일 좌표');
+  const relative = manifest.urlTemplate.replace('{level}', String(spec.level))
+    .replace('{column}', String(spec.column)).replace('{row}', String(spec.row));
+  if (!externalSource) return { url: terrainAssetUrl(relative, { manifestUrl, dataBaseUrl, revision: manifest.assetsSha256 }) };
+  const revision = externalSource.revision, packaging = manifest.packaging;
+  if (!/^[a-f0-9]{40}$/.test(revision || '') || packaging?.sourceRevision !== revision
+      || packaging.sourcePath !== `terrain/v${manifest.version}/manifest.json` || !/^\d+\.\d+\.\d+$/.test(manifest.version || ''))
+    throw new Error('고정 DEM 원본 식별값이 다릅니다.');
+  const entry = manifest.tiles?.[key];
+  if (!entry || !Number.isSafeInteger(entry.bytes) || entry.bytes < 1 || !/^[a-f0-9]{64}$/.test(entry.sha256 || ''))
+    throw new Error(`DEM 타일 무결성 정보가 없습니다: ${key}`);
+  return { url: new URL(`https://raw.githubusercontent.com/kimjeon-il/PandoLab-library/${revision}/terrain/v${manifest.version}/${key}`),
+    bytes: entry.bytes, sha256: entry.sha256 };
 }
 
-export function selectTerrainManifestUrls({ official, raster, dev = null, preview = false, rasterOnly = false, defaultDem = false }) {
-  if (dev) return { primary: dev, fallback: raster, source: 'development' };
-  if (rasterOnly) return { primary: raster, fallback: null, source: 'raster' };
-  if (preview || defaultDem) return { primary: official, fallback: raster, source: preview ? 'preview' : 'official' };
-  return { primary: raster, fallback: null, source: 'raster' };
+export async function fetchTerrainTile(request, { signal, fetchFn = fetch } = {}) {
+  const response = await fetchFn(request.url, { signal });
+  if (!response.ok) throw new Error(`지형 타일 HTTP ${response.status}`);
+  const blob = await response.blob();
+  if (request.sha256) {
+    if (blob.size !== request.bytes) throw new Error('DEM 타일 크기가 다릅니다.');
+    const digest = await crypto.subtle.digest('SHA-256', await blob.arrayBuffer());
+    const actual = Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('');
+    if (actual !== request.sha256) throw new Error('DEM 타일 해시가 다릅니다.');
+  }
+  return blob;
 }
 
 export function terrainAssetUrl(path, { manifestUrl, dataBaseUrl, revision = '' } = {}) {
@@ -27,8 +44,8 @@ export function terrainAssetUrl(path, { manifestUrl, dataBaseUrl, revision = '' 
 }
 
 export function validateTerrainManifest(manifest) {
-  const format = manifest?.representation || (manifest?.version === TERRAIN_RASTER_VERSION ? TERRAIN_RASTER_FORMAT : '');
-  if (format !== TERRAIN_RASTER_FORMAT && format !== TERRAIN_DEM_FORMAT) {
+  const format = manifest?.representation;
+  if (format !== TERRAIN_DEM_FORMAT) {
     throw new Error(`지원하지 않는 지형 표현 형식: ${format || '(없음)'}`);
   }
   if (manifest.crs !== 'EPSG:4326' || JSON.stringify(manifest.extent) !== '[-180,-90,180,90]') {
@@ -47,19 +64,6 @@ export function validateTerrainManifest(manifest) {
         || Number(level.columns) !== Math.ceil(width / tileSize)
         || Number(level.rows) !== Math.ceil(height / tileSize)) {
       throw new Error(`지형 LOD ${index}의 크기가 올바르지 않습니다.`);
-    }
-  }
-  if (manifest.version === TERRAIN_RASTER_VERSION) {
-    if (format !== TERRAIN_RASTER_FORMAT || manifest.tileFormat !== 'lossless WebP RGBA'
-        || manifest.levels.length !== 2 || manifest.levels.some((level, index) => level.width !== 1350 * 2 ** index || level.height !== 675 * 2 ** index)
-        || manifest.sourceDem?.version !== TERRAIN_DEM_VERSION
-        || !/^[a-f0-9]{64}$/.test(manifest.sourceDem?.assetsSha256 || '')
-        || !/^[a-f0-9]{64}$/.test(manifest.sourceDem?.tintSha256 || '')
-        || !/^[a-f0-9]{64}$/.test(manifest.sourceDem?.landMaskSha256 || '')
-        || Object.keys(manifest.tiles || {}).length !== 8
-        || Object.values(manifest.tiles || {}).some(tile => !Number.isInteger(tile.bytes) || tile.bytes < 1 || !/^[a-f0-9]{64}$/.test(tile.sha256 || ''))
-        || Object.values(manifest.tiles || {}).reduce((sum, tile) => sum + tile.bytes, 0) > 32_000_000) {
-      throw new Error('DEM 미리보기의 출처·LOD·타일 계약이 올바르지 않습니다.');
     }
   }
   if (format === TERRAIN_DEM_FORMAT) {
@@ -89,5 +93,123 @@ export function validateTerrainManifest(manifest) {
       throw new Error('DEM 지형 채널·고도·LOD 계약이 올바르지 않습니다.');
     }
   }
+  if (manifest.version === '0.14.0') {
+    const policy = manifest.elevation?.quantization, inventory = manifest.tileSha256;
+    const count = manifest.levels.reduce((sum, level) => sum + level.columns * level.rows, 0);
+    if (!policy || policy.method !== 'roundHalfToEven' || policy.shadeInput !== 'original float32 (before quantization)'
+      || JSON.stringify(policy.land?.map(band => band.stepMeters)) !== '[16,32]'
+      || JSON.stringify(policy.ocean?.map(band => band.stepMeters)) !== '[16,64,128]'
+      || !inventory || typeof inventory !== 'object' || Array.isArray(inventory)
+      || Object.keys(inventory).length !== count
+      || manifest.levels.some(level => Array.from({length:level.rows}, (_,row) =>
+        Array.from({length:level.columns}, (_,column) => inventory[`${level.id}/${column}-${row}.webp`]))
+        .flat().some(hash => !/^[a-f0-9]{64}$/.test(String(hash || ''))))) {
+      throw new Error('DEM v0.14.0 고도 양자화 정책 또는 타일 SHA-256 목록이 올바르지 않습니다.');
+    }
+  }
   return Object.freeze({ ...manifest, representation: format });
+}
+
+// Natural imagery has its own immutable edition, but uses the same tile grid,
+// ordinary file fetch, byte-length and SHA-256 contract as the numerical DEM.
+export function validateNaturalSurfaceManifest(value, dem) {
+  const invalid = message => { throw new TypeError('Invalid natural terrain: ' + message); };
+  const hash = value => typeof value === 'string' && /^[a-f0-9]{64}$/.test(value);
+  const version = value?.version;
+  if (!value || value.schema !== 'pando-natural-surface-v1'
+      || typeof version !== 'string' || !/^\d+\.\d+\.\d+(?:-[a-z0-9]+(?:\.[a-z0-9]+)*)?$/.test(version)
+      || !/^[a-f0-9]{40}$/.test(value.sourceRevision || '')
+      || value.pathPrefix !== `terrain/natural/v${version}`) invalid('immutable edition');
+  if (value.crs !== 'EPSG:4326' || value.crs !== dem?.crs
+      || JSON.stringify(value.extent) !== '[-180,-90,180,90]'
+      || JSON.stringify(value.extent) !== JSON.stringify(dem.extent)
+      || value.registration !== 'cell-center' || value.registration !== dem.registration
+      || value.gutter !== 1 || value.gutter !== dem.gutter) invalid('grid registration');
+  if (value.tileFormat !== 'lossless WebP RGBA' || value.alpha !== 255 || value.colorSpace !== 'sRGB'
+      || value.shadeIncluded !== false || value.historicalReconstruction !== false
+      || !['preview','validated'].includes(value.status)
+      || !/^\d{4}-(0[1-9]|1[0-2])$/.test(value.referenceDate || '')
+      || !Number.isFinite(value.mixWeight) || value.mixWeight < 0 || value.mixWeight > 1) invalid('surface interpretation');
+  if (!Array.isArray(value.sources) || !value.sources.length || value.sources.some(source =>
+    !source || typeof source.id !== 'string' || !source.id || !hash(source.sha256)
+    || typeof source.url !== 'string' || !source.url.startsWith('https://')
+    || typeof source.observation !== 'string' || !source.observation
+    || typeof source.license !== 'string' || !source.license)) invalid('provenance');
+  if (!Array.isArray(value.levels) || !value.levels.length || !Array.isArray(dem.levels)
+      || value.levels.length !== dem.levels.length) invalid('LOD inventory');
+  const levels = value.levels.map((level, index) => {
+    const expected = dem.levels[index];
+    if (!level || !expected || ['id','width','height','tileSize','columns','rows'].some(key =>
+      !Number.isSafeInteger(level[key]) || level[key] !== expected[key])
+      || level.id !== index || level.width < 1 || level.height < 1 || level.tileSize < 1 || level.tileSize > 1024
+      || level.columns !== Math.ceil(level.width / level.tileSize)
+      || level.rows !== Math.ceil(level.height / level.tileSize)) invalid('LOD ' + index);
+    return Object.freeze({...level});
+  });
+  if (!value.tiles || typeof value.tiles !== 'object' || Array.isArray(value.tiles)) invalid('tile inventory');
+  const tiles = {};
+  for (const [key, entry] of Object.entries(value.tiles)) {
+    const match = /^(0|[1-9]\d*)\/(0|[1-9]\d*)-(0|[1-9]\d*)\.webp$/.exec(key);
+    if (!match) invalid('tile path');
+    const [, id, column, row] = match.map(Number), level = levels[id];
+    if (!level || !Number.isSafeInteger(column) || !Number.isSafeInteger(row)
+        || column >= level.columns || row >= level.rows) invalid('tile bounds');
+    const width = Math.min(level.tileSize, level.width - column * level.tileSize) + 2;
+    const height = Math.min(level.tileSize, level.height - row * level.tileSize) + 2;
+    if (!entry || !Number.isSafeInteger(entry.bytes) || entry.bytes < 1 || entry.bytes > 32 * 1024 * 1024
+        || !hash(entry.sha256) || entry.pixelWidth !== width || entry.pixelHeight !== height) invalid('tile identity: ' + key);
+    tiles[key] = Object.freeze({...entry});
+  }
+  if (!Object.keys(tiles).length) invalid('empty tile inventory');
+  return Object.freeze({...value, extent:Object.freeze([...value.extent]), levels:Object.freeze(levels),
+    tiles:Object.freeze(tiles), sources:Object.freeze(value.sources.map(source => Object.freeze({...source})))});
+}
+
+// The natural surface may have deliberately sparse regional preview coverage.
+// Feather *only* boundaries lacking an adjacent natural tile. Complete regions
+// stay seamless and all-world outer latitude edges are not artificially faded.
+// Order: west, east, north, south.
+export function naturalSurfaceFadeEdges(spec, manifest, isResident = null) {
+  if (isResident !== null && typeof isResident !== 'function') throw new TypeError('Invalid natural texture residency predicate');
+  const surface=manifest?.naturalSurface,level=surface?.levels?.[spec?.level],tiles=surface?.tiles;
+  if(!level || !tiles) return Object.freeze([0,0,0,0]);
+  const {column,row}=spec;
+  if(!Number.isSafeInteger(column)||!Number.isSafeInteger(row)||column<0||row<0
+    ||column>=level.columns||row>=level.rows) throw new TypeError('Invalid natural tile neighbour coordinates');
+  const exists=(x,y)=>{
+    if(y<0||y>=level.rows)return false;
+    const wrapped=(x+level.columns)%level.columns;
+    const key = `${level.id}/${wrapped}-${y}.webp`;
+    return Boolean(tiles[key]) && (isResident === null || isResident(key));
+  };
+  return Object.freeze([
+    exists(column-1,row)?0:1,
+    exists(column+1,row)?0:1,
+    row===0||exists(column,row-1)?0:1,
+    row===level.rows-1||exists(column,row+1)?0:1,
+  ]);
+}
+
+const naturalAdmissions = new WeakMap();
+export function terrainNaturalTileRequest(spec, manifest, {
+  physicalStyle = 'physical', terrainVisible = true, pass = 'land',
+} = {}) {
+  if (!terrainVisible || physicalStyle !== 'physical' || pass !== 'land' || !manifest?.naturalSurface) return null;
+  if (![spec?.level,spec?.column,spec?.row].every(value => Number.isSafeInteger(value) && value >= 0))
+    throw new TypeError('Invalid natural terrain tile coordinates');
+  let admitted = naturalAdmissions.get(manifest);
+  if (!admitted || admitted.input !== manifest.naturalSurface) {
+    admitted = {input:manifest.naturalSurface, value:validateNaturalSurfaceManifest(manifest.naturalSurface,manifest)};
+    naturalAdmissions.set(manifest,admitted);
+  }
+  const surface = admitted.value, key = `${spec.level}/${spec.column}-${spec.row}.webp`;
+  const entry = surface.tiles[key];
+  // Sparse preview coverage is intentional, never an endless missing-tile retry.
+  if (!entry) return null;
+  if (spec.pixelWidth !== undefined && entry.pixelWidth !== spec.pixelWidth + 2
+      || spec.pixelHeight !== undefined && entry.pixelHeight !== spec.pixelHeight + 2)
+    throw new TypeError('Natural terrain source dimensions differ from DEM');
+  return {url:new URL(`https://raw.githubusercontent.com/kimjeon-il/PandoLab-library/${surface.sourceRevision}/${surface.pathPrefix}/${key}`),
+    bytes:entry.bytes,sha256:entry.sha256,pixelWidth:entry.pixelWidth,pixelHeight:entry.pixelHeight,
+    mixWeight:surface.mixWeight,sourceRevision:surface.sourceRevision};
 }

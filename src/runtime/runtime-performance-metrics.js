@@ -37,7 +37,7 @@ function detailValue(value, depth = 0) {
 // arbitrary nested diagnostics or fabricating an absent measurement.
 const STARTUP_REPORT_FIELDS = Object.freeze([
   'interactiveMs', 'interactivePaintMs', 'editableMs', 'readyMs',
-  'previewReceivedMs', 'previewDisplayMs', 'geometryReceivedMs',
+  'geometryReceivedMs',
   'canonicalGeometryAppliedMs', 'canonicalMeshAppliedMs',
   'rendererStatus', 'canonicalStateApplyStage', 'geometryError', 'meshError',
 ]);

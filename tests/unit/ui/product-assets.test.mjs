@@ -30,7 +30,7 @@ function fixture() {
   put('.nojekyll'); put('assets/css/viewer.css');
   const preview='assets/data/physical-land/preview/v1/fixture.json.gz';
   put(preview,'preview');
-  put('assets/js/build-meta.js','globalThis.PANDOLAB_BUILD_META=Object.freeze('+JSON.stringify({initialLandPreview:{url:preview}})+');');
+  put('assets/js/build-meta.js','globalThis.PANDOLAB_BUILD_META=Object.freeze('+JSON.stringify({})+');');
   put('assets/js/viewer.js', "import './modules/read.js';");
   put('assets/js/modules/read.js', 'export const value = 1;');
   put('assets/js/app.js'); put('assets/js/bootstrap.js'); put('assets/js/modules/app-composition.js');
@@ -44,8 +44,8 @@ test('viewer closure includes static and query-versioned dynamic imports but exc
   f.put('assets/js/modules/read.js', "export { value } from './value.js'; const next = import(`./lazy.js?v=${Date.now()}`); export { next };");
   f.put('assets/js/modules/value.js', 'export const value = 1;'); f.put('assets/js/modules/lazy.js', 'export const lazy = true;');
   const paths = await f.collect();
-  for (const path of ['assets/js/modules/value.js', 'assets/js/modules/lazy.js', 'assets/data/world/a.bin', 'assets/css/viewer.css', 'assets/data/physical-land/preview/v1/fixture.json.gz']) assert.ok(paths.has(path), path);
-  for (const path of ['assets/js/app.js', 'assets/js/bootstrap.js', 'assets/js/modules/app-composition.js', 'reports/a.md', 'tools/run.mjs']) assert.equal(paths.has(path), false, path);
+  for (const path of ['assets/js/modules/value.js', 'assets/js/modules/lazy.js', 'assets/data/world/a.bin', 'assets/css/viewer.css']) assert.ok(paths.has(path), path);
+  for (const path of ['assets/data/physical-land/preview/v1/fixture.json.gz', 'assets/js/app.js', 'assets/js/bootstrap.js', 'assets/js/modules/app-composition.js', 'reports/a.md', 'tools/run.mjs']) assert.equal(paths.has(path), false, path);
 });
 
 test('viewer publication excludes offline reference OCR and AI runtime assets', async () => {
@@ -114,4 +114,22 @@ test('runtime worker catalog includes classic Worker imports and rejects a missi
   assert.ok((await f.collect()).has('assets/js/workers/worker-rpc-host.js'));
   f.files.delete('assets/js/workers/worker-rpc-host.js');
   await assert.rejects(f.collect(), /missing/i);
+});
+
+test('inline Canvas core keeps its dynamic numerical manifest dependency in the Viewer closure', async () => {
+ const f=fixture();
+ try {
+  f.put('assets/js/modules/read.js', "import '../workers/canvas-render-core.js';");
+  f.put('assets/js/workers/canvas-render-core.js', "const validationUrl = new URL('../modules/terrain-manifest.js', 'https://example.test/assets/js/workers/canvas-render-worker.js'); export const load = () => import(validationUrl.href);");
+  f.put('assets/js/modules/terrain-manifest.js','export const validateTerrainManifest = value => value;');
+  const paths=await f.collect();
+  assert.ok(paths.has('assets/js/workers/canvas-render-core.js'));
+  assert.ok(paths.has('assets/js/modules/terrain-manifest.js'));
+  assert.equal(paths.has('assets/js/workers/canvas-render-worker.js'),false,'inline core does not load the real Worker entry');
+  f.files.delete('assets/js/modules/terrain-manifest.js');
+  await assert.rejects(f.collect(),/Missing viewer dependency/);
+ } finally {
+  assert.equal(dirname(f.root),tmpdir());assert.ok(f.root.startsWith(join(tmpdir(),'pando-viewer-assets-')));
+  rmSync(f.root,{recursive:true,force:true});
+ }
 });

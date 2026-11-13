@@ -1,8 +1,14 @@
-# 지명 웹·앱 동기화용 계약 v2
+# 지명 검수·PLAC 동기화 계약 — 현행 소유자와 과거 Web/App 결정
 
-웹의 `work/places` 브랜치는 지명 검수 원본과 실행용
-데이터 계약의 소유자이다. 앱은 `apps/editor`에서 같은 웹 구현을 사용하며,
-데이터 의미·직렬화·언어별 표시 규칙은 동일한 결과를 만들어야 한다.
+> **2026-11-12 현행 명칭 정책:** 지도 UI의 표시 대상은 **도시**로 부른다. 지리적 객체의 내부 계약과 내장 자료는 **`Place` / `place` / `places`**를 사용하며, `name`은 그 객체의 명칭이다. 반면 `label` / `labels`는 지도상의 글자 표시·충돌 배치·선택 및 문서 계약에 쓰이는 별개의 기술적 개념이므로 일괄 변경하지 않는다. 지명 연구·역사 자료와 아래 과거 검수 기록의 표현은 그대로 보존한다.
+
+> **현행 제품(2026-11-11 확인):** 단일 Pando Web Viewer. 독립 `apps/editor` 제품은 폐기되었다. 명칭 선정·검수, PLAC 바이너리, 도시 후보, 표시 순위, 도시 유효기간은 각각 별도 소유자를 유지한다. 아래 날짜별 검수·동기화·앱 이식 기록은 보존하지만 **독립 앱 개발 지시나 현재 미구현 판정으로 사용하지 않는다**.
+>
+> **외부 편집 규칙 상태:** `PandoLab-library/reports/places/historical-display-policy.json`과 `korean-map-label-policy.json`은 조사 시 `staged-*` 상태였다. 이 JSON의 편집 원칙이 현재 지도 런타임에 전부 집행된다고 간주하지 않는다. 코드·매니페스트 및 승인 데이터가 현재 게시의 실효 기준이다.
+>
+> **2026-11-12 지도 라벨 표시 원칙:** 한국어명은 기본 고정이며, 사용자가 **원어명 병기**를 선택한 경우에만 8배 이상에서 대표 원어 한 줄을 보조 표시한다. 영어명과 추가 공식 원어는 데이터·검색·상세정보에 남긴다. 원어 보조 행이 화면에서 충돌하면 한국어명은 유지하고 보조 행만 생략한다. 아래 2026-10 역사 자료의 3개 언어 토글·복수 원어 직접 표시는 과거 개발 계약으로 보존하며 현재 Viewer 동작을 뜻하지 않는다.
+
+2026-10-09~11의 원래 계약은 `work/places` 검수 자료와 당시 Web/App 교환을 대상으로 작성되었다. 이후 단일 Web Viewer로 통합되었으며 당시 결정·검증 내용은 아래에 보존한다.
 
 ## 명칭 선별 기준 (1차 9개·2차 한국 3개 검토, 나머지 미검수)
 
@@ -20,7 +26,7 @@
 
 - 검수 정본은 기존 `defaultNativeNames[]` 및 `displayTimeline[].nativeNames[]` (각 원어명에 `text/language/script`)를 유지한다. 이것을 중복 저장하지 않고 실행용으로 변환할 때 첫 번째 원어명의 `text`를 `nameNative`, 나머지 최대 두 원어명의 `text`를 `nameNativeExtras[]`로 내보낸다.
 - 변경구간마다 `nameTimeline[].native` 와 `nameTimeline[].nativeExtras[]`를 한 번에 기록한다. 원어 대표값을 변경하면서 이전 시기의 추가명 목록을 실수로 이어받지 않는다. 추가 원어가 없는 시기는 `nativeExtras: []`이다.
-- PLAC v3 레코드는 72바이트·문자열 오프셋 9개, 신규 슬롯은 `nameNativeExtrasText`(추가 원어명 최대 2개인 UTF-8 JSON 문자열 배열)이다. 기록순서·바이트 오프셋은 `contracts/places/v3.json`을 따른다. 시간별 `nativeExtras[]`는 기존 JSON 타임라인 문자열 슬롯 내부에 저장한다.
+- PLAC v3 레코드는 72바이트·문자열 오프셋 9개, 신규 슬롯은 `nameNativeExtrasText`(추가 원어명 최대 2개인 UTF-8 JSON 문자열 배열)이다. 기록순서·바이트 오프셋은 `src/document/place-contract.js`의 정본을 따른다. 시간별 `nativeExtras[]`는 기존 JSON 타임라인 문자열 슬롯 내부에 저장한다.
 - 행 중복 제거는 KO, EN, 원어(최대 3개) 순서로 문자열 공백 정리/NFKC/대소문자 무시 후 수행한다. 영어·원어가 같아도 데이터에서는 언어별 이름을 그대로 보존한다. 웹 SVG는 원어 행이 여러 개일 수 있으므로 언어코드가 아닌 인덱스로 `tspan`을 결합하며 앱도 동일한 행을 출력한다.
 - 현재 런타임은 검수 자료의 모든 원어명 언어코드와 시대별 국가·영토 경계를 자동 해석하지 않는다. **검수 JSON → 실행용 타일 생성/배포** 및 **지도 날짜 연결**은 별도 작업이다. `work/places` 브랜치만 수정하며 `main`은 변경하지 않는다.
 
@@ -63,7 +69,23 @@
 
 실제 구현 단계에는 기존 자료와의 충돌 검사, 관련 장소의 ID/위치 검증, 영문·원어명 변경과 독립된 날짜 선택, 검수 범위 및 3상태 판정 테스트가 필요하다. 기존 PLAC v2 바이너리와 웹·앱 렌더러는 이 확장 형식을 아직 지원하지 않으므로 **이번에는 정책만 추가**한다.
 
-## 범위별 정본 및 책임
+## 현재 소유권 (2026-11-11 코드·계약 기준)
+
+| 책임 | 현행 소유자 | 별도 상태·제한 |
+| --- | --- | --- |
+| 역사적 도시 정체·명칭 검수 | 외부 `PandoLab-library/reports/places/tier1-major-cities-*.json` 및 관련 정책 JSON | 원자료 검수·편집 원칙; 자동 게시나 역사 인구 인증과 구별 |
+| 지명 ID·언어 토글·PLAC v3 필드 | [`src/document/place-contract.js`](../src/document/place-contract.js), [`tests/fixtures/places/plac-v3.json`](../tests/fixtures/places/plac-v3.json) | `v2.json`은 과거 회귀 판본 |
+| 타일 인코딩·조회·검색 | [`src/data/place-codec.js`](../src/data/place-codec.js), [`src/data/place-worker-store.js`](../src/data/place-worker-store.js), [`src/data/place-runtime.js`](../src/data/place-runtime.js) | Worker와 원본 조회 자료는 프로젝트 편집 저장소가 아님 |
+| 시대별 이름 선택·지도 라벨 | [`src/data/place-name-policy.js`](../src/data/place-name-policy.js), [`src/rendering/territorial-labels.js`](../src/rendering/territorial-labels.js) | 이름 변화와 도시 표시 자격은 다른 규칙 |
+| 후보 도시 선별·승인 | [`tools/lib/geonames-policy.mjs`](../tools/lib/geonames-policy.mjs), 승인된 자료·매니페스트 | 새로운 후보를 별도 승인 없이 게시하지 않음 |
+| 표시 5등급과 공간 보정 | [`tools/build/place-display-rank.mjs`](../tools/build/place-display-rank.mjs), [`docs/place-runtime.md`](place-runtime.md) | 인구 중심 가중치 추정값, 역사 시점의 실측 인구 아님 |
+| 도시 라벨 유효기간 | [`src/data/place-lifetime-policy.js`](../src/data/place-lifetime-policy.js) | 도시의 존재 자체나 명칭 변경과 혼동하지 않음 |
+
+표시·타일 계약은 하나의 현행 코드 소유자에 따르며, 과거 Web/App 이식용 복제본을 새로운 독립 구현 정본으로 만들지 않는다.
+
+### 2026-10-11 웹·앱 동기화 소유권 표 (당시 기록)
+
+#### 범위별 정본 및 책임 (당시 표)
 
 | 영역 | 웹 정본 | 앱 대응 |
 | --- | --- | --- |
@@ -78,7 +100,13 @@
 **단일 코드 정본**이다. UI와 환경설정에서 같은 언어 정규화/토글 함수를 사용한다.
 포맷 상수를 `place-codec.js` 등에 별도로 하드코딩하지 않는다.
 
-## 기계 판독 가능한 교환 파일
+## 실행 형식과 고정 검증 예제
+
+**현행 실행 형식의 정본은** `src/document/place-contract.js`이며, 고정 검증 예제는 [`tests/fixtures/places/plac-v3.json`](../tests/fixtures/places/plac-v3.json)에 둔다. 미사용 v2는 현재 트리에서 제거했으며 과거 바이트는 라이브러리 비공개 보존본과 Git 이력에 남아 있다.
+
+### PLAC v2 원래 교환 설계 (역사 기록)
+
+아래 옛 경로는 당시 커밋 기준이다. 원본 JSON은 라이브러리의 `private-evidence/retired-contracts/contracts-cleanup-20261113/`에 보존하며 현재 실행 경로가 아니다.
 
 `contracts/places/v2.json`에는 다음 정보를 하나로 묶는다.
 
@@ -93,7 +121,7 @@
 - 검증된 데이터 사례에 대한 입력·정규화 결과·원시 v2 타일 hex·
   선택 언어/시점별 기대 행·웹 예상 충돌 상자.
 
-현재 PLAC v3 검사는 `contracts/places/v3.json`의 사례를 해당
+현재 PLAC v3 검사는 `tests/fixtures/places/plac-v3.json`의 사례를 해당
 `reports/places/tier1-major-cities-batch*.json` 검수 원본과 직접 대조한다.
 검수 원본의 대표명·좌표·역사 명칭이 어긋나면 검사에 실패한다.
 
@@ -102,16 +130,20 @@
 
 ## 웹에서 변경 시
 
+현재 등록된 진입점은 `pnpm check:places`(장소 자료/게시 계약) 및 영향받은 기존 단위 테스트다. 검증 범위는 `package.json`과 `scripts/contracts/application-checks.json`의 현행 등록을 확인한다. 이 문서 수정에서는 검사를 실행하지 않았다.
+
+**2026-10-11 당시 검증 명령 (현재 등록 여부와 무관한 기록):**
+
 ```sh
 pnpm check:place-sync
 node --test tests/unit/data/place-codec.test.mjs tests/unit/document/place-names.test.mjs tests/unit/place-layout.test.mjs tests/unit/ui/user-preferences.test.mjs
 ```
 
-`contracts/places/v3.json`의 기대 행과 바이트는 검수된 고정값이다.
+`tests/fixtures/places/plac-v3.json`의 기대 행과 바이트는 검수된 고정값이다.
 검사는 현재 인코딩·정규화·표시 결과와 검수 원본을 이 값들과 비교한다.
-이전 `v2.json`은 고정 회귀 입력으로 유지하며 현재 계약 검사에서 재생성하지 않는다.
+이전 `v2.json`은 현행 검사 입력이 아니므로 현재 트리에서 제거했다.
 
-## 나중에 앱에 이식할 때
+## 2026-10-11 독립 앱 이식 계획 (역사 기록; 현재 제품의 작업 지시 아님)
 
 1. 대상 웹 **커밋 SHA**와 이 커밋의 `contracts/places/v2.json`을 함께 고정한다.
 2. 앱 `PlaceRecord`에 언어별 이름과 날짜별 이력을 추가하고 v2 디코더를 작성한다.
@@ -126,7 +158,7 @@ node --test tests/unit/data/place-codec.test.mjs tests/unit/document/place-names
 검증 자료이므로 그 원본을 덮어쓰지 않는다. 이번에는 **앱 브랜치를 만들거나
 앱 코드를 수정하지 않는다.**
 
-## 아직 완료되지 않은 연결
+## 2026-10-11 당시 아직 완료되지 않은 연결 (역사 기록)
 
 웹 실제 지명 manifest는 빈 상태이고, 검수 기록을 PLAC v2 타일로 배포하는
 빌드 단계는 이 변경 범위 밖이다. 지도 선택 날짜를

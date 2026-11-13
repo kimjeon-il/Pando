@@ -6,6 +6,13 @@ import {createHash} from 'node:crypto';
 import {buildFrontendSnapshot} from "../../../scripts/lib/frontend-build.mjs";
 import {frontendFixture as fixture} from "../../helpers/frontend-build-fixture.mjs";
 
+test('Viewer development metadata uses the immutable terrain source declared by its pinned catalog',async t=>{
+ const f=fixture(t),revision='a'.repeat(40);
+ f.metadata[f.terrainPath].packaging={sourceRevision:revision,sourcePath:'terrain/v0.14.0/manifest.json'};
+ const snapshot=await buildFrontendSnapshot(f.options);
+ assert.deepEqual(snapshot.buildMeta.terrainExternalSource,{revision});
+});
+
 test('one source build emits only the Viewer runtime shared with Windows reviewer',async t=>{
  const f=fixture(t),snapshot=await buildFrontendSnapshot(f.options);
  assert.ok(snapshot.html.viewer.includes('assets/js/viewer.js'));
@@ -23,10 +30,8 @@ test('one source build emits only the Viewer runtime shared with Windows reviewe
  assert.equal(snapshot.buildMeta.mapProject.resources.rivers.catalog,snapshot.buildMeta.mapProject.resources.lakes.catalog);
  assert.equal(snapshot.buildMeta.mapProject.resources.places.catalog,'assets/data/places/manifest.json');
  assert.ok(snapshot.viewerPaths.has(snapshot.buildMeta.mapProjectManifest.url));
- assert.match(snapshot.buildMeta.initialLandPreview.sha256,/^[a-f0-9]{64}$/);
- assert.equal(snapshot.buildMeta.initialLandPreview.sourceSha256,f.metadata['assets/data/physical-land/v1/manifest.json'].asset.sha256);
- assert.ok(snapshot.assets.has(snapshot.buildMeta.initialLandPreview.url));
- assert.ok(snapshot.viewerPaths.has(snapshot.buildMeta.initialLandPreview.url));
+ assert.equal(Object.hasOwn(snapshot.buildMeta,'initialLandPreview'),false);
+ assert.equal([...snapshot.viewerPaths].some(path=>path.includes('initial-land-preview')),false);
  assert.match(snapshot.buildMeta.projectCatalogs.world.sha256,/^[a-f0-9]{64}$/);
  for(const field of ['worldBundle','builtinWorld','preparedPolygonMeshes','physicalLand','physicalWaterObjects','hydroCatalogVersion'])
    assert.equal(Object.hasOwn(snapshot.buildMeta,field),false,'No duplicated global '+field);
@@ -101,7 +106,7 @@ test('a separately selected project owns the complete published map and place re
 });
 
 
-test('selected Hydro source version and land/terrain pairing are validated before publication',async t=>{
+test('selected Hydro and numerical terrain contracts are validated before publication',async t=>{
  const f=fixture(t);
  const hydro='assets/data/hydro/v0.13.4/manifest.json';
  f.metadata[hydro]={...f.metadata[hydro],version:'alternate-release'};
@@ -110,11 +115,29 @@ test('selected Hydro source version and land/terrain pairing are validated befor
  f.metadata[hydro]={...f.metadata[hydro],schema:'invalid'};
  await assert.rejects(buildFrontendSnapshot(f.options),/Hydro catalog/);
  f.metadata[hydro]={...f.metadata[hydro],schema:'pandolab-water-shards-v5'};
- const terrain='assets/data/terrain-preview/v0.13.3-p2/manifest.json';
+ const terrain=f.terrainPath;
  f.metadata[terrain]={...f.metadata[terrain],sourceDem:{landMaskSha256:'other-land'}};
- await assert.rejects(buildFrontendSnapshot(f.options),/terrain and physical land lineage differ/);
+ await assert.doesNotReject(buildFrontendSnapshot(f.options),'DEM samples do not classify physical land');
+ f.metadata[terrain]={...f.metadata[terrain],representation:'raster-rgba-v1'};
+ await assert.rejects(buildFrontendSnapshot(f.options),/지형 표현 형식/);
 });
 
+
+test('Viewer closure publishes only bounded optional prepared meshes while preserving the full catalog',async t=>{
+  const f=fixture(t),directory='assets/data/prepared-polygons/generated/v2/';
+  const small=directory+'small.bin.gz',large=directory+'large.bin.gz';
+  f.metadata[directory+'manifest.json'].meshes={
+    small:{url:small,compressedBytes:65536,sha256:'a'.repeat(64)},
+    large:{url:large,compressedBytes:65537,sha256:'b'.repeat(64)},
+  };
+  f.metadata[small]=Buffer.alloc(65536);
+  f.metadata[large]=Buffer.alloc(65537);
+  const snapshot=await buildFrontendSnapshot({...f.options,dataPaths:Object.keys(f.metadata)});
+  assert.equal(snapshot.buildMeta.projectCatalogs.preparedMeshes.current,true);
+  assert.ok(snapshot.viewerPaths.has(directory+'manifest.json'));
+  assert.ok(snapshot.viewerPaths.has(small));
+  assert.equal(snapshot.viewerPaths.has(large),false);
+});
 
 test('obsolete prepared meshes are cache misses, not a source change or deployment failure',async t=>{
  const f=fixture(t),before=await buildFrontendSnapshot(f.options);
@@ -142,7 +165,7 @@ test('changing default-world geography, terrain and mesh catalogs requires no Vi
   world:'assets/data/world/alternate.json',
   territorial:'assets/data/builtin-world/alternate/index.json',
   physicalLand:'assets/data/physical-land/alternate/manifest.json',
-  terrain:'assets/data/terrain-preview/alternate/manifest.json',
+  terrain:'assets/data/terrain/alternate/manifest.json',
   preparedMeshes:'assets/data/prepared-polygons/alternate/manifest.json',
  };
  const meta=f.metadata;

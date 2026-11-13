@@ -48,7 +48,6 @@ void require(bool condition,CommandError error,const char* detail)
 {
     if(!condition) throw Rejection{error,detail};
 }
-bool opacity(double value) { return std::isfinite(value) && value>=0 && value<=1; }
 const std::string& historicalInstanceId(const HistoricalAddition& addition) {
     return addition.instanceId.empty()?addition.selection.libraryId:addition.instanceId;
 }
@@ -314,8 +313,8 @@ void validateRequest(const ProjectSnapshot& project,const CommandRequest& reques
     for(const auto& edit:request.args.properties.countries) {
         require(countries.insert(edit.id).second,CommandError::InvalidArguments,"duplicate country edit");
         const auto& p=edit.properties;
-        require(!Project::normalizeName(p.name).empty() && p.color<=0xffffff && opacity(p.opacity),
-                CommandError::InvalidArguments,"invalid country name/color/opacity");
+        require(!Project::normalizeName(p.name).empty() && p.color<=0xffffff,
+                CommandError::InvalidArguments,"invalid country name/color");
     }
     std::visit([&](const auto& action) {
         using T=std::decay_t<decltype(action)>;
@@ -470,7 +469,7 @@ void applyTerritorial(ProjectDocument& d,const ApplyTerritorialMutation& action)
             GeometryRef geometry{"geometry-"+in.id,1};unsigned n=1;while(d.geometries.get(geometry))geometry={"geometry-"+in.id+"-"+std::to_string(n++),1};d.geometries.insert(geometry,in.geometry);
             TerritorialUnit unit;unit.id=in.id;unit.name=in.name;unit.baseName=in.kind==UnitKind::General?in.name:"";unit.nameExplicit=true;unit.notes=in.notes;unit.kind=in.kind;d.units.push_back(unit);
             addStaticTerritorialRecords(d,in.id,geometry,in.parent?in.parent->id:"",in.coverageMode.empty()?"explicit":in.coverageMode);
-            const auto ref=territorialRef(in.id);d.presentation.objectStyles.emplace(ref,ObjectStyle{in.explicitColor.value_or(0),1,in.explicitColor.has_value()});
+            const auto ref=territorialRef(in.id);d.presentation.objectStyles.emplace(ref,ObjectStyle{in.explicitColor.value_or(0),in.explicitColor.has_value()});
         } else if constexpr(std::is_same_v<T,DeleteTerritorialIntent>) {
             std::set<ObjectRef> removed(in.targets.begin(),in.targets.end());std::vector<std::string> ids;
             for(const auto& ref:removed){ids.push_back(ref.id);d.presentation.objectStyles.erase(ref);}
@@ -543,7 +542,7 @@ void applyTerritorial(ProjectDocument& d,const ApplyTerritorialMutation& action)
             patch();GeometryRef geometry{"geometry-"+in.createdId,1};unsigned suffix=1;while(d.geometries.get(geometry))geometry={"geometry-"+in.createdId+"-"+std::to_string(suffix++),1};d.geometries.insertCanonical(geometry,createdGeometry);
             TerritorialUnit createdUnit;createdUnit.id=in.createdId;createdUnit.name=trimWebText(in.createdName);createdUnit.nameExplicit=true;createdUnit.kind=sourceKind;d.units.push_back(std::move(createdUnit));
             addStaticTerritorialRecords(d,in.createdId,geometry,parent.parentId,parent.parentId.empty()?"explicit":"partition");const auto createdRef=territorialRef(in.createdId);
-            d.presentation.objectStyles.emplace(createdRef,ObjectStyle{0,1,false});
+            d.presentation.objectStyles.emplace(createdRef,ObjectStyle{0,false});
             for(const auto& id:reparented)if(std::any_of(d.units.begin(),d.units.end(),[&](const auto& child){return child.id==id;}))staticParentRelation(d,id).parentId=in.createdId;
             if(!root) {
                 auto& web=d.presentation.webPresentation;
@@ -809,7 +808,6 @@ void applyArguments(ProjectDocument& candidate,const DocumentIndex& index,const 
         if(objectDisplayName(u)!=Project::normalizeName(edit.properties.name)){u.name=Project::normalizeName(edit.properties.name);u.nameExplicit=true;}
         u.notes=edit.properties.memo;
         if(effectiveObjectColor(candidate,ref)!=edit.properties.color){style.color=edit.properties.color;style.explicitColor=true;}
-        style.opacity=edit.properties.opacity;
     }
     std::visit([&](const auto& action) {
         using T=std::decay_t<decltype(action)>;
@@ -1063,12 +1061,11 @@ void checkEffects(const ProjectSnapshot& project,const ProjectDocument& after,co
         const bool colorChanged=oldStyle.explicitColor!=nextStyle.explicitColor || (oldStyle.explicitColor&&oldStyle.color!=nextStyle.color);
         const bool dateChanged=isStaticTimeline(before) &&
             !sameValidity(staticLifetime(before,territorialRef(old.id)).validity,staticLifetime(after,territorialRef(next.id)).validity);
-        bool changed=old.name!=next.name || old.nameExplicit!=next.nameExplicit || old.notes!=next.notes || colorChanged || dateChanged ||
-                     oldStyle.opacity!=nextStyle.opacity;
+        bool changed=old.name!=next.name || old.nameExplicit!=next.nameExplicit || old.notes!=next.notes || colorChanged || dateChanged;
         // Check pre-transaction locks; a compound unlock cannot bypass protection.
         require(!changed || !old.locked || request.commandId=="territorial.batch-color" || request.commandId=="territorial.service-color",CommandError::Locked,"country locked");
         allow(old.name!=next.name,ref,"name"); allow(old.notes!=next.notes,ref,"notes");
-        allow(colorChanged,ref,"color");allow(dateChanged,ref,"validity");allow(old.locked!=next.locked,ref,"locked"); allow(oldStyle.opacity!=nextStyle.opacity,ref,"opacity");
+        allow(colorChanged,ref,"color");allow(dateChanged,ref,"validity");allow(old.locked!=next.locked,ref,"locked");
     }
 }
 template<class Range,class Equal> bool same(const Range& a,const Range& b,Equal equal)
@@ -1142,8 +1139,8 @@ ChangeImpact calculateChangeImpact(const ProjectDocument& before,const ProjectDo
     };
     const auto& a=before.presentation;const auto& b=after.presentation;
     const bool globalPresentation=!(a.webPresentation==b.webPresentation)||!same(a.objectStyles,b.objectStyles,[](const auto& x,const auto& y) {
-            return x.first==y.first&&std::tie(x.second.color,x.second.opacity,x.second.explicitColor)==
-                std::tie(y.second.color,y.second.opacity,y.second.explicitColor);
+            return x.first==y.first&&std::tie(x.second.color,x.second.explicitColor)==
+                 std::tie(y.second.color,y.second.explicitColor);
         });
     const bool relationsChanged=
         !same(before.timelineRecords.lifetimes,after.timelineRecords.lifetimes,[](const auto& x,const auto& y) {
@@ -1220,7 +1217,7 @@ ChangeImpact calculateChangeImpact(const ProjectDocument& before,const ProjectDo
 
 bool CountryProperties::operator==(const CountryProperties& b) const
 {
-    return name==b.name && memo==b.memo && color==b.color && opacity==b.opacity;
+    return name==b.name && memo==b.memo && color==b.color;
 }
 const char* commandErrorCode(CommandError error) noexcept
 {
@@ -1578,7 +1575,7 @@ PrepareResult CommandProcessor::prepareRequest(const ProjectSnapshot& project,co
                         in.parent?in.parent->id:"",in.coverageMode.empty()?"explicit":in.coverageMode});
                     const auto object=territorialRef(in.id);
                     candidate.presentation.objectStyles.emplace(object,
-                        ObjectStyle{in.explicitColor.value_or(0),1,in.explicitColor.has_value()});
+                        ObjectStyle{in.explicitColor.value_or(0),in.explicitColor.has_value()});
                 } else {
                     require(!deletion->targets.empty(),CommandError::InvalidTargets,"empty timeline deletion");
                     const std::set<ObjectRef> unique(deletion->targets.begin(),deletion->targets.end());
@@ -1947,7 +1944,7 @@ bool semanticallyEqual(const ProjectDocument& a,const ProjectDocument& b)
             return x.first==y.first && (x.second==y.second || sameGeometry(*x.second,*y.second));
         }) && a.presentation.webPresentation==b.presentation.webPresentation &&
         same(a.presentation.objectStyles,b.presentation.objectStyles,[](const auto& x,const auto& y) {
-            return x.first==y.first && x.second.explicitColor==y.second.explicitColor && (!x.second.explicitColor || x.second.color==y.second.color) && x.second.opacity==y.second.opacity;
+            return x.first==y.first && x.second.explicitColor==y.second.explicitColor && (!x.second.explicitColor || x.second.color==y.second.color);
         }) && same(a.extensions,b.extensions,[](const PreservedExtension& x,const PreservedExtension& y) {
             return x.id==y.id && x.sourceFormat==y.sourceFormat && x.sourceSchema==y.sourceSchema &&
                 x.jsonPointer==y.jsonPointer && x.payload==y.payload && x.status==y.status &&

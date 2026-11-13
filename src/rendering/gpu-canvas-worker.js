@@ -61,7 +61,7 @@ export function createGpuCanvasWorker({ worker, generation, acceptFrame, allowOl
     }
     const revision = Number(message.revision || 0);
     // The latest *picture*, not the latest unrelated coordinator revision,
-    // controls initial physical-only previews. The opt-in must independently
+    // controls initial physical layer frames. The opt-in must independently
     // validate camera, style, pin and source before accepting older revisions.
     const current = !!message.bitmap
       && Number(message.projectGeneration ?? generation) === generation

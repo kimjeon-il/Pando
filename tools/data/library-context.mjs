@@ -130,7 +130,7 @@ export function libraryOwnerId(root) {
   if(!match)throw Error('Invalid permanent worktree Git directory');
   const directory=resolve(root,match[1]);
   const owner=basename(directory);
-  if(basename(dirname(directory))!=='worktrees'||!['ui','objects','gis','places','optimization','pando-work-optimization','gis-raw-modern'].includes(owner))
+  if(basename(dirname(directory))!=='worktrees'||!['ui','objects','gis','places','optimization','pando-work-optimization'].includes(owner))
     throw Object.assign(Error('Unknown permanent worktree owner'),{code:'PANDO_LIBRARY_OWNER_UNKNOWN'});
   return owner;
 }
@@ -204,7 +204,7 @@ export function withCheckoutLock(checkout, operation, maintenance = false, organ
     writeFileSync(handle, JSON.stringify({ pid: process.pid, checkout })); recoverContentPermissions(dirname(common));
     if (!maintenance && existsSync(resolve(dirname(common), '.pando-store/storage-migration.pending.json'))) throw Error('Library storage migration must resume before preparing or editing data.');
     if (!organizing && existsSync(resolve(dirname(common), '.pando-store/report-organization.pending.json'))) throw Error('Report organization must resume before preparing or editing data.');
-    // Report-only operations leave independent pack maintenance untouched.
+    // Routine scoped preparation leaves whole-object-store maintenance explicit.
     if(compact&&(!maintenance||existsSync(resolve(common,'pando-git-compaction.pending.json'))))compactDuplicatePacks(checkout);
     const result=operation();
     if(compact&&!maintenance)compactDuplicatePacks(checkout);
@@ -238,9 +238,12 @@ export function setMetadataCheckout(checkout,{fetch=false}={}) {
   const patterns=[...sparseMetadata,...(checkout===shared?libraryCodeDirectories.map(path=>'/'+path+'/'):[])],directories=new Set();
   const literal=path=>path.replace(/[\\*?[\]]/g,'\\$&');
   const includeDirectory=path=>{if(directories.has(path))return;const parent=path.slice(0,path.lastIndexOf('/'));if(parent)includeDirectory(parent);directories.add(path);patterns.push('/'+literal(path)+'/','!/'+literal(path)+'/*');};
-  if(keepReports)for(const file of plainReportFiles(resolve(shared,'reports'))){
-    if(file.logical.startsWith('.'))continue;
-    const path='reports/'+file.logical;includeDirectory(path.slice(0,path.lastIndexOf('/')));patterns.push('/'+literal(path));
+  const reports=resolve(shared,'reports');
+  if(keepReports)for(const name of readdirSync(reports).filter(name=>!name.startsWith('.'))){
+    for(const file of plainReportFiles(resolve(reports,name))){
+      const path='reports/'+relative(reports,file.path).replaceAll('\\','/');
+      includeDirectory(path.slice(0,path.lastIndexOf('/')));patterns.push('/'+literal(path));
+    }
   }
   execFileSync('git', [...gitOptions, 'sparse-checkout', 'set', '--no-cone', '--stdin'], {
     cwd: checkout, env:{...process.env,GIT_NO_LAZY_FETCH:fetch?'0':'1'}, input: patterns.join('\n') + '\n', stdio: ['pipe', 'pipe', 'pipe'],

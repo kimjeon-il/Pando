@@ -4,10 +4,8 @@ import * as __core_dep1 from "node:fs";
 import * as __core_dep2 from "node:test";
 import * as __core_dep3 from "../../helpers/core-session.mjs";
 import * as __core_dep4 from "../../../src/document/core-document-read-model.js";
-import * as __core_dep5 from "../../helpers/web-oracle.mjs";
+import {normalizeGenericFeatureSemantics} from '../../../src/document/generic-feature-normalization.js';
 
-// Initialize the original Web source oracle at module scope, before synchronous suites.
-const __coreContentOracle = await __core_dep5.loadWebOracle('assets/js/modules/generic-feature-service.js');
 contractSuite("core-document-wasm", () => {
 const assert = __core_dep0.default;
 const { readFileSync } = __core_dep1;
@@ -74,13 +72,11 @@ const assert = __core_dep0.default;
 const { readFileSync } = __core_dep1;
 const test = __core_dep2.default;
 const { createNodeCoreDocument } = __core_dep3;
-const { loadWebOracle } = __core_dep5;
 
-const { normalizeGenericFeatureSemantics } = __coreContentOracle;
 const seed = () => JSON.parse(readFileSync(new URL("../../fixtures/portability/web-document-seed.json", import.meta.url), 'utf8'));
 const command = (commandId, domain, id, payload) => ({ commandId, targets: [{ domain, id }], payload });
 
-test('actual Core content creation keeps original Web source annotations and archive with one history checkpoint', async () => {
+test('actual Core content creation keeps source annotations and archive with one history checkpoint', async () => {
   const client = createNodeCoreDocument();
   try {
     const initial = seed();

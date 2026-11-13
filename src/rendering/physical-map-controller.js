@@ -6,6 +6,7 @@ import {loadPhysicalLandGeometry} from '../data/physical-land-patch.js';
 import {mapProjectResourcePath} from '../data/map-project-manifest.js';
 import {resolvePhysicalWaterObjects,physicalWaterContextKey,physicalWaterReferenceView,composePhysicalWaterGeometry} from '../data/physical-water-model.js';
 import {createPhysicalWaterPresentation} from './physical-water-presentation.js';
+import {loadNaturalSurfaceCandidate} from '../data/terrain-natural-candidate.js';
 import {hydroVisibilityThresholdForMapZoom} from './hydro-view-presentation.js';
 
 // Runtime coordinator: the data layer owns source reads and the C++ owner
@@ -16,6 +17,7 @@ export function createPhysicalResources({ buildMeta,capabilities = {terrain:true
   let dependencies;
   let terrainService;
   let hydroService;
+  let naturalPreviewEpoch = 0;
   // Data-layer reader owns immutable asset loading and retries; rendering only
   // coordinates accepted source selection, Core admission and visual readiness.
   const assetReader=createPhysicalAssetReader({buildMeta,
@@ -23,7 +25,6 @@ export function createPhysicalResources({ buildMeta,capabilities = {terrain:true
     onLandReady:()=>dependencies.domains.renderingDomain.invalidateProject('physical-land-ready')});
   const storedPhysicalAssets=()=>assetReader.storedPhysicalAssets();
   const loadPhysicalLandMask=options=>assetReader.loadPhysicalLandMask(options);
-  const loadInitialLandPreview=()=>assetReader.loadInitialLandPreview();
   const waterContexts=new Map();
   let requestedWaterKey=null;
   let physicalSelection=null;
@@ -296,8 +297,6 @@ export function createPhysicalResources({ buildMeta,capabilities = {terrain:true
     if(capabilities.terrain)(terrainService = (0, dependencies.physicalServices.createTerrainService)({
       fetchWithRetry: dependencies.physicalServices.fetchWithRetry,
       manifestUrl: () => dependencies.physicalConfig.TERRAIN_PRIMARY_MANIFEST_URL,
-      fallbackManifestUrl: dependencies.physicalConfig.TERRAIN_FALLBACK_MANIFEST_URL
-        ? () => dependencies.physicalConfig.TERRAIN_FALLBACK_MANIFEST_URL : null,
       getLoadState: () => dependencies.projectState.state.physicalLoadState.terrain,
       onLoading: () => {
         dependencies.projectState.state.physicalLoadState.terrain = 'loading';
@@ -308,17 +307,39 @@ export function createPhysicalResources({ buildMeta,capabilities = {terrain:true
       onRetry: (_operation, attempt) => dependencies.operationFeedback.reliabilityDiagnostic.push({
         category: 'asset', operation: 'terrain-manifest', result: `retry-${attempt}`,
       }),
-      acceptManifest: (manifest, manifestUrl, context) => {
+      acceptManifest: (manifest, manifestUrl) => {
+        const previewEpoch = ++naturalPreviewEpoch;
         dependencies.projectState.state.terrainManifest = manifest;
         dependencies.projectState.state.physicalLoadState.terrainManifest = 'ready';
         dependencies.projectState.state.physicalLoadState.terrain = 'ready';
         dependencies.rendering.gpuMapRenderer.setTerrainManifest(manifest, manifestUrl, {
-          source: context.usedFallback ? 'fallback' : dependencies.physicalConfig.TERRAIN_SOURCE_CHOICE,
-          fallbackReason: context.fallbackReason,
+          source: dependencies.physicalConfig.TERRAIN_SOURCE_CHOICE,
         });
         (0, dependencies.layerPresentation.invalidateObjectPresentation)();
         dependencies.domains.objectSearchController?.render();
         dependencies.domains.renderingDomain?.invalidateBaseScene?.('terrain-manifest-ready');
+        const catalogUrl = dependencies.physicalConfig.TERRAIN_NATURAL_PREVIEW_CATALOG_URL;
+        if (catalogUrl) {
+          // An optional, explicitly selected sample must not block the DEM,
+          // replace the project data pin, or overwrite a newer terrain source.
+          void loadNaturalSurfaceCandidate({dem:manifest,catalogUrl}).then(surface => {
+            if (previewEpoch !== naturalPreviewEpoch || dependencies.projectState.state.terrainManifest !== manifest) return;
+            const combined = Object.freeze({...manifest,naturalSurface:surface});
+            dependencies.projectState.state.terrainManifest = combined;
+            dependencies.rendering.gpuMapRenderer.setTerrainManifest(combined,manifestUrl,{
+              source: dependencies.physicalConfig.TERRAIN_SOURCE_CHOICE,
+            });
+            dependencies.domains.renderingDomain?.invalidateBaseScene?.('terrain-natural-preview-ready');
+          }).catch(error => {
+            if (previewEpoch !== naturalPreviewEpoch) return;
+            // Deliberately nonfatal: DEM and state-owned physical geometry remain available.
+            dependencies.operationFeedback.reliabilityDiagnostic.push({
+              category:'asset',operation:'terrain-natural-preview',result:'optional-failed',
+              errorCode:'PL-TERRAIN-NATURAL-001',
+            });
+            console.warn('Optional natural terrain preview unavailable',error);
+          });
+        }
       },
       onFailure: error => {
         dependencies.projectState.state.physicalLoadState.terrainManifest = 'error';
@@ -400,10 +421,8 @@ export function createPhysicalResources({ buildMeta,capabilities = {terrain:true
     setProjectSource,
     initializeTerrainService,
     loadPhysicalLandMask,
-    loadInitialLandPreview,
     preparePhysicalContext,
     get physicalLand() { return currentPhysicalContext(); },
-    get initialLandPreview() { return assetReader.initialLandPreview; },
     get physicalLandSourceRevision() { return buildMeta.physicalLand?.sha256 || null; },
     get physicalContextState() {
       const context=currentPhysicalContext(),selection=selectedPhysicalWater(),entry=waterContexts.get(selection.key);

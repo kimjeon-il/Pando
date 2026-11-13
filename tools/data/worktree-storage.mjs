@@ -9,16 +9,11 @@ import { previewGeneratedCleanup, applyGeneratedCleanup } from "./worktree-gener
 import { snapshotGitStorage, repackLocalObjects } from "./library-git.mjs";
 import {assertRemoteOnlyNativeAllowed,remoteOnlyBranch} from "../../scripts/lib/remote-only-native-policy.mjs";
 
-const repository=resolve(dirname(fileURLToPath(import.meta.url)),'..');
+const repository=resolve(dirname(fileURLToPath(import.meta.url)),'../..');
 const schema='pando-worktree-storage-v1';
 export const cacheLimit=2*1024**3;
-const stageMarker='.pandolab-web-shell-stage';
 const nativeWriter=p=>Boolean(p.globalBuild)||/^(cargo|rustc|rust-lld|cmake|ninja|msbuild|gradle|clang(?:\+\+)?|emcc|em\+\+)\.exe$/i.test(p.Name||'')||/stage\.mjs|tools[\\/]build-[\w-]+\.mjs|tauri.*(dev|build)/i.test(p.CommandLine||'');
 const usesDirectory=(p,directory)=>{const normalize=value=>String(value||'').replaceAll('\\','/').replace(/\/+/g,'/').toLowerCase(),target=normalize(directory);return [p.ExecutablePath,p.CommandLine].some(value=>{const text=normalize(value);return text.endsWith(target)||['/','"',"'",' '].some(suffix=>text.includes(target+suffix));});};
-export function workspaceOutputRoot(root,settings=storageSettings(root)){
-  return settings?containedPath(settings.cacheRoot,'workspaces/'+contentHash(Buffer.from(resolve(root).toLowerCase())).slice(0,16)):resolve(root,'.library-data/output');
-}
-export function editorStageRoot(root,settings=storageSettings(root)){return resolve(workspaceOutputRoot(root,settings),'editor');}
 export function dependencyPreparationArguments({root,store}){
   return ['--dir',root,'install','--frozen-lockfile','--config.enableGlobalVirtualStore=true','--store-dir='+store,'--package-import-method=hardlink','--config.confirmModulesPurge=false'];
 }
@@ -159,14 +154,6 @@ export function finishArtifactMaintenance({root=repository,roots=permanentWorktr
   }
 }
 
-function ownedStage(root,directory,settings=storageSettings(root)){
-  const allowed=['dist','.dist-pending','.dist-previous'].map(name=>resolve(editorStageRoot(root,settings),name));
-  if(!allowed.includes(resolve(directory)))throw Error('Not an owned App stage destination');
-  directory=containedPath(editorStageRoot(root,settings),directory);
-  const marker=containedPath(directory,stageMarker);
-  if(!existsSync(marker)||!lstatSync(marker).isFile())throw Error('App stage ownership is not established');
-  return {viewRoot:directory,marker:stageMarker};
-}
 function withStorageLock(root,settings,operation){
   mkdirSync(settings.cacheRoot,{recursive:true});
   const path=containedPath(settings.cacheRoot,'storage.lock');
@@ -174,20 +161,6 @@ function withStorageLock(root,settings,operation){
   try{fd=openSync(path,'wx');}catch(error){throw Error('Worktree storage is already running; preserve its journal and retry',{cause:error});}
   try{writeFileSync(fd,JSON.stringify({pid:process.pid,root}));recoverContentPermissions({root:settings.cacheRoot,blobDirectory:'blobs'});return operation();}
   finally{closeSync(fd);unlinkSync(path);}
-}
-function removePreviousAppLink(settings,target,view,newStore,sha256){
-  const appStore={root:settings.cacheRoot,blobDirectory:'blobs'},previous=contentPath(appStore,sha256),next=contentPath(newStore,sha256);
-  if(existsSync(target)&&existsSync(previous)&&previous!==next&&statSync(target,{bigint:true}).ino===statSync(previous,{bigint:true}).ino)removeContentView(appStore,target,view);
-}
-export function writeStagedContent({root,directory,path,bytes,settings=storageSettings(root)}){
-  const view=ownedStage(root,directory,settings),target=containedPath(directory,path);mkdirSync(dirname(target),{recursive:true});
-  if(!settings){writeFileSync(target,bytes);return;}
-  return withStorageLock(root,settings,()=>{
-    const sha256=contentHash(bytes),shared=libraryStagingContent({root,sha256,bytes:bytes.length});
-    if(shared)return withLibraryLock(root,()=>{removePreviousAppLink(settings,target,view,shared,sha256);return linkContentView(shared,sha256,target,view);});
-    const store={root:settings.cacheRoot,blobDirectory:'blobs'},blob=publishContent(store,bytes);
-    return linkContentView(store,blob.sha256,target,view);
-  });
 }
 export function installNativeArtifactView({root,source,manifest,settings=storageSettings(root),afterFile=()=>{}}){
   if(!settings)throw Error('Activate application storage before installing native artifacts');
@@ -231,7 +204,6 @@ export function installNativeArtifactView({root,source,manifest,settings=storage
   });
 }
 const fileIdentity=path=>{const s=lstatSync(path,{bigint:true});return `${s.dev}:${s.ino}:${s.size}:${s.mtimeNs}:${s.ctimeNs}`;};
-const payloadIdentity=path=>fileIdentity(path).split(':').slice(0,4).join(':');
 function isRetiringEmsdkConsumer(p){
   return /^D:\/build\/toolchains\/emsdk-6\.0\.3\//i.test((p.ExecutablePath||'').replaceAll('\\','/'))||
     /D:\/build\/toolchains\/emsdk-6\.0\.3(?=[/\s"']|$)/i.test((p.CommandLine||'').replaceAll('\\','/'));
@@ -253,111 +225,28 @@ export function runningStorageConsumers(){
   const json=execFileSync('powershell.exe',['-NoProfile','-Command',inventory],{encoding:'utf8',windowsHide:true,maxBuffer:8*1024**2}).trim();
   return json?storageConsumersFromProcesses([JSON.parse(json)].flat()):[];
 }
-export function permanentWorktrees(root=repository){return execFileSync('git',['-C',root,'worktree','list','--porcelain'],{encoding:'utf8',windowsHide:true}).split(/\r?\n/).filter(line=>line.startsWith('worktree ')).map(line=>resolve(line.slice(9)));}
+export function parseAvailableWorktrees(listing,exists=existsSync){
+ return listing.split(/\r?\n\r?\n/).filter(Boolean).flatMap(block=>{
+  const lines=block.split(/\r?\n/),header=lines.find(line=>line.startsWith('worktree '));
+  if(!header)throw Error('Malformed worktree inventory');
+  const path=resolve(header.slice(9));
+  if(exists(path))return [path];
+  if(lines.some(line=>line==='prunable'||line.startsWith('prunable ')))return [];
+  throw Error(`Registered worktree is missing: ${path}`);
+ });
+}
+export function permanentWorktrees(root=repository){return parseAvailableWorktrees(execFileSync('git',['-C',root,'worktree','list','--porcelain'],{encoding:'utf8',windowsHide:true}));}
 export function protectedWorktreeFiles(roots){return roots.flatMap(app=>execFileSync('git',['-C',app,'ls-files','-z','--cached','--others','--exclude-standard'],{encoding:'utf8',windowsHide:true}).split('\0').filter(Boolean).map(path=>resolve(app,path)));}
-function stageBusy(root,processes,settings=storageSettings(root)){
-  if(existsSync(join(editorStageRoot(root,settings),'.stage-lock')))return 'Active App stage writer lock';
-  if(processes.length)return `Active build/App/development consumer: ${processes.map(p=>p.ProcessId+':'+p.Name).join(', ')}`;
-  return null;
-}
-function stageContentStore(root,settings,file){
-  const shared=libraryStagingContent({root,sha256:file.sha256,bytes:file.bytes});
-  return shared||{root:settings.cacheRoot,blobDirectory:'blobs'};
-}
-export function previewWorktreeStorage({root=repository,roots=permanentWorktrees(root),settings=storageSettings(root),processes=runningStorageConsumers()}={}){
-  if(!settings)throw Error('Activate worktree storage before planning shared views');
-  const entries=[];
-  for(const app of roots){
-    const directory=join(editorStageRoot(app,settings),'dist');if(!existsSync(directory))continue;
-    const busy=stageBusy(app,processes,settings);
-    if(busy){entries.push({root:app,directory,status:'protected',reason:busy});continue;}
-    try{
-      ownedStage(app,directory,settings);
-      const evidence=JSON.parse(readFileSync(containedPath(directory,'shell/stage-evidence.json'),'utf8'));
-      if(evidence.schema!=='pandolab-web-shell-stage'||!Array.isArray(evidence.files))throw Error('Unknown stage evidence');
-      for(const file of evidence.files){
-          const row={path:file.path,sha256:file.sha256,bytes:file.bytes,sourcePath:file.sourcePath,root:app,directory,status:'protected'};entries.push(row);
-        try{
-          if(!/^[a-f0-9]{64}$/.test(file.sha256)||!Number.isSafeInteger(file.bytes)||file.bytes<0||[stageMarker,'shell/stage-evidence.json'].includes(file.path))throw Error('Invalid stage path/hash/size');
-          const path=containedPath(directory,file.path);const s=lstatSync(path);
-          row.identity=fileIdentity(path);
-          if(!s.isFile()||s.size!==file.bytes||contentHash(readFileSync(path))!==file.sha256||row.identity!==fileIdentity(path))throw Error('Changed stage file; private or unfinished bytes preserved');
-          const store=stageContentStore(app,settings,file),blob=contentPath(store,file.sha256);
-          const shared=existsSync(blob)&&statSync(blob,{bigint:true}).ino===statSync(path,{bigint:true}).ino;
-          if(shared&&!(s.mode&0o200)){row.status='already-shared';continue;}
-          const appBlob=contentPath({root:settings.cacheRoot,blobDirectory:'blobs'},file.sha256);
-          const ownedAppLink=existsSync(appBlob)&&statSync(appBlob,{bigint:true}).ino===statSync(path,{bigint:true}).ino;
-          if((s.nlink>1||!(s.mode&0o200))&&!ownedAppLink)throw Error('Unowned hardlink/readonly file preserved');
-          row.status='eligible';row.ownedAppLink=ownedAppLink;row.payloadIdentity=payloadIdentity(path);
-        }catch(error){row.reason=error.message;}
-      }
-    }catch(error){entries.push({root:app,directory,status:'protected',reason:error.message});}
-  }
-  return {schema,at:new Date().toISOString(),apply:false,entries};
-}
-export function applyWorktreeStorage(options={}){
-  const root=options.root||repository,roots=options.roots||permanentWorktrees(root),settings=options.settings||storageSettings(root);
-  if(!settings)throw Error('Activate worktree storage first');
-  return withStorageLock(root,settings,()=>{
-    const journal=containedPath(settings.cacheRoot,'migration.pending.json');
-    const consumers=()=>options.processes??runningStorageConsumers();
-    // Reclaim only this migration's explicit lease after proving its PID dead.
-    // Empty, unknown, foreign-root and live-owner stage locks stay protected.
-    for(const app of roots){
-      const lease=containedPath(editorStageRoot(app,settings),'.stage-lock');if(!existsSync(lease)||!lstatSync(lease).isFile())continue;
-      let owner;try{owner=JSON.parse(readFileSync(lease,'utf8'));}catch{continue;}
-      if(owner.schema==='pando-worktree-stage-migration-v1'&&owner.operation==='share immutable stage'&&owner.root===app)discardDeadLibraryLock(lease);
-    }
-    const withStageLease=(app,operation)=>{
-      if(!roots.map(x=>resolve(x)).includes(resolve(app)))throw Error('Unknown migration lease owner');
-      const busy=stageBusy(app,consumers(),settings);if(busy)throw Error(busy);
-      const lease=containedPath(editorStageRoot(app,settings),'.stage-lock'),fd=openSync(lease,'wx');
-      try{writeFileSync(fd,JSON.stringify({schema:'pando-worktree-stage-migration-v1',pid:process.pid,root:app,operation:'share immutable stage'}));return operation();}
-      finally{closeSync(fd);unlinkSync(lease);}
-    };
-    const finish=(entry,ownedStageLease=false)=>{
-      if(!roots.map(x=>resolve(x)).includes(resolve(entry.root)))throw Error('Recovery entry is outside registered worktrees');
-      if(!ownedStageLease){const busy=stageBusy(entry.root,consumers(),settings);if(busy)throw Error(busy);}
-      const view=ownedStage(entry.root,entry.directory,settings),target=containedPath(entry.directory,entry.path),store=stageContentStore(entry.root,settings,entry),blob=contentPath(store,entry.sha256);
-      if(!existsSync(blob)||contentHash(readFileSync(blob))!==entry.sha256||statSync(blob).size!==entry.bytes)throw Error('Recovery content integrity failed');
-      if(existsSync(target)&&contentHash(readFileSync(target))!==entry.sha256)throw Error('Changed recovery target must be preserved');
-      if(typeof store==='string')withLibraryLock(entry.root,()=>{removePreviousAppLink(settings,target,view,store,entry.sha256);linkContentView(store,entry.sha256,target,view);});
-      else linkContentView(store,entry.sha256,target,view);
-      if(statSync(target,{bigint:true}).ino!==statSync(blob,{bigint:true}).ino||(statSync(target).mode&0o200))throw Error('Shared view verification failed');
-      unlinkSync(journal);
-    };
-    let recovered=null;
-    if(existsSync(journal)){const record=JSON.parse(readFileSync(journal,'utf8'));if(record.schema!==schema)throw Error('Unknown migration journal');withStageLease(record.entry.root,()=>finish(record.entry,true));recovered=record.entry;}
-    const result=previewWorktreeStorage({root,roots,settings,processes:consumers()});result.apply=true;result.recovered=recovered;
-    const fs=statfsSync(settings.cacheRoot);result.freeBytesBefore=fs.bavail*fs.bsize;
-    const unique=new Map();
-    for(const row of result.entries.filter(x=>x.status==='eligible')){const store=stageContentStore(row.root,settings,row);if(!existsSync(contentPath(store,row.sha256)))unique.set(row.sha256,row.bytes);}
-    result.peakAdditionalBytes=[...unique.values()].reduce((a,b)=>a+b,0);
-    if(result.peakAdditionalBytes>3*1024**3||result.freeBytesBefore<result.peakAdditionalBytes+5*1024**3)throw Error('Insufficient migration peak/headroom');
-    for(const app of roots){
-      const rows=result.entries.filter(x=>x.status==='eligible'&&x.root===app);if(!rows.length)continue;
-      withStageLease(app,()=>{
-        for(const row of rows){
-          const target=containedPath(row.directory,row.path);
-          // Removing another owned hardlink changes ctime for this same inode.
-          // Its file ID, size, payload mtime and exact hash must still match.
-          if((fileIdentity(target)!==row.identity&&!(row.ownedAppLink&&payloadIdentity(target)===row.payloadIdentity))||contentHash(readFileSync(target))!==row.sha256)throw Error('Stale cleanup inventory; re-preview before applying');
-          const store=stageContentStore(row.root,settings,row);
-          if(typeof store!=='string')publishContent(store,readFileSync(target));
-          atomicStorageJSON(journal,{schema,entry:row});options.afterPrepared?.(row);
-          finish(row,true);row.status='shared';
-        }
-      });
-    }
-    const after=statfsSync(settings.cacheRoot);result.freeBytesAfter=after.bavail*after.bsize;result.freeBytesDelta=result.freeBytesAfter-result.freeBytesBefore;
-    return result;
-  });
+function storageBusy(root,processes){
+ if(existsSync(resolve(root,'.library-data/prepare.lock')))return 'Active library preparation lock';
+ if(processes.length)return 'Active storage consumer: '+processes.map(p=>p.ProcessId+':'+p.Name).join(', ');
+ return null;
 }
 export function pruneApplicationBlobs({root=repository,roots=permanentWorktrees(root),settings=storageSettings(root),apply=false,processes=runningStorageConsumers()}={}){
   if(!settings)throw Error('Worktree storage is not activated');
   const operation=()=>{
     for(const name of ['migration.pending.json','runtime-migration.pending.json','generated-retirement.pending.json','app-git-compaction.pending.json','native-install.pending.json','frontend-install.pending.json','frontend-retirement.pending.json','native-retirement.pending.json'])if(existsSync(containedPath(settings.cacheRoot,name)))throw Error(`Pending recovery journal blocks blob pruning: ${name}`);
-    const busy=roots.map(app=>stageBusy(app,processes,settings)).find(Boolean);if(busy)throw Error(busy);
+    const busy=roots.map(app=>storageBusy(app,processes)).find(Boolean);if(busy)throw Error(busy);
     const store={root:settings.cacheRoot,blobDirectory:'blobs'},directory=containedPath(settings.cacheRoot,'blobs'),entries=[];
     const before=statfsSync(settings.cacheRoot);
     for(const file of contentFiles(directory)){
@@ -384,7 +273,7 @@ export function retireUnusedNativeViews({root=repository,roots=permanentWorktree
   settings=storageSettings(root),processes=runningStorageConsumers(),apply=false,afterFile=()=>{}}={}) {
   if(!settings)throw Error('Application storage is not activated');
   const operation=()=>{
-    if(processes.length||roots.some(app=>stageBusy(app,processes,settings)))
+    if(processes.length||roots.some(app=>storageBusy(app,processes)))
       throw Error('Active native/App consumer or stage writer blocks native retirement');
     for(const name of ['native-install.pending.json','frontend-install.pending.json',
       'generated-retirement.pending.json','migration.pending.json','runtime-migration.pending.json',
@@ -556,27 +445,6 @@ export function shareRetiredQtRuntimes({root=repository,roots=permanentWorktrees
   };
   return apply?withStorageLock(root,settings,operation):operation();
 }
-export function removeStagedDirectory({root,directory,settings=storageSettings(root)}){
-  const view=ownedStage(root,directory,settings);
-  const libraryStore=existsSync(join(root,'config/library-data.json'))?librarySharedCheckout(root):null;
-  const operation=()=>{
-    const files=contentFiles(directory);
-    for(const file of files.filter(f=>f.logical!==stageMarker)){
-      const s=lstatSync(file.path);
-      if(s.nlink===1&&(s.mode&0o200)){unlinkSync(file.path);continue;}
-      const sha256=contentHash(readFileSync(file.path)),stores=[];
-      if(settings)stores.push({root:settings.cacheRoot,blobDirectory:'blobs'});
-      if(libraryStore)stores.push(libraryStore);
-      const store=stores.find(store=>{const blob=contentPath(store,sha256);return existsSync(blob)&&statSync(blob,{bigint:true}).ino===statSync(file.path,{bigint:true}).ino;});
-      if(!store)throw Error(`Unowned readonly staging file must be preserved: ${file.path}`);
-      removeContentView(store,file.path,view);
-    }
-    const prune=path=>{for(const entry of readdirSync(path,{withFileTypes:true}))if(entry.isDirectory()){const child=containedPath(directory,join(path,entry.name));prune(child);rmdirSync(child);}};
-    prune(directory);unlinkSync(join(directory,stageMarker));rmdirSync(directory);
-  };
-  const remove=()=>libraryStore?withLibraryLock(root,operation):operation();
-  return settings?withStorageLock(root,settings,remove):remove();
-}
 export function commonGit(root){return resolve(root,execFileSync('git',['-C',root,'rev-parse','--git-common-dir'],{encoding:'utf8',windowsHide:true,stdio:['ignore','pipe','pipe']}).trim());}
 export function storageSettings(root){
   if(!existsSync(join(root,'.git')))return null;
@@ -738,7 +606,8 @@ async function main(){
     const result=spawnSync(command[0],command.slice(1),{cwd:process.cwd(),env:compilerCacheEnvironment({root}),stdio:'inherit',windowsHide:true});
     if(result.error)throw result.error;process.exitCode=result.status??1;return;
   }
-  const result=args.includes('--retire-qt-runtimes')?shareRetiredQtRuntimes({root,apply:args.includes('--apply'),retire:true}):args.includes('--share-retired-qt')?shareRetiredQtRuntimes({root,apply:args.includes('--apply')}):args.includes('--prune-blobs')?pruneApplicationBlobs({root,apply:args.includes('--apply')}):args.includes('--apply')||args.includes('--resume')?applyWorktreeStorage({root}):previewWorktreeStorage({root});
+  if(!['--retire-qt-runtimes','--share-retired-qt','--prune-blobs'].some(flag=>args.includes(flag)))throw Error('Choose an explicit storage operation: --prune-blobs, --retire-frontend, --retire-native or --retire-generated=<manifest>');
+  const result=args.includes('--retire-qt-runtimes')?shareRetiredQtRuntimes({root,apply:args.includes('--apply'),retire:true}):args.includes('--share-retired-qt')?shareRetiredQtRuntimes({root,apply:args.includes('--apply')}):pruneApplicationBlobs({root,apply:args.includes('--apply')});
   const output=args.find(x=>x.startsWith('--output='))?.slice(9);
   if(output)atomicStorageJSON(resolve(output),result);
   console.log(JSON.stringify({apply:result.apply,entries:result.entries.length,statuses:Object.fromEntries([...new Set(result.entries.map(x=>x.status))].map(status=>[status,result.entries.filter(x=>x.status===status).length])),freeBytesDelta:result.freeBytesDelta,output}));

@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createGpuTerrainPreparation } from "../../../src/rendering/gpu-terrain-preparation.js";
+import { fetchTerrainTile } from '../../../src/data/terrain-manifest.js';
 import { createMapVisualFrame } from "../../../src/rendering/map-visual-frame.js";
 
 test('GPU and Canvas share one tile geometry, neighbours and viewport selection algorithm', () => {
@@ -18,7 +19,7 @@ test('GPU and Canvas share one tile geometry, neighbours and viewport selection 
     core.visible(level,input).map(row=>row.bounds));
 });
 
-function fixture(t, onUnusable = () => {}, { mobile = false, geoDistance = () => 0, tintUrl, onTileFailure = () => {} } = {}) {
+function fixture(t, onUnusable = () => {}, { mobile = false, geoDistance = () => 0, tintUrl, onTileFailure = () => {}, invalidate = () => {} } = {}) {
   const requests = [];
   const jobs = [];
   const deleted = [];
@@ -29,12 +30,12 @@ function fixture(t, onUnusable = () => {}, { mobile = false, geoDistance = () =>
     options.signal.addEventListener('abort', () => reject(Object.assign(new Error('aborted'), { name: 'AbortError' })), { once: true });
   }));
   const owner = createGpuTerrainPreparation({
-    tileUrl: spec => `https://example.test/${spec.key}`,
+    readTile: (spec, signal) => fetchTerrainTile({url:`https://example.test/${spec.key}`}, {signal}),
     tintUrl,
     onUnusable,
     onTileFailure,
     isMobile: () => mobile,
-    invalidate: () => {},
+    invalidate,
     geoDistance,
   });
   owner.setContext({ gl, ready: true, projectGeneration: 1, contextGeneration: 1,
@@ -150,22 +151,22 @@ test('late DEM decode shares one upload owner and rearms after settlement',async
   requests[1].resolve({ok:true,blob:async()=>({})});
   await settle();
   assert.equal(jobs.length,1,'concurrent decodes must share a single scheduler owner');
-  while(!jobs[0].step().done){}
+  while(!jobs[0].step().done){ /* Drain the shared upload owner. */ }
   await settle();
   assert.equal(owner.stats().terrainPendingDecodedBytes,0);
 });
 
-test('country preview cannot cap terrain detail requested by a high-DPR camera', async t => {
+test('country detail cannot bypass the shared DEM visible-memory limit', async t => {
   const setup = fixture(t, () => {}, { mobile: true });
   const { owner, requests } = setup;
   owner.setManifest(mobileManifest);
   await primeBase(setup, mobileFrame(), mobileView());
-  assert.equal(owner.stats().terrainLevel, 2);
+  assert.equal(owner.stats().terrainLevel, 1);
   assert.equal(owner.stats().terrainFetchConcurrency, 2);
   assert.ok(requests.length > 0);
   const detail = requests.slice(2);
   assert.ok(detail.length > 0);
-  assert.ok(detail.every(request => new URL(request.url).pathname.startsWith('/2/')));
+  assert.ok(detail.every(request => new URL(request.url).pathname.startsWith('/1/')));
   owner.dispose();
 });
 
@@ -219,7 +220,7 @@ test(`exhausted target${failDetail ? ' and reserve' : ''} failures preserve usab
   owner.setManifest(mobileManifest);
   const frame = mobileFrame(), view = mobileView();
   owner.prepare(frame, view);
-  const unavailable = ['/2/0-0'];
+  const unavailable = ['/1/0-0'];
   if (failDetail) unavailable.push('/0/0-0');
   const failedRequests = new Set(), responded = new Set();
   for (let attempt = 0; attempt < 4; attempt++) {
@@ -244,7 +245,7 @@ test(`exhausted target${failDetail ? ' and reserve' : ''} failures preserve usab
   assert.equal(detailFailures.length, 1);
   assert.equal(owner.stats().terrainReady, false, 'retry exhaustion cannot be readiness');
   assert.equal(owner.stats().terrainFailed, true);
-  assert.match(detailFailures[0], /2\/0-0: 지형 타일 HTTP 503/, 'preserve the failing tile and technical cause');
+  assert.match(detailFailures[0], /1\/0-0: 지형 타일 HTTP 503/, 'preserve the failing tile and technical cause');
   owner.prepare(frame, view);
   assert.equal(detailFailures.length, 1, 'report once until retry');
   owner.request({ key: 'malformed', pixelWidth: 2, pixelHeight: 2 });
@@ -263,11 +264,11 @@ test('after world base the camera requests target terrain directly without inter
   const { owner, requests } = setup;
   owner.setManifest(mobileManifest);
   await primeBase(setup, mobileFrame(), mobileView());
-  assert.equal(owner.stats().terrainLevel, 2);
+  assert.equal(owner.stats().terrainLevel, 1);
   assert.ok(requests.length > 0);
   const detail = requests.slice(2);
   assert.ok(detail.length > 0);
-  assert.ok(detail.every(request => new URL(request.url).pathname.startsWith('/2/')));
+  assert.ok(detail.every(request => new URL(request.url).pathname.startsWith('/1/')));
   owner.dispose();
 });
 
@@ -349,7 +350,7 @@ test('a request batch starts center tiles before viewport-edge tiles', t => {
   const frame = { mode: 1, scale: 1200, dpr: 1, viewport: [3000, 2000], viewState: { projection: 'flat', projectionCenter: [0, 0] } };
   owner.prepare(frame, { ...mobileView(), devicePixelRatio: 1, projection: 'flat', flatCenter: [0, 0] });
   const first = requests.slice(0, 4).map(request => new URL(request.url).pathname).sort();
-  assert.deepEqual(first, ['/2/3-1', '/2/3-2', '/2/4-1', '/2/4-2']);
+  assert.deepEqual(first, ['/1/1-0', '/1/1-1', '/1/2-0', '/1/2-1']);
   owner.dispose();
 });
 
@@ -400,8 +401,10 @@ for (const [previousLevel, nextLevel, nextScale] of [[1, 2, 1200], [2, 1, 500]])
     globalThis.createImageBitmap = async () => ({ width: 1024, height: 1024, close() {} });
     t.after(() => { delete globalThis.createImageBitmap; });
     owner.setManifest(mobileManifest);
-    const view = { ...mobileView(), devicePixelRatio: 1, cacheBudgetBytes: 256 * 1024 * 1024 };
-    const previousFrame = { ...mobileFrame(), scale: previousLevel === 1 ? 500 : 1200 };
+    const view = { ...mobileView(), projection: 'flat', flatCenter:[0,0], devicePixelRatio: 1, cacheBudgetBytes: 256 * 1024 * 1024 };
+    const focusedFrame=scale=>({mode:1,scale,dpr:1,viewport:[1000,800],viewState:{projection:'flat',projectionCenter:[0,0]}});
+    const visibleCoverage=prepared=>{for(const lat of [-15,0,15])for(const lon of [-20,0,20])assert.ok(prepared.some(({spec:{bounds:[w,n,e,s]}})=>lon>=w&&lon<=e&&lat>=s&&lat<=n));};
+    const previousFrame = focusedFrame(previousLevel === 1 ? 500 : 1200);
     owner.prepare(previousFrame, view);
     for (let index = 0; index < requests.length; index++) {
       requests[index].resolve({ ok: true, blob: async () => ({}) });
@@ -412,12 +415,12 @@ for (const [previousLevel, nextLevel, nextScale] of [[1, 2, 1200], [2, 1, 500]])
     assert.ok(before.length > 0);
     assert.ok(before.every(tile => tile.spec.level === previousLevel));
     const priorRequestCount = requests.length;
-    const nextFrame = { ...mobileFrame(), scale: nextScale };
+    const nextFrame = focusedFrame(nextScale);
     const waiting = owner.prepare(nextFrame, view);
     assert.equal(owner.stats().terrainLevel, nextLevel);
     assert.ok(waiting.length > 0);
     assert.ok(before.every(old => waiting.some(tile => tile.texture === old.texture)));
-    assertWorldCoverage(waiting);
+    visibleCoverage(waiting);
     assert.equal(owner.stats().terrainReady, false, 'coverage is independent of target detail readiness');
     assert.ok(requests.slice(priorRequestCount).every(request => new URL(request.url).pathname.startsWith(`/${nextLevel}/`)));
     requests[priorRequestCount].resolve({ ok: true, blob: async () => ({}) });
@@ -426,7 +429,7 @@ for (const [previousLevel, nextLevel, nextScale] of [[1, 2, 1200], [2, 1, 500]])
     const partial = owner.prepare(nextFrame, view);
     assert.ok(partial.some(tile => tile.spec.level === previousLevel));
     assert.equal(partial.at(-1).spec.level, nextLevel);
-    assertWorldCoverage(partial);
+    visibleCoverage(partial);
     assert.equal(owner.stats().terrainReady, false);
     for (let index = priorRequestCount + 1; index < requests.length; index++) {
       requests[index].resolve({ ok: true, blob: async () => ({}) });
@@ -439,7 +442,14 @@ for (const [previousLevel, nextLevel, nextScale] of [[1, 2, 1200], [2, 1, 500]])
     for (const scale of [503, 505, 641, 643, 1200, 643, 641, 505, 503]) {
       const painted = owner.prepare({ ...nextFrame, scale }, view);
       assert.ok(painted.length, `warm terrain must remain visible at ${scale}`);
-      assertWorldCoverage(painted);
+      visibleCoverage(painted);
+      // A changed footprint may admit additional source tiles at the same level.
+      // Cached coverage is immediately paintable; readiness follows their uploads.
+      for (let index=0;index<requests.length;index++) {
+        requests[index].resolve({ok:true,blob:async()=>({})}); await settle();
+        for(const job of jobs.splice(0)) while(!job.step().done) { /* Admit newly visible source tiles. */ }
+      }
+      owner.prepare({...nextFrame,scale},view);
       assert.equal(owner.stats().terrainReady, true);
     }
     owner.dispose();
@@ -541,71 +551,57 @@ test('DEM decoding never retries with color-managed bitmap defaults', async t =>
   owner.dispose();
 });
 
-test('DEM tint upload is counted in the same budget and released on reset', async t => {
-  const { owner, requests, jobs, deleted } = fixture(t);
-  // The fixture has no tint URL. Exercise the same owner through the explicit
-  // tint hook with a fresh instance instead of introducing a second cache.
-  owner.dispose();
-  const renderer = createGpuTerrainPreparation({
-    tileUrl: () => '', tintUrl: () => 'https://example.test/tint.webp',
-    isMobile: () => false, invalidate: () => {}, geoDistance: () => 0,
-  });
-  const gl = { createTexture: () => ({}), deleteTexture: value => deleted.push(value) };
-  for (const name of ['bindTexture', 'pixelStorei', 'texParameteri', 'texImage2D']) gl[name] = () => {};
-  renderer.setContext({ gl, ready: true, projectGeneration: 1, contextGeneration: 1,
-    scheduler: { enqueueUpload: job => new Promise(resolve => {
-      // A scheduler job settles only after its final GPU upload step.
-      const step = job.step;
-      jobs.push({ ...job, step: (...args) => {
-        const result = step(...args);
-        if (result.done) resolve();
-        return result;
-      } });
-    }) } });
-  renderer.setManifest({ representation: 'dem-relief-v1', levels: [{ id: 0 }], tint: { width: 2, height: 2 } });
-  globalThis.createImageBitmap = async () => ({ width: 2, height: 2, close() {} });
-  t.after(() => { delete globalThis.createImageBitmap; });
-  renderer.prepare(null, { visible: true, physicalStyle: 'political', cacheBudgetBytes: 32 * 1024 * 1024 });
-  assert.equal(requests.length, 0, 'grayscale DEM must not decode unused tint');
-  renderer.prepare(null, { visible: true, physicalStyle: 'physical', cacheBudgetBytes: 32 * 1024 * 1024 });
-  requests[0].resolve({ ok: true, blob: async () => ({}) });
-  await settle();
-  jobs[0].step();
-  assert.equal(renderer.stats().terrainCacheBytes, 16);
-  assert.equal(renderer.stats().terrainTintReady, true);
-  renderer.reset();
-  assert.equal(renderer.stats().terrainCacheBytes, 0);
-  assert.equal(deleted.length, 1);
-  renderer.dispose();
+test('numerical DEM never fetches tint and ready height tiles suffice for physical style', async t => {
+  const {owner,requests,jobs}=fixture(t,()=>{}, {tintUrl:()=> 'https://example.test/tint.webp'});
+  t.after(()=>owner.dispose());
+  globalThis.createImageBitmap=async()=>({width:1024,height:1024,close(){}});
+  t.after(()=>{delete globalThis.createImageBitmap;});
+  owner.setManifest({...mobileManifest,tint:{width:1024,height:1024}});
+  const frame={...mobileFrame(),scale:100},view={...mobileView(),physicalStyle:'physical',devicePixelRatio:1};
+  owner.prepare(frame,view);
+  assert.ok(requests.length>0);
+  assert.ok(requests.every(request=>!request.url.includes('tint')));
+  for(const request of requests) {request.resolve({ok:true,blob:async()=>({})});await settle();}
+  for(const job of jobs.splice(0))while(!job.step().done) { /* Upload requested numerical tiles. */ }
+  owner.prepare(frame,view);
+  assert.equal(owner.stats().terrainReady,true);
+  assert.equal(owner.stats().terrainCacheBytes,requests.length*1024*1024*4);
 });
 
-test('DEM has a valid neutral tint sampler while color is delayed without changing cached height tiles', async t => {
-  const { owner, requests, jobs, deleted } = fixture(t, () => {}, { tintUrl: () => 'https://example.test/tint.webp' });
+test('offscreen DEM world-reserve uploads never invalidate the current camera', async t => {
+  const changes = [];
+  const { owner, requests, jobs } = fixture(t, () => {}, { invalidate: reason => changes.push(reason) });
   t.after(() => owner.dispose());
-  globalThis.createImageBitmap = async () => ({ width: 1024, height: 1024, close() {} });
-  t.after(() => { delete globalThis.createImageBitmap; });
-  owner.setManifest({ ...mobileManifest, tint: { width: 1024, height: 1024 } });
-  const frame = { ...mobileFrame(), scale: 100 };
-  const view = { ...mobileView(), devicePixelRatio: 1 };
-  owner.prepare(frame, view);
-  for (const request of requests) request.resolve({ ok: true, blob: async () => ({}) });
+  const previousBitmap = globalThis.createImageBitmap;
+  globalThis.createImageBitmap = async () => ({ width:1024, height:1024, close() {} });
+  t.after(() => {
+    if (previousBitmap) globalThis.createImageBitmap = previousBitmap;
+    else delete globalThis.createImageBitmap;
+  });
+  const manifest = { representation:'dem-relief-v1', gutter:0,
+    levels:[{id:0,width:4096,height:2048,columns:4,rows:2,tileSize:1024}] };
+  owner.setManifest(manifest);
+  const frame = { mode:1,scale:2000,dpr:1,viewport:[500,400],
+    viewState:{projection:'flat',projectionCenter:[0,0]} };
+  const view = { visible:true,physicalStyle:'political',projection:'flat',
+    flatCenter:[0,0],width:500,height:400,devicePixelRatio:1,
+    cacheBudgetBytes:128*1024*1024 };
+  owner.prepare(frame,view);
+  const visible = new Set(globalThis.PandoLabTerrainTileSelection.visible(manifest.levels[0],{
+    includeAll:false,viewport:frame.viewport,scale:frame.scale,projection:'flat',flatCenter:[0,0],
+  }).map(spec=>spec.key));
+  const offscreen = requests.find(row => !visible.has(new URL(row.url).pathname.slice(1)));
+  assert.ok(offscreen, 'world base reserve includes a queued tile outside this viewport');
+  offscreen.resolve({ok:true,blob:async()=>({})});
   await settle();
-  for (const job of jobs.splice(0)) while (!job.step().done) { /* Upload heights. */ }
-  const gray = owner.prepare(frame, view);
-  assert.equal(gray.length, 2);
-  const neutralTint = owner.tintTexture();
-  assert.ok(neutralTint, 'physical shader needs a complete sampler before the color image arrives');
-  assert.equal(owner.stats().terrainTintReady, false);
-  const uploads = owner.stats().terrainUploadCount;
-  const colored = owner.prepare(frame, { ...view, physicalStyle: 'physical' });
-  assert.deepEqual(colored.map(tile => tile.texture), gray.map(tile => tile.texture));
-  assert.equal(owner.stats().terrainUploadCount, uploads, 'style switch must not reupload heights');
-  assert.equal(requests.filter(request => request.url.endsWith('/tint.webp')).length, 1);
-  requests.find(request => request.url.endsWith('/tint.webp')).resolve({ ok: true, blob: async () => ({}) });
+  for(const job of jobs.splice(0))while(!job.step().done) { /* Focused simulated GPU upload. */ }
+  assert.equal(changes.includes('terrain-tile-ready'),false);
+  assert.ok(owner.stats().terrainIgnoredOffscreenCompletionCount > 0);
   await settle();
-  for (const job of jobs.splice(0)) while (!job.step().done) { /* Upload tint. */ }
-  assert.equal(owner.stats().terrainTintReady, true);
-  assert.notEqual(owner.tintTexture(), neutralTint);
-  assert.ok(deleted.includes(neutralTint));
-  assert.deepEqual(owner.prepare(frame, view).map(tile => tile.texture), gray.map(tile => tile.texture));
+  const current = requests.find(row => visible.has(new URL(row.url).pathname.slice(1)));
+  assert.ok(current, 'at least one current-view tile was requested');
+  current.resolve({ok:true,blob:async()=>({})});
+  await settle();
+  for(const job of jobs.splice(0))while(!job.step().done) { /* Focused visible upload. */ }
+  assert.ok(changes.includes('terrain-tile-ready'), 'current-view DEM remains admitted');
 });

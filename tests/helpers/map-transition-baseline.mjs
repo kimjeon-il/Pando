@@ -107,24 +107,15 @@ export function instrumentMapBaselineSource(source, name) {
   const around = (anchor, label) => { next = replaceExactlyOnce(next, anchor, `${mark(label + ':start')}${anchor}${mark(label + ':end')}`); };
   if (name === 'viewer-composition.js') {
     next = replaceExactlyOnce(next, 'setMonth:async month=>{', 'setMonth:async month=>{globalThis.__PANDO_P0__.begin(month);');
-    next = replaceExactlyOnce(next, "onPresented:()=>{commit();}",
-      "onPresented:()=>{commit();globalThis.__PANDO_P0__.presented(month);}");
+    next = replaceExactlyOnce(next, "if(!current()||!commit())return false;",
+      "if(!current()||!commit())return false;globalThis.__PANDO_P0__.presented(month);");
     // Search is now after map readiness. Record its own optional phase without
     // changing the meaning of the original renderer onPresented callback.
     around('await searchController.completeHydration({isCurrent});', 'search-hydration');
-    const done = "status.dataset.ready='true';";
+    const done = "status.dataset.ready='true';presentViewerLoadStatus(status,'지도 준비 완료.');";
     next = replaceExactlyOnce(next, done, done + 'globalThis.__PANDO_P0__.settled();');
     next = replaceExactlyOnce(next, 'productMode,documentState:',
       'cameraSnapshot:()=>structuredClone({projection:map.viewState.projection,view:map.viewState.view}),p0BuildMeta:()=>runtimeContext.meta,productMode,documentState:');
-  } else if (name === 'builtin-session.js') {
-    around(`const {project}=await builtinWorldLoader.loadProject(month,{isCurrent,
-        concurrency:background?1:6,waitForIdle:background?waitForIdle:null});`, 'country-read-assemble');
-    around('const bytes=new TextEncoder().encode(JSON.stringify(project));', 'serialize');
-    around(`const fingerprint=[...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))]
-        .map(value=>value.toString(16).padStart(2,'0')).join('');`, 'source-hash');
-    around(`const candidate=await domain.prepareTemporalBuiltin(facts,setup,{
-        dataRevision:buildMeta.dataRevision,manifestSha256:buildMeta.builtinWorld.sha256,
-        expectedGeneration:prepared.expectedGeneration,isCurrent,transition});`, 'candidate-prepare');
   } else if (name === 'project-domain.js') {
     next = replaceExactlyOnce(next, `expectedGeneration = generation,isCurrent = () => true} = {}) => {
     const operation=commandQueue.then(async()=>{`,

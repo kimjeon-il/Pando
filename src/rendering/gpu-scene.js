@@ -176,9 +176,8 @@ export function createGpuScene({getPhysicalLand=()=>null}={}) {
     // A presentation callback can arrive without any effective scene change.
     // The visual frame and worker submission have their own owners; avoid
     // copying scene packets and rebuilding the object lookup for that case.
-    // RenderScene inserts normalized default revisions (e.g. editPreview),
-    // which are absent from the domain's authored input. Compare the authored
-    // fields instead of requiring matching key counts.
+    // Compare authored revision fields against the normalized scene rather
+    // than requiring the two objects to have identical key counts.
     const sameFields = (previous, next) => previous
       && Object.keys(next).every(key => Object.is(previous[key], next[key]));
     const sameFillItems = currentRenderScene?.interaction?.genericFillItems;

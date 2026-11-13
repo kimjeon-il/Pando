@@ -21,23 +21,24 @@ for (const projection of ['globe', 'flat']) for (const device of [
     await page.setViewportSize({ width: device.width, height: device.height });
     test.setTimeout(360_000);
     const errors = [], records = [];
-    page.on('pageerror', error => errors.push(String(error.message)));
+    page.on('response',response=>{if(response.status()>=400)console.log('LOD_HTTP_ERROR '+response.status()+' '+response.url());});
+    page.on('pageerror', error => {errors.push(String(error.message)); console.log('LOD_PAGE_ERROR '+error.stack);});
     page.on('console', message => {
-      if (message.type() === 'error') errors.push(message.text());
+      if (message.type() === 'error') {errors.push(message.text());console.log('LOD_CONSOLE_ERROR '+message.text());}
     });
     const url = new URL('?debug=1&renderer=webgl2',
       process.env.PANDOLAB_TEST_SITE_URL || `${baseURL}/`);
     for (const cacheState of ['cold', 'warm']) {
       await page.goto(url.href, { waitUntil: 'domcontentloaded' });
-      await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready', 'true',
-        { timeout: 90_000 });
+      await page.waitForFunction(()=>{const status=document.getElementById('viewerStatus');return status?.dataset.ready==='true'||status?.getAttribute('role')==='alert';},null,{timeout:90000});
+      expect(await page.locator('#viewerStatus').getAttribute('data-ready'),JSON.stringify(errors)).toBe('true');
       await expect.poll(() => page.evaluate(() => {
         const stats = window.__PANDOLAB_VIEWER__?.rendererStats?.();
         return !!(stats?.canonicalMeshReady && stats?.countrySharedBoundaryReady
           && stats?.countriesPublishedGeneration === stats?.projectGeneration
           && stats?.surfaceDraw?.countryIndexCount > 0);
       }), { timeout: 90_000 }).toBe(true);
-      for (const zoom of [1, 2, 4, 8, 16, 32, 64]) {
+      for (const zoom of [1, 2, 4, 4.5, 8, 16, 32]) {
         const start = Date.now();
         await page.evaluate(({ projection, zoom }) => {
           const host = window.__PANDOLAB_MAP_HOST__;
@@ -52,9 +53,13 @@ for (const projection of ['globe', 'flat']) for (const device of [
         try {
           await page.waitForFunction(() => {
             const stats = window.__PANDOLAB_VIEWER__?.rendererStats?.();
+            const camera = window.__PANDOLAB_MAP_HOST__?.getViewState();
+            const boundary = window.__PANDOLAB_VIEWER__?.interactionBoundary?.();
             return !!(stats?.screenLodBucket && stats.screenLodLatest?.key === stats.screenLodBucket
-              && !stats.screenLodPreparingKey);
-          }, null, { timeout: 15000 });
+              && !stats.screenLodPreparingKey && stats.mapReadiness?.mapReady
+              && Math.abs(stats.screenScale - camera?.scale) < 1e-7
+              && boundary?.revision?.includes(`display-interaction:lod:${stats.screenLodTargetKey}:`));
+          }, null, { timeout: process.env.PANDOLAB_REQUIRE_LOD === '1' ? 90000 : 15000 });
           lodSettled = true;
         } catch { /* The report explicitly records an unsettled candidate. */ }
         const lodAdmissionMs = lodSettled ? Date.now() - start : null;
@@ -106,6 +111,11 @@ for (const projection of ['globe', 'flat']) for (const device of [
             frameIntervals: frames,
           };
         }, { cacheState, projection, zoom });
+        if (process.env.PANDOLAB_REQUIRE_LOD === '1') {
+          expect(lodSettled, `LOD admission at ${cacheState}/${projection}/${zoom}`).toBe(true);
+          expect(result.activeMeshQuality).toBe('lod');
+          expect(result.screenLodFailure || '').toBe('');
+        }
         records.push({
           ...result, elapsedZoomMs: Date.now() - start,
           lodSettled, lodAdmissionMs,

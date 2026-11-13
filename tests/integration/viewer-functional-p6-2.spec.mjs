@@ -28,7 +28,6 @@ test('P6-2 narrow layout, touch camera, year input and mobile preferences', asyn
     await expect(page.locator('#timelineDateButtonText')).toHaveText(`${year}년`);
     await expect(page.locator('#timelineDateBasis')).toHaveText(basis);
     await expect(page.locator('#viewer')).toHaveAttribute('data-initial-loading', 'false');
-    await expect(page.locator('#viewerInitialPreview')).toBeHidden();
     await expect(page.locator('#timelineDateError')).toHaveJSProperty('hidden', true);
     await expect(page.locator('#viewerCanvas')).toBeVisible();
     const state = await page.evaluate(() => {
@@ -136,11 +135,11 @@ test('P6-2 narrow layout, touch camera, year input and mobile preferences', asyn
       await expect(page.locator('#preferencesModal')).toBeVisible();
       await bounds('.preferences-card', { contents: true }); await bounds('.preferences-fields', { contents: true });
       const swatch = '#preferencesModal [data-preference-theme="dark"]';
-      await bounds(swatch, { hit: true }); await bounds('#preferencesApplyBtn', { hit: true });
+      await bounds(swatch, { hit: true }); await bounds('#preferencesCloseBtn', { hit: true });
       await page.locator(swatch).tap();
       await expect(page.locator(swatch)).toHaveAttribute('aria-pressed', 'true');
       await screenshot('preferences.jpg');
-      await page.locator('#preferencesApplyBtn').tap();
+      await page.locator('#preferencesCloseBtn').tap();
       await expect(page.locator('#preferencesModal')).toBeHidden();
       await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
       await expect(page.locator('#map')).toHaveCSS('background-color', 'rgb(12, 17, 23)');

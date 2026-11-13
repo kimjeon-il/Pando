@@ -1,10 +1,9 @@
-// Canonical and preview territorial geometry validator.
+// Canonical territorial geometry validator.
 // Uses the D3 spherical winding contract and GEOS topology checks.
 #include <pandoeditor/losslessjson.h>
 #include <pandoeditor/sphericalpolygon.h>
 #include "country-properties.h"
 #include <geos_c.h>
-#include <zlib.h>
 #include <algorithm>
 #include <cmath>
 #include <filesystem>
@@ -41,15 +40,6 @@ std::string read(const fs::path& path) {
     std::ifstream input(path,std::ios::binary);
     if(!input)throw std::runtime_error("Cannot read "+path.string());
     return {std::istreambuf_iterator<char>(input),std::istreambuf_iterator<char>()};
-}
-std::string gunzip(const fs::path& path) {
-    gzFile file=gzopen(path.string().c_str(),"rb");
-    if(!file)throw std::runtime_error("Cannot open compressed preview "+path.string());
-    std::string result;char buffer[32768];int n=0;
-    while((n=gzread(file,buffer,sizeof(buffer)))>0)result.append(buffer,n);
-    const int status=gzclose(file);
-    if(n<0||status!=Z_OK)throw std::runtime_error("Invalid gzip preview "+path.string());
-    return result;
 }
 struct Point {double x=0,y=0;};
 Point point(const V& value) {
@@ -221,11 +211,10 @@ void selfTest() {
 
 int main(int argc,char** argv) {
     try {
-        bool canonicalOnly=false,smoke=false,audit=false;
+        bool smoke=false,audit=false;
         fs::path root=fs::current_path();
         for(int i=1;i<argc;++i) {
-            if(std::string(argv[i])=="--canonical-only")canonicalOnly=true;
-            else if(std::string(argv[i])=="--self-test")smoke=true;
+            if(std::string(argv[i])=="--self-test")smoke=true;
             else if(std::string(argv[i])=="--audit-catalog")audit=true;
             else if(std::string(argv[i])=="--root"&&i+1<argc)root=argv[++i];
             else throw std::runtime_error("Unknown argument: "+std::string(argv[i]));
@@ -235,18 +224,6 @@ int main(int argc,char** argv) {
         if(audit){auditCatalog(topology,root);return 0;}
         const auto canonical=pandoeditor::codecjson::parse(read(root/"assets/data/territorial-entities/generated/current-world.geojson"));
         checkCollection(topology,"canonical",canonical);
-        if(canonicalOnly)return 0;
-        const auto settings=pandoeditor::codecjson::parse(read(root/"assets/data/world/build-input.json"));
-        const auto manifestPath=str(field(settings,"legacyPreviewManifest"));
-        const auto manifest=pandoeditor::codecjson::parse(read(root/"assets/data"/manifestPath));
-        const auto& assets=field(manifest,"assets");
-        const auto& preview=field(assets,"previewCountries");
-        const auto path=root/"assets/data"/str(field(preview,"url"));
-        const auto decoded=pandoeditor::codecjson::parse(gunzip(path));
-        checkCollection(topology,"preview",decoded);
-        const auto& a=array(field(canonical,"features")),&b=array(field(decoded,"features"));
-        for(std::size_t i=0;i<a.size();++i)
-            if(str(field(a[i],"id"))!=str(field(b[i],"id")))throw std::runtime_error("Preview country identity/order mismatch");
         return 0;
     } catch(const std::exception& error) {
         std::cerr<<"territorial-geometry-check: "<<error.what()<<"\n";

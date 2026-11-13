@@ -1,4 +1,5 @@
 import { buildGpuStrokeInstances } from "./gpu-stroke-geometry.js";
+import { prepareGpuStrokeVisibilityBlocks } from "./gpu-stroke-visibility.js";
 import { boundaryInteriorComparison, buildTerritorialInternalBoundarySegments, createPreparedBoundaryStore,
   attachBoundarySegmentReferences, topologyNodeKey, mergeSharedBoundaryContributions } from "../geometry/boundary-topology.js";
 import { createBoundarySpatialIndex, segmentBounds } from "../geometry/boundary-spatial-index.js";
@@ -7,8 +8,10 @@ import { sharedCalculationCore } from "../document/temporal.js";
 import { computeCountrySharedContacts } from "../geometry/country-contact-core.js";
 import { assembleStrokeWithGroupReuse } from "./country-stroke-group-reuse.js";
 
-export function shouldShowSharedCountryBorders(settings) {
-  return settings?.terrainVisible === true && settings?.terrainStyle === 'physical';
+// Every ordinary map style renders shared land borders, not per-object coastal outlines.
+// This is a presentation policy: canonical polygon/coast geometry is unchanged.
+export function shouldShowSharedCountryBorders() {
+  return true;
 }
 
 export function visibleCountrySharedSegments(segments = [], isVisible = () => true) {
@@ -228,14 +231,9 @@ export function prepareCountrySharedBoundaryPacket(segments = [], features = [],
         internal.push(...group.segments);
       }
     }, hierarchyStats);
-    const coasts = measure('hierarchy-classification', () => {
-      const hierarchyContacts = segments.filter(segment => sameHierarchy(segment) && childIds(segment.ownerIds).length);
-      const opposing = hierarchyContacts.length ? sharedCalculationCore.boundaryOpposingInteriorsBatch(hierarchyContacts.map(segment => boundaryInteriorComparison(segment, segment.ownerIds))) : [];
-      if (!Array.isArray(opposing) || opposing.length !== hierarchyContacts.length || opposing.some(value => typeof value !== 'boolean'))
-        throw Object.assign(new Error('Incomplete compiled country boundary interior classifications.'), { code: 'PL-BOUNDARY-INTERIOR' });
-      return hierarchyContacts.filter((_, index) => !opposing[index]);
-    });
-    cached = { key, internal, coasts, outlines: null, rootCache };
+    // Coast classification is useful only for the explicit legacy/diagnostic
+    // outline path. The ordinary viewer never pays for it.
+    cached = { key, internal, coasts: null, outlines: null, rootCache };
     boundaryGeometryCache.set(store, cached);
   }
   const internalOwners = {};
@@ -246,6 +244,15 @@ export function prepareCountrySharedBoundaryPacket(segments = [], features = [],
     if (children.length && sameHierarchy(segment)) internalOwners[segment.ownerIds.join('|')] = children;
   }
   if (includeOutlines && !cached.outlines) {
+    if (cached.coasts === null) {
+      cached.coasts = measure('hierarchy-classification', () => {
+        const hierarchyContacts = segments.filter(segment => sameHierarchy(segment) && childIds(segment.ownerIds).length);
+        const opposing = hierarchyContacts.length ? sharedCalculationCore.boundaryOpposingInteriorsBatch(hierarchyContacts.map(segment => boundaryInteriorComparison(segment, segment.ownerIds))) : [];
+        if (!Array.isArray(opposing) || opposing.length !== hierarchyContacts.length || opposing.some(value => typeof value !== 'boolean'))
+          throw Object.assign(new Error('Incomplete compiled country boundary interior classifications.'), { code: 'PL-BOUNDARY-INTERIOR' });
+        return hierarchyContacts.filter((_, index) => !opposing[index]);
+      });
+    }
     const excluded = createBoundarySpatialIndex();
     measure('outline-index', () => {
       [...segments, ...cached.internal].forEach((segment, index) => {
@@ -287,13 +294,18 @@ export function prepareCountrySharedBoundaryPacket(segments = [], features = [],
   const groupCaches = preparedStore
     ? compiledStrokeGroupCaches.get(store) || {} : null;
   const packet = prepareStrokePacket(visible, maxEdgeDegrees, measure, 'contact-stroke',groupCaches,profile);
-  const outlineOverrides = prepareStrokePacket(includeOutlines ? cached.outlines : [], maxEdgeDegrees,
-    measure, 'outline-stroke',groupCaches,profile);
+  // Do not run even an empty WASM outline assembler when the active map
+  // suppresses coasts. Keep a zero-cost packet shape for existing consumers.
+  const emptyStartsEnds = new Float32Array(0);
+  const outlineOverrides = includeOutlines
+    ? prepareStrokePacket(cached.outlines, maxEdgeDegrees, measure, 'outline-stroke', groupCaches, profile)
+    : { segments: [], startsEnds: emptyStartsEnds, chainPhase: new Float32Array(0),
+      ownerRanges: {}, ownerIds: [], preparedGeometry: buildGpuStrokeInstances(emptyStartsEnds) };
   if (groupCaches) compiledStrokeGroupCaches.set(store,groupCaches);
-  outlineOverrides.internalOwners = Object.fromEntries([
+  outlineOverrides.internalOwners = includeOutlines ? Object.fromEntries([
     ...features.filter(feature => rootOf(feature.id) !== String(feature.id)).map(feature => [String(feature.id), [String(feature.id)]]),
-    ...cached.coasts.map(segment => [segment.ownerIds.join('|'), childIds(segment.ownerIds)]),
-  ]);
+    ...(cached.coasts || []).map(segment => [segment.ownerIds.join('|'), childIds(segment.ownerIds)]),
+  ]) : {};
   return { ...packet, ownerIds: [...new Set([...packet.ownerIds, ...byId.keys()])], internalOwners, outlineOverrides,
     outlineOwnerIds: [...byId.keys()].sort() };
 }
@@ -337,7 +349,13 @@ function prepareStrokePacket(segments, maxEdgeDegrees, measure = (_, operation) 
     throw Object.assign(new Error('Incomplete compiled shared-border render packet.'),
       { code: 'PL-BOUNDARY-PACKET' });
   }
-  return { ...packet, preparedGeometry: measure(label + '-gpu-instances', () =>
+  const prepared = measure(label + '-gpu-instances', () =>
     buildGpuStrokeInstances(packet.startsEnds, packet.chainPhase, packet.ownerRanges),
-  {segments: packet.segments.length}) };
+  {segments: packet.segments.length});
+  // Build conservative country-border culling metadata once in this Worker.
+  // Other strokes and canonical editing geometry remain unchanged.
+  const spatial = label === 'contact-stroke' ? measure(label + '-visible-blocks', () =>
+    prepareGpuStrokeVisibilityBlocks(prepared), { segments: packet.segments.length }) : null;
+  return { ...packet, preparedGeometry: spatial
+    ? Object.freeze({ ...prepared, visibilityBlocks: spatial }) : prepared };
 }

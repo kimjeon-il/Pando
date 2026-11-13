@@ -47,7 +47,8 @@ for (const kind of ['complex','static','empty']) test(`production GeoPackage wor
   const project = serialize(snapshot);
   const written = await writeProject(project);
   const read = await request('read', written.buffer);
-  assert.deepEqual(prepareProjectForStorage(read.metadata.projectState), prepareProjectForStorage(project));
+  assert.deepEqual(prepareProjectForStorage(read.metadata.projectState),
+    prepareProjectForStorage({...project,mapProjectIdentity:project.mapProjectIdentity??null}));
   const count = spatialLayerCount(written.buffer);
   assert.equal(kind === 'complex' || kind === 'empty' ? count === 0 : count > 0, true);
 });
@@ -56,7 +57,8 @@ for (const row of timelineStorageCases().filter(row => row.expected === 'OK')) t
   const project = serialize(projectForStorage(row));
   const written = await writeProject(project);
   const read = await request('read', written.buffer);
-  assert.deepEqual(prepareProjectForStorage(read.metadata.projectState), prepareProjectForStorage(project));
+  assert.deepEqual(prepareProjectForStorage(read.metadata.projectState),
+    prepareProjectForStorage({...project,mapProjectIdentity:project.mapProjectIdentity??null}));
 });
 
 

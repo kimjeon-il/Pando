@@ -1,5 +1,7 @@
 # Generic Feature + Source Provenance
 
+> **제품 규칙과 구형 UI 구분:** 정체를 분류할 수 없는 외부 형상의 손실 없는 fallback 원칙은 [객체·시간축 정책](../policies/objects-time.md)에서 연결한다. 아래 `app.js`·추가/편집 Surface·구형 스키마 호환 작업의 구현 단계는 이전 편집 제품의 기록이며, 현재 단일 Viewer에서 편집 메뉴가 제공된다는 뜻이 아니다. 실제 모델 필드는 현행 `src/document/`와 버전 계약을 대조해야 한다.
+
 Generic Feature는 판도연구소의 일반 생성 객체가 아니라 **지원하지 않는 외부/구버전 geometry를 손실 없이 보존하기 위한 fallback**이다.
 
 ## 제품 규칙
@@ -51,7 +53,7 @@ v1의 `role / ownerId / parentId / landBinding / topologyGroup`은 v2 의미 모
 
 알 수 없는 원본 필드는 삭제하지 않고 `details.unmappedSourceFields`로 이동한다. Generic Feature는 이 계약을 첫 canonical consumer로 사용한다. 다른 정식 domain의 기존 출처 필드는 데이터 migration 없이 당장 제거하지 않으며 이후 Import/Export 및 schema migration 단계에서 이 계약으로 합류시킨다.
 
-## 호환성
+## 당시 호환성·마이그레이션 결정
 
 - Generic v1 → 런타임 정규화 시 Generic v2로 승격한다.
 - 구버전 의미 필드는 provenance details에 보존한다.

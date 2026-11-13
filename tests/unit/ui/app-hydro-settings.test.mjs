@@ -63,7 +63,6 @@ function acceptedRows() {
 function createAcceptedViewerSession(readRows) {
   const session=createProjectSession({productMode:'viewer',readOnly:true});
   session.connect({
-    readiness:{DATA_READINESS:{PREVIEW:'preview'}},
     applicationConstantsA:{DISTRIBUTION_RENDER_MODES:{OVERLAP:'overlap'}},
     modelValidation:{normalizeLayerPresentation:value=>value},
     uiFactoriesA:{createAtomicMapStateController:()=>({})},

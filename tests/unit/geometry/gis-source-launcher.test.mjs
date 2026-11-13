@@ -48,13 +48,8 @@ test('GIS source tools use their canonical Node entrypoints',()=>{
  assert.match(buildCommand('place-candidates',[])[1],/build-place-candidates\.mjs$/);
  assert.match(buildCommand('hydro-packfile',[])[1],/build-hydro-packfile\.mjs$/);
  assert.match(buildCommand('hydro-tiles',[])[1],/build-hydro\.mjs$/);
- assert.match(buildCommand('historical-border',[])[1],/build-german-1914-base\.mjs$/);
- const coast=buildCommand('historical-coast',['--output','candidate.json','--diagnostics','diagnostics.json']);
- assert.equal(coast[0],process.execPath);
- assert.match(coast[1],/build-german-1914-base\.mjs$/);
- assert.deepEqual(coast.slice(2),['--modern-coast','--output','candidate.json','--diagnostics','diagnostics.json']);
- assert.match(buildCommand('terrain-preview',[])[1],/build-terrain-preview\.mjs$/);
- assert.match(buildCommand('physical-data',[])[1],/build-physical-data\.mjs$/);
+ for(const task of ['historical-border','historical-coast'])assert.throws(()=>buildCommand(task),/Unsupported/);
+ assert.match(buildCommand('physical-hydro',[])[1],/build-physical-hydro\.mjs$/);
  assert.match(buildCommand('hydro-connectivity',[])[1],/repair-hydro-connectivity\.mjs$/);
 });
 test('GIS raw subprocess launch requires explicit --execute and keeps forwarded args',()=>{
@@ -86,13 +81,8 @@ test('mapped scripts cannot follow linked directories outside an explicit reposi
  symlinkSync(outside,join(root,'tools'),process.platform==='win32'?'junction':'dir');
  assert.throws(()=>buildCommand('terrain-dem',[],{root}),/escaped repository/);
 });
-test('terrain preview dispatcher invokes the Node owner with explicit arguments',()=>{
- const calls=[];
- assert.equal(runSource({argv:['--task','terrain-preview','--execute','--','--check'],output:()=>{},
-   spawn:(exe,args,options)=>{calls.push({exe,args,options});return {status:0,signal:null};}}),0);
- assert.equal(calls[0].exe,process.execPath);
- assert.match(calls[0].args[0],/build-terrain-preview\.mjs$/);
- assert.deepEqual(calls[0].args.slice(1),['--check']);
+test('retired terrain preview cannot be dispatched',()=>{
+ assert.throws(()=>buildCommand('terrain-preview',[]),/Unsupported/);
 });
 test('DEM generation requires source-bound native elevation reading, encoding and tint filling',t=>{
  const root=mkdtempSync(join(tmpdir(),'gis-dem-dispatch-'));t.after(()=>rmSync(root,{recursive:true,force:true}));
@@ -152,22 +142,7 @@ test('tint-only DEM reuse does not require unrelated DEM reader or gutter binari
  assert.equal(calls.length,1);
 });
 
-test('historical-border dispatches the migrated Node recipe owner without restoring Python',t=>{
- const root=mkdtempSync(join(tmpdir(),'gis-native-recipe-'));
- t.after(()=>rmSync(root,{recursive:true,force:true}));
- const source='tools/gis/build-german-1914-base.mjs';
- mkdirSync(join(root,'tools/gis'),{recursive:true});
- writeFileSync(join(root,source),"throw Error('fixture must not execute');\n");
- const calls=[],logs=[],args=['--recipe','tools/historical-library/german-empire-1914-base.recipe.json','--check'];
- const options={root,output:s=>logs.push(JSON.parse(s)),spawn:(exe,argv,settings)=>{calls.push({exe,argv,settings});return {status:0,signal:null};}};
- assert.equal(runSource({...options,argv:['--task','historical-border','--',...args]}),0);
- assert.equal(calls.length,0);assert.equal(logs[0].source,source);
- assert.equal(logs[0].requiresExternalOriginals,false);
- assert.equal(runSource({...options,argv:['--task','historical-border','--execute','--',...args]}),0);
- assert.equal(calls.length,1);assert.equal(calls[0].exe,process.execPath);
- assert.equal(calls[0].argv[0],join(root,source));assert.deepEqual(calls[0].argv.slice(1),args);
- assert.equal(calls[0].settings.shell,false);assert.equal(logs[1].requiresExternalOriginals,true);
-});
+
 });
 contractSuite("gis-source-isolation", () => {
 const assert = __source_dep0.default;

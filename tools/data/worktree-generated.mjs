@@ -7,38 +7,9 @@ import {fileHash} from "./library-git.mjs";
 
 const schema='pando-generated-cleanup-v1';
 const presentPath=path=>{try{lstatSync(path);return true;}catch(error){if(error.code==='ENOENT')return false;throw error;}};
-export function cargoRetirementRequests({root,seeds,protectedPartitions=[]}){
- const target=containedPath(root,'apps/editor/src-tauri/target'),files=contentFiles(target),nodes=new Map(),hashes=new Map(),directories=new Map();
- const exactJSON=text=>JSON.parse(text,(key,value,context)=>typeof value==='number'?context.source:value);
- for(const f of files.filter(f=>f.logical.includes('/.fingerprint/')&&f.logical.endsWith('.json'))){
-  const fingerprint=f.path.slice(0,-5);if(!existsSync(fingerprint))continue;
-  const raw=readFileSync(fingerprint,'utf8').trim();if(!/^[0-9a-f]{16}$/.test(raw))continue;
-  const value=String(Buffer.from(raw,'hex').readBigUInt64LE()),json=exactJSON(readFileSync(f.path,'utf8'));
-  const node={path:f.path,logical:f.logical,directory:dirname(f.path),partition:f.logical.split('/.fingerprint/')[0],value,json};nodes.set(f.logical,node);
-  if(!hashes.has(value))hashes.set(value,[]);hashes.get(value).push(node);
-  if(!directories.has(node.directory))directories.set(node.directory,[]);directories.get(node.directory).push(node);
- }
- const keep=new Set(),unresolved=[];function visit(n){if(keep.has(n.path))return;keep.add(n.path);for(const d of n.json.deps||[]){const found=hashes.get(String(d[3]));if(!found?.length){unresolved.push({node:n.logical,dependency:d[1],fingerprint:d[3]});continue;}for(const dep of found)visit(dep);}}
- for(const seed of seeds){const n=nodes.get(seed);if(!n)throw Error(`Cargo seed is missing or incomplete: ${seed}`);visit(n);}
- for(const n of nodes.values())if(protectedPartitions.includes(n.partition))visit(n);
- if(unresolved.length)throw Error('Current Cargo dependency fingerprint is unresolved: '+JSON.stringify(unresolved.slice(0,4)));
- const requests=[],kept=[],retired=[];const add=path=>requests.push({root,path:relative(root,path).replaceAll('\\','/'),action:'delete',reason:'Cargo fingerprint is outside all explicitly retained current dependency closures'});
- for(const [directory,group]of directories){if(protectedPartitions.includes(group[0].partition)||group.some(n=>keep.has(n.path))){kept.push(relative(target,directory).replaceAll('\\','/'));continue;}
-  retired.push(relative(target,directory).replaceAll('\\','/'));add(directory);
-  const build=directory.replace(/([\\/])\.fingerprint([\\/])/,'$1build$2');if(existsSync(build))add(build);
-  const hash=directory.match(/-([a-f0-9]{16})$/)?.[1],partition=group[0].partition;if(!hash)continue;
-  for(const f of files)if(f.logical.startsWith(partition+'/deps/')&&new RegExp('-'+hash+'(?:\\.|$)').test(f.logical))add(f.path);
- }
- const requested=new Set(requests.map(r=>r.path));
- for(const f of files){const match=f.logical.match(/^((?:[^/]+\/)?(?:debug|release))\/build\/([^/]+)\//);if(!match||protectedPartitions.includes(match[1]))continue;
-  const fp=resolve(target,match[1],'.fingerprint',match[2]);if(directories.get(fp)?.some(n=>keep.has(n.path)))continue;
-  const build=resolve(target,match[1],'build',match[2]),rel=relative(root,build).replaceAll('\\','/');if(!requested.has(rel)){add(build);requested.add(rel);}
- }
- return {requests,seeds,kept,retired,unresolved};
-}
 const identity=path=>{const s=lstatSync(path,{bigint:true});return `${s.dev}:${s.ino}:${s.size}:${s.mtimeNs}`;};
-const scopePattern=/^(?:apps\/editor\/(?:src-tauri\/(?:target|gen\/android\/(?:app\/build|build|\.gradle)))(?:\/|$)|apps\/web-shell(?:\/|$)|(?:apps\/editor\/)?node_modules\/\.pnpm(?:\/|$)|assets\/(?:worker-runtime(?:\/|$)|css\/ui(?:-modal|-viewer)?\.bundle\.css$|js\/(?:build-meta\.js$|workers\/resource-update-policy-core\.js$))|(?:index\.html|\.nojekyll)$|build-native\/(?:p9|core-ci-webgl|predicate-comparison|wasm|cache-probe)(?:\/|$)|\.superpowers\/sdd\/[^/]+(?:\/|$)|test-results(?:\/|$))/;
-const dependencyPattern=/^(?:(?:apps\/editor\/)?node_modules\/\.pnpm|apps\/web-shell\/node_modules(?:\.before-[^/]+)?)(?:\/|$)/;
+const scopePattern=/^(?:node_modules\/\.pnpm(?:\/|$)|assets\/(?:worker-runtime(?:\/|$)|css\/ui(?:-modal|-viewer)?\.bundle\.css$|js\/(?:build-meta\.js$|workers\/resource-update-policy-core\.js$))|(?:index\.html|\.nojekyll)$|build-native\/(?:p9|core-ci-webgl|predicate-comparison|wasm|cache-probe)(?:\/|$)|\.superpowers\/sdd\/[^/]+(?:\/|$)|test-results(?:\/|$))/;
+const dependencyPattern=/^node_modules\/\.pnpm(?:\/|$)/;
 const evidencePattern=/^build-native\/(?:reference-analysis(?:\/|$)|reference-release(?:\/|$)|ui-main-sync-20261021(?:\/|$)|(?:editable-library-|polygon-quality-|resource-update-)[^/]+\.(?:log|png|md|txt)$|macro-source-preview\.png$|library-merge-paths\.txt$)/;
 const compilerPatterns={
  'ci-toolchain':/^(?:emsdk-6\.0\.3|llvm-mingw-20261020|micromamba\/root\/pkgs)(?:\/|$)/,
@@ -76,6 +47,7 @@ function retirementPath(root,path){
 function validate(root,path,roots,protectedPaths=[],compilerScopes=[],action='delete'){
  if(!roots.includes(resolve(root)))throw Error('Unknown worktree scope');
  const target=retirementPath(root,path),rel=relative(root,target).replaceAll('\\','/');
+ if(protectedPaths.some(p=>p===target||p.startsWith(target+sep)))throw Error(`Protected source or WIP: ${target}`);
  if(!scopePattern.test(rel)&&!evidencePattern.test(rel)&&!compilerScopes.some(scope=>resolve(scope.root)===resolve(root)&&compilerPatterns[scope.kind]?.test(rel)&&(scope.kind!=='pc-evidence'||action==='relocate')))throw Error(`Unknown generated scope: ${rel}`);
  if(protectedPaths.some(p=>p===target||p.startsWith(target+sep)))throw Error(`Protected source or WIP: ${target}`);
  return target;
@@ -83,7 +55,7 @@ function validate(root,path,roots,protectedPaths=[],compilerScopes=[],action='de
 function assertIdle(roots,consumers,targets=roots){
  const norm=p=>String(p||'').replaceAll('\\','/').toLowerCase();
  for(const c of consumers)for(const root of targets){const r=norm(root),build=/^(cargo|rustc|rust-lld|cmake|ninja|msbuild|gradle|emulator|qemu-system-[\w-]+)\.exe$/i.test(c.Name||'')||(/^java(?:w)?\.exe$/i.test(c.Name||'')&&/gradle/i.test(c.CommandLine||''));if(norm(c.ExecutablePath).startsWith(r+'/')||norm(c.CommandLine).includes(r)||c.globalBuild||build)throw Error(`Active consumer blocks cleanup: ${c.ProcessId||''} ${c.Name||''}`);}
- for(const root of roots)for(const p of ['apps/editor/.stage-lock','.library-data/prepare.lock'])if(existsSync(containedPath(root,p)))throw Error(`Active consumer lock: ${root}/${p}`);
+ for(const root of roots)for(const p of ['.library-data/prepare.lock'])if(existsSync(containedPath(root,p)))throw Error(`Active consumer lock: ${root}/${p}`);
 }
 function destination(entry,relocationRoots){
  const base=relocationRoots.find(p=>{const rel=relative(resolve(p),resolve(entry.destination));return rel&&!rel.startsWith('..')&&!resolve(entry.destination).startsWith(resolve(entry.root)+'/');});

@@ -27,7 +27,7 @@ test('runtime closure selects current payloads without reading provenance, repor
  const source='assets/data/territorial-entities/source/countries/original.json';
  const reads=[];
  const paths=collectRuntimeDataAssets({availablePaths:[root,payload,source,'reports/development/private.md','assets/data/world/objects/old.bin'],
-  readManifest:path=>{reads.push(path);assert.equal(path,root);return {source:{url:source},assets:{canonical:{url:'world/objects/current.bin'}}};}});
+  readManifest:path=>{reads.push(path);assert.equal(path,root);return {source:{url:source},assets:{canonicalMesh:{url:'world/objects/current.bin'}}};}});
  assert.deepEqual([...paths].sort(),[root,payload].sort());
  assert.deepEqual(reads,[root]);
 });
@@ -52,7 +52,7 @@ test('different preparation scopes never reuse a completed view or copy excluded
 });
 test('runtime closure rejects missing and escaping resources before preparing a view',()=>{
  for(const url of ['world/objects/missing.bin','../source.json'])assert.throws(()=>collectRuntimeDataAssets({availablePaths:[root],
-  readManifest:()=>({assets:{canonical:{url}}})}),/missing|invalid|unsafe/i);
+  readManifest:()=>({assets:{canonicalMesh:{url}}})}),/missing|invalid|unsafe/i);
 });
 
 test('Viewer preparation uses the same manifest closure and validates stored payload identities',()=>{
@@ -60,7 +60,7 @@ test('Viewer preparation uses the same manifest closure and validates stored pay
  const entries={
   [root]:{stored:'manifest'},[payload]:{stored:'payload',sha256:'a'.repeat(64),bytes:7},[source]:{stored:'source'},
  };
- const manifest={assets:{canonical:{url:'world/objects/current.bin',sha256:'a'.repeat(64),compressedBytes:7}},source:{url:source}};
+ const manifest={assets:{canonicalMesh:{url:'world/objects/current.bin',sha256:'a'.repeat(64),compressedBytes:7}},source:{url:source}};
  const read=entry=>{assert.equal(entry,entries[root]);return Buffer.from(JSON.stringify(manifest));};
  const selected=runtimeArchiveIndex({files:entries},read,{purpose:'viewer-legacy'});
  assert.deepEqual(Object.keys(selected.files).sort(),[root,payload].sort());
@@ -132,6 +132,18 @@ test('pinned Viewer materialization follows selected project catalog roles witho
  assert.equal(selected['assets/data/places/old-city.bin'],undefined);
  assert.ok(selected[source.resources.territorial.catalog]);
  assert.ok(selected[hydroBin]);
+});
+
+test('retired world preview assets are not part of the immutable runtime closure',()=>{
+ const canonical='assets/data/world/objects/canonical.bin', boundary='assets/data/borders/canonical.gz';
+ const reads=[];
+ const selected=collectRuntimeDataAssets({availablePaths:[root,canonical,boundary],
+  readManifest:()=>({assets:{canonicalMesh:{url:'world/objects/canonical.bin'},
+   previewMesh:{url:'missing-preview.bin'},previewCountries:{url:'missing-preview.json.gz'}},
+   compatibility:{sharedBoundaries:{canonical:'borders/canonical.gz',preview:'missing-preview-boundaries.gz'}}}),
+  verifyAsset:(path)=>reads.push(path)});
+ assert.deepEqual([...selected].sort(),[root,canonical,boundary].sort());
+ assert.deepEqual(reads,[canonical]);
 });
 
 test('GIS materialization uses an isolated private copy when hardlink creation is unavailable',t=>{

@@ -170,6 +170,32 @@ test('file project replacement cancels pending date publication and all late cal
   } finally {clock.dispose();}
 });
 
+test('pending external file open suspends calendar follow and a rejected open restores it',async()=>{
+  let now=new Date(2026,9,31),loads=0;
+  const clock=createProjectMonthClock({now:()=>now,applyMonth:async(month,{commit})=>{loads++;return commit();}});
+  try {
+    assert.equal(await clock.initialize(),true);
+    const reject=clock.beginExternalOpen();
+    assert.equal(clock.isAutomatic(),false);
+    now=new Date(2026,10,1);
+    assert.equal(await clock.refresh(),false);
+    assert.equal(loads,1);
+    reject(false);
+    assert.equal(clock.isAutomatic(),true);
+    assert.equal(await clock.refresh(),true);
+    assert.equal(loads,2);
+    const accept=clock.beginExternalOpen();
+    accept(true);
+    now=new Date(2026,11,1);
+    assert.equal(clock.isAutomatic(),false);
+    assert.equal(await clock.refresh(),false);
+    assert.equal(loads,2);
+    assert.equal(await clock.followNow(),true);
+    assert.equal(clock.isAutomatic(),true);
+    assert.equal(loads,3);
+  } finally {clock.dispose();}
+});
+
 test('focus and visibility changes refresh only the active default project', async () => {
   const window=new EventTarget(),document=new EventTarget();
   window.setTimeout=()=>1;window.clearTimeout=()=>{};

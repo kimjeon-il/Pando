@@ -17,7 +17,7 @@ on:
       target:
         description: Standalone native tool to build and verify
         type: choice
-        options: [ hydro, hydro-chains, hydro-outlets, hydro-encoding, hydro-encoding-integrated, hydro-point-screen, hydro-shared-boundary, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, physical-hydro, physical-raster, physical-raster-integrated, pc-allocation, qgis-windows, map-image, map-pdf, map-preview, terrain-preview, terrain-preview-integrated, terrain-dem-check, terrain-dem-check-integrated, terrain-dem-raster, terrain-dem-path, terrain-dem-gutters, terrain-dem-gutters-integrated, terrain-dem-tint, terrain-dem-encode, terrain-dem-fill-windows ]
+        options: [ hydro, hydro-chains, hydro-outlets, hydro-encoding, hydro-encoding-integrated, hydro-point-screen, hydro-shared-boundary, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, physical-hydro, physical-raster, pc-allocation, map-image, map-pdf, map-preview, terrain-dem-check, terrain-dem-check-integrated, terrain-dem-raster, terrain-dem-path, terrain-dem-gutters, terrain-dem-gutters-integrated, terrain-dem-tint, terrain-dem-encode, terrain-dem-fill-windows ]
         default: hydro
 
 permissions:
@@ -401,7 +401,7 @@ jobs:
           PANDO_GDAL_OGR2OGR: ogr2ogr
         run: node --test tests/unit/geometry/physical-hydro-native.test.mjs
   physical-raster:
-    if: github.event_name == 'workflow_dispatch' && (inputs.target == 'physical-raster' || inputs.target == 'physical-raster-integrated')
+    if: github.event_name == 'workflow_dispatch' && inputs.target == 'physical-raster'
     strategy:
       fail-fast: false
       matrix:
@@ -445,28 +445,6 @@ jobs:
           $env:PANDO_PHYSICAL_RASTER_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/physical-raster/artifact"
           node --test tests/unit/document/physical-raster-native.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Physical TIFF source pixels differ' }
-          if ('${{ inputs.target }}' -eq 'physical-raster-integrated') {
-            cmake -S tools/cpp -B build-native/map-image -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_MAP_IMAGE=ON
-            if ($LASTEXITCODE -ne 0) { throw 'Image codec configuration failed' }
-            cmake --build build-native/map-image --config Release --target pando-map-image --parallel 2
-            if ($LASTEXITCODE -ne 0) { throw 'Image codec build failed' }
-            if ($IsWindows) { $image = 'build-native/map-image/Release/pando-map-image.exe' }
-            else { $image = 'build-native/map-image/pando-map-image' }
-            node tools/map-image/package-native.mjs --binary $image --directory build-native/map-image/artifact
-            if ($LASTEXITCODE -ne 0) { throw 'Image codec packaging failed' }
-            $env:PANDO_MAP_IMAGE_ARTIFACT = "$env:GITHUB_WORKSPACE/build-native/map-image/artifact"
-            cmake -S tools/cpp/terrain -B build-native/terrain-preview -DCMAKE_BUILD_TYPE=Release
-            if ($LASTEXITCODE -ne 0) { throw 'Terrain configuration failed' }
-            cmake --build build-native/terrain-preview --config Release --target pando-terrain-preview
-            if ($LASTEXITCODE -ne 0) { throw 'Terrain build failed' }
-            if ($IsWindows) { $terrain = 'build-native/terrain-preview/Release/pando-terrain-preview.exe' }
-            else { $terrain = 'build-native/terrain-preview/pando-terrain-preview' }
-            node tools/gis/package-terrain-preview.mjs --binary $terrain --directory build-native/terrain-preview/artifact
-            if ($LASTEXITCODE -ne 0) { throw 'Terrain packaging failed' }
-            $env:PANDO_TERRAIN_PREVIEW_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/terrain-preview/artifact"
-            node --test tests/unit/build/terrain-preview-builder.test.mjs
-            if ($LASTEXITCODE -ne 0) { throw 'Physical terrain pipeline differs from frozen source pixels' }
-          }
       - uses: actions/upload-artifact@v4
         with:
           name: physical-raster-${{ matrix.os }}-${{ github.sha }}
@@ -746,66 +724,6 @@ jobs:
           name: hydro-encoding-${{ matrix.os }}-${{ github.sha }}
           path: build-native/hydro-encoding/artifact/
           retention-days: 7
-  terrain-preview:
-    if: github.event_name == 'workflow_dispatch' && (inputs.target == 'terrain-preview' || inputs.target == 'terrain-preview-integrated')
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ ubuntu-24.04, windows-2022 ]
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-      - name: Build the image codec needed by the integrated terrain workflow
-        if: inputs.target == 'terrain-preview-integrated'
-        shell: pwsh
-        run: |
-          cmake -S tools/cpp -B build-native/map-image -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_MAP_IMAGE=ON
-          if ($LASTEXITCODE -ne 0) { throw 'Image codec configure failed' }
-          cmake --build build-native/map-image --config Release --target pando-map-image --parallel 2
-          if ($LASTEXITCODE -ne 0) { throw 'Image codec build failed' }
-          if ($IsWindows) { $image = 'build-native/map-image/Release/pando-map-image.exe' }
-          else { $image = 'build-native/map-image/pando-map-image' }
-          node tools/map-image/package-native.mjs --binary $image --directory build-native/map-image/artifact
-          if ($LASTEXITCODE -ne 0) { throw 'Image codec packaging failed' }
-          Add-Content -Path $env:GITHUB_ENV -Value "PANDO_MAP_IMAGE_ARTIFACT=$env:GITHUB_WORKSPACE/build-native/map-image/artifact"
-      - name: Build and verify only the terrain preview compositor
-        shell: pwsh
-        run: |
-          cmake -S tools/cpp/terrain -B build-native/terrain-preview -DCMAKE_BUILD_TYPE=Release
-          if ($LASTEXITCODE -ne 0) { throw 'Terrain preview configure failed' }
-          cmake --build build-native/terrain-preview --config Release --target pando-terrain-preview
-          if ($LASTEXITCODE -ne 0) { throw 'Terrain preview build failed' }
-          if ($IsWindows) { $env:PANDO_TERRAIN_PREVIEW_BINARY = "$env:GITHUB_WORKSPACE/build-native/terrain-preview/Release/pando-terrain-preview.exe" }
-          else { $env:PANDO_TERRAIN_PREVIEW_BINARY = "$env:GITHUB_WORKSPACE/build-native/terrain-preview/pando-terrain-preview" }
-          Add-Content -Path $env:GITHUB_ENV -Value "PANDO_TERRAIN_PREVIEW_BINARY=$env:PANDO_TERRAIN_PREVIEW_BINARY"
-          node tools/gis/package-terrain-preview.mjs --binary $env:PANDO_TERRAIN_PREVIEW_BINARY --directory build-native/terrain-preview/artifact
-          if ($LASTEXITCODE -ne 0) { throw 'Terrain preview packaging failed' }
-          $env:PANDO_TERRAIN_PREVIEW_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/terrain-preview/artifact"
-          node --test tests/unit/geometry/terrain-preview-native.test.mjs  tests/unit/build/terrain-preview-builder.test.mjs
-          if ($LASTEXITCODE -ne 0) { throw 'Terrain preview differs from frozen source pixels' }
-          if ('${{ inputs.target }}' -eq 'terrain-preview-integrated') {
-            node --test tests/unit/document/map-native-webp-encode.test.mjs tests/unit/document/physical-webp-stream.test.mjs
-            if ($LASTEXITCODE -ne 0) { throw 'WebP encoding differs from source pixels' }
-            node --test tests/unit/geometry/physical-terrain-native.test.mjs
-            if ($LASTEXITCODE -ne 0) { throw 'Physical terrain operations differ from source pixels' }
-          }
-      - uses: actions/upload-artifact@v4
-        with:
-          name: terrain-preview-${{ matrix.os }}-${{ github.sha }}
-          path: build-native/terrain-preview/artifact/
-          retention-days: 7
-      - uses: actions/upload-artifact@v4
-        if: inputs.target == 'terrain-preview-integrated'
-        with:
-          name: terrain-image-codec-${{ matrix.os }}-${{ github.sha }}
-          path: build-native/map-image/artifact/
-          retention-days: 7
   map-preview:
     if: github.event_name == 'workflow_dispatch' && inputs.target == 'map-preview'
     strategy:
@@ -1058,7 +976,7 @@ jobs:
       - name: Fetch only the pinned Hydro bundle
         uses: actions/checkout@v4
         with:
-          repository: kimjeon-il/PandoLab-library-data
+          repository: kimjeon-il/PandoLab-library
           ref: ${{ steps.hydro-data-pin.outputs.revision }}
           path: .pando-hydro-input
           persist-credentials: false
@@ -1142,109 +1060,6 @@ jobs:
           assert.deepEqual(JSON.parse(readFileSync('/tmp/pando-yarra-native.json','utf8')),JSON.parse(readFileSync('tests/fixtures/hydro-yarra-v0132-expected.json','utf8')));
           console.log('The real Yarra source matches the frozen bidirectional screen');
           JS
-  qgis-windows:
-    if: github.event_name == 'workflow_dispatch' && inputs.target == 'qgis-windows'
-    runs-on: windows-2022
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-      - uses: pnpm/action-setup@v4
-      - name: Install locked MCP test dependencies
-        run: pnpm install --frozen-lockfile --ignore-scripts
-      - name: Reuse pinned QGIS SDK archives
-        id: qgis-sdk-cache
-        uses: actions/cache/restore@v4
-        with:
-          path: build-native/qgis-sdk/*.tar.bz2
-          key: qgis-sdk-${{ runner.os }}-qgis-3.44.15-qt-5.15.13-gdal-3.13.3-geos-3.15.0-proj-9.8.1-v1
-      - name: Download and verify the matching OSGeo4W development packages
-        shell: pwsh
-        run: |
-          if ((Get-PSDrive -Name C).Free -lt 7GB) { throw 'Need estimated 2 GiB SDK/build space plus 5 GiB headroom' }
-          $sdk = "$env:GITHUB_WORKSPACE/build-native/qgis-sdk"
-          New-Item -ItemType Directory -Force -Path $sdk | Out-Null
-          $packages = @(
-            @{name='qgis'; path='qgis/qgis-ltr/qgis-ltr-devel/qgis-ltr-devel-3.44.15-1.tar.bz2'; sha='D55BA2C310AAEEE31C075AE049CF4ADDD51701988534616F4ECB475FC3097897'},
-            @{name='qt'; path='qt5/qt5-devel/qt5-devel-5.15.13-2.tar.bz2'; sha='D3F70B83B9BBEB7F6EDE7054D7DC3607F2C5DBE02DC316C79C33BD6ED3B6389C'},
-            @{name='gdal'; path='gdal/gdal-devel/gdal-devel-3.13.3-3.tar.bz2'; sha='2475B7AB14A8437B925D1E96908AD5E22B8296ADF01E00B9ECA3EF0816B736C2'},
-            @{name='geos'; path='geos/geos-devel/geos-devel-3.15.0-1.tar.bz2'; sha='6D62956B904C0BC5B2825F2EADFBD1DCD2342B82F1881E79AAE6561CE1EE2021'},
-            @{name='proj'; path='proj/proj-devel/proj-devel-9.8.1-1.tar.bz2'; sha='B8A6F4DBB800F019BE4F4C45849B53818F2074213B850DFC38681CC99D0E3889'}
-          )
-          foreach ($package in $packages) {
-            $archive = Join-Path $sdk ($package.name + '.tar.bz2')
-            if ((Test-Path -LiteralPath $archive -PathType Leaf) -and (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash -eq $package.sha) {
-              Write-Output "Reusing verified $($package.name) SDK archive"
-              continue
-            }
-            Write-Output "Downloading $($package.name) SDK"
-            $url = 'https://download-cache.osgeo.org/osgeo4w/v2/x86_64/release/' + $package.path
-            curl.exe --proto '=https' --tlsv1.2 --fail --location --max-time 180 --max-filesize 30000000 $url --output $archive
-            if ($LASTEXITCODE -ne 0) { throw "SDK download failed: $($package.name)" }
-            if ((Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash -ne $package.sha) { throw "SDK digest mismatch: $($package.name)" }
-          }
-      - name: Cache verified QGIS SDK archives
-        if: steps.qgis-sdk-cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v4
-        with:
-          path: build-native/qgis-sdk/*.tar.bz2
-          key: ${{ steps.qgis-sdk-cache.outputs.cache-primary-key }}
-      - name: Extract QGIS headers and import libraries
-        timeout-minutes: 4
-        shell: pwsh
-        run: |
-          $sdk = "$env:GITHUB_WORKSPACE/build-native/qgis-sdk"
-          $zip = Join-Path $env:ProgramFiles '7-Zip/7z.exe'
-          & $zip x -y "$sdk/qgis.tar.bz2" "-o$sdk/packed" | Out-Null
-          if ($LASTEXITCODE -ne 0) { throw 'QGIS SDK decompression failed' }
-          & $zip x -y "$sdk/packed/qgis.tar" "-o$sdk" | Out-Null
-          if ($LASTEXITCODE -ne 0) { throw 'QGIS SDK extraction failed' }
-      - name: Extract Qt headers and import libraries
-        timeout-minutes: 6
-        shell: pwsh
-        run: |
-          $sdk = "$env:GITHUB_WORKSPACE/build-native/qgis-sdk"
-          $zip = Join-Path $env:ProgramFiles '7-Zip/7z.exe'
-          & $zip x -y "$sdk/qt.tar.bz2" "-o$sdk/packed" | Out-Null
-          if ($LASTEXITCODE -ne 0) { throw 'Qt SDK decompression failed' }
-          & $zip x -y "$sdk/packed/qt.tar" "-o$sdk" | Out-Null
-          if ($LASTEXITCODE -ne 0) { throw 'Qt SDK extraction failed' }
-      - name: Extract GIS development headers
-        timeout-minutes: 4
-        shell: pwsh
-        run: |
-          $sdk = "$env:GITHUB_WORKSPACE/build-native/qgis-sdk"
-          $zip = Join-Path $env:ProgramFiles '7-Zip/7z.exe'
-          foreach ($name in @('gdal','geos','proj')) {
-            & $zip x -y "$sdk/$name.tar.bz2" "-o$sdk/packed" | Out-Null
-            if ($LASTEXITCODE -ne 0) { throw "$name SDK decompression failed" }
-            & $zip x -y "$sdk/packed/$name.tar" "-o$sdk" | Out-Null
-            if ($LASTEXITCODE -ne 0) { throw "$name SDK extraction failed" }
-          }
-      - name: Build the optional native QGIS bridge
-        shell: pwsh
-        run: |
-          cmake -S tools/cpp -B build-native/qgis/native -A x64 -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_QGIS_BRIDGE=ON -DPANDO_QGIS_SDK_ROOT="$env:GITHUB_WORKSPACE/build-native/qgis-sdk"
-          if ($LASTEXITCODE -ne 0) { throw 'QGIS CMake configure failed' }
-          cmake --build build-native/qgis/native --config Release --target pando-qgis-bridge --parallel 1
-          if ($LASTEXITCODE -ne 0) { throw 'QGIS native bridge build failed' }
-      - name: Test authenticated client transport
-        run: node --test tests/unit/geometry/qgis-native-client.test.mjs tests/unit/geometry/qgis-native-export.test.mjs  tests/unit/geometry/qgis-native-mcp.test.mjs
-      - name: Package the source-bound bridge
-        shell: pwsh
-        run: |
-          node tools/qgis/package-native-plugin.mjs --binary build-native/qgis/native/Release/pando_qgis_bridge.dll --directory build-native/qgis/artifact
-          if ($LASTEXITCODE -ne 0) { throw 'QGIS bridge packaging failed' }
-      - uses: actions/upload-artifact@v4
-        with:
-          name: native-qgis-bridge-windows-x64-${{ github.sha }}
-          path: build-native/qgis/artifact/
-          if-no-files-found: error
-          retention-days: 7
   native-hydro:
     if: github.event_name != 'workflow_dispatch' || inputs.target == 'hydro'
     runs-on: ubuntu-24.04

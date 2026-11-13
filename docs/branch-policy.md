@@ -7,7 +7,7 @@
 | 브랜치 | 주요 책임 |
 | --- | --- |
 | `main` | 검증·승인된 통합본과 웹 Pages 게시 원본 |
-| `work/ui` | 웹·앱 화면과 입력 |
+| `work/ui` | 웹 Viewer·내장 점검 UI 및 입력·공통 화면 정책 |
 | `work/objects` | 객체·관계·기간·저장 모델 |
 | `work/gis` | GIS 자료·역사 경계·수계·지형·자료 조사 |
 | `work/places` | 도시·지명 자료와 표시 |
@@ -37,7 +37,7 @@
 
 ## 검증과 배포
 
-viewer 의존 그래프가 선택한 정적 산출물만 `.github/workflows/web-pages.yml`로 Pages에 게시한다. `apps/`와 `shared/` 소스는 게시 대상에서 제외한다. 웹 검수 보조 도구는 같은 커밋의 Viewer 산출물을 검증하며 독립 네이티브 앱을 빌드하지 않는다. 원본 데이터 핀, 과거 Web/App SHA, 별도 교환 검증은 역사적 근거로 남기며 현재 동등성이라고 표시하지 않는다.
+현재 Viewer의 `src/app/` 진입점에서 의존 그래프로 선택한 정적 산출물만 `.github/workflows/web-pages.yml`로 Pages에 게시한다. 과거 `apps/`·`shared/` 별도 제품 소스는 퇴역했으며 배포 소유자가 아니다. 웹 검수 보조 도구는 같은 커밋의 Viewer 산출물을 검증하며 독립 네이티브 앱을 빌드하지 않는다. 원본 데이터 핀, 과거 Web/App SHA, 별도 교환 검증은 역사적 근거로 남기며 현재 동등성이라고 표시하지 않는다.
 
 공개 자료는 해당 Pando main 커밋의 자료 핀으로만 결정한다. 선택한 자료를 보관·푸시·원격 확인한 뒤 그 핀을 main에 반영하면 웹 게시와 실제 응답 검증까지 자동으로 이어진다. 자료 저장소 main의 별도 채널로 덮어쓰거나 앱에서 미반영 자료를 직접 게시하지 않는다. 작업 중 저장·동기화와 보고서 전용 보관은 공개 승인에 해당하지 않는다. 필요한 생성물은 자료 작업에서 변경 범위만 준비하며 배포 중 전체 GIS를 재생성하지 않는다.
 
@@ -45,7 +45,7 @@ viewer 의존 그래프가 선택한 정적 산출물만 `.github/workflows/web-
 
 ## 외부 자료 저장소
 
-라이브러리 객체·런타임 지도·원자료·보고서는 `kimjeon-il/PandoLab-library-data`에 둔다. `config/library-data.json`이 각 코드 브랜치와 짝인 자료 커밋을 고정한다. `node tools/data/library-data.mjs`로 고정 캐시를 준비하며 `assets/data`와 조사 원자료 경로는 Git에서 제외된 마운트다. 보고서는 공유 자료 저장소 루트 `reports/`의 원문을 두 언어의 경로 helper로 읽고, 쓰기는 `.edits/<브랜치>`의 독립 편집본에 한정한다. `.owners.json`의 브랜치별 revision과 `.variants/<sha256>`의 다른 판본을 보존하며, 자료 준비 때 보고서 전체를 작업트리에 복제하지 않는다. `node tools/data/library-data.mjs --store --include-prefix=reports/<범위>`로 지정한 변경만 보관하고 보고서만 저장하면 런타임 자료 핀을 바꾸지 않는다. 미복원 파일의 부재를 삭제로 해석하지 않는다. 보관 원문 삭제는 원문 작업 범위에서 파일을 명시적으로 보존·이동하거나 삭제한 뒤 `--remove-path=reports/<파일>`로 명시한다. 자료 저장소는 보관용이며 검사·테스트·재생성을 실행하지 않는다.
+라이브러리 객체·런타임 지도·원자료·보고서는 `kimjeon-il/PandoLab-library`에 둔다. `config/library-data.json`이 각 코드 브랜치와 짝인 자료 커밋을 고정한다. `node tools/data/library-data.mjs`로 고정 캐시를 준비하며 `assets/data`와 조사 원자료 경로는 Git에서 제외된 마운트다. 보고서는 공유 자료 저장소 루트 `reports/`의 원문을 두 언어의 경로 helper로 읽고, 쓰기는 `.edits/<브랜치>`의 독립 편집본에 한정한다. `.owners.json`의 브랜치별 revision과 `.variants/<sha256>`의 다른 판본을 보존하며, 자료 준비 때 보고서 전체를 작업트리에 복제하지 않는다. `node tools/data/library-data.mjs --store --include-prefix=reports/<범위>`로 지정한 변경만 보관하고 보고서만 저장하면 런타임 자료 핀을 바꾸지 않는다. 미복원 파일의 부재를 삭제로 해석하지 않는다. 보관 원문 삭제는 원문 작업 범위에서 파일을 명시적으로 보존·이동하거나 삭제한 뒤 `--remove-path=reports/<파일>`로 명시한다. 라이브러리의 도구 소스 checkout은 해당 도구의 작은 fixture 검사와 선택된 native CI만 실행할 수 있다. 자료 전용 worktree는 metadata-only를 유지하며 자료·보고서 변경에 전체 검사·재생성을 연결하지 않는다.
 
 ## 보고서 작업 완료
 

@@ -159,7 +159,7 @@ remain unchanged. Old Yugoslavia ends **1992-04-26**, new Yugoslavia starts
   immutable archive in `geometry-version-store.js` are the project sources of truth.
   `timeline-storage.js` already supports complex records; live editor restoration
   validates them and gates activation before publishing anything.
-- `build-world-preview.mjs` and `build-world-mesh.mjs` currently read Natural Earth
+- `build-world-preview.mjs` and `build-world-mesh.mjs` at this historical baseline read Natural Earth
   directly. Preview uses existing topology simplification. Canonical encoder takes
   unchanged source geometry and properties; shared boundary builder derives
   signatures/segments after existing built-in classification.
@@ -367,7 +367,7 @@ Linux Node 22 CI와 로컬 Windows Node 24 사이의 정확한 재생성 차이 
 생성된 입력 기록에는 실제 재생성한 판본과 재사용한 이전 판본을 구분해 담는다.
 동일한 형상 Boolean 연산은 생성 1회 동안 메모리에서 재사용하며, 날짜 구간별
 판정·수치 정밀도 기록과 허용 한도는 매번 유지한다. 디스크 캐시는 만들지 않는다.
-2. `build-world-mesh.mjs` → `build-world-preview.mjs` → `build-world-bundle.mjs`
+2. `build-world-mesh.mjs` → `build-world-country-packet.mjs` → `build-world-bundle.mjs`
 3. `build-country-shared-boundaries.mjs` → `build-prepared-polygon-mesh.mjs`
 4. `scripts/generate-build-metadata.mjs`
 

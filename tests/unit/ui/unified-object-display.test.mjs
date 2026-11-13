@@ -5,7 +5,6 @@ import * as __merge_dep2 from "node:fs";
 import * as __merge_dep3 from "../../helpers/core-project.mjs";
 import * as __merge_dep4 from "node:test";
 import * as __merge_dep5 from "node:assert/strict";
-import * as __merge_dep6 from "../../../src/ui/map-display-catalog.js";
 import * as __merge_dep7 from "../../../src/ui/layer-presentation.js";
 import * as __merge_dep8 from "../../../src/document/object-query.js";
 import * as __merge_dep9 from "../../../src/document/object-ref-identity.js";
@@ -21,7 +20,6 @@ const { readFileSync } = __merge_dep2;
 const { createNodeCoreProject } = __merge_dep3;
 const test = __merge_dep4.default;
 const assert = __merge_dep5.default;
-const { MAP_DISPLAY_TARGETS } = __merge_dep6;
 const { normalizeLayerPresentation, layerStyle } = __merge_dep7;
 const { createObjectQuery } = __merge_dep8;
 const { normalizeObjectRef } = __merge_dep9;
@@ -30,7 +28,7 @@ test('all territorial objects share one display group irrespective of kind or pa
  const rows={A:{id:'A',properties:{entityKind:'general',parentId:''}},B:{id:'B',properties:{entityKind:'general',parentId:'A'}},R:{id:'R',properties:{entityKind:'regional',parentId:'A'}}};
  const state={timelineCursor:'1914-06',layerVisibility:{objects:true},itemVisibility:{objects:{B:false}}};
  const query=createObjectQuery({selectionServices:{normalizeObjectRef},projectState:{state},territorialModel:{entityRepository:{get:id=>rows[id]}},layerPresentation:{isLayerItemVisible:(group,id)=>state.itemVisibility[group]?.[id]!==false}});
- assert.deepEqual(Object.keys(MAP_DISPLAY_TARGETS).filter(key=>['objects','countries','subunits','regions'].includes(key)),['objects']);
+ assert.deepEqual(Object.keys(normalizeLayerPresentation().styles).filter(key=>['objects','countries','subunits','regions'].includes(key)),['objects']);
  for(const id of Object.keys(rows)){const ref={domain:'territorial',type:'entity',id};assert.equal(query.layerGroupForObjectRef(ref),'objects');}
  for(const id of ['A','R'])assert.equal(query.objectRefVisible({domain:'territorial',type:'entity',id}),true);
  assert.equal(query.objectRefVisible({domain:'territorial',type:'entity',id:'B'}),false);
@@ -38,9 +36,9 @@ test('all territorial objects share one display group irrespective of kind or pa
  rows.B.properties.entityKind='regional';assert.equal(query.objectRefVisible({domain:'territorial',type:'entity',id:'B'}),false);
  state.layerVisibility.objects=false;for(const id of Object.keys(rows))assert.equal(query.objectRefVisible({domain:'territorial',type:'entity',id}),false);
 });
-test('one object style owns color, opacity and boundary controls',()=>{
- const value=normalizeLayerPresentation({styles:{objects:{opacity:.4,colorVisible:false,boundaryVisible:false}}});
- assert.equal(layerStyle(value,'objects').opacity,.4);assert.equal(layerStyle(value,'objects').colorVisible,false);assert.equal(layerStyle(value,'objects').boundaryVisible,false);
+test('one object style retains color and boundary controls but no transparency field',()=>{
+ const value=normalizeLayerPresentation({styles:{objects:{colorVisible:false,boundaryVisible:false}}});
+ assert.equal(Object.hasOwn(layerStyle(value,'objects'),'opacity'),false);assert.equal(layerStyle(value,'objects').colorVisible,false);assert.equal(layerStyle(value,'objects').boundaryVisible,false);
  for(const key of ['countries','subunits','regions'])assert.equal(Object.hasOwn(value.styles,key),false);
 });
 
@@ -53,9 +51,9 @@ test('Core preserves object visibility across temporal parent changes and only a
  await owner.client.setTimelineCursor('1914-07');await owner.client.setTimelineCursor('1916-01');
  assert.deepEqual(JSON.parse(await owner.client.storageSnapshot()),before);
  assert.equal(viewing.session.state.itemVisibility.objects.B,false);
- const edited=await owner.project.executeCommand({commandId:'presentation.apply',targets:[],payload:{action:'groupStyle',group:'objects',patch:{opacity:.4,boundaryVisible:false}}});
+ const edited=await owner.project.executeCommand({commandId:'presentation.apply',targets:[],payload:{action:'groupStyle',group:'objects',patch:{boundaryVisible:false}}});
  assert.equal(edited.ok,true,JSON.stringify(edited.error));
- assert.equal(owner.documentModel.snapshot().layerPresentation.styles.objects.opacity,.4);
+ assert.equal(Object.hasOwn(owner.documentModel.snapshot().layerPresentation.styles.objects,'opacity'),false);
  assert.equal(owner.documentModel.snapshot().layerPresentation.styles.objects.boundaryVisible,false);
  assert.equal(viewing.session.state.itemVisibility.objects.B,false);
  const saved=JSON.parse(await owner.client.storageSnapshot());assert.equal(saved.schemaVersion,14);assert.equal(saved.layerPresentation.schemaVersion,5);
@@ -134,6 +132,7 @@ function node() {
     classList:{toggle:(key,enabled)=>enabled?classes.add(key):classes.delete(key)},
     setAttribute(key,value){this.attributes[key]=value;},
     addEventListener(key,handler){events.set(key,handler);},
+    removeEventListener(key,handler){if(events.get(key)===handler)events.delete(key);},
     append(...children){this.children.push(...children);},
     prepend(...children){this.children.unshift(...children);},
     replaceChildren(...children){this.children=children;},
@@ -209,7 +208,7 @@ test('P4-4 a C++ membership transition reports new and extinct country IDs for d
   owner.dispose();
 });
 
-test('P4-4 pending project keeps old search visible but inert and makes old actions no-ops',()=>{
+test('P4-4 pending project keeps old search visible but inert and makes old actions no-ops',async()=>{
   const f=searchFixture(),old=f.button('OLD'),oldFocus=f.button('OLD','focus');
   assert.ok(old&&oldFocus);
   const ticket=f.controller.beginProjectTransition();
@@ -229,6 +228,7 @@ test('P4-4 pending project keeps old search visible but inert and makes old acti
   assert.deepEqual(f.selected,[],'removed row handlers stay inert even after new rows are mounted');
   assert.deepEqual(f.focused,[]);
   f.click(f.button('NEW'));
+  await Promise.resolve();
   assert.deepEqual(f.selected,['NEW']);
   assert.equal(f.closed.length,1);
   f.controller.dispose();

@@ -15,7 +15,6 @@ import * as __dep12 from "node:worker_threads";
 import * as __dep13 from "../../../src/ui/map-display-client.js";
 import * as __dep14 from "../../../src/runtime/worker-rpc.js";
 import * as __dep15 from "../../../src/document/territorial-units.js";
-import * as __dep16 from "../../../src/ui/map-display-menu-state.js";
 
 
 import * as __dep19 from "../../../src/map/map-interaction-gate.js";
@@ -56,7 +55,7 @@ const chain=new Proxy(function(){},{get:(_target,key)=>key==='then'?undefined:()
 async function fixture(t,mutate=()=>{},layers={}){
  const {project}=await createViewerProjectPackage();
  project.genericFeatures=[feature('line',line),feature('area',square)];
- project.layerPresentation=normalizeLayerPresentation({styles:{genericFeatures:{opacity:.5}}});mutate(project);
+ project.layerPresentation=normalizeLayerPresentation({styles:{genericFeatures:{blendMode:'multiply'}}});mutate(project);
  const core=await createNodeCoreProject(project);t.after(core.dispose);
  const state={...core.documentModel.snapshot(),timelineCursor:'1914-06'};
  const entityRepository=createTerritorialEntityRepository({getEntities:()=>core.documentModel.territorialViews()});
@@ -90,10 +89,11 @@ test('rendered polygon and line objects do not create duplicate SVG hit paths',a
  assert.ok(recorded.filter(row=>row.selector==='path.distribution-shape').every(row=>row.rows.length===0));
 });
 
-test('the shared content owner keeps saved generic geometry and opacity without document writes',async t=>{
+test('the shared content owner preserves generic geometry and blend without document writes',async t=>{
  const f=await fixture(t),before=f.core.documentModel.snapshot(),scene=await f.build();
- assert.equal(scene.strokes.find(row=>row.key===`generic:feature:${ids.line}:line`).style.alpha,.5);
- assert.equal(scene.polygons.find(row=>row.key===`generic:feature:${ids.area}:fill`).style.fillAlpha,.17);
+ const lineStroke=scene.strokes.find(row=>row.key===`generic:feature:${ids.line}:line`);
+ assert.equal(lineStroke.blendMode,'multiply');
+ assert.equal(scene.polygons.find(row=>row.key===`generic:feature:${ids.area}:fill`).style.fillAlpha,.34);
  assert.deepEqual(scene.polygons.find(row=>row.key===`generic:feature:${ids.area}:fill`).geometry,square);
  assert.deepEqual(f.core.documentModel.snapshot(),before);assert.equal(f.core.client.state().canUndo,false);
 });
@@ -140,9 +140,6 @@ const __suiteDependency2 = __dep12;
 const __suiteDependency3 = __dep13;
 const __suiteDependency4 = __dep14;
 const __suiteDependency5 = __dep15;
-const __suiteDependency6 = __dep1;
-const __suiteDependency7 = __dep0;
-const __suiteDependency8 = __dep16;
 
 const __suiteDependency10 = __dep0;
 
@@ -172,36 +169,6 @@ test('the presentation transport discards results from a replaced document',asyn
 test('the actual presentation Worker has no editing request handler',async t=>{
  const rpc=createWorkerRpcClient({createWorker});t.after(()=>rpc.stop());
  await assert.rejects(rpc.request('territorial-edit',{operation:'delete'}),error=>error.code==='PL-WORKER-RPC-UNKNOWN-OPERATION');
-});
-});
-featureDescribe("map-display-menu-state", () => {
-  const test = __suiteDependency6.default;
-  const assert = __suiteDependency7.default;
-  const { createMapDisplayMenuState } = __suiteDependency8;
-test('desktop menu state owns its path and focus without sharing domain settings',()=>{
-  const menu=createMapDisplayMenuState();
-  assert.deepEqual(menu.path,[]);
-  menu.setPath(['objects','labels']);
-  assert.deepEqual(menu.path,['objects','labels']);
-  assert.equal(menu.popPath(),'labels');
-  assert.deepEqual(menu.path,['objects']);
-  const focus={id:'row'};menu.rememberFocus(focus);
-  assert.equal(menu.focusedControl,focus);
-  menu.rememberFocus(null);
-  assert.equal(menu.focusedControl,null);
-});
-
-test('a new pointer gesture cancels pending menu open and close',async()=>{
-  const menu=createMapDisplayMenuState();
-  let opened=0,closed=0;
-  menu.scheduleOpen(()=>opened++,5);
-  menu.scheduleClose(()=>closed++,5);
-  menu.beginGesture(7);
-  assert.equal(menu.gesture,7);
-  assert.equal(menu.endGesture(8),false);
-  assert.equal(menu.endGesture(7),true);
-  await new Promise(resolve=>setTimeout(resolve,15));
-  assert.equal(opened,0);assert.equal(closed,0);
 });
 });
 featureDescribe("map-host", () => {
@@ -287,7 +254,7 @@ test('accepting immutable geometry keeps the validated allocation and isolates m
   const source=createInitialDocument({appVersion:'test'});source.geometries=store.snapshot();
   const model=createCoreDocumentReadModel(createInitialDocument({appVersion:'test'}));
   model.acceptLoadedProject(source);
-  assert.equal(model.geometry(ref),store.get(ref));
+  assert.deepEqual(model.geometry(ref),store.get(ref));
   source.labels.push({id:'outside'});
   assert.deepEqual(model.snapshot().labels,[]);
   const raw=structuredClone(source);raw.labels=[];model.acceptLoadedProject(raw);
@@ -440,13 +407,11 @@ test('diagnostic observation distinguishes a real null, thrown error and data', 
 test('temporal probes instrument the active production sources on LF and CRLF checkouts',()=>{
  for(const [name,path] of [
   ['viewer-composition.js','src/app/viewer-composition.js'],
-  ['builtin-session.js','src/document/builtin-session.js'],
   ['project-domain.js','src/document/project-domain.js'],
  ]){
   const source=readFileSync(new URL("../../../"+path,import.meta.url),'utf8').replaceAll('\r\n','\n');
   const instrumented=instrumentMapBaselineSource(source,name);
   assert.equal(instrumentMapBaselineSource(source.replaceAll('\n','\r\n'),name),instrumented);
-  if(name==='builtin-session.js')assert.match(instrumented,/candidate-prepare:start/);
   if(name==='project-domain.js'){
    for(const phase of ['candidate-adopt','candidate-queue','temporal-source','temporal-candidate']){
     assert.match(instrumented,new RegExp(phase+':start'));

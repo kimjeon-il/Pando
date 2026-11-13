@@ -1,5 +1,8 @@
 import { describe as contractSuite } from 'node:test';
 import "../../../assets/js-vendor/polygon-clipping.min.js";
+import { gzipSync } from 'node:zlib';
+import { normalizeTerritorialLibraryEntity } from '../../../tools/gis/territorial-library.js';
+import { territorialIndexEntry } from '../../../tools/gis/territorial-index-entry.js';
 import "../../../tools/build/load-spherical-core.mjs";
 import * as __country_dep0 from "node:test";
 import * as __country_dep1 from "../../helpers/timeline-project.mjs";
@@ -21,10 +24,8 @@ import * as __country_dep14_runtime from "../../../tools/data/library-runtime.mj
 import * as __country_dep14_publication from "../../../tools/data/library-report-publication.mjs";
 import * as __country_dep14_store from "../../../tools/data/library-store.mjs";
 const __country_dep14={...__country_dep14_context,...__country_dep14_reports,...__country_dep14_runtime,...__country_dep14_publication,...__country_dep14_store};
-import * as __country_dep15 from "node:path";
 import * as __country_dep16 from "node:crypto";
 import * as __country_dep17 from "../../../tools/gis/territorial-entity-loader.js";
-import * as __country_dep18 from "../../../tools/data/territorial-entity-sources.mjs";
 import * as __country_dep19 from "../../../src/document/country-feature.js";
 contractSuite("territorial-entity-repository", () => {
 const { describe : contractSuite } = __country_dep0;
@@ -322,12 +323,9 @@ test('scoped registration preserves existing membership and rejects orphan, dupl
 });
 contractSuite("territorial-entity-loader", () => {
 const assert = __country_dep2.default;
-const fs = __country_dep6.default;
-const path = __country_dep15.default;
 const { createHash } = __country_dep16;
 const test = __country_dep0.default;
 const { createTerritorialEntityLoader } = __country_dep17;
-const { territorialDataRoot } = __country_dep18;
 
 
 
@@ -335,12 +333,41 @@ const { territorialDataRoot } = __country_dep18;
 
 
 
-const root=path.join(territorialDataRoot,'generated/v2');
+// Independent source fixture: these repository tests validate the real loader
+// protocol, not the editor's retired large GIS checkout path.
+const indexAssets=(()=>{
+ const assets=new Map(),sha=bytes=>createHash('sha256').update(bytes).digest('hex');
+ const entries=['KOR','FRA'].map((id,idx)=>{
+   const entity=normalizeTerritorialLibraryEntity({schemaVersion:2,entityId:'state:'+id,
+     lineageId:id==='KOR'?'korea':'france',entityKind:'general',names:{ko:id},
+     lifetime:{validFrom:null,validTo:null},geometryVersions:[{
+       versionId:id==='KOR'?'state:KOR:armistice-1953':'state:FRA:modern',
+       validFrom:null,validTo:null,
+       geometry:{type:'Polygon',coordinates:[[[idx*5,0],[idx*5+2,0],[idx*5,2],[idx*5,0]]]},
+     }],instantiation:{mode:'independent',countryUpdates:{}},metadata:{},sourceInfo:{}});
+   const decoded=Buffer.from(JSON.stringify(entity)),stored=gzipSync(decoded);
+   const entry=territorialIndexEntry(entity,{sha256:sha(stored),
+     compressedBytes:stored.length,decodedBytes:decoded.length});
+   assets.set(entry.file,stored);return entry;
+ });
+ const lineages=['korea','france'].map((lineageId,i)=>({
+   schemaVersion:2,lineageId,names:{ko:lineageId},
+   entityRefs:[entries[i].entityId],relations:[],
+ }));
+ const index=Buffer.from(JSON.stringify({schemaVersion:2,entities:entries,lineages,snapshots:[]}));
+ assets.set('index.json',index);return assets;
+})();
 function fixture(corrupt=false,wrongMetadata=false){
- let index=fs.readFileSync(path.join(root,'index.json'));let calls=0;
- if(wrongMetadata){const raw=JSON.parse(index);raw.entities.find(e=>e.entityId==='state:KOR').lineageId='france';raw.lineages.find(l=>l.lineageId==='korea').entityRefs=raw.lineages.find(l=>l.lineageId==='korea').entityRefs.filter(id=>id!=='state:KOR');raw.lineages.find(l=>l.lineageId==='france').entityRefs.push('state:KOR');index=Buffer.from(JSON.stringify(raw));}
- const service=createTerritorialEntityLoader({indexUrl:'https://test/index.json',dataRevision:'test',indexSpec:{encoding:'identity',compressedBytes:index.length,decodedBytes:index.length,sha256:createHash('sha256').update(index).digest('hex')},cacheStorage:null,
- fetchFn:async url=>{calls++;const name=new URL(url).pathname.split('/').at(-1);return new Response(name==='index.json'?index:corrupt?new Uint8Array([1,2,3]):fs.readFileSync(path.join(root,name)));}});
+ let index=indexAssets.get('index.json');let calls=0;
+ if(wrongMetadata){const raw=JSON.parse(index);raw.entities.find(e=>e.entityId==='state:KOR').metadata={mismatched:true};index=Buffer.from(JSON.stringify(raw));}
+ const service=createTerritorialEntityLoader({indexUrl:'https://test/index.json',
+   dataRevision:'test',indexSpec:{encoding:'identity',compressedBytes:index.length,
+     decodedBytes:index.length,sha256:createHash('sha256').update(index).digest('hex')},
+   cacheStorage:null,fetchFn:async url=>{
+     calls++;const name=new URL(url).pathname.split('/').at(-1);
+     const bytes=name==='index.json'?index:corrupt?new Uint8Array([1,2,3]):indexAssets.get(name);
+     return new Response(bytes||'not found',{status:bytes?200:404});
+   }});
  return {service,calls:()=>calls};
 }
 test('lazy loader fetches index once and one gzip once for concurrent requests and dated selection',async()=>{
@@ -364,7 +391,7 @@ const test = __country_dep0.default;
 const assert = __country_dep2.default;
 const { createTerritorialFeature, normalizeTerritorialEntities } = __country_dep3;
 const { normalizeCountryFeature } = __country_dep19;
-const { initializeTestTerritorialState, testCoreProject, executeTerritorialTestCommand, staticAutosaveProject } = __country_dep1;
+const { initializeTestTerritorialState, testCoreProject, executeTerritorialTestCommand, staticProjectDocument } = __country_dep1;
 
 
 
@@ -497,7 +524,7 @@ test('bulk source admission creates every binding once with exact source coordin
 });
 
 test('bulk geometry edits allocate above unreferenced versions and preserve whole archive history',async()=>{
-  const seed=structuredClone(staticAutosaveProject({},[entity('A'),entity('B')]));
+  const seed=structuredClone(staticProjectDocument({},[entity('A'),entity('B')]));
   seed.geometries.push({id:'shared',version:2,geojson:polygon()},{id:'shared',version:8,geojson:polygon(8)},
     {id:'unused',version:9,geojson:polygon(9)});
   for(const binding of seed.timelineRecords.geometryBindings)binding.geometryRef={id:'shared',version:2};

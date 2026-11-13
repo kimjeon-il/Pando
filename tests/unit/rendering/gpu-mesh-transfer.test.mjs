@@ -14,6 +14,7 @@ const { packCountryMeshFeatures } = __contract_dep4;
 
 test('actual mesh Worker transfers every output buffer and detaches its originals', { timeout: 5000 }, async t => {
   const transportModule = new URL("../../helpers/source-worker-transport.mjs", import.meta.url).href;
+  const workerSource = new URL('../../../src/rendering/workers/gpu-mesh-worker.js', import.meta.url).href;
   const worker = new Worker(`
     (async () => {
     const { parentPort } = require('node:worker_threads');
@@ -32,7 +33,7 @@ test('actual mesh Worker transfers every output buffer and detaches its original
     };
     vm.runInThisContext(transport.read(self.location), {
       filename: self.location.href,
-      importModuleDynamically: specifier => import(transport.sourceUrl(specifier)),
+      importModuleDynamically: specifier => import(new URL(specifier, ${JSON.stringify(workerSource)})),
     });
     parentPort.on('message', data => self.onmessage({ data }));
     })();
@@ -91,6 +92,28 @@ test('polygon preparation accepts finite progress across a long batch but still 
   for (let i = 0; i < 12; i++) await Promise.resolve();
   t.mock.timers.tick(30000);
   assert.equal((await stalled).code, 'PL-WORKER-RPC-TIMEOUT');
+  jobs.cancelAll();
+});
+
+test('LOD progress extends only advancing work and a stalled phase still times out', async t => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const sent = [], worker = { postMessage: message => sent.push(message), terminate() {} };
+  const jobs = createGpuMeshWorkerJobs({ isCurrent: () => true, createWorker: () => worker });
+  const pending = jobs.prepareDisplayLod({ features: [], sourceKey: 'source', projectGeneration: 1,
+    geometryRevision: 1, lod: { upperScale: 256, errorPx: .5, key: '256:.5' } })
+    .then(value => ({ value }), error => ({ error }));
+  for (let i=0;i<20;i++) await Promise.resolve();
+  const envelope = sent.find(message => message.type === 'request');
+  assert.ok(envelope);
+  const progress = completed => worker.onmessage({ data: { ...envelope, type: 'event',
+    operation: 'geometry.lod-progress', payload: { requestId: envelope.requestId, completed,
+      total: 3000004, phase: 'topology', elapsedMs: completed } } });
+  t.mock.timers.tick(25000); progress(1);
+  t.mock.timers.tick(25000); progress(2);
+  assert.equal(jobs.stats().displayLod.phase, 'topology');
+  t.mock.timers.tick(25000); progress(2);
+  t.mock.timers.tick(5000);
+  assert.equal((await pending).error.code, 'PL-WORKER-RPC-TIMEOUT');
   jobs.cancelAll();
 });
 
@@ -179,13 +202,15 @@ test('screen LOD transfers canonical geometry once, reuses source, and resets af
     [0, 0], [2, 0], [2, 2], [0, 2], [0, 0],
   ]] } }];
   const payload = { features, projectGeneration: 4, geometryRevision: 8,
+    extraPhysicalFeatures: [{ id: 'physical-land', geometry: features[0].geometry }],
     sourceKey: 'geometry-sha-abc', visibleIds: ['A'],
     lod: { key: '200:0.5', upperScale: 200, errorPx: 0.5 } };
   const first = jobs.prepareDisplayLod(payload);
   for (let i = 0; i < 20 && !messages.length; i++) await Promise.resolve();
   const one = messages.at(-1);
   assert.equal(one.message.payload.useCachedSource, false);
-  assert.equal(one.message.payload.rows.length, 1);
+  assert.equal(one.message.payload.rows.length, 2);
+  assert.equal(one.message.payload.countryFeatureCount, 1);
   assert.equal(one.transfers, 1);
   one.worker.onmessage({ data: { ...one.message, type: 'result', ok: true,
     result: { lod: { key: payload.lod.key, sourceCached: true,

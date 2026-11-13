@@ -1,4 +1,7 @@
-# DEM 기반 지형 표시와 경량 대체 자료
+# 과거 DEM 미리보기 전환 기록
+
+> 2026-11-10: 아래 내용은 폐기된 `raster-rgba-v1` 지도 미리보기 구현의 기록이다. 아래 재생성·검사 명령은 현행 명령이 아니다. 현행 Viewer는 프로젝트의 `dem-relief-v1` 수치 DEM과 `physicalLand` 마스크를 공통 LOD 장면에 합성한다. 기존 원본·해시 기록은 보존한다.
+
 
 웹의 지형은 DEM `0.13.3`을 주 자료로 사용한다. 앱의 지형 기능은 비활성 상태를 유지한다. 대체 자료는
 `assets/data/terrain-preview/v0.13.3-p2/`의 LOD 0·1 타일 8개와 manifest다.
@@ -12,8 +15,7 @@
 - 미리보기 자료 커밋: `473b2babd37f0331af5e096ee4152a15af6a8d0f`.
 - 미리보기 manifest SHA-256: `def32b86bebf84a24ceecaf68caac7a8d711b4bb355115f983d5d98e3d87a870`.
 
-로컬 GeoTIFF는 생성 입력으로 사용하지 않는다. 생성기는 `contracts/terrain/preview-dem-source.json`과
-`preview-dem-inventory.json`에 고정한 파일 크기와 SHA-256을 먼저 확인한다. LOD 전체에서 육지
+당시 생성기는 두 DEM 입력 명세의 파일 크기와 SHA-256을 확인했다. 명세 원본은 라이브러리의 `private-evidence/retired-contracts/contracts-cleanup-20261113/contracts/terrain/`으로 이전했다. 이 명세를 읽던 구형 수동 사전검사 CI는 폐기했으며 아래 내용은 당시 동작의 기록이다. LOD 전체에서 육지
 마스크와 표시 픽셀을 메모리에서 계산한 뒤 타일로 잘라, 1px gutter와 날짜변경선에서 같은
 픽셀을 사용한다. 원본 DEM·마스크 형상은 변경하지 않으며 고도 값을 일반 이미지 색상처럼 축소하지 않는다.
 

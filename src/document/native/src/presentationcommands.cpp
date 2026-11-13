@@ -12,9 +12,8 @@ namespace pandoeditor {
 namespace {
 bool group(const std::string& g){return g=="objects"||g=="labels"||g=="rivers"||g=="lakes"||g=="genericFeatures"||g=="distributions";}
 void require(bool v){if(!v)throw std::invalid_argument("INVALID_PRESENTATION_COMMAND");}
-void merge(PresentationStyle& s,const PresentationStyle& p){if(p.opacity)s.opacity=p.opacity;if(p.boundaryVisible)s.boundaryVisible=p.boundaryVisible;if(p.labelsVisible)s.labelsVisible=p.labelsVisible;if(p.boundaryWidth)s.boundaryWidth=p.boundaryWidth;if(p.blendMode)s.blendMode=p.blendMode;if(p.colorVisible)s.colorVisible=p.colorVisible;}
+void merge(PresentationStyle& s,const PresentationStyle& p){if(p.boundaryVisible)s.boundaryVisible=p.boundaryVisible;if(p.labelsVisible)s.labelsVisible=p.labelsVisible;if(p.boundaryWidth)s.boundaryWidth=p.boundaryWidth;if(p.blendMode)s.blendMode=p.blendMode;if(p.colorVisible)s.colorVisible=p.colorVisible;}
 void webStyle(PresentationStyle& s,bool complete) {
-    if(complete||s.opacity)s.opacity=std::clamp(s.opacity&&std::isfinite(*s.opacity)?*s.opacity:1,0.0,1.0);
     if(complete||s.colorVisible)s.colorVisible=s.colorVisible.value_or(true);
     if(complete||s.boundaryVisible)s.boundaryVisible=s.boundaryVisible.value_or(true);
     if(complete||s.boundaryWidth)s.boundaryWidth=1;

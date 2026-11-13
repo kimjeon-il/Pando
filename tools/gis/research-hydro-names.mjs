@@ -16,7 +16,7 @@ import {
   validateReviewEntries,
 } from "../lib/hydro-name-research.mjs";
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const checkOnly = process.argv.includes('--check');
 const decodedPath = optionValue('--decoded');
 const reviewPath = reportPath('reports/hydro/names/europe-major-rivers.json', { access: 'read' });

@@ -24,7 +24,7 @@ jobs:
       - name: Fetch only the pinned Hydro bundle
         uses: actions/checkout@v4
         with:
-          repository: kimjeon-il/PandoLab-library-data
+          repository: kimjeon-il/PandoLab-library
           ref: ${{ steps.hydro-data-pin.outputs.revision }}
           path: .pando-hydro-input
           persist-credentials: false

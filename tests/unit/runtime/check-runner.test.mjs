@@ -12,6 +12,28 @@ import * as runner from "../../../scripts/run-application-checks.mjs";
 
 const executePlan=(plan,options)=>executeCiPlan(plan,{...options,environment:{GITHUB_ACTIONS:'true'}});
 
+test('Playwright imports in selected unit suites request a browser only in their non-browser phase',()=>{
+ const repository={catalog:{groups:[],prerequisites:{},metadataOnlyTests:[]},
+   read:file=>file.endsWith('with-browser.test.mjs')
+     ? "import {chromium} from '@playwright/test';" : "import test from 'node:test';"};
+ const plan={prerequisites:[],commands:[],
+   unitTests:['tests/unit/rendering/with-browser.test.mjs'],browserSpecs:[]};
+ assert.equal(executionOutputs(plan,{repository,phase:'non-browser'}).unit_browser,true);
+ assert.equal(executionOutputs(plan,{repository,phase:'browser'}).unit_browser,false);
+ assert.equal(executionOutputs({...plan,unitTests:['tests/unit/ordinary.test.mjs']},
+   {repository,phase:'non-browser'}).unit_browser,false);
+});
+
+test('only proven metadata-only unit selections omit runtime data preparation',()=>{
+ const repository={catalog:{groups:[],prerequisites:{},metadataOnlyTests:['tests/unit/planner.test.mjs']}};
+ const plan={prerequisites:[],commands:[],unitTests:['tests/unit/planner.test.mjs'],browserSpecs:[]};
+ assert.equal(executionOutputs(plan,{repository}).runtime_data,false);
+ assert.equal(executionOutputs({...plan,unitTests:['tests/unit/unknown.test.mjs']},{repository}).runtime_data,true);
+ assert.equal(executionOutputs({...plan,browserSpecs:['tests/browser/startup.spec.mjs'],browserPrerequisites:[]},{repository}).runtime_data,true);
+ assert.equal(executionOutputs({...plan,browserSpecs:['tests/browser/startup.spec.mjs'],browserPrerequisites:[]},{repository,phase:'non-browser'}).runtime_data,false);
+ assert.equal(executionOutputs({...plan,commands:['check-data']},{repository}).runtime_data,true);
+});
+
 test('check commands retain the supplied process environment and prerequisite overrides',()=>{
  const repository={root:'/fixture',catalog:{prerequisites:{sample:{argv:['node','sample.mjs'],env:{INHERITED:'override',EXTRA:'{root}/input'}}},groups:[]}};
  const plan={prerequisites:['sample'],commands:[],unitTests:[],browserSpecs:[],unitTestPrerequisites:{},reasons:{}};
@@ -484,4 +506,11 @@ test('prepared scene verification pins only its exact Core assets and blocks a s
       assert.ok(calls.indexOf(checker[0])<calls.indexOf(execution));
     }
   }
+});
+
+// Exact CI requests may use the standard --option=value CLI spelling.
+import {main as checkMain} from '../../../scripts/run-application-checks.mjs';
+test('inline check option values reach their normal validation',()=>{
+ assert.throws(()=>checkMain(['--phase=unknown'],{}),/Invalid execution phase/);
+ assert.throws(()=>checkMain(['--group='],{}),/Missing check option value/);
 });

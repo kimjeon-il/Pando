@@ -3,24 +3,29 @@ import { timelineStorageCases } from '../fixtures/timeline-storage-cases.mjs';
 import { createTerritorialEntityStore } from "../../src/document/territorial-entity-store.js";
 import { createTerritorialEntityRepository } from "../../src/document/territorial-entity-repository.js";
 import { createNodeCoreProject } from './core-project.mjs';
-import { loadWebOracle } from './web-oracle.mjs';
+import {normalizeTerritorialFeature,normalizeTerritorialIdentity,TERRITORIAL_IDENTITY_FIELDS} from '../../src/document/territorial-units.js';
 import { DISTRIBUTION_MODES } from "../../src/document/distribution-model.js";
 import { afterEach } from 'node:test';
-import { createProjectSerializer } from "./legacy-project-autosave.mjs";
+import { createProjectTemplateCompiler } from "../../tools/gis/project-template-compiler.js";
 import {createTestViewingSession} from './viewing-project.mjs';
 
-// These original factories only construct detached scenario inputs. Current
-// behavior, mutation, validation and history are always exercised in C++.
-const { createStaticTerritorialSnapshot }=await loadWebOracle('assets/js/modules/territorial-entity-store.js');
 const fixtures=new WeakMap();
 const liveFixtures=new Set();
 
 /** Detached input construction only; never a current model or command owner. */
 export function staticTerritorialInput(features) {
-  const input=structuredClone(createStaticTerritorialSnapshot(features));
-  input.timelineRecords.schemaVersion=3;
-  for(const rows of [input.timelineRecords.lifetimes,input.timelineRecords.geometryBindings,input.timelineRecords.parentRelations])for(const row of rows){row.objectRef={domain:'territorial',id:row.entityId};delete row.entityId;}
-  input.timelineRecords.propertyBindings=[];
+  const input={territorialEntities:[],timelineRecords:{schemaVersion:3,lifetimes:[],geometryBindings:[],parentRelations:[],propertyBindings:[]},geometries:[]};
+  for(const raw of features){
+    const feature=normalizeTerritorialFeature(raw);
+    if(!feature)throw new TypeError('A current territorial feature is required for the fixture');
+    const {id,properties:p}=feature,objectRef={domain:'territorial',id},period={validFrom:null,validTo:null};
+    input.territorialEntities.push(normalizeTerritorialIdentity({type:'Feature',id,geometry:null,properties:Object.fromEntries(TERRITORIAL_IDENTITY_FIELDS.filter(key=>Object.hasOwn(p,key)).map(key=>[key,p[key]]))}));
+    const geometryRef={id:'territorial-geometry:'+id,version:1};
+    input.geometries.push({...geometryRef,geojson:structuredClone(feature.geometry)});
+    input.timelineRecords.lifetimes.push({id:'lifetime:'+id,objectRef,...period});
+    input.timelineRecords.geometryBindings.push({id:'geometry:'+id,objectRef,...period,geometryRef});
+    input.timelineRecords.parentRelations.push({id:'parent:'+id,objectRef,...period,parentId:p.parentId,coverageMode:p.coverageMode});
+  }
   return input;
 }
 afterEach(() => {
@@ -50,7 +55,7 @@ export async function initializeTestTerritorialState(state,t=null,{project,platf
   const viewKeys=['layerVisibility','itemVisibility','distributionSettings'];
   
   let viewing;
-  const owner=await createNodeCoreProject(project || staticAutosaveProject(fields,state.territorialEntities || []),{
+  const owner=await createNodeCoreProject(project || staticProjectDocument(fields,state.territorialEntities || []),{
     ...platformPorts,viewingPresentation:payload=>viewing.session.applyViewingPresentation(payload),
     persistence:platformPorts.persistence || {queueView(){},queueProject(){},queuePresentation(){},cancelPending(){}}});
   viewing=createTestViewingSession(owner);
@@ -105,11 +110,11 @@ export function staticSerializerSnapshot(snapshot) {
       timelineRecords: content.timelineRecords, geometries: content.geometries } };
 }
 
-/** Current complete autosave for browser fixtures, without a baseline delta. */
-export function staticAutosaveProject(projectFields = {}, territorialEntities = []) {
+/** Current complete project document for Core/browser fixtures. */
+export function staticProjectDocument(projectFields = {}, territorialEntities = []) {
   const snapshot = staticSerializerSnapshot({ territorialEntities, fullAutosave: true, projectFields });
-  return createProjectSerializer({ appVersion: 'fixture', distributionModes: Object.values(DISTRIBUTION_MODES),
-    terrainDataset: 'fixture-terrain', hydroDataset: 'fixture-hydro', readSnapshot: () => snapshot }).buildAutosave();
+  return createProjectTemplateCompiler({ appVersion: 'fixture', distributionModes: Object.values(DISTRIBUTION_MODES),
+    terrainDataset: 'fixture-terrain', hydroDataset: 'fixture-hydro', readSnapshot: () => snapshot }).buildProject();
 }
 
 export function snapshotTestTerritorialState(state) {

@@ -11,25 +11,14 @@ on:
       - 'assets/js/workers/core-session-worker.js'
       - 'tests/helpers/core-*.mjs'
       - 'tests/helpers/web-*-contract.mjs'
-      - 'tests/helpers/web-oracle.mjs'
       - 'tests/unit/**/builtin-resource-*.test.mjs'
-      - 'tests/helpers/web-hydro-create-oracle.mjs'
-      - 'tests/helpers/web-hydro-hidden-oracle.mjs'
-      - 'tests/helpers/gis-core-fixture.mjs'
-      - 'tests/helpers/editable-history-fixture.mjs'
       - 'tests/fixtures/portability/web-*.json'
-      - 'tests/fixtures/portability/web-9300609-oracle/**'
-      - 'tests/fixtures/portability/web-9300609-removal-oracle/**'
-      - 'tests/fixtures/portability/web-9300609-hydro-create/**'
-      - 'tests/fixtures/portability/web-9300609-hydro-hidden/**'
-      - 'tests/fixtures/portability/web-9300609-hydro-copy/**'
       - 'tests/unit/**/map-hover-*.test.mjs'
       - 'tests/unit/**/selection-*.test.mjs'
       - 'tests/unit/**/*core*.test.mjs'
       - 'tests/unit/**/native-*.test.mjs'
       - 'tests/unit/**/web-*-contract.test.mjs'
       - 'tests/unit/document/project-creation-contract.test.mjs'
-      - 'tests/unit/document/project-preview-policy.test.mjs'
       - 'tools/build/package-shared-core-assets.mjs'
       - 'tools/reference-fixtures/**'
       - 'tools/lib/checkout-identity.mjs'
@@ -50,25 +39,14 @@ on:
       - 'assets/js/workers/core-session-worker.js'
       - 'tests/helpers/core-*.mjs'
       - 'tests/helpers/web-*-contract.mjs'
-      - 'tests/helpers/web-oracle.mjs'
-      - 'tests/helpers/web-hydro-create-oracle.mjs'
-      - 'tests/helpers/web-hydro-hidden-oracle.mjs'
-      - 'tests/helpers/gis-core-fixture.mjs'
       - 'tests/unit/**/builtin-resource-*.test.mjs'
-      - 'tests/helpers/editable-history-fixture.mjs'
       - 'tests/fixtures/portability/web-*.json'
-      - 'tests/fixtures/portability/web-9300609-oracle/**'
-      - 'tests/fixtures/portability/web-9300609-removal-oracle/**'
-      - 'tests/fixtures/portability/web-9300609-hydro-create/**'
-      - 'tests/fixtures/portability/web-9300609-hydro-hidden/**'
-      - 'tests/fixtures/portability/web-9300609-hydro-copy/**'
       - 'tests/unit/**/map-hover-*.test.mjs'
       - 'tests/unit/**/selection-*.test.mjs'
       - 'tests/unit/**/*core*.test.mjs'
       - 'tests/unit/**/native-*.test.mjs'
       - 'tests/unit/**/web-*-contract.test.mjs'
       - 'tests/unit/document/project-creation-contract.test.mjs'
-      - 'tests/unit/document/project-preview-policy.test.mjs'
       - 'tools/build/package-shared-core-assets.mjs'
       - 'tools/reference-fixtures/**'
       - 'tools/lib/checkout-identity.mjs'
@@ -88,7 +66,7 @@ on:
       scope:
         description: Focused shared calculation verification
         type: choice
-        options: [all, p6-polygon, p6-calculations, geometry, temporal, temporal-source, temporal-candidate, temporal-transport, temporal-parity, native-core, native-gis, native-all]
+        options: [all, p6-polygon, p6-calculations, geometry, geometry-wasm, temporal, temporal-source, temporal-candidate, temporal-transport, temporal-parity, native-core, native-gis, native-all]
         default: all
 permissions:
   contents: read
@@ -197,6 +175,102 @@ jobs:
           cmake -S tools/build/native -B build-native/geometry-core -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
           cmake --build build-native/geometry-core --target country_contact_tests boundary_split_tests polygon_mesh_tests --parallel 2
           ctest --test-dir build-native/geometry-core -R '^(country_contact_tests|boundary_split_tests|polygon_mesh_tests)$' --output-on-failure --no-tests=error
+  geometry-wasm:
+    if: github.event_name == 'workflow_dispatch' && inputs.scope == 'geometry-wasm'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    env:
+      EMCC_CORES: '1'
+      BINARYEN_CORES: '1'
+      NODE_OPTIONS: '--max-old-space-size=512'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Install the WASM preset build dependency
+        run: sudo apt-get update && sudo apt-get install -y ninja-build
+      - name: Read the same pinned build toolchain as the artifact producer
+        id: toolchain
+        run: |
+          node --input-type=module <<'NODE'
+          import { appendFileSync } from 'node:fs';
+          import { pinnedToolchain } from './scripts/lib/check-changes.mjs';
+          const pin = pinnedToolchain();
+          appendFileSync(process.env.GITHUB_OUTPUT, [
+            'cmake_version=' + pin.cmake,
+            'emscripten_version=' + pin.emscripten,
+            'emsdk_ref=' + pin.emsdkCommit,
+          ].join('\n') + '\n');
+          NODE
+      - uses: jwlawson/actions-setup-cmake@v2
+        with:
+          cmake-version: ${{ steps.toolchain.outputs.cmake_version }}
+      - name: Get the pinned official Emscripten SDK
+        uses: actions/checkout@v4
+        with:
+          repository: emscripten-core/emsdk
+          ref: ${{ steps.toolchain.outputs.emsdk_ref }}
+          path: build-native/emsdk
+          persist-credentials: false
+      - name: Rebuild with the artifact producer's exact WASM preset and SDK
+        shell: bash
+        env:
+          EMSDK_VERSION: ${{ steps.toolchain.outputs.emscripten_version }}
+        run: |
+          set -euo pipefail
+          # emsdk_env.sh may clear EMSDK_VERSION; preserve the pinned value.
+          required_version="$EMSDK_VERSION"
+          build-native/emsdk/emsdk install "$required_version"
+          build-native/emsdk/emsdk activate "$required_version"
+          source build-native/emsdk/emsdk_env.sh
+          emcc --version | sed -n '1p' | grep -F "$required_version"
+          # GitHub's /archive/ endpoint has intermittently returned HTTP 404
+          # for the pinned zlib 1.3.2 tag. Use its canonical codeload host,
+          # which serves the identical bytes; Emscripten's SHA-512 validation
+          # remains unchanged. Refuse an unrecognized SDK port definition.
+          port_file=build-native/emsdk/upstream/emscripten/tools/ports/zlib.py
+          original='https://github.com/madler/zlib/archive/refs/tags/v{VERSION}.tar.gz'
+          canonical='https://codeload.github.com/madler/zlib/tar.gz/refs/tags/v{VERSION}'
+          grep -Fq "$original" "$port_file"
+          sed -i "s|$original|$canonical|" "$port_file"
+          grep -Fq "$canonical" "$port_file"
+          # Emscripten 6.0.3 derives the archive suffix from the last
+          # URL component. Codeload ends in v1.3.2, not .tar.gz, although its
+          # content is the same SHA-512 verified gzip archive. Fix only zlib's
+          # suffix inference; do not weaken fetch or integrity verification.
+          node --input-type=module <<'NODE'
+          import {readFileSync,writeFileSync} from 'node:fs';
+          const file='build-native/emsdk/upstream/emscripten/tools/ports/__init__.py';
+          const input=readFileSync(file,'utf8');
+          const old="    ext = url_filename.split('.', 1)[1]";
+          if(input.split(old).length!==2)throw Error('Unexpected pinned Emscripten port loader');
+          const next="    ext = 'tar.gz' if name == 'zlib' and url.startswith('https://codeload.github.com/madler/zlib/tar.gz/refs/tags/v') else url_filename.split('.', 1)[1]";
+          writeFileSync(file,input.replace(old,next));
+          NODE
+          emcmake cmake --preset pando-wasm
+          cmake --build --preset pando-wasm
+      - name: Package the newly compiled source-matched runtime
+        run: node tools/build/package-shared-core-assets.mjs --build-dir build-native/p1/pando-wasm/shared/wasm
+      - name: Run only registered geometry WASM contracts
+        env:
+          PANDOEDITOR_WASM_MODULE: ${{ github.workspace }}/assets/wasm/pandoeditor-core.js
+          CHECK_SELECTION: '{"unitTests":[],"browserSpecs":[],"commands":["wasm-domain-geometry"],"prerequisites":[]}'
+        run: node scripts/run-application-checks.mjs
+      - name: Retain the verified immutable runtime pair
+        uses: actions/upload-artifact@v4
+        with:
+          name: geometry-wasm-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            assets/wasm/pandoeditor-core.js
+            assets/wasm/pandoeditor-core.wasm
+            assets/wasm/pandoeditor-core.manifest.json
+          if-no-files-found: error
+          retention-days: 14
   p6-polygon:
     if: github.event_name == 'workflow_dispatch' && (inputs.scope == 'p6-polygon' || inputs.scope == 'p6-calculations')
     runs-on: ubuntu-24.04
@@ -322,11 +396,11 @@ jobs:
           tests/unit/document/core-document-read-model.test.mjs tests/unit/document/core-document-wasm.test.mjs
           tests/unit/document/core-document-selection-wasm.test.mjs
           tests/unit/document/core-document-world-wasm.test.mjs
-           tests/unit/document/core-codec-unicode-wasm.test.mjs
+          tests/unit/document/core-codec-unicode-wasm.test.mjs
           tests/unit/document/core-codec-unicode-ids-wasm.test.mjs
           tests/unit/runtime/core-map-presentation-wasm.test.mjs
           tests/unit/document/core-hydro-create-wasm.test.mjs
-           tests/unit/document/core-label-gesture-wasm.test.mjs
+          tests/unit/document/core-label-gesture-wasm.test.mjs
           tests/unit/document/timeline-geopackage.test.mjs
           tests/unit/document/core-project-file-save-wasm.test.mjs
           tests/unit/document/timeline-controls.test.mjs tests/unit/document/app-builtin-session.test.mjs tests/unit/document/shared-core-assets.test.mjs
@@ -336,7 +410,6 @@ jobs:
         run: >-
           node --test --test-concurrency=1 --test-timeout=15000
           tests/unit/document/project-creation-contract.test.mjs
-          tests/unit/document/project-preview-policy.test.mjs
       - name: Core-owned generic and distribution service contracts
         run: >-
           node --test --test-concurrency=1 --test-timeout=15000

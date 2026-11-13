@@ -16,7 +16,7 @@ void require(bool condition,const char* code,const char* detail) {if(!condition)
 bool sameValidity(const Validity& a,const Validity& b){return a.from==b.from&&a.to==b.to;}
 WebTerritorialFeature identityRow(const ProjectDocument& d,const TerritorialUnit& unit) {
     WebTerritorialFeature row;row.identity=unit;const auto ref=territorialRef(unit.id);
-    const auto style=d.presentation.objectStyles.find(ref);row.style=style==d.presentation.objectStyles.end()?ObjectStyle{0,1,false}:style->second;
+    const auto style=d.presentation.objectStyles.find(ref);row.style=style==d.presentation.objectStyles.end()?ObjectStyle{0,false}:style->second;
     if(const auto found=d.countryDetails.find(ref);found!=d.countryDetails.end())row.countryDetails=found->second;
     if(const auto found=d.symbols.find(ref);found!=d.symbols.end())row.symbol=found->second;
     return row;
@@ -98,7 +98,7 @@ Rows changedRows(const ActiveFrame& before,const WebTerritorialEdit& edit) {
         require(source.identity.kind==UnitKind::General,"invalid-source","Independent region copy requires a general source.");
         require(!edit.id.empty()&&!index.count(edit.id),"invalid","Duplicate or empty independent region ID.");
         WebTerritorialFeature row;row.identity.id=edit.id;row.identity.kind=UnitKind::Regional;row.identity.name=edit.newName;
-        row.geometry=source.geometry;row.coverageMode="explicit";row.style={edit.color.value_or(0),1,bool(edit.color)};next.push_back(std::move(row));
+        row.geometry=source.geometry;row.coverageMode="explicit";row.style={edit.color.value_or(0),bool(edit.color)};next.push_back(std::move(row));
     } else if(edit.operation==WebTerritorialOperation::Replace)next=edit.features;
     else if(edit.operation==WebTerritorialOperation::Create) {
         require(edit.features.size()==1,"invalid","A create command needs one feature.");

@@ -10,6 +10,10 @@ const native=(target,directory,sourceModule,sourceExport,packageScript,commands,
 export const nativeTestRecipes=Object.freeze({
   // Reuse fixed CMake owners; CTest runs as its separate registered check.
   // No artifact packaging is needed for these in-job test executables.
+  'map-image-resample-tests':{commands:[
+    configure('tools/cpp','build-native/map-image','-DPANDO_BUILD_COUNTRY_VALIDATOR=OFF','-DPANDO_BUILD_MAP_IMAGE=ON'),
+    build('build-native/map-image',['pando-map-image-resample-tests']),
+  ]},
   'spherical-polygon-tests':{commands:[
     ['cmake','--preset','pando-gis-tools'],
     build('build-native/p1/pando-gis-tools',['pando-spherical-polygon-tests']),
@@ -40,6 +44,10 @@ export const nativeTestRecipes=Object.freeze({
   'terrain-dem-gutters':native('terrain-dem-gutters','build-native/terrain-dem-gutters/artifact','tools/gis/terrain-dem-gutters.mjs','terrainDemGutterSources','tools/gis/package-terrain-dem-gutters.mjs',[
     configure('tools/cpp/terrain-dem-gutters','build-native/terrain-dem-gutters','-DCMAKE_BUILD_TYPE=Release'),
     build('build-native/terrain-dem-gutters',['pando-terrain-dem-gutters']),
+  ]),
+  'terrain-dem-encode':native('terrain-dem-encode','build-native/terrain-dem-encode/artifact','tools/gis/terrain-dem-encode.mjs','terrainDemEncodeSources','tools/gis/package-terrain-dem-encode.mjs',[
+    configure('tools/cpp/terrain-dem-encode','build-native/terrain-dem-encode/native','-DCMAKE_BUILD_TYPE=Release'),
+    build('build-native/terrain-dem-encode/native',['pando-terrain-dem-encode']),
   ]),
   'terrain-dem-fill':native('terrain-dem-fill','build-native/terrain-dem-encode/fill-artifact','tools/gis/terrain-dem-source.mjs','terrainDemFillSources','tools/gis/package-terrain-dem-fill.mjs',[
     configure('tools/cpp/terrain-dem-fill','build-native/terrain-dem-encode','-DCMAKE_PREFIX_PATH={root}/build-native/terrain-dem-gdal/sdk','-DCMAKE_BUILD_TYPE=Release'),

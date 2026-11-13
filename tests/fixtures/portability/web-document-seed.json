@@ -4,6 +4,7 @@
   "version": "0.34.0",
   "savedAt": "2026-10-04T00:00:00.000Z",
   "baseDataset": "external-territorial-entities",
+  "mapProjectIdentity": null,
   "landObjectModel": {
     "schemaVersion": 2,
     "coastlineAuthority": "territorialEntities",
@@ -557,7 +558,6 @@
     "schemaVersion": 5,
     "styles": {
       "objects": {
-        "opacity": 0.65,
         "colorVisible": true,
         "boundaryVisible": false,
         "boundaryWidth": 1,
@@ -567,7 +567,6 @@
     },
     "objectStyles": {
       "territorial:entity:A": {
-        "opacity": 0.875,
         "colorVisible": true,
         "boundaryVisible": true,
         "boundaryWidth": 1,

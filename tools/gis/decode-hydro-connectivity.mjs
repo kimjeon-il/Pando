@@ -6,7 +6,7 @@ import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { createHydroWorkerDecoder } from "./hydro-pack-decoder.mjs";
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const [input, output] = process.argv.slice(2);
 if (!input || !output) throw new Error('Usage: node tools/gis/decode-hydro-connectivity.mjs INPUT_DIR OUTPUT_JSON');
 const manifest = JSON.parse(fs.readFileSync(path.join(input, 'manifest.json')));

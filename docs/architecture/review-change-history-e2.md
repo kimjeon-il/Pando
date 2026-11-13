@@ -1,12 +1,12 @@
 # E2 — 검수 제안·변경 이력 Sidecar 계약
 
 **대상:** Pando `work/ui` · Web/Windows 공통 계약 · 2026-11-02
-**선행:** [E1 공통 지도 읽기 엔진](map-readonly-engine-e1.md)
+**선행:** [현행 계약](../app-module-ownership.md)
 **후속:** E3 데이터 리비전 비교 → E4 웹 검수 UI → E5 Windows 연결 → E6 구형 편집기·Android 네이티브 제거 → E7 최종 회귀 검사
 
 ## 1. 데이터 소유권
 
-- 국가 원본과 실제 역사 기록의 정본은 외부 `kimjeon-il/PandoLab-library-data`이며, 코드 저장소 `Pando`는 스키마·검증 코드·합성 픽스처만 보관한다.
+- 국가 원본과 실제 역사 기록의 정본은 외부 `kimjeon-il/PandoLab-library`이며, 코드 저장소 `Pando`는 스키마·검증 코드·합성 픽스처만 보관한다.
 - E2 검수 기록은 기존 프로젝트/GeoPackage 저장 형식, C++ Core 문서, `timelineRecords`, 좌표/형상/국기를 **변경하지 않는 Sidecar**다. 두 번째 세계지도 모델이나 편집 history owner를 생성하지 않는다.
 - 제안은 외부 라이브러리의 `baseRevision`와 `candidateRevision` 두 개의 서로 다른 40자리 Git SHA에 고정한다. `work/ui` 커밋과 데이터 커밋은 다른 버전 축이며, E3에서는 동일 역사 시점에서 두 데이터 버전을 비교한다.
 - 검수 객체는 원본 `sourceEntityId` (예: `state:...`)로 식별한다. 앱 프로젝트 인스턴스 `id`, 형상 `versionId`, 지도 렌더링 ID를 섞지 않는다.
@@ -53,7 +53,7 @@
 
 ## 4. 기존 외부 라이브러리에 저장
 
-권장 위치: **`reports/development/ui/review-records/<proposalId>.json`** (외부 `PandoLab-library-data`, Pando 코드 저장소 아님). `tools/data/report-paths.mjs`의 `reportPath(...,{access:'read'|'write'})`, 기존 라이브러리 쓰기 lease, `reports:publish`/`reports:check` 절차를 그대로 사용한다. JSON 배열에 이벤트를 추가하는 것은 도메인상의 append-only이며 동시 쓰기 충돌 방지/실제 보관은 Git 원문 버전과 기존 라이브러리 절차가 담당한다.
+권장 위치: **`reports/development/ui/review-records/<proposalId>.json`** (외부 `PandoLab-library`, Pando 코드 저장소 아님). `tools/data/report-paths.mjs`의 `reportPath(...,{access:'read'|'write'})`, 기존 라이브러리 쓰기 lease, `reports:publish`/`reports:check` 절차를 그대로 사용한다. JSON 배열에 이벤트를 추가하는 것은 도메인상의 append-only이며 동시 쓰기 충돌 방지/실제 보관은 Git 원문 버전과 기존 라이브러리 절차가 담당한다.
 
 공통 코드: [review-change-records.js](../../src/document/review-change-records.js)
 

@@ -5,7 +5,7 @@ export function createMobileSheetPresentation({document,window,getElement,getLay
   const MOBILE_SHEET_AUXILIARY_RATIOS = Object.freeze({ half: 0.52, expanded: 0.88 });
   const SHEET_SNAP_RATIOS = Object.freeze([0, MOBILE_SHEET_EDITOR_RATIOS.half, MOBILE_SHEET_EDITOR_RATIOS.expanded]);
   const SHEET_SNAP_LABELS = Object.freeze(['접힌 상태', '중간 높이', '확장']);
-  const SHEET_SNAP_DEFAULTS = Object.freeze({ create: 1, search: 1, display: 1, edit: 1, reference: 1 });
+  const SHEET_SNAP_DEFAULTS = Object.freeze({ search: 1 });
   const MOBILE_SHEET_DEFAULT_SNAP = 1;
   const sheetSnapIndex=new Map(Object.values(MOBILE_SHEET_IDS).map(id=>[id,MOBILE_SHEET_DEFAULT_SNAP]));
   const sheetSnapTouched=new Set(),mobileSheetSettlement=new Map();

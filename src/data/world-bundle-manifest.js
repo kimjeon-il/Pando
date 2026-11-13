@@ -4,8 +4,6 @@ export const WORLD_BUNDLE_SCHEMA = 'pandolab-world-bundle';
 const WORLD_BUNDLE_FORMAT = 1;
 const HEX_256 = /^[0-9a-f]{64}$/;
 const ROLES = Object.freeze({
-  previewCountries: ['countries-preview', '.geojson.gz', 'gzip'],
-  previewMesh: ['world-mesh-preview', '.bin.gz', 'gzip'],
   canonicalCountryPacket: ['countries-canonical', '.pcg.gz', 'gzip'],
   canonicalMesh: ['world-mesh', '.bin.gz', 'gzip'],
   labelAnchors: ['country-label-anchors', '.json', 'identity'],
@@ -21,6 +19,10 @@ function validRelativePath(path) {
 // A display-only scoped correction retains its baseline derivation explicitly.
 // Evidence is verified by the archive producer; runtime receives hashes, never private report URLs.
 export function validateScopedRetirementDerivation(derivation) {
+  // Current canonical-only manifests carry counts but no preview/retirement marker.
+  if(derivation?.preview===undefined&&derivation?.scopedRetirement===undefined
+    &&Number.isInteger(derivation?.coordinateCount)&&derivation.coordinateCount>0
+    &&Number.isInteger(derivation?.meshAlgorithmRevision)&&derivation.meshAlgorithmRevision>0)return false;
   if(derivation?.preview==='canonical-topology-simplified') {
     if(derivation.scopedRetirement!==undefined)throw new Error('Unexpected scoped retirement proof');
     return false;
@@ -62,7 +64,7 @@ export function validateWorldBundle(bundle) {
       || !Number.isSafeInteger(asset.decodedBytes) || asset.decodedBytes <= 0) {
       throw new Error(`세계지도 ${role}의 내용 주소·크기·압축 정보가 올바르지 않습니다.`);
     }
-    if (role === 'previewMesh' || role === 'canonicalMesh' || role === 'canonicalCountryPacket') {
+    if (role === 'canonicalMesh' || role === 'canonicalCountryPacket') {
       if (!Array.isArray(asset.header) || asset.header.length < 8
         || asset.header.some(n => !Number.isSafeInteger(n) || n < 0)
         || asset.decodedBytes < asset.header.length * 4) {
@@ -89,7 +91,7 @@ export function validateWorldBundle(bundle) {
     }
   }
   const shared = {};
-  for (const quality of ['preview', 'canonical']) {
+  for (const quality of ['canonical']) {
     const name = bundle.compatibility?.sharedBoundaries?.[quality];
     if (name !== undefined && (!validRelativePath(name)
       || !new RegExp(`^countries-${quality}-shared-v[0-9]+\\.[0-9]+\\.[0-9]+\\.json\\.gz$`).test(name))) {

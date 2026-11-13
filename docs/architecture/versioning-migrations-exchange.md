@@ -1,24 +1,12 @@
 # Versioning, project storage, and exchange contracts
 
-## Version ownership
+## App version and revision ownership
 
-- `package.json` is the only editable source for the app version.
-- `assets/js/build-meta.js` and asset query revisions are generated build metadata, not release version sources.
-- Project schema, model schema, dataset versions, and build/cache revisions are independent from the app version.
-- Shared schema numbers live in `assets/js/modules/version-contract.js`.
-
-## App version policy
-
-The app uses `0.MINOR.PATCH` while it remains pre-1.0.
-
-Use a **MINOR** increment for a user-visible feature, UX-system change, architecture contract change, or save-format capability change. Use a **PATCH** increment for a bug fix, visual polish, performance improvement without a contract change, or an internal refactor that does not change a public/runtime contract.
-
-A commit does not require a version bump by itself. Release version changes are made at release checkpoints, then `pnpm generate:build-meta` regenerates deployment metadata.
+The only current normative **app version / MINOR / PATCH / release-bump policy** is [VERSIONING.md](../../VERSIONING.md). Its editable app version is `package.json`; current runtime and schema version constants live in [`src/runtime/version-contract.js`](../../src/runtime/version-contract.js). Generated build metadata is not a competing version source. The earlier wording is preserved verbatim in the appendix below for traceability; it does **not** create another version policy.
 
 ## Project schema
 
-Current project schema: **14**. Territorial model and Feature schema: **6**.
-Temporal relationship schema: **2**. Layer presentation schema: **5**.
+Current project schema: **14**; territorial model/Feature schema: **6**; `timelineRecords` schema: **3**; timeline storage checkpoint schema: **1**; layer presentation schema: **5**. The prior relationship-schema-2 description belongs to the dated implementation history, not the current project wire format.
 
 The current schema gate validates the format, model contracts, entity fields,
 and references before replacement. Older development schemas and the retired
@@ -77,7 +65,9 @@ they do not define separate display settings. Layer and object visibility are de
 
 Generic is explicitly marked as a fallback target. Identifiable data should be routed to a formal territorial, distribution, hydro, or label domain before Generic is considered.
 
-## Creation and initial screen
+## Creation and initial screen — historical Editor design
+
+> The creation/editing UI described below belonged to the retired standalone Editor workflow. The current product is the read-only Web Viewer; see [`src/app/viewer-composition.js`](../../src/app/viewer-composition.js) and [project data ownership](project-data-ownership.md). Preserve the historical project-creation contract here as a design record, not a current Viewer screen requirement.
 
 The editor has one creation-only form. `projectSetup` is required and owns
 `initialMonth`, nullable `timelineRange`, nullable `initialMapBounds`, and
@@ -96,7 +86,7 @@ saves are rejected and preserved, with no format migration or background write.
 
 When the project schema changes:
 
-1. increment `PROJECT_SCHEMA_VERSION` in `version-contract.js`;
+1. increment `PROJECT_SCHEMA_VERSION` in [`src/runtime/version-contract.js`](../../src/runtime/version-contract.js);
 2. update the current schema gate and common model contract;
 3. update full save, autosave, restoration, Undo, and Worker input together;
 4. update exchange adapters and directly affected callers;
@@ -107,3 +97,22 @@ When the project schema changes:
 A migration is added only when the user explicitly requires compatibility with
 a specific format. Do not add schema-conversion conditionals to feature UI,
 renderer, or persistence call sites.
+
+## Archived version wording (pre-P1, historical decision record)
+
+The following is retained unchanged from this document's former opening. It is **not** an additional current app-version authority.
+
+### 2026 version ownership wording (historical)
+
+- `package.json` is the only editable source for the app version.
+- `assets/js/build-meta.js` and asset query revisions are generated build metadata, not release version sources.
+- Project schema, model schema, dataset versions, and build/cache revisions are independent from the app version.
+- Shared schema numbers live in `assets/js/modules/version-contract.js`.
+
+### 2026 app version wording (historical)
+
+The app uses `0.MINOR.PATCH` while it remains pre-1.0.
+
+Use a **MINOR** increment for a user-visible feature, UX-system change, architecture contract change, or save-format capability change. Use a **PATCH** increment for a bug fix, visual polish, performance improvement without a contract change, or an internal refactor that does not change a public/runtime contract.
+
+A commit does not require a version bump by itself. Release version changes are made at release checkpoints, then `pnpm generate:build-meta` regenerates deployment metadata.

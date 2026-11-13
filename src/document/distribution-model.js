@@ -174,9 +174,9 @@ export function distributionValueRange(layer, entries) {
   return min === Infinity ? null : { min, max };
 }
 
-export function distributionValueAlpha(value, range, opacity = 1) {
+export function distributionValueAlpha(value, range) {
   if (!range) return 0;
   const span = range.max - range.min;
   const ratio = span > 0 ? Math.max(0, Math.min(1, (value - range.min) / span)) : 1;
-  return (0.12 + 0.58 * ratio) * opacity;
+  return 0.12 + 0.58 * ratio;
 }

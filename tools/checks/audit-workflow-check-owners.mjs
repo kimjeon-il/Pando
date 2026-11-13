@@ -77,12 +77,69 @@ export function auditWorkflowCheckOwners(directory){
   multiOwnerTestCount:multiOwnerTests.length,multiOwnerTests,
   workflows,duplicateJobs,issues};
 }
+
+/**
+ * One reviewed classification for every GitHub Actions workflow.
+ * An opt-in or archival workflow must never silently acquire push/PR triggers.
+ */
+export function auditWorkflowInventory(directory, manifestPath) {
+ const issues=[],add=(file,error)=>issues.push({file,error});
+ let manifest;
+ try{manifest=JSON.parse(readFileSync(manifestPath,'utf8'));}
+ catch(error){return{ok:false,workflowCount:0,counts:{},issues:[{file:manifestPath,error:error.message}]};}
+ if(manifest?.schema!=='pando-workflow-inventory-v1')add(manifestPath,'Invalid workflow inventory schema');
+ if(manifest?.canonicalApplication!=='application-architecture.yml')add(manifestPath,'Invalid canonical application check owner');
+ const groups={continuous:Object.keys(manifest?.continuous||{}),manual:manifest?.manual,historical:manifest?.historical};
+ if(!manifest?.continuous||typeof manifest.continuous!=='object'||Array.isArray(manifest.continuous))
+  add(manifestPath,'Continuous entries must map to independent purposes');
+ for(const [file,purpose] of Object.entries(manifest?.continuous||{}))
+  if(typeof purpose!=='string'||!purpose.trim())add(file,'Continuous workflow needs an independent purpose');
+ for(const tier of ['manual','historical'])if(!Array.isArray(groups[tier])){
+  add(manifestPath,tier+' entries must be arrays');groups[tier]=[];
+ }
+ const delegated=manifest?.delegatedToCanonical||{};
+ if(!delegated||typeof delegated!=='object'||Array.isArray(delegated))
+  add(manifestPath,'Delegated check owners must map to the canonical application workflow');
+ const owners=new Map();
+ for(const [tier,entries] of Object.entries(groups))for(const file of entries){
+  if(typeof file!=='string'||!/^[\w-]+\.ya?ml$/.test(file)){add(manifestPath,'Invalid workflow name in '+tier);continue;}
+  if(owners.has(file))add(file,'Workflow belongs to multiple tiers: '+owners.get(file)+' and '+tier);
+  owners.set(file,tier);
+ }
+ for(const [file,reason] of Object.entries(delegated||{})){
+  if(owners.get(file)!=='manual')add(file,'Delegated application-only workflow must be manual');
+  if(typeof reason!=='string'||!reason.trim())add(file,'Delegated workflow needs its canonical replacement reason');
+ }
+ const actual=readdirSync(directory).filter(file=>/\.ya?ml$/.test(file)).sort(),present=new Set(actual);
+ for(const file of actual)if(!owners.has(file))add(file,'Workflow missing from canonical inventory');
+ for(const file of owners.keys())if(!present.has(file))add(file,'Inventory references a missing workflow');
+ for(const file of actual){
+  let wf;
+  try{wf=YAML.parse(readFileSync(join(directory,file),'utf8'),{uniqueKeys:true});}
+  catch(error){add(file,'Cannot parse workflow YAML: '+error.message);continue;}
+  const events=triggers(wf?.on),tier=owners.get(file);
+  if(!wf?.on||!wf.jobs||typeof wf.jobs!=='object')add(file,'Workflow is missing triggers or jobs');
+  const automatic=events.filter(event=>event!=='workflow_dispatch'&&event!=='workflow_call');
+  if(tier==='continuous'&&!automatic.length)add(file,'Continuous workflow has no automatic trigger');
+  if((tier==='manual'||tier==='historical')&&automatic.length)
+   add(file,tier+' workflow has automatic triggers: '+automatic.join(', '));
+  if((tier==='manual'||tier==='historical')&&!events.includes('workflow_dispatch'))
+   add(file,tier+' workflow must be opt-in via workflow_dispatch');
+  if(file===manifest?.canonicalApplication&&tier!=='continuous')
+   add(file,'Canonical application owner must be continuous');
+ }
+ return{ok:issues.length===0,workflowCount:actual.length,
+  counts:Object.fromEntries(Object.entries(groups).map(([tier,files])=>[tier,files.length])),
+  canonicalApplication:manifest?.canonicalApplication,issues};
+}
+
 if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href){
  const root=resolve(process.argv.slice(2).find(arg=>!arg.startsWith('--'))||'.github/workflows');
  const report=auditWorkflowCheckOwners(root);
+ const inventory=auditWorkflowInventory(root,resolve('scripts/contracts/workflow-inventory.json'));
  if(process.argv.includes('--summary'))console.log(JSON.stringify({workflowCount:report.workflowCount,jobCount:report.jobCount,
    automatic:report.automatic,manualOnly:report.manualOnly,multiOwnerTestCount:report.multiOwnerTestCount,
-   duplicateJobs:report.duplicateJobs,issues:report.issues}));
- else console.log(JSON.stringify(report,null,2));
- if(report.issues.length||report.duplicateJobs.length)process.exitCode=1;
+   duplicateJobs:report.duplicateJobs,issues:report.issues,inventory}));
+ else console.log(JSON.stringify({...report,inventory},null,2));
+ if(report.issues.length||report.duplicateJobs.length||!inventory.ok)process.exitCode=1;
 }

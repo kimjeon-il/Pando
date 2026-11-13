@@ -203,12 +203,6 @@ body.map-sheet-dragging {
   overflow: hidden;
 }
 
-.surface-display .surface-body-delegated {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
 @media (max-width: 799px) {
 }
 

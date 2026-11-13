@@ -7,7 +7,7 @@ export function createPhysicalAssetReader({
 }={}){
   if(typeof resolveBaseUrl!=='function')
     throw new TypeError('Physical asset reader requires build metadata and a source base URL');
-  let loader=null,physicalLand=null,landLoading=null,initialPreview=null,initialPreviewLoading=null;
+  let loader=null,physicalLand=null,landLoading=null;
   const storedPhysicalAssets=()=>{
     if(!loader)loader=createLoader({dataRevision:buildMeta?.dataRevision,
       resolveUrl:spec=>new URL(spec.url.replace(/^assets\/data\//,''),resolveBaseUrl()).href});
@@ -32,26 +32,6 @@ export function createPhysicalAssetReader({
     })().catch(error=>{landLoading=null;throw error;});
     return landLoading;
   }
-  function loadInitialLandPreview(){
-    if(!initialPreviewLoading){
-      const source=buildMeta?.physicalLand,spec=buildMeta?.initialLandPreview;
-      if(!spec?.url||spec.sourceSha256!==source?.sha256)
-        return Promise.reject(new Error('Initial land preview does not match the pinned physical source.'));
-      initialPreviewLoading=storedPhysicalAssets().loadAsset(spec,'background','initial-land-preview','초기 지도 윤곽',
-        buffer=>{
-          const geometry=decodeGeometry(buffer,'initial land preview');
-          if(geometry.coordinates.length!==spec.polygonCount)
-            throw new Error('Invalid initial land preview geometry.');
-          return geometry;
-        }).then(result=>{
-          initialPreview=Object.freeze({geometry:result.value,revision:spec.sha256,
-            sourceRevision:spec.sourceSha256,certified:true});
-          return initialPreview;
-        });
-      initialPreviewLoading=initialPreviewLoading.catch(error=>{initialPreviewLoading=null;throw error;});
-    }
-    return initialPreviewLoading;
-  }
-  return Object.freeze({storedPhysicalAssets,loadPhysicalLandMask,loadInitialLandPreview,
-    get physicalLand(){return physicalLand;},get initialLandPreview(){return initialPreview;}});
+  return Object.freeze({storedPhysicalAssets,loadPhysicalLandMask,
+    get physicalLand(){return physicalLand;}});
 }

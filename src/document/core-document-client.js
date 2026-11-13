@@ -127,7 +127,12 @@ export function createCoreDocumentClient({
     undo: options => ordered('core.document-undo', {}, options, true, true),
     redo: options => ordered('core.document-redo', {}, options, true, true),
     markSaved: (expectedEpoch, options) => ordered('core.document-mark-saved', { expectedEpoch }, options, true, true),
-    exportSnapshot: async(context, options) => {await ensureGeometryResources('',options);return ordered('core.document-export', context, options);},
+    exportSnapshot: async(context, options) => {
+      // Reject unauthorized persistence before any geometry preflight RPC.
+      policy.assertOperation('core.document-export');
+      await ensureGeometryResources('',options);
+      return ordered('core.document-export', context, options);
+    },
     setGeometryLoader(loader){
       if(typeof loader!=='function')throw new TypeError('An immutable geometry resource loader is required.');
       geometryLoader=loader;return ()=>{if(geometryLoader===loader)geometryLoader=null;};
@@ -151,7 +156,19 @@ export function createCoreDocumentClient({
       { storageJson,baselineId: options.baselineId ?? null },options),
     inspectImport: (storageJson,options = {}) => ordered('core.document-inspect-import',
       { storageJson,baselineId: options.baselineId ?? null },options),
-    setTimelineCursor: async(month, options) => {await ensureGeometryResources(month,options);return ordered('core.document-timeline-cursor', { month }, options, true, true);},
+    setTimelineCursor: async(month, options) => {
+      try {
+        await ensureGeometryResources(month,options);
+        return await ordered('core.document-timeline-cursor', { month }, options, true, true);
+      } catch(error) {
+        // Geometry admission queries happen before cursor dispatch. Preserve
+        // the cursor API's rejection contract for invalid calendar precision.
+        if(error?.code==='PL-TEMPORAL-001')
+          throw Object.assign(new Error('INVALID_TIMELINE_CURSOR: '+error.message),
+            {code:'INVALID_TIMELINE_CURSOR',cause:error});
+        throw error;
+      }
+    },
     resolveWorld: (month, options) => ordered('core.document-resolve-world', { month }, options),
     projectState: options => ordered('core.document-state', {}, options),
     selectionCatalogLoad: (domain,refs,expectedEpoch,options) => ordered('core.document-selection-catalog',

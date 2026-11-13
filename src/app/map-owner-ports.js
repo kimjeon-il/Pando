@@ -2,7 +2,7 @@
 export const MAP_OWNER_PORTS=Object.freeze({
   projectResourcePorts:Object.freeze(["domains","platformConfigurationA","objectModelB","applicationServicesA","applicationServicesB","countries","countryRecords","geometryMutation","layerPresentation","objectDefinitions","platform","projectState","rendering","territorialModel"]),
   workspaceSurfaces:Object.freeze(["colorPicker","mapHostViewB","platform","platformConfigurationB","projectState","uiFactoriesB","domains"]),
-  projectSession:Object.freeze(["domains","applicationConstantsA","modelValidation","physicalConfig","platformConfigurationA","readiness","uiFactoriesA","mapNavigation"]),
+  projectSession:Object.freeze(["domains","applicationConstantsA","modelValidation","physicalConfig","platformConfigurationA","uiFactoriesA","mapNavigation"]),
   renderQuality:Object.freeze(["feedback","countries","domains","gpuRenderingA","hydroModel","mapView","platformConfigurationB","preferences","projectState","rendering","selectionServices","spatialQuery","surfaces","uiFactoriesA"]),
   pointerTargets:Object.freeze(["domains","feedback","hydroPresentation","landRelations","layerPresentation","mapLayout","mapView","objectPicking","physicalResources","physicalServices","platform","projectState","rendering","surfaces"]),
   cameraNavigation:Object.freeze(["countries","domains","feedback","mapNavigation","mapView","objectLookup","physicalData","platform","projectState","rendering","surfaces"]),
@@ -15,14 +15,14 @@ export const MAP_OWNER_PORTS=Object.freeze({
   territorialLabels:Object.freeze(["objectModelB","colorModel","countries","domains","feedback","labelPresentation","layerPresentation","mapLayers","mapLayout","mapView","mapHostViewB","objectDefinitions","objectPresentation","platform","preferences","projectState","renderScene","rendering","spatialQuery","surfaces","territorialModel","objectDisplay"]),
   physicalResources:Object.freeze(["cutGeometry","domains","feedback","hydroPresentation","labelPresentation","layerPresentation","mapView","operationFeedback","physicalConfig","physicalServices","platform","projectState","rendering"]),
   gpuScene:Object.freeze(["feedback","objectModelB","applicationServicesB","countries","distributionServices","domains","geometryOperations","hydroModel","interactionPresentation","interactionStateCommands","mapHostViewB","mapLayers","mapLayout","objectPresentation","platform","projectState","renderScene","rendering","selectionServices","surfaces","territorialModel"]),
-  mapHost:Object.freeze(["applicationConstantsA","domains","gpuRenderingA","lifecycleUi","mapHostCommands","mapLayers","mapLayout","mapView","navigation","platform","platformConfigurationA","preferences","projectState","projectionView","readiness","renderFactories","renderQuality","rendering","surfaces","workspaceUiB"]),
+  mapHost:Object.freeze(["applicationConstantsA","domains","gpuRenderingA","lifecycleUi","mapHostCommands","mapLayers","mapLayout","mapNavigation","mapView","navigation","platform","platformConfigurationA","preferences","projectState","projectionView","readiness","renderFactories","renderQuality","rendering","surfaces","workspaceUiB"]),
   objectPicking:Object.freeze(["countries","objectModelB","cutGeometry","domains","feedback","hydroPresentation","labelPresentation","landRelations","layerPresentation","mapLayout","mapView","objectOperationsA","physicalServices","platform","pointerInteractionA","projectState","renderScene","rendering","selectionServices","spatialRecords","surfaces","territorialModel"]),
 });
 
 export const MAP_OWNER_REQUIRED_PORTS=Object.freeze({
   projectResourcePorts:Object.freeze(["domains","platformConfigurationA","objectModelB","applicationServicesB","layerPresentation","objectDefinitions","projectState","rendering","territorialModel"]),
   workspaceSurfaces:Object.freeze(["mapHostViewB","platform","platformConfigurationB","projectState","uiFactoriesB","domains"]),
-  projectSession:Object.freeze(["domains","applicationConstantsA","modelValidation","physicalConfig","readiness","uiFactoriesA","mapNavigation"]),
+  projectSession:Object.freeze(["domains","applicationConstantsA","modelValidation","physicalConfig","uiFactoriesA","mapNavigation"]),
   renderQuality:Object.freeze(["feedback","countries","domains","gpuRenderingA","hydroModel","mapView","preferences","projectState","rendering","selectionServices","surfaces","uiFactoriesA"]),
   pointerTargets:Object.freeze(["domains","feedback","hydroPresentation","landRelations","layerPresentation","mapLayout","mapView","objectPicking","physicalResources","physicalServices","platform","projectState","rendering","surfaces"]),
   cameraNavigation:Object.freeze(["countries","domains","mapNavigation","mapView","objectLookup","physicalData","platform","projectState","rendering","surfaces"]),
@@ -35,7 +35,7 @@ export const MAP_OWNER_REQUIRED_PORTS=Object.freeze({
   territorialLabels:Object.freeze(["objectModelB","countries","domains","feedback","labelPresentation","layerPresentation","mapView","mapHostViewB","objectPresentation","platform","preferences","projectState","renderScene","spatialQuery","surfaces","territorialModel"]),
   physicalResources:Object.freeze(["cutGeometry","domains","feedback","hydroPresentation","labelPresentation","layerPresentation","mapView","operationFeedback","physicalConfig","physicalServices","platform","projectState","rendering"]),
   gpuScene:Object.freeze(["feedback","objectModelB","countries","distributionServices","domains","hydroModel","interactionPresentation","interactionStateCommands","mapHostViewB","mapLayers","mapLayout","platform","projectState","renderScene","rendering","selectionServices","surfaces","territorialModel"]),
-  mapHost:Object.freeze(["applicationConstantsA","domains","gpuRenderingA","mapHostCommands","mapLayers","mapLayout","mapView","navigation","platform","platformConfigurationA","preferences","projectState","projectionView","readiness","renderFactories","renderQuality","rendering","surfaces","workspaceUiB"]),
+  mapHost:Object.freeze(["applicationConstantsA","domains","gpuRenderingA","mapHostCommands","mapLayers","mapLayout","mapNavigation","mapView","navigation","platform","platformConfigurationA","preferences","projectState","projectionView","readiness","renderFactories","renderQuality","rendering","surfaces","workspaceUiB"]),
   objectPicking:Object.freeze(["countries","objectModelB","cutGeometry","domains","feedback","hydroPresentation","labelPresentation","landRelations","layerPresentation","mapLayout","mapView","objectOperationsA","physicalServices","platform","pointerInteractionA","projectState","renderScene","rendering","selectionServices","spatialRecords","surfaces","territorialModel"]),
 });
 

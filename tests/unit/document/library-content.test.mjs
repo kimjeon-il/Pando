@@ -5,7 +5,6 @@ import * as __dep2 from "node:fs";
 import * as __dep3 from "node:os";
 import * as __dep4 from "node:path";
 import * as __dep5 from "../../../tools/data/library-content.mjs";
-import * as __dep6 from "../../../tools/data/library-history.mjs";
 import * as __dep7 from "../../../tools/build/load-node-core.mjs";
 import * as __dep8 from "../../../src/document/territorial-units.js";
 import * as __dep9 from "../../helpers/core-startup.mjs";
@@ -113,73 +112,10 @@ test('external views reject junctions and permission recovery preserves immutabl
 });
 
 // Original feature contract: library-retention.test.mjs
-contractSuite("library-retention", () => {
-const test=__dep0.default;
-const assert=__dep1.default;
-const history=__dep6;
 
-test('retention filters generated editions while retaining source history and shared archives', () => {
-  assert.equal(typeof history.buildHistoryRetentionManifest, 'function');
-  const source = 'tools/historical-library/sources/master.json';
-  const generated = 'assets/data/world/current.json';
-  const indexes = [{ files: {
-    [source]: {stored:'archive/source.gz',sha256:'original'},
-    [generated]: {stored:'archive/old.gz',sha256:'old'},
-    'reports/development/retired.json': {stored:'archive/source.gz',sha256:'original'},
-  } }, {files:{[generated]:{stored:'archive/current.gz',sha256:'current'}}}];
-  const manifest = history.buildHistoryRetentionManifest({
-    keepPaths:[source,generated], currentOnly:{[generated]:['current']}, indexes,
-  });
-  assert.deepEqual(Object.keys(history.filterHistoryIndex(indexes[0],manifest).files),[source]);
-  assert.ok(manifest.keepPaths.includes('archive/source.gz'));
-  assert.ok(!manifest.keepPaths.includes('archive/old.gz'));
-  assert.ok(manifest.keepPaths.includes('archive/current.gz'));
-  assert.deepEqual(Object.keys(indexes[0].files),[source,generated,'reports/development/retired.json']);
-});
-
-test('retention follows explicit historical aliases and rejects ambiguous or unsafe inputs', () => {
-  assert.equal(typeof history.buildHistoryRetentionManifest, 'function');
-  const keep='reports/borders/history/current.md', old='reports/research/current.md';
-  const manifest=history.buildHistoryRetentionManifest({keepPaths:[keep],aliases:{[old]:keep},allowedBlobIds:{[keep]:['current-blob']},indexes:[{files:{[old]:{stored:'archive/old.gz',sha256:'old'}}}]});
-  assert.ok(manifest.keepPaths.includes(old));
-  assert.deepEqual(manifest.allowedBlobIds[old],['current-blob']);
-  assert.ok(history.filterHistoryIndex({files:{[old]:{stored:'archive/old.gz',sha256:'old'}}},manifest).files[old]);
-  for(const path of ['../outside','C:/outside','a/../b','/root'])assert.throws(()=>history.buildHistoryRetentionManifest({keepPaths:[path],indexes:[]}),/path/i);
-  assert.throws(()=>history.buildHistoryRetentionManifest({keepPaths:[keep],currentOnly:{missing:['a']},indexes:[]}),/retained/i);
-});
-});
 
 // Original feature contract: library-history.test.mjs
-contractSuite("library-history", () => {
-const test=__dep0.default;
-const assert=__dep1.default;
-const { buildResearchPurgeManifest, filterHistoryIndex }=__dep6;
 
-const entry = stored => ({ stored, encoding: 'gzip', bytes: 12, sha256: 'a'.repeat(64) });
-test('purge follows historical report paths and removes their exclusive archives', () => {
-  const retired = 'reports/borders/reconstruction/siachen/terrain.json';
-  const old = { files: { 'reports/research/siachen/terrain.json': entry('archive/blobs/old.gz') } };
-  const manifest = buildResearchPurgeManifest({ retiredPaths: [retired], indexes: [old], currentIndex: { files: {} } });
-  assert.ok(manifest.paths.includes('reports/research/siachen/terrain.json'));
-  assert.ok(manifest.paths.includes('archive/blobs/old.gz'));
-  assert.deepEqual(filterHistoryIndex(old, manifest).files, {});
-});
-test('an archive shared with a retained logical source is preserved', () => {
-  const retired = 'reports/borders/reconstruction/siachen/terrain.json';
-  const old = { files: { [retired]: entry('archive/blobs/shared.gz'), 'assets/data/live.json': entry('archive/blobs/shared.gz') } };
-  const manifest = buildResearchPurgeManifest({ retiredPaths: [retired], indexes: [old], currentIndex: { files: { 'assets/data/live.json': old.files['assets/data/live.json'] } } });
-  assert.ok(!manifest.paths.includes('archive/blobs/shared.gz'));
-  assert.deepEqual(filterHistoryIndex(old, manifest).files, { 'assets/data/live.json': old.files['assets/data/live.json'] });
-  assert.equal(old.files[retired].stored, 'archive/blobs/shared.gz');
-});
-test('purge refuses a currently retained file and unrelated runtime or development paths', () => {
-  const path = 'reports/borders/reconstruction/siachen/terrain.json';
-  assert.throws(() => buildResearchPurgeManifest({ retiredPaths: [path], indexes: [], currentIndex: { files: { [path]: entry(path) } } }), /current|retain/i);
-  for (const bad of ['assets/data/live.json', '../outside', 'reports/development/task.md']) {
-    assert.throws(() => buildResearchPurgeManifest({ retiredPaths: [bad], indexes: [], currentIndex: { files: {} } }), /scope|research|path/i);
-  }
-});
-});
 
 // Original feature contract: library-origin-period.test.mjs
 contractSuite("library-origin-period", () => {

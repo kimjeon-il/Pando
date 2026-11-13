@@ -1,20 +1,20 @@
 /* Canonical layout / surfaces. */
 
-[data-layout="wide"] .workspace-surface:not(.view-menu-desktop, .surface-search) {
+[data-layout="wide"] .workspace-surface:not(.surface-search) {
   bottom: var(--ui-shell-statusbar-height);
 }
 
-[data-layout="wide"] .workspace-surface:not(.view-menu-desktop, .search-toolbar-desktop) > .surface-header {
+[data-layout="wide"] .workspace-surface:not(.search-toolbar-desktop) > .surface-header {
   display: grid;
   min-height: var(--design-surface-header-height-desktop);
 }
 
-[data-layout="compact"] .workspace-surface:not(.view-menu-desktop, .search-toolbar-desktop) > .surface-header {
+[data-layout="compact"] .workspace-surface:not(.search-toolbar-desktop) > .surface-header {
   display: grid;
   min-height: var(--design-surface-header-height-desktop);
 }
 
-[data-layout="compact"] .workspace-surface:not(.view-menu-desktop, .surface-search) {
+[data-layout="compact"] .workspace-surface:not(.surface-search) {
   position: fixed;
   z-index: 36;
   top: calc(var(--ui-shell-topbar-height) + var(--ui-shell-compact-inset));
@@ -113,17 +113,12 @@
   flex: 1 1 auto;
 }
 
-.surface-display > .surface-body {
-  min-height: 0;
-  flex: 1 1 auto;
-}
-
 .surface-search:not(.surface-open) {
   visibility: hidden;
   pointer-events: none;
 }
 
-[data-layout="mobile"] :is(.surface-search, .surface-display) {
+[data-layout="mobile"] .surface-search {
   position: fixed;
   z-index: 100;
   right: 0;
@@ -139,14 +134,14 @@
   transform: translateY(calc(100% + var(--ui-surface-mobile-hidden-offset)));
 }
 
-[data-layout="mobile"] :is(.surface-search, .surface-display).mobile-open {
+[data-layout="mobile"] .surface-search.mobile-open {
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
   transform: none;
 }
 
-[data-layout="mobile"] :is(.surface-search, .surface-display).mobile-open:is(.is-sheet-dragging, .is-sheet-settling) {
+[data-layout="mobile"] .surface-search.mobile-open:is(.is-sheet-dragging, .is-sheet-settling) {
   height: var(--sheet-drag-height, var(--sheet-height));
   transform: translate3d(0, var(--sheet-drag-offset, 0px), 0);
 }
@@ -172,7 +167,7 @@
 .app-root.viewer-root[data-layout="phone-landscape"] .workspace {
   --projection-safe-left: var(--phone-nav-width);
 }
-.app-root[data-layout="phone-landscape"] .workspace:is(.search-drawer-open, .display-drawer-open) {
+.app-root[data-layout="phone-landscape"] .workspace.search-drawer-open {
   --projection-safe-right: calc(var(--phone-dock-width) + var(--phone-panel-width) + env(safe-area-inset-right));
 }
 

@@ -27,6 +27,7 @@ export function createMapLayoutMetricsSnapshot({
   mobile = false,
   revision = 0,
   reason = 'initial',
+  projectBounds = null,
 } = {}) {
   const resolvedWidth = Math.max(1, finiteNumber(width, 900));
   const resolvedHeight = Math.max(1, finiteNumber(height, 650));
@@ -48,6 +49,25 @@ export function createMapLayoutMetricsSnapshot({
     mobile ? 1 : 0,
   ].join(':');
 
+  let globeBaseScale = Math.max(60, Math.min(contentWidth, scaleContentHeight) * 0.455);
+  let flatBaseScale = Math.max(1, Math.min(contentWidth / (2 * Math.PI), scaleContentHeight / Math.PI));
+  if (projectBounds) {
+    const {west,east,south,north} = projectBounds;
+    if (![west,east,south,north].every(Number.isFinite) || south >= north || west === east)
+      throw new TypeError('Project reference bounds must be finite and nonempty.');
+    const radians = Math.PI / 180, span = (east - west + 360) % 360 || 360;
+    flatBaseScale = Math.min(Math.max(1,contentWidth-24)/(span*radians),
+      Math.max(1,contentHeight-24)/((north-south)*radians));
+    if (span < 180) {
+      const mid = (south+north)*radians/2, half = span*radians/2;
+      const cosine = Math.min(...[south,north].map(lat => Math.sin(mid)*Math.sin(lat*radians)
+        + Math.cos(mid)*Math.cos(lat*radians)*Math.cos(half)));
+      const angle = Math.acos(Math.max(-1,Math.min(1,cosine)));
+      if (angle < Math.PI/2) globeBaseScale = Math.min(contentWidth,contentHeight)*.88
+        /(2*Math.max(1e-8,Math.sin(angle)));
+    }
+  }
+
   return Object.freeze({
     revision: Math.max(0, Math.trunc(finiteNumber(revision))),
     reason: String(reason || 'layout'),
@@ -61,9 +81,10 @@ export function createMapLayoutMetricsSnapshot({
     contentHeight,
     centerX: safe.left + contentWidth / 2,
     centerY: safe.top + contentHeight / 2,
-    globeBaseScale: Math.max(60, Math.min(contentWidth, scaleContentHeight) * 0.455),
-    flatBaseScale: Math.max(30, contentWidth / (2 * Math.PI)),
-    projectionSignature,
+    globeBaseScale,
+    flatBaseScale,
+    projectBoundsKey: JSON.stringify(projectBounds),
+    projectionSignature: `${projectionSignature}:${globeBaseScale}:${flatBaseScale}`,
     fitSignature: [fit.left, fit.right, fit.top, fit.bottom].join(':'),
   });
 }

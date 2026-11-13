@@ -3,17 +3,6 @@
     {
       "file": "src/rendering/gpu-map-renderer.js",
       "functions": [
-        "markPreviewFramePresented"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "markPreviewFramePresented",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    },
-    {
-      "file": "src/rendering/gpu-map-renderer.js",
-      "functions": [
         "activateBuiltinMeshBaseline"
       ],
       "access": [
@@ -109,17 +98,6 @@
       ],
       "owner": "Verified source receipt",
       "reason": "Reads detached source metadata for existing dataset and preview decisions; source document admission and hash checks are owned by C++."
-    },
-    {
-      "file": "src/document/project-preview-policy.js",
-      "functions": [
-        "previewEntities"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "Static preview derivation",
-      "reason": "Reads metadata identities and immutable bindings to derive preview Features without choosing a date."
     },
     {
       "file": "src/document/project-state.js",
@@ -244,6 +222,17 @@
       "detachedCandidate": true,
       "owner": "Builtin source candidate construction",
       "reason": "Build selected source identities in a structuredClone of the catalog template. The source receipt still requires C++ validation and admission; no active document is writable here."
+    },
+    {
+      "file": "src/data/builtin-world-loader.js",
+      "functions": [
+        "loadProject"
+      ],
+      "access": [
+        "read"
+      ],
+      "owner": "Builtin project timeline read boundary",
+      "reason": "Read frozen verified builtin identities only to select active geometry through C++ timelineResolveWorld. The project is a detached load result; this path neither writes canonical storage nor constructs a parallel timeline."
     },
     {
       "file": "src/document/review-inspection.js",

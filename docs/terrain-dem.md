@@ -1,4 +1,8 @@
-# DEM 지형 자료
+# DEM 지형 자료 — 현행 숫자형 DEM·과거 전환 기록
+
+> **현행 조회 기준(2026-11-11):** 지도 프로젝트의 `terrain` 카탈로그는 [프로젝트 매니페스트](../src/data/map-project-manifest.js)로 선택한다. [`src/data/terrain-manifest.js`](../src/data/terrain-manifest.js)는 `dem-relief-v1` / `0.13.3` 수치 DEM 검증 계약을 소유하고, [`src/data/physical-source-configuration.js`](../src/data/physical-source-configuration.js)가 선택된 프로젝트 경로를 전달한다. [지형 미리보기 기록](terrain-preview.md)의 `raster-rgba-v1`은 퇴역한 표시 방법이다. 아래 기존 raster `0.12.6` fallback 및 WebGL/Canvas 미리보기·검증 명령은 **2026-10-05 당시의 자료 전환 및 계측 기록**이며 현행 기본 동작으로 단정하지 않는다. 새로운 다운로드·변환·배포 명령을 승인하지 않는다.
+
+## 2026-10 당시 DEM/raster 전환 정책과 검증 원문 (보존)
 
 WebGL1·2의 기본 지형은 공개된 ETOPO DEM `0.13.3`의 색채 표현이다. DEM manifest, tint 또는 데이터셋을 사용할 수 없으면 Natural Earth raster `0.12.6`으로 전환한다. Canvas는 raster `0.12.6`을 계속 사용한다. 기존 프로젝트는 처음 불러올 때 색채 표현으로 한 번 전환되며, 그 뒤 사용자가 선택한 없음·흑백·색채 설정을 저장한다. 색채 표현은 평면의 기준 밝기를 유지하도록 DEM 음영을 정규화해 지형의 명암이 흐려지지 않게 합성한다.
 
@@ -26,7 +30,7 @@ DEM 71프레임, raster 59프레임의 화면 좌표를 실제 준비 타일의 
 
 관련 파일의 ESLint, `node scripts/check-runtime-boundaries.mjs`(302모듈, 순환 없음), `git diff --check`, workflow YAML 및 작업 연결 검사가 통과했다. 기존 Application Architecture workflow에 변경 범위별 지형 브라우저 검사 여섯 개와 증거 artifact 업로드를 추가했다. 원격 CI, main 병합, Pages 배포 및 라이브 배포 결과 검증은 이번 로컬 검증에서 실행하지 않았다. Canvas Worker 및 실제 하드웨어 GPU·모든 브라우저에서의 동등성을 통과로 간주하지 않는다. 위 로그·이미지는 ignored 로컬 검증 산출물이며 원격 실행 시 CI artifact로 보존한다.
 
-DEM 데이터는 앱 저장소가 아닌 [별도 공개 저장소](https://github.com/kimjeon-il/PandoLab-library-data)의 GitHub Pages에서 제공한다. 앱은 `https://kimjeon-il.github.io/PandoLab-library-data/terrain/v0.13.3/manifest.json`을 읽는다. 데이터 자산은 해당 버전에서 수정하지 않고, 변경이 필요하면 새 버전 경로를 만든다. 배포 순서는 데이터 업로드와 HTTP 검증, `?demTerrain=preview` 검수, 앱의 기본값 전환이다.
+DEM 데이터는 앱 저장소가 아닌 [별도 공개 저장소](https://github.com/kimjeon-il/PandoLab-library)의 GitHub Pages에서 제공한다. 앱은 `https://kimjeon-il.github.io/PandoLab-library/terrain/v0.13.3/manifest.json`을 읽는다. 데이터 자산은 해당 버전에서 수정하지 않고, 변경이 필요하면 새 버전 경로를 만든다. 배포 순서는 데이터 업로드와 HTTP 검증, `?demTerrain=preview` 검수, 앱의 기본값 전환이다.
 
 원본은 [NOAA ETOPO 2022 30 arc-second Ice Surface GeoTIFF](https://www.ncei.noaa.gov/products/etopo-global-relief-model)와 음영을 포함하지 않은 [Natural Earth Cross-blended Hypso HYP_HR](https://www.naturalearthdata.com/downloads/10m-raster-data/10m-cross-blend-hypso/)다. ETOPO의 좌표계는 WGS84 경위도와 EGM2008 높이의 결합 좌표계 EPSG:9518이다. 타일의 위치는 EPSG:4326 경위도로 표현하고 높이값은 EGM2008 m를 보존한다.
 

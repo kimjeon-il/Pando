@@ -109,7 +109,6 @@ test('published Viewer boots its real runtime and completes a year change', asyn
     url.searchParams.set('debug', '1'); url.searchParams.set('deployment', expectedCommit);
     await page.goto(url.href, { waitUntil: 'domcontentloaded' });
     await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready', 'true', { timeout: 75_000 });
-    await expect(page.locator('#viewerInitialPreview')).toBeHidden();
     const initial = await observe('initial');
     await capture('public-viewer-initial.jpg');
     await page.locator('#timelineDateButton').click();

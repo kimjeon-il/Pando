@@ -1,5 +1,4 @@
 import {parseTemporal,compareTemporal} from "./temporal.js";
-import {ZOOM_LIMITS} from "../map/camera-navigation.js";
 /** One canonical shape for a dated builtin map admitted as a project.
  * Date validity is checked by the source selector and the C++ document owner. */
 export function createBuiltinProjectSetup(initialMonth) {
@@ -18,19 +17,10 @@ export function normalizeProjectSetup(input) {
 export function requireProjectMonth(setup,month) {
  const range=setup?.timelineRange;if(range&&(compareTemporal(month,range.start)<0||compareTemporal(month,range.end)>0))throw new Error('탐색 기간 밖입니다. 선택한 시점이 탐색 기간 밖입니다.');
 }
-export function initialBoundsView(bounds,layout={contentWidth:900,contentHeight:624,flatBaseScale:900/(2*Math.PI),globeBaseScale:624*.455},projection='flat'){
+export function initialBoundsView(bounds,_layout={contentWidth:900,contentHeight:624,flatBaseScale:900/(2*Math.PI),globeBaseScale:624*.455},projection='flat'){
  if(!['globe','flat'].includes(projection))throw new TypeError('Initial camera requires a supported projection.');
- if(!bounds)return {projection,view:{globeRotation:[-15,-25,0],globeZoom:1,flatCenter:[0,20],flatZoom:1}};
+ if(!bounds)return {projection,view:{globeRotation:[-15,-25,0],globeZoom:1,flatCenter:[0,0],flatZoom:1}};
  const span=(bounds.east-bounds.west+360)%360||360,center=((bounds.west+span/2+540)%360)-180;
  const latitude=(bounds.south+bounds.north)/2,view={globeRotation:[-center,-latitude||0,0],globeZoom:1,flatCenter:[center,latitude],flatZoom:1};
- if(projection==='globe'){
-  if(span<180){
-   const radians=Math.PI/180,mid=latitude*radians,half=span*radians/2;
-   const cosine=Math.min(...[bounds.south,bounds.north].map(lat=>Math.sin(mid)*Math.sin(lat*radians)+Math.cos(mid)*Math.cos(lat*radians)*Math.cos(half)));
-   const angle=Math.acos(Math.max(-1,Math.min(1,cosine)));
-   // A region reaching the horizon cannot be fitted by magnifying its cap.
-   if(angle<Math.PI/2)view.globeZoom=Math.max(1,Math.min(ZOOM_LIMITS.globe.max,Math.min(layout.contentWidth,layout.contentHeight)*.88/(2*layout.globeBaseScale*Math.max(1e-8,Math.sin(angle)))));
-  }
- }else view.flatZoom=Math.max(1,Math.min(ZOOM_LIMITS.flat.max,Math.min((layout.contentWidth-24)/(layout.flatBaseScale*span*Math.PI/180),(layout.contentHeight-24)/(layout.flatBaseScale*(bounds.north-bounds.south)*Math.PI/180))));
  return {projection,view};
 }

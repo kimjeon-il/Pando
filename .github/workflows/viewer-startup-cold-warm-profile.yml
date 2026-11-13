@@ -1,8 +1,5 @@
 name: Viewer first visit vs reload startup performance profile
 on:
-  push:
-    branches: [work/ui]
-    paths: ['.github/workflows/viewer-startup-cold-warm-profile.yml']
   workflow_dispatch:
 permissions:
   contents: read

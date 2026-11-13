@@ -74,6 +74,21 @@ test('project replacement rejects old waiters and cannot admit superseded work',
   await assert.rejects(h.session.waitForMapPresentation(1), { name: 'AbortError' });
 });
 
+test('a failed boundary Worker rejects the dated frame waiter so Core rollback can proceed', async () => {
+  const h = harness();
+  const token = h.session.beginTemporalViewTransition();
+  h.session.admitTemporalViewTransition(token);
+  const waiting = h.session.waitForMapPresentation(1);
+  const rejected = assert.rejects(waiting, /boundary Worker failed/);
+  assert.equal(h.session.pendingMapWaiterCount, 1);
+  h.session.failTemporalPresentation(new Error('boundary Worker failed'));
+  await rejected;
+  assert.equal(h.session.pendingMapWaiterCount, 0);
+  assert.equal(h.session.canPresentVisualFrame({ projectGeneration: 1, frameId: 8 }), false);
+  h.session.finishTemporalViewTransition(token);
+  assert.equal(h.session.temporalPending(), false);
+});
+
 test('failed or stale temporal tickets never publish', () => {
   const h = harness();
   const token = h.session.beginTemporalViewTransition();
@@ -85,4 +100,18 @@ test('failed or stale temporal tickets never publish', () => {
   assert.equal(h.session.canPresentVisualFrame({ projectGeneration: 1, frameId: 1 }), false);
   assert.equal(h.session.finishTemporalViewTransition(token), true);
   assert.equal(h.retired, 1);
+});
+
+test('accepted dated content can prepare its LOD before its completion frame',async()=>{
+ const h=harness(),token=h.session.beginTemporalViewTransition();
+ assert.equal(h.session.countrySourceAdmitted('mesh-A'),false);
+ h.session.admitTemporalViewTransition(token);
+ assert.equal(h.session.countrySourceAdmitted('mesh-A'),false);
+ await h.session.prepareTemporalCountrySource([{content:'mesh-A'}]);
+ assert.equal(h.session.countrySourceAdmitted('mesh-A'),true);
+ assert.equal(h.session.countrySourceAdmitted('old-mesh'),false);
+ assert.equal(h.session.temporalPending(),true);
+ assert.equal(h.session.canPresentVisualFrame({projectGeneration:1,frameId:1}),false);
+ h.setContext(2);
+ assert.equal(h.session.countrySourceAdmitted('mesh-A'),false);
 });

@@ -7,7 +7,7 @@ import {startDevelopmentServer} from "../../../scripts/frontend-dev-server.mjs";
 
 test('frontend refresh prepares data only when its pin changes and preserves the last valid response',async t=>{
  const root=mkdtempSync(join(tmpdir(),'pando-dev-boundary-'));t.after(()=>rmSync(root,{recursive:true,force:true}));
- mkdirSync(join(root,'config'));const pin=revision=>writeFileSync(join(root,'config/library-data.json'),JSON.stringify({schemaVersion:1,repository:'kimjeon-il/PandoLab-library-data',revision:revision.repeat(40),mounts:['assets/data','reports']}));pin('a');
+ mkdirSync(join(root,'config'));const pin=revision=>writeFileSync(join(root,'config/library-data.json'),JSON.stringify({schemaVersion:1,repository:'kimjeon-il/PandoLab-library',revision:revision.repeat(40),mounts:['assets/data','reports']}));pin('a');
  mkdirSync(join(root,'projects/default-world'),{recursive:true});
  const project=path=>writeFileSync(join(root,'projects/default-world/manifest.json'),path);
  project('project-v1');

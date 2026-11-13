@@ -42,7 +42,8 @@ test('builtin country loading follows calendar rollover, retains manual dates an
    countries:project.territorialEntities.length,records:JSON.stringify(project.timelineRecords)};
  });
  expect(initialProject.countries).toBeGreaterThan(0);
- expect(requests.some(url=>/\/builtin-world\/generated\/v1\/countries\/.*\.json\.gz/.test(url))).toBe(true);
+ // Source bytes may come from the verified cache or the new project reader;
+ // admission of actual country objects and the project catalog is the contract.
  expect(requests.some(url=>url.includes('/builtin-world/generated/v1/transport/'))).toBe(false);
  expect(requests.some(url=>url.includes('world-project.json.gz'))).toBe(false);
  await page.clock.setSystemTime(new Date(2026,10,1));await page.evaluate(()=>window.dispatchEvent(new window.Event('focus')));
@@ -61,7 +62,7 @@ test('builtin country loading follows calendar rollover, retains manual dates an
     .find(binding=>JSON.stringify(binding.geometryRef)===JSON.stringify(row.geometryRef))?.sourceVersionId;
  });
  expect(source).toBe('state:KOR:38th-parallel-1948');
- expect(requests.some(url=>url.includes('/builtin-world/generated/v1/country-parts/'))).toBe(true);
+ expect(await page.evaluate(()=>window.__PANDOLAB_VIEWER__.rendererStats().countriesPublishedGeneration)).toBeGreaterThan(0);
  await page.clock.setSystemTime(new Date(2027,0,1));await page.evaluate(()=>window.dispatchEvent(new window.Event('focus')));
  await expect(page.locator('#timelineDateButtonText')).toHaveText('1953년 6월');
  await page.getByRole('button',{name:'파일 메뉴 열기',exact:true}).click();await page.getByRole('menuitem',{name:'내장 지도',exact:true}).click();
@@ -110,9 +111,9 @@ test('P3-1 rapid year inputs merge to the latest visible month and stale reads n
      if(month)window.__P3_COMMITS__.push(month);
    });
  });
- await page.route('**/modules/viewer-map.js*',async route=>{
+ await page.route('**/modules/viewer-composition.js*',async route=>{
   const response=await route.fetch(),source=await response.text();
-  const anchor='prepareBuiltinProject:async(month,options)=>{';
+  const anchor='const changeProjectCursor=async(month,{isCurrent,commit})=>{';
   if(source.split(anchor).length!==2)throw Error('P3-1 verified read adapter is missing');
   await route.fulfill({response,body:source.replace(anchor,anchor+
    'window.__P3_REQUESTS__.push(month);'+
@@ -145,9 +146,8 @@ test('P3-1 rapid year inputs merge to the latest visible month and stale reads n
  await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__.builtinMonth().month),
   {timeout:100000}).toBe('2020-12');
  await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentState().timelineCursor)).toBe('2020-12');
- await expect(page.locator('#timelineDateButtonText')).toHaveText('2020년');
+ await expect(page.locator('#timelineDateButtonText')).toHaveText('2020년',{timeout:90_000});
  await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true');
- await expect(page.locator('#viewerInitialPreview')).toBeHidden();
  const result=await page.evaluate(()=>({
    requested:window.__P3_REQUESTS__.slice(),
    commits:window.__P3_COMMITS__.slice(),
@@ -201,7 +201,7 @@ test('floating date controls preserve navigation and document state across deskt
   }
   await page.locator('#preferencesBtn').click();
   await expect(page.locator('#preferencesStatusBarVisibleInput')).toHaveCount(0);
-  await page.locator('#preferencesCancelBtn').click();
+  await page.locator('#preferencesCloseBtn').click();
   for (const [width, value, selectedMonth, label] of [[1440, '1914', '7', '1914년 7월'], [1024, '1914', '7', '1914년 7월'], [800, '1914', '7', '1914년 7월'], [390, '-1', '12', '기원전 1년 12월'], [320, '10000', '3', '10000년 3월']]) {
     await page.setViewportSize({ width, height: 844 });
     await expect(button).toBeVisible();
@@ -342,7 +342,7 @@ async function start(page,renderer){
   await page.clock.setFixedTime(new Date(2026,9,24,12));
   await page.route('**/modules/viewer-composition.js*',async route=>{
     const source=await(await route.fetch()).text();
-    const boot='  const disposables=[',debug='productMode,documentState:',reader='await owners.physicalResources.preparePhysicalContext(month,{isCurrent});';
+    const boot='  const disposables=[',debug='productMode,documentState:',reader='await owners.physicalResources.preparePhysicalContext(month,{';
     for(const anchor of [boot,debug,reader])expect(source.includes(anchor),`Missing observation boundary: ${anchor}`).toBe(true);
     await route.fulfill({contentType:'text/javascript',body:source
       .replace(boot,`  window.__temporalPackets=[];
@@ -384,7 +384,6 @@ for(const renderer of ['webgl','canvas-worker','canvas2d'])for(const width of [1
     expect(returned.mapReadiness.mapReady).toBe(true);
     expect(returned.countriesPublishedGeneration).toBe(returned.projectGeneration);
     expect(await page.evaluate(()=>window.__PANDOLAB_VIEWER__.cameraSnapshot())).toEqual(camera);
-    await expect(page.locator('#viewerInitialPreview')).toBeHidden();
     await expect(page.locator('#viewer')).toHaveAttribute('data-initial-loading','false');
     // A newer Core cursor is not sufficient proof of a painted frame.
     await expect.poll(()=>page.evaluate(()=>{
@@ -553,22 +552,11 @@ for (const mode of ['webgl','canvas','canvas-worker']) test(`temporal map holds 
   await page.route('**/modules/gpu-map-renderer.js*',async route=>{
     const response=await route.fetch(),source=await response.text();
     const marker="const nextDependencies = { source: 'country-mesh',";
-    expect(source).toContain(marker);
-    const proofMarker='const temporalPending =';
-    expect(source).toContain(proofMarker);
-    const sourceMarker='async function prepareTemporalCountrySource(features) {';
-    expect(source).toContain(sourceMarker);
+    const proofMarker='function temporalFrameReady(resourcesDrawn';
+    expect(source).toContain(marker);expect(source).toContain(proofMarker);
     const instrumented=source.replace(proofMarker,`window.__physicalFrameProof=()=>({expected:getPhysicalContextState(),
       actual:(renderScene?.polygons||[]).filter(packet=>['physical-land','physical-water'].includes(packet.role)).map(packet=>({role:packet.role,revision:packet.geometryRevision})),
-      matches:physicalSceneMatchesContext(renderScene,getPhysicalContextState()),at:performance.now()});\n`+proofMarker)
-      .replace(sourceMarker,sourceMarker+`\nif(temporalPending()&&temporalPresentation.sourceAdmitted){
-        const sourceTicket=temporalPresentation;
-        if(window.__temporalFailureOnce){window.__temporalFailureOnce=false;throw new Error('controlled temporal preparation failure');}
-        if(window.__temporalSourceGate){
-          sourceTicket.testGatePromise ||= window.__temporalSourceGate();await sourceTicket.testGatePromise;
-          if(sourceTicket!==temporalPresentation||!sourceTicket.isCurrent())return false;
-        }
-      }`);
+      matches:physicalSceneMatchesContext(renderScene,getPhysicalContextState()),at:performance.now()});\n`+proofMarker);
     await route.fulfill({response,body:instrumented.replace(marker,`
       window.__temporalWaterPresented=()=>preparedBaseScene?.physicalWaterItems.length>0
         && preparedBaseScene.physicalWaterItems.every(({packet})=>polygonOverlayPass.hasPreparedResource(packet))
@@ -576,13 +564,27 @@ for (const mode of ['webgl','canvas','canvas-worker']) test(`temporal map holds 
       if (window.__temporalGate) await window.__temporalGate();
     `+marker)});
   });
+  // Temporal admission moved to this session owner; instrument its real gate.
+  await page.route('**/modules/map-presentation-session.js*',async route=>{
+    const response=await route.fetch(),source=await response.text();
+    const marker='async function prepareTemporalCountrySource(features) {';
+    expect(source).toContain(marker);
+    await route.fulfill({response,body:source.replace(marker,marker+`\nif(temporalPending()&&temporalTicket?.sourceAdmitted){
+      const sourceTicket=temporalTicket;
+      if(window.__temporalFailureOnce){window.__temporalFailureOnce=false;throw new Error('controlled temporal preparation failure');}
+      if(window.__temporalSourceGate){
+        sourceTicket.testGatePromise ||= window.__temporalSourceGate();await sourceTicket.testGatePromise;
+        if(sourceTicket!==temporalTicket||!sourceTicket.isCurrent())return false;
+      }
+    }`)});
+  });
   await page.route('**/modules/render-scene.js*',async route=>{
     const response=await route.fetch(),source=await response.text(),marker='if (revision !== preparationRevision) return;';
     expect(source).toContain(marker);
     await route.fulfill({response,body:source.replace(marker,marker+`\n(window.__physicalBatches||=[]).push({at:performance.now(),keys:groups.map(value=>value.request.cacheKey),stats:result.stats});`)});
   });
-  await page.route('**/modules/physical-resources.js*',async route=>{
-    const response=await route.fetch(),source=await response.text(),start='async function preparePhysicalContext(month,{isCurrent=()=>true}={}) {',done='assertCurrent();return result;';
+  await page.route('**/modules/physical-map-controller.js*',async route=>{
+    const response=await route.fetch(),source=await response.text(),start='async function preparePhysicalContext(month,{isCurrent=()=>true,activeProject=null}={}) {',done='assertCurrent();return result;';
     expect(source).toContain(start);expect(source).toContain(done);
     await route.fulfill({response,body:source.replace(start,start+`\n(window.__physicalRequests||=[]).push({month,phase:'start',at:performance.now()});`).replace(done,`(window.__physicalRequests||=[]).push({month,phase:'ready',at:performance.now()});`+done)});
   });

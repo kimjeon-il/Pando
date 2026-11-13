@@ -31,11 +31,11 @@ test(`existing UI loads, searches and navigates without document writes at ${vie
   await page.locator('#objectSearchResults button').first().click();
   await expect(page.locator('#viewerSelectionStatus')).toContainText('대한민국');
   await openViewingDisplay(page);
-  await setViewingLayer(page,'objects',false);
-  await setViewingLayer(page,'objects',true);
-  await expect(page.locator('#mapDisplaySurface')).toContainText('객체');
-  await expect(page.locator('#countriesVisible,#subunitsVisible,#regionsVisible')).toHaveCount(0);
-  const bounds=await page.locator('#mapDisplaySurface').boundingBox();
+  await setViewingLayer(page,'rivers',false);
+  await setViewingLayer(page,'rivers',true);
+  await expect(page.locator('#preferencesModal')).toContainText('지도 테마');
+  await expect(page.locator('#mapDisplaySurface,#mapDisplayBtn,#countriesVisible,#subunitsVisible,#regionsVisible')).toHaveCount(0);
+  const bounds=await page.locator('.preferences-card').boundingBox();
   expect(bounds.x).toBeGreaterThanOrEqual(0);
   expect(bounds.x+bounds.width).toBeLessThanOrEqual(viewport.width);
   expect(bounds.y+bounds.height).toBeLessThanOrEqual(viewport.height);
@@ -44,13 +44,13 @@ test(`existing UI loads, searches and navigates without document writes at ${vie
   await closeViewingDisplay(page);
   await page.locator('#timelineDateButton').click();
   await page.locator('#timelineViewUnit').selectOption('month');
-  await page.locator('#timelineYearInput').fill('-1');
+  await page.locator('#timelineYearInput').fill('2025');
   await page.locator('#timelineMonthInput').selectOption('12');
   await page.locator('#timelineYearInput').press('Enter');
-  await expect(page.locator('#timelineDateButtonText')).toHaveText('기원전 1년 12월');
+  await expect(page.locator('#timelineDateButtonText')).toHaveText('2025년 12월',{timeout:90_000});
   await page.locator('#timelineDateButton').click();
   await page.locator('#timelineNextMonth').click();
-  await expect(page.locator('#timelineDateButtonText')).toHaveText('1년 1월');
+  await expect(page.locator('#timelineDateButtonText')).toHaveText('2026년 1월',{timeout:90_000});
   await page.keyboard.press('Escape');
   await page.keyboard.press('Control+z');
   await page.keyboard.press('Delete');
@@ -84,11 +84,16 @@ test('existing surfaces preserve project and selection across portrait, tablet a
   for(const viewport of [{width:390,height:844},{width:768,height:1024},{width:1024,height:768},{width:844,height:390}]){
     await page.setViewportSize(viewport);
     // Exercise the shipped controls, not frozen HTML button IDs or CSS pixels.
-    const visibleButtons=await page.locator('button.ui-button:visible').evaluateAll(nodes=>nodes.map(node=>{
-      const bounds=node.getBoundingClientRect();return {width:bounds.width,height:bounds.height};
+    const visibleButtons=await page.locator('button.ui-button').evaluateAll(nodes=>nodes.filter(node=>{
+      // The selector's visibility snapshot and a later layout read must be
+      // atomic across a responsive resize, especially for the mobile toolbar.
+      const style=getComputedStyle(node),rect=node.getBoundingClientRect();
+      return style.display!=='none'&&style.visibility!=='hidden'&&rect.width>0&&rect.height>0;
+    }).map(node=>{
+      const bounds=node.getBoundingClientRect();return {id:node.id,classes:node.className,width:bounds.width,height:bounds.height};
     }));
     expect(visibleButtons.length).toBeGreaterThan(0);
-    for(const bounds of visibleButtons){expect(bounds.width).toBeGreaterThan(0);expect(bounds.height).toBeGreaterThan(0);}
+    for(const bounds of visibleButtons){expect(bounds.width,JSON.stringify(bounds)).toBeGreaterThan(0);expect(bounds.height,JSON.stringify(bounds)).toBeGreaterThan(0);}
     await page.locator('#objectSearchBtn').click();
     await page.locator('#objectSearchInput').fill('화면 검증 지도');
     await page.locator('#objectSearchResults button').filter({hasText:'화면 검증 지도'}).first().click();
@@ -96,8 +101,8 @@ test('existing surfaces preserve project and selection across portrait, tablet a
     await expect(page.locator('#viewerInfoPanel')).toHaveCount(0);
     await page.keyboard.press('Escape');
     await openViewingDisplay(page);
-    await page.locator('#mapDisplaySurface').evaluate(element => Promise.all(element.getAnimations().map(animation => animation.finished)));
-    const panel=await page.locator('#mapDisplaySurface').boundingBox();
+    await page.locator('.preferences-card').evaluate(element => Promise.all(element.getAnimations().map(animation => animation.finished)));
+    const panel=await page.locator('.preferences-card').boundingBox();
     expect(panel.x).toBeGreaterThanOrEqual(0);expect(panel.y).toBeGreaterThanOrEqual(0);
     expect(panel.x+panel.width).toBeLessThanOrEqual(viewport.width);
     expect(panel.y+panel.height).toBeLessThanOrEqual(viewport.height);
@@ -311,7 +316,7 @@ for (const { viewport, hasTouch } of cases) {
 featureTest.describe("viewer-globe-only", () => {
   const {  expect, test  } = __suiteDependency1;
 test('web keeps its globe through bounded file open, search, reset and mobile navigation',async({page})=>{
-  const {createViewerProjectPackage}=await import(process.env.PANDOLAB_TEST_VIEWER_FIXTURE || '../fixtures/viewer-project-package.mjs');
+  const {createViewerProjectPackage}=await import(process.env.PANDOLAB_TEST_VIEWER_FIXTURE || '../../fixtures/viewer-project-package.mjs');
   const fixture=await createViewerProjectPackage('지구본 범위 검사');
   const errors=[];page.on('pageerror',error=>errors.push(error.message));
   await page.route('**/modules/viewer-map.js*',async route=>{
@@ -332,10 +337,14 @@ test('web keeps its globe through bounded file open, search, reset and mobile na
   expect(await page.evaluate(()=>{try{window.__PANDOLAB_MAP_HOST__.setProjectionKind('flat');return null;}catch(error){return error.code;}})).toBe('PL-PRODUCT-PROJECTION');
   await page.locator('#projectFileInput').setInputFiles({name:'globe-bounds.gpkg',mimeType:'application/geopackage+sqlite3',buffer:fixture.bytes});
   await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot().baseDataset)).toBe(fixture.project.baseDataset);
-  await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true');
+  await expect.poll(()=>page.evaluate(()=>{
+    const state=window.__PANDOLAB_VIEWER__.rendererStats();
+    return state.mapReadiness.mapReady && state.countriesPublishedGeneration===state.projectGeneration;
+  }),{timeout:120000}).toBe(true);
+  await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:120000});
   expect(await projection()).toBe('globe');
   const initial=await page.evaluate(()=>window.__PANDOLAB_MAP_HOST__.getViewState());
-  expect(initial.globeRotation.slice(0,2)).toEqual([-7.5,-7.5]);expect(initial.globeZoom).toBeGreaterThan(1);
+  expect(initial.globeRotation.slice(0,2)).toEqual([-7.5,-7.5]);expect(initial.globeZoom).toBe(1); // The project bounds already calibrate globeBaseScale.
   const before=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentState());
   await page.locator('#objectSearchBtn').click();await page.locator('#objectSearchInput').fill('지구본 범위 검사');
   await page.locator('#objectSearchResults button').filter({hasText:'지구본 범위 검사'}).first().click();

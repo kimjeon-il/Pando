@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include <numeric>
 #include <stdexcept>
 #include <unordered_map>
 
@@ -65,6 +66,70 @@ MeshParameterSpace parameterSpace(const std::vector<Position>& ring) {
     }
     return {east-west>=300&&south<=-89.5?-1:east-west>=300&&north>=89.5?1:0};
 }
+void conformSourceEdges(std::vector<Triangle>& triangles,const std::vector<Position>& points,
+    const std::function<void()>& checkCancelled) {
+    // Earcut may omit collinear ring vertices or bridge across a hole vertex.
+    // Equal area does not detect those T-junctions. Split unmatched edges at
+    // existing exact source vertices before midpoint refinement propagates them.
+    std::unordered_map<std::uint64_t,unsigned> uses;
+    for(const auto& t:triangles)for(unsigned e=0;e<3;++e)++uses[edgeKey(t[e],t[(e+1)%3])];
+    std::array<std::vector<std::uint32_t>,2> ordered;
+    for(unsigned axis=0;axis<2;++axis) {
+        auto& indices=ordered[axis];indices.resize(points.size());
+        std::iota(indices.begin(),indices.end(),0u);
+        std::sort(indices.begin(),indices.end(),[&](auto a,auto b){
+            return points[a][axis]!=points[b][axis]?points[a][axis]<points[b][axis]:a<b;
+        });
+    }
+    std::unordered_map<std::uint64_t,std::vector<std::uint32_t>> splits;
+    std::size_t operations=0;
+    const auto checkpoint=[&] {
+        if((operations++%1024)==0&&checkCancelled)checkCancelled();
+    };
+    for(const auto& [key,count]:uses) {
+        checkpoint();
+        if(count!=1)continue;
+        const auto a=std::uint32_t(key>>32),b=std::uint32_t(key);
+        const unsigned axis=std::abs(points[b][0]-points[a][0])>=std::abs(points[b][1]-points[a][1])?0:1;
+        const auto low=std::min(points[a][axis],points[b][axis]),high=std::max(points[a][axis],points[b][axis]);
+        const auto& indices=ordered[axis];
+        const auto begin=std::upper_bound(indices.begin(),indices.end(),low,
+            [&](double value,auto index){return value<points[index][axis];});
+        std::vector<std::uint32_t> interior;
+        for(auto it=begin;it!=indices.end()&&points[*it][axis]<high;++it) {
+            checkpoint();
+            const auto v=*it;
+            if(points[v][1-axis]<std::min(points[a][1-axis],points[b][1-axis])
+                ||points[v][1-axis]>std::max(points[a][1-axis],points[b][1-axis]))continue;
+            if(triangleSign(points[a],points[b],points[v])==0
+                &&(interior.empty()||!samePoint(points[interior.back()],points[v])))interior.push_back(v);
+        }
+        if(!interior.empty())splits.emplace(key,std::move(interior));
+    }
+    if(splits.empty())return;
+    std::vector<Triangle> pending=std::move(triangles);
+    triangles.clear();
+    while(!pending.empty()) {
+        checkpoint();
+        const auto t=pending.back();pending.pop_back();
+        bool split=false;
+        for(unsigned e=0;e<3;++e) {
+            const auto a=t[e],b=t[(e+1)%3],c=t[(e+2)%3];
+            const auto found=splits.find(edgeKey(a,b));
+            if(found==splits.end())continue;
+            const auto& vertices=found->second;
+            const unsigned axis=std::abs(points[b][0]-points[a][0])>=std::abs(points[b][1]-points[a][1])?0:1;
+            auto previous=a;
+            for(std::size_t i=0;i<vertices.size();++i) {
+                checkpoint();
+                const auto v=vertices[points[a][axis]<points[b][axis]?i:vertices.size()-1-i];
+                pending.push_back({previous,v,c});previous=v;
+            }
+            pending.push_back({previous,b,c});split=true;break;
+        }
+        if(!split)triangles.push_back(t);
+    }
+}
 std::vector<Triangle> refinePolygon(
     std::vector<Position>& geo,std::vector<Position>& parameter,
     const std::vector<std::uint32_t>& triangulation,const MeshParameterSpace& space,
@@ -78,6 +143,7 @@ std::vector<Triangle> refinePolygon(
         else removed.push_back(tri);
     }
     if(triangles.empty())throw std::invalid_argument("polygon triangulation has no nondegenerate triangles");
+    conformSourceEdges(triangles,parameter,checkCancelled);
     std::vector<std::array<double,3>> vectors;
     vectors.reserve(geo.size()*2);
     for(const auto& p:geo)vectors.push_back(unitVector(p));

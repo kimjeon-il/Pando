@@ -131,8 +131,6 @@ function pairedWorldBundle(scene,sceneBuffer) {
   const sourceBytes=Buffer.from(JSON.stringify(source)),canonical=encodeCanonicalCountryPacket(source);
   const assets={};
   for(const [role,name,ext,raw,headerWords] of [
-    ['previewCountries','countries-preview','.geojson.gz',sourceBytes,0],
-    ['previewMesh','world-mesh-preview','.bin.gz',scene.meshBuffer,12],
     ['canonicalCountryPacket','countries-canonical','.pcg.gz',canonical,20],
     ['canonicalMesh','world-mesh','.bin.gz',scene.meshBuffer,12],
     ['labelAnchors','country-label-anchors','.json',Buffer.from('{}'),0],
@@ -149,7 +147,7 @@ function pairedWorldBundle(scene,sceneBuffer) {
     algorithmVersion:codec.MESH_ALGORITHM_REVISION,identity:scene.identity};
   return {stored,bundle:{schema:'pandolab-world-bundle',schemaVersion:1,
     source:{url:'territorial-entities/generated/current-world.geojson',sha256:hash(sourceBytes),countryCount:ids.length},
-    derivation:{preview:'canonical-topology-simplified',coordinateCount:8,meshAlgorithmRevision:codec.MESH_ALGORITHM_REVISION},
+    derivation:{coordinateCount:8,meshAlgorithmRevision:codec.MESH_ALGORITHM_REVISION},
     defaultClassification:{countries:Object.fromEntries(identity.fills)},assets}};
 }
 

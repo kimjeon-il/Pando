@@ -6,7 +6,7 @@ const browserGlobals = {
   ImageData: 'readonly', IndexedDB: 'readonly', HTMLElement: 'readonly', HTMLCanvasElement: 'readonly', Option: 'readonly',
   Event: 'readonly', EventTarget: 'readonly', PageTransitionEvent: 'readonly',
   MessageChannel: 'readonly', MessageEvent: 'readonly', MutationObserver: 'readonly', OffscreenCanvas: 'readonly', Path2D: 'readonly',
-  Response: 'readonly', ResizeObserver: 'readonly', TextDecoder: 'readonly', TextEncoder: 'readonly', TransformStream: 'readonly',
+  Request: 'readonly', Headers: 'readonly', Response: 'readonly', ResizeObserver: 'readonly', TextDecoder: 'readonly', TextEncoder: 'readonly', TransformStream: 'readonly',
   URL: 'readonly', URLSearchParams: 'readonly', Worker: 'readonly',
   cancelAnimationFrame: 'readonly', clearInterval: 'readonly', clearTimeout: 'readonly', confirm: 'readonly',
   atob: 'readonly', btoa: 'readonly', caches: 'readonly', createImageBitmap: 'readonly', crypto: 'readonly',
@@ -28,9 +28,6 @@ const nodeGlobals = {
 
 export default [
   { ignores: ['node_modules/**', 'playwright-report/**', 'test-results/**', 'assets/js-vendor/**', 'assets/vendor/**', 'assets/wasm/**', 'assets/**', 'apps/editor/src-tauri/**',
-    // Immutable Git blob test inputs are admitted by web-oracle.mjs and its
-    // provenance/import-closure tests; they are not active application source.
-    'tests/fixtures/portability/web-9300609-oracle/**',
     'tests/fixtures/shared-core/web-m97/lifecycle-source/**'] },
   js.configs.recommended,
   {

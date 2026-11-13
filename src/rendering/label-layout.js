@@ -12,7 +12,7 @@ export function placeLabelDimensions(value) {
   const texts = rows.map(row => String(typeof row === 'string' ? row : row?.text || ''));
   const metrics = PLACE_LABEL_METRICS;
   const width = Math.max(metrics.minimumWidth, ...texts.map(text => [...text].reduce(
-    (sum, char) => sum + (/[^\u0000-\u024f]/u.test(char) ? metrics.otherCharWidth : metrics.latinCharWidth),
+    (sum, char) => sum + (char.codePointAt(0) > 0x024f ? metrics.otherCharWidth : metrics.latinCharWidth),
     metrics.textPadding,
   )));
   return { width, height: metrics.firstLineHeight + Math.max(0, texts.length - 1) * metrics.extraLineHeight };
@@ -156,6 +156,21 @@ export function layoutLabels(candidates = [], { zoom = 1, padding = 3, cellSize 
     const outputIndex = output.length;
     output.push(candidate);
     insert(candidate, outputIndex);
+  }
+  // A secondary name must never displace a Korean primary label. After the
+  // primary layout is fixed, expand only labels whose extra line fits without
+  // colliding with any placed primary or previously accepted secondary.
+  for (let index = 0; index < output.length; index += 1) {
+    const primary = output[index];
+    if (!primary.rows?.length || !primary.secondaryRows?.length) continue;
+    const rows = [...primary.rows, primary.secondaryRows[0]];
+    const expanded = { ...primary, ...placeLabelDimensions(rows), rows };
+    expanded.box = normalizedBox(expanded);
+    if (!boxInsideBounds(expanded.box, bounds)) continue;
+    if (nearby(expanded).some(other => other.key !== primary.key &&
+      collides(expanded.box, other.box, padding))) continue;
+    output[index] = expanded;
+    insert(expanded, index);
   }
   if (metrics) Object.assign(metrics, {
     candidateCount: candidates.length,

@@ -18,7 +18,7 @@ export function createProjectSourceRuntime({
   const preparedSources=new WeakSet(),candidateIdentities=new WeakMap();
   const staleBuiltin=()=>Object.assign(new Error('Builtin source request was superseded'),
     {name:'AbortError',cancelled:true,code:'PL-CORE-STALE'});
-  const territorialSpec=()=>buildMeta?.projectCatalogs
+  const territorialSpec=()=>buildMeta?.mapProject
     ?mapProjectCatalogSpec(buildMeta,'territorial'):buildMeta?.builtinWorld||null;
   function currentSourceIdentity(){
     const dependencies=getDependencies();

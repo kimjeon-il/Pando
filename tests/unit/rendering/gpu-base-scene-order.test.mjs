@@ -1,5 +1,6 @@
 import { describe as contractSuite } from 'node:test';
 import {createGpuUploadScheduler} from '../../../src/rendering/gpu-upload-scheduler.js';
+import {createRenderDevice} from '../../../src/rendering/render-device.js';
 import * as __render_dep0 from "node:assert/strict";
 import * as __render_dep1 from "node:test";
 import * as __render_dep3 from "../../../src/rendering/gpu-scene-preparation.js";
@@ -83,14 +84,9 @@ for (const style of ['political', 'physical']) {
     });
 }
 
-test('WebGL never submits a second physical-land mask when raster/DEM tiles are not drawable', () => {
-  const canDraw=(tiles,representation,style,tintReady)=>
-    canDrawTerrainTiles(tiles,representation,style,tintReady,'dem-relief-v1');
-  assert.equal(canDraw([], 'dem-relief-v1', 'physical', true), false);
-  assert.equal(canDraw([{}], 'dem-relief-v1', 'physical', false), false);
-  assert.equal(canDraw([{}], 'dem-relief-v1', 'physical', true), true);
-  assert.equal(canDraw([{}], 'dem-relief-v1', 'political', false), true);
-  assert.equal(canDraw([{}], 'raster-rgba-v1', 'physical', false), true);
+test('WebGL submits the physical-land mask only when numerical tiles are drawable', () => {
+  assert.equal(canDrawTerrainTiles([]),false);
+  assert.equal(canDrawTerrainTiles([{}]),true);
 
   let landDraws=0, terrainDraws=0, invisibleMaskDraws=0, colorEnabled=true;
   const gl = new Proxy({colorMask:value=>{colorEnabled=value;}},
@@ -105,7 +101,7 @@ test('WebGL never submits a second physical-land mask when raster/DEM tiles are 
       return {renderedKeys:packets.map(row=>row.key),missingKeys:[]};
     },
   };
-  drawGpuBaseScene({gl,frame:{},width:100,height:100,terrainVisible:canDraw([],'dem-relief-v1','physical',true),
+  drawGpuBaseScene({gl,frame:{},width:100,height:100,terrainVisible:canDrawTerrainTiles([]),
     surfacePresentation:{quality:'pending'}, countriesVisible:false,
     prepared:{baseTriangleDraw:{ranges:[]}, overrideTriangleDraw:{ranges:[]},
       territoryItems:[],independentItems:[],physicalWaterItems:[],
@@ -360,7 +356,9 @@ test('same-key stroke revision and LOD replacements are prepared before draw', (
     return () => {};
   } });
   const pass = createGpuStrokeRenderer();
-  assert.equal(pass.initialize({ gl, version: 2, capabilities: { instancing: true } }), true);
+  // Coverage now uses the real shared RenderDevice state contract.
+  const device = createRenderDevice({ gl, version: 2, contextRevision: 1 });
+  assert.equal(pass.initialize(device), true);
   const original = { key: 'edited-stroke', geometryRevision: 1, lod: 'low', style: { width: 2 }, startsEnds: new Float32Array([0, 0, 1, 1]) };
   for (const packet of [original, { ...original, geometryRevision: 2 }, { ...original, geometryRevision: 2, lod: 'high' }]) {
     const sourceKey = `${packet.key}:${packet.geometryRevision}:${packet.lod}`;

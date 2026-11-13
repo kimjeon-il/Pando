@@ -58,7 +58,7 @@ try{
   check('Rust changed source',()=>rust(directories[1]),'miss');assert.equal(rustResult(directories[1]),'43:library.rs:same');
   const cmakeVersion=JSON.parse(readFileSync(join(roots[0],'config/toolchain-versions.json'),'utf8')).cmake;
   const cmake=join('D:/build/toolchains/cmake',cmakeVersion,'bin/cmake.exe');
-  writeFileSync(join(directories[0],'CMakeLists.txt'),`cmake_minimum_required(VERSION 3.21)\nproject(CacheProbe LANGUAGES CXX)\ninclude("${roots[0]}/cmake/compiler-cache.cmake")\nadd_library(probe STATIC library.cpp)\n`);
+  writeFileSync(join(directories[0],'CMakeLists.txt'),`cmake_minimum_required(VERSION 3.21)\nproject(CacheProbe LANGUAGES CXX)\ninclude("${roots[0]}/tools/build/compiler-cache.cmake")\nadd_library(probe STATIC library.cpp)\n`);
   run(cmake,['-S','.','-B','cmake','-G','MinGW Makefiles',`-DCMAKE_CXX_COMPILER=${compiler}`,`-DCMAKE_MAKE_PROGRAM=${env.COMPILER_PATH}/mingw32-make.exe`],directories[0]);
   const build=()=>run(cmake,['--build','cmake','--verbose'],directories[0]);
   const log=build();assert.match(log,/sccache\.exe/);

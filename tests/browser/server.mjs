@@ -1,3 +1,4 @@
+import {prepareLibraryWhenAvailable} from '../../scripts/lib/library-preparation-wait.mjs';
 import {mkdirSync,writeFileSync,unlinkSync} from 'node:fs';
 import {resolve,dirname} from 'node:path';
 import {buildFrontendSnapshot} from '../../scripts/lib/frontend-build.mjs';
@@ -8,7 +9,7 @@ import {libraryRuntimeLeasePath} from "../../tools/data/library-context.mjs";
 
 const root=resolve(process.cwd()),port=Number(process.env.PANDOLAB_TEST_PORT||4173);
 const projectId=process.env.PANDOLAB_TEST_PROJECT_ID||'default-world';
-const prepared=prepareLibraryData({root,projectId}),snapshot=await buildFrontendSnapshot({root,projectId});
+const prepared=await prepareLibraryWhenAvailable(()=>prepareLibraryData({root,projectId})),snapshot=await buildFrontendSnapshot({root,projectId});
 const {assets}=await developmentAssets({repository:root,product:'viewer',prepared,snapshot});
 for(const [path,asset]of snapshot.assets)if(snapshot.viewerPaths.has(path))assets.set(path,{bytes:asset.bytes});
 assets.set('review.html',{bytes:Buffer.from(snapshot.html.viewer.replace('<title>판도연구소</title>',

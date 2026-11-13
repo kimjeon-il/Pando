@@ -71,9 +71,8 @@ export function createMapContentPresentation({countries={},hydro={},territorial=
       lakeSelection.attr('d', item => framePath(frameContext)(item.collection))
         .style('fill', hydro.hydroDisplayColor?.('lake'))
         .style('stroke', hydro.hydroDisplayColor?.('lake'))
-        .style('opacity', null)
-        .style('fill-opacity', lakeStyle.opacity)
-        .style('stroke-opacity', lakeStyle.boundaryVisible ? lakeStyle.opacity : 0)
+        .style('fill-opacity', 1)
+        .style('stroke-opacity', lakeStyle.boundaryVisible ? 1 : 0)
         .style('stroke-width', lakeStyle.boundaryWidth);
       lakeSelection.exit().remove();
       const rivers = state.layerVisibility?.rivers ? hydro.hydroRenderGroups?.('river') || [] : [];
@@ -82,8 +81,7 @@ export function createMapContentPresentation({countries={},hydro={},territorial=
       riverSelection.attr('d', item => framePath(frameContext)(item.collection))
         .style('stroke-width', item => `${item.width * riverStyle.boundaryWidth}px`)
         .style('stroke', hydro.hydroDisplayColor?.('river'))
-        .style('opacity', null)
-        .style('stroke-opacity', riverStyle.opacity);
+        .style('stroke-opacity', 1);
       riverSelection.exit().remove();
     }
     return true;
@@ -122,11 +120,11 @@ export function createMapContentPresentation({countries={},hydro={},territorial=
       .style('fill', feature => feature.properties?.category === 'lake'
         ? (nativeHydro ? 'transparent' : hydro.hydroEditColor?.(feature) || hydro.hydroDisplayColor?.('lake'))
         : 'none')
-      .style('fill-opacity', feature => feature.properties?.category === 'lake' ? (nativeHydro ? 0 : 0.34 * lakeStyle.opacity) : 0)
+      .style('fill-opacity', feature => feature.properties?.category === 'lake' ? (nativeHydro ? 0 : 0.34) : 0)
       .style('stroke', feature => ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type)
         ? 'none' : (nativeHydro ? 'transparent' : hydro.hydroEditColor?.(feature) || hydro.hydroDisplayColor?.('river')))
       .style('stroke-opacity', feature => ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type)
-        ? 0 : (nativeHydro ? 0 : riverStyle.opacity))
+        ? 0 : (nativeHydro ? 0 : 1))
       .style('stroke-width', feature => ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type)
         ? 0 : (nativeHydro ? Math.max(8, riverStyle.boundaryWidth) : riverStyle.boundaryWidth));
     selection.exit().remove();
@@ -137,7 +135,7 @@ export function createMapContentPresentation({countries={},hydro={},territorial=
     polygonSelection.enter().append('path').attr('class', 'hydro-edit-boundary').style('fill', 'none').style('pointer-events', 'none');
     polygonSelection.attr('d', feature => framePath(frameContext)(hydro.buildRenderableStrokeFeature?.(feature) || feature))
       .style('stroke', feature => hydro.hydroEditColor?.(feature) || hydro.hydroDisplayColor?.('lake'))
-      .style('stroke-opacity', lakeStyle.boundaryVisible ? lakeStyle.opacity : 0)
+      .style('stroke-opacity', lakeStyle.boundaryVisible ? 1 : 0)
       .style('stroke-width', lakeStyle.boundaryWidth);
     polygonSelection.exit().remove();
     return true;
@@ -217,7 +215,7 @@ export function createMapContentPresentation({countries={},hydro={},territorial=
         .style('fill', 'none')
         .style('fill-opacity', 0)
         .style('stroke', d => g.genericFeatureColor?.(d))
-        .style('stroke-opacity', style.boundaryVisible ? style.opacity : 0)
+        .style('stroke-opacity', style.boundaryVisible ? 1 : 0)
         .style('stroke-width', style.boundaryWidth)
         .style('mix-blend-mode', style.blendMode)
         .attr('data-presentation-group', 'genericFeatures');
@@ -233,7 +231,7 @@ export function createMapContentPresentation({countries={},hydro={},territorial=
       if (['Polygon', 'MultiPolygon'].includes(feature.geometry?.type)) {
         polygons.push({ key: `${objectKey}:fill`, objectKey, geometryRevision, geometry: feature.geometry,
           order: g.gpuSceneOrder?.('genericFeatures', 'fill'), blendMode: style.blendMode,
-          style: { color: g.genericFeatureColor?.(feature), fillAlpha: 0.34 * style.opacity, blendMode: style.blendMode } });
+          style: { color: g.genericFeatureColor?.(feature), fillAlpha: 0.34, blendMode: style.blendMode } });
         if (style.boundaryVisible) strokes.push({
           key: `${objectKey}:boundary`, objectKey, geometryRevision,
           geometry: (g.buildRenderableStrokeFeature?.(feature) || feature).geometry,
@@ -331,7 +329,7 @@ export function createMapContentPresentation({countries={},hydro={},territorial=
       const objectKey = d.normalizeObjectRef?.({ domain: 'distribution', type: 'distribution', id: row.layer.id })?.key || `distribution:distribution:${row.layer.id}`;
       const feature = d.featureFromGeometry?.(row.geometry);
       const geometryRevision = d.selectionGeometryRevision?.(`distribution-entry:${row.id}`, 'gpu-scene', feature);
-      const fillAlpha = distributionValueAlpha(row.entry.value, row.range, renderStyle.opacity);
+      const fillAlpha = distributionValueAlpha(row.entry.value, row.range);
       if (isArea(row)) {
         polygons.push({ key: `distribution-entry:${row.id}:fill`, objectKey, geometryRevision, geometry: row.geometry, order: d.gpuSceneOrder?.(group, 'fill'), blendMode: renderStyle.blendMode, style: { color: color(row), fillAlpha, blendMode: renderStyle.blendMode } });
         if (boundaryVisible && renderStyle.boundaryVisible) strokes.push({ key: `distribution-entry:${row.id}:boundary`, objectKey, geometryRevision, geometry: (d.buildRenderableStrokeFeature?.(feature) || feature).geometry, order: d.gpuSceneOrder?.(group, 'boundary'), blendMode: renderStyle.blendMode, style: resolveMapStrokeStyle({ color: color(row), layerStyle: renderStyle, antiAlias: isSmooth() }, 'distribution') });
@@ -380,8 +378,7 @@ export function createMapContentPresentation({countries={},hydro={},territorial=
         pendingTerritorialBoundary = candidate;
         // Catch synchronous preparation failures as well as Worker rejection.
         (async () => {
-          const response = await prepareMapDisplay({ kind: 'boundaries',
-            ...(state.countryVisualPhase === 'preview' ? { entities: [...countries, ...units] } : {}) },
+          const response = await prepareMapDisplay({ kind: 'boundaries' },
           { jobKey: 'edit-display:boundaries' });
           if (isDisposed() || pendingTerritorialBoundary !== candidate || candidate.epoch !== territorialBoundaryEpoch) return;
           if (!Array.isArray(response?.result?.segments)) throw new TypeError('Territorial boundary result requires segments');
@@ -412,7 +409,7 @@ export function createMapContentPresentation({countries={},hydro={},territorial=
     }).join('|');
     const styleSignature = [...styleByType].map(([type, definition]) => {
       const style = t.layerStyle?.(state.layerPresentation, definition.presentationGroup) || {};
-      return `${type}:${style.opacity}:${style.boundaryVisible}`;
+      return `${type}:${style.boundaryVisible}:${style.blendMode}`;
     }).join('|');
     const boundaryColor = t.mapTheme?.().border || '#ffffff';
     // Aggregate buffers cannot selectively hide their old segments. A visibility
@@ -420,7 +417,7 @@ export function createMapContentPresentation({countries={},hydro={},territorial=
     // while an otherwise valid new topology is still being prepared.
     const continuityOwnerIds = [...visibleIds].sort().filter(id => {
       const style = t.layerStyle?.(state.layerPresentation, 'objects', `territorial:entity:${id}`) || {};
-      return style.boundaryVisible !== false && Number(style.opacity ?? 1) > 0;
+      return style.boundaryVisible !== false;
     });
     const signature = `${territorialBoundaryCache.rebuildCount};${visibleSignature};${styleSignature};${boundaryColor}`;
     if (territorialBoundaryBatchCache.signature !== signature) {
@@ -434,14 +431,14 @@ export function createMapContentPresentation({countries={},hydro={},territorial=
         const group = groups.get(styleType) || groups.get('subunit');
         if (!group) continue;
         const style = t.layerStyle?.(state.layerPresentation, definition.presentationGroup, `territorial:entity:${feature.id}`) || {};
-        if (!style.boundaryVisible || !(style.opacity > 0)) continue;
-        group.segments.push({ a: segment.a, b: segment.b, color: boundaryColor, opacity: style.opacity });
+        if (!style.boundaryVisible) continue;
+        group.segments.push({ a: segment.a, b: segment.b, color: boundaryColor, blendMode: style.blendMode });
       }
       const preparedGroups = [...groups.values()].filter(group => group.segments.length);
       const fallbackGroups = new Map();
       for (const group of preparedGroups) for (const segment of group.segments) {
-        const key = `${group.styleType}:${segment.color}:${segment.opacity}`;
-        if (!fallbackGroups.has(key)) fallbackGroups.set(key, { key, styleType: group.styleType, color: segment.color, opacity: segment.opacity, coordinates: [] });
+        const key = `${group.styleType}:${segment.color}:${segment.blendMode}`;
+        if (!fallbackGroups.has(key)) fallbackGroups.set(key, { key, styleType: group.styleType, color: segment.color, blendMode: segment.blendMode, coordinates: [] });
         fallbackGroups.get(key).coordinates.push([segment.a, segment.b]);
       }
       const data = [...fallbackGroups.values()].map(group => ({ ...group, geometry: { type: 'MultiLineString', coordinates: connectBoundarySegments(group.coordinates) } }));
@@ -453,7 +450,7 @@ export function createMapContentPresentation({countries={},hydro={},territorial=
     t.territorialBoundaryLayer?.selectAll('path.territorial-internal-boundary').remove();
     t.replaceGpuSceneDomain?.('territorial-boundaries', { strokes: data.map((group, index) => {
       const definition = styleByType.get(group.styleType) || styleByType.get('subunit') || { presentationGroup: 'objects' };
-      return { key: `territorial-internal:${group.key}`, continuityOwnerIds, geometryRevision: territorialBoundaryBatchCache.revision, geometry: group.geometry, order: t.gpuSceneOrder?.(definition.presentationGroup, 'territorial-boundary', '', index), style: resolveMapStrokeStyle({ color: group.color, layerStyle: { opacity: group.opacity, boundaryWidth: 1 } }, group.styleType) };
+      return { key: `territorial-internal:${group.key}`, continuityOwnerIds, geometryRevision: territorialBoundaryBatchCache.revision, geometry: group.geometry, order: t.gpuSceneOrder?.(definition.presentationGroup, 'territorial-boundary', '', index), style: resolveMapStrokeStyle({ color: group.color, layerStyle: { boundaryWidth: 1, blendMode: group.blendMode } }, group.styleType) };
     }) });
     return true;
   };

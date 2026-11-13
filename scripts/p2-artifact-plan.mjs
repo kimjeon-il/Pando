@@ -104,15 +104,9 @@ function validationOrPresentationOnly(changes,graph) {
     '.github/workflows/application-architecture.yml',
     '.github/workflows/generated-artifacts-p2.yml',
     'scripts/p2-publish-artifacts.mjs',
-    '.github/workflows/ui-architecture.yml',
-    '.github/workflows/place-runtime.yml',
     '.github/workflows/shared-core.yml',
-    '.github/workflows/viewer-functional-p6-1.yml',
-    '.github/workflows/viewer-functional-p6-2.yml',
     '.github/workflows/integration-read-model-p6.yml',
-    '.github/workflows/e7-final-readonly-regression.yml',
     '.github/workflows/web-pages.yml',
-    '.github/workflows/shared-core.yml',
     'eslint.config.js',
     '.github/workflows/viewer-preview.yml',
     'scripts/run-boundary-revision-comparison.mjs',
@@ -151,7 +145,7 @@ function validationOrPresentationOnly(changes,graph) {
   });
 }
 
-export function plan(rootDir=root,{changes=[],manual='auto',families=[],event=process.env.GITHUB_EVENT_NAME||''}={}) {
+export function plan(rootDir=root,{changes=[],manual='auto',families=[],event=process.env.GITHUB_EVENT_NAME||'',archive=null}={}) {
   const statuses={
     wasm:wasmStatus(rootDir)
   };
@@ -160,7 +154,7 @@ export function plan(rootDir=root,{changes=[],manual='auto',families=[],event=pr
   // other families merely to discard their selections afterwards: scoped
   // preparation intentionally leaves their payloads unhydrated.
   if(manual==='wasm')return {statuses,...jobs,dataGenerationDeferred:false,selectedFamilies:[],blockedFamilies:[]};
-  const graph=graphStatus(rootDir,{wasm:statuses.wasm,requested:families,force:manual==='all'});
+  const graph=graphStatus(rootDir,{wasm:statuses.wasm,requested:families,force:manual==='all',archive});
   // An automatic validation/presentation push must not repair unrelated stale
   // data. Explicit generation, unknown comparisons and WASM rebuilds retain
   // their existing selection. Keep stale diagnostics available to --check.

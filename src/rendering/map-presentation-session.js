@@ -13,6 +13,17 @@ export function createMapPresentationSession({
   const abortError = reason => Object.assign(new Error(reason), { name: 'AbortError', cancelled: true });
   const temporalPending = () => !!temporalTicket && !temporalTicket.presented;
 
+  // Preparing a dated LOD precedes presentation. Waiting for the displayed
+  // frame here would deadlock a capped source that needs that LOD to paint.
+  function countrySourceAdmitted(content) {
+    if (!temporalPending()) return true;
+    return !temporalTicket.error && temporalTicket.sourceAdmitted !== false
+      && temporalTicket.isCurrent() && temporalTicket.generation === getGeneration()
+      && temporalTicket.context === getContextRevision()
+      && (temporalTicket.kind !== 'view' || !!temporalTicket.countryContent
+        && temporalTicket.countryContent === content);
+  }
+
   function rejectMapPresentationWaiters(error) {
     for (const waiter of mapWaiters) waiter.reject(error);
     mapWaiters.clear();
@@ -90,6 +101,10 @@ export function createMapPresentationSession({
   function failTemporalPresentation(error) {
     if (!temporalPending()) return;
     temporalTicket.error = error;
+    // The date change awaits the generation's certified visible frame. A
+    // Worker error must reject that waiter immediately so the caller can
+    // restore its prior C++ cursor instead of hanging behind a failed ticket.
+    rejectMapPresentationWaiters(error);
     onTemporalFailure(error);
   }
   function waitForTemporalPresentation() {
@@ -129,7 +144,7 @@ export function createMapPresentationSession({
   return Object.freeze({
     get ticket() { return temporalTicket; },
     get pendingMapWaiterCount() { return mapWaiters.size; },
-    temporalPending, beginTemporalViewTransition, admitTemporalViewTransition,
+    temporalPending, countrySourceAdmitted, beginTemporalViewTransition, admitTemporalViewTransition,
     prepareTemporalCountrySource, finishTemporalViewTransition,
     canPresentVisualFrame, failTemporalPresentation, waitForTemporalPresentation,
     waitForMapPresentation, rejectMapPresentationWaiters, settleMapPresentationWaiters,

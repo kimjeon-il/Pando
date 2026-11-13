@@ -16,7 +16,7 @@ export function createInitialDocument({ appVersion, baseDataset = BASE_DATASET, 
   const input = {projectSetup:createBuiltinProjectSetup(initialMonth), ...defaults, ...empty, layerPresentation: normalizeLayerPresentation(), ...state };
   return { format: 'pandolab-project-state', schemaVersion: PROJECT_SCHEMA_VERSION,
     documentId: state.documentId || crypto.randomUUID(),
-    version: appVersion, savedAt: new Date().toISOString(), baseDataset,
+    version: appVersion, savedAt: new Date().toISOString(), baseDataset, mapProjectIdentity: null,
     landObjectModel: { schemaVersion: LAND_OBJECT_SCHEMA_VERSION, coastlineAuthority: 'territorialEntities',
       purpose: 'lossless-fallback', directCreation: false, sourceProvenanceSchemaVersion: SOURCE_PROVENANCE_SCHEMA_VERSION,
       canonicalProperties: ['name','notes','color','locked','source'] },

@@ -10,7 +10,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-export const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+export const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 export const defaultRecipe = path.join(root, 'tools/historical-library/east-germany-1989.recipe.json');
 
 export function verifySourceHashes(recipe, repositoryRoot = root) {

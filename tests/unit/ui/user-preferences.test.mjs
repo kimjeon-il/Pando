@@ -3,15 +3,14 @@ import * as __merge_dep0 from "node:test";
 import * as __merge_dep1 from "node:assert/strict";
 import * as __merge_dep2 from "../../../src/ui/user-preferences.js";
 import * as __merge_dep3 from "../../../src/ui/app-accent.js";
-import * as __merge_dep4 from "../../../src/ui/accent-presets.js";
-import * as __merge_dep5 from "../../../src/map/map-interaction-style.js";
-import * as __merge_dep6 from "node:fs";
-import * as __merge_dep7 from "../../../src/document/core-document-read-model.js";
-import * as __merge_dep8 from "../../../src/ui/map-workspace-host.js";
-import * as __merge_dep9 from "../../../src/rendering/render-quality.js";
-import * as __merge_dep10 from "../../../src/document/territorial-entity-store.js";
-import * as __merge_dep11 from "../../../src/geometry/geometry-version-store.js";
-import * as __merge_dep12 from "../../../src/ui/physical-settings.js";
+import * as __merge_dep4 from "../../../src/map/map-interaction-style.js";
+import * as __merge_dep5 from "node:fs";
+import * as __merge_dep6 from "../../../src/document/core-document-read-model.js";
+import * as __merge_dep7 from "../../../src/ui/map-workspace-host.js";
+import * as __merge_dep8 from "../../../src/rendering/render-quality.js";
+import * as __merge_dep9 from "../../../src/document/territorial-entity-store.js";
+import * as __merge_dep10 from "../../../src/geometry/geometry-version-store.js";
+import * as __merge_dep11 from "../../../src/ui/physical-settings.js";
 contractSuite("user-preferences", () => {
 const { describe : contractSuite } = __merge_dep0;
 const __unit_dep0 = __merge_dep0;
@@ -19,11 +18,10 @@ const __unit_dep1 = __merge_dep1;
 const __unit_dep2 = __merge_dep2;
 const __unit_dep3 = __merge_dep3;
 const __unit_dep4 = __merge_dep4;
-const __unit_dep5 = __merge_dep5;
 contractSuite("user-preferences", () => {
 const test = __unit_dep0.default;
 const assert = __unit_dep1.default;
-const { defaultUserPreferences, normalizeUserPreferences } = __unit_dep2;
+const { defaultUserPreferences, normalizeUserPreferences, saveUserPreferences, loadUserPreferences } = __unit_dep2;
 
 test('background preferences contain no separate source visibility switches', () => {
   const normalized = normalizeUserPreferences({ version: 2, backgrounds: { viewer: { builtinHydro: false, builtinPlaces: false } } });
@@ -43,14 +41,14 @@ test('current preferences retain only label and composable selection settings', 
   const preferences = normalizeUserPreferences({
     version: 2,
     appearance: { theme: 'dark' },
-    labels: { country: { font: 'serif', color: '#Aa11Bb' }, place: { font: 'gothic', color: '#123456', pointColor: '#abcdef', languages: { ko: true, en: false, native: false } } },
+    labels: { country: { font: 'serif', color: '#Aa11Bb' }, place: { font: 'gothic', color: '#123456', pointColor: '#abcdef', showNativeNames: false } },
     selection: { color: '#0f1e2d', outlineVisible: false, fillStrength: 0.6 },
   });
   assert.deepEqual(preferences, {
     backgrounds:defaultUserPreferences().backgrounds,version: 2,
     timeline:{defaultWorldFollowCurrentMonth:true},
-    appearance: { theme: 'dark', accentPreset: 'blue', smoothLines: true },
-    labels: { country: { font: 'serif', color: '#aa11bb' }, place: { font: 'gothic', color: '#123456', pointColor: '#abcdef', languages: { ko: true, en: false, native: false } } },
+    appearance: { theme: 'dark', mapStyle: 'standard', smoothLines: true },
+    labels: { country: { font: 'serif', color: '#aa11bb' }, place: { font: 'gothic', color: '#123456', pointColor: '#abcdef', showNativeNames: false } },
     selection: { color: '#0f1e2d', outlineVisible: false, fillStrength: 0.6 },
   });
 });
@@ -77,35 +75,64 @@ test('invisible selection combinations restore an outline and old schema values 
   assert.deepEqual(preferences.labels, defaultUserPreferences().labels);
 });
 
-test('place language preferences persist choices and do not allow an empty selection', () => {
-  const selected = normalizeUserPreferences({ version: 2, labels: { place: { languages: { ko: false, en: true, native: true } } } });
-  assert.deepEqual(selected.labels.place.languages, { ko: false, en: true, native: true });
-  const none = normalizeUserPreferences({ version: 2, labels: { place: { languages: { ko: false, en: false, native: false } } } });
-  assert.deepEqual(none.labels.place.languages, { ko: true, en: false, native: false });
-  assert.deepEqual(defaultUserPreferences().labels.place.languages, { ko: true, en: false, native: false });
+test('native-name overlay is the only place-language preference and defaults off', () => {
+  const defaults = defaultUserPreferences().labels.place;
+  assert.equal(defaults.showNativeNames, false);
+  assert.equal(Object.hasOwn(defaults, 'languages'), false);
+  const enabled = normalizeUserPreferences({ version: 2, labels: { place: { showNativeNames: true } } });
+  assert.equal(enabled.labels.place.showNativeNames, true);
+  assert.equal(Object.hasOwn(enabled.labels.place, 'languages'), false);
+  const disabled = normalizeUserPreferences({ version: 2, labels: { place: { showNativeNames: 'true' } } });
+  assert.equal(disabled.labels.place.showNativeNames, false);
+  const oldSwitches = normalizeUserPreferences({ version: 2, labels: { place: { languages: { ko: false, en: true, native: true } } } });
+  assert.deepEqual(oldSwitches.labels.place, defaults, 'retired English/standalone native map switches cannot persist');
+  const storage = { value: null, getItem() { return this.value; }, setItem(_key, value) { this.value = value; } };
+  const persisted = saveUserPreferences({ ...enabled, labels: { ...enabled.labels,
+    place: { ...enabled.labels.place, showNativeNames: true } } }, storage);
+  assert.equal(persisted.labels.place.showNativeNames, true);
+  assert.equal(loadUserPreferences(storage).labels.place.showNativeNames, true);
 });
 });
 contractSuite("app-accent", () => {
 const test = __unit_dep0.default;
 const assert = __unit_dep1.default;
-const { accentTokens } = __unit_dep3;
-const { resolveAccentPreset } = __unit_dep4;
+const { accentTokens, applyAppAccent, parseSystemAccentColor, readSystemAccentColor } = __unit_dep3;
 const { normalizeUserPreferences, saveUserPreferences } = __unit_dep2;
-const { resolveMapInteractionStyle } = __unit_dep5;
+const { resolveMapInteractionStyle } = __unit_dep4;
 
-test('accent preset normalizes independently from preserved label and selection settings', () => {
-  for (const value of [undefined, null, 'invalid', '#123', '#123456ff']) assert.equal(normalizeUserPreferences({ version: 2, appearance: { accentPreset: value } }).appearance.accentPreset, 'blue');
-  const input = normalizeUserPreferences({ version: 2, appearance: { theme: 'light', accentPreset: 'purple' }, labels: { country: { font: 'serif', color: '#123456' } }, selection: { color: '#ff0000', fillStrength: 0.8 } });
-  assert.equal(input.appearance.accentPreset, 'purple');
-  const changed = saveUserPreferences({ ...input, appearance: { ...input.appearance, accentPreset: 'pink' } }, { setItem() {} });
-  assert.equal(changed.appearance.accentPreset, 'pink');
-  assert.deepEqual(changed.labels, input.labels); assert.deepEqual(changed.selection, input.selection);
+test('retired accent choices are discarded without changing other preferences', () => {
+  const input = normalizeUserPreferences({ version: 2, appearance: { theme: 'light', accentPreset: 'purple', accentColor: '#ab12cd' }, labels: { country: { font: 'serif', color: '#123456' } }, selection: { color: '#ff0000', fillStrength: 0.8 } });
+  assert.deepEqual(input.appearance, { theme: 'light', mapStyle: 'standard', smoothLines: true });
+  const storage = { value: null, setItem(_key, value) { this.value = value; } };
+  const changed = saveUserPreferences(input, storage);
+  assert.deepEqual(JSON.parse(storage.value).appearance, { theme: 'light', mapStyle: 'standard', smoothLines: true });
+  assert.deepEqual(changed.labels, input.labels);
+  assert.deepEqual(changed.selection, input.selection);
 });
 
-test('accent presets resolve to an appropriate color for each theme', () => {
-  assert.equal(resolveAccentPreset('blue', 'light'), '#316fd3');
-  assert.equal(resolveAccentPreset('blue', 'dark'), '#70a6ff');
-  assert.equal(resolveAccentPreset('missing', 'dark'), null);
+test('CSS system accent parsing rejects unavailable and translucent values', () => {
+  assert.equal(parseSystemAccentColor('rgb(42, 120, 201)'), '#2a78c9');
+  assert.equal(parseSystemAccentColor('rgb(42 120 201)'), '#2a78c9');
+  assert.equal(parseSystemAccentColor('#AABBCC'), '#aabbcc');
+  assert.equal(parseSystemAccentColor('AccentColor'), null);
+  assert.equal(parseSystemAccentColor('rgba(20, 30, 40, 0.3)'), null);
+});
+
+test('system accent is projected to the UI with a stable fallback and contrasting text', () => {
+  const values = new Map();
+  let computedColor = 'rgb(255, 220, 20)', removed = 0;
+  const root = { dataset: { theme: 'light' }, style: { setProperty(key, value) { values.set(key, value); } }, appendChild() {} };
+  const doc = { documentElement: root, createElement() { return { style: { color: '' }, remove() { removed++; } }; },
+    defaultView: { getComputedStyle() { return { color: computedColor }; } } };
+  assert.equal(readSystemAccentColor(doc), '#ffdc14');
+  assert.equal(applyAppAccent(doc), '#ffdc14');
+  assert.equal(values.get('--design-color-accent-text'), '#000000');
+  computedColor = 'not-a-css-color';
+  assert.equal(applyAppAccent(doc), '#316fd3');
+  root.dataset.theme = 'dark';
+  assert.equal(applyAppAccent(doc), '#70a6ff');
+  assert.equal(values.get('--design-color-accent-text'), '#000000');
+  assert.equal(removed, 4);
 });
 
 test('changing accent preserves every non-color interaction rule', () => {
@@ -119,8 +146,8 @@ test('changing accent preserves every non-color interaction rule', () => {
   }
 });
 
-test('accent tokens retain chosen hue and always use white button text', () => {
-  assert.equal(accentTokens('#ffffff')['accent-text'], '#ffffff');
+test('accent tokens preserve the platform hue while choosing readable foreground text', () => {
+  assert.equal(accentTokens('#ffffff')['accent-text'], '#000000');
   assert.equal(accentTokens('#000000')['accent-text'], '#ffffff');
   assert.equal(accentTokens('#8b5cf6').accent, '#8b5cf6');
   assert.ok(!('danger' in accentTokens('#8b5cf6')));
@@ -129,14 +156,14 @@ test('accent tokens retain chosen hue and always use white button text', () => {
 });
 contractSuite("shared-view-policy", () => {
 const test = __merge_dep0.default;
-const { readFileSync } = __merge_dep6;
-const { createCoreDocumentReadModel } = __merge_dep7;
-const { createMapHost } = __merge_dep8;
+const { readFileSync } = __merge_dep5;
+const { createCoreDocumentReadModel } = __merge_dep6;
+const { createMapHost } = __merge_dep7;
 const assert = __merge_dep1.default;
-const { createRenderQuality } = __merge_dep9;
-const { createTerritorialEntityStore } = __merge_dep10;
-const { createGeometryVersionStore } = __merge_dep11;
-const { createHydroSettings } = __merge_dep12;
+const { createRenderQuality } = __merge_dep8;
+const { createTerritorialEntityStore } = __merge_dep9;
+const { createGeometryVersionStore } = __merge_dep10;
+const { createHydroSettings } = __merge_dep11;
 
 test('terrain intents retain the last enabled mode and reject unknown modes',()=>{
  const settings={terrainVisible:true,terrainStyle:'physical',hydroLayers:{rivers_hydro:false}};
@@ -218,4 +245,37 @@ test('the shared resize owner unregisters viewport and DPR listeners before rest
   assert.equal(refreshes,1);assert.equal(queued,before);assert.equal(queries,3);assert.ok(disconnects>=2);
  }finally{for(const [key,descriptor]of Object.entries(saved)){if(descriptor)Object.defineProperty(globalThis,key,descriptor);else delete globalThis[key];}}
 });
+});
+
+import { territorialNativeLabelRows } from "../../../src/ui/territorial-native-label.js";
+import { mapStylePreset } from "../../../src/ui/map-style-presets.js";
+contractSuite('map styles and original-language labels', () => {
+  const test = __merge_dep0.default;
+  const assert = __merge_dep1.default;
+  test('map theme presets preserve defined terrain and symbol policies', () => {
+    assert.equal(mapStylePreset('standard').terrain, 'physical');
+    assert.equal(mapStylePreset('minimal').flags, false);
+    assert.equal(mapStylePreset('classic').cityMarker, 'outline');
+  });
+  test('original names are only shown for valid historical periods and sufficient zoom', () => {
+    const feature = { properties: { name: '한국', metadata: { nativeNames: [
+      { text: '조선', validFrom: '1801-01', validTo: '1897-09' },
+      { text: '대한제국', validFrom: '1897-10', validTo: '1910-08' },
+    ] } } };
+    assert.equal(territorialNativeLabelRows(feature, '1900-05', { zoom: 8, enabled: true })[1].text, '대한제국');
+    assert.equal(territorialNativeLabelRows(feature, '1900-05', { zoom: 7, enabled: true }).length, 1);
+    assert.equal(territorialNativeLabelRows(feature, '2000-05', { zoom: 8, enabled: true }).length, 1);
+  });
+});
+
+contractSuite('map style preference ownership', () => {
+  const test = __merge_dep0.default;
+  const assert = __merge_dep1.default;
+  test('the saved map theme owns terrain style; obsolete terrain and shadow preferences cannot persist', () => {
+    const { normalizeUserPreferences } = __merge_dep2;
+    const previous = normalizeUserPreferences({version:2,appearance:{mapStyle:'classic'},backgrounds:{viewer:{terrainVisible:false,terrainStyle:'physical',graticule:false,globeShadow:true}}});
+    assert.equal(previous.appearance.mapStyle, 'classic');
+    assert.deepEqual(previous.backgrounds.viewer, {graticule:false});
+    assert.equal(normalizeUserPreferences({version:2,appearance:{mapStyle:'invalid'}}).appearance.mapStyle, 'standard');
+  });
 });

@@ -8,7 +8,7 @@ import {createHash} from 'node:crypto';
 import {gzipSync} from 'node:zlib';
 import {deriveAutomaticRuntime} from "../../../scripts/lib/library-auto-runtime.mjs";
 const hash=b=>createHash('sha256').update(b).digest('hex');
-const families=['territorial','current-world','world-mesh','world-preview','world-bundle','shared-boundaries','builtin-world','prepared-mesh'];
+const families=['territorial','current-world','world-mesh','world-country-packet','world-bundle','shared-boundaries','builtin-world','prepared-mesh'];
 const source='assets/data/territorial-entities/source/countries/state-AAA.json', base='assets/data/builtin-world/generated/v1/';
 test('failed coordinate generation removes only its new payload and restores the old descriptor',async t=>{
  const f=fixture(t),descriptor=JSON.parse(f.next),domain=decodeTerritorialSource(descriptor,file=>fs.readFileSync(path.join(f.root,'assets/data/territorial-entities/source',file)));

@@ -1,6 +1,7 @@
 import {coreSelectionRefToWeb} from "./core-object-ref.js";
 import {projectResourceOverlay} from "./project-resource-overlay.js";
 import {loadUserPreferences} from "../ui/user-preferences.js";
+import { mapStylePreset } from "../ui/map-style-presets.js";
 import { createMapWorkScheduler } from "../runtime/map-work-scheduler.js";
 import { createEmptyTerritorialState } from "./territorial-entity-store.js";
 import { createInitialDocument } from "./initial-document.js";
@@ -51,13 +52,12 @@ export function createProjectSession({productMode='editor',readOnly=productMode=
       objectFlags: true,
     }));
 
-    const background=loadUserPreferences().backgrounds[productMode];
+    const prefs = loadUserPreferences();
+    const background = prefs.backgrounds[productMode] || prefs.backgrounds.viewer;
+    const mapStyle = mapStylePreset(prefs.appearance.mapStyle);
     (state = {
-      dataReadiness: dependencies.readiness.DATA_READINESS.PREVIEW,
-      geometryProgress: 0,
-      meshProgress: 0,
       ...createEmptyTerritorialState(),
-      countryVisualPhase: 'preview',
+      countryVisualPhase: 'pending',
 
       countryIndex: new Map(),
       sourceInfo: null,
@@ -76,8 +76,8 @@ export function createProjectSession({productMode='editor',readOnly=productMode=
       backgroundSettings:{...background},
       layerVisibility: normalizeLayerVisibility(),
       physicalSettings: {
-        terrainVisible: capabilities.terrain && background.terrainVisible,
-        terrainStyle: productMode==='viewer'?background.terrainStyle:'physical',
+        terrainVisible: capabilities.terrain && (productMode !== 'viewer' || mapStyle.terrain !== 'none'),
+        terrainStyle: productMode === 'viewer' && mapStyle.terrain !== 'none' ? mapStyle.terrain : 'physical',
         terrainStyleVersion: 1,
         hydroLayers: {
           rivers_hydro: true,
@@ -122,10 +122,14 @@ export function createProjectSession({productMode='editor',readOnly=productMode=
       applySnapshot: snapshot => {
         const projection = snapshot.projection || state.projection;
         const view = { ...state.view, ...snapshot.view };
-        state.view = projection !== productPolicy.projection
-          ? dependencies.mapNavigation.reprojectView(view, projection, productPolicy.projection)
+        // Both products have one immutable admitted projection. A restored
+        // camera may carry an old kind, but cannot switch the live product.
+        const targetProjection = productPolicy.projection;
+        productPolicy.assertProjection(targetProjection);
+        state.view = projection !== targetProjection
+          ? dependencies.mapNavigation.reprojectView(view, projection, targetProjection)
           : dependencies.mapNavigation.clampViewZooms(view);
-        state.projection = productPolicy.projection;
+        state.projection = targetProjection;
         state.transitionRevision = Number(snapshot.stateRevision || state.transitionRevision || 0);
       },
     }));
@@ -199,7 +203,7 @@ export function createProjectSession({productMode='editor',readOnly=productMode=
   const captureViewingPresentation=()=>structuredClone(Object.fromEntries(Object.entries(viewingPresentation || {}).filter(([key])=>key!=='physicalSettings'&&(readOnly||key!=='layerPresentation'))));
 
   // A detached, empty startup input. C++ validates and owns it before any
-  // preview/canonical source or editable UI is admitted.
+  // source geometry or editable UI is admitted.
   function initialDocument() {
     return createInitialDocument({ appVersion: dependencies.platformConfigurationA.APP_VERSION,
       baseDataset: dependencies.platformConfigurationA.BASE_DATASET, state,

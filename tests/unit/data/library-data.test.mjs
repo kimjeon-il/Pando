@@ -7,12 +7,49 @@ import { execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { createHash } from 'node:crypto';
 import { gzipSync } from 'node:zlib';
-import {compactLibraryCheckout,prepareLibraryData,withLibraryWrite} from "../../../tools/data/library-runtime.mjs";
-import {decodeArchiveEntry,libraryReportRoot,libraryReportEditRoot,libraryMaterializedRoot,safeChild,readLibraryDataFile} from "../../../tools/data/library-context.mjs";
+import {compactLibraryCheckout,prepareLibraryData,prepareLibraryMetadata,withLibraryWrite} from "../../../tools/data/library-runtime.mjs";
+import {decodeArchiveEntry,libraryReportRoot,libraryReportEditRoot,libraryMaterializedRoot,safeChild,readLibraryDataFile,withLibraryLock,withCheckoutLock,prefetchArchiveEntries} from "../../../tools/data/library-context.mjs";
 import {hydrateReports} from "../../../tools/data/library-reports.mjs";
 import {storeLibraryData,libraryPublicationRef} from "../../../tools/data/library-store.mjs";
 import { reportPath } from "../../../tools/data/report-paths.mjs";
 import {encodeTerritorialSource} from '../../../tools/data/territorial-source-codec.mjs';
+
+test('metadata preparation reads the pinned archive without mounting runtime data',t=>{
+ const root=mkdtempSync(join(tmpdir(),'pando-metadata-')),checkout=join(root,'.library-data/repository');
+ t.after(()=>rmSync(root,{recursive:true,force:true}));
+ const put=(path,value)=>{mkdirSync(dirname(path),{recursive:true});writeFileSync(path,value);};
+ const git=(...args)=>execFileSync('git',args,{cwd:checkout,encoding:'utf8',stdio:'pipe'}).trim();
+ mkdirSync(checkout,{recursive:true});git('init','-q');git('config','user.name','Fixture');git('config','user.email','fixture@example.invalid');
+ put(join(checkout,'archive/index.json'),JSON.stringify({files:{'assets/data/pinned.json':{}}}));git('add','.');git('commit','-qm','pinned');
+ const revision=git('rev-parse','HEAD');
+ put(join(checkout,'archive/index.json'),JSON.stringify({files:{'assets/data/newer.json':{}}}));git('add','.');git('commit','-qm','newer');
+ put(join(root,'config/library-data.json'),JSON.stringify({repository:'fixture/data',revision,mounts:['assets/data','reports']}));
+ const result=prepareLibraryMetadata({root,fetch:false});
+ assert.deepEqual(Object.keys(result.index.files),['assets/data/pinned.json']);
+ assert.equal(existsSync(join(root,'assets/data')),false);assert.equal(existsSync(join(root,'reports')),false);
+ assert.equal(git('rev-parse','HEAD')===revision,false);
+ put(join(root,'config/library-data.json'),JSON.stringify({repository:'fixture/data',revision:'0'.repeat(40),mounts:[]}));
+ assert.throws(()=>prepareLibraryMetadata({root,fetch:false}));
+ put(join(checkout,'archive/index.json'),JSON.stringify({files:null}));git('add','.');git('commit','-qm','invalid index');
+ put(join(root,'config/library-data.json'),JSON.stringify({repository:'fixture/data',revision:git('rev-parse','HEAD'),mounts:[]}));
+ assert.throws(()=>prepareLibraryMetadata({root,fetch:false}),/Invalid pinned library archive index/);
+});
+
+test('metadata preparation bootstraps a fresh checkout with only archive metadata',t=>{
+ const base=mkdtempSync(join(tmpdir(),'pando-metadata-clone-')),root=join(base,'app'),source=join(base,'source');
+ t.after(()=>rmSync(base,{recursive:true,force:true}));
+ const put=(path,value)=>{mkdirSync(dirname(path),{recursive:true});writeFileSync(path,value);};
+ const git=(...args)=>execFileSync('git',args,{cwd:source,encoding:'utf8',stdio:'pipe'}).trim();
+ mkdirSync(source,{recursive:true});git('init','-q');git('config','user.name','Fixture');git('config','user.email','fixture@example.invalid');
+ put(join(source,'archive/index.json'),JSON.stringify({files:{'assets/data/example.bin':{}}}));
+ put(join(source,'payload/example.bin'),'unneeded data');git('add','.');git('commit','-qm','fixture');
+ put(join(root,'config/library-data.json'),JSON.stringify({repository:'fixture/data',revision:git('rev-parse','HEAD'),mounts:['assets/data','reports']}));
+ const env={...process.env,GIT_CONFIG_COUNT:'1',GIT_CONFIG_KEY_0:`url.${pathToFileURL(source).href}.insteadOf`,GIT_CONFIG_VALUE_0:'https://github.com/fixture/data.git'};
+ execFileSync(process.execPath,[join(process.cwd(),'tools/data/library-data.mjs'),'--prepare-metadata',`--root=${root}`],{env,stdio:'pipe'});
+ assert.equal(existsSync(join(root,'.library-data/repository/archive/index.json')),true);
+ assert.equal(existsSync(join(root,'.library-data/repository/payload/example.bin')),false);
+ assert.equal(existsSync(join(root,'assets/data')),false);
+});
 
 test('a new pin refreshes unchanged shared inputs while preserving private working edits',t=>{
  const parent=mkdtempSync(join(tmpdir(),'pando-pin-refresh-')),root=join(parent,'app'),checkout=join(root,'.library-data/repository');
@@ -396,4 +433,61 @@ test('library publisher uses a fully qualified ref for newly created work branch
   exec(work,'push','-q','origin',next+':'+libraryPublicationRef('work/remote-only'));
   assert.throws(()=>exec(work,'push','-q','origin','HEAD:'+libraryPublicationRef('work/remote-only')));
   assert.equal(exec(work,'ls-remote','origin','refs/heads/work/remote-only').split(/\s/)[0],next);
+});
+
+ test('checkout compaction preserves library tooling and its focused fixtures', t => {
+  const checkout=mkdtempSync(join(tmpdir(),'pando-library-tools-'));
+  t.after(()=>rmSync(checkout,{recursive:true,force:true}));
+  const git=(...args)=>execFileSync('git',['-c','core.autocrlf=false',...args],{cwd:checkout,encoding:'utf8',stdio:'pipe'}).trim();
+  git('init','-q');git('config','user.name','Test');git('config','user.email','test@example.invalid');
+  const code={'tools/qgis/bridge.mjs':'export const bridge=true;','tests/fixtures/input.json':'{}','scripts/check.mjs':'export {};','config/tool.json':'{}','.github/workflows/tool.yml':'name: tool'};
+  for(const [path,bytes] of Object.entries({...code,'archive/index.json':'{}','archive/blobs/original.bin':'original'})){
+    mkdirSync(dirname(join(checkout,path)),{recursive:true});writeFileSync(join(checkout,path),bytes);
+  }
+  git('add','.');git('commit','-qm','fixture');
+  assert.equal(compactLibraryCheckout({checkout}).eligibleBytes,8);
+  assert.equal(compactLibraryCheckout({checkout,apply:true}).deletedBytes,8);
+  for(const [path,bytes] of Object.entries(code))assert.equal(readFileSync(join(checkout,path),'utf8'),bytes,path);
+  assert.equal(git('status','--porcelain'),'');
+});
+
+test('data-only linked checkouts do not hydrate or retain library tooling',t=>{
+ const base=mkdtempSync(join(tmpdir(),'pando-library-code-owner-')),shared=join(base,'shared'),checkout=join(base,'data');
+ t.after(()=>rmSync(base,{recursive:true,force:true}));mkdirSync(shared);
+ const git=(root,...args)=>execFileSync('git',['-c','core.autocrlf=false',...args],{cwd:root,encoding:'utf8',stdio:'pipe'}).trim();
+ git(shared,'init','-q');git(shared,'config','user.name','Test');git(shared,'config','user.email','test@example.invalid');
+ for(const [path,bytes]of Object.entries({'tools/source.mjs':'export {};','tests/input.json':'{}','archive/index.json':'{}'})){
+  mkdirSync(dirname(join(shared,path)),{recursive:true});writeFileSync(join(shared,path),bytes);
+ }
+ git(shared,'add','.');git(shared,'commit','-qm','fixture');git(shared,'worktree','add','--detach',checkout,'HEAD');
+ assert.equal(compactLibraryCheckout({checkout,apply:true}).status,'compacted');
+ assert.equal(existsSync(join(checkout,'tools/source.mjs')),false);assert.equal(existsSync(join(checkout,'tests/input.json')),false);
+ assert.equal(readFileSync(join(shared,'tools/source.mjs'),'utf8'),'export {};');
+ assert.equal(compactLibraryCheckout({checkout,apply:true}).deletedBytes,0);
+});
+
+test('scoped data locks and cached archive reads defer whole-object-store maintenance',t=>{
+ const root=mkdtempSync(join(tmpdir(),'pando-scoped-maintenance-')),checkout=join(root,'.library-data/repository');
+ t.after(()=>rmSync(root,{recursive:true,force:true}));mkdirSync(checkout,{recursive:true});
+ const git=(...args)=>execFileSync('git',['-c','core.autocrlf=false',...args],{cwd:checkout,encoding:'utf8',stdio:'pipe'}).trim();
+ git('init','-q');git('config','user.name','Test');git('config','user.email','test@example.invalid');
+ mkdirSync(join(checkout,'archive'));writeFileSync(join(checkout,'archive/current.bin'),'current');git('add','.');git('commit','-qm','fixture');
+ const pending=join(checkout,'.git/pando-git-compaction.pending.json'),original='{unfinished explicit maintenance';writeFileSync(pending,original);
+ assert.equal(withCheckoutLock(checkout,()=>42),42);assert.equal(withLibraryLock(root,()=>43),43);
+ assert.deepEqual(prefetchArchiveEntries({checkout,revision:git('rev-parse','HEAD'),entries:[{stored:'archive/current.bin',encoding:'identity',bytes:7}]}),{fetched:0});
+ assert.equal(readFileSync(pending,'utf8'),original);
+ assert.throws(()=>withCheckoutLock(checkout,()=>44,true,false,true),SyntaxError,'explicit maintenance still visits its journal');
+});
+
+test('a scoped missing archive fetch also defers object-store maintenance',t=>{
+ const base=mkdtempSync(join(tmpdir(),'pando-fetch-maintenance-')),checkout=join(base,'checkout'),remote=join(base,'remote.git');
+ t.after(()=>rmSync(base,{recursive:true,force:true}));mkdirSync(checkout);
+ const git=(cwd,...args)=>execFileSync('git',['-c','core.autocrlf=false',...args],{cwd,encoding:'utf8',stdio:'pipe'}).trim();
+ git(checkout,'init','-q');git(checkout,'config','user.name','Test');git(checkout,'config','user.email','test@example.invalid');
+ mkdirSync(join(checkout,'archive'));writeFileSync(join(checkout,'archive/current.bin'),'current');git(checkout,'add','.');git(checkout,'commit','-qm','fixture');
+ const revision=git(checkout,'rev-parse','HEAD'),oid=git(checkout,'rev-parse','HEAD:archive/current.bin');git(base,'clone','--bare','-q',checkout,remote);git(checkout,'remote','add','origin',remote);
+ unlinkSync(join(checkout,'.git/objects',oid.slice(0,2),oid.slice(2)));
+ const pending=join(checkout,'.git/pando-git-compaction.pending.json'),original='{unfinished explicit maintenance';writeFileSync(pending,original);
+ assert.deepEqual(prefetchArchiveEntries({checkout,revision,entries:[{stored:'archive/current.bin',encoding:'identity',bytes:7}]}),{fetched:1});
+ assert.equal(git(checkout,'cat-file','-p',oid),'current');assert.equal(readFileSync(pending,'utf8'),original);
 });

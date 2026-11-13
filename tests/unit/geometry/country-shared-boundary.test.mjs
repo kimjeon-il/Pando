@@ -45,6 +45,13 @@ test('one shared packet owns parent and child outlines with the same coast polic
   assert.ok(terrain.segments.length);
   assert.ok(terrain.segments.every(segment => segment.start[0] === 2 && segment.end[0] === 2));
   assert.equal(terrain.outlineOverrides.segments.length, 0);
+  assert.equal(terrain.outlineOverrides.preparedGeometry.segmentCount, 0);
+  const stages = [];
+  prepareCountrySharedBoundaryPacket(contacts, features, { includeOutlines: false,
+    profile: (stage) => stages.push(stage) });
+  assert.ok(!stages.includes('hierarchy-classification'), 'hidden coasts must not classify child coast contacts');
+  assert.ok(!stages.includes('outline-scan-including-wasm'), 'hidden coasts must not scan source polygon outlines');
+  assert.ok(!stages.includes('outline-stroke-wasm-bridge'), 'hidden coasts must not call WASM outline assembler');
   const outline = prepareCountrySharedBoundaryPacket(contacts, features, { includeOutlines: true });
   assert.ok(outline.outlineOverrides.segments.some(segment => segment.ownerIds.includes('CHILD') && segment.start[0] === 3 && segment.end[0] === 3));
   assert.deepEqual(outline.outlineOverrides.internalOwners.CHILD, ['CHILD']);
@@ -104,10 +111,11 @@ test('artificial dateline edges do not become country borders', () => {
   assert.deepEqual(buildCountrySharedBoundarySegments([east, west]), []);
 });
 
-test('physical style alone switches the base border to the shared packet', () => {
+test('every terrain style uses shared borders without ordinary coast outlines', () => {
   assert.equal(shouldShowSharedCountryBorders({ terrainVisible: true, terrainStyle: 'physical' }), true);
-  assert.equal(shouldShowSharedCountryBorders({ terrainVisible: false, terrainStyle: 'physical' }), false);
-  assert.equal(shouldShowSharedCountryBorders({ terrainVisible: true, terrainStyle: 'political' }), false);
+  assert.equal(shouldShowSharedCountryBorders({ terrainVisible: false, terrainStyle: 'physical' }), true);
+  assert.equal(shouldShowSharedCountryBorders({ terrainVisible: true, terrainStyle: 'political' }), true);
+  assert.equal(shouldShowSharedCountryBorders({ terrainVisible: false, terrainStyle: 'none' }), true);
 });
 
 test('one hidden owner keeps a shared border, while two hidden owners remove it', () => {
@@ -164,8 +172,13 @@ test('both renderers use lower visibility for internal borders and preserve soli
     assert.ok(dashed.some(batch => batch.ownerIds.includes('CHN|HKG')));
     assert.ok(batches.some(batch => !(batch.style.dash?.[0] > 0)));
     assert.ok(countryBoundaryBatches(packet, theme, sharedOnly, id => id !== 'HKG' ? { opacity: 1 } : null).every(batch => !(batch.style.dash?.[0] > 0)));
-    const transparent = countryBoundaryBatches(packet, theme, sharedOnly, id => ({ opacity: id === 'HKG' ? 0.4 : 1 }));
-    assert.equal(transparent.find(batch => batch.style.dash?.[0] > 0).style.alpha, 0.4);
+    // The current presentation contract no longer accepts object opacity;
+    // hiding a fill color must not remove the independently visible border.
+    const noFill = countryBoundaryBatches(packet, theme, sharedOnly,
+      id => ({ colorVisible: id !== 'HKG', boundaryVisible: true }));
+    assert.ok(noFill.some(batch => batch.style.dash?.[0] > 0 && batch.ownerIds.includes('CHN|HKG')));
+    assert.equal(noFill.find(batch => batch.style.dash?.[0] > 0).style.alpha,
+      theme.strokes['country-internal'].alpha);
   }
   const calls = [];
   const context = { save() {}, restore() {}, beginPath() {}, stroke() { calls.push('stroke'); }, setLineDash(dash) { calls.push([...dash]); } };

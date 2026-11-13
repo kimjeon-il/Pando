@@ -1,4 +1,4 @@
-export const ZOOM_LIMITS=Object.freeze({globe:Object.freeze({min:.72,max:32}),flat:Object.freeze({min:.75,max:64})});
+export const ZOOM_LIMITS=Object.freeze({globe:Object.freeze({min:1,max:32}),flat:Object.freeze({min:1,max:32})});
 export const FLAT_LATITUDE_LIMIT=89.999;
 import { panCameraView } from "./camera-pan.js";
 /** CameraNavigation: extracted application responsibility.
@@ -39,7 +39,6 @@ export function createCameraNavigation() {
     const [dragX, dragY] = (0, dependencies.mapNavigation.normalizeMapSurfaceDragDelta)(dx, dy);
     const changed=panCameraView(dependencies.projectState.state.view,dependencies.projectState.state.projection,dragX,dragY,
       {scale:dependencies.projectState.state.projection==='flat'?dependencies.mapView.flatProjection.scale():1,latitudeLimit:dependencies.mapNavigation.FLAT_LATITUDE_LIMIT});
-    if(changed)dependencies.rendering.gpuMapRenderer.cancelCountryFocus();
     return changed;
   }
 
@@ -114,17 +113,15 @@ export function createCameraNavigation() {
     (0, dependencies.mapView.updateProjection)();
     const anchor = source ? (0, dependencies.mapView.screenToGeo)(source) : null;
     let changed = setMapZoomValue(zoom);
-    let dragChanged = false;
     if (anchor && target) {
       changed = alignGeographicAnchor(anchor, target) || changed;
     } else if (source && target && (source[0] !== target[0] || source[1] !== target[1])) {
-      dragChanged = dragMapBy(target[0] - source[0], target[1] - source[1]);
+      const dragChanged = dragMapBy(target[0] - source[0], target[1] - source[1]);
       (0, dependencies.mapView.updateProjection)();
       changed = dragChanged || changed;
     } else {
       (0, dependencies.mapView.updateProjection)();
     }
-    if (changed && !dragChanged) dependencies.rendering.gpuMapRenderer.cancelCountryFocus();
     return changed;
   }
 
@@ -132,7 +129,6 @@ export function createCameraNavigation() {
     const current = dependencies.projectState.state.projection === 'globe' ? dependencies.projectState.state.view.globeZoom : dependencies.projectState.state.view.flatZoom;
     const next = current * factor;
     if (!setMapZoomValue(next)) return false;
-    dependencies.rendering.gpuMapRenderer.cancelCountryFocus();
     if (settle) dependencies.domains.renderingDomain?.endInteraction?.('zoom-control-settle');
     else dependencies.domains.renderingDomain?.invalidateView?.('zoom-control-interaction');
     return true;
@@ -147,7 +143,6 @@ export function createCameraNavigation() {
     const geometryCenter = dependencies.platform.d3.geo.centroid(feature);
     const anchor = (0, dependencies.countries.validLabelAnchor)(preferredAnchor) ? preferredAnchor.map(Number) : geometryCenter;
     if (!(0, dependencies.countries.validLabelAnchor)(anchor)) return;
-    dependencies.rendering.gpuMapRenderer.requestCountryFocus();
     const { width, height } = dependencies.projectState.state.size;
     const mobile = (0, dependencies.surfaces.isMobile)();
     const safe = currentObjectFitInsets();
@@ -193,7 +188,6 @@ export function createCameraNavigation() {
 
   function focusCoordinate(coord, zoom = null) {
     if (!(0, dependencies.countries.validLabelAnchor)(coord)) return;
-    dependencies.rendering.gpuMapRenderer.requestCountryFocus();
     if (dependencies.projectState.state.projection === 'globe') {
       dependencies.projectState.state.view.globeRotation = [-Number(coord[0]), -Number(coord[1]), 0];
       dependencies.projectState.state.view.globeZoom = (0, dependencies.platform.clamp)(zoom || Math.max(4.5, dependencies.projectState.state.view.globeZoom), dependencies.mapNavigation.ZOOM_LIMITS.globe.min, dependencies.mapNavigation.ZOOM_LIMITS.globe.max);
@@ -227,7 +221,6 @@ export function createCameraNavigation() {
   }
 
   function resetView() {
-    dependencies.rendering.gpuMapRenderer.cancelCountryFocus();
     if (dependencies.projectState.state.projection === 'globe') {
       dependencies.projectState.state.view.globeZoom = 1;
     } else {

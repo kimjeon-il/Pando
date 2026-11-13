@@ -24,7 +24,8 @@ export async function fixture({override=false, version=2, shared=false, holdStro
   document.hidden=false;document.visibilityState="visible";
   const frames=new Map(),timers=new Map(),events=[],allocated=new Set(),released=new Set(),doubleReleases=[];
   const gl={ARRAY_BUFFER:1,ELEMENT_ARRAY_BUFFER:2,ARRAY_BUFFER_BINDING:3,ELEMENT_ARRAY_BUFFER_BINDING:4,STATIC_DRAW:5,
-    isContextLost:()=>driverLost,getParameter:()=>null,bindBuffer(){},bufferData(){},bufferSubData(){},getExtension:()=>({})};
+    isContextLost:()=>driverLost,getParameter:()=>null,bindBuffer(){},bufferData(){},bufferSubData(){},getExtension:()=>({}),
+     disable(){},colorMask(){},clearColor(){},clear(){}};
   const base=makeMesh('base');
   let releaseStroke, rejectStroke, frameId=0;
   const heldStroke=new Promise((resolve,reject)=>{releaseStroke=resolve;rejectStroke=reject;});
@@ -62,6 +63,8 @@ export async function fixture({override=false, version=2, shared=false, holdStro
     geometryRevisionTracker:{committedRevision:()=>geometryRevision,pendingIds:()=>[]},
     createCountryTriangleRangeMap:()=>new Map(),updatePalette(){},prewarmCountryStrokeResources(){},markPaletteDirty(){},
     resetCountryGeometryVisualState:()=>{c.overrideMesh=null;geometryRevision++;},
+     resetCountryDisplayLod:()=>events.push(['reset-display-lod']),
+     presentationSession:{resetForProject(){}},
     activateCanvasFallback:reason=>{events.push(['fallback',reason]);c.stopRecovery?.('fallback');c.webglContextLost=false;c.rendererMode='canvas2d';},
     reportOperationError:error=>events.push(['reported',error.message]),
     window,getStats:()=>({}),disposeMeshEntry:entry=>c.disposeMeshResources(entry.resources),previewAllowed:true,meshQuality:'canonical',
@@ -125,7 +128,7 @@ export async function fixture({override=false, version=2, shared=false, holdStro
       recordCanvasWorkerMessage(){},canvasWorkerViewMessage:()=>({}),canvasWorkerInitMessage:()=>({}),
       canvasCountryInputs:()=>c.canonicalCountryFeatures(),postCanvasWorkerMessage(){},connectHydroCanvasWorkers(){},syncCanvasWorkerState(){},
       createGpuCanvasWorker:({worker})=>worker,
-      markPreviewFramePresented(){},completeGeometryDisplay(){},
+      completeGeometryDisplay(){},
       framePresentationListener:()=>{if(c.approveWorker!==false)c.commitVisualFrame(c.lastVisualFrame);},
     });
     c.workerChannels.create=()=>{const worker={queueFrame(){},resetGeneration(){},terminate(){worker.terminated=true;}};c.latestWorker=worker;return worker;};

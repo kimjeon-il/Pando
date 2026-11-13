@@ -78,3 +78,7 @@ Canvas Worker remains the non-WebGL fallback and is intentionally a specialized 
 ## Guardrails
 
 `pnpm check:renderer-v2` verifies the single-context rule, shared stroke renderer, connected topology and analytic AA markers, immutable RenderScene cache contract, view-only coordinator mask and Worker mesh transferables. It is part of `pnpm check:architecture` and therefore CI.
+
+## RenderDevice shared GL state contract (P0)
+
+The shared WebGL context is owned by the current `src/rendering/render-device.js` state contract, which replaced the earlier experimental standalone ledger. It snapshots the GL state once on admission and tracks state-mutating calls so hydro/stroke coverage restore arbitrary framebuffer bindings, viewport, texture units, blend state and masks without per-pass driver reads. Context revisions invalidate prior snapshots; asynchronous buffer binding restoration rejects deleted buffers. Evidence from the original P0 experiment is retained under `validation-results/p0-gl-state-20261112/`; experimental branch-only workflows are classified as historical and manually dispatched.

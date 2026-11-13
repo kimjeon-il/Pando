@@ -2,10 +2,14 @@ import { test as featureTest } from '@playwright/test';
 import * as __suiteDependency0 from "@playwright/test";
 import * as __suiteDependency1 from "@playwright/test";
 
+// Browser launch arguments are worker-scoped and must be set at file scope.
+// Both consolidated hydro cases share the same deterministic SwiftShader backend.
+featureTest.use({ launchOptions: { args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu-sandbox'] } });
+
 // Preserved Viewer feature contract: hydro-sdf-webgl.spec.mjs
 featureTest.describe("hydro-sdf-webgl", () => {
   const {  expect, test  } = __suiteDependency0;
-test.use({ launchOptions: { args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu-sandbox'] } });
+
 
 test('real WebGL 1/2 compile and link SDF color and pick shaders without changing hydro IDs', async ({ page }) => {
   await page.route(/hydro-sdf-fixture$/, route => route.fulfill({ contentType: 'text/html', body: '<!doctype html><title>Hydro SDF GPU</title>' }));
@@ -13,6 +17,7 @@ test('real WebGL 1/2 compile and link SDF color and pick shaders without changin
   const reports = await page.evaluate(async () => {
     const { hydroSdfShaderSources } = await import('/assets/js/modules/gpu-hydro-sdf.js');
     const { createGpuHydroCoverage } = await import('/assets/js/modules/gpu-hydro-coverage.js');
+    const { createRenderDevice } = await import('/assets/js/modules/render-device.js');
     const { linkGpuProgram } = await import('/assets/js/modules/gpu-shader-utils.js');
     const output = [];
     for (const version of [2, 1]) {
@@ -28,13 +33,21 @@ test('real WebGL 1/2 compile and link SDF color and pick shaders without changin
       try {
         color = linkGpuProgram(gl, sources.vertex, sources.fragment, { label: `hydro-sdf-color-gl${version}` });
         pick = linkGpuProgram(gl, sources.vertex, sources.pick, { label: `hydro-sdf-pick-gl${version}` });
+        let driverStateReads = 0;
+        const nativeGetParameter = gl.getParameter.bind(gl);
+        gl.getParameter = (...args) => { driverStateReads++; return nativeGetParameter(...args); };
         const coverage = createGpuHydroCoverage();
-        coverage.setContext(gl, version);
+        const device = createRenderDevice({gl,version,contextRevision:1});
+        coverage.setContext(device, version);
+        const readsBeforeRender = driverStateReads;
         const union = coverage.render({ width: 128, height: 128, color: [0.1, 0.4, 0.9, 0.65], paint() {} });
+        const second = coverage.render({ width: 128, height: 128, color: [0.1, 0.4, 0.9, 0.65], paint() {} });
+        const hotPathStateReads = driverStateReads - readsBeforeRender;
         const error = gl.getError();
-        output.push({ version, available: true, compiled: true, union, error,
+        output.push({ version, available: true, compiled: true, union, second, hotPathStateReads, error,
           supported: coverage.stats().maximumBlend });
         coverage.dispose();
+        device?.state?.dispose?.();
       } catch (error) {
         output.push({ version, available: true, compiled: false, message: String(error) });
       } finally {
@@ -50,7 +63,11 @@ test('real WebGL 1/2 compile and link SDF color and pick shaders without changin
     expect(row.available, `WebGL${row.version}`).toBe(true);
     expect(row.compiled, `${row.message || 'shader compilation'}`).toBe(true);
     expect(row.error).toBe(0);
-    if (row.supported) expect(row.union).toBe(true);
+    if (row.supported) {
+      expect(row.union).toBe(true);
+      expect(row.second).toBe(true);
+      expect(row.hotPathStateReads, 'coverage frames must not query GL driver state').toBe(0);
+    }
   }
   expect(reports[0].supported, 'WebGL2 has MAX blending').toBe(true);
 });

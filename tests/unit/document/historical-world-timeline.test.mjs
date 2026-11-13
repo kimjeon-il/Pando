@@ -15,8 +15,9 @@ function result() {
 }
 async function view(month) {
   const state = createEmptyTerritorialState();
-  const data=result(),ids=new Set(selectBuiltinCountries(data.index,month).map(row=>row.entityId));
-  const project=assembleBuiltinWorld(data.index,data.countries.filter(row=>ids.has(row.entityId)),month);
+  const data=result();
+  // C++ owns the date cursor: this archive must include all source identities.
+  const project=assembleBuiltinWorld(data.index,data.countries,month);
   await initializeTestTerritorialState(state,null,{project});
   const owner=testCoreProject(state),store=owner.entityStore;
   try {

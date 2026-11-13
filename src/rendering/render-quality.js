@@ -18,13 +18,11 @@ export function createRenderQuality() {
     currentRenderQuality = renderQualityController.profile();
     const gpuQuality = dependencies.rendering.gpuMapRenderer.getRuntimeState?.() || {};
     if (gpuQuality.canonicalMeshReady) {
-      // Background LOD is allowed to be coarse only while the initial
-      // preview is visible.  After canonical promotion, interaction may
-      // throttle work but must not replace visible geometry with preview LOD.
+      // Once the source is ready, interaction budgets cannot change its
+      // display policy; render-lod owns geometry selection at each scale.
       currentRenderQuality = Object.freeze({
         ...currentRenderQuality,
         backgroundLod: 'high',
-        countryMeshQuality: 'canonical',
         terrainResolutionScale: 1,
       });
     }

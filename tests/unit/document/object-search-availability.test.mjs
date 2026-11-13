@@ -52,6 +52,7 @@ test('built-in selection and hover descriptions use the same active period name 
  const query=createObjectQuery({projectState:{state},preferences:{userPreferences:{labels:{place:{languages:{ko:true}}}}},selectionServices:{normalizeObjectRef},labelPresentation:{labelById:()=>place}});
  const ref={domain:'label',type:'capital',id:place.id};
  assert.equal(query.objectDisplayInfo(ref).name,'키예프');
+ assert.equal(query.objectDisplayInfo(ref).type,'도시');
  state.timelineCursor='2026-10';assert.equal(query.objectDisplayInfo(ref).name,'키이우');
 });
 });
@@ -64,9 +65,10 @@ const model = data => createObjectSearchModel({items:group=>data[group]||[],grou
 test('flat search preserves explicit object identity, name ordering, parent text and type matching without folder state',()=>{
   const result=model({objects:[{id:'same',name:'동명',searchText:'상위 객체'},{id:'child',name:'하위 객체',parentId:'same'}],labels:[{id:'same',name:'동명'}]});
   assert.equal(result.items.length,3);
+  assert.equal(result.items.find(row=>row.layerGroup==='labels').typeLabel,'도시');
   assert.deepEqual(visibleObjectSearchRows(result,'동명').map(row=>row.key),['labels:same','objects:same']);
   assert.deepEqual(visibleObjectSearchRows(result,'상위').map(row=>row.id),['same']);
-  assert.deepEqual(visibleObjectSearchRows(result,'지명').map(row=>row.key),['labels:same']);
+  assert.deepEqual(visibleObjectSearchRows(result,'도시').map(row=>row.key),['labels:same']);
   assert.deepEqual(visibleObjectSearchRows(result,''),[]);
 });
 test('flat search deduplicates the same object across catalog groups and includes the full supplied global catalog',()=>{

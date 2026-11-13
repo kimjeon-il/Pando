@@ -27,6 +27,7 @@ export function createRenderingDomain({
   projectDomain = null,
   domLayers = null,
   labelResources = null,
+  getMapStyle = () => 'standard',
   countryResources = null,
   hydroResources = null,
   territorialResources = null,
@@ -127,7 +128,7 @@ export function createRenderingDomain({
     return point;
   };
   const {renderTerritorialLabels,renderUserLabels,renderTerritorialLabelPositions,renderUserLabelPositions}=createLabelPresentation({
-    labels,selectionDomain,reportDiagnostic,projectLabelCoordinate,active,stats});
+    labels,selectionDomain,reportDiagnostic,projectLabelCoordinate,active,stats,getMapStyle});
   const pendingHighlights = new Map();
   const canPresentFrame = (frame, result, options) => !gpuMapRenderer
     || gpuMapRenderer.canPresentVisualFrame(frame, result, options);
@@ -865,7 +866,7 @@ export function createRenderingDomain({
       stats.visualFrameRejectedCount += 1;
       return false;
     }
-    if (!canvasPresented && gpuMapRenderer?.getRuntimeState().renderer === 'canvas-worker'
+    if (!canvasPresented && ['canvas-worker','canvas2d'].includes(gpuMapRenderer?.getRuntimeState().renderer)
       && (gpuResult?.deferred || pendingVisualFrames.has(frame))) {
       // A pending bitmap may still be admitted while a newer same-view frame waits.
       pendingVisualFrames.stage(frame);
@@ -934,16 +935,20 @@ export function createRenderingDomain({
     onFrameComplete,
     renderers: {
       preservedFrame: () => gpuMapRenderer.renderPreservedProjectFrame(),
+      // GPU recovery reserves scene fills but cannot certify stroke coverage.
+      // Reconcile only SVG selection outlines, without admitting the new map.
+      canRenderRecoverySelection: () => {
+        const runtime = gpuMapRenderer?.getRuntimeState?.();
+        return runtime?.renderer === 'webgl-recovering'
+          && !runtime.projectRenderBlocked && !runtime.temporalPresentationPending;
+      },
+      selectionRecovery: frame => renderSelection(frame),
       canRenderBlockedBackground: () => gpuMapRenderer?.canRenderBlockedCanvasBackground?.() === true,
       blockedBackground: frame => gpuMapRenderer.renderBlockedCanvasBackground(frame),
       beginFrame,
       view: frame => {
         const result = renderPass('view', frame);
         if (result?.deferred) commitViewAttachedLayers(frame, result);
-        else if (gpuMapRenderer?.getRuntimeState?.()?.renderer === 'canvas2d' && canPresentFrame(frame, result)) {
-          // Canvas2D presents synchronously and has no Worker acceptance callback.
-          renderSelectionOverlay(frame, { viewOnly: true, updateData: false, gpuFrameResult: result });
-        }
         return result;
       },
       base: renderBase,

@@ -137,14 +137,14 @@ async function fixture({engineFailure=false,mapFailure=false,suppressReadyCertif
   let preparationObserver=noop;
   window.addEventListener('pandolab:ready',()=>ready++);
   const controller=()=>({bind:noop,dispose:()=>disposed++,connect:noop,enhanceAll:noop,sync:noop,resetProject:noop,syncNow:noop,
-    render:noop,cancelSearch:noop,syncSelection:noop,completeHydration:async()=>{},initializeLAYER_STYLE_TARGETS:noop,bindNavigationUI:noop});
+    render:noop,cancelSearch:noop,syncSelection:noop,completeHydration:async()=>{},bindNavigationUI:noop});
   const state={timelineCursor:'1953-07'},snapshot={documentId:'test',projectSetup:{}};
   const session={commandOwner:{load:async()=>{if(++loads===1&&engineFailure)throw network();},state:()=>state,dispose:()=>disposed++},
     documentModel:{snapshot:()=>snapshot,get:()=>null}};
   const surfaces={...controller(),isMobile:()=>false,initializeWorkspaceSurfaces:noop,applyLayoutMode:noop,closeSurface:noop,syncOverlayState:noop,closeFileMenu:noop};
   const objectCatalog={...controller(),listObjectSearchItems:()=>[],invalidateObjectPresentation:noop,pruneLayerItemVisibility:async()=>{}};
   const objectQuery={layerItemObjectRef:noop,focusObjectRef:noop,objectRefExists:()=>true,objectDisplayInfo:()=>({name:'test'})};
-  const map={finishInitialPreview:noop,cancelInitialReveal:noop,viewState:{},objectCatalog,objectQuery,objectPresentation:{LAYER_SEARCH_GROUP_KEYS:[]},navigation:{selectObjectSearchItem:noop},
+  const map={viewState:{},objectCatalog,objectQuery,objectPresentation:{LAYER_SEARCH_GROUP_KEYS:[]},navigation:{selectObjectSearchItem:noop},
     renderer:{waitForMapPresentation:async generation=>{
       // The fake map acknowledges the current picture at the same boundary as
       // the real renderer's visual commit, not when the document merely opens.
@@ -155,12 +155,14 @@ async function fixture({engineFailure=false,mapFailure=false,suppressReadyCertif
     update:async()=>{},dispose:()=>disposed++,cancelSearch:noop,searchPlaces:noop,closeObjectChooser:noop};
   const bindings={presentViewerLoadStatus,window,document,CustomEvent,URL,URLSearchParams,structuredClone,console:{warn:noop,error:noop},
     createViewerPostPresentation,
+    createMapProjectRuntime:()=>({project:{projectId:'default-world'},hydratePhysicalMetadata:async()=>({})}),
+    bindProjectDocumentIdentity:project=>project,
     createViewerInspectorController:()=>({syncMapSelection:noop,openAfterStartup:async()=>false,dispose:noop}),
     createViewerAdjacentPrefetch: () => ({afterPresented: noop,interrupt: noop,dispose: noop}),
     createPlatformPorts:()=>({}),createRuntimeContext:({meta})=>({meta,platform:{}}),createBrowserFileAccess:()=>({}),connectMapOwner:noop,
     createBrowserProjectStorage:()=>({}),initialBoundsView:noop,
     createNotificationPresentation:()=>({...controller(),reportOperationError:noop}),createApplicationLifecycle,createViewerInitialPresentation,
-    createPreferencePresentation:()=>({...controller(),current:{}}),
+    createPreferencePresentation:()=>({...controller(),current:{timeline:{defaultWorldFollowCurrentMonth:true},appearance:{mapStyle:'standard'}}}),
     createMapOwners:()=>({workspaceSurfaces:surfaces,mapHost:{queueMapResize:noop},physicalResources:{loadHydroData:noop},
       territorialLabels:{preparePlaces:noop},builtinSession:{}}),
     saveUserPreferences:noop,createDiagnosticLog:()=>({snapshot:()=>[]}),isRecoverableLoadError,
@@ -168,12 +170,25 @@ async function fixture({engineFailure=false,mapFailure=false,suppressReadyCertif
     installTimelineControls:()=>noop,createAppObjectSearchController:()=>objectCatalog,createSemanticIcon:noop,createEmptyState:noop,
     createSelectionDomain:controller,coreSelectionRefToWeb:noop,webSelectionRefToCore:noop,createDocumentSession:()=>session,
     createProjectDomain:()=>({...controller(),getOpenRevision:()=>openRevision,getGeneration:()=>openRevision,isOpening:()=>false,
+      activeProjectScope:()=>`fixture:${openRevision}`,activeProject:()=>({source:'builtin'}),
+      timelineNavigation:()=>({range:null}),requireTimelineMonth:noop,
       open:async reader=>{openRevision++;await reader();return true;}}),
     createInitialDocument:()=>snapshot,createViewerMap:options=>{maps++;preparationObserver=options.onMapPreparationStatus;return map;},createFileController:ports=>{openUserProject=ports.openProject;return controller();},readProjectFile:noop,
-    createMapSettings:controller,layerStyle:noop,DISTRIBUTION_RENDER_MODES:{},createSurfaceController:noop,createPreferencesDialog:noop,
-    createBuiltinMonthClock:options=>({...controller(),month:()=>null,suspend:()=>()=>true,isAutomatic:()=>!manual,
-      refresh:()=>manual?false:options.applyMonth('1953-07',{isCurrent:()=>true,commit:noop}),
-      followNow:()=>{nowSelections++;return options.applyMonth('1953-07',{isCurrent:()=>true,commit:noop});}}),
+    createMapSettings:()=>({...controller(),applyMapStyle:async()=>false}),layerStyle:noop,
+     DISTRIBUTION_RENDER_MODES:{},createSurfaceController:noop,
+     createPreferencesDialog:()=>({...controller(),sync:noop}),
+    createProjectMonthClock:options=>{
+      let committed=null;
+      const apply=async()=> {
+        if(manual || committed==='1953-07')return false;
+        return options.applyMonth('1953-07',{mode:'startup',isCurrent:()=>true,
+          commit:()=>{committed='1953-07';return true;}});
+      };
+      return {...controller(),month:()=>committed,isAutomatic:()=>!manual,
+        cancelPending:noop,beginExternalOpen:()=>()=>{},
+        initialize:apply,refresh:apply,followNow:()=>{nowSelections++;committed=null;return apply();},
+        selectMonth:month=>{manual=true;committed=month;return true;}};
+    },
   };
   const source=readFileSync(new URL("../../../src/app/viewer-composition.js",import.meta.url),'utf8')
     .replace(/^import .*;\r?$/gm,'').replace('export async function composeViewer','async function composeViewer')

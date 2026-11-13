@@ -67,7 +67,7 @@ export function createCanvasScenePackets() {
     return packets.map(({key,role,geometry,revision,order}) => ({
       ...physicalGeometryPacket(geometry, revision),
       key, role, geometryRevision: revision,
-      sourceKey: 'canvas-physical:'+key+':'+revision,
+      sourceKey: 'canvas-physical:'+key+':'+revision+':'+(context.displayLodKey || 'source'),
       order, style: {color:'#ffffff',fillAlpha:1}, blendMode:'normal',
     }));
   }
@@ -92,8 +92,11 @@ export function createCanvasScenePackets() {
     if (!boundary) return null;
     const { segments, startsEnds, ownerRanges, internalOwners, outlineOwnerIds, outlineOverrides, geometryRevision, sourceQuality } = boundary;
     return { segments, startsEnds, ownerRanges, internalOwners, outlineOwnerIds, geometryRevision, sourceQuality,
-      outlineOverrides: { startsEnds: outlineOverrides.startsEnds, ownerRanges: outlineOverrides.ownerRanges,
-        ownerIds: outlineOverrides.ownerIds, internalOwners: outlineOverrides.internalOwners } };
+      // No empty coast packet is cloned through the Canvas Worker style channel.
+      ...(outlineOverrides?.startsEnds?.length ? { outlineOverrides: {
+        startsEnds: outlineOverrides.startsEnds, ownerRanges: outlineOverrides.ownerRanges,
+        ownerIds: outlineOverrides.ownerIds, internalOwners: outlineOverrides.internalOwners,
+      } } : {}) };
   }
 
   return Object.freeze({ delta, scenePolygons, physicalPolygons, sceneStrokes, countryBoundary,

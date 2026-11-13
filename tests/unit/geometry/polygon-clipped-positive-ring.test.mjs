@@ -4,12 +4,9 @@ import test from 'node:test';
 import '../../helpers/spherical-core.mjs';
 await import('../../../src/geometry/polygon-geometry.js');
 await import('../../../src/rendering/workers/gpu-mesh-core.js');
-import * as validation from '../../../src/geometry/geometry-validation.js';
-import { buildTopologyPreview } from '../../../tools/gis/preview-topology.mjs';
 
 const core = globalThis.PandoLabSphericalCore;
 const adapter = globalThis.PandoLabPolygonGeometry;
-const validateClippedGeometry = feature => validation.validateGeometry(feature, {clipped:true});
 const fixture = JSON.parse(fs.readFileSync(new URL('../../fixtures/clipped-positive-ring.json', import.meta.url), 'utf8'));
 const geometry = ring => ({ type: 'Polygon', coordinates: [ring] });
 const exact = fixture.exactTarget[0];
@@ -91,20 +88,6 @@ test('native display mesh triangulates the exact triangle and does not mutate ca
   assert.equal(mesh.boundaryChains[0].vertices.length, 3);
   assert.deepEqual(mesh.removedTriangles, []);
   assert.equal(JSON.stringify(exact), before);
-});
-
-test('generated preview validation restores and retains the tiny component beside ordinary land', () => {
-  const feature = {type:'Feature',id:'EXACT',properties:{},geometry:{type:'MultiPolygon',coordinates:[[ordinary],[exact]]}};
-  const before = JSON.stringify(feature);
-  const preview = buildTopologyPreview([feature], {
-    maxCoordinates:100, proportions:[0],
-    normalizeGeometry:adapter.normalizeClippedPolygonGeometry,
-    hasCanonicalWinding:adapter.hasCanonicalClippedPolygonWinding,
-    validateGeometry:validateClippedGeometry,
-  });
-  assert.equal(preview.features[0].geometry.coordinates.length, 2);
-  assert.deepEqual(vertices(preview.features[0].geometry.coordinates[1][0]), vertices(exact));
-  assert.equal(JSON.stringify(feature), before);
 });
 
 test('subpixel display reduction does not remove the canonical component or its coordinates', () => {

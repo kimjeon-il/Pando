@@ -43,7 +43,7 @@ import {gzipSync,gunzipSync} from 'node:zlib';
 import {createCanonicalCountryStore,inspectCanonicalCountryPacket} from '../../src/rendering/canonical-country-packet.js';
 import {encodeCanonicalCountryPacket} from './canonical-country-packet-encoder.mjs';
 import {retainedLabelAnchors} from '../gis/publication-label-anchors.mjs';
-import {geometryFingerprint} from '../../src/document/project-preview-policy.js';
+import {geometryFingerprint} from '../../src/document/project-baseline-fingerprint.js';
 import {validateWorldBundle} from '../../src/data/world-bundle-manifest.js';
 const sha=b=>createHash('sha256').update(b).digest('hex');
 const arrayBuffer=b=>b.buffer.slice(b.byteOffset,b.byteOffset+b.byteLength);

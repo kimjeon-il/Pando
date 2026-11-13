@@ -4,8 +4,7 @@
 
 CPU-heavy Worker calls use one RPC transport instead of defining a new `pending` map, timeout loop, cancellation message, stale-result rule, and error shape for every feature.
 
-The canonical client is `assets/js/modules/worker-rpc.js`. New Worker endpoints use `assets/js/workers/worker-rpc-host.js`.
-The source owners are `src/runtime/worker-rpc.js` and `src/runtime/workers/worker-rpc-host.js`. The deployed URLs deliberately remain stable after P4; renderer, place and document Workers all consume the same runtime host.
+The canonical **source** client is [`src/runtime/worker-rpc.js`](../../src/runtime/worker-rpc.js), and the host is [`src/runtime/workers/worker-rpc-host.js`](../../src/runtime/workers/worker-rpc-host.js). Their published module/Worker asset paths may retain `assets/js/modules/` and `assets/js/workers/` through [frontend layout](../../scripts/lib/frontend-layout.mjs). Those deployed URLs are **not the source files to edit**; renderer, place and document Workers must keep one RPC protocol.
 
 The architecture check rejects direct message dispatch in frontend modules regardless of their RPC imports. A module that owns a dedicated rendering, resource, or diagnostics channel declares `@worker-transport dedicated: <reason>` in one source comment. This declaration follows the owner when a file moves; it is an explicit architectural exception, not a second filename list in the checker. Such an owner may not import the canonical RPC client directly. Lifecycle, cancellation and mesh transfer behavior are verified by runtime tests rather than private source snippets.
 

@@ -92,6 +92,14 @@ export function createDocumentSessionRuntime({ loadModule, validateFlagDataUrl, 
           || result.world.month !== result.state.timelineCursor || !Array.isArray(result.world.entities))
           fail('PL-CORE-DOCUMENT-ABI', 'The C++ cursor transition must return its own epoch-pinned resolved world.');
         return result;
+      }).catch(error => {
+        // The Core world resolver rejects invalid precision before the cursor
+        // setter runs. Keep the distinct cursor RPC error contract while C++
+        // remains authoritative for all calendar validation.
+        if (error?.code === 'PL-TEMPORAL-001')
+          throw Object.assign(new Error('INVALID_TIMELINE_CURSOR: ' + error.message),
+            { code: 'INVALID_TIMELINE_CURSOR', cause: error });
+        throw error;
       }),
     selectionCatalogLoad: (payload, context) => call('selectionCatalogLoad', [payload.domain,payload.refs,payload.expectedEpoch], context),
     presentationCatalogLoad: (payload,context) => call('presentationCatalogLoad',[payload.catalog,payload.expectedEpoch],context),

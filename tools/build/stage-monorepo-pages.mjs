@@ -10,6 +10,8 @@ import {validateWorldBundle} from '../../src/data/world-bundle-manifest.js';
 import {createStoredAssetLoader} from '../../src/data/stored-asset-loader.js';
 import {decodeCountryMesh,MESH_ALGORITHM_REVISION} from '../../src/rendering/country-mesh-codec.js';
 import {prepareLibraryData} from "../data/library-runtime.mjs";
+import {libraryCheckout} from '../data/library-context.mjs';
+import {terrainAssetDigest} from '../gis/terrain-dem-assets.mjs';
 
 const LIMIT_BYTES = 1_000_000_000;
 const REQUIRED = ['index.html', '.nojekyll'];
@@ -71,6 +73,29 @@ export async function stageWebPages(rootInput, stageInput, manifestInput, { skip
   for(const file of all)if(/^(?:scripts\/|tools\/stage-monorepo-pages\.mjs$|tools\/library-(?:data|archive)\.mjs$|config\/library-data\.json$)/.test(file.path))readSourceBytes(file.path);
   const sourceCommit=execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim();
   const snapshot=await buildFrontendSnapshot({root,sourceCommit,readSourceBytes,projectId});
+  const terrainPath=mapProjectResourcePath(snapshot.buildMeta.mapProject,'terrain');
+  const terrain=JSON.parse(snapshot.readPinnedRuntimeAsset(terrainPath));
+  const checkout=libraryCheckout(root), packaging=terrain.packaging;
+  const terrainExternalSource=snapshot.buildMeta.terrainExternalSource;
+  const terrainRevision=packaging?.sourceRevision;
+  if(!/^[a-f0-9]{40}$/.test(terrainRevision||'')
+    ||terrainRevision!==terrainExternalSource?.revision
+    ||packaging.sourcePath!=='terrain/v'+terrain.version+'/manifest.json'
+    ||!terrainPath.endsWith('/v'+terrain.version+'/manifest.json'))
+    throw Error('Pinned DEM source differs from the selected project catalog or external revision');
+  execFileSync('git',['merge-base','--is-ancestor',terrainRevision,snapshot.dataCommit],{cwd:checkout});
+  const sourceManifest=execFileSync('git',['show',terrainRevision+':'+packaging.sourcePath],{cwd:checkout,maxBuffer:4*1024*1024});
+  const original=JSON.parse(sourceManifest);
+  if(hash('sha256',sourceManifest)!==packaging.sourceSha256 || original.assetsSha256!==terrain.assetsSha256)
+    throw Error('Pinned DEM source manifest identity mismatch');
+  const terrainDigest=terrainAssetDigest(), tilePaths=[];
+  for(const level of terrain.levels)for(let row=0;row<level.rows;row++)for(let column=0;column<level.columns;column++){
+    const key=`${level.id}/${column}-${row}.webp`, tile=terrain.tiles?.[key];
+    if(!tile || !Number.isSafeInteger(tile.bytes) || tile.bytes<1)throw Error('Missing DEM tile identity: '+key);
+    terrainDigest.add(key,tile.sha256);tilePaths.push(terrainPath.slice(0,terrainPath.lastIndexOf('/')+1)+key);
+  }
+  if(Object.keys(terrain.tiles||{}).length!==tilePaths.length || terrainDigest.finish(terrain.tint.sha256)!==original.assetsSha256)
+    throw Error('Pinned DEM tile inventory differs from the original source');
   if([...snapshot.viewerPaths].some(path=>path.endsWith('/assets/js/workers/core-viewer-session-worker.js')))for(const name of ['pandoeditor-core.js','pandoeditor-core.wasm','pandoeditor-core.manifest.json']){const path='assets/wasm/'+name;if(!snapshot.assets.has(path))throw Error('Missing protected Web URL: '+path);snapshot.viewerPaths.add(path);}
   // Preserve main's source-matched geometry publication gate, resolving
   // manifests through the selected project rather than retired global specs.
@@ -84,6 +109,12 @@ export async function stageWebPages(rootInput, stageInput, manifestInput, { skip
     throw Error('Prepared polygon mesh algorithm revision mismatch: expected '
       +MESH_ALGORITHM_REVISION+', received '+prepared.algorithmVersion);
   const library=prepareLibraryData({root,projectId}),payload=new Map(),files=[];
+  for(const path of tilePaths){
+    const tile=terrain.tiles[path.slice(terrainPath.lastIndexOf('/')+1)];
+    const entry=library.files[path];
+    if(!entry || entry.bytes!==tile.bytes || entry.sha256!==tile.sha256)throw Error('Pinned DEM archive identity mismatch: '+path);
+    if(!snapshot.viewerPaths.delete(path))throw Error('Missing selected DEM tile: '+path);
+  }
   for(const path of snapshot.viewerPaths){
     const generated=snapshot.assets.get(path);let bytes,sourcePath=null;
     if(generated){bytes=generated.bytes;sourcePath=generated.sourcePath;}
@@ -93,7 +124,7 @@ export async function stageWebPages(rootInput, stageInput, manifestInput, { skip
   for(const path of [...REQUIRED,snapshot.buildMeta.mapProjectManifest.url,...mapProjectResourcePaths(snapshot.buildMeta.mapProject)])
     if(!payload.has(path))throw Error('Missing protected Web URL: '+path);
   const meshLoader = createStoredAssetLoader({ dataRevision: snapshot.dataRevision, cacheStorage: null });
-  for (const role of ['previewMesh', 'canonicalMesh']) {
+  for (const role of ['canonicalMesh']) {
     const spec = world.assets[role], stored = payload.get('assets/data/' + spec.url);
     if (!stored || spec.header[7] !== MESH_ALGORITHM_REVISION) {
       throw Error('Pinned world ' + role + ' mesh algorithm revision mismatch or missing asset');
@@ -105,10 +136,26 @@ export async function stageWebPages(rootInput, stageInput, manifestInput, { skip
       throw new Error('Pinned world ' + role + ' failed mesh admission', { cause });
     }
   }
-  const total=files.reduce((n,f)=>n+f.bytes,0);if(total>LIMIT_BYTES)throw Error('Pages site exceeds size limit: '+total);
+  const total=files.reduce((n,f)=>n+f.bytes,0);
+  if(total>LIMIT_BYTES){
+    // A capacity failure must identify its actual published asset owners;
+    // never raise the limit or silently drop immutable project resources.
+    const category=new Map();
+    for(const file of files){
+      const segments=file.path.split('/');
+      const owner=file.path.startsWith('assets/data/')
+        ? segments.slice(0,4).join('/') : segments.slice(0,2).join('/');
+      category.set(owner,(category.get(owner)||0)+file.bytes);
+    }
+    const largest=[...files].sort((a,b)=>b.bytes-a.bytes).slice(0,12)
+      .map(({path,bytes})=>({path,bytes}));
+    throw Error('Pages site exceeds size limit: '+total+
+      '; categories='+JSON.stringify([...category].sort((a,b)=>b[1]-a[1]))+
+      '; largest='+JSON.stringify(largest));
+  }
   mkdirSync(stage,{recursive:true});
   for(const file of files){const output=resolve(stage,file.path);if(!within(stage,output))throw Error('Invalid Pages output');mkdirSync(dirname(output),{recursive:true});writeFileSync(output,payload.get(file.path));if(hash('sha256',readFileSync(output))!==file.sha256)throw Error('Staged copy mismatch');}
-  const evidence={schema:'pando-web-pages-staging',productMode:'viewer',projectId:snapshot.buildMeta.mapProject.projectId,sourceCommit,frontendInputSha256:snapshot.sourceSha256,metadataCheck:skipChecks?'skipped':'passed',fileCount:files.length,dataRepository:library.repository,dataCommit:library.revision,bytes:total,limitBytes:LIMIT_BYTES,excludedNativeFiles:all.filter(f=>f.path.startsWith('native/')).length,excludedSharedFiles:all.filter(f=>f.path.startsWith('shared/')).length,excludedAppFiles:all.filter(f=>f.path.startsWith('apps/')).length,files};
+  const evidence={schema:'pando-web-pages-staging',productMode:'viewer',projectId:snapshot.buildMeta.mapProject.projectId,sourceCommit,frontendInputSha256:snapshot.sourceSha256,metadataCheck:skipChecks?'skipped':'passed',fileCount:files.length,dataRepository:library.repository,dataCommit:library.revision,terrainExternalSource,terrainManifest:terrainPath,bytes:total,limitBytes:LIMIT_BYTES,excludedNativeFiles:all.filter(f=>f.path.startsWith('native/')).length,excludedSharedFiles:all.filter(f=>f.path.startsWith('shared/')).length,excludedAppFiles:all.filter(f=>f.path.startsWith('apps/')).length,files};
   mkdirSync(dirname(manifest), { recursive: true });
   writeFileSync(manifest, JSON.stringify(evidence, null, 2) + '\n');
   return evidence;

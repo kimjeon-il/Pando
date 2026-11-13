@@ -1,63 +1,8 @@
 import {test,expect} from '@playwright/test';
 import {writeFile} from 'node:fs/promises';
 
-// This is a real pinned world, not a status-only mock. Do not fake performance.now.
-test('prepared initial scene publishes country triangles and borders on cold and cached loads',async({page},info)=>{
-  test.setTimeout(210_000);
-  const errors=[],observations=[],consoleErrors=[];
-  page.on('console',message=>{if(message.type()==='error')consoleErrors.push(message.text());});
-  page.on('pageerror',e=>errors.push(String(e)));
-  await page.emulateMedia({colorScheme:'light',reducedMotion:'reduce'});
-  const read=()=>page.evaluate(()=>{
-    const api=window.__PANDOLAB_VIEWER__,s=api?.rendererStats();
-    return {ready:document.getElementById('viewerStatus')?.dataset.ready,
-      presented:api?.initialMapPresented(),visible:api?.visibleTerritorialCount(),
-      month:api?.builtinMonth()?.month,cursor:api?.documentState()?.timelineCursor,
-      renderer:s?.renderer,canonical:s?.canonicalMeshReady,blocked:s?.projectRenderBlocked,
-      generation:s?.projectGeneration,published:s?.countriesPublishedGeneration,
-      countryTriangles:s?.surfaceDraw?.countryIndexCount,boundaries:s?.countrySharedBoundaryReady,
-      preparation:s?.lastMeshPreparation,rebuilds:s?.countryMeshRebuildCount||0,
-      preparedHits:s?.preparedCountrySceneHits||0,boundaryHits:s?.countryBoundaryPreparedAssetCount||0,
-      boundaryWorker:s?.countrySharedBoundaryWorkerActive,diagnostics:api?.diagnostics?.(),statusText:document.getElementById('viewerStatus')?.textContent};
-  });
-  const ready=()=>expect.poll(async()=>{
-    const s=await read();return s.ready==='true'&&s.presented&&s.canonical&&s.boundaries
-      &&s.generation>0&&s.published===s.generation&&s.countryTriangles>0&&!s.blocked;
-  },{timeout:90_000,message:'Current country triangles and shared borders must actually publish'}).toBe(true);
-  try {
-    for(const mode of ['cold','cached-reload']){
-      const started=Date.now();
-      if(mode==='cold')await page.goto('/?debug=1&renderer=webgl2',{waitUntil:'domcontentloaded'});
-      else await page.reload({waitUntil:'domcontentloaded'});
-      await ready();const state=await read();observations.push({mode,elapsedMs:Date.now()-started,...state});
-      expect(state.preparation.source).toBe('prepared-country-scene');
-      expect(state.preparation.builtCount).toBe(0);
-      expect(state.preparation.reusedCount).toBeGreaterThan(0);
-      expect(state.preparation.triangulationMs).toBe(0);
-      expect(state.preparation.strokeMs).toBe(0);expect(state.preparation.spatialMs).toBe(0);
-      expect(state.rebuilds).toBe(0);expect(state.boundaryWorker).toBe(false);
-      expect(state.preparedHits).toBeGreaterThan(0);expect(state.boundaryHits).toBeGreaterThan(0);
-      expect(state.month).toMatch(/^-?\d{4,}-\d{2}$/);
-      expect(state.month).toBe(state.cursor);expect(state.visible).toBeGreaterThan(0);
-    }
-    const original=(await read()).month;
-    await page.locator('#timelinePreviousYear').click();await ready();
-    const previous=await read();expect(previous.month).not.toBe(original);expect(previous.cursor).toBe(previous.month);
-    await page.locator('#timelineNextYear').click();await ready();
-    expect((await read()).month).toBe(original);
-    observations.push({mode:'date-return',...await read()});
-    expect(errors).toEqual([]);
-    await page.screenshot({path:info.outputPath('prepared-initial-scene.png')});
-  } finally {
-    const state=await read().catch(()=>null);
-    await writeFile(info.outputPath('prepared-scene.json'),JSON.stringify({observations,errors,consoleErrors,last:state},null,2));
-    console.log('PREPARED_SCENE_BROWSER '+JSON.stringify({observations,errors,consoleErrors,last:state}));
-  }
-});
-
-// Draft extension for tests/browser/rendering/country-prepared-scene.spec.mjs.
-// Requires the reviewed thin-render contract AND a completed, pinned mesh6 bundle.
-// This observes the real pipeline; it never supplies geometry or fabricated receipts.
+// Independent historical and real context-loss regression; initial startup is
+// covered once by the canonical Viewer startup scenario.
 // scope.extra is a generator compatibility packet, not an independent runtime
 // display feature. Exercise the real historical UI without injecting that packet.
 test('historical Soviet scope remains ready across reload, date return and real WebGL context restoration', async ({ page }, info) => {
@@ -88,8 +33,8 @@ test('historical Soviet scope remains ready across reload, date return and real 
   };
   const record = async label => {
     const selected = await page.evaluate(async () => {
-      const { temporalMonthEnd } = await import('./assets/js/modules/temporal.js?v=' + PANDOLAB_BUILD_META.assetRevision);
-      const month = __PANDOLAB_VIEWER__.builtinMonth().month;
+      const { temporalMonthEnd } = await import('./assets/js/modules/temporal.js?v=' + globalThis.PANDOLAB_BUILD_META.assetRevision);
+      const month = globalThis.__PANDOLAB_VIEWER__.builtinMonth().month;
       return { month, effectiveDate: temporalMonthEnd(month).canonical };
     });
     expect(selected).toEqual({ month: '1922-12', effectiveDate: '1922-12-31' });
@@ -99,7 +44,11 @@ test('historical Soviet scope remains ready across reload, date return and real 
     await page.goto('/?debug=1&renderer=webgl2', { waitUntil: 'domcontentloaded' });
     await ready();
     const bindings = await page.evaluate(async () => {
-      const response = await fetch(PANDOLAB_BUILD_META.builtinWorld.url);
+      // The built-in map now belongs to a single project manifest; the
+      // historical standalone builtinWorld build-meta field was retired.
+      const catalog = globalThis.PANDOLAB_BUILD_META?.mapProject?.resources?.territorial?.catalog;
+      if (!catalog) throw Error('Selected project has no territorial catalog');
+      const response = await fetch(new URL(catalog, location.href));
       if (!response.ok) throw Error('Pinned builtin scope index unavailable');
       const index = await response.json();
       return ['state:soviet-union', 'state:soviet-union-ukrainian-ssr'].map(id => {
@@ -118,7 +67,7 @@ test('historical Soviet scope remains ready across reload, date return and real 
       await year(1922); await record(mode + '-historical-return');
     }
     const documentPoint = () => page.evaluate(() => {
-      const { revision, checkpoint, timelineCursor } = __PANDOLAB_VIEWER__.documentState();
+      const { revision, checkpoint, timelineCursor } = globalThis.__PANDOLAB_VIEWER__.documentState();
       return { revision, checkpoint, timelineCursor };
     });
     const beforeRestore = await documentPoint();
@@ -129,7 +78,7 @@ test('historical Soviet scope remains ready across reload, date return and real 
       globalThis.__historicalContextRestore = extension;
       extension.loseContext();
     });
-    await expect.poll(() => page.evaluate(() => __PANDOLAB_VIEWER__.rendererStats().webglContextLost)).toBe(true);
+    await expect.poll(() => page.evaluate(() => globalThis.__PANDOLAB_VIEWER__.rendererStats().webglContextLost)).toBe(true);
     await page.evaluate(() => globalThis.__historicalContextRestore.restoreContext());
     await ready('1922-12');
     await expect.poll(async () => {

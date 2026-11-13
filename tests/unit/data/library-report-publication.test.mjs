@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs';
+import { chmodSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import * as library_context from "../../../tools/data/library-context.mjs";
@@ -59,6 +59,24 @@ test('report completion publishes only the selected originals through shared mai
   assert.throws(() => library.checkLibraryReports({ root: f.root, prefixes: ['reports/development/task'] }), /report|archiv|publish/i);
   library.publishLibraryReports({ root: f.root, prefixes: ['reports/development/task'] });
   assert.equal(git(f.remote, 'show', 'main:reports/development/task/report.md'), '# 수정');
+});
+
+test('selected report publication preserves linked fixtures in another owner private edits', t => {
+  const f=fixture(t),other=join(f.shared,'reports/.edits/objects/unfinished'),link=join(other,'app/assets/data');
+  put(other,'notes.md','# Other owner unfinished work\n');
+  mkdirSync(dirname(link),{recursive:true});
+  symlinkSync(join(f.data,'assets/data'),link,process.platform==='win32'?'junction':'dir');
+  const result=library.publishLibraryReports({root:f.root,prefixes:['reports/development/task']});
+  assert.equal(git(f.remote,'rev-parse','refs/heads/main'),result.revision);
+  assert.equal(git(f.remote,'show','main:reports/development/task/report.md'),'# 원문');
+  assert.equal(lstatSync(link).isSymbolicLink(),true);
+  assert.equal(readFileSync(join(other,'notes.md'),'utf8'),'# Other owner unfinished work\n');
+  assert.equal(readFileSync(join(link,'current.bin'),'utf8'),'private runtime in progress');
+  const publicLink=join(f.shared,'reports/development/task/linked-source');
+  symlinkSync(join(f.data,'assets/data'),publicLink,process.platform==='win32'?'junction':'dir');
+  assert.throws(()=>library.setMetadataCheckout(f.shared),/Linked report source must be preserved/);
+  assert.equal(lstatSync(publicLink).isSymbolicLink(),true);
+  assert.equal(readFileSync(join(f.root,'config/library-data.json'),'utf8'),f.pin);
 });
 
 test('report path access preserves an independent pending Git maintenance operation',t=>{

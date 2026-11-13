@@ -23,7 +23,7 @@
       "catalog": "assets/data/places/urban-lifetimes-v1.json"
     },
     "terrain": {
-      "catalog": "assets/data/terrain-preview/v0.13.3-p2/manifest.json"
+      "catalog": "assets/data/terrain/v0.14.0/manifest.json"
     },
     "physicalLand": {
       "catalog": "assets/data/physical-land/v1/manifest.json"

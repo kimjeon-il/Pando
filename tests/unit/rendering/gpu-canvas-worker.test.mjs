@@ -2,14 +2,15 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
-import { transformSync } from 'esbuild';
+import { buildSync } from 'esbuild';
+import { fileURLToPath } from 'node:url';
 import { createGpuCanvasWorker } from "../../../src/rendering/gpu-canvas-worker.js";
+import {createWorkerTestPort} from '../../helpers/worker-test-port.mjs';
 
 test('failed synchronous Canvas submission does not strand a busy renderer or a pick promise', async () => {
-  const errors=[],worker={
-    postMessage(message){if(message.type==='view'||message.type==='hydro-pick')throw new Error('worker channel closed');},
-    terminate(){},
-  };
+  const errors=[],worker=createWorkerTestPort({
+    onPostMessage(message){if(message.type==='view'||message.type==='hydro-pick')throw new Error('worker channel closed');},
+  });
   const channel=createGpuCanvasWorker({worker,generation:1,acceptFrame:()=>true});
   channel.onerror=event=>errors.push(event.message);
   worker.onmessage({data:{type:'ready'}});
@@ -19,11 +20,12 @@ test('failed synchronous Canvas submission does not strand a busy renderer or a 
   await assert.rejects(channel.pick([0,0]),{code:'PL-CANVAS-WORKER-SEND'});
   assert.equal(errors.length,2);
   channel.terminate();
+  assert.equal(worker.terminated,true,'Worker port retirement is observable');
 });
 
 test('bitmapless Canvas acknowledgment does not enter picture-admission callback', () => {
   let admissions=0;
-  const worker={postMessage(){},terminate(){}};
+  const worker=createWorkerTestPort();
   const channel=createGpuCanvasWorker({worker,generation:1,acceptFrame:()=>{admissions++;return true;}});
   worker.onmessage({data:{type:'ready'}});
   channel.queueFrame({type:'view',revision:1,projectGeneration:1});
@@ -33,7 +35,7 @@ test('bitmapless Canvas acknowledgment does not enter picture-admission callback
 });
 
 test('Canvas send error may retire its worker synchronously without restoring a closed pending frame', () => {
-  const worker={postMessage(){throw Error('worker closed');},terminate(){}};
+  const worker=createWorkerTestPort({onPostMessage(){throw Error('worker closed');}});
   const channel=createGpuCanvasWorker({worker,generation:1,acceptFrame:()=>true});
   channel.onerror=()=>channel.terminate();
   worker.onmessage({data:{type:'ready'}});
@@ -124,7 +126,7 @@ test('Canvas owner ignores delayed ready/error and settles picks on termination'
 
 function transport({ generation = 2, acceptFrame = () => true } = {}) {
   const sent = [], presented = [], stale = [];
-  const worker = { postMessage: message => sent.push(message), terminate() {} };
+  const worker = createWorkerTestPort({onPostMessage: message => sent.push(message)});
   const channel = createGpuCanvasWorker({ worker, generation, acceptFrame, onStale: message => stale.push(message) });
   channel.onmessage = event => { if (event.data.type === 'frame') presented.push(event.data); };
   const receive = message => worker.onmessage({ data: message });
@@ -322,8 +324,8 @@ function canvasRuntime({ renderError = null, features = [], theme = {}, visualOr
     setTimeout: callback => { timers.push(callback); return timers.length; },
     location: script, postMessage: (message, transfer) => replies.push({ message, transfer }) });
   scope.self = scope;
-  const policy=transformSync(readFileSync(new URL("../../../src/rendering/resource-update-policy.js",import.meta.url),'utf8'),
-    {format:'iife',globalName:'PandoLabResourceUpdatePolicy',target:'es2022',legalComments:'none'}).code;
+  const policy=buildSync({entryPoints:[fileURLToPath(new URL("../../../src/rendering/resource-update-policy.js",import.meta.url))],
+    bundle:true,write:false,format:'iife',globalName:'PandoLabResourceUpdatePolicy',target:'es2022',legalComments:'none'}).outputFiles[0].text;
   scope.importScripts = (...urls) => urls.forEach(url => vm.runInContext(new URL(url).pathname.endsWith('/resource-update-policy-core.js')
     ? policy+'\nself.PandoLabResourceUpdatePolicy=PandoLabResourceUpdatePolicy;'
     : readFileSync(new URL(new URL(url).pathname.endsWith('/vendor/d3.min.js')
@@ -370,6 +372,29 @@ test('the real Canvas Worker reuses unchanged projected country geometry across 
   send({ type: 'replace-data', geometryRevision: 1, projectGeneration: 3,
     features: [row('new-allocation:0', 2)] });
   paint(3); assert.equal(pathBuildCount(), 2, 'a new delivery generation cannot invalidate unchanged projected geometry');
+});
+
+test('Canvas LOD replaces a visible country with an explicit empty shape and restores it without accepting missing geometry', () => {
+  const row=(key,east=1)=>({type:'Feature',id:'ROOT',boundaryGeometryRevision:key,properties:{},
+    geometry:{type:'Polygon',coordinates:[[[0,0],[east,0],[east,1],[0,1],[0,0]]]}});
+  const {replies,send,pathBuildCount}=canvasRuntime({features:[row('lod:1')],
+    theme:{strokes:{country:{width:1}}},visualOrder:{base:['country-fill'],hydro:[]}});
+  const paint=()=>{
+    send({type:'view',projectGeneration:2,revision:2,viewRevision:2,renderRequestId:1});
+    assert.equal(replies.at(-1).message.type,'frame',replies.at(-1).message.message);
+  };
+  paint();assert.equal(pathBuildCount(),1);
+  send({type:'replace-data',projectGeneration:2,geometryRevision:0,
+    features:[{...row('0:0'),geometry:null}]});
+  paint();assert.equal(pathBuildCount(),1,'culled owner must not compile or paint its old polygon');
+  send({type:'replace-data',projectGeneration:2,geometryRevision:0,
+    features:[{type:'Feature',id:'ROOT',boundaryGeometryRevision:'0:0',properties:{label:'hidden'}}]});
+  paint();assert.equal(pathBuildCount(),1,'metadata-only update can retain the matching empty shape');
+  send({type:'replace-data',projectGeneration:2,geometryRevision:0,features:[row('lod:2',2)]});
+  paint();assert.equal(pathBuildCount(),2,'visible replacement must compile the new LOD polygon');
+  assert.throws(()=>send({type:'replace-data',projectGeneration:2,geometryRevision:0,
+    features:[{type:'Feature',id:'ROOT',boundaryGeometryRevision:'lod:3'}]}),
+  /geometry is missing for a changed dependency/);
 });
 
 
@@ -491,7 +516,7 @@ test('pick failures reject their own request and keep the Canvas worker alive', 
 
 test('rejected unsolicited Canvas paint reports staleness without acknowledging obsolete pixels',()=>{
   const sent=[],stale=[],accepted=[];
-  const worker={postMessage:message=>sent.push(message),terminate(){}};
+  const worker=createWorkerTestPort({onPostMessage:message=>sent.push(message)});
   const channel=createGpuCanvasWorker({worker,generation:3,
     acceptFrame:message=>message.frameId===9&&message.styleRevision===4,
     onStale:message=>stale.push(message)});
@@ -513,7 +538,7 @@ test('rejected unsolicited Canvas paint reports staleness without acknowledging 
 
 test('only a renderer-authorized current physical background can bypass an older requested view revision',()=>{
   const sent=[],accepted=[],rejected=[];let revoked=0;
-  const worker={postMessage:message=>sent.push(message),terminate(){}};
+  const worker=createWorkerTestPort({onPostMessage:message=>sent.push(message)});
   const channel=createGpuCanvasWorker({
     worker,generation:1,
     acceptFrame:message=>message.backgroundOnly===true && message.backgroundPresentationKey==='same-picture',
@@ -552,4 +577,24 @@ test('Worker coalesces resource redraw only after a project view has been render
   assert.equal(pendingTimers(),1,'generation reset cannot enqueue a retired redraw');
   send({type:'style',projectGeneration:3,styleRevision:4});
   assert.equal(pendingTimers(),1,'new generation styles cannot render before a new view');
+});
+
+test('new-generation country and resource packets cannot paint a fills-only scene before its view', () => {
+  const { send, replies, pendingTimers } = canvasRuntime();
+  send({type:'view',projectGeneration:2,frameId:3,revision:3,viewRevision:3,renderRequestId:4});
+  assert.equal(replies.at(-1).message.type,'frame');
+  send({type:'reset-generation',projectGeneration:3});
+  replies.length=0;
+  send({type:'replace-data',projectGeneration:3,geometryRevision:1,features:[],fills:{}});
+  send({type:'country-shared-boundary',projectGeneration:3,geometryRevision:1,packet:null});
+  send({type:'hydro-edits',projectGeneration:3,revision:4,features:[]});
+  assert.equal(pendingTimers(),0,'resource arrivals must wait for the new generation camera and theme');
+  assert.equal(replies.some(({message})=>message.type==='frame'||message.type==='error'),false);
+  send({type:'style',projectGeneration:3,styleRevision:3,theme:{},visible:false,
+    surfacePresentation:{quality:'canonical'},visualOrder:{base:[],hydro:[]}});
+  send({type:'view',projectGeneration:3,frameId:4,revision:4,viewRevision:4,renderRequestId:5});
+  assert.equal(replies.at(-1).message.type,'frame');
+  assert.equal(replies.at(-1).message.projectGeneration,3);
+  send({type:'hydro-edits',projectGeneration:3,revision:5,features:[]});
+  assert.equal(pendingTimers(),1,'resources repaint normally after the new view is submitted');
 });

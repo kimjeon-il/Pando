@@ -1,4 +1,6 @@
-# 웹 T2-2 프로젝트 영속성
+# 웹 T2-2 프로젝트 영속성 — 2026-10-04~06 실행·검증 이력
+
+> **현재 지원 스키마:** 프로젝트 **14** ([`src/runtime/version-contract.js`](../src/runtime/version-contract.js)), `timelineRecords` **3** ([`src/document/timeline-records.js`](../src/document/timeline-records.js)). 아래의 프로젝트 9·10, 기록 1 및 Web/App·Windows·Qt 비교는 각 커밋의 **당시 이력·고정 테스트 증거**다. 현재 Viewer의 스키마나 별도 앱 배포 의무를 의미하지 않는다. 당시 실패·검사·SHA는 삭제하거나 성공으로 고쳐 쓰지 않는다.
 
 ## 현재 계보·출처 계약 검증 (2026-10-06)
 
@@ -9,7 +11,7 @@ Web 기준은 `008b99b5ca2dd39936e51f7ddd11c0c70fc7bb74`, App 기준은
 `4006e41745c9f03a70eea21de22411f3954cbbf8`다.
 아래 과거 실행 기록의 SHA·실패는 당시 증거이며 이번 후보 결과로 재사용하지 않는다.
 
-단계·실패·원인·명령 범위는 [Country lineage storage 실행 기록](https://github.com/kimjeon-il/PandoLab-library-data/blob/f4ae4d70579b8c799fba2e507e1a948b7e1e42c2/reports/development/testing/country-lineage-storage.md)에 기록했다.
+단계·실패·원인·명령 범위는 [Country lineage storage 실행 기록](https://github.com/kimjeon-il/PandoLab-library/blob/f4ae4d70579b8c799fba2e507e1a948b7e1e42c2/reports/development/testing/country-lineage-storage.md)에 기록했다.
 전체 단위 1,729개와 Python 247+15개가 통과했고 최종 보정은 영향받은 집중 검사로
 재확인했다. 전체 브라우저는 사용자 요청으로 중단했으며 4 통과/4 실패,
 298 미완료다. 전체 브라우저 통과 또는 모든 제품 경로 동등성을 주장하지 않는다.

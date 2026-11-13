@@ -1,20 +1,17 @@
-# Timeline / Temporal Contract v1
+# Timeline / Temporal Contract — T0 의미 기준과 현행 구현
 
-확정일: 2026-10-04
+확정일: 2026-10-04. **현행 제품:** 단일 Pando Web Viewer와 C++/WASM 타임라인 코어.
 
-이 문서는 PandoLab 웹(`kimjeon-il/world-map`)과 PandoEditor 앱
-(`kimjeon-il/PandoEditor`)이 공유하는 **시간대(타임라인) 기능의 규범 계약**이다.
-플랫폼별 UI나 구현 언어와 무관하게 아래 의미는 동일해야 한다.
+> 월 단위 커서·월말 해석·양끝 포함 기간·객체 ID 분리 등 아래 **시간 의미 원칙**은 유지한다. 현재 실행 소유자는 [`src/document/temporal.js`](../src/document/temporal.js)와 [`src/document/native/src/temporal.cpp`](../src/document/native/src/temporal.cpp), 타임라인 레코드 스키마 **3**은 [`src/document/timeline-records.js`](../src/document/timeline-records.js), 프로젝트 스키마 **14**는 [`src/runtime/version-contract.js`](../src/runtime/version-contract.js)다. 아래 T0/T1·독립 `world-map`/`PandoEditor`·구형 구현 경로는 **2026-10-04 설계·검증 당시의 역사 기록**이다.
 
-T0 단계는 의미 계약만 고정한다. 저장 스키마 변경, resolver, 편집 분기, UI 연결은
-후속 단계에서 이 계약을 구현하며, T0 자체에서는 프로젝트 wire schema를 올리지 않는다.
+원래 T0 문서는 Pando Web과 PandoEditor 사이에 동일한 시간 의미를 정하기 위한 계약이었다. 현재는 제품별 두 번째 타임라인 계산 정본을 만들지 않는다. 당시 T0에서는 저장 스키마·resolver·UI 연결을 구현하지 않았다는 사실은 당일 작업 범위의 기록이며, 현재 미구현 판정이 아니다.
 
-## 1. 기준 브랜치
+## 1. 2026-10-04 당시 기준 브랜치 (역사 기록)
 
 - 웹: `feat/timeline-web`, `world-map/main@90a0137`에서 분기
 - 앱: `feat/timeline-app`, `PandoEditor/codex/integration@fdafc8e0`에서 분기
 
-두 브랜치는 독립적으로 개발하지만 이 문서의 규칙을 별도로 변형하지 않는다.
+두 브랜치 독립 개발은 당시의 운영 방식이다. 현행 개발은 [상설 브랜치 정책](branch-policy.md)을 따른다.
 
 ## 2. 타임라인 커서
 
@@ -38,7 +35,7 @@ T0 단계는 의미 계약만 고정한다. 저장 스키마 변경, resolver, �
 - `1916-02` -> 1916-02-29 상태
 - `1915-02` -> 1915-02-28 상태
 
-윤년 계산은 현재 웹/앱 temporal 구현과 동일한 proleptic Gregorian 규칙을 사용한다.
+윤년 계산은 현재 공통 C++ 시간 계산의 proleptic Gregorian 규칙을 사용한다.
 
 이 규칙 때문에 정확한 일자 자료도 월 단위 화면에 결정적으로 투영할 수 있다.
 예를 들어 1914-07-15부터 유효한 기록은 `1914-07` 화면에 보이지만,
@@ -54,8 +51,7 @@ T0 단계는 의미 계약만 고정한다. 저장 스키마 변경, resolver, �
 | month | `1914-07` | 1914-07-01 | 1914-07-31 |
 | date | `1914-07-15` | 1914-07-15 | 1914-07-15 |
 
-따라서 웹 `temporal.js`와 앱 `temporal.cpp`는 T1에서 `month` precision을
-같은 canonical 값과 같은 boundary로 지원해야 한다.
+2026년 T1의 원래 구현 요구는 Web `temporal.js`와 독립 App `temporal.cpp`의 일치였다. 현재는 공통 C++/WASM temporal 구현을 기준으로 월 정밀도·경계를 판정한다.
 
 타임라인 커서는 month precision만 사용하지만, 자료의 `validFrom/validTo`는
 year/month/date precision을 모두 사용할 수 있다.
@@ -93,13 +89,11 @@ year/month/date precision을 모두 사용할 수 있다.
 - 시간별 형상과 관계는 후속 단계에서 versioned record로 표현하되, 객체의 정체성을
   복제해 해결하지 않는다.
 
-웹의 `TerritorialEntity`와 앱의 territorial object 표현 차이는 플랫폼 내부 구현
-차이다. 타임라인 계약상 동일 객체를 가리키는 논리 ID의 의미는 같아야 한다.
+당시 Web/App 표현 차이는 서로 다른 제품 구현의 문제였다. 현재에도 논리 ID, 형상 버전 ID와 GIS 원본 ID의 의미를 혼용하지 않는다.
 
 ## 7. 결정적 resolver
 
-특정 커서 월을 해석하면 같은 프로젝트 입력에서 웹과 앱이 동일한 유효 객체,
-형상 version, 관계 graph를 얻어야 한다.
+특정 커서 월을 해석하면 같은 프로젝트 입력에서 공통 C++/WASM resolver가 결정적인 유효 객체, 형상 버전 및 관계 graph를 반환해야 한다.
 
 resolver는 다음 원칙을 따른다.
 
@@ -111,7 +105,7 @@ resolver는 다음 원칙을 따른다.
    순환을 검증한다.
 6. renderer는 resolver 결과를 표시할 뿐 canonical project data를 수정하지 않는다.
 
-구체적인 record schema와 resolver API는 T2/T3에서 정한다.
+구체적인 record schema와 resolver API는 **당시** T2/T3 단계의 예정 사항이었다. 현재 구조의 레코드 소유자는 `src/document/timeline-records.js`와 C++ 코어다.
 
 ## 8. 타임라인 편집 경계
 
@@ -144,7 +138,7 @@ split 명령의 원자성은 T4에서 구현한다. T0에서 임의로 일자를
 반대로 특정 시점에서 사용자가 실제 편집을 확정한 행위는 프로젝트 콘텐츠 변경이며
 기존 command/transaction/history 경계를 사용한다.
 
-## 10. 웹/앱 동등성
+## 10. 2026-10-04 당시 웹/앱 동등성 검증 기준 (역사 기록)
 
 동일한 fixture와 동일한 `YYYY-MM` 커서에 대해 최소 다음 값은 웹과 앱에서
 동일해야 한다.
@@ -167,7 +161,7 @@ split 명령의 원자성은 T4에서 구현한다. T0에서 임의로 일자를
 전환하고 현재 호출부와 fixture를 함께 갱신한다. 구형 개발 프로젝트를 유지하기
 위한 병행 구현을 만들지 않는다.
 
-## 12. T0에서 하지 않는 일
+## 12. 2026-10-04 T0에서 하지 않은 일 (역사 기록)
 
 T0에서는 다음을 구현하지 않는다.
 
@@ -179,6 +173,4 @@ T0에서는 다음을 구현하지 않는다.
 - 시점 편집 split command
 - 자동 migration
 
-다음 단계 T1은 웹 `assets/js/modules/temporal.js`와 앱
-`core/src/temporal.cpp` / `core/include/pandoeditor/temporal.h`의 month precision
-동등 구현과 집중 테스트다.
+당시 다음 단계 T1의 예정 대상은 웹 `assets/js/modules/temporal.js`와 독립 앱 `core/src/temporal.cpp` / `core/include/pandoeditor/temporal.h`였다. **현행 소스는** `src/document/temporal.js` 및 `src/document/native/{src/temporal.cpp,include/pandoeditor/temporal.h}`다.

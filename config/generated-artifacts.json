@@ -135,7 +135,7 @@
       "resolve": "world-mesh"
     },
     {
-      "id": "world-preview",
+      "id": "world-country-packet",
       "dependencies": [
         "world-mesh",
         "current-world",
@@ -143,22 +143,22 @@
       ],
       "inputs": [
         "assets/data/world/build-input.json",
-        "assets/js-vendor/d3.min.js",
-        "src/rendering/workers/gpu-mesh-core.js",
         "projects/default-world/generation-inputs.json",
-        "projects/default-world/manifest.json"
+        "projects/default-world/manifest.json",
+        "tools/build/canonical-country-packet-encoder.mjs",
+        "src/rendering/canonical-country-packet.js"
       ],
       "outputs": [],
       "generate": [
         [
           "node",
-          "tools/build/build-world-preview.mjs"
+          "tools/build/build-world-country-packet.mjs"
         ]
       ],
       "validate": [
         [
           "node",
-          "tools/build/build-world-preview.mjs",
+          "tools/build/build-world-country-packet.mjs",
           "--check"
         ]
       ],
@@ -168,13 +168,13 @@
       "tools": [
         "node"
       ],
-      "resolve": "world-preview"
+      "resolve": "world-country-packet"
     },
     {
       "id": "world-bundle",
       "resolve": "world-bundle",
       "dependencies": [
-        "world-preview"
+        "world-country-packet"
       ],
       "inputs": [
         "assets/data/world/build-input.json",
@@ -280,7 +280,9 @@
         {
           "prefix": "reports/places/",
           "pattern": "(?:^|/)(?:tier1-major-cities-batch\\d{2}[-a-z0-9]*|runtime-release-approvals-v1)\\.json$"
-        }
+        },
+        "reports/map-analysis/corpus/gazetteer-v1/sources/cities500.source.json",
+        "reports/map-analysis/corpus/gazetteer-v1/runtime/manifest.json"
       ],
       "outputs": [
         "assets/data/places/reviewed-records-v1.json",
@@ -301,7 +303,9 @@
         ]
       ],
       "consumers": [
-        "src/data/place-runtime.js"
+        "src/data/place-runtime.js",
+        "src/data/place-worker-store.js",
+        "src/rendering/territorial-labels.js"
       ],
       "tools": [
         "node"

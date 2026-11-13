@@ -21,7 +21,7 @@ ProjectDocument fixture(bool collision=false) {
     TerritorialUnit unit;unit.id="A";unit.name="A";unit.kind=UnitKind::General;d.units.push_back(unit);
     const GeometryRef ref{"territorial-geometry:A",1};d.geometries.insert(ref,projectcodec::readWebGeometry(json(shape)));
     d.geometryProvenance.originalArchive.insert(ref);addStaticTerritorialRecords(d,"A",ref);
-    d.presentation.objectStyles[territorialRef("A")]={0,1,false};
+    d.presentation.objectStyles[territorialRef("A")]={0,false};
     if(collision) {
         const GeometryRef archived{"territorial-geometry:N",7};d.geometries.insert(archived,projectcodec::readWebGeometry(json(shape)));
         d.geometryProvenance.originalArchive.insert(archived);
@@ -142,8 +142,10 @@ void parentAndCopyUseFrozenServiceAdmission() {
     const auto& region=p.document().units[1];assert(region.id=="R"&&region.kind==UnitKind::Regional&&region.name.empty()&&!region.locked&&region.notes.empty()&&region.metadata=="{}"&&region.sourceEntityId.empty());
     assert(staticParentRelation(p.document(),"R").parentId.empty()&&staticParentRelation(p.document(),"R").coverageMode=="explicit");
     assert(p.document().presentation.objectStyles.at(territorialRef("R")).color==0x123456);
+    assert(p.document().presentation.objectStyles.at(territorialRef("R")).explicitColor);
     assert(apply(p,"territorial.copy-region",json(R"({"sourceId":"A","id":"automatic"})")).changed());
     assert(!p.document().presentation.objectStyles.at(territorialRef("automatic")).explicitColor);
+    assert(p.document().presentation.objectStyles.at(territorialRef("automatic")).color==0);
     expectCode(p,"territorial.parent",json(R"({"id":"A","parentId":""})"),"locked");
     expectCode(p,"territorial.parent",json(R"({"id":"R","parentId":"A"})"),"unsupported-parent-type");
     expectCode(p,"territorial.parent",json(R"({"id":"missing","parentId":"A"})"),"not-found");

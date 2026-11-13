@@ -6,7 +6,7 @@
 
 ## 1. 실제 정본과 비교 축
 
-E3가 비교하는 것은 Web/App 코드가 아닌 외부 데이터 저장소 **`kimjeon-il/PandoLab-library-data`**의 두 확정된 Git 커밋이다.
+E3가 비교하는 것은 Web/App 코드가 아닌 외부 데이터 저장소 **`kimjeon-il/PandoLab-library`**의 두 확정된 Git 커밋이다.
 
 - 변경 전: `baseRevision` (40자리 SHA). 현재 `work/ui`의 짝지어진 pin은 `5eb7be55208efaafe39bd5a65ec2f111d70b9053`.
 - 변경 후: `candidateRevision` (40자리 SHA). 반드시 base의 자손이어야 한다. 별도 브랜치의 단순한 `main` 최신 커밋으로 자동 변경하지 않는다.
@@ -48,7 +48,7 @@ E3가 비교하는 것은 Web/App 코드가 아닌 외부 데이터 저장소 **
 - `base=5eb7be55208efaafe39bd5a65ec2f111d70b9053` (`work/ui`의 기존 데이터 pin)
 - `candidate=a36bf7621a0cc72267415be19562cc78d3fc725d` (검토·적용된 후속 `work/gis` 데이터 리비전)
 - `comparisonMonth=2008-10` (지도 비교는 해당 월말; 원본 국경 사건 날짜는 별도 보존)
-- 근거: [아바가이투 G 후보 연구 README-ko.md](https://github.com/kimjeon-il/PandoLab-library-data/blob/a36bf7621a0cc72267415be19562cc78d3fc725d/reports/borders/reconstruction/abagaitu-g-geographic-candidate-2026-11-01/README-ko.md)
+- 근거: [아바가이투 G 후보 연구 README-ko.md](https://github.com/kimjeon-il/PandoLab-library/blob/a36bf7621a0cc72267415be19562cc78d3fc725d/reports/borders/reconstruction/abagaitu-g-geographic-candidate-2026-11-01/README-ko.md)
 
 `library.json`에 의해 실제 변경된 원본 객체는 `state:CHN`, `state:RUS` 두 개다. 데이터 원본 비교에서 **4건의 E2 형상 변경 슬롯**을 발견했고, 구간 미대응 `issues: 0`으로 판정했다.
 
@@ -85,6 +85,6 @@ node tools/review/generate-e3-review.mjs \
 
 필요한 대량 원본 리비전 비교는 `--batch-index=1 --batch-size=50`으로 시작해 반환되는 `scope.batchCount`까지 반복한다. **배치마다 별도 `--output-dir`와 고유한 `--proposal-id`**가 필요하다. 산출물이 각 배치의 변경 원본을 정확히 식별하므로 E4에서 한 번에 조합할 수 있다.
 
-자동 수용 CI: [.github/workflows/e3-revision-comparison.yml](../../.github/workflows/e3-revision-comparison.yml). 검증은 Pando에서만 수행하고 외부 데이터 repo에는 테스트·CI·코드를 추가하지 않는다.
+검사는 [현행 검사 실행기](../../scripts/run-application-checks.mjs)에서 관련 계약만 선택한다. 외부 데이터 저장소에서는 테스트·CI·코드를 실행하지 않는다.
 
-E4는 E3 산출물과 E2 객체별 색인을 웹 검수 화면에 연결한다. E5는 Windows 검수기에서 이 동일한 읽기·검수 경계를 재사용한다. E6까지 기존 편집 코드/Android 네이티브 코드는 삭제하지 않는다.
+자료 비교·검수 산출물은 Viewer의 읽기 전용 검사 경계에서 사용한다. 검수 제안은 프로젝트·원자료의 변경이나 게시가 아니다.

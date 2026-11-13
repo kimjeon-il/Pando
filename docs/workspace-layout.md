@@ -1,37 +1,36 @@
 # Source and output layout
 
-All permanent checkouts use the same layout. Editable source stays independent in each branch.
+The Web Viewer is the only shipping product. [Module ownership](app-module-ownership.md) defines the product domains; [branch policy](branch-policy.md) defines permanent checkouts. All maintained branches use this layout.
 
-| Owner | Source | Published path |
-| --- | --- | --- |
-| Viewer | `apps/viewer/templates`, `apps/viewer/js`, `apps/viewer/css` | `/`, `/assets/...` |
-| Archived editor source | `apps/editor/frontend`, `apps/editor/templates` | Not published or packaged |
-| Windows reviewer shell | `apps/editor/src-tauri`, `apps/editor/*.mjs`, `apps/editor/review-probe.js` | Viewer-derived `/review.html`, optional `/shell/...` |
-| Common frontend | `shared/frontend/js`, `css`, `ui`, `static` | `/assets/...` |
-| C++ and WASM binding sources | `shared/core`, `shared/wasm`, `shared/tests`, `shared/third_party` | Not published as source |
-| Verified WASM release inputs | `shared/frontend/static/wasm` | `/assets/wasm/...` |
-| Library | Existing `assets/data`, reports and GIS mounts | Selected runtime assets only |
+| Location | Responsibility |
+| --- | --- |
+| `src/app/` | Viewer entry, HTML and application composition |
+| `src/ui/` | UI controllers, CSS and HTML fragments |
+| `src/data/`, `document/`, `map/`, `geometry/`, `rendering/`, `runtime/` | Product behavior owned by domain; C++ implementations live in each domain's `native/` |
+| `assets/` | Static release inputs, fonts, brand icons and verified WASM; `assets/data` is a library mount |
+| `tools/build/native/` | Product native build orchestration and source identity; compilation runs in CI |
+| `tools/build/compiler-cache.cmake` | Host cache integration outside product native identity; this does not install a compiler |
+| `tools/cpp/` | GIS command-line generator implementations and native dependencies; their C++ checks live in `tests/tools/native/`, not product source |
+| `tools/gis/`, `tools/data/`, `tools/checks/` | Viewer runtime generation, common geometry and paired-data preparation/storage support |
+| `scripts/` | Development, frontend generation, CI selection and execution; `scripts/contracts/` owns executable check contracts |
+| `tests/` | Unit/browser checks, helpers and fixed fixtures |
+| `config/` | Runtime data pin, source roots, artifact graph and tool versions |
+| `docs/policies/` | Policy navigation and domain rules, including machine-readable execution/publication policy |
+| `docs/architecture/`, `docs/development/` | Maintained architecture and developer instructions |
+| `projects/`, `reports/` | Pinned project declarations and the central report-originals mount; data remains library-owned |
 
-`scripts/lib/frontend-layout.mjs` owns source/public identity and product boundaries. `frontend-build.mjs` derives HTML, CSS bundles, build metadata and immutable Worker closures without writing source files. Pages and branch previews publish only the Viewer closure. Windows staging packages that same Viewer closure with a restricted Tauri boundary. The archived editor closure is not a product output; Android native packaging is retired. Data originals remain in their source owner.
+QGIS integration, historical-source authoring, source recipes and repository-history administration live in [PandoLab-library](https://github.com/kimjeon-il/PandoLab-library). Its own source checkout owns their tests and CI; branch-specific runtime data pins and mounts remain independent.
 
-## Commands
+## Source paths and public URLs
 
-Run `pnpm.cmd deps:prepare` once per permanent checkout. It uses pnpm 11.19.0, the Pando store configured by the existing storage owner, and `enableGlobalVirtualStore`. Each checkout retains its own dependency links. The local reference is `.library-data/dependencies.json`; `.pnpmfile.mjs` loads it for ordinary pnpm commands. CI uses its own ephemeral store. Use `pnpm patch` for dependency edits; do not edit shared package bytes.
+`scripts/lib/frontend-layout.mjs` maps source paths to public URLs. Moving a source between domains does not rename its published module URL. HTML fragments, CSS, static/dynamic imports and Worker dependencies use the same map. Pages includes only the Viewer dependency closure.
 
-- `dev:web`: viewer on loopback port 4173, desktop and mobile behavior.
-- `dev:editor`: legacy command name for the Windows review development server on loopback port 4175.
-- `dev:windows`: source-verified Windows reviewer executable and its local review server.
-- `build:web`: immutable viewer-only static output; the command prints its location.
-- `build:windows`: Windows-only offline CI installer artifact.
+Use `pnpm.cmd deps:prepare`, `pnpm.cmd dev:web` and `pnpm.cmd build:web`. The root package manifest is the executable command inventory. Retired editor/native application commands and source folders are absent.
 
-Native reviewer development uses Node, Git, browser and source-pinned Windows CI artifacts; ADB/Android SDK is no longer required. Existing GPU Python/GIS environments and historical caches must not be auto-deleted.
+## Local outputs and cleanup
 
-## Outputs and consumers
+`tools/data/worktree-storage.mjs` owns shared immutable frontend outputs and dependencies. `.library-data/frontend-artifacts.json` holds checkout references; runtime leases protect active data. `node_modules` keeps checkout-specific links to the shared pnpm store. Editable sources remain independent.
 
-The existing storage owner (`tools/data/worktree-storage.mjs`) owns immutable blobs, frontend output views under its `frontend/<input-sha256>` directory and fixed per-checkout editor staging under `workspaces/<checkout-id>/editor`. In unconfigured CI checkouts, transient editor staging uses `.library-data/output/editor`.
+`.library-data/`, `build-native/`, `test-results/` and project-created verification profiles are working outputs, not source locations. Keep only current consumers and active incremental outputs. Source watchers must exclude these paths and dependency stores. JS/CSS reload must not prepare all data or invoke native compilation.
 
-`.library-data/frontend-artifacts.json` and `.library-data/native-artifacts.json` reference active immutable products. Runtime server leases are process-scoped under `.library-data/runtime-leases`; they protect pinned library materializations. Source watchers exclude these outputs, `node_modules`, staging and verification profiles. A source refresh prepares library data only when the branch pin changes.
-
-Development native identity excludes JS/CSS, data pins and source HEAD. Windows `offline`/`verification` identities include the actual Viewer/shared frontend, relevant native staging tools, pinned library config, source-matched WASM assets and dependency lockfile; they do **not** recursively hash the archived `apps/editor/frontend` or `apps/editor/templates` trees. The canonical baseline fingerprint now lives at `src/document/project-baseline-fingerprint.js`, loaded by the verification fixture; the GIS template compiler is `tools/gis/project-template-compiler.js`, and historic autosave is test-only; the verification probe itself is hashed only in verification mode. The whitelist is `nativePackagedInputPaths` in `apps/editor/native-contract.mjs`. Both packaged identities also retain `source-commit` because the embedded native build and staged metadata identify the exact Git revision; therefore a **new Git commit still changes packaged identity**, even if it only modifies archived sources. Cross-commit binary reuse would require a separately reviewed provenance/packaging design. Shared C++ fingerprints include only C++/header/CMake sources; frontend changes do not automatically select WASM compilation.
-
-Generated outputs may be retired only after references, servers, native consumers and pending journals have been checked. Unique evidence and original bytes belong in the external library. Permanent worktrees and source are never deduplicated with writable hardlinks.
+Before moving or removing outputs, check pins, mounts, processes, leases and journals. Never traverse data/dependency junctions during source cleanup. Sources, unique evidence and unfinished work remain protected by [AGENTS.md](../AGENTS.md); local compiler restrictions and cleanup follow that policy and [worktree storage](worktree-storage.md).

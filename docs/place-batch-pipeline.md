@@ -1,5 +1,7 @@
 # 도시 지명 16차 이후 대량 조사·검증 절차
 
+> **규범과 작업 기록의 구분:** 후보 선별/검수 원칙은 [지명 정책 안내](policies/places.md) 및 실제 `tools/lib/geonames-policy.mjs`, 현행 자료 계약과 함께 확인한다. 아래 16차 이후 배치 명령·당시 승인 수·타일 생성 결과는 **2026-10 연구 작업의 실행 기록**이며 매 신규 지명 작업에서 수행할 필수 단계나 현재 게시 수를 뜻하지 않는다. 인구·공간 표시등급과 도시 라벨 유효기간은 검수·이름 정규화와 별도 결정이다.
+
 대상: 웹 저장소 `work/places`의 `reports/places/tier1-major-cities-batch*.json` (역사적 지명 조사본). 기존 1~15차 데이터와 `main`, 지도 런타임/타일/배포 manifest는 건드리지 않는다.
 
 ## 역할 구분
@@ -58,7 +60,7 @@ node --test tests/unit/document/place-batch-pipeline.test.mjs
 차수 파일은 검증된 *조사 스테이징* 자료로만 생성된다. 이 명령들은 지도 표시 데이터, 배포 manifest, 앱 저장소, `main`을 변경하지 않는다. `work/places`에 대한 커밋 및 이후 다른 브랜치/앱 통합은 별도 검증과 승인 범위에 따른다.
 
 
-## 2026-10-11: 1~22차 지명 264건 실행 데이터 생성
+## 2026-10-11: 1~22차 지명 264건 실행 데이터 생성 (당시 검증 결과)
 
 - 출처: `reports/places/tier1-major-cities-batch*.json` 22개(264개 고유 GeoNames ID, 명칭 구간 482개). 각 배치 JSON은 변경하지 않는다.
 - 정식 웹 데이터: `assets/data/places/reviewed-records-v1.json`, `places-v1.bin` (PLAC v3, 76,922 bytes), `manifest.json` (검색 접두어 608개). 샤드 SHA-256: `68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6`.

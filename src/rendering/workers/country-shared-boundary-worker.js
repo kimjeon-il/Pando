@@ -118,20 +118,22 @@ function packetResidentEstimate(packet) {
   return [packet, packet.outlineOverrides].reduce((sum, part) =>
     sum + part.startsEnds.byteLength + part.chainPhase.byteLength
       + part.preparedGeometry.instances.byteLength + part.preparedGeometry.nodes.byteLength
-      + part.segments.length * 128, 0);
+      + part.segments.length * 128 + (part.preparedGeometry.visibilityBlocks?.estimatedBytes || 0), 0);
 }
 function copyTransferredArrays(packet) {
-  const copyPart = part => ({...part, startsEnds: part.startsEnds.slice(),
+  const copy = data => data.byteLength ? data.slice() : data;
+  const copyPart = part => ({...part, startsEnds: copy(part.startsEnds),
     preparedGeometry: {...part.preparedGeometry,
-      instances: part.preparedGeometry.instances.slice(),
-      nodes: part.preparedGeometry.nodes.slice()}});
+      instances: copy(part.preparedGeometry.instances),
+      nodes: copy(part.preparedGeometry.nodes)}});
   return {...copyPart(packet), outlineOverrides: copyPart(packet.outlineOverrides)};
 }
 function transferBuffers(packet) {
-  return [packet.startsEnds.buffer, packet.preparedGeometry.instances.buffer,
-    packet.preparedGeometry.nodes.buffer, packet.outlineOverrides.startsEnds.buffer,
-    packet.outlineOverrides.preparedGeometry.instances.buffer,
-    packet.outlineOverrides.preparedGeometry.nodes.buffer];
+  // Empty coast arrays have no resource payload and must never be transferred.
+  // In particular, shared zero-length views retained by the Worker stay attached.
+  return [packet, packet.outlineOverrides].flatMap(part =>
+    [part.startsEnds, part.preparedGeometry.instances, part.preparedGeometry.nodes]
+      .filter(array => array.byteLength > 0).map(array => array.buffer));
 }
 
 const yieldToMessages = () => new Promise(resolve => setTimeout(resolve, 0));
@@ -215,7 +217,14 @@ async function prepareMessage(message) {
       let cached = message.cacheUrl === loadedCacheUrl && message.quality === loadedCacheQuality ? pendingCache : null;
       if (message.cacheUrl && (message.cacheUrl !== loadedCacheUrl || message.quality !== loadedCacheQuality)) {
         try {
-          const response = await fetch(message.cacheUrl);
+          let runtimeFetch=fetch;
+          if(message.externalRuntimeData){
+            const dataModuleUrl=new URL('../modules/external-runtime-data.js',self.location.href);
+            dataModuleUrl.searchParams.set('v',new URL(self.location.href).searchParams.get('v')||'');
+            const {createExternalRuntimeDataFetch}=await import(dataModuleUrl.href);
+            runtimeFetch=createExternalRuntimeDataFetch({meta:{externalRuntimeData:message.externalRuntimeData}});
+          }
+          const response = await runtimeFetch(message.cacheUrl);
           if (!response.ok) throw new Error(`HTTP ${response.status}`);
           const stream = response.body.pipeThrough(new DecompressionStream('gzip'));
           cached = JSON.parse(await new Response(stream).text());
@@ -277,7 +286,7 @@ async function prepareMessage(message) {
       if (profiling) record('state-segments', performance.now() - segmentsStarted,
         {segments: segments.length});
       packet = prepareCountrySharedBoundaryPacket(segments, preparedFeatures,
-        { preparedStore: boundaryState.preparedStore, maxEdgeDegrees: message.quality === 'preview' ? 2 : 0.499,
+        { preparedStore: boundaryState.preparedStore, maxEdgeDegrees: 0.499,
           includeOutlines: message.includeOutlines !== false, profile: record || undefined });
       const retainedStarted = profiling ? performance.now() : 0;
       const retained = retainPreparedPacket(key, packet);

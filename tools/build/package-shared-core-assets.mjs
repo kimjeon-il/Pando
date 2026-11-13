@@ -35,6 +35,10 @@ export function sharedSourceManifest(root) {
 export async function packageSharedCoreAssets(rootInput,buildInput,{check=false,skipChecks=false}={}) {
   if(check&&skipChecks)throw Error('Cannot combine --check and --skip-checks');
   const root=resolve(rootInput),build=resolve(buildInput);
+  // Reject a compiler/runtime pair built under any SDK other than the declared pin.
+  const pinnedToolchain=JSON.parse(readFileSync(join(root,'config/toolchain-versions.json'),'utf8'));
+  assert.equal(pinnedToolchain.schema,'pando-development-toolchain-v1','invalid pinned toolchain schema');
+  assert.match(pinnedToolchain.emscripten,/^[0-9]+[.][0-9]+[.][0-9]+$/,'invalid pinned Emscripten version');
   // Git commits this generated module with LF endings; hash the published bytes.
   const js=Buffer.from(new TextDecoder('utf-8',{fatal:true,ignoreBOM:true})
     .decode(readFileSync(join(build,'pandoeditor-core.js'))).replace(/\r\n/g,'\n'));
@@ -46,11 +50,11 @@ export async function packageSharedCoreAssets(rootInput,buildInput,{check=false,
     const {default:createCore}=await import(url.href);
     const module=await createCore({wasmBinary:wasm});
     assert.equal(module.coreAbiVersion,1,'core ABI mismatch');
-    assert.equal(module.coreCompilerVersion,'6.0.3','core compiler version mismatch');
+    assert.equal(module.coreCompilerVersion,pinnedToolchain.emscripten,'core compiler version mismatch');
     assert.equal(module.coreSourceSha256,identity.sourceSha256,'compiled core source identity mismatch');
   }
   const manifest={schema:'pandoeditor-core-wasm',abiVersion:1,sourceSha256:identity.sourceSha256,
-    compiler:{name:'emscripten',version:'6.0.3'},inputs:identity.inputs,
+    compiler:{name:'emscripten',version:pinnedToolchain.emscripten},inputs:identity.inputs,
     assets:{js:{file:'pandoeditor-core.js',sha256:sha256(js)},wasm:{file:'pandoeditor-core.wasm',sha256:sha256(wasm)}}};
   const destination=join(root,frontendWasmRoot);
   if(check) {

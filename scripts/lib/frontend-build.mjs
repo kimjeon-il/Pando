@@ -8,9 +8,9 @@ import {buildFrontendIndex,emitFrontendModule} from './frontend-layout.mjs';
 import {renderProductHtml} from './product-html.mjs';
 import {buildUiBundles} from '../build-ui-bundle.mjs';
 import {buildWorkerAsset} from './worker-assets.mjs';
-import {collectViewerAssets} from './product-assets.mjs';
+import {collectViewerAssets,viewerDataEntryPaths} from './product-assets.mjs';
+import {collectRuntimeDataAssets} from '../../src/data/runtime-manifest-assets.js';
 import {decodeArchiveEntry,libraryCheckout,libraryConfig} from "../../tools/data/library-context.mjs";
-import {createInitialLandPreviewAsset} from './initial-land-preview.mjs';
 import {validateMapCatalogCoherence} from './map-catalog-coherence.mjs';
 import {MAP_PROJECT_ROLES,validateMapProjectManifest,mapProjectResourcePath,mapProjectResourcePaths,mapProjectManifestSourcePath}
   from '../../src/data/map-project-manifest.js';
@@ -41,12 +41,12 @@ function pinnedContext(root){
  const configuration=libraryConfig(root),checkout=libraryCheckout(root),key=checkout+'|'+configuration.revision;
  if(!pinnedContexts.has(key)){
   const index=JSON.parse(execFileSync('git',['-c','maintenance.auto=false','-c','gc.auto=0','show',configuration.revision+':archive/index.json'],{cwd:checkout,maxBuffer:16*1024*1024}));
-  const bytes=new Map();pinnedContexts.set(key,{revision:configuration.revision,dataPaths:Object.keys(index.files).filter(p=>p.startsWith('assets/data/')),read:path=>{assert.ok(index.files[path],'Missing pinned input: '+path);if(!bytes.has(path))bytes.set(path,decodeArchiveEntry(checkout,index.files[path],configuration.revision));return bytes.get(path);}});
+  const bytes=new Map();pinnedContexts.set(key,{revision:configuration.revision,index,dataPaths:Object.keys(index.files).filter(p=>p.startsWith('assets/data/')),read:path=>{assert.ok(index.files[path],'Missing pinned input: '+path);if(!bytes.has(path))bytes.set(path,decodeArchiveEntry(checkout,index.files[path],configuration.revision));return bytes.get(path);}});
  }
  return pinnedContexts.get(key);
 }
 /** Build the one Viewer runtime shared by browser and Windows review, without output mutations. */
-export async function buildFrontendSnapshot({root=process.cwd(),sourceCommit,readPinnedData,dataPaths,readSourceBytes,resourceProfile,projectId='default-world',workerSourceTransform=(_path,source)=>source}={}){
+export async function buildFrontendSnapshot({root=process.cwd(),sourceCommit,readPinnedData,dataPaths,readSourceBytes,resourceProfile,projectId='default-world',terrainExternalSource=null,externalRuntimeData=false,workerSourceTransform=(_path,source)=>source}={}){
  if(resourceProfile!==undefined&&!['map-data','test-fixture'].includes(resourceProfile))throw Error('Invalid frontend resource profile');
  root=resolve(root);const pinned=readPinnedData?null:pinnedContext(root);
  readPinnedData??=pinned.read;dataPaths??=pinned.dataPaths;
@@ -102,19 +102,48 @@ export async function buildFrontendSnapshot({root=process.cwd(),sourceCommit,rea
    return [path,{value,sha256:hash(bytes),bytes:bytes.length}];
  }));
  const metadata=Object.fromEntries(metadataPaths.map(path=>[path,catalogInputs[path].value]));
- const land=metadata[resource('physicalLand')];
  const {hydroVersion,preparedMeshesCurrent}=validateMapCatalogCoherence(
    mapProject,metadata,path=>catalogInputs[path].sha256);
+ const terrainPackaging=metadata[resource('terrain')].packaging;
+ if(terrainPackaging && !terrainExternalSource){
+   if(!/^[a-f0-9]{40}$/.test(terrainPackaging.sourceRevision||'')
+     || terrainPackaging.sourcePath!==`terrain/v${metadata[resource('terrain')].version}/manifest.json`)
+     throw Error('Invalid pinned external terrain source');
+   terrainExternalSource={revision:terrainPackaging.sourceRevision};
+ }
  const projectCatalogs=Object.fromEntries(MAP_PROJECT_ROLES.map(role=>{
    const path=resource(role),receipt=catalogInputs[path];
    return [role,{catalog:path,sha256:receipt.sha256,bytes:receipt.bytes,
      ...(role==='rivers'||role==='lakes'?{version:hydroVersion}:{}),
      ...(role==='preparedMeshes'?{current:preparedMeshesCurrent}:{})}];
  }));
+ let externalData;
+ if(externalRuntimeData){
+   if(!pinned)throw Error('External runtime data requires the pinned archive index');
+   const selected=collectRuntimeDataAssets({availablePaths:dataPaths,entryPaths:viewerDataEntryPaths,projectManifest:mapProject,
+     preparedMeshesCurrent,readManifest:path=>JSON.parse(readPinnedData(path))});
+   const terrain=metadata[resource('terrain')],terrainBase=resource('terrain').replace(/[^/]+$/,'');
+   for(const key of Object.keys(terrain.tiles||{}))selected.delete(terrainBase+key);
+   const files=Object.fromEntries([...selected].sort().map(path=>{
+     const entry=pinned.index.files[path];
+     if(!entry)throw Error('Missing pinned archive entry: '+path);
+     return [path,{stored:entry.stored,encoding:entry.encoding,bytes:entry.bytes,sha256:entry.sha256}];
+   }));
+   const hydro=metadata[resource('rivers')],hydroBase=resource('rivers').replace(/[^/]+$/,'');
+   if(hydro.container){
+     const entry=files[hydroBase+hydro.container.url];
+     if(!entry||entry.encoding!=='identity')throw Error('External hydro container must have identity storage');
+     const segments=[hydro.index,hydro.metadata?.core,hydro.metadata?.detail,...hydro.shards].filter(Boolean);
+     entry.segments=segments.map(({offset,bytes,sha256,url})=>{
+       if(url!==hydro.container.url||!Number.isSafeInteger(offset)||offset<0||!Number.isSafeInteger(bytes)||bytes<1
+          ||offset+bytes>entry.bytes||!/^[a-f0-9]{64}$/.test(sha256||''))throw Error('Invalid external hydro segment');
+       return {offset,bytes,sha256};
+     });
+   }
+   externalData={revision:pinned.revision,files};
+ }
  const dataRevision='data-'+hash(JSON.stringify([mapProject.projectId,mapProject.resources,
    metadataPaths.map(path=>[path,catalogInputs[path].sha256])])).slice(0,32);
- const initialLandPreview=createInitialLandPreviewAsset(readPinnedData(land.asset.url),land.asset);
- generated(initialLandPreview.spec.url,initialLandPreview.bytes,'viewer');
  const projectBytes=Buffer.from(projectSource);
  const projectManifestPath='assets/data/projects/'+mapProject.projectId+'/manifest.json';
  generated(projectManifestPath,projectBytes,'viewer');
@@ -124,8 +153,10 @@ export async function buildFrontendSnapshot({root=process.cwd(),sourceCommit,rea
  // integrity receipt per role. No duplicate world/terrain/water catalog is
  // expanded into process-global build metadata.
  const buildMeta={appVersion,buildId,assetRevision,dataRevision,sourceCommit,dataCommit:pinned?.revision||null,...resourceProfile?{resourceProfile}:{},
+   ...(terrainExternalSource?{terrainExternalSource}:{}),
+   ...(externalData?{externalRuntimeData:externalData}:{}),
    mapProject,mapProjectManifest,projectCatalogs,
-   workerAssets,initialLandPreview:initialLandPreview.spec};
+   workerAssets};
  generated('assets/js/build-meta.js','// Generated product identity.\nglobalThis.PANDOLAB_BUILD_META = Object.freeze('+JSON.stringify(buildMeta,null,2)+');\n');
  const templates=renderProductHtml(sourceText),moduleImports=Object.fromEntries([...assets.keys()].filter(p=>p.startsWith('assets/js/')&&p.endsWith('.js')).map(p=>['./'+p,'./'+p+'?v='+encodeURIComponent(assetRevision)]));
  const render=(template,imports)=>{

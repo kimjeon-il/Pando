@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { validateGeometry } from "../../src/geometry/geometry-validation.js";
 import {updateTerritorialSource} from "../data/territorial-entity-sources.mjs";
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const artifactPath = process.argv[2];
 if (!artifactPath) throw new Error('Usage: node tools/gis/import-east-prussia-rebuild.mjs <reviewed GeoJSON path>');
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');

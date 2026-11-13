@@ -4,7 +4,7 @@ import {normalizeTerritorialGeometryVersion} from '../../tools/gis/territorial-l
 import {normalizeTerritorialSourceDescriptor} from '../../tools/data/territorial-entity-sources.mjs';
 import {territorialSourceIndex} from '../../tools/data/territorial-source-archive.mjs';
 const MAX=32*1024*1024;
-const FAMILIES=Object.freeze(['territorial','current-world','world-mesh','world-preview','world-bundle','shared-boundaries','builtin-world','prepared-mesh']);
+const FAMILIES=Object.freeze(['territorial','current-world','world-mesh','world-country-packet','world-bundle','shared-boundaries','builtin-world','prepared-mesh']);
 const hash=b=>createHash('sha256').update(b).digest('hex');
 const stable=v=>JSON.stringify(canonical(v));
 function canonical(v){return Array.isArray(v)?v.map(canonical):v&&typeof v==='object'?Object.fromEntries(Object.keys(v).sort().map(k=>[k,canonical(v[k])])):v;}

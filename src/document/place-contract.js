@@ -6,7 +6,7 @@ export const PLACE_KINDS = Object.freeze(['capital', 'city', 'region', 'town', '
 export const PLACE_LANGUAGES = Object.freeze(['ko', 'en', 'native']);
 export const DEFAULT_PLACE_LANGUAGES = Object.freeze({ ko: true, en: false, native: false });
 export const PLACE_NAME_TRANSITION_LIMIT = 16;
-/** Versioned platform-neutral binary contract, also exported as contracts/places/v3.json. */
+/** Canonical platform-neutral PLAC binary format; frozen bytes are tested separately. */
 export const PLACE_TILE_FORMAT = Object.freeze({
   magic: 0x43414c50,
   version: 3,
@@ -120,6 +120,7 @@ export function selectedPlaceNames(place) {
     ...(place.nameTimeline || []).flatMap(entry => [entry.ko, entry.en, entry.native,
       ...(entry.nativeExtras || [])])].filter(value => typeof value === 'string' && value.trim());
 }
+/** Candidate ordering consumes the population/spatial score emitted by the pinned place manifest. */
 export function comparePlaces(a, b) {
   return b.priority - a.priority || b.population - a.population || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
 }

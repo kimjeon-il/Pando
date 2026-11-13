@@ -239,23 +239,29 @@ test('renderer disposal is idempotent and prevents deferred initialization', asy
   assert.equal(renderer.getRenderDevice(), null);
   assert.equal(requestedFrames, 0);
 });
-test('timeline changes release modern preview ownership', t => {
+test('project changes revoke pending country presentation without reintroducing a preview mesh', t => {
   const previous = globalThis.window; globalThis.window = { devicePixelRatio: 1 };
   t.after(() => { globalThis.window = previous; });
-  const state = { projection: 'globe', view: { globeZoom: 1 }, countryVisualPhase: 'preview' };
-  state.physicalSettings = {};
+  const state = { projection: 'globe', view: { globeZoom: 1 }, countryVisualPhase: 'canonical',
+    physicalSettings: { terrainVisible: false }, pendingCountryRenderIds: new Set(),
+    layerVisibility: { objects: true } };
   const renderer = createGpuMapRenderer({ state, runtimeAssetUrl: path => path,
+    getPhysicalContextState: () => ({ ready: true, error: null, landRevision: null, waterRevision: null }),
+    mapWorkScheduler: { cancel() {} }, rendererUi: {}, isMobile: () => false,
     renderCountryBoundaryFeatures: () => [], countryBoundaryStyleById: () => null, scheduleGpuFrame: () => {} });
-  assert.equal(typeof renderer.invalidateCountryPreview, 'function');
-  renderer.invalidateCountryPreview();
-  assert.equal(renderer.getRuntimeState().previewAllowed, false);
-  assert.equal(state.countryVisualPhase, 'canonical'); renderer.dispose();
+  try {
+    renderer.resetProjectRenderState({ generation: 1 });
+    assert.equal(renderer.getRuntimeState().surfacePresentation.quality, 'pending');
+    assert.equal(renderer.getRuntimeState().projectRenderBlocked, true);
+    assert.equal(state.countryVisualPhase, 'canonical', 'no legacy preview phase is introduced');
+  } finally { renderer.dispose(); }
 });
 
 test('temporal presentation wait is cancelled by a newer generation and rejects stale requests',async t=>{
   const previous=globalThis.window;globalThis.window={devicePixelRatio:1};
   t.after(()=>{globalThis.window=previous;});
-  const renderer=createGpuMapRenderer({state:{physicalSettings:{},pendingCountryRenderIds:new Set()},rendererUi:{},isMobile:()=>false,mapWorkScheduler:{cancel(){}},runtimeAssetUrl:path=>path,
+  const renderer=createGpuMapRenderer({state:{physicalSettings:{terrainVisible:false},layerVisibility:{objects:true},pendingCountryRenderIds:new Set()},rendererUi:{},isMobile:()=>false,mapWorkScheduler:{cancel(){}},
+    getPhysicalContextState:()=>({ready:true,error:null,landRevision:null,waterRevision:null}),runtimeAssetUrl:path=>path,
     renderCountryBoundaryFeatures:()=>[],countryBoundaryStyleById:()=>null,scheduleGpuFrame:()=>{}});
   renderer.resetProjectRenderState({generation:1,presentation:'temporal'});
   assert.equal(renderer.canPresentVisualFrame({frameId:1,projectGeneration:1}),false);

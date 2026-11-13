@@ -1,4 +1,5 @@
-import {TERRAIN_DEM_VERSION,selectTerrainManifestUrls,terrainRasterManifestUrl} from "./terrain-manifest.js";
+import {TERRAIN_DEM_VERSION} from "./terrain-manifest.js";
+import {NATURAL_SURFACE_PREVIEW_CATALOG} from "./terrain-natural-candidate.js";
 import {mapProjectResourcePath} from "./map-project-manifest.js";
 export const HYDRO_TOOL_CONFIG = Object.freeze({
       river: Object.freeze({ geometry: 'LineString', category: 'river', label: '강', color: '#3b82c4', prefix: 'river' }),
@@ -15,20 +16,16 @@ export const TERRAIN_OCEAN_REPRESENTATIVE = '#6aa8d2';
 
 export const PHYSICAL_DATASET='HydroRIVERS 1.0 · Natural Earth 5.0.0 호수 · ETOPO 2022 DEM';
 /** Same source/profile policy for browser and packaged application resources. */
-export function createPhysicalSourceConfiguration({assetBaseUrl,dataRevision,resourceProfile,mapProject=null,search=location.search,devManifest=globalThis.PANDOLAB_DEV_DEM_MANIFEST_URL}){
+export function createPhysicalSourceConfiguration({assetBaseUrl,dataRevision,resourceProfile,mapProject,search=globalThis.location?.search || '',devManifest=globalThis.PANDOLAB_DEV_DEM_MANIFEST_URL}) {
+ if(!mapProject) throw new Error('프로젝트 지형 카탈로그가 필요합니다.');
  const params=new URLSearchParams(search),dataBase=new URL('../data/',assetBaseUrl);
- const raster=terrainRasterManifestUrl(dataBase,dataRevision);
- const local=params.get('demTerrain')==='local'?`http://127.0.0.1:4174/terrain/v${TERRAIN_DEM_VERSION}/manifest.json`:null;
- const dev=devManifest||local?new URL(String(devManifest||local),dataBase):null;
- const projectTerrain=mapProject?new URL(mapProjectResourcePath(mapProject,'terrain').slice('assets/data/'.length),dataBase):null;
- if(projectTerrain)projectTerrain.searchParams.set('v',dataRevision);
- const selection=projectTerrain
-  ?selectTerrainManifestUrls({official:projectTerrain,raster:projectTerrain,
-    dev:resourceProfile==='map-data'||params.get('demTerrain')!=='local'?null:dev,
-    rasterOnly:true})
-  :selectTerrainManifestUrls({official:new URL(`https://kimjeon-il.github.io/PandoLab-library-data/terrain/v${TERRAIN_DEM_VERSION}/manifest.json`),
-    raster,dev:resourceProfile==='map-data'?null:dev,preview:params.get('demTerrain')==='preview',
-    rasterOnly:resourceProfile==='map-data'||params.get('demTerrain')==='raster',defaultDem:true});
- return Object.freeze({PHYSICAL_DATA_BASE_URL:dataBase,TERRAIN_RASTER_MANIFEST_URL:raster,TERRAIN_DEV_DEM_MANIFEST_URL:dev,
-  TERRAIN_PRIMARY_MANIFEST_URL:selection.primary,TERRAIN_FALLBACK_MANIFEST_URL:selection.fallback,TERRAIN_SOURCE_CHOICE:selection.source});
+ const projectTerrain=new URL(mapProjectResourcePath(mapProject,'terrain').slice('assets/data/'.length),dataBase);
+ projectTerrain.searchParams.set('v',dataRevision);
+ const useDevelopment=resourceProfile!=='map-data' && params.get('demTerrain')==='local';
+ const dev=useDevelopment?new URL(String(devManifest || `http://127.0.0.1:4174/terrain/v${TERRAIN_DEM_VERSION}/manifest.json`),dataBase):null;
+ // Explicit preview only: the shipped project data pin is not replaced.
+ const naturalPreview=params.get('naturalTerrain')==='preview'?new URL(NATURAL_SURFACE_PREVIEW_CATALOG):null;
+ return Object.freeze({PHYSICAL_DATA_BASE_URL:dataBase,TERRAIN_DEV_DEM_MANIFEST_URL:dev,
+  TERRAIN_PRIMARY_MANIFEST_URL:dev || projectTerrain,TERRAIN_SOURCE_CHOICE:dev?'development':'project',
+  TERRAIN_NATURAL_PREVIEW_CATALOG_URL:naturalPreview});
 }

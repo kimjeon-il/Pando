@@ -15,6 +15,20 @@ import * as artifactOwners from "../../../scripts/lib/p2-artifact-graph.mjs";
 import { publishGeneratedArtifacts,publishP2FromWorkflow,assertP2LibraryPublicationBase } from "../../../scripts/p2-publish-artifacts.mjs";
 
 const digest=bytes=>createHash('sha256').update(bytes).digest('hex');
+test('pinned archive planning matches mounted hashes without reading output payloads',t=>{
+ const f=fixture(t),source='assets/data/example/input.json',output='assets/data/example/output.bin';
+ const values={[source]:Buffer.from('{"value":1}\r\n'),[output]:Buffer.from('large prepared payload')};
+ for(const [path,bytes] of Object.entries(values))f.put(path,bytes);
+ f.put('config/generated-artifacts.json',JSON.stringify({schema:'pandolab-generated-artifact-graph',schemaVersion:1,
+  families:[{id:'example',inputs:[source],outputs:['assets/data/example/output.bin'],dependencies:[],generate:[],validate:[]}]}));
+ const before=graphStatus(f.root),reads=[];
+ const archive={files:Object.fromEntries(Object.entries(values).map(([path,bytes])=>[path,{sha256:digest(bytes)}])),
+  read(path){reads.push(path);return values[path];}};
+ f.put(output,'different mounted edition');
+ assert.deepEqual(graphStatus(f.root,{archive}),before);
+ assert.ok(!reads.includes(output),'output integrity is compared by pinned identity without hydration');
+ assert.ok(reads.includes(source),'text input fingerprints retain newline normalization');
+});
 test('P2 isolates the generated work branch from a newer source-library work/gis branch',()=>{
   const pin='2fc08b781d9dc6a7709b6ac75c5a05ff3d935bff',gis='8beb97cca9992ae2099ab0ce19dca4d62f10961a';
   const proposed=assertP2LibraryPublicationBase({pinnedRevision:pin,
@@ -164,7 +178,7 @@ const integrationPresentationChanges=[
   'tests/unit/build/p2-artifact-plan.test.mjs',
 ];
 const staleDataFamilyIds=['territorial','current-world','builtin-world','world-mesh',
-  'world-preview','world-bundle','shared-boundaries','prepared-mesh','places'];
+  'world-country-packet','world-bundle','shared-boundaries','prepared-mesh','places'];
 function nativeValidationFixture(t) {
   const f=fixture(t);
   f.put('tools/generate.mjs','export const generator=1;\n');
@@ -420,11 +434,34 @@ test('a concurrent remote commit survives the final publication guard',async t=>
 });
 
 
+test('P2 terrain and Hydro owners follow the active project catalog instead of an obsolete version',t=>{
+ const f=fixture(t);
+ const project=JSON.parse(readFileSync(new URL('../../../projects/default-world/manifest.json',import.meta.url),'utf8'));
+ f.put('projects/default-world/manifest.json',JSON.stringify(project));
+ const families=['terrain','hydro'].map(id=>({id,resolve:id,inputs:[],outputs:[],generate:[],validate:[],dependencies:[]}));
+ f.put('config/generated-artifacts.json',JSON.stringify({schema:'pandolab-generated-artifact-graph',schemaVersion:1,families}));
+ const terrain=project.resources.terrain.catalog,hydro=project.resources.rivers.catalog;
+ f.put(terrain,JSON.stringify({sources:{source:{url:'https://example.invalid/dem',sha256:'a'.repeat(64)}}}));
+ f.put(hydro,JSON.stringify({sources:{source:{url:'https://example.invalid/hydro',sha256:'b'.repeat(64)}}}));
+ const current=artifactGraph(f.root);
+ assert.deepEqual(current.map(x=>x.outputs),[
+   [terrain.slice(0,terrain.lastIndexOf('/')+1)],
+   [hydro.slice(0,hydro.lastIndexOf('/')+1)]
+ ]);
+ assert.equal(current[0].provenance[0].sha256,'a'.repeat(64));
+ assert.equal(current[1].provenance[0].sha256,'b'.repeat(64));
+ project.resources.terrain.catalog='assets/data/terrain/v0.15.0/manifest.json';
+ f.put('projects/default-world/manifest.json',JSON.stringify(project));
+ assert.throws(()=>artifactGraph(f.root),/ENOENT/,'missing newly selected catalog must fail closed');
+ f.put(project.resources.terrain.catalog,JSON.stringify({sources:{}}));
+ assert.equal(artifactGraph(f.root)[0].outputs[0],'assets/data/terrain/v0.15.0/');
+});
+
 test('world bundle ownership follows the current manifest rather than every cached object', t => {
   const f=fixture(t);
   f.put('assets/data/world/build-input.json',JSON.stringify({legacyPreviewManifest:'legacy.json'}));
   f.put('assets/data/legacy.json',JSON.stringify({assets:{},sharedBoundaries:{}}));
-  f.put('assets/data/world/current.json',JSON.stringify({assets:{packet:{url:'world/objects/current.bin'}}}));
+  f.put('assets/data/world/current.json',JSON.stringify({assets:{canonicalCountryPacket:{url:'world/objects/current.bin'}}}));
   f.put('assets/data/world/objects/current.bin','current');
   f.put('assets/data/world/objects/retired.bin','retired');
   f.put('config/generated-artifacts.json',JSON.stringify({schema:'pandolab-generated-artifact-graph',schemaVersion:1,

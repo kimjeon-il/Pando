@@ -58,10 +58,10 @@ export async function composeViewer({ productMode, meta }) {
   const runtimeMeta=Object.freeze({...meta,mapProject:projectRuntime.project,...physical});
   const runtimeContext=createRuntimeContext({productMode,meta:runtimeMeta,assetBaseUrl,platform:createPlatformPorts({kind:'browser'})});
   const projection='globe';
-  let map,previousView,display,projectClock,syncStatus,presentedMonth=null;
+  let map,previousView,display,projectClock,syncStatus,preferencesDialog,presentedMonth=null;
   const inspectParams=new URLSearchParams(window.location.search);
   let inspectorController=null;
-  const initialPresentation=createViewerInitialPresentation({onPresented:()=>{get('viewer').dataset.initialLoading='false';map.finishInitialPreview();}});
+  const initialPresentation=createViewerInitialPresentation({onPresented:()=>{get('viewer').dataset.initialLoading='false';}});
   const preferencePresentation=createPreferencePresentation({document,window,productMode,onChange:change=>{if(map)map.refreshAppearance(change);}});
   const diagnostics=createDiagnosticLog({limit:250});
   const tooltipController=createTooltipController({document,window,tooltip:get('uiTooltip'),clamp:(value,min,max)=>Math.max(min,Math.min(max,value))});
@@ -210,11 +210,6 @@ export async function composeViewer({ productMode, meta }) {
   });
   disposables.push({dispose:disposeTimeline});
   const open=async (reader,options)=>{
-    if (initialPresentation.hasPresented()) {
-      // First-page effects must not replay or overlap later date/file opens.
-      get('viewer').dataset.initialReveal = 'complete';
-      map.cancelInitialReveal();
-    }
     postPresentation.invalidate();
     const searchTicket=searchController.beginProjectTransition?.();
     const preserved=options?.preserveView?map.capturePresentation():null;
@@ -311,7 +306,13 @@ export async function composeViewer({ productMode, meta }) {
       map.renderer.finishTemporalViewTransition(temporalTicket);
       if(current()){
         if(previous&&previous!==month&&activeSession.commandOwner.state().timelineCursor===month)
-          try{await applyDocumentMonth(previous);}catch(restoreError){error.restoreError=restoreError;}
+          try{
+            // Do not report the prior map as restored merely because its C++
+            // cursor was reset. Wait for that generation's real replacement
+            // picture before releasing the date control's loading state.
+            const restored=await applyDocumentMonth(previous,{isCurrent:current,waitForFrame:true});
+            if(!restored)throw new Error('Previous dated map was not restored.');
+          }catch(restoreError){error.restoreError=restoreError;}
         status.dataset.ready=String(previouslyReady&&!error.restoreError);
       }
       throw error;
@@ -353,8 +354,15 @@ export async function composeViewer({ productMode, meta }) {
   });
   disposables.push(projectClock);
   const openUserProject=async(reader,options)=>{
-    projectClock.cancelPending();
-    return open(reader,options);
+    const finish=projectClock.beginExternalOpen();
+    try {
+      const accepted=await open(reader,options);
+      finish(accepted);
+      return accepted;
+    } catch(error) {
+      finish(false);
+      throw error;
+    }
   };
   const fileElements={projectOpen:get('openProjectBtn'),projectInput:get('projectFileInput')};
   const files=createFileController({productMode,elements:fileElements,fileAccess:createBrowserFileAccess({productMode,elements:fileElements,window,document}),projectDomain,openProject:openUserProject,reportOperationError:report,window,document});
@@ -369,15 +377,14 @@ export async function composeViewer({ productMode, meta }) {
     projectState:{get state(){return map.displayState();}},
     objectModelA:{expandedMapDisplayGroups:map.objectPresentation.expandedMapDisplayGroups},territorialModel:{entityRepository:map.entityRepository},
     applicationServicesB:{layerStyle},applicationConstantsA:{DISTRIBUTION_RENDER_MODES},
-    preferences:{saveUserPreferences,get userPreferences(){return preferencePresentation.current;},setUserPreferences:value=>{preferencePresentation.current=value;}},
+    preferences:{saveUserPreferences,get userPreferences(){return preferencePresentation.current;},setUserPreferences:value=>{preferencePresentation.current=value;},renderPreferences:()=>preferencePresentation.apply(preferencePresentation.current,{persist:false})},
     hydroModel:owners.hydroSettings,
     workspaceUiA:surfaces,workspaceUiB:surfaces,
   });
-  display.initializeLAYER_STYLE_TARGETS();
   disposables.push(display);
   const navigationBindings=createNavigationBindings();
   navigationBindings.connect({platform:{$:get},workspaceUiA:surfaces,workspaceUiB:surfaces,workspaceUiC:surfaces,surfaces,
-    mapSettingsUi:display,navigation:map.navigation,projectState:{state:map.viewState},objectPicking:map.objectPicking,
+    navigation:map.navigation,projectState:{state:map.viewState},objectPicking:map.objectPicking,
     readinessUi:notifications});
   navigationBindings.bindNavigationUI();
   disposables.push(navigationBindings);
@@ -386,12 +393,23 @@ export async function composeViewer({ productMode, meta }) {
     element.addEventListener('click',handler);
     actionSubscriptions.push(()=>element.removeEventListener('click',handler));
   }
-  const preferencesDialog=createPreferencesDialog({document,productMode,returnFocus:()=>get(surfaces.isMobile()?'mobileMenuBtn':'preferencesBtn'),getPreferences:()=>preferencePresentation.current,
-    applyPreferences:value=>preferencePresentation.apply(value,{persist:false}),beforeOpen:()=>surfaces.closeFileMenu()});
+  preferencesDialog=createPreferencesDialog({document,window,productMode,
+    returnFocus:()=>get(surfaces.isMobile()?'mobileMenuBtn':'preferencesBtn'),
+    getPreferences:()=>preferencePresentation.current,getMapState:()=>map.displayState(),mapSettings:display,
+    applyPreferences:value=>preferencePresentation.apply(value,{persist:true}),
+    onError:report,beforeOpen:()=>surfaces.closeFileMenu()});
   disposables.push(preferencesDialog);
+  const onProjectMapStyle = () => {
+    void display.applyMapStyle(preferencePresentation.current.appearance.mapStyle)
+      .then(()=>preferencesDialog?.sync())
+      .catch(error => report(error,'프로젝트 지도 테마를 적용하지 못했습니다.','PL-MAP-STYLE-PROJECT'));
+  };
+  window.addEventListener('pandolab:project-changed', onProjectMapStyle);
+  disposables.push({ dispose: () => window.removeEventListener('pandolab:project-changed', onProjectMapStyle) });
   if(inspectParams.get('debug')==='1')globalThis.__PANDOLAB_VIEWER__=Object.freeze({initialMapPresented:initialPresentation.hasPresented,productMode,documentState:()=>activeSession?.commandOwner.state(),
     documentSnapshot:()=>activeSession?.documentModel.snapshot(),resolvedWorld:()=>activeSession?.documentModel.world(),selectionSnapshot:()=>activeSession?.selectionDomain.snapshot().selection,
-    diagnostics:diagnostics.snapshot,rendererStats:()=>map.renderer.getStats(),visibleTerritorialCount:()=>map.objectQuery.visibleTerritorialCount(),
+    diagnostics:diagnostics.snapshot,rendererStats:()=>map.renderer.getStats(),
+    interactionBoundary:()=>{const boundary=map.renderer.getCountryInteractionBoundaryData();return {revision:boundary.revision,baseLineIndexCount:boundary.base?.lineIndices?.length || 0};},visibleTerritorialCount:()=>map.objectQuery.visibleTerritorialCount(),
     mapProjection:()=>map.viewState.projection,readOnly:documentSession.readOnly,
     openFile:file=>openUserProject(()=>readProjectFile(file)),builtinMonth:()=>({
       month:activeSession.commandOwner.state().timelineCursor,
@@ -413,5 +431,9 @@ export async function composeViewer({ productMode, meta }) {
     },
     onError:error=>{presentViewerLoadStatus(status,'지도를 불러오지 못했습니다. 새로고침해 다시 시도하세요.',{error:true});report(error,'지도를 불러오지 못했습니다.','PL-MAP-START');},reportDisposeError:error=>console.error('[PL-DISPOSE]',error)});
   await lifecycle.start();
+  // Restore the selected global map style against the newly admitted project.
+  await display.applyMapStyle(preferencePresentation.current.appearance.mapStyle).catch(error => report(error,
+    '지도 테마를 복원하지 못했습니다.', 'PL-MAP-STYLE-RESTORE'));
+  preferencesDialog.sync();
   await inspectorController?.openAfterStartup();
 }

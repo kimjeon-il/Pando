@@ -151,7 +151,7 @@ struct TerritorialUnit {
     // Additional supported annotation metadata, lossless through the codec.
     std::string metadata="{}", sourceFolderId, sourceEntityId, sourceGeometryVersion;
 };
-struct ObjectStyle { std::uint32_t color=0xa8c7db; double opacity=1; bool explicitColor=true; };
+struct ObjectStyle { std::uint32_t color=0xa8c7db; bool explicitColor=true; };
 // Immutable codec evidence for the current native file's hydro item namespace.
 // Visibility itself lives only in WebPresentation::itemVisibility["hydro"].
 struct PresentationCatalog {
@@ -206,7 +206,6 @@ struct CountryView {
     // Resolved explicit/default display color: a snapshot value, not a borrowed conditional.
     std::uint32_t color;
     const std::string& memo;
-    const double& opacity;
     const bool& locked;
 };
 struct DocumentIndex {

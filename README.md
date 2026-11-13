@@ -2,18 +2,20 @@
 
 1801년 이후의 세계 역사 지도와 국가·영토 속성을 탐색하는 PC·모바일 웹 열람기입니다. 검수 기능은 웹 Viewer에 통합되어 있습니다. Natural Earth 5.1.1의 1:10m 국가 데이터와 지형 음영, HydroRIVERS 강·Natural Earth 호수를 사용합니다.
 
-이 저장소는 PC·모바일 웹 Viewer(`src/app`), [공통 C++ 코어](docs/core.md)와 배포·검수 도구를 관리합니다. 원본 GIS 자료 및 [조사·검증 보고서](https://github.com/kimjeon-il/PandoLab-library-data/blob/f4ae4d70579b8c799fba2e507e1a948b7e1e42c2/reports/README.md)는 외부 라이브러리에 보관합니다. 독립 Windows 검수기와 Android 네이티브 앱은 폐기됐습니다.
+이 저장소는 PC·모바일 웹 Viewer(`src/app`), [공통 C++ 코어](docs/core.md)와 배포·검수 도구를 관리합니다. 원본 GIS 자료 및 [조사·검증 보고서](https://github.com/kimjeon-il/PandoLab-library/blob/f4ae4d70579b8c799fba2e507e1a948b7e1e42c2/reports/README.md)는 외부 라이브러리에 보관합니다. 독립 Windows 검수기와 Android 네이티브 앱은 폐기됐습니다.
 
 v0.34.0부터 분포는 고정된 언어·민족·종교 분류 대신 이름·단위·숫자값으로 관리합니다. 소수·0·음수를 저장할 수 있고, 분포별 자동 또는 직접 지정한 값 범위로 색 농도를 정합니다. 보기 메뉴에서는 모든 분포를 겹쳐 보거나 한 분포만 표시할 수 있습니다.
 
 ## 개발 브랜치·워크트리 운영
 
-웹·앱 공통 작업 브랜치(`work/ui`, `work/objects`, `work/gis`, `work/places`)와
+웹 Viewer의 분야별 상설 작업 브랜치(`work/ui`, `work/objects`, `work/gis`, `work/places`)와
 분야별 **상설 로컬 워크트리 재사용** 원칙은 [브랜치·워크트리 운영 정책](docs/branch-policy.md)을
 참고하세요. 개발 에이전트의 필수 규칙은 [AGENTS.md](AGENTS.md)에 정리되어 있습니다.
 작업별로 브랜치·워크트리를 새로 만들거나 작업 종료 시 자동 삭제하지 않습니다.
 
-조사·검증 보고서는 [보고서 색인](https://github.com/kimjeon-il/PandoLab-library-data/blob/f4ae4d70579b8c799fba2e507e1a948b7e1e42c2/reports/README.md)에서 분야와 상태별로 찾을 수 있습니다.
+저장소 전반의 정책·규칙 위치, 현재 정본과 구형 참조 정리 상태는 [정책·규칙 중앙 색인](docs/policies/README.md)에서 확인합니다. 현재 검사 기준은 [검증 계약](docs/policies/validation.md)을 따릅니다.
+
+조사·검증 보고서는 [보고서 색인](https://github.com/kimjeon-il/PandoLab-library/blob/f4ae4d70579b8c799fba2e507e1a948b7e1e42c2/reports/README.md)에서 분야와 상태별로 찾을 수 있습니다.
 
 공개 웹은 main의 `config/library-data.json`에 고정한 자료만 사용합니다. 완료한 자료의 보관·푸시·원격 확인 후 해당 핀을 main에 반영하면 웹 배포와 실제 응답 확인까지 자동으로 이어집니다. 작업 중 저장·동기화와 보고서 보관은 공개 게시를 발생시키지 않습니다. 자세한 절차는 [외부 라이브러리 자료](docs/library-data.md)를 참고하세요.
 
@@ -47,7 +49,7 @@ Windows에서 PowerShell 실행 정책이 `pnpm.ps1`을 막으면 `pnpm.cmd`를 
 GIS 생성기와 관련 검사는 Node.js와 기능별 네이티브 도구를 사용합니다.
 
 현재 계약으로 검사 파일과 CI를 검수한 범위·실행 증거는
-[검사 최신화 기록](https://github.com/kimjeon-il/PandoLab-library-data/blob/f4ae4d70579b8c799fba2e507e1a948b7e1e42c2/reports/development/testing/validation-audit.md)에 기록합니다.
+[검사 최신화 기록](https://github.com/kimjeon-il/PandoLab-library/blob/f4ae4d70579b8c799fba2e507e1a948b7e1e42c2/reports/development/testing/validation-audit.md)에 기록합니다.
 
 ## GitHub Pages 배포
 
@@ -207,7 +209,7 @@ node tools/gis/calibrate-hydro.mjs `
   --output reports/hydro/calibration/<새-분석-폴더>
 ```
 
-소스와 일치하는 네이티브 Hydro 계산기·GEOS 점 검사기·이미지/미리보기 도구가 필요합니다. Windows에서는 `PANDO_HYDRO_RUNTIME_ROOT`에 일치하는 OSGeo4W 경로를 지정합니다. 분석 출력은 `assets/data` 아래로 지정할 수 없으며 기존 폴더를 덮어쓰지 않습니다. 캘리브레이션 원본 결과는 [`reports/hydro/calibration/`](https://github.com/kimjeon-il/PandoLab-library-data/blob/f4ae4d70579b8c799fba2e507e1a948b7e1e42c2/reports/hydro-calibration/README.md)에 보존되어 있습니다.
+소스와 일치하는 네이티브 Hydro 계산기·GEOS 점 검사기·이미지/미리보기 도구가 필요합니다. Windows에서는 `PANDO_HYDRO_RUNTIME_ROOT`에 일치하는 OSGeo4W 경로를 지정합니다. 분석 출력은 `assets/data` 아래로 지정할 수 없으며 기존 폴더를 덮어쓰지 않습니다. 캘리브레이션 원본 결과는 [`reports/hydro/calibration/`](https://github.com/kimjeon-il/PandoLab-library/blob/f4ae4d70579b8c799fba2e507e1a948b7e1e42c2/reports/hydro-calibration/README.md)에 보존되어 있습니다.
 
 실제 v0.13.1 수계 샤드는 다음 명령으로 다시 생성합니다. 아홉 개 HydroRIVERS 대륙 Shapefile, 저장소의 Natural Earth `lakes_base.geojson`, 검수 교정표와 빌드용 OSM waterway 관계 내보내기를 사용합니다. 생성기는 중형 본류를 하구까지 폐합하고, 수계 단위 논리 ID와 본류·지류 역할을 만든 뒤 내장 공유국경과 일치하는 세부 구간을 표시용 형상으로 정렬합니다. 결과에는 Natural Earth 호수, 단일 공간 인덱스와 4MiB 이하 정적 샤드가 포함됩니다. 표시 강의 종점은 바다·Natural Earth 호수·합류점·내륙 유역으로 분류하고, 같은 육지 안의 명확한 하구만 최대 25km 범위에서 연결합니다. Hydro 원본 연결망 자체가 해안에서 멀리 끊겨 안전하게 복구할 수 없는 경우에는 임의의 직선을 만들지 않고 해당 논리 수계 전체를 제외하며 manifest 통계에 남깁니다.
 

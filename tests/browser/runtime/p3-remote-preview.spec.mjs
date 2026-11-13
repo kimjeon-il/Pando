@@ -146,7 +146,6 @@ for(const config of [
       const diagnostic=await page.evaluate(()=>({
         readiness:document.getElementById('viewerStatus')?.dataset.ready,
         renderer:globalThis.__PANDOLAB_GPU_METRICS__?.renderer??null,
-        previewMs:globalThis.__PANDOLAB_STARTUP_METRICS__?.previewDisplayMs??null,
         mapCanvasCount:document.querySelectorAll('#map canvas').length,
         documentTitle:document.title
       }));
@@ -173,7 +172,7 @@ for(const config of [
                 message:document.getElementById('bootstrapLoadingText')?.textContent?.slice(0,512)??null,
                 probe:document.getElementById('startupProbe')?.textContent?.slice(0,512)??null},
               build:scalars(globalThis.PANDOLAB_BUILD_META,['appVersion','buildId','assetRevision','dataRevision']),
-              metrics:scalars(globalThis.__PANDOLAB_STARTUP_METRICS__,['startupPhase','previewReceivedMs','interactiveMs',
+              metrics:scalars(globalThis.__PANDOLAB_STARTUP_METRICS__,['startupPhase','interactiveMs',
                 'editableMs','readyMs','geometryError','meshError','canonicalGeometryReceivedMs','canonicalMeshReceivedMs','rendererStatus']),
               entry:{geometryCore:!!globalThis.PandoLabSphericalCore,countries:!!globalThis.PANDOLAB_COUNTRIES,
                 mesh:!!globalThis.PANDOLAB_GPU_MESH_BUFFER,mapHost:!!globalThis.__PANDOLAB_MAP_HOST__},

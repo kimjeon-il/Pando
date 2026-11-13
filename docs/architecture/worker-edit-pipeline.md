@@ -9,7 +9,7 @@ This document records the runtime ownership used by the fourth rendering refacto
 | `map-edit-worker` | Stateful canonical country edit authority for merge, annex and new-country transactions | One dedicated Worker, one running job, latest queued job per logical key, explicit commit/discard |
 | `canvas-render-worker` | Stateful fallback renderer with terrain and hydro caches | Dedicated renderer Worker; view messages already use latest-frame backpressure |
 | `hydro-tile-worker` | Stateful hydro package/cache and logical-feature service | Dedicated streaming Worker; view generation rejects old tile responses |
-| `data-loader-worker` | Stateful boot pipeline coordinating canonical geometry and packaged meshes | Dedicated startup Worker with phase cancellation |
+| `data-loader-worker` | Source-verified optional prepared canonical scene loading | One request-scoped Worker; missing optional scene returns a cache miss |
 | `gpu-mesh-worker` | Stateless triangulation and country mesh packet generation | Bounded caller-side scheduler; same patch key is latest-wins and stale revisions never swap buffers |
 | `geometry-validation-worker` | Stateless project validation | Dedicated on-demand instance with request cancellation; a shared pool is unnecessary at its current frequency |
 | `label-anchor-worker` | Stateless label anchor calculation | Dedicated lazy Worker; request IDs reject stale results |

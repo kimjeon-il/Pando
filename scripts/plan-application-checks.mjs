@@ -2,6 +2,7 @@ import {buildFrontendIndex,emitFrontendModule,frontendGeneratedOwners} from './l
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { posix, resolve } from 'node:path';
 import { createCheckImpactIndex } from './lib/check-impact.mjs';
+import { planContractConsumerTests } from './lib/check-contract-impact.mjs';
 import { fileURLToPath } from 'node:url';
 import { parseJavaScript, walkJavaScript } from './lib/source-analysis.mjs';
 import { runtimeDependencies, dynamicExpressions } from './lib/product-assets.mjs';
@@ -17,6 +18,22 @@ export function matchesPattern(file, pattern) {
 const matches = (file, patterns = []) => patterns.some(pattern => matchesPattern(file, pattern));
 const executable = file => /\.[cm]?js$/.test(file) && !/\/(?:vendor|worker-runtime|fixtures|gen|target|dist)\//.test(file);
 const product = file => /^src\//.test(file);
+
+function expandCheckGroups(catalog, requested) {
+  const expanded = new Set(), active = new Set();
+  const visit = id => {
+    if (active.has(id)) throw Error('Cyclic check group inclusion: ' + id);
+    if (expanded.has(id)) return;
+    const group = catalog.groups.find(row => row.id === id);
+    if (!group) throw Error('Unknown included check group: ' + id);
+    if (group.includes !== undefined && (!Array.isArray(group.includes) || group.includes.some(value => typeof value !== 'string'))) throw Error('Invalid included check groups: ' + id);
+    active.add(id);
+    (group.includes || []).forEach(visit);
+    active.delete(id); expanded.add(id);
+  };
+  requested.forEach(visit);
+  return [...expanded];
+}
 
 export function loadRepository(root = process.cwd(), { catalog, libraryFiles } = {}) {
   if (root instanceof URL) root = fileURLToPath(root);
@@ -41,7 +58,7 @@ export function loadRepository(root = process.cwd(), { catalog, libraryFiles } =
       return [file];
     });
   }
-  const files = ['assets', 'src', 'scripts', 'tools', 'tests', 'projects', 'shared', 'contracts', 'config', '.github/workflows', '.github/actions']
+  const files = ['assets', 'src', 'scripts', 'tools', 'tests', 'projects', 'shared', 'config', '.github/workflows', '.github/actions']
     .flatMap(filesIn).concat(['index.html', 'package.json', 'playwright.config.js', 'eslint.config.js'].filter(exists)).sort();
   const tests = files.filter(file => /\.(?:test|spec)\.mjs$/.test(file) && /^tests\/(?:unit|browser)\//.test(file));
   const ids = new Set();
@@ -54,6 +71,7 @@ export function loadRepository(root = process.cwd(), { catalog, libraryFiles } =
     if (group.mode === 'manual' && !group.reason) throw Error('Manual check needs a reason: ' + group.id);
     for (const required of group.requires || []) if (!catalog.prerequisites?.[required] && !catalog.groups.some(row => row.id === required)) throw Error('Missing prerequisite: ' + required);
   }
+  expandCheckGroups(catalog, catalog.groups.map(group => group.id));
   for (const command of [...catalog.groups, ...Object.values(catalog.prerequisites || {})]) {
     for (const argv of command.argv ? [command.argv] : []) {
       if (!Array.isArray(argv) || !argv.length || argv.some(value => typeof value !== 'string')) throw Error('Invalid check command');
@@ -95,6 +113,20 @@ export function loadRepository(root = process.cwd(), { catalog, libraryFiles } =
   for (const group of catalog.groups) for (const pattern of group.testPatterns || []) {
     if (!pattern.includes('*') && !owners.has(pattern))
       throw Error('Missing registered test: ' + pattern);
+  }
+  for (const file of catalog.metadataOnlyTests || []) if (!file.startsWith('tests/unit/') || !owners.has(file)) throw Error('Invalid metadata-only test: ' + file);
+  const contracts = new Set();
+  for (const contract of catalog.contractConsumers || []) {
+    if (typeof contract.id !== 'string' || !contract.id || contracts.has(contract.id) ||
+      !Array.isArray(contract.sources) || !contract.sources.length ||
+      !Array.isArray(contract.testPatterns) || !contract.testPatterns.length ||
+      !Array.isArray(contract.markers) || !contract.markers.length ||
+      [...contract.sources, ...contract.testPatterns, ...contract.markers].some(item => typeof item !== 'string' || !item))
+      throw Error('Invalid semantic contract: ' + contract.id);
+    contracts.add(contract.id);
+    for (const file of contract.alwaysTests || [])
+      if (!owners.has(file) || !matches(file, contract.testPatterns))
+        throw Error('Unknown mandatory semantic contract test: ' + file);
   }
   const unitRequirements = new Map(tests.filter(file => file.startsWith('tests/unit/'))
     .map(file => [file, new Set(owners.get(file).requires || [])]));
@@ -172,6 +204,13 @@ export function loadRepository(root = process.cwd(), { catalog, libraryFiles } =
       else return;
       if (target.startsWith('../')) throw Error('Dependency outside repository: ' + file);
       target=sourcePath(target);
+      // The native prerequisite executes these local-dispatch imports only
+      // outside GitHub Actions. They are not native CI runtime dependencies:
+      // tracing them selected all native SDK suites for planner-only changes.
+      // Local dispatch correctness is covered by the check-runner unit suite.
+      if (file === 'scripts/prepare-native-test-tools.mjs' &&
+          (target === 'scripts/plan-application-checks.mjs' ||
+            target === 'scripts/run-application-checks.mjs')) return;
       if (strict && !exists(target)) throw Error(`Missing dependency ${target} in ${file}`);
       if (exists(target)) found.add(target);
     }
@@ -238,6 +277,7 @@ export function loadRepository(root = process.cwd(), { catalog, libraryFiles } =
 
 export function planApplicationChecks({ changedFiles = [], repository, groups: requestedGroups = [],exactSelection=null }) {
   const repo = repository || loadRepository();
+  requestedGroups = expandCheckGroups(repo.catalog, requestedGroups);
   const changed = [...new Set(changedFiles.map(slash))].sort();
   // Unknown active Viewer file types must not be silently claimed by a broad
   // directory-level test group. Deleted/added known source extensions remain
@@ -317,7 +357,19 @@ export function planApplicationChecks({ changedFiles = [], repository, groups: r
       }
     }
   }
-  for (const id of requestedGroups) if (!repo.catalog.groups.some(group => group.id === id)) throw Error('Unknown check group: ' + id);
+  const contractConsumers = planContractConsumerTests({
+    contracts: repo.catalog.contractConsumers || [], changedFiles: changed,
+    tests: repo.tests, read: repo.read, dependencies: repo.dependencies, matchesPattern,
+  });
+  for (const [file, why] of contractConsumers) {
+    const owner = repo.owners.get(file);
+    if (!owner || (owner.mode === 'manual' && !requestedGroups.includes(owner.id)) ||
+      (requestedGroups.length && !requestedGroups.includes(owner.id))) continue;
+    selected.add(file);
+    reasons[file] = [...new Set([...(reasons[file] || []), ...why])];
+    why.forEach(reason => matchedProduct.add(reason.slice(reason.lastIndexOf(':') + 1)));
+    (owner.requires || []).forEach(id => prerequisites.add(id));
+  }
   for (const file of changed) {
     if (!requestedGroups.length && matches(file, repo.catalog.productRoots) && !matchedProduct.has(file) && !infrastructure
       && !matches(file, repo.catalog.passiveInputs || []) && !repo.owners.has(file)) throw Error('Unclassified product change: ' + file);

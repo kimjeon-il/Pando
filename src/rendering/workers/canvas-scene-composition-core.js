@@ -146,10 +146,9 @@
     const add = (source, owners, dash = false) => {
       for (const owner of owners) {
         const ids = dash ? source.internalOwners[owner] : owner.split('|');
-        const opacity = Math.max(0, ...ids.map(id => styleForOwner(id)?.opacity || 0));
-        if (!opacity) continue;
-        const key = `${dash}:${opacity}:${source === packet}`;
-        if (!groups.has(key)) groups.set(key, { ...source, ownerIds: [], style: { ...(dash ? theme.strokes['country-internal'] : solid), alpha: solid.alpha * opacity } });
+        if (!ids.some(id => !!styleForOwner(id))) continue;
+        const key = `${dash}:${source === packet}`;
+        if (!groups.has(key)) groups.set(key, { ...source, ownerIds: [], style: dash ? theme.strokes['country-internal'] : solid });
         groups.get(key).ownerIds.push(owner);
       }
     };

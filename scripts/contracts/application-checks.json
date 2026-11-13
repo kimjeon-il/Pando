@@ -2,6 +2,30 @@
   "schema": "pando-application-checks-v1",
   "groups": [
     {
+      "id": "viewer-startup",
+      "kind": "browser",
+      "testPatterns": [
+        "tests/browser/runtime/viewer-readonly-startup.spec.mjs"
+      ],
+      "inputs": [
+        "src/**/gpu-*.js",
+        "src/**/map-display-*.js",
+        "src/**/render-*.js",
+        "src/**/map-visual-*.js",
+        "src/rendering/workers/canvas-render-worker.js",
+        "src/rendering/workers/gpu-mesh-worker.js",
+        "src/app/viewer.js",
+        "src/document/object-query.js",
+        "src/**/object-search-*.js",
+        "src/ui/place-name-display.js",
+        "src/ui/layer-presentation.js"
+      ],
+      "requires": [
+        "generated",
+        "core"
+      ]
+    },
+    {
       "id": "frontend-layout",
       "kind": "unit",
       "testPatterns": [
@@ -32,8 +56,7 @@
       "testPatterns": [
         "tests/unit/data/file-access-contract.test.mjs",
         "tests/unit/data/p6-project-persistence.test.mjs",
-        "tests/unit/document/timeline-geopackage.test.mjs",
-        "tests/unit/geometry/qgis-pando-exchange.test.mjs"
+        "tests/unit/document/timeline-geopackage.test.mjs"
       ],
       "inputs": [
         "src/**/generic-feature-*.js",
@@ -59,22 +82,6 @@
       "inputs": []
     },
     {
-      "id": "object-contracts",
-      "kind": "unit",
-      "testPatterns": [
-        "tests/unit/**/object-*.test.mjs",
-        "tests/unit/**/territorial-*.test.mjs",
-        "tests/unit/**/project-*.test.mjs",
-        "tests/unit/**/temporal*.test.mjs",
-        "tests/unit/**/timeline*.test.mjs",
-        "tests/unit/**/generic-*.test.mjs",
-        "tests/unit/**/distribution-*.test.mjs",
-        "tests/unit/**/core-*.test.mjs",
-        "tests/unit/**/web-*.test.mjs"
-      ],
-      "inputs": []
-    },
-    {
       "id": "gis-contracts",
       "kind": "unit",
       "testPatterns": [
@@ -94,7 +101,29 @@
         "tests/unit/**/river-territory-*.test.mjs",
         "tests/unit/geometry/map-geometry-validation.test.mjs",
         "tests/unit/**/historical-german-*.test.mjs",
-        "tests/unit/**/historical-source-*.test.mjs"
+        "tests/unit/**/historical-source-*.test.mjs",
+        "tests/unit/map/project-relative-zoom.test.mjs",
+        "tests/unit/rendering/formal-map-surface.test.mjs",
+        "tests/unit/rendering/canvas-inline-worker.test.mjs",
+        "tests/unit/rendering/project-lod-frame.test.mjs",
+        "tests/unit/rendering/project-lod-worker.test.mjs",
+        "tests/unit/build/world-country-packet.test.mjs"
+      ],
+      "inputs": []
+    },
+    {
+      "id": "object-contracts",
+      "kind": "unit",
+      "testPatterns": [
+        "tests/unit/**/object-*.test.mjs",
+        "tests/unit/**/territorial-*.test.mjs",
+        "tests/unit/**/project-*.test.mjs",
+        "tests/unit/**/temporal*.test.mjs",
+        "tests/unit/**/timeline*.test.mjs",
+        "tests/unit/**/generic-*.test.mjs",
+        "tests/unit/**/distribution-*.test.mjs",
+        "tests/unit/**/core-*.test.mjs",
+        "tests/unit/**/web-*.test.mjs"
       ],
       "inputs": []
     },
@@ -133,7 +162,8 @@
       "id": "terrain",
       "kind": "browser",
       "testPatterns": [
-        "tests/browser/**/terrain-*.spec.mjs"
+        "tests/browser/**/terrain-*.spec.mjs",
+        "tests/browser/rendering/canvas-numeric-dem.spec.mjs"
       ],
       "inputs": [
         "src/**/terrain-*.js",
@@ -141,14 +171,15 @@
         "src/**/gpu-terrain-*.js",
         "src/rendering/gpu-base-scene-pass.js",
         "src/**/workers/canvas-terrain-*.js",
-        "assets/data/terrain-*/**",
         "assets/data/physical-land/**",
         "src/rendering/workers/canvas-render-worker.js",
+        "src/rendering/workers/canvas-render-core.js",
         "src/rendering/workers/canvas-scene-composition-core.js",
         "src/rendering/gpu-scene.js",
         "src/rendering/gpu-scene-preparation.js",
         "src/rendering/gpu-map-renderer.js",
-        "src/workers/canvas-terrain-*.js"
+        "src/workers/canvas-terrain-*.js",
+        "assets/data/terrain/**"
       ],
       "requires": [
         "generated",
@@ -163,7 +194,9 @@
         "tests/browser/**/gpu-*.spec.mjs",
         "tests/browser/**/country-*.spec.mjs",
         "tests/browser/**/renderer-*.spec.mjs",
-        "tests/browser/rendering/map-vector-lod.spec.mjs"
+        "tests/browser/rendering/map-vector-lod.spec.mjs",
+        "tests/browser/rendering/project-common-lod.spec.mjs",
+        "tests/browser/rendering/project-common-lod-regions.spec.mjs"
       ],
       "inputs": [
         "src/**/gpu-*.js",
@@ -171,11 +204,15 @@
         "src/**/render-*.js",
         "src/**/map-visual-*.js",
         "src/rendering/workers/canvas-render-worker.js",
+        "src/rendering/workers/canvas-render-core.js",
         "src/rendering/workers/gpu-mesh-worker.js"
       ],
       "requires": [
         "generated",
         "core"
+      ],
+      "includes": [
+        "viewer-startup"
       ]
     },
     {
@@ -198,6 +235,9 @@
       "requires": [
         "generated",
         "core"
+      ],
+      "includes": [
+        "viewer-startup"
       ]
     },
     {
@@ -553,19 +593,19 @@
       "testPatterns": []
     },
     {
-      "id": "country-preview",
+      "id": "country-packet",
       "kind": "command",
       "inputs": [
         "assets/data/territorial-entities/source/**"
       ],
       "argv": [
         "node",
-        "tools/build/build-world-preview.mjs",
+        "tools/build/build-world-country-packet.mjs",
         "--check"
       ],
       "gisNative": true,
       "requires": [
-        "country-validity-canonical"
+        "country-validity"
       ],
       "testPatterns": []
     },
@@ -639,21 +679,6 @@
       "testPatterns": []
     },
     {
-      "id": "country-validity-canonical",
-      "kind": "command",
-      "inputs": [
-        "assets/data/territorial-entities/source/**",
-        "config/library-data.json"
-      ],
-      "argv": [
-        "node",
-        "tools/checks/run-country-validator.mjs",
-        "--canonical-only"
-      ],
-      "gisNative": true,
-      "testPatterns": []
-    },
-    {
       "id": "country-validity",
       "kind": "command",
       "inputs": [
@@ -665,9 +690,6 @@
         "tools/checks/run-country-validator.mjs"
       ],
       "gisNative": true,
-      "requires": [
-        "country-preview"
-      ],
       "testPatterns": []
     },
     {
@@ -728,7 +750,7 @@
       "mode": "manual",
       "reason": "Selected native clipped-output contract regression; no other native test targets are built or run.",
       "inputs": [
-        "tools/cpp/spherical-polygon-tests.cpp",
+        "tests/tools/native/spherical-polygon.cpp",
         "src/geometry/native/src/sphericalpolygon.cpp",
         "src/geometry/native/include/pandoeditor/exactplanar.h",
         "tests/native/geometry/fixtures/clipped-positive-rings.h"
@@ -803,12 +825,40 @@
       ]
     },
     {
+      "id": "policy-links",
+      "kind": "command",
+      "inputs": [
+        "docs/**",
+        "AGENTS.md",
+        "README.md",
+        "VERSIONING.md",
+        "scripts/check-policy-links.mjs",
+        "tests/unit/runtime/policy-links.test.mjs",
+        "scripts/contracts/application-checks.json",
+        "package.json",
+        "src/runtime/version-contract.js",
+        "src/document/map-object-categories.js",
+        "src/data/terrain-manifest.js",
+        "config/library-data.json",
+        "config/generated-artifacts.json",
+        "tests/fixtures/places/plac-v3.json",
+        "projects/*/manifest.json"
+      ],
+      "argv": [
+        "node",
+        "scripts/check-policy-links.mjs"
+      ],
+      "requires": [],
+      "testPatterns": []
+    },
+    {
       "id": "workflow-ownership",
       "kind": "command",
       "inputs": [
         ".github/workflows/**",
-        "tools/checks/audit-workflow-check-owners.mjs",
-        "scripts/contracts/application-checks.json"
+        "scripts/contracts/application-checks.json",
+        "scripts/contracts/workflow-inventory.json",
+        "tools/checks/audit-workflow-check-owners.mjs"
       ],
       "argv": [
         "node",
@@ -817,6 +867,75 @@
       ],
       "requires": [],
       "testPatterns": []
+    },
+    {
+      "id": "viewer-runtime-identity",
+      "kind": "command",
+      "inputs": [
+        "projects/**/manifest.json",
+        "config/library-data.json",
+        ".github/actions/library-data/**",
+        "tools/data/library-*.mjs",
+        "tools/build/build-world-bundle.mjs",
+        "scripts/generate-build-metadata.mjs",
+        "scripts/lib/frontend-build.mjs",
+        "src/data/runtime-manifest-assets.js",
+        "src/data/map-project-manifest.js",
+        "src/data/physical-resources.js",
+        "src/rendering/**/terrain-*.js",
+        "src/rendering/**/gpu-terrain-*.js",
+        "src/rendering/**/canvas-terrain-*.js",
+        "src/rendering/gpu-map-renderer.js",
+        "src/rendering/gpu-base-scene-pass.js",
+        "src/rendering/workers/canvas-render-worker.js"
+      ],
+      "argv": [
+        "node",
+        "scripts/generate-build-metadata.mjs",
+        "--check",
+        "--product=viewer"
+      ]
+    },
+    {
+      "id": "world-archive-source-boundary",
+      "kind": "command",
+      "inputs": [
+        "projects/**/manifest.json",
+        "config/library-data.json",
+        ".github/actions/library-data/**",
+        "tools/data/library-*.mjs",
+        "tools/build/build-world-bundle.mjs",
+        "scripts/lib/frontend-build.mjs",
+        "scripts/lib/product-assets.mjs",
+        "src/data/runtime-manifest-assets.js",
+        "src/data/map-project-manifest.js",
+        "assets/data/**",
+        "scripts/check-world-archive-closure.mjs"
+      ],
+      "argv": [
+        "node",
+        "scripts/check-world-archive-closure.mjs"
+      ]
+    },
+    {
+      "id": "map-image-resample-native",
+      "kind": "command",
+      "mode": "manual",
+      "reason": "Selected relocated C++ pixel oracle; builds only the map-image resampling test.",
+      "inputs": [
+        "tests/tools/native/map-image-resample.cpp",
+        "tools/cpp/map-image/resample.cpp",
+        "tools/cpp/map-image/resample.h",
+        "tools/cpp/CMakeLists.txt",
+        "tests/fixtures/map-image/**"
+      ],
+      "argv": [
+        "build-native/map-image/pando-map-image-resample-tests",
+        "tests/fixtures/map-image"
+      ],
+      "requires": [
+        "native-map-image-resample-tests"
+      ]
     }
   ],
   "prerequisites": {
@@ -909,6 +1028,22 @@
       "inputs": [
         "tools/cpp/map-pdf/**",
         "tools/map-image/package-pdf.mjs",
+        ".github/actions/native-test-prerequisites/action.yml"
+      ]
+    },
+    "native-terrain-dem-encode": {
+      "argv": [
+        "node",
+        "scripts/prepare-native-test-tools.mjs",
+        "terrain-dem-encode"
+      ],
+      "env": {
+        "PANDO_TERRAIN_DEM_ENCODE_DIRECTORY": "{root}/build-native/terrain-dem-encode/artifact"
+      },
+      "inputs": [
+        "tools/cpp/terrain-dem-encode/**",
+        "tools/gis/terrain-dem-encode.mjs",
+        "tools/gis/package-terrain-dem-encode.mjs",
         ".github/actions/native-test-prerequisites/action.yml"
       ]
     },
@@ -1078,13 +1213,19 @@
         "scripts/lib/native-test-prerequisites.mjs",
         ".github/actions/native-test-prerequisites/action.yml"
       ]
+    },
+    "native-map-image-resample-tests": {
+      "argv": [
+        "node",
+        "scripts/prepare-native-test-tools.mjs",
+        "map-image-resample-tests"
+      ]
     }
   },
   "productRoots": [
     "assets/**",
     "scripts/**",
     "tools/**",
-    "contracts/**",
     "tests/**",
     "src/**",
     "projects/**"
@@ -1262,9 +1403,7 @@
         "tests/unit/runtime/runtime-performance-contract.test.mjs"
       ],
       "inputs": [
-        "config/performance-baseline-v1.json",
-        "config/performance-budget.json",
-        "scripts/assemble-performance-evidence.mjs"
+        "src/runtime/runtime-performance-metrics.js"
       ]
     },
     {
@@ -1312,6 +1451,7 @@
       "inputs": [
         "src/**/physical-*.js",
         "src/rendering/workers/canvas-render-worker.js",
+        "src/rendering/workers/canvas-render-core.js",
         "assets/data/physical-land/**"
       ]
     },
@@ -1413,7 +1553,116 @@
       ],
       "inputs": [
         ".github/workflows/**",
+        "scripts/contracts/workflow-inventory.json",
         "tools/checks/audit-workflow-check-owners.mjs"
+      ]
+    },
+    {
+      "tests": [
+        "tests/unit/map/project-relative-zoom.test.mjs",
+        "tests/unit/rendering/project-lod-frame.test.mjs",
+        "tests/unit/rendering/project-lod-worker.test.mjs"
+      ],
+      "inputs": [
+        "src/rendering/render-lod.js",
+        "src/map/map-layout-metrics.js",
+        "src/rendering/map-visual-frame.js",
+        "src/document/project-setup.js"
+      ]
+    },
+    {
+      "tests": [
+        "tests/unit/rendering/formal-map-surface.test.mjs",
+        "tests/unit/rendering/canvas-inline-worker.test.mjs",
+        "tests/browser/rendering/canvas-numeric-dem.spec.mjs"
+      ],
+      "inputs": [
+        "src/rendering/gpu-map-renderer.js",
+        "src/rendering/workers/canvas-render-worker.js",
+        "src/rendering/workers/canvas-render-core.js",
+        "src/rendering/map-renderer-composition.js"
+      ]
+    },
+    {
+      "tests": [
+        "tests/unit/build/terrain-runtime-package.test.mjs",
+        "tests/unit/rendering/terrain-numeric-color.test.mjs"
+      ],
+      "inputs": [
+        "projects/**/manifest.json",
+        "tools/build/package-terrain-runtime.mjs",
+        "src/data/terrain-manifest.js",
+        "src/data/runtime-manifest-assets.js",
+        "src/rendering/terrain-dem-shaders.js",
+        "src/rendering/workers/canvas-terrain-dem-core.js"
+      ]
+    },
+    {
+      "tests": [
+        "tests/unit/build/world-country-packet.test.mjs"
+      ],
+      "inputs": [
+        "tools/build/build-world-country-packet.mjs",
+        "tools/build/build-world-bundle.mjs",
+        "config/generated-artifacts.json"
+      ]
+    },
+    {
+      "tests": [
+        "tests/unit/runtime/project-manifest-change-plan.test.mjs"
+      ],
+      "inputs": [
+        "scripts/lib/check-contract-impact.mjs",
+        "scripts/contracts/application-checks.json"
+      ]
+    },
+    {
+      "tests": [
+        "tests/unit/document/pages-deployment-identity.test.mjs"
+      ],
+      "inputs": [
+        "tools/checks/verify-pages-identity.mjs",
+        ".github/workflows/web-pages.yml",
+        "tools/build/package-shared-core-assets.mjs",
+        "tools/build/stage-monorepo-pages.mjs",
+        "config/library-data.json",
+        "config/core-source-roots.json",
+        "config/toolchain-versions.json",
+        "projects/**/manifest.json"
+      ]
+    },
+    {
+      "tests": [
+        "tests/unit/rendering/terrain-tile-selection-shared.test.mjs",
+        "tests/unit/rendering/canvas-terrain-independence.test.mjs",
+        "tests/unit/rendering/gpu-base-scene-order.test.mjs"
+      ],
+      "inputs": [
+        "projects/**/manifest.json",
+        "src/data/physical-resources.js",
+        "src/rendering/**/terrain-*.js",
+        "src/rendering/**/gpu-terrain-*.js",
+        "src/rendering/**/canvas-terrain-*.js",
+        "src/rendering/gpu-map-renderer.js",
+        "src/rendering/gpu-base-scene-pass.js",
+        "src/rendering/workers/canvas-render-worker.js"
+      ]
+    },
+    {
+      "tests": [
+        "tests/unit/data/map-project-manifest.test.mjs",
+        "tests/unit/data/frontend-runtime-closure.test.mjs"
+      ],
+      "inputs": [
+        "projects/**/manifest.json",
+        "config/library-data.json",
+        ".github/actions/library-data/**",
+        "tools/data/library-*.mjs",
+        "tools/build/build-world-bundle.mjs",
+        "scripts/lib/frontend-build.mjs",
+        "scripts/lib/product-assets.mjs",
+        "src/data/runtime-manifest-assets.js",
+        "src/data/map-project-manifest.js"
       ]
     }
   ],
@@ -1499,6 +1748,14 @@
     },
     {
       "tests": [
+        "tests/unit/geometry/terrain-dem-encode.test.mjs"
+      ],
+      "requires": [
+        "native-terrain-dem-encode"
+      ]
+    },
+    {
+      "tests": [
         "tests/unit/geometry/terrain-dem-gutters.test.mjs"
       ],
       "requires": [
@@ -1557,6 +1814,111 @@
       ],
       "requires": [
         "core-assets"
+      ]
+    },
+    {
+      "tests": [
+        "tests/unit/document/physical-webp-stream.test.mjs"
+      ],
+      "requires": [
+        "native-map-image"
+      ]
+    }
+  ],
+  "metadataOnlyTests": [
+    "tests/unit/runtime/check-runner.test.mjs",
+    "tests/unit/runtime/workflow-check-ownership.test.mjs",
+    "tests/unit/runtime/project-manifest-change-plan.test.mjs"
+  ],
+  "contractConsumers": [
+    {
+      "id": "render-device-api",
+      "sources": [
+        "src/rendering/render-device.js"
+      ],
+      "testPatterns": [
+        "tests/unit/rendering/*selection*.test.mjs",
+        "tests/unit/rendering/map-presentation-readiness.test.mjs",
+        "tests/unit/rendering/gpu-*.test.mjs"
+      ],
+      "markers": [
+        "createRenderDevice",
+        "isRenderDevice",
+        "contextRevision",
+        "renderDevice",
+        "capabilities"
+      ],
+      "alwaysTests": [
+        "tests/unit/rendering/map-presentation-readiness.test.mjs"
+      ]
+    },
+    {
+      "id": "worker-rpc-envelope",
+      "sources": [
+        "src/runtime/worker-rpc.js",
+        "src/runtime/workers/worker-rpc-host.js"
+      ],
+      "testPatterns": [
+        "tests/unit/runtime/worker-*.test.mjs",
+        "tests/unit/rendering/*worker*.test.mjs"
+      ],
+      "markers": [
+        "WORKER_RPC_PROTOCOL",
+        "protocolVersion",
+        "requestId",
+        "projectRevision",
+        "cancel"
+      ],
+      "alwaysTests": [
+        "tests/unit/runtime/worker-rpc.test.mjs"
+      ]
+    },
+    {
+      "id": "canvas-worker-messages",
+      "sources": [
+        "src/rendering/gpu-canvas-worker.js",
+        "src/rendering/workers/canvas-render-worker.js",
+        "src/rendering/canvas-inline-worker.js"
+      ],
+      "testPatterns": [
+        "tests/unit/rendering/*worker*.test.mjs",
+        "tests/unit/rendering/selection-fill-handoff.test.mjs"
+      ],
+      "markers": [
+        "reset-generation",
+        "replace-data",
+        "renderRequestId",
+        "terrain-warning",
+        "ready",
+        "frame"
+      ],
+      "alwaysTests": [
+        "tests/unit/rendering/gpu-canvas-worker.test.mjs"
+      ]
+    },
+    {
+      "id": "project-document-schema",
+      "sources": [
+        "src/document/project-state.js",
+        "src/document/initial-document.js",
+        "src/document/project-setup.js",
+        "src/runtime/version-contract.js"
+      ],
+      "testPatterns": [
+        "tests/unit/document/*project*.test.mjs",
+        "tests/unit/data/*project*.test.mjs",
+        "tests/unit/document/*schema*.test.mjs"
+      ],
+      "markers": [
+        "PROJECT_SCHEMA_VERSION",
+        "projectSetup",
+        "distributionSettings",
+        "layerPresentation",
+        "territorialEntities",
+        "schemaVersion"
+      ],
+      "alwaysTests": [
+        "tests/unit/document/project-state.test.mjs"
       ]
     }
   ]

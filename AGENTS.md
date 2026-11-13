@@ -1,4 +1,4 @@
-# AGENTS.md ? PandoLab / world-map
+# AGENTS.md — PandoLab / Pando
 
 These instructions apply to the entire repository unless a deeper `AGENTS.md`
 or `AGENTS.override.md` provides more specific rules.
@@ -6,7 +6,10 @@ or `AGENTS.override.md` provides more specific rules.
 ## Branch and permanent worktree policy (mandatory)
 
 Read [docs/branch-policy.md](docs/branch-policy.md) before choosing a branch or
-local worktree. Web Viewer starts in `src/app/`; UI, map, document, geometry,
+local worktree.
+Before adding or revising repository policy, use the [policy navigation](docs/policies/README.md)
+to find the existing owner. It is an index, not a replacement for this file or
+any domain-specific contract; keep current verification contracts and their canonical owners coherent. Web Viewer starts in `src/app/`; UI, map, document, geometry,
 rendering, data and runtime sources live in their corresponding `src/` domains.
 C++ implementations live in each domain's `native/`, with build orchestration
 in `tools/build/native/`. The retired `apps/editor/` application is absent;
@@ -34,7 +37,7 @@ all maintained sources use the same commit and branch:
   resolve conflicts without silently choosing one side.
 - Never merge `work/*` into `main`, commit directly to `main`, deploy, or
   transfer changes between categories without explicit user instructions.
-- Verify Web and App changes independently even though they share a commit.
+- Verify the affected Web Viewer and its embedded read-only inspector workflows. Retired standalone Web/App parity gates are not a live release requirement.
 - Exception branches or temporary worktrees require a concrete reason why an
   existing workspace cannot handle the work, and user approval. Do not delete
   them automatically after integration.
@@ -55,6 +58,8 @@ all maintained sources use the same commit and branch:
   remaining temporary or obsolete output. "It might be useful later" is not
   a retention reason: retained generated files need a current consumer,
   execution path or verification purpose.
+- Completed plans, one-shot task tools, logs and ended verification outputs are not current source merely because they are old evidence or reference each other. Keep them only for a concrete current development, regeneration or verification consumer; integrate valid general rules into their existing canonical owner. Preserve active work and required original materials.
+- Do not create deletion inventories, cleanup reports, backups or archive copies of approved obsolete files unless the user explicitly requests them. Remove temporary investigation files after their current use ends. Ordinary cleanup does not rewrite Git history.
 - Do not back up disposable caches before deleting them. Do not create full
   repository, data or build copies per task. Reuse permanent worktrees, fixed
   build directories, dependencies and valid incremental caches.
@@ -103,8 +108,8 @@ all maintained sources use the same commit and branch:
 
 ## External library data and reports (mandatory)
 
-- `kimjeon-il/PandoLab-library-data` owns library objects, runtime data, original GIS sources and all reports/evidence. This repository contains app/web code, generators, contracts, fixtures, tests and development specifications only.
-- The data repository is storage only. Do not run tests, validators, GIS regeneration or check workflows there. Run only narrowly relevant application checks in Pando.
+- `kimjeon-il/PandoLab-library` owns library objects, runtime data, original GIS sources, reports/evidence and non-Viewer authoring/administration tools with their focused tests. This repository owns Viewer code, common product computation, runtime build/storage support, contracts, fixtures and application checks.
+- The library source checkout may run affected tool tests with small fixtures and explicitly selected native CI. Its linked data/metadata worktrees remain storage-only. Data/report changes do not trigger tool checks, whole-catalog validation or GIS regeneration. Keep tool-code pins independent of branch-specific data pins; preserve source directories only in the shared code checkout.
 - `config/library-data.json` pins the paired data revision for this branch. Run `node tools/data/library-data.mjs` to prepare the fixed ignored data cache and mounts. Never add mounted data to app Git.
 - Stored reports belong to the external checkout's `reports/`, following its README and TEMPLATE. `tools/data/report-paths.mjs` uses the central raw originals in the shared library root `reports/`, with explicit read/write access, `.owners.json` revisions, `.variants/<sha256>` editions and independent `.edits/<branch>` work. Runtime preparation must not restore all reports. Use `node tools/data/library-data.mjs --store --include-prefix=reports/<scope>` to archive selected changes; report-only storage leaves the runtime pin unchanged. Missing unhydrated reports are not deletions; explicit removals require `--remove-path=reports/<file>` after the original has been explicitly preserved elsewhere or removed from the working scope. Keep sources, revision, scope and unverified claims; preserve historical compressed evidence and all unique original bytes.
 - Keep branch-specific data/WASM pairings; do not replace a work branch pin with main's pin without reviewing the actual data changes.
@@ -140,7 +145,7 @@ preparation/storage and publish only explicitly completed report scopes.
   `kimjeon-il/map-toolkit` repository at `D:/dev/Map Toolkit`. Follow its
   AGENTS.md and `docs/reference-map-plugin.md` for plugin work. Pando owns
   only common computation/storage tooling, current GeoPackage reading and E3
-  review. The current Viewer/Windows reviewer has no general GeoJSON editing UI;
+  review. The current Web Viewer and its embedded read-only inspector have no general GeoJSON editing UI;
   retained editor/Core regression adapters are not production import workflows.
 - For a completed Map Toolkit change that affects its packaged source, WASM or
   pinned analysis resources, finish focused checks, commit/push the reviewed
@@ -311,7 +316,7 @@ support forward.
 ## Rendering
 
 - All map resources follow the common dependency policy in
-  `assets/js/modules/resource-update-policy.js`. A date, viewport, project
+  `src/runtime/resource-dependency-policy.js` (re-exported by `src/rendering/resource-update-policy.js`). A date, viewport, project
   generation or unrelated revision change alone must not discard resources.
   Reuse unchanged inputs and prepared results; refresh only dependencies that
   actually changed, separating input loading, CPU preparation, GPU upload and

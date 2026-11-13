@@ -9,7 +9,6 @@ export function createMapHost({productMode='editor',readOnly=productMode==='view
   let dependencies;
   let svg;
   let interactionSvg;
-  let shadowLayer;
   let oceanLayer;
   let countryLayer;
   let hoverLayer;
@@ -128,6 +127,7 @@ export function createMapHost({productMode='editor',readOnly=productMode==='view
     const visualProjection=visualProjectionForSnapshot(viewState);
     const visualPath=dependencies.platform.d3.geo.path().projection(visualProjection);
     return dependencies.renderFactories.createMapVisualFrame({frameId,viewRevision:viewState.revision,
+      lodSelection:dependencies.rendering.gpuMapRenderer.resolveDisplayLod(viewState.scale),
       projectGeneration:dependencies.domains.projectDomain.getGeneration(),projectionRevision:visualProjectionRevision,viewState,
       layoutSnapshot:dependencies.mapLayout.mapLayoutMetricsSnapshot,projectCoordinate:coordinate=>visualProjection(coordinate),
       projectPath:geometry=>visualPath(geometry),createCanvasPath:context=>dependencies.platform.d3.geo.path().projection(visualProjection).context(context)});
@@ -138,14 +138,20 @@ export function createMapHost({productMode='editor',readOnly=productMode==='view
       getProjectionKind: () => dependencies.projectState.state.projection,
       setProjectionKind: kind => {
         productPolicy.assertProjection(kind);
-        dependencies.projectState.state.projection = kind === 'globe' ? 'globe' : 'flat';
+        const state = dependencies.projectState.state;
+        state.view = dependencies.mapNavigation.reprojectView(state.view, state.projection, kind);
+        state.projection = kind;
         (0, dependencies.mapView.updateProjection)();
         return true;
       },
       getViewState: () => projectionViewSnapshot(),
       setViewState: view => {
         productPolicy.assertProjection(view?.projection);
-        if (view?.projection) dependencies.projectState.state.projection = view.projection === 'globe' ? 'globe' : 'flat';
+        if (view?.projection) {
+          const state = dependencies.projectState.state;
+          if (!view.view) state.view = dependencies.mapNavigation.reprojectView(state.view, state.projection, view.projection);
+          state.projection = view.projection;
+        }
         if (view?.view) dependencies.projectState.state.view = (0, dependencies.platform.deepClone)(view.view);
         (0, dependencies.mapView.updateProjection)();
         return true;
@@ -259,7 +265,6 @@ export function createMapHost({productMode='editor',readOnly=productMode==='view
     dependencies.mapHostCommands.installFlatOceanLayer(baseRoot.append('rect').attr('class', 'map-ocean map-ocean-flat'));
     if(productPolicy.projection==='globe') {
       oceanLayer = baseRoot.append('circle').attr('class', 'map-ocean map-ocean-globe');
-      shadowLayer = baseRoot.append('circle').attr('class', 'globe-shadow');
     }
 
     const gpuCanvas = document.createElement('canvas');
@@ -402,7 +407,6 @@ export function createMapHost({productMode='editor',readOnly=productMode==='view
     get queueMapResize() { return queueMapResize; },
     get resizeMap() { return resizeMap; },
     get selectionLayer() { return selectionLayer; },
-    get shadowLayer() { return shadowLayer; },
     get startMapResizeObserver() { return startMapResizeObserver; },
     get svg() { return svg; },
     get syncMapHostFromState() { return syncMapHostFromState; },

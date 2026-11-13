@@ -1,3 +1,4 @@
+import {numericalTerrainFixture} from './numerical-terrain-fixture.mjs';
 import {mkdirSync,writeFileSync,readFileSync} from 'node:fs';
 import {isolatedTestWorkspace} from './check-workspace-fixture.mjs';
 import {createHash} from 'node:crypto';
@@ -9,7 +10,9 @@ export function frontendFixture(t){
  const root=isolatedTestWorkspace(t,'pando-frontend-build-');
  const put=(path,text)=>{const file=join(root,path);mkdirSync(dirname(file),{recursive:true});writeFileSync(file,text);};
  put('package.json',JSON.stringify({version:'1.0.0'}));
- put('projects/default-world/manifest.json',readFileSync(new URL('../../projects/default-world/manifest.json',import.meta.url)));
+ const projectText=readFileSync(new URL('../../projects/default-world/manifest.json',import.meta.url));
+ const terrainPath=JSON.parse(projectText).resources.terrain.catalog;
+ put('projects/default-world/manifest.json',projectText);
  for(const path of new Set([...UI_VIEWER_SOURCES,'assets/css/app.css','assets/css/viewer.css']))put(path.replace('assets/css/','src/ui/css/'),'.x { color: red; }');
  put('src/runtime/resource-dependency-policy.js',readFileSync(new URL('../../src/runtime/resource-dependency-policy.js',import.meta.url)));
  put('src/rendering/resource-update-policy.js','export const value=1;');
@@ -21,9 +24,17 @@ export function frontendFixture(t){
  const physicalAsset={url:'assets/data/physical-land/land.bin',encoding:'gzip',
    compressedBytes:storedPhysicalLand.length,decodedBytes:physicalLand.length,
    sha256:createHash('sha256').update(storedPhysicalLand).digest('hex')};
+ const terrain=numericalTerrainFixture();
+ terrain.version='0.14.0';
+ terrain.urlTemplate='terrain/v0.14.0/{level}/{column}-{row}.webp';
+ terrain.tint.url='terrain/v0.14.0/tint.webp';
+ terrain.elevation.quantization={method:'roundHalfToEven',shadeInput:'original float32 (before quantization)',
+   land:[{stepMeters:16},{stepMeters:32}],ocean:[{stepMeters:16},{stepMeters:64},{stepMeters:128}]};
+ terrain.tileSha256=Object.fromEntries(terrain.levels.flatMap(level=>Array.from({length:level.rows},(_,row)=>
+   Array.from({length:level.columns},(_,column)=>[`${level.id}/${column}-${row}.webp`,'a'.repeat(64)])).flat()));
  const metadata={
   'assets/data/world/current.json':{schema:'pandolab-world-bundle',schemaVersion:1,assets:{}},
-  'assets/data/terrain-preview/v0.13.3-p2/manifest.json':{sourceDem:{landMaskSha256:'a'.repeat(64)},tiles:{}},
+  [terrainPath]:terrain,
   'assets/data/physical-land/v1/manifest.json':{schema:'pando-physical-land-v3',sourceSha256:'a'.repeat(64),asset:physicalAsset},
   'assets/data/hydro/v0.13.4/manifest.json':{schema:'pandolab-water-shards-v5',version:'0.13.4',container:{url:'data.bin'},shards:[]},
   'assets/data/places/manifest.json':{shards:{}},
@@ -36,5 +47,5 @@ export function frontendFixture(t){
  for(const catalog of ['assets/data/builtin-world/generated/v1/index.json','assets/data/physical-land/v1/manifest.json'])
   metadata['assets/data/prepared-polygons/generated/v2/manifest.json'].inputHashes[catalog]=
    createHash('sha256').update(JSON.stringify(metadata[catalog])).digest('hex');
- return{root,put,metadata,options:{root,sourceCommit:'a'.repeat(40),dataPaths:Object.keys(metadata),readPinnedData:path=>Buffer.isBuffer(metadata[path])?metadata[path]:Buffer.from(JSON.stringify(metadata[path]))}};
+ return{root,put,metadata,terrainPath,options:{root,sourceCommit:'a'.repeat(40),dataPaths:Object.keys(metadata),readPinnedData:path=>Buffer.isBuffer(metadata[path])?metadata[path]:Buffer.from(JSON.stringify(metadata[path]))}};
 }

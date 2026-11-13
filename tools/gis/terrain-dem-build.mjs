@@ -13,9 +13,18 @@ import {reconcileDemGutterFiles,restoreDemPolarGutterShade} from './terrain-dem-
 import {createNativeDemWindowReader,inspectNativeDemSource} from './terrain-dem-raster.mjs';
 import {buildNativeDemTintZip} from './terrain-dem-tint.mjs';
 import {encodeDemWebp} from './terrain-dem-webp.mjs';
+import {quantizeHeight} from './terrain-dem-quantization.mjs';
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
-const version='0.13.3',tileSize=1024;
+const version='0.14.0',tileSize=1024;
+const elevationQuantization=Object.freeze({
+  source:'original ETOPO 2022 float32',method:'roundHalfToEven',sign:'preserve',
+  selection:'source elevation sign and unrounded absolute magnitude; physicalLand remains the independent render mask',
+  land:[{fromMeters:0,toMetersExclusive:256,stepMeters:16},{fromMeters:256,stepMeters:32}],
+  ocean:[{fromMeters:0,toMetersExclusive:256,stepMeters:16},
+    {fromMeters:256,toMetersExclusive:1024,stepMeters:64},{fromMeters:1024,stepMeters:128}],
+  heightDecodeSpacingMeters:1,shadeInput:'original float32 (before quantization)',
+});
 const iceUrl='https://raw.githubusercontent.com/nvkelso/natural-earth-vector/693f11422f4e08d2da4566b854dda53eb7c39fb3/geojson/ne_10m_glaciated_areas.geojson';
 const defaultProfile=Object.freeze({strict:true,tintWidth:4096,tintHeight:2048,
   etopoSha256:'8630abc401cc6bdd30b507a68d3eb9eda5b65f5636f7199e4b1eefd476b5a9e2',
@@ -77,11 +86,13 @@ export async function buildTerrainDemCandidate({etopo,tintZip,ice,countries,outp
       heightDatum:'EGM2008 (EPSG:3855)',sourceCrs:'EPSG:9518',extent:[-180,-90,180,90],registration:'cell-center',
       sourceGridOrigin:[-180,90],sourceResolutionDegrees:[360/metadata.width,180/metadata.height],tileFormat:'lossless WebP RGBA',
       channels:{r:'encoded elevation high byte',g:'encoded elevation low byte',b:'precomputed hillshade',a:'255'},
-      elevation:{encode:'round(meters)+12000',decode:'R*256+G-12000',biasMeters:12000,spacingMeters:1,validEncodedRange:[0,65535]},
+      elevation:{encode:'roundHalfToEven(abs(meters)/step)*step*sign(meters)+12000',decode:'R*256+G-12000',
+        biasMeters:12000,spacingMeters:1,validEncodedRange:[0,65535],quantization:elevationQuantization},
       shade:{azimuthDegrees:315,altitudeDegrees:45,ambient:0.42,diffuse:0.58,polarFallbackDegrees:89.5,quantizationStep:4},
       gutter:1,tileSize:profile.levels[0].tileSize,levels:profile.levels,urlTemplate:`terrain/v${version}/{level}/{column}-{row}.webp`,
       tint:{url:`terrain/v${version}/tint.webp`,width:profile.tintWidth,height:profile.tintHeight,
         sha256:(await hashTerrainFile(tintPath,{signal})).sha256,...tintReport},
+      tileSha256:summary.tileSha256,
       sources:[{url:'https://www.ngdc.noaa.gov/mgg/global/relief/ETOPO2022/data/30s/30s_surface_elev_gtif/ETOPO_2022_v1_30s_N90W180_surface.tif',
         ...source,nodata:metadata.nodata,dtype:metadata.dtype,width:metadata.width,height:metadata.height},
         {url:'https://naturalearth.s3.amazonaws.com/10m_raster/HYP_HR.zip',...tintSource},
@@ -109,6 +120,9 @@ export async function rebuildTerrainDemTint({sourceOutput,tintZip,ice,countries,
   const [archiveHash,iceHash,landHash]=await Promise.all([tintZip,ice,countries].map(path=>hashTerrainFile(path,{signal})));
   if(archiveHash.sha256!==profile.tintSha256||iceHash.sha256!==profile.iceSha256)throw Error('Tint source checksum mismatch');
   const manifest=JSON.parse(await readFile(join(sourceRoot,'manifest.json'),{encoding:'utf8',signal}));
+  // A tint-only copy from v0.13.3 would retain unquantized R/G bytes but falsely
+  // advertise the v0.14.0 quantization contract. Require a complete float32 rebuild.
+  if(version==='0.14.0')throw Error('Terrain v0.14.0 requires original ETOPO float32 regeneration; --reuse-dem is prohibited');
   if(manifest.representation!=='dem-relief-v1'||manifest.version===version||!Array.isArray(manifest.sources))throw Error('Earlier DEM dataset required');
   const originalVersion=manifest.version,sourceAssets=await summarizeTerrainAssets(sourceRoot,manifest.levels,{signal});
   if(sourceAssets.assetsSha256!==manifest.assetsSha256)throw Error('Source DEM dataset checksum mismatch');
@@ -167,6 +181,7 @@ export async function repairTerrainDem({output,etopo,minLevel=0,maxLevel=5}={}, 
     for(const level of manifest.levels)await reconcileDemGutterFiles(output,level,{signal});
     const summary=await summarizeTerrainAssets(output,manifest.levels,{signal}),old=manifest.generation||{};
     delete manifest.generation;manifest.assetsSha256=summary.assetsSha256;
+    if(manifest.version==='0.14.0')manifest.tileSha256=summary.tileSha256;
     await replaceChecked(manifestPath,Buffer.from(JSON.stringify(manifest,null,2)+'\n'),original,signal);
     const priorLevels=previous.levelReports||old.levelReports||[];
     const report={completed:true,totalBytes:summary.reports.reduce((sum,item)=>sum+item.bytes,0)+(await stat(join(output,'tint.webp'))).size,
@@ -179,13 +194,27 @@ export async function repairTerrainDem({output,etopo,minLevel=0,maxLevel=5}={}, 
   });
 }
 
-export async function generateTerrainDemLevel({source,output,level,strict=true},{signal}={}){
+export function applyQ1Elevation(elevation,rgba){
+  if(!Buffer.isBuffer(elevation)||!Buffer.isBuffer(rgba)||elevation.length!==rgba.length||elevation.length%4)
+    throw Error('DEM Float32 and RGBA byte lengths must match');
+  for(let at=0;at<rgba.length;at+=4){
+    const height=elevation.readFloatLE(at),packed=quantizeHeight(height,'Q1')+12000;
+    if(!Number.isInteger(packed)||packed<0||packed>65535)throw Error('Q1 elevation exceeds the encoding range');
+    rgba[at]=packed>>8;rgba[at+1]=packed&255;
+  }
+  return rgba;
+}
+
+export async function generateTerrainDemLevel({source,output,level,strict=true},{signal,quantization='v0.14',tiles=null}={}){
   signal?.throwIfAborted();
   const {id,width,height,tileSize,columns,rows}=level||{};
   if(typeof source!=='string'||!source||typeof output!=='string'||!output||typeof strict!=='boolean'||
     !Number.isSafeInteger(id)||id<0||![width,height,tileSize,columns,rows].every(Number.isSafeInteger)||
     width<1||width>50000||height<1||height>25000||tileSize<1||tileSize>4092||
-    columns!==Math.ceil(width/tileSize)||rows!==Math.ceil(height/tileSize)||columns*rows>1000000)
+    columns!==Math.ceil(width/tileSize)||rows!==Math.ceil(height/tileSize)||columns*rows>1000000||
+    !['v0.14','Q1'].includes(quantization)||tiles!==null&&(!Array.isArray(tiles)||!tiles.length||
+      tiles.some(tile=>!Number.isInteger(tile.column)||tile.column<0||tile.column>=columns||!Number.isInteger(tile.row)||tile.row<0||tile.row>=rows)||
+      new Set(tiles.map(tile=>`${tile.column}/${tile.row}`)).size!==tiles.length))
     throw Error('Explicit bounded DEM level required');
   const outputRoot=await realpath(output);
   if(!(await stat(outputRoot)).isDirectory())throw Error('DEM output must be a directory');
@@ -194,12 +223,15 @@ export async function generateTerrainDemLevel({source,output,level,strict=true},
   const start=performance.now();let count=0,bytes=0,maxTileBytes=0,reader,failure;
   try{
     reader=await createNativeDemWindowReader({source,width,height,strict},{signal});
-    for(let row=0;row<rows;row++)for(let column=0;column<columns;column++){
+    function* allTiles(){for(let row=0;row<rows;row++)for(let column=0;column<columns;column++)yield {row,column};}
+    const selected=tiles||allTiles();
+    for(const {row,column} of selected){
       signal?.throwIfAborted();
       const x=column*tileSize,y=row*tileSize,x1=Math.min(width,x+tileSize),y1=Math.min(height,y+tileSize);
       const windowWidth=x1-x+4,windowHeight=y1-y+4,elevation=await reader.read([x-2,y-2,x1+2,y1+2]);
       const encoded=await encodeNativeDemElevation({width:windowWidth,height:windowHeight,levelWidth:width,levelHeight:height,north:y-2,elevation},
         {directory:process.env.PANDO_TERRAIN_DEM_ENCODE_DIRECTORY||resolve(root,'build-native/terrain-dem-encode/artifact'),signal});
+      if(quantization==='Q1')applyQ1Elevation(elevation,encoded.rgba);
       const tileWidth=windowWidth-2,tileHeight=windowHeight-2,pixels=Buffer.allocUnsafe(tileWidth*tileHeight*4);
       for(let r=0;r<tileHeight;r++)encoded.rgba.copy(pixels,r*tileWidth*4,((r+1)*windowWidth+1)*4,((r+1)*windowWidth+1+tileWidth)*4);
       const webp=await encodeDemWebp({width:tileWidth,height:tileHeight,data:pixels},{signal});

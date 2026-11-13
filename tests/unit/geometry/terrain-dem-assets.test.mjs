@@ -17,7 +17,9 @@ test('DEM asset summary uses level and row order and the original binary hashes'
   const aggregate=createHash('sha256');for(const [path,bytes] of files)aggregate.update(path).update(digest(bytes));
   aggregate.update(digest('tint'));
   assert.deepEqual(await summarizeTerrainAssets(root,[{id:0,columns:2,rows:2},{id:1,columns:1,rows:1}]), {
-    assetsSha256:aggregate.digest('hex'),reports:[{level:0,tileCount:4,bytes:10,maxTileBytes:4},{level:1,tileCount:1,bytes:5,maxTileBytes:5}],
+    assetsSha256:aggregate.digest('hex'),
+    tileSha256:Object.fromEntries(files.map(([path,bytes])=>[path,digest(bytes).toString('hex')])),
+    reports:[{level:0,tileCount:4,bytes:10,maxTileBytes:4},{level:1,tileCount:1,bytes:5,maxTileBytes:5}],
   });
   await assert.rejects(summarizeTerrainAssets(root,[{id:'../other',columns:1,rows:1}]), /level/i);
   await assert.rejects(summarizeTerrainAssets(root,[{id:2,columns:1,rows:1}]), /ENOENT/);

@@ -14,9 +14,9 @@ import {libraryCheckout,decodeArchiveEntry} from "../tools/data/library-context.
 import {prepareLibraryData} from "../tools/data/library-runtime.mjs";
 import {storeLibraryData} from "../tools/data/library-store.mjs";
 import {RECEIPT_PATH,artifactGraph,ownsPath} from './lib/p2-artifact-graph.mjs';
-const APP='kimjeon-il/Pando',DATA='kimjeon-il/PandoLab-library-data';
+const APP='kimjeon-il/Pando',DATA='kimjeon-il/PandoLab-library';
 const CONFIG='config/library-data.json',FIXTURE='tests/fixtures/builtin-modern-interval-baseline.json';
-const FAMILIES=Object.freeze(['territorial','current-world','world-mesh','world-preview','world-bundle','shared-boundaries','builtin-world','prepared-mesh']);
+const FAMILIES=Object.freeze(['territorial','current-world','world-mesh','world-country-packet','world-bundle','shared-boundaries','builtin-world','prepared-mesh']);
 const SHA=/^(?!0{40}$)[a-f0-9]{40}$/;
 const hash=b=>createHash('sha256').update(b).digest('hex');
 function fail(code){throw Object.assign(Error(code),{code});}
@@ -168,9 +168,9 @@ export function createAutomaticAdapters({root,env=process.env,settings,io={}}){
  return {inspect:traced('inspect',inspect),assertCurrent,deriveAndStore:traced('deriveAndStore',deriveAndStore),connect:traced('connect',connect),deploy:async(plan,token)=>{await assertCurrent(token);return github.dispatch(plan.expected.appSha,{productionEnabled:settings.productionEnabled,branch});},verify:async plan=>branch==='main'?github.verify(plan.expected.appSha,{dataSha:plan.expected.outputDataSha}):{status:'verified'},get latest(){return latest;}};
 }
 export async function runAutomaticSync({root=resolve(fileURLToPath(new URL('../',import.meta.url))),env=process.env,check=false,io={}}={}){
- if(check){const policy=JSON.parse(readFileSync(resolve(root,'config/library-auto-sync.json'),'utf8'));if(Object.keys(policy).length!==1||typeof policy.productionEnabled!=='boolean')fail('INVALID_AUTOMATIC_POLICY');return {status:'checked',productionEnabled:policy.productionEnabled};}
+ if(check){const policy=JSON.parse(readFileSync(resolve(root,'docs/policies/library-publication.json'),'utf8'));if(Object.keys(policy).length!==1||typeof policy.productionEnabled!=='boolean')fail('INVALID_AUTOMATIC_POLICY');return {status:'checked',productionEnabled:policy.productionEnabled};}
  if(env.GITHUB_ACTIONS!=='true')fail('GITHUB_ACTIONS_REQUIRED');
- const policy=JSON.parse(Buffer.from((io.git||defaultGit)(root,['show','HEAD:config/library-auto-sync.json'])).toString());
+ const policy=JSON.parse(Buffer.from((io.git||defaultGit)(root,['show','HEAD:docs/policies/library-publication.json'])).toString());
  if(Object.keys(policy).length!==1||typeof policy.productionEnabled!=='boolean')fail('INVALID_AUTOMATIC_POLICY');
  const settings=parseAutomaticEnvironment({...env,LIBRARY_AUTO_PRODUCTION_ENABLED:policy.productionEnabled===true?env.LIBRARY_AUTO_PRODUCTION_ENABLED:'false'});
  const adapters=createAutomaticAdapters({root,env,settings,io});

@@ -1,5 +1,6 @@
 import { describe as contractSuite } from 'node:test';
 import { deferredResult } from "../../helpers/async-test-ports.mjs";
+import {createWorkerTestPort} from '../../helpers/worker-test-port.mjs';
 import * as __canvas_dep0 from "node:assert/strict";
 import * as __canvas_dep1 from "node:fs";
 import * as __canvas_dep2 from "node:vm";
@@ -54,21 +55,7 @@ test('failed operation aborts sibling fetch signals instead of retaining batch w
   assert.equal(host.replies[0].error.message,'offline');
 });
 
-function fakeWorker(responder = null) {
-  return {
-    messages: [],
-    transfers: [],
-    terminated: false,
-    onmessage: null,
-    onerror: null,
-    postMessage(message, transfer = []) {
-      this.messages.push(message);
-      this.transfers.push(transfer);
-      responder?.(message, this);
-    },
-    terminate() { this.terminated = true; },
-  };
-}
+const fakeWorker = responder => createWorkerTestPort({onPostMessage: responder});
 
 function resultFor(message, result, overrides = {}) {
   return {
@@ -168,6 +155,7 @@ test('worker crashes reject pending requests and the next request recreates the 
   const second = await client.request('geometry.mesh', {});
   assert.equal(second.result, 'recovered');
   assert.equal(workers.length, 2);
+  assert.equal(workers[0].terminated, true, 'crashed Worker releases its port');
   assert.equal(client.stats().restarted, 1);
 });
 
