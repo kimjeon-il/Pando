@@ -45,6 +45,31 @@ const fixture = `self.paintNumericalFixture = async heightMeters => {
   result.promoted=pixel(62,30);
   return result;
 };
+self.paintNumericalGradientFixture = async () => {
+  canvas=new OffscreenCanvas(128,64);context=canvas.getContext('2d');
+  terrainDemManifest={gutter:1};
+  const width=6,height=4,dem=new Uint8ClampedArray(width*height*4);
+  for(let y=0;y<height;y++)for(let x=0;x<width;x++){
+    const elevation=x*400+y*500,encoded=elevation+12000;
+    dem.set([encoded>>8,encoded&255,212,255],(y*width+x)*4);
+  }
+  const source=self.PandoLabCanvasTerrainDem.createInterpolatedSampler({dem,width,height});
+  const spec={bounds:[-180,90,180,-90],pixelWidth:4,pixelHeight:2};
+  const projection=self.d3.geo.equirectangular().scale(128/(2*Math.PI))
+    .translate([64,32]).center([0,0]);
+  const image={sample:source};
+  for(const step of drawNumericalFlatTile(spec,image,projection,1)){}
+  const pixels=[],expected=[];
+  for(const [x,y] of [[16,16],[32,32],[64,32],[96,32],[112,48]]){
+    const at=Array.from(context.getImageData(x,y,1,1).data);
+    const numerical=new Uint8ClampedArray(4);
+    // Geographic source rectangle spans [1,5] by [1,3] across 128x64.
+    source(1+(x+0.5)/32-0.5,1+(y+0.5)/32-0.5,numerical);
+    pixels.push(at);expected.push([...numerical]);
+  }
+  return {pixels,expected,numericPixels:numericalPixels,
+    scratchPeak:numericalScratchPeakBytes,scratchAllocations:numericalScratchAllocations};
+};
 `;
 const renderer = read('../../../src/rendering/workers/canvas-render-core.js')
   .replace('self.onmessage = event => {', fixture + 'self.onmessage = event => {')
@@ -83,5 +108,38 @@ for (const mode of ['worker', 'inline']) {
       for(const pixel of result.seams)expect(pixel).toEqual(result.expectedOcean);
       expect(result.promoted).toEqual(result.expectedLand);
     }
+  });
+}
+
+
+for(const mode of ['worker','inline']){
+  test(`real ${mode} Canvas screen samples gradient DEM before PCHIP instead of recoloring texels`,async({page})=>{
+    await page.goto('about:blank');
+    const result=await page.evaluate(async({dependencies,renderer,mode})=>{
+      const bootstrap=`const dispose=PandoLabCanvasRenderer.install({
+        location:{href:'https://example.test/assets/js/workers/canvas-render-worker.js'},
+        d3,OffscreenCanvas,PandoLabGeographicBoundary,PandoLabCanvasSceneComposition,
+        PandoLabCanvasTerrainDem,PandoLabTerrainTileSelection,PandoLabResourceUpdatePolicy,
+        postMessage(){},set onmessage(value){},
+        set paintNumericalGradientFixture(value){globalThis.paintGradient=value;}
+      });`;
+      if(mode==='inline'){
+        (0,eval)(dependencies+'\\n;'+renderer+'\\n;'+bootstrap);
+        try{return await globalThis.paintGradient();}
+        finally{dispose();}
+      }
+      const code=dependencies+'\\n;'+renderer+'\\n;'+bootstrap+
+        '\\n(async()=>{try{postMessage({result:await paintGradient()});}catch(error){postMessage({error:error.stack});}finally{dispose();}})();';
+      const url=URL.createObjectURL(new Blob([code],{type:'text/javascript'})),worker=new Worker(url);
+      try{return await new Promise((resolve,reject)=>{
+        worker.onmessage=event=>event.data.error?reject(new Error(event.data.error)):resolve(event.data.result);
+        worker.onerror=event=>reject(new Error(event.message));
+      });}finally{worker.terminate();URL.revokeObjectURL(url);}
+    },{dependencies,renderer,mode});
+    expect(result.pixels).toEqual(result.expected);
+    expect(new Set(result.pixels.map(p=>p.join(','))).size).toBeGreaterThan(2);
+    expect(result.numericPixels).toBeGreaterThan(100);
+    expect(result.scratchPeak).toBeLessThanOrEqual(262144);
+    expect(result.scratchAllocations).toBe(1);
   });
 }
