@@ -1,3 +1,4 @@
+# Verify GPU natural-visible memory reservation and destination-pixel Canvas tests under strict WebGL/Canvas acceptance.
 # Re-run external natural surface Viewer capture after Canvas source-memory and catalog wake fixes.
 # Rerun real SwiftShader natural-pixel parity after reserved-keyword correction; keep strict checks.
 name: Terrain focused work-gis integration and source-matched staging
