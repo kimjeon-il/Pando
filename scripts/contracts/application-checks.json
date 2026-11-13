@@ -868,6 +868,55 @@
       ],
       "requires": [],
       "testPatterns": []
+    },
+    {
+      "id": "viewer-runtime-identity",
+      "kind": "command",
+      "inputs": [
+        "projects/**/manifest.json",
+        "config/library-data.json",
+        ".github/actions/library-data/**",
+        "tools/data/library-*.mjs",
+        "tools/build/build-world-bundle.mjs",
+        "scripts/generate-build-metadata.mjs",
+        "scripts/lib/frontend-build.mjs",
+        "src/data/runtime-manifest-assets.js",
+        "src/data/map-project-manifest.js",
+        "src/data/physical-resources.js",
+        "src/rendering/**/terrain-*.js",
+        "src/rendering/**/gpu-terrain-*.js",
+        "src/rendering/**/canvas-terrain-*.js",
+        "src/rendering/gpu-map-renderer.js",
+        "src/rendering/gpu-base-scene-pass.js",
+        "src/rendering/workers/canvas-render-worker.js"
+      ],
+      "argv": [
+        "node",
+        "scripts/generate-build-metadata.mjs",
+        "--check",
+        "--product=viewer"
+      ]
+    },
+    {
+      "id": "world-archive-source-boundary",
+      "kind": "command",
+      "inputs": [
+        "projects/**/manifest.json",
+        "config/library-data.json",
+        ".github/actions/library-data/**",
+        "tools/data/library-*.mjs",
+        "tools/build/build-world-bundle.mjs",
+        "scripts/lib/frontend-build.mjs",
+        "scripts/lib/product-assets.mjs",
+        "src/data/runtime-manifest-assets.js",
+        "src/data/map-project-manifest.js",
+        "assets/data/**",
+        "scripts/check-world-archive-closure.mjs"
+      ],
+      "argv": [
+        "node",
+        "scripts/check-world-archive-closure.mjs"
+      ]
     }
   ],
   "prerequisites": {
@@ -964,9 +1013,20 @@
       ]
     },
     "native-terrain-dem-encode": {
-      "argv": ["node", "scripts/prepare-native-test-tools.mjs", "terrain-dem-encode"],
-      "env": {"PANDO_TERRAIN_DEM_ENCODE_DIRECTORY": "{root}/build-native/terrain-dem-encode/artifact"},
-      "inputs": ["tools/cpp/terrain-dem-encode/**", "tools/gis/terrain-dem-encode.mjs", "tools/gis/package-terrain-dem-encode.mjs", ".github/actions/native-test-prerequisites/action.yml"]
+      "argv": [
+        "node",
+        "scripts/prepare-native-test-tools.mjs",
+        "terrain-dem-encode"
+      ],
+      "env": {
+        "PANDO_TERRAIN_DEM_ENCODE_DIRECTORY": "{root}/build-native/terrain-dem-encode/artifact"
+      },
+      "inputs": [
+        "tools/cpp/terrain-dem-encode/**",
+        "tools/gis/terrain-dem-encode.mjs",
+        "tools/gis/package-terrain-dem-encode.mjs",
+        ".github/actions/native-test-prerequisites/action.yml"
+      ]
     },
     "native-terrain-dem-gutters": {
       "argv": [
@@ -1547,6 +1607,40 @@
         "config/toolchain-versions.json",
         "projects/**/manifest.json"
       ]
+    },
+    {
+      "tests": [
+        "tests/unit/rendering/terrain-tile-selection-shared.test.mjs",
+        "tests/unit/rendering/canvas-terrain-independence.test.mjs",
+        "tests/unit/rendering/gpu-base-scene-order.test.mjs"
+      ],
+      "inputs": [
+        "projects/**/manifest.json",
+        "src/data/physical-resources.js",
+        "src/rendering/**/terrain-*.js",
+        "src/rendering/**/gpu-terrain-*.js",
+        "src/rendering/**/canvas-terrain-*.js",
+        "src/rendering/gpu-map-renderer.js",
+        "src/rendering/gpu-base-scene-pass.js",
+        "src/rendering/workers/canvas-render-worker.js"
+      ]
+    },
+    {
+      "tests": [
+        "tests/unit/data/map-project-manifest.test.mjs",
+        "tests/unit/data/frontend-runtime-closure.test.mjs"
+      ],
+      "inputs": [
+        "projects/**/manifest.json",
+        "config/library-data.json",
+        ".github/actions/library-data/**",
+        "tools/data/library-*.mjs",
+        "tools/build/build-world-bundle.mjs",
+        "scripts/lib/frontend-build.mjs",
+        "scripts/lib/product-assets.mjs",
+        "src/data/runtime-manifest-assets.js",
+        "src/data/map-project-manifest.js"
+      ]
     }
   ],
   "runtimeBases": {},
@@ -1630,8 +1724,12 @@
       ]
     },
     {
-      "tests": ["tests/unit/geometry/terrain-dem-encode.test.mjs"],
-      "requires": ["native-terrain-dem-encode"]
+      "tests": [
+        "tests/unit/geometry/terrain-dem-encode.test.mjs"
+      ],
+      "requires": [
+        "native-terrain-dem-encode"
+      ]
     },
     {
       "tests": [

@@ -1,24 +1,6 @@
 name: Project-selected terrain and Canvas contract
 
 on:
-  pull_request:
-    paths:
-      - 'projects/**'
-      - 'src/rendering/**terrain**'
-      - 'src/rendering/gpu-map-renderer.js'
-      - 'src/rendering/gpu-base-scene-pass.js'
-      - 'src/rendering/workers/canvas-render-worker.js'
-      - 'src/data/physical-resources.js'
-      - 'tests/unit/rendering/terrain-tile-selection-shared.test.mjs'
-      - '.github/workflows/terrain-runtime-gate.yml'
-  push:
-    branches: [main, work/optimization]
-    paths:
-      - 'projects/**'
-      - 'src/rendering/**terrain**'
-      - 'src/rendering/gpu-map-renderer.js'
-      - 'src/data/physical-resources.js'
-      - '.github/workflows/terrain-runtime-gate.yml'
   workflow_dispatch:
 
 permissions:

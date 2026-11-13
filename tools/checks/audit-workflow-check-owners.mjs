@@ -97,11 +97,18 @@ export function auditWorkflowInventory(directory, manifestPath) {
  for(const tier of ['manual','historical'])if(!Array.isArray(groups[tier])){
   add(manifestPath,tier+' entries must be arrays');groups[tier]=[];
  }
+ const delegated=manifest?.delegatedToCanonical||{};
+ if(!delegated||typeof delegated!=='object'||Array.isArray(delegated))
+  add(manifestPath,'Delegated check owners must map to the canonical application workflow');
  const owners=new Map();
  for(const [tier,entries] of Object.entries(groups))for(const file of entries){
   if(typeof file!=='string'||!/^[\w-]+\.ya?ml$/.test(file)){add(manifestPath,'Invalid workflow name in '+tier);continue;}
   if(owners.has(file))add(file,'Workflow belongs to multiple tiers: '+owners.get(file)+' and '+tier);
   owners.set(file,tier);
+ }
+ for(const [file,reason] of Object.entries(delegated||{})){
+  if(owners.get(file)!=='manual')add(file,'Delegated application-only workflow must be manual');
+  if(typeof reason!=='string'||!reason.trim())add(file,'Delegated workflow needs its canonical replacement reason');
  }
  const actual=readdirSync(directory).filter(file=>/\.ya?ml$/.test(file)).sort(),present=new Set(actual);
  for(const file of actual)if(!owners.has(file))add(file,'Workflow missing from canonical inventory');
