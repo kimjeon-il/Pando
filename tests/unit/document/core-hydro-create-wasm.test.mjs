@@ -1,13 +1,12 @@
+const hydroExpectations=JSON.parse(__suiteDependency2.readFileSync(new URL('../../fixtures/hydro-command-contract.json',import.meta.url),'utf8'));
 import { describe as featureDescribe } from 'node:test';
 import * as __suiteDependency0 from "node:assert/strict";
 import * as __suiteDependency1 from "node:test";
 import * as __suiteDependency2 from "node:fs";
-import * as __suiteDependency3 from "../../helpers/web-hydro-create-oracle.mjs";
 import * as __suiteDependency4 from "../../helpers/core-project.mjs";
 import * as __suiteDependency5 from "node:assert/strict";
 import * as __suiteDependency6 from "node:test";
 import * as __suiteDependency7 from "node:fs";
-import * as __suiteDependency8 from "../../helpers/web-hydro-hidden-oracle.mjs";
 import * as __suiteDependency9 from "../../helpers/core-project.mjs";
 import * as __suiteDependency10 from "node:test";
 import * as __suiteDependency11 from "node:assert/strict";
@@ -21,7 +20,6 @@ featureDescribe("core-hydro-create-wasm", () => {
   const assert = __suiteDependency0.default;
   const test = __suiteDependency1.default;
   const {  readFileSync  } = __suiteDependency2;
-  const {  originalNormalizedHydro  } = __suiteDependency3;
   const {  createNodeCoreProject  } = __suiteDependency4;
 const seed = JSON.parse(readFileSync(new URL("../../fixtures/portability/web-document-seed.json", import.meta.url), 'utf8'));
 const inputs = [
@@ -32,7 +30,7 @@ const inputs = [
 ];
 
 for (const input of inputs) test(`raw ${input.geometry.type} hydro creation preserves original missing fields, opaque properties and storage`, async t => {
-  const expected = originalNormalizedHydro(input);
+  const expected = hydroExpectations.find(row=>row.id===input.id).expected;
   assert.equal(Object.hasOwn(expected.properties, 'locked'), false);
   assert.equal(Object.hasOwn(expected.properties, 'source'), false);
   assert.equal(Object.hasOwn(expected.properties, 'visible'), false);
@@ -60,26 +58,13 @@ featureDescribe("core-hydro-hidden-source-wasm", () => {
   const assert = __suiteDependency5.default;
   const test = __suiteDependency6.default;
   const {  readFileSync  } = __suiteDependency7;
-  const {  originalHydroAggregation  } = __suiteDependency8;
   const {  createNodeCoreProject  } = __suiteDependency9;
 const logicalId = 'river:aggregate';
-const fragment = sourceId => ({ type: 'Feature', id: `${logicalId}:fragment`,
-  properties: { pandolab_id: logicalId, category: 'river', layer_id: 'rivers', source_id: sourceId, fragment_index: 0, __fid: 2 },
-  geometry: { type: 'LineString', coordinates: [[1.125, 2.25], [3.5, 4.75]] } });
 const cases = [
   { name: 'true source suffix', hidden: { 'source:101': true, 'source:102': false, unrelated: true }, expected: { 'source:101': true, 'source:102': false, unrelated: true, [logicalId]: true } },
   { name: 'false or unknown source', hidden: { 'source:101': false, 'source:999': true }, expected: { 'source:101': false, 'source:999': true } },
   { name: 'existing logical hide', hidden: { [logicalId]: true, 'source:102': false }, expected: { [logicalId]: true, 'source:102': false } },
 ];
-test('frozen original hydro aggregation adds only true source hidden aliases without touching project clocks', () => {
-  for (const row of cases) {
-    const result = originalHydroAggregation(logicalId, [fragment('101,102')], row.hidden);
-    assert.deepEqual(result.hiddenHydroIds, row.expected, row.name);
-    assert.equal(result.stateRevision, 17); assert.equal(result.dirty, false);
-    assert.equal(result.aggregate.id, logicalId);
-    assert.equal(result.aggregate.properties.source_id, '101,102');
-  }
-});
 test('builtin catalog admission preserves creation metadata and save/history clocks', async t => {
   for (const row of cases) {
     const seed = JSON.parse(readFileSync(new URL("../../fixtures/portability/web-document-seed.json", import.meta.url), 'utf8'));

@@ -17,8 +17,6 @@ The Web Viewer is the only shipping product. [Module ownership](app-module-owner
 | `config/` | Runtime data pin, source roots, artifact graph and tool versions |
 | `docs/policies/` | Policy navigation and domain rules, including machine-readable execution/publication policy |
 | `docs/architecture/`, `docs/development/` | Maintained architecture and developer instructions |
-| `docs/superpowers/`, `docs/validation/` | Dated specifications and historical verification; not current commands or duplicate runtime policy |
-| `validation-results/` | Tracked historical measurements consumed by named replay/evaluation workflows; not general build output |
 | `projects/`, `reports/` | Pinned project declarations and the central report-originals mount; data remains library-owned |
 
 ## Source paths and public URLs
@@ -34,5 +32,3 @@ Use `pnpm.cmd deps:prepare`, `pnpm.cmd dev:web` and `pnpm.cmd build:web`. The ro
 `.library-data/`, `build-native/`, `test-results/` and project-created verification profiles are working outputs, not source locations. Keep only current consumers and active incremental outputs. Source watchers must exclude these paths and dependency stores. JS/CSS reload must not prepare all data or invoke native compilation.
 
 Before moving or removing outputs, check pins, mounts, processes, leases and journals. Never traverse data/dependency junctions during source cleanup. Sources, unique evidence and unfinished work remain protected by [AGENTS.md](../AGENTS.md); local compiler restrictions and cleanup follow that policy and [worktree storage](worktree-storage.md).
-
-The previous mixed Web/App layout text is preserved as original bytes in the library's private evidence, `retired-workspace-layout/workspace-layout-before-20261113.md`. Historical specifications retain their original paths; they do not define the current layout.

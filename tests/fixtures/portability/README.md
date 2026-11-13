@@ -1,12 +1,5 @@
-# Behavior-preserving Web / App refactor corpus
+# Current behavioral contract fixtures
 
-`manifest.json` records the pre-refactor source pair and SHA-256 of every frozen
-input/reference. `baseline-selection.mjs` is the exact Git blob from the recorded
-Web commit, retained only as a test oracle. `selection.json` has independently
-specified ordered results, including silent anchor updates, duplicated inputs,
-pruning, encoded IDs and empty-selection no-ops. Do not regenerate expected values
-from the implementation under test.
+These bounded JSON inputs and expected observations exercise the current Core and Viewer contracts. Selection, command, storage, geometry and calendar checks compare accepted behavior with explicit expectations. Do not regenerate expected values from the implementation under test.
 
-Run `node tools/checks/check-platform-portability.mjs` for the current Web/shared selection regression.
-The retired Qt app registry and probes have been removed. Frozen Web sources remain
-inputs to current shared/WASM regression tests; they do not claim app UI parity.
+The active owners and prerequisites are registered in `scripts/contracts/application-checks.json`. The selection sequence is exercised by `tests/unit/ui/selection-contract.test.mjs` using the actual Core. Use affected checks; fixture existence alone does not establish passing product behavior.

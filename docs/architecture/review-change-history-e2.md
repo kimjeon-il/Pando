@@ -1,7 +1,7 @@
 # E2 — 검수 제안·변경 이력 Sidecar 계약
 
 **대상:** Pando `work/ui` · Web/Windows 공통 계약 · 2026-11-02
-**선행:** [E1 공통 지도 읽기 엔진](map-readonly-engine-e1.md)
+**선행:** [현행 계약](../app-module-ownership.md)
 **후속:** E3 데이터 리비전 비교 → E4 웹 검수 UI → E5 Windows 연결 → E6 구형 편집기·Android 네이티브 제거 → E7 최종 회귀 검사
 
 ## 1. 데이터 소유권

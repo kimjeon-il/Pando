@@ -3,24 +3,29 @@ import { timelineStorageCases } from '../fixtures/timeline-storage-cases.mjs';
 import { createTerritorialEntityStore } from "../../src/document/territorial-entity-store.js";
 import { createTerritorialEntityRepository } from "../../src/document/territorial-entity-repository.js";
 import { createNodeCoreProject } from './core-project.mjs';
-import { loadWebOracle } from './web-oracle.mjs';
+import {normalizeTerritorialFeature,normalizeTerritorialIdentity,TERRITORIAL_IDENTITY_FIELDS} from '../../src/document/territorial-units.js';
 import { DISTRIBUTION_MODES } from "../../src/document/distribution-model.js";
 import { afterEach } from 'node:test';
 import { createProjectSerializer } from "./legacy-project-autosave.mjs";
 import {createTestViewingSession} from './viewing-project.mjs';
 
-// These original factories only construct detached scenario inputs. Current
-// behavior, mutation, validation and history are always exercised in C++.
-const { createStaticTerritorialSnapshot }=await loadWebOracle('assets/js/modules/territorial-entity-store.js');
 const fixtures=new WeakMap();
 const liveFixtures=new Set();
 
 /** Detached input construction only; never a current model or command owner. */
 export function staticTerritorialInput(features) {
-  const input=structuredClone(createStaticTerritorialSnapshot(features));
-  input.timelineRecords.schemaVersion=3;
-  for(const rows of [input.timelineRecords.lifetimes,input.timelineRecords.geometryBindings,input.timelineRecords.parentRelations])for(const row of rows){row.objectRef={domain:'territorial',id:row.entityId};delete row.entityId;}
-  input.timelineRecords.propertyBindings=[];
+  const input={territorialEntities:[],timelineRecords:{schemaVersion:3,lifetimes:[],geometryBindings:[],parentRelations:[],propertyBindings:[]},geometries:[]};
+  for(const raw of features){
+    const feature=normalizeTerritorialFeature(raw);
+    if(!feature)throw new TypeError('A current territorial feature is required for the fixture');
+    const {id,properties:p}=feature,objectRef={domain:'territorial',id},period={validFrom:null,validTo:null};
+    input.territorialEntities.push(normalizeTerritorialIdentity({type:'Feature',id,geometry:null,properties:Object.fromEntries(TERRITORIAL_IDENTITY_FIELDS.filter(key=>Object.hasOwn(p,key)).map(key=>[key,p[key]]))}));
+    const geometryRef={id:'territorial-geometry:'+id,version:1};
+    input.geometries.push({...geometryRef,geojson:structuredClone(feature.geometry)});
+    input.timelineRecords.lifetimes.push({id:'lifetime:'+id,objectRef,...period});
+    input.timelineRecords.geometryBindings.push({id:'geometry:'+id,objectRef,...period,geometryRef});
+    input.timelineRecords.parentRelations.push({id:'parent:'+id,objectRef,...period,parentId:p.parentId,coverageMode:p.coverageMode});
+  }
   return input;
 }
 afterEach(() => {

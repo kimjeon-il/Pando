@@ -9,7 +9,7 @@ Read [docs/branch-policy.md](docs/branch-policy.md) before choosing a branch or
 local worktree.
 Before adding or revising repository policy, use the [policy navigation](docs/policies/README.md)
 to find the existing owner. It is an index, not a replacement for this file or
-any domain-specific contract; keep historical verification records intact. Web Viewer starts in `src/app/`; UI, map, document, geometry,
+any domain-specific contract; keep current verification contracts and their canonical owners coherent. Web Viewer starts in `src/app/`; UI, map, document, geometry,
 rendering, data and runtime sources live in their corresponding `src/` domains.
 C++ implementations live in each domain's `native/`, with build orchestration
 in `tools/build/native/`. The retired `apps/editor/` application is absent;
@@ -37,7 +37,7 @@ all maintained sources use the same commit and branch:
   resolve conflicts without silently choosing one side.
 - Never merge `work/*` into `main`, commit directly to `main`, deploy, or
   transfer changes between categories without explicit user instructions.
-- Verify the affected Web Viewer and its embedded read-only inspector workflows. Retired standalone Web/App parity gates remain historical evidence, not a live release requirement.
+- Verify the affected Web Viewer and its embedded read-only inspector workflows. Retired standalone Web/App parity gates are not a live release requirement.
 - Exception branches or temporary worktrees require a concrete reason why an
   existing workspace cannot handle the work, and user approval. Do not delete
   them automatically after integration.
@@ -58,6 +58,8 @@ all maintained sources use the same commit and branch:
   remaining temporary or obsolete output. "It might be useful later" is not
   a retention reason: retained generated files need a current consumer,
   execution path or verification purpose.
+- Completed plans, one-shot task tools, logs and ended verification outputs are not current source merely because they are old evidence or reference each other. Keep them only for a concrete current development, regeneration or verification consumer; integrate valid general rules into their existing canonical owner. Preserve active work and required original materials.
+- Do not create deletion inventories, cleanup reports, backups or archive copies of approved obsolete files unless the user explicitly requests them. Remove temporary investigation files after their current use ends. Ordinary cleanup does not rewrite Git history.
 - Do not back up disposable caches before deleting them. Do not create full
   repository, data or build copies per task. Reuse permanent worktrees, fixed
   build directories, dependencies and valid incremental caches.

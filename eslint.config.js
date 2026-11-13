@@ -28,9 +28,6 @@ const nodeGlobals = {
 
 export default [
   { ignores: ['node_modules/**', 'playwright-report/**', 'test-results/**', 'assets/js-vendor/**', 'assets/vendor/**', 'assets/wasm/**', 'assets/**', 'apps/editor/src-tauri/**',
-    // Immutable Git blob test inputs are admitted by web-oracle.mjs and its
-    // provenance/import-closure tests; they are not active application source.
-    'tests/fixtures/portability/web-9300609-oracle/**',
     'tests/fixtures/shared-core/web-m97/lifecycle-source/**'] },
   js.configs.recommended,
   {
@@ -74,14 +71,6 @@ export default [
     files: ['tests/**/*.mjs', 'scripts/**/*.mjs', '.github/scripts/**/*.mjs', 'tools/**/*.{mjs,js}', '*.config.js', '.pnpmfile.mjs'],
     languageOptions: { ecmaVersion: 'latest', sourceType: 'module', globals: nodeGlobals },
     rules: { 'no-unused-vars': ['error', { args: 'none', caughtErrors: 'none', ignoreRestSiblings: true }] },
-  },
-  {
-    // These Node-owned files contain page.evaluate/addInitScript callbacks.
-    // Only the browser callback uses DOM/WebGL globals; preserve Node lint
-    // rules while avoiding false 'no-undef' errors for browser-side code.
-    files: ['scripts/terrain-experiment/**/*.mjs','scripts/p7-browser-ab-measure.mjs',
-      'tests/unit/rendering/terrain-experiment*.test.mjs'],
-    languageOptions: { globals: { ...nodeGlobals, ...browserGlobals } },
   },
   {
     files: ['tests/browser/**/*.mjs', 'tests/integration/**/*.mjs'],

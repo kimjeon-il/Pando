@@ -85,6 +85,6 @@ node tools/review/generate-e3-review.mjs \
 
 필요한 대량 원본 리비전 비교는 `--batch-index=1 --batch-size=50`으로 시작해 반환되는 `scope.batchCount`까지 반복한다. **배치마다 별도 `--output-dir`와 고유한 `--proposal-id`**가 필요하다. 산출물이 각 배치의 변경 원본을 정확히 식별하므로 E4에서 한 번에 조합할 수 있다.
 
-자동 수용 CI: [.github/workflows/e3-revision-comparison.yml](../../.github/workflows/e3-revision-comparison.yml). 검증은 Pando에서만 수행하고 외부 데이터 repo에는 테스트·CI·코드를 추가하지 않는다.
+검사는 [현행 검사 실행기](../../scripts/run-application-checks.mjs)에서 관련 계약만 선택한다. 외부 데이터 저장소에서는 테스트·CI·코드를 실행하지 않는다.
 
-E4는 E3 산출물과 E2 객체별 색인을 웹 검수 화면에 연결한다. E5는 Windows 검수기에서 이 동일한 읽기·검수 경계를 재사용한다. E6까지 기존 편집 코드/Android 네이티브 코드는 삭제하지 않는다.
+자료 비교·검수 산출물은 Viewer의 읽기 전용 검사 경계에서 사용한다. 검수 제안은 프로젝트·원자료의 변경이나 게시가 아니다.

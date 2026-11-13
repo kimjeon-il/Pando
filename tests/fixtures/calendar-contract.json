@@ -1,0 +1,1900 @@
+{
+  "parse": [
+    {
+      "input": "1945",
+      "expected": {
+        "source": "1945",
+        "canonical": "1945",
+        "precision": "year",
+        "year": 1945,
+        "month": null,
+        "day": null,
+        "startKey": [
+          1945,
+          1,
+          1
+        ],
+        "endKey": [
+          1945,
+          12,
+          31
+        ]
+      }
+    },
+    {
+      "input": "1945-08-15",
+      "expected": {
+        "source": "1945-08-15",
+        "canonical": "1945-08-15",
+        "precision": "date",
+        "year": 1945,
+        "month": 8,
+        "day": 15,
+        "startKey": [
+          1945,
+          8,
+          15
+        ],
+        "endKey": [
+          1945,
+          8,
+          15
+        ]
+      }
+    },
+    {
+      "input": "1914-07",
+      "expected": {
+        "source": "1914-07",
+        "canonical": "1914-07",
+        "precision": "month",
+        "year": 1914,
+        "month": 7,
+        "day": null,
+        "startKey": [
+          1914,
+          7,
+          1
+        ],
+        "endKey": [
+          1914,
+          7,
+          31
+        ]
+      }
+    },
+    {
+      "input": "1916-02",
+      "expected": {
+        "source": "1916-02",
+        "canonical": "1916-02",
+        "precision": "month",
+        "year": 1916,
+        "month": 2,
+        "day": null,
+        "startKey": [
+          1916,
+          2,
+          1
+        ],
+        "endKey": [
+          1916,
+          2,
+          29
+        ]
+      }
+    },
+    {
+      "input": "1900-02",
+      "expected": {
+        "source": "1900-02",
+        "canonical": "1900-02",
+        "precision": "month",
+        "year": 1900,
+        "month": 2,
+        "day": null,
+        "startKey": [
+          1900,
+          2,
+          1
+        ],
+        "endKey": [
+          1900,
+          2,
+          28
+        ]
+      }
+    },
+    {
+      "input": "2000-02",
+      "expected": {
+        "source": "2000-02",
+        "canonical": "2000-02",
+        "precision": "month",
+        "year": 2000,
+        "month": 2,
+        "day": null,
+        "startKey": [
+          2000,
+          2,
+          1
+        ],
+        "endKey": [
+          2000,
+          2,
+          29
+        ]
+      }
+    },
+    {
+      "input": "2100-02",
+      "expected": {
+        "source": "2100-02",
+        "canonical": "2100-02",
+        "precision": "month",
+        "year": 2100,
+        "month": 2,
+        "day": null,
+        "startKey": [
+          2100,
+          2,
+          1
+        ],
+        "endKey": [
+          2100,
+          2,
+          28
+        ]
+      }
+    },
+    {
+      "input": "-0001",
+      "expected": {
+        "source": "-0001",
+        "canonical": "-0001",
+        "precision": "year",
+        "year": -1,
+        "month": null,
+        "day": null,
+        "startKey": [
+          -1,
+          1,
+          1
+        ],
+        "endKey": [
+          -1,
+          12,
+          31
+        ]
+      }
+    },
+    {
+      "input": "-0001-02",
+      "expected": {
+        "source": "-0001-02",
+        "canonical": "-0001-02",
+        "precision": "month",
+        "year": -1,
+        "month": 2,
+        "day": null,
+        "startKey": [
+          -1,
+          2,
+          1
+        ],
+        "endKey": [
+          -1,
+          2,
+          28
+        ]
+      }
+    },
+    {
+      "input": "-0400-02",
+      "expected": {
+        "source": "-0400-02",
+        "canonical": "-0400-02",
+        "precision": "month",
+        "year": -400,
+        "month": 2,
+        "day": null,
+        "startKey": [
+          -400,
+          2,
+          1
+        ],
+        "endKey": [
+          -400,
+          2,
+          29
+        ]
+      }
+    },
+    {
+      "input": "-0100-02",
+      "expected": {
+        "source": "-0100-02",
+        "canonical": "-0100-02",
+        "precision": "month",
+        "year": -100,
+        "month": 2,
+        "day": null,
+        "startKey": [
+          -100,
+          2,
+          1
+        ],
+        "endKey": [
+          -100,
+          2,
+          28
+        ]
+      }
+    },
+    {
+      "input": "0001-01",
+      "expected": {
+        "source": "0001-01",
+        "canonical": "0001-01",
+        "precision": "month",
+        "year": 1,
+        "month": 1,
+        "day": null,
+        "startKey": [
+          1,
+          1,
+          1
+        ],
+        "endKey": [
+          1,
+          1,
+          31
+        ]
+      }
+    },
+    {
+      "input": "+1914-07",
+      "expected": {
+        "source": "+1914-07",
+        "canonical": "+1914-07",
+        "precision": "month",
+        "year": 1914,
+        "month": 7,
+        "day": null,
+        "startKey": [
+          1914,
+          7,
+          1
+        ],
+        "endKey": [
+          1914,
+          7,
+          31
+        ]
+      }
+    },
+    {
+      "input": "+12000-02",
+      "expected": {
+        "source": "+12000-02",
+        "canonical": "+12000-02",
+        "precision": "month",
+        "year": 12000,
+        "month": 2,
+        "day": null,
+        "startKey": [
+          12000,
+          2,
+          1
+        ],
+        "endKey": [
+          12000,
+          2,
+          29
+        ]
+      }
+    },
+    {
+      "input": "-999999-01",
+      "expected": {
+        "source": "-999999-01",
+        "canonical": "-999999-01",
+        "precision": "month",
+        "year": -999999,
+        "month": 1,
+        "day": null,
+        "startKey": [
+          -999999,
+          1,
+          1
+        ],
+        "endKey": [
+          -999999,
+          1,
+          31
+        ]
+      }
+    },
+    {
+      "input": "+999999-12",
+      "expected": {
+        "source": "+999999-12",
+        "canonical": "+999999-12",
+        "precision": "month",
+        "year": 999999,
+        "month": 12,
+        "day": null,
+        "startKey": [
+          999999,
+          12,
+          1
+        ],
+        "endKey": [
+          999999,
+          12,
+          31
+        ]
+      }
+    },
+    {
+      "input": "  1914-07  ",
+      "expected": {
+        "source": "1914-07",
+        "canonical": "1914-07",
+        "precision": "month",
+        "year": 1914,
+        "month": 7,
+        "day": null,
+        "startKey": [
+          1914,
+          7,
+          1
+        ],
+        "endKey": [
+          1914,
+          7,
+          31
+        ]
+      }
+    }
+  ],
+  "bad": [
+    "",
+    "0000",
+    "-0000",
+    "+0000-07",
+    "1945-2-1",
+    "12000",
+    "1900-02-29",
+    "1914-07-00",
+    "1914-13-01",
+    "1914-07-31T00:00:00Z",
+    "+1000000-01"
+  ],
+  "monthEnds": [
+    {
+      "input": "1914-07",
+      "expected": "1914-07-31"
+    },
+    {
+      "input": "1916-02",
+      "expected": "1916-02-29"
+    },
+    {
+      "input": "1900-02",
+      "expected": "1900-02-28"
+    },
+    {
+      "input": "2000-02",
+      "expected": "2000-02-29"
+    },
+    {
+      "input": "-0001-02",
+      "expected": "-0001-02-28"
+    },
+    {
+      "input": "+12000-02",
+      "expected": "+12000-02-29"
+    }
+  ],
+  "compare": [
+    {
+      "a": "-0001-12",
+      "b": "0001-01",
+      "leftEnd": false,
+      "rightEnd": false,
+      "expected": -1
+    },
+    {
+      "a": "-0001-12",
+      "b": "0001-01",
+      "leftEnd": false,
+      "rightEnd": true,
+      "expected": -1
+    },
+    {
+      "a": "-0001-12",
+      "b": "0001-01",
+      "leftEnd": true,
+      "rightEnd": false,
+      "expected": -1
+    },
+    {
+      "a": "-0001-12",
+      "b": "0001-01",
+      "leftEnd": true,
+      "rightEnd": true,
+      "expected": -1
+    },
+    {
+      "a": "1914-07",
+      "b": "1914-07-31",
+      "leftEnd": false,
+      "rightEnd": false,
+      "expected": -1
+    },
+    {
+      "a": "1914-07",
+      "b": "1914-07-31",
+      "leftEnd": false,
+      "rightEnd": true,
+      "expected": -1
+    },
+    {
+      "a": "1914-07",
+      "b": "1914-07-31",
+      "leftEnd": true,
+      "rightEnd": false,
+      "expected": 0
+    },
+    {
+      "a": "1914-07",
+      "b": "1914-07-31",
+      "leftEnd": true,
+      "rightEnd": true,
+      "expected": 0
+    },
+    {
+      "a": "1945",
+      "b": "1945-08-15",
+      "leftEnd": false,
+      "rightEnd": false,
+      "expected": -1
+    },
+    {
+      "a": "1945",
+      "b": "1945-08-15",
+      "leftEnd": false,
+      "rightEnd": true,
+      "expected": -1
+    },
+    {
+      "a": "1945",
+      "b": "1945-08-15",
+      "leftEnd": true,
+      "rightEnd": false,
+      "expected": 1
+    },
+    {
+      "a": "1945",
+      "b": "1945-08-15",
+      "leftEnd": true,
+      "rightEnd": true,
+      "expected": 1
+    },
+    {
+      "a": "+12000-02",
+      "b": "+12000-03",
+      "leftEnd": false,
+      "rightEnd": false,
+      "expected": -1
+    },
+    {
+      "a": "+12000-02",
+      "b": "+12000-03",
+      "leftEnd": false,
+      "rightEnd": true,
+      "expected": -1
+    },
+    {
+      "a": "+12000-02",
+      "b": "+12000-03",
+      "leftEnd": true,
+      "rightEnd": false,
+      "expected": -1
+    },
+    {
+      "a": "+12000-02",
+      "b": "+12000-03",
+      "leftEnd": true,
+      "rightEnd": true,
+      "expected": -1
+    }
+  ],
+  "intervals": [
+    {
+      "from": null,
+      "to": null,
+      "expected": {
+        "validFrom": null,
+        "validTo": null
+      }
+    },
+    {
+      "from": null,
+      "to": "-0001-12",
+      "expected": {
+        "validFrom": null,
+        "validTo": "-0001-12"
+      }
+    },
+    {
+      "from": "0001-01",
+      "to": null,
+      "expected": {
+        "validFrom": "0001-01",
+        "validTo": null
+      }
+    },
+    {
+      "from": "1914-07",
+      "to": "1914-07",
+      "expected": {
+        "validFrom": "1914-07",
+        "validTo": "1914-07"
+      }
+    },
+    {
+      "from": null,
+      "to": "1914-07-15",
+      "expected": {
+        "validFrom": null,
+        "validTo": "1914-07-15"
+      }
+    },
+    {
+      "from": "1914-07-15",
+      "to": null,
+      "expected": {
+        "validFrom": "1914-07-15",
+        "validTo": null
+      }
+    },
+    {
+      "from": "1914-07-31",
+      "to": "1914-07-31",
+      "expected": {
+        "validFrom": "1914-07-31",
+        "validTo": "1914-07-31"
+      }
+    },
+    {
+      "from": "1914-08",
+      "to": "1914-08",
+      "expected": {
+        "validFrom": "1914-08",
+        "validTo": "1914-08"
+      }
+    },
+    {
+      "from": "1914",
+      "to": "1914",
+      "expected": {
+        "validFrom": "1914",
+        "validTo": "1914"
+      }
+    },
+    {
+      "from": "-0001-01",
+      "to": "0001-12",
+      "expected": {
+        "validFrom": "-0001-01",
+        "validTo": "0001-12"
+      }
+    }
+  ],
+  "contains": [
+    {
+      "from": null,
+      "to": null,
+      "point": "-0002",
+      "expected": true
+    },
+    {
+      "from": null,
+      "to": null,
+      "point": "-0001-12",
+      "expected": true
+    },
+    {
+      "from": null,
+      "to": null,
+      "point": "0001-01",
+      "expected": true
+    },
+    {
+      "from": null,
+      "to": null,
+      "point": "1914-06-30",
+      "expected": true
+    },
+    {
+      "from": null,
+      "to": null,
+      "point": "1914-07",
+      "expected": true
+    },
+    {
+      "from": null,
+      "to": null,
+      "point": "1914-07-01",
+      "expected": true
+    },
+    {
+      "from": null,
+      "to": null,
+      "point": "1914-07-15",
+      "expected": true
+    },
+    {
+      "from": null,
+      "to": null,
+      "point": "1914-07-31",
+      "expected": true
+    },
+    {
+      "from": null,
+      "to": null,
+      "point": "1914-08-01",
+      "expected": true
+    },
+    {
+      "from": null,
+      "to": null,
+      "point": "+12000-01",
+      "expected": true
+    },
+    {
+      "from": null,
+      "to": "-0001-12",
+      "point": "-0002",
+      "expected": true
+    },
+    {
+      "from": null,
+      "to": "-0001-12",
+      "point": "-0001-12",
+      "expected": true
+    },
+    {
+      "from": null,
+      "to": "-0001-12",
+      "point": "0001-01",
+      "expected": false
+    },
+    {
+      "from": null,
+      "to": "-0001-12",
+      "point": "1914-06-30",
+      "expected": false
+    },
+    {
+      "from": null,
+      "to": "-0001-12",
+      "point": "1914-07",
+      "expected": false
+    },
+    {
+      "from": null,
+      "to": "-0001-12",
+      "point": "1914-07-01",
+      "expected": false
+    },
+    {
+      "from": null,
+      "to": "-0001-12",
+      "point": "1914-07-15",
+      "expected": false
+    },
+    {
+      "from": null,
+      "to": "-0001-12",
+      "point": "1914-07-31",
+      "expected": false
+    },
+    {
+      "from": null,
+      "to": "-0001-12",
+      "point": "1914-08-01",
+      "expected": false
+    },
+    {
+      "from": null,
+      "to": "-0001-12",
+      "point": "+12000-01",
+      "expected": false
+    },
+    {
+      "from": "0001-01",
+      "to": null,
+      "point": "-0002",
+      "expected": false
+    },
+    {
+      "from": "0001-01",
+      "to": null,
+      "point": "-0001-12",
+      "expected": false
+    },
+    {
+      "from": "0001-01",
+      "to": null,
+      "point": "0001-01",
+      "expected": true
+    },
+    {
+      "from": "0001-01",
+      "to": null,
+      "point": "1914-06-30",
+      "expected": true
+    },
+    {
+      "from": "0001-01",
+      "to": null,
+      "point": "1914-07",
+      "expected": true
+    },
+    {
+      "from": "0001-01",
+      "to": null,
+      "point": "1914-07-01",
+      "expected": true
+    },
+    {
+      "from": "0001-01",
+      "to": null,
+      "point": "1914-07-15",
+      "expected": true
+    },
+    {
+      "from": "0001-01",
+      "to": null,
+      "point": "1914-07-31",
+      "expected": true
+    },
+    {
+      "from": "0001-01",
+      "to": null,
+      "point": "1914-08-01",
+      "expected": true
+    },
+    {
+      "from": "0001-01",
+      "to": null,
+      "point": "+12000-01",
+      "expected": true
+    },
+    {
+      "from": "1914-07",
+      "to": "1914-07",
+      "point": "-0002",
+      "expected": false
+    },
+    {
+      "from": "1914-07",
+      "to": "1914-07",
+      "point": "-0001-12",
+      "expected": false
+    },
+    {
+      "from": "1914-07",
+      "to": "1914-07",
+      "point": "0001-01",
+      "expected": false
+    },
+    {
+      "from": "1914-07",
+      "to": "1914-07",
+      "point": "1914-06-30",
+      "expected": false
+    },
+    {
+      "from": "1914-07",
+      "to": "1914-07",
+      "point": "1914-07",
+      "expected": true
+    },
+    {
+      "from": "1914-07",
+      "to": "1914-07",
+      "point": "1914-07-01",
+      "expected": true
+    },
+    {
+      "from": "1914-07",
+      "to": "1914-07",
+      "point": "1914-07-15",
+      "expected": true
+    },
+    {
+      "from": "1914-07",
+      "to": "1914-07",
+      "point": "1914-07-31",
+      "expected": true
+    },
+    {
+      "from": "1914-07",
+      "to": "1914-07",
+      "point": "1914-08-01",
+      "expected": false
+    },
+    {
+      "from": "1914-07",
+      "to": "1914-07",
+      "point": "+12000-01",
+      "expected": false
+    },
+    {
+      "from": null,
+      "to": "1914-07-15",
+      "point": "-0002",
+      "expected": true
+    },
+    {
+      "from": null,
+      "to": "1914-07-15",
+      "point": "-0001-12",
+      "expected": true
+    },
+    {
+      "from": null,
+      "to": "1914-07-15",
+      "point": "0001-01",
+      "expected": true
+    },
+    {
+      "from": null,
+      "to": "1914-07-15",
+      "point": "1914-06-30",
+      "expected": true
+    },
+    {
+      "from": null,
+      "to": "1914-07-15",
+      "point": "1914-07",
+      "expected": true
+    },
+    {
+      "from": null,
+      "to": "1914-07-15",
+      "point": "1914-07-01",
+      "expected": true
+    },
+    {
+      "from": null,
+      "to": "1914-07-15",
+      "point": "1914-07-15",
+      "expected": true
+    },
+    {
+      "from": null,
+      "to": "1914-07-15",
+      "point": "1914-07-31",
+      "expected": false
+    },
+    {
+      "from": null,
+      "to": "1914-07-15",
+      "point": "1914-08-01",
+      "expected": false
+    },
+    {
+      "from": null,
+      "to": "1914-07-15",
+      "point": "+12000-01",
+      "expected": false
+    },
+    {
+      "from": "1914-07-15",
+      "to": null,
+      "point": "-0002",
+      "expected": false
+    },
+    {
+      "from": "1914-07-15",
+      "to": null,
+      "point": "-0001-12",
+      "expected": false
+    },
+    {
+      "from": "1914-07-15",
+      "to": null,
+      "point": "0001-01",
+      "expected": false
+    },
+    {
+      "from": "1914-07-15",
+      "to": null,
+      "point": "1914-06-30",
+      "expected": false
+    },
+    {
+      "from": "1914-07-15",
+      "to": null,
+      "point": "1914-07",
+      "expected": true
+    },
+    {
+      "from": "1914-07-15",
+      "to": null,
+      "point": "1914-07-01",
+      "expected": false
+    },
+    {
+      "from": "1914-07-15",
+      "to": null,
+      "point": "1914-07-15",
+      "expected": true
+    },
+    {
+      "from": "1914-07-15",
+      "to": null,
+      "point": "1914-07-31",
+      "expected": true
+    },
+    {
+      "from": "1914-07-15",
+      "to": null,
+      "point": "1914-08-01",
+      "expected": true
+    },
+    {
+      "from": "1914-07-15",
+      "to": null,
+      "point": "+12000-01",
+      "expected": true
+    },
+    {
+      "from": "1914-07-31",
+      "to": "1914-07-31",
+      "point": "-0002",
+      "expected": false
+    },
+    {
+      "from": "1914-07-31",
+      "to": "1914-07-31",
+      "point": "-0001-12",
+      "expected": false
+    },
+    {
+      "from": "1914-07-31",
+      "to": "1914-07-31",
+      "point": "0001-01",
+      "expected": false
+    },
+    {
+      "from": "1914-07-31",
+      "to": "1914-07-31",
+      "point": "1914-06-30",
+      "expected": false
+    },
+    {
+      "from": "1914-07-31",
+      "to": "1914-07-31",
+      "point": "1914-07",
+      "expected": true
+    },
+    {
+      "from": "1914-07-31",
+      "to": "1914-07-31",
+      "point": "1914-07-01",
+      "expected": false
+    },
+    {
+      "from": "1914-07-31",
+      "to": "1914-07-31",
+      "point": "1914-07-15",
+      "expected": false
+    },
+    {
+      "from": "1914-07-31",
+      "to": "1914-07-31",
+      "point": "1914-07-31",
+      "expected": true
+    },
+    {
+      "from": "1914-07-31",
+      "to": "1914-07-31",
+      "point": "1914-08-01",
+      "expected": false
+    },
+    {
+      "from": "1914-07-31",
+      "to": "1914-07-31",
+      "point": "+12000-01",
+      "expected": false
+    },
+    {
+      "from": "1914-08",
+      "to": "1914-08",
+      "point": "-0002",
+      "expected": false
+    },
+    {
+      "from": "1914-08",
+      "to": "1914-08",
+      "point": "-0001-12",
+      "expected": false
+    },
+    {
+      "from": "1914-08",
+      "to": "1914-08",
+      "point": "0001-01",
+      "expected": false
+    },
+    {
+      "from": "1914-08",
+      "to": "1914-08",
+      "point": "1914-06-30",
+      "expected": false
+    },
+    {
+      "from": "1914-08",
+      "to": "1914-08",
+      "point": "1914-07",
+      "expected": false
+    },
+    {
+      "from": "1914-08",
+      "to": "1914-08",
+      "point": "1914-07-01",
+      "expected": false
+    },
+    {
+      "from": "1914-08",
+      "to": "1914-08",
+      "point": "1914-07-15",
+      "expected": false
+    },
+    {
+      "from": "1914-08",
+      "to": "1914-08",
+      "point": "1914-07-31",
+      "expected": false
+    },
+    {
+      "from": "1914-08",
+      "to": "1914-08",
+      "point": "1914-08-01",
+      "expected": true
+    },
+    {
+      "from": "1914-08",
+      "to": "1914-08",
+      "point": "+12000-01",
+      "expected": false
+    },
+    {
+      "from": "1914",
+      "to": "1914",
+      "point": "-0002",
+      "expected": false
+    },
+    {
+      "from": "1914",
+      "to": "1914",
+      "point": "-0001-12",
+      "expected": false
+    },
+    {
+      "from": "1914",
+      "to": "1914",
+      "point": "0001-01",
+      "expected": false
+    },
+    {
+      "from": "1914",
+      "to": "1914",
+      "point": "1914-06-30",
+      "expected": true
+    },
+    {
+      "from": "1914",
+      "to": "1914",
+      "point": "1914-07",
+      "expected": true
+    },
+    {
+      "from": "1914",
+      "to": "1914",
+      "point": "1914-07-01",
+      "expected": true
+    },
+    {
+      "from": "1914",
+      "to": "1914",
+      "point": "1914-07-15",
+      "expected": true
+    },
+    {
+      "from": "1914",
+      "to": "1914",
+      "point": "1914-07-31",
+      "expected": true
+    },
+    {
+      "from": "1914",
+      "to": "1914",
+      "point": "1914-08-01",
+      "expected": true
+    },
+    {
+      "from": "1914",
+      "to": "1914",
+      "point": "+12000-01",
+      "expected": false
+    },
+    {
+      "from": "-0001-01",
+      "to": "0001-12",
+      "point": "-0002",
+      "expected": false
+    },
+    {
+      "from": "-0001-01",
+      "to": "0001-12",
+      "point": "-0001-12",
+      "expected": true
+    },
+    {
+      "from": "-0001-01",
+      "to": "0001-12",
+      "point": "0001-01",
+      "expected": true
+    },
+    {
+      "from": "-0001-01",
+      "to": "0001-12",
+      "point": "1914-06-30",
+      "expected": false
+    },
+    {
+      "from": "-0001-01",
+      "to": "0001-12",
+      "point": "1914-07",
+      "expected": false
+    },
+    {
+      "from": "-0001-01",
+      "to": "0001-12",
+      "point": "1914-07-01",
+      "expected": false
+    },
+    {
+      "from": "-0001-01",
+      "to": "0001-12",
+      "point": "1914-07-15",
+      "expected": false
+    },
+    {
+      "from": "-0001-01",
+      "to": "0001-12",
+      "point": "1914-07-31",
+      "expected": false
+    },
+    {
+      "from": "-0001-01",
+      "to": "0001-12",
+      "point": "1914-08-01",
+      "expected": false
+    },
+    {
+      "from": "-0001-01",
+      "to": "0001-12",
+      "point": "+12000-01",
+      "expected": false
+    }
+  ],
+  "overlap": [
+    {
+      "from": null,
+      "to": null,
+      "otherFrom": null,
+      "otherTo": null,
+      "expected": true
+    },
+    {
+      "from": null,
+      "to": null,
+      "otherFrom": null,
+      "otherTo": "-0001-12",
+      "expected": true
+    },
+    {
+      "from": null,
+      "to": null,
+      "otherFrom": "0001-01",
+      "otherTo": null,
+      "expected": true
+    },
+    {
+      "from": null,
+      "to": null,
+      "otherFrom": "1914-07",
+      "otherTo": "1914-07",
+      "expected": true
+    },
+    {
+      "from": null,
+      "to": null,
+      "otherFrom": null,
+      "otherTo": "1914-07-15",
+      "expected": true
+    },
+    {
+      "from": null,
+      "to": null,
+      "otherFrom": "1914-07-15",
+      "otherTo": null,
+      "expected": true
+    },
+    {
+      "from": null,
+      "to": null,
+      "otherFrom": "1914-07-31",
+      "otherTo": "1914-07-31",
+      "expected": true
+    },
+    {
+      "from": null,
+      "to": null,
+      "otherFrom": "1914-08",
+      "otherTo": "1914-08",
+      "expected": true
+    },
+    {
+      "from": null,
+      "to": null,
+      "otherFrom": "1914",
+      "otherTo": "1914",
+      "expected": true
+    },
+    {
+      "from": null,
+      "to": null,
+      "otherFrom": "-0001-01",
+      "otherTo": "0001-12",
+      "expected": true
+    },
+    {
+      "from": null,
+      "to": "-0001-12",
+      "otherFrom": null,
+      "otherTo": null,
+      "expected": true
+    },
+    {
+      "from": null,
+      "to": "-0001-12",
+      "otherFrom": null,
+      "otherTo": "-0001-12",
+      "expected": true
+    },
+    {
+      "from": null,
+      "to": "-0001-12",
+      "otherFrom": "0001-01",
+      "otherTo": null,
+      "expected": false
+    },
+    {
+      "from": null,
+      "to": "-0001-12",
+      "otherFrom": "1914-07",
+      "otherTo": "1914-07",
+      "expected": false
+    },
+    {
+      "from": null,
+      "to": "-0001-12",
+      "otherFrom": null,
+      "otherTo": "1914-07-15",
+      "expected": true
+    },
+    {
+      "from": null,
+      "to": "-0001-12",
+      "otherFrom": "1914-07-15",
+      "otherTo": null,
+      "expected": false
+    },
+    {
+      "from": null,
+      "to": "-0001-12",
+      "otherFrom": "1914-07-31",
+      "otherTo": "1914-07-31",
+      "expected": false
+    },
+    {
+      "from": null,
+      "to": "-0001-12",
+      "otherFrom": "1914-08",
+      "otherTo": "1914-08",
+      "expected": false
+    },
+    {
+      "from": null,
+      "to": "-0001-12",
+      "otherFrom": "1914",
+      "otherTo": "1914",
+      "expected": false
+    },
+    {
+      "from": null,
+      "to": "-0001-12",
+      "otherFrom": "-0001-01",
+      "otherTo": "0001-12",
+      "expected": true
+    },
+    {
+      "from": "0001-01",
+      "to": null,
+      "otherFrom": null,
+      "otherTo": null,
+      "expected": true
+    },
+    {
+      "from": "0001-01",
+      "to": null,
+      "otherFrom": null,
+      "otherTo": "-0001-12",
+      "expected": false
+    },
+    {
+      "from": "0001-01",
+      "to": null,
+      "otherFrom": "0001-01",
+      "otherTo": null,
+      "expected": true
+    },
+    {
+      "from": "0001-01",
+      "to": null,
+      "otherFrom": "1914-07",
+      "otherTo": "1914-07",
+      "expected": true
+    },
+    {
+      "from": "0001-01",
+      "to": null,
+      "otherFrom": null,
+      "otherTo": "1914-07-15",
+      "expected": true
+    },
+    {
+      "from": "0001-01",
+      "to": null,
+      "otherFrom": "1914-07-15",
+      "otherTo": null,
+      "expected": true
+    },
+    {
+      "from": "0001-01",
+      "to": null,
+      "otherFrom": "1914-07-31",
+      "otherTo": "1914-07-31",
+      "expected": true
+    },
+    {
+      "from": "0001-01",
+      "to": null,
+      "otherFrom": "1914-08",
+      "otherTo": "1914-08",
+      "expected": true
+    },
+    {
+      "from": "0001-01",
+      "to": null,
+      "otherFrom": "1914",
+      "otherTo": "1914",
+      "expected": true
+    },
+    {
+      "from": "0001-01",
+      "to": null,
+      "otherFrom": "-0001-01",
+      "otherTo": "0001-12",
+      "expected": true
+    },
+    {
+      "from": "1914-07",
+      "to": "1914-07",
+      "otherFrom": null,
+      "otherTo": null,
+      "expected": true
+    },
+    {
+      "from": "1914-07",
+      "to": "1914-07",
+      "otherFrom": null,
+      "otherTo": "-0001-12",
+      "expected": false
+    },
+    {
+      "from": "1914-07",
+      "to": "1914-07",
+      "otherFrom": "0001-01",
+      "otherTo": null,
+      "expected": true
+    },
+    {
+      "from": "1914-07",
+      "to": "1914-07",
+      "otherFrom": "1914-07",
+      "otherTo": "1914-07",
+      "expected": true
+    },
+    {
+      "from": "1914-07",
+      "to": "1914-07",
+      "otherFrom": null,
+      "otherTo": "1914-07-15",
+      "expected": true
+    },
+    {
+      "from": "1914-07",
+      "to": "1914-07",
+      "otherFrom": "1914-07-15",
+      "otherTo": null,
+      "expected": true
+    },
+    {
+      "from": "1914-07",
+      "to": "1914-07",
+      "otherFrom": "1914-07-31",
+      "otherTo": "1914-07-31",
+      "expected": true
+    },
+    {
+      "from": "1914-07",
+      "to": "1914-07",
+      "otherFrom": "1914-08",
+      "otherTo": "1914-08",
+      "expected": false
+    },
+    {
+      "from": "1914-07",
+      "to": "1914-07",
+      "otherFrom": "1914",
+      "otherTo": "1914",
+      "expected": true
+    },
+    {
+      "from": "1914-07",
+      "to": "1914-07",
+      "otherFrom": "-0001-01",
+      "otherTo": "0001-12",
+      "expected": false
+    },
+    {
+      "from": null,
+      "to": "1914-07-15",
+      "otherFrom": null,
+      "otherTo": null,
+      "expected": true
+    },
+    {
+      "from": null,
+      "to": "1914-07-15",
+      "otherFrom": null,
+      "otherTo": "-0001-12",
+      "expected": true
+    },
+    {
+      "from": null,
+      "to": "1914-07-15",
+      "otherFrom": "0001-01",
+      "otherTo": null,
+      "expected": true
+    },
+    {
+      "from": null,
+      "to": "1914-07-15",
+      "otherFrom": "1914-07",
+      "otherTo": "1914-07",
+      "expected": true
+    },
+    {
+      "from": null,
+      "to": "1914-07-15",
+      "otherFrom": null,
+      "otherTo": "1914-07-15",
+      "expected": true
+    },
+    {
+      "from": null,
+      "to": "1914-07-15",
+      "otherFrom": "1914-07-15",
+      "otherTo": null,
+      "expected": true
+    },
+    {
+      "from": null,
+      "to": "1914-07-15",
+      "otherFrom": "1914-07-31",
+      "otherTo": "1914-07-31",
+      "expected": false
+    },
+    {
+      "from": null,
+      "to": "1914-07-15",
+      "otherFrom": "1914-08",
+      "otherTo": "1914-08",
+      "expected": false
+    },
+    {
+      "from": null,
+      "to": "1914-07-15",
+      "otherFrom": "1914",
+      "otherTo": "1914",
+      "expected": true
+    },
+    {
+      "from": null,
+      "to": "1914-07-15",
+      "otherFrom": "-0001-01",
+      "otherTo": "0001-12",
+      "expected": true
+    },
+    {
+      "from": "1914-07-15",
+      "to": null,
+      "otherFrom": null,
+      "otherTo": null,
+      "expected": true
+    },
+    {
+      "from": "1914-07-15",
+      "to": null,
+      "otherFrom": null,
+      "otherTo": "-0001-12",
+      "expected": false
+    },
+    {
+      "from": "1914-07-15",
+      "to": null,
+      "otherFrom": "0001-01",
+      "otherTo": null,
+      "expected": true
+    },
+    {
+      "from": "1914-07-15",
+      "to": null,
+      "otherFrom": "1914-07",
+      "otherTo": "1914-07",
+      "expected": true
+    },
+    {
+      "from": "1914-07-15",
+      "to": null,
+      "otherFrom": null,
+      "otherTo": "1914-07-15",
+      "expected": true
+    },
+    {
+      "from": "1914-07-15",
+      "to": null,
+      "otherFrom": "1914-07-15",
+      "otherTo": null,
+      "expected": true
+    },
+    {
+      "from": "1914-07-15",
+      "to": null,
+      "otherFrom": "1914-07-31",
+      "otherTo": "1914-07-31",
+      "expected": true
+    },
+    {
+      "from": "1914-07-15",
+      "to": null,
+      "otherFrom": "1914-08",
+      "otherTo": "1914-08",
+      "expected": true
+    },
+    {
+      "from": "1914-07-15",
+      "to": null,
+      "otherFrom": "1914",
+      "otherTo": "1914",
+      "expected": true
+    },
+    {
+      "from": "1914-07-15",
+      "to": null,
+      "otherFrom": "-0001-01",
+      "otherTo": "0001-12",
+      "expected": false
+    },
+    {
+      "from": "1914-07-31",
+      "to": "1914-07-31",
+      "otherFrom": null,
+      "otherTo": null,
+      "expected": true
+    },
+    {
+      "from": "1914-07-31",
+      "to": "1914-07-31",
+      "otherFrom": null,
+      "otherTo": "-0001-12",
+      "expected": false
+    },
+    {
+      "from": "1914-07-31",
+      "to": "1914-07-31",
+      "otherFrom": "0001-01",
+      "otherTo": null,
+      "expected": true
+    },
+    {
+      "from": "1914-07-31",
+      "to": "1914-07-31",
+      "otherFrom": "1914-07",
+      "otherTo": "1914-07",
+      "expected": true
+    },
+    {
+      "from": "1914-07-31",
+      "to": "1914-07-31",
+      "otherFrom": null,
+      "otherTo": "1914-07-15",
+      "expected": false
+    },
+    {
+      "from": "1914-07-31",
+      "to": "1914-07-31",
+      "otherFrom": "1914-07-15",
+      "otherTo": null,
+      "expected": true
+    },
+    {
+      "from": "1914-07-31",
+      "to": "1914-07-31",
+      "otherFrom": "1914-07-31",
+      "otherTo": "1914-07-31",
+      "expected": true
+    },
+    {
+      "from": "1914-07-31",
+      "to": "1914-07-31",
+      "otherFrom": "1914-08",
+      "otherTo": "1914-08",
+      "expected": false
+    },
+    {
+      "from": "1914-07-31",
+      "to": "1914-07-31",
+      "otherFrom": "1914",
+      "otherTo": "1914",
+      "expected": true
+    },
+    {
+      "from": "1914-07-31",
+      "to": "1914-07-31",
+      "otherFrom": "-0001-01",
+      "otherTo": "0001-12",
+      "expected": false
+    },
+    {
+      "from": "1914-08",
+      "to": "1914-08",
+      "otherFrom": null,
+      "otherTo": null,
+      "expected": true
+    },
+    {
+      "from": "1914-08",
+      "to": "1914-08",
+      "otherFrom": null,
+      "otherTo": "-0001-12",
+      "expected": false
+    },
+    {
+      "from": "1914-08",
+      "to": "1914-08",
+      "otherFrom": "0001-01",
+      "otherTo": null,
+      "expected": true
+    },
+    {
+      "from": "1914-08",
+      "to": "1914-08",
+      "otherFrom": "1914-07",
+      "otherTo": "1914-07",
+      "expected": false
+    },
+    {
+      "from": "1914-08",
+      "to": "1914-08",
+      "otherFrom": null,
+      "otherTo": "1914-07-15",
+      "expected": false
+    },
+    {
+      "from": "1914-08",
+      "to": "1914-08",
+      "otherFrom": "1914-07-15",
+      "otherTo": null,
+      "expected": true
+    },
+    {
+      "from": "1914-08",
+      "to": "1914-08",
+      "otherFrom": "1914-07-31",
+      "otherTo": "1914-07-31",
+      "expected": false
+    },
+    {
+      "from": "1914-08",
+      "to": "1914-08",
+      "otherFrom": "1914-08",
+      "otherTo": "1914-08",
+      "expected": true
+    },
+    {
+      "from": "1914-08",
+      "to": "1914-08",
+      "otherFrom": "1914",
+      "otherTo": "1914",
+      "expected": true
+    },
+    {
+      "from": "1914-08",
+      "to": "1914-08",
+      "otherFrom": "-0001-01",
+      "otherTo": "0001-12",
+      "expected": false
+    },
+    {
+      "from": "1914",
+      "to": "1914",
+      "otherFrom": null,
+      "otherTo": null,
+      "expected": true
+    },
+    {
+      "from": "1914",
+      "to": "1914",
+      "otherFrom": null,
+      "otherTo": "-0001-12",
+      "expected": false
+    },
+    {
+      "from": "1914",
+      "to": "1914",
+      "otherFrom": "0001-01",
+      "otherTo": null,
+      "expected": true
+    },
+    {
+      "from": "1914",
+      "to": "1914",
+      "otherFrom": "1914-07",
+      "otherTo": "1914-07",
+      "expected": true
+    },
+    {
+      "from": "1914",
+      "to": "1914",
+      "otherFrom": null,
+      "otherTo": "1914-07-15",
+      "expected": true
+    },
+    {
+      "from": "1914",
+      "to": "1914",
+      "otherFrom": "1914-07-15",
+      "otherTo": null,
+      "expected": true
+    },
+    {
+      "from": "1914",
+      "to": "1914",
+      "otherFrom": "1914-07-31",
+      "otherTo": "1914-07-31",
+      "expected": true
+    },
+    {
+      "from": "1914",
+      "to": "1914",
+      "otherFrom": "1914-08",
+      "otherTo": "1914-08",
+      "expected": true
+    },
+    {
+      "from": "1914",
+      "to": "1914",
+      "otherFrom": "1914",
+      "otherTo": "1914",
+      "expected": true
+    },
+    {
+      "from": "1914",
+      "to": "1914",
+      "otherFrom": "-0001-01",
+      "otherTo": "0001-12",
+      "expected": false
+    },
+    {
+      "from": "-0001-01",
+      "to": "0001-12",
+      "otherFrom": null,
+      "otherTo": null,
+      "expected": true
+    },
+    {
+      "from": "-0001-01",
+      "to": "0001-12",
+      "otherFrom": null,
+      "otherTo": "-0001-12",
+      "expected": true
+    },
+    {
+      "from": "-0001-01",
+      "to": "0001-12",
+      "otherFrom": "0001-01",
+      "otherTo": null,
+      "expected": true
+    },
+    {
+      "from": "-0001-01",
+      "to": "0001-12",
+      "otherFrom": "1914-07",
+      "otherTo": "1914-07",
+      "expected": false
+    },
+    {
+      "from": "-0001-01",
+      "to": "0001-12",
+      "otherFrom": null,
+      "otherTo": "1914-07-15",
+      "expected": true
+    },
+    {
+      "from": "-0001-01",
+      "to": "0001-12",
+      "otherFrom": "1914-07-15",
+      "otherTo": null,
+      "expected": false
+    },
+    {
+      "from": "-0001-01",
+      "to": "0001-12",
+      "otherFrom": "1914-07-31",
+      "otherTo": "1914-07-31",
+      "expected": false
+    },
+    {
+      "from": "-0001-01",
+      "to": "0001-12",
+      "otherFrom": "1914-08",
+      "otherTo": "1914-08",
+      "expected": false
+    },
+    {
+      "from": "-0001-01",
+      "to": "0001-12",
+      "otherFrom": "1914",
+      "otherTo": "1914",
+      "expected": false
+    },
+    {
+      "from": "-0001-01",
+      "to": "0001-12",
+      "otherFrom": "-0001-01",
+      "otherTo": "0001-12",
+      "expected": true
+    }
+  ]
+}

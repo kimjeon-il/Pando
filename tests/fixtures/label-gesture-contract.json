@@ -1,0 +1,415 @@
+[
+  {
+    "coordinates": null,
+    "rows": [
+      {
+        "label": {
+          "id": "22000000-0000-4000-8000-000000000029",
+          "name": "Movable",
+          "kind": "custom",
+          "coordinates": [
+            1.125,
+            2.25
+          ],
+          "notes": "Kept notes",
+          "metadata": {
+            "compatibilitySource": {
+              "detail": [
+                null,
+                "opaque"
+              ]
+            }
+          }
+        },
+        "settings": {
+          "label:22000000-0000-4000-8000-000000000029": {
+            "fontSize": 15,
+            "minZoom": 2,
+            "maxZoom": 19,
+            "visible": true,
+            "pinned": false,
+            "manualPosition": null
+          }
+        },
+        "stateRevision": 0,
+        "documentDirty": false,
+        "presentationDirty": false,
+        "canUndo": false,
+        "canRedo": false
+      },
+      {
+        "label": {
+          "id": "22000000-0000-4000-8000-000000000029",
+          "name": "Movable",
+          "kind": "custom",
+          "coordinates": [
+            1.125,
+            2.25
+          ],
+          "notes": "Kept notes",
+          "metadata": {
+            "compatibilitySource": {
+              "detail": [
+                null,
+                "opaque"
+              ]
+            }
+          }
+        },
+        "settings": {
+          "label:22000000-0000-4000-8000-000000000029": {
+            "fontSize": 15,
+            "minZoom": 2,
+            "maxZoom": 19,
+            "visible": true,
+            "pinned": false,
+            "manualPosition": null
+          }
+        },
+        "stateRevision": 0,
+        "documentDirty": true,
+        "presentationDirty": false,
+        "canUndo": true,
+        "canRedo": false
+      },
+      {
+        "label": {
+          "id": "22000000-0000-4000-8000-000000000029",
+          "name": "Movable",
+          "kind": "custom",
+          "coordinates": [
+            1.125,
+            2.25
+          ],
+          "notes": "Kept notes",
+          "metadata": {
+            "compatibilitySource": {
+              "detail": [
+                null,
+                "opaque"
+              ]
+            }
+          }
+        },
+        "settings": {
+          "label:22000000-0000-4000-8000-000000000029": {
+            "priority": null,
+            "minZoom": 2,
+            "maxZoom": 19,
+            "manualPosition": [
+              1.125,
+              2.25
+            ],
+            "pinned": true,
+            "collisionGroup": "map"
+          }
+        },
+        "stateRevision": 0,
+        "documentDirty": true,
+        "presentationDirty": false,
+        "canUndo": true,
+        "canRedo": false
+      },
+      {
+        "label": {
+          "id": "22000000-0000-4000-8000-000000000029",
+          "name": "Movable",
+          "kind": "custom",
+          "coordinates": [
+            1.125,
+            2.25
+          ],
+          "notes": "Kept notes",
+          "metadata": {
+            "compatibilitySource": {
+              "detail": [
+                null,
+                "opaque"
+              ]
+            }
+          }
+        },
+        "settings": {
+          "label:22000000-0000-4000-8000-000000000029": {
+            "priority": null,
+            "minZoom": 2,
+            "maxZoom": 19,
+            "manualPosition": [
+              1.125,
+              2.25
+            ],
+            "pinned": true,
+            "collisionGroup": "map"
+          }
+        },
+        "stateRevision": 0,
+        "documentDirty": false,
+        "presentationDirty": false,
+        "canUndo": false,
+        "canRedo": true
+      },
+      {
+        "label": {
+          "id": "22000000-0000-4000-8000-000000000029",
+          "name": "Movable",
+          "kind": "custom",
+          "coordinates": [
+            1.125,
+            2.25
+          ],
+          "notes": "Kept notes",
+          "metadata": {
+            "compatibilitySource": {
+              "detail": [
+                null,
+                "opaque"
+              ]
+            }
+          }
+        },
+        "settings": {
+          "label:22000000-0000-4000-8000-000000000029": {
+            "priority": null,
+            "minZoom": 2,
+            "maxZoom": 19,
+            "manualPosition": [
+              1.125,
+              2.25
+            ],
+            "pinned": true,
+            "collisionGroup": "map"
+          }
+        },
+        "stateRevision": 0,
+        "documentDirty": true,
+        "presentationDirty": false,
+        "canUndo": true,
+        "canRedo": false
+      }
+    ]
+  },
+  {
+    "coordinates": [
+      15.125,
+      10.25
+    ],
+    "rows": [
+      {
+        "label": {
+          "id": "22000000-0000-4000-8000-000000000029",
+          "name": "Movable",
+          "kind": "custom",
+          "coordinates": [
+            1.125,
+            2.25
+          ],
+          "notes": "Kept notes",
+          "metadata": {
+            "compatibilitySource": {
+              "detail": [
+                null,
+                "opaque"
+              ]
+            }
+          }
+        },
+        "settings": {
+          "label:22000000-0000-4000-8000-000000000029": {
+            "fontSize": 15,
+            "minZoom": 2,
+            "maxZoom": 19,
+            "visible": true,
+            "pinned": false,
+            "manualPosition": null
+          }
+        },
+        "stateRevision": 0,
+        "documentDirty": false,
+        "presentationDirty": false,
+        "canUndo": false,
+        "canRedo": false
+      },
+      {
+        "label": {
+          "id": "22000000-0000-4000-8000-000000000029",
+          "name": "Movable",
+          "kind": "custom",
+          "coordinates": [
+            1.125,
+            2.25
+          ],
+          "notes": "Kept notes",
+          "metadata": {
+            "compatibilitySource": {
+              "detail": [
+                null,
+                "opaque"
+              ]
+            }
+          }
+        },
+        "settings": {
+          "label:22000000-0000-4000-8000-000000000029": {
+            "fontSize": 15,
+            "minZoom": 2,
+            "maxZoom": 19,
+            "visible": true,
+            "pinned": false,
+            "manualPosition": null
+          }
+        },
+        "stateRevision": 0,
+        "documentDirty": true,
+        "presentationDirty": false,
+        "canUndo": true,
+        "canRedo": false
+      },
+      {
+        "label": {
+          "id": "22000000-0000-4000-8000-000000000029",
+          "name": "Movable",
+          "kind": "custom",
+          "coordinates": [
+            15.125,
+            10.25
+          ],
+          "notes": "Kept notes",
+          "metadata": {
+            "compatibilitySource": {
+              "detail": [
+                null,
+                "opaque"
+              ]
+            }
+          }
+        },
+        "settings": {
+          "label:22000000-0000-4000-8000-000000000029": {
+            "fontSize": 15,
+            "minZoom": 2,
+            "maxZoom": 19,
+            "visible": true,
+            "pinned": false,
+            "manualPosition": null
+          }
+        },
+        "stateRevision": 0,
+        "documentDirty": true,
+        "presentationDirty": false,
+        "canUndo": true,
+        "canRedo": false
+      },
+      {
+        "label": {
+          "id": "22000000-0000-4000-8000-000000000029",
+          "name": "Movable",
+          "kind": "custom",
+          "coordinates": [
+            15.125,
+            10.25
+          ],
+          "notes": "Kept notes",
+          "metadata": {
+            "compatibilitySource": {
+              "detail": [
+                null,
+                "opaque"
+              ]
+            }
+          }
+        },
+        "settings": {
+          "label:22000000-0000-4000-8000-000000000029": {
+            "priority": null,
+            "minZoom": 2,
+            "maxZoom": 19,
+            "manualPosition": [
+              15.125,
+              10.25
+            ],
+            "pinned": true,
+            "collisionGroup": "map"
+          }
+        },
+        "stateRevision": 0,
+        "documentDirty": true,
+        "presentationDirty": false,
+        "canUndo": true,
+        "canRedo": false
+      },
+      {
+        "label": {
+          "id": "22000000-0000-4000-8000-000000000029",
+          "name": "Movable",
+          "kind": "custom",
+          "coordinates": [
+            1.125,
+            2.25
+          ],
+          "notes": "Kept notes",
+          "metadata": {
+            "compatibilitySource": {
+              "detail": [
+                null,
+                "opaque"
+              ]
+            }
+          }
+        },
+        "settings": {
+          "label:22000000-0000-4000-8000-000000000029": {
+            "fontSize": 15,
+            "minZoom": 2,
+            "maxZoom": 19,
+            "visible": true,
+            "pinned": false,
+            "manualPosition": null
+          }
+        },
+        "stateRevision": 0,
+        "documentDirty": false,
+        "presentationDirty": false,
+        "canUndo": false,
+        "canRedo": true
+      },
+      {
+        "label": {
+          "id": "22000000-0000-4000-8000-000000000029",
+          "name": "Movable",
+          "kind": "custom",
+          "coordinates": [
+            15.125,
+            10.25
+          ],
+          "notes": "Kept notes",
+          "metadata": {
+            "compatibilitySource": {
+              "detail": [
+                null,
+                "opaque"
+              ]
+            }
+          }
+        },
+        "settings": {
+          "label:22000000-0000-4000-8000-000000000029": {
+            "priority": null,
+            "minZoom": 2,
+            "maxZoom": 19,
+            "manualPosition": [
+              15.125,
+              10.25
+            ],
+            "pinned": true,
+            "collisionGroup": "map"
+          }
+        },
+        "stateRevision": 0,
+        "documentDirty": true,
+        "presentationDirty": false,
+        "canUndo": true,
+        "canRedo": false
+      }
+    ]
+  }
+]
