@@ -1,4 +1,4 @@
-name: '[HISTORICAL] Terrain v0.14.0 main integration / source-matched Pages dry-run
+name: '[HISTORICAL] Terrain v0.14.0 main integration / source-matched Pages dry-run'
 on:
   workflow_dispatch:
 permissions:
