@@ -10,6 +10,10 @@ const native=(target,directory,sourceModule,sourceExport,packageScript,commands,
 export const nativeTestRecipes=Object.freeze({
   // Reuse fixed CMake owners; CTest runs as its separate registered check.
   // No artifact packaging is needed for these in-job test executables.
+  'map-image-resample-tests':{commands:[
+    configure('tools/cpp','build-native/map-image','-DPANDO_BUILD_COUNTRY_VALIDATOR=OFF','-DPANDO_BUILD_MAP_IMAGE=ON'),
+    build('build-native/map-image',['pando-map-image-resample-tests']),
+  ]},
   'spherical-polygon-tests':{commands:[
     ['cmake','--preset','pando-gis-tools'],
     build('build-native/p1/pando-gis-tools',['pando-spherical-polygon-tests']),

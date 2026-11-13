@@ -751,7 +751,7 @@
       "mode": "manual",
       "reason": "Selected native clipped-output contract regression; no other native test targets are built or run.",
       "inputs": [
-        "tools/cpp/spherical-polygon-tests.cpp",
+        "tests/tools/native/spherical-polygon.cpp",
         "src/geometry/native/src/sphericalpolygon.cpp",
         "src/geometry/native/include/pandoeditor/exactplanar.h",
         "tests/native/geometry/fixtures/clipped-positive-rings.h"
@@ -916,6 +916,26 @@
       "argv": [
         "node",
         "scripts/check-world-archive-closure.mjs"
+      ]
+    },
+    {
+      "id": "map-image-resample-native",
+      "kind": "command",
+      "mode": "manual",
+      "reason": "Selected relocated C++ pixel oracle; builds only the map-image resampling test.",
+      "inputs": [
+        "tests/tools/native/map-image-resample.cpp",
+        "tools/cpp/map-image/resample.cpp",
+        "tools/cpp/map-image/resample.h",
+        "tools/cpp/CMakeLists.txt",
+        "tests/fixtures/map-image/**"
+      ],
+      "argv": [
+        "build-native/map-image/pando-map-image-resample-tests",
+        "tests/fixtures/map-image"
+      ],
+      "requires": [
+        "native-map-image-resample-tests"
       ]
     }
   ],
@@ -1193,6 +1213,13 @@
         "tools/build/native/**",
         "scripts/lib/native-test-prerequisites.mjs",
         ".github/actions/native-test-prerequisites/action.yml"
+      ]
+    },
+    "native-map-image-resample-tests": {
+      "argv": [
+        "node",
+        "scripts/prepare-native-test-tools.mjs",
+        "map-image-resample-tests"
       ]
     }
   },

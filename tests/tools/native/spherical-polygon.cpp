@@ -1,6 +1,6 @@
 #include <pandoeditor/sphericalpolygon.h>
 #include <pandoeditor/exactplanar.h>
-#include "../../tests/native/geometry/fixtures/clipped-positive-rings.h"
+#include "../../native/geometry/fixtures/clipped-positive-rings.h"
 #include <limits>
 #include <set>
 #include <cassert>

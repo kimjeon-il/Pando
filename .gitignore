@@ -4,13 +4,6 @@ reports/hydro-calibration/.cache/
 reports/places/.cache/
 node_modules/
 /build-native/
-/apps/editor/dist/
-/apps/editor/.stage-lock
-/apps/editor/.dist-pending/
-/apps/editor/.dist-previous/
-/apps/editor/src-tauri/target/
-# Generated Tauri schemas and retired platform scaffolding; not product source.
-/apps/editor/src-tauri/gen/
 playwright-report/
 test-results/
 .terrain-preview-cache/
@@ -34,11 +27,9 @@ tools/historical-library/generated/german-empire-1914-base.diagnostics.json
 # Generated frontend outputs are owned by the immutable cache.
 /index.html
 /.nojekyll
-/apps/editor/editor.html
 /assets/js/
 /assets/css/
 /assets/worker-runtime/
 
 # Machine-local dependency store configuration
 /.npmrc
-/apps/editor/.npmrc
