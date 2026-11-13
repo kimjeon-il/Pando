@@ -68,6 +68,8 @@ jobs:
       - name: Install scoped binary GIS dependencies in CI only
         run: |
           python -m pip install --only-binary=:all: --disable-pip-version-check 'Pillow==11.3.0' 'numpy==2.2.6' 'rasterio==1.4.3' 'fiona==1.10.1'
+      - name: Verify actual floating polar-source NaN-as-NoData reprojection
+        run: python tools/gis/build-natural-observed-preview.py --self-test-polar --output "$RUNNER_TEMP/natural-proof"
       - name: Generate bounded WorldCover, RGI7 and polar-ice corrected tiles
         run: |
           set -euo pipefail
