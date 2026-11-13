@@ -13,6 +13,10 @@ on:
       - tests/browser/rendering/canvas-numeric-dem.spec.mjs
       - tests/browser/rendering/canvas-globe-performance.spec.mjs
       - tests/browser/rendering/terrain-natural-observed-viewer.spec.mjs
+      - tests/browser/rendering/canvas-numeric-dem.spec.mjs
+      - tests/browser/rendering/terrain-natural-parity.spec.mjs
+      - src/rendering/workers/canvas-terrain-dem-core.js
+      - src/rendering/workers/canvas-render-core.js
       - src/data/terrain-natural-candidate.js
       - src/data/physical-source-configuration.js
       - src/rendering/gpu-natural-surface-cache.js
@@ -65,11 +69,13 @@ jobs:
             tests/browser/rendering/terrain-natural-live-viewer.spec.mjs \
             --grep 'natural external preview incrementally repaints actual canvas Viewer in china-southwest' \
             --workers=1 --retries=0 --output=test-results/canvas-live
-      - name: Greenland observed ice on real WebGL Viewer at LOD4
+      - name: Canvas numerical height interpolation and GPU parity, plus Greenland observed ice
         env:
           PANDO_GREENLAND_ONLY: '1'
         run: |
           pnpm exec playwright test \
+            tests/browser/rendering/canvas-numeric-dem.spec.mjs \
+            tests/browser/rendering/terrain-natural-parity.spec.mjs \
             tests/browser/rendering/terrain-natural-observed-viewer.spec.mjs \
             --workers=1 --retries=0 --output=test-results/natural-viewer
       - name: Canvas real paint CPU profile for the approved candidate
