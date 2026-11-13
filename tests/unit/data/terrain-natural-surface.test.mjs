@@ -40,7 +40,7 @@ test('natural requests use existing immutable raw-library paths and byte/hash ve
   const {validateNaturalSurfaceManifest,terrainNaturalTileRequest,fetchTerrainTile}=api();
   const manifest={...dem,naturalSurface:validateNaturalSurfaceManifest(surface(),dem)};
   const request=terrainNaturalTileRequest(spec,manifest);
-  assert.equal(request.url.href,`https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/${revision}/terrain/natural/v0.1.0-preview.1/0/0-0.webp`);
+  assert.equal(request.url.href,`https://raw.githubusercontent.com/kimjeon-il/PandoLab-library/${revision}/terrain/natural/v0.1.0-preview.1/0/0-0.webp`);
   assert.equal(request.sha256,digest);assert.equal(request.bytes,body.length);
   const calls=[];
   const blob=await fetchTerrainTile(request,{fetchFn:async(url,options)=>{calls.push([url.href,options]);return new Response(body);}});

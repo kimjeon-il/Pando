@@ -162,7 +162,7 @@ export function reviewEvidenceUrl(ref) {
     || !/^reports\/(?:borders|development|hydro|places|terrain|map-analysis)\/[A-Za-z0-9_./-]+\.(md|json)$/.test(ref.reportPath)
     || ref.reportPath.split('/').some(x=>x==='..'||x==='.'||!x))
     invalid('보고서 링크의 리비전 또는 경로가 유효하지 않습니다.');
-  return 'https://github.com/kimjeon-il/PandoLab-library-data/blob/'+ref.revision+'/'+ref.reportPath;
+  return 'https://github.com/kimjeon-il/PandoLab-library/blob/'+ref.revision+'/'+ref.reportPath;
 }
 export function correctionRequest({inspection,sourceEntityId,change,kind,reason,createdAt}={}) {
   if(!inspection?.diff||!inspection.entities.some(x=>x.sourceEntityId===sourceEntityId))

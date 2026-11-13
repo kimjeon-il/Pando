@@ -56,8 +56,7 @@
       "testPatterns": [
         "tests/unit/data/file-access-contract.test.mjs",
         "tests/unit/data/p6-project-persistence.test.mjs",
-        "tests/unit/document/timeline-geopackage.test.mjs",
-        "tests/unit/geometry/qgis-pando-exchange.test.mjs"
+        "tests/unit/document/timeline-geopackage.test.mjs"
       ],
       "inputs": [
         "src/**/generic-feature-*.js",

@@ -24,7 +24,7 @@ test('no preview URL means zero extra requests, preserving operational DEM',asyn
   assert.equal(value,null);assert.equal(requests,0);
 });
 test('unreviewed or floating URLs fail before download',async()=>{
-  for(const url of ['https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/main/terrain/natural/candidates/x.json',
+  for(const url of ['https://raw.githubusercontent.com/kimjeon-il/PandoLab-library/main/terrain/natural/candidates/x.json',
     'https://example.com/terrain/natural/candidates/x.json',
     NATURAL_SURFACE_PREVIEW_CATALOG+'?v=1']){
     let calls=0;

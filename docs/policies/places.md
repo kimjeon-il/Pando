@@ -12,7 +12,7 @@
 | 도시 라벨 가능 기간 | [라벨 유효기간 코드](../../src/data/place-lifetime-policy.js) | 지명·취락의 물리적 존재 전체를 뜻하지 않음 |
 | 조회·화면 | [지명 Worker 저장소](../../src/data/place-worker-store.js) | 화면 수치·우선순위는 승인된 실제 게시 자료 기준 |
 
-외부 라이브러리의 [역사명 편집 정책](https://github.com/kimjeon-il/PandoLab-library-data/blob/main/reports/places/historical-display-policy.json)과 [한국어 지도 표기 정책](https://github.com/kimjeon-il/PandoLab-library-data/blob/main/reports/places/korean-map-label-policy.json)은 **스테이징** 판본일 수 있습니다. 문서에 적힌 편집 규칙이 현재 런타임에 모두 적용된다고 가정하지 않습니다. 정확한 도시에 대한 자료 핀·승인 상태를 확인해야 합니다.
+외부 라이브러리의 [역사명 편집 정책](https://github.com/kimjeon-il/PandoLab-library/blob/main/reports/places/historical-display-policy.json)과 [한국어 지도 표기 정책](https://github.com/kimjeon-il/PandoLab-library/blob/main/reports/places/korean-map-label-policy.json)은 **스테이징** 판본일 수 있습니다. 문서에 적힌 편집 규칙이 현재 런타임에 모두 적용된다고 가정하지 않습니다. 정확한 도시에 대한 자료 핀·승인 상태를 확인해야 합니다.
 
 **검증 계약:** `check-group:place-contracts`, `check-group:places-runtime`. 현재 관련 스크립트는 `check-script:check:places`; 이력 문서의 `pnpm check:place-sync`는 현재 등록된 명령으로 간주하지 않습니다.
 

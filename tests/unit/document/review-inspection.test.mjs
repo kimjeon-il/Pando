@@ -78,7 +78,7 @@ test('E4 inspects matching E2/E3 proposal, scoped diff, unverified checks and so
     ['research-map','research-meta']);
   assert.deepEqual(reviewEvidenceForObject(inspection,'state:EXAMPLE_B').map(x=>x.id),['research-meta']);
   const url=reviewEvidenceUrl(bundle.proposal.evidence[0]);
-  assert.equal(url,'https://github.com/kimjeon-il/PandoLab-library-data/blob/'
+  assert.equal(url,'https://github.com/kimjeon-il/PandoLab-library/blob/'
     +'c'.repeat(40)+'/reports/borders/reconstruction/synthetic-1914-boundary.md');
 });
 

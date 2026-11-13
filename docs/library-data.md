@@ -1,6 +1,6 @@
 # 외부 라이브러리 자료
 
-앱·웹 코드는 `kimjeon-il/Pando`, 라이브러리 객체·런타임 지도·GIS 원본·보고서는 [PandoLab-library-data](https://github.com/kimjeon-il/PandoLab-library-data)에 보관한다. 자료 저장소에서는 검사·테스트·재생성 작업을 실행하지 않는다.
+앱·웹 코드는 `kimjeon-il/Pando`, 라이브러리 객체·런타임 지도·GIS 원본·보고서는 [PandoLab-library](https://github.com/kimjeon-il/PandoLab-library)에 보관한다. 라이브러리는 비Viewer 자료 작성·QGIS·저장소 운영 도구와 해당 집중 검사도 소유한다. 도구 소스 checkout에서 작은 fixture의 영향 검사만 실행하며, 자료 전용 worktree와 자료·보고서 변경에 전체 검사나 재생성을 연결하지 않는다.
 
 `config/library-data.json`이 저장소와 코드 브랜치에 맞는 자료 커밋을 소유한다. 처음 체크아웃하거나 자료 핀을 바꾼 뒤 `pnpm.cmd data:prepare`를 실행한다. `.library-data/repository`는 고정 외부 체크아웃이다. 런타임 뷰는 공유 라이브러리 루트 `.pando-cache/materialized/<소유자>/<자료 커밋>/scopes/<준비 identity>/`에 두며, 불변 바이트는 `.pando-store/blobs/<SHA-256>`의 읽기 전용 하드링크를 공유한다. 기존 외부 체크아웃을 사용할 때만 `PANDOLAB_LIBRARY_DATA_ROOT`를 지정한다. 수정한 체크아웃을 자동 폐기하거나 덮어쓰지 않는다.
 
@@ -22,7 +22,7 @@
 - `reports/`: 전체 보고서 원문·기계 로그·첨부 원본. `.variants/<sha256>`는 다른 판본, `.edits/<브랜치>`는 독립 편집본, `.owners.json`은 브랜치별 보관 revision이다.
 - `terrain/v0.13.3/`: 최신 지형 한 벌. LOD0~5는 서로 다른 배율용이며 중복 버전이 아니다. 구버전 색상 이미지와 manifest는 현재 트리에서 제거하고 Git 이력에 남긴다.
 
-자료 `main`은 보관용 전체 자료를 담는다. `work/ui`, `work/objects`, `work/gis`, `work/places`는 이전 당시 각 코드 브랜치의 자료를 보존한다. 객체 브랜치의 메시와 WASM 조합을 메인 조합으로 치환하지 않는다.
+라이브러리 `main`은 보관 자료와 도구 정본을 담는다. 소스는 공용 root의 `tools/`, `tests/`, `scripts/`, `config/`, `.github/`에서 유지하고 자료 전용 linked worktree에는 복원하지 않는다. 도구의 `config/pando-code.json`은 공용 Pando 코드 입력을 별도로 고정하며 런타임 자료 pin을 대체하지 않는다. `work/ui`, `work/objects`, `work/gis`, `work/places`는 이전 당시 각 코드 브랜치의 자료를 보존한다. 객체 브랜치의 메시와 WASM 조합을 메인 조합으로 치환하지 않는다.
 
 자료 저장소 Pages는 `gh-pages`의 지형만 게시한다. Pando Pages와 앱 패키징은 고정된 외부 자료를 준비한 뒤 현재 실행 의존 자료만 산출물에 복사한다. 앱·공통 C++ 소스·원자료·보고서를 Web 배포에 넣지 않는다. Web 배포 증거에는 코드와 자료 커밋을 각각 기록한다. 데이터 이전은 네이티브 앱 빌드·실행 검증을 대신하지 않는다.
 
