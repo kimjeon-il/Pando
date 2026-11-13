@@ -9,17 +9,126 @@ on:
         type: boolean
         required: false
         default: false
+      terrain_only:
+        description: Run the isolated regional terrain A1 and tile-size smoke experiment
+        type: boolean
+        required: false
+        default: false
+      terrain_full:
+        description: Run three interleaved repetitions per available terrain candidate
+        type: boolean
+        required: false
+        default: false
+      terrain_phase_smoke:
+        description: Run all interaction phases once for one selected candidate
+        type: boolean
+        required: false
+        default: false
+      terrain_batch:
+        description: Include the experimental 512-tile instancing candidate
+        type: boolean
+        required: false
+        default: false
+      terrain_tile_pair:
+        description: Compare 512 tiles and batched 512 tiles on one runner
+        type: boolean
+        required: false
+        default: false
+      terrain_normalized_budget:
+        description: Use 192 MiB for experimental candidates; A0 retains the product budget
+        type: boolean
+        required: false
+        default: false
+      terrain_region:
+        description: Representative region for the terrain experiment
+        type: choice
+        required: false
+        default: southwest-china
+        options:
+          - southwest-china
+          - thai-lowland
+          - himalaya
+          - netherlands-coast
+      terrain_projection:
+        description: Globe, or experimental flat bootstrap (not the current Viewer default)
+        type: choice
+        required: false
+        default: globe
+        options:
+          - globe
+          - flat
+      terrain_candidate:
+        description: Restrict a diagnostic run to one terrain candidate
+        type: choice
+        required: false
+        default: all
+        options:
+          - all
+          - a0
+          - a1
+          - b512
+          - batch
+          - cog
+          - screen
 
 permissions:
   contents: read
 
 concurrency:
-  group: p7-runtime-ab-${{ github.ref }}
+  # Region/projection runs use isolated runners and independent evidence streams.
+  group: p7-runtime-ab-${{ github.ref }}-${{ inputs.terrain_projection || 'globe' }}-${{ inputs.terrain_region || 'default' }}
   cancel-in-progress: true
 
 jobs:
+  regional-terrain-smoke:
+    if: github.event_name == 'workflow_dispatch' && inputs.terrain_only == true
+    runs-on: ubuntu-24.04
+    # Fifteen interleaved runs now include the full interaction and capture set.
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - name: Prepare exact pinned library inputs (no regeneration)
+        uses: ./.github/actions/library-data
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Measure regional candidates in the actual Viewer
+        env:
+          TERRAIN_FULL: ${{ inputs.terrain_full }}
+          TERRAIN_PHASE_SMOKE: ${{ inputs.terrain_phase_smoke }}
+          TERRAIN_BATCH: ${{ inputs.terrain_batch }}
+          TERRAIN_TILE_PAIR: ${{ inputs.terrain_tile_pair }}
+          TERRAIN_REGION: ${{ inputs.terrain_region }}
+          TERRAIN_PROJECTION: ${{ inputs.terrain_projection }}
+          TERRAIN_NORMALIZED_BUDGET: ${{ inputs.terrain_normalized_budget }}
+          TERRAIN_CANDIDATE: ${{ inputs.terrain_candidate }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          args=(--screen --cog "--region=$TERRAIN_REGION" "--projection=$TERRAIN_PROJECTION")
+          if [ "$TERRAIN_BATCH" = 'true' ] || [ "$TERRAIN_CANDIDATE" = 'batch' ] || [ "$TERRAIN_TILE_PAIR" = 'true' ]; then args+=(--batch); fi
+          if [ "$TERRAIN_TILE_PAIR" = 'true' ]; then args+=(--tile-pair); fi
+          if [ "$TERRAIN_NORMALIZED_BUDGET" = 'true' ]; then args+=(--normalized-budget); fi
+          if [ "$TERRAIN_CANDIDATE" != 'all' ] && [ -n "$TERRAIN_CANDIDATE" ]; then args+=("--candidate=$TERRAIN_CANDIDATE"); fi
+          if [ "$TERRAIN_FULL" != 'true' ]; then args+=(--smoke); fi
+          if [ "$TERRAIN_PHASE_SMOKE" = 'true' ]; then args+=(--phase-smoke); fi
+          node scripts/terrain-experiment/viewer-compare.mjs "${args[@]}" --out="$RUNNER_TEMP/terrain-regional-smoke"
+      - name: Keep measurements and screenshots including failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: terrain-regional-smoke-${{ github.sha }}
+          path: ${{ runner.temp }}/terrain-regional-smoke/**
+          if-no-files-found: warn
+          retention-days: 14
+
   paired-browser:
-    if: github.event_name == 'workflow_dispatch' && inputs.profile_only != true
+    if: github.event_name == 'workflow_dispatch' && inputs.profile_only != true && inputs.terrain_only != true
     runs-on: ubuntu-24.04
     timeout-minutes: 85
     steps:
@@ -93,7 +202,7 @@ jobs:
           retention-days: 14
 
   current-renderer-profile:
-    if: github.event_name == 'workflow_dispatch' && inputs.profile_only == true
+    if: github.event_name == 'workflow_dispatch' && inputs.profile_only == true && inputs.terrain_only != true
     runs-on: ubuntu-24.04
     timeout-minutes: 75
     steps:
@@ -135,9 +244,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          failed=0
           for i in 1 2 3; do
-            node scripts/p7-browser-ab-measure.mjs --label=p7 --measure-zoom=1 --out="$RUNNER_TEMP/renderer-$i.json"
+            mkdir -p "$RUNNER_TEMP/renderer-screenshots/$i"
+            node scripts/p7-browser-ab-measure.mjs --label=p7 --measure-zoom=1 --strict-frames=1 --screenshot-dir="$RUNNER_TEMP/renderer-screenshots/$i" --out="$RUNNER_TEMP/renderer-$i.json" || failed=1
           done
+          if [ "$failed" -ne 0 ]; then exit 1; fi
           node scripts/p7-browser-ab-measure.mjs --mode=aggregate --samples="$RUNNER_TEMP/renderer-1.json,$RUNNER_TEMP/renderer-2.json,$RUNNER_TEMP/renderer-3.json" --out="$RUNNER_TEMP/renderer-aggregate.json"
           node --input-type=module <<'NODE'
           import {readFileSync} from 'node:fs';
@@ -184,5 +296,6 @@ jobs:
             ${{ runner.temp }}/renderer-2.json
             ${{ runner.temp }}/renderer-3.json
             ${{ runner.temp }}/renderer-aggregate.json
+            ${{ runner.temp }}/renderer-screenshots/**
           if-no-files-found: warn
           retention-days: 14

@@ -13,6 +13,7 @@ import {reconcileDemGutterFiles,restoreDemPolarGutterShade} from './terrain-dem-
 import {createNativeDemWindowReader,inspectNativeDemSource} from './terrain-dem-raster.mjs';
 import {buildNativeDemTintZip} from './terrain-dem-tint.mjs';
 import {encodeDemWebp} from './terrain-dem-webp.mjs';
+import {quantizeHeight} from './terrain-dem-quantization.mjs';
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const version='0.14.0',tileSize=1024;
@@ -193,13 +194,27 @@ export async function repairTerrainDem({output,etopo,minLevel=0,maxLevel=5}={}, 
   });
 }
 
-export async function generateTerrainDemLevel({source,output,level,strict=true},{signal}={}){
+export function applyQ1Elevation(elevation,rgba){
+  if(!Buffer.isBuffer(elevation)||!Buffer.isBuffer(rgba)||elevation.length!==rgba.length||elevation.length%4)
+    throw Error('DEM Float32 and RGBA byte lengths must match');
+  for(let at=0;at<rgba.length;at+=4){
+    const height=elevation.readFloatLE(at),packed=quantizeHeight(height,'Q1')+12000;
+    if(!Number.isInteger(packed)||packed<0||packed>65535)throw Error('Q1 elevation exceeds the encoding range');
+    rgba[at]=packed>>8;rgba[at+1]=packed&255;
+  }
+  return rgba;
+}
+
+export async function generateTerrainDemLevel({source,output,level,strict=true},{signal,quantization='v0.14',tiles=null}={}){
   signal?.throwIfAborted();
   const {id,width,height,tileSize,columns,rows}=level||{};
   if(typeof source!=='string'||!source||typeof output!=='string'||!output||typeof strict!=='boolean'||
     !Number.isSafeInteger(id)||id<0||![width,height,tileSize,columns,rows].every(Number.isSafeInteger)||
     width<1||width>50000||height<1||height>25000||tileSize<1||tileSize>4092||
-    columns!==Math.ceil(width/tileSize)||rows!==Math.ceil(height/tileSize)||columns*rows>1000000)
+    columns!==Math.ceil(width/tileSize)||rows!==Math.ceil(height/tileSize)||columns*rows>1000000||
+    !['v0.14','Q1'].includes(quantization)||tiles!==null&&(!Array.isArray(tiles)||!tiles.length||
+      tiles.some(tile=>!Number.isInteger(tile.column)||tile.column<0||tile.column>=columns||!Number.isInteger(tile.row)||tile.row<0||tile.row>=rows)||
+      new Set(tiles.map(tile=>`${tile.column}/${tile.row}`)).size!==tiles.length))
     throw Error('Explicit bounded DEM level required');
   const outputRoot=await realpath(output);
   if(!(await stat(outputRoot)).isDirectory())throw Error('DEM output must be a directory');
@@ -208,12 +223,15 @@ export async function generateTerrainDemLevel({source,output,level,strict=true},
   const start=performance.now();let count=0,bytes=0,maxTileBytes=0,reader,failure;
   try{
     reader=await createNativeDemWindowReader({source,width,height,strict},{signal});
-    for(let row=0;row<rows;row++)for(let column=0;column<columns;column++){
+    function* allTiles(){for(let row=0;row<rows;row++)for(let column=0;column<columns;column++)yield {row,column};}
+    const selected=tiles||allTiles();
+    for(const {row,column} of selected){
       signal?.throwIfAborted();
       const x=column*tileSize,y=row*tileSize,x1=Math.min(width,x+tileSize),y1=Math.min(height,y+tileSize);
       const windowWidth=x1-x+4,windowHeight=y1-y+4,elevation=await reader.read([x-2,y-2,x1+2,y1+2]);
       const encoded=await encodeNativeDemElevation({width:windowWidth,height:windowHeight,levelWidth:width,levelHeight:height,north:y-2,elevation},
         {directory:process.env.PANDO_TERRAIN_DEM_ENCODE_DIRECTORY||resolve(root,'build-native/terrain-dem-encode/artifact'),signal});
+      if(quantization==='Q1')applyQ1Elevation(elevation,encoded.rgba);
       const tileWidth=windowWidth-2,tileHeight=windowHeight-2,pixels=Buffer.allocUnsafe(tileWidth*tileHeight*4);
       for(let r=0;r<tileHeight;r++)encoded.rgba.copy(pixels,r*tileWidth*4,((r+1)*windowWidth+1)*4,((r+1)*windowWidth+1+tileWidth)*4);
       const webp=await encodeDemWebp({width:tileWidth,height:tileHeight,data:pixels},{signal});

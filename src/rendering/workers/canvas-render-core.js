@@ -24,6 +24,10 @@ function canvasFallbackWorkerMain(self) {
     let terrainExpectedHash = '';
     let terrainTileRequest = null, fetchTerrainTile = null, terrainExternalSource = null;
     let externalRuntimeData = null;
+    let terrainNaturalTileRequest=null,naturalSurfaceCatalog=null,naturalCatalogKey='';
+    const naturalRequests=new Map(),naturalFailures=new Set();
+    let naturalReservedBytes=0,naturalRevision=0,naturalRequestsStarted=0;
+    let numericalScratch=null,numericalPixels=0,numericalScratchPeakBytes=0;
     const demTiles = new Map();
     const demRequests = new Map();
     const demQueue = [];
@@ -32,7 +36,55 @@ function canvasFallbackWorkerMain(self) {
     let demActiveFetches = 0;
     let demCacheBytes = 0;
     const demCacheLimit = self.PandoLabTerrainTileSelection.demVisiblePolicy.byteBudget;
+    function discardNatural(tile) {
+      if(!tile.naturalSurface)return;
+      demCacheBytes-=tile.naturalBytes;tile.bytes-=tile.naturalBytes;
+      tile.naturalSurface=null;tile.naturalBytes=0;naturalRevision++;substrateState=null;
+    }
+    function resetCanvasNatural() {
+      for(const task of naturalRequests.values())task.controller.abort();
+      naturalRequests.clear();naturalReservedBytes=0;naturalFailures.clear();
+      for(const tile of demTiles.values())discardNatural(tile);
+      naturalRevision++;substrateState=null;
+    }
+    function closeDemTile(tile) {
+      tile.naturalSurface=null;
+      tile.land?.close?.(); tile.ocean?.close?.(); tile.political?.close?.();
+      tile.alternate?.land?.close?.(); tile.alternate?.ocean?.close?.();
+    }
+    function releaseUnusedNumericPlanes(tile) {
+      // The actual Canvas drawing path uses tile.raw and samples destination
+      // pixels numerically. Cached precolored planes are optional and must
+      // not displace the independently observed natural-color source.
+      if(!tile?.raw)return false;
+      discardDemAlternate(tile);
+      const pixels=tile.width*tile.height,bytes=pixels*12;
+      if(!tile.land||!tile.ocean||!tile.political)return false;
+      tile.land.close?.();tile.ocean.close?.();tile.political.close?.();
+      tile.land=tile.ocean=tile.political=null;
+      tile.bytes-=bytes;demCacheBytes-=bytes;
+      return true;
+    }
+    function discardDemAlternate(tile) {
+      if (!tile.alternate) return;
+      tile.alternate.land.close?.(); tile.alternate.ocean.close?.();
+      demCacheBytes -= tile.alternate.bytes; tile.bytes -= tile.alternate.bytes; tile.alternate = null;
+    }
     function pruneDemTiles() {
+      // Alternate theme bitmaps are optional; release them before evicting
+      // decoded tiles and causing an avoidable fetch or decode on the next view.
+      if (demCacheBytes > demCacheLimit) {
+        const withAlternates = [...demTiles.values()].filter(tile => tile.alternate).sort((a,b) => a.lastUsed-b.lastUsed);
+        for (const tile of withAlternates) {
+          if (demCacheBytes <= demCacheLimit) break;
+          discardDemAlternate(tile);
+        }
+      }
+      if(demCacheBytes>demCacheLimit){
+        for(const tile of [...demTiles.values()].filter(t=>t.naturalSurface).sort((a,b)=>a.lastUsed-b.lastUsed)){
+          if(demCacheBytes<=demCacheLimit)break;discardNatural(tile);
+        }
+      }
       while (demCacheBytes > demCacheLimit) {
         let oldest = null;
         for (const entry of demTiles) {
@@ -41,7 +93,7 @@ function canvasFallbackWorkerMain(self) {
         }
         if (!oldest) break;
         demCacheBytes -= oldest[1].bytes;
-        oldest[1].land.close(); oldest[1].ocean.close(); oldest[1].political.close();
+        closeDemTile(oldest[1]);
         demTiles.delete(oldest[0]);
       }
     }
@@ -188,13 +240,25 @@ function canvasFallbackWorkerMain(self) {
 
     function applyDemPresentationTheme(tile, theme) {
       if (tile.theme === theme || !tile.raw) return;
+      if (tile.alternate?.theme === theme) {
+        const {land, ocean} = tile;
+        tile.land = tile.alternate.land; tile.ocean = tile.alternate.ocean;
+        tile.alternate.land = land; tile.alternate.ocean = ocean; tile.alternate.theme = tile.theme;
+        tile.theme = theme;
+        return;
+      }
       const converted = self.PandoLabCanvasTerrainDem.convertTile({
         dem: tile.raw, width: tile.width, height: tile.height, theme, includePolitical: false,
       });
       const land = demPlaneBitmap(converted.land, tile.width, tile.height);
       const ocean = demPlaneBitmap(converted.ocean, tile.width, tile.height);
-      tile.land.close?.();
-      tile.ocean.close?.();
+      const alternateBytes = tile.width * tile.height * 8;
+      if (!tile.alternate && demCacheBytes + alternateBytes <= demCacheLimit) {
+        tile.alternate = {land:tile.land, ocean:tile.ocean, theme:tile.theme, bytes:alternateBytes};
+        tile.bytes += alternateBytes; demCacheBytes += alternateBytes;
+      } else {
+        tile.land.close?.(); tile.ocean.close?.();
+      }
       tile.land = land;
       tile.ocean = ocean;
       tile.theme = theme;
@@ -256,11 +320,12 @@ function canvasFallbackWorkerMain(self) {
         && (!expectedHash || expectedHash === (terrainDemManifest?.assetsSha256 || terrainExpectedHash));
       if (disposed || !url || (sameSource && (terrainDemManifest || demManifestLoading))) return;
       if (!sameSource) {
+        resetCanvasNatural();
         manifestController?.abort();
         for (const request of demRequests.values()) request.controller.abort();
         demRequests.clear(); demQueue.length = 0; demQueuedKeys.clear(); demFailures.clear();
         wantedDemKeys.clear(); terrainProtectedKeys.clear();
-        for (const tile of demTiles.values()) { tile.land.close?.(); tile.ocean.close?.(); tile.political.close?.(); }
+        for (const tile of demTiles.values()) closeDemTile(tile);
         demTiles.clear(); demCacheBytes = 0; terrainDemManifest = null; demManifestAttempts = 0;
       }
       demManifestLoading = true;
@@ -279,11 +344,13 @@ function canvasFallbackWorkerMain(self) {
         const runtimeFetch = terrainModule.createExternalRuntimeDataFetch({meta:{externalRuntimeData}});
         const response = await runtimeFetch(fetchUrl.href, {signal: controller.signal});
         if (!response.ok) throw new Error(`DEM 매니페스트 HTTP ${response.status}`);
-        const manifest = validateTerrainManifest(await response.json());
+        const loadedManifest = validateTerrainManifest(await response.json());
+        const manifest = naturalSurfaceCatalog?Object.freeze({...loadedManifest,naturalSurface:naturalSurfaceCatalog}):loadedManifest;
         if (manifest.representation !== 'dem-relief-v1') throw new Error('수치 DEM 매니페스트가 필요합니다.');
         if (expectedHash && manifest.assetsSha256 !== expectedHash) throw new Error('DEM 원본 식별값이 현재 장면과 다릅니다.');
         if (disposed || controller.signal.aborted) return;
         terrainTileRequest = terrainModule.terrainTileRequest;
+        terrainNaturalTileRequest = terrainModule.terrainNaturalTileRequest;
         fetchTerrainTile = terrainModule.fetchTerrainTile;
         terrainDemManifest = manifest;
         requestLatestTerrainDemand();
@@ -312,6 +379,40 @@ function canvasFallbackWorkerMain(self) {
       });
     }
 
+    function* drawNumericalTriangle(image,source,destination,dpr) {
+      if(destination.some(p=>!p||!p.every(Number.isFinite)))return;
+      const points=destination.map(p=>[p[0]*dpr,p[1]*dpr]);
+      for(const block of self.PandoLabCanvasTerrainDem.rasterizeInterpolatedTriangle({
+        sample:image.sample,source,destination:points,viewportWidth:canvas.width,viewportHeight:canvas.height})){
+        numericalScratchPeakBytes=Math.max(numericalScratchPeakBytes,block.rgba.byteLength*2);
+        if(block.pixels){
+          if(!numericalScratch)numericalScratch=new OffscreenCanvas(block.width,block.height);
+          if(numericalScratch.width!==block.width)numericalScratch.width=block.width;
+          if(numericalScratch.height!==block.height)numericalScratch.height=block.height;
+          numericalScratch.getContext('2d').putImageData(new ImageData(block.rgba,block.width,block.height),0,0);
+          context.save();
+          try{context.setTransform(1,0,0,1,0,0);context.drawImage(numericalScratch,block.x,block.y);}
+          finally{context.restore();}
+          numericalPixels+=block.pixels;
+        }
+        yield;
+      }
+    }
+    function* drawTerrainTriangle(image,source,destination,dpr) {
+      if(image?.sample)yield* drawNumericalTriangle(image,source,destination,dpr);
+      else drawTexturedTriangle(image,source,destination,dpr);
+    }
+    function* drawNumericalFlatTile(spec,image,projection,dpr) {
+      const gutter=Number(terrainDemManifest.gutter||0);
+      const [west,north,east,south]=spec.bounds;
+      const src=[[gutter,gutter],[gutter+spec.pixelWidth,gutter],[gutter,gutter+spec.pixelHeight],[gutter+spec.pixelWidth,gutter+spec.pixelHeight]];
+      for(const offset of [-360,0,360]){
+        const [x,y,w,h]=self.PandoLabCanvasTerrainDem.flatTileRectangle([west,north,east,south],projection.scale(),projection.translate(),projection.center(),offset);
+        const dst=[[x,y],[x+w,y],[x,y+h],[x+w,y+h]];
+        yield* drawNumericalTriangle(image,[src[0],src[1],src[2]],[dst[0],dst[1],dst[2]],dpr);
+        yield* drawNumericalTriangle(image,[src[1],src[3],src[2]],[dst[1],dst[3],dst[2]],dpr);
+      }
+    }
     function drawTexturedTriangle(image, sourcePoints, destinationPoints, dpr) {
       if (destinationPoints.some(point => !point || !point.every(Number.isFinite))) return;
       // Globe tiles cover much more than the viewport at high zoom. Reject
@@ -409,8 +510,8 @@ function canvasFallbackWorkerMain(self) {
             [gutter + u0 * spec.pixelWidth, gutter + v1 * spec.pixelHeight],
             [gutter + u1 * spec.pixelWidth, gutter + v1 * spec.pixelHeight],
           ];
-          if (visible[0] && visible[1] && visible[2]) drawTexturedTriangle(image, [source[0], source[1], source[2]], [destination[0], destination[1], destination[2]], dpr);
-          if (visible[1] && visible[3] && visible[2]) drawTexturedTriangle(image, [source[1], source[3], source[2]], [destination[1], destination[3], destination[2]], dpr);
+          if (visible[0] && visible[1] && visible[2]) yield* drawTerrainTriangle(image, [source[0], source[1], source[2]], [destination[0], destination[1], destination[2]], dpr);
+          if (visible[1] && visible[3] && visible[2]) yield* drawTerrainTriangle(image, [source[1], source[3], source[2]], [destination[1], destination[3], destination[2]], dpr);
         }
         upper = lower;
         // Cooperate with network/Worker messages between rows. No partial bitmap
@@ -432,6 +533,7 @@ function canvasFallbackWorkerMain(self) {
         resolutionLimited: admission.resolutionLimited };
     }
     function scheduleTerrainDemand(plan) {
+      requestCanvasNatural(plan);
       if (!plan) return;
       const { demSpecs, baseSpecs, drawSpecs } = plan;
       terrainProtectedKeys.clear();
@@ -451,6 +553,47 @@ function canvasFallbackWorkerMain(self) {
       for (const spec of baseSpecs) requestDemTile(spec, 5_000);
     }
 
+    function requestCanvasNatural(plan) {
+      const enabled=lastRenderMessage?.physicalSettings?.terrainVisible&&lastRenderMessage?.physicalSettings?.terrainStyle==='physical';
+      const visible=new Set(enabled?(plan?.drawSpecs||[]).map(spec=>spec.key):[]);
+      for(const [key,task] of naturalRequests)if(!visible.has(key))task.controller.abort();
+      if(!enabled||!plan?.terrainComplete||!terrainDemManifest?.naturalSurface||!terrainNaturalTileRequest)return;
+      for(const spec of plan.drawSpecs){
+        if(naturalRequests.size>=2)break;
+        const tile=demTiles.get(spec.key);
+        if(!tile?.raw||tile.naturalSurface||naturalRequests.has(spec.key)||naturalFailures.has(spec.key))continue;
+        let request;
+        try{request=terrainNaturalTileRequest(spec,terrainDemManifest);}catch{naturalFailures.add(spec.key);continue;}
+        if(!request)continue;
+        const bytes=(spec.pixelWidth+2)*(spec.pixelHeight+2)*4;
+        if(demCacheBytes+naturalReservedBytes+bytes>demCacheLimit){
+          // Only while the optional observed-image preview is requested,
+          // release redundant colored planes of numeric-capable visible tiles
+          // before conceding natural coverage. The source DEM stays resident.
+          for(const candidate of plan.drawSpecs){
+            if(demCacheBytes+naturalReservedBytes+bytes<=demCacheLimit)break;
+            releaseUnusedNumericPlanes(demTiles.get(candidate.key));
+          }
+        }
+        if(demCacheBytes+naturalReservedBytes+bytes>demCacheLimit)continue;
+        const source=terrainDemManifest,controller=new AbortController(),task={controller,bytes};
+        naturalRequests.set(spec.key,task);naturalReservedBytes+=bytes;naturalRequestsStarted++;
+        void fetchTerrainTile(request,{signal:controller.signal}).then(readRgba).then(pixels=>{
+          if(disposed||controller.signal.aborted||source!==terrainDemManifest||demTiles.get(spec.key)!==tile)return;
+          if(pixels.width!==tile.width||pixels.height!==tile.height)throw Error('Natural Canvas tile shape differs from DEM');
+          if(demCacheBytes+pixels.data.byteLength>demCacheLimit)return;
+          tile.naturalSurface={data:pixels.data,width:pixels.width,height:pixels.height,mixWeight:request.mixWeight};
+          tile.naturalBytes=pixels.data.byteLength;tile.bytes+=tile.naturalBytes;demCacheBytes+=tile.naturalBytes;
+          naturalRevision++;substrateState=null;
+          self.postMessage({type:'terrain-ready',count:demTiles.size,key:`natural:${spec.key}`});
+          scheduleHydroRender();
+        }).catch(()=>{if(!controller.signal.aborted&&source===terrainDemManifest)naturalFailures.add(spec.key);})
+          .finally(()=>{
+            if(naturalRequests.get(spec.key)===task){naturalRequests.delete(spec.key);naturalReservedBytes-=bytes;}
+            if(!disposed&&source===terrainDemManifest)requestLatestTerrainDemand();
+          });
+      }
+    }
     function requestLatestTerrainDemand() {
       if (!hasRenderedView || !lastRenderMessage || !terrainDemManifest?.levels?.length) return;
       const message = lastRenderMessage;
@@ -493,9 +636,16 @@ function canvasFallbackWorkerMain(self) {
           const tile = demTiles.get(spec.key);
           if (!tile) continue;
           tile.lastUsed = performance.now();
-          if (style === 'physical') applyDemPresentationTheme(tile, message.darkTheme ? 'dark' : 'light');
-          if (message.projection === 'flat') drawFlatTerrainTile(spec, tile[channel], projection, dpr);
-          else yield* drawGlobeTerrainTile(spec, tile[channel], projection, message, dpr, Number(spec.level) === 0);
+          if(tile.raw){
+            const image={sample:self.PandoLabCanvasTerrainDem.createInterpolatedSampler({dem:tile.raw,width:tile.width,height:tile.height,
+              theme:message.darkTheme?'dark':'light',channel,naturalSurface:tile.naturalSurface||null})};
+            if(message.projection==='flat')yield* drawNumericalFlatTile(spec,image,projection,dpr);
+            else yield* drawGlobeTerrainTile(spec,image,projection,message,dpr,Number(spec.level)===0);
+          }else{
+            if (style === 'physical') applyDemPresentationTheme(tile, message.darkTheme ? 'dark' : 'light');
+            if (message.projection === 'flat') drawFlatTerrainTile(spec, tile[channel], projection, dpr);
+            else yield* drawGlobeTerrainTile(spec, tile[channel], projection, message, dpr, Number(spec.level) === 0);
+          }
         }
       };
       context.save();
@@ -532,6 +682,11 @@ function canvasFallbackWorkerMain(self) {
         terrainSource: 'dem-derived-canvas', terrainTargetLevel: demLevel?.id,
         terrainDetailTileCount: demSpecs.filter(spec => demTiles.has(spec.key)).length,
         terrainCacheBytes: demCacheBytes, terrainDemCacheBytes: demCacheBytes,
+        terrainNaturalCacheBytes:[...demTiles.values()].reduce((n,t)=>n+(t.naturalBytes||0),0),
+        terrainNaturalPendingBytes:naturalReservedBytes,terrainNaturalRequests:naturalRequestsStarted,
+        terrainNaturalTilesLoaded:[...demTiles.values()].filter(t=>t.naturalSurface).length,
+        terrainNaturalFailures:naturalFailures.size,canvasTerrainNumericPixels:numericalPixels,
+        canvasTerrainNumericScratchPeakBytes:numericalScratchPeakBytes,
       };
     }
 
@@ -892,7 +1047,7 @@ function canvasFallbackWorkerMain(self) {
         scheduleTerrainDemand(terrainPlan);
         const terrainViewKey = JSON.stringify([projectedPathDependencies.preparation, pixelWidth, pixelHeight, dpr, message.terrainDpr,
           message.physicalSettings?.terrainVisible, message.physicalSettings?.terrainStyle, message.darkTheme,
-          theme.baseLandAlpha, theme.defaultLand, terrainDemManifest?.assetsSha256]);
+          theme.baseLandAlpha, theme.defaultLand, terrainDemManifest?.assetsSha256,naturalRevision]);
         // An unchanged physical source can cross project generations as a
         // freshly decoded geometry object. Object identity is not its resource
         // identity: prefer the content-certified source/revision pair, but
@@ -1071,6 +1226,17 @@ function canvasFallbackWorkerMain(self) {
       if (message.projectGeneration != null && Number(message.projectGeneration) < projectGeneration) return;
       if (Object.hasOwn(message, 'terrainExternalSource')) terrainExternalSource = message.terrainExternalSource;
       if (Object.hasOwn(message, 'externalRuntimeData')) externalRuntimeData = message.externalRuntimeData;
+      if(Object.hasOwn(message,'terrainNaturalSurface')){
+        const incoming=message.terrainNaturalSurface;
+        const key=incoming?`${incoming.sourceRevision}:${incoming.pathPrefix}:${incoming.mixWeight}`:'';
+        if(key!==naturalCatalogKey){
+          resetCanvasNatural();naturalCatalogKey=key;naturalSurfaceCatalog=incoming;
+          if(terrainDemManifest)terrainDemManifest=Object.freeze({...terrainDemManifest,naturalSurface:incoming});
+          // A late optional catalog must re-evaluate visible demand even when
+          // the user does not move the camera after the primary DEM settles.
+          requestLatestTerrainDemand();
+        }
+      }
       if (message.type === 'init') {
         hasRenderedView = false;
         features = replaceCountryFeatures(message.features || []);
@@ -1099,7 +1265,7 @@ function canvasFallbackWorkerMain(self) {
         cancelActivePaint();
         loadDemManifest(message.terrainDemManifestUrl, message.terrainAssetsSha256);
       } else if (message.type === 'retry-terrain') {
-        demFailures.clear(); demManifestAttempts = 0;
+        demFailures.clear(); demManifestAttempts = 0;naturalFailures.clear();
         if (!terrainDemManifest && terrainDemManifestUrl) loadDemManifest(terrainDemManifestUrl, terrainExpectedHash);
         scheduleHydroRender();
       } else if (message.type === 'hydro-port') {
@@ -1239,6 +1405,8 @@ function canvasFallbackWorkerMain(self) {
       }
     };
     function dispose() {
+      resetCanvasNatural();
+      if(numericalScratch){numericalScratch.width=1;numericalScratch.height=1;numericalScratch=null;}
       if (disposed) return;
       disposed = true;
       cancelActivePaint();
@@ -1247,7 +1415,7 @@ function canvasFallbackWorkerMain(self) {
       manifestController?.abort();
       for (const request of demRequests.values()) request.controller.abort();
       demQueue.length = 0; demQueuedKeys.clear();
-      for (const tile of demTiles.values()) { tile.land.close?.(); tile.ocean.close?.(); tile.political.close?.(); }
+      for (const tile of demTiles.values()) closeDemTile(tile);
       demTiles.clear(); demCacheBytes = 0;
       hydroPort?.close?.();
       self.onmessage = null;

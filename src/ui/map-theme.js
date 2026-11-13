@@ -6,8 +6,9 @@ export function resolveMapTheme({ state, theme, mapStyle = 'standard' }) {
     const preset = mapStylePreset(mapStyle);
     const terrainVisible = state?.physicalSettings?.terrainVisible !== false;
     const terrainStyle = state?.physicalSettings?.terrainStyle || 'political';
+    // Colored relief retains its own palette. Monochrome relief admits a restrained national tint.
     const terrainFillAlpha = terrainVisible
-      ? (terrainStyle === 'physical' ? 0.22 : 0.68)
+      ? (terrainStyle === 'physical' ? 0 : 0.45)
       : null;
     const countryStyle = state?.layerPresentation ? layerStyle(state.layerPresentation, 'objects') : { boundaryVisible: true, boundaryWidth: 1 };
     const riverStyle = state?.layerPresentation ? layerStyle(state.layerPresentation, 'rivers') : { boundaryVisible: true, boundaryWidth: 1 };

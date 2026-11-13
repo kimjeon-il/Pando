@@ -760,7 +760,7 @@ export function createGpuMapRenderer(deps) {
       isMobile, invalidate: reason => {
         // DEM completion may arrive in bursts beside hydro pack uploads.
         // Keep explicit user actions immediate, coalesce resource settlement.
-        if (reason === 'terrain-tile-ready' || reason === 'terrain-tile-failed' || reason === 'terrain-upload-failed')
+        if (reason === 'terrain-tile-ready' || reason === 'terrain-tile-failed' || reason === 'terrain-upload-failed' || reason === 'terrain-natural-ready')
           return queuePhysicalResourceInvalidation(reason);
         return invalidatePhysicalScene(reason);
       }, geoDistance: (...args) => d3.geo.distance(...args),
@@ -1559,7 +1559,7 @@ export function createGpuMapRenderer(deps) {
         primeProgramLocations(terrainDemProgram, GPU_VIEW_UNIFORM_NAMES);
         primeProgramLocations(terrainDemProgram,
           ['uTerrain', 'uGeoBounds', 'uUvBounds', 'uPhysicalStyle', 'uDarkTheme', 'uTextureSize', 'uLandPass',
-            'uTerrainLandColors[0]', 'uTerrainSeaSurface', 'uTerrainSeaDeep']);
+            'uTerrainLandColors[0]', 'uTerrainSeaSurface', 'uTerrainSeaDeep', 'uNaturalSurface', 'uNaturalWeight', 'uNaturalFadeEdges']);
         terrainPaletteTheme = null;
         return true;
       } catch (error) {
@@ -3926,7 +3926,7 @@ export function createGpuMapRenderer(deps) {
       return true;
     }
 
-    function drawTerrainTile({ spec, texture, grid, gutter }, pass = 'land') {
+    function drawTerrainTile({ spec, texture, grid, gutter, naturalTexture = null, naturalMixWeight = 0, naturalFadeEdges = [0,0,0,0] }, pass = 'land') {
       const dem = terrainManifest?.representation === TERRAIN_DEM_FORMAT;
       const program = terrainDemProgram;
       if (!program) {
@@ -3944,6 +3944,17 @@ export function createGpuMapRenderer(deps) {
       gl.activeTexture(gl.TEXTURE1);
       gl.bindTexture(gl.TEXTURE_2D, texture);
       gl.uniform1i(cachedUniformLocation(program, 'uTerrain'), 1);
+      gl.activeTexture(gl.TEXTURE2);
+      gl.bindTexture(gl.TEXTURE_2D,naturalTexture||texture);
+      gl.uniform1i(cachedUniformLocation(program,'uNaturalSurface'),2);
+      const hasNatural = !!naturalTexture && pass === 'land' && state.physicalSettings.terrainStyle === 'physical';
+      gl.uniform1f(cachedUniformLocation(program,'uNaturalWeight'), hasNatural ? naturalMixWeight : 0);
+      // Sparse coverage and not-yet-uploaded neighbours must fade into DEM;
+      // always write this uniform so a previous tile cannot leak its edges.
+      gl.uniform4f(cachedUniformLocation(program,'uNaturalFadeEdges'),
+        hasNatural ? naturalFadeEdges[0] : 0, hasNatural ? naturalFadeEdges[1] : 0,
+        hasNatural ? naturalFadeEdges[2] : 0, hasNatural ? naturalFadeEdges[3] : 0);
+      gl.activeTexture(gl.TEXTURE1);
 
       const [west, north, east, south] = spec.bounds;
       gl.uniform4f(cachedUniformLocation(program, 'uGeoBounds'), west, north, east, south);
@@ -4517,6 +4528,7 @@ export function createGpuMapRenderer(deps) {
         theme: mapTheme(),
         darkTheme: getSystemTheme() === 'dark',
         terrainFetchConcurrency: isMobile() ? 2 : 4,
+        terrainNaturalSurface: terrainManifest?.naturalSurface || null,
       };
     }
 
@@ -5525,11 +5537,12 @@ export function createGpuMapRenderer(deps) {
       { source = 'dem' } = {}) {
       if(!terrainPreparation)throw new Error('Terrain resources are unavailable in this product.');
       const sourceChanged=String(manifestUrl)!==String(terrainManifestUrl) || manifest?.assetsSha256!==terrainManifest?.assetsSha256;
+      const naturalChanged=manifest?.naturalSurface!==terrainManifest?.naturalSurface;
       if(manifest && manifest.representation!==TERRAIN_DEM_FORMAT)throw new TypeError('A numerical DEM catalog is required.');
       terrainManifest = manifest?.levels?.length ? manifest : null;
       terrainManifestUrl = manifestUrl;
       terrainSource = source;
-      if(sourceChanged){physicalStyleStateRevision++;canvasLastPhysicalStyleSignature='';}
+      if(sourceChanged||naturalChanged){physicalStyleStateRevision++;canvasLastPhysicalStyleSignature='';}
       terrainPreparation?.setManifest(terrainManifest);
       if(sourceChanged && canvasWorker)postCanvasWorkerMessage({type:'terrain-source',terrainDemManifestUrl:String(manifestUrl),terrainAssetsSha256:manifest?.assetsSha256 || null,terrainExternalSource:globalThis.PANDOLAB_BUILD_META?.terrainExternalSource || null,externalRuntimeData:globalThis.PANDOLAB_BUILD_META?.externalRuntimeData || null});
       if (terrainManifest?.representation === TERRAIN_DEM_FORMAT && gl && !ensureTerrainDemProgram()) {

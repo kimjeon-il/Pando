@@ -1,0 +1,170 @@
+# Validate strict Antarctic one-pixel below-pole texture gutter replication against observed mask data.
+# Retry strict source-aware polar no-data averaging; retain all hash and coverage gates.
+## Re-run the bounded representative source acceptance with the repaired float32 polar coverage tolerance.
+## This task must preserve source hashes, immutable revision pins and historical source dates.
+name: GIS natural-surface observed masks and immutable external loading
+on:
+  push:
+    branches: [work/gis]
+    paths:
+      - .github/workflows/gis-natural-surface-preview.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: pando-natural-surface-preview
+  cancel-in-progress: false
+jobs:
+  representative:
+    if: github.repository == 'kimjeon-il/Pando' && github.ref == 'refs/heads/work/gis'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    env:
+      CANDIDATE_PATH: terrain/natural/v0.1.0-preview.2
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Focused terrain and observed mask contracts
+        env:
+          CHECK_SELECTION: '{"unitTests":["tests/unit/geometry/terrain-natural-masks.test.mjs","tests/unit/data/terrain-natural-surface.test.mjs","tests/unit/rendering/terrain-natural-gpu.test.mjs","tests/unit/rendering/terrain-numeric-color.test.mjs","tests/unit/rendering/canvas-dem-theme-cache.test.mjs"],"browserSpecs":[],"commands":[],"prerequisites":[]}'
+        run: |
+          mkdir -p "$RUNNER_TEMP/natural-proof"
+          node scripts/run-application-checks.mjs --phase non-browser --output "$RUNNER_TEMP/natural-proof/unit.json"
+      - name: Probe public source access and preserve actual metadata
+        run: python3 tools/gis/build-natural-observed-preview.py --probe --output "$RUNNER_TEMP/natural-proof"
+      - name: Checkout existing data branch metadata only
+        uses: actions/checkout@v4
+        with:
+          repository: kimjeon-il/PandoLab-library-data
+          ref: work/gis
+          path: .natural-library
+          fetch-depth: 1
+          persist-credentials: false
+          filter: blob:none
+          sparse-checkout: README.md
+          sparse-checkout-cone-mode: false
+      - name: Verify destination and peak disk headroom
+        env:
+          LIBRARY_TOKEN: ${{ secrets.PANDOLAB_LIBRARY_WRITE_TOKEN }}
+        run: |
+          set -euo pipefail
+          test -n "$LIBRARY_TOKEN"
+          test "$(git branch --show-current)" = work/gis
+          test -z "$(git -C .natural-library status --porcelain)"
+          if git -C .natural-library cat-file -e "HEAD:$CANDIDATE_PATH" 2>/dev/null; then
+            echo 'Immutable candidate already exists; stop without overwrite.'
+            exit 1
+          fi
+          test "$(df -PB1 "$RUNNER_TEMP" | awk 'NR==2{print $4}')" -gt 8589934592
+          git -C .natural-library rev-parse HEAD > "$RUNNER_TEMP/natural-proof/library-before.txt"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install scoped binary GIS dependencies in CI only
+        run: |
+          python -m pip install --only-binary=:all: --disable-pip-version-check 'Pillow==11.3.0' 'numpy==2.2.6' 'rasterio==1.4.3' 'fiona==1.10.1'
+      - name: Verify actual floating polar-source NaN-as-NoData reprojection
+        run: python tools/gis/build-natural-observed-preview.py --self-test-polar --output "$RUNNER_TEMP/natural-proof"
+      - name: Generate bounded WorldCover, RGI7 and polar-ice corrected tiles
+        run: |
+          set -euo pipefail
+          python tools/gis/build-natural-observed-preview.py --output "$RUNNER_TEMP/natural-observed" \
+            | tee "$RUNNER_TEMP/natural-proof/generation.log"
+          cp "$RUNNER_TEMP/natural-observed/generation-receipt.json" "$RUNNER_TEMP/natural-proof/generation.json"
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import {readFileSync} from 'node:fs';
+          import {createHash} from 'node:crypto';
+          import {validateNaturalSurfaceManifest} from './src/data/terrain-manifest.js';
+          const root=process.env.RUNNER_TEMP+'/natural-observed';
+          const raw=JSON.parse(readFileSync(root+'/manifest.json','utf8'));
+          assert.equal(Object.keys(raw.tiles).length,9);
+          validateNaturalSurfaceManifest({...raw,sourceRevision:'0'.repeat(40)},raw);
+          for(const [key,entry] of Object.entries(raw.tiles)){
+            const bytes=readFileSync(root+'/'+key);
+            assert.equal(bytes.length,entry.bytes);
+            assert.equal(createHash('sha256').update(bytes).digest('hex'),entry.sha256);
+          }
+          for(const name of ['himalaya','greenland','antarctica']){
+            const row=raw.observationMasks[name];
+            assert(name==='himalaya'?row.glacierCoveredPixels>0:row.polarCoveredPixels>0);
+          }
+          console.log('OBSERVED_MASK_TILE_CONTRACT_OK');
+          JS
+      - name: Store verified regional candidate only in external work/gis
+        env:
+          LIBRARY_TOKEN: ${{ secrets.PANDOLAB_LIBRARY_WRITE_TOKEN }}
+        run: |
+          set -euo pipefail
+          mkdir -p ".natural-library/$CANDIDATE_PATH"
+          cp -a "$RUNNER_TEMP/natural-observed/4" "$RUNNER_TEMP/natural-observed/inputs" ".natural-library/$CANDIDATE_PATH/"
+          cp "$RUNNER_TEMP/natural-observed/manifest.json" "$RUNNER_TEMP/natural-observed/generation-receipt.json" ".natural-library/$CANDIDATE_PATH/"
+          git -C .natural-library add --sparse -- "$CANDIDATE_PATH"
+          git -C .natural-library diff --cached --check
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import {execFileSync} from 'node:child_process';
+          import {readFileSync,writeFileSync} from 'node:fs';
+          const token=process.env.LIBRARY_TOKEN,dir='.natural-library';assert(token);
+          const env={...process.env,GIT_CONFIG_COUNT:'1',GIT_CONFIG_KEY_0:'http.https://github.com/.extraheader',
+            GIT_CONFIG_VALUE_0:'AUTHORIZATION: basic '+Buffer.from('x-access-token:'+token).toString('base64')};
+          const git=args=>execFileSync('git',['-C',dir,...args],{env,encoding:'utf8',timeout:300000}).trim();
+          const before=readFileSync(process.env.RUNNER_TEMP+'/natural-proof/library-before.txt','utf8').trim();
+          assert.equal(git(['rev-parse','HEAD']),before);
+          assert.equal(git(['ls-remote','--exit-code','origin','refs/heads/work/gis']).split(/\s+/)[0],before,
+            'Concurrent data edit; stop without force');
+          const files=git(['diff','--cached','--name-only']).split('\n');
+          assert(files.length>=11&&files.every(path=>path.startsWith(process.env.CANDIDATE_PATH+'/')));
+          git(['-c','user.name=Pando natural terrain builder','-c','user.email=pando-terrain@users.noreply.github.com',
+            'commit','-m','data(terrain): preserve observed WorldCover, RGI7 and polar-ice regional candidate']);
+          const revision=git(['rev-parse','HEAD']);
+          git(['push','origin','HEAD:refs/heads/work/gis']);
+          assert.equal(git(['ls-remote','--exit-code','origin','refs/heads/work/gis']).split(/\s+/)[0],revision);
+          writeFileSync(process.env.RUNNER_TEMP+'/natural-proof/library-revision.txt',revision+'\n');
+          console.log('NATURAL_OBSERVED_LIBRARY_REVISION='+revision);
+          JS
+      - name: Read stored candidate through canonical terrain fetch and byte/hash validation
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import {readFileSync,writeFileSync} from 'node:fs';
+          import {validateNaturalSurfaceManifest,terrainNaturalTileRequest,fetchTerrainTile} from './src/data/terrain-manifest.js';
+          const root=process.env.RUNNER_TEMP+'/natural-proof';
+          const revision=readFileSync(root+'/library-revision.txt','utf8').trim();
+          const url=`https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/${revision}/${process.env.CANDIDATE_PATH}/manifest.json`;
+          const response=await fetch(url,{signal:AbortSignal.timeout(30000)});assert(response.ok);
+          const raw=await response.json();
+          assert.deepEqual(raw,JSON.parse(readFileSync(process.env.RUNNER_TEMP+'/natural-observed/manifest.json','utf8')));
+          const admitted=validateNaturalSurfaceManifest({...raw,sourceRevision:revision},raw);
+          const manifest={...raw,naturalSurface:admitted},files=[];
+          for(const [key,entry] of Object.entries(admitted.tiles)){
+            const [,level,column,row]=/^(\d+)\/(\d+)-(\d+)\.webp$/.exec(key).map(Number);
+            const spec={level,column,row,pixelWidth:entry.pixelWidth-2,pixelHeight:entry.pixelHeight-2};
+            const blob=await fetchTerrainTile(terrainNaturalTileRequest(spec,manifest),{signal:AbortSignal.timeout(30000)});
+            files.push({key,bytes:blob.size,sha256:entry.sha256});
+          }
+          writeFileSync(root+'/bound-natural-manifest.json',JSON.stringify(admitted,null,2)+'\n');
+          writeFileSync(root+'/external-readback.json',JSON.stringify({revision,files,mainChanged:false,
+            operationalPinChanged:false,scope:'nine representative LOD4 tiles; WorldCover only in declared review windows'},null,2)+'\n');
+          console.log('NATURAL_OBSERVED_READBACK_OK='+revision);
+          JS
+      - name: Preserve source acquisition receipts on failure as well
+        if: always()
+        run: |
+          mkdir -p "$RUNNER_TEMP/natural-proof"
+          for file in polar-record.json base-manifest.json; do
+            test ! -f "$RUNNER_TEMP/natural-observed/acquisition-cache/$file" || cp "$RUNNER_TEMP/natural-observed/acquisition-cache/$file" "$RUNNER_TEMP/natural-proof/$file"
+          done
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: natural-observed-mask-evidence
+          path: ${{ runner.temp }}/natural-proof/*
+          if-no-files-found: warn
+          retention-days: 21

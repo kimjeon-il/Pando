@@ -3,6 +3,8 @@
 import {chromium} from '@playwright/test';
 import {spawn,execFileSync} from 'node:child_process';
 import {readFileSync,writeFileSync} from 'node:fs';
+import {resolve} from 'node:path';
+import {fileURLToPath} from 'node:url';
 import {setTimeout as delay} from 'node:timers/promises';
 
 const options=Object.fromEntries(process.argv.slice(2).map(arg=>{
@@ -28,7 +30,7 @@ function medianObject(values) {
   }
   return values.every(value=>JSON.stringify(value)===JSON.stringify(values[0]))?values[0]:null;
 }
-async function chromiumProcessMemory(cdp) {
+export async function chromiumProcessMemory(cdp) {
   if(!cdp)return null;
   try{
     const {processInfo}=await cdp.send('SystemInfo.getProcessInfo');
@@ -43,7 +45,7 @@ async function chromiumProcessMemory(cdp) {
     return {pssBytes:bytes,processes:processes.length};
   }catch{return null;} // Never substitute zero for an unavailable process metric.
 }
-const mapSummary=stats=>{
+export const mapSummary=stats=>{
   const s=stats||{};
   return {
     p95CpuSubmitMs:s.p95CpuSubmitMs??null,
@@ -90,14 +92,14 @@ const mapSummary=stats=>{
     screenLodBudgetRejectCount:s.screenLodBudgetRejectCount??null,
   };
 };
-const identity=()=>({commit:sha(),pin:pin(),platform:process.platform,node:process.version,
+export const identity=()=>({commit:sha(),pin:pin(),platform:process.platform,node:process.version,
   scenario:'Chromium SwiftShader; 1280x800; light UI; 2026-11-06 clock; 1 fresh browser per revision; same runner',
   viewport:[1280,800],cachePolicy:'separate fresh browser instances; browser default cache; same-page date-return reuse',
   memoryPolicy:'V8 main page used heap via CDP after GC; Chromium process-family PSS via Linux procfs when available (includes workers/WASM in process memory, excludes GPU VRAM).',
   cpuPolicy:'CDP TaskDuration and ScriptDuration are renderer task/script time (not system-wide CPU percent).',
   framePolicy:'requestAnimationFrame pacing is a scheduling FPS proxy, not measured GPU presentation rate.',
   gpuPolicy:'GPU draw-call and buffer counts from renderer; actual VRAM/utilization/kernel timing not measured.'});
-async function serve(){
+export async function serve(){
   const child=spawn(process.execPath,['tests/browser/server.mjs'],{cwd:process.cwd(),
     env:{...process.env,PANDOLAB_TEST_PORT:'4173'},stdio:['ignore','pipe','pipe']});
   let output='';
@@ -118,10 +120,20 @@ async function serve(){
 }
 async function sample(){
   const report={schema:'pando-p7-browser-ab-v1',identity:identity(),label:options.label,
-    status:'running',startedAt:new Date().toISOString(),phases:[],pageErrors:[],error:null};
+    status:'running',startedAt:new Date().toISOString(),phases:[],pageErrors:[],screenshotErrors:[],error:null};
   let server=null,browser=null,page=null,cdp=null,processCdp=null,previousPerf=null;
   const performanceCounters=async()=>Object.fromEntries((await cdp.send('Performance.getMetrics')).metrics.map(x=>[x.name,x.value]));
   const snapshot=async(phase,elapsedMs)=>{
+    if(options['strict-frames']==='1'){
+      await page.waitForFunction(()=>{
+        const stats=globalThis.__PANDOLAB_VIEWER__?.rendererStats?.();
+        return stats?.terrainReady===true&&stats.terrainTargetLevel!=null
+          &&stats.terrainRenderedLevel===stats.terrainTargetLevel&&!stats.screenLodPreparingKey
+          &&stats.mapReadiness?.mapReady===true;
+      },null,{polling:250,timeout:180000});
+      // A timeout is a failed measurement, never a short successful sample.
+      await page.waitForFunction(()=>globalThis.__pandoAbFps?.gaps.length>=300,null,{polling:250,timeout:180000});
+    }
     const view=await page.evaluate(()=>{
       const api=globalThis.__PANDOLAB_VIEWER__,document=api?.documentSnapshot();
       const core=api?.documentState();
@@ -129,7 +141,7 @@ async function sample(){
         entities:document?.territorialEntities?.length,geometries:document?.geometries?.length,
         status:globalThis.document.getElementById('viewerStatus')?.dataset.ready};
     });
-    const raf=await page.evaluate(()=>globalThis.__pandoAbFps?.finish()||null);
+    const raf=await page.evaluate(strict=>globalThis.__pandoAbFps?.finish(strict)||null,options['strict-frames']==='1');
     await cdp.send('HeapProfiler.collectGarbage').catch(()=>{});
     const byName=await performanceCounters();
     const cpuMs=Object.fromEntries(['TaskDuration','ScriptDuration','LayoutDuration','RecalcStyleDuration'].map(name=>{
@@ -145,6 +157,10 @@ async function sample(){
       chromiumProcessPssBytes:processMemory?.pssBytes??null,chromiumProcessCount:processMemory?.processes??null,
       domNodes:byName.Nodes??null,jsListeners:byName.JSEventListeners??null,
       webWorkers:page.workers().length,renderer:mapSummary(view.map)});
+    if(options['strict-frames']==='1'&&options['screenshot-dir']){
+      try{await page.screenshot({path:options['screenshot-dir']+'/'+phase+'.png'});}
+      catch(error){report.screenshotErrors.push({phase,error:String(error)});}
+    }
   };
   const ready=async expected=>{
     await page.waitForFunction(month=>{
@@ -167,14 +183,17 @@ async function sample(){
         started:performance.now(),active:true,last:null,gaps:[],
         glCalls:0,
         start(){this.started=performance.now();this.active=true;this.last=null;this.gaps=[];this.glCalls=0;},
-        finish(){
+        finish(includeRaw=false){
           this.active=false;
           const duration=Math.max(1,performance.now()-this.started);
           const gaps=[...this.gaps].sort((a,b)=>a-b);
           return {rafFps:Math.round(gaps.length*10000/duration)/10,
             maxFrameGapMs:gaps.length?Math.round(gaps.at(-1)*10)/10:null,
+            p50FrameGapMs:gaps.length?Math.round(gaps[Math.floor((gaps.length-1)*0.50)]*10)/10:null,
             p95FrameGapMs:gaps.length?Math.round(gaps[Math.floor((gaps.length-1)*0.95)]*10)/10:null,
-            rafFrames:gaps.length,durationMs:Math.round(duration),glDrawCalls:this.glCalls};
+            p99FrameGapMs:gaps.length?Math.round(gaps[Math.floor((gaps.length-1)*0.99)]*10)/10:null,
+            rafFrames:gaps.length,durationMs:Math.round(duration),glDrawCalls:this.glCalls,
+            ...(includeRaw?{frameGapsMs:[...this.gaps]}:{})};
         },
       };
       const tick=now=>{if(meter.active){if(meter.last!==null)meter.gaps.push(now-meter.last);meter.last=now;}requestAnimationFrame(tick);};
@@ -235,10 +254,12 @@ async function sample(){
         await page.waitForFunction(()=>Math.abs(
           globalThis.__PANDOLAB_MAP_HOST__?.getViewState()?.globeZoom-32)<0.01,
           null,{timeout:20000,polling:100});
-        await page.waitForFunction(()=>{
+        const lodReady=page.waitForFunction(()=>{
           const s=globalThis.__PANDOLAB_VIEWER__?.rendererStats?.();
           return s?.screenLodTargetKey && !s?.screenLodPreparingKey;
-        },null,{timeout:20000,polling:200}).catch(()=>{});
+        },null,{timeout:20000,polling:200});
+        if(options['strict-frames']==='1')await lodReady;
+        else await lodReady.catch(()=>{});
         // One bounded settle interval samples the accepted visual frame as
         // well as any expensive LOD preparation; never claim GPU timing.
         await page.waitForTimeout(750);
@@ -248,8 +269,9 @@ async function sample(){
       await zoomTo(130,'zoom32-east-asia');
     }
     report.browserVersion=browser.version();
-    report.status=report.pageErrors.length?'failed':'passed';
-    if(report.pageErrors.length)report.error='Browser page errors: '+report.pageErrors.join('; ');
+    report.status=report.pageErrors.length||report.screenshotErrors.length?'failed':'passed';
+    if(report.pageErrors.length||report.screenshotErrors.length)
+      report.error='Browser page/screenshot errors: '+JSON.stringify({page:report.pageErrors,screenshots:report.screenshotErrors});
   }catch(error){
     report.status='failed';report.error=String(error?.stack||error).slice(0,5000);
     if(page)report.diagnostics=await page.evaluate(()=>({
@@ -362,6 +384,8 @@ function compare(){
   }
   if(!comparable)process.exitCode=1;
 }
-if(options.mode==='compare')compare();
-else if(options.mode==='aggregate')aggregate();
-else await sample();
+if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
+  if(options.mode==='compare')compare();
+  else if(options.mode==='aggregate')aggregate();
+  else await sample();
+}

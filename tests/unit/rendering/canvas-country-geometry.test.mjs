@@ -450,9 +450,9 @@ const constantTile = height => {
 };
 
 test('Canvas converts flat plains and plateaus to the selected elevation colors and grayscale', () => {
-  // v0.14.0 canonical light palette: height interpolation and the stored
+  // Canonical light PCHIP palette: height interpolation and the stored
   // hillshade factor apply to both Canvas and the WebGL shader.
-  for (const row of [{height:0,rgb:[123,190,157],gray:148},{height:1000,rgb:[190,221,153],gray:154},{height:2500,rgb:[235,208,171],gray:177},{height:4500,rgb:[197,177,164],gray:213},{height:6500,rgb:[243,241,235],gray:225}]) {
+  for (const row of [{height:0,rgb:[112,208,163],gray:123},{height:1000,rgb:[210,222,143],gray:129},{height:2500,rgb:[242,199,161],gray:155},{height:4500,rgb:[198,169,163],gray:196},{height:6500,rgb:[245,242,236],gray:209}]) {
     const options=constantTile(row.height), before=options.dem.slice(), result=convertTile(options);
     assert.deepEqual([...result.land.slice(16,19)],row.rgb,`${row.height}m land`);
     assert.equal(result.political[16],row.gray,`${row.height}m grayscale`);
@@ -464,7 +464,7 @@ test('Canvas converts flat plains and plateaus to the selected elevation colors 
 test('Canvas numerical colors ignore former tint pixels', () => {
   const options=constantTile(0);
   const result=convertTile({...options,tint:new Uint8ClampedArray([0,0,0,255,200,100,50,255]),tintWidth:2});
-  assert.deepEqual([...result.land.slice(16,19)],[123,190,157]);
+  assert.deepEqual([...result.land.slice(16,19)],[112,208,163]);
 });
 
 test('Canvas uses precomputed shade identically at all latitudes', () => {
@@ -474,10 +474,10 @@ test('Canvas uses precomputed shade identically at all latitudes', () => {
   const options = { dem, width: 3, height: 3, tint, tintWidth: 1, tintHeight: 1,
     bounds: [-1, 1, 1, -1], pixelWidth: 1, pixelHeight: 1, levelWidth: 1350, levelHeight: 675 };
   const result = convertTile(options);
-  assert.deepEqual([...result.land.slice(16,19)],[92,91,89]);
-  assert.equal(result.political[16], 85);
+  assert.deepEqual([...result.land.slice(16,19)],[93,92,89]);
+  assert.equal(result.political[16], 123);
   const polar = convertTile({ ...options, bounds: [-1, 90, 1, 89.8] });
-  assert.equal(polar.political[16], 85, 'stored shade is preserved at the pole');
+  assert.equal(polar.political[16], 123, 'stored shade is preserved at the pole');
 });
 
 test('Canvas triangle projection maps every source corner without checkerboard seams', () => {

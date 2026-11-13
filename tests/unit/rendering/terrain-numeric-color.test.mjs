@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import '../../../src/rendering/workers/canvas-terrain-dem-core.js';
+import {createPchip} from '../../../scripts/terrain-experiment/quality.mjs';
+import {rasterizeTerrainTriangle,rasterizeTerrainTriangleScanline,createTerrainLookupSampler,createHeightShadeLookup} from '../../../scripts/terrain-experiment/canvas-numeric-raster.mjs';
 
 const {convertTile}=globalThis.PandoLabCanvasTerrainDem;
 function sample(height,shade=212,extra={}) {
@@ -33,10 +35,117 @@ test('numeric terrain color ignores unrelated precolored imagery',()=>{
 
 const paletteStops = [0, 256, 750, 1500, 2500, 3500, 4500, 6500];
 const expected = {
-  light: ['#7BBE9D', '#9CD59D', '#B5E197', '#D7D19D', '#EACFAB', '#D6BAA1', '#C4B1A4', '#F2F0EA'],
+  light: ['#70CFA3', '#9BDE91', '#C3DF8C', '#E6D89A', '#F1C6A1', '#DEB09C', '#C5A9A3', '#F4F1EB'],
   dark: ['#477B60', '#629260', '#87A76B', '#ABA476', '#C0AA86', '#AF9486', '#9F8C8A', '#CEC9C3'],
 };
 const fromHex = hex => [1,3,5].map(at => parseInt(hex.slice(at,at+2),16));
+test('CPU numerical sampler interpolates heights before applying the land palette',()=>{
+  const dem=new Uint8ClampedArray(16),heights=[0,256,2500,6500];
+  heights.forEach((value,i)=>{const n=value+12000;dem.set([n>>8,n&255,212,255],i*4);});
+  const actual=globalThis.PandoLabCanvasTerrainDem.sampleInterpolated({dem,width:2,height:2,x:.5,y:.5,theme:'light',channel:'land'});
+  const expectedHeight=heights.reduce((a,b)=>a+b,0)/4;
+  const expected=sample(expectedHeight,212).land;
+  assert.deepEqual([...actual],[...expected]);
+});
+
+test('reusable CPU sampler matches individual numerical samples across themes and masks',()=>{
+  const dem=new Uint8ClampedArray(16),heights=[-1200,256,2500,6500];
+  heights.forEach((value,i)=>{const n=value+12000;dem.set([n>>8,n&255,140+i*30,255],i*4);});
+  const core=globalThis.PandoLabCanvasTerrainDem,output=new Uint8ClampedArray(12);
+  for(const theme of ['light','dark'])for(const channel of ['land','ocean','political']){
+    const sampler=core.createInterpolatedSampler({dem,width:2,height:2,theme,channel});
+    for(const [x,y] of [[0,0],[1,1],[.2,.7],[-.5,1.5]]){
+      sampler(x,y,output,4);
+      assert.deepEqual([...output.slice(4,8)],core.sampleInterpolated({dem,width:2,height:2,x,y,theme,channel}));
+    }
+  }
+});
+
+test('prepared tile colors match numerical sampling for varied integer elevations and shades',()=>{
+  const width=64,height=32,dem=new Uint8ClampedArray(width*height*4);
+  for(let i=0;i<width*height;i++){const value=((i*97)%18001)-12000,encoded=value+12000,at=i*4;
+    dem.set([encoded>>8,encoded&255,(i*43)%256,255],at);}
+  const api=globalThis.PandoLabCanvasTerrainDem;
+  for(const theme of ['light','dark']){
+    const actual=api.convertTile({dem,width,height,theme});
+    for(const channel of ['land','ocean','political']){
+      const sample=api.createInterpolatedSampler({dem,width,height,theme,channel}),expected=new Uint8ClampedArray(4);
+      for(let i=0;i<width*height;i++){
+        sample(i%width,Math.floor(i/width),expected);
+        assert.deepEqual(actual[channel].slice(i*4,i*4+4),expected,`${theme} ${channel} pixel ${i}`);
+      }
+    }
+  }
+});
+
+test('numerical terrain raster preserves viewport clipping and interpolates height before color',()=>{
+  const dem=new Uint8ClampedArray(16),heights=[0,256,2500,6500];
+  heights.forEach((value,i)=>{const n=value+12000;dem.set([n>>8,n&255,212,255],i*4);});
+  const core=globalThis.PandoLabCanvasTerrainDem;
+  const sampler=core.createInterpolatedSampler({dem,width:2,height:2,theme:'light',channel:'land'});
+  const pixels=new Uint8ClampedArray(4*4*4);
+  rasterizeTerrainTriangle({sampler,pixels,width:4,height:4,
+    destination:[[0,0],[4,0],[0,4]],source:[[0,0],[2,0],[0,2]]});
+  const expected=core.sampleInterpolated({dem,width:2,height:2,x:.25,y:.25,theme:'light',channel:'land'});
+  assert.deepEqual([...pixels.slice(0,4)],expected);
+  assert.equal(pixels[(3*4+3)*4+3],0);
+  assert.ok(pixels[(1*4+1)*4+3]===255);
+});
+
+test('experimental lookup sampler remains close to exact land colors over varied elevations and shade',()=>{
+  const dem=new Uint8ClampedArray(16),heights=[-300,256,2500,6500];
+  heights.forEach((value,i)=>{const n=value+12000;dem.set([n>>8,n&255,96+i*43,255],i*4);});
+  const api=globalThis.PandoLabCanvasTerrainDem;
+  for(const theme of ['light','dark']){
+    const fast=createTerrainLookupSampler({api,dem,width:2,height:2,theme});
+    const exact=api.createInterpolatedSampler({dem,width:2,height:2,theme,channel:'land'});
+    const a=new Uint8ClampedArray(4),b=new Uint8ClampedArray(4);
+    for(let y=0;y<=1;y+=.1)for(let x=0;x<=1;x+=.1){
+      fast(x,y,a);exact(x,y,b);
+      for(let channel=0;channel<3;channel++)assert.ok(Math.abs(a[channel]-b[channel])<=2,`${theme} ${x},${y} ${channel}`);
+    }
+  }
+});
+
+test('scanline terrain raster matches the original for clipped and reversed triangles',()=>{
+  const dem=new Uint8ClampedArray([46,224,212,255,47,10,180,255,48,20,190,255,49,30,220,255]);
+  const sampler=globalThis.PandoLabCanvasTerrainDem.createInterpolatedSampler({dem,width:2,height:2});
+  for(const destination of [[[0,0],[8,0],[0,6]],[[-2,1],[7,0],[3,8]],[[7.1,5.4],[1.2,-1],[10.1,0.2]]]){
+    const source=[[0,0],[1,0],[0,1]],a=new Uint8ClampedArray(8*6*4),b=new Uint8ClampedArray(a.length);
+    const count=rasterizeTerrainTriangle({sampler,pixels:a,width:8,height:6,destination,source});
+    assert.equal(rasterizeTerrainTriangleScanline({sampler,pixels:b,width:8,height:6,destination,source}),count);
+    assert.deepEqual(b,a);
+  }
+});
+
+test('height-shade lookup approximates the canonical palette across themes',()=>{
+  const api=globalThis.PandoLabCanvasTerrainDem;
+  for(const theme of ['light','dark']){
+    const table=createHeightShadeLookup(api,theme),pixel=new Uint8Array(4),view=new DataView(table.buffer);
+    for(const h of [0,100,255,512,999,2500,5000,6500])for(const shade of [96,140,180,212,255]){
+      const value=view.getUint32((h*256+shade)*4,true);pixel[0]=value&255;pixel[1]=(value>>8)&255;pixel[2]=(value>>16)&255;pixel[3]=value>>>24;
+      const expected=sample(h,shade,{theme}).land;
+      for(let c=0;c<4;c++)assert.ok(Math.abs(pixel[c]-expected[c])<=2,`${theme} ${h} ${shade} ${c}`);
+    }
+  }
+});
+
+test('height-shade lookup error stays bounded across sampled heights and all byte shades',()=>{
+  const api=globalThis.PandoLabCanvasTerrainDem,heights=[];
+  for(let h=0;h<=6500;h+=53)heights.push(h);heights.push(6500);
+  const dem=new Uint8ClampedArray(heights.length*256*4);
+  heights.forEach((height,index)=>{for(let shade=0;shade<256;shade++){
+    const n=height+12000,at=(index*256+shade)*4;dem.set([n>>8,n&255,shade,255],at);
+  }});
+  for(const theme of ['light','dark']){
+    const table=createHeightShadeLookup(api,theme),view=new DataView(table.buffer);
+    const expected=api.convertTile({dem,width:256,height:heights.length,theme,includePolitical:false}).land;
+    heights.forEach((height,index)=>{for(let shade=0;shade<256;shade++){
+      const value=view.getUint32((height*256+shade)*4,true),at=(index*256+shade)*4;
+      for(let c=0;c<3;c++)assert.ok(Math.abs(((value>>>(8*c))&255)-expected[at+c])<=2,`${theme} ${height} ${shade} ${c}`);
+    }});
+  }
+});
 test('land palette has eight independent sRGB stops in both themes',()=>{
   for(const theme of ['light','dark'])for(let i=0;i<paletteStops.length;i++){
     const actual=sample(paletteStops[i],212,{theme}).land;
@@ -46,10 +155,16 @@ test('land palette has eight independent sRGB stops in both themes',()=>{
         theme+' stop '+paletteStops[i]+' channel '+channel);
   }
 });
-test('sRGB channel interpolation uses per-interval smoothstep, not the retired elevation ramp',()=>{
+test('sRGB land colors follow the PCHIP curve between palette stops',()=>{
   for(const theme of ['light','dark']){
-    const at0=sample(0,212,{theme}).land,mid=sample(128,212,{theme}).land,at256=sample(256,212,{theme}).land;
-    for(let c=0;c<3;c++)assert.ok(Math.abs(mid[c]-(at0[c]+at256[c])/2)<=2);
+    for(const height of [64,128,400,1000,2000,3000,4000,5500]){
+      const actual=sample(height,212,{theme}).land;
+      for(let channel=0;channel<3;channel++){
+        const values=expected[theme].map(value=>fromHex(value)[channel]);
+        const reference=createPchip(paletteStops,values)(height);
+        assert.ok(Math.abs(actual[channel]-reference)<=2,`${theme} ${height} channel ${channel}: ${actual[channel]} vs ${reference}`);
+      }
+    }
     assert.deepEqual(sample(-10,212,{theme}).land,sample(0,212,{theme}).land);
     assert.deepEqual(sample(9999,212,{theme}).land,sample(6500,212,{theme}).land);
   }
@@ -79,4 +194,26 @@ test('political plane, original hillshade response and shared shader color unifo
   assert.equal(uniforms.landColors.length,24);
   assert.equal(uniforms.seaSurface.length,3);
   assert.equal(uniforms.seaDeep.length,3);
+});
+
+
+test('monochrome land relief has stronger slope contrast without recoloring the source DEM',()=>{
+  for (const height of [0, 1000, 3000, 6000]) {
+    const shadow=sample(height,128).political;
+    const middle=sample(height,212).political;
+    const highlight=sample(height,252).political;
+    assert.ok(shadow[0] < middle[0] && middle[0] < highlight[0], 'shade order at '+height);
+    assert.ok((highlight[0]-shadow[0]) * 0.55 >= 65,
+      'national tint must preserve visible grayscale relief at '+height);
+    for (const value of [shadow,middle,highlight])
+      assert.equal(value[0],value[1]), assert.equal(value[1],value[2]);
+    const color=sample(height,128).land;
+    assert.deepEqual(color,sample(height,128,{includePolitical:false}).land,
+      'grayscale contrast must not alter colored relief');
+  }
+  const shader=globalThis.PandoLabCanvasTerrainDem.colorGlsl();
+  assert.match(shader,/physicalStyle < 0\.5/);
+  assert.match(shader,/0\.48 \+ 0\.34 \* smoothstep/);
+  assert.match(shader,/0\.60 \* \(illumination - 0\.70710678\)/);
+  assert.match(shader,/0\.12, 0\.98/);
 });

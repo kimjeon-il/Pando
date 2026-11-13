@@ -1,8 +1,14 @@
 import { resourceKey, resourceUpdate } from "./resource-update-policy.js";
+import {createGpuNaturalSurfaceCache} from './gpu-natural-surface-cache.js';
+import {terrainNaturalTileRequest,fetchTerrainTile} from '../data/terrain-manifest.js';
 import "./workers/terrain-tile-selection-core.js";
 // Owns terrain requests, retries, decoded bitmaps, upload queue, textures and grids.
 // prepare() returns ready draw records; drawing never initiates preparation.
-export function createGpuTerrainPreparation({ readTile, onUnusable, onTileFailure, isMobile, invalidate, geoDistance }) {
+export function createGpuTerrainPreparation({ readTile, readNaturalTile = async (spec,manifest,signal) => {
+  const request=terrainNaturalTileRequest(spec,manifest);
+  return request ? fetchTerrainTile(request,{signal}) : null;
+}, onUnusable, onTileFailure, isMobile, invalidate, geoDistance }) {
+  const natural=createGpuNaturalSurfaceCache({readTile:readNaturalTile,invalidate});
   const PI = Math.PI;
   let gl = null, uploadScheduler = null, ready = false, disposed = false;
   let epoch = 0, projectGeneration = 0, contextRevision = 0;
@@ -49,6 +55,17 @@ export function createGpuTerrainPreparation({ readTile, onUnusable, onTileFailur
     const tileSelection=globalThis.PandoLabTerrainTileSelection;
     const visibleTileCache=tileSelection.createVisibilityCache({ distance: geoDistance });
     const terrainNeighbourSpecs=tileSelection.neighbours;
+    function visibleNaturalReserve(specs) {
+      if (!view.visible || view.physicalStyle !== 'physical' || !terrainManifest?.naturalSurface) return 0;
+      let total=0,selected=0;
+      for(const spec of specs){
+        if(selected===2)break;
+        if(!terrainManifest.naturalSurface.tiles[`${spec.level}/${spec.column}-${spec.row}.webp`])continue;
+        total+=(spec.pixelWidth+2*terrainManifest.gutter)*(spec.pixelHeight+2*terrainManifest.gutter)*4;
+        selected++;
+      }
+      return total;
+    }
     function visibleTerrainTileSpecs(level,includeAll=false,frameContext=activeFrameContext) {
       const rotation=frameContext?.viewState?.rotation||view.rotation;
       const viewport=frameContext?.viewport||[view.width,view.height];
@@ -213,6 +230,7 @@ export function createGpuTerrainPreparation({ readTile, onUnusable, onTileFailur
         terrainUploadCount += 1;
         let terrainBytes = [...terrainTiles.values()].reduce((sum, entry) => sum + Number(entry.byteLength || 0), 0);
         const terrainBudget = Math.max(8 * 1024 * 1024, Number(cacheBudgetBytes) || 128 * 1024 * 1024);
+        natural.trim(Math.max(0,terrainBudget-terrainBytes-pendingDecodedBytes));
         while (terrainBytes > terrainBudget) {
           let oldest = null;
           for (const item of terrainTiles.entries()) {
@@ -373,7 +391,12 @@ export function createGpuTerrainPreparation({ readTile, onUnusable, onTileFailur
       const prefetchSpecs = [];
       if (baseReady && !missingSpecs.length) {
         const residentBytes = [...terrainTiles.values()].reduce((sum, tile) => sum + tile.byteLength, 0);
-        let spareBytes = Math.max(0, cacheBudgetBytes - residentBytes - pendingDecodedBytes);
+        // Optional observed imagery needs room before speculative DEM neighbours.
+        // Reserve at most two visible natural tiles, but never reduce target DEM
+        // completeness or add memory above the existing fixed terrain budget.
+        const unusedNaturalReserve=Math.max(0,visibleNaturalReserve(targetSpecs)-natural.bytes()-natural.pendingBytes());
+        let spareBytes = Math.max(0, cacheBudgetBytes - residentBytes - pendingDecodedBytes
+          - natural.bytes() - natural.pendingBytes() - unusedNaturalReserve);
         for (const spec of terrainNeighbourSpecs(targetLevel, targetSpecs)) {
           if (terrainTargetTileKeys.has(spec.key) || terrainTiles.has(spec.key)) continue;
           const bytes = (spec.pixelWidth + 2 * terrainManifest.gutter) * (spec.pixelHeight + 2 * terrainManifest.gutter) * 4;
@@ -441,6 +464,7 @@ export function createGpuTerrainPreparation({ readTile, onUnusable, onTileFailur
     }
   }
   function reset() {
+    natural.reset();
     for (const key of uploadKeys) uploadScheduler?.cancelKey?.(key);
     uploadKeys.clear();
     epoch++;
@@ -484,22 +508,62 @@ export function createGpuTerrainPreparation({ readTile, onUnusable, onTileFailur
     },
     setManifest(manifest) {
       visibleTileCache.clear();
-      const next = { ...dependencies, content: resourceKey(manifest) };
-      if (resourceUpdate(dependencies, next).input) reset();
+      // Optional surface-catalog admission must never dispose already uploaded
+      // numerical DEM textures or force another terrain download.
+      const {naturalSurface:unusedNatural, ...demSource} = manifest || {};
+      const next = { ...dependencies, content: resourceKey(manifest ? demSource : null) };
+      const demChanged = resourceUpdate(dependencies, next).input;
+      const surfaceChanged = resourceKey(terrainManifest?.naturalSurface ?? null)
+        !== resourceKey(manifest?.naturalSurface ?? null);
+      if (demChanged) reset();
+      else if (surfaceChanged) natural.reset();
       dependencies = next; terrainManifest = manifest;
     },
-    prepare(frame, nextView) { activeFrameContext = frame; view = nextView; cacheBudgetBytes = nextView.cacheBudgetBytes; return prepare() || []; },
+    prepare(frame, nextView) {
+      activeFrameContext=frame;view=nextView;cacheBudgetBytes=nextView.cacheBudgetBytes;
+      const prepared=prepare()||[];
+      let demBytes=[...terrainTiles.values()].reduce((n,t)=>n+t.byteLength,0);
+      const unusedNaturalReserve=Math.max(0,visibleNaturalReserve(prepared.map(record=>record.spec))
+        -natural.bytes()-natural.pendingBytes());
+      const desiredDemCeiling=Math.max(0,cacheBudgetBytes-pendingDecodedBytes-unusedNaturalReserve
+        -natural.bytes()-natural.pendingBytes());
+      // A natural request can start before speculative DEM neighbours finish.
+      // Remove only *offscreen* DEM textures, never target/fallback terrain.
+      // This prevents subsequent DEM uploads from aborting every natural request
+      // in a 64 MiB cache while preserving the same total GPU budget.
+      if(unusedNaturalReserve>0 && gl && demBytes>desiredDemCeiling){
+        const removable=[...terrainTiles.entries()]
+          .filter(([key])=>!terrainCurrentViewKeys.has(key))
+          .sort((a,b)=>Number(b[0].split('/')[0])-Number(a[0].split('/')[0])
+            || a[1].lastUsed-b[1].lastUsed);
+        for(const [key,entry] of removable){
+          if(demBytes<=desiredDemCeiling)break;
+          if(!gl.isContextLost?.())gl.deleteTexture(entry.texture);
+          terrainTiles.delete(key);
+          demBytes-=entry.byteLength;
+        }
+      }
+      natural.prepare(prepared,{gl,scheduler:uploadScheduler,manifest:terrainManifest,contextGeneration:contextRevision,
+        enabled:!!view.visible&&view.physicalStyle==='physical',requiredReady:readiness().terrainReady,
+        budgetBytes:Math.max(0,cacheBudgetBytes-demBytes-pendingDecodedBytes)});
+      return prepared;
+    },
     request: requestTerrainTile,
     scheduleUpload: scheduleTerrainUpload,
     settled, reset,
     retry() {
+      natural.retry();
       for (const timer of retryTimers) clearTimeout(timer);
       retryTimers.clear(); terrainTileFailures.clear(); preparationFailure = ''; unusableReported = false; tileFailureReported = false;
       invalidate('terrain-retry');
     },
-    stats: () => ({ ...readiness(), terrainLevel: terrainLastLevel, terrainRenderedLevel, terrainTargetTileCount, terrainTargetTilesLoaded,
+    stats: () => ({ ...readiness(), terrainMemoryBudgetBytes: cacheBudgetBytes,
+      terrainNaturalSourceRevision: terrainManifest?.naturalSurface?.sourceRevision || null,
+      terrainLevel: terrainLastLevel, terrainRenderedLevel, terrainTargetTileCount, terrainTargetTilesLoaded,
       terrainTargetTilesSettled: settled(), terrainTilesLoaded: terrainTiles.size,
-      terrainCacheBytes: [...terrainTiles.values()].reduce((sum, tile) => sum + tile.byteLength, 0),
+      terrainCacheBytes: [...terrainTiles.values()].reduce((sum, tile) => sum + tile.byteLength, 0)+natural.bytes(),
+      terrainDemCacheBytes: [...terrainTiles.values()].reduce((sum, tile) => sum + tile.byteLength, 0),
+      ...natural.stats(),
       terrainPendingDecodedBytes: pendingDecodedBytes,
       terrainTilesLoading: terrainTileRequests.size + terrainFetchQueue.length, terrainFetchConcurrency: terrainFetchConcurrency(),
       terrainUploadCount, terrainFailureCount: terrainTileFailures.size,
