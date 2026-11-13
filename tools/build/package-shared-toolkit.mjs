@@ -46,9 +46,10 @@ export async function packageSharedToolkit({root,revision,artifacts,baseDependen
       add(row.path,data);
     }
   }
-  const seeds=baseDependency
-    ? ['tools/data/shared-toolkit.mjs','tools/data/library-context.mjs','tools/data/library-runtime.mjs','tools/data/report-paths.mjs']
-    : ['tools/data/shared-toolkit.mjs','tools/build/load-node-core.mjs','tools/data/report-paths.mjs','tools/lib/geonames-policy.mjs','tools/lib/geonames-zip.mjs',
+  const storageSeeds=['tools/data/shared-toolkit.mjs','tools/data/library-context.mjs','tools/data/library-runtime.mjs','tools/data/report-paths.mjs'];
+  for(const name of storageSeeds)visit(name);
+  const storageFiles=[...sourceNames].sort();
+  const seeds=baseDependency ? [] : ['tools/data/shared-toolkit.mjs','tools/build/load-node-core.mjs','tools/data/report-paths.mjs','tools/lib/geonames-policy.mjs','tools/lib/geonames-zip.mjs',
     'tools/map-image/native-resample.mjs','tools/map-image/native-pdf.mjs','tools/map-image/native-preview.mjs',
     'src/document/source-provenance.js','src/runtime/version-contract.js',
     'src/runtime/worker-rpc.js','src/runtime/workers/worker-rpc-host.js',
@@ -63,10 +64,9 @@ export async function packageSharedToolkit({root,revision,artifacts,baseDependen
     for(const collect of [collectMapImageArtifacts,collectMapPdfArtifacts,collectMapPreviewArtifacts])
       for(const row of collect({workspace:root,revision,...artifacts}))add(row.path,row.data);
   }
-  const source={repository:'kimjeon-il/Pando',revision};
+  const source={repository:'kimjeon-il/Pando',revision,storageFiles};
   if(baseDependency){
     source.compute=baseDependency.pin.source.compute||{...baseDependency.pin.source,artifactSha256:baseDependency.pin.sha256};
-    source.storageFiles=[...sourceNames].sort();
   }
   return encodeSharedToolkit({source,entries});
 }
