@@ -1,6 +1,6 @@
 # 내장 지명 메커니즘 검증 기록
 
-> **현행 안내(2026-11-11):** 이 문서는 2026-10-01~11-10 단계별 구현·검증 기록을 보관한다. 당시 'manifest가 비어 있다', 'v2만 지원' 등 시점 한정 서술은 현재 배포 상태로 소급하지 않는다. 현재 PLAC v3·코드 정본은 [`src/document/place-contract.js`](../src/document/place-contract.js)·[`contracts/places/v3.json`](../contracts/places/v3.json), 후보 선정은 [`tools/lib/geonames-policy.mjs`](../tools/lib/geonames-policy.mjs), 5단계 **표시 계산**은 [`tools/build/place-display-rank.mjs`](../tools/build/place-display-rank.mjs)다. 이 규칙들은 서로 대체하지 않으며 2026-11-10의 사용자 확인 인구 경계와 잠정 공간 보정값을 유지한다.
+> **현행 안내(2026-11-11):** 이 문서는 2026-10-01~11-10 단계별 구현·검증 기록을 보관한다. 당시 'manifest가 비어 있다', 'v2만 지원' 등 시점 한정 서술은 현재 배포 상태로 소급하지 않는다. 현재 PLAC v3·코드 정본은 [`src/document/place-contract.js`](../src/document/place-contract.js)·[`tests/fixtures/places/plac-v3.json`](../tests/fixtures/places/plac-v3.json), 후보 선정은 [`tools/lib/geonames-policy.mjs`](../tools/lib/geonames-policy.mjs), 5단계 **표시 계산**은 [`tools/build/place-display-rank.mjs`](../tools/build/place-display-rank.mjs)다. 이 규칙들은 서로 대체하지 않으며 2026-11-10의 사용자 확인 인구 경계와 잠정 공간 보정값을 유지한다.
 
 기준: `main`의 `c134b2971d3e007d823f865a2bac1b6a9ddaca70`, 검증일 2026-10-01.
 작업 브랜치: `codex/place-runtime-million`.
@@ -104,7 +104,7 @@ npx playwright test tests/browser/place-runtime.spec.mjs tests/browser/label-met
 
 ## 2026-10-11: PLAC v3 복수 원어명 표시 (work/places 개발 브랜치)
 
-- 공유 바이너리 계약은 `contracts/places/v3.json`이다. 현재 **새로 생성하는 타일은 PLAC v3(레코드 72바이트, 9개 문자열 슬롯)만 사용**하며, 검수용 `defaultNativeNames[]`/`displayTimeline[].nativeNames[]`는 그대로 공식 언어·문자 출처를 보존한다.
+- 공유 바이너리 계약은 `tests/fixtures/places/plac-v3.json`이다. 현재 **새로 생성하는 타일은 PLAC v3(레코드 72바이트, 9개 문자열 슬롯)만 사용**하며, 검수용 `defaultNativeNames[]`/`displayTimeline[].nativeNames[]`는 그대로 공식 언어·문자 출처를 보존한다.
 - 실행용 `nameNative`는 그 시기의 대표 원어명 1개, `nameNativeExtras`는 중복을 제외한 추가 원어명 최대 2개의 문자열 목록이다. 시간별 변경은 `nameTimeline[]`의 `native`(대표명) 및 `nativeExtras[]`(전체 추가명 목록)로 표현한다. 대표 원어명이 바뀌면 이전의 추가 원어명은 상속되지 않는다.
 - 영어와 원어명이 같거나 복수 원어명끼리 철자가 같으면 NFKC 정규화·소문자 비교 후 최초 등장하는 1행만 표시한다. **우선순위는 한국어 → 영어 → 대표 원어 → 추가 원어**이다. 실제 원어명 메타데이터(언어코드)는 검수용 JSON에만 보존한다.
 - SVG 텍스트 행의 동일 언어코드 `native`가 최대 3번 등장할 수 있으므로 각 행은 언어코드가 아닌 **행 순번**으로 구별해 재렌더링한다. 전체 행은 하나의 지도 라벨/충돌 상자로 처리한다. 앱도 동일한 행 해석을 구현한다.

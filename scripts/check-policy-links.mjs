@@ -4,12 +4,12 @@ import { fileURLToPath } from 'node:url';
 
 const HISTORY = new Set(['p0-overview.md', 'p1-reconciliation.md', 'p2-maintenance.md', 'mixed-policy-audit.md']);
 const SKIP_CHECKS = new Set(['README.md', 'maintenance.md']);
-const DOMAIN_SOURCE = /^(?:src|scripts|tools|config|contracts|projects)\/.+/u;
+const DOMAIN_SOURCE = /^(?:src|scripts|tools|config|projects)\/.+/u;
 const MARKDOWN_LINK = /!?\[[^\]\r\n]+\]\(([^)\r\n]+)\)/gu;
 const CHECK_GROUP = /\x60check-group:([a-z][a-z0-9-]*)\x60/gu;
 const CHECK_SCRIPT = /\x60check-script:([a-z][a-z0-9:-]*)\x60/gu;
 const RULE_LANGUAGE = /(?:반드시|금지|정본|규칙|정책|소유권|\bmust\b|\bnever\b|\bshall\b|\binvariant\b|\bdo\s+not\b)/iu;
-const SOURCE_PATH = /\x60((?:src|scripts|tools|config|contracts|projects|apps|shared)\/[\w./-]+\.(?:mjs|cjs|js|json|md|yml|yaml|cpp|h))\x60/gu;
+const SOURCE_PATH = /\x60((?:src|scripts|tools|config|projects|apps|shared)\/[\w./-]+\.(?:mjs|cjs|js|json|md|yml|yaml|cpp|h))\x60/gu;
 
 function stripCodeFences(markdown) {
   return markdown.replace(/^(\x60{3,}|~{3,})[^\r\n]*\r?\n[\s\S]*?^\1[^\r\n]*$/gmu, '');

@@ -842,7 +842,7 @@
         "src/data/terrain-manifest.js",
         "config/library-data.json",
         "config/generated-artifacts.json",
-        "contracts/places/v3.json",
+        "tests/fixtures/places/plac-v3.json",
         "projects/*/manifest.json"
       ],
       "argv": [
@@ -1200,7 +1200,6 @@
     "assets/**",
     "scripts/**",
     "tools/**",
-    "contracts/**",
     "tests/**",
     "src/**",
     "projects/**"

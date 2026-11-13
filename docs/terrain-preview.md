@@ -15,8 +15,7 @@
 - 미리보기 자료 커밋: `473b2babd37f0331af5e096ee4152a15af6a8d0f`.
 - 미리보기 manifest SHA-256: `def32b86bebf84a24ceecaf68caac7a8d711b4bb355115f983d5d98e3d87a870`.
 
-로컬 GeoTIFF는 생성 입력으로 사용하지 않는다. 생성기는 `contracts/terrain/preview-dem-source.json`과
-`preview-dem-inventory.json`에 고정한 파일 크기와 SHA-256을 먼저 확인한다. LOD 전체에서 육지
+당시 생성기는 두 DEM 입력 명세의 파일 크기와 SHA-256을 확인했다. 명세 원본은 라이브러리의 `private-evidence/retired-contracts/contracts-cleanup-20261113/contracts/terrain/`으로 이전했다. 이 명세를 읽던 구형 수동 사전검사 CI는 폐기했으며 아래 내용은 당시 동작의 기록이다. LOD 전체에서 육지
 마스크와 표시 픽셀을 메모리에서 계산한 뒤 타일로 잘라, 1px gutter와 날짜변경선에서 같은
 픽셀을 사용한다. 원본 DEM·마스크 형상은 변경하지 않으며 고도 값을 일반 이미지 색상처럼 축소하지 않는다.
 

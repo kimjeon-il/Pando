@@ -7,6 +7,7 @@ import {auditWorkflowCheckOwners,auditWorkflowInventory} from '../../../tools/ch
 import {scheduleViewerPreview} from '../../../scripts/viewer-preview-plan.mjs';
 import {readFileSync} from 'node:fs';
 import YAML from 'yaml';
+import {fileURLToPath} from 'node:url';
 import {assertNoTrackedLibraryAssets} from '../../../scripts/check-world-archive-closure.mjs';
 
 test('preview delegates only unfiltered automatic pushes to the canonical application workflow',()=>{
@@ -47,7 +48,7 @@ test('every workflow has one current, opt-in, or historical owner without fixed 
  const dir=new URL('../../../.github/workflows/',import.meta.url);
  const manifest=new URL('../../../scripts/contracts/workflow-inventory.json',import.meta.url);
  const catalog=JSON.parse(readFileSync(manifest,'utf8'));
- const result=auditWorkflowInventory(dir.pathname,manifest.pathname);
+ const result=auditWorkflowInventory(fileURLToPath(dir),fileURLToPath(manifest));
  assert.equal(result.ok,true,JSON.stringify(result.issues));
  assert.deepEqual(result.counts,{
   continuous:Object.keys(catalog.continuous).length,
