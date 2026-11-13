@@ -519,14 +519,15 @@ test('Core artifact preparation dispatches only its source-matched workflow requ
  const calls=[],head='a'.repeat(40);let title;
  const command=args=>{calls.push(args);
   if(args[0]==='git'){if(args[1]==='status')return '';if(args[1]==='rev-parse')return head;if(args[1]==='symbolic-ref')return 'work/objects';if(args[1]==='ls-remote')return head+' refs/heads/work/objects';}
-  if(args[1]==='workflow'){const request=args.find(arg=>arg.startsWith('request_id=')).slice(11);title='Shared Core core-artifact '+request;return ''; }
-  if(args[2]==='list')return JSON.stringify([{databaseId:42,headSha:head,displayTitle:title,url:'https://example.test/42'}]);
+  if(args[1]==='workflow'){assert.equal(args.some(arg=>arg.startsWith('request_id=')),false);title='Shared Core core-artifact';return ''; }
+  if(args[2]==='list')return JSON.stringify(title?[{databaseId:41,headSha:head,displayTitle:title},{databaseId:42,headSha:head,displayTitle:title,url:'https://example.test/42'}]:[{databaseId:41,headSha:head,displayTitle:'Shared Core core-artifact'}]);
   if(args[2]==='watch')return '';throw Error('Unexpected command '+args);
  };
  const result=runner.dispatchSelectedChecks({repository:{root:'.'},artifact:'core-wasm',command});
  assert.equal(result.ok,true);assert.equal(result.results[0].head,head);
  const dispatch=calls.find(args=>args[1]==='workflow');
  assert.equal(dispatch[3],'shared-core.yml');assert.ok(dispatch.includes('scope=core-artifact'));
+ assert.equal(calls.find(args=>args[2]==='watch')[3],'42');
  assert.equal(dispatch.some(arg=>arg.startsWith('check_selection=')),false);
  assert.throws(()=>runner.dispatchSelectedChecks({artifact:'unknown',command}),/Unknown selected artifact/);
 });
@@ -535,8 +536,8 @@ test('explicit committed CI inputs preserve unrelated work and report it as excl
  const head='b'.repeat(40),calls=[];let title;
  const command=args=>{calls.push(args);
   if(args[0]==='git'){if(args[1]==='status')return ' M tools/data/library-store.mjs';if(args[1]==='rev-parse')return head;if(args[1]==='symbolic-ref')return 'work/objects';if(args[1]==='ls-remote')return head+' refs/heads/work/objects';}
-  if(args[1]==='workflow'){title='Shared Core core-artifact '+args.find(arg=>arg.startsWith('request_id=')).slice(11);return ''; }
-  if(args[2]==='list')return JSON.stringify([{databaseId:43,headSha:head,displayTitle:title,url:'https://example.test/43'}]);
+  if(args[1]==='workflow'){title='Shared Core core-artifact';return ''; }
+  if(args[2]==='list')return title?JSON.stringify([{databaseId:43,headSha:head,displayTitle:title,url:'https://example.test/43'}]):'[]';
   if(args[2]==='watch')return '';throw Error('Unexpected command '+args);
  };
  assert.throws(()=>runner.dispatchSelectedChecks({repository:{root:'.'},artifact:'core-wasm',command}),/committed and pushed/);

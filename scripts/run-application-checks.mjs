@@ -60,14 +60,20 @@ export function dispatchSelectedChecks({repository,selection,artifact=null,commi
   if(remote!==head)throw Error('Push the current commit before requesting CI checks: '+head);
   const requestId=randomUUID();
   const workflow=artifact?'shared-core.yml':'application-architecture.yml';
-  const title=artifact?'Shared Core core-artifact '+requestId:'Application checks '+requestId;
+  const title=artifact?'Shared Core core-artifact':'Application checks '+requestId;
   const inputs=artifact?['scope=core-artifact']:['check_selection='+JSON.stringify(selection)];
-  command(['gh','workflow','run',workflow,'--ref',branch,...inputs.flatMap(input=>['-f',input]),'-f','request_id='+requestId]);
+  const list=['gh','run','list','--workflow',workflow,'--branch',branch,'--event','workflow_dispatch','--limit','50','--json','databaseId,headSha,displayTitle,url'];
+  const existing=artifact?new Set(JSON.parse(command(list)).map(run=>run.databaseId)):new Set();
+  // Main may still have the pre-request_id artifact schema. Do not bootstrap
+  // unverified product changes into main merely to add a dispatch input.
+  command(['gh','workflow','run',workflow,'--ref',branch,...inputs.flatMap(input=>['-f',input]),...(artifact?[]:['-f','request_id='+requestId])]);
   // A run is identified by this request, never by the latest unrelated branch run.
   let run;
   for(let attempt=0;attempt<30&&!run;attempt++){
-    const runs=JSON.parse(command(['gh','run','list','--workflow',workflow,'--branch',branch,'--event','workflow_dispatch','--limit','50','--json','databaseId,headSha,displayTitle,url']));
-    run=runs.find(r=>r.headSha===head&&r.displayTitle===title);
+    const runs=JSON.parse(command(list));
+    const matches=runs.filter(r=>r.headSha===head&&r.displayTitle.trim()===title&&!existing.has(r.databaseId));
+    if(matches.length>1)throw Error('Multiple matching CI requests; preserve runs and resolve their identities explicitly');
+    run=matches[0];
     if(!run)Atomics.wait(new Int32Array(new SharedArrayBuffer(4)),0,0,1000);
   }
   if(!run)throw Error('CI dispatch accepted but run discovery is pending; request '+requestId+'; do not dispatch again');
