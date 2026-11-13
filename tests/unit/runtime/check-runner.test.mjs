@@ -1,3 +1,4 @@
+import {parse as parseYaml} from 'yaml';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { execFileSync } from 'node:child_process';
@@ -547,4 +548,14 @@ test('explicit committed CI inputs preserve unrelated work and report it as excl
  assert.equal(result.results[0].worktreeChangesExcluded,true);
  assert.equal(calls.some(args=>args[0]==='git'&&['add','stash','checkout','reset'].includes(args[1])),false);
  assert.throws(()=>runner.dispatchSelectedChecks({repository:{root:'.'},artifact:'core-wasm',committedOnly:true,command:args=>args[1]==='ls-remote'?'c'.repeat(40)+' refs/heads/work/objects':command(args)}),/Push the current commit/);
+});
+
+test('Core artifact workflow builds one WASM artifact without invoking geometry checks',()=>{
+ const workflow=parseYaml(readFileSync(new URL('../../../.github/workflows/shared-core.yml',import.meta.url),'utf8'));
+ assert.ok(workflow.on.workflow_dispatch.inputs.scope.options.includes('core-artifact'));
+ assert.match(workflow['run-name'],/inputs.scope/);
+ const owners=Object.entries(workflow.jobs).filter(([,job])=>job.if?.includes('core-artifact'));
+ assert.deepEqual(owners.map(([name])=>name),['geometry-wasm']);
+ const check=workflow.jobs['geometry-wasm'].steps.find(step=>step.name==='Run only registered geometry WASM contracts');
+ assert.equal(check.if,"inputs.scope == 'geometry-wasm'");
 });

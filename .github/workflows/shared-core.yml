@@ -1,4 +1,5 @@
 name: Shared C++ core and bounded WASM contracts
+run-name: Shared Core ${{ inputs.scope || github.event_name }}
 on:
   pull_request:
     paths:
@@ -257,6 +258,7 @@ jobs:
       - name: Package the newly compiled source-matched runtime
         run: node tools/build/package-shared-core-assets.mjs --build-dir build-native/p1/pando-wasm/shared/wasm
       - name: Run only registered geometry WASM contracts
+        if: inputs.scope == 'geometry-wasm'
         env:
           PANDOEDITOR_WASM_MODULE: ${{ github.workspace }}/assets/wasm/pandoeditor-core.js
           CHECK_SELECTION: '{"unitTests":[],"browserSpecs":[],"commands":["wasm-domain-geometry"],"prerequisites":[]}'
