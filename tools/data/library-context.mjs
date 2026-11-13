@@ -242,9 +242,12 @@ export function setMetadataCheckout(checkout,{fetch=false}={}) {
   const patterns=[...sparseMetadata],directories=new Set();
   const literal=path=>path.replace(/[\\*?[\]]/g,'\\$&');
   const includeDirectory=path=>{if(directories.has(path))return;const parent=path.slice(0,path.lastIndexOf('/'));if(parent)includeDirectory(parent);directories.add(path);patterns.push('/'+literal(path)+'/','!/'+literal(path)+'/*');};
-  if(keepReports)for(const file of plainReportFiles(resolve(shared,'reports'))){
-    if(file.logical.startsWith('.'))continue;
-    const path='reports/'+file.logical;includeDirectory(path.slice(0,path.lastIndexOf('/')));patterns.push('/'+literal(path));
+  const reports=resolve(shared,'reports');
+  if(keepReports)for(const name of readdirSync(reports).filter(name=>!name.startsWith('.'))){
+    for(const file of plainReportFiles(resolve(reports,name))){
+      const path='reports/'+relative(reports,file.path).replaceAll('\\','/');
+      includeDirectory(path.slice(0,path.lastIndexOf('/')));patterns.push('/'+literal(path));
+    }
   }
   execFileSync('git', [...gitOptions, 'sparse-checkout', 'set', '--no-cone', '--stdin'], {
     cwd: checkout, env:{...process.env,GIT_NO_LAZY_FETCH:fetch?'0':'1'}, input: patterns.join('\n') + '\n', stdio: ['pipe', 'pipe', 'pipe'],
