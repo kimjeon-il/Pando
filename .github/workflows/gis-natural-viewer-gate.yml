@@ -1,21 +1,25 @@
-name: GIS natural surface real Viewer acceptance
+name: UI natural surface real Chromium acceptance
 on:
   push:
-    branches: [work/gis]
+    branches: [work/ui]
     paths:
       - .github/workflows/gis-natural-viewer-gate.yml
       - tests/browser/rendering/terrain-natural-live-viewer.spec.mjs
       - tests/browser/rendering/terrain-natural-parity.spec.mjs
       - src/rendering/gpu-natural-surface-cache.js
+      - src/rendering/gpu-terrain-preparation.js
+      - src/rendering/gpu-map-renderer.js
+      - src/rendering/terrain-dem-shaders.js
+      - src/data/terrain-manifest.js
   workflow_dispatch:
 permissions:
   contents: read
 concurrency:
-  group: pando-natural-viewer-acceptance
+  group: pando-ui-natural-viewer-acceptance
   cancel-in-progress: true
 jobs:
   natural-browser:
-    if: github.repository == 'kimjeon-il/Pando' && github.ref == 'refs/heads/work/gis'
+    if: github.repository == 'kimjeon-il/Pando' && github.ref == 'refs/heads/work/ui'
     runs-on: ubuntu-24.04
     timeout-minutes: 28
     steps:
