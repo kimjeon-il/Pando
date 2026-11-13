@@ -24,7 +24,7 @@ test('Canvas A/B: precolored vs numerical Worker CPU and frame pacing',async({br
           }
         };
       });
-      await page.route('**/workers/canvas-render-worker.js*',async route=>{
+      await page.route('**/workers/canvas-render-core.js*',async route=>{
         const response=await route.fetch();
         let code=(await response.text()).replaceAll('\r\n','\n');
         function patch(oldText,newText){

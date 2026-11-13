@@ -33,7 +33,7 @@ for (const mode of ['physical', 'political']) {
       await route.fulfill({ response, body: source.replace(anchor, anchor + '\nwindow.__canvasPorts = dependencies;') });
     });
     // Instrument only the owned test response; production carries no profiling API.
-    await page.route('**/workers/canvas-render-worker.js*', async route => {
+    await page.route('**/workers/canvas-render-core.js*', async route => {
       const response = await route.fetch();
       let source = (await response.text()).replaceAll('\r\n', '\n');
       const replace = (anchor, body) => {
