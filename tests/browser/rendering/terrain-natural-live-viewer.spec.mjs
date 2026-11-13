@@ -127,6 +127,12 @@ for(const renderer of ['webgl2','canvas'])for(const region of (renderer==='webgl
       await page.waitForTimeout(450);
       const after=await screen().screenshot({path:testInfo.outputPath(renderer+'-'+region.name+'-natural-after.png')});
       const diff=await imageDifference(page,before,after);
+      // Emit the verified screenshot difference into CI logs as well as the
+      // retained screenshots/attachment. These are observed rendered pixels,
+      // not a benchmark of physical GPU rasterization throughput.
+      console.log('NATURAL_PIXEL_DIFF='+JSON.stringify({renderer,region:region.name,...diff,
+        changedPercent:Math.round(diff.changedPixels*10000/diff.comparedPixels)/100,
+        sourceRevision:PINNED_NATURAL_SOURCE}));
       const final=metrics(await read()),memory=await collectMemory(page);
       const finalFramePacing=await sampleFramePacing(page);
       const result={schema:'pando-live-natural-preview-v1',environment:'Chromium SwiftShader (not real GPU)',
