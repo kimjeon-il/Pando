@@ -2,7 +2,7 @@ import {test,expect} from '@playwright/test';
 
 // Focused observed-mask acceptance. The source is opt-in and never replaces the
 // operational DEM or the PandoLab-library-data pin.
-test.use({viewport:{width:760,height:520},launchOptions:{args:process.platform==='win32'
+test.use({viewport:{width:1100,height:760},launchOptions:{args:process.platform==='win32'
   ? ['--use-angle=d3d11']
   : ['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader','--disable-gpu-sandbox']}});
 const IMMUTABLE_SOURCE='4c84e22ccdfa8549ed42f3c8080c3914aa9d05f8';
@@ -47,11 +47,13 @@ test('immutable observed WorldCover, mountain glacier and polar ice preview reac
     };
     await page.route('**/terrain/natural/v0.1.0-preview.2/*/*.webp*',handler);
     try{
+      if(region.name==='greenland')await page.setViewportSize({width:760,height:520});
       await page.goto('/?debug=1&renderer=webgl2&naturalTerrain=observed',{waitUntil:'domcontentloaded'});
       await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:110000});
       await page.evaluate(rotation=>{
         const host=window.__PANDOLAB_MAP_HOST__,view=host.getViewState();
-        host.setViewState({projection:'globe',view:{...view,globeRotation:rotation,globeZoom:16}});
+        host.setViewState({projection:'globe',view:{...view,globeRotation:rotation,
+          globeZoom:rotation[1]===-76?24:16}});
         host.requestRepaint('observed-natural-region');
       },region.rotation);
       const stats=()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__?.rendererStats());
