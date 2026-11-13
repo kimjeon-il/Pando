@@ -145,7 +145,7 @@ export function compactOwnedCheckout(checkout, apply) {
   });
   const shared = dirname(resolve(checkout, git(checkout, ['rev-parse', '--git-common-dir'])));
   const keepReports = checkout === shared && existsSync(resolve(shared, 'reports/.owners.json'));
-  const excluded = tree.filter(item => item.path.includes('/') && item.path !== 'archive/index.json' && !libraryCodeDirectories.includes(item.path.split('/')[0]) && !(keepReports && item.path.startsWith('reports/')));
+  const excluded = tree.filter(item => item.path.includes('/') && item.path !== 'archive/index.json' && !(checkout===shared && libraryCodeDirectories.includes(item.path.split('/')[0])) && !(keepReports && item.path.startsWith('reports/')));
   const parents = [...new Set(excluded.map(item => item.path.split('/')[0]))];
   const unknown = parents.length ? git(checkout, ['ls-files', '--others', '-z', '--', ...parents]) : '';
   if (unknown) return { ...result, reason: 'Excluded directories contain untracked or ignored files.' };
