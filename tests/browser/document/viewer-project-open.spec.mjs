@@ -293,7 +293,7 @@ featureTest.describe('unified-settings-behavior', () => {
     const generic={type:'Feature',id:crypto.randomUUID(),
       geometry:{type:'Point',coordinates:[1,1]},
       properties:{schemaVersion:2,name:'관측 지점',notes:'',color:'#8844cc',locked:false,
-        source:{kind:'user'}}};
+        source:{schemaVersion:1,kind:'user'}}};
     const fixture=await createViewerProjectPackage('조건부 지도',{
       genericFeatures:[generic],distributionLayers:[layer],distributionEntries:[entry],
     });
