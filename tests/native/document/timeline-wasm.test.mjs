@@ -1,3 +1,4 @@
+import { TIMELINE_RECORD_SCHEMA_VERSION, timelineObjectCatalog } from '../../../src/document/timeline-records.js';
 import { loadNodeCore } from '../../../tools/build/load-node-core.mjs';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -20,7 +21,7 @@ test('Core timeline normalization rejects the same invalid corpus and preserves 
         error=>error?.code===fixture.expected,fixture.name);
     } else {
       const result=core.timelineNormalizeRecords(input,context);
-      assert.equal(result.schemaVersion,2,fixture.name);
+      assert.equal(result.schemaVersion,TIMELINE_RECORD_SCHEMA_VERSION,fixture.name);
       assert.deepEqual(result,core.timelineNormalizeRecords(result,context),fixture.name);
       assert.deepEqual(result.lifetimes.map(x=>x.id),input.lifetimes.map(x=>x.id),fixture.name);
     }
@@ -31,7 +32,7 @@ test('Core read-only C++ month-end world results match the cross-platform golden
   const project=JSON.parse(readFileSync(new URL("../../fixtures/timeline-exchange/complex.json",import.meta.url),'utf8'));
   const golden=JSON.parse(readFileSync(new URL("../../fixtures/portability/timeline-resolution.json",import.meta.url),'utf8'));
   const context={
-    entities:project.territorialEntities.map(x=>({id:x.id,entityKind:x.properties.entityKind})),
+    entities:timelineObjectCatalog(project),
     geometryExists:ref=>project.geometries.some(x=>x.id===ref.id&&x.version===ref.version)
   };
   const normalized=core.timelineNormalizeRecords(project.timelineRecords,context);
@@ -39,7 +40,7 @@ test('Core read-only C++ month-end world results match the cross-platform golden
   for(const row of golden.cases) {
     const world=core.timelineResolveWorld(normalized,context,row.month);
     assert.equal(world.month,row.month);
-    assert.deepEqual(world.entities.map(x=>[x.id,x.geometryRef.id,x.geometryRef.version,
+    assert.deepEqual(world.entities.map(x=>[x.objectRef.id,x.geometryRef.id,x.geometryRef.version,
       x.parentId,x.rootId,x.ancestors]),row.expected,row.month);
   }
 });
@@ -48,8 +49,8 @@ test('Core C++ record edits split, preserve future dates and preserve no-op iden
   for(const entry of golden.cases) {
     const source=structuredClone(golden.records);
     const output=entry.op==='truncate'
-      ? core.timelineTruncateEntity(source,'A',entry.month)
-      : core.timelineEditRecord(source,entry.op==='geometry'?'geometryBindings':'parentRelations','A',
+      ? core.timelineTruncateEntity(source,{domain:'territorial',id:'A'},entry.month)
+      : core.timelineEditRecord(source,entry.op==='geometry'?'geometryBindings':'parentRelations',{domain:'territorial',id:'A'},
         entry.month,entry.op==='geometry'?{geometryRef:{id:'shape',version:entry.version}}
           :{parentId:entry.parentId,coverageMode:entry.coverageMode});
     assert.deepEqual(entry.op==='truncate'?output:output.changed?output.records:source,entry.expected,entry.name);

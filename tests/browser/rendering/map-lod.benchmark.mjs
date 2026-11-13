@@ -45,7 +45,7 @@ for (const projection of ['globe', 'flat']) for (const device of [
           host.setViewState({ projection, view: { flatCenter: [127.8, 36.5],
             flatZoom: zoom, globeRotation: [-127.8, -36.5, 0],
             globeZoom: zoom } });
-          host.requestRepaint('lod-p0-benchmark');
+          host.requestRepaint('lod-benchmark');
         }, { projection, zoom });
         // The LOD worker can finish *after* the next animation frame. Do not
         // misreport an uncommitted canonical fallback as a measured LOD frame.

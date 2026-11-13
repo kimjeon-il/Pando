@@ -387,7 +387,7 @@ test.use({
   locale: 'ko-KR', timezoneId: 'Asia/Seoul', colorScheme: 'light',
 });
 
-test('desktop desktop startup, camera, year navigation, direct input and themes', async ({ page, browser }, info) => {
+test('startup, camera, year navigation, direct input and themes', async ({ page, browser }, info) => {
   test.setTimeout(180_000);
   await page.clock.setFixedTime(new Date(fixedTime));
   const errors = [], consoleErrors = [], observations = [], screenshots = [];
@@ -537,7 +537,7 @@ const fixedTime = '2026-10-31T00:00:00+09:00';
 test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true,
   locale: 'ko-KR', timezoneId: 'Asia/Seoul', colorScheme: 'light' });
 
-test('touch narrow layout, touch camera, year input and mobile preferences', async ({ page, browser }, info) => {
+test('narrow layout, touch camera, year input and mobile preferences', async ({ page, browser }, info) => {
   test.setTimeout(180_000);
   await page.clock.setFixedTime(new Date(fixedTime));
   const observations = [], layouts = [], screenshots = [], errors = [], consoleErrors = [];

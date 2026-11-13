@@ -1,4 +1,4 @@
-// P1 focused browser reproduction: the published Viewer and immutable
+// Focused browser regression: the published Viewer and immutable
 // Places Worker, plus genuine WEBGL_lose_context restoration (not source slices).
 import {test,expect} from '@playwright/test';
 import {writeFile} from 'node:fs/promises';
@@ -6,7 +6,7 @@ import {waitForCanonicalMap} from '../helpers/viewer-acceptance.mjs';
 
 test.use({viewport:{width:1280,height:800},
   launchOptions:{args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']}});
-test.describe('P1 actual Places Worker and GPU recovery diagnosis',()=>{
+test.describe('Places Worker and GPU context recovery',()=>{
   test('pinned Places Worker accepts a real RPC search without timing out',async({page},info)=>{
     test.setTimeout(110_000);
     const evidence={case:'place.search',errors:[],httpErrors:[],workerScripts:[]};
@@ -66,7 +66,7 @@ test.describe('P1 actual Places Worker and GPU recovery diagnosis',()=>{
       expect(rpc.stats?.timedOut).toBe(0);
       expect(evidence.errors.filter(row=>row.includes('PL-PLACE-LOAD-001'))).toEqual([]);
       expect(evidence.map?.ready).toBe(true);
-    }finally{await writeFile(info.outputPath('p1-place-worker.json'),JSON.stringify(evidence,null,2));}
+    }finally{await writeFile(info.outputPath('recovery-place-worker.json'),JSON.stringify(evidence,null,2));}
   });
 
   test('a real WebGL2 context loss returns to an accepted current map frame',async({page},info)=>{
@@ -91,18 +91,18 @@ test.describe('P1 actual Places Worker and GPU recovery diagnosis',()=>{
         const gl=canvas?.getContext('webgl2');
         const extension=gl?.getExtension('WEBGL_lose_context');
         if(!extension)return {ok:false,reason:'WEBGL_lose_context unavailable'};
-        globalThis.__p1Loss={lost:false,restored:false,extension};
-        canvas.addEventListener('webglcontextlost',()=>{globalThis.__p1Loss.lost=true;},{once:true});
-        canvas.addEventListener('webglcontextrestored',()=>{globalThis.__p1Loss.restored=true;},{once:true});
+        globalThis.__viewerContextLoss={lost:false,restored:false,extension};
+        canvas.addEventListener('webglcontextlost',()=>{globalThis.__viewerContextLoss.lost=true;},{once:true});
+        canvas.addEventListener('webglcontextrestored',()=>{globalThis.__viewerContextLoss.restored=true;},{once:true});
         extension.loseContext();
         return {ok:true};
       });
       evidence.loss=result;
       expect(result.ok,JSON.stringify(result)).toBe(true);
-      await expect.poll(()=>page.evaluate(()=>globalThis.__p1Loss?.lost),{timeout:10_000}).toBe(true);
+      await expect.poll(()=>page.evaluate(()=>globalThis.__viewerContextLoss?.lost),{timeout:10_000}).toBe(true);
       await page.waitForTimeout(200);
-      await page.evaluate(()=>globalThis.__p1Loss.extension.restoreContext());
-      await expect.poll(()=>page.evaluate(()=>globalThis.__p1Loss?.restored),{timeout:12_000}).toBe(true);
+      await page.evaluate(()=>globalThis.__viewerContextLoss.extension.restoreContext());
+      await expect.poll(()=>page.evaluate(()=>globalThis.__viewerContextLoss?.restored),{timeout:12_000}).toBe(true);
       await expect.poll(()=>page.evaluate(()=>globalThis.__PANDOLAB_VIEWER__?.rendererStats()?.gpuRecovery?.phase),
         {timeout:38_000}).toBe('complete');
       await waitForCanonicalMap(page,{timeout:38_000});
@@ -123,7 +123,7 @@ test.describe('P1 actual Places Worker and GPU recovery diagnosis',()=>{
         return {renderer:r?.renderer,recovery:r?.gpuRecovery,ready:r?.mapReadiness,
           screenReady:document.querySelector('#viewerStatus')?.dataset.ready};
       });}catch(error){evidence.captureError=String(error);}
-      await writeFile(info.outputPath('p1-gpu-recovery.json'),JSON.stringify(evidence,null,2));
+      await writeFile(info.outputPath('recovery-gpu-recovery.json'),JSON.stringify(evidence,null,2));
     }
   });
 });

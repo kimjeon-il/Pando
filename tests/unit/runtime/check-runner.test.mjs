@@ -398,6 +398,7 @@ test('clipped verification installs Zlib only for selected native Core targets',
   const action=readFileSync(new URL('../../../.github/actions/native-test-prerequisites/action.yml',import.meta.url),'utf8');
   assert.match(action,/if: contains\(fromJSON\(inputs.requirements\), 'polygon-mesh-tests'\)/);
   assert.match(action,/\|\| contains\(fromJSON\(inputs.requirements\), 'document-session-tests'\)/);
+  for(const target of ['calculation-driver','document-session-driver'])assert.ok(action.includes("contains(fromJSON(inputs.requirements), '"+target+"')"),target+' needs the selected Core Zlib prerequisite');
   assert.match(action,/run: sudo apt-get install -y zlib1g-dev/);
 });
 
@@ -558,4 +559,14 @@ test('Core artifact workflow builds one WASM artifact without invoking geometry 
  assert.deepEqual(owners.map(([name])=>name),['geometry-wasm']);
  const check=workflow.jobs['geometry-wasm'].steps.find(step=>step.name==='Run only registered geometry WASM contracts');
  assert.equal(check.if,"inputs.scope == 'geometry-wasm'");
+});
+
+
+test('source-only native selections do not hydrate runtime catalogs; unknown consumers stay protected',()=>{
+ const repository={catalog:{groups:[{id:'source-contract',runtimeData:false}],prerequisites:{'native-source-driver':{runtimeData:false}},metadataOnlyTests:[]}};
+ const plan={unitTests:[],browserSpecs:[],commands:['source-contract'],prerequisites:['native-source-driver'],explicitPrerequisites:['native-source-driver']};
+ assert.equal(runner.executionOutputs(plan,{repository}).runtime_data,false);
+ assert.equal(runner.executionOutputs({...plan,commands:['unclassified-command']},{repository}).runtime_data,true);
+ assert.equal(runner.executionOutputs({...plan,explicitPrerequisites:['unclassified-prerequisite']},{repository}).runtime_data,true);
+ assert.equal(runner.executionOutputs({...plan,browserSpecs:['tests/browser/viewer.spec.mjs']},{repository}).runtime_data,true);
 });

@@ -59,7 +59,7 @@ function dataFixture(baseRevision){
   return {files,rawBefore,rawAfter,sourceBefore,diff,responses};
 }
 
-test('E4 map revision follows the actual builtin or opened project',async({page})=>{
+test('Review map revision follows the actual builtin or opened project',async({page})=>{
   test.setTimeout(180000);
   const pin=JSON.parse(readFileSync(new URL("../../../config/library-data.json",import.meta.url),'utf8')).revision;
   // Historical GeoPackage bytes and its JSON oracle are checked-in, immutable
@@ -82,7 +82,7 @@ async function ready(page){
   await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:120000});
 }
 
-test('E4 can compare again after cancelling an in-flight source request',async({page})=>{
+test('Review can compare again after cancelling an in-flight source request',async({page})=>{
   test.setTimeout(180000);
   const model=dataFixture();
   let releaseFirst;
@@ -111,7 +111,7 @@ test('E4 can compare again after cancelling an in-flight source request',async({
   await expect(page.locator('#reviewCompareStatus')).toContainText('원본 SHA-256 검증 완료',{timeout:20000});
 });
 
-test('E4 review opens matching immutable revisions, draws verified source previews, exports correction without writing the map',async({page})=>{
+test('Review review opens matching immutable revisions, draws verified source previews, exports correction without writing the map',async({page})=>{
   test.setTimeout(180000);
   const model=dataFixture(),errors=[];
   page.on('pageerror',error=>errors.push(error.message));
@@ -163,7 +163,7 @@ test('E4 review opens matching immutable revisions, draws verified source previe
   expect(errors).toEqual([]);
 });
 
-test('E4 review remains a bounded responsive panel and never claims an unverified preview',async({page})=>{
+test('Review review remains a bounded responsive panel and never claims an unverified preview',async({page})=>{
   test.setTimeout(180000);
   await page.setViewportSize({width:390,height:844});
   const model=dataFixture(),errors=[];

@@ -114,7 +114,7 @@ PANDOLAB_BASELINE_LABEL=after-work-gis pnpm exec playwright test --config tests/
 ```
 
 각 실행 전에 각각 해당 커밋을 체크아웃하여 같은 브라우저·하드웨어·고정 라이브러리
-revision·네트워크 캐시 조건을 사용한다. 결과 JSON은 `test-results/map-lod-p0`에 저장된다.
+revision·네트워크 캐시 조건을 사용한다. 결과 JSON은 `test-results/map-lod`에 저장된다.
 테스트는 **지구본/평면 × 데스크톱 1440×900/모바일 390×844 × 냉/온 캐시 ×
 배율 1·2·4·8·16·32·64**를 반복한다.
 

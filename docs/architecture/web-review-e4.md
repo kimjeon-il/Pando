@@ -34,6 +34,6 @@
 
 반응형 overlay, 키보드 ESC 닫기·트리거로 포커스 복귀, `aria-expanded`/라벨/상태 안내, 라이트·다크 기존 토큰 적용. 창을 닫고 다른 파일을 열어도 기존 지도 상태·렌더 캐시는 보존한다. E4 수용 범위는 웹이며 Android 네이티브 기능을 개발하지 않는다.
 
-검사는 [현행 검사 실행기](../../scripts/run-application-checks.mjs)에서 영향받은 경로만 선택한다. 실제 브라우저 검사는 `tests/browser/document/viewer-review-e4.spec.mjs`가 소유한다.
+검사는 [현행 검사 실행기](../../scripts/run-application-checks.mjs)에서 영향받은 경로만 선택한다. 실제 브라우저 검사는 `tests/browser/document/viewer-review.spec.mjs`가 소유한다.
 
 코드·자료 통합과 배포는 [브랜치 정책](../branch-policy.md)과 해당 브랜치의 자료 pin을 따른다.

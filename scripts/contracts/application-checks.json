@@ -989,7 +989,8 @@
       ],
       "requires": [
         "native-calculation-driver"
-      ]
+      ],
+      "runtimeData": false
     },
     {
       "id": "temporal-transport-native",
@@ -1012,7 +1013,8 @@
       ],
       "requires": [
         "native-document-session-driver"
-      ]
+      ],
+      "runtimeData": false
     }
   ],
   "prerequisites": {
@@ -1270,14 +1272,16 @@
         "node",
         "scripts/prepare-native-test-tools.mjs",
         "calculation-driver"
-      ]
+      ],
+      "runtimeData": false
     },
     "native-document-session-driver": {
       "argv": [
         "node",
         "scripts/prepare-native-test-tools.mjs",
         "document-session-driver"
-      ]
+      ],
+      "runtimeData": false
     }
   },
   "productRoots": [

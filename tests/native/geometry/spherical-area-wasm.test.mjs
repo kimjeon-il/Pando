@@ -3,11 +3,9 @@ import assert from 'node:assert/strict';
 import { performance } from 'node:perf_hooks';
 import test from 'node:test';
 
-// Runs against the *freshly compiled* P2 WASM output, never a stale browser copy.
+// The canonical loader checks compiled source, ABI, compiler and asset hashes.
 const core = await loadNodeCore();
 
-// Immutable test-only reference: the pre-P5 browser D3 integral. This is NOT
-// used in product runtime. Retain it for parity after JS algorithm removal.
 // Independent fixed integral values; never derived from the Core under test.
 const expectedAreas=[-0.003655219658504655,0.003655219658504655,0.002436691622205077,-0.002436691622205077,12.544610919776167,-0.021759694583007173,-3.0345825661738613e-14];
 const fixtures=[
