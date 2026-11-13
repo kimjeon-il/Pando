@@ -33,6 +33,7 @@ const save = (path, report) => {
 };
 const metricDelta = (before, after, key) => finite(before?.[key]) && finite(after?.[key])
   ? rounded((after[key] - before[key]) * 1000) : null;
+const counterDelta = (before, after) => finite(before) && finite(after) ? after-before : null;
 
 async function serve() {
   const proc = spawn(process.execPath, ['tests/browser/server.mjs'], {
@@ -223,6 +224,7 @@ async function measure() {
         let probeStarted=false;
         try {
           const before = await counters();
+          const previous=await page.evaluate(() => globalThis.__PANDOLAB_VIEWER__.rendererStats());
           await page.evaluate(() => globalThis.__p1ZoomProbe.begin());
           probeStarted=true;
           const started = performance.now();
@@ -249,6 +251,16 @@ async function measure() {
           row.mainJsHeapBytes=after.JSHeapUsedSize??null;
           const s=await page.evaluate(() => globalThis.__PANDOLAB_VIEWER__.rendererStats());
           row.stats=statsSubset(s,backend);
+          row.deltaCounters={
+            fullSceneDraws:counterDelta(previous.sceneCacheFullDrawCount,s.sceneCacheFullDrawCount),
+            strokeDrawCalls:counterDelta(previous.stroke?.drawCallCount,s.stroke?.drawCallCount),
+            countryMeshRebuilds:counterDelta(previous.countryMeshRebuildCount,s.countryMeshRebuildCount),
+            countryMeshReuses:counterDelta(previous.countryMeshReuseCount,s.countryMeshReuseCount),
+            lodPreparations:counterDelta(previous.screenLodPreparedCount,s.screenLodPreparedCount),
+            lodUploads:counterDelta(previous.screenLodUploadCount,s.screenLodUploadCount),
+            culledStrokeOwners:counterDelta(previous.stroke?.culledOwnerCount,s.stroke?.culledOwnerCount),
+            mergedStrokeRanges:counterDelta(previous.stroke?.mergedDrawRangeCount,s.stroke?.mergedDrawRangeCount)
+          };
           // PSS capture is heavyweight; gather at fixed checkpoints, never fill skipped cells with zero.
           if ([1,8,16,32].includes(zoom)) row.chromiumFamilyPssBytes=(await pss(systemCdp))?.bytes??null;
         } catch (e) {
@@ -334,7 +346,11 @@ function compare() {
       baselineRafP95Ms:ok?b.raf?.rafP95GapMs??null:null,
       candidateRafP95Ms:ok?c.raf?.rafP95GapMs??null:null,
       baselineTrackedGpuBytes:ok?b.stats?.gpuTrackedBufferBytes??null:null,
-      candidateTrackedGpuBytes:ok?c.stats?.gpuTrackedBufferBytes??null:null});
+      candidateTrackedGpuBytes:ok?c.stats?.gpuTrackedBufferBytes??null:null,
+      baselineStrokeDrawCalls:ok?b.deltaCounters?.strokeDrawCalls??null:null,
+      candidateStrokeDrawCalls:ok?c.deltaCounters?.strokeDrawCalls??null:null,
+      baselineFullSceneDraws:ok?b.deltaCounters?.fullSceneDraws??null:null,
+      candidateFullSceneDraws:ok?c.deltaCounters?.fullSceneDraws??null:null});
   }
   const paired=cells.filter(r=>r.comparable),missing=cells.filter(r=>!r.comparable);
   const result={
