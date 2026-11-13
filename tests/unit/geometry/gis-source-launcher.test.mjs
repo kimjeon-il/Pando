@@ -58,7 +58,7 @@ test('GIS raw subprocess launch requires explicit --execute and keeps forwarded 
    output:s=>logs.push(JSON.parse(s)),
    spawn:(exe,args,options)=>{calls.push({exe,args,options});return {status:7,signal:null};}});
  assert.equal(status,7);assert.equal(logs[0].mode,'execute');
- assert.equal(logs[0].requiresExternalOriginals,false);
+ assert.equal(logs[0].requiresExternalOriginals,true);
  assert.deepEqual(logs[0].argv,['review','--cache','/tmp/staging']);
  assert.equal(calls.length,1);
  assert.equal(calls[0].exe,process.execPath);

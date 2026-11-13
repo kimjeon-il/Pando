@@ -1,7 +1,7 @@
 {
   "schema": "pandoeditor-core-wasm",
   "abiVersion": 1,
-  "sourceSha256": "143de23053991563d61b8c5e9b077f56a0a37768104d8d5ea98542b9e505a566",
+  "sourceSha256": "6e526b308b88316916d57c7ec195d1d13e414b668de02feabab118efd837ae15",
   "compiler": {
     "name": "emscripten",
     "version": "6.0.3"
@@ -612,8 +612,16 @@
       "sha256": "804cecc7762ffd8f7487ceceff59286231795aff278e83c31f9425ba9d1287a7"
     },
     {
+      "path": "tests/native/geometry/geographic-containment-tests.cpp",
+      "sha256": "5e615d3d24998a0ac4c124a50a9be2350bc740af94694162ceeeba39989c5989"
+    },
+    {
       "path": "tests/native/geometry/geometry-draft-tests.cpp",
       "sha256": "08e73d24edc54cb3529764c7b416ecaedc90a4886deaca76cd33e95d33f7d13d"
+    },
+    {
+      "path": "tests/native/geometry/gis-country-merge-native.cpp",
+      "sha256": "71282f863676ece9ea590801570d7f7a669c8ffe064ec24b4605ee526437d3f2"
     },
     {
       "path": "tests/native/geometry/polygon-clipping-probe.cpp",
@@ -641,7 +649,7 @@
     },
     {
       "path": "tools/build/native/tests/CMakeLists.txt",
-      "sha256": "0ae54a105196e49342fe3d6ee75786d4aa86c6263f9e144cbd00aadd1ed50533"
+      "sha256": "1571ad2229159deeedecab9adba21d36cde6f9c863540cb9b5684109066ae72f"
     },
     {
       "path": "tools/build/native/wasm/CMakeLists.txt",
@@ -655,7 +663,7 @@
     },
     "wasm": {
       "file": "pandoeditor-core.wasm",
-      "sha256": "784d5001a5df90e94042f0c3d3070de8b74265dc1cb904a0fd2d39ca7ff18fe1"
+      "sha256": "b5449a62dccd0bf01eacd443f454043cdb8f9c6a3b7e6fd403ae8dc8d7e2d788"
     }
   }
 }
