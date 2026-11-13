@@ -24,11 +24,11 @@ jobs:
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Parse only updated JavaScript
         run: |
-          for f in src/rendering/render-device-state.js src/rendering/render-device.js src/rendering/gpu-hydro-coverage.js src/rendering/gpu-stroke-renderer.js src/rendering/gpu-map-renderer.js tests/unit/rendering/render-device-state.test.mjs tests/browser/geometry/hydro-sdf-webgl.spec.mjs; do
+          for f in src/rendering/render-device.js src/rendering/gpu-hydro-coverage.js src/rendering/gpu-stroke-renderer.js src/rendering/gpu-map-renderer.js tests/unit/rendering/render-device-state.test.mjs tests/browser/geometry/hydro-sdf-webgl.spec.mjs; do
             node --check "$f"
           done
       - name: Lint only modified execution and test modules
-        run: pnpm exec eslint src/rendering/render-device-state.js src/rendering/render-device.js src/rendering/gpu-hydro-coverage.js src/rendering/gpu-stroke-renderer.js src/rendering/gpu-map-renderer.js tests/unit/rendering/render-device-state.test.mjs tests/browser/geometry/hydro-sdf-webgl.spec.mjs
+        run: pnpm exec eslint src/rendering/render-device.js src/rendering/gpu-hydro-coverage.js src/rendering/gpu-stroke-renderer.js src/rendering/gpu-map-renderer.js tests/unit/rendering/render-device-state.test.mjs tests/browser/geometry/hydro-sdf-webgl.spec.mjs
       - name: Run the three affected unit owners
         run: node --test tests/unit/rendering/render-device-state.test.mjs tests/unit/data/hydro-coverage-surface.test.mjs tests/unit/rendering/gpu-stroke-renderer.test.mjs
       - name: Install Chromium for focused WebGL correctness

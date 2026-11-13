@@ -1,9 +1,7 @@
 name: P7 focused Chromium CPU draw-call attribution
 # Single investigative branch. No main/GIS/package publication or full CI.
 on:
-  push:
-    branches: ['work/perf-cpu-attribution-20261112']
-    paths: ['.github/workflows/p7-cpu-hotspot.yml']
+  workflow_dispatch:
 permissions:
   contents: write
 concurrency:

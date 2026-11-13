@@ -1,8 +1,6 @@
 name: P0 P1 original-main baseline real Chromium regression
 on:
-  push:
-    branches: [work/p0-p1-baseline-regression-20261112]
-    paths: [.github/workflows/p0-p1-baseline-regression-once.yml]
+  workflow_dispatch:
 permissions:
   contents: read
 jobs:

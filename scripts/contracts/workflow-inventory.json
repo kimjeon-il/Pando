@@ -85,6 +85,8 @@
     "p0-gl-state-focused.yml",
     "p0-gl-state-perf3.yml",
     "p0-gl-state-recovery-ab.yml",
+    "p0-p1-baseline-regression-once.yml",
+    "p7-cpu-hotspot.yml",
     "terrain-v014-main-integration-gate.yml",
     "ui-startup-ab.yml"
   ],
