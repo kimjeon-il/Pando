@@ -56,7 +56,7 @@ for(const renderer of ['webgl2','canvas']){
       if(/\/terrain\/natural\/candidates\//.test(req.url()))catalogTraffic.push({event:'request',url:req.url()});
     });
     page.on('response',response=>{
-      if(/\/terrain\/natural\/candidates\//.test(response.url()))
+      if(/\/terrain\/natural\//.test(response.url()))
         catalogTraffic.push({event:'response',url:response.url(),status:response.status()});
     });
     page.on('requestfailed',req=>{
@@ -116,9 +116,16 @@ for(const renderer of ['webgl2','canvas']){
         physicalSettings:window.__PANDOLAB_VIEWER__?.documentState?.()?.physicalSettings ?? null,
         terrainStats:window.__PANDOLAB_VIEWER__?.rendererStats?.(),
       })); } catch(error) { runtime={error:String(error)}; }
-      await testInfo.attach('natural-runtime-diagnostics',{body:JSON.stringify({
-        renderer,held,errors,naturalRequests,catalogTraffic,consoleDiagnostics,runtime,
-      },null,2),contentType:'application/json'});
+      const diagnostic={renderer,held,errors,naturalRequests,catalogTraffic,
+        consoleDiagnostics:consoleDiagnostics.slice(-25),runtime};
+      console.log('NATURAL_VIEWER_DIAGNOSTIC='+JSON.stringify({
+        renderer,held,errors,naturalRequests:naturalRequests.slice(0,20),catalogTraffic,
+        consoleDiagnostics:consoleDiagnostics.slice(-15),
+        rendererStats:metrics(runtime?.terrainStats),
+        mapStyle:runtime?.mapStyle,physicalSettings:runtime?.physicalSettings,
+        globeZoom:runtime?.view?.globeZoom,
+      }));
+      await testInfo.attach('natural-runtime-diagnostics',{body:JSON.stringify(diagnostic,null,2),contentType:'application/json'});
     }
   });
 }
