@@ -116,7 +116,7 @@ export function createGpuNaturalSurfaceCache({readTile,invalidate}) {
         if(natural)natural.used=performance.now();
         record.naturalTexture=natural?.texture||null;
         record.naturalMixWeight=natural?manifest.naturalSurface.mixWeight:0;
-        record.naturalFadeEdges=natural?naturalSurfaceFadeEdges(record.spec,manifest,key=>tiles.has(key)):[0,0,0,0];
+        record.naturalFadeEdges=natural?naturalSurfaceFadeEdges(record.spec,manifest,key=>tiles.has(key.slice(0,-5))):[0,0,0,0];
       }
     },
     trim,reset,
