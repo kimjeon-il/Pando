@@ -14,21 +14,65 @@ export function assertWholeOriginalBlobSize(rawBytes,base64Characters){
 }
 export const hasWholeOriginalBatch=e=>e?.geometryVersions?.some(v=>v.modernBoundarySupplement?.adoptionMode===wholeOriginalBatchMethod);
 
+
 /** One already-mapped null-GENC original, not a generic MapTint identity rule. */
+
 function originalCodeMatches(source,next,review,descriptor,archived){
+
  const p=source.properties,code=next.entityId.slice(6);
+
  if(p?.GENC_3===code)return review.identityFallback===undefined;
+
  // A conflicting non-null GENC code can never fall back to a colour code.
+
  if(p?.GENC_3!==null||code!=='ESP'||p.MapTint_3!=='ESP'||source.featureId!=='804cb3c1-195d-48d8-97e5-0439f624b231')return false;
+
  const fallback=review.identityFallback;
+
  if(fallback?.method!=='existing-esp-single-original-null-genc')return false;
+
  const mapping=archived(fallback.mapping),rows=mapping.rows?.filter(x=>x.code===code&&x.versionId===review.versionId);
+
  if(rows?.length!==1)return false;
+
  const row=rows[0],feature=row.originalFeatures?.[0],version=descriptor.geometryVersions.find(x=>x.versionId===review.versionId);
+
  return row.descriptorSha256===review.previousDescriptorSha256&&row.validFrom===review.validFrom&&row.validTo===review.validTo
+
   &&row.resourcePath===base+version.geometryResource.file&&row.resourceSha256===version.geometryResource.sha256
+
   &&row.originalFeatures.length===1&&feature.WP_ID===source.featureId&&feature.GENC_3===null&&feature.US_Recog==='Independent'&&feature.Map_Disp===null
+
   &&feature.blobSha256===source.rawBlobSha256&&feature.wkbSha256===source.rawWkbSha256;
+
+}
+
+
+
+
+// Exactly three existing dependent children. Operational instantiation is not sovereignty.
+const dependentTuples=Object.freeze({
+ GIB:['state:GBR','9c6cbaf6-8bb7-48e9-8036-7429ad4154e0','4f9b1dfc-e287-4b05-abc0-27793984fa5c'],
+ HKG:['state:CHN','f9c2b465-9fe6-46eb-9a56-5df0f4fb1f69','422131df-82bc-4f1b-9a1f-ee89cc970e19'],
+ MAC:['state:CHN','942a1f06-0142-4010-bfc8-4f140ba2f7a3','422131df-82bc-4f1b-9a1f-ee89cc970e19'],
+});
+function assertDependentOriginal(source,next,previous,review,supplement,{archived,readEvidence,prefixes,fail}){
+ const code=next.entityId.slice(6),tuple=dependentTuples[code],scope=review.dependencyScope,p=source.properties;
+ if(!tuple||!scope||scope.method!=='preserve-existing-dependent-parent'||!eq(scope,supplement.dependencyScope)||scope.parentEntityId!==tuple[0]||scope.parentOriginalWP_ID!==tuple[2])fail('explicit existing dependent tuple required');
+ if(previous.parentEntityId!==tuple[0]||next.parentEntityId!==tuple[0]||previous.instantiation?.mode!=='independent'||next.instantiation?.mode!=='independent'||!eq(previous.instantiation?.countryUpdates,{}))fail('dependent project parent/instantiation changed');
+ if(previous.geometryVersions.length!==1||next.geometryVersions.length!==1||previous.geometryVersions[0].validFrom!==null||previous.geometryVersions[0].validTo!==null)fail('one undated dependent current version required');
+ if(source.featureId!==tuple[1]||p?.WP_ID!==tuple[1]||p.WP_PAR_ID!==tuple[2]||p.GENC_3!==code||p.US_Recog!=='Dependency or Area of Special Sovereignty'||review.identityFallback!==undefined)fail('dependent original identity/parent mismatch');
+ const parentPath=base+'countries/'+tuple[0].replace(':','-')+'.json',bytes=readEvidence(parentPath);
+ if(!Buffer.isBuffer(bytes)||hash(bytes)!==scope.parentDescriptorSha256)fail('stale dependent parent descriptor');
+ const parent=JSON.parse(bytes);if(parent.entityId!==tuple[0]||parent.parentEntityId!==''||parent.metadata?.sourceFeatureId!==tuple[0].slice(6))fail('dependent parent catalog identity mismatch');
+ const parentPaths=[parentPath,...parent.geometryVersions.map(v=>base+v.geometryResource.file)];if(parentPaths.some(p=>prefixes.includes(p)))fail('dependent parent is read-only');
+ const mapping=archived(scope.existingOriginalMapping),rows=mapping.rows?.filter(x=>x.code===code&&x.versionId===review.versionId);
+ if(rows?.length!==1)fail('single existing dependent mapping required');
+ const row=rows[0],feature=row.originalFeatures?.[0];
+ // This is an original-identity proof, not a current preimage proof. GIB's coast
+ // resource legitimately changed since this report. Actual current preimage is
+ // independently authenticated by previousDescriptorSha256 in the main gate.
+ if(row.assembly!=='single original feature'||row.originalFeatures.length!==1||feature.WP_ID!==tuple[1]||feature.GENC_3!==code||feature.US_Recog!==p.US_Recog||feature.Map_Disp!==null||feature.blobSha256!==source.rawBlobSha256||feature.wkbSha256!==source.rawWkbSha256)fail('dependent original mapping differs');
 }
 
 /** Source-only transaction contract. Deliberately no inter-country topology claim.
@@ -40,7 +84,7 @@ export function assertWholeOriginalBatch(next,previous,{prefixes,readEvidence}={
  const sha=x=>typeof x==='string'&&/^[a-f0-9]{64}$/.test(x);
  const archived=r=>{if(!r||!/^reports\/(?:[\w.-]+\/)*[\w.-]+\.json$/.test(r.reference||'')||r.reference.split('/').includes('..')||!sha(r.sha256)||typeof readEvidence!=='function')fail('archived receipt required');const b=readEvidence(r.reference);if(!Buffer.isBuffer(b)||hash(b)!==r.sha256)fail('archive evidence hash mismatch');return JSON.parse(b);};
  if(eq(next,previous))return 0;
- if(!previous||!/^state:[A-Z]{3}$/.test(next.entityId)||next.parentEntityId!==''||next.instantiation?.mode!=='independent'||!Array.isArray(next.geometryVersions)||!eq(next.geometryVersions.map(v=>v.versionId),previous.geometryVersions?.map(v=>v.versionId)))fail('existing independent identity/version inventory required');
+ if(!previous||!/^state:[A-Z]{3}$/.test(next.entityId)||(next.parentEntityId!==''&&!dependentTuples[next.entityId.slice(6)])||next.instantiation?.mode!=='independent'||!Array.isArray(next.geometryVersions)||!eq(next.geometryVersions.map(v=>v.versionId),previous.geometryVersions?.map(v=>v.versionId)))fail('existing independent identity/version inventory required');
  const changed=next.geometryVersions.filter((v,i)=>!eq(v.geometry,previous.geometryVersions[i].geometry));
  if(changed.length!==1)fail('exactly one changed current geometry required');
  const v=changed[0],old=previous.geometryVersions.find(x=>x.versionId===v.versionId),s=v.modernBoundarySupplement;
@@ -62,7 +106,11 @@ export function assertWholeOriginalBatch(next,previous,{prefixes,readEvidence}={
  if(!Array.isArray(prefixes)||new Set(prefixes).size!==prefixes.length||!eq([...prefixes].sort(),[...new Set(scope)].sort()))fail('exact batch source-only scope required');
  const member=batch.members.find(m=>m.entityId===next.entityId);if(!member||member.resource!==resource||member.previousDescriptorSha256!==hash(pre))fail('batch target preimage mismatch');
  const p=source.properties;
- if(source.schemaVersion!==1||source.method!=='exact-gpkg-original-feature'||typeof source.featureId!=='string'||p?.WP_ID!==source.featureId||p.WP_PAR_ID!==source.featureId||!originalCodeMatches(source,next,r,descriptor,archived)||p.US_Recog!=='Independent'||p.Map_Disp!==null||p.Show_Disp!==null||!eq(source.geometry,v.geometry))fail('original complete feature identity mismatch');
+ const dependent=next.parentEntityId!=='';
+ if(dependent)assertDependentOriginal(source,next,previous,r,s,{archived,readEvidence,prefixes,fail});
+ else if(r.dependencyScope!==undefined||s.dependencyScope!==undefined)fail('dependent scope cannot alter independent path');
+ if(source.schemaVersion!==1||source.method!=='exact-gpkg-original-feature'||typeof source.featureId!=='string'||p?.WP_ID!==source.featureId||(!dependent&&(p.WP_PAR_ID!==source.featureId||p.US_Recog!=='Independent'))||!originalCodeMatches(source,next,r,descriptor,archived)||p.Map_Disp!==null||p.Show_Disp!==null||!eq(source.geometry,v.geometry))fail('original complete feature identity mismatch');
+
  if(typeof source.sourcePath!=='string'||!source.sourcePath||s.rawSourceFile!==source.sourcePath||s.rawFeatureId!==source.featureId||!eq(s.rawOriginalSource,r.source))fail('raw archive provenance mismatch');
  // The archived full feature blob is the provenance authority. A whole-file
  // receipt is optional, but cannot be invented or discarded when supplied.

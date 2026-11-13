@@ -71,3 +71,40 @@ for(const [name,mutate]of Object.entries({
 })){test('ESP fallback rejects '+name,()=>{const f=espFixture();mutate(f);f.refresh();assert.throws(()=>assertHistoricalSourceStorageChanges(f.next,f.previous,f),/Whole original batch:/);});}
 test('other null-GENC countries cannot use MapTint only',()=>{const f=fixture();f.source.properties.GENC_3=null;f.source.properties.MapTint_3='AAA';f.refresh();assert.throws(()=>assertHistoricalSourceStorageChanges(f.next,f.previous,f),/identity mismatch/);});
 test('ESP fallback requires archived mapping receipt',()=>{const f=espFixture();f.archive.delete('reports/existing-map.json');assert.throws(()=>assertHistoricalSourceStorageChanges(f.next,f.previous,f),/archive evidence hash mismatch/);});
+const dependencyTuples={GIB:['GBR','9c6cbaf6-8bb7-48e9-8036-7429ad4154e0','4f9b1dfc-e287-4b05-abc0-27793984fa5c'],HKG:['CHN','f9c2b465-9fe6-46eb-9a56-5df0f4fb1f69','422131df-82bc-4f1b-9a1f-ee89cc970e19'],MAC:['CHN','942a1f06-0142-4010-bfc8-4f140ba2f7a3','422131df-82bc-4f1b-9a1f-ee89cc970e19']};
+function dependencyFixture(code='GIB'){
+ const f=fixture(code),[parent,id,parentId]=dependencyTuples[code],s=f.next.geometryVersions[0].modernBoundarySupplement;
+ for(const e of [f.previous,f.next]){e.parentEntityId='state:'+parent;e.instantiation.countryUpdates={};}
+ const encoded=encodeTerritorialSource(f.previous),pre=Buffer.from(JSON.stringify(encoded.descriptor));f.archive.set(base+'countries/state-'+code+'.json',pre);f.proof.previousDescriptorSha256=f.batch.members[0].previousDescriptorSha256=hash(pre);
+ f.source.featureId=f.source.properties.WP_ID=s.rawFeatureId=id;f.source.properties.WP_PAR_ID=parentId;f.source.properties.US_Recog='Dependency or Area of Special Sovereignty';
+ f.parent={entityId:'state:'+parent,parentEntityId:'',metadata:{sourceFeatureId:parent},geometryVersions:[{geometryResource:{file:'geometries/sha256-'+hash('parent geometry')+'.json'}}]};f.parentPath=base+'countries/state-'+parent+'.json';const pb=Buffer.from(JSON.stringify(f.parent));f.archive.set(f.parentPath,pb);
+ f.mapping={rows:[{code,versionId:f.proof.versionId,descriptorSha256:hash('legitimately older baseline descriptor'),resourceSha256:hash('older geometry e.g. before GIB coast updates'),assembly:'single original feature',originalFeatures:[{WP_ID:id,GENC_3:code,US_Recog:f.source.properties.US_Recog,Map_Disp:null,blobSha256:f.source.rawBlobSha256,wkbSha256:f.source.rawWkbSha256}]}]};
+ f.scope={method:'preserve-existing-dependent-parent',parentEntityId:'state:'+parent,parentOriginalWP_ID:parentId,parentDescriptorSha256:hash(pb)};
+ const refresh=f.refresh;f.refresh=()=>{const bytes=Buffer.from(JSON.stringify(f.mapping));f.archive.set('reports/dependent-existing-map.json',bytes);f.scope.existingOriginalMapping={reference:'reports/dependent-existing-map.json',sha256:hash(bytes)};f.proof.dependencyScope=structuredClone(f.scope);s.dependencyScope=structuredClone(f.scope);refresh();};f.refresh();return f;
+}
+for(const code of ['GIB','HKG','MAC'])test(code+' exact existing dependent parent and original mapping accepted',()=>{const f=dependencyFixture(code);assert.equal(assertHistoricalSourceStorageChanges(f.next,f.previous,f),1);});
+test('dependent old identity proof can predate current coast geometry but current preimage cannot',()=>{const f=dependencyFixture();assert.equal(assertHistoricalSourceStorageChanges(f.next,f.previous,f),1);f.proof.previousDescriptorSha256=hash('stale');f.refresh();assert.throws(()=>assertHistoricalSourceStorageChanges(f.next,f.previous,f),/preimage/);});
+for(const [name,mutate]of Object.entries({
+ 'missing scope':f=>{f.scope.method='unknown';},
+ 'changed parent':f=>{f.next.parentEntityId='state:CHN';},
+ 'parent removed':f=>{f.next.parentEntityId='';},
+ 'non-independent operational mode':f=>{f.next.instantiation.mode='territory-replacement';},
+ 'parent update side effect':f=>{f.next.instantiation.countryUpdates={GBR:'replace'};},
+ 'wrong child raw UUID':f=>{f.source.featureId=f.source.properties.WP_ID='other';},
+ 'wrong raw parent UUID':f=>{f.source.properties.WP_PAR_ID='other';},
+ 'self parent child source':f=>{f.source.properties.WP_PAR_ID=f.source.featureId;},
+ 'wrong source recognition':f=>{f.source.properties.US_Recog='Independent';},
+ 'wrong child code':f=>{f.source.properties.GENC_3='MAC';},
+ 'wrong scope parent UUID':f=>{f.scope.parentOriginalWP_ID='other';},
+ 'stale parent descriptor':f=>{f.scope.parentDescriptorSha256=hash('stale');},
+ 'missing parent descriptor':f=>{f.archive.delete(f.parentPath);},
+ 'mapping duplicate':f=>{f.mapping.rows.push(structuredClone(f.mapping.rows[0]));},
+ 'mapping multiple original':f=>{f.mapping.rows[0].originalFeatures.push(structuredClone(f.mapping.rows[0].originalFeatures[0]));},
+ 'mapping bad blob':f=>{f.mapping.rows[0].originalFeatures[0].blobSha256=hash('bad');},
+ 'mapping bad WKB':f=>{f.mapping.rows[0].originalFeatures[0].wkbSha256=hash('bad');},
+ 'mapping different method':f=>{f.mapping.rows[0].assembly='union';},
+ 'display flag':f=>{f.source.properties.Map_Disp='disputed';},
+ 'dated dependency':f=>{f.next.geometryVersions[0].validFrom='1997-07-01';},
+ 'parent writes':f=>{f.batch.members.push({entityId:f.parent.entityId,descriptor:f.parentPath,resource:base+f.parent.geometryVersions[0].geometryResource.file,previousDescriptorSha256:f.scope.parentDescriptorSha256});f.prefixes.push(f.parentPath,base+f.parent.geometryVersions[0].geometryResource.file);},
+})){test('dependent contract rejects '+name,()=>{const f=dependencyFixture();mutate(f);f.refresh();assert.throws(()=>assertHistoricalSourceStorageChanges(f.next,f.previous,f),/Whole original batch:/);});}
+test('dependent scope cannot become generic independent or other dependency bypass',()=>{const f=fixture();f.proof.dependencyScope={method:'preserve-existing-dependent-parent'};f.refresh();assert.throws(()=>assertHistoricalSourceStorageChanges(f.next,f.previous,f),/dependent scope/);const g=fixture();g.next.parentEntityId=g.previous.parentEntityId='state:GBR';assert.throws(()=>assertHistoricalSourceStorageChanges(g.next,g.previous,g),/independent identity/);});
