@@ -109,8 +109,8 @@ node tools/checks/audit-map-lod-topology.mjs --world-current \
 벤치마크는 **옵트인**이며 일반 Playwright 회귀 테스트에 자동 포함되지 않는다.
 
 ```sh
-PANDOLAB_BASELINE_LABEL=before-main pnpm exec playwright test --config tests/browser/map-lod-baseline.config.mjs
-PANDOLAB_BASELINE_LABEL=after-work-gis pnpm exec playwright test --config tests/browser/map-lod-baseline.config.mjs
+PANDOLAB_BASELINE_LABEL=before-main pnpm exec playwright test --config tests/browser/map-lod.config.mjs
+PANDOLAB_BASELINE_LABEL=after-work-gis pnpm exec playwright test --config tests/browser/map-lod.config.mjs
 ```
 
 각 실행 전에 각각 해당 커밋을 체크아웃하여 같은 브라우저·하드웨어·고정 라이브러리

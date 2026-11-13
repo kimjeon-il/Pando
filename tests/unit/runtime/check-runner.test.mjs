@@ -369,7 +369,7 @@ test('clipped verification checks paired Core before fixture and WASM consumers,
     run:(argv,options)=>{calls.push({argv,env:options.env});return{status:0};}});
   assert.equal(result.ok,true);
   const core=calls.findIndex(row=>row.argv.includes('scripts/check-core-prerequisite.mjs'));
-  const wasm=calls.findIndex(row=>row.argv.includes('tests/native/document/p5-polygon-mesh-wasm.test.mjs'));
+  const wasm=calls.findIndex(row=>row.argv.includes('tests/native/geometry/polygon-mesh-wasm.test.mjs'));
   const fixtures=calls.findIndex(row=>row.argv.includes('tests/unit/geometry/polygon-clipped-positive-ring.test.mjs'));
   assert.ok(core>=0 && wasm>core && fixtures>core);
   assert.equal(calls[wasm].env.PANDOEDITOR_WASM_MODULE,'/fixture/assets/wasm/pandoeditor-core.js');
@@ -391,7 +391,7 @@ test('clipped verification source-WASM mismatch blocks fixture and WASM consumer
   for(const file of plan.unitTests)assert.ok(result.results.some(row=>
     row.id==='unit' && row.status==='blocked' && row.files?.includes(file)),file);
   assert.equal(calls.some(argv=>argv.includes('tests/unit/geometry/polygon-clipped-positive-ring.test.mjs')),false);
-  assert.equal(calls.some(argv=>argv.includes('tests/native/document/p5-polygon-mesh-wasm.test.mjs')),false);
+  assert.equal(calls.some(argv=>argv.includes('tests/native/geometry/polygon-mesh-wasm.test.mjs')),false);
 });
 
 test('clipped verification installs Zlib only for selected native Core targets', () => {

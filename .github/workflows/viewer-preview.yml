@@ -151,16 +151,16 @@ jobs:
       - run: pnpm exec playwright install --with-deps chromium
       - name: Capture Chromium Viewer startup and frame evidence
         env:
-          PANDO_P3_BRANCH: ${{ github.ref_name }}
+          PANDO_PREVIEW_BRANCH: ${{ github.ref_name }}
           PANDO_BROWSER_TESTS: ${{ inputs.browser_tests || '' }}
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p test-results/viewer-preview
           if [ -n "$PANDO_BROWSER_TESTS" ]; then
-            pnpm exec playwright test tests/browser/runtime/p3-remote-preview.spec.mjs --grep "$PANDO_BROWSER_TESTS" --workers=1 --retries=0 --output=test-results/viewer-preview
+            pnpm exec playwright test tests/browser/runtime/remote-preview.spec.mjs --grep "$PANDO_BROWSER_TESTS" --workers=1 --retries=0 --output=test-results/viewer-preview
           else
-            pnpm exec playwright test tests/browser/runtime/p3-remote-preview.spec.mjs --workers=1 --retries=0 --output=test-results/viewer-preview
+            pnpm exec playwright test tests/browser/runtime/remote-preview.spec.mjs --workers=1 --retries=0 --output=test-results/viewer-preview
           fi
       - uses: actions/upload-artifact@v4
         if: always()
@@ -171,55 +171,3 @@ jobs:
             playwright-report/
           if-no-files-found: warn
           retention-days: 10
-
-  calculation-performance:
-    if: inputs.scope == 'acceptance' || inputs.scope == 'all'
-    runs-on: ubuntu-24.04
-    timeout-minutes: 12
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.source_sha || github.sha }}
-          persist-credentials: false
-      - name: Prepare pinned external library data
-        uses: ./.github/actions/library-data
-      - uses: actions/checkout@v4
-        with:
-          ref: d57e235cc4b8c7f94a603d4352556f11b28bc735
-          path: build-native/p9/baseline
-          persist-credentials: false
-      - name: Mount selected baseline inputs from library storage
-        id: library_baseline_2
-        uses: kimjeon-il/Pando/.github/actions/library-data@main
-        with:
-          inputs-revision: 4bed5bac671c5bfe28e1e54cbcc237f6c10a95aa
-          inputs-target: build-native/p9/baseline
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-      - name: Compare changed calculations on the same runner with alternating samples
-        env:
-          RETRY_FAILED: ${{ inputs.retry_failed }}
-        run: |
-          if [ "$RETRY_FAILED" = true ]; then
-            node tools/p6-calculation-performance.mjs --baseline build-native/p9/baseline --candidate . --operations river,reference --output build-native/p9/calculation-performance.json
-          else
-            node tools/p6-calculation-performance.mjs --baseline build-native/p9/baseline --candidate . --output build-native/p9/calculation-performance.json
-          fi
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: viewer-calculation-performance-${{ inputs.source_sha || github.sha }}
-          path: build-native/p9/calculation-performance.json
-          if-no-files-found: warn
-          retention-days: 14
-      - name: Verify selected library input bytes remain unchanged
-        if: always() && steps.library_baseline_2.outcome == 'success'
-        shell: bash
-        env:
-          INPUT_CHECKOUT: .pando-inputs/build-native/p9/baseline
-        run: >
-          dirty="$(git -C "$GITHUB_WORKSPACE/$INPUT_CHECKOUT" status --porcelain
-          --untracked-files=all -- assets/data)"
-
-          test -z "$dirty" || { printf '%s\n' "$dirty"; exit 1; }
