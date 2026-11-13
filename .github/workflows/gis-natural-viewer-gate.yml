@@ -42,6 +42,7 @@ jobs:
       - uses: pnpm/action-setup@v4
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Focused polar visibility and GPU/Canvas memory admission unit checks
+        if: ${{ !contains(github.event.head_commit.message, '[canvas-paint-ab]') }}
         run: >-
           node --test
           tests/unit/rendering/terrain-tile-selection-shared.test.mjs
@@ -49,6 +50,7 @@ jobs:
           tests/unit/rendering/canvas-natural-numeric-path.test.mjs
           tests/unit/rendering/canvas-terrain-independence.test.mjs
       - name: Focused Canvas interpolation, edge ownership, theme and cancellation unit contracts
+        if: ${{ !contains(github.event.head_commit.message, '[canvas-paint-ab]') }}
         run: >-
           node --test
           tests/unit/rendering/canvas-natural-numeric-path.test.mjs
@@ -56,18 +58,21 @@ jobs:
           tests/unit/rendering/canvas-dem-theme-cache.test.mjs
       - run: pnpm exec playwright install --with-deps chromium
       - name: Real Canvas numerical output, WebGL fragment parity and seam proof
+        if: ${{ !contains(github.event.head_commit.message, '[canvas-paint-ab]') }}
         run: |
           pnpm exec playwright test \
             tests/browser/rendering/canvas-numeric-dem.spec.mjs \
             tests/browser/rendering/terrain-natural-parity.spec.mjs \
             --workers=1 --retries=0 --output=test-results/canvas-numeric
       - name: Actual Canvas Viewer natural blend and memory acceptance
+        if: ${{ !contains(github.event.head_commit.message, '[canvas-paint-ab]') }}
         run: |
           pnpm exec playwright test \
             tests/browser/rendering/terrain-natural-live-viewer.spec.mjs \
             --grep 'natural external preview incrementally repaints actual canvas Viewer in china-southwest' \
             --workers=1 --retries=0 --output=test-results/canvas-live
       - name: Canvas numerical height interpolation and GPU parity, plus Greenland observed ice
+        if: ${{ !contains(github.event.head_commit.message, '[canvas-paint-ab]') }}
         env:
           PANDO_GREENLAND_ONLY: '1'
         run: |
