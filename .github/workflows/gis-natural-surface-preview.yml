@@ -1,3 +1,4 @@
+# Validate strict Antarctic one-pixel below-pole texture gutter replication against observed mask data.
 # Retry strict source-aware polar no-data averaging; retain all hash and coverage gates.
 ## Re-run the bounded representative source acceptance with the repaired float32 polar coverage tolerance.
 ## This task must preserve source hashes, immutable revision pins and historical source dates.
