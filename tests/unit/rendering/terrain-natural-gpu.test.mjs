@@ -18,14 +18,16 @@ function fixture(t,{naturalFailure=false,bytes=240}={}){
   const owner=createGpuTerrainPreparation({readTile:(spec,signal)=>new Promise((resolve,reject)=>requests.push({spec,signal,resolve,reject})),
     readNaturalTile:(spec,manifest,signal)=>new Promise((resolve,reject)=>{natural.push({spec,manifest,signal,resolve,reject});if(naturalFailure)reject(Error('natural failed'));}),
     isMobile:()=>false,geoDistance:()=>0,invalidate:r=>events.push(r),onUnusable:r=>events.push('unusable:'+r),onTileFailure:r=>events.push('dem-failure:'+r)});
-  owner.setContext({gl,ready:true,projectGeneration:1,contextGeneration:1,scheduler:{
-    enqueueUpload:job=>new Promise((resolve,reject)=>jobs.push({...job,step:()=>{try{const r=job.step();if(r.done)resolve();return r;}catch(e){reject(e);throw e;}}})),cancelKey:()=>{}}});
+  const scheduler={enqueueUpload:job=>new Promise((resolve,reject)=>jobs.push({...job,
+    step:()=>{try{const result=job.step();if(result.done)resolve();return result;}catch(error){reject(error);throw error;}}})),
+    cancelKey:()=>{}};
+  owner.setContext({gl,ready:true,projectGeneration:1,contextGeneration:1,scheduler});
   const manifest={representation:'dem-relief-v1',gutter:1,levels:[{id:0,width:8,height:4,columns:1,rows:1,tileSize:8}],
     naturalSurface:{sourceRevision:'a'.repeat(40),mixWeight:0.65,tiles:{'0/0-0.webp':{bytes,sha256:'b'.repeat(64),pixelWidth:10,pixelHeight:6}}}};
   owner.setManifest(manifest);t.after(()=>owner.dispose());
   const drain=async()=>{for(let n=0;n<8;n++){await settle();if(!jobs.length)break;for(const job of jobs.splice(0))while(!job.step().done){/* Drain the shared scheduler. */}}};
   const readyDem=async(v=view)=>{owner.prepare(frame,v);await settle();for(const request of requests)request.resolve({});await drain();return owner.prepare(frame,v);};
-  return {owner,manifest,events,requests,natural,jobs,deleted,drain,readyDem};
+  return {owner,manifest,events,requests,natural,jobs,deleted,drain,readyDem,gl,scheduler};
 }
 
 test('natural GPU work waits for visible DEM and never replaces DEM readiness',async t=>{
@@ -156,4 +158,22 @@ test('tightening the shared budget evicts optional surface, invalidates it and r
   assert.ok(f.events.includes('terrain-natural-evicted'));
   f.owner.prepare(frame,{...view,cacheBudgetBytes:240});
   assert.equal(f.natural.length,1,'no repeated natural requests while out of budget');
+});
+
+test('WebGL context-loss generation releases optional natural cache without stale uploads',async t=>{
+  const f=fixture(t);await f.readyDem();await settle();
+  const request=f.natural[0];request.resolve({});await f.drain();
+  assert.ok(f.owner.prepare(frame,view)[0].naturalTexture);
+  assert.equal(f.owner.stats().terrainNaturalCacheBytes,240);
+  f.gl.isContextLost=()=>true;
+  f.owner.setContext({gl:f.gl,ready:false,projectGeneration:1,contextGeneration:2,scheduler:f.scheduler});
+  const afterLoss=f.owner.stats();
+  assert.equal(afterLoss.terrainNaturalCacheBytes,0);
+  assert.equal(afterLoss.terrainCacheBytes,0);
+  assert.equal(afterLoss.terrainNaturalTilesLoaded,0);
+  assert.equal(afterLoss.terrainTilesLoaded,0);
+  f.gl.isContextLost=()=>false;
+  f.owner.setContext({gl:f.gl,ready:true,projectGeneration:1,contextGeneration:3,scheduler:f.scheduler});
+  assert.equal(f.owner.stats().terrainNaturalCacheBytes,0,'no stale texture admitted after restore');
+  assert.equal(f.owner.stats().terrainUploadCount,1,'lost generations must not record a replacement upload');
 });
