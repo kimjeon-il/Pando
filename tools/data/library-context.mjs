@@ -234,7 +234,9 @@ export function discardDeadLibraryLock(path) {
   unlinkSync(path);return true;
 }
 
-const sparseMetadata = ['/*', '!/*/', '/archive/', '!/archive/*', '/archive/index.json'];
+export const libraryCodeDirectories = Object.freeze(['tools', 'tests', 'scripts', 'config', '.github']);
+const sparseMetadata = ['/*', '!/*/', '/archive/', '!/archive/*', '/archive/index.json',
+  ...libraryCodeDirectories.map(path => '/'+path+'/')];
 
 export function setMetadataCheckout(checkout,{fetch=false}={}) {
   const shared = dirname(resolve(checkout, git(checkout, ['rev-parse', '--git-common-dir'])));

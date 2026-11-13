@@ -5,7 +5,7 @@ import {createInitialDocument} from "../../../src/document/initial-document.js";
 import {createNodeCoreProject} from "../../helpers/core-project.mjs";
 import {createTerritorialFeature} from "../../../src/document/territorial-units.js";
 import {staticTerritorialInput, staticSerializerSnapshot} from "../../helpers/timeline-project.mjs";
-import {createProjectSerializer} from "../../helpers/legacy-project-autosave.mjs";
+import {createProjectTemplateCompiler} from "../../../tools/gis/project-template-compiler.js";
 import {restoreEntitiesFromDelta} from "../../../src/document/project-state.js";
 import {PROJECT_SCHEMA_VERSION} from "../../../src/runtime/version-contract.js";
 
@@ -60,19 +60,7 @@ test('retired settings commands and old saves cannot change the active document'
 
 const geometry={type:'Polygon',coordinates:[[[0,0],[0,1],[1,1],[1,0],[0,0]]]};
 const entity=(id,entityKind='general',options={})=>createTerritorialFeature({id,entityKind,geometry,name:id,...options});
-const serializer=snapshot=>createProjectSerializer({appVersion:'0.34.0',baseDataset:'base',baseDatasetFingerprint:'1'.repeat(64),distributionModes:['territorial','geometry'],terrainDataset:'terrain',hydroDataset:'hydro',readSnapshot:()=>snapshot,now:()=>new Date('2026-10-03T00:00:00Z')});
-
-test('full and delta autosaves contain immutable archive geometry while detaching metadata',()=>{
-  const a=entity('A');const snapshot=staticSerializerSnapshot({territorialEntities:[a],entityDelta:{changed:[a],removedIds:[]}});
-  const service=serializer(snapshot),first=service.buildAutosave(),second=service.buildAutosave();
-  assert.equal(first.entityDelta.changed[0].geometry,null);
-  assert.deepEqual(first.geometries,second.geometries);
-  assert.notEqual(first.geometries[0].geojson,a.geometry);
-  assert.ok(Object.isFrozen(first.geometries[0].geojson.coordinates));
-  first.entityDelta.changed[0].properties.name='detached';assert.equal(a.properties.name,'A');
-  const full=serializer({...snapshot,fullAutosave:true}).buildAutosave();
-  assert.deepEqual(full.timelineRecords,first.timelineRecords);assert.deepEqual(full.geometries,first.geometries);
-});
+const serializer=snapshot=>createProjectTemplateCompiler({appVersion:'0.34.0',baseDataset:'base',baseDatasetFingerprint:'1'.repeat(64),distributionModes:['territorial','geometry'],terrainDataset:'terrain',hydroDataset:'hydro',readSnapshot:()=>snapshot,now:()=>new Date('2026-10-03T00:00:00Z')});
 
 test('project header and physical source metadata use the current common contract',()=>{
   const entities=[entity('A'),entity('S','general',{parentId:'A'}),entity('R','regional',{})];
@@ -98,12 +86,3 @@ test('entity delta replaces removes and adds both kinds against a matching base 
   assert.throws(()=>restoreEntitiesFromDelta(project,{base,baseDataset:'different'}),{code:'PL-SCHEMA-BASE'});
 });
 
-test('external full projects remain independent from the builtin delta baseline when reopened', () => {
-  const source=staticSerializerSnapshot({territorialEntities:[entity('external')],fullAutosave:true});
-  const project=serializer(source).buildProject();assert.equal(project.baseDataset,'external-territorial-entities');
-  const {territorialEntities,...projectFields}=project;
-  const reopened=serializer({documentId:project.documentId,physicalSourceInfo:project.physicalSourceInfo,territorialEntities,projectFields,fullAutosave:project.baseDataset !== 'base'}).buildAutosave();
-  assert.equal(reopened.format,'pandolab-autosave-full');assert.deepEqual(reopened.territorialEntities,project.territorialEntities);
-  assert.deepEqual(reopened.timelineRecords,project.timelineRecords);assert.deepEqual(reopened.geometries,project.geometries);
-  assert.equal('entityDelta' in reopened,false);
-});

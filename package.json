@@ -37,7 +37,7 @@
     "check:territorial-storage": "node scripts/check-territorial-storage.mjs",
     "check:ui": "pnpm check:ui-spacing && pnpm check:ui-components && pnpm check:ui-architecture && pnpm check:ui-layering && pnpm check:ui-ia && pnpm check:object-registry && pnpm check:surface-state",
     "check:commands": "eslint src/document/project-domain.js src/document/core-document-client.js src/document/territorial-entity-store.js tests/helpers/generic-feature-command-service.mjs scripts/check-command-architecture.mjs && node scripts/check-command-architecture.mjs && node --test --test-concurrency=1 --test-timeout=15000 tests/unit/document/project-domain-core-command.test.mjs tests/unit/document/core-document-read-model.test.mjs tests/unit/document/territorial-entity-repository.test.mjs tests/unit/document/generic-feature-model.test.mjs",
-    "check:provenance": "eslint src/document/source-provenance.js src/document/generic-feature-normalization.js src/document/project-state.js tests/helpers/legacy-project-autosave.mjs tools/gis/project-template-compiler.js src/document/project-baseline-fingerprint.js src/document/project-invariants.js src/document/map-object-categories.js scripts/check-generic-provenance.mjs scripts/check-object-registry.mjs tests/unit/document/source-provenance.test.mjs tests/unit/document/generic-feature-model.test.mjs && node scripts/check-generic-provenance.mjs && node --test tests/unit/document/generic-feature-model.test.mjs",
+    "check:provenance": "eslint src/document/source-provenance.js src/document/generic-feature-normalization.js src/document/project-state.js tools/gis/project-template-compiler.js src/document/project-baseline-fingerprint.js src/document/project-invariants.js src/document/map-object-categories.js scripts/check-generic-provenance.mjs scripts/check-object-registry.mjs tests/unit/document/source-provenance.test.mjs tests/unit/document/generic-feature-model.test.mjs && node scripts/check-generic-provenance.mjs && node --test tests/unit/document/generic-feature-model.test.mjs",
     "check:versioning": "eslint src/runtime/version-contract.js tools/gis/exchange-adapter-registry.js src/document/project-state.js tools/gis/project-template-compiler.js scripts/generate-build-metadata.mjs scripts/check-version.mjs scripts/check-version-architecture.mjs tests/unit/document/gis-adapters.test.mjs tests/unit/document/project-state.test.mjs tests/unit/document/project-creation-contract.test.mjs && node scripts/check-version.mjs && node scripts/check-version-architecture.mjs",
     "check:workers": "eslint src/runtime/worker-rpc.js src/runtime/worker-job-scheduler.js src/runtime/workers/worker-rpc-host.js src/rendering/workers/gpu-mesh-worker.js scripts/check-worker-architecture.mjs tests/unit/runtime/worker-rpc.test.mjs && node scripts/check-worker-architecture.mjs && node --test tests/unit/runtime/worker-rpc.test.mjs",
     "check:renderer-v2": "eslint src/rendering/gpu-stroke-renderer.js scripts/check-renderer-v2.mjs scripts/lib/renderer-v2-architecture.mjs tests/unit/rendering/gpu-stroke-renderer.test.mjs && node scripts/check-renderer-v2.mjs && node --test tests/unit/document/selection-domain-core.test.mjs tests/unit/rendering/render-scene.test.mjs tests/unit/rendering/map-presentation-readiness.test.mjs",
@@ -74,13 +74,8 @@
     "@playwright/test": "1.62.1",
     "esbuild": "0.25.10",
     "eslint": "10.9.1",
-    "geotiff": "3.0.5",
     "postcss": "8.5.30",
-    "topojson-client": "3.1.0",
-    "topojson-server": "3.0.1",
-    "topojson-simplify": "3.0.3",
     "yaml": "2.9.1",
-    "yazl": "3.3.1",
     "zod": "4.6.7"
   }
 }
