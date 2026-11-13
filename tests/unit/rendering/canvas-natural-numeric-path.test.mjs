@@ -116,3 +116,20 @@ test('single-owner top-left raster edges prevent overlapping triangle pixels and
       'winding direction must not create cracks or double-painted pixels');
   }
 });
+
+
+test('PCHIP screen-pixel fast cubic preserves original exact integer-height palette outputs',()=>{
+  const heights=[-50,0,1,128,255,256,257,500,749,750,751,1499,1500,1501,
+    2499,2500,2501,3499,3500,3501,4499,4500,4501,6499,6500,7250];
+  for(const theme of ['light','dark'])for(const shade of [0,80,180,212,255])
+    for(const height of heights){
+      const encoded=height+12000;
+      const dem=new Uint8ClampedArray(16);
+      for(let offset=0;offset<dem.length;offset+=4)
+        dem.set([encoded>>8,encoded&255,shade,255],offset);
+      const expected=core.convertTile({dem,width:2,height:2,theme}).land;
+      const actual=core.sampleInterpolated({dem,width:2,height:2,x:0.3,y:0.7,theme,channel:'land'});
+      const delta=Math.max(...actual.slice(0,3).map((value,i)=>Math.abs(value-expected[i])));
+      assert.ok(delta<=1,`height=${height}, shade=${shade}, theme=${theme}, delta=${delta}`);
+    }
+});
