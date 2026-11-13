@@ -266,7 +266,7 @@ export async function main(argv=process.argv.slice(2),{
   check(output,'A fresh report output file is required');
   check(!existsSync(output),'Never overwrite previous historical original evidence');
   const config=JSON.parse(readFileSync(join(ROOT,'config/library-data.json'),'utf8'));
-  check(config.repository==='kimjeon-il/PandoLab-library-data'
+  check(config.repository==='kimjeon-il/PandoLab-library'
     &&/^[0-9a-f]{40}$/.test(config.revision),'Pinned library revision missing');
   const recipe=JSON.parse(readFileSync(join(
     ROOT,'tools/historical-library/german-empire-1914-base.recipe.json'),'utf8'));

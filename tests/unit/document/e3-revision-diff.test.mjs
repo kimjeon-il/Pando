@@ -176,7 +176,7 @@ test('E3 CLI compares two real local Git commits and writes checksummed read-onl
   const root=mkdtempSync(join(tmpdir(),'pando-e3-git-')),output=mkdtempSync(join(tmpdir(),'pando-e3-output-'));
   t.after(()=>{rmSync(root,{recursive:true,force:true});rmSync(output,{recursive:true,force:true});});
   git(root,'init','-q');
-  git(root,'remote','add','origin','https://github.com/kimjeon-il/PandoLab-library-data.git');
+  git(root,'remote','add','origin','https://github.com/kimjeon-il/PandoLab-library.git');
   const old=entity(),candidate=structuredClone(old);
   candidate.geometryVersions[0].geometry=geo(2);
   const base=commitFixture(root,old),head=commitFixture(root,candidate,true);
@@ -205,7 +205,7 @@ test('E3 report-only descendant revisions produce explicit zero-change evidence 
   const root=mkdtempSync(join(tmpdir(),'pando-e3-report-only-')),output=mkdtempSync(join(tmpdir(),'pando-e3-no-map-'));
   t.after(()=>{rmSync(root,{recursive:true,force:true});rmSync(output,{recursive:true,force:true});});
   git(root,'init','-q');
-  git(root,'remote','add','origin','https://github.com/kimjeon-il/PandoLab-library-data.git');
+  git(root,'remote','add','origin','https://github.com/kimjeon-il/PandoLab-library.git');
   const base=commitFixture(root,entity());
   put(root,'reports/development/ui/source-review/README.md','No map source changes.\n');
   git(root,'add','.');git(root,'commit','-qm','report only');

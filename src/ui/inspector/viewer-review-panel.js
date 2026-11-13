@@ -34,7 +34,7 @@ export async function readReviewGeometry(inspection,sourceEntityId,change,{
       ||resource.url.startsWith('/')||resource.url.split('/').some(p=>!p||p==='.'||p==='..')
       ||![resource.compressedBytes,resource.decodedBytes].every(n=>Number.isSafeInteger(n)&&n>0&&n<=16*1024*1024))
       no('원본 자료의 전송 정보가 올바르지 않습니다.');
-    const url='https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/'+revision+'/'+resource.url;
+    const url='https://raw.githubusercontent.com/kimjeon-il/PandoLab-library/'+revision+'/'+resource.url;
     let raw=sourceBytes?.get(sha256);
     if(!raw){
       if(sourceBytes)no('원본 descriptor와 선택된 좌표 JSON 파일이 모두 필요합니다.');

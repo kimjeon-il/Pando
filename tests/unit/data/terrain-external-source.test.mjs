@@ -15,7 +15,7 @@ test('terrain request selects either local files or the fixed source with an int
   const local = terrainTileRequest(spec, manifest, {manifestUrl:'http://localhost/assets/data/terrain/v0.13.3/manifest.json'});
   assert.equal(local.url.origin, 'http://localhost');
   const request = terrainTileRequest(spec, manifest, {externalSource});
-  assert.equal(request.url.href, `https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/${revision}/terrain/v0.13.3/5/13-4.webp`);
+  assert.equal(request.url.href, `https://raw.githubusercontent.com/kimjeon-il/PandoLab-library/${revision}/terrain/v0.13.3/5/13-4.webp`);
   assert.equal(request.sha256, sha256);
   assert.throws(() => terrainTileRequest({...spec,column:-1}, manifest, {externalSource}));
   assert.throws(() => terrainTileRequest({...spec,row:5}, manifest, {externalSource}));
@@ -41,7 +41,7 @@ test('v0.14.0 uses the new fixed source release without a second tile format', (
   };
   const request=terrainTileRequest(spec,next,{externalSource:{revision:nextRevision}});
   assert.equal(request.url.href,
-    'https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/0866eb0aebb35d1355892b808de331b30c5fe52b/terrain/v0.14.0/5/13-4.webp');
+    'https://raw.githubusercontent.com/kimjeon-il/PandoLab-library/0866eb0aebb35d1355892b808de331b30c5fe52b/terrain/v0.14.0/5/13-4.webp');
   assert.deepEqual([request.bytes,request.sha256],[body.length,sha256]);
   assert.throws(()=>terrainTileRequest(spec,{...next,packaging:{...next.packaging,sourcePath:'terrain/v0.13.3/manifest.json'}},{externalSource:{revision:nextRevision}}));
 });

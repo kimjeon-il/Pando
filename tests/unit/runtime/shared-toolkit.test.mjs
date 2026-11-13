@@ -91,3 +91,41 @@ test('independent toolkit explicitly owns its reports without borrowing Pando ma
   }finally{rmSync(root,{recursive:true,force:true});}
 });
 });
+
+__library_dep0.default('storage SDK upgrades retain immutable computation and use current source paths',async t=>{
+ const fs=await import('node:fs/promises'),{execFileSync}=await import('node:child_process'),{packageSharedToolkit}=await import('../../../tools/build/package-shared-toolkit.mjs');
+ const assert=__library_dep1.default,{join}=__library_dep4,{tmpdir}=__library_dep3;
+ const base=await fs.mkdtemp(join(tmpdir(),'pando-storage-sdk-')),root=join(base,'source'),dependency=join(base,'dependency'),installed=join(base,'installed');
+ t.after(()=>fs.rm(base,{recursive:true,force:true}));await fs.mkdir(root);
+ const git=(...args)=>execFileSync('git',['-c','core.autocrlf=false',...args],{cwd:root,encoding:'utf8',stdio:'pipe'}).trim();git('init','-q');git('config','user.name','Test');git('config','user.email','test@example.invalid');
+ for(const [path,bytes]of Object.entries({'tools/data/shared-toolkit.mjs':'export const codec=true;','tools/data/report-paths.mjs':'export const reports=true;','tools/data/library-context.mjs':'export const context=true;','tools/data/library-runtime.mjs':"import '../../src/data/current.js';export const runtime=true;",'tools/data/library-content.mjs':'export const content=true;','src/data/current.js':'export const current=true;'})){
+  await fs.mkdir(join(root,path,'..'),{recursive:true});await fs.writeFile(join(root,path),bytes);
+ }
+ git('add','.');git('commit','-qm','source');const revision=git('rev-parse','HEAD');
+ const prior=__library_dep5.encodeSharedToolkit({source:{repository:'kimjeon-il/Pando',revision:'a'.repeat(40)},entries:[{path:'build-native/map-image/opaque.bin',data:Buffer.from([0,1,2,255])},{path:'tools/library-content.mjs',data:'export const old=true;'},{path:'tools/library-data.mjs',data:'export const retired=true;'},{path:'tools/native-tool.mjs',data:"import './library-content.mjs';export const native=true;"}]});
+ await __library_dep5.installSharedToolkit({root:dependency,bytes:prior.bytes,pin:prior.pin});
+ const next=await packageSharedToolkit({root,revision,baseDependency:{root:dependency,pin:prior.pin}});
+ assert.equal(next.pin.source.revision,revision);assert.equal(next.pin.source.compute.artifactSha256,prior.pin.sha256);
+ await __library_dep5.installSharedToolkit({root:installed,bytes:next.bytes,pin:next.pin});
+ assert.deepEqual(await fs.readFile(join(installed,'build-native/map-image/opaque.bin')),Buffer.from([0,1,2,255]));
+ assert.equal(__library_dep6.existsSync(join(installed,'tools/library-data.mjs')),false);
+ assert.match(await fs.readFile(join(installed,'tools/native-tool.mjs'),'utf8'),/data\/library-content/);
+ assert.equal(await fs.readFile(join(installed,'src/data/current.js'),'utf8'),'export const current=true;');
+ await fs.writeFile(join(root,'tools/data/library-runtime.mjs'),"import '../../src/data/current.js';export const runtime='next';");git('add','.');git('commit','-qm','next storage');
+ const again=await packageSharedToolkit({root,revision:git('rev-parse','HEAD'),baseDependency:{root:installed,pin:next.pin}});
+ const final=join(base,'final');await __library_dep5.installSharedToolkit({root:final,bytes:again.bytes,pin:again.pin});
+ assert.match(await fs.readFile(join(final,'tools/data/library-runtime.mjs'),'utf8'),/runtime='next'/);
+ assert.equal(again.pin.source.compute.artifactSha256,prior.pin.sha256);
+});
+
+__library_dep0.default('SDK retirement reuses byte-identical replacement files',async t=>{
+ const fs=__library_dep2,{join}=__library_dep4,assert=__library_dep1.default,source={repository:'kimjeon-il/Pando',revision:'a'.repeat(40)};
+ const root=await fs.mkdtemp(join(__library_dep3.tmpdir(),'pando-sdk-reuse-'));t.after(()=>fs.rm(root,{recursive:true,force:true}));
+ const unchanged={path:'build-native/map-image/opaque.bin',data:Buffer.from([0,1,2,255])};
+ const a=__library_dep5.encodeSharedToolkit({source,entries:[unchanged,{path:'tools/old.mjs',data:'old'}]});
+ const b=__library_dep5.encodeSharedToolkit({source:{...source,revision:'b'.repeat(40)},entries:[unchanged,{path:'src/data/current.js',data:'new'}]});
+ await __library_dep5.installSharedToolkit({root,bytes:a.bytes,pin:a.pin});const before=await fs.stat(join(root,unchanged.path));
+ await __library_dep5.retireSharedToolkit({root,pin:a.pin,replacement:b});
+ assert.deepEqual(await fs.readFile(join(root,unchanged.path)),unchanged.data);assert.equal(__library_dep6.existsSync(join(root,'tools/old.mjs')),false);
+ await __library_dep5.installSharedToolkit({root,bytes:b.bytes,pin:b.pin});assert.equal((await fs.stat(join(root,unchanged.path))).ino,before.ino);
+});

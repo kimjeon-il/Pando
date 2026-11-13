@@ -6,7 +6,7 @@ const browserGlobals = {
   ImageData: 'readonly', IndexedDB: 'readonly', HTMLElement: 'readonly', HTMLCanvasElement: 'readonly', Option: 'readonly',
   Event: 'readonly', EventTarget: 'readonly', PageTransitionEvent: 'readonly',
   MessageChannel: 'readonly', MessageEvent: 'readonly', MutationObserver: 'readonly', OffscreenCanvas: 'readonly', Path2D: 'readonly',
-  Response: 'readonly', ResizeObserver: 'readonly', TextDecoder: 'readonly', TextEncoder: 'readonly', TransformStream: 'readonly',
+  Request: 'readonly', Headers: 'readonly', Response: 'readonly', ResizeObserver: 'readonly', TextDecoder: 'readonly', TextEncoder: 'readonly', TransformStream: 'readonly',
   URL: 'readonly', URLSearchParams: 'readonly', Worker: 'readonly',
   cancelAnimationFrame: 'readonly', clearInterval: 'readonly', clearTimeout: 'readonly', confirm: 'readonly',
   atob: 'readonly', btoa: 'readonly', caches: 'readonly', createImageBitmap: 'readonly', crypto: 'readonly',

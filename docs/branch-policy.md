@@ -45,7 +45,7 @@
 
 ## 외부 자료 저장소
 
-라이브러리 객체·런타임 지도·원자료·보고서는 `kimjeon-il/PandoLab-library-data`에 둔다. `config/library-data.json`이 각 코드 브랜치와 짝인 자료 커밋을 고정한다. `node tools/data/library-data.mjs`로 고정 캐시를 준비하며 `assets/data`와 조사 원자료 경로는 Git에서 제외된 마운트다. 보고서는 공유 자료 저장소 루트 `reports/`의 원문을 두 언어의 경로 helper로 읽고, 쓰기는 `.edits/<브랜치>`의 독립 편집본에 한정한다. `.owners.json`의 브랜치별 revision과 `.variants/<sha256>`의 다른 판본을 보존하며, 자료 준비 때 보고서 전체를 작업트리에 복제하지 않는다. `node tools/data/library-data.mjs --store --include-prefix=reports/<범위>`로 지정한 변경만 보관하고 보고서만 저장하면 런타임 자료 핀을 바꾸지 않는다. 미복원 파일의 부재를 삭제로 해석하지 않는다. 보관 원문 삭제는 원문 작업 범위에서 파일을 명시적으로 보존·이동하거나 삭제한 뒤 `--remove-path=reports/<파일>`로 명시한다. 자료 저장소는 보관용이며 검사·테스트·재생성을 실행하지 않는다.
+라이브러리 객체·런타임 지도·원자료·보고서는 `kimjeon-il/PandoLab-library`에 둔다. `config/library-data.json`이 각 코드 브랜치와 짝인 자료 커밋을 고정한다. `node tools/data/library-data.mjs`로 고정 캐시를 준비하며 `assets/data`와 조사 원자료 경로는 Git에서 제외된 마운트다. 보고서는 공유 자료 저장소 루트 `reports/`의 원문을 두 언어의 경로 helper로 읽고, 쓰기는 `.edits/<브랜치>`의 독립 편집본에 한정한다. `.owners.json`의 브랜치별 revision과 `.variants/<sha256>`의 다른 판본을 보존하며, 자료 준비 때 보고서 전체를 작업트리에 복제하지 않는다. `node tools/data/library-data.mjs --store --include-prefix=reports/<범위>`로 지정한 변경만 보관하고 보고서만 저장하면 런타임 자료 핀을 바꾸지 않는다. 미복원 파일의 부재를 삭제로 해석하지 않는다. 보관 원문 삭제는 원문 작업 범위에서 파일을 명시적으로 보존·이동하거나 삭제한 뒤 `--remove-path=reports/<파일>`로 명시한다. 라이브러리의 도구 소스 checkout은 해당 도구의 작은 fixture 검사와 선택된 native CI만 실행할 수 있다. 자료 전용 worktree는 metadata-only를 유지하며 자료·보고서 변경에 전체 검사·재생성을 연결하지 않는다.
 
 ## 보고서 작업 완료
 
