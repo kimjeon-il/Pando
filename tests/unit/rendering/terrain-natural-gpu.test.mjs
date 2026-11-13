@@ -220,3 +220,44 @@ test('rapid pan aborts offscreen natural fetch and never uploads its late result
   assert.equal(cache.bytes(),0);
   assert.equal(deleted.length,1,'only the actually uploaded texture is deleted');
 });
+
+test('realistic 1024px natural tile reservation never exceeds 32/64/128 MiB optional budgets',async t=>{
+  const previous=globalThis.createImageBitmap;
+  globalThis.createImageBitmap=async()=>({width:1026,height:1026,close(){}});
+  t.after(()=>{if(previous)globalThis.createImageBitmap=previous;else delete globalThis.createImageBitmap;});
+  const bytes=1026*1026*4;
+  for(const mib of [32,64,128]){
+    await t.test(mib+' MiB',async()=>{
+      const deleted=[],jobs=[];let seq=0;
+      const gl={createTexture:()=>({id:++seq}),deleteTexture:tex=>deleted.push(tex),getParameter:()=>0,isContextLost:()=>false};
+      for(const name of ['bindTexture','pixelStorei','texParameteri','texImage2D'])gl[name]=()=>{};
+      const scheduler={enqueueUpload:job=>new Promise((resolve,reject)=>jobs.push({job,resolve,reject})),cancelKey:()=>{}};
+      const tiles=Object.fromEntries(Array.from({length:20},(_,column)=>['0/'+column+'-0.webp',{}]));
+      const manifest={gutter:1,naturalSurface:{mixWeight:0.65,
+        levels:[{id:0,width:20*1024,height:1024,tileSize:1024,columns:20,rows:1}],tiles}};
+      const records=Array.from({length:20},(_,column)=>({spec:{
+        key:'0/'+column+'-0',level:0,column,row:0,pixelWidth:1024,pixelHeight:1024}}));
+      const cache=createGpuNaturalSurfaceCache({readTile:async()=>({}),invalidate:()=>{}});
+      const options={gl,scheduler,manifest,contextGeneration:1,enabled:true,requiredReady:true,budgetBytes:mib*1024*1024};
+      cache.prepare(records,options);
+      for(let step=0;step<80;step++){
+        await settle();
+        const tasks=jobs.splice(0);
+        for(const task of tasks){
+          try{assert.equal(task.job.step().done,true);task.resolve();}
+          catch(error){task.reject(error);throw error;}
+        }
+        if(!tasks.length&&cache.pendingBytes()===0)break;
+      }
+      cache.prepare(records,options);
+      const stats=cache.stats(),capacity=Math.floor(options.budgetBytes/bytes);
+      assert.equal(stats.terrainNaturalTilesLoaded,Math.min(20,capacity));
+      assert.equal(stats.terrainNaturalCacheBytes,stats.terrainNaturalTilesLoaded*bytes);
+      assert.equal(stats.terrainNaturalPendingBytes,0);
+      assert.ok(cache.bytes()+cache.pendingBytes()<=options.budgetBytes);
+      cache.reset();
+      assert.equal(cache.bytes(),0);
+      assert.equal(deleted.length,stats.terrainNaturalTilesLoaded);
+    });
+  }
+});
