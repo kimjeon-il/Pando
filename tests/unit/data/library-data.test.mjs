@@ -434,3 +434,34 @@ test('library publisher uses a fully qualified ref for newly created work branch
   assert.throws(()=>exec(work,'push','-q','origin','HEAD:'+libraryPublicationRef('work/remote-only')));
   assert.equal(exec(work,'ls-remote','origin','refs/heads/work/remote-only').split(/\s/)[0],next);
 });
+
+ test('checkout compaction preserves library tooling and its focused fixtures', t => {
+  const checkout=mkdtempSync(join(tmpdir(),'pando-library-tools-'));
+  t.after(()=>rmSync(checkout,{recursive:true,force:true}));
+  const git=(...args)=>execFileSync('git',['-c','core.autocrlf=false',...args],{cwd:checkout,encoding:'utf8',stdio:'pipe'}).trim();
+  git('init','-q');git('config','user.name','Test');git('config','user.email','test@example.invalid');
+  const code={'tools/qgis/bridge.mjs':'export const bridge=true;','tests/fixtures/input.json':'{}','scripts/check.mjs':'export {};','config/tool.json':'{}','.github/workflows/tool.yml':'name: tool'};
+  for(const [path,bytes] of Object.entries({...code,'archive/index.json':'{}','archive/blobs/original.bin':'original'})){
+    mkdirSync(dirname(join(checkout,path)),{recursive:true});writeFileSync(join(checkout,path),bytes);
+  }
+  git('add','.');git('commit','-qm','fixture');
+  assert.equal(compactLibraryCheckout({checkout}).eligibleBytes,8);
+  assert.equal(compactLibraryCheckout({checkout,apply:true}).deletedBytes,8);
+  for(const [path,bytes] of Object.entries(code))assert.equal(readFileSync(join(checkout,path),'utf8'),bytes,path);
+  assert.equal(git('status','--porcelain'),'');
+});
+
+test('data-only linked checkouts do not hydrate or retain library tooling',t=>{
+ const base=mkdtempSync(join(tmpdir(),'pando-library-code-owner-')),shared=join(base,'shared'),checkout=join(base,'data');
+ t.after(()=>rmSync(base,{recursive:true,force:true}));mkdirSync(shared);
+ const git=(root,...args)=>execFileSync('git',['-c','core.autocrlf=false',...args],{cwd:root,encoding:'utf8',stdio:'pipe'}).trim();
+ git(shared,'init','-q');git(shared,'config','user.name','Test');git(shared,'config','user.email','test@example.invalid');
+ for(const [path,bytes]of Object.entries({'tools/source.mjs':'export {};','tests/input.json':'{}','archive/index.json':'{}'})){
+  mkdirSync(dirname(join(shared,path)),{recursive:true});writeFileSync(join(shared,path),bytes);
+ }
+ git(shared,'add','.');git(shared,'commit','-qm','fixture');git(shared,'worktree','add','--detach',checkout,'HEAD');
+ assert.equal(compactLibraryCheckout({checkout,apply:true}).status,'compacted');
+ assert.equal(existsSync(join(checkout,'tools/source.mjs')),false);assert.equal(existsSync(join(checkout,'tests/input.json')),false);
+ assert.equal(readFileSync(join(shared,'tools/source.mjs'),'utf8'),'export {};');
+ assert.equal(compactLibraryCheckout({checkout,apply:true}).deletedBytes,0);
+});

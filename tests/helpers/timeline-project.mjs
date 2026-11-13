@@ -6,7 +6,7 @@ import { createNodeCoreProject } from './core-project.mjs';
 import {normalizeTerritorialFeature,normalizeTerritorialIdentity,TERRITORIAL_IDENTITY_FIELDS} from '../../src/document/territorial-units.js';
 import { DISTRIBUTION_MODES } from "../../src/document/distribution-model.js";
 import { afterEach } from 'node:test';
-import { createProjectSerializer } from "./legacy-project-autosave.mjs";
+import { createProjectTemplateCompiler } from "../../tools/gis/project-template-compiler.js";
 import {createTestViewingSession} from './viewing-project.mjs';
 
 const fixtures=new WeakMap();
@@ -55,7 +55,7 @@ export async function initializeTestTerritorialState(state,t=null,{project,platf
   const viewKeys=['layerVisibility','itemVisibility','distributionSettings'];
   
   let viewing;
-  const owner=await createNodeCoreProject(project || staticAutosaveProject(fields,state.territorialEntities || []),{
+  const owner=await createNodeCoreProject(project || staticProjectDocument(fields,state.territorialEntities || []),{
     ...platformPorts,viewingPresentation:payload=>viewing.session.applyViewingPresentation(payload),
     persistence:platformPorts.persistence || {queueView(){},queueProject(){},queuePresentation(){},cancelPending(){}}});
   viewing=createTestViewingSession(owner);
@@ -110,11 +110,11 @@ export function staticSerializerSnapshot(snapshot) {
       timelineRecords: content.timelineRecords, geometries: content.geometries } };
 }
 
-/** Current complete autosave for browser fixtures, without a baseline delta. */
-export function staticAutosaveProject(projectFields = {}, territorialEntities = []) {
+/** Current complete project document for Core/browser fixtures. */
+export function staticProjectDocument(projectFields = {}, territorialEntities = []) {
   const snapshot = staticSerializerSnapshot({ territorialEntities, fullAutosave: true, projectFields });
-  return createProjectSerializer({ appVersion: 'fixture', distributionModes: Object.values(DISTRIBUTION_MODES),
-    terrainDataset: 'fixture-terrain', hydroDataset: 'fixture-hydro', readSnapshot: () => snapshot }).buildAutosave();
+  return createProjectTemplateCompiler({ appVersion: 'fixture', distributionModes: Object.values(DISTRIBUTION_MODES),
+    terrainDataset: 'fixture-terrain', hydroDataset: 'fixture-hydro', readSnapshot: () => snapshot }).buildProject();
 }
 
 export function snapshotTestTerritorialState(state) {

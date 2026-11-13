@@ -391,7 +391,7 @@ const test = __country_dep0.default;
 const assert = __country_dep2.default;
 const { createTerritorialFeature, normalizeTerritorialEntities } = __country_dep3;
 const { normalizeCountryFeature } = __country_dep19;
-const { initializeTestTerritorialState, testCoreProject, executeTerritorialTestCommand, staticAutosaveProject } = __country_dep1;
+const { initializeTestTerritorialState, testCoreProject, executeTerritorialTestCommand, staticProjectDocument } = __country_dep1;
 
 
 
@@ -524,7 +524,7 @@ test('bulk source admission creates every binding once with exact source coordin
 });
 
 test('bulk geometry edits allocate above unreferenced versions and preserve whole archive history',async()=>{
-  const seed=structuredClone(staticAutosaveProject({},[entity('A'),entity('B')]));
+  const seed=structuredClone(staticProjectDocument({},[entity('A'),entity('B')]));
   seed.geometries.push({id:'shared',version:2,geojson:polygon()},{id:'shared',version:8,geojson:polygon(8)},
     {id:'unused',version:9,geojson:polygon(9)});
   for(const binding of seed.timelineRecords.geometryBindings)binding.geometryRef={id:'shared',version:2};
