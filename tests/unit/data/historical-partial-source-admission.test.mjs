@@ -11,7 +11,9 @@ const app=fileURLToPath(new URL('../../../',import.meta.url));
 const fixtureRoot=process.env.PANDO_PARTIAL_REVIEW_FIXTURES;
 const repo=process.env.PANDOLAB_LIBRARY_DATA_ROOT;
 const base='assets/data/territorial-entities/source/';
-const sourcePin=JSON.parse(fs.readFileSync(path.join(app,'config/library-data.json'))).revision;
+// Replay the immutable pre-adoption fixture, not the advancing production pin.
+const sourcePin=process.env.PANDO_PARTIAL_SOURCE_PIN || '27d1591cddfc7773a0271ef599682fcb3ddeb56f';
+assert.match(sourcePin,/^[a-f0-9]{40}$/);
 const hash=b=>createHash('sha256').update(b).digest('hex');
 const fixtureImport=p=>import(pathToFileURL(path.join(fixtureRoot,p)).href);
 function archive(pin){
