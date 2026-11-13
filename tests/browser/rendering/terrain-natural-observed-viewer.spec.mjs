@@ -2,7 +2,7 @@ import {test,expect} from '@playwright/test';
 
 // Focused observed-mask acceptance. The source is opt-in and never replaces the
 // operational DEM or the PandoLab-library-data pin.
-test.use({viewport:{width:1100,height:760},launchOptions:{args:process.platform==='win32'
+test.use({viewport:{width:760,height:520},launchOptions:{args:process.platform==='win32'
   ? ['--use-angle=d3d11']
   : ['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader','--disable-gpu-sandbox']}});
 const IMMUTABLE_SOURCE='4c84e22ccdfa8549ed42f3c8080c3914aa9d05f8';
@@ -55,6 +55,7 @@ test('immutable observed WorldCover, mountain glacier and polar ice preview reac
         host.requestRepaint('observed-natural-region');
       },region.rotation);
       const stats=()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__?.rendererStats());
+      console.log('OBSERVED_TARGET_INITIAL='+JSON.stringify({region:region.name,view:await page.evaluate(()=>window.__PANDOLAB_MAP_HOST__?.getViewState()),stats:await stats()}));
       await expect.poll(async()=>{
         const s=await stats();return s?.terrainReady&&s?.terrainTargetLevel===4;
       },{timeout:120000}).toBe(true);
