@@ -1,7 +1,7 @@
 {
   "schema": "pandoeditor-core-wasm",
   "abiVersion": 1,
-  "sourceSha256": "6e526b308b88316916d57c7ec195d1d13e414b668de02feabab118efd837ae15",
+  "sourceSha256": "cb7328191e72442611434508b1b2b3bab75e1cbcf1bdce92254677c731ad0e69",
   "compiler": {
     "name": "emscripten",
     "version": "6.0.3"
@@ -520,6 +520,10 @@
       "sha256": "843428283c097cb0a8c68f20562629649016611a4a69a8a5a3c583a3c0ace4cb"
     },
     {
+      "path": "tests/native/document/document-session-driver.cpp",
+      "sha256": "b349c6d54fd6e786d7619d19089f046fafdfdc836083574514f4bcf1c5cd3cb7"
+    },
+    {
       "path": "tests/native/document/document-session-tests.cpp",
       "sha256": "4b712dfdc0bb9782dd1c70b9af1ab281dc9ab948c6b4bd43fe90667fb7cd77fb"
     },
@@ -604,8 +608,8 @@
       "sha256": "5fed06bcf628c51ba0e0b2e06d010d41da25a1613e88295db6975758c44aab4b"
     },
     {
-      "path": "tests/native/geometry/cut-geometry-probe.cpp",
-      "sha256": "2222e9a20b9ac77a8ceb9aff93debe050f9315a5c69cf3ae53c4cf1c0e8638f8"
+      "path": "tests/native/geometry/calculation-driver.cpp",
+      "sha256": "a341ab30e3597f3a6b43bbb5d92f45df2f40b17f471fe62774a4c0579e27f407"
     },
     {
       "path": "tests/native/geometry/fixtures/clipped-positive-rings.h",
@@ -624,20 +628,8 @@
       "sha256": "71282f863676ece9ea590801570d7f7a669c8ffe064ec24b4605ee526437d3f2"
     },
     {
-      "path": "tests/native/geometry/polygon-clipping-probe.cpp",
-      "sha256": "c860a9929e4d82e5f5fa59ac0900c6fd980a72a9e66ddcdf3811411a88869a09"
-    },
-    {
       "path": "tests/native/geometry/polygon-mesh-tests.cpp",
       "sha256": "4a89fa91a12817b17c32d3ef2cff2b692332f74f1d8417ef68df53d38e19b55c"
-    },
-    {
-      "path": "tests/native/geometry/river-partition-probe.cpp",
-      "sha256": "74ce06068e38d1edec6a5ee842a8b59f89d6acede7fdcdddf2ffdd94380e5ab8"
-    },
-    {
-      "path": "tests/native/temporal-parity-probe.cpp",
-      "sha256": "b349c6d54fd6e786d7619d19089f046fafdfdc836083574514f4bcf1c5cd3cb7"
     },
     {
       "path": "tools/build/native/CMakeLists.txt",
@@ -649,7 +641,7 @@
     },
     {
       "path": "tools/build/native/tests/CMakeLists.txt",
-      "sha256": "1571ad2229159deeedecab9adba21d36cde6f9c863540cb9b5684109066ae72f"
+      "sha256": "5e670a368224fe676b2e111e9ed74befa9347f0434d7ec61db69d5c2dff5e9f7"
     },
     {
       "path": "tools/build/native/wasm/CMakeLists.txt",
@@ -663,7 +655,7 @@
     },
     "wasm": {
       "file": "pandoeditor-core.wasm",
-      "sha256": "b5449a62dccd0bf01eacd443f454043cdb8f9c6a3b7e6fd403ae8dc8d7e2d788"
+      "sha256": "66d194edaacddbfab44afc252a113555f77e6e7fbf987a98c03eb54922b53926"
     }
   }
 }

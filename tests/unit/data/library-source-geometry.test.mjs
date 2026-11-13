@@ -6,18 +6,19 @@ import {mkdtempSync,readFileSync,readdirSync,rmSync,statSync,mkdirSync,writeFile
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {normalizeTerritorialLibraryEntity} from '../../../tools/gis/territorial-library.js';
-import {factorTerritorialSourceGeometryStorage} from '../../../tools/data/territorial-source-migration.mjs';
 const entity=()=>({schemaVersion:2,entityId:'state:AAA',entityKind:'general',names:{en:'A'},lifetime:{validFrom:'1900-03-17',validTo:null},
  geometryVersions:[{versionId:'first',geometry:{type:'Polygon',coordinates:[[[0,0],[1.1234567890123457,0],[1,1],[0,0]]]},validFrom:null,validTo:null,sourceId:'original'}]});
-test('explicit authoring conversion proves every ordered source and deduplicates coordinates across objects',()=>{
+test('source codec preserves ordered documents and shares identical coordinate bytes',()=>{
  const a=entity(),b=entity();b.entityId='state:BBB';
- const sources=new Map([['countries/state-AAA.json',Buffer.from(JSON.stringify(a))],['countries/state-BBB.json',Buffer.from(JSON.stringify(b))]]);
- const result=factorTerritorialSourceGeometryStorage(sources);
- assert.equal(result.verification.entities,2);assert.equal(result.verification.geometryPayloads,1);assert.equal(result.verification.exactOrderedDocuments,true);
- for(const value of [a,b])assert.equal(JSON.stringify(decodeTerritorialSource(JSON.parse(result.files.get('countries/'+value.entityId.replace(':','-')+'.json')),p=>result.files.get(p))),JSON.stringify(value));
- assert.equal(JSON.parse(sources.get('countries/state-AAA.json')).storageLayout,undefined);
- const wrong=new Map(sources);wrong.set('countries/state-AAA.json',Buffer.from(JSON.stringify({...a,entityId:'state:WRONG'})));
- assert.throws(()=>factorTerritorialSourceGeometryStorage(wrong),/identity/);
+ const encoded=[a,b].map(encodeTerritorialSource);
+ assert.equal(encoded[0].geometries.size,1);
+ assert.deepEqual([...encoded[0].geometries],[...encoded[1].geometries]);
+ for(const [i,source] of [a,b].entries()){
+  assert.equal(JSON.stringify(decodeTerritorialSource(encoded[i].descriptor,p=>encoded[i].geometries.get(p))),JSON.stringify(source));
+  assert.equal(source.storageLayout,undefined);
+ }
+ const broken=structuredClone(encoded[0].descriptor);broken.entityId='state:WRONG';
+ assert.throws(()=>decodeTerritorialSource(broken,p=>encoded[0].geometries.get(p)),/identity/);
 });
 test('source descriptors separate exact coordinates and logical versions from shared content identity',()=>{
  const value=entity(),before=structuredClone(value),a=encodeTerritorialSource(value);

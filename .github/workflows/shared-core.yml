@@ -67,7 +67,7 @@ on:
       scope:
         description: Focused shared calculation verification
         type: choice
-        options: [all, p6-polygon, p6-calculations, geometry, geometry-wasm, core-artifact, temporal, temporal-source, temporal-candidate, temporal-transport, temporal-parity, native-core, native-gis, native-all]
+        options: [all, calculation-contracts, geometry, geometry-wasm, core-artifact, temporal, temporal-source, temporal-candidate, temporal-transport, temporal-parity, native-core, native-gis, native-all]
         default: all
 permissions:
   contents: read
@@ -273,33 +273,18 @@ jobs:
             assets/wasm/pandoeditor-core.manifest.json
           if-no-files-found: error
           retention-days: 14
-  p6-polygon:
-    if: github.event_name == 'workflow_dispatch' && (inputs.scope == 'p6-polygon' || inputs.scope == 'p6-calculations')
+  calculation-contracts:
+    if: github.event_name == 'workflow_dispatch' && inputs.scope == 'calculation-contracts'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
-      - name: Prepare pinned external library data
-        uses: ./.github/actions/library-data
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
-      - name: Compile native polygon kernel and current contract probe
-        id: compile
-        run: |
-          cmake -S tools/build/native -B build-native/p6-core -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
-          cmake --build build-native/p6-core --target polygon_clipping_probe cut_geometry_probe reference_image_core_tests river_partition_probe --parallel 2
-      - name: Compare pinned polygon behavior
-        run: |
-          node tools/p6-polygon-parity.mjs build-native/p6-core/tests/polygon_clipping_probe
-      - name: Compare frozen cut behavior
-        run: node tools/p6-cut-parity.mjs build-native/p6-core/tests/cut_geometry_probe
-      - name: Compare frozen river behavior
-        if: (success() || failure()) && steps.compile.outcome == 'success'
-        run: node tests/native/geometry/river-partition-parity.mjs build-native/p6-core/tests/river_partition_probe
-      - name: Compare frozen reference behavior
-        if: (success() || failure()) && steps.compile.outcome == 'success'
-        run: ctest --test-dir build-native/p6-core -R '^reference_image_core_tests$' --output-on-failure
+      - run: cmake -S tools/build/native -B build-native/geometry-core -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
+      - run: cmake --build build-native/geometry-core --target calculation_driver --parallel 2
+      - run: ctest --test-dir build-native/geometry-core -R '^calculation_contracts$' --no-tests=error --output-on-failure
   contracts:
     if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'push' && github.ref == 'refs/heads/work/optimization' && contains(github.event.head_commit.message, '[pando-full-verify]')) || (github.event_name == 'workflow_dispatch' && inputs.scope == 'all')
     runs-on: ubuntu-24.04
@@ -548,7 +533,7 @@ jobs:
       - name: Actual native-backed WASM source, candidate, discard, rollback and buffer isolation
         env:
           PANDOEDITOR_WASM_MODULE: build-native/p5-5/wasm/pandoeditor-core.js
-        run: node --test tests/native/document/temporal-transport-p5-5.test.mjs
+        run: node --test tests/native/document/temporal-worker-transport.test.mjs
   equivalence:
     if: github.event_name == 'workflow_dispatch' && inputs.scope == 'temporal-parity'
     runs-on: ubuntu-24.04
@@ -563,20 +548,19 @@ jobs:
       - name: Compile only the native Core and parity probe
         shell: bash
         run: |
-          cmake -S tools/build/native -B build-native/core -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF
-          cmake --build build-native/core --target pandoeditor_core --parallel 2
-          c++ -std=c++17 -O2 -Isrc/document/native/include -Isrc/geometry/native/include -Isrc/map/native/include -Isrc/rendering/native/include -Isrc/data/native/include -Isrc/runtime/native/include tests/native/temporal-parity-probe.cpp build-native/core/core/libpandoeditor_core.a -lz -o build-native/core/temporal-parity-probe
+          cmake -S tools/build/native -B build-native/core -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
+          cmake --build build-native/core --target document_session_driver --parallel 2
       - name: Verify committed JS and WASM against this exact C++ source
         run: node tools/build/package-shared-core-assets.mjs --build-dir assets/wasm --check
       - name: Identical fixed inputs, actual native and WASM results, failure and rollback
-        run: node --test tests/native/temporal-parity-p5-7.test.mjs
+        run: node --test tests/native/document/temporal-transport-equivalence.test.mjs
       - name: Focused Worker cancellation and late acknowledgement contracts
         run: node --test tests/unit/document/core-document-client.test.mjs tests/unit/document/core-document-runtime.test.mjs
       - name: Retain bounded evidence even when a gate fails
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: core-temporal-p5-7-${{ github.sha }}
-          path: test-results/temporal-p5-7/
+          name: core-temporal-transport-${{ github.sha }}
+          path: test-results/temporal-transport/
           if-no-files-found: warn
           retention-days: 14

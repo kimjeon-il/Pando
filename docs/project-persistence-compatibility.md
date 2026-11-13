@@ -24,7 +24,7 @@
 
 ## P6 당시 최소 회귀 검증 기준
 
-- `tests/unit/data/p6-project-persistence.test.mjs`: 정본 버전·문서 ID·출처 일치, 국기 sidecar 무손실/충돌 거부, IndexedDB 문서별 격리.
+- `tests/unit/data/project-persistence.test.mjs`: 정본 버전·문서 ID·출처 일치, 국기 sidecar 무손실/충돌 거부, IndexedDB 문서별 격리.
 - `tests/unit/core-gpkg-file-boundary.test.mjs`: 정적·복합 타임라인 C++ export → 실제 GPKG → import 후 정본 전체 일치.
 - `tests/unit/project-opening.test.mjs`, `tests/unit/document/project-lifecycle.test.mjs`, `tests/unit/document/core-project-file-save-wasm.test.mjs`: 교체 실패 원자성, 저장 중 최신 편집 보호.
 - `tests/unit/project-serializer.test.mjs`: full/delta archive 및 원본 fingerprint 계약. 모든 검증은 관련 범위에 한정하며 전체 GIS·전체 프로젝트 검사는 별도 승인 범위다.
