@@ -92,3 +92,27 @@ test('Canvas respects sparse coverage edges but never feathers an uploaded natur
   assert.throws(()=>core.createInterpolatedSampler({...params,
     naturalSurface:{...base.naturalSurface,fadeEdges:[1,2,0,0]}}),/edge flags/);
 });
+
+
+test('single-owner top-left raster edges prevent overlapping triangle pixels and fill every pixel',()=>{
+  const quad=[
+    {src:[[0,0],[2,0],[0,2]],dst:[[0,0],[8,0],[0,8]]},
+    {src:[[2,0],[2,2],[0,2]],dst:[[8,0],[8,8],[0,8]]},
+  ];
+  const count=new Uint8Array(64);
+  for(const {src,dst} of quad)
+    for(const block of api()({sample:(_x,_y,out,offset)=>out.set([17,61,93,255],offset),
+      source:src,destination:dst,viewportWidth:8,viewportHeight:8,blockRows:4}))
+      for(let y=0;y<block.height;y++)for(let x=0;x<block.width;x++){
+        if(!block.rgba[(y*block.width+x)*4+3])continue;
+        count[(y+block.y)*8+x+block.x]++;
+      }
+  assert.ok(count.every(value=>value===1),'one shared triangle must own each diagonal edge pixel');
+  for(const {src,dst} of quad){
+    const forward=[...api()({sample:()=>{},source:src,destination:dst,viewportWidth:8,viewportHeight:8})];
+    const reversed=[...api()({sample:()=>{},source:[...src].reverse(),destination:[...dst].reverse(),
+      viewportWidth:8,viewportHeight:8})];
+    assert.deepEqual(forward.map(block=>block.pixels),reversed.map(block=>block.pixels),
+      'winding direction must not create cracks or double-painted pixels');
+  }
+});
