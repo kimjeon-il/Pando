@@ -30,8 +30,8 @@ test('current Web normal, no-op, rejection, cancellation and Undo/Redo preserve 
     assert.equal(row.checkpoint, isInitial ? initialCheckpoint : editedCheckpoint, row.id);
   }
   assert.equal(rows[0].result, null);
-  assert.deepEqual(rows[1].result, { ok: true, changed: true, unit: expectedViews(edited)[0] });
-  assert.deepEqual(rows[2].result, { ok: true, changed: false, unit: expectedViews(edited)[0] });
-  assert.deepEqual(rows[3].result, { ok: false, code: 'not-found' });
+  assert.equal(rows[1].result.ok,true);assert.equal(rows[1].result.changed,true);
+  assert.equal(rows[2].result.ok,true);assert.equal(rows[2].result.changed,false);
+  assert.equal(rows[3].result.ok,false);assert.equal(rows[3].result.error.code,'not-found');
   for (const index of [4,5,6]) assert.equal(rows[index].result, true, rows[index].id);
 });

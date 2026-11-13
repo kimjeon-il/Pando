@@ -85,4 +85,3 @@ test('entity delta replaces removes and adds both kinds against a matching base 
   assert.throws(()=>restoreEntitiesFromDelta({...project,entityDelta:{changed:[],removedIds:['A']}},{base,baseDataset:'base',baseDatasetFingerprint:'1'.repeat(64)}));
   assert.throws(()=>restoreEntitiesFromDelta(project,{base,baseDataset:'different'}),{code:'PL-SCHEMA-BASE'});
 });
-

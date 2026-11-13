@@ -4,11 +4,12 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { resolve, join, relative, isAbsolute } from 'node:path';
 import test from 'node:test';
-import { createGisCoreFixture } from "../../helpers/gis-core-fixture.mjs";
+import {createNodeCoreProject} from "../../helpers/core-project.mjs";
+import {startupDocument} from "../../helpers/core-startup.mjs";
+import {normalizeGenericFeatureSemantics} from "../../../src/document/generic-feature-normalization.js";
 import { qgisFixture as original } from "../../fixtures/qgis/pando.mjs";
-import { validateGeometry } from "../../../src/geometry/geometry-validation.js";
 
-test('QGIS JSON fields reach the actual Core with atomic Undo and preserved source geometry', async () => {
+test('QGIS JSON fields reach the actual Core with atomic Undo and preserved source geometry', async t => {
   const foreign = structuredClone(original);
   for (const feature of foreign.features) feature.properties.source = JSON.stringify(feature.properties.source);
   const folder = mkdtempSync(join(tmpdir(), 'pando-qgis-test-'));
@@ -18,9 +19,11 @@ test('QGIS JSON fields reach the actual Core with atomic Undo and preserved sour
     execFileSync(process.execPath, ['tools/qgis/normalize.mjs', input, '--output', output], { stdio: 'pipe' });
     const collection = JSON.parse(readFileSync(output));
     let count = 0;
-    const f = await createGisCoreFixture([], { runtime: { validateStructuredGeometry: validateGeometry,
-      uid: () => `00000000-0000-4000-8000-${String(++count).padStart(12, '0')}` } });
-    await f.committer.importGeoJson({ name: 'qgis.geojson' }, { parsed: collection, target: 'generic' });
+    const f=await createNodeCoreProject(startupDocument());
+    t.after(()=>f.dispose());
+    const features=collection.features.map(feature=>normalizeGenericFeatureSemantics({...feature,id:'00000000-0000-4000-8000-'+String(++count).padStart(12,'0')}));
+    const ack=await f.project.executeCommand({commandId:'generic.import',targets:features.map(({id})=>({domain:'generic',id})),payload:{features}});
+    assert.equal(ack.ok,true,JSON.stringify(ack.error));
     const imported = f.documentModel.list('generic');
     assert.equal(imported.length, 2);
     for (let i = 0; i < imported.length; i++) {

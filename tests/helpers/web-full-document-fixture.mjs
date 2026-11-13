@@ -1,16 +1,13 @@
 import { createNodeCoreProject } from './core-project.mjs';
 import { createTerritorialEntityStore } from "../../src/document/territorial-entity-store.js";
 import { createTerritorialEntityRepository } from "../../src/document/territorial-entity-repository.js";
-import { createTerritorialApplicationService } from './core-command-services/territorial-service.mjs';
 
 /** Current Web service graph backed by the actual C++ document Worker. */
 export async function createCurrentFullDocumentFixture(input) {
   const owner = await createNodeCoreProject(input);
   const store = createTerritorialEntityStore({ documentModel: owner.documentModel, commandOwner: owner.client });
   const repository = createTerritorialEntityRepository({ entityStore: store });
-  const service = createTerritorialApplicationService({ entityRepository: repository, commandOwner: owner.project,
-    createId: () => { throw new Error('This scenario must not generate IDs'); } });
-  return { ...owner, store, repository, service,
+  return { ...owner, store, repository,
     fullSnapshot: () => structuredClone(owner.documentModel.snapshot()),
     dispose() { try { store.dispose(); } finally { owner.dispose(); } } };
 }
