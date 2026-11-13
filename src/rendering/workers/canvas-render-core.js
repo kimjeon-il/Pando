@@ -223,18 +223,17 @@ function canvasFallbackWorkerMain(self) {
       const pixels = await readRgba(blob);
       if (pixels.width !== spec.pixelWidth + 2 || pixels.height !== spec.pixelHeight + 2)
         throw new Error(`DEM 타일 크기가 올바르지 않습니다: ${spec.key}`);
-      // The decoded RGBA8 DEM is held once per cached tile so switching the
-      // presentation palette never downloads the source tile a second time.
+      // Every new DEM tile takes the active destination-pixel numerical path.
+      // Keeping three eager precoloured bitmaps would add 12B/texel and an
+      // unused full-tile palette conversion before the *first* frame. Retain
+      // the exact original RGBA8 source (4B/texel); resolve light/dark PCHIP
+      // colour at the final sample. Legacy bitmap theme caches remain available
+      // for explicitly staged nonnumerical tiles and are not invalidated.
       const raw = pixels.data, theme = lastRenderMessage?.darkTheme ? 'dark' : 'light';
-      const converted = self.PandoLabCanvasTerrainDem.convertTile({
-        dem: raw, width: pixels.width, height: pixels.height, theme,
-      });
       return {
-        land: demPlaneBitmap(converted.land, pixels.width, pixels.height),
-        ocean: demPlaneBitmap(converted.ocean, pixels.width, pixels.height),
-        political: demPlaneBitmap(converted.political, pixels.width, pixels.height),
+        land: null, ocean: null, political: null,
         raw, theme, width: pixels.width, height: pixels.height,
-        bytes: pixels.width * pixels.height * (self.PandoLabCanvasTerrainDem.convertedBytesPerPixel + 4),
+        bytes: raw.byteLength,
       };
     }
 
@@ -288,7 +287,7 @@ function canvasFallbackWorkerMain(self) {
           .then(blob => prepareDemBitmap(blob, spec))
           .then(tile => {
             if (controller.signal.aborted) {
-              tile.land.close(); tile.ocean.close(); tile.political.close();
+              closeDemTile(tile);
               return;
             }
             demFailures.delete(spec.key);
