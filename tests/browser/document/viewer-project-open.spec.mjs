@@ -115,12 +115,19 @@ test('viewer opens the real editor GeoPackage and keeps it through invalid files
     const api = window.__PANDOLAB_VIEWER__;
     const old = new File([new Uint8Array(earlier)], 'earlier.gpkg');
     const originalRead = old.arrayBuffer.bind(old);
-    let release;
-    old.arrayBuffer = () => new Promise(resolve => { release = () => originalRead().then(resolve); });
+    let release, admittedRead;
+    const readStarted = new Promise(resolve => { admittedRead = resolve; });
+    old.arrayBuffer = () => new Promise(resolve => {
+      release = () => originalRead().then(resolve);
+      admittedRead();
+    });
     const pending = api.openFile(old);
-    await api.openFile(new File([new Uint8Array(newer)], 'latest.gpkg'));
-    await release();
-    await pending;
+    await readStarted;
+    const next = api.openFile(new File([new Uint8Array(newer)], 'latest.gpkg'));
+    // Do not deadlock a serialized file-open pipeline by awaiting the second
+    // open while deliberately holding the first file's reader unresolved.
+    release();
+    await Promise.all([pending, next]);
   }, { earlier: [...first.bytes], newer: [...latest.bytes] });
   const final = await page.evaluate(() => ({ state: window.__PANDOLAB_VIEWER__.documentState(), project: window.__PANDOLAB_VIEWER__.documentSnapshot() }));
   expect(final.project.territorialEntities[0].properties.name).toBe('마지막 파일 지도');
