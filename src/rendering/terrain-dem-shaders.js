@@ -10,6 +10,7 @@ export function terrainDemFragmentSource(glVersion) {
     uniform sampler2D uTerrain;
     uniform sampler2D uNaturalSurface;
     uniform float uNaturalWeight;
+    uniform vec4 uNaturalFadeEdges; // west, east, north, south; 1 only for missing neighbouring data
     uniform vec2 uTextureSize;
     uniform int uMode;
     uniform float uPhysicalStyle;
@@ -55,7 +56,17 @@ export function terrainDemFragmentSource(glVersion) {
           float shade=clamp(flatShade+((0.27+0.73*illumination)-flatShade)*1.3,0.16,1.0);
           float factor=clamp(shade/flatShade,0.38,1.3);
           vec3 surface=surfaceSum/surfaceCoverage*mix(1.0,0.72,uDarkTheme);
-          color=mix(color,surface*factor,clamp(uNaturalWeight,0.0,1.0)*surfaceCoverage);
+          // One 64-source-pixel feather is used only where the adjacent
+          // natural-color tile is absent; neighbouring present tiles never
+          // acquire internal seams or additional smoothing.
+          vec2 location=clamp(vUv*uTextureSize-vec2(1.0),vec2(0.0),uTextureSize-vec2(2.0));
+          vec2 extent=uTextureSize-vec2(2.0);
+          float edgeWeight=1.0;
+          edgeWeight*=mix(1.0,smoothstep(0.0,64.0,location.x),uNaturalFadeEdges.x);
+          edgeWeight*=mix(1.0,smoothstep(0.0,64.0,extent.x-location.x),uNaturalFadeEdges.y);
+          edgeWeight*=mix(1.0,smoothstep(0.0,64.0,location.y),uNaturalFadeEdges.z);
+          edgeWeight*=mix(1.0,smoothstep(0.0,64.0,extent.y-location.y),uNaturalFadeEdges.w);
+          color=mix(color,surface*factor,clamp(uNaturalWeight,0.0,1.0)*surfaceCoverage*edgeWeight);
         }
       }
       // The legacy monochrome/political presentation keeps its existing dark adjustment.
