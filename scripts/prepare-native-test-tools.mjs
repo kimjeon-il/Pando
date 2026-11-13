@@ -1,7 +1,7 @@
 import {spawnSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
-import {appendFileSync,existsSync,lstatSync,mkdirSync,readFileSync,statfsSync,writeFileSync} from 'node:fs';
-import {dirname,join,resolve} from 'node:path';
+import {appendFileSync,existsSync,lstatSync,mkdirSync,readFileSync,statfsSync} from 'node:fs';
+import {dirname,resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {nativeTestRecipe,nativeTestRecipes} from './lib/native-test-prerequisites.mjs';
 import {verifyNativeTool} from "../tools/build/native-tool.mjs";
@@ -26,35 +26,8 @@ function requireCapacity(root,additionalBytes) {
   const disk=statfsSync(root,{bigint:true}),available=disk.bavail*disk.bsize;
   if(available<BigInt(additionalBytes+5*1024**3))throw Error('Selected native preparation needs '+additionalBytes+' additional bytes plus 5 GiB headroom');
 }
-async function pinnedNativeInput(root,path,expectedSha) {
-  const {extractArchived}=await import('../tools/gis/verify-german-1914-originals.mjs');
-  const config=JSON.parse(readFileSync(resolve(root,'config/library-data.json'),'utf8'));
-  if(!/^[\w-]+\/[\w.-]+$/.test(config.repository)||!/^[a-f0-9]{40}$/.test(config.revision))throw Error('Invalid pinned library configuration');
-  const get=async path=>{
-    const response=await fetch('https://raw.githubusercontent.com/'+config.repository+'/'+config.revision+'/'+path,{signal:AbortSignal.timeout(120000)});
-    if(!response.ok)throw Error('Pinned native test source HTTP '+response.status);
-    if(Number(response.headers.get('content-length')||0)>32*1024**2)throw Error('Pinned native test source exceeds its archive budget');
-    const bytes=Buffer.from(await response.arrayBuffer());if(bytes.length>32*1024**2)throw Error('Pinned native test source exceeds its archive budget');
-    return bytes;
-  };
-  const index=JSON.parse((await get('archive/index.json')).toString('utf8')),entry=index.files?.[path];
-  if(entry?.sha256!==expectedSha||!(entry.stored===path||/^archive\/blobs\/[a-f0-9]{64}\.(?:gz|bin)$/.test(entry.stored)))throw Error('Pinned native test source differs: '+path);
-  return {...extractArchived(index,path,await get(entry.stored)),revision:config.revision};
-}
-async function preservePinnedNativeInput(root,path,expectedSha,destination) {
-  if(existsSync(destination)) {
-    regular(destination);if(hash(destination)!==expectedSha)throw Error('Existing native test source differs: '+destination);
-    return {sha256:expectedSha,reused:true};
-  }
-  const prepared=resolve(root,path);
-  let source;
-  if(existsSync(prepared)) {
-    regular(prepared);if(hash(prepared)!==expectedSha)throw Error('Prepared native test source differs: '+path);
-    const bytes=readFileSync(prepared);source={bytes,sha256:expectedSha,decodedBytes:bytes.length};
-  } else source=await pinnedNativeInput(root,path,expectedSha);
-  mkdirSync(dirname(destination),{recursive:true});writeFileSync(destination,source.bytes,{flag:'wx'});
-  return {revision:source.revision,sha256:source.sha256,bytes:source.decodedBytes};
-}
+
+
 export async function nativeTestCapacity(ids,{root=process.cwd(),environment=process.env,platform=process.platform,architecture=process.arch,probe=argv=>spawnSync(argv[0],argv.slice(1),
   {cwd:root,encoding:'utf8',timeout:10000})}={}) {
   if(!Array.isArray(ids)||ids.some(id=>typeof id!=='string'))throw Error('Registered native prerequisite IDs must be an array');
@@ -63,11 +36,7 @@ export async function nativeTestCapacity(ids,{root=process.cwd(),environment=pro
   if(ids.length)assertRemoteOnlyNativePreparation({root,environment});
   for(const id of ids)nativeTestRecipe(id,{platform,architecture});
   let additionalBytes=0,recipeEnvironment=false;
-  if(ids.includes('territorial-recipe')) {
-    const result=probe([process.env.MAMBA_EXE||'micromamba','run','-n','pando-territorial-recipe','pkg-config','--modversion','geos','proj']);
-    recipeEnvironment=result.status!==0||Boolean(result.error)||result.stdout.trim()!=='3.13.1\n9.5.1';
-    if(recipeEnvironment)additionalBytes+=2*1024**3;
-  }
+
   const gdalEnvironment=ids.includes('terrain-dem-fill')||ids.includes('terrain-dem-tint');
   if(gdalEnvironment) {
     const result=probe([process.env.MAMBA_EXE||'micromamba','run','-n','pando-dem-gdal','gdal-config','--version']);
@@ -97,27 +66,8 @@ export async function prepareNativeTestTool(id,{root=process.cwd(),run=(argv)=>{
   const recipe=nativeTestRecipe(id,{platform,architecture});
   const invoke=argv=>run(argv.map(arg=>arg.replaceAll('{root}',root)));
   const checkRuntime=runtime=>checkedRuntime(root,runtime);
-  if(recipe.data==='german-natural-earth') {
-    const {APPROVED_NE_SHA,PATHS}=await import('../tools/gis/verify-german-1914-originals.mjs');
-    const destination=resolve(root,'build-native/german-base/canonical-ne.json');
-    return {id,status:'prepared',...await preservePinnedNativeInput(root,PATHS.naturalEarth,APPROVED_NE_SHA,destination)};
-  }
-  if(recipe.data==='caspian-oracle') {
-    const {ARCHIVE_SHA,MEMBER_SHA}=await import('../tools/gis/verify-approved-caspian-network.mjs');
-    const {generateApprovedCaspianDisplay}=await import('../tools/gis/generalize-approved-caspian-display.mjs');
-    const oracle=JSON.parse(readFileSync(resolve(root,'tests/fixtures/gis-caspian-1922-native-baseline.json'),'utf8'));
-    if(oracle.sourceArchiveSha256!==ARCHIVE_SHA||oracle.sourceNetworkSha256!==MEMBER_SHA)throw Error('Caspian oracle source identity differs');
-    const zip=resolve(root,'build-native/historical/approved-caspian-1922.zip');
-    const source=await preservePinnedNativeInput(root,'tools/historical-library/sources/ussr-1922-approved/caspian-shoreline-completed-candidate-20261024.zip',ARCHIVE_SHA,zip);
-    const output=resolve(root,'build-native/historical/caspian-1922-native-candidate.json');
-    // Always execute the current native owner. A prior output alone does not
-    // verify this source; it is retained only when the fresh computation agrees.
-    const receipt=await generateApprovedCaspianDisplay(zip,{binary:resolve(root,'build-native/territorial-recipe/pando-territorial-recipe'),
-      output:existsSync(output)?null:output});
-    if(receipt.original.waterMemberSha256!==oracle.sourceWaterMemberSha256||hash(output)!==receipt.derivedSha256)
-      throw Error('Current native Caspian oracle input or retained output differs');
-    return {id,status:'prepared',source,receipt,scope:'ignored test fixture only; runtime and archive unchanged'};
-  }
+
+
   if(recipe.sdk) {
     const sdk=recipe.sdk,archive=resolve(root,sdk.archive),destination=resolve(root,sdk.destination);
     if(await sdkReady(root,sdk))return {id,status:'reused',sdkSha256:sdk.sha256};
