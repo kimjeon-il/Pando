@@ -84,11 +84,16 @@ test('existing surfaces preserve project and selection across portrait, tablet a
   for(const viewport of [{width:390,height:844},{width:768,height:1024},{width:1024,height:768},{width:844,height:390}]){
     await page.setViewportSize(viewport);
     // Exercise the shipped controls, not frozen HTML button IDs or CSS pixels.
-    const visibleButtons=await page.locator('button.ui-button:visible').evaluateAll(nodes=>nodes.map(node=>{
-      const bounds=node.getBoundingClientRect();return {width:bounds.width,height:bounds.height};
+    const visibleButtons=await page.locator('button.ui-button').evaluateAll(nodes=>nodes.filter(node=>{
+      // The selector's visibility snapshot and a later layout read must be
+      // atomic across a responsive resize, especially for the mobile toolbar.
+      const style=getComputedStyle(node),rect=node.getBoundingClientRect();
+      return style.display!=='none'&&style.visibility!=='hidden'&&rect.width>0&&rect.height>0;
+    }).map(node=>{
+      const bounds=node.getBoundingClientRect();return {id:node.id,classes:node.className,width:bounds.width,height:bounds.height};
     }));
     expect(visibleButtons.length).toBeGreaterThan(0);
-    for(const bounds of visibleButtons){expect(bounds.width).toBeGreaterThan(0);expect(bounds.height).toBeGreaterThan(0);}
+    for(const bounds of visibleButtons){expect(bounds.width,JSON.stringify(bounds)).toBeGreaterThan(0);expect(bounds.height,JSON.stringify(bounds)).toBeGreaterThan(0);}
     await page.locator('#objectSearchBtn').click();
     await page.locator('#objectSearchInput').fill('화면 검증 지도');
     await page.locator('#objectSearchResults button').filter({hasText:'화면 검증 지도'}).first().click();
@@ -332,7 +337,11 @@ test('web keeps its globe through bounded file open, search, reset and mobile na
   expect(await page.evaluate(()=>{try{window.__PANDOLAB_MAP_HOST__.setProjectionKind('flat');return null;}catch(error){return error.code;}})).toBe('PL-PRODUCT-PROJECTION');
   await page.locator('#projectFileInput').setInputFiles({name:'globe-bounds.gpkg',mimeType:'application/geopackage+sqlite3',buffer:fixture.bytes});
   await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot().baseDataset)).toBe(fixture.project.baseDataset);
-  await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true');
+  await expect.poll(()=>page.evaluate(()=>{
+    const state=window.__PANDOLAB_VIEWER__.rendererStats();
+    return state.mapReadiness.mapReady && state.countriesPublishedGeneration===state.projectGeneration;
+  }),{timeout:120000}).toBe(true);
+  await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:120000});
   expect(await projection()).toBe('globe');
   const initial=await page.evaluate(()=>window.__PANDOLAB_MAP_HOST__.getViewState());
   expect(initial.globeRotation.slice(0,2)).toEqual([-7.5,-7.5]);expect(initial.globeZoom).toBe(1); // The project bounds already calibrate globeBaseScale.

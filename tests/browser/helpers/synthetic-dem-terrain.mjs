@@ -1,6 +1,6 @@
 import {deflateSync} from 'node:zlib';
 import {createHash} from 'node:crypto';
-import {readFileSync} from 'node:fs';
+import {readLibraryDataFile} from '../../../tools/data/library-context.mjs';
 import {TERRAIN_DEM_VERSION} from "../../../src/data/terrain-manifest.js";
 
 const crc32=bytes=>{
@@ -22,7 +22,16 @@ function solidPng(width,height){
   return Buffer.concat([Buffer.from([137,80,78,71,13,10,26,10]),chunk('IHDR',header),chunk('IDAT',deflateSync(raw)),chunk('IEND',Buffer.alloc(0))]);
 }
 
-const pinnedRevision = JSON.parse(readFileSync(new URL('../../../config/library-data.json',import.meta.url),'utf8')).revision;
+// A library archive pin and the DEM source archive pin are distinct. Use
+// the original DEM revision declared by the immutable, pinned catalog, matching
+// the production Viewer build metadata instead of the library's archive SHA.
+const terrainSourceRevision = () => {
+  const catalog=JSON.parse(readLibraryDataFile(`assets/data/terrain/v${TERRAIN_DEM_VERSION}/manifest.json`));
+  const revision=catalog?.packaging?.sourceRevision;
+  if(catalog.version!==TERRAIN_DEM_VERSION || !/^[a-f0-9]{40}$/.test(revision||''))
+    throw Error('Pinned synthetic DEM source identity unavailable');
+  return revision;
+};
 const syntheticPngCache = new Map();
 const syntheticPng = (width,height) => {
   const key = width + 'x' + height;
@@ -56,7 +65,7 @@ export function syntheticDemManifest(){
     tint:{url:`terrain/v${TERRAIN_DEM_VERSION}/tint.webp`,width:4,height:2},
     assetsSha256:'a'.repeat(64),sources:[],
     urlTemplate:`terrain/v${TERRAIN_DEM_VERSION}/{level}/{column}-{row}.webp`,
-    levels,tileSha256,tiles,packaging:{sourceRevision:pinnedRevision,sourcePath:`terrain/v${TERRAIN_DEM_VERSION}/manifest.json`}};
+    levels,tileSha256,tiles,packaging:{sourceRevision:terrainSourceRevision(),sourcePath:`terrain/v${TERRAIN_DEM_VERSION}/manifest.json`}};
 };
 
 export async function routeSyntheticDem(surface){

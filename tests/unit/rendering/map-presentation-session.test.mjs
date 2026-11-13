@@ -74,6 +74,21 @@ test('project replacement rejects old waiters and cannot admit superseded work',
   await assert.rejects(h.session.waitForMapPresentation(1), { name: 'AbortError' });
 });
 
+test('a failed boundary Worker rejects the dated frame waiter so Core rollback can proceed', async () => {
+  const h = harness();
+  const token = h.session.beginTemporalViewTransition();
+  h.session.admitTemporalViewTransition(token);
+  const waiting = h.session.waitForMapPresentation(1);
+  const rejected = assert.rejects(waiting, /boundary Worker failed/);
+  assert.equal(h.session.pendingMapWaiterCount, 1);
+  h.session.failTemporalPresentation(new Error('boundary Worker failed'));
+  await rejected;
+  assert.equal(h.session.pendingMapWaiterCount, 0);
+  assert.equal(h.session.canPresentVisualFrame({ projectGeneration: 1, frameId: 8 }), false);
+  h.session.finishTemporalViewTransition(token);
+  assert.equal(h.session.temporalPending(), false);
+});
+
 test('failed or stale temporal tickets never publish', () => {
   const h = harness();
   const token = h.session.beginTemporalViewTransition();

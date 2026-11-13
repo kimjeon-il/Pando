@@ -35,8 +35,9 @@ test('dynamic country LOD never publishes an obsolete viewport or replaces canon
   const applyView = async (longitude, zoom) => page.evaluate(({ longitude, zoom }) => {
     const host = globalThis.__PANDOLAB_MAP_HOST__;
     host.setViewState({
-      projection: 'flat', view: {
-        flatCenter: [longitude, 30], flatZoom: zoom,
+      projection: 'globe', view: {
+        flatCenter: host.getViewState().flatCenter,
+        flatZoom: host.getViewState().flatZoom,
         globeRotation: [-longitude, -30, 0], globeZoom: zoom,
       },
     });

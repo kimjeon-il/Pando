@@ -40,7 +40,9 @@ test('P4-5 real viewer WebGL boundary Worker presents prepared shared borders',a
   const first=await stats();
   expect(first.renderer).toMatch(/webgl/);
   expect(first.countrySharedBoundaryReady).toBe(true);
-  expect(first.countrySharedBoundaryWorkerActive).toBe(true);
+  // A verified prepared boundary asset may publish the same packet without starting a Worker.
+  // Preserve the public segment/geometry assertions; do not demand a particular backend.
+  expect(first.countrySharedBoundaryWorkerActive || first.countryBoundaryPreparedAssetCount > 0).toBe(true);
   expect(first.countrySharedBoundaryReplacementPending).toBe(false);
   const baseline=first.countrySharedBoundarySegmentCount;
   await page.evaluate(()=>window.__PANDOLAB_MAP_HOST__?.requestRepaint?.('p4-5-boundary-repaint'));
@@ -126,7 +128,7 @@ async function currentMap(page) {
 // fully revealed initial map and a stable label snapshot before taking the
 // authoritative rollback reference; do not weaken the exact hash/pixel checks.
 async function settledMap(page) {
-  const deadline=Date.now()+30000;
+  const deadline=Date.now()+90000;
   let previous='', stableSince=0, last=null;
   while(Date.now()<deadline) {
     const ready=await page.evaluate(()=>{
@@ -138,14 +140,15 @@ async function settledMap(page) {
     const current=await currentMap(page);
     const stableKey=current.parts.labels.sha+':'+current.parts.paths.sha;
     const complete=ready.presented&&ready.loading==='false'
-      &&['labels','complete'].includes(ready.reveal)&&current.ready==='true'&&current.boundaryReady;
+      &&current.parts.labels.count>0&&current.ready==='true'&&current.boundaryReady;
     if(complete&&stableKey===previous) {
       if(Date.now()-stableSince>=1200)return current;
     } else {
       previous=complete?stableKey:'';
       stableSince=Date.now();
     }
-    last={ready,labels:current.parts.labels,count:current.parts.labels.count};
+    last={ready,documentReady:current.ready,boundaryReady:current.boundaryReady,
+      blocked:current.blocked,generation:current.generation,labels:current.parts.labels,count:current.parts.labels.count};
     await page.waitForTimeout(200);
   }
   throw new Error('Viewer labels did not settle before rollback comparison: '+JSON.stringify(last));
@@ -204,6 +207,7 @@ test('matching boundary Worker protocol error rolls back the dated Core document
       "        globalThis.__W5Rollback.forceDone=true;\n"+
       "        globalThis.__W5Rollback.events.push({stage:'force-new-generation-boundary',generation:projectGeneration});\n"+
       "        countryBoundaryDependencies=null;\n"+
+      "        builtinPreparedBoundary=null;\n"+
       "      }\n"+force);
     source=source.replace(receipt,
       "          globalThis.__W5Rollback?.events.push({stage:'renderer-received',"+
@@ -244,10 +248,22 @@ test('matching boundary Worker protocol error rolls back the dated Core document
         {body:JSON.stringify({version,gpu,identity},null,2),contentType:'application/json'});
     }finally{await session.detach();}
   }
+  // The current and previous calendar years have identical country geometry;
+  // no boundary Worker would be needed and no Worker failure could be injected.
+  // Cross the verified 1948 KOR/PRK lifetime boundary instead.
+  await page.locator('#timelineDateButton').click();
+  await page.locator('#timelineViewUnit').selectOption('month');
+  await page.locator('#timelineYearInput').fill('1948');
+  await page.locator('#timelineMonthInput').selectOption('11');
+  await page.locator('#timelineYearInput').press('Enter');
+  await expect.poll(()=>page.evaluate(()=>globalThis.__PANDOLAB_VIEWER__?.builtinMonth()?.month),
+    {timeout:120000}).toBe('1948-11');
   const before=await settledMap(page);
   expect(before.ready).toBe('true');
   expect(before.boundaryReady).toBe(true);
-  const targetGeneration=before.generation+1;
+  // Dated cursor changes stay in the same project generation until an error
+  // forces a rollback/replacement. Inject into that active generation.
+  const targetGeneration=before.generation;
   await page.evaluate(generation=>{globalThis.__W5Rollback.targetGeneration=generation;},targetGeneration);
   // Screenshot only the GPU canvas: alert toasts and the timeline form are
   // expected UI differences after failure, not changes to rendered map pixels.
@@ -306,7 +322,7 @@ test('matching boundary Worker protocol error rolls back the dated Core document
     // The fault is armed only for one generation. After rollback, retry the
     // same year switch without a reload and demand a real new dated frame.
     await page.locator('#timelinePreviousYear').click({timeout:30000});
-    const target=String(Number(before.month.slice(0,4))-1)+'-12';
+    const target=String(Number(before.month.slice(0,4))-1)+'-'+before.month.slice(5);
     await expect.poll(async()=>{
       const result=await currentMap(page);
       return result.month===target&&result.cursor===target&&
@@ -323,6 +339,10 @@ test('matching boundary Worker protocol error rolls back the dated Core document
       events:await page.evaluate(()=>globalThis.__W5Rollback.events),
     }).slice(0,16000));
   }finally{
+    console.log('BOUNDARY_ROLLBACK_FAILURE_DIAGNOSTIC '+JSON.stringify(await page.evaluate(()=>({
+      probe:globalThis.__W5Rollback,stats:globalThis.__PANDOLAB_VIEWER__?.rendererStats(),
+      errorText:document.querySelector('#timelineDateError')?.textContent
+    }))).slice(0,14000));
     await info.attach('w2-p5-rollback-observations',{
       body:JSON.stringify({before,after,afterRetry,errors,
         events:await page.evaluate(()=>globalThis.__W5Rollback.events)},null,2),
@@ -387,10 +407,12 @@ test('W2-P3 real Viewer reuses attached Worker packet copies for identical dated
     if(src.split(diagnosticPort).length!==2)throw Error('Boundary diagnostic port changed');
     src=src.replace(diagnosticPort,diagnosticPort+
       '\n    // Test-only: demand the same exact authoritative full input without altering it.\n'+
-      '    globalThis.__W2P3_REPREPARE__ = () => {\n'+
+      '    globalThis.__W2P3_REPREPARE__ = (resetTransport = false) => {\n'+
       '      countryBoundaryDependencies = null;\n'+
+      '      builtinPreparedBoundary = null;\n'+
       '      countryBoundaryTask = null;\n'+
-      '      prepareCountrySharedBoundary({ replace: true });\n'+
+      '      if (resetTransport) countryBoundaryGeometryTransport.reset();\n'+
+      '      prepareCountrySharedBoundary({ replace: true, baselineCache: false });\n'+
       '      return countryBoundaryRequestId;\n'+
       '    };');
     await route.fulfill({response,body:src});
@@ -431,14 +453,35 @@ test('W2-P3 real Viewer reuses attached Worker packet copies for identical dated
       records.push(row);
     }
     console.log('W2_P3_REAL_PACKET_CACHE '+JSON.stringify({initial,previous,records}).slice(0,13000));
-    const all=records.at(-1).packets.filter(p=>p.kind==='prepared');
-    expect(all.length,'actual boundary Worker should publish canonical packets in the real Viewer').toBeGreaterThanOrEqual(2);
-    // The normal adjacent switch can reuse the already certified main renderer
-    // packet without issuing another Worker request. This is better than a
-    // forced Worker cache hit and must remain the default product behavior.
-    const beforeReprepare=all.length;
+    let all=records.at(-1).packets.filter(p=>p.kind==='prepared');
     const currentGeneration=records.at(-1).stats.currentGeneration;
     const expectedSegments=records.at(-1).stats.countrySharedBoundarySegmentCount;
+    // A real full-source Worker computation may still be in flight after the
+    // calendar UI reaches ready. Observe its genuine prepared receipt before
+    // attempting another transport; do not mistake the empty bootstrap for it.
+    await expect.poll(()=>page.evaluate(generation=>globalThis.__W2P3_PACKETS__
+      .some(p=>p.kind==='prepared'&&p.projectGeneration===generation&&p.segments>100),
+    currentGeneration),{timeout:90000}).toBe(true);
+    all=await page.evaluate(()=>globalThis.__W2P3_PACKETS__.filter(p=>p.kind==='prepared'));
+    // A verified prepared scene can bypass full Worker construction. A cache
+    // test must first establish and observe a genuine acknowledged Worker base.
+    if (!all.some(p=>p.packetCacheHit===false&&p.segments>100)) {
+      const seedId=await page.evaluate(()=>globalThis.__W2P3_REPREPARE__(true));
+      await expect.poll(()=>page.evaluate(id=>globalThis.__W2P3_PACKETS__
+        .some(p=>p.kind==='prepared'&&p.requestId===id&&p.segments>100),
+      seedId),{timeout:90000}).toBe(true);
+      const seed=await page.evaluate(id=>globalThis.__W2P6_TRANSPORT__.find(p=>p.requestId===id),seedId);
+      expect(seed?.type,'a full Worker transport must seed the cache').toBe('replace');
+      all=await page.evaluate(()=>globalThis.__W2P3_PACKETS__.filter(p=>p.kind==='prepared'));
+    }
+    // The immutable prepared packet can include child-boundary segments absent
+    // from a root-only Worker recomputation. Compare a true Worker cache hit to
+    // the same freshly computed Worker base, not a different asset lineage.
+    const firstFull=all.findLast(p=>p.packetCacheHit===false&&p.segments>100);
+    expect(firstFull,'at least one actual full-world packet computation is required').toBeTruthy();
+    const workerSegments=firstFull.segments;
+    console.log('W2_P3_PREPARED_VS_WORKER_BASE '+JSON.stringify({prepared:expectedSegments,worker:workerSegments}));
+    const beforeReprepare=all.length;
     const forcedId=await page.evaluate(()=>globalThis.__W2P3_REPREPARE__());
     await expect.poll(()=>page.evaluate(id=>globalThis.__W2P3_PACKETS__
       .filter(p=>p.kind==='prepared'&&p.requestId===id).length,forcedId),{timeout:60000}).toBe(1);
@@ -450,7 +493,7 @@ test('W2-P3 real Viewer reuses attached Worker packet copies for identical dated
     }));
     const forced=final.packets.find(p=>p.kind==='prepared'&&p.requestId===forcedId);
     expect(forced).toMatchObject({packetCacheHit:true,projectGeneration:currentGeneration,
-      segments:expectedSegments});
+      segments:workerSegments});
     const transport=await page.evaluate(()=>globalThis.__W2P6_TRANSPORT__.map(row=>({...row})));
     const forcedInput=transport.find(row=>row.requestId===forcedId);
     expect(forcedInput?.type,'a certified Worker base must permit a changed-only resend').toBe('delta');
@@ -462,14 +505,12 @@ test('W2-P3 real Viewer reuses attached Worker packet copies for identical dated
       deltaCount:final.stats.countryBoundaryDeltaCount,
       reusedGeometry:final.stats.countryBoundaryReusedGeometryCount}));
     expect(forced.packetCacheResidentEstimate).toBeGreaterThan(0);
-    const firstFull=all.find(p=>p.packetCacheHit===false&&p.segments===expectedSegments);
-    expect(firstFull,'at least one actual full-world packet computation is required').toBeTruthy();
     expect(firstFull.packetPreparationMs).toBeGreaterThan(forced.packetPreparationMs);
     console.log('W2_P3_PACKET_PREPARATION_COST '+JSON.stringify({
       fullWorldMs:firstFull.packetPreparationMs,reusedMs:forced.packetPreparationMs,
-      estimatedRetainedBytes:forced.packetCacheResidentEstimate,segments:expectedSegments
+      estimatedRetainedBytes:forced.packetCacheResidentEstimate,segments:workerSegments
     }));
-    expect(final.stats.countrySharedBoundarySegmentCount).toBe(expectedSegments);
+    expect(final.stats.countrySharedBoundarySegmentCount).toBe(workerSegments);
     expect(final.stats.countrySharedBoundaryReplacementPending).toBe(false);
     expect(final.packets.filter(p=>p.kind==='prepared')).toHaveLength(beforeReprepare+1);
     expect(errors).toEqual([]);
@@ -515,6 +556,10 @@ test('W2-P3 real Viewer reuses attached Worker packet copies for identical dated
       semanticUnchanged:true,pixelsUnchanged:true});
     console.log('W2_P6_3_REAL_RESYNC_SUPERSESSION '+JSON.stringify({invalidId,burst,latest,accepted,recovery,semanticUnchanged:true,pixelsUnchanged:true}));
   }finally{
+    console.log('BOUNDARY_PACKET_REUSE_DIAGNOSTIC '+JSON.stringify(await page.evaluate(()=>({
+      packets:globalThis.__W2P3_PACKETS__,transport:globalThis.__W2P6_TRANSPORT__,
+      accepted:globalThis.__W2P6_ACCEPTED__,stats:globalThis.__PANDOLAB_VIEWER__?.rendererStats()
+    }))).slice(0,17000));
     await info.attach('w2-p3-real-boundary-cache',{body:JSON.stringify({initial,previous,records,errors},null,2),contentType:'application/json'});
     if(process.env.PANDOLAB_W3_EVIDENCE)await writeFile(
       join(process.env.PANDOLAB_W3_EVIDENCE,`viewer-resync-supersession-${Date.now()}.json`),

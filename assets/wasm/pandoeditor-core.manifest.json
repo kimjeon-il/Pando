@@ -1,7 +1,7 @@
 {
   "schema": "pandoeditor-core-wasm",
   "abiVersion": 1,
-  "sourceSha256": "454d94c387f0c20ae317d02086fa1f8740c7f3077db4320b0ccc8e8fabf5fd57",
+  "sourceSha256": "143de23053991563d61b8c5e9b077f56a0a37768104d8d5ea98542b9e505a566",
   "compiler": {
     "name": "emscripten",
     "version": "6.0.3"
@@ -57,7 +57,7 @@
     },
     {
       "path": "src/data/native/src/projectcodec.cpp",
-      "sha256": "ba00ac3a8aa5d8931cdd35f1fef6a726ac3c922a202e9f7ea854bdfb9b9635d9"
+      "sha256": "913e1f5c0fc12834b1398e31c6885b872e5bc3f8ab5d3eed22028e3b89bfe95e"
     },
     {
       "path": "src/data/native/src/referenceimage.cpp",
@@ -81,7 +81,7 @@
     },
     {
       "path": "src/document/native/include/pandoeditor/commands.h",
-      "sha256": "6256040acbcfbd3fe3c20d41e157364f74d92472cbd76e69212704174bc3e91a"
+      "sha256": "0bcf15a13284085e5bed4ded5a643dd83610760f24aae8f0cc085ccc4a58ad73"
     },
     {
       "path": "src/document/native/include/pandoeditor/document-session.h",
@@ -89,7 +89,7 @@
     },
     {
       "path": "src/document/native/include/pandoeditor/document.h",
-      "sha256": "91708aaab148cfcf97bc6771585fb4e15e918ab5e05d5f6d6ae41863c91521d1"
+      "sha256": "6fc33759433b77be8c90c2199b44e1ad700ee5d24efed67369e2e9145b3fbce0"
     },
     {
       "path": "src/document/native/include/pandoeditor/gisexchange.h",
@@ -121,7 +121,7 @@
     },
     {
       "path": "src/document/native/include/pandoeditor/presentation.h",
-      "sha256": "d79f996f998a2128b345187b19f3f63b196e5bc5cd8288f0abc8a2e381701b99"
+      "sha256": "60916fa004f73eebb33fc5dc0c5279bde903d4def49ec03179157e463af3ecc0"
     },
     {
       "path": "src/document/native/include/pandoeditor/presentationcommands.h",
@@ -193,7 +193,7 @@
     },
     {
       "path": "src/document/native/src/commands.cpp",
-      "sha256": "8911f1ce28aaa1f2f9a0ad510efdaaf994829830e34d1cdd7dee81ed3fdc8c45"
+      "sha256": "75f7b5575da7ae6f9710ba74843bf34b53ff740577276b5b8e0172c977fdf993"
     },
     {
       "path": "src/document/native/src/content.cpp",
@@ -205,7 +205,7 @@
     },
     {
       "path": "src/document/native/src/document.cpp",
-      "sha256": "1777b98e6a919282626758317f9ace450a457894c13e6671669681f8ddc02ed6"
+      "sha256": "7f930cbabe58b40ce0e279b3d4811530c79defa9924dca518eace12385991623"
     },
     {
       "path": "src/document/native/src/documentstate.h",
@@ -241,15 +241,15 @@
     },
     {
       "path": "src/document/native/src/presentation.cpp",
-      "sha256": "9ce0269b411363e7e18c7dd7fc2658a54c58b3eb2d4b029dd6335fb2cf30ebde"
+      "sha256": "e7d40af3ca7b2823d262518fd10f4502331047e5e978014255283283995f1be6"
     },
     {
       "path": "src/document/native/src/presentationcommands.cpp",
-      "sha256": "9b8ef2ae23ffc916887863a155385b2eb5581ef5ffe7f173da89bd2fb6fbf3b5"
+      "sha256": "55bb9035d2af248664c0f73dc83856f76572173e9132fe26d4a1a50c81d203f4"
     },
     {
       "path": "src/document/native/src/project.cpp",
-      "sha256": "6b63df09c059a2d276613b08b7c0f1091cb42fdcd8f3fc7df9b48cf9dd436b9f"
+      "sha256": "2312099cb3238caacfc25a6d5cba091479c55269068ad8c8e41a530d1cacafbc"
     },
     {
       "path": "src/document/native/src/snapshot.cpp",
@@ -297,7 +297,7 @@
     },
     {
       "path": "src/document/native/src/webpresentationcommands.cpp",
-      "sha256": "cf2b77c8df087c540e0ee6e406ce25e7b89bf41a77a3a5263302e44268fcab83"
+      "sha256": "9014cc912f560a967820427e76ab82d4b1c78653911e631113800b60484e2d29"
     },
     {
       "path": "src/document/native/src/webterritorialcommands.cpp",
@@ -305,7 +305,7 @@
     },
     {
       "path": "src/document/native/src/webterritorialedit.cpp",
-      "sha256": "26733c73a2352c384332226428ee740e5efb2a076fc60efa34928cfb0f1bafc2"
+      "sha256": "9187e9f53f9e95f4684e0e0dd82840f920466297ab0906a7c06a29f9ec3249a1"
     },
     {
       "path": "src/geometry/native/bindings/boundary-bindings.cpp",
@@ -569,7 +569,7 @@
     },
     {
       "path": "tests/native/document/web-object-command-tests.cpp",
-      "sha256": "b6d6f42f7367ce5629780904b1082e974a094eadbc2a4585a8b7ed49ff78f1d7"
+      "sha256": "740bef44e6bb0ff653065ecaa06d8b42714b3f2813edfab92f84cce6bb462bf3"
     },
     {
       "path": "tests/native/document/web-storage-tests.cpp",
@@ -577,7 +577,7 @@
     },
     {
       "path": "tests/native/document/web-territorial-command-tests.cpp",
-      "sha256": "f12d91d6e93b987457512dd7cfe4a809beef28c4a9032f80576176b2e833c562"
+      "sha256": "112faf90bda15dd706ab0cbfdb609b3cfd6c9490c6f78700e22d6c893b52dba0"
     },
     {
       "path": "tests/native/geometry/boundary-chain-tests.cpp",
@@ -655,7 +655,7 @@
     },
     "wasm": {
       "file": "pandoeditor-core.wasm",
-      "sha256": "a5a5f1702040025655618cb8eb9c9b6f471418e0b2aac352c30c4f0fc1219b4b"
+      "sha256": "784d5001a5df90e94042f0c3d3070de8b74265dc1cb904a0fd2d39ca7ff18fe1"
     }
   }
 }

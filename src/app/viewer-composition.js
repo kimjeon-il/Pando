@@ -306,7 +306,13 @@ export async function composeViewer({ productMode, meta }) {
       map.renderer.finishTemporalViewTransition(temporalTicket);
       if(current()){
         if(previous&&previous!==month&&activeSession.commandOwner.state().timelineCursor===month)
-          try{await applyDocumentMonth(previous);}catch(restoreError){error.restoreError=restoreError;}
+          try{
+            // Do not report the prior map as restored merely because its C++
+            // cursor was reset. Wait for that generation's real replacement
+            // picture before releasing the date control's loading state.
+            const restored=await applyDocumentMonth(previous,{isCurrent:current,waitForFrame:true});
+            if(!restored)throw new Error('Previous dated map was not restored.');
+          }catch(restoreError){error.restoreError=restoreError;}
         status.dataset.ready=String(previouslyReady&&!error.restoreError);
       }
       throw error;

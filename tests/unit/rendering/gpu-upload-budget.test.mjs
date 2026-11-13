@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createGpuUploadScheduler} from '../../../src/rendering/gpu-upload-scheduler.js';
+import {polygonUploadPriority} from '../../../src/rendering/gpu-polygon-overlay-pass.js';
 function clock(){let time=0;const frames=[];const scheduler=createGpuUploadScheduler({
   requestFrame:fn=>(frames.push(fn),frames.length),cancelFrame(){},now:()=>time,
   isHidden:()=>false,isInputPending:()=>false,getByteBudget:()=>1024*1024});
@@ -27,4 +28,17 @@ test('time budget still stops repeated work before another frame',async()=>{
   const done=c.scheduler.enqueueUpload({key:'costly',step(){c.advance(1.1);return {bytes:128,done:++calls===3};}});
   c.tick();assert.equal(calls,2);c.tick();await done;
   assert.equal(c.scheduler.getStats().completed,1);
+});
+
+test('physical substrate GPU uploads outrank optional overlays within the same bounded scheduler', async()=>{
+  const c=clock(),order=[];
+  const create=(key,packet)=>c.scheduler.enqueueUpload({key,priority:polygonUploadPriority(packet),step(){
+    order.push(key);return {bytes:128,done:true};
+  }});
+  const overlay=create('optional-overlay',{role:'territorial-fill'});
+  const physical=create('physical-land',{role:'physical-land'});
+  const protectedOverlay=create('protected-overlay',{protected:true});
+  c.tick();
+  await Promise.all([overlay,physical,protectedOverlay]);
+  assert.deepEqual(order,['physical-land','protected-overlay','optional-overlay']);
 });
