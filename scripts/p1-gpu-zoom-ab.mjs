@@ -5,6 +5,7 @@ import { spawn, execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { cpus, arch, platform } from 'node:os';
+import { createHash } from 'node:crypto';
 import { setTimeout as delay } from 'node:timers/promises';
 
 const args = Object.fromEntries(process.argv.slice(2).filter(s => s.startsWith('--')).map(s => {
@@ -203,6 +204,7 @@ async function measure() {
         fallbackReason:s?.fallbackReason,canvasWorkerLastError:s?.canvasWorkerLastError,
         canvasWorkerMessagesByType:s?.canvasWorkerMessagesByType,
         canvasWorkerLastStaleReason:s?.canvasWorkerLastStaleReason,
+        canvasWorkerLastStalePhysical:s?.canvasWorkerLastStalePhysical,
         canvasWorkerStaleReasonCounts:s?.canvasWorkerStaleReasonCounts,
         mapReadiness:s?.mapReadiness?.status,
         gpuRecovery:s?.gpuRecovery,
@@ -216,24 +218,33 @@ async function measure() {
       throw Error('Requested GPU version unavailable: ' + JSON.stringify(report.gpu));
     const counters = async () => Object.fromEntries(
       (await cdp.send('Performance.getMetrics')).metrics.map(item => [item.name,item.value]));
-    const accepted = async (projection, zoom) => page.waitForFunction(({projection,zoom,mode}) => {
+    const accepted = async (projection, zoom, previous) => page.waitForFunction(({projection,zoom,mode,previous}) => {
       const host=globalThis.__PANDOLAB_MAP_HOST__, state=host?.getViewState?.();
       const s=globalThis.__PANDOLAB_VIEWER__?.rendererStats?.();
+      const scaleUpdated=Number.isFinite(s?.screenScale) && Number.isFinite(state?.scale)
+        && Math.abs(s.screenScale-state.scale)<=Math.max(1,Math.abs(state.scale))*1e-6;
+      const frameAdvanced=mode.startsWith('webgl')
+        ? ((s?.sceneCacheFullDrawCount??-1) > previous.fullDraws ||
+          (s?.sceneCacheReprojectCount??-1) > previous.reprojects)
+        : ((s?.canvasWorkerViewMessageCount??-1) > previous.canvasRequests);
       return state?.projection === projection && Math.abs(state.zoom-zoom) < 1e-8 &&
-        s?.renderer === mode && s.canonicalMeshReady && s.mapReadiness?.mapReady &&
+        scaleUpdated && frameAdvanced && s?.renderer === mode && s.canonicalMeshReady && s.mapReadiness?.mapReady &&
         s.countriesPublishedGeneration === s.projectGeneration &&
         s.activeMeshQuality === 'lod' && s.screenLodTargetKey &&
         s.screenLodBucket && s.screenLodLatest?.key === s.screenLodBucket &&
         !s.screenLodPreparingKey && !s.screenLodFailure &&
         (mode !== 'canvas-worker' || (!s.canvasWorkerBusy && !s.canvasWorkerHasPendingFrame &&
           s.canvasDisplayedStyleRevision === s.canvasStyleRevision));
-    }, {projection,zoom,mode:expectedMode(backend)}, {timeout:110000,polling:150});
+    }, {projection,zoom,mode:expectedMode(backend),previous}, {timeout:110000,polling:150});
 
     if(args['startup-only']==='1'){
       report.status=report.errors.length?'failed':'passed';
       console.log('P1_GPU_STARTUP_PROBE '+JSON.stringify({backend,source:report.sourceCommit,
         status:report.status,diagnostics:report.runtimeDiagnostics,warnings:report.browserWarnings}));
-    } else for (const projection of projections) {
+    } else {
+      let previousFrameHash = createHash('sha256').update(await page.locator('#map .gpu-map-canvas')
+        .screenshot({timeout:45000})).digest('hex');
+      for (const projection of projections) {
       let unsupported = null;
       for (const zoom of zooms) {
         if (unsupported) {
@@ -261,7 +272,11 @@ async function measure() {
             unsupported='Projection rejected by product policy: requested='+projection+
               ', actual='+actual.projection;
           } else {
-            await accepted(projection,zoom);
+            await accepted(projection,zoom,{
+              fullDraws:previous.sceneCacheFullDrawCount??0,
+              reprojects:previous.sceneCacheReprojectCount??0,
+              canvasRequests:previous.canvasWorkerViewMessageCount??0
+            });
             row.elapsedMs=rounded(performance.now()-started);
             row.status='passed';
           }
@@ -273,6 +288,15 @@ async function measure() {
           row.mainJsHeapBytes=after.JSHeapUsedSize??null;
           const s=await page.evaluate(() => globalThis.__PANDOLAB_VIEWER__.rendererStats());
           row.stats=statsSubset(s,backend);
+          if(row.status==='passed') {
+            // Verify actual visible pixels, not merely a reused LOD bucket.
+            const newHash=createHash('sha256').update(await page.locator('#map .gpu-map-canvas')
+              .screenshot({timeout:45000})).digest('hex');
+            if(newHash===previousFrameHash)throw Error('Unchanged visible Canvas frame after zoom '+zoom+
+              ': stale frame must not be counted as a fast render');
+            row.frameSha256=newHash;
+            previousFrameHash=newHash;
+          }
           row.deltaCounters={
             fullSceneDraws:counterDelta(previous.sceneCacheFullDrawCount,s.sceneCacheFullDrawCount),
             strokeDrawCalls:counterDelta(previous.stroke?.drawCallCount,s.stroke?.drawCallCount),
@@ -304,6 +328,7 @@ async function measure() {
         console.log('P1_GPU_ZOOM '+JSON.stringify({backend,projection,zoom,status:row.status,
           elapsedMs:row.elapsedMs,cpuTaskMs:row.cpuTaskMs,rafP95:row.raf?.rafP95GapMs,
           gpuTrackedBufferBytes:row.stats?.gpuTrackedBufferBytes,error:row.error}).slice(0,1200));
+      }
       }
     }
     if(args['startup-only']!=='1') {
