@@ -253,6 +253,7 @@ export function selectionRequest(catalog, env, groups = []) {
 }
 
 export function main(args = process.argv.slice(2), env = process.env) {
+  args=args.flatMap(arg=>{const at=arg.indexOf('=');return arg.startsWith('--')&&at>2?[arg.slice(0,at),arg.slice(at+1)]:[arg];});
   const value = name => { const at = args.indexOf(name); return at < 0 ? undefined : args[at + 1]; };
   const known = new Set(['--list', '--base', '--group', '--github-output', '--output', '--phase', '--shard']);
   for (let at = 0; at < args.length; at++) {

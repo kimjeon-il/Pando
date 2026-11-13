@@ -507,3 +507,10 @@ test('prepared scene verification pins only its exact Core assets and blocks a s
     }
   }
 });
+
+// Exact CI requests may use the standard --option=value CLI spelling.
+import {main as checkMain} from '../../../scripts/run-application-checks.mjs';
+test('inline check option values reach their normal validation',()=>{
+ assert.throws(()=>checkMain(['--phase=unknown'],{}),/Invalid execution phase/);
+ assert.throws(()=>checkMain(['--group='],{}),/Missing check option value/);
+});
