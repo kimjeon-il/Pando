@@ -78,6 +78,8 @@ jobs:
             --workers=1 --retries=0 --output=test-results/natural-viewer
       - name: Canvas real paint CPU profile for the approved candidate
         if: ${{ contains(github.event.head_commit.message, '[canvas-paint-ab]') }}
+        env:
+          PANDO_CANVAS_PROFILE_AB: '1'
         run: |
           pnpm exec playwright test \
             tests/browser/rendering/canvas-globe-performance.spec.mjs \
@@ -87,6 +89,7 @@ jobs:
         if: ${{ contains(github.event.head_commit.message, '[canvas-paint-ab]') }}
         env:
           BASE_CANVAS_SHA: b9a2cf4bb651397de79cb009398c13883a32a9d3
+          PANDO_CANVAS_PROFILE_AB: '1'
         run: |
           set -euo pipefail
           test -z "$(git diff --name-only)"
