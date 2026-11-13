@@ -142,8 +142,10 @@ void parentAndCopyUseFrozenServiceAdmission() {
     const auto& region=p.document().units[1];assert(region.id=="R"&&region.kind==UnitKind::Regional&&region.name.empty()&&!region.locked&&region.notes.empty()&&region.metadata=="{}"&&region.sourceEntityId.empty());
     assert(staticParentRelation(p.document(),"R").parentId.empty()&&staticParentRelation(p.document(),"R").coverageMode=="explicit");
     assert(p.document().presentation.objectStyles.at(territorialRef("R")).color==0x123456);
+    assert(p.document().presentation.objectStyles.at(territorialRef("R")).explicitColor);
     assert(apply(p,"territorial.copy-region",json(R"({"sourceId":"A","id":"automatic"})")).changed());
     assert(!p.document().presentation.objectStyles.at(territorialRef("automatic")).explicitColor);
+    assert(p.document().presentation.objectStyles.at(territorialRef("automatic")).color==0);
     expectCode(p,"territorial.parent",json(R"({"id":"A","parentId":""})"),"locked");
     expectCode(p,"territorial.parent",json(R"({"id":"R","parentId":"A"})"),"unsupported-parent-type");
     expectCode(p,"territorial.parent",json(R"({"id":"missing","parentId":"A"})"),"not-found");

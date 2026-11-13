@@ -193,6 +193,14 @@ jobs:
       - name: Verify published compiled identity and package hashes
         id: verified_core
         run: node tools/build/package-shared-core-assets.mjs --build-dir assets/wasm --check
+      - name: Verify pinned Viewer data and generated build metadata against the rebuilt core
+        if: needs.plan.outputs.wasm == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/check-core-prerequisite.mjs
+          node scripts/generate-build-metadata.mjs --check --product=viewer
+          node scripts/check-version.mjs
       - name: Verify the changed geographic contact and common fill kernels
         if: needs.plan.outputs.wasm == 'true' && inputs.verification != 'full' && inputs.verification != 'temporal' && inputs.verification != 'geometry-resources'
         env:

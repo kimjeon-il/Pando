@@ -98,7 +98,7 @@ Rows changedRows(const ActiveFrame& before,const WebTerritorialEdit& edit) {
         require(source.identity.kind==UnitKind::General,"invalid-source","Independent region copy requires a general source.");
         require(!edit.id.empty()&&!index.count(edit.id),"invalid","Duplicate or empty independent region ID.");
         WebTerritorialFeature row;row.identity.id=edit.id;row.identity.kind=UnitKind::Regional;row.identity.name=edit.newName;
-        row.geometry=source.geometry;row.coverageMode="explicit";row.style={edit.color.value_or(0),1,bool(edit.color)};next.push_back(std::move(row));
+        row.geometry=source.geometry;row.coverageMode="explicit";row.style={edit.color.value_or(0),bool(edit.color)};next.push_back(std::move(row));
     } else if(edit.operation==WebTerritorialOperation::Replace)next=edit.features;
     else if(edit.operation==WebTerritorialOperation::Create) {
         require(edit.features.size()==1,"invalid","A create command needs one feature.");

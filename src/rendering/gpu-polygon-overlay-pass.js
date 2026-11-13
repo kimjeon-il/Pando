@@ -47,6 +47,14 @@ function createProgram(device) {
   });
 }
 
+// The certified physical base must not queue behind optional overlays after
+// context restoration. All uploads still obey the same per-frame byte budget.
+export function polygonUploadPriority(packet) {
+  if (packet?.role === 'physical-land') return 90;
+  if (packet?.role === 'physical-water') return 85;
+  return packet?.protected === true ? 70 : 50;
+}
+
 export function createGpuPolygonOverlayPass({ onError = null, onResourceReady = null } = {}) {
   let uploadScheduler = null;
   const pendingUploads = new Map();
@@ -129,7 +137,7 @@ export function createGpuPolygonOverlayPass({ onError = null, onResourceReady = 
       const uploadGl = gl, job = { signature: nextSignature, part: 0, offset: 0, buffers: [] };
       pendingUploads.set(key, job);
       void uploadScheduler.enqueueUpload({
-        key: 'polygon:' + key, priority: 50,
+        key: 'polygon:' + key, priority: polygonUploadPriority(packet),
         allowDuringInteraction:packet.role==='physical-land'||packet.role==='physical-water',
         dispose: () => { for (const buffer of job.buffers) uploadGl.deleteBuffer(buffer); if (pendingUploads.get(key) === job) pendingUploads.delete(key); },
         step: ({ byteBudget }) => {
