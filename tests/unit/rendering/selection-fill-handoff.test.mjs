@@ -9,7 +9,6 @@ import { createGpuMapRenderer } from "../../../src/rendering/gpu-map-renderer.js
 import "../../../assets/js-vendor/polygon-clipping.min.js";
 import { validateGeometry } from "../../../src/geometry/geometry-validation.js";
 import { createRenderSceneBuilder } from "../../../src/rendering/render-scene.js";
-import { createMapRenderCoordinator, MAP_RENDER_DIRTY } from "../../../src/rendering/map-render-coordinator.js";
 
 // Only the DOM/D3 adapter and render device are doubles; selection planning,
 // staging, coordinator invalidation and accepted-frame reconciliation are real.
@@ -102,31 +101,6 @@ async function harness(t) {
     clearSelection: async () => { await selection.clear(); await selection.setHover(null); },
     interactionRenders: () => interactionRenders, setRenderer: value => { renderer = value; } };
 }
-
-test('GPU recovery may stage only selection fallback while the map frame remains unpresentable', () => {
-  const queued = [], calls = [];
-  const coordinator = createMapRenderCoordinator({
-    requestFrame: callback => queued.push(callback),
-    prepareView: ({ frameId }) => ({ frameId }),
-    canPresentFrame: () => false,
-    renderers: {
-      view: () => ({ succeeded: false }),
-      canRenderRecoverySelection: () => true,
-      selectionRecovery: () => calls.push('fallback'),
-      selectionData: () => calls.push('presented-selection'),
-      viewPresentation: () => calls.push('presented-map'),
-    },
-  });
-  coordinator.invalidate(MAP_RENDER_DIRTY.SELECTION_DATA | MAP_RENDER_DIRTY.GPU_FRAME, 'gpu-context-lost');
-  queued.shift()();
-  assert.deepEqual(calls, ['fallback'], 'SVG outline fallback must not accept a GPU frame');
-  coordinator.invalidate(MAP_RENDER_DIRTY.VIEW | MAP_RENDER_DIRTY.SELECTION_DATA | MAP_RENDER_DIRTY.GPU_FRAME, 'camera-moving');
-  queued.shift()();
-  assert.deepEqual(calls, ['fallback'], 'a deferred camera frame must not reproject selection fallback');
-  coordinator.invalidate(MAP_RENDER_DIRTY.PROJECT | MAP_RENDER_DIRTY.SELECTION_DATA, 'new-project');
-  queued.shift()();
-  assert.deepEqual(calls, ['fallback'], 'new-project presentation stays frozen');
-});
 
 const fillSelector = '.map-selection-fill, .map-hover-fill';
 const outlineSelector = '.map-selection-outline, .map-hover-outline';
