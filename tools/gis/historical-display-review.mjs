@@ -1,3 +1,4 @@
+import{hasProtectedSsrCopy,assertProtectedSsrCopy}from'./protected-current-ssr-copy-source-review.mjs';
 import{hasRegisteredCzeSvkUnion,assertRegisteredCzeSvkUnion}from'./registered-cze-svk-union-source-review.mjs';
 import {hasPatagoniaComposition,assertPatagoniaComposition} from './patagonia-protected-source-review.mjs';
 import {hasFixedFourOriginal,assertFixedFourOriginal} from './fixed-four-original-source-review.mjs';
@@ -391,6 +392,7 @@ function assertOriginalExistingComponents(next,previous,review,{prefixes,archive
  * this does not approve historical reconstruction or derived display geometry.
  */
 export function assertHistoricalSourceStorageChanges(next,previous,{prefixes,readEvidence,getSourceSnapshot}={}){
+ if(hasProtectedSsrCopy(next)||hasProtectedSsrCopy(previous))return assertProtectedSsrCopy(next,previous,{prefixes,readEvidence,getSourceSnapshot});
  if(hasRegisteredCurrentOutlineReuse(next)||hasRegisteredCurrentOutlineReuse(previous))return assertRegisteredCurrentOutlineCopy(next,previous,{prefixes,readEvidence,getSourceSnapshot});
  if(hasProtectedOriginalArcs(next)||hasProtectedOriginalArcs(previous))return assertProtectedOriginalArcs(next,previous,{prefixes,readEvidence,getSourceSnapshot});
  if(hasFixedFourOriginal(next))return assertFixedFourOriginal(next,previous,{prefixes,readEvidence,getSourceSnapshot});
