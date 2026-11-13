@@ -133,3 +133,25 @@ test('PCHIP screen-pixel fast cubic preserves original exact integer-height pale
       assert.ok(delta<=1,`height=${height}, shade=${shade}, theme=${theme}, delta=${delta}`);
     }
 });
+
+
+test('numerical Canvas 512px raster is bounded in memory and measured without a full-tile conversion',()=>{
+  const raster=api(),sample=core.createInterpolatedSampler({dem:dem(),width:2,height:2});
+  const duration=[],pixels=[];
+  for(let pass=0;pass<3;pass++){
+    const start=performance.now();
+    let rendered=0,blocks=0,peak=0;
+    for(const block of raster({sample,source:[[0,0],[2,0],[0,2]],
+      destination:[[0,0],[512,0],[0,512]],viewportWidth:512,viewportHeight:512,blockRows:16})){
+      rendered+=block.pixels;blocks++;peak=Math.max(peak,block.rgba.byteLength);
+    }
+    duration.push(performance.now()-start);pixels.push(rendered);
+    assert.equal(rendered,512*513/2,'triangular pixel coverage is deterministic');
+    assert.equal(blocks,32);
+    assert.ok(peak<=128*1024,'one numerical scratch block stays under 128 KiB');
+  }
+  assert.deepEqual(pixels,[pixels[0],pixels[0],pixels[0]]);
+  const sorted=[...duration].sort((a,b)=>a-b);
+  console.log('CANVAS_NUMERIC_512_PROFILE='+JSON.stringify({p50Ms:sorted[1],
+    samplesMs:duration,pixels:pixels[0],maxScratchBytes:128*1024}));
+});
