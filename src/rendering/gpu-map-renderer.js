@@ -4447,11 +4447,16 @@ export function createGpuMapRenderer(deps) {
     }
     function currentCanvasPhysical() {
       if(deps.lodPolicy && surfacePresentation.geometryQuality==='pending')return {source:null,context:{ready:false}};
-      // Missing physical data cannot satisfy the frame's source certificate.
+      const physicalState = getPhysicalContextState();
+      // An incomplete display derivative cannot replace source-certified
+      // land and water. Use the canonical pair until LOD is ready.
+      if (activeMeshQuality === 'lod' && screenLodPhysical) {
+        const derivative = selectCanvasPhysicalSource({actual:screenLodPhysical,state:physicalState});
+        if (derivative.context.ready) return derivative;
+      }
       return selectCanvasPhysicalSource({
-        actual:activeMeshQuality==='lod' && screenLodPhysical ? screenLodPhysical : typeof getPhysicalLand === 'function' ? getPhysicalLand() : null,
-        state:getPhysicalContextState(),
-        temporalPending:temporalPending(),
+        actual:typeof getPhysicalLand === 'function' ? getPhysicalLand() : null,
+        state:physicalState,
       });
     }
     const canvasScenePolygons = () => [
@@ -4653,8 +4658,10 @@ export function createGpuMapRenderer(deps) {
         if (countriesChanged) prepareCountrySharedBoundary({ features, replace: true, baselineCache: false });
         canvasLastStyleSignature = '';
       }
-      const physical = currentCanvasPhysical().context;
+      const selectedPhysical = currentCanvasPhysical();
+      const physical = selectedPhysical.context;
       const styleSignature = [physical.ready, physical.landRevision, physical.waterRevision,
+        selectedPhysical.source?.displayLodKey || 'canonical',
         countryPaletteRevision, countryEmphasisRevision, state.layerVisibility.objects, getSystemTheme(),
         // Country paint is suppressed on an unpresented background. Once the
         // first actual physical bitmap is admitted, this quality transition
@@ -4986,10 +4993,19 @@ export function createGpuMapRenderer(deps) {
               const physicalContext = currentCanvasPhysical().context;
               const key = resourceKey([projectGeneration, lastVisualFrame.frameId, canvasStyleRevision,
                 canvasPhysicalStyleRevision, physicalContext.landRevision ?? null, physicalContext.waterRevision ?? null,
+                currentCanvasPhysical().source?.displayLodKey || 'canonical',
                 geometryRevisionTracker.committedRevision()]);
               if (key !== canvasWorkerResubmitKey) {
                 canvasWorkerResubmitKey = key;
                 canvasWorkerResubmitAttempts = 0;
+              }
+              if (why === 'physical') {
+                // Resend complete certified physical source packets. A delta
+                // from an older LOD cannot prove what the Worker has painted.
+                if (!canvasPhysicalReady()) return;
+                canvasScenePackets.clear();
+                canvasLastStyleSignature = '';
+                syncCanvasWorkerState();
               }
               if (++canvasWorkerResubmitAttempts > 4) {
                 failCanvasWorker('Canvas Worker가 최신 지도를 반복해서 표시하지 못했습니다.');
