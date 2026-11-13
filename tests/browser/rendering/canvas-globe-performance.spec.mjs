@@ -83,7 +83,12 @@ for (const mode of ['physical', 'political']) {
     const originalTheme = mode === 'physical' ? 'standard' : 'classic';
     const alternativeTheme = mode === 'physical' ? 'classic' : 'standard';
     const receipts = [];
-    for (const theme of [alternativeTheme,originalTheme,alternativeTheme,originalTheme]) {
+    // The source-paired A/B uses one full round trip to limit CI cost;
+    // ordinary regression retains the longer four-switch endurance case.
+    const transitions=process.env.PANDO_CANVAS_PROFILE_AB==='1'
+      ? [alternativeTheme,originalTheme]
+      : [alternativeTheme,originalTheme,alternativeTheme,originalTheme];
+    for (const theme of transitions) {
       const started = Date.now();
       await page.locator('#preferencesBtn').click();
       await page.locator(`input[name="preferencesMapStyle"][value="${theme}"]`).locator('..').click();
