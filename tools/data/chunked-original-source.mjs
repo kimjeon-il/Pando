@@ -26,5 +26,3 @@ export function decodeOriginalBlobGeometry(blob,{expectedWkbSha256}={}){
  if(offset!==wkb.length)fail('trailing original WKB bytes');if([minx,maxx,miny,maxy].some((x,i)=>x!==envelope[i]))fail('original envelope mismatch');return{type:'MultiPolygon',coordinates};
 }
 export function readChunkedOriginalGeometry(source,readEvidence){if(!sha(source?.rawWkbSha256))fail('original WKB receipt required');return decodeOriginalBlobGeometry(readChunkedOriginalBlob(source,readEvidence),{expectedWkbSha256:source.rawWkbSha256});}
-
-

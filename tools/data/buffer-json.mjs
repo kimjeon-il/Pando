@@ -56,4 +56,3 @@ export function parseJsonBuffer(bytes,{sliceBytes=8*1024*1024,maxDepth=512}={}){
  }
  return parse(0,bytes.length,0);
 }
-
