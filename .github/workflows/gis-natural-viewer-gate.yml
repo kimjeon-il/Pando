@@ -6,6 +6,12 @@ on:
       - .github/workflows/gis-natural-viewer-gate.yml
       - tests/browser/rendering/terrain-natural-live-viewer.spec.mjs
       - tests/browser/rendering/terrain-natural-parity.spec.mjs
+      - src/rendering/workers/canvas-terrain-dem-core.js
+      - src/rendering/workers/canvas-render-core.js
+      - tests/unit/rendering/canvas-natural-numeric-path.test.mjs
+      - tests/unit/rendering/canvas-terrain-independence.test.mjs
+      - tests/browser/rendering/canvas-numeric-dem.spec.mjs
+      - tests/browser/rendering/canvas-globe-performance.spec.mjs
       - tests/browser/rendering/terrain-natural-observed-viewer.spec.mjs
       - src/data/terrain-natural-candidate.js
       - src/data/physical-source-configuration.js
@@ -40,7 +46,25 @@ jobs:
           node --test
           tests/unit/rendering/terrain-tile-selection-shared.test.mjs
           tests/unit/rendering/terrain-natural-gpu.test.mjs
+      - name: Focused Canvas interpolation, edge ownership, theme and cancellation unit contracts
+        run: >-
+          node --test
+          tests/unit/rendering/canvas-natural-numeric-path.test.mjs
+          tests/unit/rendering/canvas-terrain-independence.test.mjs
+          tests/unit/rendering/canvas-dem-theme-cache.test.mjs
       - run: pnpm exec playwright install --with-deps chromium
+      - name: Real Canvas numerical output, WebGL fragment parity and seam proof
+        run: |
+          pnpm exec playwright test \
+            tests/browser/rendering/canvas-numeric-dem.spec.mjs \
+            tests/browser/rendering/terrain-natural-parity.spec.mjs \
+            --workers=1 --retries=0 --output=test-results/canvas-numeric
+      - name: Actual Canvas Viewer natural blend and memory acceptance
+        run: |
+          pnpm exec playwright test \
+            tests/browser/rendering/terrain-natural-live-viewer.spec.mjs \
+            --grep 'natural external preview incrementally repaints actual canvas Viewer in china-southwest' \
+            --workers=1 --retries=0 --output=test-results/canvas-live
       - name: Greenland observed ice on real WebGL Viewer at LOD4
         env:
           PANDO_GREENLAND_ONLY: '1'
@@ -55,6 +79,8 @@ jobs:
           name: natural-viewer-acceptance-${{ github.run_id }}
           path: |
             test-results/natural-viewer/
+            test-results/canvas-numeric/
+            test-results/canvas-live/
             test-results/
           if-no-files-found: warn
           retention-days: 14
