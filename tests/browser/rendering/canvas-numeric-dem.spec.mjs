@@ -124,12 +124,12 @@ for(const mode of ['worker','inline']){
         set paintNumericalGradientFixture(value){globalThis.paintGradient=value;}
       });`;
       if(mode==='inline'){
-        (0,eval)(dependencies+'\\n;'+renderer+'\\n;'+bootstrap);
+        (0,eval)(dependencies+'\n;'+renderer+'\n;'+bootstrap);
         try{return await globalThis.paintGradient();}
         finally{dispose();}
       }
-      const code=dependencies+'\\n;'+renderer+'\\n;'+bootstrap+
-        '\\n(async()=>{try{postMessage({result:await paintGradient()});}catch(error){postMessage({error:error.stack});}finally{dispose();}})();';
+      const code=dependencies+'\n;'+renderer+'\n;'+bootstrap+
+        '\n(async()=>{try{postMessage({result:await paintGradient()});}catch(error){postMessage({error:error.stack});}finally{dispose();}})();';
       const url=URL.createObjectURL(new Blob([code],{type:'text/javascript'})),worker=new Worker(url);
       try{return await new Promise((resolve,reject)=>{
         worker.onmessage=event=>event.data.error?reject(new Error(event.data.error)):resolve(event.data.result);
