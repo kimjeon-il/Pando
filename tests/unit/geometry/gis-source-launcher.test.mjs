@@ -45,7 +45,7 @@ test('GIS source tools use their canonical Node entrypoints',()=>{
    assert.ok(cmd[1].startsWith(ROOT));
    assert.ok(TASK_SOURCES[task].endsWith('.mjs'));assert.equal(cmd[0],process.execPath);
  }
- assert.match(buildCommand('place-candidates',[])[1],/build-place-candidates\.mjs$/);
+ assert.throws(()=>buildCommand('place-candidates',[]),/Unsupported/);
  assert.match(buildCommand('hydro-packfile',[])[1],/build-hydro-packfile\.mjs$/);
  assert.match(buildCommand('hydro-tiles',[])[1],/build-hydro\.mjs$/);
  for(const task of ['historical-border','historical-coast'])assert.throws(()=>buildCommand(task),/Unsupported/);
@@ -54,11 +54,11 @@ test('GIS source tools use their canonical Node entrypoints',()=>{
 });
 test('GIS raw subprocess launch requires explicit --execute and keeps forwarded args',()=>{
  const logs=[],calls=[];
- const status=runSource({argv:['--task','place-candidates','--execute','--','review','--cache','/tmp/staging'],
+ const status=runSource({argv:['--task','hydro-packfile','--execute','--','review','--cache','/tmp/staging'],
    output:s=>logs.push(JSON.parse(s)),
    spawn:(exe,args,options)=>{calls.push({exe,args,options});return {status:7,signal:null};}});
  assert.equal(status,7);assert.equal(logs[0].mode,'execute');
- assert.equal(logs[0].requiresExternalOriginals,true);
+ assert.equal(logs[0].requiresExternalOriginals,false);
  assert.deepEqual(logs[0].argv,['review','--cache','/tmp/staging']);
  assert.equal(calls.length,1);
  assert.equal(calls[0].exe,process.execPath);
@@ -175,3 +175,5 @@ test('unrelated GIS JavaScript edits do not trigger a native or WASM build',()=>
 });
 
 });
+
+__source_dep1.default("Hydro authoring requires an explicit reviewed replacement recipe before touching inputs",async()=>{const {executeHydroGeneration}=await import("../../../tools/gis/build-hydro.mjs");await __source_dep0.default.rejects(executeHydroGeneration({riverRoots:["fixture"],naturalEarthRoot:"fixture",raster:"fixture",output:"fixture"}),/independent-hydronym-replacements/);});

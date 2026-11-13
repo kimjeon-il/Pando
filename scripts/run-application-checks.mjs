@@ -44,20 +44,24 @@ export function exactCheckPlan(repository,selection) {
   return planApplicationChecks({repository,exactSelection:selection});
 }
 
-export function dispatchSelectedChecks({repository,selection,command=(args)=>execFileSync(args[0],args.slice(1),{cwd:repository.root,encoding:'utf8',maxBuffer:8*1024**2}).trim()}={}) {
-  exactCheckPlan(repository,selection);
+export function dispatchSelectedChecks({repository,selection,artifact=null,command=(args)=>execFileSync(args[0],args.slice(1),{cwd:repository.root,encoding:'utf8',maxBuffer:8*1024**2}).trim()}={}) {
+  if(artifact!==null&&artifact!=='core-wasm')throw Error('Unknown selected artifact');
+  if(!artifact)exactCheckPlan(repository,selection);
   if(command(['git','status','--porcelain','--untracked-files=no']))throw Error('CI checks require committed and pushed inputs; preserve changes and commit/push before retrying. Selected checks: '+JSON.stringify(selection));
-  const files=[...selection.unitTests,...selection.browserSpecs];if(files.length)command(['git','ls-files','--error-unmatch','--',...files]);
+  const files=artifact?[]:[...selection.unitTests,...selection.browserSpecs];if(files.length)command(['git','ls-files','--error-unmatch','--',...files]);
   const head=command(['git','rev-parse','HEAD']),branch=command(['git','symbolic-ref','--short','HEAD']);
   const remote=command(['git','ls-remote','--heads','origin','refs/heads/'+branch]).split(/\s+/)[0];
   if(remote!==head)throw Error('Push the current commit before requesting CI checks: '+head);
   const requestId=randomUUID();
-  command(['gh','workflow','run','application-architecture.yml','--ref',branch,'-f','check_selection='+JSON.stringify(selection),'-f','request_id='+requestId]);
+  const workflow=artifact?'shared-core.yml':'application-architecture.yml';
+  const title=artifact?'Shared Core core-artifact '+requestId:'Application checks '+requestId;
+  const inputs=artifact?['scope=core-artifact']:['check_selection='+JSON.stringify(selection)];
+  command(['gh','workflow','run',workflow,'--ref',branch,...inputs.flatMap(input=>['-f',input]),'-f','request_id='+requestId]);
   // A run is identified by this request, never by the latest unrelated branch run.
   let run;
   for(let attempt=0;attempt<30&&!run;attempt++){
-    const runs=JSON.parse(command(['gh','run','list','--workflow','application-architecture.yml','--branch',branch,'--event','workflow_dispatch','--limit','50','--json','databaseId,headSha,displayTitle,url']));
-    run=runs.find(r=>r.headSha===head&&r.displayTitle==='Application checks '+requestId);
+    const runs=JSON.parse(command(['gh','run','list','--workflow',workflow,'--branch',branch,'--event','workflow_dispatch','--limit','50','--json','databaseId,headSha,displayTitle,url']));
+    run=runs.find(r=>r.headSha===head&&r.displayTitle===title);
     if(!run)Atomics.wait(new Int32Array(new SharedArrayBuffer(4)),0,0,1000);
   }
   if(!run)throw Error('CI dispatch accepted but run discovery is pending; request '+requestId+'; do not dispatch again');
@@ -95,7 +99,7 @@ export function executionOutputs(plan, { repository, ...options } = {}) {
     unit_browser: phase !== 'browser' && selectedUnitTestsNeedBrowser(plan,{repository}),
     browser_matrix: { include: Array.from({ length: total }, (_, i) => ({ current: i + 1, total })) },
     gis_native: phase !== 'browser' && (required.has('native-hydro-point-screen') ||
-      required.has('native-territorial-recipe') || required.has('native-caspian-oracle') ||
+
       plan.commands.some(id => repository.catalog.groups.find(group => group.id === id)?.gisNative)),
     native_requirements: [...required].filter(id => id.startsWith('native-')).map(id => id.slice(7)).sort(),
   };
@@ -255,13 +259,18 @@ export function selectionRequest(catalog, env, groups = []) {
 export function main(args = process.argv.slice(2), env = process.env) {
   args=args.flatMap(arg=>{const at=arg.indexOf('=');return arg.startsWith('--')&&at>2?[arg.slice(0,at),arg.slice(at+1)]:[arg];});
   const value = name => { const at = args.indexOf(name); return at < 0 ? undefined : args[at + 1]; };
-  const known = new Set(['--list', '--base', '--group', '--github-output', '--output', '--phase', '--shard']);
+  const known = new Set(['--core-artifact', '--list', '--base', '--group', '--github-output', '--output', '--phase', '--shard']);
   for (let at = 0; at < args.length; at++) {
     if (!known.has(args[at])) throw Error('Unknown check option: ' + args[at]);
     if (['--base', '--group', '--output', '--phase', '--shard'].includes(args[at]) && (!args[++at] || args[at].startsWith('--'))) throw Error('Missing check option value');
   }
   const execution = executionOptions({ phase: value('--phase'), shard: value('--shard') });
   const repository = loadRepository();
+  if(args.includes('--core-artifact')){
+    if(args.length!==1)throw Error('Core artifact preparation must be selected alone');
+    const result=dispatchSelectedChecks({repository,artifact:'core-wasm'});
+    console.log(JSON.stringify(result,null,2));return result;
+  }
   const request = selectionRequest(repository.catalog, env, value('--group')?.split(',') || []);
   const comparison = request.diff === false ? collectChanges({ base: env.HEAD_SHA || 'HEAD', head: env.HEAD_SHA || 'HEAD', event: 'push' }) : collectChanges({ base: value('--base') || env.BASE_SHA || 'origin/main',
     head: env.HEAD_SHA || 'HEAD', event: env.GITHUB_EVENT_NAME || 'local' });

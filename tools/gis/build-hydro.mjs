@@ -28,6 +28,7 @@ export async function executeHydroGeneration(input,options={}){
   options.signal?.throwIfAborted();const {riverRoots,naturalEarthRoot,raster,output,osmPath,overridesPath,independentPath}=input??{},codes=options.codes??defaultCodes;
   if(!Array.isArray(riverRoots)||!riverRoots.length||[naturalEarthRoot,raster,output].some(value=>typeof value!=='string'||!value))
     throw Error('Explicit Hydro source roots, raster and new output required');
+  if(typeof independentPath!=='string'||!independentPath)throw Error('Explicit independent-hydronym-replacements recipe required.');
   const earth=await realpath(naturalEarthRoot),target=resolve(output),workspaceAssets=resolve(workspace,'assets/data');
   if(existsSync(target))throw Error('Hydro generation output already exists');
   if(inside(dirname(earth),target)||inside(workspaceAssets,target))throw Error('Hydro output must be outside runtime data');
@@ -38,7 +39,7 @@ export async function executeHydroGeneration(input,options={}){
     stableJson(join(earth,'rivers_base.geojson'),options.signal),stableJson(join(earth,'lakes_base.geojson'),options.signal),
     stableJson(join(dirname(earth),'countries-ne-5.1.1.geojson'),options.signal),
     stableJson(overridesPath||join(earth,'hydronym-ko-overrides.json'),options.signal),
-    stableJson(independentPath||resolve(workspace,'tools/gis/hydro-independent-name-replacements.json'),options.signal),
+    stableJson(independentPath,options.signal),
     osmPath?stableJson(osmPath,options.signal):null]);
   const references=collection(river),lakes=collection(lake),countries=collection(country).map((row,index)=>({id:String(row.id||index),geometry:row.geometry})),
     aliases=overrides.value?.aliases||{},systemOverrides=overrides.value?.systems||{},osmRows=osm?parseHydroOsmWaterways(osm.value,{aliases}):[];

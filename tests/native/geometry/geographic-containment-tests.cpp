@@ -1,7 +1,6 @@
 #include <pandoeditor/geometrypredicates.h>
 #include <algorithm>
 #include <cassert>
-#include <chrono>
 #include <cmath>
 #include <cstdint>
 #include <iostream>
@@ -10,12 +9,6 @@
 #include <vector>
 
 using namespace pandoeditor;
-#ifdef PANDO_OBJ098_LEGACY_COMPARE
-namespace pandoeditor {
-bool geometryContainsLegacy(const Geometry&, const Geometry&);
-bool geometrySignificantOverlapLegacy(const Geometry&, const Geometry&);
-}
-#endif
 
 namespace {
 constexpr double pi=3.14159265358979323846264338327950288;
@@ -59,21 +52,12 @@ struct Checker {
         const auto beforeOuter=hash(outer),beforeInner=hash(inner);
         const auto has=geometryContains(outer,inner);
         const auto overlaps=compareOverlap?geometrySignificantOverlap(outer,inner):false;
-#ifdef PANDO_OBJ098_LEGACY_COMPARE
-        const auto old=geometryContainsLegacy(outer,inner);
-        const auto oldOverlap=compareOverlap?geometrySignificantOverlapLegacy(outer,inner):false;
-        if(has!=old||overlaps!=oldOverlap) {
-            std::cerr<<"OBJ098_MISMATCH "<<label<<" new="<<has<<" old="<<old
-                     <<" newOverlap="<<overlaps<<" oldOverlap="<<oldOverlap<<'\n';
-            std::abort();
-        }
-#endif
         if(expected>=0 && has!=(expected!=0)) {
-            std::cerr<<"OBJ098_UNEXPECTED "<<label<<" got="<<has<<" expected="<<expected<<'\n';
+            std::cerr<<"GEOGRAPHIC_UNEXPECTED "<<label<<" got="<<has<<" expected="<<expected<<'\n';
             std::abort();
         }
         if(beforeOuter!=hash(outer)||beforeInner!=hash(inner)) {
-            std::cerr<<"OBJ098_MUTATED_GEOMETRY "<<label<<'\n';std::abort();
+            std::cerr<<"GEOGRAPHIC_MUTATED_GEOMETRY "<<label<<'\n';std::abort();
         }
         ++count;contained+=has;uncontained+=!has;
         digest=(digest^static_cast<std::uint64_t>(has?1:0))*1099511628211ull;
@@ -84,7 +68,7 @@ struct Checker {
 int main() {
     Checker cases;
     // Small ordinary and periodic seam cases: both date-line split and
-    // unwrapped x>180 layouts must preserve the old exact predicates.
+    // unwrapped x>180 layouts must preserve exact geographical predicates.
     const auto normal=shape({{rect(10,10,20,20)}});
     cases.check("ordinary-interior",normal,shape({{rect(12,12,18,18)}}),1);
     cases.check("ordinary-exterior",normal,shape({{rect(40,12,44,18)}}),0);
@@ -130,11 +114,7 @@ int main() {
     }
     const auto parent=shape({{ellipse(179,48,34,28,2800,0.01)}});
     const auto child=shape({{ellipse(178,48,2,1.5,340,0.02)}});
-    const auto before=std::chrono::steady_clock::now();
     cases.check("large-date-line-ring",parent,child,1,false);
-    const auto elapsed=std::chrono::duration<double,std::milli>(
-        std::chrono::steady_clock::now()-before).count();
-    std::cout<<"OBJ098_PARITY "<<cases.count<<" contained="<<cases.contained
+    std::cout<<"GEOGRAPHIC_PARITY "<<cases.count<<" contained="<<cases.contained
              <<" uncontained="<<cases.uncontained<<" digest="<<cases.digest<<'\n';
-    std::cout<<"OBJ098_LARGE_GEOGRAPHIC_CONTAINMENT_MS "<<elapsed<<'\n';
 }

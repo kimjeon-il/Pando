@@ -514,3 +514,19 @@ test('inline check option values reach their normal validation',()=>{
  assert.throws(()=>checkMain(['--phase=unknown'],{}),/Invalid execution phase/);
  assert.throws(()=>checkMain(['--group='],{}),/Missing check option value/);
 });
+
+test('Core artifact preparation dispatches only its source-matched workflow request',()=>{
+ const calls=[],head='a'.repeat(40);let title;
+ const command=args=>{calls.push(args);
+  if(args[0]==='git'){if(args[1]==='status')return '';if(args[1]==='rev-parse')return head;if(args[1]==='symbolic-ref')return 'work/objects';if(args[1]==='ls-remote')return head+' refs/heads/work/objects';}
+  if(args[1]==='workflow'){const request=args.find(arg=>arg.startsWith('request_id=')).slice(11);title='Shared Core core-artifact '+request;return ''; }
+  if(args[2]==='list')return JSON.stringify([{databaseId:42,headSha:head,displayTitle:title,url:'https://example.test/42'}]);
+  if(args[2]==='watch')return '';throw Error('Unexpected command '+args);
+ };
+ const result=runner.dispatchSelectedChecks({repository:{root:'.'},artifact:'core-wasm',command});
+ assert.equal(result.ok,true);assert.equal(result.results[0].head,head);
+ const dispatch=calls.find(args=>args[1]==='workflow');
+ assert.equal(dispatch[3],'shared-core.yml');assert.ok(dispatch.includes('scope=core-artifact'));
+ assert.equal(dispatch.some(arg=>arg.startsWith('check_selection=')),false);
+ assert.throws(()=>runner.dispatchSelectedChecks({artifact:'unknown',command}),/Unknown selected artifact/);
+});

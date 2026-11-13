@@ -66,7 +66,7 @@ on:
       scope:
         description: Focused shared calculation verification
         type: choice
-        options: [all, p6-polygon, p6-calculations, geometry, geometry-wasm, temporal, temporal-source, temporal-candidate, temporal-transport, temporal-parity, native-core, native-gis, native-all]
+        options: [all, p6-polygon, p6-calculations, geometry, geometry-wasm, core-artifact, temporal, temporal-source, temporal-candidate, temporal-transport, temporal-parity, native-core, native-gis, native-all]
         default: all
 permissions:
   contents: read
@@ -176,7 +176,7 @@ jobs:
           cmake --build build-native/geometry-core --target country_contact_tests boundary_split_tests polygon_mesh_tests --parallel 2
           ctest --test-dir build-native/geometry-core -R '^(country_contact_tests|boundary_split_tests|polygon_mesh_tests)$' --output-on-failure --no-tests=error
   geometry-wasm:
-    if: github.event_name == 'workflow_dispatch' && inputs.scope == 'geometry-wasm'
+    if: github.event_name == 'workflow_dispatch' && (inputs.scope == 'geometry-wasm' || inputs.scope == 'core-artifact')
     runs-on: ubuntu-24.04
     timeout-minutes: 35
     env:

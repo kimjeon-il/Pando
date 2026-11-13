@@ -4,28 +4,14 @@ import {sharedCalculationCore} from "../../../src/document/temporal.js";
 import assert from 'node:assert/strict';
 import {resolvePhysicalWaterObjects,physicalWaterReferenceView,createPhysicalResources} from "../../../src/data/physical-resources.js";
 import {createHash} from 'node:crypto';
-import {readFileSync} from 'node:fs';
-import vm from 'node:vm';
 import {createGeometryVersionStore} from "../../../src/geometry/geometry-version-store.js";
-import {modernCaspianWater} from "../../../tools/gis/prepare-water-object-history.mjs";
 import {createPhysicalLandPatch} from '../../../tools/data/physical-land-storage.mjs';
 import {regionalLandLayout} from '../../../src/data/physical-land-patch.js';
 import {drawGpuBaseScene} from "../../../src/rendering/gpu-base-scene-pass.js";
 import "../../../src/rendering/workers/canvas-scene-composition-core.js";
 
 const objectRef={domain:'hydroBuiltin',id:'waterbody:caspian'};
-test('derived modern water retains islands and uses the small spherical interior',()=>{
- const square=(w,s,e,n)=>[[w,s],[w,n],[e,n],[e,s],[w,s]];
- const outer=square(40,30,60,55),water=square(45,36,55,47).reverse(),island=square(48,40,49,41);
- const land={type:'MultiPolygon',coordinates:[[outer,water],[island]]},before=structuredClone(land);
- const result=modernCaspianWater(land),scope={};
- vm.runInNewContext(readFileSync(new URL("../../../assets/js-vendor/d3.min.js",import.meta.url),'utf8'),scope);
- assert.equal(result.coordinates.length,2);
- assert.ok(scope.d3.geo.area(result)>0&&scope.d3.geo.area(result)<0.1,'water cannot fill the complementary world');
- assert.deepEqual(land,before,'source land and islands stay immutable');
- const points=rings=>[...new Set(rings.flat().map(point=>point.join(',')))].sort();
- assert.deepEqual(points(result.coordinates),points([water,island]));
-});
+
 function catalog(land,water) {
  return {identities:[{objectRef,entityKind:'lake',name:'Caspian',layerId:'lakes_base'}],geometries:[{geometryRef:{id:'reviewed-water',version:1},land,asset:water}],
   timelineRecords:{schemaVersion:3,lifetimes:[{id:'life',objectRef,validFrom:'1922-12-30',validTo:'1925-05-12'}],parentRelations:[],propertyBindings:[],
