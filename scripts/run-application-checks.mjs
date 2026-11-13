@@ -44,12 +44,18 @@ export function exactCheckPlan(repository,selection) {
   return planApplicationChecks({repository,exactSelection:selection});
 }
 
-export function dispatchSelectedChecks({repository,selection,artifact=null,command=(args)=>execFileSync(args[0],args.slice(1),{cwd:repository.root,encoding:'utf8',maxBuffer:8*1024**2}).trim()}={}) {
+export function dispatchSelectedChecks({repository,selection,artifact=null,committedOnly=false,command=(args)=>execFileSync(args[0],args.slice(1),{cwd:repository.root,encoding:'utf8',maxBuffer:8*1024**2}).trim()}={}) {
   if(artifact!==null&&artifact!=='core-wasm')throw Error('Unknown selected artifact');
   if(!artifact)exactCheckPlan(repository,selection);
-  if(command(['git','status','--porcelain','--untracked-files=no']))throw Error('CI checks require committed and pushed inputs; preserve changes and commit/push before retrying. Selected checks: '+JSON.stringify(selection));
-  const files=artifact?[]:[...selection.unitTests,...selection.browserSpecs];if(files.length)command(['git','ls-files','--error-unmatch','--',...files]);
+  if(typeof committedOnly!=='boolean')throw Error('Invalid committed CI input mode');
+  const worktreeStatus=command(['git','status','--porcelain','--untracked-files=no']);
+  if(worktreeStatus&&!committedOnly)throw Error('CI checks require committed and pushed inputs; preserve changes and commit/push before retrying. Selected checks: '+JSON.stringify(selection));
+  const files=artifact?[]:[...selection.unitTests,...selection.browserSpecs];
   const head=command(['git','rev-parse','HEAD']),branch=command(['git','symbolic-ref','--short','HEAD']);
+  if(files.length){
+    const present=new Set(command(['git','ls-tree','-r','--name-only',head,'--',...files]).split('\n'));
+    for(const file of files)if(!present.has(file))throw Error('Selected check is absent from the committed CI input: '+file);
+  }
   const remote=command(['git','ls-remote','--heads','origin','refs/heads/'+branch]).split(/\s+/)[0];
   if(remote!==head)throw Error('Push the current commit before requesting CI checks: '+head);
   const requestId=randomUUID();
@@ -66,7 +72,7 @@ export function dispatchSelectedChecks({repository,selection,artifact=null,comma
   }
   if(!run)throw Error('CI dispatch accepted but run discovery is pending; request '+requestId+'; do not dispatch again');
   command(['gh','run','watch',String(run.databaseId),'--exit-status','--interval','5']);
-  return {ok:true,results:[{id:'selected-native-ci',status:'passed',url:run.url,head,requestId}],externalChecks:[]};
+  return {ok:true,results:[{id:'selected-native-ci',status:'passed',url:run.url,head,requestId,inputMode:committedOnly?'committed':'clean-worktree',worktreeChangesExcluded:committedOnly&&Boolean(worktreeStatus)}],externalChecks:[]};
 }
 
 // Unit suites that start a real Playwright browser need an executable in the
@@ -259,19 +265,26 @@ export function selectionRequest(catalog, env, groups = []) {
 export function main(args = process.argv.slice(2), env = process.env) {
   args=args.flatMap(arg=>{const at=arg.indexOf('=');return arg.startsWith('--')&&at>2?[arg.slice(0,at),arg.slice(at+1)]:[arg];});
   const value = name => { const at = args.indexOf(name); return at < 0 ? undefined : args[at + 1]; };
-  const known = new Set(['--core-artifact', '--list', '--base', '--group', '--github-output', '--output', '--phase', '--shard']);
+  const known = new Set(['--core-artifact','--committed-inputs', '--list', '--base', '--group', '--github-output', '--output', '--phase', '--shard']);
   for (let at = 0; at < args.length; at++) {
     if (!known.has(args[at])) throw Error('Unknown check option: ' + args[at]);
     if (['--base', '--group', '--output', '--phase', '--shard'].includes(args[at]) && (!args[++at] || args[at].startsWith('--'))) throw Error('Missing check option value');
   }
+  const committedOnly=args.includes('--committed-inputs');
+  if(committedOnly&&args.some(arg=>!['--committed-inputs','--core-artifact'].includes(arg)))throw Error('Committed CI inputs require an exact CHECK_SELECTION or a Core artifact request');
   const execution = executionOptions({ phase: value('--phase'), shard: value('--shard') });
   const repository = loadRepository();
   if(args.includes('--core-artifact')){
-    if(args.length!==1)throw Error('Core artifact preparation must be selected alone');
-    const result=dispatchSelectedChecks({repository,artifact:'core-wasm'});
+    if(args.filter(arg=>arg!=='--committed-inputs').length!==1)throw Error('Core artifact preparation must be selected alone');
+    const result=dispatchSelectedChecks({repository,artifact:'core-wasm',committedOnly});
     console.log(JSON.stringify(result,null,2));return result;
   }
   const request = selectionRequest(repository.catalog, env, value('--group')?.split(',') || []);
+  if(committedOnly){
+    if(!request.exact)throw Error('Committed CI inputs require an exact CHECK_SELECTION');
+    const result=dispatchSelectedChecks({repository,selection:request.exact,committedOnly:true});
+    console.log(JSON.stringify(result,null,2));return result;
+  }
   const comparison = request.diff === false ? collectChanges({ base: env.HEAD_SHA || 'HEAD', head: env.HEAD_SHA || 'HEAD', event: 'push' }) : collectChanges({ base: value('--base') || env.BASE_SHA || 'origin/main',
     head: env.HEAD_SHA || 'HEAD', event: env.GITHUB_EVENT_NAME || 'local' });
   const plan = { ...(request.exact?exactCheckPlan(repository,request.exact):planApplicationChecks({ changedFiles: comparison.files, repository, groups: request.groups })), comparison };

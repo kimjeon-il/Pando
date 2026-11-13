@@ -530,3 +530,20 @@ test('Core artifact preparation dispatches only its source-matched workflow requ
  assert.equal(dispatch.some(arg=>arg.startsWith('check_selection=')),false);
  assert.throws(()=>runner.dispatchSelectedChecks({artifact:'unknown',command}),/Unknown selected artifact/);
 });
+
+test('explicit committed CI inputs preserve unrelated work and report it as excluded',()=>{
+ const head='b'.repeat(40),calls=[];let title;
+ const command=args=>{calls.push(args);
+  if(args[0]==='git'){if(args[1]==='status')return ' M tools/data/library-store.mjs';if(args[1]==='rev-parse')return head;if(args[1]==='symbolic-ref')return 'work/objects';if(args[1]==='ls-remote')return head+' refs/heads/work/objects';}
+  if(args[1]==='workflow'){title='Shared Core core-artifact '+args.find(arg=>arg.startsWith('request_id=')).slice(11);return ''; }
+  if(args[2]==='list')return JSON.stringify([{databaseId:43,headSha:head,displayTitle:title,url:'https://example.test/43'}]);
+  if(args[2]==='watch')return '';throw Error('Unexpected command '+args);
+ };
+ assert.throws(()=>runner.dispatchSelectedChecks({repository:{root:'.'},artifact:'core-wasm',command}),/committed and pushed/);
+ const result=runner.dispatchSelectedChecks({repository:{root:'.'},artifact:'core-wasm',committedOnly:true,command});
+ assert.equal(result.ok,true);assert.equal(result.results[0].head,head);
+ assert.equal(result.results[0].inputMode,'committed');
+ assert.equal(result.results[0].worktreeChangesExcluded,true);
+ assert.equal(calls.some(args=>args[0]==='git'&&['add','stash','checkout','reset'].includes(args[1])),false);
+ assert.throws(()=>runner.dispatchSelectedChecks({repository:{root:'.'},artifact:'core-wasm',committedOnly:true,command:args=>args[1]==='ls-remote'?'c'.repeat(40)+' refs/heads/work/objects':command(args)}),/Push the current commit/);
+});
