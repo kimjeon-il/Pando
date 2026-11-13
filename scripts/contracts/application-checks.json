@@ -936,6 +936,31 @@
       "requires": [
         "native-map-image-resample-tests"
       ]
+    },
+    {
+      "id": "geometry-cleanup-native",
+      "kind": "command",
+      "mode": "manual",
+      "reason": "Only the moved country merge and retained geographic containment regressions.",
+      "inputs": [
+        "tests/native/geometry/gis-country-merge-native.cpp",
+        "tests/native/geometry/geographic-containment-tests.cpp",
+        "tools/build/native/tests/CMakeLists.txt"
+      ],
+      "argv": [
+        "ctest",
+        "--test-dir",
+        "build-native/geometry-core",
+        "-C",
+        "Release",
+        "--output-on-failure",
+        "--no-tests=error",
+        "-R",
+        "^(gis_country_merge_tests|geographic_containment_tests)$"
+      ],
+      "requires": [
+        "native-geometry-cleanup-tests"
+      ]
     }
   ],
   "prerequisites": {
@@ -1099,35 +1124,6 @@
         ".github/actions/native-test-prerequisites/action.yml"
       ]
     },
-    "native-territorial-recipe": {
-      "argv": [
-        "node",
-        "scripts/prepare-native-test-tools.mjs",
-        "territorial-recipe"
-      ],
-      "env": {
-        "PANDO_TERRITORIAL_RECIPE_BINARY": "{root}/build-native/territorial-recipe/pando-territorial-recipe"
-      },
-      "inputs": [
-        "tools/cpp/CMakeLists.txt",
-        "tools/cpp/build-territorial-recipe.cpp",
-        "tools/cpp/historical-*.inc",
-        "tools/cpp/territorial-recipe-environment.yml",
-        "src/data/native/src/losslessjson.cpp",
-        "src/data/native/include/pandoeditor/losslessjson.h",
-        "src/geometry/native/src/sphericalpolygon.cpp",
-        "src/geometry/native/include/pandoeditor/sphericalpolygon.h",
-        "src/geometry/native/include/pandoeditor/geometry-types.h",
-        "src/geometry/native/include/pandoeditor/geometryoperations.h",
-        "src/geometry/native/include/pandoeditor/polygonclipping.h",
-        "src/document/native/include/pandoeditor/document.h",
-        "src/geometry/native/include/pandoeditor/geometryprovenance.h",
-        "src/document/native/include/pandoeditor/presentation.h",
-        "src/document/native/include/pandoeditor/temporal.h",
-        "src/document/native/include/pandoeditor/timeline-records.h",
-        ".github/actions/native-test-prerequisites/action.yml"
-      ]
-    },
     "native-mupdf": {
       "argv": [
         "node",
@@ -1135,23 +1131,6 @@
         "mupdf"
       ],
       "inputs": [
-        ".github/actions/native-test-prerequisites/action.yml"
-      ]
-    },
-    "native-caspian-oracle": {
-      "argv": [
-        "node",
-        "scripts/prepare-native-test-tools.mjs",
-        "caspian-oracle"
-      ],
-      "requires": [
-        "native-territorial-recipe"
-      ],
-      "inputs": [
-        "tools/gis/generalize-approved-caspian-display.mjs",
-        "tools/gis/verify-approved-caspian-network.mjs",
-        "tests/fixtures/gis-caspian-1922-native-baseline.json",
-        "config/library-data.json",
         ".github/actions/native-test-prerequisites/action.yml"
       ]
     },
@@ -1219,6 +1198,19 @@
         "node",
         "scripts/prepare-native-test-tools.mjs",
         "map-image-resample-tests"
+      ]
+    },
+    "native-geometry-cleanup-tests": {
+      "argv": [
+        "node",
+        "scripts/prepare-native-test-tools.mjs",
+        "geometry-cleanup-tests"
+      ],
+      "inputs": [
+        "tools/build/native/**",
+        "src/**/native/**",
+        "tests/native/geometry/gis-country-merge-native.cpp",
+        "tests/native/geometry/geographic-containment-tests.cpp"
       ]
     }
   },
@@ -1736,14 +1728,6 @@
       ],
       "requires": [
         "native-hydro-point-screen"
-      ]
-    },
-    {
-      "tests": [
-        "tests/unit/geometry/territorial-boundary-supplement.test.mjs"
-      ],
-      "requires": [
-        "native-territorial-recipe"
       ]
     },
     {

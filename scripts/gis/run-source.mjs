@@ -20,7 +20,6 @@ export const TASK_SOURCES = Object.freeze({
   'hydro-packfile':'tools/build/build-hydro-packfile.mjs',
   'hydro-connectivity':'tools/gis/repair-hydro-connectivity.mjs',
   'physical-hydro':'tools/gis/build-physical-hydro.mjs',
-  'place-candidates':'tools/build/build-place-candidates.mjs',
 });
 export function buildCommand(task,args=[],{root=ROOT}={}){
   if(!Object.hasOwn(TASK_SOURCES,task))throw Error('Unsupported GIS research task: '+task);

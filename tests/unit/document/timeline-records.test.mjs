@@ -7,7 +7,6 @@ import * as __merge_dep4 from "../../fixtures/timeline-records-cases.mjs";
 import * as __merge_dep5 from "../../../src/document/territorial-units.js";
 import * as __merge_dep6 from "../../../src/document/timeline-storage.js";
 import * as __merge_dep7 from "../../helpers/timeline-project.mjs";
-import * as __merge_dep8 from "../../../tools/gis/timeline-edit.js";
 import * as __merge_dep9 from "node:fs";
 import * as __merge_dep10 from "../../../src/document/territorial-entity-store.js";
 contractSuite("timeline-records", () => {
@@ -167,7 +166,6 @@ contractSuite("timeline-edit", () => {
 // The edit and live-view cases share only the already imported fixtures.
 const assert = __merge_dep1.default;
 const test = __merge_dep0.default;
-const { replaceTimelineRecordAtMonth, truncateTimelineEntityAtMonth } = __merge_dep8;
 const { normalizeTimelineRecords } = __merge_dep3;
 
 const records = { schemaVersion: 3, lifetimes: [], geometryBindings: [
@@ -176,8 +174,7 @@ const records = { schemaVersion: 3, lifetimes: [], geometryBindings: [
 ], parentRelations: [], propertyBindings: [] };
 
 test('dated geometry replacement retains exact original start and later versions', () => {
-  const result = replaceTimelineRecordAtMonth(records, 'geometryBindings', {domain:"territorial",id:'A'}, '1914-07',
-    { geometryRef: { id: 'shape', version: 2 } });
+  const result = __merge_dep2.sharedCalculationCore.timelineEditRecord(records, 'geometryBindings', {domain:"territorial",id:'A'}, '1914-07', { geometryRef: { id: 'shape', version: 2 } }).records;
   assert.deepEqual(result.geometryBindings, [
     { ...records.geometryBindings[0], validTo: '1914-06' },
     { ...records.geometryBindings[0], id: 'A:original:1914-07', validFrom: '1914-07', geometryRef: { id: 'shape', version: 2 } },
@@ -191,8 +188,7 @@ test('month split preserves a later exact-date endpoint verbatim', () => {
     { ...records.geometryBindings[0], validTo: '1915-12-24' },
     records.geometryBindings[1],
   ] };
-  const result = replaceTimelineRecordAtMonth(source, 'geometryBindings', {domain:"territorial",id:'A'}, '1914-07',
-    { geometryRef: { id: 'shape', version: 2 } });
+  const result = __merge_dep2.sharedCalculationCore.timelineEditRecord(source, 'geometryBindings', {domain:"territorial",id:'A'}, '1914-07', { geometryRef: { id: 'shape', version: 2 } }).records;
   assert.equal(result.geometryBindings[0].validFrom, '1914-06-15');
   assert.equal(result.geometryBindings[0].validTo, '1914-06');
   assert.equal(result.geometryBindings[1].validFrom, '1914-07');
@@ -200,8 +196,7 @@ test('month split preserves a later exact-date endpoint verbatim', () => {
 });
 
 test('same-month replacement keeps its exact day and does not create overlap', () => {
-  const result = replaceTimelineRecordAtMonth(records, 'geometryBindings', {domain:"territorial",id:'A'}, '1914-06',
-    { geometryRef: { id: 'shape', version: 2 } });
+  const result = __merge_dep2.sharedCalculationCore.timelineEditRecord(records, 'geometryBindings', {domain:"territorial",id:'A'}, '1914-06', { geometryRef: { id: 'shape', version: 2 } }).records;
   assert.equal(result.geometryBindings.length, 2);
   assert.equal(result.geometryBindings[0].validFrom, '1914-06-15');
   assert.equal(result.geometryBindings[0].geometryRef.version, 2);
@@ -216,8 +211,7 @@ test('parent change splits only its own slot and can be validated as one candida
       parentId: '', coverageMode: 'explicit' })).concat({ id: 'parent:B', objectRef:{domain:"territorial",id:'B'}, validFrom: null,
       validTo: null, parentId: 'A', coverageMode: 'partition' }),
   };
-  const changed = replaceTimelineRecordAtMonth(source, 'parentRelations', {domain:"territorial",id:'B'}, '1914-07',
-    { parentId: 'C', coverageMode: 'explicit' });
+  const changed = __merge_dep2.sharedCalculationCore.timelineEditRecord(source, 'parentRelations', {domain:"territorial",id:'B'}, '1914-07', { parentId: 'C', coverageMode: 'explicit' }).records;
   normalizeTimelineRecords(changed, { entities: ['A', 'B', 'C'].map(id => ({ objectRef:{domain:'territorial',id}, entityKind: 'general' })),
     geometryExists: () => true });
   assert.equal(changed.parentRelations.find(row => row.id === 'parent:B').validTo, '1914-06');
@@ -235,7 +229,7 @@ test('ending an entity removes future records but preserves earlier month covera
     parentRelations: [{ id: 'parent:A', objectRef:{domain:"territorial",id:'A'}, validFrom: null, validTo: null,
       parentId: '', coverageMode: 'explicit' }],
   };
-  const ended = truncateTimelineEntityAtMonth(source, {domain:"territorial",id:'A'}, '1914-07');
+  const ended = __merge_dep2.sharedCalculationCore.timelineTruncateEntity(source, {domain:"territorial",id:'A'}, '1914-07');
   assert.equal(ended.lifetimes[0].validTo, '1914-06');
   assert.deepEqual(ended.geometryBindings.map(row => row.id), ['shape:A:old']);
   assert.equal(ended.parentRelations[0].validTo, '1914-06');

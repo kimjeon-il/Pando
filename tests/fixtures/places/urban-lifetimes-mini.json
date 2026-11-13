@@ -1,0 +1,94 @@
+{
+  "schema": "pando-place-urban-lifetimes-v1",
+  "schemaVersion": 1,
+  "sourceReviewRevision": "6e41eb415d66bffff400bf3b064f4605f95fa326",
+  "interpretation": "Reviewed periods apply only to modern city-label eligibility, not proven physical settlement existence, sovereignty or modern city rank; year-only dates retain year precision.",
+  "entries": [
+    {
+      "source": "geonames",
+      "sourceId": "993800",
+      "sourceReviewFile": "reports/places/tier1-major-cities-batch06-africa-oceania.json",
+      "status": "reviewed",
+      "scope": "urban-city-label-not-settlement-existence",
+      "beforeCityEstablished": "suppress-city-label",
+      "afterIndependentCityMerger": null,
+      "intervals": [
+        {
+          "fromYear": 1886
+        }
+      ],
+      "reviewedCoverage": null,
+      "sourceUrl": "https://joburg.org.za/media_/Newsroom/Pages/2021%20News%20Articles/October/Joburg-still-city-of-opportunities-135-years-later.aspx",
+      "researchNote": "광산촌과 취락이 1886년 금광 발견에 따라 형성됨. 형성의 정확한 월·일은 의견이 일치하지 않으므로 연도 단위로 제한함."
+    },
+    {
+      "source": "geonames",
+      "sourceId": "2161314",
+      "sourceReviewFile": "reports/places/tier1-major-cities-batch21-oceania-pacific-capitals.json",
+      "status": "provisional",
+      "scope": "urban-city-label-not-settlement-existence",
+      "beforeCityEstablished": null,
+      "afterIndependentCityMerger": null,
+      "intervals": [],
+      "reviewedCoverage": null,
+      "sourceUrl": "https://kingston.norfolkisland.gov.au/explore-the-layers-of-history/colonial-settlement-1788-1814",
+      "researchNote": "1788~1814 영국 첫 식민지, 1814년 완전 철수, 1825~1855 제2기 유형 식민지, 1856년 새로운 Pitcairn 이주민 공동체. 1814~1825 도시 비활성화는 별도 기간 단위 확증 후 적용하므로 현재 activeIntervals는 만들지 않는다."
+    },
+    {
+      "source": "geonames",
+      "sourceId": "2352778",
+      "sourceReviewFile": "reports/places/tier1-major-cities-batch18-west-central-africa-capitals.json",
+      "status": "provisional",
+      "scope": "urban-city-label-not-settlement-existence",
+      "beforeCityEstablished": "suppress-city-label",
+      "afterIndependentCityMerger": null,
+      "intervals": [
+        {
+          "fromYear": 1980
+        }
+      ],
+      "reviewedCoverage": null,
+      "sourceUrl": "https://fcda.gov.ng/the-history-of-abuja/",
+      "researchNote": "1980년경 현재 Abuja 신도시의 물리적 건설 시작. 1976년 수도 설치 법령은 FCT 지정이고 1991년 수도 이전은 정치 기능 변경이다. 옛 Abuja 도시는 현재 Suleja로 별도 ID/좌표이다."
+    },
+    {
+      "source": "geonames",
+      "sourceId": "3046446",
+      "sourceReviewFile": "reports/places/tier1-major-cities-batch07-europe-capitals.json",
+      "status": "verified",
+      "scope": "urban-city-label-not-settlement-existence",
+      "beforeCityEstablished": null,
+      "afterIndependentCityMerger": "suppress-city-label",
+      "intervals": [
+        {
+          "untilDateExclusive": "1873-11-17",
+          "sourceUrl": "https://old.bparchiv.hu/hirek/150-eves-budapest",
+          "researchNote": "역사적 독립 도시로서의 페슈트 표시는 1873-11-16까지. 1873-11-17부터는 별도 도시 표시를 종료하고 통합된 부다페스트(GeoNames 3054643)를 표시한다. 1801년 이전은 조사 범위 밖이며, 통합 후 Pest라는 지역명 자체가 소멸했다는 뜻은 아니다."
+        }
+      ],
+      "reviewedCoverage": {
+        "fromYear": 1801,
+        "untilYear": 2026
+      },
+      "sourceUrl": "https://old.bparchiv.hu/hirek/150-eves-budapest",
+      "researchNote": "PPLX는 현재 GeoNames의 지역 분류다. 옛 독립 도시로 표시할 때만 city-label eligibility를 부여한다. 현대 Pest의 지역 지명 검색·보존은 독립 도시 표시 제외와 별개. activeIntervals는 현재 조사 데이터에만 존재하며 실제 렌더러는 아직 이를 적용하지 않는다."
+    },
+    {
+      "source": "geonames",
+      "sourceId": "3054643",
+      "sourceReviewFile": "reports/places/tier1-major-cities-batch07-europe-capitals.json",
+      "status": "reviewed",
+      "scope": "urban-city-label-not-settlement-existence",
+      "beforeCityEstablished": "suppress-city-label",
+      "afterIndependentCityMerger": null,
+      "intervals": [
+        {
+          "fromDate": "1873-11-17"
+        }
+      ],
+      "reviewedCoverage": null,
+      "sourceUrl": "https://old.bparchiv.hu/hirek/150-eves-budapest",
+      "researchNote": "1873년 통합 이전은 별도 취락"
+    }
+  ]
+}

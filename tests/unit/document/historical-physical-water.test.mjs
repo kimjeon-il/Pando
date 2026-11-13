@@ -2,30 +2,17 @@ import test from 'node:test';
 import {createCoreDocumentReadModel} from "../../../src/document/core-document-read-model.js";
 import {sharedCalculationCore} from "../../../src/document/temporal.js";
 import assert from 'node:assert/strict';
-import {resolvePhysicalWaterObjects,physicalWaterReferenceView,createPhysicalResources} from "../../../src/data/physical-resources.js";
+import {resolvePhysicalWaterObjects,physicalWaterReferenceView} from "../../../src/data/physical-water-model.js";
+import {createPhysicalResources} from "../../../src/rendering/physical-map-controller.js";
 import {createHash} from 'node:crypto';
-import {readFileSync} from 'node:fs';
-import vm from 'node:vm';
 import {createGeometryVersionStore} from "../../../src/geometry/geometry-version-store.js";
-import {modernCaspianWater} from "../../../tools/gis/prepare-water-object-history.mjs";
 import {createPhysicalLandPatch} from '../../../tools/data/physical-land-storage.mjs';
 import {regionalLandLayout} from '../../../src/data/physical-land-patch.js';
 import {drawGpuBaseScene} from "../../../src/rendering/gpu-base-scene-pass.js";
 import "../../../src/rendering/workers/canvas-scene-composition-core.js";
 
 const objectRef={domain:'hydroBuiltin',id:'waterbody:caspian'};
-test('derived modern water retains islands and uses the small spherical interior',()=>{
- const square=(w,s,e,n)=>[[w,s],[w,n],[e,n],[e,s],[w,s]];
- const outer=square(40,30,60,55),water=square(45,36,55,47).reverse(),island=square(48,40,49,41);
- const land={type:'MultiPolygon',coordinates:[[outer,water],[island]]},before=structuredClone(land);
- const result=modernCaspianWater(land),scope={};
- vm.runInNewContext(readFileSync(new URL("../../../assets/js-vendor/d3.min.js",import.meta.url),'utf8'),scope);
- assert.equal(result.coordinates.length,2);
- assert.ok(scope.d3.geo.area(result)>0&&scope.d3.geo.area(result)<0.1,'water cannot fill the complementary world');
- assert.deepEqual(land,before,'source land and islands stay immutable');
- const points=rings=>[...new Set(rings.flat().map(point=>point.join(',')))].sort();
- assert.deepEqual(points(result.coordinates),points([water,island]));
-});
+
 function catalog(land,water) {
  return {identities:[{objectRef,entityKind:'lake',name:'Caspian',layerId:'lakes_base'}],geometries:[{geometryRef:{id:'reviewed-water',version:1},land,asset:water}],
   timelineRecords:{schemaVersion:3,lifetimes:[{id:'life',objectRef,validFrom:'1922-12-30',validTo:'1925-05-12'}],parentRelations:[],propertyBindings:[],
@@ -50,6 +37,7 @@ test('physical history prefetch is detached, deduplicated and reusable when its 
  const state={timelineCursor:'2026-10',hydroFeatureCache:new Map()},invalidations=[];
  const resource=createPhysicalResources({buildMeta:{dataRevision:'prefetch-test',physicalLand:modern,physicalWaterObjects:catalog(land,water)},capabilities:{terrain:false,builtinHydro:false}});
  resource.connect({projectState:{state},physicalConfig:{PHYSICAL_DATA_BASE_URL:'http://fixture/assets/data/'},domains:{renderingDomain:{invalidateProject:reason=>invalidations.push(reason)}},feedback:{reportOperationError:error=>{throw error;}}});
+ resource.setProjectSource('builtin');
  await resource.loadPhysicalLandMask();const initial=resource.physicalLand;invalidations.length=0;
  await Promise.all([resource.preparePhysicalContext('1922-12'),resource.preparePhysicalContext('1922-12')]);
  assert.equal(state.timelineCursor,'2026-10');assert.equal(resource.physicalLand,initial);assert.equal(state.hydroFeatureCache.size,0);
@@ -89,6 +77,7 @@ test('a rejected history load retains the background, avoids a fetch loop and re
  globalThis.fetch=async url=>{requests++;if(reject&&String(url).includes('history-land'))throw Error('transient');return new Response(bytes.get(new URL(url).pathname.split('/').at(-1)));};
  const state={timelineCursor:''},resource=createPhysicalResources({buildMeta:globalThis.PANDOLAB_BUILD_META,capabilities:{terrain:false,builtinHydro:false}});
  resource.connect({projectState:{state},physicalConfig:{PHYSICAL_DATA_BASE_URL:'http://fixture/assets/data/'},domains:{renderingDomain:{invalidateProject:reason=>{if(reason==='physical-water-ready')ready();}}},feedback:{reportOperationError:failed}});
+ resource.setProjectSource('builtin');
  await resource.loadPhysicalData({includeHydro:false});const initial=resource.physicalLand;
  state.timelineCursor='1922-12';assert.equal(resource.physicalLand,initial);await failure;
  const count=requests;assert.equal(resource.physicalLand,initial);assert.equal(resource.physicalLand,initial);assert.equal(requests,count);
@@ -134,6 +123,7 @@ test('two independently resolved lakes share one physical land derivative withou
  const state={timelineCursor:'',hydroEdits:[],hydroFeatureCache:new Map([[replaced.id,original]])},resource=createPhysicalResources({buildMeta:{dataRevision:'two-lakes',physicalLand:modern,physicalWaterObjects:input},capabilities:{terrain:false,builtinHydro:false}});
  const hidden=new Set();
  resource.connect({projectState:{state},physicalServices:{isHydroFeatureVisible:feature=>!hidden.has(feature.id)},physicalConfig:{PHYSICAL_DATA_BASE_URL:'http://fixture/assets/data/'},domains:{renderingDomain:{invalidateProject:reason=>{if(reason==='physical-water-ready')ready();}}},feedback:{reportOperationError:error=>{throw error;}}});
+ resource.setProjectSource('builtin');
  await resource.loadPhysicalData({includeHydro:false});const initial=resource.physicalLand;
  state.timelineCursor='1922';assert.equal(resource.physicalLand,initial);assert.equal(resource.isHydroObjectActive(original),true,'loading retains the original source');await loaded;
  const selected=resource.physicalLand;assert.equal(selected.water.type,'MultiPolygon');assert.equal(selected.water.coordinates.length,2);assert.equal(requests.filter(name=>name==='combined-land').length,1);

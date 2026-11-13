@@ -1,5 +1,5 @@
 // Application checks use the same targets, SDK pins and package owners as
-// gis-native-hydro.yml and gis-historical-native.yml. These are tool builds only.
+// the registered native workflows. These are tool builds only.
 const build=(directory,targets,parallel=2)=>['cmake','--build',directory,'--config','Release','--target',...targets,'--parallel',String(parallel)];
 const configure=(source,directory,...options)=>['cmake','-S',source,'-B',directory,...options];
 const native=(target,directory,sourceModule,sourceExport,packageScript,commands,extra=[])=>({
@@ -8,6 +8,7 @@ const native=(target,directory,sourceModule,sourceExport,packageScript,commands,
 });
 
 export const nativeTestRecipes=Object.freeze({
+  'geometry-cleanup-tests':{commands:[configure('tools/build/native','build-native/geometry-core','-DCMAKE_BUILD_TYPE=Release','-DBUILD_TESTING=ON'),build('build-native/geometry-core',['gis_country_merge_tests','geographic_containment_tests'])]},
   // Reuse fixed CMake owners; CTest runs as its separate registered check.
   // No artifact packaging is needed for these in-job test executables.
   'map-image-resample-tests':{commands:[
@@ -70,13 +71,6 @@ export const nativeTestRecipes=Object.freeze({
     archive:'build-native/map-pdf/mupdf-sdk.zip',destination:'build-native/map-pdf/sdk',maximumBytes:100000000,
     runtime:{path:'build-native/map-pdf/sdk/pymupdf/libmupdf.so.26.11',sha256:'2802c2bfedc5b2f4381d93dc2367c9987fa307fabc45c7a041d819c950cc5791'},
   }},
-  'territorial-recipe':{commands:[
-    ['pkg-config','--exact-version=3.13.1','geos'],['pkg-config','--exact-version=9.5.1','proj'],
-    configure('tools/cpp','build-native/territorial-recipe','-G','Ninja','-DPANDO_BUILD_COUNTRY_VALIDATOR=OFF','-DPANDO_BUILD_TERRITORIAL_RECIPE=ON'),
-    build('build-native/territorial-recipe',['pando-territorial-recipe']),
-  ].map(argv=>['micromamba','run','-n','pando-territorial-recipe',...argv]),binaries:['build-native/territorial-recipe/pando-territorial-recipe']},
-  'german-natural-earth':{data:'german-natural-earth'},
-  'caspian-oracle':{data:'caspian-oracle'},
 });
 
 export function nativeTestRecipe(id,{platform=process.platform,architecture=process.arch}={}) {
