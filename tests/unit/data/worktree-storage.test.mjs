@@ -2,13 +2,18 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync, statSync, chmodSync, existsSync, unlinkSync, symlinkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
-import { editorStageRoot, compilerCacheEnvironment, assertCompilerCacheServer, writeStagedContent, removeStagedDirectory, previewWorktreeStorage, applyWorktreeStorage, pruneApplicationBlobs, shareRetiredQtRuntimes } from "../../../tools/data/worktree-storage.mjs";
+import { join, resolve } from 'node:path';
+import { editorStageRoot, compilerCacheEnvironment, assertCompilerCacheServer, writeStagedContent, removeStagedDirectory, previewWorktreeStorage, applyWorktreeStorage, pruneApplicationBlobs, shareRetiredQtRuntimes, parseAvailableWorktrees } from "../../../tools/data/worktree-storage.mjs";
 import { contentHash, contentFiles, publishContent } from "../../../tools/data/library-content.mjs";
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 function fixture(t){const root=mkdtempSync(join(tmpdir(),'pando-worktree-storage-'));t.after(()=>{for(const file of contentFiles(root))chmodSync(file.path,0o600);rmSync(root,{recursive:true,force:true});});return root;}
+test('storage inventory skips only missing worktrees that Git marks prunable',()=>{
+ const listing='worktree /present\nHEAD 123\nbranch refs/heads/main\n\nworktree /missing\nHEAD 456\ndetached\nprunable gitdir file points to non-existent location\n\n';
+ assert.deepEqual(parseAvailableWorktrees(listing,p=>p.endsWith('present')), [resolve('/present')]);
+ assert.throws(()=>parseAvailableWorktrees('worktree /missing\nHEAD 456\n\n',()=>false),/missing/i);
+});
 test('unconfigured hosts preserve current compiler and incremental environment',t=>{
   const root=fixture(t),env={PATH:'existing',CARGO_INCREMENTAL:'1',RUSTC_WRAPPER:'other-wrapper'};
   assert.deepEqual(compilerCacheEnvironment({root,env,settings:null}),env);

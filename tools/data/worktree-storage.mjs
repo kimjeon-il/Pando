@@ -253,7 +253,17 @@ export function runningStorageConsumers(){
   const json=execFileSync('powershell.exe',['-NoProfile','-Command',inventory],{encoding:'utf8',windowsHide:true,maxBuffer:8*1024**2}).trim();
   return json?storageConsumersFromProcesses([JSON.parse(json)].flat()):[];
 }
-export function permanentWorktrees(root=repository){return execFileSync('git',['-C',root,'worktree','list','--porcelain'],{encoding:'utf8',windowsHide:true}).split(/\r?\n/).filter(line=>line.startsWith('worktree ')).map(line=>resolve(line.slice(9)));}
+export function parseAvailableWorktrees(listing,exists=existsSync){
+ return listing.split(/\r?\n\r?\n/).filter(Boolean).flatMap(block=>{
+  const lines=block.split(/\r?\n/),header=lines.find(line=>line.startsWith('worktree '));
+  if(!header)throw Error('Malformed worktree inventory');
+  const path=resolve(header.slice(9));
+  if(exists(path))return [path];
+  if(lines.some(line=>line==='prunable'||line.startsWith('prunable ')))return [];
+  throw Error(`Registered worktree is missing: ${path}`);
+ });
+}
+export function permanentWorktrees(root=repository){return parseAvailableWorktrees(execFileSync('git',['-C',root,'worktree','list','--porcelain'],{encoding:'utf8',windowsHide:true}));}
 export function protectedWorktreeFiles(roots){return roots.flatMap(app=>execFileSync('git',['-C',app,'ls-files','-z','--cached','--others','--exclude-standard'],{encoding:'utf8',windowsHide:true}).split('\0').filter(Boolean).map(path=>resolve(app,path)));}
 function stageBusy(root,processes,settings=storageSettings(root)){
   if(existsSync(join(editorStageRoot(root,settings),'.stage-lock')))return 'Active App stage writer lock';
