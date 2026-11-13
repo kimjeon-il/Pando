@@ -170,3 +170,42 @@ for(const renderer of ['webgl2','canvas'])for(const region of (renderer==='webgl
     }
   });
 }
+
+
+test('HTTP 503 on an optional natural tile preserves the DEM and prevents per-frame retries',async({page},info)=>{
+  test.setTimeout(180_000);
+  let failedRequests=0;
+  const pageErrors=[];
+  page.on('pageerror',error=>pageErrors.push(error.message));
+  await page.addInitScript(()=>localStorage.setItem('pandolab-user-preferences',
+    JSON.stringify({version:2,appearance:{mapStyle:'standard',theme:'light'}})));
+  await page.route('**/terrain/natural/v*/*/*.webp*',async route=>{
+    if(route.request().url().endsWith('/4/16-3.webp')){
+      failedRequests++;
+      await route.fulfill({status:503,body:'optional natural imagery unavailable'});
+    }else await route.continue();
+  });
+  await page.goto('/?debug=1&renderer=webgl2&naturalTerrain=preview',{waitUntil:'domcontentloaded'});
+  await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:100000});
+  await page.evaluate(()=>{
+    const host=window.__PANDOLAB_MAP_HOST__,view=host.getViewState();
+    host.setViewState({projection:'globe',view:{...view,globeRotation:[-106,-30,0],globeZoom:16}});
+    host.requestRepaint('natural-http-failure-review');
+  });
+  const read=()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__?.rendererStats());
+  await expect.poll(async()=>{const s=await read();return s?.terrainReady&&s?.terrainTargetLevel===4;},
+    {timeout:100000}).toBe(true);
+  await expect.poll(()=>failedRequests,{timeout:25000}).toBeGreaterThan(0);
+  await expect.poll(async()=>Number((await read())?.terrainNaturalFailures||0),{timeout:25000}).toBeGreaterThan(0);
+  const before=failedRequests,stats=metrics(await read());
+  await page.waitForTimeout(950);
+  await page.locator('canvas.gpu-map-canvas').first()
+    .screenshot({path:info.outputPath('webgl-optional-http-503-dem-fallback.png')});
+  const evidence={scenario:'optional-natural-http-503',failedRequests,sourceRevision:PINNED_NATURAL_SOURCE,
+    before,stats,pageErrors,rendererPreserved:(await read())?.renderer==='webgl2'};
+  await info.attach('natural-http-fallback',{body:JSON.stringify(evidence,null,2),contentType:'application/json'});
+  expect(failedRequests).toBe(before);
+  expect(stats.terrainReady).toBe(true);
+  expect(stats.renderer).toBe('webgl2');
+  expect(pageErrors).toEqual([]);
+});
