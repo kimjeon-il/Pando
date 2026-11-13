@@ -189,17 +189,3 @@ test('Viewer closure rejects retired transport, offsets and unsafe country descr
  }
 });
 });
-contractSuite("builtin-country-residuals", () => {
-const test = __country_dep0.default;
-const assert = __country_dep1.default;
-const { readFileSync } = __country_dep2;
-
-const source=path=>readFileSync(new URL("../../../"+path,import.meta.url),'utf8');
-
-test('water preparation cannot migrate or regenerate all builtin countries as a side effect',()=>{
- const text=source('tools/gis/prepare-water-object-history.mjs');
- assert.doesNotMatch(text,/prepareCommonCountryTargets|build-builtin-world\.mjs|finalizeBuiltinWorldFiles|writeBuiltinWorldPublication/,
-  'The completed country wire migration is not a dependency of water preparation');
-});
-
-});

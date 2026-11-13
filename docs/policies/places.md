@@ -16,6 +16,6 @@
 
 **검증 계약:** `check-group:place-contracts`, `check-group:places-runtime`. 현재 관련 스크립트는 `check-script:check:places`; 이력 문서의 `pnpm check:place-sync`는 현재 등록된 명령으로 간주하지 않습니다.
 
-## 다른 파일에 포함된 검수 규칙
+## 후보 자료 검수
 
-[대량 지명 조사·배치 절차](../place-batch-pipeline.md)에 도시 ID 중복 검수, 역사명별 실제 효력일, 증거 없는 `fromDate` 금지, 지역별 공용어 확인, 검수 미완료 도시 자동 게시 금지, 현대 GeoNames 인구로 역사 도시 등급을 확정하지 않는 규칙이 있습니다. 이는 현재 후보 함수나 인구 기반 **표시 등급**을 새로 정의하지 않으며, 당시 배치 처리 완료·검증 결과와 구분해 해석해야 합니다.
+대량 지명 조사·배치 작성 도구는 [PandoLab-library](https://github.com/kimjeon-il/PandoLab-library/blob/main/README.md)가 소유합니다. 도시 ID 중복과 역사명별 실제 효력일·지역별 공용어를 확인합니다. 증거 없는 `fromDate`, 검수 미완료 도시의 자동 게시, 현대 GeoNames 인구만으로 역사 도시 등급을 확정하는 처리는 금지합니다. 이는 현재 후보 함수나 인구 기반 **표시 등급**을 새로 정의하지 않으며, 당시 배치 처리 완료·검증 결과와 구분해 해석해야 합니다.

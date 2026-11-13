@@ -34,11 +34,11 @@
 
 `node tools/data/library-data.mjs --store --include-prefix=reports/<scope>`는 해당 브랜치의 편집 범위만 전체 원문으로 보관한다. 보고서만 저장하면 런타임 자료 pin은 유지한다. 미복원 파일은 삭제로 해석하지 않는다. 기존 자료 revision의 압축 원문은 Git 이력에서 계속 읽을 수 있다.
 
-기존 작업본을 정리할 때는 PandoLab에서 `./tools/cleanup-reference-analysis-caches.ps1 -ReportWorkingCopiesOnly`로 미리보고 `-Apply`로 실제 재배치와 삭제를 실행한다. 모든 작업트리의 보고서와 private evidence를 먼저 해시로 대조하고, 중앙 원문을 검증한 뒤 사본만 삭제한다. 사용 중인 원본·미보관 변경·상설 작업트리·런타임/WASM 조합은 보존한다. `private-evidence/<owner>/<source revision>`는 공개 보관 대상과 분리된 원본 위치다.
+보고서 작업본은 현재 `tools/data/library-data.mjs --centralize-reports` 소유자에서 지정한 범위만 정리한다. 중앙 원문·판본·해시를 확인하기 전에는 작업본을 삭제하지 않는다. 앱 생성물은 `tools/data/worktree-storage.mjs`와 `tools/data/worktree-generated.mjs`의 명시적 대상별 명령을 사용한다.
 
 런타임 생성기는 `withLibraryWrite({ root, prefixes }, operation)` 안에서 쓴다. 지정 범위만 독립 파일로 분리하고 비동기 작업 종료까지 쓰기 lease를 유지한다. 출력 경로를 받는 생성기는 `withLibraryOutputs`를 사용한다. 마운트 밖의 개별 staging 경로는 독립 파일로 작성하며, 같은 pin의 다른 브랜치 파일은 수정하지 않는다. 명령형 생성기는 `node tools/data/library-data.mjs --with-write --include-prefix=assets/data/<scope> -- <command> <args>`로 실행할 수 있다. 보관은 쓰기 lease 종료 후 실행한다.
 
-전체 저장소 정리는 `./tools/cleanup-reference-analysis-caches.ps1 -LibraryStorageOnly`로 미리보고 `-Apply`로 적용한다. 실행 중인 서버·쓰기 lease를 확인하고, 현재 pin과 미보관 작업본을 보존한 뒤 구 캐시만 제거한다. Git 정리는 미참조 객체를 포함한 모든 로컬 객체를 promisor 여부에 따라 다시 압축하고, 새 pack의 정확한 객체 집합·무결성과 refs·HEAD·reflog를 검증한다. 과거 index 사본과 서로 다른 옛 작업본은 `private-evidence/storage-migrations/<작업 ID>/`에 출처와 함께 보존한다. 중단 시 같은 명령으로 `.pando-store/storage-migration.pending.json`을 재개한다. 종료가 확인된 잠금 소유자의 파일만 회수하며 실행 중인 작업의 잠금은 보존한다.
+라이브러리 전체 저장공간 유지보수는 별도 작업에서 `node tools/data/library-storage.mjs`로 미리보고 `--apply`로 실행한다. 이 명령은 전체 Git 저장소 유지보수를 포함할 수 있으므로 일반 코드 정리·Viewer 검증에서 자동 실행하지 않는다. 기존 migration journal과 다른 writer의 잠금은 보존한다.
 
 Git 다운로드가 이미 있는 델타 기준 객체를 새 pack에 다시 포함할 수 있으므로, 자료 준비·읽기·저장·보고서 게시 및 확인은 같은 라이브러리 잠금 안에서 Git 중복도 정리한다. `tools/data/library-git.mjs`가 기존 pack을 재사용하고 겹치는 pack의 고유 객체만 독립 pack으로 보존한다. 삭제 전에 남길 pack의 실제 내용과 새 pack의 무결성, 모든 로컬 객체 집합과 refs·HEAD·reflog를 검증하며 이력 만료나 원격 재다운로드를 복구 근거로 삼지 않는다. `.git/pando-git-compaction.pending.json`은 다음 작업에서 재개한다. 원본 pack이 모두 그대로인 삭제 전 단계에서는 추가된 객체를 보존해 계획을 다시 만들고, 원본이 달라지거나 사라졌으면 삭제를 중단한다. 일반 자료 준비에서 라이브러리 전체 캐시를 복제하거나 전체 Git 저장소를 매번 재압축하지 않는다.
 

@@ -1,3 +1,4 @@
+import {parse as parseYaml} from 'yaml';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { execFileSync } from 'node:child_process';
@@ -513,4 +514,48 @@ import {main as checkMain} from '../../../scripts/run-application-checks.mjs';
 test('inline check option values reach their normal validation',()=>{
  assert.throws(()=>checkMain(['--phase=unknown'],{}),/Invalid execution phase/);
  assert.throws(()=>checkMain(['--group='],{}),/Missing check option value/);
+});
+
+test('Core artifact preparation dispatches only its source-matched workflow request',()=>{
+ const calls=[],head='a'.repeat(40);let title;
+ const command=args=>{calls.push(args);
+  if(args[0]==='git'){if(args[1]==='status')return '';if(args[1]==='rev-parse')return head;if(args[1]==='symbolic-ref')return 'work/objects';if(args[1]==='ls-remote')return head+' refs/heads/work/objects';}
+  if(args[1]==='workflow'){assert.equal(args.some(arg=>arg.startsWith('request_id=')),false);title='Shared Core core-artifact';return ''; }
+  if(args[2]==='list')return JSON.stringify(title?[{databaseId:41,headSha:head,displayTitle:title},{databaseId:42,headSha:head,displayTitle:title,url:'https://example.test/42'}]:[{databaseId:41,headSha:head,displayTitle:'Shared Core core-artifact'}]);
+  if(args[2]==='watch')return '';throw Error('Unexpected command '+args);
+ };
+ const result=runner.dispatchSelectedChecks({repository:{root:'.'},artifact:'core-wasm',command});
+ assert.equal(result.ok,true);assert.equal(result.results[0].head,head);
+ const dispatch=calls.find(args=>args[1]==='workflow');
+ assert.equal(dispatch[3],'shared-core.yml');assert.ok(dispatch.includes('scope=core-artifact'));
+ assert.equal(calls.find(args=>args[2]==='watch')[3],'42');
+ assert.equal(dispatch.some(arg=>arg.startsWith('check_selection=')),false);
+ assert.throws(()=>runner.dispatchSelectedChecks({artifact:'unknown',command}),/Unknown selected artifact/);
+});
+
+test('explicit committed CI inputs preserve unrelated work and report it as excluded',()=>{
+ const head='b'.repeat(40),calls=[];let title;
+ const command=args=>{calls.push(args);
+  if(args[0]==='git'){if(args[1]==='status')return ' M tools/data/library-store.mjs';if(args[1]==='rev-parse')return head;if(args[1]==='symbolic-ref')return 'work/objects';if(args[1]==='ls-remote')return head+' refs/heads/work/objects';}
+  if(args[1]==='workflow'){title='Shared Core core-artifact';return ''; }
+  if(args[2]==='list')return title?JSON.stringify([{databaseId:43,headSha:head,displayTitle:title,url:'https://example.test/43'}]):'[]';
+  if(args[2]==='watch')return '';throw Error('Unexpected command '+args);
+ };
+ assert.throws(()=>runner.dispatchSelectedChecks({repository:{root:'.'},artifact:'core-wasm',command}),/committed and pushed/);
+ const result=runner.dispatchSelectedChecks({repository:{root:'.'},artifact:'core-wasm',committedOnly:true,command});
+ assert.equal(result.ok,true);assert.equal(result.results[0].head,head);
+ assert.equal(result.results[0].inputMode,'committed');
+ assert.equal(result.results[0].worktreeChangesExcluded,true);
+ assert.equal(calls.some(args=>args[0]==='git'&&['add','stash','checkout','reset'].includes(args[1])),false);
+ assert.throws(()=>runner.dispatchSelectedChecks({repository:{root:'.'},artifact:'core-wasm',committedOnly:true,command:args=>args[1]==='ls-remote'?'c'.repeat(40)+' refs/heads/work/objects':command(args)}),/Push the current commit/);
+});
+
+test('Core artifact workflow builds one WASM artifact without invoking geometry checks',()=>{
+ const workflow=parseYaml(readFileSync(new URL('../../../.github/workflows/shared-core.yml',import.meta.url),'utf8'));
+ assert.ok(workflow.on.workflow_dispatch.inputs.scope.options.includes('core-artifact'));
+ assert.match(workflow['run-name'],/inputs.scope/);
+ const owners=Object.entries(workflow.jobs).filter(([,job])=>job.if?.includes('core-artifact'));
+ assert.deepEqual(owners.map(([name])=>name),['geometry-wasm']);
+ const check=workflow.jobs['geometry-wasm'].steps.find(step=>step.name==='Run only registered geometry WASM contracts');
+ assert.equal(check.if,"inputs.scope == 'geometry-wasm'");
 });

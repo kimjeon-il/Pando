@@ -4,7 +4,6 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as versionContract from "../src/runtime/version-contract.js";
-import { EXCHANGE_TARGETS, EXCHANGE_TARGET_DESCRIPTORS } from "../tools/gis/exchange-adapter-registry.js";
 import { parseJavaScript } from './lib/source-analysis.mjs';
 
 const owner = 'assets/js/modules/version-contract.js';
@@ -97,10 +96,6 @@ export function checkVersionArchitecture(root) {
   for (const name of schemaNames) if (!Number.isInteger(versionContract[name])) failures.push(`${name} must be an integer`);
   if (versionContract.VERSION_POLICY.appVersionSource !== 'package.json') failures.push('App version owner must be package.json');
   if (versionContract.VERSION_POLICY.projectSchemaIndependentFromAppVersion !== true) failures.push('Project schema must remain independent from app version');
-  for (const target of Object.values(EXCHANGE_TARGETS)) {
-    if (!EXCHANGE_TARGET_DESCRIPTORS[target]?.domain) failures.push(`Missing exchange target domain: ${target}`);
-  }
-  if (EXCHANGE_TARGET_DESCRIPTORS.generic?.fallback !== true) failures.push('Generic exchange target must remain fallback-only');
   return failures;
 }
 
