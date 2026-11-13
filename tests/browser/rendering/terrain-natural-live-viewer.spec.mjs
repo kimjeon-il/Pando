@@ -8,8 +8,10 @@ test.use({viewport:{width:1100,height:760},launchOptions:{
 
 function metrics(s) {
   return Object.fromEntries(['renderer','terrainReady','terrainTargetLevel','terrainTilesLoaded',
-    'terrainNaturalTilesLoaded','terrainNaturalCacheBytes','terrainNaturalRequests',
-    'terrainNaturalFailures','terrainCacheBytes','terrainPendingDecodedBytes',
+    'terrainTargetTileCount','terrainTargetTilesLoaded','terrainResolutionLimited',
+    'terrainNaturalTilesLoaded','terrainNaturalCacheBytes','terrainNaturalPendingBytes',
+    'terrainNaturalUploadCount','terrainNaturalRequests','terrainNaturalFailures',
+    'terrainCacheBytes','terrainPendingDecodedBytes','terrainFetchConcurrency',
     'canvasTerrainNumericPixels','canvasTerrainNumericScratchPeakBytes',
     'p95CpuSubmitMs','p99CpuSubmitMs','webGlLastFrameSceneDrawCalls'].map(k=>[k,s?.[k]??null]));
 }
