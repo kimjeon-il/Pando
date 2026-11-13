@@ -1,3 +1,4 @@
+import {assertProtectedFinalFiveArcs} from './protected-final-five-source-review.mjs';
 import {assertProtectedDeuItaArcs} from './protected-deu-ita-source-review.mjs';
 import {createHash} from 'node:crypto';import {isDeepStrictEqual as eq} from 'node:util';
 import {decodeTerritorialSource,encodeTerritorialSource} from '../data/territorial-source-codec.mjs';import {decodeOriginalBlobGeometry} from '../data/chunked-original-source.mjs';
@@ -5,6 +6,7 @@ const hash=b=>createHash('sha256').update(b).digest('hex'),digest=g=>hash(JSON.s
 export const protectedOriginalArcMethod='exact-original-arcs-outside-fixed-policy-zone';const method=protectedOriginalArcMethod,status='raw-source-only-not-display-approved',relation='partial-original-arcs-with-existing-policy-retained',fixed='714898d3e1e8d5b40f24dc18b0e7f5103506b8f04c6750a0095562a38de8d2b4';
 export const hasProtectedOriginalArcs=e=>e?.geometryVersions?.some(v=>v.modernBoundarySupplement?.adoptionMode===method);
 export function assertProtectedOriginalArcs(next,previous,{prefixes,readEvidence,getSourceSnapshot}={}){
+ if(['state:BEN','state:COG','state:JOR','state:KGZ','state:TJK'].includes(next?.entityId))return assertProtectedFinalFiveArcs(next,previous,{prefixes,readEvidence,getSourceSnapshot});
  if(['state:DEU','state:ITA'].includes(next?.entityId))return assertProtectedDeuItaArcs(next,previous,{prefixes,readEvidence,getSourceSnapshot});
  const fail=m=>{throw Error('Fixed protected original arcs: '+m)},bytes=p=>{const b=readEvidence(p);if(!Buffer.isBuffer(b))fail('archived bytes required');return b},archive=r=>{if(!r||!/^reports\/(?:[\w.-]+\/)*[\w.-]+\.json$/.test(r.reference||'')||r.reference.includes('/../')||!/^[a-f0-9]{64}$/.test(r.sha256||''))fail('bound report reference required');const b=bytes(r.reference);if(hash(b)!==r.sha256)fail('evidence byte hash mismatch');return JSON.parse(b)};
  if(eq(next,previous))return 0;if(typeof readEvidence!=='function'||typeof getSourceSnapshot!=='function'||!['state:BFA','state:BTN'].includes(next?.entityId)||previous?.entityId!==next.entityId)fail('fixed BFA/BTN source only');
