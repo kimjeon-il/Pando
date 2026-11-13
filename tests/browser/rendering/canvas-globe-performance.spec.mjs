@@ -98,11 +98,26 @@ for (const mode of ['physical', 'political']) {
       // monochrome/political relief retains 45% country tint.
       const expectedAlpha = theme === 'standard' ? 0 : .45;
       const expectedTerrain = theme === 'standard' ? 'physical' : 'political';
-      await expect.poll(() => page.evaluate(({key,alpha,terrain}) => {
-        const frame=window.__canvasProfiles.at(-1),stats=window.__PANDOLAB_VIEWER__.rendererStats();
-        return frame?.zoom===16 && frame.complete && frame.style===terrain && frame.paints[key]?.alpha===alpha
-          && frame.styleRevision===stats.canvasStyleRevision && frame.styleRevision===stats.canvasDisplayedStyleRevision;
-      },{key:childKey,alpha:expectedAlpha,terrain:expectedTerrain}),{timeout:45000}).toBe(true);
+      try {
+        await expect.poll(() => page.evaluate(({key,alpha,terrain}) => {
+          const frame=window.__canvasProfiles.at(-1),stats=window.__PANDOLAB_VIEWER__.rendererStats();
+          return frame?.zoom===16 && frame.complete && frame.style===terrain && frame.paints[key]?.alpha===alpha
+            && frame.styleRevision===stats.canvasStyleRevision && frame.styleRevision===stats.canvasDisplayedStyleRevision;
+        },{key:childKey,alpha:expectedAlpha,terrain:expectedTerrain}),{timeout:45000}).toBe(true);
+      } catch(error) {
+        const diagnosis=await page.evaluate(key=>{
+          const frame=window.__canvasProfiles.at(-1),stats=window.__PANDOLAB_VIEWER__.rendererStats();
+          return {frameCount:window.__canvasProfiles.length,frame:frame&&{
+            zoom:frame.zoom,complete:frame.complete,style:frame.style,
+            styleRevision:frame.styleRevision,total:frame.total,
+            alpha:frame.paints[key]?.alpha,terrain:frame.terrain},
+            currentStyleRevision:stats.canvasStyleRevision,
+            displayedStyleRevision:stats.canvasDisplayedStyleRevision,
+            mapStyle:document.documentElement.getAttribute('data-map-style')};
+        },childKey);
+        console.log('CANVAS_PAINT_AB_DIAG='+JSON.stringify({expectedAlpha,expectedTerrain,...diagnosis}));
+        throw error;
+      }
       const frame=await page.evaluate(()=>window.__canvasProfiles.at(-1));
       expect(frame.total).toBeGreaterThan(0);
       expect(frame.pixel[3]).toBe(255);
