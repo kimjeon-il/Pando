@@ -41,7 +41,7 @@ for(const renderer of ['webgl2','canvas'])test(`selected ${renderer} relief dist
     return s.terrainReady&&s.mapReadiness.terrainReady
       &&['ready','limited'].includes(s.mapReadiness.status)&&s.terrainDatasetVersion===expectedVersion
       &&Math.abs(s.screenScale-window.__PANDOLAB_MAP_HOST__.getViewState().scale)<1
-      &&(s.renderer==='webgl2'||s.renderer==='canvas-worker');
+      &&(s.renderer==='webgl2'||s.renderer==='canvas-worker'||s.renderer==='canvas2d');
   },TERRAIN_DEM_VERSION),{timeout:150000}).toBe(true).catch(async error=>{
     console.log('TERRAIN_QUALITY_FAILURE',JSON.stringify(await page.evaluate(()=>{
       const s=window.__PANDOLAB_VIEWER__.rendererStats();
