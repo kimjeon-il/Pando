@@ -68,8 +68,17 @@ export function createGpuTerrainPreparation({ readTile, readNaturalTile = async 
           // Count base textures once, then reserve up to two immediately
           // visible natural tiles if a matching source exists at this LOD.
           // Missing coverage costs no GPU bytes and cannot lower detail.
-          reserveBytes: (level, specs) => (level.id === baseLevel.id ? 0 : baseBytes)
-            + visibleNaturalReserve(specs),
+          reserveBytes: (level, specs) => {
+            const baseReserve = level.id === baseLevel.id ? 0 : baseBytes;
+            const naturalReserve = visibleNaturalReserve(specs);
+            const visibleBytes = specs.reduce((sum, spec) => sum
+              + (spec.pixelWidth + 2 * gutter) * (spec.pixelHeight + 2 * gutter)
+                * gpuDemBytesPerPixel, 0);
+            // Imagery is optional. Never reject an otherwise admissible DEM
+            // because an extra pigment tile cannot fit the shared budget.
+            return baseReserve + (visibleBytes + baseReserve + naturalReserve <= cacheBudgetBytes
+              ? naturalReserve : 0);
+          },
         });
       terrainAdmissionBytes = choice.bytes;
       terrainAdmissionReserveBytes = choice.reserveBytes;
