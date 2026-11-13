@@ -1,3 +1,4 @@
+import {archiveStoredPaths} from './library-archive.mjs';
 import { mkdirSync, writeFileSync, existsSync, readFileSync, unlinkSync } from 'node:fs';
 import { resolve, dirname, join } from 'node:path';
 import { execFileSync, spawn } from 'node:child_process';
@@ -20,8 +21,8 @@ export function buildResearchPurgeManifest({ retiredPaths, indexes, currentIndex
   for (const path of Object.keys(currentIndex.files)) if (retired.has(canonicalResearchPath(path))) throw Error(`Currently retained research must not be purged: ${path}`);
   const logical = new Set(retired), candidates = new Set(), retainedStores = new Set();
   for (const index of indexes) for (const [path, entry] of Object.entries(index.files)) {
-    if (retired.has(canonicalResearchPath(path))) { logical.add(path); candidates.add(entry.stored); }
-    else retainedStores.add(entry.stored);
+    if (retired.has(canonicalResearchPath(path))) { logical.add(path); for(const stored of archiveStoredPaths(entry))candidates.add(stored); }
+    else for(const stored of archiveStoredPaths(entry))retainedStores.add(stored);
   }
   const stored = [...candidates].filter(path => !retainedStores.has(path));
   const paths = [...new Set([...logical, ...stored])].sort();
@@ -43,7 +44,7 @@ export function buildHistoryRetentionManifest({ keepPaths, indexes, aliases = {}
   const blobSelections = { ...allowedBlobIds };
   for (const [old, current] of Object.entries(aliases)) if (retained.has(old) && blobSelections[current]) blobSelections[old] = [...blobSelections[current]];
   const manifest = { schema: 'pando-history-retention-v1', keepPaths: [...retained].sort(), aliases, currentOnly, allowedBlobIds: blobSelections };
-  for (const index of indexes) for (const entry of Object.values(filterHistoryIndex(index, manifest).files)) retained.add(safe(entry.stored));
+  for (const index of indexes) for (const entry of Object.values(filterHistoryIndex(index, manifest).files)) for(const stored of archiveStoredPaths(entry))retained.add(safe(stored));
   manifest.keepPaths = [...retained].sort();
   return manifest;
 }

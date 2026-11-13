@@ -1,3 +1,4 @@
+import {planSourceGeometryArchive} from './library-archive.mjs';
 import {assertVerifiedScopedWorldRetirement} from '../build/build-scoped-world-retirement.mjs';
 import {assertTerritorialRetirement,assertBuiltinRetirement,retirementDisplayPath,retirementWorldPath,verifiedMixedCurrentWorld} from '../gis/territorial-retirement.mjs';
 import {isDeepStrictEqual} from 'node:util';
@@ -340,6 +341,13 @@ export function storeOwnedLibraryData({ root, push, prefixes, removePaths, repor
     // branch's runtime pin. They must remain present in the Git tree.
     const direct = isReport || path.startsWith('assets/data/library-channel/')
       || path.startsWith('assets/data/library-releases/') || runtimeDirectories.has(dirname(path));
+    // Chunk only immutable editable source geometry archives, never public
+    // runtime URLs or directly published reports. Logical file/hash are unchanged.
+    const chunked=!direct&&planSourceGeometryArchive(path,packed,{sha256,bytes:bytes.length});
+    if(chunked){
+      for(const [stored,part]of chunked.outputs)put(stored,part);
+      index.files[path]=chunked.entry;return;
+    }
     const identity = direct || packed.length >= bytes.length;
     const stored = direct ? path : `archive/blobs/${sha256}.${identity ? 'bin' : 'gz'}`;
     put(stored, identity ? bytes : packed);

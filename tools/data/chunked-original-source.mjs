@@ -1,0 +1,30 @@
+import{createHash}from'node:crypto';
+const hash=b=>createHash('sha256').update(b).digest('hex'),sha=s=>typeof s==='string'&&/^[a-f0-9]{64}$/.test(s),fail=m=>{throw Error('Original blob parts: '+m);};
+export const chunkedOriginalMethod='exact-gpkg-original-feature';
+export const chunkedOriginalLayout='gpkg-blob-chunks-v1';
+export function readChunkedOriginalBlob(source,readEvidence){
+ if(source?.schemaVersion!==1||source.method!==chunkedOriginalMethod||source.storageLayout!==chunkedOriginalLayout||Object.hasOwn(source,'geometry')||Object.hasOwn(source,'rawBlobBase64')||!Number.isSafeInteger(source.rawBlobBytes)||source.rawBlobBytes<53||source.rawBlobBytes>256*1024*1024||!sha(source.rawBlobSha256)||!Number.isSafeInteger(source.chunkBytes)||source.chunkBytes<1||source.chunkBytes>32*1024*1024||!Array.isArray(source.parts)||source.parts.length!==Math.ceil(source.rawBlobBytes/source.chunkBytes)||source.parts.length>4096||typeof readEvidence!=='function')fail('bounded chunk manifest required');
+ const blob=Buffer.alloc(source.rawBlobBytes);let offset=0;const seen=new Set();
+ for(let i=0;i<source.parts.length;i++){
+  const ref=source.parts[i],expected=Math.min(source.chunkBytes,blob.length-offset);if(!ref||!/^reports\/(?:[\w.-]+\/)*[\w.-]+\.json$/.test(ref.reference||'')||ref.reference.split('/').includes('..')||seen.has(ref.reference)||!sha(ref.sha256)||!sha(ref.rawSha256)||ref.offset!==offset||ref.bytes!==expected)fail('ordered exact part receipt required');seen.add(ref.reference);const bytes=readEvidence(ref.reference);if(!Buffer.isBuffer(bytes)||bytes.length>48*1024*1024||hash(bytes)!==ref.sha256)fail('part evidence hash/size mismatch');const p=JSON.parse(bytes);if(p.schemaVersion!==1||p.method!=='base64-gpkg-blob-chunk'||p.offset!==offset||p.bytes!==expected||p.rawSha256!==ref.rawSha256||typeof p.base64!=='string'||p.base64.length!==4*Math.ceil(expected/3))fail('part payload identity mismatch');const raw=Buffer.from(p.base64,'base64');if(raw.length!==expected||raw.toString('base64')!==p.base64||hash(raw)!==ref.rawSha256)fail('part bytes mismatch');raw.copy(blob,offset);offset+=expected;
+ }
+ if(offset!==blob.length||hash(blob)!==source.rawBlobSha256)fail('whole original blob hash mismatch');return blob;
+}
+/** Build scratch/report payloads only; callers archive exact file receipts before use. */
+export function buildChunkedBlobEvidence(blob,{prefix,chunkBytes=32*1024*1024}={}){
+ if(!Buffer.isBuffer(blob)||blob.length<53||blob.length>256*1024*1024||prefix?.split('/').some(p=>p==='..'||p==='.')||!/^reports\/(?:[\w.-]+\/)+$/.test(prefix||'')||!Number.isSafeInteger(chunkBytes)||chunkBytes<1||chunkBytes>32*1024*1024)fail('safe report prefix and bounded chunk size required');if(Math.ceil(blob.length/chunkBytes)>4096)fail('part count exceeds bounded manifest');const files=new Map(),parts=[];for(let offset=0,index=0;offset<blob.length;offset+=chunkBytes,index++){const raw=blob.subarray(offset,Math.min(offset+chunkBytes,blob.length)),payload={schemaVersion:1,method:'base64-gpkg-blob-chunk',offset,bytes:raw.length,rawSha256:hash(raw),base64:raw.toString('base64')},bytes=Buffer.from(JSON.stringify(payload)+'\n'),reference=prefix+'part-'+String(index).padStart(3,'0')+'.json';files.set(reference,bytes);parts.push({reference,sha256:hash(bytes),offset,bytes:raw.length,rawSha256:payload.rawSha256});}return{files,manifest:{schemaVersion:1,method:chunkedOriginalMethod,storageLayout:chunkedOriginalLayout,rawBlobBytes:blob.length,rawBlobSha256:hash(blob),chunkBytes,parts}};
+}
+
+/** Exact bounded decoder for the preserved LSIB little-endian 2D GeoPackage
+ * MultiPolygon. It never clamps, reorders, closes, simplifies or normalizes. */
+export function decodeOriginalBlobGeometry(blob,{expectedWkbSha256}={}){
+ if(!Buffer.isBuffer(blob)||blob.length<53||blob.length>256*1024*1024||blob[0]!==71||blob[1]!==80||blob[2]!==0||blob[3]!==3||blob.readInt32LE(4)!==4326)fail('exact LSIB GeoPackage header required');
+ const envelope=[0,1,2,3].map(i=>blob.readDoubleLE(8+i*8));if(!envelope.every(Number.isFinite))fail('finite original envelope required');const wkb=blob.subarray(40);if(expectedWkbSha256!==undefined&&(!sha(expectedWkbSha256)||hash(wkb)!==expectedWkbSha256))fail('original WKB hash mismatch');let offset=0,minx=Infinity,maxx=-Infinity,miny=Infinity,maxy=-Infinity;
+ const need=n=>{if(offset+n>wkb.length)fail('truncated original WKB');},u=()=>{need(4);const n=wkb.readUInt32LE(offset);offset+=4;return n;},header=type=>{need(5);if(wkb[offset++]!==1||u()!==type)fail('original little-endian WKB type required');};
+ header(6);const count=u();if(!count||count>(wkb.length-offset)/9)fail('invalid polygon count');const coordinates=[];
+ for(let p=0;p<count;p++){header(3);const nr=u();if(!nr||nr>(wkb.length-offset)/4)fail('invalid ring count');const rings=[];for(let r=0;r<nr;r++){const np=u();if(np<4||np>(wkb.length-offset)/16)fail('invalid point count');const points=[];for(let i=0;i<np;i++){need(16);const x=wkb.readDoubleLE(offset),y=wkb.readDoubleLE(offset+8);offset+=16;if(!Number.isFinite(x)||!Number.isFinite(y))fail('nonfinite original coordinate');minx=Math.min(minx,x);maxx=Math.max(maxx,x);miny=Math.min(miny,y);maxy=Math.max(maxy,y);points.push([x,y]);}if(points[0][0]!==points.at(-1)[0]||points[0][1]!==points.at(-1)[1])fail('unclosed original ring');rings.push(points);}coordinates.push(rings);}
+ if(offset!==wkb.length)fail('trailing original WKB bytes');if([minx,maxx,miny,maxy].some((x,i)=>x!==envelope[i]))fail('original envelope mismatch');return{type:'MultiPolygon',coordinates};
+}
+export function readChunkedOriginalGeometry(source,readEvidence){if(!sha(source?.rawWkbSha256))fail('original WKB receipt required');return decodeOriginalBlobGeometry(readChunkedOriginalBlob(source,readEvidence),{expectedWkbSha256:source.rawWkbSha256});}
+
+

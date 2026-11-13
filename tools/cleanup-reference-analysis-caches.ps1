@@ -239,6 +239,8 @@ try {
                 $filePath = Get-ChildPath $target $property.Name
                 if ($expected.ContainsKey($filePath)) { throw 'Duplicate archive path.' }
                 $entry = $property.Value
+                # A manifest alone is not a verified backup of its compressed parts.
+                if ($entry.encoding -eq 'gzip-chunks') { throw 'Chunked source cache needs full part-backup verification; preserve it.' }
                 if ($entry.sha256 -notmatch '^[a-f0-9]{64}$' -or [long]$entry.bytes -lt 0) { throw 'Invalid archive digest or size.' }
                 [void](Get-ChildPath $dataRoot $entry.stored)
                 [void]$archiveReferences.Add($entry.stored)
