@@ -90,8 +90,12 @@ jobs:
         run: |
           set -euo pipefail
           test -z "$(git diff --name-only)"
+          # Run the identical current acceptance script on both source commits.
+          # The old main test hardcodes obsolete country-opacity expectations.
+          cp tests/browser/rendering/canvas-globe-performance.spec.mjs "$RUNNER_TEMP/canvas-paint-ab.spec.mjs"
           git fetch --depth=1 origin "$BASE_CANVAS_SHA"
           git -c advice.detachedHead=false switch --detach "$BASE_CANVAS_SHA"
+          cp "$RUNNER_TEMP/canvas-paint-ab.spec.mjs" tests/browser/rendering/canvas-globe-performance.spec.mjs
           pnpm exec playwright test \
             tests/browser/rendering/canvas-globe-performance.spec.mjs \
             --grep 'physical' --workers=1 --retries=0 \
