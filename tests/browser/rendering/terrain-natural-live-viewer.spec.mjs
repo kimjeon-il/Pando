@@ -119,8 +119,7 @@ for(const renderer of ['webgl2','canvas'])for(const region of (renderer==='webgl
       expect(baseline.terrainReady).toBe(true);
       const baselineMemory=await collectMemory(page);
       const baselineFramePacing=await sampleFramePacing(page);
-      await screen().screenshot({path:testInfo.outputPath(renderer+'-'+region.name+'-palette-before-natural.png')}).then(async()=>{});
-      const before=await screen().screenshot();
+      const before=await screen().screenshot({path:testInfo.outputPath(renderer+'-'+region.name+'-palette-before-natural.png')});
       holdNatural=false;releaseNatural();
       await expect.poll(async()=>Number((await read())?.terrainNaturalTilesLoaded||0),{timeout:100000}).toBeGreaterThan(0);
       await expect.poll(async()=>Number((await read())?.terrainNaturalCacheBytes||0),{timeout:20000}).toBeGreaterThan(0);
