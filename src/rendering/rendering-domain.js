@@ -935,6 +935,14 @@ export function createRenderingDomain({
     onFrameComplete,
     renderers: {
       preservedFrame: () => gpuMapRenderer.renderPreservedProjectFrame(),
+      // GPU recovery reserves scene fills but cannot certify stroke coverage.
+      // Reconcile only SVG selection outlines, without admitting the new map.
+      canRenderRecoverySelection: () => {
+        const runtime = gpuMapRenderer?.getRuntimeState?.();
+        return runtime?.renderer === 'webgl-recovering'
+          && !runtime.projectRenderBlocked && !runtime.temporalPresentationPending;
+      },
+      selectionRecovery: frame => renderSelection(frame),
       canRenderBlockedBackground: () => gpuMapRenderer?.canRenderBlockedCanvasBackground?.() === true,
       blockedBackground: frame => gpuMapRenderer.renderBlockedCanvasBackground(frame),
       beginFrame,
