@@ -1,3 +1,4 @@
+import {naturalSurfaceFadeEdges} from '../data/terrain-manifest.js';
 // Owned by gpu-terrain-preparation. Optional surface textures never determine
 // DEM readiness, evict required DEM, or create another visibility/LOD policy.
 export function createGpuNaturalSurfaceCache({readTile,invalidate}) {
@@ -107,6 +108,7 @@ export function createGpuNaturalSurfaceCache({readTile,invalidate}) {
         if(natural)natural.used=performance.now();
         record.naturalTexture=natural?.texture||null;
         record.naturalMixWeight=natural?manifest.naturalSurface.mixWeight:0;
+        record.naturalFadeEdges=natural?naturalSurfaceFadeEdges(record.spec,manifest):[0,0,0,0];
       }
     },
     trim,reset,
