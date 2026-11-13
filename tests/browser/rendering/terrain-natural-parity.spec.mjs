@@ -89,7 +89,7 @@ test('ocean/monochrome reference path matches numerical Canvas for both themes a
       return shader;
     };
     const vertex=compile(gl.VERTEX_SHADER,
-      '#version 300 es\\nprecision highp float;uniform vec2 uSampleUv;out vec2 vUv;out float vDepth;void main(){vec2 p=vec2((gl_VertexID<<1)&2,gl_VertexID&2);vUv=uSampleUv;vDepth=1.0;gl_Position=vec4(p*2.0-1.0,0.0,1.0);}');
+      '#version 300 es\nprecision highp float;uniform vec2 uSampleUv;out vec2 vUv;out float vDepth;void main(){vec2 p=vec2((gl_VertexID<<1)&2,gl_VertexID&2);vUv=uSampleUv;vDepth=1.0;gl_Position=vec4(p*2.0-1.0,0.0,1.0);}');
     const fragmentShader=compile(gl.FRAGMENT_SHADER,fragment),program=gl.createProgram();
     gl.attachShader(program,vertex);gl.attachShader(program,fragmentShader);
     gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(program));
