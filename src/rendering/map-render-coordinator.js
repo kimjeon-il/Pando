@@ -144,7 +144,7 @@ export function createMapRenderCoordinator({
     | MAP_RENDER_DIRTY.SELECTION_DATA | MAP_RENDER_DIRTY.SELECTION_STYLE | MAP_RENDER_DIRTY.SELECTION_VIEW
     | MAP_RENDER_DIRTY.GPU_INTERACTION | MAP_RENDER_DIRTY.LAYER_TREE | MAP_RENDER_DIRTY.HUD;
 
-  function render({ dirtyMask, reasons = [] }) {
+  function render({ dirtyMask, reasons = [], queuedAtMs = now() }) {
     // A replacement owns no display frame until its renderer commits one.
     // Preserve the whole old presentation, including DOM labels and shell.
     if (isPresentationBlocked()) {
@@ -304,6 +304,7 @@ export function createMapRenderCoordinator({
         onFrameComplete?.({
           renderRevision,
           durationMs: metrics.lastRenderMs,
+          queuedAtMs,
           requestedMask,
           dirtyMask: mask,
           reasons: [...reasons],
@@ -312,6 +313,7 @@ export function createMapRenderCoordinator({
           full,
           frameKind,
           viewFrame,
+          displayFrame: viewFrameResult?.succeeded === true,
         });
       } catch (_) {}
       return {
@@ -329,13 +331,14 @@ export function createMapRenderCoordinator({
   function queueFrame() {
     if (frameQueued) return false;
     frameQueued = true;
+    const queuedAtMs = now();
     requestFrame(() => {
       frameQueued = false;
       const dirtyMask = pendingMask;
       const reasons = [...pendingReasons];
       pendingMask = 0;
       pendingReasons.clear();
-      render({ dirtyMask, reasons });
+      render({ dirtyMask, reasons, queuedAtMs });
     });
     return true;
   }

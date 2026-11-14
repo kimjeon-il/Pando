@@ -49,6 +49,13 @@ export function createGpuPolygonOverlayPass({ onError = null, onResourceReady = 
   let contextLost = false;
   const resources = new Map();
   const resourceBudget = createGpuResourceBudget();
+  // Physical land/water masks are mandatory base resources, not evictable
+  // overlay quality caches. They remain part of total managed GPU memory.
+  const isPhysicalBase = resource => resource?.role === 'physical-land' || resource?.role === 'physical-water';
+  function trackResourceBudget(resource, priority) {
+    if (isPhysicalBase(resource)) resourceBudget.remove(resource.key);
+    else resourceBudget.track(resource.key, resource.byteLength, priority);
+  }
   let uploadBytes = 0;
   let buildCount = 0;
   let buildMs = 0;
@@ -107,9 +114,9 @@ export function createGpuPolygonOverlayPass({ onError = null, onResourceReady = 
       uploadScheduler?.cancelKey('polygon:' + key);
       pendingUploads.delete(key);
       if (previous) deleteResource(key);
-      const resource = Object.freeze({ key, signature: nextSignature, indexCount: 0,
+      const resource = Object.freeze({ key, role: packet?.role || 'other', protected:packet?.protected===true, signature: nextSignature, indexCount: 0,
         byteLength: 0, positionBuffer: null, indexBuffer: null, rasterState: 'grid-collapsed' });
-      resources.set(key, resource); resourceBudget.track(key, 0, packet?.priority);
+      resources.set(key, resource); trackResourceBudget(resource, packet?.priority);
       buildCount++; cacheMisses++;
       return { resource, reason: 'grid-collapsed' };
     }
@@ -120,7 +127,7 @@ export function createGpuPolygonOverlayPass({ onError = null, onResourceReady = 
     if (uploadScheduler) {
       if (pendingUploads.get(key)?.signature === nextSignature) return { resource: null, reason: 'upload-pending' };
       uploadScheduler.cancelKey('polygon:' + key);
-      const uploadGl = gl, job = { signature: nextSignature, part: 0, offset: 0, buffers: [] };
+      const uploadGl = gl, job = { signature: nextSignature, part: 0, offset: 0, buffers: [], allocatedBytes: 0 };
       pendingUploads.set(key, job);
       void uploadScheduler.enqueueUpload({
         key: 'polygon:' + key, priority: polygonUploadPriority(packet),
@@ -129,9 +136,9 @@ export function createGpuPolygonOverlayPass({ onError = null, onResourceReady = 
         step: ({ byteBudget }) => {
           if (gl !== uploadGl || contextLost || pendingUploads.get(key) !== job) throw Object.assign(new Error('Stale polygon upload'), { name: 'AbortError' });
           if (job.part === 2) {
-            const resource = Object.freeze({ key, signature: nextSignature, positionBuffer: job.buffers[0], indexBuffer: job.buffers[1], indexCount: packet.indices.length, byteLength: packet.positions.byteLength + packet.indices.byteLength });
+            const resource = Object.freeze({ key, role:packet?.role || 'other', protected:packet?.protected===true, signature: nextSignature, positionBuffer: job.buffers[0], indexBuffer: job.buffers[1], indexCount: packet.indices.length, byteLength: packet.positions.byteLength + packet.indices.byteLength });
             if (previous) { gl.deleteBuffer(previous.positionBuffer); gl.deleteBuffer(previous.indexBuffer); }
-            resources.set(key, resource); resourceBudget.track(key, resource.byteLength, packet.priority); pendingUploads.delete(key); buildCount++; cacheMisses++;
+            resources.set(key, resource); trackResourceBudget(resource, packet.priority); pendingUploads.delete(key); buildCount++; cacheMisses++;
             onResourceReady?.(key); return { done: true };
           }
           const data = job.part ? packet.indices : packet.positions, target = job.part ? gl.ELEMENT_ARRAY_BUFFER : gl.ARRAY_BUFFER;
@@ -139,7 +146,9 @@ export function createGpuPolygonOverlayPass({ onError = null, onResourceReady = 
           try {
             if (!job.buffers[job.part]) {
               const buffer = gl.createBuffer(); if (!buffer) throw new Error('Polygon staging allocation failed');
-              job.buffers[job.part] = buffer; gl.bindBuffer(target, buffer); gl.bufferData(target, data.byteLength, gl.STATIC_DRAW); return { bytes: 0 };
+              job.buffers[job.part] = buffer; gl.bindBuffer(target, buffer); gl.bufferData(target, data.byteLength, gl.STATIC_DRAW);
+              job.allocatedBytes += data.byteLength;
+              return { bytes: 0 };
             }
             gl.bindBuffer(target, job.buffers[job.part]);
             const bytes = Math.min(byteBudget, data.byteLength - job.offset);
@@ -166,6 +175,8 @@ export function createGpuPolygonOverlayPass({ onError = null, onResourceReady = 
       const byteLength = packet.positions.byteLength + packet.indices.byteLength;
       const resource = Object.freeze({
         key,
+        role: packet?.role || 'other',
+        protected: packet?.protected===true,
         signature: nextSignature,
         positionBuffer,
         indexBuffer,
@@ -178,7 +189,7 @@ export function createGpuPolygonOverlayPass({ onError = null, onResourceReady = 
         resourceBudget.remove(key);
       }
       resources.set(key, resource);
-      resourceBudget.track(key, byteLength, packet?.priority);
+      trackResourceBudget(resource, packet?.priority);
       uploadBytes += byteLength;
       buildCount += 1;
       cacheMisses += 1;
@@ -306,13 +317,26 @@ export function createGpuPolygonOverlayPass({ onError = null, onResourceReady = 
 
   function retain(keys = [], { protectedKeys = [] } = {}) {
     if (!gl || gl.isContextLost?.()) return [];
+    const retained = new Set([...keys, ...protectedKeys].map(String));
+    // Reject stale uploads from a superseded physical scene before they
+    // allocate buffers that the current source cannot display.
+    for (const key of [...pendingUploads.keys()]) if (!retained.has(key))
+      uploadScheduler?.cancelKey('polygon:' + key);
+    const releasedPhysical = [];
+    // Required base resources follow physical-source ownership instead of LRU.
+    for (const [key, resource] of resources) if (isPhysicalBase(resource) && !retained.has(key)) {
+      deleteResource(key);
+      releasedPhysical.push(key);
+    }
     const evicted = resourceBudget.reconcile({ active: keys, protected: protectedKeys });
     for (const key of evicted) deleteResource(key);
-    return evicted;
+    return [...releasedPhysical, ...evicted];
   }
 
   function setByteBudget(value) {
-    const evicted = resourceBudget.setByteBudget(value);
+    const evicted = resourceBudget.setByteBudget(value, {
+      alsoProtected: [...resources.values()].filter(resource => resource.protected && !isPhysicalBase(resource)).map(resource => resource.key),
+    });
     for (const key of evicted) deleteResource(key);
     return resourceBudget.stats().byteBudget;
   }
@@ -355,7 +379,11 @@ export function createGpuPolygonOverlayPass({ onError = null, onResourceReady = 
     hasPreparedResource: packet => resources.get(String(packet?.key || ''))?.signature === signature(packet),
     isAvailable: () => !!gl && !!programInfo && !contextLost,
     get drawCallCount() { return drawCallCount; },
-    stats: () => Object.freeze({
+    stats: () => {
+      const resourceRows = [...resources.values()];
+      const physicalBaseBufferBytes = resourceRows.filter(isPhysicalBase).reduce((sum, resource) => sum + resource.byteLength, 0);
+      const totalBufferBytes = resourceRows.reduce((sum, resource) => sum + resource.byteLength, 0);
+      return Object.freeze({
       resourceCount: resources.size,
       uploadBytes,
       buildCount,
@@ -368,8 +396,21 @@ export function createGpuPolygonOverlayPass({ onError = null, onResourceReady = 
       failureCount,
       lastFailureStage,
       contextLost,
-      activeBufferBytes: [...resources.values()].reduce((sum, resource) => sum + resource.byteLength, 0),
+      activeBufferBytes: totalBufferBytes,
+      physicalBaseBufferBytes,
+      optionalOverlayBufferBytes: totalBufferBytes - physicalBaseBufferBytes,
+      stagingBufferBytes: [...pendingUploads.values()].reduce((sum, job) => sum + job.allocatedBytes, 0),
+      // Actual GPU allocations by scene role. Essential polygon masks may be
+      // protected from eviction; exposing them prevents a budget overrun from
+      // being misdiagnosed as a leaked inactive cache.
+      resourceBytesByRole: Object.fromEntries([...resources.values()].reduce((rows, resource) => {
+        rows.set(resource.role || 'other', (rows.get(resource.role || 'other') || 0) + resource.byteLength);
+        return rows;
+      }, new Map())),
+      largestResources: [...resources.values()].sort((a,b)=>b.byteLength-a.byteLength)
+        .slice(0,4).map(({key,role,byteLength})=>({key,role,byteLength})),
       resourceBudget: resourceBudget.stats(),
-    }),
+      });
+    },
   });
 }

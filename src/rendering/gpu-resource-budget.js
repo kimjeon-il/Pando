@@ -56,9 +56,13 @@ export function createGpuResourceBudget({ byteBudget = 96 * 1024 * 1024 } = {}) 
     return evicted;
   }
 
-  function setByteBudget(value) {
+  function setByteBudget(value, { alsoProtected = [] } = {}) {
     budget = Math.max(0, Number(value) || 0);
-    return reconcile();
+    // An asynchronous quality change may use old active/protected keys while
+    // a newly uploaded required resource is not yet in the presented scene.
+    // Preserve mandatory live resources until the owning pass explicitly
+    // reconciles its next accepted scene and retires them.
+    return reconcile({ protected: new Set([...protectedKeys, ...alsoProtected]) });
   }
 
   return Object.freeze({

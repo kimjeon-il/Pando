@@ -3,13 +3,16 @@ import {createHash,randomUUID} from "node:crypto";
 import {chmodSync,existsSync,lstatSync,mkdirSync,readFileSync,readdirSync,realpathSync,renameSync,rmdirSync,statfsSync,symlinkSync,unlinkSync,writeFileSync} from "node:fs";
 import {dirname,isAbsolute,relative,resolve,sep} from "node:path";
 import {fileURLToPath} from "node:url";
-import {atomicStorageJSON,containedPath,contentFiles,contentHash,contentPath,linkContent,makePrivate,publishContent,removeContentLink} from "./library-content.mjs";
+import {atomicStorageJSON,containedPath,contentFiles,contentHash,contentPath,linkContent,makePrivate,publishContent,removeContentLink,removeUnlinkedContentBlob} from "./library-content.mjs";
 import {runtimeArchiveIndex,isRetiredLibraryDocumentation} from "./library-runtime-index.mjs";
 import {mapProjectManifestSourcePath,validateMapProjectManifest} from '../../src/data/map-project-manifest.js';
 import {defaultRoot,gitOptions,git,libraryConfig,libraryCheckout,libraryMaterializedRoot,libraryRuntimeLeasePaths,libraryReportRoot,librarySharedCheckout,libraryOwnerId,safeChild,decodeArchiveEntry,prefetchArchiveEntries,withLibraryLock,withCheckoutLock,setMetadataCheckout,libraryCodeDirectories} from "./library-context.mjs";
 import {excludeReportStorage,reportContext} from "./library-reports.mjs";
 
-function pristineCache(directory, files) {
+const retirementHash=record=>{const owned={...record};delete owned.retirement;return contentHash(Buffer.from(JSON.stringify(owned)));};
+const retiringView=record=>record.retirement?.schema==='pando-runtime-retirement-v1'&&record.retirement.ownerSha256===retirementHash(record);
+
+function pristineCache(directory, files, allowMissing=false) {
   let pristine = true;
   const seen = new Set();
   const visit = (path, prefix = '') => {
@@ -25,7 +28,7 @@ function pristineCache(directory, files) {
     }
   };
   visit(directory);
-  return pristine && Object.keys(files).every(path => seen.has(path));
+  return pristine && (allowMissing || Object.keys(files).every(path => seen.has(path)));
 }
 
 let lastRetirementSignature;
@@ -33,12 +36,26 @@ let lastRetirementSignature;
 function retireOwnedCaches(root, current) {
   // Old caches without this ownership record are handled by the separately
   // reviewed cleanup. Never infer ownership from an ignored directory alone.
-  const base = dirname(current), active = new Set([current]);
+  const shared=librarySharedCheckout(root),ownerId=libraryOwnerId(root),currentRevision=libraryConfig(root).revision;
+  const base=resolve(shared,'.pando-cache/materialized',ownerId),active=new Set([current]),pinned=new Set([currentRevision]);
+  const inside=(parent,child)=>{const rel=relative(parent,child);return !rel||(rel!=='..'&&!rel.startsWith('..'+sep)&&!isAbsolute(rel));};
+  const overlaps=(a,b)=>inside(a,b)||inside(b,a);
   let roots;
   try { roots = git(root, ['worktree', 'list', '--porcelain']).split('\n').filter(line => line.startsWith('worktree ')).map(line => resolve(line.slice(9))); }
   catch { return; }
+  const branchState=()=>git(root,['for-each-ref','--format=%(refname) %(objectname)','refs/heads','refs/remotes']),refs=branchState();
+  const busy=reason=>Object.assign(Error('Runtime retirement paused: '+reason),{code:'PANDO_RUNTIME_RETIREMENT_BUSY',reason});
+  const assertBranches=()=>{if(branchState()!==refs)throw busy('branch-data-pins-changed');};
+  for(const row of refs.split('\n').filter(Boolean)){
+    const [ref,revision]=row.split(' ');
+    let config;try{config=JSON.parse(git(root,['show',revision+':config/library-data.json']));}
+    catch(error){if(/does not exist|exists on disk, but not in/.test(String(error.stderr)))continue;return {status:'skipped',reason:'unreadable-branch-data-pin',ref};}
+    if(!/^[a-f0-9]{40}$/.test(config.revision||''))return {status:'skipped',reason:'unknown-branch-data-pin',ref};
+    pinned.add(config.revision);
+  }
   for (const worktree of roots) {
     if (!existsSync(resolve(worktree, 'config/library-data.json'))) continue;
+    pinned.add(libraryConfig(worktree).revision);
     try { active.add(libraryMaterializedRoot(worktree)); }
     catch (error) {
       if (error.code !== 'PANDO_LIBRARY_OWNER_UNKNOWN') throw error;
@@ -59,40 +76,81 @@ function retireOwnedCaches(root, current) {
       }
     }
   }
-  const shared=librarySharedCheckout(root),archiveRevision=git(shared,['rev-parse','HEAD']);
+  const archiveRevision=git(shared,['rev-parse','HEAD']),writers=libraryWriteLeases(shared).filter(lease=>lease.alive);
   const directories = readdirSync(base, { withFileTypes: true });
-  const signature = JSON.stringify({ base, archiveRevision, active: [...active].sort(), directories: directories.map(item => item.name).sort() });
+  const candidates=[];
+  for(const item of directories){
+    if(!item.isDirectory()||item.isSymbolicLink()||!/^[a-f0-9]{40}$/.test(item.name))continue;
+    const directory=containedPath(base,item.name);candidates.push({directory,revision:item.name});
+    const scopes=resolve(directory,'scopes');if(!existsSync(scopes))continue;
+    containedPath(base,scopes);
+    for(const scope of readdirSync(scopes,{withFileTypes:true}))if(scope.isDirectory()&&!scope.isSymbolicLink()&&/^[a-f0-9]{64}$/.test(scope.name))candidates.push({directory:containedPath(base,resolve(scopes,scope.name)),revision:item.name,scopeId:scope.name});
+  }
+  const ownership=candidates.map(({directory})=>{const owner=resolve(directory,'.cache-owner.json');if(!existsSync(owner))return [directory,null];const s=lstatSync(owner,{bigint:true});return [directory,[s.dev,s.ino,s.size,s.mtimeNs,s.ctimeNs].join(':')];});
+  const signature = JSON.stringify({ base,refs,archiveRevision,currentRevision,pinned:[...pinned].sort(),writers:writers.map(lease=>[lease.file,lease.view]),active: [...active].sort(),ownership });
   if (signature === lastRetirementSignature) return;
-  const skipped=[];
-  for (const item of directories) {
-    if (!item.isDirectory() || !/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(item.name)) continue;
-    const directory = safeChild(base, item.name), owner = resolve(directory, '.cache-owner.json');
-    if (active.has(directory) || !existsSync(owner)) continue;
+  const skipped=[],indexes=new Map(),verifiedOriginals=new Set();let retiredViews=0,removedBlobs=0;
+  const archiveIndex=revision=>{if(!indexes.has(revision)){let index=null;try{index=JSON.parse(git(shared,['show',revision+':archive/index.json'])).files;}catch{/* Retain bytes when their historical index is unavailable locally. */}indexes.set(revision,index);}return indexes.get(revision);};
+  for (const item of candidates.sort((a,b)=>b.directory.length-a.directory.length)) {
+    const {directory}=item,owner=resolve(directory,'.cache-owner.json');
+    if(pinned.has(item.revision)||[...active].some(path=>overlaps(path,directory))||!existsSync(owner))continue;
+    if(lstatSync(owner).isSymbolicLink()){skipped.push({directory,reason:'linked-owner-record'});continue;}
     const record = JSON.parse(readFileSync(owner, 'utf8'));
-    const expected = item.name.length === 64 ? record.preparation?.scopeId : record.revision;
-    if (expected !== item.name || record.schema !== 'pando-shared-runtime-v1' || record.owner !== libraryOwnerId(root)) continue;
+    if(record.revision!==item.revision||(item.scopeId&&record.preparation?.scopeId!==item.scopeId)||record.schema!=='pando-shared-runtime-v1'||record.owner!==ownerId)continue;
+    if(writers.some(lease=>lease.view&&overlaps(resolve(lease.view),directory)))continue;
     // Publication can leave an old private flag behind. Only exact originals
     // recoverable from local Git make those files eligible; unfinished work stays.
     const archivedFiles={};
     const privateFiles=Object.entries(record.files).filter(([,entry])=>entry.storage!=='shared');
     if(privateFiles.length){
-      for(const revision of new Set([record.revision,archiveRevision])){
-        let index;try{index=JSON.parse(git(shared,['show',revision+':archive/index.json']));}catch{continue;}
-        for(const [logical,entry] of privateFiles){const original=index.files[logical];if(original?.sha256===entry.sha256&&original.bytes===entry.bytes)archivedFiles[logical]={revision,entry:original};}
+      for(const revision of new Set([record.revision,currentRevision,archiveRevision])){
+        const index=archiveIndex(revision);if(!index)continue;
+        for(const [logical,entry] of privateFiles){const original=index[logical];if(original?.sha256===entry.sha256&&original.bytes===entry.bytes)archivedFiles[logical]={revision,entry:original};}
       }
       if(privateFiles.some(([logical])=>!archivedFiles[logical]))continue;
       let unavailable=false;
       for(const [logical,original] of Object.entries(archivedFiles)){
-        try{decodeArchiveEntry(shared,original.entry,original.revision,{fetch:false});}
+        try{decodeArchiveEntry(shared,original.entry,original.revision,{fetch:false});verifiedOriginals.add(original.entry.sha256);}
         catch(error){skipped.push({directory,path:logical,reason:'historical-original-not-locally-recoverable',detail:error.message});unavailable=true;break;}
       }
       if(unavailable)continue;
     }
-    if (libraryWriteLeases(librarySharedCheckout(root)).some(lease => lease.alive && lease.view === directory)) continue;
-    if (pristineCache(directory, Object.fromEntries(Object.entries(record.files).map(([logical,entry])=>[logical,archivedFiles[logical]?{...entry,storage:'shared'}:entry])))) removeRuntimeView(shared, directory, record,{archivedFiles});
+    if(!pristineCache(directory,Object.fromEntries(Object.entries(record.files).map(([logical,entry])=>[logical,archivedFiles[logical]?{...entry,storage:'shared'}:entry])),retiringView(record))){skipped.push({directory,reason:'historical-view-changed-or-unhydrated'});continue;}
+    const assertIdle=()=>{
+      if(libraryOwnerId(root)!==ownerId||libraryConfig(root).revision!==currentRevision)throw Error('Library owner or pin changed during retirement');
+      if(libraryWriteLeases(shared).some(lease=>lease.alive&&lease.view&&overlaps(resolve(lease.view),directory)))throw busy('runtime-writer-started');
+      for(const worktree of roots){
+        if(!existsSync(resolve(worktree,'config/library-data.json')))continue;
+        for(const file of libraryRuntimeLeasePaths(worktree))if(existsSync(file)){
+          const lease=JSON.parse(readFileSync(file,'utf8'));let alive=true;
+          try{process.kill(lease.pid,0);}catch(error){if(error.code==='ESRCH')alive=false;else if(error.code!=='EPERM')throw error;}
+          if(alive&&(lease.materialized||[]).some(view=>overlaps(resolve(view),directory)))throw busy('runtime-reader-started');
+        }
+        for(const mount of libraryConfig(worktree).mounts){const output=resolve(worktree,mount);if(existsSync(output)&&lstatSync(output).isSymbolicLink()&&overlaps(realpathSync(output),directory))throw busy('runtime-mount-started');}
+      }
+    };
+    const beforeFinalRemoval=()=>{
+    assertBranches();
+    for(const [logical,entry] of Object.entries(record.files))for(const hash of new Set([entry.sha256,entry.baseSha256].filter(Boolean))){
+      const blob=contentPath(shared,hash);if(!existsSync(blob)||lstatSync(blob).nlink!==1)continue;
+      if(!verifiedOriginals.has(hash))for(const revision of new Set([record.revision,currentRevision,archiveRevision])){
+        const original=archiveIndex(revision)?.[logical];if(original?.sha256!==hash)continue;
+        try{decodeArchiveEntry(shared,original,revision,{fetch:false});verifiedOriginals.add(hash);break;}catch{/* The pool retains the only locally recoverable original. */}
+      }
+      if(!verifiedOriginals.has(hash)){skipped.push({directory,path:logical,sha256:hash,reason:'orphan-original-not-locally-recoverable'});continue;}
+      assertIdle();removeUnlinkedContentBlob(shared,hash);removedBlobs++;
+    }
+    };
+    try{
+    assertBranches();
+    removeRuntimeView(shared,directory,record,{archivedFiles,assertIdle,beforeFinalRemoval});retiredViews++;
+    for(let parent=dirname(directory);parent!==base&&inside(base,parent)&&existsSync(parent)&&!lstatSync(parent).isSymbolicLink()&&!readdirSync(parent).length;parent=dirname(parent)){
+      assertIdle();containedPath(base,parent);try{rmdirSync(parent);}catch(error){if(error.code==='ENOTEMPTY')break;if(error.code!=='ENOENT')throw error;}
+    }
+    }catch(error){if(!['PANDO_RUNTIME_RETIREMENT_BUSY','PANDO_RUNTIME_RETIREMENT_UNPROVEN'].includes(error.code))throw error;skipped.push({directory,reason:error.reason});if(error.reason==='branch-data-pins-changed')break;}
   }
-  lastRetirementSignature = signature;
-  return {status:skipped.length?'partial':'completed',skipped};
+  lastRetirementSignature = skipped.length?null:signature;
+  return {status:skipped.length?'partial':'completed',retiredViews,removedBlobs,skipped};
 }
 
 // Product entry points select the default map explicitly; historical source tools
@@ -413,9 +471,13 @@ export function synchronizeRuntimeManifest(shared,view) {
   atomicStorageJSON(manifest,{...record,files});return files;
 }
 
-export function removeRuntimeView(shared, directory, record, {archivedFiles={},assertIdle=()=>{},preservePrivate=false}={}) {
+export function removeRuntimeView(shared, directory, record, {archivedFiles={},assertIdle=()=>{},preservePrivate=false,beforeFinalRemoval=()=>{}}={}) {
   directory = containedPath(resolve(shared, '.pando-cache/materialized'), directory);
   if (record.schema !== 'pando-shared-runtime-v1') throw Error('Unknown runtime owner');
+  const owner=containedPath(directory,'.cache-owner.json'),ownerSha256=retirementHash(record);
+  if(!existsSync(owner))throw Error('Runtime ownership record is missing');
+  const persisted=JSON.parse(readFileSync(owner,'utf8'));
+  if(retirementHash(persisted)!==ownerSha256)throw Error('Runtime owner changed before retirement');
   for(const [logical,entry] of Object.entries(record.files))if(entry.storage!=='shared'){
     const original=archivedFiles[logical];
     if(!original){if(preservePrivate)continue;throw Error('Private runtime work must be preserved');}
@@ -425,6 +487,8 @@ export function removeRuntimeView(shared, directory, record, {archivedFiles={},a
   assertIdle();
   const files = contentFiles(directory);
   const retained=new Set(Object.entries(record.files).filter(([logical,entry])=>entry.storage!=='shared'&&!archivedFiles[logical]).map(([logical])=>logical));
+  const present=new Set(files.map(file=>file.logical));
+  if(!retiringView(persisted)&&Object.keys(record.files).some(logical=>!present.has(logical)&&!retained.has(logical)))throw Error('Unhydrated runtime view has no matching retirement intent');
   const identities=new Map();
   const stamp=s=>`${s.dev}:${s.ino}:${s.size}:${s.mtimeNs}:${s.ctimeNs}`;
   for (const file of files) {
@@ -433,12 +497,27 @@ export function removeRuntimeView(shared, directory, record, {archivedFiles={},a
     if(retained.has(file.logical))continue;
     const before=lstatSync(file.path,{bigint:true});
     if (!expected || file.bytes !== expected.bytes || contentHash(readFileSync(file.path)) !== expected.sha256 || stamp(before)!==stamp(lstatSync(file.path,{bigint:true}))) throw Error('Runtime view changed before retirement');
+    if(expected.storage==='shared'||before.nlink>1n){
+      const blob=contentPath(shared,expected.sha256),pool=existsSync(blob)?lstatSync(blob,{bigint:true}):null;
+      const same=pool&&pool.dev===before.dev&&pool.ino===before.ino;
+      if(!pool||!pool.isFile()||pool.isSymbolicLink()||pool.size!==before.size||(!same&&(before.nlink>1n||contentHash(readFileSync(blob))!==expected.sha256)))throw Object.assign(Error('Unproven shared original must be preserved'),{code:'PANDO_RUNTIME_RETIREMENT_UNPROVEN',reason:'shared-original-not-locally-recoverable'});
+    }
     identities.set(file.path,stamp(before));
   }
+  if(!existsSync(owner)||retirementHash(JSON.parse(readFileSync(owner,'utf8')))!==ownerSha256)throw Error('Runtime owner changed before retirement');
+  assertIdle();
+  // The existing owner record is the current batch journal. A missing body is
+  // resumable only with this matching intent; ordinary missing originals are
+  // never treated as deletion instructions.
+  atomicStorageJSON(owner,{...record,retirement:{schema:'pando-runtime-retirement-v1',ownerSha256}});
+  if(existsSync(resolve(directory,'.complete')))unlinkSync(resolve(directory,'.complete'));
   // Keep the ownership record until all content has gone so an interruption
   // leaves enough information to verify and resume the same retirement.
   for (const file of files.filter(file=>!['.complete','.cache-owner.json'].includes(file.logical)&&!retained.has(file.logical))) {
     assertIdle();const s=lstatSync(file.path,{bigint:true});
+    // Writable private files can change within one filesystem timestamp tick.
+    // An unchanged stat stamp alone is insufficient proof before unlinking.
+    if((s.mode&0o200n)||record.files[file.logical].storage==='private')if(contentHash(readFileSync(file.path))!==record.files[file.logical].sha256)throw Error('Runtime view changed during retirement');
     if(`${s.dev}:${s.ino}:${s.size}:${s.mtimeNs}:${s.ctimeNs}`!==identities.get(file.path)){
       // Unlinking another name of this same blob changes NTFS change-time.
       // Revalidate its bytes rather than mistaking our own unlink for a write.
@@ -447,12 +526,15 @@ export function removeRuntimeView(shared, directory, record, {archivedFiles={},a
     }
     removeContentLink(shared, file.path);
   }
+  assertIdle();beforeFinalRemoval();assertIdle();
+  if(retirementHash(JSON.parse(readFileSync(owner,'utf8')))!==ownerSha256)throw Error('Runtime owner changed during retirement');
+  if(contentFiles(directory).some(file=>!['.complete','.cache-owner.json'].includes(file.logical)&&!retained.has(file.logical)))throw Error('New runtime work appeared during retirement');
   if(retained.size){
-    atomicStorageJSON(resolve(directory,'.cache-owner.json'),{...record,files:Object.fromEntries(Object.entries(record.files).filter(([logical])=>retained.has(logical)))});
-    if(existsSync(resolve(directory,'.complete')))unlinkSync(resolve(directory,'.complete'));
+    const remaining={...record,files:Object.fromEntries(Object.entries(record.files).filter(([logical])=>retained.has(logical)))};delete remaining.retirement;
+    atomicStorageJSON(owner,remaining);
     return {status:'private-work-preserved',files:retained.size};
   }
-  for(const file of files.filter(file=>['.complete','.cache-owner.json'].includes(file.logical)))unlinkSync(file.path);
+  unlinkSync(owner);
   removeEmptyDirectories(directory);
 }
 

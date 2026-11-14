@@ -28,7 +28,7 @@ export function drawGpuBaseScene(input, passes) {
 }
 
 function submitGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWidth, height: pixelHeight,
-  terrainVisible, terrainStyle, countriesVisible, surfacePresentation, mapSubstrate, mapOcean, countries, prepared },
+  terrainVisible, terrainStyle, countriesVisible, countryPaintVisible = true, surfacePresentation, mapSubstrate, mapOcean, countries, prepared },
   { drawProgram, drawOceanSubstrate, renderTerrain, drawHydro, drawCountryBoundaryStrokes, polygonOverlayPass, strokeRenderer }) {
   const { mesh, overrideMesh, dynamicResources, fillProgram, fillVao, fillIndexBuffer, overrideFillVao, overrideFillIndexBuffer, paletteTexture, overridePaletteTexture } = countries;
   const { baseTriangleDraw, overrideTriangleDraw,
@@ -83,23 +83,18 @@ function submitGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWidth, 
           polygonOverlayPass.drawPackets([{ ...packet, blendMode: 'normal', style: mapSubstrate }], activeFrameContext, { preparedOnly: true });
         }
       }
+      // The substrate just rasterized the canonical physical-land union into
+      // stencil value 1. Preserve it for the immediately following terrain
+      // pass instead of submitting the same ~25 MiB land mesh a second time.
       gl.disable(gl.STENCIL_TEST);
-      gl.clear(gl.STENCIL_BUFFER_BIT);
       gl.disable(gl.BLEND);
         },
         terrain: () => {
       if (terrainVisible) {
+        // Substrate established the identical binary land stencil (0=sea,
+        // 1=land) earlier in this same frame. No second triangulated land pass
+        // or stencil clear is necessary; both color and picking stay unchanged.
         gl.enable(gl.STENCIL_TEST);
-        gl.stencilMask(0xff);
-        gl.stencilFunc(gl.ALWAYS, 1, 0xff);
-        gl.stencilOp(gl.KEEP, gl.KEEP, gl.REPLACE);
-        gl.colorMask(false, false, false, false);
-        for (const { packet } of physicalLandItems) {
-          if (!deferredOverlayKeys.has(String(packet.key)) && !failedOverlayKeys.has(String(packet.key))) {
-            polygonOverlayPass.drawPackets([packet], activeFrameContext, { claimTransparent: true, preparedOnly: true });
-          }
-        }
-        gl.colorMask(true, true, true, true);
         gl.stencilMask(0x00);
         if (terrainStyle === 'physical') {
           gl.stencilFunc(gl.NOTEQUAL, 1, 0xff);
@@ -109,8 +104,11 @@ function submitGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWidth, 
         gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
         renderTerrain('land');
         gl.disable(gl.STENCIL_TEST);
-        gl.stencilMask(0xff);
       }
+      // Later territorial/independent overlays own their own stencil values.
+      // Clear the borrowed land mask after both physical passes are complete.
+      gl.stencilMask(0xff);
+      gl.clear(gl.STENCIL_BUFFER_BIT);
         },
         'territorial-fill': () => {
       // No territory means no ownership stencil and no full-screen clear.
@@ -127,7 +125,7 @@ function submitGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWidth, 
         },
         'country-fill': () => {
       resetGpuNormalBlend(gl);
-      if (surfaceReady && countriesVisible && mesh) drawCountrySurface(false);
+      if (surfaceReady && countriesVisible && countryPaintVisible && mesh) drawCountrySurface(false);
       gl.disable(gl.STENCIL_TEST);
       resetGpuNormalBlend(gl);
         },
@@ -170,7 +168,7 @@ function submitGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWidth, 
 
   return { overlayRenderedKeys, overlayGridCollapsedKeys, overlayMissingKeys, overlayFailures, countryStrokeResult,
     surface: { quality: surfacePresentation.quality, landSource: surfaceReady ? `physical-${surfacePresentation.quality}` : 'physical-background',
-      countryIndexCount: surfaceReady && countriesVisible && mesh ? mesh.triangleIndices.length + (overrideMesh?.triangleIndices?.length || 0) : 0 },
+      countryIndexCount: surfaceReady && countriesVisible && countryPaintVisible && mesh ? mesh.triangleIndices.length + (overrideMesh?.triangleIndices?.length || 0) : 0 },
     frameId: activeFrameContext.frameId, projectGeneration: activeFrameContext.projectGeneration,
     strokeDomainReplacements: prepared.strokeDomainReplacements };
 }
