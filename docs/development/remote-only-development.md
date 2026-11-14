@@ -76,13 +76,9 @@ Archived Windows source and storage cleanup code must not be mistaken
 for a supported executable. Preserve existing user's binaries and
 references; this migration does not delete PC files.
 
-## Builds and verification are owned by feature workflows
+## Build and check ownership
 
-- `.github/workflows/application-architecture.yml`: one source-aware Node, Native prerequisite, and Playwright verification path, reused for Viewer checks.
-- `.github/workflows/shared-core.yml`: Core and GIS C++ source builds on affected development branches; its existing Core/WASM contracts remain available for the main branch and explicit scopes.
-- `.github/workflows/generated-artifacts-p2.yml`: immutable source-matched WASM/data generation and guarded publication. Only this owner publishes validated generated outputs; unchanged outputs are not rebuilt.
-- `.github/workflows/viewer-preview.yml`: optional downloadable branch snapshot and source-matched Viewer browser acceptance, dispatched after generated artifacts publish. This never deploys production Pages.
-- `.github/workflows/web-pages.yml`: main-branch production deployment only.
+The application check catalog owns the maintained Node/browser scenarios and fatal-error lint. `application-architecture.yml` runs an explicitly selected group. `generated-artifacts-p2.yml` builds source-matched WASM and guarded data outputs; it does not run a separate native test matrix. `web-pages.yml` owns main publication and pre/post transfer integrity.
 
 Codespaces is a read-only/on-demand local Viewer environment. No independent P1, P3 or remote-only CI pipelines remain. The map-analysis/training plugin remains separately owned, and native SDK installation is forbidden within a remote-only Codespace.
 
@@ -109,15 +105,13 @@ runs an inexpensive real-server HTTP smoke. The heavy original
 deliberate `--browser` invocation. It tests actual canonical map frame
 readiness, year navigation, two source-watch reloads and file isolation.
 
-The source-aware application workflow and optional Viewer preview provide Web/Canvas and mobile/desktop verification without requiring a Codespace.
+The selected application browser scenarios exercise desktop/touch Viewer, Canvas fallback and WebGL recovery without requiring a Codespace.
 A passing CI contract test is not proof that a personal Codespace
 session was opened. `main` deployment is still separately controlled.
 
 ## Source-matched C++ / WASM / GIS integration
 
-The shared-core workflow compiles and tests affected native Core or GIS source changes on GitHub Actions. The generated-artifacts workflow builds validated source-matched WASM only when input hashes require it and records the immutable runtime identity. A successful publication dispatches Viewer preview against the exact published commit, which mounts its pinned library revision and can exercise actual browser rendering.
-
-Focused `workflow_dispatch` in `viewer-preview.yml` retains real Chromium startup/Canvas evidence, while `shared-core.yml` retains independent C++ contracts. These paths are intentionally distinct: building C++ alone is not proof that the delivered web map presents correctly. No local Codespaces compiler is required or installed.
+The P2 workflow prepares one source-matched WASM when compiled inputs change. The maintained scenarios then verify the resulting runtime and Viewer behavior. Successful generation alone is not proof of a presented map. Local compiler installation remains forbidden.
 
 ## Local build prohibition and immutable output retirement
 

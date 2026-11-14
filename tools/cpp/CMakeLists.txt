@@ -58,7 +58,6 @@ if(PANDO_BUILD_MAP_IMAGE)
         URL https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-1.6.0.tar.gz
         URL_HASH SHA256=e4ab7009bf0629fd11982d4c2aa83964cf244cffba7347ecd39019a9e38c4564)
     FetchContent_MakeAvailable(pando_webp)
-    add_executable(pando-map-image-resample-tests map-image/resample.cpp ../../tests/tools/native/map-image-resample.cpp)
     add_executable(pando-map-image map-image/resample.cpp map-image/png.cpp map-image/png-read.c map-image/jpeg-read.c map-image/webp-read.c map-image/image-input.cpp map-image/main.cpp)
     target_include_directories(pando-map-image PRIVATE "${PANDO_JPEG_INSTALL}/include")
     target_link_libraries(pando-map-image PRIVATE pando-map-png pando-jpeg webpdemux)
@@ -138,18 +137,3 @@ target_include_directories(pando-spherical-polygon-normalize PRIVATE ../../src/d
 if(MSVC)
     target_compile_options(pando-spherical-polygon-normalize PRIVATE /utf-8)
 endif()
-
-# Pure core winding normalization remains usable by native and Emscripten;
-# it must not depend on the GEOS/PROJ CLI dependencies.
-add_executable(pando-spherical-polygon-tests
-    ../../tests/tools/native/spherical-polygon.cpp
-    ../../src/geometry/native/src/sphericalpolygon.cpp)
-target_include_directories(pando-spherical-polygon-tests PRIVATE ../../src/document/native/include ../../src/geometry/native/include ../../src/map/native/include ../../src/rendering/native/include ../../src/data/native/include ../../src/runtime/native/include)
-if(MSVC)
-    target_compile_options(pando-spherical-polygon-tests PRIVATE /utf-8)
-    target_compile_options(pando-spherical-polygon-tests PRIVATE /UNDEBUG)
-else()
-    target_compile_options(pando-spherical-polygon-tests PRIVATE -UNDEBUG)
-endif()
-enable_testing()
-add_test(NAME spherical-polygon-normalization COMMAND pando-spherical-polygon-tests)

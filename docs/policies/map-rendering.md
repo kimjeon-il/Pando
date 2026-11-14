@@ -11,7 +11,6 @@
 | 지도 라벨 겹침·표시 | [라벨 레이아웃](../../src/rendering/label-layout.js), [영토/지명 라벨](../../src/rendering/territorial-labels.js) | 지명 선정 자체는 [지명 정책](places.md) |
 | 자원 무효화·재사용 | [런타임 자원 정책](../../src/runtime/resource-dependency-policy.js) | [AGENTS.md](../../AGENTS.md)의 지도 자원 원칙과 연결 |
 
-**검증 계약:** `check-group:renderer-contract`, `check-group:gis-contracts`, `check-group:rendering`. 표시 코드의 실제 품질/픽셀 동등성은 해당 브라우저·GPU 검증을 별도 수행해야 합니다.
 
 ## 추가로 확인된 표시 규칙·검증 기록
 

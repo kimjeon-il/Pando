@@ -81,53 +81,13 @@ Worker는 C++ `polygonOperation('intersection')`으로 지역 내 해당 폴리�
 
 
 
-### 국경·해안선만 대상으로 하는 검사
+### 현재 검증 범위
 
-전체 테스트나 전체 역사 GIS 재검사를 실행하지 않는다.
-`tools/checks/audit-map-lod-topology.mjs`는 읽기 전용이다. 국가 정본
-GeoJSON의 고리 폐합/유한 좌표/중복 변, 인접 국경 edge의 양측 소유권,
-변 방향 및 비정상적 3개국 이상 소유 변을 집중 검사한다.
-물리적 해안 벡터와의 exact-edge 일치율은 **참고 수치**다.
-서로 다른 원본 정점 분할의 실제 해안선·국가 외곽이 불일치한다고
-무조건 오류라고 판단하지 않으며, T-junction·면 중첩·포함/섬 연결성·
-해안 위치 정확도까지 확인했다는 증거로 사용하지 않는다.
+별도 위상 감사·성능 benchmark 실행기는 유지하지 않는다. Viewer 표시·fallback·context 복구는 [핵심 검증 정책](../policies/validation.md)을 따른다. 실제 GIS 정확성은 승인된 자료 변경과 필요한 입력만 검토하며 화면 표시 통과를 원자료 검증으로 해석하지 않는다.
 
-```sh
-node tools/checks/audit-map-lod-topology.mjs --country-ids=KOR,PRK,CHN
-# 정본 GeoJSON과 물리적 해안 데이터가 해당 작업트리에 준비된 뒤에만:
-node tools/checks/audit-map-lod-topology.mjs --world-current \
-  --physical-land=assets/data/physical-land/v1/geometry.json.gz
-```
+## 3. 과거 측정의 한계
 
-현재 pinned world manifest는 258개 국가의 source revision과
-별도의 `physical-land/v1` 자료를 지시한다. 실제 압축 원본을 이 대화의
-실행 환경에서 열 수 없으므로 세계 258개국 실측/검사 완료라고 기재하지 않는다.
-위 명령은 목적별 검사 예시이며 이 작업에서 실행한 것이 아니다.
-
-## 3. P0 성능 기준선 — 실측 방법
-
-벤치마크는 **옵트인**이며 일반 Playwright 회귀 테스트에 자동 포함되지 않는다.
-
-```sh
-PANDOLAB_BASELINE_LABEL=before-main pnpm exec playwright test --config tests/browser/map-lod.config.mjs
-PANDOLAB_BASELINE_LABEL=after-work-gis pnpm exec playwright test --config tests/browser/map-lod.config.mjs
-```
-
-각 실행 전에 각각 해당 커밋을 체크아웃하여 같은 브라우저·하드웨어·고정 라이브러리
-revision·네트워크 캐시 조건을 사용한다. 결과 JSON은 `test-results/map-lod`에 저장된다.
-테스트는 **지구본/평면 × 데스크톱 1440×900/모바일 390×844 × 냉/온 캐시 ×
-배율 1·2·4·8·16·32·64**를 반복한다.
-
-집계: 첫 정식 지도 표시시간, 첫 국가 표시시간, CPU submit p95/p99, 화면 프레임
-간격 p95/p99, 국가 삼각형·정점 수, 동적 메시 생성 수·결과, 전송 바이트·요청 수,
-WebGL 리소스 바이트, Chromium이 공개하는 경우의 JS heap. GPU 전체 점유는
-일반 브라우저 JS API에서 신뢰성 있게 측정할 수 없으므로 별도 GPU 프로파일러
-표본이 필요하다. cross-origin 성능 영수증이 제한되면 `transferSize=0`은
-'사용량 없음'이 아니라 '관측 불가'일 수 있다.
-
-**실측 상태: 아직 미측정.** 코드·단위 자가검사는 작성했으나, 연결된 현재 작업
-환경에 로컬 웹 실행기·브라우저 측정 세션이 없으므로 p95/p99나 RAM 수치를
-임의로 기록하지 않는다. 배포 workflow 성공도 실제 브라우저 검증을 대신할 수 없다.
+과거 장비·시나리오의 성능 수치는 현재 통과 조건이 아니다. Viewer 동작 검증에 별도 성능 측정 실행기를 유지하지 않는다.
 
 ## 4. 집중 검증 및 완료 보류
 

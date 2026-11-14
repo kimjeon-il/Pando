@@ -13,7 +13,6 @@
 
 **구형 문구:** [버전·교환 기록](../architecture/versioning-migrations-exchange.md)에 남은 과거 버전 설명은 [VERSIONING.md](../../VERSIONING.md)와 독립된 새로운 릴리스 규칙이 아닙니다. `PandoEditor`와 별도 Windows/Android 제품은 현재 제품 배포 경로가 아닙니다.
 
-**검증 계약:** `check-group:version`, `check-group:version-contract`, `check-group:workflow-ownership`. 현재 검사 선택은 [등록 계약](../../scripts/contracts/application-checks.json) 및 [실행기](../../scripts/run-application-checks.mjs)에서 결정합니다.
 
 ## 다른 파일에 섞인 운영·아키텍처 규칙
 

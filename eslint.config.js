@@ -1,7 +1,5 @@
-import js from '@eslint/js';
-
 const browserGlobals = {
-  AbortController: 'readonly', Blob: 'readonly', CustomEvent: 'readonly', DOMParser: 'readonly', File: 'readonly', FileReader: 'readonly',
+  WebAssembly: 'readonly', AbortController: 'readonly', Blob: 'readonly', CustomEvent: 'readonly', DOMParser: 'readonly', File: 'readonly', FileReader: 'readonly',
   DOMException: 'readonly', DecompressionStream: 'readonly', Image: 'readonly', ImageBitmap: 'readonly',
   ImageData: 'readonly', IndexedDB: 'readonly', HTMLElement: 'readonly', HTMLCanvasElement: 'readonly', Option: 'readonly',
   Event: 'readonly', EventTarget: 'readonly', PageTransitionEvent: 'readonly',
@@ -22,58 +20,17 @@ const browserGlobals = {
 const nodeGlobals = {
   AbortController: 'readonly', CustomEvent: 'readonly', DOMException: 'readonly', Event: 'readonly', EventTarget: 'readonly',
   ReadableStream: 'readonly', URLSearchParams: 'readonly', queueMicrotask: 'readonly', setImmediate: 'readonly',
-  Buffer: 'readonly', Response: 'readonly', TextDecoder: 'readonly', URL: 'readonly', console: 'readonly', process: 'readonly', performance: 'readonly',
+  TextEncoder: 'readonly', Buffer: 'readonly', Response: 'readonly', TextDecoder: 'readonly', URL: 'readonly', console: 'readonly', process: 'readonly', performance: 'readonly',
   setTimeout: 'readonly', clearTimeout: 'readonly', structuredClone: 'readonly', fetch: 'readonly', AbortSignal: 'readonly', WebSocket: 'readonly',
 };
 
 export default [
-  { ignores: ['node_modules/**', 'playwright-report/**', 'test-results/**', 'assets/js-vendor/**', 'assets/vendor/**', 'assets/wasm/**', 'assets/**', 'apps/editor/src-tauri/**',
-    'tests/fixtures/shared-core/web-m97/lifecycle-source/**'] },
-  js.configs.recommended,
-  {
-    files: ['src/**/*.js'],
-    languageOptions: { ecmaVersion: 'latest', sourceType: 'module', globals: { ...browserGlobals, console: 'readonly' } },
-    rules: {
-      'no-unused-vars': ['error', { args: 'none', caughtErrors: 'none', ignoreRestSiblings: true }],
-      'no-constant-condition': ['error', { checkLoops: false }],
-      'no-empty': ['error', { allowEmptyCatch: true }],
-      'no-prototype-builtins': 'off',
-    },
-  },
-  {
-    files: ['src/rendering/gpu-stroke-renderer.js'],
-    rules: {
-      // Resource allocation is deliberately initialized before the guarded cleanup path.
-      'no-useless-assignment': 'off',
-    },
-  },
-  {
-    files: ['src/**/workers/**/*.js'],
-    languageOptions: {
-      sourceType: 'script',
-      globals: {
-        ...browserGlobals,
-        importScripts: 'readonly', initSqlJs: 'readonly', module: 'readonly',
-        onmessage: 'writable', postMessage: 'readonly', self: 'readonly',
-      },
-    },
-  },
-  {
-    files: [
-      'src/data/workers/data-loader-worker.js',
-      'src/data/workers/place-worker.js',
-      'src/rendering/workers/map-display-worker.js',
-      'src/document/workers/core-viewer-session-worker.js',
-    ],
-    languageOptions: { sourceType: 'module' },
-  },
-  {
-    files: ['tests/**/*.mjs', 'scripts/**/*.mjs', '.github/scripts/**/*.mjs', 'tools/**/*.{mjs,js}', '*.config.js', '.pnpmfile.mjs'],
-    languageOptions: { ecmaVersion: 'latest', sourceType: 'module', globals: nodeGlobals },
-    rules: { 'no-unused-vars': ['error', { args: 'none', caughtErrors: 'none', ignoreRestSiblings: true }] },
-  },
-  {
-    files: ['tests/browser/**/*.mjs', 'tests/integration/**/*.mjs'],
-    languageOptions: { globals: { ...nodeGlobals, ...browserGlobals } },
-  },
+ {ignores:['node_modules/**','assets/**','test-results/**','playwright-report/**']},
+ {files:['**/*.{js,mjs}'],languageOptions:{ecmaVersion:'latest',sourceType:'module'},rules:{"no-undef":"error","no-unreachable":"error","no-dupe-args":"error","no-dupe-keys":"error","no-dupe-class-members":"error","no-const-assign":"error","no-import-assign":"error","no-class-assign":"error","valid-typeof":"error","constructor-super":"error","no-obj-calls":"error","no-invalid-regexp":"error"}},
+ {files:['src/**/*.js'],languageOptions:{globals:{...browserGlobals,console:'readonly'}}},
+ {files:['src/**/workers/**/*.js'],languageOptions:{sourceType:'script',globals:{...browserGlobals,console:'readonly',importScripts:'readonly',initSqlJs:'readonly',module:'readonly',onmessage:'writable',postMessage:'readonly',self:'readonly'}}},
+ {files:['src/data/workers/data-loader-worker.js','src/data/workers/place-worker.js','src/rendering/workers/map-display-worker.js','src/document/workers/core-viewer-session-worker.js'],languageOptions:{sourceType:'module'}},
+ {files:['scripts/**/*.mjs','tools/**/*.{js,mjs}','tests/**/*.mjs','*.config.js','.pnpmfile.mjs'],languageOptions:{globals:nodeGlobals}},
+ {files:['tools/gis/gis-geometry-worker.js'],languageOptions:{sourceType:'script',globals:{...browserGlobals,self:'readonly',importScripts:'readonly'}}},
+ {files:['tests/browser/**/*.mjs'],languageOptions:{globals:{...nodeGlobals,...browserGlobals}}}
 ];

@@ -11,7 +11,6 @@
 | 이전 이행 단계 | [현행 계약](../architecture/project-data-ownership.md) | 단계별 계획을 현재 미구현 기능으로 추정하지 않음 |
 | 데이터 폐기 및 URL | [구형 GIS URL 현행 정책](../data-url-retention-policy.md) | 당시 삭제 목록·원본 무결성은 별도 보존 |
 
-**검증 계약:** `check-group:project-file-contracts`, `check-group:current-world`, `check-group:assets`. 최종 GIS 원자료의 역사적 정확도·실효지배 판단은 저장 파일의 존재 검증만으로 인증되지 않습니다.
 
 ## 다른 문서에 포함된 데이터·생성 규칙
 
