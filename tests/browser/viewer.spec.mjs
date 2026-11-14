@@ -1,5 +1,5 @@
 import {test,expect} from '@playwright/test';
-import {readFile,writeFile} from 'node:fs/promises';
+import {readFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 
 async function ready(page){
@@ -132,78 +132,3 @@ test('real WebGL context loss and restoration preserve displayed state and recov
   expect(await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot())).toEqual(before.project);
 });
 
-
-test('stage-4 GPU memory attribution and startup frame diagnosis',async({page},info)=>{
-  test.setTimeout(190_000);
-  await page.setViewportSize({width:390,height:844});
-  const data={schema:'pando-stage4-allocation-diagnosis-v1',observations:[],errors:[]};
-  page.on('pageerror',error=>data.errors.push(error.message));
-  try{
-    await page.addInitScript(()=>{
-      const start=performance.now();const observations=[];
-      window.__STAGE4_DIAGNOSTICS__=observations;
-      window.setInterval(()=>{
-        const viewer=window.__PANDOLAB_VIEWER__,s=viewer?.rendererStats?.();
-        if(!s)return;
-        observations.push({t:Math.round(performance.now()-start),
-          ready:s.mapReadiness?.mapReady,terrain:s.mapReadiness?.terrainReady,
-          mapStatus:s.mapReadiness?.status,screenScale:s.screenScale,
-          firstCanonical:s.firstCanonicalFrameMs,firstBackground:s.firstBackgroundFrameMs,
-          firstCountry:s.firstCountryPublishedMs,
-          polygon:s.polygonOverlay?.resourceBytesByRole,largest:s.polygonOverlay?.largestResources,
-          overlay:s.polygonOverlay?.resourceBudget,
-          mesh:s.meshVariantBytes,upload:s.gpuUpload,
-          terrain:s.terrainCacheBytes,globalBudget:s.renderQuality?.gpuCacheBudgetBytes});
-      },750);
-    });
-    const start=Date.now();
-    await page.goto('./?debug=1',{waitUntil:'domcontentloaded'});
-    const opened=await expect.poll(()=>page.evaluate(()=>{
-      const v=window.__PANDOLAB_VIEWER__,s=v?.rendererStats();
-      return Boolean(v?.initialMapPresented()&&s?.mapReadiness?.mapReady&&s.displayedRevision>0);
-    }),{timeout:105_000,intervals:[750,1500,3000]}).toBe(true).then(()=>true,()=>false);
-    data.startup={opened,afterDomContentLoadedMs:Date.now()-start};
-    if(opened){
-      const r=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.rendererStats());
-      data.ready={firstCanonicalFrameMs:r.firstCanonicalFrameMs,
-        firstCountryPublishedMs:r.firstCountryPublishedMs,
-        firstBackgroundFrameMs:r.firstBackgroundFrameMs,
-        overlay:r.polygonOverlay?.resourceBudget,
-        largest:r.polygonOverlay?.largestResources,
-        roles:r.polygonOverlay?.resourceBytesByRole,
-        mesh:r.meshVariantBytes,managedGpuBytes:r.managedGpuBytes,
-        terrainBudget:r.terrainMemoryBudgetBytes};
-      await page.evaluate(()=>{
-        const host=window.__PANDOLAB_MAP_HOST__,v=host.getViewState();
-        host.setViewState({projection:'globe',view:{...v,globeRotation:[-106,-30,0],globeZoom:8}});
-        host.requestRepaint('stage4-allocation-zoom8');
-      });
-      const gaps=await page.evaluate(()=>new Promise(resolve=>{
-        const times=[];let first=null,last=null;const step=t=>{
-          if(first===null)first=t;if(last!==null)times.push(t-last);
-          last=t;if(t-first<4300)return requestAnimationFrame(step);
-          times.sort((a,b)=>a-b);
-          const p=x=>times[Math.floor((times.length-1)*x)]??null;
-          resolve({count:times.length,p50:p(.5),p95:p(.95),p99:p(.99),
-            max:times.at(-1)??null,longFrames:times.filter(x=>x>50).length});
-        };requestAnimationFrame(step);
-      }));
-      data.zoom8={gaps,stats:await page.evaluate(()=>{
-        const s=window.__PANDOLAB_VIEWER__.rendererStats();
-        return {quality:s.renderQuality,meshVariantBytes:s.meshVariantBytes,
-          polygon:s.polygonOverlay?.resourceBudget,largest:s.polygonOverlay?.largestResources,
-          roles:s.polygonOverlay?.resourceBytesByRole,
-          terrainReady:s.mapReadiness?.terrainReady,
-          terrainTarget:s.terrainTargetLevel,rendered:s.terrainRenderedLevel,
-          upload:s.gpuUpload,screenScale:s.screenScale,
-          displayRevision:s.displayedRevision};
-      })};
-    }
-    expect(opened,'real Viewer must publish an initial WebGL2 map').toBe(true);
-  }finally{
-    data.observations=await page.evaluate(()=>window.__STAGE4_DIAGNOSTICS__??[]).catch(()=>[]);
-    await writeFile(info.outputPath('stage4-gpu-attribution.json'),JSON.stringify(data,null,2));
-    console.log('STAGE4_ATTRIBUTION='+JSON.stringify({startup:data.startup,ready:data.ready,zoom8:data.zoom8,
-      lastObservations:data.observations.slice(-3),errors:data.errors}).slice(0,13000));
-  }
-});
