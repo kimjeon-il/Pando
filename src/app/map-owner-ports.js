@@ -1,7 +1,7 @@
 // One dependency contract for the common owners; no project state is stored here.
 export const MAP_OWNER_PORTS=Object.freeze({
   projectResourcePorts:Object.freeze(["domains","platformConfigurationA","objectModelB","applicationServicesA","applicationServicesB","countries","countryRecords","geometryMutation","layerPresentation","objectDefinitions","platform","projectState","rendering","territorialModel"]),
-  workspaceSurfaces:Object.freeze(["colorPicker","mapHostViewB","platform","platformConfigurationB","projectState","uiFactoriesB","domains"]),
+  workspaceSurfaces:Object.freeze(["mapHostViewB","platform","platformConfigurationB","projectState","uiFactoriesB","domains"]),
   projectSession:Object.freeze(["domains","applicationConstantsA","modelValidation","physicalConfig","platformConfigurationA","uiFactoriesA","mapNavigation"]),
   renderQuality:Object.freeze(["feedback","countries","domains","gpuRenderingA","hydroModel","mapView","platformConfigurationB","preferences","projectState","rendering","selectionServices","spatialQuery","surfaces","uiFactoriesA"]),
   pointerTargets:Object.freeze(["domains","feedback","hydroPresentation","landRelations","layerPresentation","mapLayout","mapView","objectPicking","physicalResources","physicalServices","platform","projectState","rendering","surfaces"]),

@@ -105,7 +105,7 @@ export function installDialogAccessibilityController(documentRef = document) {
     const dialog = topOpenDialog(documentRef);
     if (!(dialog instanceof HTMLElement)) return;
     const active = documentRef.activeElement;
-    if (active?.closest?.('.ui-select-popover:not([hidden]), [data-color-picker].is-open')) return;
+    if (active?.closest?.('.ui-select-popover:not([hidden])')) return;
     const items = focusables(dialog);
     if (!items.length) {
       event.preventDefault();

@@ -351,9 +351,7 @@ export function createWorkspaceSurfaces() {
       if(ignoreNextMobileSheetPopstate){ignoreNextMobileSheetPopstate=false;return;}
       if(isMobile()&&surfaceController.activeMobileSheet){
         const select=document.querySelector('.ui-select-popover:not([hidden])');
-        const picker=document.querySelector('[data-color-picker].is-open');
         if(select)dependencies.platformConfigurationB.selectController.closeAll({restoreFocus:true});
-        else if(picker)dependencies.colorPicker.closeColorPicker(picker,{restoreFocus:true});
         else {closeActiveMobileSheet({restoreFocus:true,syncHistory:false});return;}
         trackMobileSheetHistory(surfaceController.activeMobileSheet);return;
       }
