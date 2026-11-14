@@ -3752,7 +3752,8 @@ export function createGpuMapRenderer(deps) {
       performanceMetrics.lastOverlayUploadBytes = overlayUploadBytes;
       performanceMetrics.overlayDeferredItemCount = deferredOverlayKeys.size;
       performanceMetrics.uploadBudgetOverrunCount += overrunCount;
-      if (deferredOverlayKeys.size) invalidateGpuFrame('overlay-upload-budget');
+      // An upload completion already invalidates the relevant scene. Repeated
+      // redraws while the same buffers remain queued starve startup and input.
     }
 
     function drawBaseSceneContent() {
@@ -4622,7 +4623,9 @@ export function createGpuMapRenderer(deps) {
     let managedGpuBytes = 0;
     function getRuntimeState({memory=false}={}) {
       if(memory)managedGpuBytes = [...meshVariants.values()].reduce((sum,entry)=>sum+Number(entry.resources?.byteLength||0),0)
-        + Number(polygonOverlayPass.stats().activeBufferBytes||0) + Number(strokeRenderer.stats().activeBufferBytes||0)
+        + Number(polygonOverlayPass.stats().activeBufferBytes||0)
+        + Number(polygonOverlayPass.stats().stagingBufferBytes||0)
+        + Number(strokeRenderer.stats().activeBufferBytes||0)
         + Number(hydroPreparation.stats().hydroCacheBytes||0) + Number(terrainPreparation?.stats().terrainCacheBytes||0)
         + pixelWidth*pixelHeight*4*2;
       return {
