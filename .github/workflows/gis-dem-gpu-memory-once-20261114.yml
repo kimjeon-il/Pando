@@ -1,0 +1,160 @@
+name: GIS DEM memory verification (one shot)
+on:
+  push:
+    branches: [work/gis]
+    paths: [.github/workflows/gis-dem-gpu-memory-once-20261114.yml]
+permissions:
+  contents: read
+jobs:
+  verify:
+    if: github.repository == 'kimjeon-il/Pando'
+    strategy:
+      fail-fast: false
+      matrix:
+        profile: [desktop, mobile]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 26
+    env:
+      GIS_PROFILE: ${{ matrix.profile }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: node tools/data/library-data.mjs --prepare-metadata
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Activate existing managed-GPU runtime statistics only in CI workspace
+        run: |
+          node --input-type=module <<'SCRIPT'
+          import {readFileSync,writeFileSync} from 'node:fs';
+          const p='src/app/viewer-composition.js',s=readFileSync(p,'utf8');
+          const token='rendererStats:()=>map.renderer.getStats(),';
+          if(s.split(token).length!==2)throw Error('Cannot instrument changed debug port');
+          writeFileSync(p,s.replace(token,token+'rendererMemoryStats:()=>map.renderer.getRuntimeState({memory:true}),'));
+          SCRIPT
+      - name: Add runner-only browser experiment
+        run: |
+          cat >> tests/browser/viewer.spec.mjs <<'GISTEST'
+
+          test('DEM and GPU evidence '+process.env.GIS_PROFILE,async({page},info)=>{
+            test.setTimeout(950000);
+            const {writeFileSync}=await import('node:fs');
+            const profile=process.env.GIS_PROFILE,viewport=profile==='desktop'?{width:1280,height:800}:{width:390,height:844};
+            const result={schema:'gis-dem-gpu-evidence-v1',profile,viewport,commit:process.env.GITHUB_SHA,
+              mobileHardware:false,physicalVramMeasured:false,records:[],stages:[],pageErrors:[],responseFailures:[]};
+            page.on('pageerror',e=>result.pageErrors.push(e.message));
+            page.on('response',r=>{if(r.url().includes('/assets/data/')&&!r.ok())result.responseFailures.push(r.status());});
+            async function get(){
+              return page.evaluate(()=>{
+                const debug=window.__PANDOLAB_VIEWER__;
+                if(!debug)return {notReady:true};
+                const s=debug.rendererStats(),m=debug.rendererMemoryStats(),p=s.polygonOverlay||{},u=s.gpuUpload||{};
+                const count=Number(s.terrainTargetTileCount||0),loaded=Number(s.terrainTargetTilesLoaded||0);
+                const strictDem=count>0&&loaded===count&&s.terrainReady===true
+                  &&s.terrainTargetTilesSettled===true&&s.terrainTargetLevel===s.terrainRenderedLevel
+                  &&Number(s.terrainFailureCount||0)===0&&Number(s.terrainCacheOverBudgetBytes||0)===0;
+                return {t:Math.round(performance.now()),strictDem,
+                  renderer:s.renderer,mapReady:s.mapReadiness?.mapReady,terrainReady:s.terrainReady,
+                  targetLevel:s.terrainTargetLevel,renderedLevel:s.terrainRenderedLevel,
+                  loaded,count,settled:s.terrainTargetTilesSettled,terrainLoading:s.terrainTilesLoading,
+                  demFailures:s.terrainFailureCount,terrainUploadCount:s.terrainUploadCount,
+                  terrainCacheBytes:s.terrainCacheBytes,demCacheBytes:s.terrainDemCacheBytes,
+                  terrainBudgetBytes:s.terrainMemoryBudgetBytes,terrainOverBudgetBytes:s.terrainCacheOverBudgetBytes,
+                  pendingDecodedBytes:s.terrainPendingDecodedBytes,
+                  managedGpuBytes:m.managedGpuBytes,budgetBytes:s.renderQuality?.gpuCacheBudgetBytes,
+                  meshBytes:Object.values(s.meshVariantBytes||{}).reduce((v,b)=>v+Number(b||0),0),
+                  polygonBytes:p.activeBufferBytes,physicalBytes:p.physicalBaseBufferBytes,
+                  optionalPolygonBytes:p.optionalOverlayBufferBytes,polygonStagingBytes:p.stagingBufferBytes,
+                  polygonOverBudgetBytes:p.resourceBudget?.overBudgetBytes,strokeBytes:s.stroke?.activeBufferBytes,
+                  hydroBytes:s.hydroCacheBytes,sceneCache:s.sceneCache,
+                  uploadPending:u.pending,uploadCompleted:u.completed,uploadMaxFrameMs:u.maxFrameMs,
+                  countryLodPending:!!s.screenLodPreparingKey,countryLodError:s.screenLodFailure||'',
+                  displayedRevision:s.displayedRevision,sceneCacheValid:s.sceneCacheValid,
+                  dpr:s.effectivePixelRatio,quality:s.renderQuality?.tier};
+              });
+            }
+            async function waitStage(name,timeout){
+              const started=Date.now();let steady=0;
+              const stage={name,strictDemStable:false,maxManagedGpuBytes:0,maxDecodedPendingBytes:0,maxUploadPending:0,samples:0};
+              while(Date.now()-started<timeout){
+                const state=await get(),elapsed=Date.now()-started;
+                result.records.push({name,elapsed,...state});stage.samples++;stage.last=state;
+                stage.maxManagedGpuBytes=Math.max(stage.maxManagedGpuBytes,Number(state.managedGpuBytes)||0);
+                stage.maxDecodedPendingBytes=Math.max(stage.maxDecodedPendingBytes,Number(state.pendingDecodedBytes)||0);
+                stage.maxUploadPending=Math.max(stage.maxUploadPending,Number(state.uploadPending)||0);
+                steady=state.strictDem?steady+1:0;
+                if(stage.samples%8===1)console.log('GIS_SAMPLE '+profile+' '+name+' '+JSON.stringify({
+                  elapsed,strict:state.strictDem,target:state.targetLevel,drawn:state.renderedLevel,
+                  loaded:state.loaded,total:state.count,uploadPending:state.uploadPending,
+                  managedMiB:(state.managedGpuBytes||0)/1048576}));
+                if(steady>=3){stage.strictDemStable=true;break;}
+                await page.waitForTimeout(2000);
+              }
+              stage.elapsedMs=Date.now()-started;
+              stage.raf=await page.evaluate(()=>new Promise(resolve=>{
+                let prev=null,first=null,max=0,n=0,slow=0;
+                function f(t){if(first===null)first=t;if(prev!==null){const d=t-prev;max=Math.max(d,max);if(d>50)slow++;}prev=t;n++;
+                  if(t-first<2300)requestAnimationFrame(f);
+                  else resolve({maxGapMs:max,samples:n,over50ms:slow});
+                }requestAnimationFrame(f);
+              }));
+              stage.final=await get();result.stages.push(stage);
+              console.log('GIS_STAGE '+profile+' '+JSON.stringify({
+                name,stable:stage.strictDemStable,elapsedMs:stage.elapsedMs,
+                target:stage.final.targetLevel,drawn:stage.final.renderedLevel,loaded:stage.final.loaded,
+                count:stage.final.count,managedMiB:stage.final.managedGpuBytes/1048576,
+                peakManagedMiB:stage.maxManagedGpuBytes/1048576,
+                uploadPending:stage.final.uploadPending,raf:stage.raf}));
+              return stage;
+            }
+            try{
+              await page.setViewportSize(viewport);const start=Date.now();
+              await page.goto('./?debug=1',{waitUntil:'domcontentloaded'});
+              result.startupReady=await expect.poll(()=>page.evaluate(()=>{
+                const v=window.__PANDOLAB_VIEWER__,s=v?.rendererStats();
+                return !!v?.initialMapPresented()&&s?.mapReadiness?.mapReady&&s.displayedRevision>0
+                  &&document.querySelector('#viewerStatus')?.dataset.ready==='true';
+              }),{timeout:190000,intervals:[800,1200,2000]}).toBe(true).then(()=>true,()=>false);
+              result.startupElapsedMs=Date.now()-start;
+              console.log('GIS_START '+profile+' '+result.startupReady+' '+result.startupElapsedMs);
+              if(!result.startupReady)throw Error('Initial map was not accepted');
+              result.startup=await get();
+              for(const zoom of [1,8,16,32,1]){
+                const name=zoom===1&&result.stages.length?'return1':'zoom'+zoom;
+                await page.evaluate(z=>{
+                  const h=window.__PANDOLAB_MAP_HOST__,v=h.getViewState();
+                  h.setViewState({projection:'globe',view:{...v,globeRotation:[-106,-30,0],globeZoom:z}});
+                  h.requestRepaint('dem-memory-measure-'+z);
+                },zoom);
+                await waitStage(name,zoom>=16?145000:zoom===8?65000:42000);
+                await page.locator('canvas.gpu-map-canvas').first()
+                  .screenshot({path:info.outputPath('gis-'+profile+'-'+name+'.png')});
+              }
+              result.end=await get();
+              result.peakManagedGpuBytes=Math.max(0,...result.records.map(r=>Number(r.managedGpuBytes)||0));
+              console.log('GIS_END '+profile+' '+JSON.stringify({
+                startMiB:result.startup.managedGpuBytes/1048576,
+                peakMiB:result.peakManagedGpuBytes/1048576,
+                endMiB:result.end.managedGpuBytes/1048576,
+                polygonMiB:result.end.polygonBytes/1048576,
+                baseMiB:result.end.physicalBytes/1048576,
+                dem32Stable:result.stages.find(s=>s.name==='zoom32')?.strictDemStable}));
+              expect(result.pageErrors).toEqual([]);
+            }catch(e){result.error=e.stack||String(e);console.log('GIS_ERROR '+profile+' '+e.message);}
+            finally{writeFileSync(info.outputPath('gis-dem-gpu-'+profile+'.json'),JSON.stringify(result,null,2));}
+            if(result.error)throw Error(result.error);
+          });
+          GISTEST
+      - name: Measure WebGL2 zoom 1-32 settled DEM and managed memory
+        run: pnpm exec playwright test tests/browser/viewer.spec.mjs --grep "DEM and GPU evidence $GIS_PROFILE" --workers=1 --retries=0
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gis-dem-gpu-one-shot-${{ matrix.profile }}-${{ github.sha }}
+          path: |
+            test-results/**/gis-dem-gpu-*.json
+            test-results/**/gis-*.png
+          if-no-files-found: warn
+          retention-days: 7
