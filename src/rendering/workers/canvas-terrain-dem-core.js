@@ -67,11 +67,14 @@
   function reliefShade(illumination) {
     return clamp(flatShade + ((0.27 + 0.73 * illumination) - flatShade) * 1.3, 0.16, 1);
   }
-  function createInterpolatedSampler({dem, width, height, theme = 'light', channel = 'land', naturalSurface = null}) {
+  function createInterpolatedSampler({dem, width, height, theme = 'light', channel = 'land', naturalSurface = null, naturalFadeEdges = null}) {
     if (!Number.isInteger(width) || !Number.isInteger(height) || width < 1 || height < 1 || dem?.length !== width * height * 4
       || !palettes[theme] || !['land', 'ocean', 'political'].includes(channel)) throw new TypeError('Invalid numerical DEM sample.');
     const colors=palettes[theme],landTable=channel==='land'?getTilePresentationTables(theme).land:null;
     const natural=channel==='land'?naturalSurface:null;
+    const fade=natural?naturalFadeEdges:null;
+    if(fade&&(!Array.isArray(fade)||fade.length!==4||fade.some(value=>value!==0&&value!==1)))
+      throw new TypeError('Invalid natural terrain boundary fade.');
     if(natural&&(natural.width!==width||natural.height!==height||natural.data?.length!==width*height*4
       ||!Number.isFinite(natural.mixWeight)||natural.mixWeight<0||natural.mixWeight>1))throw new TypeError('Invalid natural surface sample.');
     return function sample(x,y,out,offset=0){
@@ -108,7 +111,17 @@
           // from already-painted texels. Error stays below one RGBA8 step.
           const h=clamp(elevation,0,6500),lo=Math.floor(h),hi=Math.min(6500,lo+1),frac=h-lo;
           const base=lo*3,next=hi*3;
-          const weight=natural?natural.mixWeight*naturalWeight:0;
+          let weight=natural?natural.mixWeight*naturalWeight:0;
+          if(weight>0&&fade){
+            // Match the GPU's 64-source-pixel feather only for neighbours
+            // without a resident natural tile. A missing tile is optional.
+            const ex=Math.max(0,width-2),ey=Math.max(0,height-2);
+            const sx=clamp(x-0.5,0,ex),sy=clamp(y-0.5,0,ey);
+            if(fade[0])weight*=smoothHeight(sx,0,64);
+            if(fade[1])weight*=smoothHeight(ex-sx,0,64);
+            if(fade[2])weight*=smoothHeight(sy,0,64);
+            if(fade[3])weight*=smoothHeight(ey-sy,0,64);
+          }
           const gain=naturalWeight>0?(theme==='dark'?0.72:1)/(255*naturalWeight):0;
           for(let i=0;i<3;i++){
             const pigment=landTable[base+i]+(landTable[next+i]-landTable[base+i])*frac;
@@ -120,8 +133,8 @@
       out[offset+3]=255;return out;
     };
   }
-  function sampleInterpolated({dem,width,height,x,y,theme='light',channel='land',naturalSurface=null}) {
-    return Array.from(createInterpolatedSampler({dem,width,height,theme,channel,naturalSurface})(x,y,new Uint8ClampedArray(4)));
+  function sampleInterpolated({dem,width,height,x,y,theme='light',channel='land',naturalSurface=null,naturalFadeEdges=null}) {
+    return Array.from(createInterpolatedSampler({dem,width,height,theme,channel,naturalSurface,naturalFadeEdges})(x,y,new Uint8ClampedArray(4)));
   }
   // DEM heights and shade bytes are integral. Cache exact floating-point
   // presentation inputs, not rounded colors, so the final RGBA8 is unchanged.
