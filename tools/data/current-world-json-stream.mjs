@@ -63,12 +63,16 @@ export function streamCurrentWorldJson({metadata, bbox, visitFeatures}, emit) {
 
 export function streamJsonValue(value, emit) {
   if (Array.isArray(value)) {
+    // A complete numeric point or a short coordinate ring is a safe bounded
+    // JSON.stringify unit. Avoid millions of tiny stringify calls for islands.
+    const coordinateLeaf = typeof value[0] === 'number'
+      || Array.isArray(value[0]) && !Array.isArray(value[0][0]);
+    if (coordinateLeaf && value.length <= 1024) {
+      emit(JSON.stringify(value)); return;
+    }
     emit('[');
-    // A ring can contain millions of coordinate pairs. JSON.stringify only
-    // bounded slices, while preserving every number and the canonical order.
-    const chunked = value.length > 1024
-      && (typeof value[0] === 'number' || Array.isArray(value[0]) && !Array.isArray(value[0][0]));
-    if (chunked) {
+    // Rings longer than 1024 pairs never become a single V8 string.
+    if (coordinateLeaf) {
       for (let i = 0; i < value.length; i += 1024) {
         if (i) emit(',');
         const segment = JSON.stringify(value.slice(i, i + 1024));
