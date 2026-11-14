@@ -1,5 +1,5 @@
 import {test,expect} from '@playwright/test';
-import {readFile} from 'node:fs/promises';
+import {readFile,writeFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 
 async function ready(page){
@@ -226,21 +226,31 @@ for(const viewCase of [{name:'desktop',size:{width:1280,height:800}},
         await stage4SetGlobe(page,16);
         // Keep optional natural imagery delayed while a numerical terrain
         // frame is fully drawable and preserve that actual screenshot.
-        await expect.poll(()=>heldTiles.count,{timeout:110_000}).toBeGreaterThan(0);
         await expect.poll(async()=>Boolean((await stats())?.mapReadiness?.terrainReady),
           {timeout:110_000}).toBe(true);
-        naturalBefore=await canvas.screenshot({timeout:50_000});
-        await info.attach('stage4-'+viewCase.name+'-terrain-before-natural.png',
-          {body:naturalBefore,contentType:'image/png'});
+        // The observed candidate contains LOD4-only patches. A low-end
+        // profile can legitimately select LOD3 and request no natural tile.
+        // Preserve useful DEM measurements and fail with a precise reason
+        // instead of waiting 110 seconds without a screenshot or metrics.
+        await expect.poll(()=>heldTiles.count,{timeout:20_000}).toBeGreaterThan(0)
+          .catch(()=>{});
+        console.log('STAGE4_ADMISSION='+JSON.stringify({
+          profile:viewCase.name,held:heldTiles.count,stats:await stats(),
+          physicalSettings:await page.evaluate(()=>window.__PANDOLAB_VIEWER__?.documentState()?.physicalSettings??null),
+          view:await page.evaluate(()=>window.__PANDOLAB_MAP_HOST__?.getViewState?.()??null),
+        }));
+        naturalBefore=await canvas.screenshot({
+          timeout:50_000,path:info.outputPath('stage4-'+viewCase.name+'-terrain-before-natural.png')});
         const baseline={stats:await stats(),memory:await stage4Memory(page),
           pacing:await stage4Raf(page)};
         heldTiles.active=false;unlock();
-        await expect.poll(async()=>Number((await stats())?.terrainNaturalTilesLoaded||0),
-          {timeout:110_000}).toBeGreaterThan(0);
-        await page.waitForTimeout(450);
-        naturalAfter=await canvas.screenshot({timeout:50_000});
-        await info.attach('stage4-'+viewCase.name+'-natural-after.png',
-          {body:naturalAfter,contentType:'image/png'});
+        if(heldTiles.count>0){
+          await expect.poll(async()=>Number((await stats())?.terrainNaturalTilesLoaded||0),
+            {timeout:90_000}).toBeGreaterThan(0);
+          await page.waitForTimeout(450);
+        }
+        naturalAfter=await canvas.screenshot({
+          timeout:50_000,path:info.outputPath('stage4-'+viewCase.name+'-natural-after.png')});
         pixelDifference=await stage4PixelDifference(page,naturalBefore,naturalAfter);
         records.push({scene:'china-globe-16x-observed',zoom:16,
           stats:await stats(),memory:await stage4Memory(page),
@@ -252,26 +262,32 @@ for(const viewCase of [{name:'desktop',size:{width:1280,height:800}},
           await expect.poll(async()=>Boolean((await stats())?.mapReadiness?.mapReady),
             {timeout:75_000}).toBe(true);
           await page.waitForTimeout(220);
-          const shot=await canvas.screenshot({timeout:50_000});
-          await info.attach('stage4-'+viewCase.name+'-globe-'+zoom+'x.png',
-            {body:shot,contentType:'image/png'});
+          await canvas.screenshot({timeout:50_000,
+            path:info.outputPath('stage4-'+viewCase.name+'-globe-'+zoom+'x.png')});
           records.push({scene:'china-globe-'+zoom+'x',zoom,
             stats:await stats(),memory:await stage4Memory(page),
             pacing:await stage4Raf(page)});
         }
+        // Lack of observed imagery is an explicit incomplete-coverage result,
+        // not evidence that natural-color comparison passed.
+        expect(heldTiles.count,'observed LOD4 sample must be requested').toBeGreaterThan(0);
         expect(pixelDifference.changedPixels).toBeGreaterThan(100);
       }catch(error){problem=error.stack||String(error);throw error;}
       finally{
         heldTiles.active=false;unlock();
-        await info.attach('stage4-'+viewCase.name+'-metrics.json',{body:JSON.stringify({
+        const evidence={
           schema:'pando-stage4-real-viewer-v1',appCommit:process.env.GITHUB_SHA||null,
           renderer:'webgl2',actualViewer:true,environment:'GitHub Actions Chromium (GPU backend reported in capabilities)',
           emulatedViewport:viewCase.name==='mobile-viewport',
           flatProjection:'unsupported by current product (not benchmarked)',
           gpuTimerQueriesMeasured:false,physicalGpuMemoryMeasured:false,
           heldNaturalRequests:heldTiles.count,pixelDifference,records,
-          naturalHttpResponses:http,scriptErrors:errors,problem
-        },null,2),contentType:'application/json'});
+          naturalHttpResponses:http,scriptErrors:errors,problem,
+          status:heldTiles.count===0?'observed-image-not-requested':'observed-image-requested'
+        };
+        await writeFile(info.outputPath('stage4-'+viewCase.name+'-metrics.json'),
+          JSON.stringify(evidence,null,2));
+        console.log('STAGE4_METRICS='+JSON.stringify(evidence).slice(0,16000));
       }
     });
 }
