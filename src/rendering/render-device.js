@@ -24,7 +24,7 @@ function createGlStateContract(gl, version, contextRevision) {
   };
   const tracked = {
     framebuffer: null, readFramebuffer: null, viewport: [0, 0, gl.drawingBufferWidth || 1, gl.drawingBufferHeight || 1],
-    program: null, arrayBuffer: null, activeTexture: gl.TEXTURE0,
+    program: null, arrayBuffer: null, copyWriteBuffer: null, activeTexture: gl.TEXTURE0,
     equations: [gl.FUNC_ADD, gl.FUNC_ADD],
     blendFactors: [gl.ONE, gl.ZERO, gl.ONE, gl.ZERO],
     colorMask: [true, true, true, true], clearColor: [0, 0, 0, 0],
@@ -36,6 +36,8 @@ function createGlStateContract(gl, version, contextRevision) {
   tracked.viewport = Array.from(gl.getParameter(gl.VIEWPORT));
   tracked.program = gl.getParameter(gl.CURRENT_PROGRAM);
   tracked.arrayBuffer = gl.getParameter(gl.ARRAY_BUFFER_BINDING);
+  tracked.copyWriteBuffer = gl.getParameter(gl.COPY_WRITE_BUFFER_BINDING);
+  markBuffer(tracked.copyWriteBuffer, true);
   // Existing allocations can predate the RenderDevice (initial scene setup).
   // The currently bound buffer is admitted exactly once for this context.
   markBuffer(tracked.arrayBuffer, true);
@@ -71,17 +73,19 @@ function createGlStateContract(gl, version, contextRevision) {
   intercept('useProgram', value => { tracked.program = value; });
   intercept('createBuffer', buffer => { markBuffer(buffer, true); }, { resultOnly: true });
   intercept('bindBuffer', (target, value) => {
-    if (target !== gl.ARRAY_BUFFER) return;
+    if (target !== gl.ARRAY_BUFFER && target !== gl.COPY_WRITE_BUFFER) return;
     // Buffers allocated before this ledger may first appear here; they are
     // admitted only on their first binding, never after an observed deletion.
     if (value && !bufferLifetimes.has(value)) markBuffer(value, true);
-    tracked.arrayBuffer = value;
+    if (target === gl.ARRAY_BUFFER) tracked.arrayBuffer = value;
+    else tracked.copyWriteBuffer = value;
   });
   intercept('deleteBuffer', value => {
     if (!value) return;
     markBuffer(value, false);
     // Deletion also releases the WebGL ARRAY_BUFFER binding.
     if (tracked.arrayBuffer === value) tracked.arrayBuffer = null;
+    if (tracked.copyWriteBuffer === value) tracked.copyWriteBuffer = null;
   });
   intercept('activeTexture', value => { tracked.activeTexture = value; });
   intercept('bindTexture', (target, value) => {
@@ -121,6 +125,23 @@ function createGlStateContract(gl, version, contextRevision) {
     else bufferBindingRejected += 1;
     return !!canRestore;
   }
+  // COPY_WRITE_BUFFER is WebGL2-only and is independent of the vertex-array
+  // element binding. Using it to stage both polygon vertex and index bytes
+  // avoids a driver readback and accidental VAO changes on every upload slice.
+  function captureCopyWriteBufferBinding() {
+    if (!active || gl.isContextLost?.()) return null;
+    bufferBindingCaptures++;
+    return Object.freeze({contextRevision, buffer: tracked.copyWriteBuffer});
+  }
+  function restoreCopyWriteBufferBinding(snapshot) {
+    if (!active || gl.isContextLost?.()) return false;
+    const valid = !!snapshot && snapshot.contextRevision === contextRevision
+      && liveBuffer(snapshot.buffer);
+    gl.bindBuffer(gl.COPY_WRITE_BUFFER, valid ? snapshot.buffer : null);
+    if (valid) bufferBindingRestores++;
+    else bufferBindingRejected++;
+    return valid;
+  }
   function restore(state) {
     if (!state || !active || gl.isContextLost?.() || state.contextRevision !== contextRevision) return;
     gl.bindFramebuffer(gl.FRAMEBUFFER, state.framebuffer);
@@ -128,6 +149,7 @@ function createGlStateContract(gl, version, contextRevision) {
     gl.viewport(...state.viewport);
     gl.useProgram(state.program);
     gl.bindBuffer(gl.ARRAY_BUFFER, liveBuffer(state.arrayBuffer) ? state.arrayBuffer : null);
+    gl.bindBuffer(gl.COPY_WRITE_BUFFER, liveBuffer(state.copyWriteBuffer) ? state.copyWriteBuffer : null);
     // Restore all texture units modified by the pass, not only the active unit.
     for (const unit of new Set([...textureUnits.keys(), ...state.textures.keys()])) {
       gl.activeTexture(unit);
@@ -151,7 +173,8 @@ function createGlStateContract(gl, version, contextRevision) {
     originals.clear();
   }
   return Object.freeze({
-    capture, restore, captureArrayBufferBinding, restoreArrayBufferBinding, dispose,
+    capture, restore, captureArrayBufferBinding, restoreArrayBufferBinding,
+    captureCopyWriteBufferBinding, restoreCopyWriteBufferBinding, dispose,
     bufferBindingStats: () => Object.freeze({
       captures: bufferBindingCaptures, restores: bufferBindingRestores,
       rejected: bufferBindingRejected, contextRevision,

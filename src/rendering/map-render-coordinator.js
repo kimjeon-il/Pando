@@ -294,6 +294,9 @@ export function createMapRenderCoordinator({
         frameKind,
         requestedMask,
         dirtyMask: mask,
+        durationMs: metrics.lastRenderMs,
+        queuedMs: Math.max(0, startedAt - queuedAtMs),
+        rendererTimes: { ...rendererTimes },
         reasons: [...reasons],
       });
       if (metrics.recentFrames.length > 20) metrics.recentFrames.splice(0, metrics.recentFrames.length - 20);
@@ -385,7 +388,8 @@ export function createMapRenderCoordinator({
       renderRevision,
       lastReasons: [...metrics.lastReasons],
       lastRendererTimes: { ...metrics.lastRendererTimes },
-      recentFrames: metrics.recentFrames.map(frame => ({ ...frame, reasons: [...frame.reasons] })),
+      recentFrames: metrics.recentFrames.map(frame => ({ ...frame, reasons: [...frame.reasons],
+        rendererTimes: { ...frame.rendererTimes } })),
       pendingMask,
       pendingMode: pendingMask & MAP_RENDER_DIRTY.PROJECT ? 'full' : pendingMask ? 'partial' : null,
       frameQueued,
