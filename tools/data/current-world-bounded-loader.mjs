@@ -47,6 +47,8 @@ export function loadBoundedCurrentWorld(filePath) {
     },
     visit:feature=>features.push(feature),
   });
-  if(features.length!==count)throw new Error('Current world feature count mismatch');
+  if(metadata.type!=='FeatureCollection' || features.length!==count
+    || new Set(features.map(feature=>feature.id)).size!==count)
+    throw new Error('Current world source identity: invalid collection or repeated feature ids');
   return {...metadata,features,bbox};
 }
