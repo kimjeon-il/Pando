@@ -2,7 +2,7 @@ import {execFileSync} from "node:child_process";
 import {existsSync,lstatSync,mkdirSync,mkdtempSync,readFileSync,readdirSync,renameSync,rmdirSync,statfsSync,unlinkSync} from "node:fs";
 import {dirname,relative,resolve,sep} from "node:path";
 import {gunzipSync} from "node:zlib";
-import {organizedReportPath,reportDocumentDetails,reportSubjectReadmes,rewriteReportArtifact} from "./library-report-layout.mjs";
+import {organizedReportPath,rewriteReportArtifact} from "./library-report-layout.mjs";
 import {atomicStorageJSON,linkContent,makePrivate,removeContentLink,replaceLibraryFile,shareContentFile} from "./library-content.mjs";
 import {defaultRoot,gitOptions,git,libraryCheckout,libraryReportEditRoot,librarySharedCheckout,reportDigest,libraryOwnerId,plainReportFiles,safeChild,withLibraryLock,organizationTree} from "./library-context.mjs";
 import {reportRegistry,writeReportRegistry,checkedReportPath,assertReportProducersIdle,assertReportSubject} from "./library-reports.mjs";
@@ -91,7 +91,7 @@ function organizationTextBlobs(shared, oids, cache) {
 function organizedReportCommit(shared, revision, mapping, cache, resources) {
   if (cache.has(revision)) return cache.get(revision);
   const tree = organizationTree(shared, revision), index = JSON.parse(git(shared, ['show', `${revision}:archive/index.json`], { allowFetch: true }));
-  const reportFiles = tree.filter(x => x.path.startsWith('reports/')), entries = {}, updated = new Map(), documents = {};
+  const reportFiles = tree.filter(x => x.path.startsWith('reports/')), entries = {}, updated = new Map();
   const byPath = new Map(tree.map(item => [item.path, item]));
   const originals = Object.entries(index.files).filter(([path]) => path.startsWith('reports/') && organizationTextFile(path)).map(([, entry]) => {
     const item = byPath.get(entry.stored); if (!item) throw Error(`Missing stored report: ${entry.stored}`); return item.oid;
@@ -107,7 +107,6 @@ function organizedReportCommit(shared, revision, mapping, cache, resources) {
     let oid = item.oid, bytes = null;
     if (organizationTextFile(item.path)) {
       const original = resources.originals.get(item.oid);
-      if (item.path.endsWith('.md')) documents[item.path] = original.toString('utf8');
       const text = rewriteReportArtifact(original.toString('utf8'), item.path, target, mapping);
       if (text !== original.toString('utf8')) { bytes = Buffer.from(text); oid = blob(bytes); }
     }
@@ -121,7 +120,6 @@ function organizedReportCommit(shared, revision, mapping, cache, resources) {
       if (!['identity', 'gzip'].includes(entry.encoding)) throw Error(`Unknown report encoding: ${path}`);
       const original = entry.encoding === 'gzip' ? gunzipSync(stored) : stored;
       if (original.length !== entry.bytes || reportDigest(original) !== entry.sha256) throw Error(`Corrupt report original: ${path}`);
-      if (path.endsWith('.md')) documents[path] = original.toString('utf8');
       const text = rewriteReportArtifact(original.toString('utf8'), path, target, mapping);
       if (text !== original.toString('utf8')) {
         const bytes = Buffer.from(text); updated.set(target, { path: target, mode: '100644', oid: blob(bytes), bytes });
@@ -133,10 +131,6 @@ function organizedReportCommit(shared, revision, mapping, cache, resources) {
     }
     const changed = updated.get(target)?.bytes;
     entries[target] = { ...entry, stored: mapping[entry.stored] || entry.stored, ...(changed ? { bytes: changed.length, sha256: reportDigest(changed) } : {}) };
-  }
-  for (const [path, text] of Object.entries(reportSubjectReadmes([...updated.keys()], reportDocumentDetails(documents, mapping)))) {
-    const bytes = Buffer.from(text); updated.set(path, { path, mode: '100644', oid: blob(bytes) });
-    entries[path] = { stored: path, encoding: 'identity', sha256: reportDigest(bytes), bytes: bytes.length };
   }
   const indexBytes = Buffer.from(JSON.stringify({ ...index, reportLayout: 'subjects-v1', files: entries }) + '\n');
   updated.set('archive/index.json', { path: 'archive/index.json', mode: '100644', oid: blob(indexBytes) });
@@ -235,10 +229,6 @@ export function organizeLibraryReports({ root = defaultRoot, apply = false, stop
     if (journal.phase === 'commits') {
       if (git(shared, ['rev-parse', 'HEAD']) !== journal.head && git(shared, ['rev-parse', 'HEAD']) !== journal.revision) throw Error('Library main changed; preserve the pending organization.');
       for (const file of journal.files) if (reportDigest(readFileSync(file.output)) !== (file.updatedSha256 || file.sha256)) throw Error(`Post-move verification failed: ${file.output}`);
-      for (const path of Object.keys(reportSubjectReadmes([]))) {
-        const bytes = execFileSync('git', [...gitOptions, 'show', `${journal.revision}:${path}`], { cwd: shared, maxBuffer: 4 * 1024 * 1024 });
-        const output = checkedReportPath(shared, path); clearReplacementTemps(output, reportDigest(bytes)); mkdirSync(dirname(output), { recursive: true }); replaceLibraryFile(shared, output, bytes); shareContentFile(shared, output);
-      }
       const finalIndex = git(shared, ['show', `${journal.revision}:archive/index.json`]);
       clearReplacementTemps(resolve(shared, 'archive/index.json'), reportDigest(Buffer.from(finalIndex + '\n')));
       replaceLibraryFile(shared, resolve(shared, 'archive/index.json'), Buffer.from(finalIndex + '\n'));

@@ -12,7 +12,7 @@ export function reportPath(target, { root = repo, access } = {}) {
   if (!target.startsWith('reports/')) throw Error(`Not a report path: ${target}`);
   const output = safeChild(libraryReportRoot(root), target.slice('reports/'.length));
   const subject = target.slice(8).split('/')[0];
-  if (!Object.hasOwn(REPORT_SUBJECTS, subject) && !['README.md', 'TEMPLATE.md'].includes(subject)) throw Error(`Use a canonical report subject: ${target}`);
+  if (!Object.hasOwn(REPORT_SUBJECTS, subject)) throw Error(`Use a canonical report subject: ${target}`);
   if (existsSync(resolve(libraryCheckout(root), '.git'))) return hydrateReports({ root, path: target.slice('reports/'.length), access });
   return output;
 }
