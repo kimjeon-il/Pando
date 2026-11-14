@@ -983,19 +983,26 @@ function canvasFallbackWorkerMain(self) {
       const now = typeof performance !== 'undefined' && typeof performance.now === 'function'
         ? () => performance.now() : null;
       const started = now?.() ?? 0;
+      task.sliceStarted = started;
+      task.slices += 1;
       try {
         for (let step = task.iterator.next(); !step.done; step = task.iterator.next()) {
           if (now && now() - started >= 12) {
+            task.cpuMs += now() - started;
+            task.sliceStarted = null;
             task.timer = setTimeout(() => advancePaint(task), 0);
             return;
           }
         }
+        task.cpuMs += now ? now() - started : 0;
+        task.sliceStarted = null;
         activePaint = null;
         if (repaintAfterPaint) {
           repaintAfterPaint = false;
           scheduleHydroRender();
         }
       } catch (error) {
+        task.sliceStarted = null;
         activePaint = null;
         self.postMessage({ type: 'error', message: task.requestId == null
           ? error?.message || String(error) : error?.stack || error?.message || String(error) });
@@ -1010,6 +1017,8 @@ function canvasFallbackWorkerMain(self) {
         requestId: renderRequestId,
         generation: Number(message.projectGeneration ?? projectGeneration),
         timer: 0,
+        cpuMs: 0, slices: 0, sliceStarted: null,
+        startedAt: typeof performance !== 'undefined' ? performance.now() : 0,
       };
       activePaint = task;
       advancePaint(task);
@@ -1192,6 +1201,15 @@ function canvasFallbackWorkerMain(self) {
         ? (message.scenePolygons || []).filter(packet => packet.role === 'physical-land') : [];
       const waterPainted = paintedRoles.includes('physical-water')
         ? (message.scenePolygons || []).filter(packet => packet.role === 'physical-water') : [];
+      // CPU duration sums only active cooperative paint slices; wall duration
+      // also includes the gaps between yielded slices. Neither is GPU frame time.
+      if (activePaint && typeof performance !== 'undefined') {
+        const end = performance.now();
+        terrainFrameStats.canvasWorkerPaintCpuMs = Number((activePaint.cpuMs
+          + (activePaint.sliceStarted === null ? 0 : end - activePaint.sliceStarted)).toFixed(2));
+        terrainFrameStats.canvasWorkerPaintWallMs = Number((end - activePaint.startedAt).toFixed(2));
+        terrainFrameStats.canvasWorkerPaintSlices = activePaint.slices;
+      }
       const bitmap = canvas.transferToImageBitmap();
       self.postMessage({
         type: 'frame',
