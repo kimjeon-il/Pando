@@ -1,5 +1,6 @@
 import { validateScopedRetirementDerivation } from '../../src/data/world-bundle-manifest.js';
 import { createHash } from 'node:crypto';
+import {loadBoundedCurrentWorld,hashFileInChunks} from '../data/current-world-bounded-loader.mjs';
 import { readFileSync, writeFileSync, existsSync, mkdirSync, renameSync, unlinkSync } from 'node:fs';
 import {withLibraryOutputs} from "../data/library-runtime.mjs";
 import { resolve, dirname, posix } from 'node:path';
@@ -34,10 +35,10 @@ export function contentAddress(role, digest) {
   return `world/objects/${parts[0]}-sha256-${digest}${parts[1]}`;
 }
 
-export function bundleDescriptor({ seed, legacy, assets, sourceBytes }) {
+export function bundleDescriptor({ seed, legacy, assets, sourceBytes, sourceSha256 = null }) {
   if (seed?.schema !== 'pandolab-world-build-input' || seed?.schemaVersion !== 1) throw new Error('Invalid world build input');
   if (!Number.isSafeInteger(legacy?.countries) || legacy.countries <= 0 || legacy?.source !== seed.canonicalSource || !legacy.defaultClassification) throw new Error('Incompatible legacy world manifest');
-  const sourceDigest = sha256(sourceBytes);
+  const sourceDigest = sourceSha256 || sha256(sourceBytes);
   if (sourceDigest !== legacy.sourceSha256 || sourceDigest !== legacy.canonicalSourceSha256) throw new Error('Stale canonical world source');
   const outAssets = {};
   for (const role of Object.keys(ROLES)) {
@@ -145,13 +146,14 @@ export function publishWorldBundle({ root, check = false, manifestOverride = nul
     seed.legacyPreviewManifest = assertDataPath(manifestOverride);
   }
   const legacy = JSON.parse(readData(seed.legacyPreviewManifest));
-  const sourceBytes = Buffer.from(readData(seed.canonicalSource).toString('utf8').replaceAll('\r\n', '\n'));
-  const source = JSON.parse(sourceBytes);
+  const sourcePath=resolve(data,assertDataPath(seed.canonicalSource));
+  const source=loadBoundedCurrentWorld(sourcePath);
+  const {sha256:sourceSha256}=hashFileInChunks(sourcePath);
   if (source?.type !== 'FeatureCollection' || source.features?.length !== legacy.countries
       || new Set(source.features.map(feature => String(feature.id))).size !== legacy.countries) throw new Error('Invalid world canonical source');
   const original = {};
   for (const role of Object.keys(ROLES)) original[role] = readData(legacy.assets?.[role]?.url);
-  const bundle = bundleDescriptor({ seed, legacy, assets: original, sourceBytes });
+  const bundle = bundleDescriptor({ seed, legacy, assets: original, sourceSha256 });
   const currentPath = selected ? resolve(root,selected.catalogs.world) : resolve(data,'world/current.json');
   // A metadata-only world publication must not discard the prepared Viewer
   // derivative. Its exact geometry/hierarchy identity is checked by its loader.

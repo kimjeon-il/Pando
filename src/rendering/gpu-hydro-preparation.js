@@ -110,7 +110,7 @@ export function createGpuHydroPreparation({ createWorker, getView, getCacheBudge
         catch (error) { retireHydroWorkerGeneration(error, { failed: true, notify: true }); }
       });
     }
-    function uploadHydroPack(entry, sharedByteBudget = 256 * 1024) {
+    function uploadHydroPack(entry, sharedByteBudget = 256 * 1024, deadline = Infinity) {
       if (!gl || !isWebGlRenderer() || entry.resources) return;
       const meshData = entry.mesh;
       if (!entry.uploadState) {
@@ -135,32 +135,34 @@ export function createGpuHydroPreparation({ createWorker, getView, getCacheBudge
           ].map(([key, data, target]) => ({ key, data, target, offset: 0, buffer: null })),
         };
       }
-      const task = entry.uploadState.tasks[0];
-      if (task) {
-
-        const outputBytes = task.data.byteLength;
-        if (!task.buffer) {
-          task.buffer = lifecycle.create(gl, 'Buffer');
-          gl.bindBuffer(task.target, task.buffer);
-          gl.bufferData(task.target, outputBytes, gl.STATIC_DRAW);
-          entry.uploadState.resources[task.key] = task.buffer;
-          return;
-        } else {
-          gl.bindBuffer(task.target, task.buffer);
-        }
-        const byteBudget = sharedByteBudget;
-        {
-          const count = Math.min(outputBytes - task.offset, byteBudget);
-          const chunk = new Uint8Array(task.data.buffer, task.data.byteOffset + task.offset, count);
-          gl.bufferSubData(task.target, task.offset, chunk);
-          task.offset += count;
-          metrics.hydroUploadBytes += count;
-        }
-        if (task.offset >= outputBytes) entry.uploadState.tasks.shift();
+      let budget=Math.max(0,Math.floor(Number(sharedByteBudget)||0));
+      // One historical scheduler step allocated a buffer *without uploading*,
+      // then spent another step on its first bytes. 18 channels per pack made
+      // most hydro steps report zero progress. Batch a few cheap allocations,
+      // including empty channels, but respect the shared deadline and byte cap.
+      for(let operations=0;operations<8&&entry.uploadState.tasks.length;operations++){
+        if(operations>0 && performance.now()>=deadline)break;
+        const task=entry.uploadState.tasks[0],outputBytes=task.data.byteLength;
+        if(outputBytes>task.offset && budget<=0)break;
+        if(!task.buffer){
+          task.buffer=lifecycle.create(gl,'Buffer');
+          gl.bindBuffer(task.target,task.buffer);
+          gl.bufferData(task.target,outputBytes,gl.STATIC_DRAW);
+          entry.uploadState.resources[task.key]=task.buffer;
+        }else gl.bindBuffer(task.target,task.buffer);
+        if(outputBytes===0){entry.uploadState.tasks.shift();continue;}
+        const count=Math.min(outputBytes-task.offset,budget);
+        if(count<=0)break;
+        const chunk=new Uint8Array(task.data.buffer,task.data.byteOffset+task.offset,count);
+        gl.bufferSubData(task.target,task.offset,chunk);
+        task.offset+=count;
+        budget-=count;
+        metrics.hydroUploadBytes+=count;
+        if(task.offset>=outputBytes)entry.uploadState.tasks.shift();
       }
-      if (!entry.uploadState.tasks.length) {
-        entry.resources = entry.uploadState.resources;
-        entry.uploadState = null;
+      if(!entry.uploadState.tasks.length){
+        entry.resources=entry.uploadState.resources;
+        entry.uploadState=null;
       }
     }
 
@@ -193,10 +195,10 @@ export function createGpuHydroPreparation({ createWorker, getView, getCacheBudge
       void uploadScheduler.enqueueUpload({
         key, contextGeneration, priority: 40,
         dispose: () => { entry.uploadKey = null; entry.uploadQueued = false; deleteHydroPackResources(entry); },
-        step: ({ byteBudget }) => {
+        step: ({ byteBudget, deadline }) => {
           if (disposed || entry.uploadKey !== key || epoch !== uploadEpoch || contextGeneration !== renderDeviceContextRevision) throw Object.assign(new Error('Stale hydro upload'), { name: 'AbortError' });
           const before = metrics.hydroUploadBytes;
-          uploadHydroPack(entry, byteBudget);
+          uploadHydroPack(entry, byteBudget, deadline);
           if (entry.resources) {
             entry.uploadKey = null;
             entry.uploadQueued = false;

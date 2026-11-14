@@ -3,6 +3,7 @@ import { buildFrontendIndex, frontendAsset } from "../../scripts/lib/frontend-la
 import "./load-spherical-core.mjs";
 import crypto from 'node:crypto';
 import fs from 'node:fs';
+import {loadBoundedCurrentWorld,hashFileInChunks} from '../data/current-world-bounded-loader.mjs';
 import path from 'node:path';
 import vm from 'node:vm';
 import zlib from 'node:zlib';
@@ -127,8 +128,7 @@ function validatePackedGeometry(mesh) {
   return maximumTriangleEdge;
 }
 
-const sourceBytes = Buffer.from(fs.readFileSync(sourcePath, 'utf8').replaceAll('\r\n', '\n'));
-const countries = JSON.parse(sourceBytes.toString('utf8'));
+const countries = loadBoundedCurrentWorld(sourcePath);
 if (countries?.type !== 'FeatureCollection' || !countries.features?.length) {
   throw new Error('현재 세계지도 국가 데이터가 비어 있거나 올바르지 않습니다.');
 }
@@ -200,7 +200,7 @@ writeLibraryOutput(outputPath, compressed);
 
 console.log(JSON.stringify({
   output: path.relative(projectRoot, outputPath).replaceAll('\\', '/'),
-  sourceSha256: sha256(sourceBytes),
+  sourceSha256: hashFileInChunks(sourcePath).sha256,
   meshSha256: sha256(compressed),
   countries: mesh.countryIds.length,
   sourceCoordinates: sourceCoordinateCount,

@@ -1,6 +1,7 @@
 import {writeLibraryOutput} from "../data/library-runtime.mjs";
 import crypto from 'node:crypto';
 import fs from 'node:fs';
+import {loadBoundedCurrentWorld,hashFileInChunks} from '../data/current-world-bounded-loader.mjs';
 import path from 'node:path';
 import zlib from 'node:zlib';
 import { fileURLToPath } from 'node:url';
@@ -90,11 +91,11 @@ function checkedGzip(filePath, generated) {
     generated, path.relative(projectRoot, filePath));
 }
 
-const canonicalBytes = Buffer.from(fs.readFileSync(sourcePath, 'utf8').replaceAll('\r\n', '\n'));
+const canonicalSource = loadBoundedCurrentWorld(sourcePath);
+const canonicalSourceSha256 = hashFileInChunks(sourcePath).sha256;
 const canonicalMeshBytes = fs.readFileSync(canonicalMeshPath);
 const canonicalMeshDecoded = zlib.gunzipSync(canonicalMeshBytes);
 const labelAnchorBytes = Buffer.from(fs.readFileSync(labelAnchorsPath, 'utf8').replaceAll('\r\n', '\n'));
-const canonicalSource = JSON.parse(canonicalBytes.toString('utf8'));
 if (canonicalSource?.type !== 'FeatureCollection' || !canonicalSource.features?.length) throw new Error('현재 세계지도 국가 데이터가 비어 있거나 올바르지 않습니다.');
 
 const startedAt = performance.now();
@@ -122,9 +123,9 @@ if (canonicalCountryPacket.length > 13 * 1024 * 1024) throw new Error(`canonical
 const manifest = {
   version: LEGACY_DATA_VERSION,
   source: bundleSeed.canonicalSource,
-  sourceSha256: sha256(canonicalBytes),
+  sourceSha256: canonicalSourceSha256,
   defaultClassification,
-  canonicalSourceSha256: sha256(canonicalBytes),
+  canonicalSourceSha256: canonicalSourceSha256,
   countries: canonicalSource.features.length,
   coordinateCount: canonicalCountryPacketHeader.positionCount,
   meshAlgorithmRevision: meshHeader(canonicalMeshDecoded)[7],

@@ -13,9 +13,9 @@ export function createGpuUploadScheduler({ requestFrame = callback => globalThis
     if(index>=0)orderedJobs.splice(index,1);
   };
   let frame = 0, active = false, lastInput = -Infinity, disposed = false;
-  const stats = { frames: 0, uploadedBytes: 0, maxFrameMs: 0, overrunCount: 0, completed: 0, cancelled: 0, maxQueueWaitMs: 0, maxJobWallMs: 0, cpuStepMs: 0, steps: 0 };
+  const stats = { frames: 0, uploadedBytes: 0, maxFrameMs: 0, overrunCount: 0, completed: 0, cancelled: 0, maxQueueWaitMs: 0, maxJobWallMs: 0, cpuStepMs: 0, steps: 0, agedOptionalSteps: 0, inputDeferredFrames: 0 };
   const kindOf = key => {
-    const name = String(key || '');
+    const name = String(key || '').replace(/^renderer:\d+:/, '');
     if (name.startsWith('polygon:')) return 'polygon';
     if (name.startsWith('terrain:')) return 'terrain';
     if (name.startsWith('hydro:')) return 'hydro';
@@ -43,13 +43,21 @@ export function createGpuUploadScheduler({ requestFrame = callback => globalThis
     // mesh must not be limited to one 256 KiB chunk per animation frame.
     // Try zero-progress work only once per frame; never spin or starve peers.
     const admitted = new Set(orderedJobs), stalled = new Set();
+    let inputDeferred = false;
     let attempts = 0;
     while (jobs.size && bytes > 0 && now() - start < 2 && attempts < 1024) {
       let progressed = false;
       for (const job of [...orderedJobs]) {
         if (now() - start >= 2 || bytes <= 0 || attempts >= 1024) break;
         if (!admitted.has(job) || jobs.get(job.key) !== job || stalled.has(job)) continue;
-        if (interaction && !job.allowDuringInteraction) continue;
+        // A browser can report input pending for many consecutive seconds
+        // (including while a gesture has already ended). Keep foreground
+        // input responsive but do not starve the current view indefinitely.
+        const agedOptional = !active && now() - job.queuedAt >= 2_000;
+        if (interaction && !job.allowDuringInteraction && !agedOptional) {
+          inputDeferred = true; continue;
+        }
+        if (interaction && !job.allowDuringInteraction && agedOptional) stats.agedOptionalSteps++;
         const before = now();
         if (job.startedAt === null) {
           job.startedAt = before;
@@ -87,6 +95,7 @@ export function createGpuUploadScheduler({ requestFrame = callback => globalThis
       if (!progressed) break;
     }
     const elapsed = now() - start;
+    if (inputDeferred) stats.inputDeferredFrames++;
     stats.frames++; stats.maxFrameMs = Math.max(stats.maxFrameMs, elapsed);
     if (elapsed > 2) stats.overrunCount++;
     schedule();
@@ -105,7 +114,14 @@ export function createGpuUploadScheduler({ requestFrame = callback => globalThis
       job.promise = new Promise((resolve, reject) => { job.resolve = resolve; job.reject = reject; });
       jobs.set(job.key, job); insertOrdered(job); schedule(); return job.promise;
     },
-    noteInput(value = false) { active = value === true; lastInput = now(); schedule(); },
+    noteInput(value = false) {
+      const next = value === true, previouslyActive = active;
+      active = next;
+      // A repeated idle notification must not perpetually extend the
+      // 500 ms post-input quiet period and starve optional uploads.
+      if (next || previouslyActive) lastInput = now();
+      schedule();
+    },
     defer() { lastInput = now(); schedule(); },
     cancelGeneration(generation) { cancelWhere(job => job.projectGeneration === generation); },
     cancelKey(key) { cancelWhere(job => job.key === key); },

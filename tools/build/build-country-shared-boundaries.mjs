@@ -1,4 +1,5 @@
 import {writeLibraryOutput} from "../data/library-runtime.mjs";
+import {loadBoundedCurrentWorld} from '../data/current-world-bounded-loader.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import { gzipSync, gunzipSync } from 'node:zlib';
@@ -19,10 +20,20 @@ function verifySharedBorderChains(segments, quality) {
     throw Object.assign(new Error('Compiled shared-border chain verifier unavailable.'),
       { code: 'PL-CORE-WASM-CAPABILITY' });
   }
-  const checked = sharedCalculationCore.boundaryVerifyStrokeChains(
-    segments.map(segment => [segment.start, segment.end, segment.ownerIds]));
-  if (checked !== segments.length)
-    throw new Error('Shared-border generator dropped source edges: ' + quality);
+  // The native verifier accepts at most 1,000,000 sources per call.
+  // Conservation is per source edge, so each bounded group must preserve
+  // exactly its own entries. Splitting does not rewrite any border geometry.
+  let checked=0;
+  for(let index=0;index<segments.length;index+=100_000){
+    const slice=segments.slice(index,index+100_000);
+    const count=sharedCalculationCore.boundaryVerifyStrokeChains(
+      slice.map(segment=>[segment.start,segment.end,segment.ownerIds]));
+    if(count!==slice.length)
+      throw new Error('Shared-border generator dropped source edges: '+quality+' at '+index);
+    checked+=count;
+  }
+  if(checked!==segments.length)
+    throw new Error('Shared-border generator dropped source edges: '+quality);
 }
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const data = path.join(root, 'assets', 'data');
@@ -37,8 +48,7 @@ const selectedQuality = qualityArgument?.slice('--quality='.length);
 if (qualityArgument && !inputs.some(([quality]) => quality === selectedQuality))
   throw new Error('Unknown boundary cache quality: ' + selectedQuality);
 for (const [quality, input, output] of inputs.filter(([quality]) => !qualityArgument || quality === selectedQuality)) {
-  const raw = fs.readFileSync(path.join(data, input));
-  const source = JSON.parse(input.endsWith('.gz') ? gunzipSync(raw) : raw);
+  const source = loadBoundedCurrentWorld(path.join(data, input));
   const classified = classifyBuiltinCountries(source, {displayPolicy});
   const countries = [...classified.countries.features, ...classified.subunits.map(unit => ({
     id: unit.properties.metadata.builtinSubunit.sourceCountryId,

@@ -89,12 +89,31 @@ export function boundarySourceSegments(feature, fallbackId = 0, { compactPrepare
   return rows;
 }
 
+// The native boundaryEdgeBoxesBatch binding rejects >1,000,000 edges per
+// call. A detailed LSIB country can exceed this limit without invalid source
+// geometry. Bound the transfer, not the polygon, and retain exact edge order.
+export function boundaryEdgeBoxesInBatches(segments,{
+  batchSize=100_000,
+  calculate=edges=>sharedCalculationCore.boundaryEdgeBoxesBatch(edges),
+}={}) {
+  if(!Number.isSafeInteger(batchSize)||batchSize<1||batchSize>1_000_000)
+    throw new RangeError('Invalid native boundary edge batch size');
+  const boxes=new Array(segments.length);
+  for(let start=0;start<segments.length;start+=batchSize){
+    const batch=segments.slice(start,start+batchSize).map(({a,b})=>[a,b]);
+    const computed=calculate(batch);
+    if(!Array.isArray(computed)||computed.length!==batch.length)
+      throw new Error('Native boundary edge box count mismatch');
+    for(let index=0;index<computed.length;index++)boxes[start+index]=computed[index];
+  }
+  return boxes;
+}
+
 export function prepareBoundaryFeature(feature) {
   const segments = boundarySourceSegments(feature, 0, { compactPrepared: true });
   const bounds = [Infinity, Infinity, -Infinity, -Infinity];
   const spatialIndex = createBoundarySpatialIndex();
-  const boxes = segments.length
-    ? sharedCalculationCore.boundaryEdgeBoxesBatch(segments.map(({ a, b }) => [a, b])) : [];
+  const boxes=boundaryEdgeBoxesInBatches(segments);
   for (const rowBoxes of boxes) for (const box of rowBoxes) for (let axis = 0; axis < 2; axis++) {
     bounds[axis] = Math.min(bounds[axis], box[axis]);
     bounds[axis + 2] = Math.max(bounds[axis + 2], box[axis + 2]);
