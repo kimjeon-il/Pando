@@ -36,6 +36,7 @@ import {prepareGpuBaseScene} from '../../src/rendering/gpu-scene-preparation.js'
 import {createAdaptiveRenderQualityController, renderQualityProfile, resolveInitialRenderQuality} from '../../src/rendering/adaptive-render-quality.js';
 import {createGpuUploadScheduler} from '../../src/rendering/gpu-upload-scheduler.js';
 import {createGpuUploadScope} from '../../src/rendering/gpu-resource-lifecycle.js';
+import {boundaryEdgeBoxesInBatches} from '../../src/geometry/boundary-topology.js';
 import {hashFileInChunks,loadBoundedCurrentWorld} from '../../tools/data/current-world-bounded-loader.mjs';
 import {mkdtempSync,writeFileSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
@@ -618,4 +619,16 @@ test('scoped polygon uploads remain observable and make progress after prolonged
   assert.ok(stats.inputDeferredFrames>0);
   assert.equal(stats.pendingByKind.polygon,0);
   scoped.cancelAll();scheduler.dispose();
+});
+
+test('native boundary edge boxes are chunked without deleting or reordering GIS edges',()=>{
+  const rows=Array.from({length:7},(_,n)=>({a:[n,0],b:[n+1,1]})),sizes=[];
+  const result=boundaryEdgeBoxesInBatches(rows,{batchSize:3,calculate:batch=>{
+    sizes.push(batch.length);
+    return batch.map(([a,b])=>[[a[0],a[1],b[0],b[1]]]);
+  }});
+  assert.deepEqual(sizes,[3,3,1]);
+  assert.deepEqual(result,rows.map(({a,b})=>[[...a,...b]]));
+  assert.throws(()=>boundaryEdgeBoxesInBatches(rows,{batchSize:1_000_001,calculate:()=>[]}),/Invalid native boundary edge batch size/);
+  assert.throws(()=>boundaryEdgeBoxesInBatches(rows,{batchSize:2,calculate:()=>[]}),/Native boundary edge box count mismatch/);
 });
