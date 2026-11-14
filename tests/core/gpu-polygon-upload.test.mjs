@@ -100,7 +100,7 @@ test('upload diagnostics distinguish polygon and terrain CPU steps and pending j
   const terrain=scheduler.enqueueUpload({key:'terrain:tile',priority:80,
     step:()=>{clock+=0.5;return {bytes:48,done:true};}});
   assert.deepEqual(scheduler.getStats().pendingByKind,
-    {polygon:1,terrain:1,stroke:0,natural:0,other:0});
+    {polygon:1,terrain:1,hydro:0,stroke:0,natural:0,other:0});
   while(callbacks.size) {
     const [id,callback]=callbacks.entries().next().value;
     callbacks.delete(id);callback();
