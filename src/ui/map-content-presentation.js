@@ -17,8 +17,8 @@ export function createMapContentPresentation({countries={},hydro={},territorial=
     active();
     const state = countries.getState?.() || {};
     const renderViewState = requireFrame(frame);
-    countries.renderPendingCountryOverlays?.(renderViewState);
-    // The preceding SVG overlay repositioning is presentation-owned.
+    // A country SVG preview is visible only after its GPU frame was accepted.
+    if (presentationOnly) countries.renderPendingCountryOverlays?.(renderViewState);
     // GPU scene assembly belongs to preparation, before the GPU draw: changing
     // it here would invalidate the identity of the just-rendered visual frame.
     if (!presentationOnly) {
@@ -197,7 +197,7 @@ export function createMapContentPresentation({countries={},hydro={},territorial=
       : [];
     if (g.viewportCullingMetrics?.lastByDomain?.generic) g.viewportCullingMetrics.lastByDomain.generic.finalVisibleCount = data.length;
     const selectedRef = d => g.normalizeObjectRef?.({ domain: 'generic', type: 'feature', id: d.id });
-    if (canPresentFrame(frameContext)) {
+    if (presentationOnly) {
       const selection = g.genericFeatureLayer?.selectAll('path.generic-feature-shape').data(data.filter(d => ['Point', 'MultiPoint'].includes(d.geometry?.type)), d => String(d.id));
       selection?.enter().append('path').attr('class', 'generic-feature-shape')
         .on('mouseenter.hover', d => g.setMapHover?.(d, { domain: 'generic', type: 'feature', id: d.id }))
@@ -454,15 +454,14 @@ export function createMapContentPresentation({countries={},hydro={},territorial=
     }) });
     return true;
   };
-  const syncBaseView = (viewState = null) => {
+  const syncBaseView = (viewState = null, gpuResult = null) => {
     active();
-    if (!canPresentFrame(viewState)) return false;
+    if (!canPresentFrame(viewState, gpuResult)) return false;
     const b = base;
     b.updatePandoGlobeShell?.(viewState);
     return true;
   };
   const renderBase = (viewState = null) => {
-    syncBaseView(viewState);
     const b = base;
     if(b.getState().resourceCapabilities?.graticule===false||b.getState().backgroundSettings?.graticule===false){b.replaceGpuSceneDomain('base-graticule',{strokes:[]});return true;}
     const graticuleGeometry = b.graticule?.();
@@ -476,9 +475,9 @@ export function createMapContentPresentation({countries={},hydro={},territorial=
     }] });
     return true;
   };
-  const renderProjectedOverlays = (frameContext = null) => {
+  const renderProjectedOverlays = (frameContext = null, gpuResult = null) => {
     active();
-    if (!canPresentFrame(frameContext)) return false;
+    if (!canPresentFrame(frameContext, gpuResult)) return false;
     for (const layer of projected.layers || []) {
       layer?.selectAll?.('path')?.attr('d', framePath(frameContext));
     }

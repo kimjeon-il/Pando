@@ -9,6 +9,8 @@ import {createCountryMeshVariants} from '../../src/rendering/gpu-country-mesh-va
 import {createSharedPolygonLodIndex} from '../../src/rendering/render-lod.js';
 import {countryLodSourceIds} from '../../src/rendering/gpu-country-ranges.js';
 import {createMapVisualFrame} from '../../src/rendering/map-visual-frame.js';
+import {createMapRenderCoordinator,MAP_RENDER_DIRTY} from '../../src/rendering/map-render-coordinator.js';
+import {createMapPresentationSession} from '../../src/rendering/map-presentation-session.js';
 import {gpuStrokeStyle} from '../../src/map/map-interaction-style.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -32,6 +34,62 @@ import {drawGpuBaseScene} from '../../src/rendering/gpu-base-scene-pass.js';
 import {createGpuPolygonOverlayPass} from '../../src/rendering/gpu-polygon-overlay-pass.js';
 import {prepareGpuBaseScene} from '../../src/rendering/gpu-scene-preparation.js';
 import {createAdaptiveRenderQualityController, renderQualityProfile, resolveInitialRenderQuality} from '../../src/rendering/adaptive-render-quality.js';
+
+
+test('atomic map view publication waits for a matching GPU result',()=>{
+  const callbacks=[],order=[];
+  let stale=false,missing=false;
+  const coordinator=createMapRenderCoordinator({
+    requestFrame:fn=>callbacks.push(fn),
+    prepareView:({frameId})=>({frameId,viewRevision:frameId,projectionRevision:4,projectGeneration:3}),
+    canPresentFrame:()=>true,
+    renderers:{
+      beginFrame:()=>{},
+      base:()=>order.push('prepare-base'),
+      countries:frame=>{
+        order.push('draw-gpu');
+        return missing?null:{succeeded:true,frameId:stale?frame.frameId-1:frame.frameId,
+          viewRevision:frame.viewRevision,projectionRevision:frame.projectionRevision};
+      },
+      projectedOverlays:()=>order.push('project-svg'),
+      stackOverlays:()=>order.push('stack-svg'),
+      viewPresentation:()=>order.push('publish'),
+    },
+  });
+  coordinator.invalidate(MAP_RENDER_DIRTY.PROJECTION,'camera-change');
+  callbacks.shift()();
+  assert.ok(order.indexOf('draw-gpu') < order.indexOf('project-svg'));
+  assert.ok(order.indexOf('draw-gpu') < order.indexOf('publish'));
+  order.length=0;stale=true;
+  coordinator.invalidate(MAP_RENDER_DIRTY.PROJECTION,'stale-view');
+  callbacks.shift()();
+  assert.ok(order.includes('draw-gpu'));
+  assert.ok(!order.includes('project-svg')&&!order.includes('publish'));
+  order.length=0;stale=false;missing=true;
+  coordinator.invalidate(MAP_RENDER_DIRTY.PROJECTION,'gpu-not-ready');
+  callbacks.shift()();
+  assert.ok(order.includes('draw-gpu'));
+  assert.ok(!order.includes('project-svg')&&!order.includes('publish'));
+});
+
+test('frame admission rejects missing, mismatched and deferred GPU submissions',()=>{
+  const session=createMapPresentationSession({
+    getGeneration:()=>3,getContextRevision:()=>8,isDisposed:()=>false,
+    getReadiness:()=>({mapReady:true}),invalidateFrame:()=>{},
+    prepareContentKey:async()=>null,isProjectBlocked:()=>false,
+    isRecoveryFrameAdmissible:()=>true,waitForCanonicalFrame:async()=>true,
+  });
+  const frame={frameId:21,viewRevision:12,projectionRevision:4,projectGeneration:3};
+  const drawn={succeeded:true,frameId:21,viewRevision:12,projectionRevision:4};
+  assert.equal(session.canPresentVisualFrame(frame,drawn),true);
+  assert.equal(session.canPresentVisualFrame(frame,{...drawn,frameId:20}),false);
+  assert.equal(session.canPresentVisualFrame(frame,{...drawn,viewRevision:11}),false);
+  assert.equal(session.canPresentVisualFrame(frame,{...drawn,projectionRevision:3}),false);
+  assert.equal(session.canPresentVisualFrame(frame,{...drawn,deferred:true}),false);
+  assert.equal(session.canPresentVisualFrame(frame,{...drawn,succeeded:false}),false);
+  assert.equal(session.canPresentVisualFrame({...frame,projectGeneration:2}),false);
+  session.dispose();
+});
 
 test('WebGL2 quality budgets simplify every object and change only after sustained active-frame evidence',()=>{
   assert.equal(resolveInitialRenderQuality({}), 'medium');

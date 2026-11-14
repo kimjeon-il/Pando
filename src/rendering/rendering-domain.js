@@ -128,8 +128,19 @@ export function createRenderingDomain({
   const {renderTerritorialLabels,renderUserLabels,renderTerritorialLabelPositions,renderUserLabelPositions}=createLabelPresentation({
     labels,selectionDomain,reportDiagnostic,projectLabelCoordinate,active,stats,getMapStyle});
   const pendingHighlights = new Map();
-  const canPresentFrame = (frame, result, options) => !gpuMapRenderer
-    || gpuMapRenderer.canPresentVisualFrame(frame, result, options);
+  let committedViewIdentity = null;
+  const viewIdentity = frame => JSON.stringify([
+    frame.projectGeneration, frame.projectionRevision, frame.viewRevision, frame.projection,
+    frame.cssViewport, frame.cssTranslate, frame.cssScale, frame.dpr,
+    frame.flatCenter, frame.rotation, frame.safeInset,
+  ]);
+  const canPresentFrame = (frame, result, options) => {
+    if (!gpuMapRenderer) return true;
+    if (!gpuMapRenderer.canPresentVisualFrame(frame, result, options)) return false;
+    // A DOM-only invalidation may reuse the last committed camera, never
+    // a pending projection or resize that has not reached the GPU.
+    return result != null || (committedViewIdentity !== null && viewIdentity(frame) === committedViewIdentity);
+  };
   const content=createMapContentPresentation({countries,hydro,territorial,generic,distribution,territorialBoundary,base,projected,canPresentFrame,
     active,requireFrame,framePath,commitViewAttachedLayers:(...args)=>commitViewAttachedLayers(...args),
     prepareMapDisplay,onMapDisplayReady:handleMapDisplayReady,reportDiagnostic,isDisposed:()=>disposed});
@@ -818,6 +829,7 @@ export function createRenderingDomain({
   const resetProjectGeneration = (generation, presentation = {}) => {
     active();
     resetTerritorialBoundaryCache();
+    committedViewIdentity = null;
     gpuMapRenderer?.resetProjectRenderState?.({ generation,...presentation });
     // Do not wait for a blocked RAF to obtain this project's frame identity.
 
@@ -859,10 +871,9 @@ export function createRenderingDomain({
       return false;
     }
     if (!canPresentFrame(frame, gpuResult)) return false;
-    const temporalCommit = gpuResult?.temporalCommit === true || gpuMapRenderer?.getRuntimeState().temporalPresentationPending;
-    syncBaseView(frame);
-    renderProjectedOverlays(frame);
-    if (temporalCommit) renderGenericFeatures(frame, { presentationOnly: true });
+    syncBaseView(frame, gpuResult);
+    renderProjectedOverlays(frame, gpuResult);
+    renderGenericFeatures(frame, { presentationOnly: true });
     renderCountries(frame, { presentationOnly: true, gpuResult });
     renderTerritorialLabelPositions(frame);
     renderUserLabelPositions(frame);
@@ -876,6 +887,7 @@ export function createRenderingDomain({
     markVisualRoot(selection.selectionLayer, frame);
     markVisualRoot(selection.hoverLayer, frame);
     for (const layer of projected.layers || []) markVisualRoot(layer, frame);
+    committedViewIdentity = viewIdentity(frame);
     stats.visualFrameCommittedCount += 1;
     stats.lastCommittedVisualFrameId = Number(frame.frameId || 0);
     stats.gpuCommittedFrameId = Number(frame.frameId || 0);

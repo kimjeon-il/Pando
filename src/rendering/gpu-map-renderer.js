@@ -459,7 +459,7 @@ export function createGpuMapRenderer(deps) {
         bindOverrideGpuResources(nextMesh, null);
         disposeMeshResources(previous);
         disposeMeshResources(stagedResources);
-        if (renderFrame) renderLatestVisualFrame();
+        if (renderFrame) invalidateGpuFrame('gpu-resource-ready');
         return;
       }
       const uploadBytes = Number(nextMesh.positions?.byteLength || 0)
@@ -475,7 +475,7 @@ export function createGpuMapRenderer(deps) {
       disposeMeshResources(previous);
       updatePalette();
       prewarmCountryStrokeResources();
-      if (renderFrame) renderLatestVisualFrame();
+      if (renderFrame) invalidateGpuFrame('gpu-resource-ready');
     }
 
     function syncCountryMeshQuality({ cssScale = lastVisualFrame?.cssScale } = {}) {
@@ -2182,7 +2182,7 @@ export function createGpuMapRenderer(deps) {
       pickSceneKey = '';
       if (changed) prepareCountrySharedBoundary({features:surfaceCountryFeatures().filter(row=>row.geometry),replace:true,baselineCache:requestedQuality==='canonical' && entry.boundaryCacheKind==='built-in'});
       window.__PANDOLAB_GPU_METRICS__ = getStats();
-      if (renderFrame && changed) renderLatestVisualFrame();
+      if (renderFrame && changed) invalidateGpuFrame('gpu-resource-ready');
       return true;
     }
 
@@ -2273,7 +2273,7 @@ export function createGpuMapRenderer(deps) {
       const cleared = geometryRevisionTracker.markDisplayed(ids, geometryRevision);
       if (renderFrame) {
         updatePalette();
-        renderLatestVisualFrame();
+        invalidateGpuFrame('gpu-resource-ready');
       }
       for (const id of cleared) state.pendingCountryRenderIds.delete(String(id));
       if (cleared.length) invalidateGpuFrame('country-geometry-displayed');
@@ -2397,7 +2397,7 @@ export function createGpuMapRenderer(deps) {
           countryPatchPresentation.stage(token, commit.revision);
           setOverrideMesh(remapped, { renderFrame: false, stagedResources });
           if (countryPatchPresentation.matches(token, commit.revision)) {
-            renderLatestVisualFrame();
+            invalidateGpuFrame('gpu-resource-ready');
           } else {
             completeGeometryDisplay(snapshotIds, commit.revision);
           }
@@ -2453,7 +2453,7 @@ export function createGpuMapRenderer(deps) {
       lastGeometryCommitTimings = null;
       if (renderFrame) {
         updatePalette();
-        renderLatestVisualFrame();
+        invalidateGpuFrame('gpu-resource-ready');
       }
       if (renderPending) invalidateGpuFrame('country-patch-preview');
       window.__PANDOLAB_GPU_METRICS__ = getStats();
@@ -2945,7 +2945,7 @@ export function createGpuMapRenderer(deps) {
         layoutVerificationFrame = 0;
         if (layoutMismatch() <= 0.5) {
           layoutMismatchCount = 0;
-          renderLatestVisualFrame();
+          invalidateGpuFrame('gpu-resource-ready');
           return;
         }
         layoutMismatchCount += 1;
@@ -4075,10 +4075,6 @@ export function createGpuMapRenderer(deps) {
         interactionResult,
         selection: interactionResult.selection,
       };
-    }
-
-    function renderLatestVisualFrame() {
-      return lastVisualFrame ? renderFrame(lastVisualFrame) : null;
     }
 
     function renderFrame(visualFrame, { interactionOnly = false } = {}) {

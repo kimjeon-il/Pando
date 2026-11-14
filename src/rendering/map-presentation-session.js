@@ -87,11 +87,16 @@ export function createMapPresentationSession({
     return true;
   }
   function canPresentVisualFrame(frame, result = null) {
-    if (isProjectBlocked() || temporalTicket?.sourceAdmitted === false
-      || result?.preserved || result?.succeeded === false) return false;
+    if (!frame || frame.projectGeneration !== getGeneration()
+      || isProjectBlocked() || temporalTicket?.sourceAdmitted === false) return false;
+    // A completed GPU submission must match the visual frame it certifies.
+    // No-result checks are for preparatory reads or reuse of an admitted camera.
+    if (result != null && (result.succeeded !== true || result.deferred || result.preserved
+      || result.frameId !== frame.frameId
+      || result.viewRevision !== frame.viewRevision
+      || result.projectionRevision !== frame.projectionRevision)) return false;
     if (!isRecoveryFrameAdmissible(frame)) return false;
     if (!temporalPending()) return true;
-    if (result?.deferred) return false;
     return !temporalTicket.error && temporalTicket.isCurrent()
       && temporalTicket.generation === getGeneration()
       && frame?.projectGeneration === getGeneration()

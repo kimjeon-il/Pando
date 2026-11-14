@@ -48,6 +48,39 @@ test('desktop Viewer presents the real map, changes year, searches and moves the
   await ready(page);
 });
 
+
+test('map hover/click and visible layers share a camera after date changes',async({page})=>{
+  const errors=[];
+  page.on('console',message=>{
+    if(message.type()==='error' && /PL-MAP-(HOVER|CLICK)-001/.test(message.text()))errors.push(message.text());
+  });
+  await page.setViewportSize({width:1280,height:800});
+  await open(page);
+  await month(page,'2024-12');
+  await search(page);
+  const point=await page.evaluate(()=>window.__PANDOLAB_MAP_HOST__.project([127.8,36.6]));
+  const bounds=await page.locator('#map').boundingBox();
+  expect(point).toHaveLength(2);
+  expect(point[0]).toBeGreaterThan(0);
+  expect(point[0]).toBeLessThan(bounds.width);
+  expect(point[1]).toBeGreaterThan(0);
+  expect(point[1]).toBeLessThan(bounds.height);
+  await page.mouse.move(bounds.x+point[0],bounds.y+point[1]);
+  await page.waitForTimeout(180);
+  await page.mouse.click(bounds.x+point[0],bounds.y+point[1]);
+  await page.waitForTimeout(180);
+  expect(errors).toEqual([]);
+  const sameFrame=()=>page.evaluate(()=>{
+    const gpu=document.querySelector('.gpu-map-canvas')?.dataset.visualFrameId;
+    const svg=document.querySelector('.map-overlay-svg')?.dataset.visualFrameId;
+    return !!gpu && gpu===svg;
+  });
+  await expect.poll(sameFrame).toBe(true);
+  await month(page,'2025-12');
+  await expect.poll(sameFrame).toBe(true);
+  expect(errors).toEqual([]);
+});
+
 test('touch Viewer searches, navigates and changes time in a mobile context',async({browser,baseURL})=>{
   const context=await browser.newContext({baseURL,viewport:{width:390,height:844},isMobile:true,hasTouch:true});
   try{

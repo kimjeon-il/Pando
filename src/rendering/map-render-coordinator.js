@@ -46,6 +46,11 @@ const INTERACTION_MASK = MAP_RENDER_DIRTY.VIEW
 // without waiting for an unrelated style change or background loading event.
 const SETTLE_MASK = MAP_RENDER_DIRTY.OVERLAY_GEOMETRY
   | MAP_RENDER_DIRTY.LABEL_LAYOUT | MAP_RENDER_DIRTY.HUD;
+// One GPU result must exist before map-attached DOM can advance.
+const SCENE_GPU_MASK = MAP_RENDER_DIRTY.BASE | MAP_RENDER_DIRTY.OVERLAY_DATA
+  | MAP_RENDER_DIRTY.OVERLAY_GEOMETRY | MAP_RENDER_DIRTY.OVERLAY_STYLE
+  | MAP_RENDER_DIRTY.COUNTRY_PATCH | MAP_RENDER_DIRTY.GENERIC_PATCH
+  | MAP_RENDER_DIRTY.HYDRO_EDIT_PATCH | MAP_RENDER_DIRTY.TERRITORIAL_PATCH;
 const REPROJECT_MASK = MAP_RENDER_DIRTY.VIEW
   | MAP_RENDER_DIRTY.BASE
   | MAP_RENDER_DIRTY.PROJECTED_OVERLAYS
@@ -85,6 +90,7 @@ function expandedMask(requestedMask) {
   let mask = requestedMask & WORK_DIRTY_MASK;
   if (requestedMask & (MAP_RENDER_DIRTY.RESIZE | MAP_RENDER_DIRTY.PROJECTION)) mask |= REPROJECT_MASK;
   if (requestedMask & MAP_RENDER_DIRTY.PROJECT) mask |= WORK_DIRTY_MASK;
+  if (requestedMask & (SCENE_GPU_MASK & ~MAP_RENDER_DIRTY.BASE)) mask |= MAP_RENDER_DIRTY.VIEW_PRESENTATION;
   return mask;
 }
 
@@ -175,36 +181,26 @@ export function createMapRenderCoordinator({
 
       // One coordinator frame is used by the map host and all render passes.
       // No second custom-layer rendering cycle may publish another view.
-      const sceneGpuMask = MAP_RENDER_DIRTY.OVERLAY_DATA
-        | MAP_RENDER_DIRTY.OVERLAY_GEOMETRY | MAP_RENDER_DIRTY.OVERLAY_STYLE
-        | MAP_RENDER_DIRTY.COUNTRY_PATCH | MAP_RENDER_DIRTY.GENERIC_PATCH
-        | MAP_RENDER_DIRTY.TERRITORIAL_PATCH;
-      let viewFrameResult = !full && (mask & MAP_RENDER_DIRTY.VIEW) && !(mask & sceneGpuMask)
+      let viewFrameResult = !full && (mask & MAP_RENDER_DIRTY.VIEW) && !(mask & SCENE_GPU_MASK)
         ? callRenderer('view', rendererTimes, viewState)
         : null;
 
       if (mask & MAP_RENDER_DIRTY.BASE) callRenderer('base', rendererTimes, viewState);
 
-      let overlayStacked = false;
+      let overlayStackNeeded = false;
       if (mask & (MAP_RENDER_DIRTY.OVERLAY_DATA | MAP_RENDER_DIRTY.OVERLAY_GEOMETRY | MAP_RENDER_DIRTY.OVERLAY_STYLE)) {
         callRenderer('hydro', rendererTimes, viewState);
         callRenderer('hydroEdits', rendererTimes, viewState);
         callRenderer('territorialUnits', rendererTimes, viewState);
         callRenderer('distributions', rendererTimes, viewState);
         callRenderer('genericFeatures', rendererTimes, viewState);
-        callRenderer('stackOverlays', rendererTimes, viewState);
-        overlayStacked = true;
+        overlayStackNeeded = true;
       } else {
         if (mask & MAP_RENDER_DIRTY.HYDRO_EDIT_PATCH) callRenderer('hydroEdits', rendererTimes, viewState);
         if (mask & MAP_RENDER_DIRTY.TERRITORIAL_PATCH) callRenderer('territorialUnits', rendererTimes, viewState);
         if (mask & MAP_RENDER_DIRTY.GENERIC_PATCH) callRenderer('genericFeatures', rendererTimes, viewState);
       }
-      if (mask & MAP_RENDER_DIRTY.PROJECTED_OVERLAYS) {
-        callRenderer('projectedOverlays', rendererTimes, viewState);
-        if (!overlayStacked) callRenderer('stackOverlays', rendererTimes, viewState);
-      }
-
-      if (mask & sceneGpuMask) {
+      if (mask & SCENE_GPU_MASK) {
         viewFrameResult = callRenderer('countries', rendererTimes, viewState);
       } else if (!viewFrameResult && ((mask & MAP_RENDER_DIRTY.GPU_FRAME)
         || ((mask & MAP_RENDER_DIRTY.GPU_INTERACTION) && !canPresentFrame(viewState)))) {
@@ -213,7 +209,12 @@ export function createMapRenderCoordinator({
         viewFrameResult = callRenderer('view', rendererTimes, viewState);
       }
 
-      if (!canPresentFrame(viewState, viewFrameResult)) {
+      const gpuDrawRequired = !!(mask & (MAP_RENDER_DIRTY.VIEW | MAP_RENDER_DIRTY.GPU_FRAME | SCENE_GPU_MASK));
+      const matchingGpuFrame = viewFrameResult?.succeeded === true
+        && viewFrameResult.frameId === viewState?.frameId
+        && viewFrameResult.viewRevision === viewState?.viewRevision
+        && viewFrameResult.projectionRevision === viewState?.projectionRevision;
+      if ((gpuDrawRequired && !matchingGpuFrame) || !canPresentFrame(viewState, viewFrameResult)) {
         // A lost WebGL context cannot publish a scene or new view. Its missing
         // selection strokes still need current-view SVG fallback coverage.
         // Never use this escape hatch for a project/date/camera transition:
@@ -230,6 +231,8 @@ export function createMapRenderCoordinator({
         return { deferred: true, renderRevision };
       }
       deferredPresentationMask = 0;
+      if (mask & MAP_RENDER_DIRTY.PROJECTED_OVERLAYS) callRenderer('projectedOverlays', rendererTimes, viewState);
+      if (overlayStackNeeded || (mask & MAP_RENDER_DIRTY.PROJECTED_OVERLAYS)) callRenderer('stackOverlays', rendererTimes, viewState);
 
       if (mask & MAP_RENDER_DIRTY.SELECTION_DATA) {
         callRenderer('selectionData', rendererTimes, viewState);
