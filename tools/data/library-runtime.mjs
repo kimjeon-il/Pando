@@ -4,7 +4,7 @@ import {chmodSync,existsSync,lstatSync,mkdirSync,readFileSync,readdirSync,realpa
 import {dirname,isAbsolute,relative,resolve,sep} from "node:path";
 import {fileURLToPath} from "node:url";
 import {atomicStorageJSON,containedPath,contentFiles,contentHash,contentPath,linkContent,makePrivate,publishContent,removeContentLink} from "./library-content.mjs";
-import {runtimeArchiveIndex} from "./library-runtime-index.mjs";
+import {runtimeArchiveIndex,isRetiredLibraryDocumentation} from "./library-runtime-index.mjs";
 import {mapProjectManifestSourcePath,validateMapProjectManifest} from '../../src/data/map-project-manifest.js';
 import {defaultRoot,gitOptions,git,libraryConfig,libraryCheckout,libraryMaterializedRoot,libraryRuntimeLeasePaths,libraryReportRoot,librarySharedCheckout,libraryOwnerId,safeChild,decodeArchiveEntry,prefetchArchiveEntries,withLibraryLock,withCheckoutLock,setMetadataCheckout,libraryCodeDirectories} from "./library-context.mjs";
 import {excludeReportStorage,reportContext} from "./library-reports.mjs";
@@ -240,7 +240,7 @@ export function materializeRuntimeView({ root, index, source = null, fetch=false
     const path = containedPath(source, prefix);
     for (const file of contentFiles(path)) selectedPaths.add(relative(source, file.path).replaceAll('\\', '/'));
   }
-  const sourceFiles = [...selectedPaths].sort().flatMap(logical => {
+  const sourceFiles = [...selectedPaths].filter(path=>!isRetiredLibraryDocumentation(path)).sort().flatMap(logical => {
     const path = containedPath(source, logical);
     if (!existsSync(path)) return [];
     const stamp = lstatSync(path);

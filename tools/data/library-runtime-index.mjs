@@ -3,6 +3,10 @@ import {createHash} from 'node:crypto';
 import {viewerDataEntryPaths} from '../../scripts/lib/product-assets.mjs';
 import {validateTerritorialSourceGeometry,territorialSourceLayout} from '../../src/data/territorial-source-format.js';
 
+export const isRetiredLibraryDocumentation = path => /\.(?:md|markdown|mdx)$/i.test(path)
+ && !/(?:^|\/)[^/]*(?:license|licence|copying|copyright|notice)[^/]*$/i.test(path)
+ && !/semap-diverse\/sources\/(?:README|license_images)\.md$/i.test(path);
+
 // Archive metadata remains complete. A preparation scope is only a view over it.
 export function runtimeArchiveIndex(index,readVerified,{purpose='viewer',prefixes=[],projectManifest=null}={}){
  let selected;
@@ -30,7 +34,7 @@ export function runtimeArchiveIndex(index,readVerified,{purpose='viewer',prefixe
  else if(purpose==='gis'){
   if(!Array.isArray(prefixes)||!prefixes.length)throw Error('Selected GIS input prefixes are required');
   for(const p of prefixes)if(typeof p!=='string'||!p||p.startsWith('/')||p.includes('\\')||p.split('/').some(x=>!x||x==='.'||x==='..'))throw Error('Invalid GIS input scope');
-  selected=new Set(Object.keys(index.files).filter(path=>!path.startsWith('reports/')
+  selected=new Set(Object.keys(index.files).filter(path=>!path.startsWith('reports/')&&!isRetiredLibraryDocumentation(path)
    &&prefixes.some(prefix=>path===prefix||path.startsWith(prefix+'/'))));
   const source='assets/data/territorial-entities/source/';
   for(const p of [...selected])if(p.startsWith(source+'countries/')&&p.endsWith('.json')){
