@@ -1,21 +1,63 @@
-# 지도 표시·LOD 규칙
+# 지도 표시·LOD 정책
 
-**유효 범위:** 지도 표현, 표시 파생 형상, 라벨 정렬 및 자원 수명. 지리 원본·프로젝트의 편집 형상은 렌더러가 소유하지 않습니다.
+Web Viewer의 지도 표현, 표시 파생 형상, 프레임 게시와 자원 수명을 규정한다. 지리 원본·프로젝트 형상의 소유권은 문서·자료 계층에 있다.
 
-| 책임 | 문서 또는 코드 정본 | 비고 |
-| --- | --- | --- |
-| 화면 시각 순서·선분 스타일 | [M4–M7 시각 정책·검증 기록](../architecture/map-visual-policy.md), [레이어 표현 코드](../../src/ui/layer-presentation.js) | 문서의 당시 M4–M7 검증 로그는 현재 성공 판정이 아님 |
-| 기기·프레임 품질 | [적응형 품질 규칙](../architecture/adaptive-render-quality.md) | GPU/CPU 예산과 기하 정확도 구분 |
-| 동적 벡터 LOD | [P0/P1 설계·실행 기록](../architecture/map-rendering-lod-p0-p1.md), [LOD 구현](../../src/rendering/render-lod.js) | 검사와 소스 정본 보존; 미완료 당시 기록을 현행 상태로 소급하지 않음 |
-| 프로젝트별 확대·LOD 전환 | 현행 계약, [메시 선택 코드](../../src/rendering/country-mesh-zoom-policy.js) | 2026-11-10 계획 당시 승인 범위를 현재 상시 명령으로 취급하지 않음 |
-| 지도 라벨 겹침·표시 | [라벨 레이아웃](../../src/rendering/label-layout.js), [영토/지명 라벨](../../src/rendering/territorial-labels.js) | 지명 선정 자체는 [지명 정책](places.md) |
-| 자원 무효화·재사용 | [런타임 자원 정책](../../src/runtime/resource-dependency-policy.js) | [AGENTS.md](../../AGENTS.md)의 지도 자원 원칙과 연결 |
+## 정본과 표시 파생물
 
+- 저장·면적·위상·검증·피킹은 정본 형상을 사용한다. 표시용 LOD를 정본에 역기록하지 않는다.
+- `RenderScene`은 불변·리비전 기반 표시 패킷이다. 계산이 큰 메시 준비는 Worker에서 수행하고 typed array의 소유권을 명시적으로 전달한다.
+- 선택 형상의 정밀도를 배경 품질 예산 때문에 낮추지 않는다. 공유 경계는 양쪽에서 동일한 정점 선택과 연결 관계를 유지한다.
+- 동적 벡터 LOD의 화면 오차 한도는 0.5 CSS px다. 확대는 즉시 정밀도를 높이고 축소에는 15% 히스테리시스를 적용한다. 구면 chord 오차와 평면 투영 오차를 함께 고려한다.
+- 접합점·다중 국가 교차점·구멍·날짜변경선·고위도 형상을 보호한다. 유효성 또는 공유 경계 일치에 실패한 파생물은 채택하지 않고 유효한 정본 메시를 유지한다.
+- 파생 결과는 원본 콘텐츠·기하 리비전·알고리즘·배율 버킷·가시 범위를 식별한다. 오래된 프로젝트나 뷰의 완료 결과는 현재 화면을 교체할 수 없다. 준비와 업로드가 끝나기 전에 GPU 버퍼를 교체하지 않는다.
 
-## 추가로 확인된 표시 규칙·검증 기록
+기하 오차와 파생물 선택은 [render-lod.js](../../src/rendering/render-lod.js), 메시의 표시 승인 조건은 [country-mesh-zoom-policy.js](../../src/rendering/country-mesh-zoom-policy.js)가 소유한다.
 
-- [Renderer v2의 단일 렌더러·지오메트리 불변 계약](../architecture/renderer-v2.md): 정본 형상을 표시용 LOD로 역기록하지 않고, Worker RPC·RenderScene·WebGL/Canvas 책임을 분리합니다.
-- [상호작용 강조의 우선순위와 검증](../interaction-emphasis.md): 선택/호버/편집 시 시각 우선순위가 기술되지만, 당시의 편집 기능·브라우저 검증이 현재 Viewer에서 그대로 유효함을 뜻하지 않습니다.
-- [DEM 지형 정책·전환 기록](../terrain-dem.md): 지형 자료는 프로젝트별 `dem-relief-v1` 계약을 따르며 과거 raster fallback 서술은 당시 구현·검증으로 구분합니다.
-- [성능 진단 지표](../performance-diagnostics.md): 통계적 계측 기준과 실제 기능 차단 상한을 혼동하지 않습니다.
+## 하나의 프레임·렌더러
 
+- `map-render-coordinator.js`가 무효화와 프레임 순서를 조정한다. 하나의 불변 `MapVisualFrame`에 카메라·투영·CSS scale·viewport·safe inset·DPR·프로젝트 세대를 고정한다.
+- GPU·Canvas·SVG 형상·라벨은 같은 프레임을 소비한다. 화면 렌더링에서 live projection으로 우회하지 않는다. 입력 좌표 역변환·피킹·자료 조회는 해당 입력/로딩 소유자에 남긴다.
+- render DPR과 source DPR을 구분한다. backing 크기는 프레임의 render DPR, 원본 해상도 선택은 해당 source DPR을 사용한다.
+- `gpu-map-renderer.js`가 하나의 `RenderDevice`와 WebGL context를 소유한다. 폴리곤·선·선택 패스는 이를 공유한다. 선택 때문에 별도 canvas나 context를 만들지 않는다.
+- SVG/DOM은 라벨·HUD에 사용한다. 지도 형상에 GPU·Canvas·SVG의 중복 시각 소유권을 만들지 않는다. fallback이 필요하면 인계 조건과 현재 표시 소유자가 명시되어야 한다.
+- Canvas fallback은 정본과 리비전 계약을 공유하는 전용 렌더러다. Worker의 전송 대기열과 실제 bitmap 표시 승인을 기다리는 프레임 대기열은 각자의 책임을 유지한다.
+- WebGL 공유 상태는 `render-device.js`가 추적한다. 패스는 framebuffer·viewport·texture unit·blend·mask를 복원하며, context 세대가 다른 snapshot이나 삭제된 buffer를 복원하지 않는다.
+
+## 자원 재사용과 표시 승인
+
+- [공통 자원 의존성 정책](../../src/runtime/resource-dependency-policy.js)을 따른다. 입력 로딩, CPU 준비, GPU 업로드, 화면 표시의 변경을 구분한다. 날짜·뷰·프로젝트 세대·무관한 리비전 변경만으로 자원을 버리지 않는다.
+- 시간별 존속·속성·형상 조회는 현재 시점으로 평가한 뒤 유효 결과를 비교한다. 이름·색 변경은 그 표시만 갱신하고, 동일한 형상·자료·자산은 재사용한다.
+- 기존 자원 소유자가 검증된 콘텐츠 해시와 실제 준비 입력을 키로 관리한다. 복사된 객체의 identity나 프레임마다 전체 좌표 직렬화로 변경을 판정하지 않는다. context loss는 장치 자원만 무효화한다. 퇴출된 결과는 키가 같아도 다시 준비한다.
+- 비동기 준비 중에는 현재 표시 가능한 이전 결과를 유지한다. 삭제·숨김·현재 소유자 제거·빈 결과·프로젝트 교체는 이전 형상을 되살리는 근거가 될 수 없다.
+- 계산 완료·패킷 생성·업로드 완료는 화면 표시 승인이 아니다. 현재 프로젝트·뷰·스타일·형상의 실제 GPU draw 또는 승인된 Canvas bitmap으로 게시를 확정한 뒤 교체 자원을 해제한다.
+- 후보 draw 실패 시 유효한 이전 자원만 사용할 수 있다. 실패 프레임은 후보 승격이나 표시 완료를 승인하지 않는다. 기술 오류와 단계·자원 식별값을 해당 작업의 오류 경계로 전달한다.
+- 동일한 입력으로 실패한 준비를 프레임마다 재시도하지 않는다. 취소·reset·dispose·오래된 응답은 현재 결과를 게시할 수 없다.
+
+## 지도 시각 순서와 강조
+
+- [layer-presentation.js](../../src/ui/layer-presentation.js)가 공통 시각 역할·순서의 단일 원본이다. GPU의 앞쪽 픽셀 점유와 Canvas의 뒤에서 앞으로 칠하기는 같은 영토 소유권을 표현한다.
+- 바탕·지형 위에 국가/영토 채우기, 호수 채우기·호수 경계·강·국경 강, 국가 경계와 물 보호, 독립 overlay, 선택 강조, 라벨을 표시한다. 독립 overlay의 그룹/객체 순서와 바탕 물·경계 보호를 유지하며 전역 채우기/선 대기열로 평탄화하지 않는다.
+- 지도 모드가 육지 바탕을 정한다. 국가/영토의 미지정 또는 꺼진 색은 바탕을 드러낸다. 색을 지울 때 회색 대체값을 저장하지 않는다. 색 투명도와 형상 가시성·피킹·경계·선택은 분리한다.
+- 같은 객체의 강조 역할을 합친 뒤 주 선택 > 보조 선택 > hover > 후보 순으로 표시한다. 겹친 강조 채우기는 중복 합성하지 않고 물 마스크를 보호한다. 라벨 문자·국기는 재색칠하지 않고 별도 표식을 사용한다.
+- 지도와 목록의 hover 출처를 구분해 늦은 leave가 다른 출처의 hover를 지우지 않게 한다. 사용자 선택색·채우기 0·선택 윤곽선 끄기 설정을 유지한다.
+- 선 폭·dash·casing은 CSS px이며 CSS scale과 DPR 변환은 해당 경계에서 한 번만 적용한다. 객체별 opacity도 한 번만 곱한다. 스타일을 CSS에서 역추론해 GPU에 전달하지 않는다.
+- 지도 선은 공통 stroke 소유자를 사용한다. 지리 좌표와 연결 topology를 유지하며 view만 바뀔 때 topology buffer를 다시 만들지 않는다. 열린 선의 cap·닫힌 선의 join, miter 한도와 bevel fallback, shader coverage 안티앨리어싱을 구분한다. 국가 선택은 해당 owner의 선 구간만 그린다.
+- 라벨 배치는 프레임의 배율·viewport·safe inset을 사용한다. 지명 선정·존속기간 규칙은 [지명 정책](places.md)이 소유한다.
+
+## 품질·예산·지형
+
+- 적응형 품질은 coarse/medium/high 단계다. 초기 기기 신호와 실제 프레임 p95/p99를 사용하며 사용자 에이전트 문자열만으로 고정하지 않는다.
+- 품질 조정은 독립 배경 LOD, 라벨 후보 밀도, 지형 해상도/캐시, backing DPR, 프레임 업로드 예산을 구분한다. 기하 정밀도와 CPU/GPU 예산을 혼동하지 않는다.
+- CPU 패킷·GPU 형상·수계·지형 캐시는 바이트 예산과 LRU를 적용한다. 현재 보이는 자원과 선택 자원을 보호하고 비활성 자원부터 회수한다. 보호 자원만으로 예산을 넘으면 버리지 않고 pressure를 진단한다.
+- `gpu-upload-scheduler.js`가 프레임 업로드 예산을 집행한다. 분할 가능한 buffer는 byte budget으로, 원자적 texture는 tile 수와 시간 예산으로 제한한다.
+- 지형은 선택된 프로젝트 manifest의 `dem-relief-v1`과 physical land/water를 소비한다. 자료 버전·해시·디코딩 계약은 [terrain-manifest.js](../../src/data/terrain-manifest.js)가 소유한다. 다른 프로젝트의 기본 세계지도 URL을 임의로 전용하지 않는다.
+- 지형 해상도는 국가 메시 품질과 독립적으로 카메라·투영·화면 범위·DPR에서 결정한다. 선택적 지형 상세 준비는 최초 국가 지도 게시의 선행 조건이 아니다. 승인된 물리 바탕과 현재 프레임 없이 준비 상태만으로 게시하지 않는다.
+- 고도 저장 간격을 측량 정확도로 표현하지 않는다. 색채 보완색·빙하 마스크·흰색을 역사적 사실이나 계절별 적설로 해석하지 않는다. 원자료 보존·자료 핀은 [자료 정책](data-projects.md)을 따른다.
+
+## Worker와 진단
+
+- 무거운 CPU 요청은 `src/runtime/worker-rpc.js`와 Worker host의 공통 RPC를 사용한다. 요청 ID·timeout·취소·crash·오래된 결과 거부·오류 형식을 기능마다 재구현하지 않는다.
+- job scheduler는 우선순위·동시성·latest-wins를, RPC는 전송 수명과 결과 정합성을 소유한다. 논리 작업 키와 입력/수용 리비전을 구분한다.
+- 상태·대형 캐시를 소유하는 Canvas·수계·자료 Worker는 전용으로 유지한다. 독립 계산만 제한된 동시성으로 처리하며 Worker 개수 자체를 성능 목표로 삼지 않는다. 전용 transport 예외는 소유 코드에 이유를 명시한다.
+- 진단값은 세션 정보이며 프로젝트에 저장하지 않는다. 동일 기기·프로젝트·작업의 cold/warm 조건을 구분해 측정한다. 통계적 진단 임계값을 기능 차단 상한으로 사용하지 않는다. 과거 측정치를 현재 성능 보장으로 전용하지 않는다.
+- 검증은 [검증 정책](validation.md)의 영향받은 실제 Viewer 표시·fallback·context 복구 범위로 제한한다. 표시 성공은 원자료 GIS 정확성의 검수 완료를 뜻하지 않는다.

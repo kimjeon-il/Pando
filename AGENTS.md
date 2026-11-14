@@ -5,7 +5,7 @@ or `AGENTS.override.md` provides more specific rules.
 
 ## Branch and permanent worktree policy (mandatory)
 
-Read [docs/branch-policy.md](docs/branch-policy.md) before choosing a branch or
+Read [development policy](docs/policies/development.md#브랜치와-작업공간) before choosing a branch or
 local worktree.
 Before adding or revising repository policy, use the [policy navigation](docs/policies/README.md)
 to find the existing owner. It is an index, not a replacement for this file or
@@ -117,7 +117,7 @@ all maintained sources use the same commit and branch:
 
 ### Report task completion (mandatory)
 
-- Ordinary code changes, bug fixes, refactors, routine checks, and cleanup do not require a separate report or evidence archive. Summarize the change and verification in the final response or commit/PR description. Create a report only when the user explicitly requests one or when the work produces unique research, source data, or evaluation evidence that must be retained.
+- Ordinary code changes, bug fixes, refactors, routine checks, and cleanup do not require a separate report or evidence archive. Keep repository Markdown only for agent instructions, current canonical policies/navigation and required third-party notices. Do not create or retain task-specific plans, implementation manuals, execution diaries or completion reports; integrate valid general rules into the existing policy owner and remove the task document and its references. Summarize the change and verification in the final response or commit/PR description. Create a report only when the user explicitly requests one or when the work produces unique research, source data, or evaluation evidence that must be retained.
 - Writing or editing a report/evidence file is not task completion. After finishing the task's selected report scopes, run `node tools/data/library-data.mjs --publish-reports --include-prefix=reports/<scope>`. This single operation archives originals, commits only those reports to the shared library main, pushes, and verifies the remote bytes. Run it again after any later report edit, including final evidence updates.
 - Use `node tools/data/library-data.mjs --check-reports --include-prefix=reports/<scope>` for a fresh completion check. Record the verified library commit and scope in the final response. A local file, local commit, or successful application deployment alone does not establish remote report archival.
 - Publishing completed task-owned report scopes has standing user authorization. This does not authorize publishing unfinished drafts, other tasks' scopes, runtime data changes, private application commits, application main integration, or deployment. Keep branch-specific runtime pins and other work intact.
@@ -169,7 +169,7 @@ preparation/storage and publish only explicitly completed report scopes.
 
 For **all historical borders, coastlines, reclamations, river boundaries,
 territorial polygons and administrative boundaries**, read and follow
-[docs/historical-border-reconstruction-policy.md](docs/historical-border-reconstruction-policy.md)
+[GIS policy](docs/policies/gis.md)
 **before researching, digitizing, simplifying or validating geometry**.
 
 - Prioritize macro territorial history: state formation, dissolution, division,
