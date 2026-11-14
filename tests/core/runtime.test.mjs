@@ -37,6 +37,7 @@ import {createAdaptiveRenderQualityController, renderQualityProfile, resolveInit
 import {createGpuUploadScheduler} from '../../src/rendering/gpu-upload-scheduler.js';
 import {createGpuUploadScope} from '../../src/rendering/gpu-resource-lifecycle.js';
 import {boundaryEdgeBoxesInBatches} from '../../src/geometry/boundary-topology.js';
+import {createGpuHydroPreparation} from '../../src/rendering/gpu-hydro-preparation.js';
 import {hashFileInChunks,loadBoundedCurrentWorld} from '../../tools/data/current-world-bounded-loader.mjs';
 import {mkdtempSync,writeFileSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
@@ -631,4 +632,57 @@ test('native boundary edge boxes are chunked without deleting or reordering GIS 
   assert.deepEqual(result,rows.map(({a,b})=>[[...a,...b]]));
   assert.throws(()=>boundaryEdgeBoxesInBatches(rows,{batchSize:1_000_001,calculate:()=>[]}),/Invalid native boundary edge batch size/);
   assert.throws(()=>boundaryEdgeBoxesInBatches(rows,{batchSize:2,calculate:()=>[]}),/Native boundary edge box count mismatch/);
+});
+
+test('hydro upload batches empty GPU channels and uploads first data in the same scheduler step',()=>{
+  let alloc=0,subBytes=0,submitted=null,rendered=0;
+  const gl={
+    ARRAY_BUFFER:34962,ELEMENT_ARRAY_BUFFER:34963,STATIC_DRAW:35044,
+    createBuffer:()=>({id:++alloc}),deleteBuffer:()=>{},
+    bindBuffer:()=>{},bufferData:()=>{},
+    bufferSubData:(_target,_offset,array)=>{subBytes+=array.byteLength;},
+    isContextLost:()=>false,
+  };
+  const scheduler={
+    enqueueUpload:job=>{submitted=job;return Promise.resolve(true);},
+    cancelKey:()=>{},
+  };
+  const hydro=createGpuHydroPreparation({
+    createWorker:()=>{throw Error('no worker needed for upload fixture');},
+    getView:()=>null,getCacheBudget:()=>1024*1024,getProtectedPackIds:()=>[],
+    isMobile:()=>false,DATA_REVISION:'fixture',ASSET_REVISION:'fixture',
+    registerHydroPack:()=>{},unregisterHydroPack:()=>{},
+    queueHydroRender:()=>{rendered++;},
+    reportOperationError:()=>{},setActionStatus:()=>{},onReset:()=>{},onLoadState:()=>{},
+  });
+  hydro.setContext({gl,version:2,projectGeneration:1,contextGeneration:1,scheduler});
+  const emptyInt=()=>new Int32Array(0),emptyUint=()=>new Uint32Array(0),emptyFloat=()=>new Float32Array(0);
+  const entry={id:999,resources:null,uploadQueued:false,
+    mesh:{
+      riverStarts:new Int32Array([1,2]),riverEnds:emptyInt(),riverFeatureIds:emptyUint(),
+      riverStartWidths:emptyFloat(),riverEndWidths:emptyFloat(),
+      borderRiverStarts:emptyInt(),borderRiverEnds:emptyInt(),
+      borderRiverFeatureIds:emptyUint(),borderRiverStartWidths:emptyFloat(),
+      borderRiverEndWidths:emptyFloat(),lakePositions:emptyInt(),
+      lakeFeatureIds:emptyUint(),lakeIndices:emptyUint(),
+      lakeBoundaryStarts:emptyInt(),lakeBoundaryEnds:emptyInt(),
+      lakeBoundaryFeatureIds:emptyUint(),lakeBoundaryWidths:emptyFloat(),
+    },
+  };
+  hydro.replaceEdits([entry],1);
+  assert.ok(submitted,'edited hydro should enqueue a GPU upload');
+  let steps=0,accounted=0,result;
+  do {
+    result=submitted.step({byteBudget:1024,deadline:performance.now()+500});
+    accounted+=result.bytes;
+    steps++;
+  }while(!result.done && steps<20);
+  assert.equal(result.done,true);
+  assert.ok(steps<=3,'18 channels must not require 36 zero-progress scheduler steps');
+  assert.equal(accounted,8);
+  assert.equal(subBytes,8);
+  assert.equal(alloc,18,'zero-length attributes still retain valid GPU buffers');
+  assert.ok(entry.resources);
+  assert.ok(rendered>0);
+  hydro.dispose();
 });
