@@ -70,7 +70,7 @@
   function createInterpolatedSampler({dem, width, height, theme = 'light', channel = 'land', naturalSurface = null}) {
     if (!Number.isInteger(width) || !Number.isInteger(height) || width < 1 || height < 1 || dem?.length !== width * height * 4
       || !palettes[theme] || !['land', 'ocean', 'political'].includes(channel)) throw new TypeError('Invalid numerical DEM sample.');
-    const colors=palettes[theme],tangents=landTangents[theme];
+    const colors=palettes[theme],landTable=channel==='land'?getTilePresentationTables(theme).land:null;
     const natural=channel==='land'?naturalSurface:null;
     if(natural&&(natural.width!==width||natural.height!==height||natural.data?.length!==width*height*4
       ||!Number.isFinite(natural.mixWeight)||natural.mixWeight<0||natural.mixWeight>1))throw new TypeError('Invalid natural surface sample.');
@@ -103,11 +103,15 @@
           const depth=Math.pow(clamp(-elevation/8000,0,1),0.6);
           for(let i=0;i<3;i++)out[offset+i]=byte((colors.seaSurface[i]*(1-depth)+colors.seaDeep[i]*depth)*factor);
         }else{
-          let band=0;while(band<heightStops.length-2&&elevation>=heightStops[band+1])band++;
+          // Fractional height-first colors interpolate the existing 1 m PCHIP
+          // table; never round elevation before coloring or interpolate RGB
+          // from already-painted texels. Error stays below one RGBA8 step.
+          const h=clamp(elevation,0,6500),lo=Math.floor(h),hi=Math.min(6500,lo+1),frac=h-lo;
+          const base=lo*3,next=hi*3;
           const weight=natural?natural.mixWeight*naturalWeight:0;
           const gain=naturalWeight>0?(theme==='dark'?0.72:1)/(255*naturalWeight):0;
           for(let i=0;i<3;i++){
-            const pigment=landColor(elevation,colors.land,tangents,band,i);
+            const pigment=landTable[base+i]+(landTable[next+i]-landTable[base+i])*frac;
             const observed=(i===0?nr:i===1?ng:nb)*gain;
             out[offset+i]=byte((pigment*(1-weight)+observed*weight)*factor);
           }
