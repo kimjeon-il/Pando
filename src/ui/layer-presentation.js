@@ -1,7 +1,7 @@
 import { LAYER_PRESENTATION_SCHEMA_VERSION } from "../runtime/version-contract.js";
 
 // Presentation policy, not project state. GPU fills claim pixels front-to-back;
-// Canvas paints them back-to-front. Both implement the same territorial owner.
+// Each role has one WebGL2 visual owner.
 const VISUAL_ROLES = Object.freeze([
   { role: 'substrate', scope: 'base' },
   { role: 'terrain', scope: 'base' },
@@ -23,9 +23,9 @@ const VISUAL_ROLES = Object.freeze([
   { role: 'labels', scope: 'interaction' },
 ].map((entry, rank) => Object.freeze({ ...entry, rank })));
 
-export function mapVisualOrder(scope, backend = 'canvas') {
+export function mapVisualOrder(scope) {
   return Object.freeze(VISUAL_ROLES.filter(entry => scope === 'all' || entry.scope === scope || (scope === 'hydro' && entry.hydro))
-    .sort((a, b) => (backend === 'gpu' ? a.gpuRank ?? a.rank : a.rank) - (backend === 'gpu' ? b.gpuRank ?? b.rank : b.rank))
+    .sort((a, b) => (a.gpuRank ?? a.rank) - (b.gpuRank ?? b.rank))
     .map(entry => entry.role));
 }
 

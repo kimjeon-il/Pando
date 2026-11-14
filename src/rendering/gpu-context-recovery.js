@@ -3,29 +3,28 @@
  * Timers charge foreground work, never hidden/frozen or explicit external-data waits.
  */
 export function createGpuContextRecovery({ capture, isTargetCurrent, prepare, commit, discard, onCommitted, onFailure,
-  onFallbackFailure = () => {}, now = () => performance.now(),
+  now = () => performance.now(),
   schedule = (callback, delay) => setTimeout(callback, delay), clearSchedule = id => clearTimeout(id),
   isSuspended = () => false,
 } = {}) {
   for (const fn of [capture, isTargetCurrent, prepare, commit, discard, onCommitted, onFailure,
-    onFallbackFailure, now, schedule, clearSchedule, isSuspended]) {
+    now, schedule, clearSchedule, isSuspended]) {
     if (typeof fn !== 'function') throw new TypeError('GPU recovery callbacks are required.');
   }
-  const contextLimit = 5000, idleLimit = 5000, totalLimit = 30000, canvasLimit = 5000;
+  const contextLimit = 5000, idleLimit = 5000, totalLimit = 30000;
   let recoveryId = 0, attemptId = 0, revision = 0;
   let active = false, disposed = false, requested = false, running = null, current = null;
   let lastReason = '', unexplainedAborts = 0, abortIdentity = null, phase = 'idle';
-  let fallback = null, terminalError = null, stop = new AbortController();
+  let terminalError = null, stop = new AbortController();
   let timer = null, timerVersion = 0, sampledAt = now(), suspended = isSuspended(), dataWaiting = false;
-  let foregroundMs = 0, idleMs = 0, contextMs = 0, canvasMs = 0, uploadedBytes = 0;
+  let foregroundMs = 0, idleMs = 0, contextMs = 0, uploadedBytes = 0;
   const milestones = new Set(), deviceWaiters = new Set();
   const abortError = reason => Object.assign(new Error(reason), { name: 'AbortError' });
   const owns = ticket => active && !disposed && current?.ticket === ticket
     && ticket.recoveryId === recoveryId && ticket.revision === revision;
   const isCurrent = ticket => owns(ticket) && !ticket.signal.aborted && isTargetCurrent(ticket.identity);
-  const ownsFallback = ticket => !disposed && !!fallback && fallback.ticket === ticket;
-  const monitored = () => active || phase === 'awaiting-canvas' && fallback?.monitor;
-  const dataPaused = () => dataWaiting && ['awaiting-frame', 'awaiting-canvas'].includes(phase);
+  const monitored = () => active;
+  const dataPaused = () => dataWaiting && phase === 'awaiting-frame';
   function settleDevice(ticket, error = null) {
     for (const waiter of deviceWaiters) {
       if (error) waiter.reject(error); else waiter.resolve(ticket);
@@ -45,7 +44,7 @@ export function createGpuContextRecovery({ capture, isTargetCurrent, prepare, co
       foregroundMs += elapsed;
       if (phase === 'waiting-context') contextMs += elapsed;
       else idleMs += elapsed;
-    } else canvasMs += elapsed;
+    }
   }
   function invalidate(reason, terminal = false) {
     revision++;
@@ -53,42 +52,19 @@ export function createGpuContextRecovery({ capture, isTargetCurrent, prepare, co
     current?.controller.abort(abortError(reason));
     if (terminal) stop.abort(abortError(reason));
   }
-  function reserveFallback(reason) {
-    if (disposed || fallback && phase !== 'canvas') return null;
-    // A previously certified Canvas picture does not prevent recovering from
-    // a subsequent Canvas Worker failure. Only the new frame can certify it.
-    if (phase === 'canvas') fallback = null;
-    account();
-    const monitor = active; // Initial forced-Canvas startup is not a GPU loss recovery.
-    active = false; requested = false;
-    invalidate(reason, true);
-    current = null;
-    const ticket = Object.freeze({ recoveryId, revision, kind: 'canvas' });
-    fallback = { ticket, claimed: false, usable: false, monitor, retries: 0 };
-    phase = 'awaiting-canvas'; canvasMs = 0;
-    arm();
-    return ticket;
-  }
-  function failFallback(ticket, error) {
-    if (!ownsFallback(ticket) || phase !== 'awaiting-canvas') return false;
-    account(); clearTimer(); phase = 'failed'; terminalError = error;
-    lastReason = error?.code || 'canvas-failed';
-    settleDevice(null, error);
-    onFallbackFailure(error);
-    return true;
-  }
   function fail(error) {
-    const ticket = reserveFallback(error?.code || error?.message || 'recovery-failed');
-    if (!ticket) return;
-    try { onFailure(error, ticket); }
-    catch (failure) { failFallback(ticket, failure); }
+    if (disposed || terminalError) return;
+    account(); clearTimer(); active = false; requested = false;
+    phase = 'failed'; terminalError = error;
+    invalidate(error?.code || error?.message || 'recovery-failed', true);
+    current = null; settleDevice(null, error);
+    onFailure(error);
   }
   function deadlineKind() {
     let kind = '';
     if (active && foregroundMs >= totalLimit) kind = 'TOTAL';
     else if (active && phase === 'waiting-context' && contextMs >= contextLimit) kind = 'CONTEXT';
     else if (active && phase !== 'waiting-context' && idleMs >= idleLimit) kind = 'IDLE';
-    else if (phase === 'awaiting-canvas' && fallback?.monitor && canvasMs >= canvasLimit) kind = 'CANVAS';
     return kind;
   }
   function expired() {
@@ -96,14 +72,14 @@ export function createGpuContextRecovery({ capture, isTargetCurrent, prepare, co
     if (!kind) return false;
     const error = Object.assign(new Error(`GPU recovery ${kind.toLowerCase()} deadline exceeded`),
       { code: `PL-GPU-RECOVERY-${kind}-TIMEOUT` });
-    if (kind === 'CANVAS') failFallback(fallback.ticket, error); else fail(error);
+    fail(error);
     return true;
   }
   function arm() {
     clearTimer();
     if (disposed || !monitored() || suspended || dataPaused()) return;
-    const delay = active ? Math.min(totalLimit - foregroundMs,
-      phase === 'waiting-context' ? contextLimit - contextMs : idleLimit - idleMs) : canvasLimit - canvasMs;
+    const delay = Math.min(totalLimit - foregroundMs,
+      phase === 'waiting-context' ? contextLimit - contextMs : idleLimit - idleMs);
     const version = timerVersion;
     timer = schedule(() => {
       if (disposed || version !== timerVersion) return;
@@ -116,7 +92,7 @@ export function createGpuContextRecovery({ capture, isTargetCurrent, prepare, co
     }, Math.max(0, delay));
   }
   function beginLoss() {
-    if (disposed || fallback) return;
+    if (disposed || terminalError) return;
     account();
     if (!active) {
       recoveryId++;
@@ -203,7 +179,7 @@ export function createGpuContextRecovery({ capture, isTargetCurrent, prepare, co
         return true;
       } catch (error) {
         if (!owns(ticket)) {
-          if (adopted && !disposed && !fallback && ticket.revision === revision && ticket.recoveryId === recoveryId) fail(error);
+          if (adopted && !disposed && !terminalError && ticket.revision === revision && ticket.recoveryId === recoveryId) fail(error);
           continue;
         }
         if (!isTargetCurrent(identity)) requested = true;
@@ -244,41 +220,11 @@ export function createGpuContextRecovery({ capture, isTargetCurrent, prepare, co
       if (disposed) return;
       account(); dataWaiting = value === true; arm();
     },
-    beginFallback(reason, reserved = null) {
-      if (disposed || reserved && !ownsFallback(reserved)) return null;
-      const ticket = reserved || reserveFallback(reason);
-      if (!ticket || !ownsFallback(ticket) || fallback.claimed || phase !== 'awaiting-canvas') return null;
-      fallback.claimed = true;
-      return ticket;
-    },
-    fallbackTicket: () => phase === 'awaiting-canvas' ? fallback?.ticket || null : null,
-    retryFallback(ticket) {
-      // A Worker transport failure may change the backend once to inline
-      // Canvas, but a retired or duplicate ticket cannot claim another frame.
-      if (!ownsFallback(ticket) || phase !== 'awaiting-canvas' || !fallback.claimed
-        || fallback.retries > 0) return false;
-      account();
-      fallback.claimed = false;
-      fallback.usable = false;
-      fallback.retries++;
-      arm();
-      return true;
-    },
-    fallbackUsable(ticket) {
-      if (!ownsFallback(ticket) || phase !== 'awaiting-canvas') return false;
-      fallback.usable = true; settleDevice(null); return true;
-    },
-    failFallback,
-    completeFallback(ticket) {
-      if (!ownsFallback(ticket) || phase !== 'awaiting-canvas') return false;
-      account(); clearTimer(); phase = 'canvas'; lastReason = 'canvas-frame-presented';
-      settleDevice(null); return true;
-    },
     waitForDevice() {
       if (disposed) return Promise.reject(abortError('Renderer disposed'));
       if (terminalError) return Promise.reject(terminalError);
       if (phase === 'awaiting-frame' && current && isCurrent(current.ticket)) return Promise.resolve(current.ticket);
-      if (!active && (phase !== 'awaiting-canvas' || fallback.usable)) return Promise.resolve(null);
+      if (!active) return Promise.resolve(null);
       return new Promise((resolve, reject) => deviceWaiters.add({ resolve, reject }));
     },
     preparedTicket: () => phase === 'awaiting-frame' ? current?.ticket || null : null,
@@ -290,7 +236,7 @@ export function createGpuContextRecovery({ capture, isTargetCurrent, prepare, co
     dispose() { if (disposed) return; cancel('disposed'); disposed = true; },
     snapshot: () => Object.freeze({ recoveryId, attemptId, active, disposed,
       running: running !== null, queued: requested, phase, lastReason,
-      foregroundMs, idleMs, contextMs, canvasMs, uploadedBytes, suspended,
+      foregroundMs, idleMs, contextMs, uploadedBytes, suspended,
       dataWaiting, timerPending: timer !== null, deviceWaiterCount: deviceWaiters.size, unexplainedAborts }),
   });
 }

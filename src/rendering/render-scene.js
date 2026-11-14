@@ -185,7 +185,7 @@ export function createRenderSceneBuilder({
       lod: resolveRenderLod({
         requested: input.renderQuality?.backgroundLod || input.quality?.backgroundLod || 'high',
         policy: item?.lodPolicy || 'exact',
-        protected: protectedGeometry,
+
       }),
       projection: input.projection === 'globe' ? 'globe' : 'flat',
       protected: protectedGeometry,
@@ -411,3 +411,29 @@ export function isRenderScene(value) {
     && Array.isArray(value.polygons) && Array.isArray(value.strokes)
     && !!value.revisions && !!value.interaction;
 }
+
+// Shared border packet grouping consumed by the WebGL scene.
+export function countryBoundaryBatches(packet, theme, sharedOnly, styleForOwner) {
+    if (!packet) return [];
+    const solid = theme.strokes.country;
+    const batches = [];
+    const groups = new Map();
+    const add = (source, owners, dash = false) => {
+      for (const owner of owners) {
+        const ids = dash ? source.internalOwners[owner] : owner.split('|');
+        if (!ids.some(id => !!styleForOwner(id))) continue;
+        const key = `${dash}:${source === packet}`;
+        if (!groups.has(key)) groups.set(key, { ...source, ownerIds: [], style: dash ? theme.strokes['country-internal'] : solid });
+        groups.get(key).ownerIds.push(owner);
+      }
+    };
+    add(packet, Object.keys(packet.ownerRanges).filter(key => !packet.internalOwners[key]));
+    if (!sharedOnly) {
+      const outlines = packet.outlineOverrides;
+      add(outlines, Object.keys(outlines.ownerRanges).filter(key => !outlines.internalOwners?.[key]));
+      add(outlines, Object.keys(outlines.ownerRanges).filter(key => outlines.internalOwners?.[key]), true);
+    }
+    add(packet, Object.keys(packet.internalOwners), true);
+    batches.push(...groups.values());
+    return batches;
+  }

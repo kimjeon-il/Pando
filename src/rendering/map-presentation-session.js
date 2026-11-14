@@ -86,12 +86,12 @@ export function createMapPresentationSession({
     }
     return true;
   }
-  function canPresentVisualFrame(frame, result = null, { canvasPresented = false } = {}) {
+  function canPresentVisualFrame(frame, result = null) {
     if (isProjectBlocked() || temporalTicket?.sourceAdmitted === false
       || result?.preserved || result?.succeeded === false) return false;
     if (!isRecoveryFrameAdmissible(frame)) return false;
     if (!temporalPending()) return true;
-    if (result?.deferred && !canvasPresented) return false;
+    if (result?.deferred) return false;
     return !temporalTicket.error && temporalTicket.isCurrent()
       && temporalTicket.generation === getGeneration()
       && frame?.projectGeneration === getGeneration()

@@ -1,3 +1,9 @@
+import {createGpuContextRecovery} from '../../src/rendering/gpu-context-recovery.js';
+import {createCountryMeshVariants} from '../../src/rendering/gpu-country-mesh-variants.js';
+import {createSharedPolygonLodIndex} from '../../src/rendering/render-lod.js';
+import {countryLodSourceIds} from '../../src/rendering/gpu-country-ranges.js';
+import {createMapVisualFrame} from '../../src/rendering/map-visual-frame.js';
+import {gpuStrokeStyle} from '../../src/map/map-interaction-style.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash, webcrypto} from 'node:crypto';
@@ -16,6 +22,45 @@ import {decodeCountryMesh, encodeCountryMesh} from '../../src/rendering/country-
 import {createApplicationLifecycle} from '../../src/app/application-lifecycle.js';
 import {createPhysicalAssetReader} from '../../src/data/physical-asset-reader.js';
 import {createTerrainService} from '../../src/data/physical-layer-service.js';
+import {createAdaptiveRenderQualityController, renderQualityProfile, resolveInitialRenderQuality} from '../../src/rendering/adaptive-render-quality.js';
+
+test('WebGL2 quality budgets simplify every object and change only after sustained active-frame evidence',()=>{
+  assert.equal(resolveInitialRenderQuality({}), 'medium');
+  assert.equal(resolveInitialRenderQuality({deviceMemory:4}), 'coarse');
+  assert.equal(resolveInitialRenderQuality({mobile:true}), 'coarse');
+  const low=renderQualityProfile('coarse'), normal=renderQualityProfile('medium'), high=renderQualityProfile('high');
+  assert.deepEqual([low.dprCap,normal.dprCap,high.dprCap],[0.75,1.25,2]);
+  assert.deepEqual([low.geometryErrorPx,normal.geometryErrorPx,high.geometryErrorPx],[2,1,0.5]);
+  assert.deepEqual([low.terrainResolutionScale,normal.terrainResolutionScale,high.terrainResolutionScale],[0.5,0.75,1]);
+  assert.equal(low.selectedLod,low.backgroundLod);
+  assert.equal(low.gpuCacheBudgetBytes,64*1024**2);
+  const frame=createMapVisualFrame({viewState:{projection:'flat',size:{width:800,height:600},scale:100,translate:[400,300],dpr:low.dprCap}});
+  assert.equal(frame.dpr,0.75);
+  assert.deepEqual(frame.gpuViewport,[600,450]);
+  assert.deepEqual(frame.cssTranslate,[400,300]);
+  assert.equal(gpuStrokeStyle({width:2},frame).width,1.5,'stroke and picking use the same backing conversion');
+  let clock=0;
+  const quality=createAdaptiveRenderQualityController({now:()=>clock});
+  quality.beginInteraction();
+  for(let i=0;i<40;i++){clock+=50;quality.recordFrame(3,{frameIntervalMs:50});}
+  assert.equal(quality.profile().tier,'coarse','slow GPU cadence matters even when CPU submission is cheap');
+  for(let i=0;i<120;i++){clock+=16;quality.recordFrame(3,{frameIntervalMs:16,suspended:true});}
+  assert.equal(quality.stats().sampleCount,40,'hidden or waiting frames do not influence quality');
+  quality.endInteraction();
+  clock+=16000;
+  for(let i=0;i<180;i++){clock+=16;quality.recordFrame(3,{frameIntervalMs:16,memoryPressure:true});}
+  assert.equal(quality.profile().tier,'coarse','cache pressure prevents promotion');
+  for(let i=0;i<180;i++){clock+=16;quality.recordFrame(3,{frameIntervalMs:16});}
+  assert.equal(quality.profile().tier,'coarse','promotion needs fifteen seconds of continuously stable evidence');
+  clock+=16000;
+  for(let i=0;i<20;i++){clock+=16;quality.recordFrame(3,{frameIntervalMs:16});}
+  assert.equal(quality.profile().tier,'medium');
+  quality.beginInteraction();
+  for(let i=0;i<1000;i++){clock+=16;quality.recordFrame(3,{frameIntervalMs:16});}
+  assert.equal(quality.profile().tier,'medium','promotion waits for interaction to end');
+  quality.endInteraction();
+  assert.equal(quality.profile().tier,'high','settling uses existing stable evidence without idle benchmark frames');
+});
 
 // A single fixed package exercises the current read-only path. No writer,
 // old test helper, mounted dataset, or full catalog is needed.
@@ -271,4 +316,48 @@ test('optional terrain delay and failure cannot hold a ready base-map startup', 
     assert.equal(ready,1);assert.deepEqual(startupErrors,[]);assert.deepEqual(events,['ready']);
     assert.deepEqual(reader.physicalLand.geometry,geometry,'terrain rejection preserves the accepted base substrate');
   } finally {lifecycle.dispose();}
+});
+
+test('display derivatives preserve topology and identity and retire superseded GPU buffers only after presentation',()=>{
+  const polygon=(id,rings)=>({type:'Feature',id,properties:{},geometry:{type:'Polygon',coordinates:rings}});
+  const source=[polygon('A',[[[0,0],[1,0],[1,1],[1,2],[0,2],[0,0]],[[.2,.2],[.2,.6],[.6,.6],[.6,.2],[.2,.2]]]),
+    polygon('B',[[[1,0],[2,0],[2,2],[1,2],[1,1],[1,0]]]),
+    polygon('dateline',[[[179,10],[-179,10],[-179,12],[179,12],[179,10]]])];
+  const original=structuredClone(source),index=createSharedPolygonLodIndex(source);
+  const result=index.derive({cssScale:100,errorPx:2});
+  assert.deepEqual(source,original,'source data is immutable');
+  assert.deepEqual(result.features.map(row=>row.id),['A','B','dateline']);
+  assert.equal(result.features[0].geometry.coordinates.length,2,'hole survives');
+  assert.deepEqual(result.features[2].geometry,source[2].geometry,'dateline remains protected');
+  const shared=ring=>ring.filter(point=>point[0]===1).map(point=>point.join(',')).filter((v,i,a)=>a.indexOf(v)===i).sort();
+  assert.deepEqual(shared(result.features[0].geometry.coordinates[0]),shared(result.features[1].geometry.coordinates[0]));
+  assert.deepEqual(countryLodSourceIds({countryBounds:new Int32Array([0,0,1000000,2000000,1000000,0,2000000,2000000,10000000,0,11000000,2000000])},['A','B','far'],['A']),['A','B']);
+  const released=[],variants=createCountryMeshVariants(entry=>released.push(entry.id));
+  const add=id=>variants.replace('lod',()=>({id,quality:'lod'}),{preserveOtherVariants:true});
+  add('visible');add('candidate');assert.deepEqual(released,[]);
+  add('latest');assert.deepEqual(released,['candidate']);
+  variants.commitFrame();assert.deepEqual(released,['candidate','visible']);
+  variants.clear();assert.deepEqual(released,['candidate','visible','latest']);
+  const old=variants.replace('canonical',()=>({id:'canonical-old',quality:'canonical'}));
+  variants.replace('canonical',()=>({id:'canonical-next',quality:'canonical'}));
+  assert.equal(released.includes(old.id),false,'canonical GPU resources also survive until presentation');
+  variants.commitFrame();assert.equal(released.includes(old.id),true);
+  variants.clear();
+});
+
+test('WebGL2 recovery stops after its foreground deadline and rejects waiting operations',async()=>{
+  let clock=0,scheduled,failed;
+  const recovery=createGpuContextRecovery({capture:()=>({source:'current'}),isTargetCurrent:()=>true,
+    prepare:async()=>({}),commit:()=>true,discard:()=>{},onCommitted:()=>{},onFailure:error=>{failed=error;},
+    now:()=>clock,schedule:callback=>{scheduled=callback;return 1;},clearSchedule:()=>{scheduled=null;}});
+  recovery.beginLoss();const waiting=recovery.waitForDevice();
+  recovery.setSuspended(true);clock=60000;recovery.setSuspended(false);
+  assert.equal(recovery.snapshot().phase,'waiting-context','background suspension is not charged');
+  clock+=5001;scheduled();
+  await assert.rejects(waiting,/context deadline exceeded/);
+  assert.equal(failed.code,'PL-GPU-RECOVERY-CONTEXT-TIMEOUT');
+  assert.equal(recovery.snapshot().phase,'failed');
+  assert.equal(recovery.snapshot().timerPending,false);
+  assert.equal(await recovery.request(),false,'same failed context is not retried');
+  recovery.dispose();
 });

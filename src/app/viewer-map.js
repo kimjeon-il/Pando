@@ -334,6 +334,7 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
       projectSession.pruneViewingItems(objectCatalog.presentationCatalog());
       await update();
     },
+    ready:initialized,
     cancelSearch:()=>places().cancelSearch(),update,features:entityStore.snapshot,searchPlaces:query=>labelOwner.searchPlaces(query),renderer,
     loadPhysicalResources:physicalResources.loadPhysicalData,loadPhysicalLandMask:physicalResources.loadPhysicalLandMask,viewState:state,objectPresentation,searchActive:()=>places().isSearchOpen(),
     prepareBuiltinProject:async(month,options)=>{

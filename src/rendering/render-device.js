@@ -1,11 +1,3 @@
-function detectWebGlVersion(gl) {
-  if (!gl) return 0;
-  const webGl2 = typeof globalThis.WebGL2RenderingContext !== 'undefined'
-    && gl instanceof globalThis.WebGL2RenderingContext;
-  return webGl2 ? 2 : 1;
-}
-
-
 /**
  * The single RenderDevice owns the GL state ledger for scoped coverage passes.
  * A snapshot is a plain JS copy: no synchronous driver readback during drawing.
@@ -40,7 +32,7 @@ function createGlStateContract(gl, version, contextRevision) {
   // One initialization snapshot, never per-frame. It also handles a context
   // already initialized by a caller before RenderDevice was created.
   tracked.framebuffer = gl.getParameter(gl.FRAMEBUFFER_BINDING);
-  tracked.readFramebuffer = version === 2 ? gl.getParameter(gl.READ_FRAMEBUFFER_BINDING) : null;
+  tracked.readFramebuffer = (gl.getParameter(gl.READ_FRAMEBUFFER_BINDING));
   tracked.viewport = Array.from(gl.getParameter(gl.VIEWPORT));
   tracked.program = gl.getParameter(gl.CURRENT_PROGRAM);
   tracked.arrayBuffer = gl.getParameter(gl.ARRAY_BUFFER_BINDING);
@@ -73,7 +65,7 @@ function createGlStateContract(gl, version, contextRevision) {
   };
   intercept('bindFramebuffer', (target, value) => {
     if (target === gl.FRAMEBUFFER || target === gl.DRAW_FRAMEBUFFER) tracked.framebuffer = value;
-    if (version === 2 && (target === gl.FRAMEBUFFER || target === gl.READ_FRAMEBUFFER)) tracked.readFramebuffer = value;
+    if (true && (target === gl.FRAMEBUFFER || target === gl.READ_FRAMEBUFFER)) tracked.readFramebuffer = value;
   });
   intercept('viewport', (...args) => { tracked.viewport = args; });
   intercept('useProgram', value => { tracked.program = value; });
@@ -132,7 +124,7 @@ function createGlStateContract(gl, version, contextRevision) {
   function restore(state) {
     if (!state || !active || gl.isContextLost?.() || state.contextRevision !== contextRevision) return;
     gl.bindFramebuffer(gl.FRAMEBUFFER, state.framebuffer);
-    if (version === 2) gl.bindFramebuffer(gl.READ_FRAMEBUFFER, state.readFramebuffer);
+    gl.bindFramebuffer(gl.READ_FRAMEBUFFER, state.readFramebuffer);
     gl.viewport(...state.viewport);
     gl.useProgram(state.program);
     gl.bindBuffer(gl.ARRAY_BUFFER, liveBuffer(state.arrayBuffer) ? state.arrayBuffer : null);
@@ -167,12 +159,12 @@ function createGlStateContract(gl, version, contextRevision) {
   });
 }
 
-export function createRenderDevice({ gl, canvas = null, version = 0, contextRevision = 0 } = {}) {
+export function createRenderDevice({ gl, canvas = null, version = 2, contextRevision = 0 } = {}) {
   if (!gl) return null;
-  const resolvedVersion = Number(version) || detectWebGlVersion(gl);
-  if (![1, 2].includes(resolvedVersion)) return null;
-  const uintIndices = resolvedVersion === 2 || !!gl.getExtension?.('OES_element_index_uint');
-  const instancing = resolvedVersion === 2 || !!gl.getExtension?.('ANGLE_instanced_arrays');
+  const resolvedVersion = Number(version);
+  if(resolvedVersion!==2)throw new Error('WebGL2 is required.');
+  const uintIndices = true;
+  const instancing = true;
   const attributes = gl.getContextAttributes?.() || {};
   const revision = Math.max(0, Number(contextRevision) || 0);
   // Capability-only test doubles may omit driver state query methods.
@@ -197,5 +189,5 @@ export function createRenderDevice({ gl, canvas = null, version = 0, contextRevi
 }
 
 export function isRenderDevice(value) {
-  return !!value?.gl && [1, 2].includes(Number(value.version)) && !!value.capabilities;
+  return !!value?.gl && Number(value.version)===2 && !!value.capabilities;
 }

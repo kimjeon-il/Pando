@@ -253,7 +253,6 @@ export function countryDrawRangesForFrame(sourceMesh, frameContext, {
   return { ranges: merged, culled: true, visibleCountryCount, indexCount: visibleIndexCount, fullIndexCount: indexCount, fallback: false };
 }
 
-
 /**
  * Stable integer-degree tile IDs for the *visible leaves* of very large
  * canonical country meshes. The spatial BVH belongs to the exact source mesh,
@@ -322,4 +321,18 @@ export function visibleLargeCountryTilesForFrame(sourceMesh, frame, {
   }));
   if (result.reduce((sum, row) => sum + row.tiles.length, 0) > maxTilesTotal) return [];
   return result;
+}
+
+/** Include visible owners and bounding-box neighbours needed to protect shared edges. */
+export function countryLodSourceIds(mesh, ids, visibleIds) {
+  if (!visibleIds || !mesh.countryBounds || mesh.countryBounds.length!==ids.length*4) return null;
+  const visible=new Set(visibleIds.map(String));
+  const bounds=index=>Array.from(mesh.countryBounds.subarray(index*4,index*4+4),n=>n*COUNTRY_BOUNDS_SCALE);
+  const selected=ids.flatMap((id,i)=>visible.has(String(id))?[{box:bounds(i),flags:mesh.countryBoundsFlags?.[i]||0}]:[]);
+  return ids.filter((id,index)=>{
+    if(visible.has(String(id)))return true;
+    const box=bounds(index),flags=mesh.countryBoundsFlags?.[index]||0;
+    return selected.some(other=>box[1]<=other.box[3]&&box[3]>=other.box[1]
+      &&longitudeIntervals(box[0],box[2],flags).some(a=>longitudeIntervals(other.box[0],other.box[2],other.flags).some(b=>a[0]<=b[1]&&a[1]>=b[0])));
+  }).map(String);
 }

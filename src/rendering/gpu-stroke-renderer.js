@@ -44,10 +44,8 @@ function projectionSource() {
 }
 
 function segmentProgramSources(version) {
-  const header = version === 2 ? '#version 300 es\nprecision highp float;precision highp int;' : 'precision highp float;precision highp int;';
-  const attributes = version === 2
-    ? 'in vec2 aCorner;in vec2 aPrevious;in vec4 aSegment;in vec2 aNext;in vec2 aMeta;out float vDepth;out float vAcross;out float vAlong;'
-    : 'attribute vec2 aCorner;attribute vec2 aPrevious;attribute vec4 aSegment;attribute vec2 aNext;attribute vec2 aMeta;varying float vDepth;varying float vAcross;varying float vAlong;';
+  const header = ('#version 300 es\nprecision highp float;precision highp int;');
+  const attributes = ('in vec2 aCorner;in vec2 aPrevious;in vec4 aSegment;in vec2 aNext;in vec2 aMeta;out float vDepth;out float vAcross;out float vAlong;');
   const vertex = `${header}
     ${attributes}
     uniform vec2 uViewport;uniform vec2 uTranslate;uniform float uScale;
@@ -76,10 +74,8 @@ function segmentProgramSources(version) {
       vDepth=mix(start.z,end.z,endpoint);vAcross=side*outerWidth;vAlong=aMeta.x*uScale*0.017453292519943295+length(end.xy-start.xy)*endpoint;
       gl_Position=vec4(p.x*2.0/uViewport.x-1.0,1.0-p.y*2.0/uViewport.y,0.0,1.0);
     }`;
-  const fragmentHeader = version === 2
-    ? '#version 300 es\nprecision highp float;precision highp int;in float vDepth;in float vAcross;in float vAlong;out vec4 outColor;'
-    : 'precision highp float;precision highp int;varying float vDepth;varying float vAcross;varying float vAlong;';
-  const output = `${version === 2 ? 'outColor' : 'gl_FragColor'}=vec4(uColor.rgb*(uMultiply==1?uColor.a*coverage:1.0),uColor.a*coverage);`;
+  const fragmentHeader = ('#version 300 es\nprecision highp float;precision highp int;in float vDepth;in float vAcross;in float vAlong;out vec4 outColor;');
+  const output = `${('outColor')}=vec4(uColor.rgb*(uMultiply==1?uColor.a*coverage:1.0),uColor.a*coverage);`;
   const fragment = `${fragmentHeader}
     uniform int uMode;uniform float uHalfWidth;uniform float uAaRadius;uniform float uInnerCutout;uniform vec2 uDash;uniform vec4 uColor;uniform int uMultiply;
     void main(){
@@ -93,10 +89,8 @@ function segmentProgramSources(version) {
 }
 
 function roundProgramSources(version) {
-  const header = version === 2 ? '#version 300 es\nprecision highp float;precision highp int;' : 'precision highp float;precision highp int;';
-  const attributes = version === 2
-    ? 'in vec2 aCorner;in vec2 aNodePrevious;in vec2 aNodePoint;in vec2 aNodeNext;in vec2 aNodeMeta;out float vDepth;out vec2 vLocal;out vec2 vIncoming;out vec2 vOutgoing;out float vKind;'
-    : 'attribute vec2 aCorner;attribute vec2 aNodePrevious;attribute vec2 aNodePoint;attribute vec2 aNodeNext;attribute vec2 aNodeMeta;varying float vDepth;varying vec2 vLocal;varying vec2 vIncoming;varying vec2 vOutgoing;varying float vKind;';
+  const header = ('#version 300 es\nprecision highp float;precision highp int;');
+  const attributes = ('in vec2 aCorner;in vec2 aNodePrevious;in vec2 aNodePoint;in vec2 aNodeNext;in vec2 aNodeMeta;out float vDepth;out vec2 vLocal;out vec2 vIncoming;out vec2 vOutgoing;out float vKind;');
   const vertex = `${header}
     ${attributes}
     uniform vec2 uViewport;uniform vec2 uTranslate;uniform float uScale;
@@ -110,10 +104,8 @@ function roundProgramSources(version) {
       vDepth=point.z;vLocal=local;vIncoming=safeDirection(point.xy-previous.xy);vOutgoing=safeDirection(next.xy-point.xy);vKind=aNodeMeta.y;
       gl_Position=vec4(p.x*2.0/uViewport.x-1.0,1.0-p.y*2.0/uViewport.y,0.0,1.0);
     }`;
-  const fragmentHeader = version === 2
-    ? '#version 300 es\nprecision highp float;precision highp int;in float vDepth;in vec2 vLocal;in vec2 vIncoming;in vec2 vOutgoing;in float vKind;out vec4 outColor;'
-    : 'precision highp float;precision highp int;varying float vDepth;varying vec2 vLocal;varying vec2 vIncoming;varying vec2 vOutgoing;varying float vKind;';
-  const output = `${version === 2 ? 'outColor' : 'gl_FragColor'}=vec4(uColor.rgb*(uMultiply==1?uColor.a*coverage:1.0),uColor.a*coverage);`;
+  const fragmentHeader = ('#version 300 es\nprecision highp float;precision highp int;in float vDepth;in vec2 vLocal;in vec2 vIncoming;in vec2 vOutgoing;in float vKind;out vec4 outColor;');
+  const output = `${('outColor')}=vec4(uColor.rgb*(uMultiply==1?uColor.a*coverage:1.0),uColor.a*coverage);`;
   const fragment = `${fragmentHeader}
     uniform int uMode;uniform int uJoinMode;uniform int uRoundCap;uniform float uHalfWidth;uniform float uAaRadius;uniform float uInnerCutout;uniform vec4 uColor;uniform int uMultiply;
     float cross2(vec2 left,vec2 right){return left.x*right.y-left.y*right.x;}
@@ -137,10 +129,8 @@ function roundProgramSources(version) {
 }
 
 function bevelProgramSources(version) {
-  const header = version === 2 ? '#version 300 es\nprecision highp float;precision highp int;' : 'precision highp float;precision highp int;';
-  const attributes = version === 2
-    ? 'in float aVertexId;in vec2 aNodePrevious;in vec2 aNodePoint;in vec2 aNodeNext;in vec2 aNodeMeta;out float vDepth;'
-    : 'attribute float aVertexId;attribute vec2 aNodePrevious;attribute vec2 aNodePoint;attribute vec2 aNodeNext;attribute vec2 aNodeMeta;varying float vDepth;';
+  const header = ('#version 300 es\nprecision highp float;precision highp int;');
+  const attributes = ('in float aVertexId;in vec2 aNodePrevious;in vec2 aNodePoint;in vec2 aNodeNext;in vec2 aNodeMeta;out float vDepth;');
   const vertex = `${header}
     ${attributes}
     uniform vec2 uViewport;uniform vec2 uTranslate;uniform float uScale;
@@ -156,10 +146,8 @@ function bevelProgramSources(version) {
       vec2 p=aVertexId<0.5?point.xy:(aVertexId<1.5?point.xy+n0*width:point.xy+n1*width);vDepth=point.z;
       gl_Position=vec4(p.x*2.0/uViewport.x-1.0,1.0-p.y*2.0/uViewport.y,0.0,1.0);
     }`;
-  const fragmentHeader = version === 2
-    ? '#version 300 es\nprecision highp float;precision highp int;in float vDepth;out vec4 outColor;'
-    : 'precision highp float;precision highp int;varying float vDepth;';
-  const output = `${version === 2 ? 'outColor' : 'gl_FragColor'}=vec4(uColor.rgb*(uMultiply==1?uColor.a:1.0),uColor.a);`;
+  const fragmentHeader = ('#version 300 es\nprecision highp float;precision highp int;in float vDepth;out vec4 outColor;');
+  const output = `${('outColor')}=vec4(uColor.rgb*(uMultiply==1?uColor.a:1.0),uColor.a);`;
   const fragment = `${fragmentHeader}
     uniform int uMode;uniform vec4 uColor;uniform int uMultiply;
     void main(){if(uMode==0&&vDepth<0.0)discard;${output}}`;
@@ -185,19 +173,19 @@ function createPrograms(device, only = null) {
 }
 
 function createCoverageProgram(device) {
-  const modern = device.version === 2;
-  const vertex = `${modern ? '#version 300 es\n' : ''}precision highp float;
-    ${modern ? 'in' : 'attribute'} vec2 aCorner;
-    ${modern ? 'out' : 'varying'} vec2 vUv;
+  const modern = true;
+  const vertex = `${('#version 300 es\n')}precision highp float;
+    ${('in')} vec2 aCorner;
+    ${('out')} vec2 vUv;
     void main(){vUv=aCorner*0.5+0.5;gl_Position=vec4(aCorner,0.0,1.0);}`;
-  const fragment = `${modern ? '#version 300 es\n' : ''}precision highp float;
-    ${modern ? 'in' : 'varying'} vec2 vUv;
-    ${modern ? 'out vec4 outColor;' : ''}
+  const fragment = `${('#version 300 es\n')}precision highp float;
+    ${('in')} vec2 vUv;
+    ${('out vec4 outColor;')}
     uniform sampler2D uCoverage;uniform vec4 uColor;uniform int uMultiply;
     void main(){
-      float alpha=${modern ? 'texture' : 'texture2D'}(uCoverage,vUv).a*uColor.a;
+      float alpha=${('texture')}(uCoverage,vUv).a*uColor.a;
       if(alpha<=0.0)discard;
-      ${modern ? 'outColor' : 'gl_FragColor'}=vec4(uColor.rgb*(uMultiply==1?alpha:1.0),alpha);
+      ${('outColor')}=vec4(uColor.rgb*(uMultiply==1?alpha:1.0),alpha);
     }`;
   return linkProgram(device, vertex, fragment, ['aCorner'], ['uCoverage', 'uColor', 'uMultiply']);
 }
@@ -445,12 +433,10 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
 
   const setDivisor = (location, value) => {
     if (location < 0) return;
-    if (device.version === 2) gl.vertexAttribDivisor(location, value);
-    else instancing.vertexAttribDivisorANGLE(location, value);
+    gl.vertexAttribDivisor(location, value);
   };
   const drawInstanced = (count, instances) => {
-    if (device.version === 2) gl.drawArraysInstanced(gl.TRIANGLES, 0, count, instances);
-    else instancing.drawArraysInstancedANGLE(gl.TRIANGLES, 0, count, instances);
+    gl.drawArraysInstanced(gl.TRIANGLES, 0, count, instances);
   };
 
   // The shared RenderDevice owns the complete GL state ledger. Coverage
@@ -523,7 +509,7 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
     if (programInfo.uniforms.uInnerCutout) gl.uniform1f(programInfo.uniforms.uInnerCutout, Number(style.innerCutout || 0) / 2);
     if (programInfo.uniforms.uHalfWidth) gl.uniform1f(programInfo.uniforms.uHalfWidth, width / 2);
     const smoothLines = globalThis.document?.documentElement?.dataset.smoothLines !== 'false';
-    if (programInfo.uniforms.uAaRadius) gl.uniform1f(programInfo.uniforms.uAaRadius, style.antiAlias === false || !smoothLines ? 0 : aaRadius * Math.max(1, Number(frameContext.dpr || 1)));
+    if (programInfo.uniforms.uAaRadius) gl.uniform1f(programInfo.uniforms.uAaRadius, style.antiAlias === false || !smoothLines ? 0 : aaRadius * Math.max(0.25, Number(frameContext.dpr || 1)));
     if (programInfo.uniforms.uColor) gl.uniform4f(programInfo.uniforms.uColor, red, green, blue, alpha);
     if (programInfo.uniforms.uMultiply) gl.uniform1i(programInfo.uniforms.uMultiply, style.blendMode === 'multiply' ? 1 : 0);
     return { width, alpha };
@@ -624,7 +610,7 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
 
   function ensureCoverage(width, height) {
     if (coverageMaximum === null) {
-      const maximum = device.version === 2 ? gl.MAX : gl.getExtension('EXT_blend_minmax')?.MAX_EXT;
+      const maximum = (gl.MAX);
       if (maximum === undefined) throw Object.assign(new Error('Country coverage requires MAX blending.'), { code: 'PL-GPU-STROKE-COVERAGE' });
       coverageMaximum = maximum;
     }
@@ -799,7 +785,7 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
     if (!isRenderDevice(nextDevice) || !nextDevice.capabilities.instancing) return false;
     device = nextDevice;
     gl = nextDevice.gl;
-    instancing = nextDevice.version === 2 ? gl : gl.getExtension('ANGLE_instanced_arrays');
+    instancing = (gl);
     try {
       programs = preparedPrograms || createPrograms(nextDevice);
       segmentCornerBuffer = createBuffer(SEGMENT_CORNERS);
@@ -909,7 +895,7 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
         // owner/block bounds; never rescan their vertices on the main thread.
         const width = Math.max(Number(style.width) || 0, Number(style.casing?.width) || 0);
         const margin = Math.max(96, width * Math.max(4, Number(style.miterLimit) || 4)
-          + aaRadius * Math.max(1, Number(frameContext.dpr) || 1) * 4);
+          + aaRadius * Math.max(0.25, Number(frameContext.dpr) || 1) * 4);
         const ownerIds = resource.visibilityBlocks?.version === 1
           ? batch.ownerIds
           : visibleGpuStrokeOwners(resource, batch.ownerIds, frameContext, { paddingPx: margin });
@@ -925,7 +911,7 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
         // Both passes use the same geometry selector, independent of style
         // changes and viewport-independent GPU allocations.
         const cssMargin = Math.max(STROKE_CULL_PADDING_PX,
-          margin / Math.max(1, Number(frameContext.dpr) || 1) + 8);
+          margin / Math.max(0.25, Number(frameContext.dpr) || 1) + 8);
         const plan = visiblePlan(resource, ownerIds, frameContext, cssMargin);
         if (plan.missing) {
           if (key) missingKeys.push(key);

@@ -266,9 +266,6 @@ export function createTerritorialLabels({ capabilities = {builtinPlaces:true,eag
         selected,
       });
     }
-    // Visibility follows zoom, viewport and collision rules. GPU quality must
-    // never let territorial names consume a reduced budget ahead of places.
-    // layoutLabels still owns the fixed safety cap and protected priorities.
     const nextLabelLayoutMetrics = {
       qualityTier: dependencies.renderScene.currentRenderQuality.tier,
       qualityCandidateCount: candidates.length,
@@ -277,6 +274,7 @@ export function createTerritorialLabels({ capabilities = {builtinPlaces:true,eag
     const safe = frameContext.safeInset;
     const placed = (0, dependencies.labelPresentation.layoutLabels)(candidates, {
       zoom,
+      candidateLimit: dependencies.renderScene.currentRenderQuality.labelCandidateLimit,
       padding: (0, dependencies.surfaces.isMobile)() ? 5 : 3,
       bounds: {
         left: Number(safe.left || 0),
