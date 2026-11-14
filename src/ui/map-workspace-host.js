@@ -164,6 +164,10 @@ export function createMapHost({productMode='editor',readOnly=productMode==='view
         }
         if (view?.view) dependencies.projectState.state.view = (0, dependencies.platform.deepClone)(view.view);
         (0, dependencies.mapView.updateProjection)();
+        // A map-host camera update must invalidate labels and projected
+        // overlays as well as the GPU. A GPU-only repaint leaves DOM labels
+        // at their previous camera coordinates after programmatic zoom/pan.
+        dependencies.domains.renderingDomain?.invalidateView?.('map-host-camera-change');
         return true;
       },
       getViewportSize: () => {
