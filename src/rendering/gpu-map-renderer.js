@@ -3752,8 +3752,11 @@ export function createGpuMapRenderer(deps) {
       performanceMetrics.lastOverlayUploadBytes = overlayUploadBytes;
       performanceMetrics.overlayDeferredItemCount = deferredOverlayKeys.size;
       performanceMetrics.uploadBudgetOverrunCount += overrunCount;
-      // An upload completion already invalidates the relevant scene. Repeated
-      // redraws while the same buffers remain queued starve startup and input.
+      // An upload completion invalidates the scene. Only the synchronous
+      // fallback needs a next-frame request for a budget-deferred batch.
+      if (deferredOverlayKeys.size && overlayUploadBytes > 0
+          && preparedBaseScene.overlayReservedBytes === overlayUploadBytes)
+        invalidateGpuFrame('overlay-budget-next-batch');
     }
 
     function drawBaseSceneContent() {
