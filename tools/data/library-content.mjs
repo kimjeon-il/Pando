@@ -118,6 +118,17 @@ export function removeContentLink(shared, target) {
   if (!(s.mode & 0o200)) assertReadonlyUnlink(target, s.dev, blobIdentity.dev === targetIdentity.dev ? dirname(blob) : dirname(target));
   unlinkSync(target);
 }
+// The caller retires logical references first; shared physical links always win.
+export function removeUnlinkedContentBlob(shared, sha256) {
+  const blob = contentPath(shared, sha256);
+  if (!existsSync(blob)) return false;
+  const before = lstatSync(blob, { bigint: true });
+  if (!before.isFile() || before.isSymbolicLink() || before.nlink !== 1n) throw Error('Content blob still has a consumer');
+  exactContent(blob, sha256);
+  const current = lstatSync(blob, { bigint: true });
+  if (current.dev !== before.dev || current.ino !== before.ino || current.size !== before.size || current.mtimeNs !== before.mtimeNs || current.nlink !== 1n) throw Error('Content blob changed before removal');
+  chmodSync(blob, 0o600); unlinkSync(blob); return true;
+}
 export function linkContent(shared, sha256, target) {
   recoverContentPermissions(shared); const blob = contentPath(shared, sha256);
   target = contentTarget(shared, target); exactContent(blob, sha256);

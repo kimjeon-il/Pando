@@ -351,5 +351,5 @@ export function assertReportSubject(root, path) {
   const layout = reportRegistry(root).reportLayout || JSON.parse(git(librarySharedCheckout(root), ['show', `${reportMainRevision(root)}:archive/index.json`])).reportLayout;
   if (layout !== 'subjects-v1') return;
   const subject = path.slice(8).split('/')[0];
-  if (!Object.hasOwn(REPORT_SUBJECTS, subject) && !['README.md', 'TEMPLATE.md'].includes(subject)) throw Error(`Use a canonical report subject; obsolete path: ${path}`);
+  if (!Object.hasOwn(REPORT_SUBJECTS, subject)) throw Error(`Use a canonical report subject; obsolete path: ${path}`);
 }

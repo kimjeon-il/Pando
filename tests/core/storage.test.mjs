@@ -7,7 +7,7 @@ import {chmodSync,existsSync,lstatSync,mkdirSync,mkdtempSync,readFileSync,readdi
 import {dirname,join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {gzipSync} from 'node:zlib';
-import {contentHash,publishContent,linkContent,removeContentLink} from '../../tools/data/library-content.mjs';
+import {contentHash,publishContent,linkContent,removeContentLink,removeUnlinkedContentBlob} from '../../tools/data/library-content.mjs';
 import {prepareLibraryData,prepareLibraryMetadata,withLibraryWrite} from '../../tools/data/library-runtime.mjs';
 import {hydrateReports,reportRegistry} from '../../tools/data/library-reports.mjs';
 import {storeLibraryData,runtimeStoreIndex} from '../../tools/data/library-store.mjs';
@@ -43,7 +43,9 @@ const scope=['reports/development/task'];
 
 test('preparation reads the pinned edition across storage relocation and newer checkout data',t=>{
  const f=fixture(t),path='assets/data/selected/input.bin',bytes=Buffer.from('pinned bytes');
- const entry={...f.files[path],stored:'archive/blobs/'+contentHash(bytes)+'.bin'},pinned={files:{[path]:entry}};
+ const doc='assets/data/selected/task.md',docBytes=Buffer.from('# finished task');
+ put(f.data,doc,docBytes);
+ const entry={...f.files[path],stored:'archive/blobs/'+contentHash(bytes)+'.bin'},pinned={files:{[path]:entry,[doc]:{stored:doc,encoding:'identity',sha256:contentHash(docBytes),bytes:docBytes.length}}};
  put(f.data,entry.stored,bytes);put(f.data,'archive/index.json',JSON.stringify(pinned));git(f.data,'add','.');git(f.data,'commit','-qm','pinned archived original');
  const revision=git(f.data,'rev-parse','HEAD');put(f.root,'config/library-data.json',JSON.stringify({...f.config,revision}));
  const relocated={...entry,stored:libraryStoragePath(path,entry)},current={files:{[path]:relocated}};
@@ -53,6 +55,7 @@ test('preparation reads the pinned edition across storage relocation and newer c
  const newer=archive(f.data,{[path]:'newer bytes'},'newer');assert.deepEqual(runtimeStoreIndex(pinned,newer).files[path],entry);
  assert.equal(prepareLibraryMetadata({root:f.root,fetch:false}).index.files[path].sha256,contentHash(bytes));
  prepareLibraryData({root:f.root,fetch:false,purpose:'gis',prefixes:['assets/data/selected']});
+ assert.equal(existsSync(join(f.root,doc)),false,'old pinned task Markdown is not materialized');
  assert.equal(read(f.root,path),'pinned bytes');assert.notEqual(git(f.data,'rev-parse','HEAD'),revision);
 });
 
@@ -68,6 +71,7 @@ test('cleanup preserves protected source even inside a generated directory',t=>{
  linkContent(root,blob.sha256,view);
  const before=lstatSync(blob.path),originalChmod=fs.chmodSync;
  assert.equal(before.nlink,2);
+ assert.throws(()=>removeUnlinkedContentBlob(root,blob.sha256),/consumer/);
  fs.chmodSync=(target,...args)=>{
   if(existsSync(target)){
    const current=lstatSync(target);
@@ -84,6 +88,8 @@ test('cleanup preserves protected source even inside a generated directory',t=>{
  assert.equal(lstatSync(blob.path).nlink,1);
  assert.equal(existsSync(join(root,'.pando-store/.permission-restore.json')),false);
  assert.deepEqual(readdirSync(join(root,'reports')),[],'the capability probe leaves no temporary files');
+ assert.equal(removeUnlinkedContentBlob(root,blob.sha256),true);
+ assert.equal(existsSync(blob.path),false);
 });
 
 test('cleanup rejects escaping targets without deleting outside bytes',t=>{
