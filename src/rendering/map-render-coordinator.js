@@ -189,7 +189,9 @@ export function createMapRenderCoordinator({
       // change. Promote only genuinely changed cameras to a complete view
       // transaction. Unchanged cameras retain the cheap GPU-only path.
       if (nextCameraKey !== null && nextCameraKey !== acceptedCameraKey) {
-        mask |= INTERACTION_MASK | MAP_RENDER_DIRTY.PROJECTED_OVERLAYS;
+        // The admitted viewPresentation pass projects the attached SVG
+        // overlays once; do not duplicate its expensive path work here.
+        mask |= INTERACTION_MASK;
       }
 
       // Give domains one stable frame boundary so live render resources are
@@ -273,7 +275,8 @@ export function createMapRenderCoordinator({
         });
       }
       if ((mask & MAP_RENDER_DIRTY.GPU_INTERACTION)
-        && !(mask & (MAP_RENDER_DIRTY.SELECTION_DATA | MAP_RENDER_DIRTY.SELECTION_STYLE | MAP_RENDER_DIRTY.SELECTION_VIEW))) {
+        && !(mask & (MAP_RENDER_DIRTY.SELECTION_DATA | MAP_RENDER_DIRTY.SELECTION_STYLE
+          | MAP_RENDER_DIRTY.SELECTION_VIEW | MAP_RENDER_DIRTY.VIEW))) {
         const interactionResult = callRenderer('gpuInteraction', rendererTimes, viewState);
         // A stroke upload can complete without a selection or camera change.
         // Commit its coverage to the temporary SVG layer in this same frame.

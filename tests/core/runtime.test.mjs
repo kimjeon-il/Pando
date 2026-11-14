@@ -82,23 +82,29 @@ test('GPU-only refresh upgrades a changed camera to one complete accepted frame'
         succeeded:true,presentationReady:true,frameId:frame.frameId,
         viewRevision:frame.viewRevision,projectionRevision:frame.projectionRevision,
       };},
-      projectedOverlays:()=>events.push('overlay'),
+      projectedOverlays:()=>events.push('overlay-prepass'),
       selectionView:()=>events.push('selection'),
-      viewPresentation:()=>{events.push('dom');return true;},
+      gpuInteraction:()=>events.push('gpu-interaction'),
+      viewPresentation:()=>{events.push('overlay','dom');return true;},
     },
   });
   const next=()=>{assert.equal(callbacks.length,1);callbacks.shift()();};
   coordinator.invalidate(MAP_RENDER_DIRTY.GPU_FRAME,'first-frame');next();
-  assert.deepEqual(events,['gpu','overlay','selection','dom']);
+  assert.deepEqual(events,['gpu','selection','overlay','dom']);
   events.length=0;
   coordinator.invalidate(MAP_RENDER_DIRTY.GPU_FRAME,'resource-only');next();
   assert.deepEqual(events,['gpu'],'an unchanged camera must not reproject all SVG layers');
   assert.equal(viewDraws,2);
   events.length=0;camera=2;
   coordinator.invalidate(MAP_RENDER_DIRTY.GPU_FRAME,'camera-with-gpu-only-invalidation');next();
-  assert.deepEqual(events,['gpu','overlay','selection','dom']);
+  assert.deepEqual(events,['gpu','selection','overlay','dom']);
   assert.equal(viewDraws,3);
   assert.ok(coordinator.getStats().acceptedCameraKey);
+  // Interaction uploads must not submit a second WebGL pass after a newly
+  // detected camera already forced the complete view renderer.
+  events.length=0;camera=3;
+  coordinator.invalidate(MAP_RENDER_DIRTY.GPU_INTERACTION,'camera-interaction-change');next();
+  assert.deepEqual(events,['gpu','selection','overlay','dom']);
 });
 
 test('atomic map view publication waits for a matching GPU result',()=>{
