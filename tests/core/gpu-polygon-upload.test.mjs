@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createRenderDevice} from '../../src/rendering/render-device.js';
 import {createGpuPolygonOverlayPass} from '../../src/rendering/gpu-polygon-overlay-pass.js';
+import {createGpuUploadScheduler} from '../../src/rendering/gpu-upload-scheduler.js';
 
 function fakeWebGl2() {
   const names=['VERTEX_SHADER','FRAGMENT_SHADER','COMPILE_STATUS','LINK_STATUS',
@@ -82,4 +83,37 @@ test('polygon upload restores WebGL2 copy-write binding without any per-slice ge
   assert.equal(device.state.restoreCopyWriteBufferBinding(snapshot),false,'deleted buffer cannot be rebound');
   assert.equal(bindings.get(gl.COPY_WRITE_BUFFER),null);
   pass.dispose();device.state.dispose();
+});
+
+
+test('upload diagnostics distinguish polygon and terrain CPU steps and pending jobs',async()=>{
+  let clock=0, next=0;
+  const callbacks=new Map();
+  const scheduler=createGpuUploadScheduler({
+    requestFrame:callback=>{const id=++next;callbacks.set(id,callback);return id;},
+    cancelFrame:id=>callbacks.delete(id),
+    now:()=>clock,isHidden:()=>false,isInputPending:()=>false,getByteBudget:()=>1024,
+  });
+  let polygonSteps=0;
+  const polygon=scheduler.enqueueUpload({key:'polygon:base',priority:100,
+    step:()=>{clock+=1;polygonSteps++;return polygonSteps===1?{bytes:64}:{bytes:32,done:true};}});
+  const terrain=scheduler.enqueueUpload({key:'terrain:tile',priority:80,
+    step:()=>{clock+=0.5;return {bytes:48,done:true};}});
+  assert.deepEqual(scheduler.getStats().pendingByKind,
+    {polygon:1,terrain:1,stroke:0,natural:0,other:0});
+  while(callbacks.size) {
+    const [id,callback]=callbacks.entries().next().value;
+    callbacks.delete(id);callback();
+  }
+  await Promise.all([polygon,terrain]);
+  const s=scheduler.getStats();
+  assert.equal(s.pending,0);
+  assert.equal(s.byKind.polygon.steps,2);
+  assert.equal(s.byKind.polygon.uploadedBytes,96);
+  assert.equal(s.byKind.terrain.uploadedBytes,48);
+  assert.equal(s.byKind.terrain.steps,1);
+  assert.equal(s.byKind.polygon.cpuStepMs,2);
+  assert.equal(s.byKind.terrain.cpuStepMs,0.5);
+  assert.equal(s.uploadedBytes,144);
+  scheduler.dispose();
 });
