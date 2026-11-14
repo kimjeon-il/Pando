@@ -29,7 +29,8 @@ import {createApplicationLifecycle} from '../../src/app/application-lifecycle.js
 import {createPhysicalAssetReader} from '../../src/data/physical-asset-reader.js';
 import {createTerrainService} from '../../src/data/physical-layer-service.js';
 import {drawGpuBaseScene} from '../../src/rendering/gpu-base-scene-pass.js';
-import {createGpuResourceBudget} from '../../src/rendering/gpu-resource-budget.js';
+import {createGpuPolygonOverlayPass} from '../../src/rendering/gpu-polygon-overlay-pass.js';
+import {prepareGpuBaseScene} from '../../src/rendering/gpu-scene-preparation.js';
 import {createAdaptiveRenderQualityController, renderQualityProfile, resolveInitialRenderQuality} from '../../src/rendering/adaptive-render-quality.js';
 
 test('WebGL2 quality budgets simplify every object and change only after sustained active-frame evidence',()=>{
@@ -418,15 +419,31 @@ test('tiled display mesh retains only real outlines and trims reusable mesh cach
 
 
 test('physical relief keeps its stencil, skips transparent country paint and protects mandatory GPU geometry',()=>{
-  const budget=createGpuResourceBudget({byteBudget:10*1024**2});
-  budget.track('physical-land',25*1024**2,100);
-  budget.track('unneeded-overlay',1024**2,0);
-  const evicted=budget.setByteBudget(10*1024**2,{alsoProtected:['physical-land']});
-  assert.deepEqual(evicted,['unneeded-overlay']);
-  assert.equal(budget.stats().activeBytes,25*1024**2,
-    'changing quality must not discard the still-current land mask');
-  assert.deepEqual(budget.reconcile({active:[],protected:[]}),['physical-land'],
-    'a genuinely removed project source may release its former physical mask');
+  const mock={deleted:0};
+  const driver={VERTEX_SHADER:1,FRAGMENT_SHADER:2,COMPILE_STATUS:3,LINK_STATUS:4,
+    ARRAY_BUFFER:5,ELEMENT_ARRAY_BUFFER:6,STATIC_DRAW:7,
+    createShader:()=>({}),shaderSource(){},compileShader(){},getShaderParameter:()=>true,deleteShader(){},
+    createProgram:()=>({}),attachShader(){},linkProgram(){},getProgramParameter:()=>true,
+    getAttribLocation:()=>0,getUniformLocation:()=>0,createBuffer:()=>({}),bindBuffer(){},
+    bufferData(){},deleteBuffer(){mock.deleted++;},deleteProgram(){},isContextLost:()=>false};
+  const pass=createGpuPolygonOverlayPass();
+  assert.equal(pass.initialize({gl:driver,version:2,capabilities:{uintIndices:true}}),true);
+  pass.setByteBudget(64);
+  const packet=(key,role,length=6)=>({key,role,protected:role==='physical-land',
+    positions:new Float32Array(length),indices:new Uint32Array([0,1,2]),priority:0});
+  const base=packet('physical-land','physical-land',128);
+  const optional=packet('optional','territorial-fill');
+  const unused=packet('unused','territorial-fill');
+  for(const item of [base,optional,unused])assert.ok(pass.ensureResource(item).resource);
+  assert.equal(pass.stats().physicalBaseBufferBytes,base.positions.byteLength+base.indices.byteLength);
+  assert.equal(pass.stats().resourceBudget.activeBytes,120,'only the two optional resources are charged');
+  assert.equal(pass.stats().resourceBudget.overBudgetBytes,56);
+  assert.deepEqual(pass.retain(['physical-land','optional'],{protectedKeys:['physical-land']}),['unused']);
+  assert.equal(pass.stats().resourceBudget.overBudgetBytes,0);
+  assert.equal(pass.stats().activeBufferBytes,base.positions.byteLength+base.indices.byteLength+60);
+  assert.ok(pass.retain([]).includes('physical-land'),'retired source releases required base allocations');
+  assert.equal(pass.stats().physicalBaseBufferBytes,0);
+  pass.dispose();
 
   const calls={physical:0,country:0,terrain:[]};
   const gl={};
@@ -461,4 +478,31 @@ test('physical relief keeps its stencil, skips transparent country paint and pro
   drawGpuBaseScene({...input,countryPaintVisible:true},passes);
   assert.equal(calls.physical,2);
   assert.equal(calls.country,1,'authored visible paint must still render');
+});
+
+test('GPU upload queue prioritizes physical masks and caps pending optional resource admission',()=>{
+  const requests=[],ready=new Set(),polygons=[
+    {key:'physical-land',role:'physical-land',protected:true,priority:100,order:0,byteLength:1024*1024},
+    {key:'optional-a',role:'territorial-fill',priority:5,order:1,byteLength:40*1024},
+    {key:'optional-b',role:'territorial-fill',priority:5,order:2,byteLength:40*1024},
+  ];
+  const pass={hasPreparedResource:item=>ready.has(item.key),ensureResource:item=>{
+    requests.push(item.key);
+    return {resource:null,reason:'upload-pending'};
+  }};
+  const input={mesh:null,overrideMesh:null,frame:{projectGeneration:1},
+    scene:{polygons,strokes:[]},budgetBytes:64*1024,presentedStrokeDomains:new Map()};
+  const prepare=()=>prepareGpuBaseScene(input,{polygonOverlayPass:pass,strokeRenderer:{hasPreparedResource:()=>true}});
+  let plan=prepare();
+  assert.deepEqual(requests,['physical-land'],'optional work cannot crowd mandatory physical uploads');
+  assert.equal(plan.overlayReservedBytes,1024*1024);
+  assert.ok(plan.deferredOverlayKeys.has('optional-a'));
+  ready.add('physical-land');requests.length=0;plan=prepare();
+  assert.deepEqual(requests,['optional-a'],'only one optional upload fits the in-flight byte reservation');
+  assert.equal(plan.overlayReservedBytes,40*1024);
+  ready.add('optional-a');requests.length=0;plan=prepare();
+  assert.deepEqual(requests,['optional-b'],'a completed upload frees room for the next optional geometry');
+  ready.add('optional-b');requests.length=0;plan=prepare();
+  assert.deepEqual(requests,[]);
+  assert.equal(plan.deferredOverlayKeys.size,0);
 });

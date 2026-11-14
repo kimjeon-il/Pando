@@ -318,6 +318,10 @@ export function createGpuPolygonOverlayPass({ onError = null, onResourceReady = 
   function retain(keys = [], { protectedKeys = [] } = {}) {
     if (!gl || gl.isContextLost?.()) return [];
     const retained = new Set([...keys, ...protectedKeys].map(String));
+    // Reject stale uploads from a superseded physical scene before they
+    // allocate buffers that the current source cannot display.
+    for (const key of [...pendingUploads.keys()]) if (!retained.has(key))
+      uploadScheduler?.cancelKey('polygon:' + key);
     const releasedPhysical = [];
     // Required base resources follow physical-source ownership instead of LRU.
     for (const [key, resource] of resources) if (isPhysicalBase(resource) && !retained.has(key)) {
