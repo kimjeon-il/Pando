@@ -292,7 +292,7 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
     selectionServices:{normalizeObjectRef},objectLookup:objectQuery,objectOperationsA:objectQuery,territorialModel:{entityRepository:repository},
     renderScene:{OVERLAY_GROUPS},mapView:mapProjection,
     labelPresentation:{currentMapZoom:currentZoom},cutGeometry:{coordinateBounds},landRelations:{pointInCountryFeature:(coord,feature)=>hitTester.containsGeometry(coord,feature.geometry)},
-    spatialRecords:spatialIndex,hydroModel:{hydroFeatureById:hydroById},rendering:{selectionPerformanceMetrics},hydroPresentation:{hydroEditById},surfaces:{isMobile},
+    spatialRecords:spatialIndex,hydroModel:{hydroFeatureById:hydroById},rendering:{gpuMapRenderer:renderer,selectionPerformanceMetrics},hydroPresentation:{hydroEditById},surfaces:{isMobile},
 
     pointerInteractionA:{get hydroAtScreenPoint(){return pointerTargets.hydroAtScreenPoint;}},
     domains:{projectDomain,selectionDomain:selectionDomain,get selectionUiController(){return documentSession.selectionUiController;}},
