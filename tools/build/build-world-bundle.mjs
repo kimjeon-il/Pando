@@ -1,3 +1,4 @@
+import { validateScopedRetirementDerivation } from '../../src/data/world-bundle-manifest.js';
 import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync, existsSync, mkdirSync, renameSync, unlinkSync } from 'node:fs';
 import {withLibraryOutputs} from "../data/library-runtime.mjs";
@@ -112,7 +113,10 @@ export function verifyPublishedWorldBundle({root,catalogPath='assets/data/world/
   for(const role of Object.keys(ROLES))verified(catalogue.assets?.[role],role);
   const prepared=catalogue.assets?.preparedCountryScene;
   if(prepared)verified(prepared,'prepared-country-scene',false);
+  const scopedRetirement=validateScopedRetirementDerivation(catalogue.derivation);
+  if(scopedRetirement&&(prepared||Object.keys(catalogue.compatibility?.sharedBoundaries||{}).length))throw Error('Scoped retirement caches must be detached');
   for(const role of ['canonical']) {
+    if(scopedRetirement)continue;
     const reference=assertDataPath(catalogue.compatibility?.sharedBoundaries?.[role]);
     if(!existsSync(resolve(data,reference)))
       throw new Error('Missing published shared boundary: '+role);

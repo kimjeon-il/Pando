@@ -124,7 +124,8 @@ export function normalizeTerritorialLibraryEntity(raw,{normalizeVersionGeometry=
     ids.add(id);
     // Use the existing archive's structural validator. This isolated registry
     // validates a snapshot; its reference never becomes a project GeometryRef.
-    return { ...structuredClone(version), ...normalizeVersionGeometry(version,raw.entityKind,id,entityId), versionId:id, ...interval(version) };
+    const normalized=normalizeVersionGeometry(version,raw.entityKind,id,entityId);
+    return { ...structuredClone(Object.hasOwn(normalized,'geometry')&&Object.hasOwn(version,'geometry')?{...version,geometry:null}:version), ...normalized, versionId:id, ...interval(version) };
   });
   for (let i = 0; i < geometryVersions.length; i++) {
     for (let j = i + 1; j < geometryVersions.length; j++) {

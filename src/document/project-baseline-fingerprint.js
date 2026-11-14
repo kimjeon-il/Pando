@@ -14,3 +14,14 @@ export async function fingerprintProjectBaseline(features) {
   const digest = await crypto.subtle.digest('SHA-256', bytes);
   return [...new Uint8Array(digest)].map(value => value.toString(16).padStart(2, '0')).join('');
 }
+
+// Exact per-geometry identity retained by the current world classification manifest.
+export function geometryFingerprint(geometry) {
+  const source = JSON.stringify(geometry ?? null);
+  let hash = 2166136261;
+  for (let index = 0; index < source.length; index += 1) {
+    hash ^= source.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return `${source.length.toString(36)}:${(hash >>> 0).toString(36)}`;
+}
