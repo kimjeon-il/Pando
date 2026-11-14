@@ -5,6 +5,7 @@ on:
     branches: [work/gis]
     paths:
       - .github/workflows/application-architecture.yml
+      - tests/browser/viewer.spec.mjs
   workflow_dispatch:
     inputs:
       group:
