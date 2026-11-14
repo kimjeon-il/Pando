@@ -11,7 +11,6 @@ on:
       - scripts/lib/product-assets.mjs
       - src/app/viewer.js
       - tools/build/stage-monorepo-pages.mjs
-      - docs/development/builtin-country-deployment.md
   workflow_dispatch:
     inputs:
       activate:

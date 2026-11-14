@@ -1,5 +1,5 @@
 import {execFileSync} from "node:child_process";
-import {existsSync,lstatSync,mkdirSync,readFileSync,readdirSync,renameSync,rmdirSync,statfsSync,unlinkSync} from "node:fs";
+import {existsSync,lstatSync,mkdirSync,mkdtempSync,readFileSync,readdirSync,renameSync,rmdirSync,statfsSync,unlinkSync} from "node:fs";
 import {dirname,relative,resolve,sep} from "node:path";
 import {gunzipSync} from "node:zlib";
 import {organizedReportPath,reportDocumentDetails,reportSubjectReadmes,rewriteReportArtifact} from "./library-report-layout.mjs";
@@ -375,4 +375,67 @@ export function publishLibraryReports({ root = defaultRoot, prefixes, removePath
 
 export function checkLibraryReports({ root = defaultRoot, prefixes, removePaths = [] } = {}) {
   return withLibraryLock(root, () => checkOwnedReports(root, prefixes, removePaths),{compact:false});
+}
+
+// Create a descendant archive edition without checking out data or touching any
+// caller index, working bytes, branch, owner ref or remote. Publication is separate.
+export function createReportRetirementCommit({ root = defaultRoot, revision, removePaths, documentationPaths = [] } = {}) {
+  if (!/^[a-f0-9]{40}$/.test(revision || '')) throw Error('Report retirement requires an explicit commit revision');
+  const plainPath = path => typeof path === 'string' && /^[\w.-]+(?:\/[\w.-]+)+$/.test(path)
+    && !path.split('/').some(part => part.startsWith('.'));
+  const storagePath = path => typeof path === 'string' && /^[\w.-]+(?:\/[\w.-]+)+$/.test(path)
+    && !path.split('/').some(part => part.startsWith('.') && part !== '.originals');
+  const protectedPath = path => /(?:^|\/)AGENTS(?:\.override)?\.md$/i.test(path)
+    || /(?:^|\/)docs\/policies(?:\/|$)/i.test(path)
+    || /(?:^|\/)(?:vendor|third[-_]party|third[-_]party[-_]notices)(?:\/|$)/i.test(path)
+    || /(?:^|\/)(?:license|licence|copying|copyright|notice|notices|third[-_]?party[-_]?(?:notices|licenses))(?:[._-]|$)/i.test(path);
+  if (!Array.isArray(removePaths) || !removePaths.length || removePaths.some(path => !plainPath(path)
+    || !/\.(?:md|markdown|mdx)$/i.test(path) || protectedPath(path))) throw Error('Unsafe or protected Markdown retirement path');
+  if (!Array.isArray(documentationPaths) || documentationPaths.some(path => !removePaths.includes(path)
+    || !/^(?:archive|docs|tools)\//.test(path))) throw Error('Documentation retirement paths must be explicit selected archive/docs/tools Markdown');
+  const documentation = new Set(documentationPaths);
+  const paths = [...new Set(removePaths)], shared = librarySharedCheckout(root);
+  if (git(shared, ['cat-file', '-t', revision]) !== 'commit') throw Error('Report retirement revision must name a commit');
+  const index = JSON.parse(git(shared, ['show', `${revision}:archive/index.json`]));
+  if (!index.files || Array.isArray(index.files) || typeof index.files !== 'object') throw Error('Invalid archive index');
+  const tracked = new Map(git(shared, ['ls-tree', '-rz', '--full-tree', revision]).split('\0').filter(Boolean).map(row => {
+    const tab = row.indexOf('\t'); return [row.slice(tab + 1), row.slice(0, tab).split(' ')];
+  }));
+  const entries = paths.map(path => {
+    if (!path.startsWith('reports/') && !Object.hasOwn(index.files, path) && !documentation.has(path)) throw Error(`Not an archived source Markdown path: ${path}`);
+    if (!Object.hasOwn(index.files, path) && !tracked.has(path)) throw Error(`Markdown retirement path is absent: ${path}`);
+    const metadata = tracked.get(path);
+    if (documentation.has(path) && !metadata) throw Error(`Documentation retirement requires a tracked plain file: ${path}`);
+    if (metadata && (metadata[1] !== 'blob' || !['100644', '100755'].includes(metadata[0]))) throw Error(`Retirement requires a plain file: ${path}`);
+    const entry = index.files[path];
+    if (entry && (!storagePath(entry.stored) || protectedPath(entry.stored)
+      || entry.stored !== path && !/\.(?:gz|bin)$/i.test(entry.stored))) throw Error(`Unsafe archived Markdown storage path: ${path}`);
+    delete index.files[path]; return { path, entry };
+  });
+  const retainedStorage = new Set(Object.values(index.files).map(entry => entry.stored)), removed = new Set();
+  for (const { path, entry } of entries) {
+    if (tracked.has(path)) {
+      if (retainedStorage.has(path)) throw Error(`Retained archive entry still references retired Markdown: ${path}`);
+      removed.add(path);
+    }
+    if (entry && !retainedStorage.has(entry.stored) && tracked.has(entry.stored)) removed.add(entry.stored);
+  }
+  const bytes = Buffer.from(JSON.stringify(index) + '\n');
+  mkdirSync(resolve(shared, '.pando-store'), { recursive: true });
+  const directory = mkdtempSync(resolve(shared, '.pando-store/report-retirement-')), scratch = resolve(directory, 'index');
+  const env = { ...process.env, GIT_INDEX_FILE: scratch, GIT_NO_LAZY_FETCH: '1', GIT_OPTIONAL_LOCKS: '0' };
+  const run = (args, input) => execFileSync('git', [...gitOptions, ...args], { cwd: shared, env, input, encoding: 'utf8', stdio: 'pipe', maxBuffer: 16 * 1024 * 1024 }).trim();
+  try {
+    run(['read-tree', revision]);
+    if (removed.size) run(['update-index', '--force-remove', '-z', '--stdin'], [...removed].join('\0') + '\0');
+    const blob = run(['hash-object', '-w', '--stdin'], bytes);
+    run(['update-index', '-z', '--index-info'], `100644 ${blob}\tarchive/index.json\0`);
+    const tree = run(['write-tree']);
+    const next = run(['-c', 'user.name=Pando library publisher', '-c', 'user.email=library-publisher@users.noreply.github.com',
+      'commit-tree', tree, '-p', revision, '-m', 'Retire explicitly selected Markdown [skip ci]']);
+    return { revision: next, parent: revision, removed: paths.length };
+  } finally {
+    for (const path of [scratch + '.lock', scratch]) if (existsSync(path)) unlinkSync(path);
+    rmdirSync(directory);
+  }
 }

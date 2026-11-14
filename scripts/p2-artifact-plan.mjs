@@ -119,9 +119,7 @@ function validationOrPresentationOnly(changes,graph) {
   "src/rendering/map-renderer-composition.js",
   "src/data/physical-resources.js",
   "src/rendering/gpu-map-renderer.js",
-  "scripts/remote-only-doctor.mjs",
-  "scripts/lib/check-changes.mjs",
-  "playwright.codespaces.config.js"
+  "scripts/lib/check-changes.mjs"
 ]);
 
   const inputMatches=(selector,path)=>typeof selector==='string'
