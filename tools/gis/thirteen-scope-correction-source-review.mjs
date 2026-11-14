@@ -24,4 +24,3 @@ export function assertThirteenScopeCorrection(next,previous,{prefixes,readEviden
  if(receipt.schemaVersion!==1||receipt.method!=='restore-fixed-prewhole-existing-complete-scope'||receipt.entityId!==next.entityId||receipt.previousDescriptorSha256!==thirteenCorrectionHashes.before||receipt.restoredDescriptorSha256!==thirteenCorrectionHashes.after||receipt.restoredGeometrySha256!==thirteenCorrectionHashes.resource||receipt.priorRevision!=='bedccc6c4d891f1a4c25be06faa402145643ca78'||receipt.sourceOnly!==true||receipt.equalsSingleOriginal!==false||receipt.geometryWrites!==0||receipt.runtime!==false)fail('fixed source-only corrective receipt required');
  return 1;
 }
-

@@ -43,5 +43,3 @@ export function assertOriginalRetainedComposition(next,previous,{prefixes,readEv
  if(s.geometrySha256!==digest(v.geometry)||next.sourceInfo?.geometrySha256!==digest(v.geometry)||next.sourceInfo?.geometryVersionId!==v.versionId)fail('mixed-source geometry attribution differs');
  return 1;
 }
-
-
