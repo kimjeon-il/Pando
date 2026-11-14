@@ -26,7 +26,7 @@ export function territorialSourceIndex(archive){
 
 export function readTerritorialArchiveDescriptor(index,entityId,readStored){
   const entry=index.sources[entityId];if(!entry)throw Error('Missing territorial source: '+entityId);
-  const stored=readStored(entry.stored),bytes=decodeLibraryArchiveBytes(stored,entry);
+  const stored=readStored(entry.stored),bytes=decodeLibraryArchiveBytes(stored,entry,{readStored});
   if(JSON.parse(bytes).entityId!==entityId)throw Error('Territorial source filename identity mismatch: '+entityId);
   return {bytes,resource:{url:entry.stored,encoding:entry.encoding,compressedBytes:stored.length,
     decodedBytes:bytes.length,sha256:hash(stored)}};
@@ -38,9 +38,12 @@ export function readTerritorialArchiveEntity(index,entityId,readStored){
     if(!geometryPayloads.has(file)){
       const entry=index.resources?.['assets/data/territorial-entities/source/'+file];
       if(!entry||!safe(entry.stored))throw Error('Missing territorial geometry archive resource: '+file);
-      const stored=readStored(entry.stored),bytes=decodeLibraryArchiveBytes(stored,entry);
-      geometryPayloads.set(file,{bytes,resource:{url:entry.stored,encoding:entry.encoding,compressedBytes:stored.length,
-        decodedBytes:bytes.length,sha256:hash(stored)}});
+      const stored=readStored(entry.stored),bytes=decodeLibraryArchiveBytes(stored,entry,{readStored});
+      geometryPayloads.set(file,{bytes,resource:entry.encoding==='gzip-chunks'?{
+        url:entry.stored,encoding:entry.encoding,compressedBytes:entry.packedBytes,decodedBytes:bytes.length,sha256:entry.packedSha256,
+        manifestBytes:stored.length,manifestSha256:hash(stored),parts:entry.chunks.map(part=>({url:part.stored,compressedBytes:part.bytes,sha256:part.sha256})),
+        requiresChunkedArchiveReader:true
+      }:{url:entry.stored,encoding:entry.encoding,compressedBytes:stored.length,decodedBytes:bytes.length,sha256:hash(stored)}});
     }
     return geometryPayloads.get(file).bytes;
   });

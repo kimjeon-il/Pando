@@ -16,7 +16,33 @@ function validRelativePath(path) {
     && path.split('/').every(part => part && part !== '.' && part !== '..');
 }
 
+// A display-only scoped correction retains its baseline derivation explicitly.
+// Evidence is verified by the archive producer; runtime receives hashes, never private report URLs.
+export function validateScopedRetirementDerivation(derivation) {
+  // Current canonical-only manifests carry counts but no preview/retirement marker.
+  if(derivation?.preview===undefined&&derivation?.scopedRetirement===undefined
+    &&Number.isInteger(derivation?.coordinateCount)&&derivation.coordinateCount>0
+    &&Number.isInteger(derivation?.meshAlgorithmRevision)&&derivation.meshAlgorithmRevision>0)return false;
+  if(derivation?.preview==='canonical-topology-simplified') {
+    if(derivation.scopedRetirement!==undefined)throw new Error('Unexpected scoped retirement proof');
+    return false;
+  }
+  const proof=derivation?.scopedRetirement;
+  const exact=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+  if(derivation?.preview!=='scoped-retirement-patch'||proof?.schemaVersion!==1
+    ||!exact(Object.keys(proof||{}).sort(),['baselinePreview','baselineWorldSha256','detachedCaches','layerPreimages','patchReceiptSha256','recipientIds','retiredIds','schemaVersion'])
+    ||proof.baselinePreview!=='canonical-topology-simplified'
+    ||!HEX_256.test(proof.baselineWorldSha256)||!HEX_256.test(proof.patchReceiptSha256)
+    ||!exact(proof.retiredIds,['KAB','BJN','SER','PGA'])
+    ||!exact(proof.recipientIds,['KAZ','COL','VNM','PHL','CHN','TWN'])
+    ||!exact(proof.detachedCaches,['preparedCountryScene','sharedBoundaries'])
+    ||!exact(Object.keys(proof.layerPreimages||{}).sort(),['currentworld','pcg','preview'])
+    ||!Object.values(proof.layerPreimages).every(v=>HEX_256.test(v)))
+    throw new Error('Invalid scoped world retirement derivation');
+  return true;
+}
 export function validateWorldBundle(bundle) {
+  const scopedRetirement=validateScopedRetirementDerivation(bundle?.derivation);
   if (bundle?.schema !== WORLD_BUNDLE_SCHEMA || bundle.schemaVersion !== WORLD_BUNDLE_FORMAT) {
     throw new Error('지원하지 않는 세계지도 데이터 매니페스트입니다.');
   }
@@ -27,6 +53,7 @@ export function validateWorldBundle(bundle) {
     || !Number.isInteger(bundle.derivation?.meshAlgorithmRevision)) {
     throw new Error('세계지도 정본·생성 정보가 올바르지 않습니다.');
   }
+  if(scopedRetirement&&(bundle.assets?.preparedCountryScene||Object.keys(bundle.compatibility?.sharedBoundaries||{}).length))throw new Error('Scoped retirement caches must be detached');
   const assets = {};
   for (const [role, [name, ext, encoding]] of Object.entries(ROLES)) {
     const asset = bundle.assets?.[role];

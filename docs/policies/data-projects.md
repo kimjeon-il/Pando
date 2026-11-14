@@ -50,3 +50,6 @@
 
 - 참조가 끝난 구형 정적 URL의 영구 유지·자동 redirect·대체 호스팅 의무는 없다. 현재 pin·Viewer·Worker·생성기·매니페스트·유효 fixture가 참조하는 파일과 원본 무결성·역사 증거는 유지한다. 낮은 버전·오래된 이름만으로 삭제하지 않는다.
 - 과거 개별 삭제 승인을 다른 자산의 포괄 삭제나 main 통합·배포 승인으로 재사용하지 않는다. 소비자·정확한 bytes·복구 가능성과 현재 보존 정책을 확인한 범위만 정리한다. 미복원 archive/report의 부재는 삭제가 아니다. 실제 공개는 배포된 앱 main의 자료 pin으로만 결정한다.
+
+- 원본 enclave hole 채택은 원래 ordered ring 좌표와 전후 해시, 대응 객체/version을 hash-bound receipt에 보존한다. 선언하지 않은 좌표·형상·소유 필드는 유지하고 부분 원본을 전체 원본으로 주장하지 않는다. source-only 승인은 표시·compiled 게시 승인이 아니다.
+- KAB/BJN/SER/PGA의 활성 identity 정정은 외부 원본·복구 이력·공유 자산을 보존한다. KAZ/COL 및 기존 Spratly 수령국의 해당 층 형상만 검증해 보완하며 역사 버전·UMI·실제 Wake를 바꾸지 않는다. 관련 source/runtime/mesh/index 짝 검증 전 일부만 활성화하지 않는다.

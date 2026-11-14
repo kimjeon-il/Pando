@@ -465,7 +465,7 @@ export function beginLibraryWrite({ root = defaultRoot, prefixes, pid = process.
     const id = `${owner}-${randomUUID()}`, file = resolve(shared, '.pando-store/leases', id + '.json');
     const lease = { schema: 'pando-library-write-v1', id, root: resolve(root), owner, revision: config.revision, view, pid, prefixes, startedAt: new Date().toISOString() };
     atomicStorageJSON(file, lease); return lease;
-  });
+  }, { compact: false });
 }
 
 export function endLibraryWrite({ root = defaultRoot, id } = {}) {
@@ -484,7 +484,7 @@ export function endLibraryWrite({ root = defaultRoot, id } = {}) {
     for(const logical of Object.keys(record.files))if(lease.prefixes.some(scope=>logical===scope||logical.startsWith(scope+'/'))&&!seen.has(logical))delete record.files[logical];
     atomicStorageJSON(manifest,record);
     unlinkSync(file);
-  });
+  }, { compact: false });
   const until = Date.now() + 10000;
   for (;;) {
     try { return release(); } catch (error) {
