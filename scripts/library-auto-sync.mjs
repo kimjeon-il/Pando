@@ -15,7 +15,7 @@ import {prepareLibraryData} from "../tools/data/library-runtime.mjs";
 import {storeLibraryData} from "../tools/data/library-store.mjs";
 import {RECEIPT_PATH,artifactGraph,ownsPath} from './lib/p2-artifact-graph.mjs';
 const APP='kimjeon-il/Pando',DATA='kimjeon-il/PandoLab-library';
-const CONFIG='config/library-data.json',FIXTURE='tests/fixtures/builtin-modern-interval-baseline.json';
+const CONFIG='config/library-data.json';
 const FAMILIES=Object.freeze(['territorial','current-world','world-mesh','world-country-packet','world-bundle','shared-boundaries','builtin-world','prepared-mesh']);
 const SHA=/^(?!0{40}$)[a-f0-9]{40}$/;
 const hash=b=>createHash('sha256').update(b).digest('hex');
@@ -37,7 +37,7 @@ export function parseAutomaticEnvironment(env){
  if(env.GITHUB_EVENT_NAME==='push'&&(branch!=='work/gis'||!SHA.test(requestedDataSha||'')||requestedDataSha!==dataSha))fail('INVALID_WORK_GIS_REQUEST');
  return {branch,dataSha,productionEnabled,requestedDataSha};
 }
-export function assertAppPaths(paths){if(paths.some(p=>![CONFIG,FIXTURE].includes(p)))fail('UNEXPECTED_APP_PATH');}
+export function assertAppPaths(paths){if(paths.some(p=>![CONFIG].includes(p)))fail('UNEXPECTED_APP_PATH');}
 export function compareCandidateOutputs(expected,actual){
  const keys=o=>Object.keys(o).sort();
  if(JSON.stringify(keys(expected))!==JSON.stringify(keys(actual))||keys(expected).some(p=>expected[p]!==actual[p]))fail('CANDIDATE_OUTPUT_MISMATCH');
@@ -123,7 +123,7 @@ export function createAutomaticAdapters({root,env=process.env,settings,io={}}){
   (io.prepareLibraryData||prepareLibraryData)({root,fetch:false,purpose:'viewer-legacy'});
   const result=await (io.deriveAutomaticRuntime||deriveAutomaticRuntime)({root,inputProjection:runtimeProjection,regenerationOnly,inputDataSha:p.h.data,expectedAppSha:p.h.app,expectedDataSha:p.c.revision,branch,generatorIdentity:p.id,stageDir:'build-native/p2/automatic'});
   await assertCurrent(token);
-  derived={candidate:p.h.data,result,fixtureHash:hash(readFileSync(resolve(root,FIXTURE)))};
+  derived={candidate:p.h.data,result};
   if(p.runtimeChanges.length){
    if(!p.receipt)fail('UNVERIFIED_RUNTIME_EDITS');
    // Compare exact full expected output inventory, not only candidate-listed hashes.
@@ -136,7 +136,7 @@ export function createAutomaticAdapters({root,env=process.env,settings,io={}}){
    inspectCanonicalInputs({changedPaths:p.changedPaths,revision:p.h.data,baselineRevision:p.c.revision,readBlob:blob,verifiedGeneratedPaths:p.runtimeChanges});
    return;
   }
-  const removed=result.changedPaths.filter(path=>path!==FIXTURE&&!result.sourcePaths.includes(path)&&path!==RECEIPT_PATH&&!Object.hasOwn(result.autoReceipt.outputs,path));
+  const removed=result.changedPaths.filter(path=>!result.sourcePaths.includes(path)&&path!==RECEIPT_PATH&&!Object.hasOwn(result.autoReceipt.outputs,path));
   const prefixes=[...new Set([...Object.keys(result.autoReceipt.outputs),...result.sourcePaths,...removed,RECEIPT_PATH])];
   console.log(JSON.stringify({phase:'store-start',inputDataSha:p.h.data}));
   stored=(io.storeLibraryData||storeLibraryData)({root,push:true,prefixes,removePaths:removed,expectedRevision:p.h.data,expectedBranch:branch});
@@ -149,7 +149,7 @@ export function createAutomaticAdapters({root,env=process.env,settings,io={}}){
   if(!SHA.test(target||''))fail('INVALID_CONNECT_REVISION');
   // Read published pin from Git HEAD, never the owner-modified working config.
   const c=config(p.h.app);
-  if(!derived||![stored,derived.candidate].includes(target)||hash(readFileSync(resolve(root,FIXTURE)))!==derived.fixtureHash)fail('UNVERIFIED_APP_FIXTURE');
+  if(!derived||![stored,derived.candidate].includes(target))fail('UNVERIFIED_APP_DATA');
   const working=JSON.parse(readFileSync(resolve(root,CONFIG)));
   if(![c.revision,target].includes(working.revision))fail('WORKING_PIN_CHANGED');
   working.revision=c.revision;if(!isDeepStrictEqual(working,c))fail('WORKING_CONFIG_CHANGED');
@@ -157,7 +157,7 @@ export function createAutomaticAdapters({root,env=process.env,settings,io={}}){
   writeFileSync(resolve(root,CONFIG),JSON.stringify(c,null,2)+'\n');
   const dirty=text(root,['diff','--name-only']).split('\n').filter(Boolean);assertAppPaths(dirty);
   const staged=text(root,['diff','--cached','--name-only']).split('\n').filter(Boolean);if(staged.length)fail('PREEXISTING_INDEX_CHANGES');
-  text(root,['add','--',CONFIG,FIXTURE]);
+  text(root,['add','--',CONFIG]);
   assertAppPaths(text(root,['diff','--cached','--name-only']).split('\n').filter(Boolean));
   await assertCurrent(token);
   text(root,['-c','user.name=Pando automatic data publisher','-c','user.email=library-publisher@users.noreply.github.com','commit','-m',`Connect complete library data ${target}`]);

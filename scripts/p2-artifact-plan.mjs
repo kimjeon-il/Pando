@@ -66,7 +66,7 @@ export function selectJobs({wasm},changed=[],manual='auto') {
   // compiled input identity and must not force an otherwise unchanged compiler.
   const bootstrap=changed.some(p=>[
     '.github/workflows/generated-artifacts-p2.yml',
-    'scripts/p2-artifact-plan.mjs','tests/unit/build/artifact-plan.test.mjs',
+    'scripts/p2-artifact-plan.mjs',
     'cmake/P2NativeBuildReceipt.cmake'].includes(p));
   const forced=manual==='all';
   const wasmDefinitionChanged=changed.some(p=>[
@@ -100,7 +100,6 @@ export function assertArtifactsCurrent(statuses,selected=Object.keys(statuses)) 
 
 function validationOrPresentationOnly(changes,graph) {
   const validationPaths=new Set([
-    '.github/actions/native-test-prerequisites/action.yml',
     '.github/workflows/application-architecture.yml',
     '.github/workflows/generated-artifacts-p2.yml',
     'scripts/p2-publish-artifacts.mjs',
@@ -110,14 +109,8 @@ function validationOrPresentationOnly(changes,graph) {
     'eslint.config.js',
     '.github/workflows/viewer-preview.yml',
     'scripts/run-boundary-revision-comparison.mjs',
-    'scripts/check-territorial-library.mjs',
-    'scripts/lib/late-soviet-check.mjs',
-    'scripts/lib/native-test-prerequisites.mjs',
-    'scripts/prepare-native-test-tools.mjs',
     'scripts/lib/library-preparation-wait.mjs',
     'scripts/frontend-dev-server.mjs',
-    'scripts/check-renderer-v2.mjs','scripts/lib/renderer-v2-architecture.mjs',
-    'scripts/contracts/territorial-storage-access.json','scripts/lib/territorial-storage-audit.mjs',
     'tools/cpp/validate-country-geometry.cpp','tools/cpp/country-properties.h',
     'scripts/contracts/application-checks.json','scripts/p2-artifact-plan.mjs',
     'src/map/map-input-presentation.js',

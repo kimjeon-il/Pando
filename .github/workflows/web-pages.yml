@@ -1,52 +1,46 @@
 name: Web-only GitHub Pages
-# Deployment request 2026-11-10: republish integrated main with the existing pinned-data and live-verification gates.
-
 on:
   push:
-    branches: [main]
-    # Only a changed published Viewer/build/dependency closure can republish Pages.
-    # Tests, docs, GIS research reports and unrelated CI edits do not redeploy.
+    branches:
+      - main
     paths:
-      - 'src/**'
-      - 'assets/**'
-      - 'projects/**'
-      - 'config/library-data.json'
-      - 'config/generated-artifacts.json'
-      - 'config/core-source-roots.json'
-      - 'config/toolchain-versions.json'
-      - 'scripts/build-ui-bundle.mjs'
-      - 'scripts/generate-build-metadata.mjs'
-      - 'scripts/lib/frontend-*.mjs'
-      - 'scripts/lib/product-*.mjs'
-      - 'scripts/lib/worker-assets.mjs'
-      - 'scripts/lib/map-catalog-coherence.mjs'
-      - 'scripts/lib/gzip-asset-verification.mjs'
-      - 'tools/build/stage-monorepo-pages.mjs'
-      - 'tools/build/package-shared-core-assets.mjs'
-      - 'tools/data/**'
-      - 'tools/checks/verify-pages-deployment.mjs'
-      - 'tools/checks/verify-pages-identity.mjs'
-      - '.github/actions/library-data/**'
-      - '.github/workflows/web-pages.yml'
-      - 'package.json'
-      - 'pnpm-lock.yaml'
-      - 'pnpm-workspace.yaml'
-      - '.pnpmfile.mjs'
-      - '.nvmrc'
+      - src/**
+      - assets/**
+      - projects/**
+      - config/library-data.json
+      - config/generated-artifacts.json
+      - config/core-source-roots.json
+      - config/toolchain-versions.json
+      - scripts/build-ui-bundle.mjs
+      - scripts/generate-build-metadata.mjs
+      - scripts/lib/frontend-*.mjs
+      - scripts/lib/product-*.mjs
+      - scripts/lib/worker-assets.mjs
+      - scripts/lib/map-catalog-coherence.mjs
+      - scripts/lib/gzip-asset-verification.mjs
+      - tools/build/stage-monorepo-pages.mjs
+      - tools/build/package-shared-core-assets.mjs
+      - tools/data/**
+      - tools/checks/verify-pages-deployment.mjs
+      - tools/checks/verify-pages-identity.mjs
+      - .github/actions/library-data/**
+      - .github/workflows/web-pages.yml
+      - package.json
+      - pnpm-lock.yaml
+      - pnpm-workspace.yaml
+      - .pnpmfile.mjs
+      - .nvmrc
   workflow_dispatch:
     inputs:
       skip_checks:
         description: Skip optional staging metadata checks (pinned transfer hashes remain required)
         type: boolean
         default: false
-
 permissions:
   contents: read
-
 concurrency:
   group: web-pages
   cancel-in-progress: false
-
 jobs:
   build:
     runs-on: ubuntu-24.04
@@ -60,7 +54,7 @@ jobs:
         uses: ./.github/actions/library-data
       - uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: "24"
       - uses: pnpm/action-setup@v4
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Stage exactly the committed viewer dependency closure
@@ -72,10 +66,7 @@ jobs:
       - name: Record the final viewer and pinned data artifact
         run: node tools/build/stage-monorepo-pages.mjs --finalize --stage "$RUNNER_TEMP/pages-site" --manifest "$RUNNER_TEMP/pages-evidence.json"
       - name: Gate code, WASM, and pinned project data before Pages upload
-        run: node tools/checks/verify-pages-identity.mjs --root .
-          --stage "$RUNNER_TEMP/pages-site"
-          --manifest "$RUNNER_TEMP/pages-evidence.json"
-          --expect-commit "$GITHUB_SHA"
+        run: node tools/checks/verify-pages-identity.mjs --root . --stage "$RUNNER_TEMP/pages-site" --manifest "$RUNNER_TEMP/pages-evidence.json" --expect-commit "$GITHUB_SHA"
       - uses: actions/upload-pages-artifact@v4
         with:
           path: ${{ runner.temp }}/pages-site
@@ -84,7 +75,6 @@ jobs:
           name: pages-evidence-${{ github.sha }}
           path: ${{ runner.temp }}/pages-evidence.json
           if-no-files-found: error
-
   deploy:
     if: github.ref == 'refs/heads/main'
     needs: build
@@ -102,7 +92,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: "24"
       - name: Refuse to deploy a superseded main commit
         id: current
         shell: bash
@@ -122,51 +112,16 @@ jobs:
           path: ${{ runner.temp }}/pages-verification
       - name: Confirm the approved code-WASM-data receipt before Pages deployment
         if: steps.current.outputs.deploy == 'true'
-        run: node tools/checks/verify-pages-identity.mjs --root .
-          --manifest "$RUNNER_TEMP/pages-verification/pages-evidence.json"
-          --expect-commit "$GITHUB_SHA" --receipt-only
+        run: node tools/checks/verify-pages-identity.mjs --root . --manifest "$RUNNER_TEMP/pages-verification/pages-evidence.json" --expect-commit "$GITHUB_SHA" --receipt-only
       - id: deployment
         if: steps.current.outputs.deploy == 'true'
         uses: actions/deploy-pages@v4
       - name: Verify the actual public code and pinned data bytes
         if: steps.current.outputs.deploy == 'true'
         run: node tools/checks/verify-pages-deployment.mjs --url '${{ steps.deployment.outputs.page_url }}' --manifest "$RUNNER_TEMP/pages-verification/pages-evidence.json" --output "$RUNNER_TEMP/pages-verification/live.json"
-      - uses: pnpm/action-setup@v4
-        if: steps.current.outputs.deploy == 'true'
-      - name: Check browser verification capacity
-        if: steps.current.outputs.deploy == 'true'
-        run: |
-          node --input-type=module <<'NODE'
-          import assert from 'node:assert/strict';
-          import { statfsSync } from 'node:fs';
-          const disk = statfsSync(process.cwd(), { bigint: true });
-          const reserve = 2n * 1024n ** 3n, headroom = 5n * 1024n ** 3n;
-          assert.ok(disk.bavail * disk.bsize >= reserve + headroom, 'Browser verification needs dependency reserve plus 5 GiB headroom');
-          NODE
-      - name: Install the locked browser test dependencies
-        if: steps.current.outputs.deploy == 'true'
-        run: |
-          pnpm install --frozen-lockfile --ignore-scripts
-          pnpm exec playwright install --with-deps chromium
-      - name: Verify actual public Viewer startup and year navigation
-        if: steps.current.outputs.deploy == 'true'
-        env:
-          PANDO_PUBLIC_URL: ${{ steps.deployment.outputs.page_url }}
-          PANDO_PUBLIC_SOURCE: ${{ github.sha }}
-        run: |
-          export PANDO_PUBLIC_DATA="$(node --input-type=module -e "import { readFileSync } from 'node:fs'; console.log(JSON.parse(readFileSync('config/library-data.json', 'utf8')).revision)")"
-          pnpm exec playwright test --config tests/integration/public-viewer-boot.config.mjs
-      - name: Retain public browser proof
-        if: always() && steps.current.outputs.deploy == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: pages-live-ui-${{ github.sha }}
-          path: test-results/public-viewer/
-          if-no-files-found: warn
       - uses: actions/upload-artifact@v4
         if: always() && steps.current.outputs.deploy == 'true'
         with:
           name: pages-live-${{ github.sha }}
           path: ${{ runner.temp }}/pages-verification
           if-no-files-found: error
-

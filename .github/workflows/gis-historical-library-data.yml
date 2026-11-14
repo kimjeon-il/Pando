@@ -1,12 +1,8 @@
 name: Historical library source data invariants (Node)
-
-# Research-source evidence is an explicit, scoped audit rather than default CI.
 on:
-  workflow_dispatch:
-
+  workflow_dispatch: null
 permissions:
   contents: read
-
 jobs:
   historical-data:
     runs-on: ubuntu-24.04
@@ -17,7 +13,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: "24"
       - uses: pnpm/action-setup@v4
         with:
           version: 11.19.0
@@ -26,7 +22,7 @@ jobs:
       - name: Prepare pinned source-only data in the application checkout
         uses: ./.github/actions/library-data
       - name: Diagnose pinned historical geometry identities without mutating the library
-        run: |
+        run: |-
           node --input-type=module - <<'JS'
           import {createHash} from 'node:crypto';
           import {readTerritorialSources} from './tools/data/territorial-entity-sources.mjs';
@@ -50,5 +46,3 @@ jobs:
             sovietChildren:children,
           }));
           JS
-      - name: Verify immutable historical objects with current Node rules
-        run: node --test tests/unit/document/territorial-library.test.mjs

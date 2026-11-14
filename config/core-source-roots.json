@@ -7,7 +7,6 @@
     "src/rendering/native",
     "src/data/native",
     "src/runtime/native",
-    "tools/build/native",
-    "tests/native"
+    "tools/build/native"
   ]
 }

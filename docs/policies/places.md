@@ -14,7 +14,6 @@
 
 외부 라이브러리의 [역사명 편집 정책](https://github.com/kimjeon-il/PandoLab-library/blob/main/reports/places/historical-display-policy.json)과 [한국어 지도 표기 정책](https://github.com/kimjeon-il/PandoLab-library/blob/main/reports/places/korean-map-label-policy.json)은 **스테이징** 판본일 수 있습니다. 문서에 적힌 편집 규칙이 현재 런타임에 모두 적용된다고 가정하지 않습니다. 정확한 도시에 대한 자료 핀·승인 상태를 확인해야 합니다.
 
-**검증 계약:** `check-group:place-contracts`, `check-group:places-runtime`. 현재 관련 스크립트는 `check-script:check:places`; 이력 문서의 `pnpm check:place-sync`는 현재 등록된 명령으로 간주하지 않습니다.
 
 ## 후보 자료 검수
 

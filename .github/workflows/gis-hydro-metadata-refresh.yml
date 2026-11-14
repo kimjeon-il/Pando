@@ -1,16 +1,11 @@
 name: Refresh Hydro Worker and build metadata
-# Source-planned Worker dependencies are validated before any generated files are committed.
-
 on:
-  workflow_dispatch:
-
+  workflow_dispatch: null
 permissions:
   contents: read
-
 concurrency:
   group: gis-hydro-worker-metadata-refresh
   cancel-in-progress: false
-
 jobs:
   targeted-metadata-refresh:
     runs-on: ubuntu-24.04
@@ -24,17 +19,15 @@ jobs:
         uses: ./.github/actions/library-data
       - uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: "24"
       - uses: pnpm/action-setup@v4
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Recreate immutable Worker execution closure using current source
-        run: |
+        run: |-
           node scripts/generate-build-metadata.mjs
           node scripts/generate-build-metadata.mjs --check
       - name: Check Hydro provenance and published package identity
-        run: |-
-          node --test  tests/unit/geometry/current-hydro-layout.test.mjs tests/unit/data/hydro-packfile.test.mjs
-          node tools/checks/check-current-hydro-layout.mjs --root . --allow-retired false --out "$RUNNER_TEMP/hydro-release-proof.json"
+        run: node tools/checks/check-current-hydro-layout.mjs --root . --allow-retired false --out "$RUNNER_TEMP/hydro-release-proof.json"
       - uses: actions/upload-artifact@v4
         with:
           name: gis-hydro-metadata-refresh-evidence

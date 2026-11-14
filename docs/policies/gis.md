@@ -13,7 +13,6 @@
 
 **서로 다른 기준:** 역사 국경 조사에서의 Natural Earth 1:10M·사건 규모 선별과 벡터 표시의 [동적 LOD](map-rendering.md)는 동일 정책이 아닙니다. 조사 범위를 확대하는 것으로 표시 해상도 정책이 자동 바뀌지 않습니다.
 
-**검증 계약:** `check-group:gis-contracts`, `check-group:country-validity`, `check-group:current-world`. 이 그룹은 공간 연산·게시 자료의 기술 검증이며 역사적 귀속을 자동 인증하지 않습니다.
 
 ## 다른 문서에 포함된 공간자료 작업 규칙
 

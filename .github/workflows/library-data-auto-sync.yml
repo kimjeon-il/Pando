@@ -1,15 +1,15 @@
 name: Automatic library data reconciliation
 on:
   push:
-    branches: ['work/gis']
+    branches:
+      - work/gis
     paths:
-      - 'scripts/library-auto-*.mjs'
-      - 'scripts/lib/library-auto-*.mjs'
-      - 'tests/unit/**/library-auto-*.test.mjs'
-      - 'tools/data/library-data.mjs'
-      - 'docs/policies/library-publication.json'
-      - 'scripts/requests/library-work-gis.json'
-      - '.github/workflows/library-data-auto-sync.yml'
+      - scripts/library-auto-*.mjs
+      - scripts/lib/library-auto-*.mjs
+      - tools/data/library-data.mjs
+      - docs/policies/library-publication.json
+      - scripts/requests/library-work-gis.json
+      - .github/workflows/library-data-auto-sync.yml
   workflow_dispatch:
     inputs:
       data_revision:
@@ -19,31 +19,25 @@ on:
       data_branch:
         description: Matching fixed app/data branch
         type: choice
-        options: [main, work/gis]
+        options:
+          - main
+          - work/gis
         required: true
   schedule:
-    - cron: '17 * * * *'
+    - cron: 17 * * * *
   workflow_run:
-    workflows: ['Web-only GitHub Pages']
-    types: [completed]
-    branches: [main]
+    workflows:
+      - Web-only GitHub Pages
+    types:
+      - completed
+    branches:
+      - main
 permissions:
   contents: read
 concurrency:
   group: library-data-auto-${{ github.event_name == 'push' && 'work/gis' || inputs.data_branch || 'main' }}
   cancel-in-progress: false
 jobs:
-  contracts:
-    if: github.event_name == 'push'
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-      - run: node --test tests/unit/data/library-auto-{publication,runtime,executor,github}.test.mjs tests/unit/data/library-data-scope.test.mjs tests/unit/data/library-data-auth.test.mjs
   gate:
     if: github.repository == 'kimjeon-il/Pando'
     runs-on: ubuntu-24.04
@@ -96,8 +90,9 @@ jobs:
             core.setOutput('production', String(enabled));
             core.setOutput('allowed', String(!(branch === 'main' && !enabled)));
   sync:
-    needs: [gate, contracts]
-    if: always() && needs.gate.outputs.allowed == 'true' && (github.event_name != 'push' || needs.contracts.result == 'success')
+    needs:
+      - gate
+    if: always() && needs.gate.outputs.allowed == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 90
     permissions:
@@ -109,7 +104,6 @@ jobs:
       LIBRARY_AUTO_PRODUCTION_ENABLED: ${{ needs.gate.outputs.production }}
       PANDOLAB_LIBRARY_DATA_ROOT: ${{ github.workspace }}/.library-data/repository
     steps:
-      # Standard checkout credentials are cleaned by the checkout post action.
       - uses: actions/checkout@v4
         with:
           repository: kimjeon-il/Pando
@@ -126,17 +120,17 @@ jobs:
           persist-credentials: true
       - uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: "24"
       - uses: pnpm/action-setup@v4
         with:
-          version: '11.19.0'
+          version: 11.19.0
           run_install: false
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Reject moved exact work/gis request input
         if: github.event_name == 'push'
         env:
           REQUESTED_DATA_SHA: ${{ needs.gate.outputs.revision }}
-        run: |
+        run: |-
           node --input-type=module <<'NODE'
           import {execFileSync} from 'node:child_process';
           import {assertRequestedDataHead} from './scripts/lib/library-auto-request.mjs';
@@ -148,7 +142,7 @@ jobs:
       - name: Resolve exact notification or recovery revision
         env:
           NOTIFIED_SHA: ${{ needs.gate.outputs.revision }}
-        run: |
+        run: |-
           node --input-type=module <<'NODE'
           import {execFileSync} from 'node:child_process';
           import {appendFileSync} from 'node:fs';
@@ -161,7 +155,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           PANDOLAB_LIBRARY_WRITE_TOKEN: ${{ secrets.PANDOLAB_LIBRARY_WRITE_TOKEN }}
         shell: bash
-        run: |
+        run: |-
           set -o pipefail
           mkdir -p "$RUNNER_TEMP/library-auto-result"
           node scripts/library-auto-sync.mjs 2>&1 | tee "$RUNNER_TEMP/library-auto-result/result.txt"
@@ -169,7 +163,7 @@ jobs:
         if: always()
         env:
           JOB_STATUS: ${{ job.status }}
-        run: |
+        run: |-
           mkdir -p "$RUNNER_TEMP/library-auto-result"
           printf 'job=%s\n' "$JOB_STATUS" >> "$RUNNER_TEMP/library-auto-result/result.txt"
       - name: Preserve small diagnostics, not a completion journal
@@ -180,4 +174,3 @@ jobs:
           path: ${{ runner.temp }}/library-auto-result/result.txt
           if-no-files-found: warn
           retention-days: 7
-

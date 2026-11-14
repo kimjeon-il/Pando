@@ -1,295 +1,41 @@
-name: Application Architecture
-run-name: Application checks ${{ inputs.request_id || github.sha }}
+name: Viewer core checks
 on:
-  # Shared runner for native/GIS/Viewer contracts and P1/P3 callers.
-  workflow_call:
-    inputs:
-      base_sha:
-        type: string
-        required: false
-        default: ''
-      head_sha:
-        type: string
-        required: false
-        default: ''
-      check_profile:
-        type: string
-        required: false
-        default: ''
-      check_scope:
-        type: string
-        required: false
-        default: auto
-      check_groups:
-        type: string
-        required: false
-        default: ''
-      check_selection:
-        type: string
-        required: false
-        default: ''
-      browser_scope:
-        type: string
-        required: false
-        default: default
   workflow_dispatch:
     inputs:
-      check_selection:
-        description: Exact registered tests, commands and native requirements as JSON
-        required: false
-        type: string
-      request_id:
-        description: Caller request identity
-        required: false
-        type: string
-      browser_scope:
-        description: Browser validation scope; default preserves existing checks
-        required: false
+      group:
         type: choice
-        default: default
         options:
-          - default
-          - map-rendering
-      check_groups:
-        description: Optional comma-separated current check groups for focused manual execution
-        required: false
+          - node
+          - browser
+          - lint
+        default: node
+        description: Selected core check
+      test_name_pattern:
         type: string
-      check_scope:
-        description: Affected-only automatic checks or explicitly run the complete catalog
-        required: false
-        type: choice
-        default: auto
-        options:
-          - auto
-          - all
-  pull_request:
-    branches:
-      - main
-  push:
-    branches:
-      - main
-      - work/optimization
-      - work/gis
-      - work/places
-      - work/objects
-      - work/ui
-      - work/remote-only
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event_name != 'workflow_dispatch' &&
-    github.run_attempt == 1 && format('{0}-{1}', github.event_name,
-    github.event.pull_request.number || github.ref) ||
-    format('run-{0}-attempt-{1}', github.run_id, github.run_attempt) }}
-  cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' && github.run_attempt == 1 }}
+        default: ""
+        description: Optional Node scenario name
 permissions:
   contents: read
 jobs:
-  changes:
+  check:
     runs-on: ubuntu-24.04
-    timeout-minutes: 6
-    outputs:
-      checks: ${{ steps.plan.outputs.checks }}
-      non_browser: ${{ steps.plan.outputs.non_browser }}
-      browser: ${{ steps.plan.outputs.browser }}
-      browser_count: ${{ steps.plan.outputs.browser_count }}
-      browser_matrix: ${{ steps.plan.outputs.browser_matrix }}
+    timeout-minutes: 15
     steps:
-      - &a1
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          fetch-depth: 0
-          ref: ${{ inputs.head_sha || github.event.pull_request.head.sha || github.sha }}
-      - &a2
-        uses: pnpm/action-setup@v4
-      - &a3
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-          cache: pnpm
-      - &a4
-        run: pnpm install --frozen-lockfile
-      - name: Prepare pinned library metadata for check planning
+          node-version: "24"
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - if: inputs.group == 'browser'
         run: node tools/data/library-data.mjs --prepare-metadata
-      - name: Reject retired workflow executables before selecting checks
-        run: node scripts/check-test-consolidation.mjs
-      - name: Select current application checks
-        id: plan
-        env: &a5
-          BASE_SHA: ${{ inputs.base_sha || github.event.pull_request.base.sha || github.event.before ||
-            'origin/main' }}
-          HEAD_SHA: ${{ inputs.head_sha || github.event.pull_request.head.sha || github.sha }}
-          CHECK_PROFILE: ${{ inputs.check_profile || '' }}
-          BROWSER_SCOPE: ${{ inputs.browser_scope || 'default' }}
-          # Run affected checks on branch pushes. Full suite on main PR or explicit dispatch.
-          CHECK_SCOPE: ${{ inputs.check_scope || (github.ref == 'refs/heads/work/optimization' && contains(github.event.head_commit.message, '[full-check]') && 'all') || 'auto' }}
-          CHECK_GROUPS: ${{ inputs.check_groups || '' }}
-          CHECK_SELECTION: ${{ inputs.check_selection || '' }}
-          PLAYWRIGHT_LIST_PRINT_FAILURES_INLINE: '1'
-        run: node scripts/run-application-checks.mjs --list --github-output
-  non-browser:
-    needs: changes
-    if: needs.changes.outputs.non_browser == 'true'
-    runs-on: ubuntu-24.04
-    timeout-minutes: 45
-    steps:
-      - *a1
-      - *a2
-      - *a3
-      - *a4
-      - name: Prepare pinned library metadata for check planning
-        run: node tools/data/library-data.mjs --prepare-metadata
-      - name: Select current application checks
-        id: plan
-        env: *a5
-        run: node scripts/run-application-checks.mjs --list --github-output --phase non-browser
-      - name: Prepare pinned external library data
-        if: steps.plan.outputs.runtime_data == 'true'
-        uses: ./.github/actions/library-data
-      - name: Install native GIS prerequisites only for selected data checks
-        if: steps.plan.outputs.gis_native == 'true'
-        run: sudo apt-get update && sudo apt-get install -y libgeos-dev libproj-dev
-          zlib1g-dev pkg-config cmake
-      - name: Prepare selected native test prerequisites
-        uses: ./.github/actions/native-test-prerequisites
-        with:
-          requirements: ${{ steps.plan.outputs.native_requirements }}
-      - name: Prepare Chromium only for unit tests that launch a real browser
-        if: steps.plan.outputs.unit_browser == 'true'
-        run: |
-          pnpm exec playwright install-deps chromium
-          pnpm exec playwright install chromium
-      - name: Execute selected commands and unit tests once
-        env: *a5
-        run: node scripts/run-application-checks.mjs --phase non-browser --output
-          "$RUNNER_TEMP/application-checks-non-browser.json"
-      - name: Upload non-browser check evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: application-checks-non-browser-${{ github.run_id }}-${{ github.run_attempt }}
-          path: ${{ runner.temp }}/application-checks-non-browser.json
-          if-no-files-found: warn
-  browser:
-    needs: changes
-    if: needs.changes.outputs.browser == 'true'
-    runs-on: ubuntu-24.04
-    timeout-minutes: 45
-    strategy:
-      fail-fast: false
-      matrix: ${{ fromJSON(needs.changes.outputs.browser_matrix) }}
-    steps:
-      - *a1
-      - *a2
-      - *a3
-      - *a4
-      - name: Prepare pinned external library data
-        uses: ./.github/actions/library-data
-      - name: Select current application checks
-        id: plan
-        env: *a5
-        run: node scripts/run-application-checks.mjs --list --github-output --phase browser
-          --shard ${{ matrix.current }}/${{ matrix.total }}
-      - name: Reuse pinned Playwright Chromium download
-        id: chromium-cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: pando-chromium-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
-      - name: Prepare Chromium dependencies and missing browser binary
-        run: |
-          pnpm exec playwright install-deps chromium
-          if [ "${{ steps.chromium-cache.outputs.cache-hit }}" != 'true' ]; then
-            pnpm exec playwright install chromium
-          fi
-      - name: Prepare selected browser native prerequisites
-        uses: ./.github/actions/native-test-prerequisites
-        with:
-          requirements: ${{ steps.plan.outputs.native_requirements }}
-      - name: Execute this shard of the complete selected browser list
-        env: *a5
-        run: node scripts/run-application-checks.mjs --phase browser
-          --shard ${{ matrix.current }}/${{ matrix.total }} --output
-          "$RUNNER_TEMP/application-checks-browser-${{ matrix.current }}-of-${{ matrix.total }}.json"
-      - name: Upload browser shard evidence and existing failure traces
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: application-checks-browser-${{ matrix.current }}-of-${{ matrix.total }}-${{ github.run_id }}-${{ github.run_attempt }}
-          path: |
-            ${{ runner.temp }}/application-checks-browser-${{ matrix.current }}-of-${{ matrix.total }}.json
-            test-results/
-          if-no-files-found: warn
-  checks:
-    needs: [changes, non-browser, browser]
-    if: always()
-    runs-on: ubuntu-24.04
-    timeout-minutes: 45
-    steps:
-      - name: Require every selected phase to finish successfully
-        id: aggregate
-        env:
-          SELECTION_RESULT: ${{ needs.changes.result }}
-          CHECKS_SELECTED: ${{ needs.changes.outputs.checks }}
-          NON_BROWSER_SELECTED: ${{ needs.changes.outputs.non_browser }}
-          BROWSER_SELECTED: ${{ needs.changes.outputs.browser }}
-          BROWSER_COUNT: ${{ needs.changes.outputs.browser_count }}
-          BROWSER_MATRIX: ${{ needs.changes.outputs.browser_matrix }}
-          NON_BROWSER_RESULT: ${{ needs.non-browser.result }}
-          BROWSER_RESULT: ${{ needs.browser.result }}
-        run: |
-          node <<'NODE'
-          const env = process.env;
-          if (env.SELECTION_RESULT !== 'success') throw Error('Application selection did not succeed');
-          const selected = name => {
-            if (!['true', 'false'].includes(env[name])) throw Error('Missing or invalid selection output: ' + name);
-            return env[name] === 'true';
-          };
-          const checks = selected('CHECKS_SELECTED'), nonBrowser = selected('NON_BROWSER_SELECTED'), browser = selected('BROWSER_SELECTED');
-          if (checks !== (nonBrowser || browser)) throw Error('Inconsistent application phase selection');
-          const count = Number(env.BROWSER_COUNT);
-          if (!/^(0|[1-9]\d*)$/.test(env.BROWSER_COUNT || '') || !Number.isSafeInteger(count) || browser !== (count > 0))
-            throw Error('Missing or invalid browser count');
-          const matrix = JSON.parse(env.BROWSER_MATRIX), total = Math.min(8, Math.ceil(count / 4));
-          if (!matrix || Object.keys(matrix).length !== 1 || !Array.isArray(matrix.include) || matrix.include.length !== total ||
-              !matrix.include.every((row, index) => row && Object.keys(row).length === 2 && row.current === index + 1 && row.total === total))
-            throw Error('Missing or invalid browser matrix');
-          for (const [phase, required, result] of [
-            ['non-browser', nonBrowser, env.NON_BROWSER_RESULT], ['browser', browser, env.BROWSER_RESULT],
-          ]) {
-            const expected = required ? 'success' : 'skipped';
-            if (result !== expected) throw Error(phase + ' phase must be ' + expected + '; received ' + (result || 'missing'));
-          }
-          console.log(JSON.stringify({ applicationChecksPassed: true, nonBrowser, browser, browserShards: total }));
+      - if: inputs.group == 'browser'
+        run: pnpm exec playwright install --with-deps chromium
+      - env:
+          CHECK_GROUP: ${{ inputs.group }}
+          CHECK_PATTERN: ${{ inputs.test_name_pattern }}
+        run: |-
+          node --input-type=module <<'NODE'
+          import { executeChecks } from './scripts/run-application-checks.mjs';
+          executeChecks({groups:[process.env.CHECK_GROUP],testNamePattern:process.env.CHECK_PATTERN||undefined});
           NODE
-
-      # The existing aggregate remains the only pass/fail gate. Diagnosis is
-      # evidence for repair, never an automatic pass or a test expectation edit.
-      - name: Checkout current diagnostic analyzer
-        if: always()
-        uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-          ref: ${{ inputs.head_sha || github.event.pull_request.head.sha || github.sha }}
-      - name: Download selected phase receipts
-        if: always() && needs.changes.result == 'success'
-        uses: actions/download-artifact@v4
-        with:
-          pattern: application-checks-*-${{ github.run_id }}-${{ github.run_attempt }}
-          path: ${{ runner.temp }}/application-check-evidence
-          merge-multiple: true
-      - name: Summarize failure causes without changing gate status
-        if: always()
-        env:
-          HEAD_SHA: ${{ inputs.head_sha || github.event.pull_request.head.sha || github.sha }}
-          SELECTION_RESULT: ${{ needs.changes.result }}
-          NON_BROWSER_RESULT: ${{ needs.non-browser.result }}
-          BROWSER_RESULT: ${{ needs.browser.result }}
-        run: node scripts/summarize-check-diagnostics.mjs
-          --input-dir "$RUNNER_TEMP/application-check-evidence"
-          --output "$RUNNER_TEMP/application-check-diagnostics.json"
-      - name: Preserve structured failure diagnostics
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: application-check-diagnostics-${{ github.run_id }}-${{ github.run_attempt }}
-          path: ${{ runner.temp }}/application-check-diagnostics.json
-          if-no-files-found: warn

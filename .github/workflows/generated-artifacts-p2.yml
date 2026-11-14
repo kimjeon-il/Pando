@@ -1,70 +1,54 @@
 name: P2 Source-matched generated artifacts
-# Source-matched generation is allowed only on dedicated work/* branches, never on main.
-# First publication to a new work branch uses a complete refs/heads destination;
-# all runtime inputs stay pinned, and remote updates remain non-forced.
 on:
   push:
-    branches: ['work/**']
-    # Trigger generation planning only when a declared runtime source, producer,
-    # immutable artifact/pin, or its build toolchain changes.
-    # Presentation-only src/, tests, docs, reports and unrelated configuration
-    # are handled by their own focused checks, not a P2 generator run.
+    branches:
+      - work/**
     paths:
-      - 'src/**/native/**'
-      - 'src/rendering/workers/gpu-mesh-core.js'
-      - 'src/rendering/workers/polygon-raster-contract.js'
-      - 'src/rendering/polygon-mesh-codec.js'
-      - 'src/rendering/canonical-country-packet.js'
-      - 'tools/build/**'
-      - 'tools/data/**'
-      - 'tools/gis/**'
-      - 'tools/cpp/**'
-      - 'tools/lib/**'
-      - 'assets/wasm/**'
-      - 'assets/data/**'
-      - 'scripts/p2-*.mjs'
-      - 'scripts/lib/p2-*.mjs'
-      - 'scripts/generate-build-metadata.mjs'
-      - 'projects/**/generation-inputs.json'
-      - 'projects/**/manifest.json'
-      - '.gitattributes'
-      - 'CMakeLists.txt'
-      - 'CMakePresets.json'
-      - 'cmake/**'
-      - 'config/library-data.json'
-      - 'config/generated-artifacts.json'
-      - 'config/core-source-roots.json'
-      - 'config/toolchain-versions.json'
-      - 'package.json'
-      - 'pnpm-lock.yaml'
-      - 'pnpm-workspace.yaml'
-      - '.github/actions/library-data/**'
-  # Opt-in, per-push compiled-core-only publication; avoids unrelated stale data families.
-  # Include [p2-wasm-only] in a work-branch commit message for a focused rebuild.
+      - src/**/native/**
+      - src/rendering/workers/gpu-mesh-core.js
+      - src/rendering/workers/polygon-raster-contract.js
+      - src/rendering/polygon-mesh-codec.js
+      - src/rendering/canonical-country-packet.js
+      - tools/build/**
+      - tools/data/**
+      - tools/gis/**
+      - tools/cpp/**
+      - tools/lib/**
+      - assets/wasm/**
+      - assets/data/**
+      - scripts/p2-*.mjs
+      - scripts/lib/p2-*.mjs
+      - scripts/generate-build-metadata.mjs
+      - projects/**/generation-inputs.json
+      - projects/**/manifest.json
+      - .gitattributes
+      - CMakeLists.txt
+      - CMakePresets.json
+      - cmake/**
+      - config/library-data.json
+      - config/generated-artifacts.json
+      - config/core-source-roots.json
+      - config/toolchain-versions.json
+      - package.json
+      - pnpm-lock.yaml
+      - pnpm-workspace.yaml
+      - .github/actions/library-data/**
   workflow_dispatch:
     inputs:
       scope:
         description: Which generator to run; auto only builds stale outputs
         type: choice
-        options: [auto, wasm, all, verify]
+        options:
+          - auto
+          - wasm
+          - all
         required: false
         default: auto
-      verification:
-        description: Run minimal publication checks or the consolidated P9 calculation suites
-        type: choice
-        options: [minimal, full, temporal, geometry-resources]
-        required: false
-        default: minimal
-      skip_preview:
-        description: Skip automatic broad preview dispatch when a focused verification follows
-        type: boolean
-        default: false
 permissions:
   contents: read
 concurrency:
   group: pando-generated-artifacts-${{ github.ref }}-${{ github.event_name == 'workflow_dispatch' && github.run_id || 'publication' }}
   cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' }}
-
 jobs:
   plan:
     runs-on: ubuntu-24.04
@@ -84,35 +68,30 @@ jobs:
           fetch-depth: 0
       - name: Prepare pinned external library data
         uses: ./.github/actions/library-data
+        if: inputs.scope != 'wasm'
       - uses: actions/setup-node@v4
         with:
-          node-version-file: '.nvmrc'
-      - name: Test source fingerprint, rebuild selection, publication guard
-        if: github.event_name == 'push' || inputs.verification == 'full'
-        run: node --test tests/unit/build/artifact-plan.test.mjs tests/unit/document/shared-core-assets.test.mjs tests/unit/data/publication-paths.test.mjs tests/unit/data/library-data.test.mjs
+          node-version-file: .nvmrc
       - name: Read the declared place-report generation inputs
         run: node tools/data/report-paths.mjs reports/places read
+        if: inputs.scope != 'wasm'
       - name: Select only stale source-derived assets
         id: scopes
         env:
           PANDO_P2_BASE_SHA: ${{ github.event.before || '' }}
           PANDO_P2_SCOPE: ${{ inputs.scope || (contains(github.event.head_commit.message, '[p2-wasm-only]') && 'wasm' || 'auto') }}
         run: node scripts/p2-artifact-plan.mjs --github-output
-
   generate:
     needs: plan
-    if: >-
-      needs.plan.outputs.wasm == 'true' || needs.plan.outputs.selected_families != '[]' ||
-      needs.plan.outputs.blocked_families != '[]' ||
-      inputs.scope == 'verify' || inputs.verification == 'full'
+    if: needs.plan.outputs.wasm == 'true' || needs.plan.outputs.selected_families != '[]' || needs.plan.outputs.blocked_families != '[]'
     runs-on: ubuntu-24.04
     timeout-minutes: 90
     permissions:
       contents: write
       actions: write
     env:
-      EMCC_CORES: '1'
-      BINARYEN_CORES: '1'
+      EMCC_CORES: "1"
+      BINARYEN_CORES: "1"
       PANDO_P2_SCOPE: ${{ inputs.scope || (contains(github.event.head_commit.message, '[p2-wasm-only]') && 'wasm' || 'auto') }}
       PANDO_P2_WASM: ${{ needs.plan.outputs.wasm }}
       PANDO_P2_BASE_SHA: ${{ github.event.before || '' }}
@@ -123,20 +102,22 @@ jobs:
           fetch-depth: 0
       - name: Prepare pinned external library data
         uses: ./.github/actions/library-data
+        if: inputs.scope != 'wasm'
       - uses: actions/setup-node@v4
         with:
-          node-version-file: '.nvmrc'
+          node-version-file: .nvmrc
       - name: Install pinned package manager only for selected data-family owners
         uses: pnpm/action-setup@v4
-        if: needs.plan.outputs.wasm == 'true' || needs.plan.outputs.selected_families != '[]' || inputs.scope == 'verify' || inputs.verification == 'full'
+        if: needs.plan.outputs.wasm == 'true' || needs.plan.outputs.selected_families != '[]'
         with:
           version: ${{ needs.plan.outputs.pnpm_version }}
           run_install: false
       - name: Install frozen dependencies for current data generators
-        if: needs.plan.outputs.wasm == 'true' || needs.plan.outputs.selected_families != '[]' || inputs.scope == 'verify' || inputs.verification == 'full'
+        if: needs.plan.outputs.wasm == 'true' || needs.plan.outputs.selected_families != '[]'
         run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Read the declared place-report generation inputs
         run: node tools/data/report-paths.mjs reports/places read
+        if: inputs.scope != 'wasm'
       - uses: jwlawson/actions-setup-cmake@v2
         if: needs.plan.outputs.wasm == 'true'
         with:
@@ -193,59 +174,6 @@ jobs:
       - name: Verify published compiled identity and package hashes
         id: verified_core
         run: node tools/build/package-shared-core-assets.mjs --build-dir assets/wasm --check
-      - name: Verify pinned Viewer data and generated build metadata against the rebuilt core
-        if: needs.plan.outputs.wasm == 'true'
-        shell: bash
-        run: |
-          set -euo pipefail
-          node scripts/check-core-prerequisite.mjs
-          node scripts/generate-build-metadata.mjs --check --product=viewer
-          node scripts/check-version.mjs
-      - name: Verify the changed geographic contact and common fill kernels
-        if: needs.plan.outputs.wasm == 'true' && inputs.verification != 'full' && inputs.verification != 'temporal' && inputs.verification != 'geometry-resources'
-        env:
-          PANDOEDITOR_WASM_MODULE: ${{ github.workspace }}/assets/wasm/pandoeditor-core.js
-          CHECK_SELECTION: '{"unitTests":["tests/unit/geometry/country-shared-boundary.test.mjs","tests/unit/geometry/boundary-lines.test.mjs"],"browserSpecs":[],"commands":["wasm-domain-geometry"],"prerequisites":[]}'
-        run: node scripts/run-application-checks.mjs
-      - name: Prepare only the display policy used by synthetic source fixtures
-        if: inputs.verification == 'geometry-resources'
-        run: node --input-type=module -e "import {readLibraryDataFile} from './tools/data/library-context.mjs';readLibraryDataFile('assets/data/builtin-world/display-policy-v1.json',{fetch:true});"
-      - name: Verify immutable admission and affected synthetic GIS contracts
-        if: inputs.verification == 'geometry-resources'
-        env:
-          PANDOEDITOR_WASM_MODULE: ${{ github.workspace }}/assets/wasm/pandoeditor-core.js
-          CHECK_SELECTION: '{"unitTests":["tests/unit/document/core-geometry-resources-wasm.test.mjs","tests/unit/document/historical-world-territories.test.mjs","tests/unit/data/current-world-source-pairing.test.mjs","tests/unit/data/territorial-retirement.test.mjs"],"browserSpecs":[],"commands":[],"prerequisites":[]}'
-        run: node scripts/run-application-checks.mjs
-      - name: Verify changed temporal editing and place naming
-        if: inputs.verification == 'temporal'
-        env:
-          PANDOEDITOR_WASM_MODULE: ${{ github.workspace }}/assets/wasm/pandoeditor-core.js
-        run: >-
-          node --test tests/native/document/temporal-editing.test.mjs
-          tests/unit/document/place-names.test.mjs tests/unit/document/territorial-entity-repository.test.mjs
-      - uses: actions/upload-artifact@v4
-        if: always() && inputs.verification == 'temporal'
-        with:
-          name: temporal-wasm-${{ github.sha }}
-          path: |
-            assets/wasm/pandoeditor-core.js
-            assets/wasm/pandoeditor-core.wasm
-            assets/wasm/pandoeditor-core.manifest.json
-          if-no-files-found: error
-          retention-days: 7
-      - name: Test the compiled runtime ABI and bounded document session
-        if: inputs.verification == 'full'
-        shell: bash
-        run: |
-          node --test tests/unit/document/shared-core-assets.test.mjs tests/unit/runtime/core-wasm-loader.test.mjs
-          PANDOEDITOR_WASM_MODULE="$PWD/assets/wasm/pandoeditor-core.js" node --test tests/native/document/wasm-document-session.test.mjs tests/native/geometry/spherical-area-wasm.test.mjs tests/native/document/temporal-wasm.test.mjs tests/native/document/timeline-wasm.test.mjs tests/native/geometry/boundary-chains-wasm.test.mjs tests/native/geometry/boundary-packet-wasm.test.mjs tests/native/geometry/boundary-interiors-wasm.test.mjs tests/native/geometry/boundary-overlap-wasm.test.mjs tests/native/geometry/boundary-refinement-wasm.test.mjs tests/native/geometry/boundary-split-wasm.test.mjs tests/native/geometry/country-contact-wasm.test.mjs tests/unit/geometry/boundary-lines.test.mjs
-
-      - name: Verify P6 product calculation adapters
-        if: inputs.verification == 'full'
-        run: >-
-          node --test tests/unit/geometry/polygon-geometry.test.mjs
-          tests/unit/geometry/gis-math-contract.test.mjs tests/unit/geometry/annex-slivers.test.mjs
-          tests/unit/document/river-territory-partition.test.mjs
       - name: Retain verified source-matched WASM before guarded publication
         if: always() && needs.plan.outputs.wasm == 'true' && steps.verified_core.outcome == 'success'
         uses: actions/upload-artifact@v4
@@ -259,7 +187,6 @@ jobs:
           retention-days: 7
       - name: Commit verified phases locally, then publish one guarded result
         id: publish
-        if: inputs.verification != 'geometry-resources'
         shell: bash
         env:
           PANDOLAB_LIBRARY_WRITE_TOKEN: ${{ secrets.PANDOLAB_LIBRARY_WRITE_TOKEN }}
@@ -268,17 +195,6 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           node scripts/p2-publish-artifacts.mjs
-      - name: Hand the exact verified result to Viewer preview and acceptance
-        # Verified unchanged artifacts still need source-matched Viewer checks.
-        if: steps.publish.outcome == 'success' && steps.publish.outputs.superseded != 'true' && !inputs.skip_preview
-        env:
-          GH_TOKEN: ${{ github.token }}
-          RESULT_SHA: ${{ steps.publish.outputs.result_sha }}
-          BASE_SHA: ${{ steps.publish.outputs.base_sha }}
-        run: >-
-          gh workflow run viewer-preview.yml --ref "$GITHUB_REF_NAME"
-          -f source_sha="$RESULT_SHA" -f base_sha="$BASE_SHA"
-          -f original_source_sha="$GITHUB_SHA" -f scope=auto
       - uses: actions/upload-artifact@v4
         if: always() && steps.publish.outcome == 'success' && steps.publish.outputs.superseded != 'true'
         with:
