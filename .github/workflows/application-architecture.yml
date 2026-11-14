@@ -1,11 +1,5 @@
 name: Viewer core checks
 on:
-  # Temporary branch-scoped stage-4 evidence. Production deployment is not triggered.
-  push:
-    branches: [work/gis]
-    paths:
-      - .github/workflows/application-architecture.yml
-      - tests/browser/viewer.spec.mjs
   workflow_dispatch:
     inputs:
       group:
@@ -25,7 +19,7 @@ permissions:
 jobs:
   check:
     runs-on: ubuntu-24.04
-    timeout-minutes: 35
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -33,23 +27,11 @@ jobs:
           node-version: "24"
       - uses: pnpm/action-setup@v4
       - run: pnpm install --frozen-lockfile --ignore-scripts
-      - if: inputs.group == 'browser' || github.event_name == 'push'
+      - if: inputs.group == 'browser'
         run: node tools/data/library-data.mjs --prepare-metadata
-      - if: inputs.group == 'browser' || github.event_name == 'push'
+      - if: inputs.group == 'browser'
         run: pnpm exec playwright install --with-deps chromium
-      - name: Capture actual stage-4 Viewer output and bounded performance
-        if: github.event_name == 'push'
-        run: pnpm exec playwright test tests/browser/viewer.spec.mjs --grep 'terrain stage 4' --workers=1 --retries=0
-      - name: Retain only stage-4 screenshots and machine-readable metrics
-        if: always() && github.event_name == 'push'
-        uses: actions/upload-artifact@v4
-        with:
-          name: terrain-stage4-${{ github.sha }}
-          path: test-results/
-          if-no-files-found: warn
-          retention-days: 7
-      - if: github.event_name != 'push'
-        env:
+      - env:
           CHECK_GROUP: ${{ inputs.group }}
           CHECK_PATTERN: ${{ inputs.test_name_pattern }}
         run: |-
