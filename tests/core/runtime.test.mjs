@@ -34,6 +34,12 @@ import {drawGpuBaseScene} from '../../src/rendering/gpu-base-scene-pass.js';
 import {createGpuPolygonOverlayPass} from '../../src/rendering/gpu-polygon-overlay-pass.js';
 import {prepareGpuBaseScene} from '../../src/rendering/gpu-scene-preparation.js';
 import {createAdaptiveRenderQualityController, renderQualityProfile, resolveInitialRenderQuality} from '../../src/rendering/adaptive-render-quality.js';
+import {createGpuUploadScheduler} from '../../src/rendering/gpu-upload-scheduler.js';
+import {createGpuUploadScope} from '../../src/rendering/gpu-resource-lifecycle.js';
+import {hashFileInChunks,loadBoundedCurrentWorld} from '../../tools/data/current-world-bounded-loader.mjs';
+import {mkdtempSync,writeFileSync,rmSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import path from 'node:path';
 
 
 test('atomic map view publication waits for a matching GPU result',()=>{
@@ -563,4 +569,53 @@ test('GPU upload queue prioritizes physical masks and caps pending optional reso
   ready.add('optional-b');requests.length=0;plan=prepare();
   assert.deepEqual(requests,[]);
   assert.equal(plan.deferredOverlayKeys.size,0);
+});
+
+
+test('bounded current-world loader hashes bytes without a whole-file string and preserves ordinary project sources',()=>{
+  const folder=mkdtempSync(path.join(tmpdir(),'pando-current-world-'));
+  try {
+    const filename=path.join(folder,'source.geojson');
+    const source={type:'FeatureCollection',features:[{type:'Feature',id:'A',
+      geometry:{type:'Polygon',coordinates:[[[0,0],[1,0],[1,1],[0,0]]]},
+      properties:{name:'Fixture'}}],bbox:[0,0,1,1]};
+    const bytes=Buffer.from(JSON.stringify(source)+'\\n','utf8');
+    writeFileSync(filename,bytes);
+    assert.deepEqual(loadBoundedCurrentWorld(filename),source);
+    const result=hashFileInChunks(filename,{chunkBytes:7});
+    assert.deepEqual(result,{bytes:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex')});
+    assert.throws(()=>hashFileInChunks(filename,{chunkBytes:0}),/Invalid file hash chunk size/);
+  } finally {rmSync(folder,{recursive:true,force:true});}
+});
+
+test('scoped polygon uploads remain observable and make progress after prolonged input pending',async()=>{
+  let clock=0,nextId=0,uploaded=0;
+  const pendingFrames=[];
+  const scheduler=createGpuUploadScheduler({
+    now:()=>clock,
+    requestFrame:callback=>{pendingFrames.push(callback);return ++nextId;},
+    cancelFrame:()=>{},
+    isHidden:()=>false,
+    isInputPending:()=>true,
+    getByteBudget:()=>1024,
+  });
+  const scoped=createGpuUploadScope(scheduler);
+  const done=scoped.enqueueUpload({key:'polygon:optional-test',priority:50,
+    allowDuringInteraction:false,
+    step:()=>{uploaded++;return {bytes:128,done:true,value:'uploaded'};}});
+  for(let n=0;n<12&&uploaded===0;n++){
+    clock+=250;
+    const next=pendingFrames.shift();
+    assert.equal(typeof next,'function','queued optional upload requires a scheduled frame');
+    next();
+  }
+  assert.equal(await done,'uploaded');
+  const stats=scheduler.getStats();
+  assert.equal(uploaded,1);
+  assert.equal(stats.byKind.polygon.completed,1,'renderer scope prefix must retain polygon classification');
+  assert.equal(stats.byKind.other.completed,0);
+  assert.ok(stats.agedOptionalSteps>0,'input pending must not starve a noninteractive job forever');
+  assert.ok(stats.inputDeferredFrames>0);
+  assert.equal(stats.pendingByKind.polygon,0);
+  scoped.cancelAll();scheduler.dispose();
 });
