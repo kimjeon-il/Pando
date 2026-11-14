@@ -88,11 +88,57 @@ test('preparation preserves unfinished working bytes when the pin advances',t=>{
  assert.deepEqual(Object.keys(JSON.parse(read(retired,'.cache-owner.json')).files),[privatePath]);
  const unavailablePath='assets/data/selected/unavailable.bin',missingEntry={stored:'archive/blobs/not-present.bin',encoding:'identity',bytes:1,sha256:contentHash(Buffer.from('x'))};
  const latest=JSON.parse(read(f.data,'archive/index.json'));latest.files[unavailablePath]=missingEntry;put(f.data,'archive/index.json',JSON.stringify(latest));git(f.data,'add','archive/index.json');git(f.data,'commit','-qm','metadata-only historical original');
- const scopeId='a'.repeat(64),oldView=join(f.data,'.pando-cache/materialized/main',next.revision,'scopes',scopeId);
- put(oldView,unavailablePath,'x');put(oldView,'.cache-owner.json',JSON.stringify({schema:'pando-shared-runtime-v1',owner:'main',revision:next.revision,preparation:{scopeId},files:{[unavailablePath]:{storage:'private',bytes:1,sha256:missingEntry.sha256}}}));
+ const scopeId='a'.repeat(64),oldView=join(f.data,'.pando-cache/materialized/main',original.revision,'scopes',scopeId);
+ put(oldView,unavailablePath,'x');put(oldView,'.cache-owner.json',JSON.stringify({schema:'pando-shared-runtime-v1',owner:'main',revision:original.revision,preparation:{scopeId},files:{[unavailablePath]:{storage:'private',bytes:1,sha256:missingEntry.sha256}}}));
  const prepared=prepareLibraryData({root:f.root,fetch:false,purpose:'gis',prefixes:[path]});
  assert.equal(read(f.root,path),'unfinished private bytes');assert.equal(read(oldView,unavailablePath),'x');
  assert.equal(prepared.cacheRetirement.status,'partial');assert.equal(prepared.cacheRetirement.skipped[0].reason,'historical-original-not-locally-recoverable');
+});
+
+test('cache retirement crosses revisions only after pins and writer leases release published originals',t=>{
+ const f=fixture(t),path='assets/data/selected/input.bin',oldHash=f.files[path].sha256;
+ const old=prepareLibraryData({root:f.root,fetch:false,purpose:'gis',prefixes:[path]});
+ withLibraryWrite({root:f.root,prefixes:[path]},()=>put(f.root,path,'published output'));
+ const oldAppHead=git(f.root,'rev-parse','HEAD');git(f.root,'branch','work/places');
+ const published=archive(f.data,{[path]:'published output'},'published data edition');
+ put(f.root,'config/library-data.json',JSON.stringify({...f.config,revision:published.revision}));git(f.root,'add','config/library-data.json');git(f.root,'commit','-qm','pin published data');
+ archive(f.data,{[path]:'independent tool checkout bytes'},'independent source HEAD');
+ prepareLibraryData({root:f.root,fetch:false,purpose:'gis',prefixes:[path]});
+ assert.ok(existsSync(old.materialized),'another branch pin preserves its edition');
+ const lease=join(f.data,'.pando-store/leases/fixture.json');put(f.data,'.pando-store/leases/fixture.json',JSON.stringify({pid:process.pid,view:old.materialized,prefixes:[path]}));
+ git(f.root,'branch','-d','work/places');
+ prepareLibraryData({root:f.root,fetch:false,purpose:'gis',prefixes:[path]});assert.ok(existsSync(old.materialized),'an active writer preserves its edition');
+ unlinkSync(lease);
+ unlinkSync(join(old.materialized,path));
+ prepareLibraryData({root:f.root,fetch:false,purpose:'gis',prefixes:[path]});
+ assert.ok(existsSync(join(old.materialized,'.cache-owner.json')),'missing bytes without retirement intent are not a deletion');
+ const unhydrated=JSON.parse(read(old.materialized,'.cache-owner.json'));
+ const forged={...unhydrated,retirement:{schema:'pando-runtime-retirement-v1',ownerSha256:contentHash(Buffer.from(JSON.stringify(unhydrated)))}};
+ assert.throws(()=>removeRuntimeView(f.data,old.materialized,forged,{archivedFiles:{[path]:{revision:published.revision,entry:published.files[path]}}}),/unhydrated.*intent/i,'only the persisted intent authorizes a retry');
+ put(old.materialized,path,'published output');
+ const originalRead=fs.readFileSync,reader='runtime-leases/verification-'+process.pid+'.json';let injectedReader=false;
+ fs.readFileSync=(target,...args)=>{const bytes=originalRead(target,...args);if(target===join(old.materialized,path)&&!injectedReader){injectedReader=true;put(f.root,'.library-data/'+reader,JSON.stringify({pid:process.pid,materialized:[old.materialized]}));}return bytes;};syncBuiltinESMExports();
+ try{prepareLibraryData({root:f.root,fetch:false,purpose:'gis',prefixes:[path]});}
+ finally{fs.readFileSync=originalRead;syncBuiltinESMExports();}
+ assert.ok(injectedReader);assert.ok(existsSync(old.materialized),'a reader starting during inspection preserves its view');
+ assert.ok(existsSync(join(f.data,'.pando-store/blobs',oldHash)),'a new reader also preserves its baseline blob');
+ unlinkSync(join(f.root,'.library-data',reader));
+ let injectedRef=false;
+ fs.readFileSync=(target,...args)=>{const bytes=originalRead(target,...args);if(target===join(old.materialized,path)&&!injectedRef){injectedRef=true;git(f.root,'branch','work/gis',oldAppHead);}return bytes;};syncBuiltinESMExports();
+ try{prepareLibraryData({root:f.root,fetch:false,purpose:'gis',prefixes:[path]});}
+ finally{fs.readFileSync=originalRead;syncBuiltinESMExports();}
+ assert.ok(injectedRef);assert.ok(existsSync(old.materialized),'a newly pinned branch preserves the view before retirement starts');
+ git(f.root,'branch','-d','work/gis');
+ const oldRecord=JSON.parse(read(old.materialized,'.cache-owner.json'));
+ assert.throws(()=>removeRuntimeView(f.data,old.materialized,oldRecord,{archivedFiles:{[path]:{revision:published.revision,entry:published.files[path]}},beforeFinalRemoval:()=>{throw Error('interrupted retirement');}}),/interrupted retirement/);
+ assert.equal(existsSync(join(old.materialized,path)),false);
+ assert.ok(JSON.parse(read(old.materialized,'.cache-owner.json')).retirement,'interruption retains the retirement intent and original identities');
+ prepareLibraryData({root:f.root,fetch:false,purpose:'gis',prefixes:[path]});
+ assert.equal(existsSync(old.materialized),false,'the prior revision is reclaimed after its consumers finish');
+ assert.equal(existsSync(join(f.data,'.pando-cache/materialized/main',f.revision)),false,'empty revision containers are retired too');
+ assert.equal(read(f.root,path),'published output');assert.equal(git(f.data,'show','HEAD:'+path),'independent tool checkout bytes');
+ assert.equal(existsSync(join(f.data,'.pando-store/blobs',oldHash)),false,'the last retired baseline reference does not leak a blob');
+ assert.equal(decodeArchiveEntry(f.data,f.files[path],f.revision,{fetch:false}).toString(),'pinned bytes');
 });
 
 test('cleanup preserves protected source even inside a generated directory',t=>{
@@ -120,6 +166,11 @@ test('cleanup preserves protected source even inside a generated directory',t=>{
  assert.deepEqual(readdirSync(join(root,'reports')),[],'the capability probe leaves no temporary files');
  assert.equal(removeUnlinkedContentBlob(root,blob.sha256),true);
  assert.equal(existsSync(blob.path),false);
+ const unowned=join(root,'.pando-cache/materialized/main/unowned'),logical='assets/input.bin',original='unarchived original';
+ const record={schema:'pando-shared-runtime-v1',files:{[logical]:{storage:'shared',bytes:original.length,sha256:contentHash(Buffer.from(original))}}};
+ put(unowned,logical,original);put(unowned,'.cache-owner.json',JSON.stringify(record));
+ assert.throws(()=>removeRuntimeView(root,unowned,record),/unproven shared original/i);
+ assert.equal(read(unowned,logical),original,'a shared label alone cannot authorize deletion');
 });
 
 test('cleanup rejects escaping targets without deleting outside bytes',t=>{
