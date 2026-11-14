@@ -17,7 +17,7 @@ jobs:
       - uses: pnpm/action-setup@v4
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Reuse P0 Node regression checks
-        run: node scripts/run-application-checks.mjs --group=node --test-name-pattern="bounded current-world loader|scoped polygon uploads|native boundary edge boxes"
+        run: node scripts/run-application-checks.mjs --group=node --test-name-pattern="bounded current-world loader|scoped polygon uploads|native boundary edge boxes|hydro upload batches"
 
   source-regeneration:
     runs-on: ubuntu-24.04
