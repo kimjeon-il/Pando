@@ -56,3 +56,19 @@ export function parseJsonBuffer(bytes,{sliceBytes=8*1024*1024,maxDepth=512}={}){
  }
  return parse(0,bytes.length,0);
 }
+
+
+/** Preserve the legacy CRLF-to-LF source hash rule without a giant JS string. */
+export function normalizeJsonBufferNewlines(bytes) {
+ if(!Buffer.isBuffer(bytes))throw TypeError('Expected source JSON bytes');
+ const separator=Buffer.from('\r\n');
+ let index=bytes.indexOf(separator);
+ if(index<0)return bytes;
+ const chunks=[];let offset=0,replacements=0;
+ while(index>=0){
+  chunks.push(bytes.subarray(offset,index),Buffer.from('\n'));
+  replacements++;offset=index+2;index=bytes.indexOf(separator,offset);
+ }
+ chunks.push(bytes.subarray(offset));
+ return Buffer.concat(chunks,bytes.length-replacements);
+}
