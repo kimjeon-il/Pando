@@ -1,16 +1,19 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
+import fs from 'node:fs';
+import {syncBuiltinESMExports} from 'node:module';
 import {chmodSync,existsSync,lstatSync,mkdirSync,mkdtempSync,readFileSync,readdirSync,rmSync,rmdirSync,symlinkSync,unlinkSync,writeFileSync} from 'node:fs';
 import {dirname,join} from 'node:path';
 import {tmpdir} from 'node:os';
-import {contentHash} from '../../tools/data/library-content.mjs';
+import {gzipSync} from 'node:zlib';
+import {contentHash,publishContent,linkContent,removeContentLink} from '../../tools/data/library-content.mjs';
 import {prepareLibraryData,prepareLibraryMetadata,withLibraryWrite} from '../../tools/data/library-runtime.mjs';
 import {hydrateReports,reportRegistry} from '../../tools/data/library-reports.mjs';
 import {storeLibraryData,runtimeStoreIndex} from '../../tools/data/library-store.mjs';
 import {libraryStoragePath} from '../../tools/data/library-storage-paths.mjs';
 import {decodeArchiveEntry} from '../../tools/data/library-context.mjs';
-import {publishLibraryReports,checkLibraryReports} from '../../tools/data/library-report-publication.mjs';
+import {publishLibraryReports,checkLibraryReports,createReportRetirementCommit} from '../../tools/data/library-report-publication.mjs';
 import {previewGeneratedCleanup,applyGeneratedCleanup} from '../../tools/data/worktree-generated.mjs';
 import {installFrontendSnapshot} from '../../tools/data/worktree-storage.mjs';
 import {collectRuntimeDataAssets} from '../../src/data/runtime-manifest-assets.js';
@@ -61,6 +64,26 @@ test('preparation preserves unfinished working bytes when the pin advances',t=>{
 
 test('cleanup preserves protected source even inside a generated directory',t=>{
  const root=sandbox(t),path='test-results/output.txt';put(root,path,'unfinished source');assert.throws(()=>previewGeneratedCleanup({...request(root),protectedPaths:[join(root,path)]}),/protected/i);assert.equal(read(root,path),'unfinished source');
+ const bytes=Buffer.from('shared immutable original'),blob=publishContent(root,bytes),view=join(root,'reports/shared.md');
+ linkContent(root,blob.sha256,view);
+ const before=lstatSync(blob.path),originalChmod=fs.chmodSync;
+ assert.equal(before.nlink,2);
+ fs.chmodSync=(target,...args)=>{
+  if(existsSync(target)){
+   const current=lstatSync(target);
+   assert.ok(current.dev!==before.dev||current.ino!==before.ino,'deleting a view must never chmod the shared original inode');
+  }
+  return originalChmod(target,...args);
+ };
+ syncBuiltinESMExports();
+ try { removeContentLink(root,view); }
+ finally { fs.chmodSync=originalChmod;syncBuiltinESMExports(); }
+ assert.equal(existsSync(view),false);
+ assert.deepEqual(readFileSync(blob.path),bytes);
+ assert.equal(lstatSync(blob.path).mode,before.mode);
+ assert.equal(lstatSync(blob.path).nlink,1);
+ assert.equal(existsSync(join(root,'.pando-store/.permission-restore.json')),false);
+ assert.deepEqual(readdirSync(join(root,'reports')),[],'the capability probe leaves no temporary files');
 });
 
 test('cleanup rejects escaping targets without deleting outside bytes',t=>{
@@ -113,6 +136,35 @@ test('publication refuses diverged remote history rather than overwriting it',t=
 test('report owners retain independent editions after another owner advances',t=>{
  const path='reports/development/task/report.md',f=fixture(t,{[path]:'# old edition\n'});const old=hydrateReports({root:f.root,path:path.slice(8),access:'read'});assert.equal(readFileSync(old,'utf8'),'# old edition\n');const other=join(f.base,'objects');git(f.root,'worktree','add','-qb','work/objects',other);const next=archive(f.data,{[path]:'# next edition\n'},'next report');put(other,'config/library-data.json',JSON.stringify({...f.config,revision:next.revision}));mkdirSync(join(other,'.library-data'));symlinkSync(f.data,join(other,'.library-data/repository'),process.platform==='win32'?'junction':'dir');const newer=hydrateReports({root:other,path:path.slice(8),access:'read'});
  assert.equal(readFileSync(newer,'utf8'),'# next edition\n');assert.equal(readFileSync(hydrateReports({root:f.root,path:path.slice(8),access:'read'}),'utf8'),'# old edition\n');assert.equal(reportRegistry(f.root).owners.main.revision,f.revision);assert.equal(reportRegistry(other).owners.objects.revision,next.revision);assert.equal(git(f.data,'rev-parse','refs/pando/reports/main'),f.revision);
+ const retained='reports/development/task/retained.md',binary='reports/development/task/evidence.bin';
+ const parent=archive(f.data,{[path]:'# retirement candidate\n',[retained]:'# retained report\n',[binary]:'unique evidence'},'retirement parent');
+ const source='tools/historical-library/source-note.mdx',sharedSource='tools/historical-library/shared-note.markdown',raw='reports/development/task/unindexed.md';
+ const manual='docs/task.md',unselected='docs/retained.md';put(f.data,manual,'selected task manual');put(f.data,unselected,'unselected original');
+ const orphan='archive/blobs/orphan.gz',shared='archive/blobs/shared.bin',alias='assets/data/retained.bin',sourceBytes=Buffer.from('# archived source');
+ const originalIndex=JSON.parse(read(f.data,'archive/index.json'));
+ const entry={stored:orphan,encoding:'gzip',bytes:sourceBytes.length,sha256:contentHash(sourceBytes)};
+ originalIndex.files[source]=entry;originalIndex.files[sharedSource]={...entry,stored:shared,encoding:'identity'};originalIndex.files[alias]={...originalIndex.files[sharedSource]};
+ originalIndex.ownerMetadata={keep:'unchanged'};put(f.data,orphan,gzipSync(sourceBytes));put(f.data,shared,sourceBytes);put(f.data,raw,'unindexed raw report');
+ put(f.data,'archive/index.json',JSON.stringify(originalIndex));git(f.data,'add','.');git(f.data,'commit','-qm','archived Markdown variants');parent.revision=git(f.data,'rev-parse','HEAD');
+ put(f.data,'unfinished.txt','staged original');git(f.data,'add','unfinished.txt');put(f.data,'unfinished.txt','unstaged original');
+ const head=git(f.data,'rev-parse','HEAD'),refs=git(f.data,'show-ref'),working=git(f.data,'status','--porcelain'),staged=git(f.data,'write-tree');
+ assert.throws(()=>createReportRetirementCommit({root:f.root,revision:parent.revision,removePaths:[manual]}),/archived source/i);
+ assert.throws(()=>createReportRetirementCommit({root:f.root,revision:parent.revision,removePaths:[path],documentationPaths:[manual]}),/documentation/i);
+ const result=createReportRetirementCommit({root:f.root,revision:parent.revision,removePaths:[path,source,sharedSource,raw,manual],documentationPaths:[manual]});
+ assert.equal(git(f.data,'ls-tree','-r','--name-only',result.revision,'--',manual),'');assert.equal(git(f.data,'show',result.revision+':'+unselected),'unselected original');
+ assert.equal(git(f.data,'rev-parse',`${result.revision}^`),parent.revision);
+ assert.equal(git(f.data,'ls-tree','-r','--name-only',result.revision,'--',path),'');
+ const retired=JSON.parse(git(f.data,'show',`${result.revision}:archive/index.json`));
+ assert.equal(retired.files[source],undefined);assert.equal(retired.files[sharedSource],undefined);assert.deepEqual(retired.files[alias],originalIndex.files[alias]);assert.deepEqual(retired.ownerMetadata,originalIndex.ownerMetadata);
+ assert.equal(git(f.data,'ls-tree','-r','--name-only',result.revision,'--',orphan,raw),'');assert.equal(git(f.data,'show',result.revision+':'+shared),'# archived source');
+ assert.equal(retired.files[path],undefined);assert.deepEqual(retired.files[retained],parent.files[retained]);assert.deepEqual(retired.files[binary],parent.files[binary]);
+ assert.equal(git(f.data,'show',`${result.revision}:${retained}`),'# retained report');assert.equal(git(f.data,'show',`${result.revision}:${binary}`),'unique evidence');
+ assert.equal(git(f.data,'show',`${parent.revision}:${path}`),'# retirement candidate');
+ assert.equal(git(f.data,'rev-parse','HEAD'),head);assert.equal(git(f.data,'show-ref'),refs);assert.equal(git(f.data,'status','--porcelain'),working);assert.equal(git(f.data,'write-tree'),staged);
+ assert.equal(read(f.data,'unfinished.txt'),'unstaged original');assert.equal(git(f.data,'show',':unfinished.txt'),'staged original');
+ assert.throws(()=>createReportRetirementCommit({root:f.root,revision:parent.revision,removePaths:['../escape.md']}),/path/i);
+ assert.throws(()=>createReportRetirementCommit({root:f.root,revision:parent.revision,removePaths:['AGENTS.md']}),/path|protected/i);
+ assert.deepEqual(readdirSync(join(f.data,'.pando-store')).filter(name=>name.startsWith('report-retirement-')),[]);
 });
 
 test('storing a hydrated report does not delete another unhydrated archive original',t=>{
