@@ -7,7 +7,8 @@
         "node",
         "--test",
         "tests/core/runtime.test.mjs",
-        "tests/core/storage.test.mjs"
+        "tests/core/storage.test.mjs",
+        "tests/core/current-world-stream.test.mjs"
       ]
     },
     {
