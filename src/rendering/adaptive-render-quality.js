@@ -32,9 +32,8 @@ export function resolveInitialRenderQuality({
   const cores = Number(hardwareConcurrency);
   const knownMemory = Number.isFinite(memory) && memory > 0;
   const knownCores = Number.isFinite(cores) && cores > 0;
-  if ((knownMemory && memory <= 2) || (knownCores && cores <= 2)) return RENDER_QUALITY_TIERS.COARSE;
-  if (saveData || mobile || (knownMemory && memory <= 4) || (knownCores && cores <= 4)) return RENDER_QUALITY_TIERS.MEDIUM;
-  return RENDER_QUALITY_TIERS.HIGH;
+  if (saveData || mobile || (knownMemory && memory <= 4) || (knownCores && cores <= 4)) return RENDER_QUALITY_TIERS.COARSE;
+  return RENDER_QUALITY_TIERS.MEDIUM;
 }
 
 export function renderQualityProfile(tier, {
@@ -47,41 +46,28 @@ export function renderQualityProfile(tier, {
   const normalized = normalizedTier(tier);
   const interaction = phase === 'interaction';
   const definitions = {
-    [RENDER_QUALITY_TIERS.COARSE]: {
-      backgroundLod: 'coarse', dprCap: mobile ? 1.5 : 1.25,
-      // Resolution is a data-quality decision, not an interaction budget.
-      // Once canonical data is available we keep the same target level while
-      // moving and only throttle requests/uploads in the renderer.
-      terrainResolutionScale: 1, terrainCacheBudgetBytes: 32 * MIB,
-      hydroCacheBudgetBytes: 40 * MIB, overlayGpuBudgetBytes: 48 * MIB,
-      renderPacketCacheBudgetBytes: 48 * MIB,
-      interactionUploadBudgetBytes: 256 * 1024, settleUploadBudgetBytes: 2 * MIB,
-    },
-    [RENDER_QUALITY_TIERS.MEDIUM]: {
-      backgroundLod: 'medium', dprCap: mobile ? 2 : 1.75,
-      terrainResolutionScale: 1, terrainCacheBudgetBytes: 64 * MIB,
-      hydroCacheBudgetBytes: 72 * MIB, overlayGpuBudgetBytes: 96 * MIB,
-      renderPacketCacheBudgetBytes: 96 * MIB,
-      interactionUploadBudgetBytes: 512 * 1024, settleUploadBudgetBytes: 4 * MIB,
-    },
-    [RENDER_QUALITY_TIERS.HIGH]: {
-      backgroundLod: 'high', dprCap: mobile ? 2 : 3,
-      terrainResolutionScale: 1, terrainCacheBudgetBytes: 128 * MIB,
-      hydroCacheBudgetBytes: 96 * MIB, overlayGpuBudgetBytes: 192 * MIB,
-      renderPacketCacheBudgetBytes: 192 * MIB,
-      interactionUploadBudgetBytes: 768 * 1024, settleUploadBudgetBytes: 8 * MIB,
-    },
+    coarse: {dprCap:0.75, geometryErrorPx:2, terrainResolutionScale:0.5,labelCandidateLimit:128,gpuCacheBudgetBytes:64*MIB,cpuCacheBudgetBytes:96*MIB},
+    medium: {dprCap:1.25,geometryErrorPx:1,terrainResolutionScale:0.75,labelCandidateLimit:256,gpuCacheBudgetBytes:128*MIB,cpuCacheBudgetBytes:192*MIB},
+    high: {dprCap:2,geometryErrorPx:0.5,terrainResolutionScale:1,labelCandidateLimit:512,gpuCacheBudgetBytes:256*MIB,cpuCacheBudgetBytes:256*MIB},
   };
   const selected = definitions[normalized];
   return Object.freeze({
     tier: normalized,
     phase: interaction ? 'interaction' : 'settle',
     revision: Number(revision || 0),
-    activeEditLod: 'high',
-    selectedLod: 'high',
+    activeEditLod: normalized,
+    selectedLod: normalized,
+    backgroundLod: normalized,
     ...selected,
-    uploadBudgetBytes: interaction ? selected.interactionUploadBudgetBytes : selected.settleUploadBudgetBytes,
-    targetFrameMs: mobile ? 33 : 20,
+    terrainCacheBudgetBytes:selected.gpuCacheBudgetBytes/4,
+    hydroCacheBudgetBytes:selected.gpuCacheBudgetBytes/8,
+    overlayGpuBudgetBytes:selected.gpuCacheBudgetBytes/4,
+    geometryGpuBudgetBytes:selected.gpuCacheBudgetBytes*3/8,
+    renderPacketCacheBudgetBytes:selected.cpuCacheBudgetBytes/2,
+    interactionUploadBudgetBytes:256*1024,
+    settleUploadBudgetBytes:2*MIB,
+    uploadBudgetBytes: interaction ? 256*1024 : 2*MIB,
+    targetFrameMs: 33,
     p95FrameMs: Number(metrics.p95FrameMs || 0),
     p99FrameMs: Number(metrics.p99FrameMs || 0),
     longFrameCount: Number(metrics.longFrameCount || 0),
@@ -96,8 +82,8 @@ export function createAdaptiveRenderQualityController({
   saveData = false,
   evaluationWindow = 20,
   degradeWindows = 2,
-  upgradeWindows = 5,
-  changeCooldownMs = 2500,
+  upgradeWindows = 6,
+  changeCooldownMs = 0,
   now = () => globalThis.performance?.now?.() ?? Date.now(),
 } = {}) {
   let tier = resolveInitialRenderQuality({ mobile, deviceMemory, hardwareConcurrency, saveData });
@@ -111,7 +97,8 @@ export function createAdaptiveRenderQualityController({
   let qualityChangeCount = 0;
   let longFrameCount = 0;
   const frameSamples = [];
-  const maximumTierIndex = saveData || (Number(deviceMemory) > 0 && Number(deviceMemory) <= 2) ? 1 : 2;
+  const maximumTierIndex = 2;
+  let memoryPressure=false, stableSince=null;
 
   function metrics() {
     return {
@@ -136,6 +123,7 @@ export function createAdaptiveRenderQualityController({
     lastReason = String(reason || 'runtime-frame-budget');
     overBudgetWindows = 0;
     underBudgetWindows = 0;
+    stableSince=null;
     return true;
   }
 
@@ -145,15 +133,14 @@ export function createAdaptiveRenderQualityController({
     phase = normalized;
     revision += 1;
     lastReason = String(reason || normalized);
+    if(phase==='settle')promoteIfStable();
     return true;
   }
 
   function evaluate() {
     const current = metrics();
-    const target = mobile ? 33 : 20;
-    const expensive = current.p95FrameMs > target || current.p99FrameMs > Math.max(45, target * 1.7);
-    const comfortable = current.p95FrameMs > 0 && current.p95FrameMs < target * 0.68
-      && current.p99FrameMs < Math.max(28, target * 1.05);
+    const expensive = memoryPressure || current.p95FrameMs > 40;
+    const comfortable = !memoryPressure && current.p95FrameMs > 0 && current.p95FrameMs < 25;
     if (expensive) {
       overBudgetWindows += 1;
       underBudgetWindows = 0;
@@ -165,19 +152,28 @@ export function createAdaptiveRenderQualityController({
       underBudgetWindows = 0;
     }
     if (now() - lastChangeAt < changeCooldownMs) return false;
+    if (comfortable) stableSince ??= now(); else stableSince = null;
     const index = TIER_ORDER.indexOf(tier);
     if (overBudgetWindows >= degradeWindows && index > 0) return changeTier(TIER_ORDER[index - 1], 'frame-p95-over-budget');
-    if (phase === 'settle' && underBudgetWindows >= upgradeWindows && index < maximumTierIndex) {
+    return promoteIfStable();
+  }
+
+  function promoteIfStable() {
+    const index=TIER_ORDER.indexOf(tier);
+    if (phase === 'settle' && !memoryPressure && underBudgetWindows >= upgradeWindows
+      && index < maximumTierIndex && stableSince !== null && now()-stableSince >= 15000) {
       return changeTier(TIER_ORDER[index + 1], 'frame-budget-stable');
     }
     return false;
   }
 
-  function recordFrame(durationMs, { interaction = phase === 'interaction' } = {}) {
-    const duration = Math.max(0, Number(durationMs) || 0);
+  function recordFrame(durationMs, { interaction = phase === 'interaction',frameIntervalMs=0,suspended=false,waiting=false,memoryPressure:pressure=false } = {}) {
+    if(suspended||waiting)return false;
+    memoryPressure=pressure;
+    const duration = Math.max(0, Number(durationMs) || 0,Number(frameIntervalMs)||0);
     if (!duration) return false;
     frameSamples.push(duration);
-    if (frameSamples.length > 120) frameSamples.splice(0, frameSamples.length - 120);
+    if (frameSamples.length > 60) frameSamples.splice(0, frameSamples.length - 60);
     if (duration >= 45) longFrameCount += 1;
     samplesSinceEvaluation += 1;
     if (samplesSinceEvaluation < Math.max(4, Number(evaluationWindow) || 20)) return false;

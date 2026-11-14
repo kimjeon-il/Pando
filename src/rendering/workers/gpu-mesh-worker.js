@@ -145,7 +145,7 @@ async function buildMesh(features, context, request = {}) {
         tiled = tileLargePolygonLodFeatures(features, request.visibleTiles, {
           intersection: (left, right) => core.polygonOperation('intersection', [left, right], false),
           sourceKey, lodKey: String(lod.key || ''),
-          cache: screenLodTileCache,
+          cache: screenLodTileCache, cacheByteBudget:request.cpuCacheBudgetBytes,
         });
         if (tiled.tiledCountryCount) {
           features = tiled.features;

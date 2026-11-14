@@ -12,7 +12,7 @@ export function createGpuTerrainPreparation({ readTile, readNaturalTile = async 
   const PI = Math.PI;
   let gl = null, uploadScheduler = null, ready = false, disposed = false;
   let epoch = 0, projectGeneration = 0, contextRevision = 0;
-  let activeFrameContext = null, view = {};
+  let activeFrameContext = null, view = {}, resolutionScale = 1;
   let terrainManifest = null, cacheBudgetBytes = 128 * 1024 * 1024, terrainUploadCount = 0;
   // RGBA8 DEM and optional natural source textures each occupy four bytes per
   // stored texel. Canvas's three converted colour planes remain 12 bytes/texel.
@@ -47,9 +47,9 @@ export function createGpuTerrainPreparation({ readTile, readNaturalTile = async 
       if (!terrainManifest?.levels?.length) return null;
       const physicalScale = Number(frameContext?.scale) || Number(activeFrameContext?.scale) || 1;
       // Render DPR reduction must not degrade the selected source terrain.
-      const frameDpr = Math.max(1, Number(frameContext.dpr));
+      const frameDpr = Math.max(0.25, Number(frameContext.dpr) || 1);
       const sourceDpr = Math.min(isMobile() ? 2 : 3, Math.max(1, Number(view.devicePixelRatio || 1)));
-      const desiredWidth = Math.max(1, 2 * PI * (physicalScale / frameDpr) * sourceDpr);
+      const desiredWidth = Math.max(1, 2 * PI * (physicalScale / frameDpr) * sourceDpr * resolutionScale);
       const baseLevel = terrainManifest.levels[0], gutter = Number(terrainManifest.gutter || 0);
       // Actual full-world fallback is always retained independently of view.
       // Account for every partial edge tile (rather than assuming all tiles
@@ -532,6 +532,11 @@ export function createGpuTerrainPreparation({ readTile, readNaturalTile = async 
     };
   }
   return Object.freeze({
+    setQuality(profile) {
+      resolutionScale = Math.max(0.25, Math.min(1, Number(profile.terrainResolutionScale) || 1));
+      cacheBudgetBytes = profile.terrainCacheBudgetBytes;
+      natural.trim(Math.floor(cacheBudgetBytes / 4));
+    },
     setContext(next) {
       if (disposed) return;
       const nextDependencies = { ...dependencies, context: next.gl ? [next.gl, next.contextGeneration] : null };

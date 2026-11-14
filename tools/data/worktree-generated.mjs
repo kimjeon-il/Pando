@@ -12,6 +12,8 @@ const scopePattern=/^(?:node_modules\/\.pnpm(?:\/|$)|assets\/(?:worker-runtime(?
 const dependencyPattern=/^node_modules\/\.pnpm(?:\/|$)/;
 const evidencePattern=/^build-native\/(?:reference-analysis(?:\/|$)|reference-release(?:\/|$)|ui-main-sync-20261021(?:\/|$)|(?:editable-library-|polygon-quality-|resource-update-)[^/]+\.(?:log|png|md|txt)$|macro-source-preview\.png$|library-merge-paths\.txt$)/;
 const compilerPatterns={
+ 'archived-duplicate':/^(?:private-evidence\/(?:workspace-consolidation|worktree-storage)\/|\.working\/map-toolkit-separation\/release-candidate\/|reports\/\.edits\/[^/]+\/)/,
+ 'retired-product-output':/^private-evidence\/worktree-storage\/(?:workspace-layout-20261025\/ui\/old-editor\/apps\/web-shell\/src-tauri\/gen\/android\/app\/src\/main\/jniLibs\/(?:arm64-v8a|x86_64)\/libpandolab_web_shell_lib\.so$|20261025\/(?:inventory|final-inventory)\.json$|generated-cleanup-20261025\/gis\/\.superpowers\/sdd\/ddr-vg25-followup\/browser-results(?:-fixed)?\/historical-library-East-Ge-3759e-history-and-original-source\/trace\.zip$)/,
  'ci-toolchain':/^(?:emsdk-6\.0\.3|llvm-mingw-20261020|micromamba\/root\/pkgs)(?:\/|$)/,
  'ci-transfer-cache':/^(?:pandolab-cargo-[a-f0-9]{32}(?:\/|$)|gh-artifact\.\d+\.zip$)/,
  'ci-build-input':/^build-native\/reference-analysis\/libtorch(?:\.zip$|\/(?:include(?:\/|$)|lib\/[^/]+\.(?:lib|a|pdb|exp)$))/i,
@@ -29,6 +31,15 @@ const compilerPatterns={
  worktree:/^build-native\/(?:emsdk|p1)(?:\/|$)/,
 };
 const ciBuildInput=(root,path,scopes)=>scopes.some(s=>resolve(s.root)===resolve(root)&&s.kind==='ci-build-input')&&compilerPatterns['ci-build-input'].test(relative(root,path).replaceAll('\\','/'));
+const archivedDuplicate=(root,path,scopes)=>scopes.some(s=>resolve(s.root)===resolve(root)&&s.kind==='archived-duplicate')&&compilerPatterns['archived-duplicate'].test(relative(root,path).replaceAll('\\','/'));
+function duplicateKeeper(entry,duplicateRoots,scopes){
+ const root=resolve(entry.duplicateRoot||entry.root),target=resolve(entry.root,entry.path);
+ const archived=archivedDuplicate(entry.root,target,scopes);
+ if(archived&&!duplicateRoots.map(p=>resolve(p)).includes(root))throw Error('Unknown duplicate preservation scope');
+ const keeper=containedPath(root,entry.duplicateOf);
+ if(entry.action!=='delete'||(!archived&&(!/^build-native\/reference-analysis\/.*\.f32$/i.test(relative(entry.root,target).replaceAll('\\','/'))||root!==resolve(entry.root)||!/^build-native\/reference-analysis\/.*\.f32$/i.test(relative(root,keeper).replaceAll('\\','/')))))throw Error('Duplicate proof outside the approved generated scope');
+ return keeper;
+}
 function retirementPath(root,path){
  const base=resolve(root),target=resolve(base,path),rel=relative(base,target);
  if(!rel||rel==='..'||rel.startsWith('..'+sep)||isAbsolute(rel))throw Error('Generated target escaped its scope');
@@ -62,7 +73,7 @@ function destination(entry,relocationRoots){
  if(!base)throw Error('Relocation destination is outside the approved storage scope');
  return containedPath(base,entry.destination);
 }
-export function previewGeneratedCleanup({roots,requests,consumers=[],protectedPaths=[],relocationRoots=[],compilerScopes=[],progress=()=>{}}){
+export function previewGeneratedCleanup({roots,requests,consumers=[],protectedPaths=[],relocationRoots=[],duplicateRoots=[],compilerScopes=[],progress=()=>{}}){
  roots=roots.map(p=>resolve(p));protectedPaths=protectedPaths.map(p=>resolve(p));
  const targets=compilerScopes.length?requests.map(r=>containedPath(r.root,r.path)):roots;
  assertIdle(roots,consumers,targets);const entries=[],seen=new Set();
@@ -72,31 +83,34 @@ export function previewGeneratedCleanup({roots,requests,consumers=[],protectedPa
   if(evidence&&request.action!=='relocate'&&!request.duplicateOf&&!ciBuildInput(request.root,resolve(request.root,request.path),compilerScopes))throw Error('Unique retired evidence must be relocated');
   const target=validate(request.root,request.path,roots,protectedPaths,compilerScopes,request.action);if(!existsSync(target))continue;
   const directory=lstatSync(target).isDirectory();let files;
-  if(request.duplicateOf&&(request.action!=='delete'||directory||!/^build-native\/reference-analysis\/.*\.f32$/i.test(relative(request.root,target).replaceAll('\\','/'))))throw Error('Duplicate proof only applies to individual retired analysis tensors');
+  if(archivedDuplicate(request.root,target,compilerScopes)&&!request.duplicateOf)throw Error('Archived duplicate requires an independent original');
+  if(request.duplicateOf){if(directory)throw Error('Duplicate proof only applies to individual files');duplicateKeeper(request,duplicateRoots,compilerScopes);}
   if(directory&&dependencyPattern.test(relative(request.root,target).replaceAll('\\','/'))){files=[];const scan=p=>{const s=lstatSync(p);if(s.isDirectory()&&!s.isSymbolicLink())for(const name of readdirSync(p))scan(resolve(p,name));else files.push({path:p});};scan(target);}else files=directory?contentFiles(target):[{path:target}];
   for(const f of files){
    const path=validate(request.root,f.path,roots,protectedPaths,compilerScopes,request.action);if(seen.has(path))throw Error('Overlapping generated requests');seen.add(path);
    const s=lstatSync(path,{bigint:true}),link=s.isSymbolicLink()&&dependencyPattern.test(relative(request.root,path).replaceAll('\\','/'))&&request.action==='delete';if((!s.isFile()||s.isSymbolicLink())&&!link)throw Error('Linked or non-file output must be preserved');
    const row={root:resolve(request.root),path:relative(request.root,path).replaceAll('\\','/'),scope:request.path,action:request.action,reason:request.reason,bytes:link?0:Number(s.size),identity:identity(path),sha256:link?contentHash(Buffer.from(readlinkSync(path))):fileHash(path),links:Number(s.nlink),mode:Number(s.mode),...link?{kind:'dependency-link'}:{}};
-   if(request.duplicateOf){const keeper=containedPath(request.root,request.duplicateOf),rel=relative(request.root,keeper).replaceAll('\\','/'),ks=lstatSync(keeper,{bigint:true});if(!/^build-native\/reference-analysis\/.*\.f32$/i.test(rel)||keeper===path||!ks.isFile()||(ks.dev===s.dev&&ks.ino===s.ino)||fileHash(keeper)!==row.sha256)throw Error('Separate duplicate tensor proof failed');row.duplicateOf=rel;row.duplicateIdentity=identity(keeper);}
+   if(request.duplicateOf){const keeper=duplicateKeeper(request,duplicateRoots,compilerScopes),keeperRoot=resolve(request.duplicateRoot||request.root),ks=lstatSync(keeper,{bigint:true});if(keeper===path||!ks.isFile()||ks.isSymbolicLink()||(ks.dev===s.dev&&ks.ino===s.ino)||fileHash(keeper)!==row.sha256)throw Error('Separate duplicate file proof failed');row.duplicateOf=relative(keeperRoot,keeper).replaceAll('\\','/');row.duplicateRoot=keeperRoot;row.duplicateIdentity=identity(keeper);}
    if(request.action==='relocate'){row.destination=directory?resolve(request.destination,relative(target,path)):resolve(request.destination);destination(row,relocationRoots);}
    entries.push(row);
    if(entries.length%1000===0)progress(`hashed ${entries.length} files`);
   }
  }
  const normalizedPath=p=>process.platform==='win32'?resolve(p).toLowerCase():resolve(p);
- const selected=new Set([...seen].map(normalizedPath));for(const e of entries)if(e.duplicateOf&&selected.has(normalizedPath(resolve(e.root,e.duplicateOf))))throw Error('Duplicate source is also selected for deletion');
- return {schema,compilerScopes,roots:roots.map(p=>resolve(p)),relocationRoots:relocationRoots.map(p=>resolve(p)),createdAt:new Date().toISOString(),entries};
+ const selected=new Set([...seen].map(normalizedPath));for(const e of entries)if(e.duplicateOf&&selected.has(normalizedPath(duplicateKeeper(e,duplicateRoots,compilerScopes))))throw Error('Duplicate source is also selected for deletion');
+ return {schema,compilerScopes,duplicateRoots:duplicateRoots.map(p=>resolve(p)),roots:roots.map(p=>resolve(p)),relocationRoots:relocationRoots.map(p=>resolve(p)),createdAt:new Date().toISOString(),entries};
 }
-export function applyGeneratedCleanup({roots,manifest,consumers=[],refreshConsumers=()=>consumers,protectedPaths=[],relocationRoots=manifest.relocationRoots||[],journal=null,afterRemoved=()=>{},afterMutation=()=>{},progress=()=>{},compilerScopes=[],verifiedPreview=null,copyForRelocation=copyFileSync,retainCompletedJournal=false,preserveReadonlyShared=false}){
+export function applyGeneratedCleanup({roots,manifest,consumers=[],refreshConsumers=()=>consumers,protectedPaths=[],relocationRoots=manifest.relocationRoots||[],duplicateRoots=[],journal=null,afterRemoved=()=>{},afterMutation=()=>{},progress=()=>{},compilerScopes=[],verifiedPreview=null,copyForRelocation=copyFileSync,retainCompletedJournal=false,preserveReadonlyShared=false}){
  roots=roots.map(p=>resolve(p));protectedPaths=protectedPaths.map(p=>resolve(p));
  if(JSON.stringify(manifest.compilerScopes||[])!==JSON.stringify(compilerScopes))throw Error('Compiler retirement scope mismatch');
+ if(JSON.stringify(manifest.duplicateRoots||[])!==JSON.stringify(duplicateRoots.map(p=>resolve(p))))throw Error('Duplicate preservation scope mismatch');
  if(manifest.schema!==schema||JSON.stringify(manifest.roots)!==JSON.stringify(roots.map(p=>resolve(p))))throw Error('Manifest scope mismatch');
  const normalizedPath=p=>process.platform==='win32'?resolve(p).toLowerCase():resolve(p),selected=new Set(manifest.entries.map(e=>normalizedPath(resolve(e.root,e.path))));
  for(const e of manifest.entries){
   const target=validate(e.root,e.path,roots,protectedPaths,compilerScopes,e.action),relativeTarget=relative(e.root,target).replaceAll('\\','/');
   if(evidencePattern.test(relativeTarget)&&e.action==='delete'&&!e.duplicateOf&&!ciBuildInput(e.root,target,compilerScopes))throw Error('Unique retired evidence must be relocated');
-  if(e.duplicateOf){const keeper=containedPath(e.root,e.duplicateOf),rel=relative(e.root,keeper).replaceAll('\\','/');if(e.action!=='delete'||!/^build-native\/reference-analysis\/.*\.f32$/i.test(relativeTarget)||!/^build-native\/reference-analysis\/.*\.f32$/i.test(rel)||selected.has(normalizedPath(keeper)))throw Error('Duplicate source is also selected or outside the tensor scope');}
+  if(archivedDuplicate(e.root,target,compilerScopes)&&!e.duplicateOf)throw Error('Archived duplicate requires an independent original');
+  if(e.duplicateOf&&selected.has(normalizedPath(duplicateKeeper(e,duplicateRoots,compilerScopes))))throw Error('Duplicate source is also selected for deletion');
  }
  const targets=compilerScopes.length?[...new Map(manifest.entries.map(e=>[e.root+'|'+e.scope,e])).values()].map(e=>containedPath(e.root,e.scope)):roots;
  assertIdle(roots,consumers,targets);
@@ -114,7 +128,7 @@ export function applyGeneratedCleanup({roots,manifest,consumers=[],refreshConsum
  const stamp=s=>`${s.dev}:${s.ino}:${s.size}:${s.mtimeNs}:${s.ctimeNs}:${s.nlink}:${s.mode}`;
  const check=(e,reuse=false)=>{
   const p=validate(e.root,e.path,roots,protectedPaths,compilerScopes,e.action);
-  if(e.duplicateOf){const keeper=containedPath(e.root,e.duplicateOf),s=lstatSync(keeper,{bigint:true});if(!s.isFile()||s.isSymbolicLink()||`${s.dev}:${s.ino}:${s.size}:${s.mtimeNs}`!==e.duplicateIdentity||fileHash(keeper)!==e.sha256)throw Error(`Duplicate source changed: ${keeper}`);}
+  if(e.duplicateOf){const keeper=duplicateKeeper(e,duplicateRoots,compilerScopes),s=lstatSync(keeper,{bigint:true});if(!s.isFile()||s.isSymbolicLink()||`${s.dev}:${s.ino}:${s.size}:${s.mtimeNs}`!==e.duplicateIdentity||fileHash(keeper)!==e.sha256)throw Error(`Duplicate source changed: ${keeper}`);}
   if(!presentPath(p))return p;
   const before=lstatSync(p,{bigint:true}),current=stamp(before);
   if(`${before.dev}:${before.ino}:${before.size}:${before.mtimeNs}`!==e.identity)throw Error(`Stale or changed output: ${p}`);

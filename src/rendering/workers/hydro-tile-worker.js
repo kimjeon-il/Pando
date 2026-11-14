@@ -20,14 +20,12 @@ const postedPacks = new Set();
 const inFlightPacks = new Map();
 let shardStore;
 let rangeSupportPromise = null;
-let includeGeometry = false;
 let interactionActive = false;
 let foregroundActive = false;
 let cacheStarted = false;
 let cacheProgressAt = 0;
 const featureMetadata = new Map();
 let detailMetadataPromise = null;
-let canvasPort = null;
 let mobileSession = false;
 let backgroundCacheController = null;
 let backgroundCacheTimer = 0;
@@ -314,8 +312,6 @@ function readWidthProfile(bytes, geometry) {
   });
 }
 
-
-
 function buildMesh(features) {
   const riverStarts = [], riverEnds = [], riverFeatureIds = [], riverStartWidths = [], riverEndWidths = [];
   const borderRiverStarts = [], borderRiverEnds = [], borderRiverFeatureIds = [], borderRiverStartWidths = [], borderRiverEndWidths = [];
@@ -480,7 +476,7 @@ function postPack(packId, pack, revision) {
   const mesh = pack.mesh;
   postMessage({
     type: 'pack', revision, packId, descriptors: pack.descriptors,
-    features: includeGeometry ? pack.features : null,
+
     mesh: {
       riverStarts: mesh.riverStarts.buffer, riverEnds: mesh.riverEnds.buffer, riverFeatureIds: mesh.riverFeatureIds.buffer,
       riverStartWidths: mesh.riverStartWidths.buffer, riverEndWidths: mesh.riverEndWidths.buffer,
@@ -497,13 +493,11 @@ function postPack(packId, pack, revision) {
     mesh.lakePositions.buffer, mesh.lakeFeatureIds.buffer, mesh.lakeIndices.buffer,
     mesh.lakeBoundaryStarts.buffer, mesh.lakeBoundaryEnds.buffer, mesh.lakeBoundaryFeatureIds.buffer, mesh.lakeBoundaryWidths.buffer,
   ]);
-  canvasPort?.postMessage({ type: 'pack', revision, packId, features: pack.features });
   postedPacks.add(packId);
 }
 
 function postActive(revision, packIds) {
   postMessage({ type: 'active', revision, packIds });
-  canvasPort?.postMessage({ type: 'active', revision, packIds });
 }
 
 function abortBackgroundCache() {
@@ -741,7 +735,6 @@ onmessage = async event => {
         const { createExternalRuntimeDataFetch } = await import(moduleUrl.href);
         fetchRuntimeData = createExternalRuntimeDataFetch({meta:{externalRuntimeData:message.externalRuntimeData}});
       } else fetchRuntimeData = (...args) => fetch(...args);
-      includeGeometry = message.includeGeometry === true;
       tilePacks.clear();
       logicalPacks.clear();
       packSpecs.clear();
@@ -777,13 +770,8 @@ onmessage = async event => {
   if (message.type === 'view') drain(message);
   else if (message.type === 'release') {
     for (const packId of message.packIds || []) postedPacks.delete(packId);
-    canvasPort?.postMessage({ type: 'release', packIds: message.packIds || [] });
   }
-  else if (message.type === 'hydro-port') {
-    canvasPort?.close?.();
-    canvasPort = message.port || null;
-    canvasPort?.start?.();
-  }
+
   else if (message.type === 'load-feature') loadLogicalFeature(message);
   else if (message.type === 'query-logical-features') queryLogicalFeatures(message);
   else if (message.type === 'interaction') {

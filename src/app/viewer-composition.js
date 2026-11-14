@@ -256,7 +256,11 @@ export async function composeViewer({ productMode, meta }) {
       // leaves the previous dated map active. A failed restoration does not.
       status.dataset.ready=String(!error.restoreError
         &&(previouslyReady||retainingDatedFrame||initialPresentation.hasPresented()));
-      presentViewerLoadStatus(status,'지도를 불러오지 못했습니다.');throw error;
+      if(error.code==='PL-GPU-UNAVAILABLE'){
+        get('viewer').dataset.initialLoading='false';
+        presentViewerLoadStatus(status,'WebGL2를 지원하는 브라우저와 GPU가 필요합니다.',{error:true});
+      }else presentViewerLoadStatus(status,'지도를 불러오지 못했습니다.');
+      throw error;
     }return false;}
     finally {
       // Search never owns map readiness: a failed optional refresh cannot
@@ -418,7 +422,7 @@ export async function composeViewer({ productMode, meta }) {
   const lifecycle=createApplicationLifecycle({window,document,
     // Only initial engine admission is safe to repeat. DOM/map composition is not.
     compose:[()=>documentSession.commandOwner.load(JSON.stringify(documentSession.documentModel.snapshot())),composeMap],
-    startup:()=>projectClock.initialize(),
+    startup:async()=>{await map.ready;return projectClock.initialize();},
     shouldRetryCompose:(error,index)=>index===0&&isRecoverableLoadError(error),
     shouldRetryStartup:isRecoverableLoadError,
     getDisposables:()=>[...disposables].reverse(),
@@ -429,7 +433,12 @@ export async function composeViewer({ productMode, meta }) {
       const button=document.createElement('button');button.type='button';button.className='ui-button btn';button.textContent='다시 시도';
       button.addEventListener('click',()=>{retry().catch(report);});status.appendChild(button);
     },
-    onError:error=>{presentViewerLoadStatus(status,'지도를 불러오지 못했습니다. 새로고침해 다시 시도하세요.',{error:true});report(error,'지도를 불러오지 못했습니다.','PL-MAP-START');},reportDisposeError:error=>console.error('[PL-DISPOSE]',error)});
+    onError:error=>{
+      get('viewer').dataset.initialLoading='false';
+      const unsupported=map?.renderer.getRuntimeState().renderer==='failed';
+      presentViewerLoadStatus(status,unsupported?'WebGL2를 지원하는 브라우저와 GPU가 필요합니다.':'지도를 불러오지 못했습니다. 새로고침해 다시 시도하세요.',{error:true});
+      report(error,'지도를 불러오지 못했습니다.','PL-MAP-START');
+    },reportDisposeError:error=>console.error('[PL-DISPOSE]',error)});
   await lifecycle.start();
   // Restore the selected global map style against the newly admitted project.
   await display.applyMapStyle(preferencePresentation.current.appearance.mapStyle).catch(error => report(error,

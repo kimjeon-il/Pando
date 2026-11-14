@@ -41,7 +41,7 @@ export function createMapLayoutMetricsSnapshot({
   const projectionSignature = [
     resolvedWidth.toFixed(3),
     resolvedHeight.toFixed(3),
-    Math.max(1, finiteNumber(dpr, 1)).toFixed(3),
+    Math.max(0.25, finiteNumber(dpr, 1)).toFixed(3),
     safe.left,
     safe.right,
     safe.top,
@@ -73,7 +73,7 @@ export function createMapLayoutMetricsSnapshot({
     reason: String(reason || 'layout'),
     width: resolvedWidth,
     height: resolvedHeight,
-    dpr: Math.max(1, finiteNumber(dpr, 1)),
+    dpr: Math.max(0.25, finiteNumber(dpr, 1)),
     mobile: mobile === true,
     safe,
     fitInsets: fit,

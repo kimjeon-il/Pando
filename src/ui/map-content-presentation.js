@@ -60,7 +60,7 @@ export function createMapContentPresentation({countries={},hydro={},territorial=
     const riverStyle = hydro.layerStyle?.(state.layerPresentation, 'rivers') || {};
     const lakeStyle = hydro.layerStyle?.(state.layerPresentation, 'lakes') || {};
     const renderer = hydro.gpuMapRenderer?.getRuntimeState?.().renderer;
-    const nativeHydro = ['webgl2', 'webgl1', 'canvas-worker', 'canvas2d'].includes(renderer);
+    const nativeHydro = renderer === 'webgl2';
     if (nativeHydro) {
       hydro.hydroLakeLayer.selectAll('*').remove();
       hydro.hydroRiverLayer.selectAll('*').remove();
@@ -91,7 +91,7 @@ export function createMapContentPresentation({countries={},hydro={},territorial=
     const state = hydro.getState?.() || {};
     if (!hydro.hydroEditLayer) return false;
     const renderer = hydro.gpuMapRenderer?.getRuntimeState?.().renderer;
-    const nativeHydro = ['webgl2', 'webgl1', 'canvas-worker', 'canvas2d'].includes(renderer);
+    const nativeHydro = renderer === 'webgl2';
     hydro.gpuMapRenderer?.setHydroEdits?.(state.hydroEdits || []);
     const riverStyle = hydro.layerStyle?.(state.layerPresentation, 'rivers') || {};
     const lakeStyle = hydro.layerStyle?.(state.layerPresentation, 'lakes') || {};

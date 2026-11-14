@@ -102,10 +102,10 @@ function screenCellRange(box, cellSize, padding = 0) {
   };
 }
 
-export function layoutLabels(candidates = [], { zoom = 1, padding = 3, cellSize = 64, bounds = null, metrics = null } = {}) {
+export function layoutLabels(candidates = [], { zoom = 1, padding = 3, cellSize = 64, bounds = null, metrics = null, candidateLimit = PLACE_LIMITS.layoutCandidates } = {}) {
   const started = typeof performance !== 'undefined' ? performance.now() : Date.now();
   const ordered = sortedVisibleCandidates(candidates, zoom, bounds);
-  const visible = ordered.slice(0, PLACE_LIMITS.layoutCandidates);
+  const visible = ordered.slice(0, Math.max(0, Math.min(PLACE_LIMITS.layoutCandidates, candidateLimit)));
   const resolvedCellSize = Math.max(16, Number(cellSize) || 64);
   const gridsByGroup = new Map();
   let collisionCheckCount = 0;

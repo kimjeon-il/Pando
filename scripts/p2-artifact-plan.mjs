@@ -113,9 +113,7 @@ function validationOrPresentationOnly(changes,graph) {
   "scripts/p2-artifact-plan.mjs",
   "src/map/map-input-presentation.js",
   "src/rendering/country-mesh-zoom-policy.js",
-  "src/rendering/workers/canvas-render-worker.js",
   "src/rendering/gpu-canvas-scene-packets.js",
-  "src/rendering/gpu-canvas-worker.js",
   "src/rendering/map-renderer-composition.js",
   "src/data/physical-resources.js",
   "src/rendering/gpu-map-renderer.js",
@@ -208,4 +206,3 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)) {
       changedPaths:difference.paths,diffFallback:difference.fallback},null,2));
   }
 }
-

@@ -1,5 +1,5 @@
-// Stateless identity/readiness calculations shared by all renderer backends.
-// A canvas/DEM tile completion cannot change the accepted base picture key
+// Stateless identity/readiness calculations for WebGL2 presentation.
+// A DEM tile completion cannot change the accepted base picture key
 // unless a frame, geometry source, device or dependent presentation changed.
 export function physicalSceneMatchesContext(scene,context) {
   if (!context?.ready) return false;
@@ -50,23 +50,4 @@ export function classifyGpuResourceReady(key, scene, strokeResourceKey = packet 
   if((scene?.polygons||[]).some(packet=>packet.key===key)
     ||(scene?.strokes||[]).some(packet=>strokeResourceKey(packet)===key))return 'scene';
   return 'interaction';
-}
-
-// Only effective picture inputs influence presentation; frameId is a
-// scheduling identity and never rejects otherwise identical pixels.
-export function classifyCanvasWorkerFrame(message,{
-  backgroundEligible=false,expectedBackgroundKey='',physicalStyleRevision=0,
-  expectedPresentationKey='',geometryRevision=0,styleRevision=0,
-  surfaceQuality='',physicalMatches=false,
-}={}) {
-  if(backgroundEligible) {
-    if(message.backgroundPresentationKey!==expectedBackgroundKey)return 'background-presentation';
-    if(Number(message.physicalStyleRevision||0)!==physicalStyleRevision)return 'physical-style';
-  } else {
-    if(message.presentationKey!==expectedPresentationKey)return 'presentation';
-    if(Number(message.geometryRevision)!==geometryRevision)return 'geometry';
-    if(Number(message.styleRevision||0)!==styleRevision)return 'style';
-    if(message.surfaceQuality!==surfaceQuality)return 'quality';
-  }
-  return physicalMatches?'':'physical';
 }

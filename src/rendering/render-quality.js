@@ -16,22 +16,8 @@ export function createRenderQuality() {
 
   function applyAdaptiveRenderQuality({ refreshScene = false, reason = 'adaptive-render-quality' } = {}) {
     currentRenderQuality = renderQualityController.profile();
-    const gpuQuality = dependencies.rendering.gpuMapRenderer.getRuntimeState?.() || {};
-    if (gpuQuality.canonicalMeshReady) {
-      // Once the source is ready, interaction budgets cannot change its
-      // display policy; render-lod owns geometry selection at each scale.
-      currentRenderQuality = Object.freeze({
-        ...currentRenderQuality,
-        backgroundLod: 'high',
-        terrainResolutionScale: 1,
-      });
-    }
     dependencies.gpuRenderingA.renderSceneBuilder.setCacheByteBudget(currentRenderQuality.renderPacketCacheBudgetBytes);
-    dependencies.rendering.gpuMapRenderer.setRenderQuality?.(currentRenderQuality);
-    dependencies.mapView.mapHost?.setRenderPixelRatio?.(Math.min(
-      (0, dependencies.hydroModel.currentMapDevicePixelRatio)(),
-      Math.max(1, Number(currentRenderQuality.dprCap || 1)),
-    ));
+    dependencies.rendering.gpuMapRenderer.setRenderQuality(currentRenderQuality);
     if (refreshScene) dependencies.domains.renderingDomain?.invalidateQuality?.(reason);
     return currentRenderQuality;
   }

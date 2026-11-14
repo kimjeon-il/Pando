@@ -115,7 +115,7 @@ export function resolveMapStrokeStyle(style, role = 'candidate') {
 
 /** Convert once at the device boundary; never persist or cache this as policy. */
 export function gpuStrokeStyle(style, frameContext) {
-  const dpr = Math.max(1, Number(frameContext.dpr || 1));
+  const dpr = Math.max(0.25, Number(frameContext.dpr || 1));
   return Object.freeze({ ...style, width: Number(style.width || 0) * dpr,
     innerCutout: Number(style.innerCutout || 0) * dpr,
     casing: style.casing ? Object.freeze({ ...style.casing, width: Number(style.casing.width || 0) * dpr }) : null,

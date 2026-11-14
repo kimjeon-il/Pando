@@ -11,6 +11,8 @@ async function ready(page){
   }),{timeout:90_000}).toBe(true);
 }
 async function open(page,query=''){
+  page.on('pageerror',error=>console.error('Viewer page error:',error));
+  page.on('console',message=>{if(message.type()==='error')console.error('Viewer error:',message.text());});
   await page.goto('./?debug=1'+query,{waitUntil:'domcontentloaded'});
   await ready(page);
   await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__.visibleTerritorialCount())).toBeGreaterThan(0);
@@ -51,6 +53,7 @@ test('touch Viewer searches, navigates and changes time in a mobile context',asy
   try{
     const page=await context.newPage();
     await open(page);
+    expect(await page.evaluate(()=>window.__PANDOLAB_VIEWER__.rendererStats().effectivePixelRatio)).toBe(0.75);
     await search(page,true);
     const before=await camera(page),cdp=await context.newCDPSession(page);
     await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:180,y:400}]});
@@ -88,27 +91,22 @@ test('fixed GeoPackage opens in the read-only inspector and exports diagnostics 
     .toEqual({revision:before.state.revision,checkpoint:before.state.checkpoint,dirty:before.state.dirty,canUndo:before.state.canUndo});
 });
 
-test('Canvas fallback presents a visible real map and a new frame after navigation',async({page})=>{
-  await open(page,'&renderer=canvas');
-  expect(await page.evaluate(()=>window.__PANDOLAB_VIEWER__.rendererStats().renderer)).toMatch(/^canvas/);
-  await expect.poll(()=>page.evaluate(()=>{
-    const map=document.querySelector('.gpu-map-canvas');
-    if(!map||map.getBoundingClientRect().width<20||map.getBoundingClientRect().height<20)return 0;
-    const sample=document.createElement('canvas');sample.width=160;sample.height=100;
-    const ctx=sample.getContext('2d',{willReadFrequently:true});ctx.drawImage(map,0,0,160,100);
-    const bytes=ctx.getImageData(0,0,160,100).data,colors=new Set();
-    for(let i=0;i<bytes.length;i+=16)if(bytes[i+3]>0)colors.add(bytes[i]+','+bytes[i+1]+','+bytes[i+2]);
-    return colors.size;
-  }),{timeout:60_000}).toBeGreaterThan(3);
-  const revision=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.rendererStats().displayedRevision);
-  await page.mouse.move(600,400);await page.mouse.down();
-  await page.mouse.move(720,430,{steps:8});await page.mouse.up();
-  await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__.rendererStats().displayedRevision),{timeout:60_000}).toBeGreaterThan(revision);
-  await ready(page);
+test('WebGL2 unsupported ends loading with a visible support requirement',async({page})=>{
+  await page.addInitScript(()=>{
+    const getContext=HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext=function(kind,...args){
+      return kind==='webgl2'?null:getContext.call(this,kind,...args);
+    };
+  });
+  await page.goto('./?debug=1',{waitUntil:'domcontentloaded'});
+  await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__?.rendererStats().renderer)).toBe('failed');
+  await expect(page.locator('#viewerStatus')).toContainText(/WebGL2/);
+  await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__.rendererStats().mapReadiness.status)).toBe('error');
+  await expect(page.locator('#viewer')).toHaveAttribute('data-initial-loading','false');
 });
 
 test('real WebGL context loss and restoration preserve displayed state and recover a ready frame',async({page})=>{
-  await open(page,'&renderer=webgl2');
+  await open(page);
   await month(page,'2024-12');
   await search(page);
   const before=await page.evaluate(()=>({project:window.__PANDOLAB_VIEWER__.documentSnapshot(),
@@ -128,4 +126,8 @@ test('real WebGL context loss and restoration preserve displayed state and recov
   expect(await page.evaluate(()=>({project:window.__PANDOLAB_VIEWER__.documentSnapshot(),
     state:window.__PANDOLAB_VIEWER__.documentState(),selection:window.__PANDOLAB_VIEWER__.selectionSnapshot(),
     camera:window.__PANDOLAB_MAP_HOST__.getViewState()}))).toEqual(before);
+  await page.evaluate(()=>window.__contextLoss.loseContext());
+  await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__.rendererStats().renderer),{timeout:15000}).toBe('failed');
+  expect(await page.evaluate(()=>window.__PANDOLAB_VIEWER__.rendererStats().mapReadiness.status)).toBe('error');
+  expect(await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot())).toEqual(before.project);
 });
