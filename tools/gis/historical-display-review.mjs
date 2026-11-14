@@ -1,3 +1,11 @@
+import {hasPrkOffshore,assertPrkOffshore} from './prk-offshore-original-source-review.mjs';
+import {hasJpnRyukyuOriginal,assertJpnRyukyuOriginal} from './jpn-ryukyu-original-source-review.mjs';
+import {hasKorSouthwestOriginal,assertKorSouthwestOriginal} from './kor-southwest-original-source-review.mjs';
+import {hasSdsPairedOriginal,assertSdsPairedOriginal} from './sds-paired-original-source-review.mjs';
+import {hasFinDetachedOriginal,assertFinDetachedOriginal} from './fin-detached-original-source-review.mjs';
+import {hasEuropeReviewedOriginal,assertEuropeReviewedOriginal} from './europe-reviewed-original-source-review.mjs';
+import {hasEspRetainedOriginal,assertEspRetainedOriginal} from './esp-retained-original-source-review.mjs';
+import {hasRusKurilOriginal,assertRusKurilOriginal} from './rus-kuril-original-source-review.mjs';
 import{hasEuropePairedCoast,assertEuropePairedCoast}from'./europe-paired-coast-source-review.mjs';
 import{hasIrnGulfLiteral,assertIrnGulfLiteral}from'./irn-historical-gulf-source-review.mjs';
 import{hasArcticLiteral,assertArcticLiteral}from'./arctic-historical-mainland-source-review.mjs';
@@ -398,6 +406,14 @@ function assertOriginalExistingComponents(next,previous,review,{prefixes,archive
  * this does not approve historical reconstruction or derived display geometry.
  */
 export function assertHistoricalSourceStorageChanges(next,previous,{prefixes,readEvidence,getSourceSnapshot}={}){
+ if(hasPrkOffshore(next)||hasPrkOffshore(previous))return assertPrkOffshore(next,previous,{prefixes,readEvidence});
+ if(hasJpnRyukyuOriginal(next)||hasJpnRyukyuOriginal(previous))return assertJpnRyukyuOriginal(next,previous,{prefixes,readEvidence});
+ if(hasKorSouthwestOriginal(next)||hasKorSouthwestOriginal(previous))return assertKorSouthwestOriginal(next,previous,{prefixes,readEvidence});
+ if(hasSdsPairedOriginal(next)||hasSdsPairedOriginal(previous))return assertSdsPairedOriginal(next,previous,{prefixes,readEvidence});
+ if(hasFinDetachedOriginal(next)||hasFinDetachedOriginal(previous))return assertFinDetachedOriginal(next,previous,{prefixes,readEvidence});
+ if(hasEuropeReviewedOriginal(next)||hasEuropeReviewedOriginal(previous))return assertEuropeReviewedOriginal(next,previous,{prefixes,readEvidence});
+ if(hasEspRetainedOriginal(next)||hasEspRetainedOriginal(previous))return assertEspRetainedOriginal(next,previous,{prefixes,readEvidence});
+ if(hasRusKurilOriginal(next)||hasRusKurilOriginal(previous))return assertRusKurilOriginal(next,previous,{prefixes,readEvidence});
  if(hasEuropePairedCoast(next)||hasEuropePairedCoast(previous))return assertEuropePairedCoast(next,previous,{prefixes,readEvidence,getSourceSnapshot});
  if(hasIrnGulfLiteral(next)||hasIrnGulfLiteral(previous))return assertIrnGulfLiteral(next,previous,{prefixes,readEvidence,getSourceSnapshot});
  if(hasArcticLiteral(next)||hasArcticLiteral(previous))return assertArcticLiteral(next,previous,{prefixes,readEvidence,getSourceSnapshot});

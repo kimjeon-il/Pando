@@ -32,8 +32,3 @@ export function assertIrnFamilyComposition(next,previous,{prefixes,readEvidence,
  if(offset!==v.geometry.coordinates.length||offset!==scope.rawPolygonCount||s.geometrySha256!==digest(v.geometry)||next.sourceInfo?.geometrySha256!==digest(v.geometry)||next.sourceInfo?.geometryVersionId!==v.versionId)fail('complete original family and source attribution required');
  const batch=archived(review.batch),paths=[];if(!eq(batch.codes,irnFamilyCodes)||batch.method!==method||batch.resultRelation!==result||batch.members?.length!==1)fail('fixed IRN two-feature family batch required');for(const c of irnFamilyCodes){const m=batch.members.find(m=>m.code===c),r=roots.rows.find(r=>r.code===c);if(!m||m.descriptor!==base+'countries/state-'+c+'.json'||m.previousDescriptorSha256!==r.previousDescriptorSha256||!new RegExp('^'+base+'geometries/sha256-[a-f0-9]{64}\\.json$').test(m.resource||''))fail('fixed member paths required');paths.push(m.descriptor,m.resource);if(c===code&&m.resource!==base+'geometries/sha256-'+hash(JSON.stringify(v.geometry)+'\n')+'.json')fail('target resource differs');}if(!Array.isArray(prefixes)||!eq([...prefixes].sort(),paths.sort()))fail('exact IRN descriptor/resource paths required');return 1;
 }
-
-
-
-
-

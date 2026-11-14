@@ -28,4 +28,3 @@ export function assertFinScopeCorrection(next,previous,{prefixes,readEvidence,ge
  if(separation.method!=='exact-prewhole-restoration-preserves-existing-ALD-separation'||separation.priorFINGeometrySha256!==finCorrectionHashes.resource||separation.currentALDGeometrySha256!==aldHash||separation.intersectionArea!==0||separation.canonicalWrites!==0)fail('hash-bound restored FIN/ALD separation check required');
  return 1;
 }
-
