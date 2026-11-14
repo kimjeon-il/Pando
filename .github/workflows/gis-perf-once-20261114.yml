@@ -1,4 +1,5 @@
 name: GIS performance verification (one shot)
+# Rerun: corrected fixture byte counts (2 x 36 bytes).
 on:
   push:
     branches: [work/gis]

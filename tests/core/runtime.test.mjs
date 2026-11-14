@@ -436,11 +436,11 @@ test('physical relief keeps its stencil, skips transparent country paint and pro
   const unused=packet('unused','territorial-fill');
   for(const item of [base,optional,unused])assert.ok(pass.ensureResource(item).resource);
   assert.equal(pass.stats().physicalBaseBufferBytes,base.positions.byteLength+base.indices.byteLength);
-  assert.equal(pass.stats().resourceBudget.activeBytes,120,'only the two optional resources are charged');
-  assert.equal(pass.stats().resourceBudget.overBudgetBytes,56);
+  assert.equal(pass.stats().resourceBudget.activeBytes,72,'only the two optional resources are charged');
+  assert.equal(pass.stats().resourceBudget.overBudgetBytes,8);
   assert.deepEqual(pass.retain(['physical-land','optional'],{protectedKeys:['physical-land']}),['unused']);
   assert.equal(pass.stats().resourceBudget.overBudgetBytes,0);
-  assert.equal(pass.stats().activeBufferBytes,base.positions.byteLength+base.indices.byteLength+60);
+  assert.equal(pass.stats().activeBufferBytes,base.positions.byteLength+base.indices.byteLength+36);
   assert.ok(pass.retain([]).includes('physical-land'),'retired source releases required base allocations');
   assert.equal(pass.stats().physicalBaseBufferBytes,0);
   pass.dispose();
