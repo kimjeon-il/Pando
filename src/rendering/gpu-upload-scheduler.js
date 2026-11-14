@@ -14,6 +14,17 @@ export function createGpuUploadScheduler({ requestFrame = callback => globalThis
   };
   let frame = 0, active = false, lastInput = -Infinity, disposed = false;
   const stats = { frames: 0, uploadedBytes: 0, maxFrameMs: 0, overrunCount: 0, completed: 0, cancelled: 0, maxQueueWaitMs: 0, maxJobWallMs: 0, cpuStepMs: 0, steps: 0 };
+  const kindOf = key => {
+    const name = String(key || '');
+    if (name.startsWith('polygon:')) return 'polygon';
+    if (name.startsWith('terrain:')) return 'terrain';
+    if (name.startsWith('stroke')) return 'stroke';
+    if (name.startsWith('natural:')) return 'natural';
+    return 'other';
+  };
+  const byKind = Object.fromEntries(['polygon','terrain','stroke','natural','other']
+    .map(kind => [kind,{steps:0,uploadedBytes:0,cpuStepMs:0,maxStepMs:0,completed:0,cancelled:0,maxQueueWaitMs:0,zeroByteSteps:0}]));
+
   const schedule = () => { if (!disposed && jobs.size && !frame) frame = requestFrame(drain); };
   function drain() {
     frame = 0;
@@ -41,17 +52,20 @@ export function createGpuUploadScheduler({ requestFrame = callback => globalThis
         const before = now();
         if (job.startedAt === null) {
           job.startedAt = before;
-          stats.maxQueueWaitMs = Math.max(stats.maxQueueWaitMs, before - job.queuedAt);
+          const queueWait = before - job.queuedAt;
+          stats.maxQueueWaitMs = Math.max(stats.maxQueueWaitMs, queueWait);
+          byKind[job.kind].maxQueueWaitMs = Math.max(byKind[job.kind].maxQueueWaitMs, queueWait);
         }
-        attempts++; stats.steps++;
+        attempts++; stats.steps++; byKind[job.kind].steps++;
         try {
           const result = job.step({ byteBudget: Math.min(bytes, 256 * 1024), deadline: start + 2 }) || {};
           if (jobs.get(job.key) !== job) continue;
           const used = Math.max(0, Number(result.bytes) || 0);
-          bytes -= used; stats.uploadedBytes += used;
+          bytes -= used; stats.uploadedBytes += used; byKind[job.kind].uploadedBytes += used;
+          if (used === 0 && !result.done) byKind[job.kind].zeroByteSteps++;
           jobs.delete(job.key); removeOrdered(job);
           if (result.done) {
-            stats.completed++;
+            stats.completed++; byKind[job.kind].completed++;
             stats.maxJobWallMs = Math.max(stats.maxJobWallMs, now() - job.queuedAt);
             job.resolve(result.value); progressed = true;
           } else {
@@ -62,7 +76,12 @@ export function createGpuUploadScheduler({ requestFrame = callback => globalThis
         } catch (error) {
           if (jobs.get(job.key) !== job) continue;
           jobs.delete(job.key); removeOrdered(job); job.dispose?.(); job.reject(error);
-        } finally { stats.cpuStepMs += Math.max(0, now() - before); }
+        } finally {
+          const cost = Math.max(0, now() - before);
+          stats.cpuStepMs += cost;
+          const group = byKind[job.kind];
+          group.cpuStepMs += cost; group.maxStepMs = Math.max(group.maxStepMs,cost);
+        }
       }
       if (!progressed) break;
     }
@@ -73,7 +92,7 @@ export function createGpuUploadScheduler({ requestFrame = callback => globalThis
   }
   function cancelWhere(predicate) {
     for (const [key, job] of jobs) if (predicate(job)) {
-      jobs.delete(key); removeOrdered(job); job.dispose?.(); stats.cancelled++;
+      jobs.delete(key); removeOrdered(job); job.dispose?.(); stats.cancelled++; byKind[job.kind].cancelled++;
       job.reject(Object.assign(new Error('GPU upload cancelled'), { name: 'AbortError' }));
     }
   }
@@ -81,7 +100,7 @@ export function createGpuUploadScheduler({ requestFrame = callback => globalThis
     enqueueUpload(input) {
       if (disposed) return Promise.reject(new Error('GPU upload scheduler disposed'));
       if (jobs.has(input.key)) return jobs.get(input.key).promise;
-      const job = { priority: 0, ...input, queuedAt: now(), startedAt: null };
+      const job = { priority: 0, ...input, kind:kindOf(input.key), queuedAt: now(), startedAt: null };
       job.promise = new Promise((resolve, reject) => { job.resolve = resolve; job.reject = reject; });
       jobs.set(job.key, job); insertOrdered(job); schedule(); return job.promise;
     },
@@ -90,7 +109,12 @@ export function createGpuUploadScheduler({ requestFrame = callback => globalThis
     cancelGeneration(generation) { cancelWhere(job => job.projectGeneration === generation); },
     cancelKey(key) { cancelWhere(job => job.key === key); },
     cancelAll() { cancelWhere(() => true); },
-    getStats: () => ({ ...stats, pending: jobs.size, active }),
+    getStats: () => {
+      const pendingByKind = {polygon:0,terrain:0,stroke:0,natural:0,other:0};
+      for (const job of jobs.values()) pendingByKind[job.kind]++;
+      return { ...stats, pending: jobs.size, active, pendingByKind,
+        byKind: Object.fromEntries(Object.entries(byKind).map(([name,value])=>[name,{...value}])) };
+    },
     dispose() { disposed = true; if (frame) cancelFrame(frame); frame = 0; cancelWhere(() => true); },
   });
 }
