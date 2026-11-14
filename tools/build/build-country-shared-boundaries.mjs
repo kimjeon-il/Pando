@@ -1,4 +1,5 @@
 import {writeLibraryOutput} from "../data/library-runtime.mjs";
+import {loadBoundedCurrentWorld} from '../data/current-world-bounded-loader.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import { gzipSync, gunzipSync } from 'node:zlib';
@@ -37,8 +38,7 @@ const selectedQuality = qualityArgument?.slice('--quality='.length);
 if (qualityArgument && !inputs.some(([quality]) => quality === selectedQuality))
   throw new Error('Unknown boundary cache quality: ' + selectedQuality);
 for (const [quality, input, output] of inputs.filter(([quality]) => !qualityArgument || quality === selectedQuality)) {
-  const raw = fs.readFileSync(path.join(data, input));
-  const source = JSON.parse(input.endsWith('.gz') ? gunzipSync(raw) : raw);
+  const source = loadBoundedCurrentWorld(path.join(data, input));
   const classified = classifyBuiltinCountries(source, {displayPolicy});
   const countries = [...classified.countries.features, ...classified.subunits.map(unit => ({
     id: unit.properties.metadata.builtinSubunit.sourceCountryId,
