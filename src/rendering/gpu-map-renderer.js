@@ -3885,10 +3885,12 @@ export function createGpuMapRenderer(deps) {
       if (state.layerVisibility.objects && !mesh) return false;
       // A protected graticule/stroke can be silently absent from selectedItems
       // while its new buffer uploads. An empty draw is not a complete map.
-      const unavailable = key => preparedBaseScene.deferredOverlayKeys.has(String(key))
-        || preparedBaseScene.failedOverlayKeys.has(String(key));
-      if ([...(renderScene?.strokes || []), ...(renderScene?.polygons || [])]
-        .some(packet => packet.protected === true && unavailable(packet.key))) return false;
+      if (preparedBaseScene.deferredOverlayKeys.size || preparedBaseScene.failedOverlayKeys.size) {
+        const unavailable = packet => packet.protected === true
+          && (preparedBaseScene.deferredOverlayKeys.has(String(packet.key))
+            || preparedBaseScene.failedOverlayKeys.has(String(packet.key)));
+        if (renderScene?.strokes?.some(unavailable) || renderScene?.polygons?.some(unavailable)) return false;
+      }
       if (!preparedBaseScene.physicalLandItems.length
         || !preparedBaseScene.physicalLandItems.every(({ packet }) =>
           polygonOverlayPass.hasPreparedResource(packet))) return false;
