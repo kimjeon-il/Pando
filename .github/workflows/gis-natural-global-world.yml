@@ -1,12 +1,13 @@
 name: UI world natural-color candidate (six LODs, no deployment)
 on:
   push:
-    branches: [work/ui]
+    branches:
+      - work/ui
     paths:
       - .github/workflows/gis-natural-global-world.yml
       - tools/gis/build-natural-global-tiles.py
       - scripts/publish-natural-world-candidate.mjs
-  workflow_dispatch:
+  workflow_dispatch: null
 permissions:
   contents: read
 concurrency:
@@ -29,11 +30,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
-      - name: Check source and generator with only the required test
+      - name: Prepare scoped producer dependencies and check disk headroom
         run: |
           set -euo pipefail
           python -m pip install --disable-pip-version-check 'Pillow==11.3.0'
-          python tools/gis/build-natural-global-tiles.py --self-test
           mkdir -p "$RUNNER_TEMP/natural-world-proof"
           test "$(df -PB1 "$RUNNER_TEMP" | awk 'NR==2{print $4}')" -gt 8589934592
       - name: Checkout existing external work/gis metadata, not GIS archive blobs

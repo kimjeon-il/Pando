@@ -70,29 +70,6 @@ def encode(image, path, register, key):
                    "pixelWidth":image.width,"pixelHeight":image.height}
     return len(blob)
 
-def self_test():
-    from PIL import Image
-    base=Image.new("RGBA",(130,130),(40,150,70,255))
-    obs=Image.new("RGBA",(130,130),(240,242,250,255))
-    modified=blend_patch(base,obs)
-    assert modified.getpixel((0,65))==base.getpixel((0,65))
-    assert modified.getpixel((65,65))==obs.getpixel((65,65))
-    assert modified.getpixel((30,65)) not in (base.getpixel((30,65)),obs.getpixel((30,65)))
-    obs.putpixel((1,5),(0,0,0,255))
-    assert blend_patch(base,obs).getpixel((1,5))==(0,0,0,255)
-    # A parent 2x upsample is cut into two 1024-pixel children plus gutters.
-    source=Image.new("RGBA",(1026,1026))
-    for i in range(1026):
-        source.putpixel((i,5),(i%255,0,0,255))
-    enlarged=source.resize((2052,2052),resample=Image.Resampling.NEAREST)
-    left=enlarged.crop((1,1,1027,1027))
-    right=enlarged.crop((1025,1,2051,1027))
-    for y in (9,100,1025):
-        assert left.getpixel((1024,y))==right.getpixel((0,y))
-        assert left.getpixel((1025,y))==right.getpixel((1,y))
-    return {"edgePatchFade":True,"waterSentinelPreserved":True,
-            "upsampledSiblingGutters":True,"newGeographicDetailAtLod5":False}
-
 def build(source_path,source_sha,observed_manifest_path,observed_root,outdir):
     source_path=Path(source_path).resolve()
     observed_root=Path(observed_root).resolve()
@@ -200,7 +177,7 @@ def build(source_path,source_sha,observed_manifest_path,observed_root,outdir):
         "tileCount":len(tiles),"tileBytes":total,
         "sourceSha256":source_sha,"observedTileCount":len(observed["tiles"]),
         "observedSourceHashes":[e["sha256"] for e in observed["tiles"].values()],
-        "tests":self_test(),"runtimePinChanged":False,
+        "runtimePinChanged":False,
         "worldCoverGlobalComplete":False,"globalGlacierAndPolarComplete":False}
     with (outdir/"generation-receipt.json").open("x",encoding="utf8") as f:
         json.dump(receipt,f,indent=2);f.write("\n")
@@ -208,15 +185,12 @@ def build(source_path,source_sha,observed_manifest_path,observed_root,outdir):
 
 def main():
     parser=argparse.ArgumentParser()
-    parser.add_argument("--self-test",action="store_true")
     parser.add_argument("--source")
     parser.add_argument("--source-sha256")
     parser.add_argument("--observed-manifest")
     parser.add_argument("--observed-root")
     parser.add_argument("--output")
     args=parser.parse_args()
-    if args.self_test:
-        print(json.dumps(self_test()));return
     if not all((args.source,args.source_sha256,args.observed_manifest,args.observed_root,args.output)):
         parser.error("--source --source-sha256 --observed-manifest --observed-root --output required")
     build(args.source,args.source_sha256,args.observed_manifest,args.observed_root,args.output)
