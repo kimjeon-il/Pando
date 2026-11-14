@@ -18,11 +18,12 @@ export function createGpuUploadScheduler({ requestFrame = callback => globalThis
     const name = String(key || '');
     if (name.startsWith('polygon:')) return 'polygon';
     if (name.startsWith('terrain:')) return 'terrain';
+    if (name.startsWith('hydro:')) return 'hydro';
     if (name.startsWith('stroke')) return 'stroke';
     if (name.startsWith('natural:')) return 'natural';
     return 'other';
   };
-  const byKind = Object.fromEntries(['polygon','terrain','stroke','natural','other']
+  const byKind = Object.fromEntries(['polygon','terrain','hydro','stroke','natural','other']
     .map(kind => [kind,{steps:0,uploadedBytes:0,cpuStepMs:0,maxStepMs:0,completed:0,cancelled:0,maxQueueWaitMs:0,zeroByteSteps:0}]));
 
   const schedule = () => { if (!disposed && jobs.size && !frame) frame = requestFrame(drain); };
@@ -110,7 +111,7 @@ export function createGpuUploadScheduler({ requestFrame = callback => globalThis
     cancelKey(key) { cancelWhere(job => job.key === key); },
     cancelAll() { cancelWhere(() => true); },
     getStats: () => {
-      const pendingByKind = {polygon:0,terrain:0,stroke:0,natural:0,other:0};
+      const pendingByKind = {polygon:0,terrain:0,hydro:0,stroke:0,natural:0,other:0};
       for (const job of jobs.values()) pendingByKind[job.kind]++;
       return { ...stats, pending: jobs.size, active, pendingByKind,
         byKind: Object.fromEntries(Object.entries(byKind).map(([name,value])=>[name,{...value}])) };
