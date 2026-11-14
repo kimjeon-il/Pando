@@ -3960,6 +3960,12 @@ export function createGpuMapRenderer(deps) {
           // prepared map under SVG labels from the previously accepted frame.
           if (!requiredBaseSceneReady(baseResult)) {
             gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+            // A permanent protected-resource failure must reject the time
+            // transition rather than leave its caller awaiting a frame forever.
+            if (temporalPending() && (preparedBaseScene.failedOverlayKeys.size
+              || baseResult?.overlayFailures?.length)) {
+              failTemporalPresentation(new Error('필수 지도 형상이나 경위선을 표시하지 못했습니다.'));
+            }
             if (temporalPending()) renderPreservedProjectFrame();
             activeFrameContext = null;
             return { deferred: true, preserved: true };
@@ -3970,20 +3976,10 @@ export function createGpuMapRenderer(deps) {
               && !baseResult.overlayMissingKeys?.length && !baseResult.overlayFailures?.length)) {
             gl.bindFramebuffer(gl.FRAMEBUFFER, null);
             renderPreservedProjectFrame();
+            activeFrameContext = null;
             return {deferred:true,preserved:true};
           }
-          if (baseResult === false && stagedCanvasResize) {
-            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-            renderPreservedProjectFrame();
-            return { deferred: true, preserved: true };
-          }
-          if (baseResult === false) {
-            // A failed stroke submission must never publish its staging
-            // texture. Keep a usable current-view scene instead.
-            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-            if (preparedBaseScene.canPreserveStrokeScene && sceneColorCache.hasActiveFor(viewSignature, projectGeneration)
-              && compositeVisibleScene(pixelWidth, pixelHeight, { clearTarget: true })) baseResult = previousBaseResult;
-          } else {
+          {
             const holdPreservedScene = shouldHoldCountryPatchScene(viewSignature);
             if (holdPreservedScene && compositeVisibleScene(pixelWidth, pixelHeight, { clearTarget: true })) {
               performanceMetrics.countryPatchSceneHoldCount += 1;
@@ -4012,9 +4008,11 @@ export function createGpuMapRenderer(deps) {
             }
           }
         } else {
-          if (stagedCanvasResize || temporalPending()) {
+          if (stagedCanvasResize || temporalPending() || sceneColorCache.hasActive()) {
             if (temporalPending()) failTemporalPresentation(new Error('다음 시점 화면 버퍼를 준비하지 못했습니다.'));
-            renderPreservedProjectFrame();
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+            if (temporalPending()) renderPreservedProjectFrame();
+            activeFrameContext = null;
             return {deferred:true,preserved:true};
           }
           recordSceneCacheFallback();
