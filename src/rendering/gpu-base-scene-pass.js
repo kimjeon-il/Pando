@@ -168,7 +168,7 @@ function submitGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWidth, 
 
   return { overlayRenderedKeys, overlayGridCollapsedKeys, overlayMissingKeys, overlayFailures, countryStrokeResult,
     surface: { quality: surfacePresentation.quality, landSource: surfaceReady ? `physical-${surfacePresentation.quality}` : 'physical-background',
-      countryIndexCount: surfaceReady && countriesVisible && mesh ? mesh.triangleIndices.length + (overrideMesh?.triangleIndices?.length || 0) : 0 },
+      countryIndexCount: surfaceReady && countriesVisible && countryPaintVisible && mesh ? mesh.triangleIndices.length + (overrideMesh?.triangleIndices?.length || 0) : 0 },
     frameId: activeFrameContext.frameId, projectGeneration: activeFrameContext.projectGeneration,
     strokeDomainReplacements: prepared.strokeDomainReplacements };
 }
