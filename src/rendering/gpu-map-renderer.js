@@ -3882,6 +3882,13 @@ export function createGpuMapRenderer(deps) {
     function requiredBaseSceneReady(baseResult) {
       if (!baseResult || !preparedBaseScene || surfacePresentation.quality === 'pending') return false;
       if (!physicalSceneMatchesContext(renderScene, getPhysicalContextState())) return false;
+      if (state.layerVisibility.objects && !mesh) return false;
+      // A protected graticule/stroke can be silently absent from selectedItems
+      // while its new buffer uploads. An empty draw is not a complete map.
+      const unavailable = key => preparedBaseScene.deferredOverlayKeys.has(String(key))
+        || preparedBaseScene.failedOverlayKeys.has(String(key));
+      if ([...(renderScene?.strokes || []), ...(renderScene?.polygons || [])]
+        .some(packet => packet.protected === true && unavailable(packet.key))) return false;
       if (!preparedBaseScene.physicalLandItems.length
         || !preparedBaseScene.physicalLandItems.every(({ packet }) =>
           polygonOverlayPass.hasPreparedResource(packet))) return false;
