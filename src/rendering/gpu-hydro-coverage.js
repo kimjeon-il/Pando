@@ -45,19 +45,19 @@ export function createGpuHydroCoverage({ maxBytes = 96 * 1024 * 1024 } = {}) {
 
   function ensureTarget(nextWidth, nextHeight) {
     if (!program) {
-      const modern = version === 2;
-      const vertex = `${modern ? '#version 300 es\n' : ''}precision highp float;
-        ${modern ? 'in' : 'attribute'} vec2 aPosition;
-        ${modern ? 'out' : 'varying'} vec2 vUv;
+      const modern = true;
+      const vertex = `${('#version 300 es\n')}precision highp float;
+        ${('in')} vec2 aPosition;
+        ${('out')} vec2 vUv;
         void main() { vUv = aPosition * 0.5 + 0.5; gl_Position = vec4(aPosition, 0.0, 1.0); }`;
-      const fragment = `${modern ? '#version 300 es\n' : ''}precision highp float;
-        ${modern ? 'in' : 'varying'} vec2 vUv;
-        ${modern ? 'out vec4 outColor;' : ''}
+      const fragment = `${('#version 300 es\n')}precision highp float;
+        ${('in')} vec2 vUv;
+        ${('out vec4 outColor;')}
         uniform sampler2D uCoverage; uniform vec4 uHydroColor;
         void main() {
-          float amount = ${modern ? 'texture' : 'texture2D'}(uCoverage, vUv).a;
+          float amount = ${('texture')}(uCoverage, vUv).a;
           if (amount <= 0.001) discard;
-          ${modern ? 'outColor' : 'gl_FragColor'} = vec4(uHydroColor.rgb, uHydroColor.a * amount);
+          ${('outColor')} = vec4(uHydroColor.rgb, uHydroColor.a * amount);
         }`;
       const handle = linkGpuProgram(gl, vertex, fragment, { label: 'hydro coverage' });
       program = { program: handle, corner: gl.getAttribLocation(handle, 'aPosition'),
@@ -122,7 +122,7 @@ export function createGpuHydroCoverage({ maxBytes = 96 * 1024 * 1024 } = {}) {
       gl.blendFunc(gl.ONE, gl.ONE);
       paint();
       gl.bindFramebuffer(gl.FRAMEBUFFER, saved.framebuffer);
-      if (version === 2) gl.bindFramebuffer(gl.READ_FRAMEBUFFER, saved.readFramebuffer);
+      gl.bindFramebuffer(gl.READ_FRAMEBUFFER, saved.readFramebuffer);
       gl.viewport(...saved.viewport);
       gl.blendEquation(gl.FUNC_ADD);
       gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);

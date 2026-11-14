@@ -87,8 +87,6 @@ export function createPointerTargets() {
     }, 50);
   }
 
-
-
   async function hydroAtScreenPoint(screenPoint, coord) {
     const hydroCategoryVisible = dependencies.projectState.state.layerVisibility.rivers || dependencies.projectState.state.layerVisibility.lakes;
     if (!hydroCategoryVisible) return null;
@@ -96,7 +94,7 @@ export function createPointerTargets() {
       if (!(0, dependencies.physicalServices.isHydroFeatureVisible)(feature) || !(0, dependencies.objectPicking.geometryHitsScreenPoint)(feature.geometry, coord, screenPoint, (0, dependencies.surfaces.isMobile)() ? 14 : 8)) continue;
       return feature;
     }
-    const picked = dependencies.rendering.gpuMapRenderer.pickHydro(screenPoint) || await dependencies.rendering.gpuMapRenderer.pickHydroAsync(screenPoint);
+    const picked = dependencies.rendering.gpuMapRenderer.pickHydro(screenPoint);
     if (picked && (0, dependencies.physicalServices.isHydroFeatureVisible)(picked) && (0, dependencies.physicalResources.hydroFeatureInView)(picked)) return picked;
     const projection = (0, dependencies.mapView.activeProjection)();
     const toleranceDegrees = 9 / Math.max(1, projection.scale()) * 180 / Math.PI;

@@ -59,9 +59,11 @@ function retireOwnedCaches(root, current) {
       }
     }
   }
+  const shared=librarySharedCheckout(root),archiveRevision=git(shared,['rev-parse','HEAD']);
   const directories = readdirSync(base, { withFileTypes: true });
-  const signature = JSON.stringify({ base, active: [...active].sort(), directories: directories.map(item => item.name).sort() });
+  const signature = JSON.stringify({ base, archiveRevision, active: [...active].sort(), directories: directories.map(item => item.name).sort() });
   if (signature === lastRetirementSignature) return;
+  const skipped=[];
   for (const item of directories) {
     if (!item.isDirectory() || !/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(item.name)) continue;
     const directory = safeChild(base, item.name), owner = resolve(directory, '.cache-owner.json');
@@ -69,13 +71,28 @@ function retireOwnedCaches(root, current) {
     const record = JSON.parse(readFileSync(owner, 'utf8'));
     const expected = item.name.length === 64 ? record.preparation?.scopeId : record.revision;
     if (expected !== item.name || record.schema !== 'pando-shared-runtime-v1' || record.owner !== libraryOwnerId(root)) continue;
-    // Private WIP is never eligible for retirement. Do not hash its entire
-    // runtime dataset merely to reach that already-known preservation result.
-    if (Object.values(record.files).some(entry => entry.storage !== 'shared')) continue;
+    // Publication can leave an old private flag behind. Only exact originals
+    // recoverable from local Git make those files eligible; unfinished work stays.
+    const archivedFiles={};
+    const privateFiles=Object.entries(record.files).filter(([,entry])=>entry.storage!=='shared');
+    if(privateFiles.length){
+      for(const revision of new Set([record.revision,archiveRevision])){
+        let index;try{index=JSON.parse(git(shared,['show',revision+':archive/index.json']));}catch{continue;}
+        for(const [logical,entry] of privateFiles){const original=index.files[logical];if(original?.sha256===entry.sha256&&original.bytes===entry.bytes)archivedFiles[logical]={revision,entry:original};}
+      }
+      if(privateFiles.some(([logical])=>!archivedFiles[logical]))continue;
+      let unavailable=false;
+      for(const [logical,original] of Object.entries(archivedFiles)){
+        try{decodeArchiveEntry(shared,original.entry,original.revision,{fetch:false});}
+        catch(error){skipped.push({directory,path:logical,reason:'historical-original-not-locally-recoverable',detail:error.message});unavailable=true;break;}
+      }
+      if(unavailable)continue;
+    }
     if (libraryWriteLeases(librarySharedCheckout(root)).some(lease => lease.alive && lease.view === directory)) continue;
-    if (pristineCache(directory, record.files)) removeRuntimeView(librarySharedCheckout(root), directory, record);
+    if (pristineCache(directory, Object.fromEntries(Object.entries(record.files).map(([logical,entry])=>[logical,archivedFiles[logical]?{...entry,storage:'shared'}:entry])))) removeRuntimeView(shared, directory, record,{archivedFiles});
   }
   lastRetirementSignature = signature;
+  return {status:skipped.length?'partial':'completed',skipped};
 }
 
 // Product entry points select the default map explicitly; historical source tools
@@ -396,19 +413,46 @@ export function synchronizeRuntimeManifest(shared,view) {
   atomicStorageJSON(manifest,{...record,files});return files;
 }
 
-export function removeRuntimeView(shared, directory, record) {
+export function removeRuntimeView(shared, directory, record, {archivedFiles={},assertIdle=()=>{},preservePrivate=false}={}) {
   directory = containedPath(resolve(shared, '.pando-cache/materialized'), directory);
-  if (record.schema !== 'pando-shared-runtime-v1' || Object.values(record.files).some(entry => entry.storage !== 'shared')) throw Error('Private runtime work must be preserved');
+  if (record.schema !== 'pando-shared-runtime-v1') throw Error('Unknown runtime owner');
+  for(const [logical,entry] of Object.entries(record.files))if(entry.storage!=='shared'){
+    const original=archivedFiles[logical];
+    if(!original){if(preservePrivate)continue;throw Error('Private runtime work must be preserved');}
+    if(original.entry.sha256!==entry.sha256||original.entry.bytes!==entry.bytes)throw Error('Archived runtime original mismatch');
+    if(contentHash(decodeArchiveEntry(shared,original.entry,original.revision,{fetch:false}))!==entry.sha256)throw Error('Archived runtime original mismatch');
+  }
+  assertIdle();
   const files = contentFiles(directory);
+  const retained=new Set(Object.entries(record.files).filter(([logical,entry])=>entry.storage!=='shared'&&!archivedFiles[logical]).map(([logical])=>logical));
+  const identities=new Map();
+  const stamp=s=>`${s.dev}:${s.ino}:${s.size}:${s.mtimeNs}:${s.ctimeNs}`;
   for (const file of files) {
     if (['.complete', '.cache-owner.json'].includes(file.logical)) continue;
     const expected = record.files[file.logical];
-    if (!expected || file.bytes !== expected.bytes || contentHash(readFileSync(file.path)) !== expected.sha256) throw Error('Runtime view changed before retirement');
+    if(retained.has(file.logical))continue;
+    const before=lstatSync(file.path,{bigint:true});
+    if (!expected || file.bytes !== expected.bytes || contentHash(readFileSync(file.path)) !== expected.sha256 || stamp(before)!==stamp(lstatSync(file.path,{bigint:true}))) throw Error('Runtime view changed before retirement');
+    identities.set(file.path,stamp(before));
   }
-  for (const file of files) {
-    if (['.complete', '.cache-owner.json'].includes(file.logical)) unlinkSync(file.path);
-    else removeContentLink(shared, file.path);
+  // Keep the ownership record until all content has gone so an interruption
+  // leaves enough information to verify and resume the same retirement.
+  for (const file of files.filter(file=>!['.complete','.cache-owner.json'].includes(file.logical)&&!retained.has(file.logical))) {
+    assertIdle();const s=lstatSync(file.path,{bigint:true});
+    if(`${s.dev}:${s.ino}:${s.size}:${s.mtimeNs}:${s.ctimeNs}`!==identities.get(file.path)){
+      // Unlinking another name of this same blob changes NTFS change-time.
+      // Revalidate its bytes rather than mistaking our own unlink for a write.
+      const expected=record.files[file.logical],before=identities.get(file.path).split(':');
+      if(`${s.dev}:${s.ino}:${s.size}:${s.mtimeNs}`!==before.slice(0,4).join(':')||contentHash(readFileSync(file.path))!==expected.sha256)throw Error('Runtime view changed during retirement');
+    }
+    removeContentLink(shared, file.path);
   }
+  if(retained.size){
+    atomicStorageJSON(resolve(directory,'.cache-owner.json'),{...record,files:Object.fromEntries(Object.entries(record.files).filter(([logical])=>retained.has(logical)))});
+    if(existsSync(resolve(directory,'.complete')))unlinkSync(resolve(directory,'.complete'));
+    return {status:'private-work-preserved',files:retained.size};
+  }
+  for(const file of files.filter(file=>['.complete','.cache-owner.json'].includes(file.logical)))unlinkSync(file.path);
   removeEmptyDirectories(directory);
 }
 

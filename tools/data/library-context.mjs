@@ -1,7 +1,7 @@
 import {execFileSync} from "node:child_process";
 import {createHash} from "node:crypto";
 import {closeSync,existsSync,lstatSync,mkdirSync,openSync,readFileSync,readdirSync,realpathSync,statfsSync,unlinkSync,writeFileSync} from "node:fs";
-import {basename,dirname,isAbsolute,relative,resolve,sep} from "node:path";
+import {dirname,isAbsolute,relative,resolve,sep} from "node:path";
 import {fileURLToPath} from "node:url";
 import {decodeLibraryArchiveBytes} from "./library-archive.mjs";
 import {contentHash,contentPath,recoverContentPermissions} from "./library-content.mjs";
@@ -125,13 +125,17 @@ export function libraryOwnerId(root) {
     }
   }
   const control=resolve(root,'.git');if(!existsSync(control))return 'main';
-  if(!lstatSync(control).isFile())return 'main';
-  const match=/^gitdir: (.+)\r?\n?$/.exec(readFileSync(control,'utf8'));
-  if(!match)throw Error('Invalid permanent worktree Git directory');
-  const directory=resolve(root,match[1]);
-  const owner=basename(directory);
-  if(basename(dirname(directory))!=='worktrees'||!['ui','objects','gis','places','optimization','pando-work-optimization'].includes(owner))
-    throw Object.assign(Error('Unknown permanent worktree owner'),{code:'PANDO_LIBRARY_OWNER_UNKNOWN'});
+  const linked=lstatSync(control).isFile();
+  const match=linked?/^gitdir: (.+)\r?\n?$/.exec(readFileSync(control,'utf8')):null;
+  if(linked&&!match)throw Error('Invalid worktree Git directory');
+  const directory=linked?resolve(root,match[1]):control;
+  const head=readFileSync(resolve(directory,'HEAD'),'utf8').trim();
+  if(!linked&&/^[a-f0-9]{40}$/.test(head))return 'main'; // Isolated CI checkout.
+  const branch=/^ref: refs\/heads\/(.+)$/.exec(head)?.[1];
+  if(branch==='main')return 'main';
+  const owner=branch?.startsWith('work/')?branch.slice(5):null;
+  if(!['ui','objects','gis','places','gis-raw-modern'].includes(owner))
+    throw Object.assign(Error('Unknown library branch owner'),{code:'PANDO_LIBRARY_OWNER_UNKNOWN'});
   return owner;
 }
 

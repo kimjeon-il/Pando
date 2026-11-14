@@ -26,8 +26,28 @@
         }
     return output;
   }
+  // Nearest angular distance to the *spherical tile rectangle*, not the
+  // tile centre plus a planar longitude/latitude radius. Longitude spans
+  // represent shorter arcs near the poles, so the former approximation
+  // over-admitted many invisible polar rows and forced a lower source LOD.
+  // Maximise the unit-sphere dot product over longitude first, then latitude.
+  function sphericalTileDistance(globeCenter, west, north, east, south) {
+    const rad = Math.PI / 180;
+    const longitude = ((Number(globeCenter[0]) + 180) % 360 + 360) % 360 - 180;
+    const phi = Math.max(-90, Math.min(90, Number(globeCenter[1]))) * rad;
+    const wrap = angle => Math.abs(((angle + 180) % 360 + 360) % 360 - 180);
+    const longitudeDelta = longitude >= west && longitude <= east
+      ? 0 : Math.min(wrap(longitude - west), wrap(longitude - east));
+    const sinPhi = Math.sin(phi), cosDelta = Math.cos(phi) * Math.cos(longitudeDelta * rad);
+    const low = south * rad, high = north * rad;
+    const dot = latitude => sinPhi * Math.sin(latitude) + cosDelta * Math.cos(latitude);
+    const optimum = Math.atan2(sinPhi, cosDelta);
+    const maximum = Math.max(dot(low), dot(high),
+      optimum >= low && optimum <= high ? dot(optimum) : -1);
+    return Math.acos(Math.min(1, Math.max(-1, maximum)));
+  }
   function visible(level,{includeAll=false,viewport,scale,projection,flatCenter=[0,0],
-    globeCenter=[0,0],distance,numericLevel=false}={}) {
+    globeCenter=[0,0],numericLevel=false}={}) {
     const specs=[],width=Number(viewport[0]),height=Number(viewport[1]);
     const flatHalfLon=width/Math.max(1,scale)*90/Math.PI;
     const flatHalfLat=height/Math.max(1,scale)*90/Math.PI;
@@ -62,14 +82,13 @@
       const x1=Math.min(level.width,x0+level.tileSize),y1=Math.min(level.height,y0+level.tileSize);
       const west=-180+x0/level.width*360,north=90-y0/level.height*180;
       const east=-180+x1/level.width*360,south=90-y1/level.height*180;
-      const center=[(west+east)/2,(north+south)/2];
-      const halfLon=(east-west)/2,halfLat=(north-south)/2;
-      if(projection==='flat'){
-        const deltaLon=Math.abs((((center[0]-flatCenter[0])+540)%360)-180);
-        if(deltaLon<=flatHalfLon+halfLon+2&&Math.abs(center[1]-flatCenter[1])<=flatHalfLat+halfLat+2)
+      if(projection==='globe'){
+        // Keep the existing conservative 0.04 radian edge slack; only the
+        // nearest-point calculation changes. Even a tile enclosing the pole
+        // remains visible if its spherical footprint overlaps the viewport.
+        if(sphericalTileDistance(globeCenter,west,north,east,south)<=globeRadius+0.04)
           specs.push(tileSpec(level,column,row,numericLevel));
-      }else if(distance(globeCenter,center)<=globeRadius+Math.hypot(halfLon,halfLat)*Math.PI/180+0.04)
-        specs.push(tileSpec(level,column,row,numericLevel));
+      }
     }
     return specs;
   }
@@ -90,12 +109,19 @@
       const gutter = Number(manifest.gutter || 0);
       const bytes = specs.reduce((sum, spec) => sum
         + (spec.pixelWidth + 2 * gutter) * (spec.pixelHeight + 2 * gutter) * policy.bytesPerPixel, 0);
-      if (bytes <= policy.byteBudget) return { level, specs, bytes,
+      // Canvas retains its 12-byte decoded colour-plane footprint. The GPU
+      // supplies its own 4-byte RGBA8 texture cost and must also reserve base
+      // coverage and any visible optional natural-colour textures.
+      const reserveBytes = typeof policy.reserveBytes === 'function'
+        ? policy.reserveBytes(level, specs) : Number(policy.reserveBytes || 0);
+      if (!Number.isFinite(reserveBytes) || reserveBytes < 0) throw new Error('Invalid terrain memory reservation.');
+      if (bytes + reserveBytes <= policy.byteBudget) return { level, specs, bytes, reserveBytes,
+        totalBytes: bytes + reserveBytes,
         resolutionLimited: requested.resolutionLimited || level !== requested.level };
     }
     throw new Error('Visible numerical DEM exceeds the shared memory admission budget.');
   }
-  function createVisibilityCache({ distance, numericLevel = false } = {}) {
+  function createVisibilityCache({ numericLevel = false } = {}) {
     let camera = null;
     const levels = new Map();
     return Object.freeze({
@@ -111,7 +137,7 @@
         const kind = includeAll ? 'all' : 'visible';
         if (!record[kind]) {
           record[kind] = visible(level, { includeAll, viewport, scale,
-            projection, flatCenter, globeCenter, distance, numericLevel });
+            projection, flatCenter, globeCenter, numericLevel });
         }
         return record[kind];
       },

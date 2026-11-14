@@ -12,8 +12,12 @@ export function createGpuTerrainPreparation({ readTile, readNaturalTile = async 
   const PI = Math.PI;
   let gl = null, uploadScheduler = null, ready = false, disposed = false;
   let epoch = 0, projectGeneration = 0, contextRevision = 0;
-  let activeFrameContext = null, view = {};
+  let activeFrameContext = null, view = {}, resolutionScale = 1;
   let terrainManifest = null, cacheBudgetBytes = 128 * 1024 * 1024, terrainUploadCount = 0;
+  // RGBA8 DEM and optional natural source textures each occupy four bytes per
+  // stored texel. Canvas's three converted colour planes remain 12 bytes/texel.
+  const gpuDemBytesPerPixel = 4;
+  let terrainAdmissionBytes = 0, terrainAdmissionReserveBytes = 0;
   let dependencies = { source: 'terrain', content: 'null', preparation: 'terrain-v1', context: null, presentation: 'tiles' };
   let pendingDecodedBytes = 0, unusableReported = false, tileFailureReported = false;
   let requiredKeys = new Set(), resolutionLimited = false, preparationFailure = '';
@@ -43,11 +47,41 @@ export function createGpuTerrainPreparation({ readTile, readNaturalTile = async 
       if (!terrainManifest?.levels?.length) return null;
       const physicalScale = Number(frameContext?.scale) || Number(activeFrameContext?.scale) || 1;
       // Render DPR reduction must not degrade the selected source terrain.
-      const frameDpr = Math.max(1, Number(frameContext.dpr));
+      const frameDpr = Math.max(0.25, Number(frameContext.dpr) || 1);
       const sourceDpr = Math.min(isMobile() ? 2 : 3, Math.max(1, Number(view.devicePixelRatio || 1)));
-      const desiredWidth = Math.max(1, 2 * PI * (physicalScale / frameDpr) * sourceDpr);
+      const desiredWidth = Math.max(1, 2 * PI * (physicalScale / frameDpr) * sourceDpr * resolutionScale);
+      const baseLevel = terrainManifest.levels[0], gutter = Number(terrainManifest.gutter || 0);
+      // Actual full-world fallback is always retained independently of view.
+      // Account for every partial edge tile (rather than assuming all tiles
+      // have 1024x1024 texels). It costs GPU RGBA8 bytes, not Canvas planes.
+      let baseBytes = 0;
+      for (let row = 0; row < baseLevel.rows; row++)
+        for (let column = 0; column < baseLevel.columns; column++) {
+          const w = Math.min(baseLevel.tileSize, baseLevel.width - column * baseLevel.tileSize);
+          const h = Math.min(baseLevel.tileSize, baseLevel.height - row * baseLevel.tileSize);
+          baseBytes += (w + 2 * gutter) * (h + 2 * gutter) * gpuDemBytesPerPixel;
+        }
       const choice = tileSelection.admitVisibleTiles(terrainManifest, desiredWidth,
-        level => visibleTerrainTileSpecs(level, false, frameContext));
+        level => visibleTerrainTileSpecs(level, false, frameContext), {
+          byteBudget: cacheBudgetBytes,
+          bytesPerPixel: gpuDemBytesPerPixel,
+          // Count base textures once, then reserve up to two immediately
+          // visible natural tiles if a matching source exists at this LOD.
+          // Missing coverage costs no GPU bytes and cannot lower detail.
+          reserveBytes: (level, specs) => {
+            const baseReserve = level.id === baseLevel.id ? 0 : baseBytes;
+            const naturalReserve = visibleNaturalReserve(specs);
+            const visibleBytes = specs.reduce((sum, spec) => sum
+              + (spec.pixelWidth + 2 * gutter) * (spec.pixelHeight + 2 * gutter)
+                * gpuDemBytesPerPixel, 0);
+            // Imagery is optional. Never reject an otherwise admissible DEM
+            // because an extra pigment tile cannot fit the shared budget.
+            return baseReserve + (visibleBytes + baseReserve + naturalReserve <= cacheBudgetBytes
+              ? naturalReserve : 0);
+          },
+        });
+      terrainAdmissionBytes = choice.bytes;
+      terrainAdmissionReserveBytes = choice.reserveBytes;
       resolutionLimited = choice.resolutionLimited;
       return choice;
     }
@@ -486,6 +520,7 @@ export function createGpuTerrainPreparation({ readTile, readNaturalTile = async 
     terrainTargetTileCount = 0; terrainTargetTilesLoaded = 0;
     terrainTargetTileKeys.clear(); terrainRetentionKeys.clear(); terrainCurrentViewKeys.clear();
     requiredKeys.clear(); resolutionLimited = false; preparationFailure = '';
+    terrainAdmissionBytes = 0; terrainAdmissionReserveBytes = 0;
   }
   const settled = () => [...terrainTargetTileKeys].every(key => terrainTiles.has(key) || Number(terrainTileFailures.get(key)?.attempts || 0) >= 4);
   function readiness() {
@@ -497,6 +532,11 @@ export function createGpuTerrainPreparation({ readTile, readNaturalTile = async 
     };
   }
   return Object.freeze({
+    setQuality(profile) {
+      resolutionScale = Math.max(0.25, Math.min(1, Number(profile.terrainResolutionScale) || 1));
+      cacheBudgetBytes = profile.terrainCacheBudgetBytes;
+      natural.trim(Math.floor(cacheBudgetBytes / 4));
+    },
     setContext(next) {
       if (disposed) return;
       const nextDependencies = { ...dependencies, context: next.gl ? [next.gl, next.contextGeneration] : null };
@@ -558,6 +598,9 @@ export function createGpuTerrainPreparation({ readTile, readNaturalTile = async 
       invalidate('terrain-retry');
     },
     stats: () => ({ ...readiness(), terrainMemoryBudgetBytes: cacheBudgetBytes,
+      terrainAdmissionBytes, terrainAdmissionReserveBytes,
+      terrainAdmissionTotalBytes: terrainAdmissionBytes + terrainAdmissionReserveBytes,
+      terrainAdmissionBytesPerPixel: gpuDemBytesPerPixel,
       terrainNaturalSourceRevision: terrainManifest?.naturalSurface?.sourceRevision || null,
       terrainLevel: terrainLastLevel, terrainRenderedLevel, terrainTargetTileCount, terrainTargetTilesLoaded,
       terrainTargetTilesSettled: settled(), terrainTilesLoaded: terrainTiles.size,

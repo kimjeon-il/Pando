@@ -3,7 +3,7 @@ import { linkGpuProgram } from "./gpu-shader-utils.js";
 
 function createCompositeProgram(device) {
   const { gl, version } = device;
-  const vertexSource = version === 2 ? `#version 300 es
+  const vertexSource = (`#version 300 es
     precision highp float;
     layout(location=0) in vec2 aPosition;
     out vec2 vUv;
@@ -17,31 +17,13 @@ function createCompositeProgram(device) {
       vec2 targetPx=sourcePx*uReprojectScale+uReprojectOffset;
       vec2 targetNdc=vec2(targetPx.x*2.0/uTargetViewport.x-1.0,targetPx.y*2.0/uTargetViewport.y-1.0);
       gl_Position=vec4(targetNdc,0.0,1.0);
-    }`
-    : `precision highp float;
-    attribute vec2 aPosition;
-    varying vec2 vUv;
-    uniform vec2 uSourceViewport;
-    uniform vec2 uTargetViewport;
-    uniform vec2 uReprojectScale;
-    uniform vec2 uReprojectOffset;
-    void main(){
-      vUv=aPosition*0.5+0.5;
-      vec2 sourcePx=vUv*uSourceViewport;
-      vec2 targetPx=sourcePx*uReprojectScale+uReprojectOffset;
-      vec2 targetNdc=vec2(targetPx.x*2.0/uTargetViewport.x-1.0,targetPx.y*2.0/uTargetViewport.y-1.0);
-      gl_Position=vec4(targetNdc,0.0,1.0);
-    }`;
-  const fragmentSource = version === 2 ? `#version 300 es
+    }`);
+  const fragmentSource = (`#version 300 es
     precision mediump float;
     uniform sampler2D uScene;
     in vec2 vUv;
     out vec4 outColor;
-    void main(){outColor=texture(uScene,vUv);}`
-    : `precision mediump float;
-    uniform sampler2D uScene;
-    varying vec2 vUv;
-    void main(){gl_FragColor=texture2D(uScene,vUv);}`;
+    void main(){outColor=texture(uScene,vUv);}`);
   const program = linkGpuProgram(gl, vertexSource, fragmentSource, { label: 'scene cache' });
   return {
     program,

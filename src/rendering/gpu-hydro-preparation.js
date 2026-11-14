@@ -15,9 +15,9 @@ export function hydroActivePackSetChanged(previous, next) {
 
 // Owns hydro transport, revision gates, RPC settlement, pack cache and upload
 // lifetimes. Application feature registration and UI presentation are callbacks.
-export function createGpuHydroPreparation({ createWorker, getMode, getView, getCacheBudget, getProtectedPackIds,
+export function createGpuHydroPreparation({ createWorker, getView, getCacheBudget, getProtectedPackIds,
   isMobile, DATA_REVISION, ASSET_REVISION, registerHydroPack, unregisterHydroPack,
-  queueHydroRender, reportOperationError, setActionStatus, onReset, onConnect, onLoadState }) {
+  queueHydroRender, reportOperationError, setActionStatus, onReset, onLoadState }) {
   const lifecycle = createGpuResourceLifecycle();
   const metrics = { hydroUploadBytes: 0, hydroTileWindowRecomputeCount: 0, hydroTileWindowCacheHitCount: 0, hydroViewRequestCount: 0,
     hydroOffscreenUploadCompletionCount: 0, hydroUnchangedActiveViewCount: 0 };
@@ -122,23 +122,23 @@ export function createGpuHydroPreparation({ createWorker, getMode, getView, getC
             lakeBoundarySegmentCount: meshData.lakeBoundaryFeatureIds.length,
           },
           tasks: [
-            ['riverStartBuffer', meshData.riverStarts, gl.ARRAY_BUFFER, true], ['riverEndBuffer', meshData.riverEnds, gl.ARRAY_BUFFER, true],
-            ['riverFeatureBuffer', meshData.riverFeatureIds, gl.ARRAY_BUFFER, true], ['riverStartWidthBuffer', meshData.riverStartWidths, gl.ARRAY_BUFFER],
-            ['riverEndWidthBuffer', meshData.riverEndWidths, gl.ARRAY_BUFFER], ['borderRiverStartBuffer', meshData.borderRiverStarts, gl.ARRAY_BUFFER, true],
-            ['borderRiverEndBuffer', meshData.borderRiverEnds, gl.ARRAY_BUFFER, true], ['borderRiverFeatureBuffer', meshData.borderRiverFeatureIds, gl.ARRAY_BUFFER, true],
+            ['riverStartBuffer', meshData.riverStarts, gl.ARRAY_BUFFER], ['riverEndBuffer', meshData.riverEnds, gl.ARRAY_BUFFER],
+            ['riverFeatureBuffer', meshData.riverFeatureIds, gl.ARRAY_BUFFER], ['riverStartWidthBuffer', meshData.riverStartWidths, gl.ARRAY_BUFFER],
+            ['riverEndWidthBuffer', meshData.riverEndWidths, gl.ARRAY_BUFFER], ['borderRiverStartBuffer', meshData.borderRiverStarts, gl.ARRAY_BUFFER],
+            ['borderRiverEndBuffer', meshData.borderRiverEnds, gl.ARRAY_BUFFER], ['borderRiverFeatureBuffer', meshData.borderRiverFeatureIds, gl.ARRAY_BUFFER],
             ['borderRiverStartWidthBuffer', meshData.borderRiverStartWidths, gl.ARRAY_BUFFER], ['borderRiverEndWidthBuffer', meshData.borderRiverEndWidths, gl.ARRAY_BUFFER],
-            ['lakePositionBuffer', meshData.lakePositions, gl.ARRAY_BUFFER, true], ['lakeFeatureBuffer', meshData.lakeFeatureIds, gl.ARRAY_BUFFER, true],
+            ['lakePositionBuffer', meshData.lakePositions, gl.ARRAY_BUFFER], ['lakeFeatureBuffer', meshData.lakeFeatureIds, gl.ARRAY_BUFFER],
             ['lakeIndexBuffer', meshData.lakeIndices, gl.ELEMENT_ARRAY_BUFFER],
-            ['lakeBoundaryStartBuffer', meshData.lakeBoundaryStarts, gl.ARRAY_BUFFER, true], ['lakeBoundaryEndBuffer', meshData.lakeBoundaryEnds, gl.ARRAY_BUFFER, true],
-            ['lakeBoundaryFeatureBuffer', meshData.lakeBoundaryFeatureIds, gl.ARRAY_BUFFER, true], ['lakeBoundaryStartWidthBuffer', meshData.lakeBoundaryWidths, gl.ARRAY_BUFFER],
+            ['lakeBoundaryStartBuffer', meshData.lakeBoundaryStarts, gl.ARRAY_BUFFER], ['lakeBoundaryEndBuffer', meshData.lakeBoundaryEnds, gl.ARRAY_BUFFER],
+            ['lakeBoundaryFeatureBuffer', meshData.lakeBoundaryFeatureIds, gl.ARRAY_BUFFER], ['lakeBoundaryStartWidthBuffer', meshData.lakeBoundaryWidths, gl.ARRAY_BUFFER],
             ['lakeBoundaryEndWidthBuffer', meshData.lakeBoundaryWidths, gl.ARRAY_BUFFER],
-          ].map(([key, data, target, webGl1Float]) => ({ key, data, target, webGl1Float, offset: 0, buffer: null })),
+          ].map(([key, data, target]) => ({ key, data, target, offset: 0, buffer: null })),
         };
       }
       const task = entry.uploadState.tasks[0];
       if (task) {
-        const convertToFloat = task.webGl1Float && glVersion === 1 && !(task.data instanceof Float32Array);
-        const outputBytes = convertToFloat ? task.data.length * 4 : task.data.byteLength;
+
+        const outputBytes = task.data.byteLength;
         if (!task.buffer) {
           task.buffer = lifecycle.create(gl, 'Buffer');
           gl.bindBuffer(task.target, task.buffer);
@@ -149,14 +149,7 @@ export function createGpuHydroPreparation({ createWorker, getMode, getView, getC
           gl.bindBuffer(task.target, task.buffer);
         }
         const byteBudget = sharedByteBudget;
-        if (convertToFloat) {
-          const start = Math.floor(task.offset / 4);
-          const count = Math.min(task.data.length - start, Math.floor(byteBudget / 4));
-          const chunk = Float32Array.from(task.data.subarray(start, start + count));
-          gl.bufferSubData(task.target, task.offset, chunk);
-          task.offset += chunk.byteLength;
-          metrics.hydroUploadBytes += chunk.byteLength;
-        } else {
+        {
           const count = Math.min(outputBytes - task.offset, byteBudget);
           const chunk = new Uint8Array(task.data.buffer, task.data.byteOffset + task.offset, count);
           gl.bufferSubData(task.target, task.offset, chunk);
@@ -406,12 +399,10 @@ export function createGpuHydroPreparation({ createWorker, getMode, getView, getC
       if (disposed) return Promise.resolve(false);
       const normalizedManifest = nextManifest?.stages?.length ? nextManifest : null;
       const normalizedUrl = sourceUrl ? new URL(sourceUrl) : null;
-      const wantedIncludeGeometry = getMode() === 'canvas2d';
       const nextDependencies = { source: String(normalizedUrl || 'hydro:none'), content: resourceKey(normalizedManifest),
-        preparation: resourceKey(['hydro-pack-v1', wantedIncludeGeometry]), context: null, presentation: 'source' };
+        preparation: resourceKey(['hydro-pack-v1']), context: null, presentation: 'source' };
       const change = resourceUpdate(sourceDependencies, nextDependencies);
       if (!change.prepare && hydroWorker) {
-        onConnect();
         return hydroWorkerReady ? Promise.resolve(true) : hydroWorkerReadyPromise;
       }
 
@@ -458,7 +449,6 @@ export function createGpuHydroPreparation({ createWorker, getMode, getView, getC
           assetRevision: hydroRevision,
           dataRevision: DATA_REVISION || hydroRevision,
           externalRuntimeData: globalThis.PANDOLAB_BUILD_META?.externalRuntimeData || null,
-          includeGeometry: wantedIncludeGeometry,
         });
       } catch(error) {
         retireHydroWorkerGeneration(error,{failed:true,notify:true});
@@ -469,11 +459,9 @@ export function createGpuHydroPreparation({ createWorker, getMode, getView, getC
         retireHydroWorkerGeneration(Object.assign(new Error('강·호수 Worker 준비 제한 시간(30000ms)을 초과했습니다.'), {
           name: 'TimeoutError', requestType: 'init',
         }), { failed: true, notify: true });
-      }, 30000);
-      onConnect(); onLoadState({ ...loadState });
+      }, 30000); onLoadState({ ...loadState });
       return hydroWorkerReadyPromise;
     }
-
 
   function resetGpu() {
     uploadEpoch++;
@@ -510,7 +498,6 @@ export function createGpuHydroPreparation({ createWorker, getMode, getView, getC
   return Object.freeze({
     setManifest: setHydroManifest, requestView: requestHydroView, loadFeature: loadHydroLogicalFeature, queryFeatures: queryHydroLogicalFeatures,
     retry: retryHydroCache, setContext, resetGpu, replaceEdits, dispose,
-    connectPort(port) { hydroWorker?.postMessage({ type: 'hydro-port', port }, [port]); },
     setInteraction(active) { hydroWorker?.postMessage({ type: 'interaction', active }); },
     hasWorker: () => !!hydroWorker,
     get manifest() { return hydroManifest; }, get sourceUrl() { return hydroManifestUrl; },

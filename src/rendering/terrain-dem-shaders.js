@@ -1,12 +1,12 @@
-import './workers/canvas-terrain-dem-core.js';
+import {colorGlsl,darkBrightness} from './terrain-dem-color.js';
 
-export function terrainDemFragmentSource(glVersion) {
-  const webGl2 = glVersion === 2, sample = webGl2 ? 'texture' : 'texture2D';
+export function terrainDemFragmentSource() {
+  const sample = 'texture';
   const source = `
     precision highp float;
-    precision ${webGl2 ? 'highp' : 'mediump'} int;
-    ${webGl2 ? 'in' : 'varying'} vec2 vUv;
-    ${webGl2 ? 'in' : 'varying'} float vDepth;
+    precision ${('highp')} int;
+    ${('in')} vec2 vUv;
+    ${('in')} float vDepth;
     uniform sampler2D uTerrain;
     uniform sampler2D uNaturalSurface;
     uniform float uNaturalWeight;
@@ -16,8 +16,8 @@ export function terrainDemFragmentSource(glVersion) {
     uniform float uPhysicalStyle;
     uniform float uLandPass;
     uniform float uDarkTheme;
-    ${webGl2 ? 'out vec4 outColor;' : ''}
-    ${globalThis.PandoLabCanvasTerrainDem.colorGlsl()}
+    ${('out vec4 outColor;')}
+    ${colorGlsl()}
     float elevation(vec4 encoded) {
       return floor(encoded.r * 255.0 + 0.5) * 256.0 + floor(encoded.g * 255.0 + 0.5) - 12000.0;
     }
@@ -37,7 +37,7 @@ export function terrainDemFragmentSource(glVersion) {
         mix(demValue(cell + vec2(0.0, 1.0)), demValue(cell + vec2(1.0, 1.0)), part.x), part.y);
       vec3 color = numericalTerrainColor(values.x, values.y, uLandPass, uPhysicalStyle);
       if(uPhysicalStyle>0.5 && uLandPass>0.5 && uNaturalWeight>0.0){
-        // Match numerical Canvas at mixed water/missing cells: classify each
+        // At mixed water/missing cells, classify each
         // source texel before weighting, never interpolate black or blue source
         // water into otherwise valid observed land.
         vec3 surfaceSum=vec3(0.0);
@@ -70,9 +70,9 @@ export function terrainDemFragmentSource(glVersion) {
         }
       }
       // The legacy monochrome/political presentation keeps its existing dark adjustment.
-      if (uPhysicalStyle < 0.5) color *= mix(1.0, ${globalThis.PandoLabCanvasTerrainDem.darkBrightness.toFixed(8)}, uDarkTheme);
-      ${webGl2 ? 'outColor' : 'gl_FragColor'} = vec4(color, 1.0);
+      if (uPhysicalStyle < 0.5) color *= mix(1.0, ${darkBrightness.toFixed(8)}, uDarkTheme);
+      ${('outColor')} = vec4(color, 1.0);
     }
   `;
-  return webGl2 ? '#version 300 es\n' + source : source;
+  return ('#version 300 es\n' + source);
 }

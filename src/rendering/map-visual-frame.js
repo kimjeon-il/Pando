@@ -9,7 +9,7 @@ const freezeTriple = value => Object.freeze([
   Number(value?.[2] || 0),
 ]);
 
-// One source of truth for wraparound offsets in GPU, Canvas and frame projectors.
+// One source of truth for wraparound offsets in GPU and frame projectors.
 export function visibleFlatWorldOffsets({
   translateX,scale,flatCenterRadians=0,viewportWidth,minimumOverlap=0.5,
 }={}) {
@@ -110,7 +110,7 @@ export function createFrameProjectors({
 /**
  * Creates the sole immutable projection snapshot consumed by every visible
  * surface in a coordinator frame. CSS and physical-pixel values deliberately
- * live together so GPU, SVG and Canvas fallbacks cannot sample different views.
+ * live together so GPU and SVG presentation cannot sample different views.
  */
 export function createMapVisualFrame({
   frameId,
@@ -121,7 +121,6 @@ export function createMapVisualFrame({
   layoutSnapshot = null,
   projectCoordinate = null,
   projectPath = null,
-  createCanvasPath = null,
   lodSelection = null,
 } = {}) {
   if (!viewState || typeof viewState !== 'object') throw new TypeError('MapVisualFrame requires viewState.');
@@ -129,7 +128,7 @@ export function createMapVisualFrame({
   const mode = projectionKind === 'globe' ? 0 : 1;
   const width = Math.max(1, Number(viewState.size?.width || layoutSnapshot?.width || 1));
   const height = Math.max(1, Number(viewState.size?.height || layoutSnapshot?.height || 1));
-  const dpr = Math.max(1, Number(viewState.dpr || layoutSnapshot?.dpr || 1));
+  const dpr = Math.max(0.25, Number(viewState.dpr || layoutSnapshot?.dpr || 1));
   const cssTranslate = freezePair(viewState.translate || [width / 2, height / 2]);
   const cssScale = Math.max(1e-9, Number(viewState.scale || 1));
   const relativeZoom = Math.max(1, Math.min(32, Number(viewState.relativeZoom ?? viewState.zoom
@@ -225,7 +224,6 @@ export function createMapVisualFrame({
     projectCoordinate: projectors.projectCoordinate,
     projectVisibleCoordinate: projectors.projectVisibleCoordinate,
     projectPath: typeof projectPath === 'function' ? projectPath : null,
-    createCanvasPath: typeof createCanvasPath === 'function' ? createCanvasPath : null,
     signature,
     viewState: frozenViewState,
   });
