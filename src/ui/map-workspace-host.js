@@ -81,19 +81,24 @@ export function createMapHost({productMode='editor',readOnly=productMode==='view
     return false;
   }
 
+  let lastActiveQualityFrameAt = null, qualityMemoryFrame=0;
   function handleRenderFrameComplete(sample) {
-    const gpuStats = dependencies.rendering.gpuMapRenderer.getRuntimeState?.() || {};
+    const gpuStats = dependencies.rendering.gpuMapRenderer.getRuntimeState({memory:++qualityMemoryFrame%20===0});
     const startupMetrics = window.__PANDOLAB_STARTUP_METRICS__;
     if (startupMetrics) {
       startupMetrics.firstCanonicalFrameMs = gpuStats.firstCanonicalFrameMs ?? startupMetrics.firstCanonicalFrameMs;
       startupMetrics.canonicalFrameFallbackCount = Number(gpuStats.canonicalFrameFallbackCount || 0);
     }
-    // Startup/full-scene work is intentionally expensive and is not an
-    // interaction performance sample. Feeding it into the adaptive window
-    // caused an immediate post-load downgrade and another scene refresh.
-    const shouldSampleInteractionBudget = sample.interactionActive || (!sample.full && sample.viewFrame === true);
-    const changed = shouldSampleInteractionBudget && dependencies.renderQuality.renderQualityController.recordFrame(sample.durationMs, {
+    const at = performance.now();
+    const active = !document.hidden && !gpuStats.projectRenderBlocked
+      && !gpuStats.webglContextLost && (sample.interactionActive || sample.viewFrame === true);
+    const interval = active && lastActiveQualityFrameAt !== null ? at - lastActiveQualityFrameAt : 0;
+    lastActiveQualityFrameAt = active ? at : null;
+    const changed = active && dependencies.renderQuality.renderQualityController.recordFrame(sample.durationMs, {
       interaction: sample.interactionActive,
+      // A gap without continuous interaction is idle, not a slow frame.
+      frameIntervalMs: sample.interactionActive && interval < 1000 ? interval : 0,
+      memoryPressure: Number(gpuStats.managedGpuBytes || 0) > dependencies.renderQuality.currentRenderQuality.gpuCacheBudgetBytes,
     });
     if (changed) (0, dependencies.renderQuality.queueAdaptiveRenderQualityRefresh)('frame-budget-quality-change');
   }
@@ -130,7 +135,7 @@ export function createMapHost({productMode='editor',readOnly=productMode==='view
       lodSelection:dependencies.rendering.gpuMapRenderer.resolveDisplayLod(viewState.scale),
       projectGeneration:dependencies.domains.projectDomain.getGeneration(),projectionRevision:visualProjectionRevision,viewState,
       layoutSnapshot:dependencies.mapLayout.mapLayoutMetricsSnapshot,projectCoordinate:coordinate=>visualProjection(coordinate),
-      projectPath:geometry=>visualPath(geometry),createCanvasPath:context=>dependencies.platform.d3.geo.path().projection(visualProjection).context(context)});
+      projectPath:geometry=>visualPath(geometry)});
   }
 
   function mapSurfaceHostOptions() {

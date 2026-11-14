@@ -109,7 +109,6 @@ export function simplifyRenderGeometry(geometry, {
   return geometry;
 }
 
-
 /**
  * A display-only, source-revision-owned shared arc index. Matching reverse
  * country borders reuse one vertex-importance sequence. The screen error is
@@ -608,7 +607,6 @@ export function createSharedPolygonLodIndex(features, { onProgress = () => {} } 
   }) });
 }
 
-
 /**
  * Derive only the visible internal geographic cells of a large country.
  * The supplied intersection capability is the application's compiled
@@ -621,7 +619,7 @@ export function createSharedPolygonLodIndex(features, { onProgress = () => {} } 
  */
 export function tileLargePolygonLodFeatures(features, visibleTiles, {
   intersection, sourceKey, lodKey, tileDegrees = 5,
-  minimumVertices = 4, cache = new Map(), maxCachedTiles = 128,
+  minimumVertices = 4, cache = new Map(), maxCachedTiles = 128, cacheByteBudget = 48 * 1024**2,
 } = {}) {
   if (!Array.isArray(features) || !Array.isArray(visibleTiles)
     || typeof intersection !== 'function' || !sourceKey || !lodKey
@@ -688,7 +686,9 @@ export function tileLargePolygonLodFeatures(features, visibleTiles, {
           }
         }
         cache.set(key, clipped);
-        while (cache.size > maxCachedTiles) cache.delete(cache.keys().next().value);
+        // Coordinate payload estimate; JS object overhead is not a VRAM measurement.
+        const bytes = () => [...cache.values()].reduce((sum,polygons)=>sum+polygons.reduce((n,polygon)=>n+polygon.reduce((m,ring)=>m+ring.length*16,0),0),0);
+        while (cache.size && (cache.size > maxCachedTiles || bytes() > cacheByteBudget)) cache.delete(cache.keys().next().value);
         tilesPrepared++;
       }
       if (clipped.length) parts.push({

@@ -15,7 +15,6 @@ import {
 import { createGpuUploadScheduler } from "./gpu-upload-scheduler.js";
 import { commitSelectionFallbackCoverage } from "../ui/selection-fallback-coverage.js";
 import { isMapVisualFrame } from "./map-visual-frame.js";
-import { createCanvasVisualFrameQueue } from "./canvas-visual-frame-queue.js";
 
 export function createRenderingDomain({
   prepareMapDisplay = null,
@@ -96,7 +95,6 @@ export function createRenderingDomain({
   let resourceFrameToken = null;
   const active = () => { if (disposed) throw new Error('Rendering domain is disposed.'); };
   const labels = labelResources || {};
-  const pendingVisualFrames = createCanvasVisualFrameQueue();
   const countries = countryResources || {};
   const hydro = hydroResources || {};
   const territorial = territorialResources || {};
@@ -389,7 +387,7 @@ export function createRenderingDomain({
     const selectionState = selectionDomain?.snapshot?.() || { selection: { items: [], primaryKey: null }, hover: null };
     const state = selection.getState?.() || {};
     const entries = mapInteractionEntries(selectionState, {
-      
+
       visible: ref => selection.objectRefVisible?.(ref) !== false,
       territorialEntityById: selection.territorialEntityById,
     });
@@ -467,7 +465,7 @@ export function createRenderingDomain({
       const { result: gpuSelectionResult, reuseView } = selectionFrameOwnership({ gpuFrameResult,
         renderer: gpuMapRenderer?.getRuntimeState?.()?.renderer, lastFillOwner: lastInteractionFillOwner });
       // Worker submission is not presentation. Keep the previous emphasis
-      // until the accepted Canvas frame reconciles its new fill owner.
+      // until an accepted frame reconciles its new fill owner.
       if (gpuFrameResult?.deferred || reuseView) {
         if (gpuSelectionResult) selection.publishMetrics?.({ gpuCoverage: gpuSelectionResult.channels,
           renderSucceeded: gpuSelectionResult.succeeded, contextLost: gpuSelectionResult.contextLost === true });
@@ -653,10 +651,6 @@ export function createRenderingDomain({
         selectionGenericBatchCount: Number(gpuSelectionStats?.genericBatchCount || 0),
         selectionStrokeDrawCallCount: Number(gpuSelectionStats?.strokeDrawCallCount || 0),
       });
-    } else if (!viewOnly && ['canvas-worker', 'canvas2d'].includes(gpuMapRenderer?.getRuntimeState?.()?.renderer)) {
-      // Canvas has no GPU selection pass, but still needs the committed hydro
-      // frame submitted through the same accepted-frame queue as view changes.
-      directFrameResult = gpuFrameResult || renderGpuInteraction(frameContext);
     }
     if (!gpuSelectionStats) gpuSelectionStats = selectionPass?.stats?.() || null;
     const { renderedKeys, gpuFilledObjectKeys } = selectionCoverage(gpuRenderResult, gpuFillResult, fillResourcesByObject);
@@ -826,7 +820,7 @@ export function createRenderingDomain({
     resetTerritorialBoundaryCache();
     gpuMapRenderer?.resetProjectRenderState?.({ generation,...presentation });
     // Do not wait for a blocked RAF to obtain this project's frame identity.
-    coordinator?.stageBlockedBackground?.();
+
     return generation;
   };
   const getStats = () => Object.freeze({
@@ -848,8 +842,6 @@ export function createRenderingDomain({
     labels.disposePlaces?.();
     gpuMapRenderer?.dispose?.();
     uploadScheduler.dispose();
-    pendingVisualFrames.clear();
-    gpuMapRenderer?.setFramePresentationListener?.(null);
     disposed = true;
   };
   const visualRootNode = value => value?.node?.() || value || null;
@@ -861,26 +853,17 @@ export function createRenderingDomain({
     node.setAttribute('data-projection-revision', String(frame.projectionRevision));
     return true;
   };
-  const commitViewAttachedLayers = (frame, gpuResult = null, { canvasPresented = false } = {}) => {
+  const commitViewAttachedLayers = (frame, gpuResult = null) => {
     if (!frame?.__mapVisualFrame) {
       stats.visualFrameRejectedCount += 1;
       return false;
     }
-    if (!canvasPresented && ['canvas-worker','canvas2d'].includes(gpuMapRenderer?.getRuntimeState().renderer)
-      && (gpuResult?.deferred || pendingVisualFrames.has(frame))) {
-      // A pending bitmap may still be admitted while a newer same-view frame waits.
-      pendingVisualFrames.stage(frame);
-      return false;
-    }
-    if (!canPresentFrame(frame, gpuResult, { canvasPresented })) return false;
+    if (!canPresentFrame(frame, gpuResult)) return false;
     const temporalCommit = gpuResult?.temporalCommit === true || gpuMapRenderer?.getRuntimeState().temporalPresentationPending;
     syncBaseView(frame);
     renderProjectedOverlays(frame);
     if (temporalCommit) renderGenericFeatures(frame, { presentationOnly: true });
     renderCountries(frame, { presentationOnly: true, gpuResult });
-    // GPU-only redraws bypass selectionView; accepted Canvas presentation must
-    // still retire the previous fill owner while retaining outline fallbacks.
-    if (canvasPresented) renderSelectionOverlay(frame, { viewOnly: !temporalCommit, updateData: !!temporalCommit, gpuFrameResult: gpuResult });
     renderTerritorialLabelPositions(frame);
     renderUserLabelPositions(frame);
     const roots = typeof domLayers === 'function' ? domLayers() || {} : domLayers || {};
@@ -900,25 +883,9 @@ export function createRenderingDomain({
     stats.graticuleCommittedFrameId = Number(frame.frameId || 0);
     stats.labelCommittedFrameId = Number(frame.frameId || 0);
     stats.overlayCommittedFrameId = Number(frame.frameId || 0);
-    pendingVisualFrames.retire(frame, { canvasPresented });
     gpuMapRenderer?.commitVisualFrame?.(frame);
     return true;
   };
-  const presentCanvasVisualFrame = result => {
-    const frame = pendingVisualFrames.matchingFrame(result);
-    if (!frame) {
-      stats.visualFrameRejectedCount += 1;
-      return false;
-    }
-    if (!canPresentFrame(frame, result, { canvasPresented: true })) return false;
-    if (result.temporalCommit) {
-      const layout = renderPass('labelLayout', frame);
-      renderTerritorialLabels(layout, frame);
-      renderUserLabels(layout, frame);
-    }
-    return commitViewAttachedLayers(frame, result, { canvasPresented: true });
-  };
-  gpuMapRenderer?.setFramePresentationListener?.(presentCanvasVisualFrame);
   coordinator = createMapRenderCoordinator({
     requestFrame,
     prepareView,
@@ -943,8 +910,7 @@ export function createRenderingDomain({
           && !runtime.projectRenderBlocked && !runtime.temporalPresentationPending;
       },
       selectionRecovery: frame => renderSelection(frame),
-      canRenderBlockedBackground: () => gpuMapRenderer?.canRenderBlockedCanvasBackground?.() === true,
-      blockedBackground: frame => gpuMapRenderer.renderBlockedCanvasBackground(frame),
+
       beginFrame,
       view: frame => {
         const result = renderPass('view', frame);

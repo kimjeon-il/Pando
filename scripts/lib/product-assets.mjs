@@ -14,12 +14,8 @@ export const runtimeDependencies = Object.freeze({
   'assets/js/modules/core-document-client.js': ['assets/js/workers/core-viewer-session-worker.js'],
   'assets/js/modules/core-wasm-loader.js': ['assets/wasm/pandoeditor-core.js', 'assets/wasm/pandoeditor-core.wasm', 'assets/wasm/pandoeditor-core.manifest.json'],
   'assets/js/modules/gpu-map-renderer.js': ['assets/js/workers/hydro-tile-worker.js', 'assets/js/workers/gpu-mesh-worker.js',
-    'assets/js/workers/country-shared-boundary-worker.js', 'assets/js/workers/canvas-render-worker.js'],
+    'assets/js/workers/country-shared-boundary-worker.js'],
   'assets/js/modules/builtin-mesh-resource.js': ['assets/js/workers/data-loader-worker.js'],
-  'assets/js/workers/canvas-render-worker.js': ['assets/js/vendor/d3.min.js', 'assets/js/workers/geographic-boundary-core.js',
-    'assets/js/workers/canvas-scene-composition-core.js', 'assets/js/workers/canvas-terrain-dem-core.js',
-    'assets/js/workers/terrain-tile-selection-core.js', 'assets/js/workers/resource-update-policy-core.js', 'assets/js/workers/canvas-render-core.js'],
-  'assets/js/workers/canvas-render-core.js': ['assets/js/modules/terrain-manifest.js'],
   'assets/js/workers/hydro-tile-worker.js': ['assets/js/modules/external-runtime-data.js'],
   'assets/js/workers/country-shared-boundary-worker.js': ['assets/js/modules/external-runtime-data.js'],
   'assets/js/workers/project-read-worker.js': ['assets/js/vendor/sql/sql-wasm.js', 'assets/js/vendor/sql/sql-wasm.wasm'],
@@ -28,7 +24,6 @@ export const viewerDataEntryPaths = Object.freeze([...new Set(Object.values(runt
   .filter(path => path.startsWith('assets/data/')))]);
 export const dynamicExpressions = Object.freeze({
   'assets/js/modules/core-wasm-loader.js': ['url'],
-  'assets/js/workers/canvas-render-core.js': ['validationUrl.href'],
   'assets/js/workers/hydro-tile-worker.js': ['moduleUrl.href'],
   'assets/js/workers/country-shared-boundary-worker.js': ['dataModuleUrl.href'],
   'assets/js/workers/place-worker.js': ['storeModuleUrl.href'],

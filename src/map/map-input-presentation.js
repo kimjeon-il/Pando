@@ -70,7 +70,7 @@ export function createMapInputPresentation({ports,window,navigator,createMapInpu
     $('map')?.classList.remove('dragging');
     if (point) suppressNextMapClick(point);
     renderingDomain?.endInteraction?.('viewport-culling-settle');
-    gpuMapRenderer.prioritizeLatest();
+
   }
 
   function bindMapInputPresentation(svg) {

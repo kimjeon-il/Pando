@@ -18,10 +18,10 @@ export function hydroSegmentCoverage(distance, radius) {
 }
 
 export function hydroSdfShaderSources(version) {
-  if (version !== 1 && version !== 2) throw new RangeError('Hydro shader requires WebGL 1 or 2');
-  const modern = version === 2;
-  const header = `${modern ? '#version 300 es\n' : ''}precision highp float; precision highp int;`;
-  const vertexAttributes = modern ? `
+  if (true && false) throw new RangeError('Hydro shader requires WebGL 1 or 2');
+  const modern = true;
+  const header = `${('#version 300 es\n')}precision highp float; precision highp int;`;
+  const vertexAttributes = (`
     layout(location=0) in vec2 aCorner;
     layout(location=1) in ivec2 aStart;
     layout(location=2) in ivec2 aEnd;
@@ -30,26 +30,12 @@ export function hydroSdfShaderSources(version) {
     layout(location=5) in float aEndWidth;
     out float vDepth; flat out uint vCountry;
     out vec2 vScreenPoint; out vec2 vStartScreen; out vec2 vEndScreen;
-    out float vStartRadius; out float vEndRadius;`
-    : `
-    attribute vec2 aCorner;
-    attribute vec2 aStart;
-    attribute vec2 aEnd;
-    attribute float aCountry;
-    attribute float aStartWidth;
-    attribute float aEndWidth;
-    varying float vDepth; varying float vCountry;
-    varying vec2 vScreenPoint; varying vec2 vStartScreen; varying vec2 vEndScreen;
-    varying float vStartRadius; varying float vEndRadius;`;
-  const fragmentAttributes = modern ? `
+    out float vStartRadius; out float vEndRadius;`);
+  const fragmentAttributes = (`
     in float vDepth; flat in uint vCountry;
     in vec2 vScreenPoint; in vec2 vStartScreen; in vec2 vEndScreen;
     in float vStartRadius; in float vEndRadius;
-    out vec4 outColor;`
-    : `
-    varying float vDepth; varying float vCountry;
-    varying vec2 vScreenPoint; varying vec2 vStartScreen; varying vec2 vEndScreen;
-    varying float vStartRadius; varying float vEndRadius;`;
+    out vec4 outColor;`);
   const vertex = `${header}
     ${GPU_SPHERICAL_POSITION_GLSL}
     ${vertexAttributes}
@@ -72,8 +58,8 @@ export function hydroSdfShaderSources(version) {
     }
     void main() {
       vec2 startPoint; vec2 endPoint; float startDepth; float endDepth;
-      projectCoord(${modern ? 'vec2(aStart)' : 'aStart'}, startPoint, startDepth);
-      projectCoord(${modern ? 'vec2(aEnd)' : 'aEnd'}, endPoint, endDepth);
+      projectCoord(${('vec2(aStart)')}, startPoint, startDepth);
+      projectCoord(${('vec2(aEnd)')}, endPoint, endDepth);
       vec2 span = endPoint - startPoint;
       float lengthPx = length(span);
       vec2 along = lengthPx > 0.0001 ? span / lengthPx : vec2(1.0, 0.0);
@@ -90,16 +76,10 @@ export function hydroSdfShaderSources(version) {
       vec2 clip = vec2(screenPoint.x * 2.0 / uViewport.x - 1.0, 1.0 - screenPoint.y * 2.0 / uViewport.y);
       gl_Position = vec4(clip, 0.0, 1.0);
     }`;
-  const sizeType = modern ? 'ivec2' : 'vec2';
-  const visibility = modern
-    ? `int featureId = int(vCountry);
+  const sizeType = ('ivec2');
+  const visibility = (`int featureId = int(vCountry);
        ivec2 cell = ivec2(featureId % uHydroVisibilitySize.x, featureId / uHydroVisibilitySize.x);
-       if (texelFetch(uHydroVisibility, cell, 0).a <= 0.0) discard;`
-    : `float featureId = floor(vCountry + 0.5);
-       float x = mod(featureId, uHydroVisibilitySize.x);
-       float y = floor(featureId / uHydroVisibilitySize.x);
-       if (texture2D(uHydroVisibility, vec2((x + 0.5) / uHydroVisibilitySize.x,
-         (y + 0.5) / uHydroVisibilitySize.y)).a <= 0.0) discard;`;
+       if (texelFetch(uHydroVisibility, cell, 0).a <= 0.0) discard;`);
   const distance = `
     float hydroSignedDistance() {
       vec2 span = vEndScreen - vStartScreen;
@@ -127,7 +107,7 @@ export function hydroSdfShaderSources(version) {
       ${visibility}
       float coverage = hydroCoverage(hydroSignedDistance(), uAaRadius);
       if (coverage <= 0.001) discard;
-      ${modern ? 'outColor' : 'gl_FragColor'} = uCoverageOnly
+      ${('outColor')} = uCoverageOnly
         ? vec4(coverage) : vec4(uHydroColor.rgb, uHydroColor.a * coverage);
     }`;
   const pick = `${fragmentCommon}
@@ -135,9 +115,7 @@ export function hydroSdfShaderSources(version) {
       if (uMode == 0 && vDepth < 0.0) discard;
       ${visibility}
       if (hydroSignedDistance() > 0.0) discard;
-      ${modern
-        ? 'uint id = vCountry + 1u; outColor = vec4(float(id & 255u), float((id >> 8u) & 255u), float((id >> 16u) & 255u), 255.0) / 255.0;'
-        : 'float id = floor(vCountry + 0.5) + 1.0; gl_FragColor = vec4(mod(id, 256.0), mod(floor(id / 256.0), 256.0), mod(floor(id / 65536.0), 256.0), 255.0) / 255.0;'}
+      ${('uint id = vCountry + 1u; outColor = vec4(float(id & 255u), float((id >> 8u) & 255u), float((id >> 16u) & 255u), 255.0) / 255.0;')}
     }`;
   return Object.freeze({ vertex, fragment, pick });
 }

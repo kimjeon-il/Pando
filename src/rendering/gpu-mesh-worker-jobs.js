@@ -75,6 +75,7 @@ export function createGpuMeshWorkerJobs({ createWorker, createRebuildWorker = cr
         lod: payload.lod, sourceKey: payload.sourceKey,
         visibleIds: payload.visibleIds ?? null,
         visibleTiles: payload.visibleTiles ?? [],
+        cpuCacheBudgetBytes:payload.cpuCacheBudgetBytes,
       }, {
         transfer: packed ? [packed.coordinates.buffer] : [],
         projectRevision: payload.projectGeneration,

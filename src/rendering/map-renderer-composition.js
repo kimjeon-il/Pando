@@ -56,7 +56,6 @@ export function createMapRenderer(dependencies, { presentMapPreparation, onMapPr
       renderViewFrame: () => dependencies.domains.renderingDomain?.invalidateView?.('render-view') || false,
       reportOperationError: dependencies.feedback.reportOperationError,
       rendererUi: {
-        createCanvas: () => document.createElement('canvas'),
         getMapElement: () => (0, dependencies.platform.$)('map'),
         setEngineStatus: text => {
           (window.__PANDOLAB_STARTUP_METRICS__ ||= {}).rendererStatus = text;

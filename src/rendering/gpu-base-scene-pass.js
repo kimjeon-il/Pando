@@ -163,7 +163,7 @@ function submitGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWidth, 
       gl.stencilMask(0xff);
         },
       };
-      for (const role of mapVisualOrder('base', 'gpu')) {
+      for (const role of mapVisualOrder('base')) {
         if (Object.hasOwn(phases, role)) phases[role]();
         else drawHydro(role);
       }
