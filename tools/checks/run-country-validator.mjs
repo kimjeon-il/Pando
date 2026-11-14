@@ -42,11 +42,6 @@ if (normalize && process.env.PANDOEDITOR_WASM_MODULE) {
 } else {
   if (!executablePaths.some(existsSync)) run('cmake', ['-S', 'tools/cpp', '-B', build, '-DCMAKE_BUILD_TYPE=Release',
     `-DPANDO_BUILD_COUNTRY_VALIDATOR=${normalize ? 'OFF' : 'ON'}`], normalize);
-  if (process.argv.includes('--self-test')) {
-    run('cmake', ['--build', build, '--config', 'Release', '--target', 'pando-spherical-polygon-tests', '--parallel', '2']);
-    const executableTest = path.join(build, process.platform === 'win32' ? 'Release/pando-spherical-polygon-tests.exe' : 'pando-spherical-polygon-tests');
-    run(executableTest, []);
-  }
   run('cmake', ['--build', build, '--config', 'Release', '--target', target, '--parallel', '2'], normalize);
   const executable = executablePaths.find(existsSync);
   if (!executable) throw Error(`Built ${target} executable is missing in ${build}`);

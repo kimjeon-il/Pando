@@ -12,6 +12,7 @@ import {decodeTerritorialSource} from './territorial-source-codec.mjs';
 import {defaultRoot,gitOptions,git,libraryConfig,libraryCheckout,libraryMaterializedRoot,libraryReportRoot,librarySharedCheckout,libraryOwnerId,safeChild,decodeArchiveEntry,withLibraryLock,organizationTree} from "./library-context.mjs";
 import {reportRegistry,writeReportRegistry,checkedReportPath,assertReportSubject} from "./library-reports.mjs";
 import {compactOwnedCheckout,libraryWriteLeases,scopesOverlap,prepareOwnedLibraryData,ownedMaterializedView} from "./library-runtime.mjs";
+import {libraryStoragePath, preserveClassifiedStorage} from './library-storage-paths.mjs';
 
 function validateExpectedLibraryRevision(expectedRevision) {
   if (expectedRevision !== undefined && (typeof expectedRevision !== 'string' || !/^[a-f0-9]{40}$/.test(expectedRevision))) {
@@ -157,7 +158,8 @@ export function libraryWriteGitEnvironment(token, base = process.env) {
 
 export function runtimeStoreIndex(pinned, current) {
   return { ...pinned, files: {
-    ...Object.fromEntries(Object.entries(pinned.files).filter(([path]) => !path.startsWith('reports/'))),
+    ...Object.fromEntries(Object.entries(pinned.files).filter(([path]) => !path.startsWith('reports/'))
+      .map(([path, entry]) => [path, preserveClassifiedStorage(path, entry, current.files[path])])),
     ...Object.fromEntries(Object.entries(current.files).filter(([path]) => path.startsWith('reports/'))),
   } };
 }
@@ -271,14 +273,17 @@ export function storeOwnedLibraryData({ root, push, prefixes, removePaths, repor
   const store = (path, bytes) => {
     const sha256 = digest(bytes);
     const isReport = path.startsWith('reports/');
-    if (index.files[path]?.sha256 === sha256 && (!isReport || index.files[path].stored === path)) return;
-    const packed = isReport ? bytes : gzipSync(bytes, { level: 9 });
     // Pages overlays these public paths with git archive, independently of a
     // branch's runtime pin. They must remain present in the Git tree.
     const direct = isReport || path.startsWith('assets/data/library-channel/')
       || path.startsWith('assets/data/library-releases/') || runtimeDirectories.has(dirname(path));
+    const previous = index.files[path];
+    if (previous?.sha256 === sha256 && (direct || ['identity', 'gzip'].includes(previous.encoding)) && previous.stored === libraryStoragePath(path, {
+      sha256, encoding: previous.encoding, direct,
+    })) return;
+    const packed = isReport ? bytes : gzipSync(bytes, { level: 9 });
     const identity = direct || packed.length >= bytes.length;
-    const stored = direct ? path : `archive/blobs/${sha256}.${identity ? 'bin' : 'gz'}`;
+    const stored = libraryStoragePath(path, { sha256, encoding: identity ? 'identity' : 'gzip', direct });
     put(stored, identity ? bytes : packed);
     index.files[path] = { stored, encoding: identity ? 'identity' : 'gzip', sha256, bytes: bytes.length };
   };

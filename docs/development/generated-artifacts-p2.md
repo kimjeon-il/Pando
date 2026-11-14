@@ -15,11 +15,9 @@
 | 수계·지형 원본 가공 | 명시적인 GIS 데이터 작업 | 원본 출처·버전·해시 필요; 일반 개발에서 Python 설치/다운로드 없음 |
 
 
-## 현행 계산·transport 검증
+## 현행 계산 검증
 
-- 작은 합성 입력의 계산 계약은 `calculation-contracts-native`, 기간 native/WASM transport는 `temporal-transport-native` 등록 검사로 각각 선택한다. CMake는 해당 driver target만 빌드하며 전체 자료·과거 checkout을 사용하지 않는다.
-- WASM 검사는 `tools/build/load-node-core.mjs`의 source·ABI·컴파일러·내용 해시 확인을 거친다. C++ 입력 배치를 마친 뒤 일치하는 산출물 하나를 준비한다.
-- 수동 현재 Core 실측은 `node tools/checks/calculation-benchmark.mjs --operations cut,polygon,river`를 사용한다. 작은 fixture, warmup 1회·표본 5회이며 과거 SHA와의 속도 비율이나 기기 FPS 통과 기준이 아니다. 출력 파일은 명시한 `--output`에만 쓴다.
+현재 Core는 [핵심 검증 정책](../policies/validation.md)에 따라 실제 프로젝트·시간축 시나리오에서 사용한다. 최종 C++ 입력과 일치하는 WASM 하나를 기존 P2 CI에서 준비하며 별도 native driver나 oracle 실행을 유지하지 않는다.
 
 ## 당시 계획과 실행 (P2/P7 기록)
 

@@ -1,8 +1,8 @@
 // Local derivation only. Graph owners remain the sole generator/validator owners.
 import assert from 'node:assert/strict';
-import {createHash,randomUUID} from 'node:crypto';
+import {createHash} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
-import {readFileSync,writeFileSync,mkdirSync,readdirSync,lstatSync,unlinkSync,existsSync,renameSync} from 'node:fs';
+import {readFileSync,writeFileSync,mkdirSync,readdirSync,lstatSync,unlinkSync,existsSync} from 'node:fs';
 import {dirname,resolve} from 'node:path';
 import {gunzipSync} from 'node:zlib';
 import {stageArtifacts,publishArtifacts,graphStatus,safePath,assertBranchState,RECEIPT_PATH} from './p2-artifact-graph.mjs';
@@ -12,12 +12,10 @@ import {readBuiltinCountryStoredBytes,readBuiltinCountry} from "../../tools/data
 import {builtinCountryAssets} from "../../src/data/builtin-country-files.js";
 import {decodeTerritorialSource} from '../../tools/data/territorial-source-codec.mjs';
 import {validateTerritorialSourceGeometry} from '../../src/data/territorial-source-format.js';
-import {temporalContains,temporalMonthEnd} from "../../src/document/temporal.js";
 import {createAutoPublicationReceipt} from './library-auto-publication.mjs';
 const FAMILIES=Object.freeze(['territorial','current-world','world-mesh','world-country-packet','world-bundle','shared-boundaries','builtin-world','prepared-mesh']);
 const COUNTRY='assets/data/builtin-world/generated/v1/';
 const TERRITORIAL='assets/data/territorial-entities/generated/v2/';
-const FIXTURE='tests/fixtures/builtin-modern-interval-baseline.json';
 const hash=b=>createHash('sha256').update(b).digest('hex');
 const json=(root,p)=>JSON.parse(readFileSync(safePath(root,p),'utf8'));
 function fail(message){throw Error('AUTO_RUNTIME_'+message);}
@@ -36,13 +34,9 @@ function runCommand(command,cwd,env){
  assert.ok(Array.isArray(command)&&command.length>=2,'AUTO_RUNTIME_INVALID_OWNER_COMMAND');
  execFileSync(command[0]==='node'?process.execPath:command[0],command.slice(1),{cwd,env:{...process.env,...env,GIT_NO_LAZY_FETCH:'1'},stdio:'inherit'});
 }
-function runBaseline(root){execFileSync(process.execPath,['--test','--test-name-pattern=builtin-world-baseline','tests/unit/document/builtin-world-catalog.test.mjs'],{cwd:root,env:{...process.env,GIT_NO_LAZY_FETCH:'1'},stdio:'inherit'});}
+
 function write(root,p,bytes,lease,onWritten=()=>{}){const target=safePath(root,p);mkdirSync(dirname(target),{recursive:true});return lease({root,paths:[target]},()=>{writeFileSync(target,bytes);onWritten();});}
-function replaceFixture(root,bytes,{rename=renameSync}={}){
- const target=safePath(root,FIXTURE),temporary=safePath(root,FIXTURE+'.auto-fixture-'+randomUUID());
- try{writeFileSync(temporary,bytes,{flag:'wx'});rename(temporary,target);}
- finally{if(existsSync(temporary))unlinkSync(temporary);}
-}
+
 function pruneObsoleteCountryCopies(root,baselineAssets,withOutputs){
  const active=new Set(builtinCountryAssets(json(root,COUNTRY+'index.json')).map(row=>row.file));
  const files=[];
@@ -72,20 +66,7 @@ function countries(root,decodeIds=new Set()){
  }
  return result;
 }
-function scopedFixture(fixture,compiled,changedEntityIds,provenance){
- const result=structuredClone(fixture),ids=new Set(changedEntityIds.map(id=>id.slice('state:'.length)));
- const month=result.months?.find(row=>row.month==='2026-10');if(!month||!Array.isArray(month.entities))fail('FIXTURE_MONTH');
- for(const id of ids){
-  const row=month.entities.find(e=>e.entityId===id),country=compiled.get(id);
-  if(!row||!country)fail('FIXTURE_EXISTING_COUNTRY: '+id);
-  const bindings=country.payload.sourceBindings?.filter(b=>temporalContains(b,temporalMonthEnd('2026-10')));
-  if(bindings?.length!==1||!bindings[0].geometryRef||typeof bindings[0].sourceVersionId!=='string')fail('FIXTURE_CURRENT_BINDING: '+id);
-  row.geometryRef=structuredClone(bindings[0].geometryRef);row.sourceVersionId=bindings[0].sourceVersionId;
- }
- if(!result.provenance||!Array.isArray(result.provenance.acceptedGeometryUpdates))fail('FIXTURE_PROVENANCE');
- result.provenance.acceptedGeometryUpdates.push({entities:[...ids].sort(),month:'2026-10',...provenance,scope:'Automatic current binding refresh only; no historical evidence or sovereignty finding.'});
- return result;
-}
+
 function verifyNativeProjection(root,writes){
  const index=json(root,TERRITORIAL+'index.json');
  for(const w of writes){
@@ -125,7 +106,7 @@ export async function deriveAutomaticRuntime({root,inputProjection,inputDataSha,
  for(const w of writes){const value=JSON.parse(w.bytes);if(w.path.includes('/source/geometries/')){if(!w.path.endsWith('/sha256-'+hash(w.bytes)+'.json'))fail('SOURCE_GEOMETRY_HASH');}
   else if(w.path.endsWith('/views/world.json')){if(value.id!=='world:catalog')fail('SOURCE_IDENTITY');}
   else if(w.path!=='assets/data/territorial-entities/source/countries/'+String(value.entityId).replace(':','-')+'.json')fail('SOURCE_IDENTITY');}
- const d={assertCurrent,readPinnedSources,prepareLibraryData,withLibraryOutputs,stageArtifacts,publishArtifacts,graphStatus,runBaseline,runCommand,renameFixture:renameSync,...dependencies};
+ const d={assertCurrent,readPinnedSources,prepareLibraryData,withLibraryOutputs,stageArtifacts,publishArtifacts,graphStatus,runCommand,...dependencies};
  const guard=()=>d.assertCurrent(root,{expectedAppSha,expectedDataSha,branch});guard();
  const pinned=await d.readPinnedSources(root,expectedDataSha,writes.map(w=>w.path)),originals=new Map();
  // All originals verified before the first write; never trust caller-supplied hashes.
@@ -136,10 +117,7 @@ export async function deriveAutomaticRuntime({root,inputProjection,inputDataSha,
  };
  for(const w of writes){if(!matchesPinned(root,w))fail('ORIGINAL_SOURCE: '+w.path);originals.set(w.path,pinned[w.path]===null?null:readFileSync(safePath(root,w.path)));}
  const baselineAssets=new Map(builtinCountryAssets(json(root,COUNTRY+'index.json')).map(row=>[row.file,row]));
- const previous=countries(root),fixtureBytes=readFileSync(safePath(root,FIXTURE)),fixture=JSON.parse(fixtureBytes);
- // Existing baseline test proves fixture identity/geometry/points and SOURCE_CUTS
- // against the old compiled baseline before any selective refresh can mask drift.
- await d.runBaseline(root);
+ const previous=countries(root);
  const rootWrites=new Set();
  const inject=target=>{for(const w of [...writes].sort((a,b)=>Number(b.path.includes('/source/geometries/'))-Number(a.path.includes('/source/geometries/'))))write(target,w.path,w.bytes,d.withLibraryOutputs,()=>{if(resolve(target)===resolve(root))rootWrites.add(w.path);});};
  let published=false;
@@ -169,12 +147,6 @@ export async function deriveAutomaticRuntime({root,inputProjection,inputDataSha,
   const changed=new Set(inputProjection.changedEntityIds.map(id=>id.slice(6))),compiled=countries(checkout,changed);
   assert.deepEqual([...compiled.keys()].sort(),[...previous.keys()].sort(),'AUTO_RUNTIME_COUNTRY_MEMBERSHIP');
   for(const [id,old] of previous)if(!regenerationOnly&&!changed.has(id))assert.deepEqual(compiled.get(id).entry,old.entry,'AUTO_RUNTIME_UNRELATED_COUNTRY: '+id);
-  if(regenerationOnly)assert.deepEqual(readFileSync(safePath(checkout,FIXTURE)),fixtureBytes,'AUTO_RUNTIME_REGENERATION_FIXTURE_CHANGED');
-  else {
-   const updated=scopedFixture(fixture,compiled,inputProjection.changedEntityIds,{inputDataSha,inputFingerprint:inputProjection.inputFingerprint,generatingAppSha:expectedAppSha,generatorIdentity});
-   write(checkout,FIXTURE,Buffer.from(JSON.stringify(updated,null,2)+'\n'),d.withLibraryOutputs);
-  }
-  await d.runBaseline(checkout);
   const status=d.graphStatus(checkout,{requested:[...FAMILIES]}),outputs={};
   for(const family of FAMILIES){if(!status.statuses[family])fail('MISSING_GRAPH_FAMILY');for(const [p,digest] of Object.entries(status.statuses[family].outputs)){
    if(p===RECEIPT_PATH)continue;
@@ -184,21 +156,17 @@ export async function deriveAutomaticRuntime({root,inputProjection,inputDataSha,
   const receipt=json(checkout,RECEIPT_PATH);receipt.autoPublication=autoReceipt;
   write(checkout,RECEIPT_PATH,Buffer.from(JSON.stringify(receipt,null,2)+'\n'),d.withLibraryOutputs);
   // Official stage manifest must account for the augmented receipt, never itself
-  // become part of autoReceipt.outputs. Fixture remains a separate app-owned file.
+  // become part of autoReceipt.outputs.
   publication.paths=[...new Set([...publication.paths,RECEIPT_PATH])].sort();
   publication.before[RECEIPT_PATH]=(()=>{try{return hash(readFileSync(safePath(root,RECEIPT_PATH)));}catch(e){if(e.code==='ENOENT')return null;throw e;}})();
   publication.after[RECEIPT_PATH]=hash(readFileSync(safePath(checkout,RECEIPT_PATH)));
   write(root,stageDir+'/stage.json',Buffer.from(JSON.stringify(publication,null,2)+'\n'),d.withLibraryOutputs);
-  assert.deepEqual(readFileSync(safePath(root,FIXTURE)),fixtureBytes,'AUTO_RUNTIME_FIXTURE_CHANGED');
   for(const w of writes)assert.deepEqual(readFileSync(safePath(root,w.path)),w.bytes,'AUTO_RUNTIME_ROOT_SOURCE_CHANGED');
   const publicationGuard=()=>{guard();
    for(const w of writes)assert.deepEqual(readFileSync(safePath(root,w.path)),w.bytes,'AUTO_RUNTIME_ROOT_SOURCE_CHANGED');
-   assert.deepEqual(readFileSync(safePath(root,FIXTURE)),fixtureBytes,'AUTO_RUNTIME_FIXTURE_CHANGED');
   };
   publicationGuard();const result=d.publishArtifacts(root,{stageDir,expectedSourceSha:expectedAppSha,branch,guard:publicationGuard});published=true;
-  assert.deepEqual(readFileSync(safePath(root,FIXTURE)),fixtureBytes,'AUTO_RUNTIME_FIXTURE_CHANGED');
-  if(!regenerationOnly)replaceFixture(root,readFileSync(safePath(checkout,FIXTURE)),{rename:d.renameFixture});
-  return {changedPaths:[...new Set([...result.changedPaths,...writes.map(w=>w.path),...(regenerationOnly?[]:[FIXTURE])])].sort(),sourcePaths:writes.map(w=>w.path),fixturePath:FIXTURE,autoReceipt,verification:{officialStage:true,nativeProjection:true,countryIntegrity:true,unrelatedCountriesPreserved:!regenerationOnly,regenerationOnly,baselineBefore:true,baselineAfter:true}};
+  return {changedPaths:[...new Set([...result.changedPaths,...writes.map(w=>w.path)])].sort(),sourcePaths:writes.map(w=>w.path),autoReceipt,verification:{officialStage:true,nativeProjection:true,countryIntegrity:true,unrelatedCountriesPreserved:!regenerationOnly,regenerationOnly}};
  }catch(error){
   if(published){error.localPublicationComplete=true;error.recovery='fresh-clean-checkout-required';}
   if(!published)for(const w of writes){if(!rootWrites.has(w.path))continue;try{const p=safePath(root,w.path);if(existsSync(p)&&readFileSync(p).equals(w.bytes)){

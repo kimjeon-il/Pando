@@ -1,7 +1,7 @@
 {
   "schema": "pandoeditor-core-wasm",
   "abiVersion": 1,
-  "sourceSha256": "cb7328191e72442611434508b1b2b3bab75e1cbcf1bdce92254677c731ad0e69",
+  "sourceSha256": "f2b3a609d6f8a861be140ad37a9b6f7486034a24b2adc1118b1eb6908aa8e6c1",
   "compiler": {
     "name": "emscripten",
     "version": "6.0.3"
@@ -9,7 +9,7 @@
   "inputs": [
     {
       "path": "config/core-source-roots.json",
-      "sha256": "886613a632ba2e5023aabb4bf2072f7d4e03ec80ae14f8c2fc0fb1c4a9deeb48"
+      "sha256": "fd0310aaaa9c1c4901ff400e4bb5ded4b68f732fc371d6defe3f45eb6ba4dd8c"
     },
     {
       "path": "src/data/native/include/pandoeditor/geopackagegeometry.h",
@@ -516,132 +516,12 @@
       "sha256": "0f6aac7ad1f877af5ce83cf04617fefa7465a40fb3c8044e123d5ebf13929fbb"
     },
     {
-      "path": "tests/native/document/country-contact-tests.cpp",
-      "sha256": "843428283c097cb0a8c68f20562629649016611a4a69a8a5a3c583a3c0ace4cb"
-    },
-    {
-      "path": "tests/native/document/document-session-driver.cpp",
-      "sha256": "b349c6d54fd6e786d7619d19089f046fafdfdc836083574514f4bcf1c5cd3cb7"
-    },
-    {
-      "path": "tests/native/document/document-session-tests.cpp",
-      "sha256": "4b712dfdc0bb9782dd1c70b9af1ab281dc9ab948c6b4bd43fe90667fb7cd77fb"
-    },
-    {
-      "path": "tests/native/document/hydro-timeline-tests.cpp",
-      "sha256": "aec44cc1d758a596e5cad3a3828efbb76f9b38a1e510e5f1b6e0d7aaee944081"
-    },
-    {
-      "path": "tests/native/document/project-codec-tests.cpp",
-      "sha256": "f4832c098fa7ed19e553ddc30f51144fe66eb28c0fe984110354bfbfec487ede"
-    },
-    {
-      "path": "tests/native/document/reference-image-tests.cpp",
-      "sha256": "42dbc1fe289860ee74b2dd0d1ab453ab743dc6b3457b83f32e90c4b57099191a"
-    },
-    {
-      "path": "tests/native/document/source-admission-tests.cpp",
-      "sha256": "828659df1bef692364982d87dd75edfdd40eec83d7ccac3df2d065a6445ca2c1"
-    },
-    {
-      "path": "tests/native/document/temporal-adopt-tests.cpp",
-      "sha256": "dcfadc47bee0a8fa2944c96b7bbe44aa5f742938907e78b44157c41cdc3084d9"
-    },
-    {
-      "path": "tests/native/document/temporal-candidate-tests.cpp",
-      "sha256": "d4809918414cedbeb89be99e9f706a69bf2fdeb9fd44f33f73c3656b540ba787"
-    },
-    {
-      "path": "tests/native/document/temporal-editing-tests.cpp",
-      "sha256": "8e363828f5348704e2367459b157fe4e4bb816eb0608954ad2fc4b813aca73df"
-    },
-    {
-      "path": "tests/native/document/temporal-source-tests.cpp",
-      "sha256": "130978d0918f00b583f586479e98c7feb6c70cc2d734f2bd8ce209e15187a6e1"
-    },
-    {
-      "path": "tests/native/document/territorial-document-fixture.h",
-      "sha256": "2115e83f165ae1f646790affe2d1f6457b7c248112159397c19003c26cafba98"
-    },
-    {
-      "path": "tests/native/document/web-content-codec-tests.cpp",
-      "sha256": "7b1f4569e6a601833ad8739ff22f167a6840d974d6934990b34d533f78560064"
-    },
-    {
-      "path": "tests/native/document/web-content-command-tests.cpp",
-      "sha256": "765f06420cbb343a445de745f58b9bd08b20ff75426a01841bbd3bd0c3ba6b39"
-    },
-    {
-      "path": "tests/native/document/web-object-command-tests.cpp",
-      "sha256": "740bef44e6bb0ff653065ecaa06d8b42714b3f2813edfab92f84cce6bb462bf3"
-    },
-    {
-      "path": "tests/native/document/web-storage-tests.cpp",
-      "sha256": "36366465acf396698125d8ec5ccae78367a78d10fdc1e315a5afe207c0999c23"
-    },
-    {
-      "path": "tests/native/document/web-territorial-command-tests.cpp",
-      "sha256": "112faf90bda15dd706ab0cbfdb609b3cfd6c9490c6f78700e22d6c893b52dba0"
-    },
-    {
-      "path": "tests/native/geometry/boundary-chain-tests.cpp",
-      "sha256": "5a0626e933eda5b1786d14e9d0e2d8a94f7039532beb9a91ad419a4a16ed3c43"
-    },
-    {
-      "path": "tests/native/geometry/boundary-interior-tests.cpp",
-      "sha256": "978c4eab7c26ba030d97909ffac4ee3ca3e6bc9b152964e5f8b56f1c0e34e43c"
-    },
-    {
-      "path": "tests/native/geometry/boundary-overlap-tests.cpp",
-      "sha256": "fcb023abaf6ac180a9f9fb3c8aaf0efa1adb551b60e4c26541b4a2ffb1d977c8"
-    },
-    {
-      "path": "tests/native/geometry/boundary-packet-tests.cpp",
-      "sha256": "d20855b51df75b38a30062888b031f49c500c4e9773590c70a9120aa6b8c1189"
-    },
-    {
-      "path": "tests/native/geometry/boundary-refinement-tests.cpp",
-      "sha256": "bdecb94bb95be2f406be607cce9e7594130e626c4b8bdff3cf312da21cc3b057"
-    },
-    {
-      "path": "tests/native/geometry/boundary-split-tests.cpp",
-      "sha256": "5fed06bcf628c51ba0e0b2e06d010d41da25a1613e88295db6975758c44aab4b"
-    },
-    {
-      "path": "tests/native/geometry/calculation-driver.cpp",
-      "sha256": "a341ab30e3597f3a6b43bbb5d92f45df2f40b17f471fe62774a4c0579e27f407"
-    },
-    {
-      "path": "tests/native/geometry/fixtures/clipped-positive-rings.h",
-      "sha256": "804cecc7762ffd8f7487ceceff59286231795aff278e83c31f9425ba9d1287a7"
-    },
-    {
-      "path": "tests/native/geometry/geographic-containment-tests.cpp",
-      "sha256": "5e615d3d24998a0ac4c124a50a9be2350bc740af94694162ceeeba39989c5989"
-    },
-    {
-      "path": "tests/native/geometry/geometry-draft-tests.cpp",
-      "sha256": "08e73d24edc54cb3529764c7b416ecaedc90a4886deaca76cd33e95d33f7d13d"
-    },
-    {
-      "path": "tests/native/geometry/gis-country-merge-native.cpp",
-      "sha256": "71282f863676ece9ea590801570d7f7a669c8ffe064ec24b4605ee526437d3f2"
-    },
-    {
-      "path": "tests/native/geometry/polygon-mesh-tests.cpp",
-      "sha256": "4a89fa91a12817b17c32d3ef2cff2b692332f74f1d8417ef68df53d38e19b55c"
-    },
-    {
       "path": "tools/build/native/CMakeLists.txt",
-      "sha256": "145f172cbd99e4d56b71989a629b09d76b622b259252da5e6b9ff595c8e1c37a"
+      "sha256": "cd2550651d9ad6d0e5acea0c517d2204a92b776dd13204ea36bbd4d46ac26856"
     },
     {
       "path": "tools/build/native/core/CMakeLists.txt",
       "sha256": "c7366c3376fac63c4293cf9b9548a3be499d05959302bc2403032f0982d2a9b3"
-    },
-    {
-      "path": "tools/build/native/tests/CMakeLists.txt",
-      "sha256": "5e670a368224fe676b2e111e9ed74befa9347f0434d7ec61db69d5c2dff5e9f7"
     },
     {
       "path": "tools/build/native/wasm/CMakeLists.txt",
@@ -655,7 +535,7 @@
     },
     "wasm": {
       "file": "pandoeditor-core.wasm",
-      "sha256": "66d194edaacddbfab44afc252a113555f77e6e7fbf987a98c03eb54922b53926"
+      "sha256": "efef8b210f6e66cf9f8f33e224abd40aecc241c3e1ccf25e6ce0032fc876e663"
     }
   }
 }

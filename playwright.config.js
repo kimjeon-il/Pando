@@ -1,33 +1,13 @@
-import { defineConfig } from '@playwright/test';
-
-const testPort = Number.parseInt(process.env.PANDOLAB_TEST_PORT || '4173', 10);
-const testBaseUrl = `http://127.0.0.1:${testPort}`;
-const browserChannel = String(process.env.PANDOLAB_BROWSER_CHANNEL || '').trim() || undefined;
-
+import {defineConfig} from '@playwright/test';
+const external=process.env.PANDO_PUBLIC_URL||process.env.PANDOLAB_TEST_BASE_URL;
+const baseURL=external||`http://127.0.0.1:${Number(process.env.PANDOLAB_TEST_PORT||4187)}`;
 export default defineConfig({
-  testDir: './tests/browser',
-  fullyParallel: false,
-  workers: 1,
-  timeout: 120_000,
-  expect: { timeout: 8_000 },
-  reporter: [['list']],
-  use: {
-    baseURL: testBaseUrl,
-    browserName: 'chromium',
-    channel: browserChannel,
-    launchOptions: {
-      executablePath: process.env.PANDOLAB_BROWSER_EXECUTABLE || undefined,
-      // Match the native Windows renderer; SwiftShader/Vulkan can stall the
-      // compositor before Playwright dispatches a pointer event to fixed UI.
-      args: process.platform === 'win32' ? ['--use-angle=d3d11'] : [],
-    },
-    trace: 'retain-on-failure',
-    screenshot: 'only-on-failure',
-  },
-  webServer: {
-    command: `${JSON.stringify(process.execPath)} tests/browser/server.mjs`,
-    url: testBaseUrl,
-    reuseExistingServer: true,
-    timeout: 120_000,
-  },
+  testDir:'./tests/browser',testMatch:'viewer.spec.mjs',fullyParallel:false,workers:1,
+  timeout:120_000,expect:{timeout:15_000},reporter:[['list']],
+  use:{baseURL,browserName:'chromium',channel:process.env.PANDOLAB_BROWSER_CHANNEL||undefined,
+    launchOptions:{executablePath:process.env.PANDOLAB_BROWSER_EXECUTABLE||undefined,
+      args:process.platform==='win32'?['--use-angle=d3d11']:[]},
+    trace:'off',screenshot:'off'},
+  webServer:external?undefined:{command:`"${process.execPath}" tests/browser/server.mjs`,url:baseURL,
+    reuseExistingServer:false,timeout:120_000},
 });

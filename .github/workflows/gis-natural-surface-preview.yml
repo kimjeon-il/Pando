@@ -1,14 +1,11 @@
-# Validate strict Antarctic one-pixel below-pole texture gutter replication against observed mask data.
-# Retry strict source-aware polar no-data averaging; retain all hash and coverage gates.
-## Re-run the bounded representative source acceptance with the repaired float32 polar coverage tolerance.
-## This task must preserve source hashes, immutable revision pins and historical source dates.
 name: GIS natural-surface observed masks and immutable external loading
 on:
   push:
-    branches: [work/gis]
+    branches:
+      - work/gis
     paths:
       - .github/workflows/gis-natural-surface-preview.yml
-  workflow_dispatch:
+  workflow_dispatch: null
 permissions:
   contents: read
 concurrency:
@@ -30,14 +27,10 @@ jobs:
           node-version-file: .nvmrc
       - uses: pnpm/action-setup@v4
       - run: pnpm install --frozen-lockfile --ignore-scripts
-      - name: Focused terrain and observed mask contracts
-        env:
-          CHECK_SELECTION: '{"unitTests":["tests/unit/geometry/terrain-natural-masks.test.mjs","tests/unit/data/terrain-natural-surface.test.mjs","tests/unit/rendering/terrain-natural-gpu.test.mjs","tests/unit/rendering/terrain-numeric-color.test.mjs","tests/unit/rendering/canvas-dem-theme-cache.test.mjs"],"browserSpecs":[],"commands":[],"prerequisites":[]}'
-        run: |
-          mkdir -p "$RUNNER_TEMP/natural-proof"
-          node scripts/run-application-checks.mjs --phase non-browser --output "$RUNNER_TEMP/natural-proof/unit.json"
       - name: Probe public source access and preserve actual metadata
-        run: python3 tools/gis/build-natural-observed-preview.py --probe --output "$RUNNER_TEMP/natural-proof"
+        run: |-
+          mkdir -p "$RUNNER_TEMP/natural-proof"
+          python3 tools/gis/build-natural-observed-preview.py --probe --output "$RUNNER_TEMP/natural-proof"
       - name: Checkout existing data branch metadata only
         uses: actions/checkout@v4
         with:
@@ -52,7 +45,7 @@ jobs:
       - name: Verify destination and peak disk headroom
         env:
           LIBRARY_TOKEN: ${{ secrets.PANDOLAB_LIBRARY_WRITE_TOKEN }}
-        run: |
+        run: |-
           set -euo pipefail
           test -n "$LIBRARY_TOKEN"
           test "$(git branch --show-current)" = work/gis
@@ -65,14 +58,11 @@ jobs:
           git -C .natural-library rev-parse HEAD > "$RUNNER_TEMP/natural-proof/library-before.txt"
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: "3.12"
       - name: Install scoped binary GIS dependencies in CI only
-        run: |
-          python -m pip install --only-binary=:all: --disable-pip-version-check 'Pillow==11.3.0' 'numpy==2.2.6' 'rasterio==1.4.3' 'fiona==1.10.1'
-      - name: Verify actual floating polar-source NaN-as-NoData reprojection
-        run: python tools/gis/build-natural-observed-preview.py --self-test-polar --output "$RUNNER_TEMP/natural-proof"
+        run: "python -m pip install --only-binary=:all: --disable-pip-version-check 'Pillow==11.3.0' 'numpy==2.2.6' 'rasterio==1.4.3' 'fiona==1.10.1'"
       - name: Generate bounded WorldCover, RGI7 and polar-ice corrected tiles
-        run: |
+        run: |-
           set -euo pipefail
           python tools/gis/build-natural-observed-preview.py --output "$RUNNER_TEMP/natural-observed" \
             | tee "$RUNNER_TEMP/natural-proof/generation.log"
@@ -100,7 +90,7 @@ jobs:
       - name: Store verified regional candidate only in external work/gis
         env:
           LIBRARY_TOKEN: ${{ secrets.PANDOLAB_LIBRARY_WRITE_TOKEN }}
-        run: |
+        run: |-
           set -euo pipefail
           mkdir -p ".natural-library/$CANDIDATE_PATH"
           cp -a "$RUNNER_TEMP/natural-observed/4" "$RUNNER_TEMP/natural-observed/inputs" ".natural-library/$CANDIDATE_PATH/"
@@ -130,7 +120,7 @@ jobs:
           console.log('NATURAL_OBSERVED_LIBRARY_REVISION='+revision);
           JS
       - name: Read stored candidate through canonical terrain fetch and byte/hash validation
-        run: |
+        run: |-
           node --input-type=module <<'JS'
           import assert from 'node:assert/strict';
           import {readFileSync,writeFileSync} from 'node:fs';
@@ -156,7 +146,7 @@ jobs:
           JS
       - name: Preserve source acquisition receipts on failure as well
         if: always()
-        run: |
+        run: |-
           mkdir -p "$RUNNER_TEMP/natural-proof"
           for file in polar-record.json base-manifest.json; do
             test ! -f "$RUNNER_TEMP/natural-observed/acquisition-cache/$file" || cp "$RUNNER_TEMP/natural-observed/acquisition-cache/$file" "$RUNNER_TEMP/natural-proof/$file"

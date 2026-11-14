@@ -51,9 +51,7 @@ builtin place/hydro ID와 자료 출처는 기존 로더가 사실을 공급하�
 
 ## 검증 범위
 
-명령·읽기 모델·이력·취소·저장 계약은 작은 original Web/native/WASM fixture로
-비교한다. `check-command-architecture`는 폐기한 owner의 부활과 별도 쓰기 경로를,
-`check-runtime-boundaries`는 실제 capability 연결과 의존 방향을 검사한다.
+현행 프로젝트 파일과 시간축 동작은 실제 reader·Core를 사용하는 작은 Node 시나리오로 확인한다. Viewer 사용자 흐름은 브라우저에서 검증하며 내부 소유자 이름을 별도 구조 검사로 고정하지 않는다.
 같은 소스·컴파일러·ABI의 JS/WASM 쌍을 manifest 해시로 확인한다.
 
 당시 작업에서는 앱, BAT, 포터블, offscreen 및 실제 Qt/브라우저 UI를 실행하지

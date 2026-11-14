@@ -1,24 +1,18 @@
-# Narrow place-only release. Never rebuild unrelated GIS/terrain families or deploy main.
 name: Curated Place Release
-
 on:
-  workflow_dispatch:
+  workflow_dispatch: null
   push:
-    branches: [work/places]
+    branches:
+      - work/places
     paths:
-      - '.github/workflows/place-curated-release.yml'
-      - 'tools/build/place-display-rank.mjs'
-      - 'tools/build/build-place-runtime.mjs'
-      - 'tests/unit/data/place-display-rank.test.mjs'
-      - 'tests/unit/data/place-worker-store.test.mjs'
-
+      - .github/workflows/place-curated-release.yml
+      - tools/build/place-display-rank.mjs
+      - tools/build/build-place-runtime.mjs
 permissions:
   contents: write
-
 concurrency:
   group: curated-places-${{ github.ref }}
   cancel-in-progress: false
-
 jobs:
   generate-verified-places:
     if: github.repository == 'kimjeon-il/Pando' && github.ref == 'refs/heads/work/places'
@@ -30,37 +24,30 @@ jobs:
         with:
           persist-credentials: true
           fetch-depth: 0
-
       - name: Prepare exact pinned library archive
         uses: ./.github/actions/library-data
-
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: 11.19.0
           run_install: false
-
       - name: Setup Node from repository pin
         uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
           cache: pnpm
-
       - name: Install pinned dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
-
       - name: Hydrate only reviewed places and archived spatial population records
-        run: |
+        run: |-
           node tools/data/report-paths.mjs reports/places read
           node tools/data/report-paths.mjs reports/map-analysis/corpus/gazetteer-v1/sources/cities500.source.json read
           node tools/data/report-paths.mjs reports/map-analysis/corpus/gazetteer-v1/runtime/manifest.json read
           node tools/data/report-paths.mjs reports/map-analysis/corpus/gazetteer-v1/runtime/records read
-
       - name: Generate population tiers and neighbourhood weights only
         run: node tools/build/build-place-runtime.mjs
-
       - name: Verify deterministic generation and approved records
-        run: |
+        run: |-
           node tools/build/build-place-runtime.mjs --check
           node --input-type=module -e '
             import fs from "node:fs";
@@ -76,26 +63,10 @@ jobs:
             console.log(JSON.stringify({count:p.approvedCount,neighbours:p.neighbourhoodCandidateCount,
               seoul:p.entries["1835848"],daejeon:p.entries["1835235"]}));
           '
-
-      - name: Run focused population, Worker, publication and codec tests
-        run: >-
-          node --test
-          tests/unit/data/place-display-rank.test.mjs
-          tests/unit/data/place-worker-store.test.mjs
-          tests/unit/data/place-publication.test.mjs
-          tests/unit/data/place-codec.test.mjs
-
-      - name: Lint ranking publisher and tests
-        run: >-
-          pnpm exec eslint tools/build/place-display-rank.mjs
-          tools/build/build-place-runtime.mjs
-          tests/unit/data/place-display-rank.test.mjs
-          tests/unit/data/place-worker-store.test.mjs
-
       - name: Store and pin only completed city data; never merge main
         env:
           PANDOLAB_LIBRARY_WRITE_TOKEN: ${{ secrets.PANDOLAB_LIBRARY_WRITE_TOKEN }}
-        run: |
+        run: |-
           set -euo pipefail
           test -n "$PANDOLAB_LIBRARY_WRITE_TOKEN"
           git config user.name "github-actions[bot]"

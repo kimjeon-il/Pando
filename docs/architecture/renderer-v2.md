@@ -13,7 +13,7 @@ Project Model
   -> ordered GPU passes
 ```
 
-The runtime pass order is defined by the actual coordinator and GPU renderer behavior. Architecture-only expectations live in `scripts/lib/renderer-v2-architecture.mjs`; no declarative test contract is downloaded by the browser.
+The runtime pass order is defined by the actual coordinator and GPU renderer behavior. The Viewer browser scenarios verify actual presentation, Canvas fallback and WebGL recovery.
 
 The map mode supplies the land substrate: theme land color without terrain, grayscale relief in monochrome mode, and terrain tint/shading in physical mode. Country and territorial materials contain only explicitly assigned or inherited paint. Missing paint and disabled color leave the substrate visible; clearing a color does not persist a gray replacement. The country palette keeps paint alpha and geometry visibility in separate rows so transparent paint does not disable picking, boundaries, or selection. WebGL and both Canvas paths consume the same territorial fill resolver.
 
@@ -77,7 +77,7 @@ Canvas Worker remains the non-WebGL fallback and is intentionally a specialized 
 
 ## Guardrails
 
-`pnpm check:renderer-v2` verifies the single-context rule, shared stroke renderer, connected topology and analytic AA markers, immutable RenderScene cache contract, view-only coordinator mask and Worker mesh transferables. It is part of `pnpm check:architecture` and therefore CI.
+Current verification follows [the core validation policy](../policies/validation.md); internal renderer structure is not a separate gate.
 
 ## RenderDevice shared GL state contract (P0)
 

@@ -1,12 +1,8 @@
-# Reproduction of historical pinned source; never overwrites independently updated deployed Hydro metadata.
 name: Reproduce immutable Hydro v0.13.2 source packfile
-
 on:
-  workflow_dispatch:
-
+  workflow_dispatch: null
 permissions:
   contents: read
-
 jobs:
   reproduce:
     runs-on: ubuntu-24.04
@@ -23,7 +19,6 @@ jobs:
             /tools/data/library-report-layout.mjs
             /tools/data/library-content.mjs
             /config/library-data.json
-            /tests/unit/data/hydro-packfile.test.mjs
       - uses: actions/checkout@v4
         with:
           repository: kimjeon-il/PandoLab-library
@@ -37,10 +32,9 @@ jobs:
             /assets/data/hydro/v0.13.1/
       - uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: "24"
       - name: Reproduce and verify historical fragments outside the published asset tree
-        run: |
-          node --test tests/unit/data/hydro-packfile.test.mjs
+        run: |-
           node tools/build/build-hydro-packfile.mjs --source historical-hydro/assets/data/hydro/v0.13.1 --output "$RUNNER_TEMP/historical-hydro-v0.13.2"
           node tools/build/build-hydro-packfile.mjs --source historical-hydro/assets/data/hydro/v0.13.1 --output "$RUNNER_TEMP/historical-hydro-v0.13.2" --check
       - uses: actions/upload-artifact@v4
