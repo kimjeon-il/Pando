@@ -36,9 +36,9 @@ jobs:
       - if: inputs.group == 'browser' || github.event_name == 'push'
         run: pnpm exec playwright install --with-deps chromium
       # Second trigger attempt; retain exactly the same focused browser scenario.
-      - name: Capture actual stage-4 world Viewer output
+      - name: Verify actual map-host camera label relayout
         if: github.event_name == 'push'
-        run: pnpm exec playwright test tests/browser/viewer.spec.mjs --grep 'stage-4 immutable world natural' --workers=1 --retries=0
+        run: pnpm exec playwright test tests/browser/viewer.spec.mjs --grep 'stage-4 host camera relayouts' --workers=1 --retries=0
       - name: Retain only stage-4 world evidence
         if: always() && github.event_name == 'push'
         uses: actions/upload-artifact@v4
