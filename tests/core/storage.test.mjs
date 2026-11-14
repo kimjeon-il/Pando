@@ -7,7 +7,7 @@ import {chmodSync,existsSync,lstatSync,mkdirSync,mkdtempSync,readFileSync,readdi
 import {dirname,join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {gzipSync} from 'node:zlib';
-import {contentHash,publishContent,linkContent,removeContentLink} from '../../tools/data/library-content.mjs';
+import {contentHash,publishContent,linkContent,removeContentLink,removeUnlinkedContentBlob} from '../../tools/data/library-content.mjs';
 import {prepareLibraryData,prepareLibraryMetadata,withLibraryWrite} from '../../tools/data/library-runtime.mjs';
 import {hydrateReports,reportRegistry} from '../../tools/data/library-reports.mjs';
 import {storeLibraryData,runtimeStoreIndex} from '../../tools/data/library-store.mjs';
@@ -68,6 +68,7 @@ test('cleanup preserves protected source even inside a generated directory',t=>{
  linkContent(root,blob.sha256,view);
  const before=lstatSync(blob.path),originalChmod=fs.chmodSync;
  assert.equal(before.nlink,2);
+ assert.throws(()=>removeUnlinkedContentBlob(root,blob.sha256),/consumer/);
  fs.chmodSync=(target,...args)=>{
   if(existsSync(target)){
    const current=lstatSync(target);
@@ -84,6 +85,8 @@ test('cleanup preserves protected source even inside a generated directory',t=>{
  assert.equal(lstatSync(blob.path).nlink,1);
  assert.equal(existsSync(join(root,'.pando-store/.permission-restore.json')),false);
  assert.deepEqual(readdirSync(join(root,'reports')),[],'the capability probe leaves no temporary files');
+ assert.equal(removeUnlinkedContentBlob(root,blob.sha256),true);
+ assert.equal(existsSync(blob.path),false);
 });
 
 test('cleanup rejects escaping targets without deleting outside bytes',t=>{

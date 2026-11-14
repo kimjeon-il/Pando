@@ -430,7 +430,8 @@ export function createReportRetirementCommit({ root = defaultRoot, revision, rem
     if (removed.size) run(['update-index', '--force-remove', '-z', '--stdin'], [...removed].join('\0') + '\0');
     const blob = run(['hash-object', '-w', '--stdin'], bytes);
     run(['update-index', '-z', '--index-info'], `100644 ${blob}\tarchive/index.json\0`);
-    const tree = run(['write-tree']);
+    // Unchanged promisor objects remain lazy; retirement only removes selected entries.
+    const tree = run(['write-tree', '--missing-ok']);
     const next = run(['-c', 'user.name=Pando library publisher', '-c', 'user.email=library-publisher@users.noreply.github.com',
       'commit-tree', tree, '-p', revision, '-m', 'Retire explicitly selected Markdown [skip ci]']);
     return { revision: next, parent: revision, removed: paths.length };
