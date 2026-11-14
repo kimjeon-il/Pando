@@ -1,4 +1,5 @@
 import { mapVisualRank } from "./layer-presentation.js";
+import { measureMapFrameProjectionParity } from "../rendering/map-visual-frame.js";
 import { createProductModePolicy } from "../app/product-mode-policy.js";
 /** MapHost: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
@@ -33,6 +34,7 @@ export function createMapHost({productMode='editor',readOnly=productMode==='view
   let visualProjectionRevision;
   let lastVisualProjectionKind;
   let renderedViewSignature;
+  let lastPreparedVisualFrame = null;
   let mapHost;
   let mapHostReadyPromise;
   function connect(ports) {
@@ -136,11 +138,13 @@ export function createMapHost({productMode='editor',readOnly=productMode==='view
     if(lastVisualProjectionKind!==viewState.projection){lastVisualProjectionKind=viewState.projection;visualProjectionRevision++;}
     const visualProjection=visualProjectionForSnapshot(viewState);
     const visualPath=dependencies.platform.d3.geo.path().projection(visualProjection);
-    return dependencies.renderFactories.createMapVisualFrame({frameId,viewRevision:viewState.revision,
+    const frame = dependencies.renderFactories.createMapVisualFrame({frameId,viewRevision:viewState.revision,
       lodSelection:dependencies.rendering.gpuMapRenderer.resolveDisplayLod(viewState.scale),
       projectGeneration:dependencies.domains.projectDomain.getGeneration(),projectionRevision:visualProjectionRevision,viewState,
       layoutSnapshot:dependencies.mapLayout.mapLayoutMetricsSnapshot,projectCoordinate:coordinate=>visualProjection(coordinate),
       projectPath:geometry=>visualPath(geometry)});
+    lastPreparedVisualFrame = frame;
+    return frame;
   }
 
   function mapSurfaceHostOptions() {
@@ -177,9 +181,15 @@ export function createMapHost({productMode='editor',readOnly=productMode==='view
       project: coordinate => (0, dependencies.mapView.activeProjection)()(coordinate),
       unproject: point => (0, dependencies.mapView.screenToGeo)(point),
       requestRepaint: reason => dependencies.domains.renderingDomain?.invalidateGpuFrame?.(reason || 'legacy-host-repaint'),
-      resize: () => dependencies.rendering.gpuMapRenderer.resize(),
+      resize: () => dependencies.domains.renderingDomain?.invalidateViewport?.('map-host-resize') ?? false,
       dragBy: dependencies.navigation.panMapViewBy,
-      getDebugState: () => ({ viewRevision }),
+      getDebugState: request => ({
+        viewRevision,
+        ...(Array.isArray(request?.projectionSamples) && lastPreparedVisualFrame
+          ? { projectionParity: measureMapFrameProjectionParity(
+              lastPreparedVisualFrame, request.projectionSamples.slice(0, 128)) }
+          : {}),
+      }),
     };
   }
 
@@ -342,18 +352,9 @@ export function createMapHost({productMode='editor',readOnly=productMode==='view
     mapResizeSignature = signature;
     dependencies.projectState.state.size.width = width;
     dependencies.projectState.state.size.height = height;
-    const viewBox = `0 0 ${dependencies.projectState.state.size.width} ${dependencies.projectState.state.size.height}`;
-    [dependencies.mapLayers.baseSvg, svg].forEach(layer => {
-      layer?.attr('width', dependencies.projectState.state.size.width)
-        .attr('height', dependencies.projectState.state.size.height)
-        .attr('viewBox', viewBox)
-        .attr('preserveAspectRatio', 'none');
-    });
-    mapInteractionLayer
-      ?.attr('width', dependencies.projectState.state.size.width)
-      .attr('height', dependencies.projectState.state.size.height);
-    mapHost?.resize?.();
-    dependencies.rendering.gpuMapRenderer.resize();
+    // The old GPU and SVG pictures stay at the same CSS-scaled viewport while
+    // the new backing size is prepared. All SVG viewBoxes and the GPU buffer
+    // are resized at the accepted visual-frame boundary, not in this observer.
     dependencies.domains.renderingDomain?.invalidateViewport?.('resize');
     requestAnimationFrame(() => dependencies.rendering.gpuMapRenderer.verifyLayout());
     return true;

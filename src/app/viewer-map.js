@@ -231,7 +231,13 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
   renderingDomain=createRenderingDomain({gpuMapRenderer:renderer,sceneBuilder:gpuScene.renderSceneBuilder,projectDomain,selectionDomain:selectionDomain,
     mapHost:()=>mapHost.mapHost,
     getMapStyle:()=>getPreferences()?.appearance?.mapStyle || 'standard',
-    domLayers:()=>({svg:labelLayer,interactionSvg,gpuCanvas:canvas}),prepareMapDisplay:mapDisplay.prepare,disposeMapDisplay:mapDisplay.dispose,
+    domLayers:()=>({
+      baseSvg:element.querySelector('.map-base-svg'),
+      svg:element.querySelector('.map-overlay-svg'),
+      interactionSvg:element.querySelector('.map-interaction-svg'),
+      mapHitArea:element.querySelector('.map-hit-area'),
+      gpuCanvas:canvas,
+    }),prepareMapDisplay:mapDisplay.prepare,disposeMapDisplay:mapDisplay.dispose,
     ...createMapRenderingResources({session:{selectionDomain,get renderingDomain(){return renderingDomain;},objectSearchController:{cancelSearch:()=>onPlacesSettled('cancel')}},ports:mergeCapabilityPorts(commonPorts,readPorts,{
     domains:{projectDomain,selectionDomain,get renderingDomain(){return renderingDomain;},objectSearchController:{cancelSearch:()=>onPlacesSettled('cancel')}},
     platform:{d3},pointerInteractionA:pointerTargets,objectPicking:{...objectPicking,handleObjectSelectionAt:selectAt},
@@ -245,7 +251,8 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
     prepareView:options=>{
       state.size={width:Math.max(1,element.clientWidth),height:Math.max(1,element.clientHeight)};
       lastFrame=mapHost.prepareVisualFrame(options);
-      renderer.resize(lastFrame);return lastFrame;
+      // Do not resize/clear visible GPU pixels during frame preparation.
+      return lastFrame;
     },
     onFrameComplete:mapHost.handleRenderFrameComplete,
     renderers:{view:frame=>renderer.renderFrame(frame),labelLayout:frame=>labelOwner.visibleLabelLayout(frame),objectSearch:()=>onPlacesSettled('render')},

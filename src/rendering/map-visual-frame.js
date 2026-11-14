@@ -223,6 +223,9 @@ export function createMapVisualFrame({
     worldOffsets,
     projectCoordinate: projectors.projectCoordinate,
     projectVisibleCoordinate: projectors.projectVisibleCoordinate,
+    // Frame-owned D3 reference used for numerical parity checks only, never
+    // as a second live camera inside a rendering pass.
+    referenceProjectCoordinate: typeof projectCoordinate === 'function' ? projectCoordinate : null,
     projectPath: typeof projectPath === 'function' ? projectPath : null,
     signature,
     viewState: frozenViewState,
@@ -231,4 +234,62 @@ export function createMapVisualFrame({
 
 export function isMapVisualFrame(value) {
   return value?.__mapVisualFrame === true && Number.isFinite(value.frameId) && typeof value.signature === 'string';
+}
+
+/**
+ * Compare the projected CSS coordinates used by SVG labels and the WebGL
+ * uniform math with this frame's immutable D3 projection reference. Nothing
+ * here reads DOM size, live camera state, or GPU buffers. Shader float inputs
+ * are rounded to float32 to expose precision drift at 32x.
+ */
+export function measureMapFrameProjectionParity(frame, coordinates = []) {
+  if (!isMapVisualFrame(frame) || typeof frame.referenceProjectCoordinate !== 'function')
+    throw new TypeError('Projection parity requires a frame with a D3 reference projector.');
+  const records = [];
+  const radians = Math.PI / 180;
+  const f = Math.fround;
+  const euclidean = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
+  for (const coordinate of coordinates) {
+    const lon = Number(coordinate?.[0]), lat = Number(coordinate?.[1]);
+    if (!Number.isFinite(lon) || !Number.isFinite(lat) || Math.abs(lat) > 90) continue;
+    const exact = frame.projectCoordinate([lon, lat]);
+    const reference = frame.referenceProjectCoordinate([lon, lat]);
+    if (!Array.isArray(exact) || !Array.isArray(reference)
+      || !exact.every(Number.isFinite) || !reference.every(Number.isFinite)) continue;
+    const longitude = f(lon * radians), latitude = f(lat * radians);
+    const cosine = f(Math.cos(latitude));
+    const unit = [f(cosine * Math.cos(longitude)), f(cosine * Math.sin(longitude)), f(Math.sin(latitude))];
+    const dot = row => f(f(f(row[0]) * unit[0] + f(row[1]) * unit[1]) + f(row[2]) * unit[2]);
+    const predicted = frame.mode === 0
+      ? [f(f(frame.gpuTranslate[0]) + f(f(frame.gpuScale) * dot(frame.rowX))) / frame.dpr,
+         f(f(frame.gpuTranslate[1]) + f(f(frame.gpuScale) * dot(frame.rowY))) / frame.dpr]
+      : frame.worldOffsets.map(offset => [
+          f(f(frame.gpuTranslate[0]) + f(f(frame.gpuScale) * f(longitude + f(offset) - f(frame.flatCenter[0])))) / frame.dpr,
+          f(f(frame.gpuTranslate[1]) - f(f(frame.gpuScale) * f(latitude - f(frame.flatCenter[1])))) / frame.dpr,
+        ]).reduce((best, point) => euclidean(point, exact) < euclidean(best, exact) ? point : best);
+    // D3 wraps flat longitude to its principal interval. The GPU may draw
+    // any visible repeat of the same longitude, so compare modulo one world.
+    const referenceWrapped = frame.mode === 1
+      ? [reference[0] + Math.round((exact[0] - reference[0]) / (2 * Math.PI * frame.cssScale))
+        * 2 * Math.PI * frame.cssScale, reference[1]]
+      : reference;
+    const globeDepth = frame.rowZ[0] * Math.cos(lat * radians) * Math.cos(lon * radians)
+      + frame.rowZ[1] * Math.cos(lat * radians) * Math.sin(lon * radians)
+      + frame.rowZ[2] * Math.sin(lat * radians);
+    const visible = frame.mode !== 0 || globeDepth >= -0.005;
+    const predictedErrorPx = euclidean(predicted, exact);
+    const referenceErrorPx = euclidean(referenceWrapped, exact);
+    records.push({ coordinate: [lon, lat], visible, predictedErrorPx, referenceErrorPx,
+      gpuVsD3ErrorPx: euclidean(predicted, referenceWrapped) });
+  }
+  const visible = records.filter(row => row.visible);
+  const maximum = key => visible.reduce((n, row) => Math.max(n, row[key]), 0);
+  return Object.freeze({
+    frameId: frame.frameId, projection: frame.projection, dpr: frame.dpr,
+    scale: frame.cssScale, sampleCount: records.length, visibleSampleCount: visible.length,
+    maxGpuVsSvgPx: maximum('predictedErrorPx'),
+    maxSvgVsD3Px: maximum('referenceErrorPx'),
+    maxGpuVsD3Px: maximum('gpuVsD3ErrorPx'),
+    records,
+  });
 }

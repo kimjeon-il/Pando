@@ -871,13 +871,29 @@ export function createRenderingDomain({
       return false;
     }
     if (!canPresentFrame(frame, gpuResult)) return false;
+    // Resize the SVG coordinate systems only after this exact GPU frame has
+    // been admitted. Otherwise a ResizeObserver can stretch SVG labels to a
+    // new viewport while the visible GPU canvas still owns the old camera.
+    const roots = typeof domLayers === 'function' ? domLayers() || {} : domLayers || {};
+    const [width, height] = frame.cssViewport;
+    const viewBox = `0 0 ${width} ${height}`;
+    for (const root of [roots.baseSvg, roots.svg, roots.interactionSvg]) {
+      const node = visualRootNode(root);
+      if (!node?.setAttribute) continue;
+      node.setAttribute('width', String(width));
+      node.setAttribute('height', String(height));
+      node.setAttribute('viewBox', viewBox);
+      node.setAttribute('preserveAspectRatio', 'none');
+    }
+    const hitArea = visualRootNode(roots.mapHitArea);
+    hitArea?.setAttribute?.('width', String(width));
+    hitArea?.setAttribute?.('height', String(height));
     syncBaseView(frame, gpuResult);
     renderProjectedOverlays(frame, gpuResult);
     renderGenericFeatures(frame, { presentationOnly: true });
     renderCountries(frame, { presentationOnly: true, gpuResult });
     renderTerritorialLabelPositions(frame);
     renderUserLabelPositions(frame);
-    const roots = typeof domLayers === 'function' ? domLayers() || {} : domLayers || {};
     markVisualRoot(roots.baseSvg, frame);
     markVisualRoot(roots.gpuCanvas, frame);
     markVisualRoot(roots.svg, frame);

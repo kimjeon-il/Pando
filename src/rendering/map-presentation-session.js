@@ -91,7 +91,8 @@ export function createMapPresentationSession({
       || isProjectBlocked() || temporalTicket?.sourceAdmitted === false) return false;
     // A completed GPU submission must match the visual frame it certifies.
     // No-result checks are for preparatory reads or reuse of an admitted camera.
-    if (result != null && (result.succeeded !== true || result.deferred || result.preserved
+    if (result != null && (result.succeeded !== true || result.presentationReady === false
+      || result.deferred || result.preserved
       || result.frameId !== frame.frameId
       || result.viewRevision !== frame.viewRevision
       || result.projectionRevision !== frame.projectionRevision)) return false;

@@ -67,6 +67,17 @@ export const MAP_RENDER_MASKS = Object.freeze({
   PROJECT: MAP_RENDER_DIRTY.PROJECT,
 });
 
+// The GPU and screen-attached DOM must never admit different cameras.
+ // Frame IDs and GPU-only resource revisions deliberately do not enter this key.
+export function cameraPresentationKey(frame) {
+  if (frame?.__mapVisualFrame !== true) return null;
+  return JSON.stringify([
+    frame.projectGeneration, frame.projectionRevision, frame.viewRevision,
+    frame.projection, frame.cssViewport, frame.cssTranslate, frame.cssScale,
+    frame.dpr, frame.flatCenter, frame.rotation, frame.safeInset,
+  ]);
+}
+
 export class RenderInvalidationError extends TypeError {
   constructor(input, reason = '') {
     super(`Invalid render invalidation mask: ${String(input)}`);
@@ -114,6 +125,7 @@ export function createMapRenderCoordinator({
   let pendingMask = 0;
   let deferredPresentationMask = 0;
   let interactionActive = false;
+  let acceptedCameraKey = null;
   const pendingReasons = new Set();
   const metrics = {
     fullRenderCount: 0,
@@ -172,6 +184,13 @@ export function createMapRenderCoordinator({
     try {
       const viewState = prepareView({ frameId: renderRevision });
       const viewRevision = Number(viewState?.revision ?? viewState ?? 0);
+      const nextCameraKey = cameraPresentationKey(viewState);
+      // GPU_FRAME and GPU_INTERACTION can arrive after a programmatic camera
+      // change. Promote only genuinely changed cameras to a complete view
+      // transaction. Unchanged cameras retain the cheap GPU-only path.
+      if (nextCameraKey !== null && nextCameraKey !== acceptedCameraKey) {
+        mask |= INTERACTION_MASK | MAP_RENDER_DIRTY.PROJECTED_OVERLAYS;
+      }
 
       // Give domains one stable frame boundary so live render resources are
       // refreshed once before any pass consumes the shared snapshot.
@@ -273,7 +292,12 @@ export function createMapRenderCoordinator({
       }
 
       if (mask & MAP_RENDER_DIRTY.VIEW_PRESENTATION) {
-        callRenderer('viewPresentation', rendererTimes, viewState, viewFrameResult);
+        const published = callRenderer('viewPresentation', rendererTimes, viewState, viewFrameResult);
+        if (published === false) {
+          deferredPresentationMask |= mask & presentationMask;
+          return { deferred: true, renderRevision };
+        }
+        if (published === true && nextCameraKey !== null) acceptedCameraKey = nextCameraKey;
       }
 
       if (mask & MAP_RENDER_DIRTY.LAYER_TREE) callRenderer('objectSearch', rendererTimes);
@@ -394,6 +418,7 @@ export function createMapRenderCoordinator({
       pendingMode: pendingMask & MAP_RENDER_DIRTY.PROJECT ? 'full' : pendingMask ? 'partial' : null,
       frameQueued,
       interactionActive,
+      acceptedCameraKey,
     }),
   });
 }

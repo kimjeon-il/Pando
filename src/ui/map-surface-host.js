@@ -53,11 +53,11 @@ export function createMapSurfaceHost({
     zoomAround: options => zoomAround?.(options) ?? false,
     fitGeometry: (geometry, options) => fitGeometry?.(geometry, options) ?? false,
     focusCoordinate: (coordinate, options) => focusCoordinate?.(coordinate, options) ?? false,
-    getDebugState: () => ({
+    getDebugState: options => ({
       kind: MAP_HOST_KINDS.LEGACY,
       ready: initialized,
       projection: normalizeMapProjectionKind(getProjectionKind?.()),
-      ...(getDebugState?.() || {}),
+      ...(getDebugState?.(options) || {}),
     }),
   });
 

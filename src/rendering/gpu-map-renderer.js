@@ -178,11 +178,14 @@ export function createGpuMapRenderer(deps) {
         return false;
       }
       const terrainNeeded = state.physicalSettings.terrainVisible && (isWebGlRenderer() ? !!terrainPreparation : true);
+      // Coherent physical land is mandatory. High-resolution DEM detail is
+      // optional once at least one fallback DEM tile has been uploaded.
       const boundariesReady = !state.layerVisibility.objects || (!countryBoundaryTask&&!pendingCountrySharedBoundary
         &&countrySharedBoundary?.sourceQuality === surfacePresentation.quality
         && countrySharedBoundary.sourceProjectGeneration === projectGeneration);
       return !!resourcesDrawn && canonicalMeshReady && boundariesReady && surfacePresentation.quality !== 'pending'
-        && physicalSceneMatchesContext(renderScene,physicalContext) && (!terrainNeeded || terrain.terrainReady);
+        && physicalSceneMatchesContext(renderScene,physicalContext)
+        && (!terrainNeeded || terrain.terrainReady || Number(terrain.terrainTilesLoaded || 0) > 0);
     }
 
     let projectGeneration = 0;
@@ -562,7 +565,9 @@ export function createGpuMapRenderer(deps) {
       // It may promote an initial country frame before terrain tiles finish;
       // never apply this shortcut to a pending temporal/project replacement.
       const terrainDrawn = !terrainPreparation || !state.physicalSettings.terrainVisible || terrain.terrainReady
-        || false
+        // A current-view baseline DEM is enough to publish; higher-resolution
+        // DEM tiles remain optional and may arrive in later same-camera frames.
+        || Number(terrain.terrainTilesLoaded || 0) > 0
         || canAdmitWebGlPartialBackground({
           rendererMode, submittedBaseFrame: submittedWebGlBaseFrame,
           physicalSceneMatched: resourcesDrawn, temporalPending: temporalPending(),
@@ -2481,13 +2486,9 @@ export function createGpuMapRenderer(deps) {
         : projectGeneration + 1;
       presentationSession.resetForProject({ presentation, isCurrent, onPresented });
       projectRenderBlocked = true;
-      if(canvas){
-        if(isWebGlRenderer() && gl && !gl.isContextLost()){
-          gl.disable(gl.SCISSOR_TEST);gl.colorMask(true,true,true,true);
-          gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);
-        }else {const width=canvas.width;canvas.width=width;}
-      }
-
+      // Retain the already accepted canvas while the replacement project
+      // prepares. The old image is display-only and may never be admitted
+      // as new-project geometry or used for new-project picking.
       hydroPreparation.replaceEdits([], -1);
       hydroPreparation.setContext({ gl, version: glVersion, projectGeneration, contextGeneration: renderDeviceContextRevision, scheduler: hydroUploadScheduler });
       resetCountryGeometryVisualState({ renderFrame: false, renderPending: false });
@@ -2516,8 +2517,8 @@ export function createGpuMapRenderer(deps) {
         meshQuality = 'canonical';
         canonicalMeshReady = false;
       // Terrain belongs to its data/context identity, not the document generation.
-      // A project replacement clears visible pixels; date transitions retain
-      // their frame through the separate temporal presentation owner.
+      // Project and date replacements both retain their last accepted pixels.
+      // The old scene is never admitted as new-project geometry.
       if (renderDevice && gl && !gl.isContextLost()) initializeSharedGpuPasses();
       syncGpuRecoveryAvailability();
       return projectGeneration;
@@ -2525,24 +2526,28 @@ export function createGpuMapRenderer(deps) {
 
     function renderPreservedProjectFrame() {
       if (!projectRenderBlocked && !temporalPending()) return null;
-      if (!isWebGlRenderer() || webglContextLost || !canvas || !sceneColorCache.hasActive()) return { deferred: true };
-      const element = rendererUi.getMapElement();
-      const dpr = resolveRenderPixelRatio();
-      const nextWidth = Math.max(1, Math.round(element.clientWidth * dpr));
-      const nextHeight = Math.max(1, Math.round(element.clientHeight * dpr));
+      if (!isWebGlRenderer() || webglContextLost || !canvas || !sceneColorCache.hasActive())
+        return { deferred: true, preserved: true };
+      // Do not change the visible canvas backing during preparation. The old
+      // Canvas and old SVG viewBoxes then stretch together on a host resize.
+      // A rejected candidate cannot clear the accepted picture.
+      if (stagedCanvasResize) {
+        stagedCanvasResize = null;
+        pixelWidth = canvas.width;
+        pixelHeight = canvas.height;
+      }
       const previous = sceneColorCache.stats();
-      const scale = dpr / (lastVisualFrame?.dpr || dpr);
-      if (canvas.width !== nextWidth) canvas.width = nextWidth;
-      if (canvas.height !== nextHeight) canvas.height = nextHeight;
-      // Keep old CSS coordinates (and their frozen SVG labels) on resize.
-      // This is display-only and never certifies a replacement frame.
-      sceneColorCache.composite(nextWidth, nextHeight, { reproject: {
-        sourceViewport: [previous.width, previous.height], scale: [scale, scale],
-        offset: [0, nextHeight - previous.height * scale],
-      } });
+      const width = canvas.width, height = canvas.height;
+      const reproject = {
+        sourceViewport: [previous.width, previous.height],
+        scale: [width / Math.max(1, previous.width), height / Math.max(1, previous.height)],
+        offset: [0, 0],
+      };
+      sceneColorCache.composite(width, height, { reproject });
       if (temporalPending()) {
         for (const cache of [interactionFillCache, interactionStrokeCache]) {
-          if (cache.hasActive()) cache.composite(nextWidth, nextHeight, {clearTarget:false,blendOver:true});
+          if (cache.hasActive()) cache.composite(width, height,
+            {clearTarget:false,blendOver:true,reproject});
         }
       }
       return { deferred: true, preserved: true };
@@ -2886,23 +2891,22 @@ export function createGpuMapRenderer(deps) {
       });
     }
 
+    let stagedCanvasResize = null;
     function resize(frame = lastVisualFrame) {
-      if (!canvas) return;
+      if (!canvas) return false;
       cssWidth = Math.max(1, frame ? frame.cssViewport[0] : state.size.width);
       cssHeight = Math.max(1, frame ? frame.cssViewport[1] : state.size.height);
       const dpr = frame ? frame.dpr : resolveRenderPixelRatio();
       const nextWidth = Math.max(1, Math.round(cssWidth * dpr));
       const nextHeight = Math.max(1, Math.round(cssHeight * dpr));
-      const backingChanged = pixelWidth !== nextWidth || pixelHeight !== nextHeight || canvas.width !== nextWidth || canvas.height !== nextHeight;
+      const backingChanged = pixelWidth !== nextWidth || pixelHeight !== nextHeight
+        || canvas.width !== nextWidth || canvas.height !== nextHeight;
       if (backingChanged) {
-        // A Worker candidate has its own backing store. Resize the visible
-        // canvas only when that candidate is accepted, so rotation cannot
-        // clear the retained frame while the Worker is still preparing.
-        {
-          canvas.width = nextWidth;
-          canvas.height = nextHeight;
-        }
-        lifecycle.release(pickFramebuffer);lifecycle.release(pickTexture);
+        // Draw to the scene FBO at the candidate dimensions while the visible
+        // canvas continues showing the last accepted frame. Changing canvas
+        // width/height here would synchronously erase that frame.
+        stagedCanvasResize = { width: nextWidth, height: nextHeight };
+        lifecycle.release(pickFramebuffer); lifecycle.release(pickTexture);
         pickFramebuffer = null;
         pickTexture = null;
         pickSceneKey = '';
@@ -2912,6 +2916,21 @@ export function createGpuMapRenderer(deps) {
       pixelHeight = nextHeight;
       canvas.style.width = '100%';
       canvas.style.height = '100%';
+      return backingChanged;
+    }
+
+    function publishStagedCanvasResize() {
+      const target = stagedCanvasResize;
+      if (!target || !canvas) return false;
+      if (canvas.width !== target.width) canvas.width = target.width;
+      if (canvas.height !== target.height) canvas.height = target.height;
+      stagedCanvasResize = null;
+      return true;
+    }
+
+    function compositeVisibleScene(...args) {
+      publishStagedCanvasResize();
+      return sceneColorCache.composite(...args);
     }
 
     function layoutMismatch() {
@@ -2939,7 +2958,7 @@ export function createGpuMapRenderer(deps) {
       canvas.style.inset = '0';
       canvas.style.width = '100%';
       canvas.style.height = '100%';
-      resize();
+      invalidateGpuFrame('gpu-layout-correction');
       if (layoutVerificationFrame) lifecycle.cancelFrame(layoutVerificationFrame);
       layoutVerificationFrame = lifecycle.frame(() => {
         layoutVerificationFrame = 0;
@@ -3860,9 +3879,27 @@ export function createGpuMapRenderer(deps) {
       };
     }
 
+    function requiredBaseSceneReady(baseResult) {
+      if (!baseResult || !preparedBaseScene || surfacePresentation.quality === 'pending') return false;
+      if (!physicalSceneMatchesContext(renderScene, getPhysicalContextState())) return false;
+      if (!preparedBaseScene.physicalLandItems.length
+        || !preparedBaseScene.physicalLandItems.every(({ packet }) =>
+          polygonOverlayPass.hasPreparedResource(packet))) return false;
+      if (baseResult.countryStrokeResult?.succeeded !== true
+        || baseResult.strokePresentationFailed
+        || baseResult.overlayMissingKeys?.length
+        || baseResult.overlayFailures?.length) return false;
+      // An empty successful draw is not a substitute for required country
+      // borders when their source quality or project generation differs.
+      if (state.layerVisibility.objects && (countryBoundaryTask || pendingCountrySharedBoundary
+        || countrySharedBoundary?.sourceQuality !== surfacePresentation.quality
+        || countrySharedBoundary?.sourceProjectGeneration !== projectGeneration)) return false;
+      return true;
+    }
+
     function renderWebGl(visualFrame, { interactionOnly = false } = {}) {
       if (!gl) return null;
-      if (projectRenderBlocked && !renderScene) return renderPreservedProjectFrame();
+      if (projectRenderBlocked) return renderPreservedProjectFrame();
       if (!isMapVisualFrame(visualFrame)) throw new TypeError('GPU render requires a MapVisualFrame.');
       resize(visualFrame);
       activeFrameContext = visualFrame;
@@ -3912,6 +3949,14 @@ export function createGpuMapRenderer(deps) {
         if (sceneColorCache.beginScene(pixelWidth, pixelHeight, viewSignature, projectGeneration)) {
           const previousBaseResult = lastBaseSceneResult;
           baseResult = submitBaseScene();
+          // The candidate is still offscreen. Never composite a partly
+          // prepared map under SVG labels from the previously accepted frame.
+          if (!requiredBaseSceneReady(baseResult)) {
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+            if (temporalPending()) renderPreservedProjectFrame();
+            activeFrameContext = null;
+            return { deferred: true, preserved: true };
+          }
           if (temporalPending() && !temporalFrameReady(!!baseResult && baseResult.countryStrokeResult?.succeeded === true
               && preparedBaseScene.physicalLandItems.length > 0
               && preparedBaseScene.physicalLandItems.every(({packet}) => polygonOverlayPass.hasPreparedResource(packet))
@@ -3920,15 +3965,20 @@ export function createGpuMapRenderer(deps) {
             renderPreservedProjectFrame();
             return {deferred:true,preserved:true};
           }
+          if (baseResult === false && stagedCanvasResize) {
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+            renderPreservedProjectFrame();
+            return { deferred: true, preserved: true };
+          }
           if (baseResult === false) {
             // A failed stroke submission must never publish its staging
             // texture. Keep a usable current-view scene instead.
             gl.bindFramebuffer(gl.FRAMEBUFFER, null);
             if (preparedBaseScene.canPreserveStrokeScene && sceneColorCache.hasActiveFor(viewSignature, projectGeneration)
-              && sceneColorCache.composite(pixelWidth, pixelHeight, { clearTarget: true })) baseResult = previousBaseResult;
+              && compositeVisibleScene(pixelWidth, pixelHeight, { clearTarget: true })) baseResult = previousBaseResult;
           } else {
             const holdPreservedScene = shouldHoldCountryPatchScene(viewSignature);
-            if (holdPreservedScene && sceneColorCache.composite(pixelWidth, pixelHeight, { clearTarget: true })) {
+            if (holdPreservedScene && compositeVisibleScene(pixelWidth, pixelHeight, { clearTarget: true })) {
               performanceMetrics.countryPatchSceneHoldCount += 1;
               lastBaseSceneResult = countryPatchPresentation.heldBaseResult() || previousBaseResult;
               baseResult = lastBaseSceneResult;
@@ -3937,6 +3987,7 @@ export function createGpuMapRenderer(deps) {
               // the default framebuffer. Present that texture in this frame so
               // the country patch never appears one settled frame late.
               if (temporalPending()) {
+                publishStagedCanvasResize();
                 if (!sceneColorCache.presentScene(pixelWidth, pixelHeight, viewSignature, projectGeneration)) {
                   failTemporalPresentation(new Error('다음 시점 화면을 표시하지 못했습니다.'));
                   return {deferred:true,preserved:true};
@@ -3945,7 +3996,7 @@ export function createGpuMapRenderer(deps) {
               const promoted = temporalPending() || sceneColorCache.finishScene(null, viewSignature, projectGeneration);
               lastBaseSceneResult = baseResult;
               lastSceneFrameContext = activeFrameContext;
-              if (!promoted || (!temporalPending() && !sceneColorCache.composite(pixelWidth, pixelHeight, { clearTarget: true }))) {
+              if (!promoted || (!temporalPending() && !compositeVisibleScene(pixelWidth, pixelHeight, { clearTarget: true }))) {
                 recordSceneCacheFallback();
                 gl.bindFramebuffer(gl.FRAMEBUFFER, null);
                 baseResult = submitBaseScene();
@@ -3954,8 +4005,8 @@ export function createGpuMapRenderer(deps) {
             }
           }
         } else {
-          if (temporalPending()) {
-            failTemporalPresentation(new Error('다음 시점 화면 버퍼를 준비하지 못했습니다.'));
+          if (stagedCanvasResize || temporalPending()) {
+            if (temporalPending()) failTemporalPresentation(new Error('다음 시점 화면 버퍼를 준비하지 못했습니다.'));
             renderPreservedProjectFrame();
             return {deferred:true,preserved:true};
           }
@@ -3982,7 +4033,7 @@ export function createGpuMapRenderer(deps) {
         // This canvas is owned by PandoLab. Clear before compositing so pixels
         // removed from the active scene (for example an edited border) cannot
         // survive in the default framebuffer as an afterimage.
-        if (!sceneColorCache.composite(pixelWidth, pixelHeight, { clearTarget: true, reproject })) {
+        if (!compositeVisibleScene(pixelWidth, pixelHeight, { clearTarget: true, reproject })) {
           recordSceneCacheFallback();
           // A failed composite does not make a same-view active scene stale.
           // Preserve the already displayed frame instead of clearing it and
@@ -4054,19 +4105,18 @@ export function createGpuMapRenderer(deps) {
           deferredOverlayCount: preparedBaseScene?.deferredOverlayKeys?.size || 0,
         };
       }
-      displayedRenderRevision = currentRenderRevision;
-      if (!webglContextLost && baseResult && !baseSubmissionFailed) recordMapPresentation(visualFrame,
-        (surfacePresentation.quality === 'pending' || baseResult.countryStrokeResult?.succeeded === true)
-          && preparedBaseScene.physicalLandItems.length > 0 && preparedBaseScene.physicalLandItems.every(({ packet }) => polygonOverlayPass.hasPreparedResource(packet))
-          && !baseResult.overlayMissingKeys?.length && !baseResult.overlayFailures?.length,
-        { submittedWebGlBaseFrame: true });
+      const presentationReady = !webglContextLost && !baseSubmissionFailed && requiredBaseSceneReady(baseResult);
+      if (presentationReady) displayedRenderRevision = currentRenderRevision;
+      if (!webglContextLost && baseResult && !baseSubmissionFailed)
+        recordMapPresentation(visualFrame, presentationReady, { submittedWebGlBaseFrame: true });
       frameTimes.push(performance.now() - started);
-      if (!webglContextLost && !baseSubmissionFailed) commitGpuStrokeDomains(baseResult, visualFrame, presentedStrokeDomains, strokeRenderer);
+      if (presentationReady) commitGpuStrokeDomains(baseResult, visualFrame, presentedStrokeDomains, strokeRenderer);
       if (frameTimes.length > 240) frameTimes.shift();
       activeFrameContext = null;
       publishLightweightMetrics();
       return {
         succeeded: !webglContextLost && !!baseResult && !baseSubmissionFailed,
+        presentationReady,
         frameId: visualFrame.frameId,
         viewRevision: visualFrame.viewRevision,
         projectionRevision: visualFrame.projectionRevision,
@@ -4170,7 +4220,8 @@ export function createGpuMapRenderer(deps) {
 
     function pick(screenPoint) {
       if (!isWebGlRenderer() || !gl || !mesh || !state.layerVisibility.objects) return null;
-      resize();
+      // Picking must never resize the accepted canvas outside frame publication.
+      if (stagedCanvasResize || pixelWidth !== canvas?.width || pixelHeight !== canvas?.height) return null;
       const pickEntry = meshVariants.get(surfacePresentation.quality);
       if (!ensureCountryIdScene()) return null;
       gl.bindFramebuffer(gl.FRAMEBUFFER, pickFramebuffer);
@@ -4192,7 +4243,7 @@ export function createGpuMapRenderer(deps) {
 
     function pickHydro(screenPoint) {
       if (!isWebGlRenderer() || !gl || !hydroPreparation.manifest || !hydroPreparation.activeIds().length || !(state.layerVisibility.rivers || state.layerVisibility.lakes)) return null;
-      resize();
+      if (stagedCanvasResize || pixelWidth !== canvas?.width || pixelHeight !== canvas?.height) return null;
       try { ensurePickTarget(); } catch (_) { return null; }
       pickSceneKey = '';
       gl.bindFramebuffer(gl.FRAMEBUFFER, pickFramebuffer);

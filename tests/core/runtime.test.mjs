@@ -8,7 +8,7 @@ import {createGpuContextRecovery} from '../../src/rendering/gpu-context-recovery
 import {createCountryMeshVariants} from '../../src/rendering/gpu-country-mesh-variants.js';
 import {createSharedPolygonLodIndex} from '../../src/rendering/render-lod.js';
 import {countryLodSourceIds} from '../../src/rendering/gpu-country-ranges.js';
-import {createMapVisualFrame} from '../../src/rendering/map-visual-frame.js';
+import {createMapVisualFrame,measureMapFrameProjectionParity} from '../../src/rendering/map-visual-frame.js';
 import {createMapRenderCoordinator,MAP_RENDER_DIRTY} from '../../src/rendering/map-render-coordinator.js';
 import {createMapPresentationSession} from '../../src/rendering/map-presentation-session.js';
 import {gpuStrokeStyle} from '../../src/map/map-interaction-style.js';
@@ -35,6 +35,71 @@ import {createGpuPolygonOverlayPass} from '../../src/rendering/gpu-polygon-overl
 import {prepareGpuBaseScene} from '../../src/rendering/gpu-scene-preparation.js';
 import {createAdaptiveRenderQualityController, renderQualityProfile, resolveInitialRenderQuality} from '../../src/rendering/adaptive-render-quality.js';
 
+
+test('GPU shader-equivalent projection agrees with SVG for flat wraps, globe limbs and DPR',()=>{
+  const samples=[[0,0],[45,0],[-45,0],[89.95,0],[-89.95,0],[0,89.95],
+    [0,-89.95],[179.95,2],[-179.95,2],[179.95,80],[-179.95,80]];
+  const radians=Math.PI/180;
+  for(const dpr of [0.75,1,2]){
+    const width=1280,height=800,translate=[width/2,height/2],scale=7000;
+    const make=(projection,projectionCenter=[0,0])=>{
+      const reference=([lon,lat])=>projection==='globe'
+        ? [translate[0]+scale*Math.cos(lat*radians)*Math.sin(lon*radians),
+          translate[1]-scale*Math.sin(lat*radians)]
+        : [translate[0]+scale*(lon-projectionCenter[0])*radians,
+          translate[1]-scale*(lat-projectionCenter[1])*radians];
+      return createMapVisualFrame({frameId:1,projectGeneration:1,projectionRevision:1,
+        viewRevision:1,projectCoordinate:reference,viewState:{
+          projection,size:{width,height},translate,scale,dpr,
+          relativeZoom:32,rotation:[0,0,0],projectionCenter,
+          safeInset:{top:0,bottom:0,left:0,right:0},
+        }});
+    };
+    for(const [projection,center] of [['globe',[0,0]],['flat',[179,80]]]){
+      const report=measureMapFrameProjectionParity(make(projection,center),samples);
+      assert.ok(report.visibleSampleCount>0);
+      assert.ok(report.maxSvgVsD3Px<0.1,JSON.stringify(report));
+      assert.ok(report.maxGpuVsSvgPx<0.5,JSON.stringify(report));
+      assert.ok(report.maxGpuVsD3Px<0.5,JSON.stringify(report));
+    }
+  }
+});
+
+test('GPU-only refresh upgrades a changed camera to one complete accepted frame',()=>{
+  const callbacks=[],events=[];
+  let camera=1,viewDraws=0;
+  const coordinator=createMapRenderCoordinator({
+    requestFrame:fn=>callbacks.push(fn),
+    prepareView:({frameId})=>({
+      __mapVisualFrame:true,frameId,viewRevision:camera,projectionRevision:1,
+      projectGeneration:1,projection:'globe',cssViewport:[800,600],
+      cssTranslate:[400,300],cssScale:200,dpr:1,flatCenter:[0,0],
+      rotation:[camera*10,0,0],safeInset:{top:0,bottom:0,left:0,right:0},
+    }),
+    canPresentFrame:(_frame,result)=>result?.presentationReady!==false,
+    renderers:{
+      view:frame=>{viewDraws++;events.push('gpu');return {
+        succeeded:true,presentationReady:true,frameId:frame.frameId,
+        viewRevision:frame.viewRevision,projectionRevision:frame.projectionRevision,
+      };},
+      projectedOverlays:()=>events.push('overlay'),
+      selectionView:()=>events.push('selection'),
+      viewPresentation:()=>{events.push('dom');return true;},
+    },
+  });
+  const next=()=>{assert.equal(callbacks.length,1);callbacks.shift()();};
+  coordinator.invalidate(MAP_RENDER_DIRTY.GPU_FRAME,'first-frame');next();
+  assert.deepEqual(events,['gpu','overlay','selection','dom']);
+  events.length=0;
+  coordinator.invalidate(MAP_RENDER_DIRTY.GPU_FRAME,'resource-only');next();
+  assert.deepEqual(events,['gpu'],'an unchanged camera must not reproject all SVG layers');
+  assert.equal(viewDraws,2);
+  events.length=0;camera=2;
+  coordinator.invalidate(MAP_RENDER_DIRTY.GPU_FRAME,'camera-with-gpu-only-invalidation');next();
+  assert.deepEqual(events,['gpu','overlay','selection','dom']);
+  assert.equal(viewDraws,3);
+  assert.ok(coordinator.getStats().acceptedCameraKey);
+});
 
 test('atomic map view publication waits for a matching GPU result',()=>{
   const callbacks=[],order=[];
@@ -82,6 +147,8 @@ test('frame admission rejects missing, mismatched and deferred GPU submissions',
   const frame={frameId:21,viewRevision:12,projectionRevision:4,projectGeneration:3};
   const drawn={succeeded:true,frameId:21,viewRevision:12,projectionRevision:4};
   assert.equal(session.canPresentVisualFrame(frame,drawn),true);
+  assert.equal(session.canPresentVisualFrame(frame,{...drawn,presentationReady:false}),false,
+    'a successful GPU draw may still lack mandatory visible resources');
   assert.equal(session.canPresentVisualFrame(frame,{...drawn,frameId:20}),false);
   assert.equal(session.canPresentVisualFrame(frame,{...drawn,viewRevision:11}),false);
   assert.equal(session.canPresentVisualFrame(frame,{...drawn,projectionRevision:3}),false);

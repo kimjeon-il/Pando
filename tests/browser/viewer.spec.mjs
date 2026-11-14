@@ -71,14 +71,51 @@ test('map hover/click and visible layers share a camera after date changes',asyn
   await page.waitForTimeout(180);
   expect(errors).toEqual([]);
   const sameFrame=()=>page.evaluate(()=>{
-    const gpu=document.querySelector('.gpu-map-canvas')?.dataset.visualFrameId;
-    const svg=document.querySelector('.map-overlay-svg')?.dataset.visualFrameId;
-    return !!gpu && gpu===svg;
+    const selectors=['.map-base-svg','.gpu-map-canvas','.map-overlay-svg',
+      '.map-interaction-svg','.territorial-label-layer','.labels-layer'];
+    const nodes=selectors.map(selector=>document.querySelector(selector));
+    const ids=nodes.map(node=>node?.dataset.visualFrameId);
+    return ids.every(id=>!!id&&id===ids[0])
+      && nodes.every(node=>node?.dataset.viewRevision===nodes[0]?.dataset.viewRevision);
   });
   await expect.poll(sameFrame).toBe(true);
   await month(page,'2025-12');
   await expect.poll(sameFrame).toBe(true);
   expect(errors).toEqual([]);
+});
+
+test('globe shader and SVG projection remain aligned near horizon, poles and at 32x',async({page})=>{
+  await page.setViewportSize({width:1280,height:800});
+  await open(page);
+  const samples=[
+    [0,0],[45,0],[-45,0],[89.95,0],[-89.95,0],
+    [0,89.95],[0,-89.95],[179.95,0],[-179.95,0],
+    [127.8,36.6],[20,78],[-120,-77],
+  ];
+  async function assertParity(zoom,rotation){
+    await page.evaluate(({zoom,rotation})=>{
+      const host=window.__PANDOLAB_MAP_HOST__,current=host.getViewState();
+      host.setViewState({projection:'globe',view:{
+        globeZoom:zoom,flatZoom:current.flatZoom,
+        globeRotation:rotation,flatCenter:current.flatCenter,
+      }});
+    },{zoom,rotation});
+    await expect.poll(()=>page.evaluate(()=>{
+      const canvas=document.querySelector('.gpu-map-canvas');
+      return canvas?.dataset.viewRevision===String(window.__PANDOLAB_VIEW_REVISION__)
+        && canvas?.dataset.visualFrameId===document.querySelector('.map-base-svg')?.dataset.visualFrameId;
+    }),{timeout:90_000}).toBe(true);
+    const result=await page.evaluate(coordinates=>
+      window.__PANDOLAB_MAP_HOST__.getDebugState({projectionSamples:coordinates}).projectionParity,samples);
+    expect(result.visibleSampleCount).toBeGreaterThan(0);
+    expect(result.maxSvgVsD3Px).toBeLessThan(0.5);
+    expect(result.maxGpuVsSvgPx).toBeLessThan(0.5);
+    expect(result.maxGpuVsD3Px).toBeLessThan(0.5);
+  }
+  await assertParity(1,[0,0,0]);
+  await assertParity(32,[-179,-45,0]);
+  await page.setViewportSize({width:1024,height:768});
+  await assertParity(32,[-90,-80,0]);
 });
 
 test('touch Viewer searches, navigates and changes time in a mobile context',async({browser,baseURL})=>{
