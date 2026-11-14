@@ -28,7 +28,7 @@ export function drawGpuBaseScene(input, passes) {
 }
 
 function submitGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWidth, height: pixelHeight,
-  terrainVisible, terrainStyle, countriesVisible, surfacePresentation, mapSubstrate, mapOcean, countries, prepared },
+  terrainVisible, terrainStyle, countriesVisible, countryPaintVisible = true, surfacePresentation, mapSubstrate, mapOcean, countries, prepared },
   { drawProgram, drawOceanSubstrate, renderTerrain, drawHydro, drawCountryBoundaryStrokes, polygonOverlayPass, strokeRenderer }) {
   const { mesh, overrideMesh, dynamicResources, fillProgram, fillVao, fillIndexBuffer, overrideFillVao, overrideFillIndexBuffer, paletteTexture, overridePaletteTexture } = countries;
   const { baseTriangleDraw, overrideTriangleDraw,
@@ -127,7 +127,7 @@ function submitGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWidth, 
         },
         'country-fill': () => {
       resetGpuNormalBlend(gl);
-      if (surfaceReady && countriesVisible && mesh) drawCountrySurface(false);
+      if (surfaceReady && countriesVisible && countryPaintVisible && mesh) drawCountrySurface(false);
       gl.disable(gl.STENCIL_TEST);
       resetGpuNormalBlend(gl);
         },
