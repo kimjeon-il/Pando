@@ -24,7 +24,7 @@ function canvasFallbackWorkerMain(self) {
     let terrainExpectedHash = '';
     let terrainTileRequest = null, fetchTerrainTile = null, terrainExternalSource = null;
     let externalRuntimeData = null;
-    let terrainNaturalTileRequest=null,naturalSurfaceCatalog=null,naturalCatalogKey='';
+    let terrainNaturalTileRequest=null,terrainNaturalFadeEdges=null,naturalSurfaceCatalog=null,naturalCatalogKey='';
     const naturalRequests=new Map(),naturalFailures=new Set();
     let naturalReservedBytes=0,naturalRevision=0,naturalRequestsStarted=0;
     let numericalScratch=null,numericalPixels=0,numericalScratchPeakBytes=0;
@@ -351,6 +351,7 @@ function canvasFallbackWorkerMain(self) {
         if (disposed || controller.signal.aborted) return;
         terrainTileRequest = terrainModule.terrainTileRequest;
         terrainNaturalTileRequest = terrainModule.terrainNaturalTileRequest;
+        terrainNaturalFadeEdges = terrainModule.naturalSurfaceFadeEdges;
         fetchTerrainTile = terrainModule.fetchTerrainTile;
         terrainDemManifest = manifest;
         requestLatestTerrainDemand();
@@ -638,7 +639,10 @@ function canvasFallbackWorkerMain(self) {
           tile.lastUsed = performance.now();
           if(tile.raw){
             const image={sample:self.PandoLabCanvasTerrainDem.createInterpolatedSampler({dem:tile.raw,width:tile.width,height:tile.height,
-              theme:message.darkTheme?'dark':'light',channel,naturalSurface:tile.naturalSurface||null})};
+              theme:message.darkTheme?'dark':'light',channel,naturalSurface:tile.naturalSurface||null,
+              naturalFadeEdges:channel==='land'&&tile.naturalSurface&&terrainNaturalFadeEdges
+                ? terrainNaturalFadeEdges(spec,terrainDemManifest,key=>!!demTiles.get(key.slice(0,-5))?.naturalSurface)
+                : null})};
             if(message.projection==='flat')yield* drawNumericalFlatTile(spec,image,projection,dpr);
             else yield* drawGlobeTerrainTile(spec,image,projection,message,dpr,Number(spec.level)===0);
           }else{
