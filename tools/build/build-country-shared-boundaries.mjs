@@ -20,10 +20,20 @@ function verifySharedBorderChains(segments, quality) {
     throw Object.assign(new Error('Compiled shared-border chain verifier unavailable.'),
       { code: 'PL-CORE-WASM-CAPABILITY' });
   }
-  const checked = sharedCalculationCore.boundaryVerifyStrokeChains(
-    segments.map(segment => [segment.start, segment.end, segment.ownerIds]));
-  if (checked !== segments.length)
-    throw new Error('Shared-border generator dropped source edges: ' + quality);
+  // The native verifier accepts at most 1,000,000 sources per call.
+  // Conservation is per source edge, so each bounded group must preserve
+  // exactly its own entries. Splitting does not rewrite any border geometry.
+  let checked=0;
+  for(let index=0;index<segments.length;index+=100_000){
+    const slice=segments.slice(index,index+100_000);
+    const count=sharedCalculationCore.boundaryVerifyStrokeChains(
+      slice.map(segment=>[segment.start,segment.end,segment.ownerIds]));
+    if(count!==slice.length)
+      throw new Error('Shared-border generator dropped source edges: '+quality+' at '+index);
+    checked+=count;
+  }
+  if(checked!==segments.length)
+    throw new Error('Shared-border generator dropped source edges: '+quality);
 }
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const data = path.join(root, 'assets', 'data');
