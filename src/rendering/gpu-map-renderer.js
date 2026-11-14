@@ -670,6 +670,9 @@ export function createGpuMapRenderer(deps) {
     let overrideEmphasisPaletteTexture = null;
     let paletteCapacity = 0;
     let palettePixels = null;
+    // The immutable source geometry, boundaries and picking remain active.
+    // Only transparent authored country paint may skip its full triangle pass.
+    let countryFillHasOpacity = true;
     const paletteDirty = { base: true, emphasis: true };
     const pendingEmphasisCountryIds = new Set();
     let emphasisPaletteFullDirty = true;
@@ -2774,6 +2777,7 @@ export function createGpuMapRenderer(deps) {
       const { base, override, emphasis, overrideEmphasis } = palettePixels;
       if (paletteDirty.base) {
         const resolveFill = createCountryFillResolver();
+        countryFillHasOpacity = false;
         pendingOldMeshVisibleCount = 0;
         for (let index = 0; index < meshCountryIds.length; index += 1) {
           const id = meshCountryIds[index];
@@ -2791,6 +2795,7 @@ export function createGpuMapRenderer(deps) {
           const pending = geometryRevisionTracker.isPending(id);
           base[offset + 3] = overridden ? 0 : fillAlpha;
           override[offset + 3] = overridden && (!pending || countryPatchPresentationCanDrawOverride(id)) ? fillAlpha : 0;
+          if (base[offset + 3] || override[offset + 3]) countryFillHasOpacity = true;
           base[visibilityOffset] = overridden ? 0 : visible;
           override[visibilityOffset] = overridden && (!pending || countryPatchPresentationCanDrawOverride(id)) ? visible : 0;
           if (pending && (base[visibilityOffset] || override[visibilityOffset])) pendingOldMeshVisibleCount += 1;
@@ -3747,7 +3752,11 @@ export function createGpuMapRenderer(deps) {
       performanceMetrics.lastOverlayUploadBytes = overlayUploadBytes;
       performanceMetrics.overlayDeferredItemCount = deferredOverlayKeys.size;
       performanceMetrics.uploadBudgetOverrunCount += overrunCount;
-      if (deferredOverlayKeys.size) invalidateGpuFrame('overlay-upload-budget');
+      // An upload completion invalidates the scene. Only the synchronous
+      // fallback needs a next-frame request for a budget-deferred batch.
+      if (deferredOverlayKeys.size && overlayUploadBytes > 0
+          && preparedBaseScene.overlayReservedBytes === overlayUploadBytes)
+        invalidateGpuFrame('overlay-budget-next-batch');
     }
 
     function drawBaseSceneContent() {
@@ -3763,6 +3772,7 @@ export function createGpuMapRenderer(deps) {
           && preparedBaseScene.physicalLandItems.every(({ packet }) => polygonOverlayPass.hasPreparedResource(packet)),
         terrainStyle: state.physicalSettings.terrainStyle,
         countriesVisible: state.layerVisibility.objects,
+        countryPaintVisible:countryFillHasOpacity,
         mapSubstrate: { color: theme.defaultLand, fillAlpha: theme.baseLandAlpha },
         mapOcean: { color: theme.ocean, fillAlpha: 1 },
         countries: { mesh, overrideMesh:activeMeshQuality==='lod'?null:overrideMesh, dynamicResources: overrideMesh ? { positionBuffer: overridePositionBuffer, countryBuffer: overrideCountryBuffer } : null, fillProgram, fillVao, fillIndexBuffer, overrideFillVao, overrideFillIndexBuffer, paletteTexture, overridePaletteTexture },
@@ -4432,11 +4442,19 @@ export function createGpuMapRenderer(deps) {
     }
 
     function retainSceneResources() {
+      // Country mesh staging can temporarily expose a scene without its
+      // physical packets. The accepted project's immutable physical source
+      // still owns this coverage; retaining the buffers prevents an expensive
+      // full-world reupload and an incomplete first country frame. A real
+      // source/project removal clears these keys and may reclaim the buffers.
+      const currentPhysical = typeof getPhysicalLand === 'function' ? getPhysicalLand() : null;
       const borderPacketKeys = [countrySharedBoundary, pendingCountrySharedBoundary]
         .flatMap(packet => packet ? [packet.key,
           ...(packet.outlineOverrides?.preparedGeometry?.segmentCount ? [packet.outlineOverrides.key] : [])] : []).filter(Boolean);
       const protectedKeys = new Set([
         ...borderPacketKeys,
+        ...(currentPhysical?.geometry ? ['physical-land'] : []),
+        ...(currentPhysical?.water ? ['physical-water'] : []),
         ...(renderScene?.polygons || []).filter(packet => packet.protected).map(packet => packet.key),
         ...(renderScene?.strokes || []).filter(packet => packet.protected).map(packet => packet.key),
         ...(selectionPass?.resourceKeys?.() || []),
@@ -4608,7 +4626,9 @@ export function createGpuMapRenderer(deps) {
     let managedGpuBytes = 0;
     function getRuntimeState({memory=false}={}) {
       if(memory)managedGpuBytes = [...meshVariants.values()].reduce((sum,entry)=>sum+Number(entry.resources?.byteLength||0),0)
-        + Number(polygonOverlayPass.stats().activeBufferBytes||0) + Number(strokeRenderer.stats().activeBufferBytes||0)
+        + Number(polygonOverlayPass.stats().activeBufferBytes||0)
+        + Number(polygonOverlayPass.stats().stagingBufferBytes||0)
+        + Number(strokeRenderer.stats().activeBufferBytes||0)
         + Number(hydroPreparation.stats().hydroCacheBytes||0) + Number(terrainPreparation?.stats().terrainCacheBytes||0)
         + pixelWidth*pixelHeight*4*2;
       return {

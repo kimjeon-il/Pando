@@ -131,3 +131,4 @@ test('real WebGL context loss and restoration preserve displayed state and recov
   expect(await page.evaluate(()=>window.__PANDOLAB_VIEWER__.rendererStats().mapReadiness.status)).toBe('error');
   expect(await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot())).toEqual(before.project);
 });
+

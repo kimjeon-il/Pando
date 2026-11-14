@@ -567,13 +567,15 @@ export function createGpuTerrainPreparation({ readTile, readNaturalTile = async 
         -natural.bytes()-natural.pendingBytes());
       const desiredDemCeiling=Math.max(0,cacheBudgetBytes-pendingDecodedBytes-unusedNaturalReserve
         -natural.bytes()-natural.pendingBytes());
-      // A natural request can start before speculative DEM neighbours finish.
-      // Remove only *offscreen* DEM textures, never target/fallback terrain.
-      // This prevents subsequent DEM uploads from aborting every natural request
-      // in a 64 MiB cache while preserving the same total GPU budget.
-      if(unusedNaturalReserve>0 && gl && demBytes>desiredDemCeiling){
+      // Every quality/LOD transition must retire offscreen DEM textures when
+      // the old generation no longer needs them, even without natural pigment.
+      // Upload-time eviction alone can retain obsolete textures indefinitely
+      // if no subsequent upload occurs after the camera moves.
+      // Keep the two all-world base tiles as the documented fallback reserve;
+      // admission guarantees the visible target plus that reserve at this tier.
+      if(gl && demBytes>desiredDemCeiling){
         const removable=[...terrainTiles.entries()]
-          .filter(([key])=>!terrainCurrentViewKeys.has(key))
+          .filter(([key])=>!terrainCurrentViewKeys.has(key) && !key.startsWith('0/'))
           .sort((a,b)=>Number(b[0].split('/')[0])-Number(a[0].split('/')[0])
             || a[1].lastUsed-b[1].lastUsed);
         for(const [key,entry] of removable){
@@ -606,6 +608,8 @@ export function createGpuTerrainPreparation({ readTile, readNaturalTile = async 
       terrainTargetTilesSettled: settled(), terrainTilesLoaded: terrainTiles.size,
       terrainCacheBytes: [...terrainTiles.values()].reduce((sum, tile) => sum + tile.byteLength, 0)+natural.bytes(),
       terrainDemCacheBytes: [...terrainTiles.values()].reduce((sum, tile) => sum + tile.byteLength, 0),
+      terrainCacheOverBudgetBytes: Math.max(0,[...terrainTiles.values()].reduce((sum, tile)=>sum+tile.byteLength,0)
+        +natural.bytes()-cacheBudgetBytes),
       ...natural.stats(),
       terrainPendingDecodedBytes: pendingDecodedBytes,
       terrainTilesLoading: terrainTileRequests.size + terrainFetchQueue.length, terrainFetchConcurrency: terrainFetchConcurrency(),
