@@ -303,3 +303,31 @@ for(const profile of [{name:'desktop',viewport:{width:1280,height:800}},
     }
   });
 }
+
+
+test('stage-4 host camera relayouts SVG country labels without GPU-only stale positions',async({page},info)=>{
+  test.setTimeout(190_000);
+  await page.setViewportSize({width:390,height:844});
+  await page.goto('./?debug=1',{waitUntil:'domcontentloaded'});
+  await expect.poll(()=>page.evaluate(()=>{
+    const v=window.__PANDOLAB_VIEWER__,s=v?.rendererStats();
+    return v?.initialMapPresented()===true&&s?.mapReadiness?.mapReady===true;
+  }),{timeout:120_000,intervals:[900,1500,2500]}).toBe(true);
+  const labels=()=>page.evaluate(()=>Object.fromEntries(
+    [...document.querySelectorAll('g.territorial-label-item')]
+      .filter(el=>el.getAttribute('data-label-id'))
+      .map(el=>[el.getAttribute('data-label-id'),el.getAttribute('transform')])
+  ));
+  const before=await labels();
+  expect(Object.keys(before).length).toBeGreaterThan(0);
+  await page.evaluate(()=>{
+    const host=window.__PANDOLAB_MAP_HOST__,v=host.getViewState();
+    host.setViewState({projection:'globe',view:{...v,globeRotation:[-106,-30,0],globeZoom:8}});
+  });
+  const after=await expect.poll(async()=>{
+    const current=await labels();
+    const changed=Object.keys(before).filter(id=>current[id]&&current[id]!==before[id]);
+    return changed.length;
+  },{timeout:30000,intervals:[300,600,1200]}).toBeGreaterThan(0);
+  await page.screenshot({path:info.outputPath('stage4-host-camera-labels-after.png')});
+});
