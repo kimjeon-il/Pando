@@ -54,7 +54,7 @@ export async function packageSharedToolkit({root,revision,artifacts,baseDependen
     'src/document/source-provenance.js','src/runtime/version-contract.js',
     'src/runtime/worker-rpc.js','src/runtime/workers/worker-rpc-host.js',
     'tools/cpp/map-preview/aileron-subset.ttf','src/geometry/native/vendor/proj-robinson-LICENSE',
-    'docs/historical-border-reconstruction-policy.md',...mapImageSourceFiles,...mapPdfSourceFiles,...mapPreviewSourceFiles,
+    'docs/policies/gis.md',...mapImageSourceFiles,...mapPdfSourceFiles,...mapPreviewSourceFiles,
     ...sharedSourceManifest(root).inputs.map(row=>row.path),
     ...['pandoeditor-core.js','pandoeditor-core.wasm','pandoeditor-core.manifest.json'].map(name=>frontendWasmRoot+'/'+name)];
   for(const name of seeds)visit(name);

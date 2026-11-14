@@ -83,10 +83,12 @@ export function generateE3RevisionEvidence(options) {
   const verification=verificationSummary(diff,{codeRevision:o['code-revision']});
   const bundle=o['evidence-path'] && diff.changes.length ? (() => {
     const reportPath=o['evidence-path'];
-    if(!/^reports\/(?:borders|hydro|places|terrain|map-analysis|development)\/[^/]+\/.+\.md$/.test(reportPath)||reportPath.includes('..'))
-      error('E3 requires one canonical Markdown evidence path.');
+    if(!/^reports\/(?:borders|hydro|places|terrain|map-analysis|development)\/[^/]+\/.+\.json$/.test(reportPath)||reportPath.includes('..'))
+      error('E3 requires one canonical JSON evidence path.');
     const bytes=atRevision(root,o.candidate,reportPath);
-    if(!bytes.length)error('Historical report is empty: '+reportPath);
+    if(!bytes.length)error('Revision evidence is empty: '+reportPath);
+    let evidence;try{evidence=JSON.parse(bytes.toString('utf8'));}catch{error('Revision evidence is not valid JSON: '+reportPath);}
+    if(!evidence||typeof evidence!=='object'||Array.isArray(evidence))error('Revision evidence must be a JSON object: '+reportPath);
     return createPendingRevisionReview(diff,{
       proposalId:o['proposal-id'],createdAt:o['created-at'],createdBy:'automation',
       evidence:{reportPath,revision:o.candidate},

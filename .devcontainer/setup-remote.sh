@@ -19,4 +19,3 @@ fi
 # pnpm and frontend packages are isolated to the remote container.
 # No Emscripten, LLVM, MinGW, GDAL, LibTorch or native compiler is provisioned.
 bash .devcontainer/pnpm.sh install --frozen-lockfile --ignore-scripts
-node scripts/remote-only-doctor.mjs

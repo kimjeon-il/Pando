@@ -1,8 +1,7 @@
 // File primitives for the library-data owner. Mutable working files never share
-// an inode with the immutable pool; Windows readonly attributes are restored
-// even when a link replacement fails or is interrupted.
+// an inode with the immutable pool. Removing a view never changes shared file permissions.
 import { createHash } from 'node:crypto';
-import { chmodSync, copyFileSync, existsSync, linkSync, lstatSync, mkdirSync, readFileSync, readdirSync, renameSync, statSync, unlinkSync, writeFileSync } from 'node:fs';
+import { chmodSync, copyFileSync, existsSync, linkSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, renameSync, rmdirSync, statSync, unlinkSync, writeFileSync } from 'node:fs';
 import { dirname, relative, resolve, sep, isAbsolute } from 'node:path';
 
 export const contentHash = bytes => createHash('sha256').update(bytes).digest('hex');
@@ -73,6 +72,39 @@ export function publishContent(shared, bytes) {
   }
   chmodSync(path, 0o400); return { path, sha256, bytes: bytes.length };
 }
+// Windows/libuv may fall back to clearing readonly on older filesystems. Probe
+// only disposable hardlinks on the target volume before trusting direct unlink.
+const readonlyUnlinkVolumes = new Map();
+function assertReadonlyUnlink(target, device, probeDirectory) {
+  if (process.platform !== 'win32') return;
+  let capability = readonlyUnlinkVolumes.get(device);
+  if (capability === undefined) {
+    const directory = mkdtempSync(resolve(probeDirectory, '.readonly-unlink-'));
+    const original = resolve(directory, 'original'), view = resolve(directory, 'view');
+    const bytes = Buffer.from('readonly unlink capability');
+    capability = { supported: false, error: null };
+    try {
+      writeFileSync(original, bytes, { flag: 'wx' });
+      linkSync(original, view);
+      chmodSync(original, 0o400);
+      const before = lstatSync(original);
+      if (before.dev !== device || before.nlink !== 2 || (before.mode & 0o200)) throw Error('Invalid readonly unlink probe');
+      unlinkSync(view);
+      const after = lstatSync(original);
+      capability.supported = after.mode === before.mode && after.nlink === 1 && readFileSync(original).equals(bytes);
+      if (!capability.supported) capability.error = Error('Readonly unlink changed the surviving probe original');
+    } catch (error) {
+      capability.error = error;
+      // Unsupported volumes preserve real shared content; there is no chmod fallback.
+    } finally {
+      // These two probe links own their inode and are never shared library content.
+      for (const file of [view, original]) if (existsSync(file)) { chmodSync(file, 0o600); unlinkSync(file); }
+      rmdirSync(directory);
+    }
+    readonlyUnlinkVolumes.set(device, capability);
+  }
+  if (!capability.supported) throw Error(`Readonly unlink without shared permission changes is unavailable: ${target}`, { cause: capability.error });
+}
 export function removeContentLink(shared, target) {
   target = contentTarget(shared, target); recoverContentPermissions(shared);
   const s = lstatSync(target); if (!s.isFile()) throw Error('Expected a plain content link');
@@ -80,13 +112,11 @@ export function removeContentLink(shared, target) {
   const sha256 = contentHash(readFileSync(target)), blob = contentPath(shared, sha256);
   if (target === blob || !existsSync(blob)) throw Error(`Unowned readonly content must be preserved: ${target}`);
   exactContent(blob, sha256, s.size);
-  const same = statSync(target, { bigint: true }).ino === statSync(blob, { bigint: true }).ino;
+  const targetIdentity = statSync(target, { bigint: true }), blobIdentity = statSync(blob, { bigint: true });
+  const same = targetIdentity.dev === blobIdentity.dev && targetIdentity.ino === blobIdentity.ino;
   if (s.nlink > 1 && !same) throw Error(`Unowned hardlink must be preserved: ${target}`);
-  if (!same) { chmodSync(target, 0o600); unlinkSync(target); return; }
-  const marker = permissionMarker(shared);
-  atomicStorageJSON(marker, { sha256 });
-  try { chmodSync(blob, 0o600); unlinkSync(target); }
-  finally { if (existsSync(blob)) chmodSync(blob, 0o400); if (existsSync(marker)) unlinkSync(marker); }
+  if (!(s.mode & 0o200)) assertReadonlyUnlink(target, s.dev, blobIdentity.dev === targetIdentity.dev ? dirname(blob) : dirname(target));
+  unlinkSync(target);
 }
 export function linkContent(shared, sha256, target) {
   recoverContentPermissions(shared); const blob = contentPath(shared, sha256);
