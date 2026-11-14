@@ -3,44 +3,17 @@
 These instructions apply to the entire repository unless a deeper `AGENTS.md`
 or `AGENTS.override.md` provides more specific rules.
 
-## Branch and permanent worktree policy (mandatory)
+## Single-worktree and branch policy (mandatory)
 
-Read [development policy](docs/policies/development.md#브랜치와-작업공간) before choosing a branch or
-local worktree.
-Before adding or revising repository policy, use the [policy navigation](docs/policies/README.md)
-to find the existing owner. It is an index, not a replacement for this file or
-any domain-specific contract; keep current verification contracts and their canonical owners coherent. Web Viewer starts in `src/app/`; UI, map, document, geometry,
-rendering, data and runtime sources live in their corresponding `src/` domains.
-C++ implementations live in each domain's `native/`, with build orchestration
-in `tools/build/native/`. The retired `apps/editor/` application is absent;
-all maintained sources use the same commit and branch:
+Read [development policy](docs/policies/development.md#브랜치와-작업공간) and the [policy navigation](docs/policies/README.md) before changing ownership or policy. Viewer sources live in the src/ domains; native implementations live in their domain native/ directories and tools/build/native owns build orchestration.
 
-- Reuse the long-lived branches `work/ui`, `work/objects`, `work/gis`, and
-  `work/places` according to the task's primary purpose; `main` is the
-  stable integration branch.
-- Before local changes, run `git worktree list --porcelain` and inspect the
-  assigned worktree's branch, `git status --short --branch`, and uncommitted or
-  untracked files. Reuse the existing permanent worktree for that branch.
-- Reuse existing permanent worktrees and fixed per-worktree build directories.
-  Do not create a new workspace, repository clone, branch, worktree, or build
-  directory for each task. Create a missing permanent worktree only when the
-  work cannot be handled in an existing appropriate workspace.
-- After a task, leave permanent worktrees and branches in place for the next
-  task. Removing or pruning them requires explicit user approval.
-- Never discard unrelated or uncommitted work, including via automatic stash,
-  `git clean`, `git reset --hard`, force checkout, force push, or force
-  worktree removal. Request explicit user approval for destructive operations
-  affecting protected work or data; verified unused, reproducible cache and
-  generated-file cleanup follows the policy below without separate approval.
-- Synchronize the latest `main` **into** the appropriate `work/*` branch
-  only after checking the local and remote state; preserve unfinished work and
-  resolve conflicts without silently choosing one side.
-- Never merge `work/*` into `main`, commit directly to `main`, deploy, or
-  transfer changes between categories without explicit user instructions.
-- Verify the affected Web Viewer and its embedded read-only inspector workflows. Retired standalone Web/App parity gates are not a live release requirement.
-- Exception branches or temporary worktrees require a concrete reason why an
-  existing workspace cannot handle the work, and user approval. Do not delete
-  them automatically after integration.
+- Use D:/dev/PandoLab as the single local source worktree. Keep existing branches and history; use the same checkout sequentially when a work branch is needed. Do not create a clone, branch, worktree or build directory for each task.
+- Before editing or switching branches, inspect Git status, tracked/untracked work, data pin, mounts, processes and leases. Branch switching requires a clean source index/worktree and no unfinished branch-owned edits or active consumer that would be affected. Never auto-stash, reset, clean, force checkout, force push or discard work.
+- Serialize source editing, commits, merges and data transitions across chats in this checkout; read-only inspection may run concurrently. Do not move another active task or its files to finish consolidation.
+- main is the stable integration and publication branch. Reuse work/ui, work/objects, work/gis and work/places when needed, then return to main after the reviewed integration. Merge to main, deploy or transfer categories only within the user's authorized scope.
+- The paired library source checkout is D:/dev/PandoLab-library. Read data editions by explicit revision, independently of the library source checkout's HEAD. Keep report owners, private edits, original bytes and code/data pins independent.
+- Existing additional worktrees are transitional: retain active/uncommitted work until its owner finishes. Remove only after verifying all work is preserved, links/consumers have moved and Git removal is authorized. Do not use force removal. New exception worktrees require user approval.
+- Verify the affected Viewer and embedded read-only inspector. Do not restore retired standalone apps or their parity gates.
 
 ## Storage and generated-file cleanup (mandatory)
 
