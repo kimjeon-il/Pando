@@ -94,9 +94,12 @@ export function createGpuCanvasWorker({ worker, generation, acceptFrame, allowOl
     queueFrame(message) {
       if (!live || Number(message.projectGeneration) !== generation) return;
       const revision = Number(message.revision || 0);
-      if (revision >= requestedRevision) latestFrame = message;
-      requestedRevision = Math.max(requestedRevision, revision);
-      if (!pendingFrame || Number(pendingFrame.revision || 0) <= revision) pendingFrame = message;
+      // A superseded camera/date frame may arrive after the latest request.
+      // Do not schedule CPU work for a revision that can never be published.
+      if (revision < requestedRevision) return;
+      latestFrame = message;
+      requestedRevision = revision;
+      pendingFrame = message;
       flush();
     },
     pick(point) {
