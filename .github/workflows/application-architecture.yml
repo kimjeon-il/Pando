@@ -34,6 +34,7 @@ jobs:
         run: node tools/data/library-data.mjs --prepare-metadata
       - if: inputs.group == 'browser' || github.event_name == 'push'
         run: pnpm exec playwright install --with-deps chromium
+      # Re-check after eliminating redundant country and physical-mask passes.
       - name: Capture only WebGL2 startup resource attribution
         if: github.event_name == 'push'
         run: pnpm exec playwright test tests/browser/viewer.spec.mjs --grep 'stage-4 GPU memory attribution' --workers=1 --retries=0
