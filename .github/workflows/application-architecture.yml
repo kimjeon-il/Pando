@@ -1,8 +1,5 @@
 name: Viewer core checks
 on:
-  push:
-    branches: [work/gis]
-    paths: [.github/workflows/application-architecture.yml]
   workflow_dispatch:
     inputs:
       group:
@@ -30,24 +27,11 @@ jobs:
           node-version: "24"
       - uses: pnpm/action-setup@v4
       - run: pnpm install --frozen-lockfile --ignore-scripts
-      - if: inputs.group == 'browser' || github.event_name == 'push'
+      - if: inputs.group == 'browser'
         run: node tools/data/library-data.mjs --prepare-metadata
-      - if: inputs.group == 'browser' || github.event_name == 'push'
+      - if: inputs.group == 'browser'
         run: pnpm exec playwright install --with-deps chromium
-      # Re-check after eliminating redundant country and physical-mask passes.
-      - name: Capture only WebGL2 startup resource attribution
-        if: github.event_name == 'push'
-        run: pnpm exec playwright test tests/browser/viewer.spec.mjs --grep 'stage-4 GPU memory attribution' --workers=1 --retries=0
-      - name: Retain focused diagnostics
-        if: always() && github.event_name == 'push'
-        uses: actions/upload-artifact@v4
-        with:
-          name: stage4-gpu-attribution-${{ github.sha }}
-          path: test-results/
-          retention-days: 7
-          if-no-files-found: warn
-      - if: github.event_name != 'push'
-        env:
+      - env:
           CHECK_GROUP: ${{ inputs.group }}
           CHECK_PATTERN: ${{ inputs.test_name_pattern }}
         run: |-
