@@ -35,6 +35,7 @@ jobs:
         run: node tools/data/library-data.mjs --prepare-metadata
       - if: inputs.group == 'browser' || github.event_name == 'push'
         run: pnpm exec playwright install --with-deps chromium
+      # Second trigger attempt; retain exactly the same focused browser scenario.
       - name: Capture actual stage-4 world Viewer output
         if: github.event_name == 'push'
         run: pnpm exec playwright test tests/browser/viewer.spec.mjs --grep 'stage-4 immutable world natural' --workers=1 --retries=0
