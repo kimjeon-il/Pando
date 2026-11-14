@@ -28,6 +28,8 @@ import {decodeCountryMesh, encodeCountryMesh} from '../../src/rendering/country-
 import {createApplicationLifecycle} from '../../src/app/application-lifecycle.js';
 import {createPhysicalAssetReader} from '../../src/data/physical-asset-reader.js';
 import {createTerrainService} from '../../src/data/physical-layer-service.js';
+import {drawGpuBaseScene} from '../../src/rendering/gpu-base-scene-pass.js';
+import {createGpuResourceBudget} from '../../src/rendering/gpu-resource-budget.js';
 import {createAdaptiveRenderQualityController, renderQualityProfile, resolveInitialRenderQuality} from '../../src/rendering/adaptive-render-quality.js';
 
 test('WebGL2 quality budgets simplify every object and change only after sustained active-frame evidence',()=>{
@@ -411,4 +413,52 @@ test('tiled display mesh retains only real outlines and trims reusable mesh cach
   preparation.setByteBudget(0);
   const rebuilt=await preparation.build(tiled.features,context);
   assert.equal(rebuilt.preparation.cacheBytes,0,'downgrade releases old reusable parts immediately');
+});
+
+
+
+test('physical relief keeps its stencil, skips transparent country paint and protects mandatory GPU geometry',()=>{
+  const budget=createGpuResourceBudget({byteBudget:10*1024**2});
+  budget.track('physical-land',25*1024**2,100);
+  budget.track('unneeded-overlay',1024**2,0);
+  const evicted=budget.setByteBudget(10*1024**2,{alsoProtected:['physical-land']});
+  assert.deepEqual(evicted,['unneeded-overlay']);
+  assert.equal(budget.stats().activeBytes,25*1024**2,
+    'changing quality must not discard the still-current land mask');
+  assert.deepEqual(budget.reconcile({active:[],protected:[]}),['physical-land'],
+    'a genuinely removed project source may release its former physical mask');
+
+  const calls={physical:0,country:0,terrain:[]};
+  const gl={};
+  for(const name of ['viewport','disable','colorMask','clearColor','clearStencil','clear','enable',
+    'stencilMask','stencilFunc','stencilOp','blendFuncSeparate','blendFunc'])gl[name]=()=>{};
+  for(const key of ['STENCIL_TEST','SCISSOR_TEST','BLEND','TRIANGLES','COLOR_BUFFER_BIT',
+    'STENCIL_BUFFER_BIT','EQUAL','INCR','NOTEQUAL','KEEP'])gl[key]=key;
+  const input={
+    gl,frame:{frameId:1,worldOffsets:[0]},width:390,height:844,terrainVisible:true,
+    terrainStyle:'physical',countriesVisible:true,countryPaintVisible:false,
+    surfacePresentation:{quality:'canonical'},
+    mapSubstrate:{color:'#dddddd',fillAlpha:1},mapOcean:{color:'#77bbff',fillAlpha:1},
+    countries:{mesh:{triangleIndices:new Uint32Array([0,1,2])},paletteTexture:{}},
+    prepared:{baseTriangleDraw:{ranges:[{first:0,count:3}]},overrideTriangleDraw:{ranges:[]},
+      territoryItems:[],physicalLandItems:[{packet:{key:'physical-land',role:'physical-land'}}],
+      physicalWaterItems:[],independentItems:[],
+      deferredOverlayKeys:new Set(),failedOverlayKeys:new Set(),strokeDomainReplacements:[]},
+  };
+  const passes={
+    drawProgram:()=>calls.country++,drawOceanSubstrate(){},
+    renderTerrain:role=>calls.terrain.push(role),drawHydro(){},
+    drawCountryBoundaryStrokes:()=>({succeeded:true,renderedKeys:[],missingKeys:[]}),
+    polygonOverlayPass:{hasResource:()=>true,
+      drawPackets:()=>{calls.physical++;return {renderedKeys:['physical-land'],missingKeys:[]};}},
+    strokeRenderer:{hasResource:()=>true},
+  };
+  const first=drawGpuBaseScene(input,passes);
+  assert.equal(first.strokePresentationFailed,false);
+  assert.equal(calls.physical,1,'one physical mask, not two entire-world draws per frame');
+  assert.deepEqual(calls.terrain,['ocean','land']);
+  assert.equal(calls.country,0,'explicitly transparent countries must not draw 4M invisible indices');
+  drawGpuBaseScene({...input,countryPaintVisible:true},passes);
+  assert.equal(calls.physical,2);
+  assert.equal(calls.country,1,'authored visible paint must still render');
 });
