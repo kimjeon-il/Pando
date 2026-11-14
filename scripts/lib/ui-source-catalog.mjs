@@ -20,15 +20,4 @@ const sourceEntries = Object.freeze([
   Object.freeze({ role: 'map-rendering', path: 'assets/css/features/map-rendering.css' }),
 ]);
 
-const sourceByRole = new Map(sourceEntries.map(entry => [entry.role, entry.path]));
 export const UI_VIEWER_SOURCES = Object.freeze(sourceEntries.map(entry => entry.path));
-export const UI_AUDIT_STYLE_SOURCES = Object.freeze([
-  'assets/css/app.css',
-  ...UI_VIEWER_SOURCES,
-]);
-
-export function uiSourcePath(role) {
-  const source = sourceByRole.get(String(role || ''));
-  if (!source) throw new Error(`Unknown UI source role: ${role}`);
-  return source;
-}

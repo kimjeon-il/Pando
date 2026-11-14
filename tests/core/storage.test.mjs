@@ -7,7 +7,9 @@ import {tmpdir} from 'node:os';
 import {contentHash} from '../../tools/data/library-content.mjs';
 import {prepareLibraryData,prepareLibraryMetadata,withLibraryWrite} from '../../tools/data/library-runtime.mjs';
 import {hydrateReports,reportRegistry} from '../../tools/data/library-reports.mjs';
-import {storeLibraryData} from '../../tools/data/library-store.mjs';
+import {storeLibraryData,runtimeStoreIndex} from '../../tools/data/library-store.mjs';
+import {libraryStoragePath} from '../../tools/data/library-storage-paths.mjs';
+import {decodeArchiveEntry} from '../../tools/data/library-context.mjs';
 import {publishLibraryReports,checkLibraryReports} from '../../tools/data/library-report-publication.mjs';
 import {previewGeneratedCleanup,applyGeneratedCleanup} from '../../tools/data/worktree-generated.mjs';
 import {installFrontendSnapshot} from '../../tools/data/worktree-storage.mjs';
@@ -36,10 +38,19 @@ function publication(t){const f=fixture(t),remote=join(f.base,'remote.git');git(
 function request(root,path='test-results/output.txt'){return {roots:[root],requests:[{root,path,action:'delete',reason:'Fixture output can be regenerated'}]};}
 const scope=['reports/development/task'];
 
-test('preparation reads the explicit pinned revision rather than checkout HEAD',t=>{
- const f=fixture(t);archive(f.data,{'assets/data/selected/input.bin':'newer bytes'},'newer');
- assert.equal(prepareLibraryMetadata({root:f.root,fetch:false}).index.files['assets/data/selected/input.bin'].sha256,contentHash(Buffer.from('pinned bytes')));
- prepareLibraryData({root:f.root,fetch:false,purpose:'gis',prefixes:['assets/data/selected']});assert.equal(read(f.root,'assets/data/selected/input.bin'),'pinned bytes');assert.notEqual(git(f.data,'rev-parse','HEAD'),f.revision);
+test('preparation reads the pinned edition across storage relocation and newer checkout data',t=>{
+ const f=fixture(t),path='assets/data/selected/input.bin',bytes=Buffer.from('pinned bytes');
+ const entry={...f.files[path],stored:'archive/blobs/'+contentHash(bytes)+'.bin'},pinned={files:{[path]:entry}};
+ put(f.data,entry.stored,bytes);put(f.data,'archive/index.json',JSON.stringify(pinned));git(f.data,'add','.');git(f.data,'commit','-qm','pinned archived original');
+ const revision=git(f.data,'rev-parse','HEAD');put(f.root,'config/library-data.json',JSON.stringify({...f.config,revision}));
+ const relocated={...entry,stored:libraryStoragePath(path,entry)},current={files:{[path]:relocated}};
+ put(f.data,relocated.stored,bytes);put(f.data,'archive/index.json',JSON.stringify(current));git(f.data,'add','.');git(f.data,'commit','-qm','relocate identical original');
+ const merged=runtimeStoreIndex(pinned,current);assert.deepEqual(merged.files[path],relocated);
+ assert.deepEqual(decodeArchiveEntry(f.data,merged.files[path],git(f.data,'rev-parse','HEAD'),{fetch:false}),bytes);
+ const newer=archive(f.data,{[path]:'newer bytes'},'newer');assert.deepEqual(runtimeStoreIndex(pinned,newer).files[path],entry);
+ assert.equal(prepareLibraryMetadata({root:f.root,fetch:false}).index.files[path].sha256,contentHash(bytes));
+ prepareLibraryData({root:f.root,fetch:false,purpose:'gis',prefixes:['assets/data/selected']});
+ assert.equal(read(f.root,path),'pinned bytes');assert.notEqual(git(f.data,'rev-parse','HEAD'),revision);
 });
 
 test('preparation preserves unfinished working bytes when the pin advances',t=>{

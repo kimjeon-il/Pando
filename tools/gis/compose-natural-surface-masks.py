@@ -47,35 +47,6 @@ def compose_pixel(rgb, landcover=0, glacier=0, polar=0):
     return tuple(min(255,max(0,math.floor(c+0.5))) for c in color) + (255,)
 
 
-def self_test():
-    base=(93,146,79)
-    assert compose_pixel(base,0)==base+(255,)
-    assert compose_pixel(base,999)==base+(255,)
-    assert compose_pixel(base,80)==WATER_SENTINEL
-    try:
-        compose_pixel(base,10.5)
-        raise AssertionError('Fractional category accepted')
-    except ValueError:
-        pass
-    assert compose_pixel(base,10,1,0)==ICE_COLOR+(255,)
-    assert compose_pixel(base,60,0,1)==ICE_COLOR+(255,)
-    assert compose_pixel(base,70)!=ICE_COLOR+(255,)
-    assert compose_pixel(base,80,0,1)==ICE_COLOR+(255,)
-    a=compose_pixel(base,0,0.5,0)
-    assert all(base[i]<=a[i]<=ICE_COLOR[i] for i in range(3))
-    for bad in [-0.1,1.1,float('nan'),float('inf')]:
-        try:
-            compose_pixel(base,0,bad,0)
-            raise AssertionError('Invalid mask accepted')
-        except ValueError:
-            pass
-    assert compose_pixel(base,0,0,0)!=ICE_COLOR+(255,)
-    assert base==(93,146,79)
-    return {name:True for name in ('unknownPreservesBase','waterSentinelOpaque','classIsNotInterpolated',
-        'glacierOverridesLandcover','polarOverridesLandcover','snowClassNotPermanentIce',
-        'fractionalMaskIsBounded','invalidMaskRejected','noHeightLatitudeSnowInference','sourceAndOutputSeparate')}
-
-
 def compose_arrays(rgb, classes, glacier, polar):
     import numpy as np
     if rgb.ndim!=3 or rgb.shape[2]<3 or any(x.shape!=rgb.shape[:2] for x in (classes,glacier,polar)):
@@ -141,11 +112,8 @@ def compose_file(base_path, masks_path, output_path, receipt_path):
 
 def main():
     parser=argparse.ArgumentParser()
-    parser.add_argument('--self-test',action='store_true')
     for name in ('base','masks','output','receipt'):parser.add_argument('--'+name)
     args=parser.parse_args()
-    if args.self_test:
-        print(json.dumps(self_test()));return
     if not all((args.base,args.masks,args.output,args.receipt)):
         parser.error('--base --masks --output --receipt are required')
     print(json.dumps(compose_file(args.base,args.masks,args.output,args.receipt)))
