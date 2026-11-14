@@ -298,6 +298,17 @@ test('numeric DEM regression compares the same colored or monochrome channel at 
     for(let c=0;c<4;c++)assert.ok(Math.abs(actual[c]-expected[c])<=1,
       channel+' integer texel '+c+' must match the prepared-color contract');
   }
+  // Sparse observed natural tiles must fade into the canonical palette where
+  // the next natural tile is unavailable, matching the GPU's 64px rule.
+  const pigment=new Uint8ClampedArray(dem.length);
+  for(let i=0;i<pigment.length;i+=4)pigment.set([225,130,80,255],i);
+  const surface={data:pigment,width,height,mixWeight:0.65};
+  const input={dem,width,height,x:0,y:2.25,channel:'land',naturalSurface:surface};
+  const unfeathered=terrain.sampleInterpolated(input);
+  const feathered=terrain.sampleInterpolated({...input,naturalFadeEdges:[1,0,0,0]});
+  const palette=terrain.sampleInterpolated({dem,width,height,x:0,y:2.25,channel:'land'});
+  assert.notDeepEqual(unfeathered,palette,'observed pigment modifies available land');
+  assert.deepEqual(feathered,palette,'missing western natural tile fades to the DEM palette');
 });
 
 
