@@ -670,10 +670,6 @@ export function createGpuMapRenderer(deps) {
     let overrideEmphasisPaletteTexture = null;
     let paletteCapacity = 0;
     let palettePixels = null;
-    // This follows actual authored palette alpha, including explicit object
-    // overrides. A transparent country fill must not submit millions of
-    // invisible triangles on top of the colored physical relief.
-    let countryFillHasOpacity = true;
     const paletteDirty = { base: true, emphasis: true };
     const pendingEmphasisCountryIds = new Set();
     let emphasisPaletteFullDirty = true;
@@ -2778,7 +2774,6 @@ export function createGpuMapRenderer(deps) {
       const { base, override, emphasis, overrideEmphasis } = palettePixels;
       if (paletteDirty.base) {
         const resolveFill = createCountryFillResolver();
-        countryFillHasOpacity = false;
         pendingOldMeshVisibleCount = 0;
         for (let index = 0; index < meshCountryIds.length; index += 1) {
           const id = meshCountryIds[index];
@@ -2796,7 +2791,6 @@ export function createGpuMapRenderer(deps) {
           const pending = geometryRevisionTracker.isPending(id);
           base[offset + 3] = overridden ? 0 : fillAlpha;
           override[offset + 3] = overridden && (!pending || countryPatchPresentationCanDrawOverride(id)) ? fillAlpha : 0;
-          if (base[offset + 3] || override[offset + 3]) countryFillHasOpacity = true;
           base[visibilityOffset] = overridden ? 0 : visible;
           override[visibilityOffset] = overridden && (!pending || countryPatchPresentationCanDrawOverride(id)) ? visible : 0;
           if (pending && (base[visibilityOffset] || override[visibilityOffset])) pendingOldMeshVisibleCount += 1;
@@ -3769,7 +3763,6 @@ export function createGpuMapRenderer(deps) {
           && preparedBaseScene.physicalLandItems.every(({ packet }) => polygonOverlayPass.hasPreparedResource(packet)),
         terrainStyle: state.physicalSettings.terrainStyle,
         countriesVisible: state.layerVisibility.objects,
-        countryPaintVisible: countryFillHasOpacity,
         mapSubstrate: { color: theme.defaultLand, fillAlpha: theme.baseLandAlpha },
         mapOcean: { color: theme.ocean, fillAlpha: 1 },
         countries: { mesh, overrideMesh:activeMeshQuality==='lod'?null:overrideMesh, dynamicResources: overrideMesh ? { positionBuffer: overridePositionBuffer, countryBuffer: overrideCountryBuffer } : null, fillProgram, fillVao, fillIndexBuffer, overrideFillVao, overrideFillIndexBuffer, paletteTexture, overridePaletteTexture },
