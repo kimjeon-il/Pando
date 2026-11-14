@@ -17,7 +17,7 @@ import {loadBuiltinDisplayPolicy} from "../gis/builtin-display-policy.mjs";
 import {encodeBuiltinCountries,finalizeBuiltinWorldFiles,readBuiltinCountryStoredBytes,readBuiltinCountry} from "../data/builtin-country-bytes.mjs";
 import {isDeepStrictEqual} from 'node:util';
 import {readProjectGenerationContext} from './project-generation-context.mjs';
-import {assertTerritorialRetirement,assertBuiltinRetirement,readRetirementReceipt,planTerritorialRetirement} from '../gis/territorial-retirement.mjs';
+import {assertTerritorialRetirement,assertBuiltinRetirement,readRetirementReceipt,planTerritorialRetirement,mixedRetirementPublicationPlan,verifiedMixedCurrentWorld} from '../gis/territorial-retirement.mjs';
 export {finalizeBuiltinWorldFiles};
 
 const output=fileURLToPath(new URL("../../assets/data/builtin-world/generated/v1/",import.meta.url));
@@ -88,6 +88,7 @@ export function buildBuiltinWorldRetirementPublication({retirement,sourceIndex,p
  previousIndex,previousCoverage,displayPolicy=loadBuiltinDisplayPolicy(),readRecovery}){
  const plan=assertTerritorialRetirement({manifest:retirement,previousIndex:previousSourceIndex,index:sourceIndex,displayPolicy,readRecovery});
  if(JSON.stringify(view)!==JSON.stringify(plan.index.views[0]))throw Error('Territorial retirement: unpaired world view');
+ if(plan.mixed){const built=mixedRetirementPublicationPlan(plan,{readRecovery}),{index,coverage,files}=built,revisions={...previousIndex.inputHashes.sourceRevisions};for(const id of plan.sourceIds)delete revisions[id];for(const [id,row]of plan.metadataUpdates)revisions[id]=row.nextEntry.sha256;recordBuiltinWorldInputs(index,revisions,view,policy);files.set('coverage-report.json',Buffer.from(JSON.stringify(coverage)+'\n'));finalizeBuiltinWorldFiles(index,files,{previousIndex});assertBuiltinRetirement({plan,previousSourceIndex,sourceIndex,previousIndex,index,previousCoverage,coverage,policy,readRecovery,readDescriptor:entry=>JSON.parse(gunzipSync(readBuiltinCountryStoredBytes(entry,file=>files.get(file))))});return rememberRetirementPublication(files,{retirement,sourceIndex,previousSourceIndex,view,policy,displayPolicy});}
  const retired=new Set([...plan.featureIds].map(builtinSubunitId));
  const index=structuredClone(previousIndex),coverage=structuredClone(previousCoverage);
  index.entities=index.entities.filter(row=>!retired.has(row.entityId));
@@ -106,6 +107,7 @@ export function buildBuiltinWorldRetirementPublication({retirement,sourceIndex,p
 /** The retirement baseline stays internal until all requested changes compile. */
 export function buildBuiltinWorldRetiredPartialPublication(input){
  if(input.planOnly)throw Error('Retirement publication requires an executed source-paired compilation');
+ if(input.retirement?.kind==='mixed-current-identity-retirement')throw Error('Mixed retirement forbids source-wide partial recompilation; use verified minimal runtime producer');
  input={...input,displayPolicy:input.displayPolicy||loadBuiltinDisplayPolicy()};
  const baseline=buildBuiltinWorldRetirementPublication(input);
  const files=buildBuiltinWorldPartialPublication({...input,previousIndex:JSON.parse(baseline.get('index.json')),
@@ -218,6 +220,7 @@ export function writeBuiltinWorldPublication(files,directory=output,{check=false
  // Deltas overlay an existing verified publication; old pinned assets are retained.
  const entries=[...files].filter(([file])=>file!=='index.json');
  if(files.has('index.json'))entries.push(['index.json',files.get('index.json')]);
+ let verifiedMixedIds=new Set();
  const changed=[];
  for(const [file,bytes] of entries){
   const target=path.join(directory,file);
@@ -243,18 +246,19 @@ export function writeBuiltinWorldPublication(files,directory=output,{check=false
    if(!activePolicy.equals(isDeepStrictEqual(prior,plan.previousBuiltinIndex)?readRetirementReceipt(retirement.displayPolicy,readRecovery):policyBytes))throw Error('Territorial retirement: active display-policy baseline changed');
    assertBuiltinRetirement({plan,previousSourceIndex,sourceIndex,previousIndex:plan.previousBuiltinIndex,index:next,
     previousCoverage:plan.previousCoverage,coverage:JSON.parse(files.get('coverage-report.json')),policy,
-    readDescriptor:entry=>JSON.parse(gunzipSync(readBuiltinCountryStoredBytes(entry,file=>files.get(file)||fs.readFileSync(path.join(directory,file)))))});
+    readRecovery,readDescriptor:entry=>JSON.parse(gunzipSync(readBuiltinCountryStoredBytes(entry,file=>files.get(file)||fs.readFileSync(path.join(directory,file)))))});
+   if(plan.mixed)verifiedMixedIds=new Set(plan.verifiedRuntimeCountries.keys());
    const sources=new Map(sourceIndex.entities.map(row=>[row.entityId,row]));
-   for(const row of view.selections)if(next.inputHashes.sourceRevisions[row.entityId]!==sources.get(row.entityId)?.sha256)throw Error('Territorial retirement: current-world input remains uncompiled: '+row.entityId);
+   if(!plan.mixed)for(const row of view.selections)if(next.inputHashes.sourceRevisions[row.entityId]!==sources.get(row.entityId)?.sha256)throw Error('Territorial retirement: current-world input remains uncompiled: '+row.entityId);
    const read=retirementInputs.readSource|| (id=>readTerritorialSource(id,territorialSourceRoot,{sourceIndex}));
-   const world=buildCurrentWorld({entities:view.selections.map(row=>read(row.entityId)),view});
+   const world=plan.mixed?verifiedMixedCurrentWorld(plan,{readRecovery}):buildCurrentWorld({entities:view.selections.map(row=>read(row.entityId)),view});
    const bytes=Buffer.from(JSON.stringify(world)+'\n');
    for(const candidate of [{target:currentWorldTarget,bytes},{target:displayPolicyTarget,bytes:policyBytes}])if(!fs.existsSync(candidate.target)||!fs.readFileSync(candidate.target).equals(candidate.bytes)){
     const at=changed.findIndex(row=>row.target===path.join(directory,'index.json'));
     changed.splice(at<0?changed.length:at,0,candidate);
    }
   }
-  for(const entry of next.entities){const before=old.get(entry.entityId);if(before?.sha256===entry.sha256)continue;const read=entry=>readBuiltinCountry(entry,next,file=>files.get(file)||fs.readFileSync(path.join(directory,file))),readOld=entry=>readPreviousCountry?readPreviousCountry(entry,prior,file=>fs.readFileSync(path.join(directory,file))):readBuiltinCountry(entry,prior,file=>fs.readFileSync(path.join(directory,file)));assertHistoricalCompiledChanges(read(entry),before?readOld(before):null);}
+  for(const entry of next.entities){const before=old.get(entry.entityId);if(before?.sha256===entry.sha256||verifiedMixedIds.has(entry.entityId))continue;const read=entry=>readBuiltinCountry(entry,next,file=>files.get(file)||fs.readFileSync(path.join(directory,file))),readOld=entry=>readPreviousCountry?readPreviousCountry(entry,prior,file=>fs.readFileSync(path.join(directory,file))):readBuiltinCountry(entry,prior,file=>fs.readFileSync(path.join(directory,file)));assertHistoricalCompiledChanges(read(entry),before?readOld(before):null);}
  }
  if(check){if(changed.length)throw new Error(`Stale builtin world data: ${changed[0].target}`);return;}
  if(!changed.length)return;

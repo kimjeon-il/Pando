@@ -3,7 +3,7 @@ import {createHash} from "node:crypto";
 import {closeSync,existsSync,lstatSync,mkdirSync,openSync,readFileSync,readdirSync,realpathSync,statfsSync,unlinkSync,writeFileSync} from "node:fs";
 import {dirname,isAbsolute,relative,resolve,sep} from "node:path";
 import {fileURLToPath} from "node:url";
-import {decodeLibraryArchiveBytes} from "./library-archive.mjs";
+import {decodeLibraryArchiveBytes,archiveStoredResources} from "./library-archive.mjs";
 import {contentHash,contentPath,recoverContentPermissions} from "./library-content.mjs";
 import {compactDuplicatePacks} from "./library-git.mjs";
 
@@ -158,20 +158,16 @@ export function safeChild(root, path) {
 }
 
 export function decodeArchiveEntry(checkout, entry, revision = null, {fetch=false}={}) {
-  let stored;
-  try { stored = readFileSync(safeChild(checkout, entry.stored)); }
-  catch (error) { if (!revision) throw error; }
-  const decode = stored => decodeLibraryArchiveBytes(stored, entry);
-  if (revision) {
-    try { return decode(stored); } catch { /* The storage HEAD may contain a newer runtime resource. */ }
-    stored = execFileSync('git', [...gitOptions, 'show', revision + ':' + entry.stored], { cwd: checkout, env: { ...process.env, GIT_NO_LAZY_FETCH: fetch?'0':'1' }, maxBuffer: Math.max(entry.bytes * 2, 16 * 1024 * 1024), stdio:['pipe','pipe','pipe'] });
-  }
-  return decode(stored);
+  const local=stored=>readFileSync(safeChild(checkout,stored));
+  const atRevision=(stored,part)=>execFileSync('git',[...gitOptions,'show',revision+':'+stored],{cwd:checkout,env:{...process.env,GIT_NO_LAZY_FETCH:fetch?'0':'1'},maxBuffer:Math.max((part?.bytes||entry.bytes)*2,16*1024*1024),stdio:['pipe','pipe','pipe']});
+  const decode=read=>decodeLibraryArchiveBytes(read(entry.stored,entry.encoding==='gzip-chunks'?{bytes:entry.manifestBytes}:entry),entry,{readStored:read});
+  try{return decode(local);}catch(error){if(!revision)throw error;}
+  return decode(atRevision);
 }
 
 export function prefetchArchiveEntries({checkout,revision,entries,additionalBytes=0}){
   if(!/^[a-f0-9]{40}$/.test(revision))throw Error('Invalid archive revision');
-  const byPath=new Map(entries.map(entry=>[entry.stored,entry])),wanted=new Set(byPath.keys()),objects=new Map();
+  const resources=entries.flatMap(archiveStoredResources),byPath=new Map();for(const entry of resources){const old=byPath.get(entry.stored);if(!old||old.bytes<entry.bytes)byPath.set(entry.stored,entry);}const wanted=new Set(byPath.keys()),objects=new Map();
   const tree=git(checkout,['ls-tree','-rz',revision]);
   for(const row of tree.split('\0').filter(Boolean)){
     const match=/^\d+ blob ([a-f0-9]{40})\t([\s\S]+)$/.exec(row);
