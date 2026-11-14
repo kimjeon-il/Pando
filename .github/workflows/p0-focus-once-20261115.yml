@@ -32,7 +32,7 @@ jobs:
       - uses: pnpm/action-setup@v4
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Prepare pinned external GIS sources using existing tooling
-        run: node tools/data/library-data.mjs --purpose=gis --include-prefix=assets/data/territorial-entities/source --include-prefix=assets/data/territorial-entities/generated --include-prefix=assets/data/world
+        run: node tools/data/library-data.mjs --purpose=gis --include-prefix=assets/data/territorial-entities/source --include-prefix=assets/data/territorial-entities/generated --include-prefix=assets/data/world --include-prefix=assets/data/builtin-world
       - name: Rebuild and verify country GeoJSON using bounded streaming
         run: |
           node tools/build/build-territorial-current-world.mjs
