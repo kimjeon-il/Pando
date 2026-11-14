@@ -80,13 +80,13 @@ const screenLodAlgorithm = 'shared-topology-contraction-v1';
 async function buildMesh(features, context, request = {}) {
   const canonicalFeatures = features;
   const lod = request.lod;
+  if(lod) (await countryPreparation).setByteBudget(Math.max(0,Number(request.cpuCacheBudgetBytes)||0)/4);
   const lodStarted = performance.now();
   const lodProgress = (completed, phase) => { if(lod) context.emitEvent('geometry.lod-progress',
     { requestId: context.requestId, completed, total: 3000004, phase, elapsedMs: performance.now()-lodStarted },
     { projectRevision: context.projectRevision }); };
   lodProgress(0, 'topology');
   let lodInfo = null, derived = false, displayFeatures = null, displaySourceIndices = null;
-  let displayPhysicalFeatures = null, displayPhysicalSourceIndices = null;
   if (lod) {
     const { createSharedPolygonLodIndex, resolveScreenLodEdgeDegrees,
       tileLargePolygonLodFeatures } = await screenLodModule;
@@ -111,8 +111,6 @@ async function buildMesh(features, context, request = {}) {
       const sourceFeatures = screenLodFeatures;
       const visibleIds = request.visibleIds === null || request.visibleIds === undefined
         ? null : new Set(request.visibleIds.map(String));
-      if (visibleIds) for (const feature of sourceFeatures.slice(screenLodCountryCount))
-        visibleIds.add(String(feature.id));
       const topologyReused = !!screenLodIndex;
       if (!screenLodIndex) {
         const next = createSharedPolygonLodIndex(sourceFeatures, { onProgress: progress => {
@@ -130,8 +128,6 @@ async function buildMesh(features, context, request = {}) {
       });
       displayFeatures = display.features.slice(0, screenLodCountryCount);
       displaySourceIndices = display.sourceIndices.slice(0, screenLodCountryCount);
-      displayPhysicalFeatures = display.features.slice(screenLodCountryCount);
-      displayPhysicalSourceIndices = display.sourceIndices.slice(screenLodCountryCount);
       // Even an entirely topology-protected visible ring is a validated display
       // derivative. Never silently substitute the full source for a capped LOD.
       derived = !display.fallback;
@@ -145,7 +141,7 @@ async function buildMesh(features, context, request = {}) {
         tiled = tileLargePolygonLodFeatures(features, request.visibleTiles, {
           intersection: (left, right) => core.polygonOperation('intersection', [left, right], false),
           sourceKey, lodKey: String(lod.key || ''),
-          cache: screenLodTileCache, cacheByteBudget:request.cpuCacheBudgetBytes,
+          cache: screenLodTileCache, cacheByteBudget:Math.max(0,Number(request.cpuCacheBudgetBytes)||0)/4,
         });
         if (tiled.tiledCountryCount) {
           features = tiled.features;
@@ -160,7 +156,6 @@ async function buildMesh(features, context, request = {}) {
         keptVertices: display.keptVertices, arcCount: screenLodIndex.stats().arcCount,
         visibleCountryCount: displayFeatures.filter(feature => !!feature.geometry).length,
         slotCountryCount: screenLodCountryCount,
-        physicalFeatureCount: displayPhysicalFeatures.length,
         topologyReused, topologyFeatureCount: screenLodIndex.stats().featureCount,
         algorithmVersion: screenLodAlgorithm, preparationPhases: screenLodIndex.stats().preparationPhases,
         scoped: !!visibleIds, sourceCached: true, fallback: display.fallback, simplified: derived,
@@ -183,8 +178,7 @@ async function buildMesh(features, context, request = {}) {
   // Only an uncapped failed candidate may return a canonical-retention notice.
   // Accepted candidates include protected rings even when their vertex count
   // happens to match the original; every backend receives that same geometry.
-  if (lod && !derived) return { lod: lodInfo, displayFeatures, displaySourceIndices,
-    displayPhysicalFeatures, displayPhysicalSourceIndices };
+  if (lod && !derived) return { lod: lodInfo, displayFeatures, displaySourceIndices };
   lodProgress(1000002, 'country-mesh');
   const started = performance.now();
   const total = features.length + 3;
@@ -201,23 +195,6 @@ async function buildMesh(features, context, request = {}) {
       validate: derived,
       maxEdgeDegrees: lodInfo?.maxEdgeDegrees || self.PandoLabGpuMeshCore.MAX_RENDER_EDGE_DEGREES,
     });
-    lodProgress(2000002, 'physical-mesh');
-    if (displayPhysicalFeatures?.length) {
-      const store = await polygonPreparation;
-      mesh.displayPhysicalPackets = [];
-      let physicalCompleted = 0;
-      for (const feature of displayPhysicalFeatures) {
-        context.throwIfCancelled();
-        if (!feature.geometry) continue;
-        const { packet } = await store.prepare({
-          cacheKey: `${request.sourceKey}:physical:${feature.id}:${lod.key}`,
-          geometry: feature.geometry,
-        }, context);
-        mesh.displayPhysicalPackets.push({ id: String(feature.id), packet });
-        lodProgress(2000002 + Math.floor(++physicalCompleted / displayPhysicalFeatures.length * 1000000), 'physical-mesh');
-      }
-      mesh.physicalPreparation = store.stats();
-    }
   } catch (error) {
     if (!derived || error.name === 'AbortError' || error.cancelled) throw error;
       if (lod.capped) throw Object.assign(new Error('No valid mesh satisfies the capped display LOD.', { cause: error }),
@@ -234,8 +211,6 @@ async function buildMesh(features, context, request = {}) {
     mesh.lod = { ...lodInfo, preparationMs: performance.now()-lodStarted };
     mesh.displayFeatures = displayFeatures;
     mesh.displaySourceIndices = displaySourceIndices;
-    mesh.displayPhysicalFeatures = displayPhysicalFeatures;
-    mesh.displayPhysicalSourceIndices = displayPhysicalSourceIndices;
   }
   const { prepareCountryStroke } = await strokePreparation;
   const { prepareMeshSpatialBlocks } = await blockPreparation;
@@ -267,8 +242,6 @@ function meshTransferables(mesh) {
     mesh.preparedStroke.instances.buffer,
     mesh.preparedStroke.nodes.buffer,
     ...Object.values(mesh.spatialBlocks).filter(value => value && typeof value === 'object').flatMap(tree => Object.values(tree).map(array => array.buffer)),
-    ...(mesh.displayPhysicalPackets || []).flatMap(({ packet }) => Object.values(packet)
-      .filter(ArrayBuffer.isView).map(array => array.buffer)),
   ])];
 }
 
@@ -306,6 +279,16 @@ self.PandoLabWorkerRpc.install({
           failure: String(error.message || error).slice(0, 240) } };
       }
       context.throwIfCancelled();
+      if(payload.lod) {
+        // Track reusable topology conservatively, separately from transient work.
+        const retainedBytes=(screenLodIndex?.stats().vertexCount || 0)*192;
+        const limit=Math.max(0,Number(payload.cpuCacheBudgetBytes)||0)/2;
+        if(retainedBytes>limit){
+          screenLodSource=null;screenLodIndex=null;screenLodFeatures=null;screenLodTileCache.clear();
+        }
+        if(mesh.lod){mesh.lod.sourceCached=!!screenLodSource;mesh.lod.retainedTopologyEstimatedBytes=screenLodSource?retainedBytes:0;}
+        mesh.workerCache=(await countryPreparation).stats();
+      }
       return payload.lod && !mesh.lod?.simplified
         ? mesh : self.PandoLabWorkerRpc.transferResult(mesh, meshTransferables(mesh));
     },

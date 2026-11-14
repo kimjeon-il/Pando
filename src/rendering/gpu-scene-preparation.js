@@ -35,6 +35,9 @@ export function prepareGpuBaseScene({ mesh, overrideMesh, frame, scene, budgetBy
       ].sort((left, right) => Number(left.packet.order || 0) - Number(right.packet.order || 0));
       const uploadBudget = Math.max(64 * 1024, Number(budgetBytes) || 8 * 1024 * 1024);
       let overlayUploadBytes = 0;
+      // Async queue admission must reserve the future bytes, too. Counting only
+      // completed uploads otherwise schedules every optional mesh at once.
+      let overlayReservedBytes = 0;
       const deferredOverlayKeys = new Set();
       const failedOverlayKeys = new Set();
       const uploadCandidates = overlayItems.filter(item => {
@@ -49,7 +52,7 @@ export function prepareGpuBaseScene({ mesh, overrideMesh, frame, scene, budgetBy
           || item.packet.positions?.byteLength + item.packet.indices?.byteLength
           || item.packet.startsEnds?.byteLength || 0));
         const protectedUpload = item.packet.protected === true;
-        if (!protectedUpload && overlayUploadBytes > 0 && overlayUploadBytes + byteLength > uploadBudget) {
+        if (!protectedUpload && overlayReservedBytes > 0 && overlayReservedBytes + byteLength > uploadBudget) {
           deferredOverlayKeys.add(String(item.packet.key));
           continue;
         }
@@ -57,9 +60,14 @@ export function prepareGpuBaseScene({ mesh, overrideMesh, frame, scene, budgetBy
         const result = pass.ensureResource(item.resourcePacket || item.packet);
         const uploaded = result?.resource;
         if (uploaded) {
-          overlayUploadBytes += Number(uploaded.byteLength ?? byteLength);
+          const actualBytes = Number(uploaded.byteLength ?? byteLength);
+          overlayUploadBytes += actualBytes;
+          overlayReservedBytes += actualBytes;
           if (overlayUploadBytes > uploadBudget) overrunCount += 1;
-        } else if (result?.reason === 'upload-pending') deferredOverlayKeys.add(String(item.packet.key));
+        } else if (result?.reason === 'upload-pending') {
+          overlayReservedBytes += byteLength;
+          deferredOverlayKeys.add(String(item.packet.key));
+        }
         else failedOverlayKeys.add(String(item.packet.key));
       }
 
@@ -112,7 +120,7 @@ export function prepareGpuBaseScene({ mesh, overrideMesh, frame, scene, budgetBy
     physicalLandItems: selectedItems.filter(item => item.kind === 'polygon' && item.packet.role === 'physical-land'),
     physicalWaterItems: selectedItems.filter(item => item.kind === 'polygon' && item.packet.role === 'physical-water'),
     independentItems: selectedItems.filter(item => !['physical-land','physical-water'].includes(item.packet.role) && (item.kind !== 'polygon' || item.packet.role !== 'territorial-fill')),
-    deferredOverlayKeys, failedOverlayKeys, overlayUploadBytes, overrunCount,
+    deferredOverlayKeys, failedOverlayKeys, overlayUploadBytes, overlayReservedBytes, overrunCount,
   };
 }
 

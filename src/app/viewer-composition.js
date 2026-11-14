@@ -91,7 +91,8 @@ export async function composeViewer({ productMode, meta }) {
         map.projectSession.restoreViewingPresentation(workspace);
       }
       await map.loadPhysicalLandMask();
-      map.loadPhysicalResources({includeHydro:reason==='builtin'});
+      // Physical land and DEM still warm before the frame; optional hydro waits.
+      map.loadPhysicalResources({includeHydro:false});
       if(!openingPreserved&&!bounds&&map.features().length)map.navigation.fitMapToFeature({type:'FeatureCollection',features:map.features()});
     }});await map.renderer.waitForTemporalPresentation();return true;},
     restoreReplacement:async(_project,_generation,previousActive)=>{await map.setSession(activeSession,{
@@ -169,7 +170,10 @@ export async function composeViewer({ productMode, meta }) {
     hydrate:async isCurrent=>{await searchController.completeHydration({isCurrent});},
     refresh:search,
     // replaceSnapshot.prepareView already launched physical background loading.
-    afterMap:[()=>surfaces.syncOverlayState(),()=>syncStatus()],
+    afterMap:[()=>surfaces.syncOverlayState(),()=>syncStatus(),()=>{
+      if(projectDomain.activeProject()?.source==='builtin')
+        return map.loadPhysicalResources({includeHydro:true});
+    }],
     onError:(error,stage)=>{
       diagnostics.push({category:'viewer-post-presentation',errorCode:'PL-VIEWER-POST-001',
         stage,technicalMessage:error?.message||String(error),stack:error?.stack||''});
