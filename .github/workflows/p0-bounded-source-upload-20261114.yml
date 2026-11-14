@@ -1,4 +1,5 @@
 name: P0 bounded source and GL upload regression (one shot)
+# Repeat after upload-family and frame-cost attribution.
 on:
   push:
     branches: [work/p0-world-stream-frame-budget-20261114]
