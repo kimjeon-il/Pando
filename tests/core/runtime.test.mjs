@@ -579,7 +579,7 @@ test('bounded current-world loader hashes bytes without a whole-file string and 
     const source={type:'FeatureCollection',features:[{type:'Feature',id:'A',
       geometry:{type:'Polygon',coordinates:[[[0,0],[1,0],[1,1],[0,0]]]},
       properties:{name:'Fixture'}}],bbox:[0,0,1,1]};
-    const bytes=Buffer.from(JSON.stringify(source)+'\\n','utf8');
+    const bytes=Buffer.from(JSON.stringify(source)+'\n','utf8');
     writeFileSync(filename,bytes);
     assert.deepEqual(loadBoundedCurrentWorld(filename),source);
     const result=hashFileInChunks(filename,{chunkBytes:7});
