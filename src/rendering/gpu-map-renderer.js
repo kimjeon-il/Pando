@@ -4438,11 +4438,19 @@ export function createGpuMapRenderer(deps) {
     }
 
     function retainSceneResources() {
+      // Country mesh staging can temporarily expose a scene without its
+      // physical packets. The accepted project's immutable physical source
+      // still owns this coverage; retaining the buffers prevents an expensive
+      // full-world reupload and an incomplete first country frame. A real
+      // source/project removal clears these keys and may reclaim the buffers.
+      const currentPhysical = typeof getPhysicalLand === 'function' ? getPhysicalLand() : null;
       const borderPacketKeys = [countrySharedBoundary, pendingCountrySharedBoundary]
         .flatMap(packet => packet ? [packet.key,
           ...(packet.outlineOverrides?.preparedGeometry?.segmentCount ? [packet.outlineOverrides.key] : [])] : []).filter(Boolean);
       const protectedKeys = new Set([
         ...borderPacketKeys,
+        ...(currentPhysical?.geometry ? ['physical-land'] : []),
+        ...(currentPhysical?.water ? ['physical-water'] : []),
         ...(renderScene?.polygons || []).filter(packet => packet.protected).map(packet => packet.key),
         ...(renderScene?.strokes || []).filter(packet => packet.protected).map(packet => packet.key),
         ...(selectionPass?.resourceKeys?.() || []),
