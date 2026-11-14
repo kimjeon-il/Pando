@@ -24,10 +24,11 @@ function canvasFallbackWorkerMain(self) {
     let terrainExpectedHash = '';
     let terrainTileRequest = null, fetchTerrainTile = null, terrainExternalSource = null;
     let externalRuntimeData = null;
-    let terrainNaturalTileRequest=null,naturalSurfaceCatalog=null,naturalCatalogKey='';
+    let terrainNaturalTileRequest=null, terrainNaturalFadeEdges=null,naturalSurfaceCatalog=null,naturalCatalogKey='';
     const naturalRequests=new Map(),naturalFailures=new Set();
     let naturalReservedBytes=0,naturalRevision=0,naturalRequestsStarted=0;
-    let numericalScratch=null,numericalPixels=0,numericalScratchPeakBytes=0;
+    let numericalScratch=null,numericalScratchContext=null,numericalPixels=0,numericalScratchPeakBytes=0;
+    let numericalScratchAllocations=0,numericalBlocks=0;
     const demTiles = new Map();
     const demRequests = new Map();
     const demQueue = [];
@@ -223,18 +224,17 @@ function canvasFallbackWorkerMain(self) {
       const pixels = await readRgba(blob);
       if (pixels.width !== spec.pixelWidth + 2 || pixels.height !== spec.pixelHeight + 2)
         throw new Error(`DEM 타일 크기가 올바르지 않습니다: ${spec.key}`);
-      // The decoded RGBA8 DEM is held once per cached tile so switching the
-      // presentation palette never downloads the source tile a second time.
+      // Every new DEM tile takes the active destination-pixel numerical path.
+      // Keeping three eager precoloured bitmaps would add 12B/texel and an
+      // unused full-tile palette conversion before the *first* frame. Retain
+      // the exact original RGBA8 source (4B/texel); resolve light/dark PCHIP
+      // colour at the final sample. Legacy bitmap theme caches remain available
+      // for explicitly staged nonnumerical tiles and are not invalidated.
       const raw = pixels.data, theme = lastRenderMessage?.darkTheme ? 'dark' : 'light';
-      const converted = self.PandoLabCanvasTerrainDem.convertTile({
-        dem: raw, width: pixels.width, height: pixels.height, theme,
-      });
       return {
-        land: demPlaneBitmap(converted.land, pixels.width, pixels.height),
-        ocean: demPlaneBitmap(converted.ocean, pixels.width, pixels.height),
-        political: demPlaneBitmap(converted.political, pixels.width, pixels.height),
+        land: null, ocean: null, political: null,
         raw, theme, width: pixels.width, height: pixels.height,
-        bytes: pixels.width * pixels.height * (self.PandoLabCanvasTerrainDem.convertedBytesPerPixel + 4),
+        bytes: raw.byteLength,
       };
     }
 
@@ -288,7 +288,7 @@ function canvasFallbackWorkerMain(self) {
           .then(blob => prepareDemBitmap(blob, spec))
           .then(tile => {
             if (controller.signal.aborted) {
-              tile.land.close(); tile.ocean.close(); tile.political.close();
+              closeDemTile(tile);
               return;
             }
             demFailures.delete(spec.key);
@@ -351,6 +351,7 @@ function canvasFallbackWorkerMain(self) {
         if (disposed || controller.signal.aborted) return;
         terrainTileRequest = terrainModule.terrainTileRequest;
         terrainNaturalTileRequest = terrainModule.terrainNaturalTileRequest;
+        terrainNaturalFadeEdges = terrainModule.naturalSurfaceFadeEdges;
         fetchTerrainTile = terrainModule.fetchTerrainTile;
         terrainDemManifest = manifest;
         requestLatestTerrainDemand();
@@ -384,16 +385,33 @@ function canvasFallbackWorkerMain(self) {
       const points=destination.map(p=>[p[0]*dpr,p[1]*dpr]);
       for(const block of self.PandoLabCanvasTerrainDem.rasterizeInterpolatedTriangle({
         sample:image.sample,source,destination:points,viewportWidth:canvas.width,viewportHeight:canvas.height})){
-        numericalScratchPeakBytes=Math.max(numericalScratchPeakBytes,block.rgba.byteLength*2);
         if(block.pixels){
-          if(!numericalScratch)numericalScratch=new OffscreenCanvas(block.width,block.height);
-          if(numericalScratch.width!==block.width)numericalScratch.width=block.width;
-          if(numericalScratch.height!==block.height)numericalScratch.height=block.height;
-          numericalScratch.getContext('2d').putImageData(new ImageData(block.rgba,block.width,block.height),0,0);
+          // Never resize the scratch backing down for the final narrow block
+          // of a triangle. Resizing reallocates its backing and invalidates
+          // the 2D context state on every projection/tile, disproportionately
+          // hurting Canvas when the visible height spans many rows.
+          if(!numericalScratch){
+            // The numerical triangle generator guarantees at most 2048
+            // columns by 16 rows. Preallocate one viewport-bounded scratch
+            // backing instead of growing it at each differently sized globe
+            // triangle (19 reallocations were observed in one live frame).
+            numericalScratch=new OffscreenCanvas(Math.min(2048,canvas.width),16);
+            numericalScratchContext=numericalScratch.getContext('2d');
+            numericalScratchAllocations++;
+          }
+          if(block.width>numericalScratch.width||block.height>numericalScratch.height)
+            throw new RangeError('Numerical Canvas scratch block exceeded its bounded viewport');
+          numericalScratchPeakBytes=Math.max(numericalScratchPeakBytes,
+            block.rgba.byteLength+numericalScratch.width*numericalScratch.height*4);
+          numericalScratchContext.putImageData(new ImageData(block.rgba,block.width,block.height),0,0);
           context.save();
-          try{context.setTransform(1,0,0,1,0,0);context.drawImage(numericalScratch,block.x,block.y);}
-          finally{context.restore();}
+          try{
+            context.setTransform(1,0,0,1,0,0);
+            context.drawImage(numericalScratch,0,0,block.width,block.height,
+              block.x,block.y,block.width,block.height);
+          }finally{context.restore();}
           numericalPixels+=block.pixels;
+          numericalBlocks++;
         }
         yield;
       }
@@ -638,7 +656,10 @@ function canvasFallbackWorkerMain(self) {
           tile.lastUsed = performance.now();
           if(tile.raw){
             const image={sample:self.PandoLabCanvasTerrainDem.createInterpolatedSampler({dem:tile.raw,width:tile.width,height:tile.height,
-              theme:message.darkTheme?'dark':'light',channel,naturalSurface:tile.naturalSurface||null})};
+              theme:message.darkTheme?'dark':'light',channel,
+              naturalSurface:tile.naturalSurface?{...tile.naturalSurface,
+                fadeEdges:terrainNaturalFadeEdges?.(spec,terrainDemManifest,key=>
+                  !!demTiles.get(key.slice(0,-5))?.naturalSurface)||[0,0,0,0]}:null})};
             if(message.projection==='flat')yield* drawNumericalFlatTile(spec,image,projection,dpr);
             else yield* drawGlobeTerrainTile(spec,image,projection,message,dpr,Number(spec.level)===0);
           }else{
@@ -687,6 +708,8 @@ function canvasFallbackWorkerMain(self) {
         terrainNaturalTilesLoaded:[...demTiles.values()].filter(t=>t.naturalSurface).length,
         terrainNaturalFailures:naturalFailures.size,canvasTerrainNumericPixels:numericalPixels,
         canvasTerrainNumericScratchPeakBytes:numericalScratchPeakBytes,
+        canvasTerrainNumericScratchAllocations:numericalScratchAllocations,
+        canvasTerrainNumericBlocks:numericalBlocks,
       };
     }
 
@@ -1406,7 +1429,7 @@ function canvasFallbackWorkerMain(self) {
     };
     function dispose() {
       resetCanvasNatural();
-      if(numericalScratch){numericalScratch.width=1;numericalScratch.height=1;numericalScratch=null;}
+      if(numericalScratch){numericalScratch.width=1;numericalScratch.height=1;numericalScratch=null;numericalScratchContext=null;}
       if (disposed) return;
       disposed = true;
       cancelActivePaint();

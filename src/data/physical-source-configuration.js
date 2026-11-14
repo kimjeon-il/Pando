@@ -1,5 +1,5 @@
 import {TERRAIN_DEM_VERSION} from "./terrain-manifest.js";
-import {NATURAL_SURFACE_PREVIEW_CATALOG} from "./terrain-natural-candidate.js";
+import {NATURAL_SURFACE_PREVIEW_CATALOG, NATURAL_SURFACE_OBSERVED_CATALOG} from "./terrain-natural-candidate.js";
 import {mapProjectResourcePath} from "./map-project-manifest.js";
 export const HYDRO_TOOL_CONFIG = Object.freeze({
       river: Object.freeze({ geometry: 'LineString', category: 'river', label: '강', color: '#3b82c4', prefix: 'river' }),
@@ -24,7 +24,9 @@ export function createPhysicalSourceConfiguration({assetBaseUrl,dataRevision,res
  const useDevelopment=resourceProfile!=='map-data' && params.get('demTerrain')==='local';
  const dev=useDevelopment?new URL(String(devManifest || `http://127.0.0.1:4174/terrain/v${TERRAIN_DEM_VERSION}/manifest.json`),dataBase):null;
  // Explicit preview only: the shipped project data pin is not replaced.
- const naturalPreview=params.get('naturalTerrain')==='preview'?new URL(NATURAL_SURFACE_PREVIEW_CATALOG):null;
+ const naturalChoice=params.get('naturalTerrain');
+  const naturalPreview=naturalChoice==='observed'?new URL(NATURAL_SURFACE_OBSERVED_CATALOG)
+    :naturalChoice==='preview'?new URL(NATURAL_SURFACE_PREVIEW_CATALOG):null;
  return Object.freeze({PHYSICAL_DATA_BASE_URL:dataBase,TERRAIN_DEV_DEM_MANIFEST_URL:dev,
   TERRAIN_PRIMARY_MANIFEST_URL:dev || projectTerrain,TERRAIN_SOURCE_CHOICE:dev?'development':'project',
   TERRAIN_NATURAL_PREVIEW_CATALOG_URL:naturalPreview});

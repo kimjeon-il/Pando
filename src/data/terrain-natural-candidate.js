@@ -4,6 +4,10 @@ import {validateNaturalSurfaceManifest} from './terrain-manifest.js';
 // operational terrain pin, project manifest, or the published Viewer by itself.
 export const NATURAL_SURFACE_PREVIEW_CATALOG =
   'https://raw.githubusercontent.com/kimjeon-il/PandoLab-library/82edd7181c158940c482d6621a403bd8667fda72/terrain/natural/candidates/v0.1.0-preview.1.json';
+// 2021-observed WorldCover/RGI7/polar masks, nine regional samples only.
+// Explicit opt-in; never replace the published project data pin.
+export const NATURAL_SURFACE_OBSERVED_CATALOG =
+  'https://raw.githubusercontent.com/kimjeon-il/PandoLab-library/f7d6b6402f3a89fb8738bf6169aa7d7e553992f9/terrain/natural/candidates/v0.1.0-preview.2.json';
 
 export async function loadNaturalSurfaceCandidate({dem, catalogUrl, signal, fetchFn = fetch} = {}) {
   if (!catalogUrl) return null;
