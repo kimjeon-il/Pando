@@ -16,6 +16,8 @@ import {decodeCountryMesh, encodeCountryMesh} from '../../src/rendering/country-
 import {createApplicationLifecycle} from '../../src/app/application-lifecycle.js';
 import {createPhysicalAssetReader} from '../../src/data/physical-asset-reader.js';
 import {createTerrainService} from '../../src/data/physical-layer-service.js';
+import {createGpuCanvasWorker} from '../../src/rendering/gpu-canvas-worker.js';
+import {classifyCanvasWorkerFrame} from '../../src/rendering/map-render-publication.js';
 
 // A single fixed package exercises the current read-only path. No writer,
 // old test helper, mounted dataset, or full catalog is needed.
@@ -296,4 +298,59 @@ test('numeric DEM regression compares the same colored or monochrome channel at 
     for(let c=0;c<4;c++)assert.ok(Math.abs(actual[c]-expected[c])<=1,
       channel+' integer texel '+c+' must match the prepared-color contract');
   }
+});
+
+
+test('Canvas Worker rejects superseded camera, date, theme and generation frames without publishing pixels',()=>{
+  const sent=[],presented=[],stale=[];let closed=0;
+  const worker={postMessage(message){sent.push(message);},terminate(){}};
+  let currentKey='camera-a',currentStyle=1;
+  const acceptFrame=message=>classifyCanvasWorkerFrame(message,{
+    expectedPresentationKey:currentKey,geometryRevision:7,styleRevision:currentStyle,
+    surfaceQuality:'canonical',physicalMatches:true,
+  })==='';
+  const transport=createGpuCanvasWorker({worker,generation:1,acceptFrame,
+    onStale:message=>stale.push(message.presentationKey)});
+  transport.onmessage=event=>{if(event.data.type==='frame')presented.push(event.data.presentationKey);};
+  const frame=(revision,presentationKey,styleRevision=currentStyle,projectGeneration=1)=>({
+    type:'view',revision,projectGeneration,presentationKey,
+    geometryRevision:7,styleRevision,surfaceQuality:'canonical'
+  });
+  const acknowledge=(request,message)=>{
+    const bitmap={close(){closed++;}};
+    worker.onmessage({data:{...message,type:'frame',renderRequestId:request.renderRequestId,bitmap}});
+  };
+  worker.onmessage({data:{type:'ready'}});
+  transport.queueFrame(frame(1,'camera-a'));
+  const first=sent.at(-1);assert.equal(first.revision,1);
+  currentKey='camera-b';
+  transport.queueFrame(frame(2,'camera-b'));
+  transport.queueFrame(frame(1,'obsolete-camera'));
+  assert.equal(sent.filter(x=>x.type==='view').length,1,'stale camera cannot be queued');
+  acknowledge(first,frame(1,'camera-a'));
+  assert.equal(closed,1);assert.deepEqual(presented,[]);
+  const second=sent.at(-1);assert.equal(second.presentationKey,'camera-b');
+  acknowledge(second,frame(2,'camera-b'));
+  assert.deepEqual(presented,['camera-b']);
+
+  // Date and palette may change without advancing the camera revision.
+  currentKey='new-date';currentStyle=2;
+  transport.queueFrame(frame(2,'new-date'));
+  const third=sent.at(-1);
+  acknowledge(third,frame(2,'camera-b',1));
+  assert.equal(closed,2);assert.deepEqual(presented,['camera-b']);
+  transport.queueFrame(frame(2,'new-date'));
+  const fourth=sent.at(-1);acknowledge(fourth,frame(2,'new-date'));
+  assert.deepEqual(presented,['camera-b','new-date']);
+
+  // A late bitmap from a previous project is never a valid new-generation frame.
+  transport.resetGeneration(2);currentKey='new-project';currentStyle=3;
+  transport.queueFrame(frame(1,'new-project',3,2));
+  const fifth=sent.at(-1);
+  acknowledge(fifth,frame(3,'new-date',2,1));
+  assert.equal(closed,3);assert.deepEqual(presented,['camera-b','new-date']);
+  acknowledge(fifth,frame(1,'new-project',3,2));
+  assert.deepEqual(presented,['camera-b','new-date','new-project']);
+  assert.ok(stale.includes('camera-a')&&stale.includes('camera-b'));
+  transport.terminate();
 });
