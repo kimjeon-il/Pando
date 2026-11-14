@@ -10,7 +10,6 @@
 | 레이어·지도 UI | [레이어 표현 코드](../../src/ui/layer-presentation.js), [공통 토큰](../../src/ui/css/tokens/design-tokens.css) | UI 상태와 렌더 원본 분리 |
 | 이전 편집 IA 및 수명주기 | [UI Information Architecture](../architecture/ui-information-architecture.md), [현행 계약](../app-module-ownership.md) | 당시 UX·검증 이력으로 보관; 현재 기능 요구가 아님 |
 
-**검증 계약:** `check-group:ui-architecture`, `check-group:ui-components`, `check-group:ui-layering`, `check-group:ui-ia`. 현재 일괄 명령은 `check-script:check:ui`. 실제 화면·키보드·반응형의 시각 합격 여부는 해당 브라우저 검사로 확인해야 합니다.
 
 ## 객체 Registry와 상호작용 규칙
 

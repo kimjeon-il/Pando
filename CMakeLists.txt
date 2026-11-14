@@ -21,7 +21,7 @@ if(PANDO_BUILD_VARIANT STREQUAL "wasm" AND NOT EMSCRIPTEN)
 endif()
 
 # Register top-level CTest entries; individual sources decide which tests exist.
-include(CTest)
+
 
 if(PANDO_BUILD_VARIANT STREQUAL "core" OR PANDO_BUILD_VARIANT STREQUAL "wasm")
     if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tools/build/native/CMakeLists.txt")

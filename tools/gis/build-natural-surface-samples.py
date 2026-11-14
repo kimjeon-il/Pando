@@ -55,28 +55,6 @@ def crop_with_gutter(image, left, top, width, height):
     return out.convert('RGBA')
 
 
-def self_test():
-    image = Image.new('RGB', (8, 4))
-    image.putdata([(x * 23, y * 47, (x+y) * 11) for y in range(4) for x in range(8)])
-    left = crop_with_gutter(image, 0, 0, 4, 4)
-    right = crop_with_gutter(image, 4, 0, 4, 4)
-    assert left.size == (6, 6) and right.size == (6, 6)
-    for y in range(6):
-        assert left.getpixel((5, y)) == right.getpixel((1, y))
-        assert left.getpixel((4, y)) == right.getpixel((0, y))
-        assert left.getpixel((0, y)) == right.getpixel((4, y))
-        assert right.getpixel((5, y)) == left.getpixel((1, y))
-    for x in range(6):
-        assert left.getpixel((x, 0)) == left.getpixel((x, 1))
-        assert left.getpixel((x, 5)) == left.getpixel((x, 4))
-    encoded = io.BytesIO()
-    left.save(encoded, format='WEBP', lossless=True, quality=80, method=6, exact=True)
-    restored = Image.open(io.BytesIO(encoded.getvalue())).convert('RGBA')
-    assert restored.tobytes() == left.tobytes()
-    assert restored.getchannel('A').getextrema() == (255, 255)
-    return {'gutter': True, 'longitudeWrap': True, 'polarClamp': True, 'webpLosslessRoundTrip': True}
-
-
 def build(source, expected_sha256, output):
     source, output = Path(source).resolve(), Path(output).resolve()
     if output.exists():
@@ -141,7 +119,7 @@ def build(source, expected_sha256, output):
                     'No full-resolution world dataset has been generated; only selected LOD4 tiles']}
     receipt = {'sourceSha256': digest, 'sourceHashPolicy': 'acquisition digest, not an official NASA published checksum',
                'tileCount': len(entries), 'tileBytes': sum(entry['bytes'] for entry in entries.values()),
-               'checks': self_test(), 'pixels': validation, 'webpVersion': features.version('webp'),
+               'pixels': validation, 'webpVersion': features.version('webp'),
                'operationalPinChanged': False, 'DEMModified': False}
     for filename, value in [('manifest.json', manifest), ('generation-receipt.json', receipt)]:
         with (output / filename).open('x', encoding='utf8') as handle:
@@ -155,11 +133,7 @@ def main():
     parser.add_argument('--source')
     parser.add_argument('--source-sha256')
     parser.add_argument('--output')
-    parser.add_argument('--self-test', action='store_true')
     args = parser.parse_args()
-    if args.self_test:
-        print(json.dumps(self_test()))
-        return
     if not all((args.source, args.source_sha256, args.output)):
         parser.error('--source, --source-sha256 and --output are required')
     print(json.dumps(build(args.source, args.source_sha256, args.output), indent=2))

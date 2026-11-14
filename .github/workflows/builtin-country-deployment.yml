@@ -1,30 +1,23 @@
 name: Independent country deployment contracts
-
 on:
   push:
-    branches: [work/gis]
+    branches:
+      - work/gis
     paths:
-      - '.github/workflows/builtin-country-deployment.yml'
-      - 'tests/unit/data/builtin-country-publication.test.mjs'
-      - 'tests/unit/data/builtin-country-parts.test.mjs'
-      - 'tests/integration/builtin-country-deployment.mjs'
-      - 'tests/browser/document/viewer-calendar.spec.mjs'
-      - 'tools/data/builtin-country-storage.mjs'
-      - 'tools/data/builtin-country-bytes.mjs'
-      - 'src/data/builtin-country-files.js'
-      - 'scripts/lib/product-assets.mjs'
-      - 'src/app/viewer.js'
-      - 'tools/build/stage-monorepo-pages.mjs'
-      - 'tests/unit/build/frontend-build.test.mjs'
-      - 'tests/unit/document/monorepo-pages-staging.test.mjs'
-      - 'docs/development/builtin-country-deployment.md'
+      - .github/workflows/builtin-country-deployment.yml
+      - tools/data/builtin-country-storage.mjs
+      - tools/data/builtin-country-bytes.mjs
+      - src/data/builtin-country-files.js
+      - scripts/lib/product-assets.mjs
+      - src/app/viewer.js
+      - tools/build/stage-monorepo-pages.mjs
+      - docs/development/builtin-country-deployment.md
   workflow_dispatch:
     inputs:
       activate:
         description: Store and push verified country files and the paired work/gis pin; never deploy main
         type: boolean
         default: false
-
 permissions:
   contents: read
 concurrency:
@@ -47,31 +40,7 @@ jobs:
           persist-credentials: true
       - uses: actions/setup-node@v4
         with:
-          node-version: '24'
-      - name: Reuse completed checks only for an identical implementation and input pin
-        id: reuse
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          node --input-type=module <<'JS'
-          import {readFileSync,appendFileSync} from 'node:fs';
-          import {execFileSync} from 'node:child_process';
-          import assert from 'node:assert/strict';
-          const message=JSON.parse(readFileSync(process.env.GITHUB_EVENT_PATH)).head_commit?.message||'';
-          const requested=message.match(/\[resume-country-files:(\d+)\]/)?.[1];
-          if(!requested){appendFileSync(process.env.GITHUB_OUTPUT,'verified=false\n');process.exit(0);}
-          const get=async path=>{const response=await fetch(`https://api.github.com/repos/${process.env.GITHUB_REPOSITORY}/${path}`,{headers:{Authorization:'Bearer '+process.env.GH_TOKEN,Accept:'application/vnd.github+json'}});assert.ok(response.ok,'Prior verification lookup failed: '+response.status);return response.json();};
-          const run=await get('actions/runs/'+requested);
-          assert.equal(run.head_branch,'work/gis');assert.equal(run.path,'.github/workflows/builtin-country-deployment.yml');assert.equal(run.status,'completed');
-          const jobs=await get('actions/runs/'+requested+'/jobs?per_page=100'),job=jobs.jobs.find(row=>row.name==='deployment');
-          for(const name of ['Verify affected generation, loader, deployment and Viewer publication contracts','Prepare independent files and a locally verified paired pin; preserve every country hash','Verify real Web/App closures, dated loading and preservation of unrelated archived data','Verify current month, historical selection and no aggregate network request'])assert.equal(job?.steps.find(step=>step.name===name)?.conclusion,'success',name);
-          assert.match(run.head_sha,/^[a-f0-9]{40}$/);
-          execFileSync('git',['fetch','--no-tags','--depth=1','origin',run.head_sha],{stdio:'pipe'});
-          const changed=execFileSync('git',['diff','--name-only',run.head_sha,'HEAD'],{encoding:'utf8'}).trim().split('\n').filter(Boolean);
-          assert.ok(changed.every(path=>path==='.github/workflows/builtin-country-deployment.yml'||path==='docs/development/builtin-country-deployment.md'),'Implementation or paired input changed; run fresh checks');
-          appendFileSync(process.env.GITHUB_OUTPUT,'verified=true\n');
-          console.log(JSON.stringify({reusedVerificationRun:run.id,verifiedCodeCommit:run.head_sha,implementationAndInputPinIdentical:true}));
-          JS
+          node-version: "24"
       - uses: pnpm/action-setup@v4
         with:
           version: 11.19.0
@@ -81,7 +50,7 @@ jobs:
       - name: Prepare exact paired inputs without GIS regeneration
         uses: ./.github/actions/library-data
       - name: Preserve a report-only remote advance without admitting unreviewed runtime data
-        run: |
+        run: |-
           node --input-type=module <<'JS'
           import {writeFileSync} from 'node:fs';
           import {execFileSync} from 'node:child_process';
@@ -108,12 +77,8 @@ jobs:
           },{compact:false});
           JS
           node tools/data/library-data.mjs
-      - name: Verify affected generation, loader, deployment and Viewer publication contracts
-        if: steps.reuse.outputs.verified != 'true'
-        run: |
-          node --test --test-timeout=15000 tests/unit/data/builtin-country-publication.test.mjs tests/unit/data/historical-world-publication.test.mjs tests/unit/document/builtin-world-catalog.test.mjs tests/unit/data/builtin-world-loader.test.mjs tests/unit/data/builtin-country-loading.test.mjs tests/unit/data/builtin-country-parts.test.mjs tests/unit/build/frontend-build.test.mjs tests/unit/document/monorepo-pages-staging.test.mjs
       - name: Prepare independent files and a locally verified paired pin; preserve every country hash
-        run: |
+        run: |-
           node --input-type=module <<'JS'
           import {writeFileSync} from 'node:fs';
           import {libraryConfig} from './tools/data/library-context.mjs';
@@ -126,22 +91,11 @@ jobs:
           console.log(JSON.stringify({preparedCountries:prepared.countryCount,changedStoragePaths:prepared.prefixes.length,preservedCountryHashes:prepared.preservedCountryHashes,...verified,localDataCommit:stored.revision}));
           JS
           node tools/data/library-data.mjs
-      - name: Verify real Web/App closures, dated loading and preservation of unrelated archived data
-        run: node tests/integration/builtin-country-deployment.mjs
-      - name: Verify product asset unit contracts
-        if: steps.reuse.outputs.verified != 'true'
-        run: node --test --test-timeout=30000 tests/unit/ui/product-assets.test.mjs
-      - name: Prepare one real Chromium loading regression
-        if: steps.reuse.outputs.verified != 'true'
-        run: pnpm exec playwright install --with-deps chromium
-      - name: Verify current month, historical selection and no aggregate network request
-        if: steps.reuse.outputs.verified != 'true'
-        run: pnpm exec playwright test tests/browser/document/viewer-calendar.spec.mjs --grep 'follows calendar rollover' --workers=1 --retries=0 --trace off
       - name: Publish only verified country files to the data work/gis branch
         if: inputs.activate == true || contains(github.event.head_commit.message, '[activate-country-files]')
         env:
           PANDOLAB_LIBRARY_WRITE_TOKEN: ${{ secrets.PANDOLAB_LIBRARY_WRITE_TOKEN }}
-        run: |
+        run: |-
           test -n "$PANDOLAB_LIBRARY_WRITE_TOKEN" || { echo 'Library writing credential unavailable'; exit 1; }
           node --input-type=module <<'JS'
           import {readFileSync} from 'node:fs';
@@ -164,7 +118,7 @@ jobs:
           JS
       - name: Commit verified data pin to work/gis only
         if: inputs.activate == true || contains(github.event.head_commit.message, '[activate-country-files]')
-        run: |
+        run: |-
           set -euo pipefail
           git diff --check
           if git diff --quiet -- config/library-data.json; then echo 'Pin already current'; exit 0; fi

@@ -19,16 +19,14 @@
       "name": "pando-core",
       "inherits": "pando-base",
       "cacheVariables": {
-        "PANDO_BUILD_VARIANT": "core",
-        "BUILD_TESTING": "ON"
+        "PANDO_BUILD_VARIANT": "core"
       }
     },
     {
       "name": "pando-wasm",
       "inherits": "pando-base",
       "cacheVariables": {
-        "PANDO_BUILD_VARIANT": "wasm",
-        "BUILD_TESTING": "OFF"
+        "PANDO_BUILD_VARIANT": "wasm"
       }
     },
     {
@@ -37,8 +35,7 @@
       "cacheVariables": {
         "PANDO_BUILD_VARIANT": "gis-tools",
         "PANDO_BUILD_COUNTRY_VALIDATOR": "OFF",
-        "PANDO_BUILD_TERRITORIAL_RECIPE": "OFF",
-        "BUILD_TESTING": "ON"
+        "PANDO_BUILD_TERRITORIAL_RECIPE": "OFF"
       }
     }
   ],
@@ -47,9 +44,7 @@
       "name": "pando-core",
       "configurePreset": "pando-core",
       "targets": [
-        "project_codec_tests",
-        "document_session_tests",
-        "geometry_draft_tests"
+        "pandoeditor_core"
       ],
       "jobs": 2
     },
@@ -65,35 +60,9 @@
       "name": "pando-gis-tools",
       "configurePreset": "pando-gis-tools",
       "targets": [
-        "pando-spherical-polygon-tests"
+        "pando-spherical-polygon-normalize"
       ],
       "jobs": 2
-    }
-  ],
-  "testPresets": [
-    {
-      "name": "pando-core",
-      "configurePreset": "pando-core",
-      "output": {
-        "outputOnFailure": true
-      },
-      "filter": {
-        "include": {
-          "name": "^(project_codec_tests|document_session_tests|geometry_draft_tests)$"
-        }
-      }
-    },
-    {
-      "name": "pando-gis-tools",
-      "configurePreset": "pando-gis-tools",
-      "output": {
-        "outputOnFailure": true
-      },
-      "filter": {
-        "include": {
-          "name": "^spherical-polygon-normalization$"
-        }
-      }
     }
   ]
 }

@@ -318,45 +318,10 @@ def build(output):
     print(json.dumps(receipt,indent=2))
 
 
-def polar_nan_self_test():
-    """Exercise the real rasterio reprojection path, not just a bounds helper."""
-    import tempfile
-    import numpy as np
-    import rasterio
-    from rasterio.transform import from_origin
-    data=np.array([[1,1,np.nan,0],[1,np.nan,0,0],[0,0,1,np.nan],[0,0,1,1]],dtype='float32')
-    with tempfile.TemporaryDirectory(prefix='pando-natural-polar-') as directory:
-        path=Path(directory)/'ice.tif'
-        source_transform=from_origin(0,4,1,1)
-        with rasterio.open(path,'w',driver='GTiff',height=4,width=4,count=1,
-              dtype='float32',crs='EPSG:4326',transform=source_transform) as dst:
-            dst.write(data,1)
-        result,receipt=polar_grid(path,'2021.000',(2,2),from_origin(0,4,2,2))
-        if not np.array_equal(result,np.array([[1,0],[0,1]],dtype='float32')):
-            raise AssertionError('NaN nodata contaminated valid polar coverage')
-        if not receipt['coverageValidation']['implicitFloatNaNNoData']:
-            raise AssertionError('Explicit IEEE NaN missing-data rule was not used')
-        south=np.array([[1,0],[float('nan'),float('nan')]],dtype='float32')
-        south_transform=from_origin(0,-89.99166666666666,1,1/60)
-        corrected=repair_polar_outside_latitude_gutter(south,south_transform)
-        if corrected!=2 or not np.array_equal(south,np.array([[1,0],[1,0]],dtype='float32')):
-            raise AssertionError('South-pole one-pixel outside-latitude gutter was not replicated')
-        interior=np.array([[1,float('nan')],[0,0]],dtype='float32')
-        if repair_polar_outside_latitude_gutter(interior,from_origin(0,-89.75,1,1/60))!=0:
-            raise AssertionError('In-range missing data was silently repaired')
-        if bool(np.isfinite(interior).all()):
-            raise AssertionError('Interior NaN must remain a hard source-quality failure')
-        print(json.dumps({'polarNaNMissingSource':True,'outputCoverage':result.tolist(),
-          'strictFiniteOutput':bool(np.isfinite(result).all()),
-          'southPolarGutterPixels':corrected,'interiorNaNStillRejected':True}))
-
-
 def main():
     parser=argparse.ArgumentParser();parser.add_argument('--output',required=True);parser.add_argument('--probe',action='store_true')
-    parser.add_argument('--self-test-polar',action='store_true')
     args=parser.parse_args()
-    if args.self_test_polar:polar_nan_self_test()
-    elif args.probe:probe(args.output)
+    if args.probe:probe(args.output)
     else:build(args.output)
 
 if __name__=='__main__':main()

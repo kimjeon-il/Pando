@@ -11,7 +11,6 @@
 | 원본의 날짜·귀속·명칭 | [영토 출처 계약](../territorial-source-contract.md) | 옛 교환 fixture·원본 SHA와 현행 API 구분 |
 | 저장·복원 당시 단계 | [타임라인 저장 기록](../timeline-storage.md), [영속성 검증 이력](../timeline-persistence.md) | 그때의 미완료/테스트 상태를 현재 결함 또는 성공으로 소급하지 않음 |
 
-**검증 계약:** `check-group:object-contracts`, `check-group:project-file-contracts`, `check-group:territorial-storage`. 코드 버전 상수와 문서상의 과거 숫자가 다르면 현재 코드 계약을 검사하되 과거 예제는 그대로 보존합니다.
 
 ## 추가 저장·명령·객체 규범
 

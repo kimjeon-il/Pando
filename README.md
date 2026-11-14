@@ -41,9 +41,7 @@ v0.34.0부터 분포는 고정된 언어·민족·종교 분류 대신 이름·�
 
 ## 검사 실행
 
-`pnpm install --frozen-lockfile` 후 변경 범위에 맞는 `pnpm lint`,
-`pnpm check:architecture`, `pnpm test:unit`, `pnpm test:browser -- <파일>`을
-실행합니다. 전체 검사는 `pnpm test`입니다.
+기존 의존성 준비 후 [핵심 검증 정책](docs/policies/validation.md)에 따라 변경에 필요한 `pnpm lint`, `pnpm test:node`, `pnpm test:browser`만 선택합니다. Node 시나리오는 `node scripts/run-application-checks.mjs --group=node --test-name-pattern=이름`으로 한정할 수 있습니다. 전체 실행은 사용자가 해당 범위를 명시한 경우에만 수행합니다.
 
 Windows에서 PowerShell 실행 정책이 `pnpm.ps1`을 막으면 `pnpm.cmd`를 사용합니다.
 GIS 생성기와 관련 검사는 Node.js와 기능별 네이티브 도구를 사용합니다.

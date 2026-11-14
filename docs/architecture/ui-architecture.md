@@ -88,7 +88,7 @@
 - Layout: position, inset, width/height, transform, responsive visibility
 - Feature: 도메인 고유 geometry/media 표현과 콘텐츠 배치
 
-특수 미디어 preview 같은 예외는 **적용 조건 + 담당 컴포넌트 + 이유 + 검증 항목**을 컴포넌트 문서에 기록한다. 구현 시 `scripts/lib/reviewer-ui-contracts.mjs`의 관련 검사에 파일·selector·property·reason을 연결한다. 넓은 selector나 feature 전체를 예외 처리하지 않는다. 기존 override가 있다는 이유만으로 예외를 인정하지 않는다.
+특수 미디어 preview 같은 예외는 **적용 조건 + 담당 컴포넌트 + 이유 + 검증 항목**을 컴포넌트 문서에 기록한다. 구현의 조건과 이유는 담당 컴포넌트에서 확인한다. 넓은 selector나 feature 전체를 예외 처리하지 않는다. 기존 override가 있다는 이유만으로 예외를 인정하지 않는다.
 
 ## 3. Selector와 값 규칙
 
@@ -184,19 +184,9 @@ workspace-surface
 
 문자열이나 렌더된 DOM을 관찰해서 domain state를 역추론하는 방식보다 명시적 controller state와 event를 우선한다.
 
-## 7. CI 계약
+## 7. 실제 UI 검증
 
-후속 구현에서는 다음 관련 검사를 유지하고 새 계약과의 차이를 명시적으로 갱신한다. 이번 문서 정리 단계에서는 검사 코드를 변경하거나 앱 테스트를 실행하지 않는다.
-
-- `check:ui-spacing`: spacing/token 충돌 검사
-- `check:ui-components`: primitive/component 조합 검사
-- `check:ui-architecture`: 계층, Surface DOM contract, legacy ratchet 및 retired artifact 검사
-- `check:ui-layering`: 원본 목록과 계층 검사
-- `check:ui-ia`: 현재 surface variant와 생성·편집 정보 구조 검사
-
-`scripts/lib/ui-source-catalog.mjs`는 canonical bundle, lazy modal, 원본 audit 입력 목록의 단일 원본이다. 검사기는 생성 bundle을 다시 입력으로 읽거나 자체 CSS 경로 배열을 유지하지 않는다. IA 검사는 현재 surface별 구조 차이를 `menu-sheet`·`delegated`·`editor` 계약으로 구분한다.
-
-UI 예외를 추가해서 검사를 우회하는 것보다 기존 primitive/component를 확장하는 것을 우선한다. 예외가 필요한 경우 이유가 코드에 남아야 하며 범위는 최소여야 한다.
+Viewer의 desktop·touch 사용자 흐름은 [핵심 검증 정책](../policies/validation.md)을 따른다. 내부 selector·CSS 간격·파일 구조를 별도 통과 조건으로 고정하지 않는다. `scripts/lib/ui-source-catalog.mjs`는 실제 UI bundle 원본을 소유한다.
 
 ## 8. 후속 정리 경계
 

@@ -420,6 +420,13 @@ Examples:
   applicable.
 - Add a focused regression test for a reproduced bug when practical.
 
+### Keep the maintained checks small
+
+- Add a check only when it prevents a named major failure in Viewer use, data preparation/publication or original-file preservation. Prefer current observable behavior over internal names, source structure or minor styling.
+- Keep one representative scenario at the appropriate layer; do not repeat the same defect in unit, native, WASM and browser suites. Test counts are not fixed acceptance gates.
+- Remove tests, exclusive fixtures/helpers and registration with a removed feature. Do not retain obsolete checks as manual, skipped or quarantined cases. Preserve shared inputs with actual product or external consumers.
+- The application check catalog owns only the maintained Node/browser scenarios and fatal-error lint. Real generation/publication keeps its source, hash, lock, atomicity and remote-byte guards.
+
 ### Keep tests aligned with the current implementation
 
 - Updating affected tests is a required part of every behavior, model, schema,
