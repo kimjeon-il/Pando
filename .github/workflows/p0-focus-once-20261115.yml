@@ -18,3 +18,24 @@ jobs:
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Reuse P0 Node regression checks
         run: node scripts/run-application-checks.mjs --group=node --test-name-pattern="bounded current-world loader|scoped polygon uploads"
+
+  source-regeneration:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 24
+    steps:
+      - uses: actions/checkout@v4
+      - name: Isolate read/write verification from branch-owned library work
+        run: git checkout --detach "$GITHUB_SHA"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Prepare pinned external GIS sources using existing tooling
+        run: node tools/data/library-data.mjs
+      - name: Rebuild and verify country GeoJSON using bounded streaming
+        run: |
+          node tools/build/build-territorial-current-world.mjs
+          node tools/build/build-territorial-current-world.mjs --check
+      - name: Build shared-boundary cache without parsing the whole GeoJSON
+        run: node tools/build/build-country-shared-boundaries.mjs
