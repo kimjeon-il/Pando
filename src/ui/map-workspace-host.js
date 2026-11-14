@@ -91,13 +91,18 @@ export function createMapHost({productMode='editor',readOnly=productMode==='view
     }
     const at = performance.now();
     const active = !document.hidden && !gpuStats.projectRenderBlocked
-      && !gpuStats.webglContextLost && (sample.interactionActive || sample.viewFrame === true);
-    const interval = active && lastActiveQualityFrameAt !== null ? at - lastActiveQualityFrameAt : 0;
+      && !gpuStats.webglContextLost && (sample.interactionActive || sample.viewFrame === true || sample.displayFrame === true);
+    // Charge time after a render was requested, not idle time before it.
+    const queuedAt = Number(sample.queuedAtMs);
+    const requestedDuration = Number.isFinite(queuedAt) ? Math.max(0, at - queuedAt) : Infinity;
+    const interval = active && lastActiveQualityFrameAt !== null
+      ? Math.min(at - lastActiveQualityFrameAt, requestedDuration) : Number.isFinite(requestedDuration) ? requestedDuration : 0;
     lastActiveQualityFrameAt = active ? at : null;
-    const changed = active && dependencies.renderQuality.renderQualityController.recordFrame(sample.durationMs, {
+    const changed = dependencies.renderQuality.renderQualityController.recordFrame(sample.durationMs, {
       interaction: sample.interactionActive,
-      // A gap without continuous interaction is idle, not a slow frame.
-      frameIntervalMs: sample.interactionActive && interval < 1000 ? interval : 0,
+      frameIntervalMs: interval,
+      suspended: !active,
+      waiting: sample.waiting === true,
       memoryPressure: Number(gpuStats.managedGpuBytes || 0) > dependencies.renderQuality.currentRenderQuality.gpuCacheBudgetBytes,
     });
     if (changed) (0, dependencies.renderQuality.queueAdaptiveRenderQualityRefresh)('frame-budget-quality-change');

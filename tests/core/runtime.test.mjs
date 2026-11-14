@@ -1,3 +1,9 @@
+import {canRetainDisplayLod} from '../../src/rendering/country-mesh-zoom-policy.js';
+import {createObjectPicking} from '../../src/map/object-picking.js';
+import {coordinateBounds} from '../../src/geometry/coordinate-bounds.js';
+import {createMapHost} from '../../src/ui/map-workspace-host.js';
+import {createCountryMeshPreparation} from '../../src/rendering/country-mesh-preparation.js';
+import {tileLargePolygonLodFeatures} from '../../src/rendering/render-lod.js';
 import {createGpuContextRecovery} from '../../src/rendering/gpu-context-recovery.js';
 import {createCountryMeshVariants} from '../../src/rendering/gpu-country-mesh-variants.js';
 import {createSharedPolygonLodIndex} from '../../src/rendering/render-lod.js';
@@ -54,12 +60,31 @@ test('WebGL2 quality budgets simplify every object and change only after sustain
   assert.equal(quality.profile().tier,'coarse','promotion needs fifteen seconds of continuously stable evidence');
   clock+=16000;
   for(let i=0;i<20;i++){clock+=16;quality.recordFrame(3,{frameIntervalMs:16});}
+  assert.equal(quality.profile().tier,'coarse','idle time cannot qualify promotion');
+  for(let i=0;i<1000;i++){clock+=16;quality.recordFrame(3,{frameIntervalMs:16});}
   assert.equal(quality.profile().tier,'medium');
   quality.beginInteraction();
   for(let i=0;i<1000;i++){clock+=16;quality.recordFrame(3,{frameIntervalMs:16});}
   assert.equal(quality.profile().tier,'medium','promotion waits for interaction to end');
   quality.endInteraction();
   assert.equal(quality.profile().tier,'high','settling uses existing stable evidence without idle benchmark frames');
+});
+
+test('quality samples retain slow active display cadence and exclude suspended stability',()=>{
+  const previous={performance:globalThis.performance,window:globalThis.window,document:globalThis.document};let clock=0;
+  Object.defineProperty(globalThis,'performance',{configurable:true,value:{now:()=>clock}});globalThis.window={};globalThis.document={hidden:false};
+  try {
+    for(const [interaction,interval,viewFrame] of [[false,100,true],[true,1200,true],[false,100,false]]){
+      const q=createAdaptiveRenderQualityController({now:()=>clock}),host=createMapHost({productMode:'viewer'});
+      host.connect({rendering:{gpuMapRenderer:{getRuntimeState:()=>({managedGpuBytes:0})}},renderQuality:{renderQualityController:q,currentRenderQuality:q.profile(),queueAdaptiveRenderQualityRefresh(){}}});
+      for(let i=0;i<60;i++){clock+=interval;host.handleRenderFrameComplete({durationMs:2,interactionActive:interaction,viewFrame,displayFrame:true,queuedAtMs:clock-interval});}
+      assert.equal(q.profile().tier,'coarse','slow display must degrade even beyond one second');
+    }
+    const q=createAdaptiveRenderQualityController({now:()=>clock});q.beginInteraction();
+    for(let i=0;i<120;i++){clock+=16;q.recordFrame(2,{frameIntervalMs:16});}
+    clock+=20000;q.recordFrame(2,{suspended:true});q.endInteraction();
+    assert.equal(q.profile().tier,'medium','hidden time must not qualify a promotion');
+  } finally {Object.defineProperty(globalThis,'performance',{configurable:true,value:previous.performance});globalThis.window=previous.window;globalThis.document=previous.document;}
 });
 
 // A single fixed package exercises the current read-only path. No writer,
@@ -332,6 +357,11 @@ test('display derivatives preserve topology and identity and retire superseded G
   const shared=ring=>ring.filter(point=>point[0]===1).map(point=>point.join(',')).filter((v,i,a)=>a.indexOf(v)===i).sort();
   assert.deepEqual(shared(result.features[0].geometry.coordinates[0]),shared(result.features[1].geometry.coordinates[0]));
   assert.deepEqual(countryLodSourceIds({countryBounds:new Int32Array([0,0,1000000,2000000,1000000,0,2000000,2000000,10000000,0,11000000,2000000])},['A','B','far'],['A']),['A','B']);
+  const coverage={sourceIdentity:'source:month',visibleIds:['A','B'],visibleTiles:[{id:'A',tiles:[[0,0],[1,0]]}]};
+  assert.equal(canRetainDisplayLod(coverage,{...coverage,visibleIds:['A']}),true,'keep valid same-source LOD while replacement fails');
+  assert.equal(canRetainDisplayLod(coverage,{...coverage,sourceIdentity:'another-month'}),false);
+  assert.equal(canRetainDisplayLod(coverage,{...coverage,visibleIds:['A','C']}),false,'new entrants need coverage');
+  assert.equal(canRetainDisplayLod(coverage,{...coverage,visibleTiles:[{id:'A',tiles:[[2,0]]}]}),false);
   const released=[],variants=createCountryMeshVariants(entry=>released.push(entry.id));
   const add=id=>variants.replace('lod',()=>({id,quality:'lod'}),{preserveOtherVariants:true});
   add('visible');add('candidate');assert.deepEqual(released,[]);
@@ -360,4 +390,25 @@ test('WebGL2 recovery stops after its foreground deadline and rejects waiting op
   assert.equal(recovery.snapshot().timerPending,false);
   assert.equal(await recovery.request(),false,'same failed context is not retried');
   recovery.dispose();
+});
+
+test('tiled display mesh retains only real outlines and trims reusable mesh cache on downgrade',async()=>{
+  await import('../../src/rendering/workers/gpu-mesh-core.js');
+  const engine=globalThis.PandoLabGpuMeshCore;engine.setSharedCore(await core());
+  const engineCore=await core();
+  const feature={id:'A',geometry:{type:'Polygon',coordinates:[[[0,0],[10,0],[10,5],[0,5],[0,0]]]}};
+  const tiled=tileLargePolygonLodFeatures([feature],[{id:'A',tiles:[[0,0],[1,0]]}],{sourceKey:'fixture',lodKey:'fixture',intersection:(a,b)=>engineCore.polygonOperation('intersection',[a,b],false)});
+  const preparation=createCountryMeshPreparation({engine,yieldTask:async()=>{}}),context={throwIfCancelled(){}};
+  const mesh=await preparation.build(tiled.features,context);
+  let interior=0;for(let i=0;i<mesh.strokeStartsEnds.length;i+=4){const a=mesh.strokeStartsEnds;if(Math.abs(a[i]-5)<1e-5&&Math.abs(a[i+2]-5)<1e-5)interior++;}
+  assert.equal(interior,0,'tile clipping must not create selected country grid lines');
+  const picker=createObjectPicking(),display={id:'A',geometry:{type:'Polygon',coordinates:[[[0,0],[8,0],[8,10],[0,10],[0,0]]]}};
+  const inside=(point,feature)=>point[0]>=0&&point[0]<=feature.geometry.coordinates[0][1][0]&&point[1]>=0&&point[1]<=10;
+  picker.connect({projectState:{state:{countryVisualPhase:'canonical'}},selectionServices:{normalizeObjectRef:r=>({...r,key:r.id})},objectOperationsA:{objectRefVisible:()=>true},
+    rendering:{gpuMapRenderer:{presentedCountryFeature:()=>display},selectionPerformanceMetrics:{exactHitTestCount:0}},surfaces:{isMobile:()=>false},mapView:{activeProjection:()=>p=>p.map(n=>n*100)},landRelations:{pointInCountryFeature:inside},cutGeometry:{coordinateBounds},labelPresentation:{currentMapZoom:()=>100},spatialRecords:{geometryBoundsCache:new WeakMap()}});
+  assert.deepEqual(picker.territorialObjectsAt([900,500],[9,5],[{domain:'territorial',id:'A'}]),[],'invisible canonical strip is not selected');
+  assert.equal(picker.territorialObjectsAt([700,500],[7,5],[{domain:'territorial',id:'A'}])[0].ref.id,'A');
+  preparation.setByteBudget(0);
+  const rebuilt=await preparation.build(tiled.features,context);
+  assert.equal(rebuilt.preparation.cacheBytes,0,'downgrade releases old reusable parts immediately');
 });

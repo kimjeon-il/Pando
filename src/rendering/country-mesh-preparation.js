@@ -1,3 +1,4 @@
+import { buildSelectionBoundarySegments } from "./selection-stroke-geometry.js";
 import { polygonGeometryDigest } from "./prepared-polygon-mesh.js";
 
 // Display-only tile parts share the existing source-aware LRU with canonical
@@ -13,6 +14,14 @@ export function createCountryMeshPreparation({ engine, loadPreparedPart = null, 
   const types = [Int32Array, Uint16Array, Uint32Array, Uint32Array,
     Float32Array, Uint32Array, Uint32Array, Int32Array, Uint32Array];
 
+  function setByteBudget(value) {
+    if (!Number.isFinite(value) || value < 0) throw new TypeError('Invalid mesh cache budget');
+    byteBudget = value;
+    while (cacheBytes > byteBudget) {
+      const key=cache.keys().next().value;
+      cacheBytes-=bytesOf(cache.get(key));cache.delete(key);
+    }
+  }
   const bytesOf = part => fields.reduce((sum, field) => sum + (part[field]?.byteLength || 0), 0);
   async function build(features, context, progress = () => {}, {
     validate = false, maxEdgeDegrees = engine.MAX_RENDER_EDGE_DEGREES,
@@ -81,6 +90,10 @@ export function createCountryMeshPreparation({ engine, loadPreparedPart = null, 
     }
     const assembly = performance.now();
     const parts = groups.flat();
+    // Tile rectangles belong to fill preparation, never to object outlines.
+    const outlines = features.map((feature,index) => feature.lodParts?.length
+      ? Float32Array.from(buildSelectionBoundarySegments(feature.outlineGeometry,{densify:true}).flatMap(([a,b])=>[...a,...b]))
+      : groups[index][0].strokeStartsEnds);
     const mesh = { countryIds: features.map((feature, index) => String(feature.id ?? index)),
       strokeOwnerRanges: {},
       stats: { algorithmRevision: engine.MESH_ALGORITHM_REVISION,
@@ -88,7 +101,7 @@ export function createCountryMeshPreparation({ engine, loadPreparedPart = null, 
         removedDegenerateTriangleCount: 0 } };
     const concatenated = ['positions', 'countryIndices', 'triangleIndices', 'lineIndices', 'strokeStartsEnds'];
     for (const [index, field] of fields.entries()) {
-      const count = concatenated.includes(field)
+      const count = field === 'strokeStartsEnds' ? outlines.reduce((n,a)=>n+a.length,0) : concatenated.includes(field)
         ? parts.reduce((sum, part) => sum + part[field].length, 0)
         : field === 'countryBounds' ? features.length * 4
         : field === 'countryBoundsFlags' ? features.length : features.length * 2;
@@ -107,7 +120,7 @@ export function createCountryMeshPreparation({ engine, loadPreparedPart = null, 
           mesh.triangleIndices[triangles + item] = vertices + part.triangleIndices[item];
         for (let item = 0; item < part.lineIndices.length; item++)
           mesh.lineIndices[lines + item] = vertices + part.lineIndices[item];
-        mesh.strokeStartsEnds.set(part.strokeStartsEnds, strokes);
+
         flags |= Number(part.countryBoundsFlags[0] || 0);
         for (let axis = 0; axis < 2; axis++) {
           bounds[axis] = Math.min(bounds[axis], part.countryBounds[axis]);
@@ -119,7 +132,7 @@ export function createCountryMeshPreparation({ engine, loadPreparedPart = null, 
         vertices += part.countryIndices.length;
         triangles += part.triangleIndices.length;
         lines += part.lineIndices.length;
-        strokes += part.strokeStartsEnds.length;
+
       }
       // One source part must be byte-for-byte equivalent to the canonical
       // engine. Only a multi-tile union needs conservative bound promotion.
@@ -135,6 +148,8 @@ export function createCountryMeshPreparation({ engine, loadPreparedPart = null, 
       }
       mesh.countryTriangleRanges.set([startTriangle, triangles - startTriangle], countryIndex * 2);
       mesh.countryBoundaryRanges.set([startBoundary, lines - startBoundary], countryIndex * 2);
+      mesh.strokeStartsEnds.set(outlines[countryIndex],strokes);
+      strokes += outlines[countryIndex].length;
       mesh.strokeOwnerRanges[id] = { first: startStroke / 4, count: (strokes - startStroke) / 4 };
     });
     preparation.assemblyMs = performance.now() - assembly;
@@ -143,5 +158,5 @@ export function createCountryMeshPreparation({ engine, loadPreparedPart = null, 
     progress(features.length + 1, 'assembly');
     return mesh;
   }
-  return { build };
+  return { build, setByteBudget, stats:()=>({bytes:cacheBytes,byteBudget}) };
 }
