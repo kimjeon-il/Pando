@@ -14,3 +14,17 @@ export function canAdmitWebGlPartialBackground({ rendererMode, submittedBaseFram
   return rendererMode === 'webgl2'
     && submittedBaseFrame === true && physicalSceneMatched === true && temporalPending === false;
 }
+
+// Retain only an admitted derivative of the same source/time whose country and
+// tile coverage contains the new view. Never revive another date or omit entrants.
+export function canRetainDisplayLod(accepted, requested) {
+  if(!accepted || !requested || accepted.sourceIdentity!==requested.sourceIdentity)return false;
+  if(accepted.visibleIds && (!requested.visibleIds || requested.visibleIds.some(id=>!accepted.visibleIds.includes(id))))return false;
+  const before=new Map((accepted.visibleTiles||[]).map(row=>[row.id,new Set(row.tiles.map(tile=>tile.join(':')))]));
+  const after=new Map((requested.visibleTiles||[]).map(row=>[row.id,row.tiles]));
+  for(const [id,tiles] of before){
+    if(requested.visibleIds && !requested.visibleIds.includes(id))continue;
+    if(!after.has(id) || after.get(id).some(tile=>!tiles.has(tile.join(':'))))return false;
+  }
+  return true;
+}

@@ -31,7 +31,7 @@ export { visibleFlatWorldOffsets } from "./map-visual-frame.js";
 import { createGpuMeshWorkerJobs } from "./gpu-mesh-worker-jobs.js";
 import { resolveScreenLodBucket } from "./render-lod.js";
 import { decideCountryPatchPresentation } from "./country-mesh-quality-gate.js";
-import { resolveMapSurfacePresentation, canAdmitWebGlPartialBackground } from "./country-mesh-zoom-policy.js";
+import { resolveMapSurfacePresentation, canAdmitWebGlPartialBackground, canRetainDisplayLod } from "./country-mesh-zoom-policy.js";
 import { mapPresentationReadiness } from "../app/startup-readiness.js";
 import { shouldShowSharedCountryBorders } from "./country-shared-boundary-packet.js";
 import { geometryRevisionKey } from "../geometry/geometry-versions.js";
@@ -233,10 +233,11 @@ export function createGpuMapRenderer(deps) {
     let meshSwitchCount = 0;
     let renderQualityChangeCount = 0;
     // A single canonical source may produce multiple display-only mesh buckets.
-    // These identities never participate in document editing or CPU picking.
+    // These identities govern display and picking, never document editing.
     let screenLodBucket = null, screenLodTargetKey = '', screenLodPreparingKey = '';
     let screenLodRejectedKey = '', screenLodTimer = null, screenLodSourceKey = '';
-    let screenLodFailure = '', screenLodLatest = null, screenLodFeatures = null, screenLodPhysical = null;
+    let screenLodFailure = '', screenLodLatest = null, screenLodFeatures = null;
+    let screenLodCoverage = null;
     // Readiness and the accepted display derivative are separate resources.
     let surfacePresentation = Object.freeze({ targetQuality: 'canonical', quality: 'pending' });
     let presentedMapKey = '';
@@ -259,10 +260,10 @@ export function createGpuMapRenderer(deps) {
       screenLodSourceKey = '';
       screenLodFailure = '';
       screenLodLatest = null;
-      screenLodFeatures = null; screenLodPhysical = null;
+      screenLodFeatures = null; screenLodCoverage = null;
     }
 
-    // The canonical mesh is authoritative for edits, picks, and source
+    // The canonical mesh is authoritative for edits and source
     // revisions. This schedules only a disposable lower-cost presentation mesh.
     // A frame can always keep drawing the accepted canonical resource.
     function resolveDisplayLod(cssScale) {
@@ -312,6 +313,8 @@ export function createGpuMapRenderer(deps) {
       // admission key rather than reusing an incomplete derivative.
       const tileKey = visibleTiles.map(row => `${row.id}=${row.tiles.map(tile => tile.join(':')).join(';')}`).join('|');
       const key = `${generation}:${revision}:${sourceKey}:${bucket.key}:${viewKey}:${tileKey}`;
+      screenLodCoverage = {sourceIdentity:`${generation}:${revision}:${source}`,visibleIds:scopedIds,visibleTiles};
+      const coverage = screenLodCoverage;
       screenLodSourceKey = sourceKey;
       if (screenLodTargetKey === key) return key;
       screenLodTargetKey = key;
@@ -340,10 +343,6 @@ export function createGpuMapRenderer(deps) {
         patchJobScheduler.prepareDisplayLod({
           projectGeneration: generation, geometryRevision: revision, sourceKey,
           features: canonicalCountryFeatures().filter(feature=>!sourceSet || sourceSet.has(String(feature.id))), lod: bucket, visibleIds: scopedIds,
-          extraPhysicalFeatures:physical?.geometry ? [
-            {id:'physical-land',geometry:physical.geometry},
-            ...(physical.water?[{id:'physical-water',geometry:physical.water}]:[]),
-          ]:[],
           visibleTiles, cpuCacheBudgetBytes:renderQuality.cpuCacheBudgetBytes / 2,
         }, current).then(async result => {
           if (!result || !current()) return;
@@ -355,7 +354,7 @@ export function createGpuMapRenderer(deps) {
           screenLodLatest = Object.freeze({
             ...result.lod, durationMs: Number((performance.now() - started).toFixed(2)),
             generatedVertices: result.positions?.length / 2 || 0,
-            candidateGpuBytes, canonicalGpuBytes, lodBudgetBytes,
+            candidateGpuBytes, canonicalGpuBytes, lodBudgetBytes, workerCache:result.workerCache,
           });
           performanceMetrics.screenLodPreparedCount =
             (performanceMetrics.screenLodPreparedCount || 0) + 1;
@@ -405,10 +404,7 @@ export function createGpuMapRenderer(deps) {
             resources = null;
             meshVariants.get('lod').lodKey = key;
             screenLodFeatures=result.displayFeatures;
-            screenLodPhysical=physical?.geometry?{...physical,
-              geometry:result.displayPhysicalFeatures.find(row=>row.id==='physical-land')?.geometry,
-              water:result.displayPhysicalFeatures.find(row=>row.id==='physical-water')?.geometry || null,
-              displayLodKey:key,packets:Object.fromEntries((result.displayPhysicalPackets || []).map(row=>[row.id,row.packet]))}:null;
+            meshVariants.get('lod').coverage = coverage;
             prepareCountrySharedBoundary({features:screenLodFeatures.filter(row=>row.geometry),replace:true});
             screenLodFailure = '';
             performanceMetrics.screenLodUploadCount =
@@ -498,7 +494,7 @@ export function createGpuMapRenderer(deps) {
       // Display-only LOD preparation must never suppress the already accepted
       // canonical frame. Publish its derivative only after it is ready.
       const geometryQuality=surfacePresentation.geometryQuality==='canonical'
-        && accepted?.lodKey===lodKey && !!lodKey ? 'lod' : surfacePresentation.geometryQuality;
+        && !!lodKey && (accepted?.lodKey===lodKey || canRetainDisplayLod(accepted?.coverage,screenLodCoverage)) ? 'lod' : surfacePresentation.geometryQuality;
       if(geometryQuality!=='pending' && (geometryQuality!==activeMeshQuality || meshVariants.get(geometryQuality)?.mesh!==mesh)) {
         activateMeshVariant(geometryQuality,{renderFrame:false});
       }
@@ -515,11 +511,7 @@ export function createGpuMapRenderer(deps) {
     function surfaceScenePolygons() {
       const packets=renderScene?.polygons || [];
       if(deps.lodPolicy && surfacePresentation.geometryQuality==='pending')return packets.filter(packet=>!['physical-land','physical-water'].includes(packet.role));
-      if(activeMeshQuality!=='lod'||!screenLodPhysical?.packets)return packets;
-      return packets.map(packet=>{
-        const derived=screenLodPhysical.packets[packet.role];
-        return derived?{...packet,...derived,sourceKey:packet.sourceKey+':lod:'+screenLodPhysical.displayLodKey}:packet;
-      });
+      return packets;
     }
 
     function currentTerrainReadiness() {
@@ -2905,6 +2897,7 @@ export function createGpuMapRenderer(deps) {
           canvas.width = nextWidth;
           canvas.height = nextHeight;
         }
+        lifecycle.release(pickFramebuffer);lifecycle.release(pickTexture);
         pickFramebuffer = null;
         pickTexture = null;
         pickSceneKey = '';
@@ -3531,6 +3524,11 @@ export function createGpuMapRenderer(deps) {
       // A phase change preserves the admitted mesh and warm Worker source.
       // Only a changed display tolerance requests another derived geometry.
       terrainPreparation?.setQuality(renderQuality);
+      if(previousTier !== renderQuality.tier) {
+        // A quality downgrade must reclaim the old Worker's caches immediately.
+        patchJobScheduler.cancelDisplayLod();
+        screenLodTargetKey='';screenLodPreparingKey='';
+      }
       if(previousGeometryError !== renderQuality.geometryErrorPx) {
         screenLodRejectedKey = '';
         screenLodFailure = '';
@@ -4136,7 +4134,7 @@ export function createGpuMapRenderer(deps) {
 
     function ensureCountryIdScene() {
       if (surfacePresentation.quality === 'pending' || !isWebGlRenderer() || !gl || !mesh || !state.layerVisibility.objects) return false;
-      const pickEntry = meshVariants.get(surfacePresentation.quality);
+      const pickEntry = meshVariants.get(activeMeshQuality);
       // The pick shader uses the active palette slots. Fall back to precise CPU
       // picking when canonical slots differ, rather than decode another country.
       if (pickEntry && (pickEntry.countryIds.length !== meshCountryIds.length
@@ -4847,6 +4845,7 @@ export function createGpuMapRenderer(deps) {
       initialize, replaceBuiltInMesh, renderFrame,
       renderInteraction, renderPreservedProjectFrame,
       resize, verifyLayout, pick, pickHydro,
+      presentedCountryFeature: id => surfaceCountryFeatures().find(feature=>String(feature.id)===String(id)) || null,
       resolveDisplayLod, rebuildFromCountries, applyCountryPatch, compactCountryOverrides, getStats, getRuntimeState, getRenderPixelRatio: resolveRenderPixelRatio, setTerrainManifest, activeTerrainSourceInfo,
       setHydroManifest, loadHydroLogicalFeature, queryHydroLogicalFeatures, retryHydroCache,
       setHydroEdits,

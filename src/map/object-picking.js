@@ -76,7 +76,7 @@ export function createObjectPicking({performanceRecorder=null,closeActiveOverlay
   function territorialObjectsAt(screenPoint, coord, records = dependencies.spatialRecords.indexedMapObjectCandidates(screenPoint)) {
     if (dependencies.projectState.state.countryVisualPhase === 'pending') return [];
     return records.filter(record => record.domain === 'territorial').flatMap(record => {
-      const feature = dependencies.objectModelB.territorialScope.displayFeature(record.id);
+      const feature = dependencies.rendering.gpuMapRenderer.presentedCountryFeature(record.id);
       const ref = dependencies.selectionServices.normalizeObjectRef({ domain: 'territorial', type: 'entity', id: record.id });
       if (!feature || !objectRefSelectable(ref)) return [];
       dependencies.rendering.selectionPerformanceMetrics.exactHitTestCount += 1;

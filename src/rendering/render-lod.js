@@ -611,8 +611,9 @@ export function createSharedPolygonLodIndex(features, { onProgress = () => {} } 
  * Derive only the visible internal geographic cells of a large country.
  * The supplied intersection capability is the application's compiled
  * polygon engine. Tile boundaries are on a common global integer grid;
- * source geometry, editing and picking never consume these derivatives.
- * Any incomplete/invalid clip aborts the derivative (canonical keeps showing).
+ * source geometry and editing never consume these derivatives. Picking follows
+ * the admitted display geometry and its unchanged object IDs.
+ * Any incomplete/invalid clip aborts the candidate; valid admitted coverage remains.
  *
  * The cache is owned by the existing mesh Worker and keyed by source revision,
  * zoom bucket and tile. Moving the camera reuses unchanged prepared cells.
@@ -701,7 +702,7 @@ export function tileLargePolygonLodFeatures(features, visibleTiles, {
       return feature;
     }
     tiledCountryCount++;
-    return { ...feature, geometry: null, lodParts: parts };
+    return { ...feature, geometry: null, outlineGeometry: geometry, lodParts: parts };
   });
   return Object.freeze({
     features: result, tiledCountryCount, tilesPrepared, tilesReused,

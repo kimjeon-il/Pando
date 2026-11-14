@@ -59,8 +59,7 @@ export function createGpuMeshWorkerJobs({ createWorker, createRebuildWorker = cr
     try {
       const reuseSource = lodSourceInWorker === payload.sourceKey;
       const countryFeatures = payload.features || [];
-      const extraPhysicalFeatures = payload.extraPhysicalFeatures || [];
-      const packed = reuseSource ? null : await packCountryMeshFeatures([...countryFeatures, ...extraPhysicalFeatures], {
+      const packed = reuseSource ? null : await packCountryMeshFeatures(countryFeatures, {
         isCurrent: () => lodRpc === current && accepts(),
       });
       lodMetrics.requests += 1;

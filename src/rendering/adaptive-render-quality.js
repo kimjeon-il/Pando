@@ -98,7 +98,7 @@ export function createAdaptiveRenderQualityController({
   let longFrameCount = 0;
   const frameSamples = [];
   const maximumTierIndex = 2;
-  let memoryPressure=false, stableSince=null;
+  let memoryPressure=false, stableActiveMs=0, windowActiveMs=0;
 
   function metrics() {
     return {
@@ -123,7 +123,7 @@ export function createAdaptiveRenderQualityController({
     lastReason = String(reason || 'runtime-frame-budget');
     overBudgetWindows = 0;
     underBudgetWindows = 0;
-    stableSince=null;
+    stableActiveMs=0; windowActiveMs=0;
     return true;
   }
 
@@ -152,7 +152,8 @@ export function createAdaptiveRenderQualityController({
       underBudgetWindows = 0;
     }
     if (now() - lastChangeAt < changeCooldownMs) return false;
-    if (comfortable) stableSince ??= now(); else stableSince = null;
+    stableActiveMs = comfortable ? stableActiveMs + windowActiveMs : 0;
+    windowActiveMs = 0;
     const index = TIER_ORDER.indexOf(tier);
     if (overBudgetWindows >= degradeWindows && index > 0) return changeTier(TIER_ORDER[index - 1], 'frame-p95-over-budget');
     return promoteIfStable();
@@ -161,17 +162,18 @@ export function createAdaptiveRenderQualityController({
   function promoteIfStable() {
     const index=TIER_ORDER.indexOf(tier);
     if (phase === 'settle' && !memoryPressure && underBudgetWindows >= upgradeWindows
-      && index < maximumTierIndex && stableSince !== null && now()-stableSince >= 15000) {
+      && index < maximumTierIndex && stableActiveMs >= 15000) {
       return changeTier(TIER_ORDER[index + 1], 'frame-budget-stable');
     }
     return false;
   }
 
   function recordFrame(durationMs, { interaction = phase === 'interaction',frameIntervalMs=0,suspended=false,waiting=false,memoryPressure:pressure=false } = {}) {
-    if(suspended||waiting)return false;
+    if(suspended||waiting){stableActiveMs=0;windowActiveMs=0;underBudgetWindows=0;return false;}
     memoryPressure=pressure;
     const duration = Math.max(0, Number(durationMs) || 0,Number(frameIntervalMs)||0);
     if (!duration) return false;
+    windowActiveMs += duration;
     frameSamples.push(duration);
     if (frameSamples.length > 60) frameSamples.splice(0, frameSamples.length - 60);
     if (duration >= 45) longFrameCount += 1;
