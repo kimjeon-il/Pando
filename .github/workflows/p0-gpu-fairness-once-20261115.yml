@@ -1,0 +1,105 @@
+name: P0 32x upload fairness before and after regression
+on:
+  push:
+    branches: [work/p0-world-consumers-upload-fairness-20261115]
+    paths: [.github/workflows/p0-gpu-fairness-once-20261115.yml]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 17
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use isolated CI source checkout for pinned library data
+        run: git checkout --detach "$GITHUB_SHA"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Prepare pinned Viewer data
+        run: node tools/data/library-data.mjs --prepare-metadata
+      - name: Reuse Chromium browser test runner
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Append runner-only cost probe to existing Viewer browser test
+        run: |
+          cat >> tests/browser/viewer.spec.mjs <<'P0PROBE'
+
+          for (const profile of [
+            {name:'desktop',viewport:{width:1280,height:800}},
+            {name:'mobile-viewport',viewport:{width:390,height:844}},
+          ]) test('P0 32x GPU cost attribution '+profile.name, async ({page},info) => {
+            test.setTimeout(440000);
+            const {writeFileSync} = await import('node:fs');
+            const result={schema:'pando-p0-cost-v1',profile:profile.name,viewport:profile.viewport,
+              actualMobileHardware:false,gpuTimerMeasured:false,stages:[],errors:[]};
+            page.on('pageerror',error=>result.errors.push(error.message));
+            const snapshot=()=>page.evaluate(()=>{
+              const v=window.__PANDOLAB_VIEWER__,s=v?.rendererStats();
+              if(!v||!s)return null;
+              const p=s.polygonOverlay||{},u=s.gpuUpload||{},t=s.mapReadiness||{};
+              return {firstPresented:v.initialMapPresented(),mapReady:t.mapReady,terrainReady:t.terrainReady,
+                target:s.terrainTargetLevel,rendered:s.terrainRenderedLevel,
+                tiles:s.terrainTargetTilesLoaded,count:s.terrainTargetTileCount,
+                gpuUpload:u,polygon:{bytes:p.activeBufferBytes,physicalBytes:p.physicalBaseBufferBytes,
+                  optionalBytes:p.optionalOverlayBufferBytes,stagingBytes:p.stagingBufferBytes,
+                  drawMs:p.drawMs,drawCalls:p.drawCallCount},
+                mesh:s.activeMeshQuality,quality:s.renderQuality?.tier,pixelRatio:s.effectivePixelRatio,
+                managedGpuBytes:s.managedGpuBytes,lastBaseMs:s.webGlLastBaseSubmitMs,
+                firstCountryMs:s.firstCountryPublishedMs,firstBackgroundMs:s.firstBackgroundFrameMs,
+                sceneDrawCalls:s.webGlLastFrameSceneDrawCalls,
+                sceneCacheFullDrawCount:s.sceneCacheFullDrawCount,
+                sceneCacheReprojectCount:s.sceneCacheReprojectCount,
+                screenLodTargetKey:s.screenLodTargetKey,screenLodPreparingKey:s.screenLodPreparingKey,
+                revision:s.displayedRevision};
+            });
+            const gaps=durationMs=>page.evaluate(duration=>new Promise(resolve=>{
+              const gaps=[],start=performance.now();let last=start;
+              const tick=now=>{gaps.push(now-last);last=now;
+                if(now-start<duration)requestAnimationFrame(tick);
+                else{gaps.sort((a,b)=>a-b);resolve({samples:gaps.length,p95:gaps[Math.floor(.95*(gaps.length-1))],max:gaps[gaps.length-1]});}};
+              requestAnimationFrame(tick);
+            }),durationMs);
+            try {
+              await page.setViewportSize(profile.viewport);
+              const first=Date.now();await page.goto('./?debug=1',{waitUntil:'domcontentloaded'});
+              await expect.poll(async()=>{
+                const s=await snapshot();return !!s?.firstPresented && s.mapReady;
+              },{timeout:200000,intervals:[500,1000,2000]}).toBe(true);
+              result.stages.push({name:'startup',elapsedMs:Date.now()-first,state:await snapshot()});
+              console.log('P0_START '+profile.name+' '+JSON.stringify(result.stages[0]));
+              await page.evaluate(()=>{
+                const h=window.__PANDOLAB_MAP_HOST__,v=h.getViewState();
+                h.setViewState({projection:'globe',view:{...v,globeRotation:[-106,-30,0],globeZoom:32}});
+                h.requestRepaint('p0-gpu-32x-attribution');
+              });
+              const start32=Date.now();
+              const initialGaps=await gaps(3800);
+              const unsettled=await snapshot();
+              result.stages.push({name:'32x-mid-transition',elapsedMs:Date.now()-start32,gaps:initialGaps,state:unsettled});
+              console.log('P0_TRANSITION '+profile.name+' '+JSON.stringify(result.stages[1]));
+              await expect.poll(async()=>{
+                const s=await snapshot();
+                return s?.terrainReady && s.target===s.rendered && s.tiles>=s.count
+                  && s.gpuUpload?.pending===0 && s.screenLodPreparingKey==null;
+              },{timeout:140000,intervals:[500,1000,2000]}).toBe(true);
+              const stable=await snapshot();
+              result.stages.push({name:'32x-stable',elapsedMs:Date.now()-start32,state:stable});
+              console.log('P0_SETTLED '+profile.name+' '+JSON.stringify(result.stages[2]));
+              await page.screenshot({path:info.outputPath('p0-32x-'+profile.name+'.png')});
+              expect(result.errors).toEqual([]);
+            }catch(error){result.error=error.stack||String(error);throw error;}
+            finally{writeFileSync(info.outputPath('p0-32x-'+profile.name+'.json'),JSON.stringify(result,null,2));}
+          });
+          P0PROBE
+      - name: Measure Viewer desktop and responsive mobile viewport
+        run: pnpm exec playwright test tests/browser/viewer.spec.mjs --grep "P0 32x GPU cost attribution" --workers=1 --retries=0
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: p0-32x-cost-evidence
+          path: |
+            test-results/**/p0-32x-*.json
+            test-results/**/p0-32x-*.png
+          if-no-files-found: warn
