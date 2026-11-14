@@ -272,3 +272,28 @@ test('optional terrain delay and failure cannot hold a ready base-map startup', 
     assert.deepEqual(reader.physicalLand.geometry,geometry,'terrain rejection preserves the accepted base substrate');
   } finally {lifecycle.dispose();}
 });
+
+test('numeric DEM regression compares the same colored or monochrome channel at fractional heights',()=>{
+  // The retired WebGL regression compared a monochrome pass (physicalStyle=0)
+  // to Canvas's default colored-land channel and reported a false shader error.
+  const scope={self:{}};
+  vm.runInNewContext(readFileSync(new URL('../../src/rendering/workers/canvas-terrain-dem-core.js',import.meta.url),'utf8'),scope);
+  const terrain=scope.self.PandoLabCanvasTerrainDem,width=6,height=6;
+  const dem=new Uint8ClampedArray(width*height*4);
+  for(let y=0;y<height;y++)for(let x=0;x<width;x++){
+    const i=(y*width+x)*4,h=32*x+13*y+7*x*y+12000;
+    dem.set([h>>8,h&255,128,255],i);
+  }
+  const prepared=terrain.convertTile({dem,width,height});
+  const colored=terrain.sampleInterpolated({dem,width,height,x:1.1,y:2.25,channel:'land'});
+  const mono=terrain.sampleInterpolated({dem,width,height,x:1.1,y:2.25,channel:'political'});
+  assert.notDeepEqual(colored.slice(0,3),mono.slice(0,3),
+    'a political grayscale pass cannot be compared to colored land');
+  assert.equal(mono[0],mono[1]);assert.equal(mono[1],mono[2]);
+  for(const channel of ['land','ocean','political']){
+    const actual=terrain.sampleInterpolated({dem,width,height,x:3,y:3,channel});
+    const expected=prepared[channel].slice((3*width+3)*4,(3*width+3)*4+4);
+    for(let c=0;c<4;c++)assert.ok(Math.abs(actual[c]-expected[c])<=1,
+      channel+' integer texel '+c+' must match the prepared-color contract');
+  }
+});
