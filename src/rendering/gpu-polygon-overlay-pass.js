@@ -45,6 +45,7 @@ export function createGpuPolygonOverlayPass({ onError = null, onResourceReady = 
   let uploadScheduler = null;
   const pendingUploads = new Map();
   let gl = null;
+  let uploadDevice = null;
   let programInfo = null;
   let contextLost = false;
   const resources = new Map();
@@ -71,6 +72,7 @@ export function createGpuPolygonOverlayPass({ onError = null, onResourceReady = 
     dispose();
     if (!isRenderDevice(nextDevice) || !nextDevice.capabilities.uintIndices) return false;
     gl = nextDevice.gl;
+    uploadDevice = nextDevice;
     try {
       programInfo = createProgram(nextDevice);
       contextLost = false;
@@ -141,8 +143,12 @@ export function createGpuPolygonOverlayPass({ onError = null, onResourceReady = 
             resources.set(key, resource); trackResourceBudget(resource, packet.priority); pendingUploads.delete(key); buildCount++; cacheMisses++;
             onResourceReady?.(key); return { done: true };
           }
-          const data = job.part ? packet.indices : packet.positions, target = job.part ? gl.ELEMENT_ARRAY_BUFFER : gl.ARRAY_BUFFER;
-          const binding = gl.getParameter(job.part ? gl.ELEMENT_ARRAY_BUFFER_BINDING : gl.ARRAY_BUFFER_BINDING);
+          const data = job.part ? packet.indices : packet.positions;
+          // Both GPU buffer classes may be staged through WebGL2 COPY_WRITE_BUFFER.
+          // It does not alter the element binding owned by the currently bound VAO.
+          const target = gl.COPY_WRITE_BUFFER;
+          const binding = uploadDevice?.state?.captureCopyWriteBufferBinding?.();
+          if (!binding) throw new Error('Polygon upload requires the RenderDevice copy-write binding ledger');
           try {
             if (!job.buffers[job.part]) {
               const buffer = gl.createBuffer(); if (!buffer) throw new Error('Polygon staging allocation failed');
@@ -156,7 +162,7 @@ export function createGpuPolygonOverlayPass({ onError = null, onResourceReady = 
             job.offset += bytes; uploadBytes += bytes;
             if (job.offset === data.byteLength) { job.part++; job.offset = 0; }
             return { bytes };
-          } finally { gl.bindBuffer(target, binding); }
+          } finally { uploadDevice?.state?.restoreCopyWriteBufferBinding?.(binding); }
         },
       }).catch(error => { if (error.name !== 'AbortError') onError?.({ stage: 'polygon-upload', error }); });
       return { resource: null, reason: 'upload-pending' };
@@ -347,6 +353,7 @@ export function createGpuPolygonOverlayPass({ onError = null, onResourceReady = 
     programInfo = null;
     contextLost = true;
     gl = null;
+    uploadDevice = null;
   }
 
   function dispose() {
@@ -362,6 +369,7 @@ export function createGpuPolygonOverlayPass({ onError = null, onResourceReady = 
     resourceBudget.clear();
     programInfo = null;
     gl = null;
+    uploadDevice = null;
     contextLost = false;
   }
 
