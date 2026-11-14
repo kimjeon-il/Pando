@@ -107,7 +107,7 @@ export function createGpuPolygonOverlayPass({ onError = null, onResourceReady = 
       uploadScheduler?.cancelKey('polygon:' + key);
       pendingUploads.delete(key);
       if (previous) deleteResource(key);
-      const resource = Object.freeze({ key, signature: nextSignature, indexCount: 0,
+      const resource = Object.freeze({ key, role: packet?.role || 'other', signature: nextSignature, indexCount: 0,
         byteLength: 0, positionBuffer: null, indexBuffer: null, rasterState: 'grid-collapsed' });
       resources.set(key, resource); resourceBudget.track(key, 0, packet?.priority);
       buildCount++; cacheMisses++;
@@ -129,7 +129,7 @@ export function createGpuPolygonOverlayPass({ onError = null, onResourceReady = 
         step: ({ byteBudget }) => {
           if (gl !== uploadGl || contextLost || pendingUploads.get(key) !== job) throw Object.assign(new Error('Stale polygon upload'), { name: 'AbortError' });
           if (job.part === 2) {
-            const resource = Object.freeze({ key, signature: nextSignature, positionBuffer: job.buffers[0], indexBuffer: job.buffers[1], indexCount: packet.indices.length, byteLength: packet.positions.byteLength + packet.indices.byteLength });
+            const resource = Object.freeze({ key, role:packet?.role || 'other', signature: nextSignature, positionBuffer: job.buffers[0], indexBuffer: job.buffers[1], indexCount: packet.indices.length, byteLength: packet.positions.byteLength + packet.indices.byteLength });
             if (previous) { gl.deleteBuffer(previous.positionBuffer); gl.deleteBuffer(previous.indexBuffer); }
             resources.set(key, resource); resourceBudget.track(key, resource.byteLength, packet.priority); pendingUploads.delete(key); buildCount++; cacheMisses++;
             onResourceReady?.(key); return { done: true };
@@ -166,6 +166,7 @@ export function createGpuPolygonOverlayPass({ onError = null, onResourceReady = 
       const byteLength = packet.positions.byteLength + packet.indices.byteLength;
       const resource = Object.freeze({
         key,
+        role: packet?.role || 'other',
         signature: nextSignature,
         positionBuffer,
         indexBuffer,
@@ -369,6 +370,15 @@ export function createGpuPolygonOverlayPass({ onError = null, onResourceReady = 
       lastFailureStage,
       contextLost,
       activeBufferBytes: [...resources.values()].reduce((sum, resource) => sum + resource.byteLength, 0),
+      // Actual GPU allocations by scene role. Essential polygon masks may be
+      // protected from eviction; exposing them prevents a budget overrun from
+      // being misdiagnosed as a leaked inactive cache.
+      resourceBytesByRole: Object.fromEntries([...resources.values()].reduce((rows, resource) => {
+        rows.set(resource.role || 'other', (rows.get(resource.role || 'other') || 0) + resource.byteLength);
+        return rows;
+      }, new Map())),
+      largestResources: [...resources.values()].sort((a,b)=>b.byteLength-a.byteLength)
+        .slice(0,4).map(({key,role,byteLength})=>({key,role,byteLength})),
       resourceBudget: resourceBudget.stats(),
     }),
   });
